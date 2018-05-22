@@ -17,6 +17,7 @@ export const singleSignOn = (endpoint, dimensions, target = '_blank') =>
       if (popup.closed) {
         reject('Single Sign-on cancelled');
       } else if (sameHost(popup, window)) {
+        popup.close();
         resolve();
       } else {
         setTimeout(checkPopup, 100);
