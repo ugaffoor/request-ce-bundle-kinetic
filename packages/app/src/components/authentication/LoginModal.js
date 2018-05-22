@@ -4,6 +4,7 @@ import { compose, withState, withHandlers, lifecycle } from 'recompose';
 import { Modal, ModalBody, ModalFooter } from 'reactstrap';
 import { login } from '../../utils/authentication';
 import { actions } from '../../redux/modules/auth';
+import { singleSignOn } from '../../utils/singleSignOn';
 
 export const LoginModalComponent = props =>
   props.showing && (
@@ -48,9 +49,22 @@ export const LoginModalComponent = props =>
             />
           </div>
           <span className="text-danger">{props.error || ' '}</span>
+          <hr />
+          <button
+            type="button"
+            className="btn btn-link"
+            onClick={props.handleSingleSignOn}
+          >
+            Use Single Sign-on
+          </button>
         </ModalBody>
         <ModalFooter>
-          <button className="btn btn-primary">Sign In</button>
+          <button
+            className="btn btn-primary"
+            disabled={!props.email || !props.password}
+          >
+            Sign In
+          </button>
         </ModalFooter>
       </form>
     </Modal>
@@ -72,6 +86,12 @@ const handleLogin = props => event => {
     .catch(props.handleAuthError);
 };
 
+const handleSingleSignOn = props => event => {
+  singleSignOn('https://www.kineticdata.com', { width: 600, height: 400 })
+    .then(props.success)
+    .catch(props.handleAuthError);
+};
+
 export const LoginModal = compose(
   connect(mapStateToProps, mapDispatchToProps),
   withState('email', 'setEmail', ''),
@@ -81,11 +101,11 @@ export const LoginModal = compose(
     handleEmail: props => event => props.setEmail(event.target.value),
     handlePassword: props => event => props.setPassword(event.target.value),
     handleAuthError: props => error => {
-      props.setError(error.response.data.error);
+      props.setError(error.response ? error.response.data.error : error);
       props.setPassword('');
     },
   }),
-  withHandlers({ handleLogin }),
+  withHandlers({ handleLogin, handleSingleSignOn }),
   withHandlers(() => {
     let emailEl = null;
     return {
