@@ -87,7 +87,7 @@ const handleLogin = props => event => {
 };
 
 const handleSingleSignOn = props => event => {
-  singleSignOn('https://www.kineticdata.com', { width: 600, height: 400 })
+  singleSignOn('https://www.kineticdata.com', { width: 770, height: 750 })
     .then(props.success)
     .catch(props.handleAuthError);
 };

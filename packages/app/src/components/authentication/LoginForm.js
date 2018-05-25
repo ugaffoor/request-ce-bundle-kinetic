@@ -105,8 +105,8 @@ const tryAuthentication = ({
 
 const handleSingleSignOn = props => async event => {
   singleSignOn('https://www.kineticdata.com', {
-    width: 600,
-    height: 400,
+    width: 770,
+    height: 750,
   })
     .then(() => {
       props.handleAuthenticated();

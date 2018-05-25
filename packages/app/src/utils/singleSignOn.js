@@ -1,6 +1,12 @@
+import { bundle } from 'react-kinetic-core';
+
 export const singleSignOn = (endpoint, dimensions, target = '_blank') =>
   new Promise((resolve, reject) => {
     const options = { ...dimensions, ...getPopupPosition(window, dimensions) };
+    const endpoint =
+      process.env.NODE_ENV === 'development'
+        ? '/kinetic/playground/app/saml/login/alias/playground-spa'
+        : '/kinetic/playground/app/saml/login/alias/playground-prod';
     const popup = window.open(endpoint, target, stringifyOptions(options));
 
     // Create an event handler that closes the popup window if we focus the
@@ -17,8 +23,11 @@ export const singleSignOn = (endpoint, dimensions, target = '_blank') =>
       if (popup.closed) {
         reject('Single Sign-on cancelled');
       } else if (sameHost(popup, window)) {
-        popup.close();
-        resolve();
+        if (popup.location.search === '?authentication_error') {
+          reject('Single Sign-on failed');
+        } else {
+          resolve();
+        }
       } else {
         setTimeout(checkPopup, 100);
       }
