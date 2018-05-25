@@ -23,7 +23,7 @@ export const singleSignOn = (endpoint, dimensions, target = '_blank') =>
       if (popup.closed) {
         reject('Single Sign-on cancelled');
       } else if (sameHost(popup, window)) {
-        if (popup.location.search === '?authentication_error') {
+        if (popup.location.includes === 'authentication_error') {
           reject('Single Sign-on failed');
         } else {
           resolve();
