@@ -8,8 +8,8 @@ body {
 }
 html {
   box-sizing: border-box;
+  -ms-overflow-style: -ms-autohiding-scrollbar;
 }
-
 *,
 *::before,
 *::after {
@@ -23,4 +23,8 @@ body {
 
 body {
   margin: 0;
+}
+
+.modal-open .main-container {
+  -ms-overflow-y: visible !important;
 }
