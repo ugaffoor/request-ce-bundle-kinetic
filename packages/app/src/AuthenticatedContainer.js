@@ -67,7 +67,7 @@ const handleJwt = ({
   setAuthenticated(true);
 
   if (jwtToken) {
-    localStorage('jwt', jwtToken[1]);
+    localStorage.setItem('jwt', jwtToken[1]);
   }
 };
 
