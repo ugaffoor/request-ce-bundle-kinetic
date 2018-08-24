@@ -1,19 +1,23 @@
 import React from 'react';
 import { compose, withHandlers } from 'recompose';
+import { RetrieveJwtIframe } from './RetrieveJwtIframe';
 import { login } from '../../utils/authentication';
 
 export const Login = ({
   handleLogin,
+  handleJwt,
+  handleEmail,
+  handlePassword,
   toResetPassword,
   toCreateAccount,
   email,
   password,
-  handleEmail,
-  handlePassword,
+  retrieveJwt,
   error,
   routed,
 }) => (
   <form className="login-form-container" onSubmit={handleLogin}>
+    <RetrieveJwtIframe handleJwt={handleJwt} retrieveJwt={retrieveJwt} />
     <h3>
       Sign In
       <small>

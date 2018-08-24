@@ -44,20 +44,31 @@ const toCreateAccount = ({ push, setDisplay }) => routed => () =>
 
 const handleEmail = ({ setEmail }) => e => setEmail(e.target.value);
 const handlePassword = ({ setPassword }) => e => setPassword(e.target.value);
-const handleAuthenticated = ({
+const handleAuthenticated = ({ setRetrieveJwt }) => () => {
+  setRetrieveJwt(true);
+};
+const handleJwt = ({
   setError,
   setDisplay,
   setEmail,
   setPassword,
   setAttempting,
   setAuthenticated,
-}) => () => {
+  setJwt,
+}) => jwtIframe => {
+  const iFrameUrl = jwtIframe.contentWindow.location.href;
+  const jwtToken = iFrameUrl.match(/#.*?access_token=([^&]+)/);
+
   setError('');
   setDisplay('none');
   setEmail('');
   setPassword('');
   setAttempting(false);
   setAuthenticated(true);
+
+  if (jwtToken) {
+    localStorage('jwt', jwtToken[1]);
+  }
 };
 
 export const handleUnauthorized = props => () => {
@@ -185,6 +196,8 @@ export const AuthenticatedContainer = compose(
   withState('password', 'setPassword', ''),
   withState('attempting', 'setAttempting', false),
   withState('authenticated', 'setAuthenticated', false),
+  withState('retrieveJwt', 'setRetrieveJwt', false),
+  withState('jwt', 'setJwt', ''),
 
   withHandlers({
     toResetPassword,
@@ -193,6 +206,7 @@ export const AuthenticatedContainer = compose(
     handleEmail,
     handlePassword,
     handleAuthenticated,
+    handleJwt,
     handleUnauthorized,
   }),
 

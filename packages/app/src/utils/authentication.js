@@ -12,3 +12,5 @@ export const login = (username, password) =>
       __bypassAuthInterceptor: true,
     },
   );
+
+export const OAUTH_CLIENT_ID = encodeURIComponent('kinetic-data');
