@@ -4,7 +4,7 @@ import { Modal, ModalFooter } from 'reactstrap';
 import { List, Set } from 'immutable';
 import { compose, lifecycle, withHandlers, withState } from 'recompose';
 import Autocomplete from 'react-autocomplete';
-import { Avatar } from '../../shared/Avatar';
+import Avatar from 'react-avatar';
 
 import {
   actions,
@@ -90,7 +90,7 @@ const AddMemberModalComponent = ({
               {addedMembers.map(memeber => (
                 <tr key={memeber.username}>
                   <td>
-                    <Avatar size={30} user={memeber} />
+                    <Avatar size={30} name={memeber.displayName} />
                   </td>
                   <td>{memeber.displayName || memeber.username}</td>
                   <td>

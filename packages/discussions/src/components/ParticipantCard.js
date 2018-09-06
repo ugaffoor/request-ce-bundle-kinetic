@@ -6,12 +6,7 @@ export const ParticipantCard = ({ participant, button }) => {
   return (
     <div className="card card--profile">
       <div className={`${participant.present ? 'present' : ''}`}>
-        <Avatar
-          size={96}
-          src={participant.avatar_url}
-          name={participant.name}
-          round
-        />
+        <Avatar size={96} name={participant.name} round />
       </div>
       <h1>{participant.name}</h1>
       <p>{participant.email}</p>

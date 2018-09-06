@@ -1,9 +1,9 @@
 import React, { Fragment } from 'react';
 
-import { Avatar } from '../../shared/Avatar';
+import Avatar from 'react-avatar';
 
 export const TeamMemberAvatar = ({ user }) => (
   <Fragment>
-    <Avatar user={user} />
+    <Avatar name={user.displayName} />
   </Fragment>
 );

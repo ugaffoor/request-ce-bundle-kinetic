@@ -21,12 +21,7 @@ export const Profile = ({
       className="icon-wrapper"
       style={{ padding: '0 1em' }}
     >
-      <Avatar
-        size={24}
-        email={profile.email}
-        name={profile.displayName}
-        round
-      />
+      <Avatar size={24} name={profile.displayName} round />
     </DropdownToggle>
     <DropdownMenu right className="profile-menu">
       <div className="profile-header">

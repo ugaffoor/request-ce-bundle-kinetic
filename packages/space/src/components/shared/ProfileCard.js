@@ -1,6 +1,5 @@
 import React from 'react';
-
-import { Avatar } from './Avatar';
+import Avatar from 'react-avatar';
 
 const getProfilePhone = profile =>
   profile.profileAttributes['Phone Number']
@@ -10,7 +9,7 @@ const getProfilePhone = profile =>
 export const ProfileCard = ({ user, button }) => {
   return (
     <div className="card card--profile">
-      <Avatar user={user} size={96} />
+      <Avatar size={96} name={user.displayName} round />
       <h1>{user.displayName}</h1>
       <p>{user.email}</p>
       {getProfilePhone(user) && <p>{getProfilePhone(user)}</p>}

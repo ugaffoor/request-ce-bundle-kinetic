@@ -5,7 +5,7 @@ import { compose, lifecycle } from 'recompose';
 import { PageTitle } from 'common';
 import { actions } from '../../../redux/modules/settingsUsers';
 import { TeamCard } from '../../shared/TeamCard';
-import { Avatar } from '../../shared/Avatar';
+import Avatar from 'react-avatar';
 
 const ViewUserComponent = ({ loading, profile }) => (
   <div className="page-container page-container--users">
@@ -29,7 +29,7 @@ const ViewUserComponent = ({ loading, profile }) => (
           </Link>
         </div>
         <div className="card card--profile">
-          <Avatar user={profile} size={96} />
+          <Avatar size={96} name={profile.displayName} />
           <h3>{profile.displayName}</h3>
           <p>{getEmail(profile)}</p>
           <p>{getProfilePhone(profile)}</p>

@@ -3,8 +3,7 @@ import { compose, withState, withHandlers } from 'recompose';
 import { Link } from 'react-router-dom';
 
 import { getTeamColor, getTeamIcon } from '../../utils';
-
-import { Avatar } from './Avatar';
+import Avatar from 'react-avatar';
 
 const TeamCardComponent = props => {
   const { team, showMembers, toggleShowMembers } = props;
@@ -67,7 +66,7 @@ const Members = ({ members }) => (
             }`}
             key={member.user.username}
           >
-            <Avatar user={member.user} size={26} />
+            <Avatar size={26} name={member.user.displayName} round />
           </div>
         );
       })}

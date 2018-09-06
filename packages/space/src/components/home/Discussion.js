@@ -5,7 +5,7 @@ import { MessagesGroup } from 'discussions';
 
 import { getTeamColor } from '../../utils';
 
-import { Avatar } from '../shared/Avatar';
+import Avatar from 'react-avatar';
 
 const getTeamHeaderStyle = (discussion, teams) => {
   const teamSlug = discussion.tag_list.find(t => t === 'META:TYPE:Team')
@@ -81,7 +81,11 @@ export const Discussion = ({ discussion, me, discussionServerUrl, teams }) => {
         <RelatedItemBadge discussion={discussion} />
         <div className="participants">
           {discussion.participants.map(participant => (
-            <Avatar key={participant.guid} user={participant} size={24} />
+            <Avatar
+              size={24}
+              key={participant.guid}
+              name={participant.displayName}
+            />
           ))}
         </div>
       </div>

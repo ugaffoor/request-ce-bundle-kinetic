@@ -27,8 +27,9 @@
         margin-bottom: 0.5rem;
         .sb-avatar {
           margin-right: 0.5rem;
-          img {
-            border: 2px solid rgba(0, 212, 106, 0);
+          img,
+          .sb-avatar__text {
+            border: 2px solid transparent;
             transition: border-color 300ms;
           }
         }
@@ -37,8 +38,10 @@
           margin-left: 0.5rem;
         }
       }
-      li.present .sb-avatar img {
+      li.present .sb-avatar img,
+      li.present .sb-avatar .sb-avatar__text {
         border-color: $present;
+        line-height: 24px !important;
       }
     }
   }

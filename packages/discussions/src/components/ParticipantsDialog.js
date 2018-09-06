@@ -22,13 +22,13 @@ export const ParticipantsDialog = props => (
         .sortBy(p => p.name)
         .map(p => (
           <li className={`${p.present ? 'present' : ''}`} key={p.email}>
-            <Avatar size={26} src={p.avatar_url} name={p.name} round />
+            <Avatar size={26} name={p.name} round />
             {p.name}
           </li>
         ))}
       {props.discussion.invites.map(invite => (
         <li key={invite.email}>
-          <Avatar size={26} round name={invite.email} />
+          <Avatar size={26} name={invite.email} round />
           {invite.email} <span className="subtext">invited</span>
         </li>
       ))}

@@ -103,12 +103,7 @@ export const MessagesGroup = ({ messages, profile, discussionServerUrl }) => (
         key={messages.first().user.id}
         render={() => <ParticipantCard participant={messages.first().user} />}
       >
-        <Avatar
-          size={36}
-          email={messages.first().user.email}
-          name={messages.first().user.name}
-          round
-        />
+        <Avatar size={36} name={messages.first().user.name} round />
       </Hoverable>
     )}
 

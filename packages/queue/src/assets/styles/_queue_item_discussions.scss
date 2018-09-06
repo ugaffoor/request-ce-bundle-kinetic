@@ -27,10 +27,12 @@
       margin-bottom: 1.5rem;
       .sb-avatar {
         margin: 0 0.75rem 0 0;
-        img {
+        img,
+        .sb-avatar__text {
           border: 2px solid transparent;
         }
-        &.present img {
+        &.present img,
+        &.present .sb-avatar__text {
           border-color: $present;
         }
       }
@@ -280,14 +282,16 @@
     padding: 0.33rem 1.5rem;
     .sb-avatar {
       margin-right: 0.33rem;
-      img {
-        border: 2px solid rgba(0, 212, 106, 0);
+      img,
+      .sb-avatar__text {
+        border: 2px solid transparent;
         transition: border-color 300ms;
       }
     }
     .present {
-      .sb-avatar img {
-        border-color: rgba(0, 212, 106, 1);
+      .sb-avatar img,
+      .sb-avatar .sb-avatar__text {
+        border-color: $present;
       }
     }
 

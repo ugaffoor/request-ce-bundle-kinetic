@@ -30,7 +30,7 @@ export const ParticipantsHeader = ({
             render={() => <ParticipantCard participant={p} />}
           >
             <div className={`${p.present ? 'present' : ''}`}>
-              <Avatar size={26} src={p.avatar_url} name={p.name} round />
+              <Avatar size={24} name={p.name} round />
             </div>
           </Hoverable>
         ))}
@@ -38,7 +38,7 @@ export const ParticipantsHeader = ({
         {!isFullScreen && (
           <button
             type="button"
-            className="btn btn-icon"
+            className="btn btn-icon d-sm-none d-md-inline-flex"
             onClick={openInNewTab}
             title="Expand Discussion"
           >
