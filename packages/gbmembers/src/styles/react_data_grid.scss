@@ -1,0 +1,50 @@
+.drag-handle {
+  display: none;
+}
+
+div.react-grid-Row div.react-grid-Cell:nth-of-type(4) {
+  overflow: visible !important;
+  overflow-x: visible !important;
+}
+
+div.react-grid-Row {
+  overflow: visible !important;
+}
+
+div.react-grid-Container {
+  overflow: visible !important;
+}
+
+#dataGridProgramSelect:focus {
+  height: auto;
+}
+
+#dataGridProgramSelect {
+  height: auto !important;
+  width: auto !important;
+  z-index: 999999;
+  position: relative;
+  /*overflow: visible !important;*/
+}
+
+div.react-grid-Viewport {
+  overflow: visible !important;
+}
+
+div.react-grid-Grid {
+  overflow: visible !important;
+}
+
+div.react-grid-Canvas {
+  overflow: visible !important;
+}
+
+div.ms-options {
+  white-space: nowrap;
+}
+
+#feeProgramDiv .ms-options {
+  /*position: relative !important;*/
+  /*margin-left: 2vw;
+  max-width: 30vw;*/
+}

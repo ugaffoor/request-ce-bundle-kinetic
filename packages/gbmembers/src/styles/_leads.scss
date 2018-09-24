@@ -1,0 +1,310 @@
+.leads {
+  #tasksListGrid {
+    .react-grid-Header {
+      display: none !important;
+    }
+
+    .react-grid-Viewport {
+      top: 0px !important;
+    }
+    .react-grid-Cell {
+      border-right: 0 !important;
+      /*border-bottom: 0 !important;*/
+    }
+
+    .react-grid-Cell__value {
+      overflow: visible;
+    }
+
+    .react-grid-Grid {
+      border: 0 !important;
+    }
+  }
+  .pageHeader {
+    margin-left: 30px;
+  }
+  .taskContents {
+    flex: 0 0 100%;
+    max-width: 100%;
+    padding-right: 20px;
+    @media (min-width: 544px) {
+    }
+    .row {
+      margin-left: -1px;
+    }
+    .headerPanel {
+      height: 30%;
+      background-color: rgb(247, 247, 247);
+      border-color: rgb(213, 213, 213);
+      border-width: 1px;
+      border-style: solid;
+      border-radius: 0px;
+      margin-top: -1px;
+      .col {
+        margin-top: 8px;
+      }
+    }
+    .form-group {
+      label {
+        margin-left: 3px;
+      }
+    }
+  }
+  .leadContents {
+    background-color: #f7f7f7;
+    flex: 0 0 100%;
+    max-width: 100%;
+    padding: 10px;
+    @media (min-width: 544px) {
+    }
+    .row {
+      margin-left: 15px;
+    }
+    .addNewLead {
+      border-radius: 0;
+      margin: 10px;
+      background-color: #991b1e;
+      position: relative;
+      @media (min-width: 544px) {
+        position: absolute;
+        top: 32px;
+        left: 244px;
+      }
+    }
+    .rt-noData {
+      top: 65px;
+    }
+  }
+  #dateDiv {
+    width: 35px;
+    height: 55px;
+    text-align: center;
+    background-color: rgba(204, 204, 204, 1);
+    box-sizing: border-box;
+    border-width: 1px;
+    border-style: solid;
+    border-color: rgba(121, 121, 121, 1);
+    border-radius: 0px;
+    color: #ffffff;
+  }
+  #leadsListGrid {
+    .react-grid-HeaderCell {
+      height: auto !important;
+      font-weight: normal !important;
+      padding: 5px !important;
+      border-top: 0 !important;
+      border-right: 0 !important;
+    }
+    .react-grid-Cell {
+      background-color: #f7f7f7 !important;
+      border: none !important;
+      /*height: auto !important;*/
+    }
+    .react-grid-Cell__value {
+      background-color: #f7f7f7 !important;
+      border: 0 !important;
+    }
+    .react-grid-Grid {
+      border: 0 !important;
+    }
+    .react-grid-Grid {
+      border: 0 !important;
+    }
+  }
+  #noteDetailDiv {
+    padding-left: 0 !important;
+    .rt-noData {
+      top: 35px;
+    }
+  }
+
+  .card-header {
+    .contact-methods {
+      float: left;
+    }
+  }
+
+  .followup_button:before {
+    content: '';
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+    margin-right: 5px;
+    vertical-align: text-top;
+    background-color: transparent;
+    background-position: center center;
+    background-repeat: no-repeat;
+  }
+
+  .followup_image:before {
+    background-image: url(../images/followup.png);
+  }
+
+  a.leadDetailAnchor:hover {
+    cursor: pointer;
+  }
+
+  a.leadDetailAnchor {
+    border-radius: 0;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  a.cursorPointer:hover {
+    cursor: pointer;
+  }
+
+  #tasksListGrid1 {
+    .rt-td {
+      margin: auto;
+    }
+    .rt-thead {
+      display: none;
+    }
+    .ReactTable {
+      border-left: 0 !important;
+      border-right: 0 !important;
+    }
+    .ReactTable .rt-tr-group {
+      flex: 0 0 auto;
+    }
+  }
+  #leadsListGrid1 {
+    .rt-td {
+      margin: auto !important;
+      text-align: center !important;
+    }
+    .rt-thead {
+      border: 0 !important;
+    }
+    .ReactTable {
+      border: 0 !important;
+    }
+    .ReactTable .rt-tr-group {
+      flex: 0 0 auto;
+      border: 0 !important;
+    }
+    .ReactTable .-sort-asc {
+      box-shadow: inherit !important;
+    }
+    .ReactTable .-sort-desc {
+      box-shadow: inherit !important;
+    }
+  }
+  .datetime #reminderDate {
+    width: 60%;
+    margin-bottom: 10px;
+  }
+
+  #memberTasksGrid {
+    .rt-td {
+      margin: auto;
+    }
+    .rt-thead {
+      display: none;
+    }
+    .ReactTable {
+      border-left: 0 !important;
+      border-right: 0 !important;
+    }
+    .ReactTable .rt-tr-group {
+      flex: 0 0 auto;
+    }
+  }
+}
+#notesDiv {
+  .nav-tabs .nav-item {
+    margin-right: inherit;
+    @media (min-width: 544px) {
+      margin-right: 15px;
+    }
+  }
+  .nav-tabs .nav-item.label {
+    margin-top: 5px;
+    margin-right: 5px;
+  }
+  .nav-tabs {
+    border-bottom: none !important;
+  }
+  .card-header {
+    border-bottom: none;
+  }
+  .nav-item .nav-link img {
+    width: 24px;
+    height: 24px;
+  }
+  .contact-methods {
+    float: inherit;
+    margin-bottom: inherit;
+    border-bottom: inherit;
+    @media (min-width: 544px) {
+      float: left;
+      margin-right: 20px;
+      margin-bottom: -10px;
+      border-bottom: 0;
+    }
+  }
+  .contact-method-select {
+    float: right;
+    margin-left: 4px;
+    margin-top: 20px !important;
+    @media (min-width: 900px) {
+      float: left;
+      margin-top: 0 !important;
+    }
+  }
+  .rt-thead {
+    display: none;
+  }
+  .ReactTable {
+    border-top: 0 !important;
+  }
+  #notes {
+    width: 100%;
+    display: block;
+    border-top: 0px;
+    border-color: #f7f7f9;
+  }
+  .notesCell {
+    float: left;
+    border: 'none';
+    margin-right: '10px';
+  }
+  .rt-td.notes {
+    text-align: left;
+  }
+  #saveNote {
+    white-space: normal;
+    width: 100%;
+    height: 40px;
+    padding: 0px;
+    background-color: #991b1e;
+    @media (min-width: 544px) {
+      height: 124px;
+    }
+  }
+}
+
+/*.datepicker td, .datepicker th {
+    width: 1.5em;
+    height: 1.5em;
+}*/
+/*div.react-grid-Row div.react-grid-Cell:nth-of-type(1){
+  width: 10vw !important;
+}
+
+div.react-grid-Row div.react-grid-Cell:nth-of-type(2){
+  width: 20vw !important;
+}
+
+div.react-grid-Row div.react-grid-Cell:nth-of-type(3){
+  width: 20vw !important;
+}
+
+div.react-grid-Row div.react-grid-Cell:nth-of-type(4){
+  width: 15vw !important;
+}
+
+div.react-grid-Row div.react-grid-Cell:nth-of-type(5){
+  width: 15vw !important;
+}*/

@@ -1,0 +1,265 @@
+import { all, call, put, select, takeLatest, takeEvery } from 'redux-saga/effects';
+import { OrderedMap } from 'immutable';
+import { CoreAPI } from 'react-kinetic-core';
+
+import { getAttributeValue } from '../../utils';
+
+import { actions, types } from '../modules/memberApp';
+
+const PROFILE_INCLUDES =
+  //  'attributes,profileAttributes,memberships,memberships.team,memberships.team.attributes,memberships.team.memberships,memberships.team.memberships.user,attributes,space,space.attributes,space.kapps';
+  //  'attributes,profileAttributes,memberships,memberships.team,memberships.team.attributes,memberships.team.memberships,memberships.team.memberships.user,attributes,space,space.attributes,space.kapps,space.kapps.attributes';
+  'attributes,profileAttributes,memberships,memberships.team,memberships.team.attributes,memberships.team.memberships,memberships.team.memberships.user';
+const PROFILE_UPDATE_INCLUDES =
+  'attributes,profileAttributes,memberships,memberships.team,memberships.team.attributes,memberships.team.memberships,memberships.team.memberships.user';
+
+export const selectProfile = ({ app }) => app.profile;
+export const selectMemberLists = ({ member }) => member.app.memberLists;
+
+export const PROGRAMBELTS_SEARCH = new CoreAPI.SubmissionSearch(true)
+  .eq('values[Status]', 'Active')
+  .index('values[Status]')
+  .include('details,values')
+  .limit(1000)
+  .build();
+export const MEMBER_TYPES_SEARCH = new CoreAPI.SubmissionSearch(true)
+  .eq('values[Status]', 'Active')
+  .index('values[Status]')
+  .include('details,values')
+  .limit(1000)
+  .build();
+export const MEMBERSHIP_FEES_SEARCH = new CoreAPI.SubmissionSearch(true)
+  .eq('values[Status]', 'Active')
+  .index('values[Status]')
+  .include('details,values')
+  .limit(1000)
+  .build();
+export const SNIPPETS_SEARCH = new CoreAPI.SubmissionSearch(true)
+  .eq('values[Status]', 'Active')
+  .eq('values[Type]', 'Snippet')
+  .index('values[Status],values[Type]')
+  .include('details,values')
+  .limit(1000)
+  .build();
+
+// TODO decide on error handling for these calls.
+export function* fetchMemberAppSettingsTask() {
+  console.log('debug 1');
+  const kappSlug = yield select(state => state.app.config.kappSlug);
+  const {
+    space: { space },
+    profile: { profile },
+    submissions: { submissions },
+  } = yield all({
+    space: call(CoreAPI.fetchSpace, { include: 'attributes' }),
+    profile: call(CoreAPI.fetchProfile, {
+      include: PROFILE_INCLUDES,
+    }),
+    submissions: call(CoreAPI.searchSubmissions, {
+      datastore: true,
+      form: 'program-belts',
+      search: PROGRAMBELTS_SEARCH,
+    }),
+  });
+  console.log('debug 2');
+
+  console.log('debug 3');
+
+  var programsMap = OrderedMap();
+  var beltsMap = OrderedMap();
+  for (var i = 0; i < submissions.length; i++) {
+    programsMap = programsMap.set(submissions[i].values['Program Order'], {
+      order: submissions[i].values['Program Order'],
+      program: submissions[i].values['Program'],
+    });
+    beltsMap = beltsMap.set(
+      submissions[i].values['Program Order'] +
+        submissions[i].values['Belt Order'],
+      {
+        programOrder: submissions[i].values['Program Order'],
+        program: submissions[i].values['Program'],
+        beltOrder: submissions[i].values['Belt Order'],
+        belt: submissions[i].values['Belt'],
+      },
+    );
+  }
+  programsMap = programsMap.sort((a, b) => {
+    if (a.order < b.order) {
+      return -1;
+    }
+    if (a.order > b.order) {
+      return 1;
+    }
+    return 0;
+  });
+
+  var programs = programsMap.toList();
+
+  beltsMap = beltsMap.sort((a, b) => {
+    const p1Order = a.programOrder;
+    const p2Order = b.programOrder;
+    const belt1Order = a.beltOrder.padStart(2, '0');
+    const belt2Order = b.beltOrder.padStart(2, '0');
+
+    const beforeIndex = -1;
+    const afterIndex = 1;
+
+    if (p1Order === p2Order) {
+      if (belt1Order > belt2Order) {
+        return afterIndex;
+      } else if (belt1Order < belt2Order) {
+        return beforeIndex;
+      } else {
+        return 0;
+      }
+    } else if (p1Order > p2Order) {
+      return afterIndex;
+    } else if (p1Order < p2Order) {
+      return beforeIndex;
+    }
+
+    return 0;
+  });
+
+  var belts = beltsMap.toList();
+  console.log('debug 4');
+
+  const memberTypes = yield all({
+    submissions: call(CoreAPI.searchSubmissions, {
+      datastore: true,
+      form: 'membership-types',
+      search: MEMBER_TYPES_SEARCH,
+    }),
+  });
+  var memberTypesMap = OrderedMap();
+  var memberTypesSubmissions = memberTypes.submissions.submissions;
+  for (i = 0; i < memberTypesSubmissions.length; i++) {
+    memberTypesMap = memberTypesMap.set(
+      memberTypesSubmissions[i].values['Order'] +
+        memberTypesSubmissions[i].values['Type'],
+      {
+        order: memberTypesSubmissions[i].values['Order'],
+        type: memberTypesSubmissions[i].values['Type'],
+      },
+    );
+  }
+  memberTypesMap = memberTypesMap.sort((a, b) => {
+    if (a.order < b.order) {
+      return -1;
+    }
+    if (a.order > b.order) {
+      return 1;
+    }
+    return 0;
+  });
+  var membershipTypes = memberTypesMap.toList();
+  console.log('debug 5');
+
+  const memberFees = yield all({
+    submissions: call(CoreAPI.searchSubmissions, {
+      datastore: true,
+      form: 'membership-fees',
+      search: MEMBERSHIP_FEES_SEARCH,
+    }),
+  });
+  var membershipFeesMap = OrderedMap();
+  var membershipFeesSubmissions = memberFees.submissions.submissions;
+
+  for (i = 0; i < membershipFeesSubmissions.length; i++) {
+    membershipFeesMap = membershipFeesMap.set(
+      membershipFeesSubmissions[i].values['Program'],
+      {
+        program: membershipFeesSubmissions[i].values['Program'],
+        info: membershipFeesSubmissions[i].values['Info'],
+        fee: membershipFeesSubmissions[i].values['Fee'],
+      },
+    );
+  }
+  membershipFeesMap = membershipFeesMap.sort((a, b) => {
+    if (a.program < b.program) {
+      return -1;
+    }
+    if (a.program > b.program) {
+      return 1;
+    }
+    return 0;
+  });
+  var membershipFees = membershipFeesMap.toList();
+
+  const snippetsSubs = yield all({
+    submissions: call(CoreAPI.searchSubmissions, {
+      datastore: true,
+      form: 'notification-data',
+      search: SNIPPETS_SEARCH,
+    }),
+  });
+  var snippetsMap = OrderedMap();
+  var snippetsSubmissions = snippetsSubs.submissions.submissions;
+  for (i = 0; i < snippetsSubmissions.length; i++) {
+    snippetsMap = snippetsMap.set(snippetsSubmissions[i].values['Name'], {
+      name: snippetsSubmissions[i].values['Name'],
+      value: snippetsSubmissions[i].values['HTML Content'],
+    });
+  }
+  var snippets = snippetsMap.toList();
+  console.log('debug 5');
+
+  const appSettings = {
+    kineticBillingServerUrl: getAttributeValue(
+      'Kinetic Billing Server URL',
+      '',
+      kappSlug,
+      space,
+    )[0],
+    billingDDRUrl: getAttributeValue('Billing eDDR URL', '', kappSlug, space)[0],
+    billingWidgetUrl: getAttributeValue(
+      'Billing Widget URL',
+      '',
+      kappSlug,
+      space,
+    )[0],
+    billingCompany: getAttributeValue('Billing Company', '', kappSlug, space)[0],
+    discussionServerUrl: `/${space.slug}/kinetic-response`,
+    profile,
+    space,
+    programs,
+    belts,
+    membershipTypes,
+    membershipFees,
+    snippets,
+  };
+  console.log('debug 7');
+
+  yield put(actions.setAppSettings(appSettings));
+}
+
+export function* updateMembersListTask(payload) {
+  const memberLists = yield select(selectMemberLists);
+  const profile = yield select(selectProfile);
+
+  profile.profileAttributes['Member Lists'] = memberLists.toJS();
+  const { serverError } = yield call(CoreAPI.updateProfile, {
+    profile,
+    include: PROFILE_UPDATE_INCLUDES,
+  });
+
+  if (!serverError) {
+    // TODO: What should we do on success?
+    if (payload.payload.history) {
+      payload.payload.history.push('/kapps/gbmembers/memberLists');
+    }
+  }
+}
+
+export function* watchApp() {
+console.log("watchApp");
+  yield takeEvery(types.LOAD_MEMBER_APP_SETTINGS, fetchMemberAppSettingsTask);
+  yield takeLatest(
+    [
+      types.ADD_MEMBERS_LIST,
+      types.UPDATE_MEMBERS_LIST,
+      types.REMOVE_MEMBERS_LIST,
+    ],
+    updateMembersListTask,
+  );
+}

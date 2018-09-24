@@ -6,6 +6,7 @@ import reducers from './reducers';
 import commonReducers from 'common/src/redux/reducers';
 import servicesReducers from 'services/src/redux/reducers';
 import queueReducers from 'queue/src/redux/reducers';
+import memberReducers from 'gbmembers/src/redux/reducers';
 import spaceReducers from 'space/src/redux/reducers';
 import {
   sagas as discussionSagas,
@@ -16,6 +17,7 @@ import commonSagas from 'common/src/redux/sagas';
 import servicesSagas from 'services/src/redux/sagas';
 import queueSagas from 'queue/src/redux/sagas';
 import spaceSagas from 'space/src/redux/sagas';
+import memberSagas from 'gbmembers/src/redux/sagas';
 
 export const configureStore = history => {
   // To enable the redux dev tools in the browser we need to conditionally use a
@@ -37,6 +39,7 @@ export const configureStore = history => {
         services: combineReducers(servicesReducers),
         queue: combineReducers(queueReducers),
         space: combineReducers(spaceReducers),
+        member: combineReducers(memberReducers),
         discussions: combineReducers(discussionReducers),
       }),
     ),
@@ -55,6 +58,7 @@ export const configureStore = history => {
       servicesSagas,
       queueSagas,
       spaceSagas,
+      memberSagas,
       discussionSagas,
     ]),
   );

@@ -1,0 +1,26 @@
+.supported-card-icon {
+  height: 25px;
+  border: none !important;
+}
+.billingAudit {
+  top: 133px !important;
+  width: 80% !important;
+  left: 50px !important;
+  .rt-td {
+    white-space: inherit !important;
+  }
+  @media (min-width: 544px) {
+    top: 120px !important;
+    width: 50% !important;
+    left: 417px !important;
+  }
+}
+.changeReason {
+  h3 {
+    margin-top: 2px;
+  }
+  form {
+    padding-bottom: 0px;
+    margin-bottom: 0;
+  }
+}

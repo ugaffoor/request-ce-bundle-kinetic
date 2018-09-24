@@ -1,0 +1,67 @@
+#campaignsListGrid {
+  .recipients_col,
+  .opened_col,
+  .clicked_col {
+    display: none;
+    @media (min-width: 544px) {
+      display: block;
+    }
+  }
+}
+
+.new_campaign {
+  .preview_send {
+    margin: 20px;
+  }
+  .quill {
+    height: 70%;
+  }
+  #previewDiv {
+    height: 80%;
+  }
+  input[type='text'] {
+    border-color: hsl(0, 0%, 80%);
+    border-style: solid;
+    border-width: 1px;
+  }
+  .ql-picker.ql-fields {
+    width: 100px;
+  }
+
+  .ql-firstname::before {
+    content: 'First Name';
+  }
+  .ql-lastname::before {
+    content: 'Last Name';
+  }
+  .ql-emailfooter::before {
+    content: 'Email Footer';
+  }
+  .ql-firstname {
+    width: 100px !important;
+  }
+  .ql-lastname {
+    width: 100px !important;
+  }
+  .ql-emailfooter {
+    width: 110px !important;
+  }
+
+  .ql-picker.ql-fields .ql-picker-label::before {
+    content: 'Fields';
+  }
+
+  .ql-picker.ql-fields [data-value='First Name']::before {
+    content: 'First Name';
+  }
+
+  .ql-picker.ql-fields [data-value='Last Name']::before {
+    content: 'Last Name';
+  }
+  .preview_send {
+    margin-top: 50px;
+    @media (min-width: 544px) {
+      margin-top: 33px;
+    }
+  }
+}
