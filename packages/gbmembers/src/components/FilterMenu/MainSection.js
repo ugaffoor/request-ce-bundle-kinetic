@@ -1,7 +1,7 @@
 import React from 'react';
 import { ModalBody } from 'reactstrap';
 import SVGInline from 'react-svg-inline';
-import chevronRightIcon from 'font-awesome-svg-png/black/svg/angle-right.svg';
+import chevronRightIcon from 'font-awesome-svg-png/black/svg/angle-right.svg?raw';
 import { SORT_OPTIONS } from '../FilterMenu/SortedBySection';
 
 const ListSummary = ({ type, list }) =>

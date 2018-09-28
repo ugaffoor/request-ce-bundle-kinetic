@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { compose, withHandlers } from 'recompose';
 
 import SVGInline from 'react-svg-inline';
-import timesIcon from 'font-awesome-svg-png/white/svg/times.svg';
+import timesIcon from 'font-awesome-svg-png/white/svg/times.svg?raw';
 
 import { actions } from '../../redux/modules/errors';
 

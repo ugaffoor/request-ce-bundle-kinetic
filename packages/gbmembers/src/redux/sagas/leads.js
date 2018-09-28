@@ -104,7 +104,8 @@ export function* createLead(action) {
       completed: false,
       include: SUBMISSION_INCLUDES,
     });
-    if (action.payload.history) action.payload.history.push('/kapps/gbmembers/Leads');
+    if (action.payload.history)
+      action.payload.history.push('/kapps/gbmembers/Leads');
     if (action.payload.fetchLeads) action.payload.fetchLeads();
     console.log('createLead # ' + submission);
     yield put(
@@ -121,7 +122,8 @@ export function* deleteLead(action) {
     const { submission } = yield call(CoreAPI.deleteSubmission, {
       id: action.payload.leadItem.id,
     });
-    if (action.payload.history) action.payload.history.push('/kapps/gbmembers/Leads');
+    if (action.payload.history)
+      action.payload.history.push('/kapps/gbmembers/Leads');
     if (action.payload.fetchLeads) action.payload.fetchLeads();
     console.log('deleteLead # ' + submission);
     yield put(

@@ -1,24 +1,18 @@
 import React from 'react';
-import {
-  Navbar,
-  Nav,
-  NavItem,
-} from 'reactstrap';
+import { Navbar, Nav, NavItem } from 'reactstrap';
 import { KappNavLink as NavLink } from 'common';
 import SVGInline from 'react-svg-inline';
 
 import { CompanyLogoContainer } from './CompanyLogo';
-import homeIcon from '../images/home3.svg';
-import attendanceIcon from '../images/flag.svg';
-import leadsIcon from '../images/smile.svg';
-import sendIcon from '../images/envelop.svg';
-import gradingIcon from '../images/star-full.svg';
+import homeIcon from '../images/home3.svg?raw';
+import attendanceIcon from '../images/flag.svg?raw';
+import leadsIcon from '../images/smile.svg?raw';
+import sendIcon from '../images/envelop.svg?raw';
+import gradingIcon from '../images/star-full.svg?raw';
 
-export const Header = ({
-  loading,
-}) => (
+export const Header = ({ loading }) => (
   <Navbar color="faded" light>
-  <CompanyLogoContainer />
+    <CompanyLogoContainer />
     <Nav className="nav-header apps">
       <NavItem>
         <NavLink

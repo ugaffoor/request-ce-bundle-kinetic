@@ -91,7 +91,9 @@ export function* updateCurrentMember(action) {
       values: action.payload.memberItem.values,
     });
     if (action.payload.history && action.payload.fromTasks === undefined) {
-      action.payload.history.push('/kapps/gbmembers/Member/' + action.payload.id);
+      action.payload.history.push(
+        '/kapps/gbmembers/Member/' + action.payload.id,
+      );
     }
     if (action.payload.history && action.payload.fromTasks)
       action.payload.history.push('/kapps/gbmembers/Leads');
@@ -855,7 +857,7 @@ export function* refundTransaction(action) {
 }
 
 export function* watchMembers() {
-console.log("watchMembers");  
+  console.log('watchMembers');
   yield takeEvery(types.FETCH_MEMBERS, fetchMembers);
   yield takeEvery(types.FETCH_CURRENT_MEMBER, fetchCurrentMember);
   yield takeEvery(types.UPDATE_MEMBER, updateCurrentMember);

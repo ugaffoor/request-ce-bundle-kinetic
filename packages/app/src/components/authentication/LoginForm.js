@@ -36,7 +36,7 @@ export const Login = ({
           autoFocus
           className="form-control"
           id="email"
-          placeholder="wally@kineticdata.com"
+          placeholder="info@graciebarra.com.au"
           value={email}
           onChange={handleEmail}
         />

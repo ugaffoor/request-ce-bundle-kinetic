@@ -8,11 +8,11 @@ import {
   withProps,
 } from 'recompose';
 import { actions } from '../../redux/modules/members';
-import phoneIcon from '../../images/phone.svg';
-import emailIcon from '../../images/envelop.svg';
-import dobIcon from '../../images/reddit.svg';
-import aidIcon from '../../images/aid-kit.svg';
-import viewNotes from '../../images/view_notes.png';
+import phoneIcon from '../../images/phone.svg?raw';
+import emailIcon from '../../images/envelop.svg?raw';
+import dobIcon from '../../images/reddit.svg?raw';
+import aidIcon from '../../images/aid-kit.svg?raw';
+import viewNotes from '../../images/view_notes.png?raw';
 import SVGInline from 'react-svg-inline';
 import { KappNavLink as NavLink } from 'common';
 import { PaymentPeriod, PaymentType } from './BillingUtils';
@@ -584,7 +584,7 @@ class MemberEmails extends Component {
     return str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1');
   }
   substituteFields(body) {
-    if (body===undefined) return "";
+    if (body === undefined) return '';
     body = body.replace(
       /member\('First Name'\)/g,
       this.props.memberItem.values['First Name'],

@@ -1,4 +1,11 @@
-import { all, call, put, select, takeLatest, takeEvery } from 'redux-saga/effects';
+import {
+  all,
+  call,
+  put,
+  select,
+  takeLatest,
+  takeEvery,
+} from 'redux-saga/effects';
 import { OrderedMap } from 'immutable';
 import { CoreAPI } from 'react-kinetic-core';
 
@@ -211,14 +218,24 @@ export function* fetchMemberAppSettingsTask() {
       kappSlug,
       space,
     )[0],
-    billingDDRUrl: getAttributeValue('Billing eDDR URL', '', kappSlug, space)[0],
+    billingDDRUrl: getAttributeValue(
+      'Billing eDDR URL',
+      '',
+      kappSlug,
+      space,
+    )[0],
     billingWidgetUrl: getAttributeValue(
       'Billing Widget URL',
       '',
       kappSlug,
       space,
     )[0],
-    billingCompany: getAttributeValue('Billing Company', '', kappSlug, space)[0],
+    billingCompany: getAttributeValue(
+      'Billing Company',
+      '',
+      kappSlug,
+      space,
+    )[0],
     discussionServerUrl: `/${space.slug}/kinetic-response`,
     profile,
     space,
@@ -252,7 +269,7 @@ export function* updateMembersListTask(payload) {
 }
 
 export function* watchApp() {
-console.log("watchApp");
+  console.log('watchApp');
   yield takeEvery(types.LOAD_MEMBER_APP_SETTINGS, fetchMemberAppSettingsTask);
   yield takeLatest(
     [

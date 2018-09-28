@@ -32,7 +32,7 @@ const ResetPassword = ({
             id="email"
             autoFocus
             className="form-control"
-            placeholder="wally@kineticdata.com"
+            placeholder="info@graciebarra.com.au"
             value={email}
             onChange={handleEmail}
           />

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Modal, ModalFooter } from 'reactstrap';
 import SVGInline from 'react-svg-inline';
-import chevronLeftIcon from 'font-awesome-svg-png/black/svg/chevron-left.svg';
+import chevronLeftIcon from 'font-awesome-svg-png/black/svg/chevron-left.svg?raw';
 import { MainSection } from './MainSection';
 import { AssignmentSectionContainer } from './AssignmentSection';
 import { TeamsSectionContainer } from './TeamsSection';

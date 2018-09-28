@@ -22,7 +22,7 @@ export const App = ({ loading }) => (
       <div />
     ) : (
       <div className="app">
-        <HeaderContainer/>
+        <HeaderContainer />
         <LayoutContainer
           sidebarContent={<SidebarContainer />}
           mainContent={<Content />}
