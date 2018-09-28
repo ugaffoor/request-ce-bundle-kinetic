@@ -52,13 +52,14 @@ export const SNIPPETS_SEARCH = new CoreAPI.SubmissionSearch(true)
 // TODO decide on error handling for these calls.
 export function* fetchMemberAppSettingsTask() {
   console.log('debug 1');
-  const kappSlug = yield select(state => state.app.config.kappSlug);
   const {
+    kapps: { kapps },
     space: { space },
     profile: { profile },
     submissions: { submissions },
   } = yield all({
     space: call(CoreAPI.fetchSpace, { include: 'attributes' }),
+    kapps: call(CoreAPI.fetchKapps, { include: 'attributes' }),
     profile: call(CoreAPI.fetchProfile, {
       include: PROFILE_INCLUDES,
     }),
@@ -69,8 +70,11 @@ export function* fetchMemberAppSettingsTask() {
     }),
   });
   console.log('debug 2');
-
-  console.log('debug 3');
+  var kapp = undefined;
+  kapps.forEach(function(k) {
+    if (k.slug === 'gbmembers') kapp = k;
+  });
+  console.log('debug 3:' + kapp);
 
   var programsMap = OrderedMap();
   var beltsMap = OrderedMap();
@@ -215,27 +219,17 @@ export function* fetchMemberAppSettingsTask() {
     kineticBillingServerUrl: getAttributeValue(
       'Kinetic Billing Server URL',
       '',
-      kappSlug,
+      kapp,
       space,
     )[0],
-    billingDDRUrl: getAttributeValue(
-      'Billing eDDR URL',
-      '',
-      kappSlug,
-      space,
-    )[0],
+    billingDDRUrl: getAttributeValue('Billing eDDR URL', '', kapp, space)[0],
     billingWidgetUrl: getAttributeValue(
       'Billing Widget URL',
       '',
-      kappSlug,
+      kapp,
       space,
     )[0],
-    billingCompany: getAttributeValue(
-      'Billing Company',
-      '',
-      kappSlug,
-      space,
-    )[0],
+    billingCompany: getAttributeValue('Billing Company', '', kapp, space)[0],
     discussionServerUrl: `/${space.slug}/kinetic-response`,
     profile,
     space,
