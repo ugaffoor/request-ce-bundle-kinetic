@@ -26,6 +26,7 @@ import {
 } from 'recharts';
 import ReactTable from 'react-table';
 import { StatusMessagesContainer } from '../StatusMessages';
+import { actions as errorActions } from '../../redux/modules/errors';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -52,6 +53,8 @@ const mapDispatchToProps = {
   setProcessedAndScheduledPayments: actions.setProcessedAndScheduledPayments,
   fetchPaymentHistory: actions.fetchPaymentHistory,
   setPaymentHistory: actions.setPaymentHistory,
+  addNotification: errorActions.addNotification,
+  setSystemError: errorActions.setSystemError,
 };
 
 const ezidebit_date_format = 'YYYY-MM-DD HH:mm:ss';
@@ -134,6 +137,8 @@ export const HomeContainer = compose(
       memberItem,
       fetchBillingPayments,
       setBillingPayments,
+      addNotification,
+      setSystemError,
     }) => month => {
       let startDate, endDate;
       if (month === 'current_month') {
@@ -164,12 +169,16 @@ export const HomeContainer = compose(
         dateTo: endDate,
         setBillingPayments: setBillingPayments,
         internalPaymentType: 'client_successful',
+        addNotification: addNotification,
+        setSystemError: setSystemError,
       });
     },
     getProcessedAndScheduledPayments: ({
       fetchProcessedAndScheduledPayments,
       setProcessedAndScheduledPayments,
       billingCompany,
+      addNotification,
+      setSystemError,
     }) => () => {
       if (billingCompany === 'PaySmart') {
         return;
@@ -191,6 +200,8 @@ export const HomeContainer = compose(
         dateFrom: startDate,
         dateTo: endDate,
         setProcessedAndScheduledPayments: setProcessedAndScheduledPayments,
+        addNotification: addNotification,
+        setSystemError: setSystemError,
       });
     },
     reloadCharts: () => (
@@ -202,7 +213,12 @@ export const HomeContainer = compose(
       getProcessedAndScheduledPayments();
       getFailedPayments();
     },
-    getFailedPayments: ({ fetchPaymentHistory, setPaymentHistory }) => () => {
+    getFailedPayments: ({
+      fetchPaymentHistory,
+      setPaymentHistory,
+      addNotification,
+      setSystemError,
+    }) => () => {
       fetchPaymentHistory({
         paymentType: 'FAILED',
         paymentMethod: 'ALL',
@@ -214,6 +230,8 @@ export const HomeContainer = compose(
         dateTo: moment().format('YYYY-MM-DD'),
         setPaymentHistory: setPaymentHistory,
         internalPaymentType: 'client_failed',
+        addNotification: addNotification,
+        setSystemError: setSystemError,
       });
     },
   }),
