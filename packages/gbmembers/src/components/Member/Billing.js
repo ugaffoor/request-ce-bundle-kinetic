@@ -67,6 +67,7 @@ const mapStateToProps = state => ({
   billingWidgetUrl: state.member.app.billingWidgetUrl,
   profile: state.member.app.profile,
   billingCompany: state.member.app.billingCompany,
+  ddrTemplates: state.app.ddrTemplates,
 });
 
 const mapDispatchToProps = {
@@ -224,7 +225,7 @@ export class RegisterPaySmartMemberBilling extends Component {
   };
   constructor(props) {
     super(props);
-    let data = this.getData();
+    let data = this.getData(this.props.ddrTemplates);
     this.columns = this.getColumns();
     this.state = {
       data,
@@ -233,25 +234,30 @@ export class RegisterPaySmartMemberBilling extends Component {
   componentWillMount() {
     this.setState({ isShowingModal: this.props.isShowingModal });
   }
-  getData() {
-    return [
-      {
-        Name: 'template 1',
-        URL:
-          'https://express-testweekly.ffapaysmart.com.au//WebLink/WeblinkDDRNew.aspx?ID=8A26E15E4F1EC9EB',
-      },
-    ];
+  getData(ddrTemplates) {
+    if (!ddrTemplates || ddrTemplates.size <= 0) {
+      return [];
+    }
+    let data = [];
+    ddrTemplates.forEach(template => {
+      data.push({
+        _id: template.name,
+        name: template.name,
+        url: template.url,
+      });
+    });
+    return data;
   }
   getColumns(data) {
     const columns = [
-      { accessor: 'Name', Header: 'Name' },
-      { accessor: 'URL', Header: 'URL' },
+      { accessor: 'name', Header: 'Name' },
+      { accessor: 'url', Header: 'URL' },
       {
         accessor: '$launch',
         Cell: row => (
           <span>
             <a
-              href={row.original['URL']}
+              href={row.original['url']}
               target="_blank"
               className="btn btn-primary"
             >
@@ -266,7 +272,7 @@ export class RegisterPaySmartMemberBilling extends Component {
           <button
             type="button"
             className="btn btn-primary"
-            onClick={e => copyToClipboard(row.original['URL'])}
+            onClick={e => copyToClipboard(row.original['url'])}
           >
             Copy URL
           </button>
@@ -2809,6 +2815,7 @@ export const Billing = ({
   setEditPaymentTypeReason,
   doPaySmartRegistration,
   setDoPaySmartRegistration,
+  ddrTemplates,
 }) =>
   currentMemberLoading ? (
     <div />
@@ -2942,6 +2949,7 @@ export const Billing = ({
               billingCustomerId={memberItem.values['Billing Customer Id']}
               memberItem={memberItem}
               setDoPaySmartRegistration={setDoPaySmartRegistration}
+              ddrTemplates={ddrTemplates}
             />
           )}
           {isAddMember && (

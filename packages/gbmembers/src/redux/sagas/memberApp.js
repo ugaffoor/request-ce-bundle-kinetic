@@ -12,6 +12,7 @@ import { CoreAPI } from 'react-kinetic-core';
 import { getAttributeValue } from '../../utils';
 
 import { actions, types } from '../modules/memberApp';
+import { actions as errorActions, NOTICE_TYPES } from '../modules/errors';
 
 const PROFILE_INCLUDES =
   //  'attributes,profileAttributes,memberships,memberships.team,memberships.team.attributes,memberships.team.memberships,memberships.team.memberships.user,attributes,space,space.attributes,space.kapps';
@@ -19,9 +20,12 @@ const PROFILE_INCLUDES =
   'attributes,profileAttributes,memberships,memberships.team,memberships.team.attributes,memberships.team.memberships,memberships.team.memberships.user';
 const PROFILE_UPDATE_INCLUDES =
   'attributes,profileAttributes,memberships,memberships.team,memberships.team.attributes,memberships.team.memberships,memberships.team.memberships.user';
+const KAPP_UPDATE_INCLUDES = 'attributes';
 
 export const selectProfile = ({ app }) => app.profile;
 export const selectMemberLists = ({ member }) => member.app.memberLists;
+export const selectDDRTemplates = ({ app }) => app.ddrTemplates;
+export const selectKapp = ({ app }) => app.kapps;
 
 export const PROGRAMBELTS_SEARCH = new CoreAPI.SubmissionSearch(true)
   .eq('values[Status]', 'Active')
@@ -230,6 +234,12 @@ export function* fetchMemberAppSettingsTask() {
       space,
     )[0],
     billingCompany: getAttributeValue('Billing Company', '', kapp, space)[0],
+    ddrTemplates: getAttributeValue(
+      'Billing eDDR Templates',
+      '',
+      kapp,
+      space,
+    )[0],
     discussionServerUrl: `/${space.slug}/kinetic-response`,
     profile,
     space,
@@ -238,10 +248,59 @@ export function* fetchMemberAppSettingsTask() {
     membershipTypes,
     membershipFees,
     snippets,
+    kapp,
   };
   console.log('debug 7');
 
   yield put(actions.setAppSettings(appSettings));
+}
+
+const util = require('util');
+export function* updateDDRTemplatesTask(payload) {
+  const ddrTemplates = yield select(selectDDRTemplates);
+  const kapps = yield select(selectKapp);
+  var kapp = undefined;
+  kapps.forEach(function(k) {
+    if (k.slug === 'gbmembers') kapp = k;
+  });
+
+  yield (kapp.attributes['Billing eDDR Templates'] = [
+    JSON.stringify(ddrTemplates),
+  ]);
+  try {
+    const { serverError } = yield call(CoreAPI.updateKapp, {
+      kapp,
+      include: KAPP_UPDATE_INCLUDES,
+    });
+    let message, label;
+    if (payload.payload.action === 'add') {
+      label = 'Add Template';
+      message = 'Template added successfully';
+    } else if (payload.payload.action === 'remove') {
+      label = 'Remove Template';
+      message = 'Template removed successfully';
+    }
+    if (!serverError) {
+      yield put(errorActions.addSuccess(message, label));
+      if (payload.payload.history) {
+        payload.payload.history.push('/ddrTemplates');
+      }
+    } else {
+      console.log(
+        'updateDDRTemplatesTask - Caught server error : ' +
+          util.inspect(serverError),
+      );
+      yield put(
+        errorActions.addError(
+          serverError.statusText + ': ' + serverError.error,
+          label,
+        ),
+      );
+    }
+  } catch (error) {
+    console.log('Error in updateDDRTemplatesTask: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
 }
 
 export function* updateMembersListTask(payload) {
@@ -272,5 +331,9 @@ export function* watchApp() {
       types.REMOVE_MEMBERS_LIST,
     ],
     updateMembersListTask,
+  );
+  yield takeLatest(
+    [types.ADD_DDR_TEMPLATE, types.REMOVE_DDR_TEMPLATE],
+    updateDDRTemplatesTask,
   );
 }

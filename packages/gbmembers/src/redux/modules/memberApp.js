@@ -11,6 +11,8 @@ export const types = {
   ADD_MEMBERS_LIST: namespace('app', 'ADD_MEMBERS_LIST'),
   UPDATE_MEMBERS_LIST: namespace('app', 'UPDATE_MEMBERS_LIST'),
   REMOVE_MEMBERS_LIST: namespace('app', 'REMOVE_MEMBERS_LIST'),
+  ADD_DDR_TEMPLATE: namespace('app', 'ADD_DDR_TEMPLATE'),
+  REMOVE_DDR_TEMPLATE: namespace('app', 'REMOVE_DDR_TEMPLATE'),
 };
 
 export const actions = {
@@ -19,6 +21,8 @@ export const actions = {
   addMembersList: withPayload(types.ADD_MEMBERS_LIST),
   updateMembersList: withPayload(types.UPDATE_MEMBERS_LIST),
   removeMembersList: withPayload(types.REMOVE_MEMBERS_LIST),
+  addDDRTemplate: withPayload(types.ADD_DDR_TEMPLATE),
+  removeDDRTemplate: withPayload(types.REMOVE_DDR_TEMPLATE),
 };
 /*
  *
@@ -34,6 +38,7 @@ export const State = Record({
   billingWidgetUrl: '',
   discussionServerUrl: '',
   billingCompany: '',
+  ddrTemplates: List(),
   allTeams: List(),
   programs: List(),
   belts: List(),
@@ -50,6 +55,7 @@ export const State = Record({
   lastFilterPath: null,
   lastFilterName: null,
   memberLists: List(),
+  kapp: {},
 });
 
 export const reducer = (state = State(), { type, payload }) => {
@@ -61,6 +67,12 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('billingWidgetUrl', payload.billingWidgetUrl)
         .set('discussionServerUrl', payload.discussionServerUrl)
         .set('billingCompany', payload.billingCompany)
+        .set(
+          'ddrTemplates',
+          payload.ddrTemplates
+            ? List(JSON.parse(payload.ddrTemplates))
+            : List(),
+        )
         .set('profile', payload.profile)
         .set('programs', List(payload.programs))
         .set('belts', List(payload.belts))
@@ -75,6 +87,7 @@ export const reducer = (state = State(), { type, payload }) => {
             ? List(payload.profile.profileAttributes['Member Lists'])
             : List(),
         )
+        .set('kapp', payload.kapp)
         .set('loading', false);
     }
     case types.ADD_MEMBERS_LIST:
@@ -91,6 +104,14 @@ export const reducer = (state = State(), { type, payload }) => {
     case types.REMOVE_MEMBERS_LIST:
       return state.update('memberLists', memberLists =>
         memberLists.filter(list => list.name !== payload),
+      );
+    case types.ADD_DDR_TEMPLATE:
+      return state.update('ddrTemplates', ddrTemplates =>
+        ddrTemplates.push(payload.newTemplate),
+      );
+    case types.REMOVE_DDR_TEMPLATE:
+      return state.update('ddrTemplates', ddrTemplates =>
+        ddrTemplates.filter(template => template.name !== payload.name),
       );
     default:
       return state;
