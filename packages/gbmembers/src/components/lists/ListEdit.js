@@ -282,7 +282,7 @@ export class ListEditHome extends Component {
             match = false;
           }
         } else if (keys[0] === 'billingMemberFilter') {
-          if (!member.values['Billing Customer Reference']) {
+          if (!member.values['Billing Customer Id']) {
             match = false;
           }
         }

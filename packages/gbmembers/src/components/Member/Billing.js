@@ -146,6 +146,7 @@ function validateAndRegister(
   setIsValidInput,
   setErrorMessage,
   setDoRegistration,
+  setDoPaySmartRegistration,
   registerMember,
   billingCompany,
 ) {
@@ -166,6 +167,8 @@ function validateAndRegister(
       startRegistration(event, setDoRegistration);
     } else if (billingCompany === 'IntegraPay') {
       registerMember(memberItem);
+    } else if (billingCompany === 'PaySmart') {
+      setDoPaySmartRegistration(true);
     } else {
       console.log(
         'Invalid billing company: ' + billingCompany + '. Nothing to do',
@@ -191,6 +194,114 @@ const handleSaveBillingChanges = (
     },
   );
 };
+
+const copyToClipboard = str => {
+  const el = document.createElement('textarea'); // Create a <textarea> element
+  el.value = str; // Set its value to the string that you want copied
+  el.setAttribute('readonly', ''); // Make it readonly to be tamper-proof
+  el.style.position = 'absolute';
+  el.style.left = '-9999px'; // Move outside the screen to make it invisible
+  document.body.appendChild(el); // Append the <textarea> element to the HTML document
+  const selected =
+    document.getSelection().rangeCount > 0 // Check if there is any content selected previously
+      ? document.getSelection().getRangeAt(0) // Store selection if found
+      : false; // Mark as false to know no selection existed before
+  el.select(); // Select the <textarea> content
+  document.execCommand('copy'); // Copy - only works as a result of a user action (e.g. click events)
+  document.body.removeChild(el); // Remove the <textarea> element
+  if (selected) {
+    // If a selection existed before copying
+    document.getSelection().removeAllRanges(); // Unselect everything on the HTML document
+    document.getSelection().addRange(selected); // Restore the original selection
+  }
+};
+
+export class RegisterPaySmartMemberBilling extends Component {
+  handleClick = () => this.setState({ isShowingModal: true });
+  handleClose = () => {
+    this.setState({ isShowingModal: false });
+    this.props.setDoPaySmartRegistration(false);
+  };
+  constructor(props) {
+    super(props);
+    let data = this.getData();
+    this.columns = this.getColumns();
+    this.state = {
+      data,
+    };
+  }
+  componentWillMount() {
+    this.setState({ isShowingModal: this.props.isShowingModal });
+  }
+  getData() {
+    return [
+      {
+        Name: 'template 1',
+        URL:
+          'https://express-testweekly.ffapaysmart.com.au//WebLink/WeblinkDDRNew.aspx?ID=8A26E15E4F1EC9EB',
+      },
+    ];
+  }
+  getColumns(data) {
+    const columns = [
+      { accessor: 'Name', Header: 'Name' },
+      { accessor: 'URL', Header: 'URL' },
+      {
+        accessor: '$launch',
+        Cell: row => (
+          <span>
+            <a
+              href={row.original['URL']}
+              target="_blank"
+              className="btn btn-primary"
+            >
+              Launch
+            </a>
+          </span>
+        ),
+      },
+      {
+        accessor: '$copy',
+        Cell: row => (
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={e => copyToClipboard(row.original['URL'])}
+          >
+            Copy URL
+          </button>
+        ),
+      },
+    ];
+    return columns;
+  }
+  render() {
+    return (
+      <div onClick={this.handleClick}>
+        {this.state.isShowingModal && (
+          <ModalContainer onClose={this.handleClose}>
+            <ModalDialog
+              style={{ width: '50%', height: '60%' }}
+              onClose={this.handleClose}
+            >
+              <h1>DDR Templates</h1>
+              <div>
+                <ReactTable
+                  columns={this.columns}
+                  data={this.state.data}
+                  className="-striped -highlight"
+                  defaultPageSize={this.state.data.length}
+                  pageSize={this.state.data.length}
+                  showPagination={false}
+                />
+              </div>
+            </ModalDialog>
+          </ModalContainer>
+        )}
+      </div>
+    );
+  }
+}
 
 export class RegisterMemberBilling extends Component {
   handleClick = () => this.setState({ isShowingModal: true });
@@ -254,8 +365,8 @@ export class RegisterMemberBilling extends Component {
     return (
       <div onClick={this.handleClick}>
         {this.state.isShowingModal &&
-          (this.props.billingCustomerReference === null ||
-            this.props.billingCustomerReference === undefined) && (
+          (this.props.billingCustomerId === null ||
+            this.props.billingCustomerId === undefined) && (
             <ModalContainer onClose={this.handleClose}>
               <ModalDialog
                 className="billingRegistrationDialog"
@@ -701,8 +812,8 @@ export class AddMember extends Component {
         member.values['Member ID'] !== memberItem.values['Member ID'] &&
         (member.values['Billing Parent Member'] === undefined ||
           member.values['Billing Parent Member'] === '') &&
-        (member.values['Billing Customer Reference'] === undefined ||
-          member.values['Billing Customer Reference'] === '')
+        (member.values['Billing Customer Id'] === undefined ||
+          member.values['Billing Customer Id'] === '')
       );
     });
 
@@ -2696,6 +2807,8 @@ export const Billing = ({
   updatePaymentMethod,
   refundPayment,
   setEditPaymentTypeReason,
+  doPaySmartRegistration,
+  setDoPaySmartRegistration,
 }) =>
   currentMemberLoading ? (
     <div />
@@ -2704,9 +2817,9 @@ export const Billing = ({
       <StatusMessagesContainer />
       <div className="general">
         <div className="userDetails">
-          {memberItem.values['Billing Customer Reference'] !== null &&
-            memberItem.values['Billing Customer Reference'] !== undefined &&
-            memberItem.values['Billing Customer Reference'] !== '' && (
+          {memberItem.values['Billing Customer Id'] !== null &&
+            memberItem.values['Billing Customer Id'] !== undefined &&
+            memberItem.values['Billing Customer Id'] !== '' && (
               <BillingInfo
                 billingInfo={billingInfo}
                 billingInfoLoading={billingInfoLoading}
@@ -2740,9 +2853,9 @@ export const Billing = ({
                 setEditPaymentTypeReason={setEditPaymentTypeReason}
               />
             )}
-          {(memberItem.values['Billing Customer Reference'] === null ||
-            memberItem.values['Billing Customer Reference'] === undefined ||
-            memberItem.values['Billing Customer Reference'] === '') && (
+          {(memberItem.values['Billing Customer Id'] === null ||
+            memberItem.values['Billing Customer Id'] === undefined ||
+            memberItem.values['Billing Customer Id'] === '') && (
             <span>
               <BillerDetails
                 memberItem={memberItem}
@@ -2774,6 +2887,7 @@ export const Billing = ({
                         setIsValidInput,
                         setErrorMessage,
                         setDoRegistration,
+                        setDoPaySmartRegistration,
                         registerMember,
                         billingCompany,
                       )
@@ -2808,9 +2922,7 @@ export const Billing = ({
           {doRegistration && (
             <RegisterMemberBilling
               isShowingModal={true}
-              billingCustomerReference={
-                memberItem.values['Billing Customer Reference']
-              }
+              billingCustomerId={memberItem.values['Billing Customer Id']}
               memberItem={memberItem}
               setDoRegistration={setDoRegistration}
               completeMemberRegistration={completeMemberRegistration}
@@ -2822,6 +2934,14 @@ export const Billing = ({
               completeMemberBilling={completeMemberBilling}
               updateMember={updateMember}
               billingDDRUrl={billingDDRUrl}
+            />
+          )}
+          {doPaySmartRegistration && (
+            <RegisterPaySmartMemberBilling
+              isShowingModal={true}
+              billingCustomerId={memberItem.values['Billing Customer Id']}
+              memberItem={memberItem}
+              setDoPaySmartRegistration={setDoPaySmartRegistration}
             />
           )}
           {isAddMember && (
@@ -2907,6 +3027,7 @@ export const BillingContainer = compose(
   withState('editPaymentTypeReason', 'setEditPaymentTypeReason', null),
   withState('isValidInput', 'setIsValidInput', true),
   withState('errorMessage', 'setErrorMessage', ''),
+  withState('doPaySmartRegistration', 'setDoPaySmartRegistration', false),
   withHandlers({
     completeMemberRegistration: ({
       memberItem,
@@ -2916,7 +3037,7 @@ export const BillingContainer = compose(
       fetchCurrentMember,
     }) => () => {
       fetchBillingInfoAfterRegistration({
-        billingRef: memberItem.values['Member ID'],
+        billingRef: memberItem.values['Billing Customer Reference'],
         memberItem: memberItem,
         setBillingInfo: setBillingInfo,
         updateMember: updateMember,
@@ -3066,7 +3187,7 @@ export const BillingContainer = compose(
         } else {
           //memberItem.values['Membership Cost'] = getMembershipCost(memberItem, membershipFees);
         }
-        if (memberItem.values['Billing Customer Reference']) {
+        if (memberItem.values['Billing Customer Id']) {
           updatePaymentAmount(
             memberItem,
             editPaymentAmount,
@@ -3124,7 +3245,7 @@ export const BillingContainer = compose(
       setSystemError,
     }) => () => {
       fetchPaymentHistory({
-        billingRef: memberItem.values['Member ID'],
+        billingRef: memberItem.values['Billing Customer Reference'],
         paymentType: 'ALL',
         paymentMethod: 'ALL',
         paymentSource: 'ALL',
@@ -3149,7 +3270,7 @@ export const BillingContainer = compose(
       setSystemError,
     }) => billingChangeReason => {
       clearPaymentSchedule({
-        billingRef: memberItem.values['Member ID'],
+        billingRef: memberItem.values['Billing Customer Reference'],
         keepManualPayments: 'YES',
 
         memberItem: memberItem,
@@ -3175,7 +3296,7 @@ export const BillingContainer = compose(
     }) => (periodType, dayOfWeek, billingChangeReason) => {
       let day = '0';
       let args = {};
-      args.billingRef = memberItem.values['Member ID'];
+      args.billingRef = memberItem.values['Billing Customer Reference'];
       args.scheduleStartDate = moment
         .utc()
         .add(1, 'days')
@@ -3272,7 +3393,7 @@ export const BillingContainer = compose(
         this.props.history.push('/Member/' + this.props.match.params['id']);
       } else {
         this.props.fetchBillingInfo({
-          billingRef: member.values['Member ID'],
+          billingRef: member.values['Billing Customer Reference'],
           history: this.props.history,
           myThis: this,
           setBillingInfo: this.props.setBillingInfo,
@@ -3307,7 +3428,7 @@ export const BillingContainer = compose(
           this.props.history.push('/Member/' + this.props.match.params['id']);
         } else {
           this.props.fetchBillingInfo({
-            billingRef: member.values['Member ID'],
+            billingRef: member.values['Billing Customer Reference'],
             history: this.props.history,
             myThis: this,
             setBillingInfo: this.props.setBillingInfo,
@@ -3357,7 +3478,7 @@ function updatePaymentAmount(
   let response = editPaymentAmount({
     memberItem: member,
     updateMember: updateMember,
-    billingRef: member.values['Member ID'],
+    billingRef: member.values['Billing Customer Reference'],
     changeFromPaymentNumber: '0',
     changeFromDate: moment
       .utc()

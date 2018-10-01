@@ -29,6 +29,7 @@ const clearScheduleUrl = '/clearSchedule';
 const registerUserUrl = '/registerUser';
 const updatePaymentMethodUrl = '/savePaymentMethod';
 const refundTransactionUrl = '/refundTransaction';
+const getNewCustomersUrl = '/newCustomers';
 
 const util = require('util');
 
@@ -228,6 +229,10 @@ export function* fetchBillingInfoAfterRegistration(action) {
         } else {
           action.payload.setBillingInfo(result.data.data);
           // Update memberItem values from billingInfo
+          action.payload.memberItem.values['Billing Customer Reference'] =
+            result.data.data.customerReference;
+          action.payload.memberItem.values['Billing Customer Id'] =
+            result.data.data.customerBillingId;
           action.payload.memberItem.values['Billing Payment Type'] =
             result.data.data.paymentMethod;
           action.payload.memberItem.values['Billing Payment Period'] =
@@ -270,76 +275,97 @@ export function* fetchBillingInfoAfterRegistration(action) {
 }
 
 export function* syncBillingCustomer(action) {
-  if (
-    action.payload.billingRef === undefined ||
-    action.payload.billingRef === ''
-  ) {
-    yield put(actions.setBillingInfo({}));
-  } else {
-    const appSettings = yield select(getAppSettings);
-    var args = {
-      customerId: action.payload.billingRef,
-      space: appSettings.spaceSlug,
-      billingService: appSettings.billingCompany,
-    };
-    console.log('action:' + action.payload);
-    axios
-      .post(appSettings.kineticBillingServerUrl + getBillingInfoUrl, args)
-      .then(result => {
-        if (result.data.error && result.data.error > 0) {
-          console.log(result.data.errorMessage);
-          action.payload.addNotification(
-            NOTICE_TYPES.ERROR,
-            result.data.errorMessage,
-            'Sync Billing Customer',
-          );
-        } else {
-          action.payload.setBillingInfo(result.data.data);
-          // Update memberItem values from billingInfo
-          action.payload.memberItem.values['Billing Payment Type'] =
-            result.data.data.paymentMethod;
-          action.payload.memberItem.values['Billing Payment Period'] =
-            result.data.data.paymentPeriod;
-          action.payload.memberItem.values['Payment Schedule'] = {
-            period: 'Fortnightly',
-            amount: action.payload.paymentAmountInCents / 100,
-          };
+  const appSettings = yield select(getAppSettings);
+  var args = {
+    customerId: action.payload.billingRef,
+    space: appSettings.spaceSlug,
+    billingService: appSettings.billingCompany,
+  };
+  console.log('action:' + action.payload);
+  axios
+    .post(appSettings.kineticBillingServerUrl + getBillingInfoUrl, args)
+    .then(result => {
+      if (result.data.error && result.data.error > 0) {
+        console.log(result.data.errorMessage);
+        action.payload.addNotification(
+          NOTICE_TYPES.ERROR,
+          result.data.errorMessage,
+          'Sync Billing Customer',
+        );
+      } else {
+        action.payload.setBillingInfo(result.data.data);
+        // Update memberItem values from billingInfo
+        action.payload.memberItem.values['Billing Payment Type'] =
+          result.data.data.paymentMethod;
+        action.payload.memberItem.values['Billing Payment Period'] =
+          result.data.data.paymentPeriod;
+        action.payload.memberItem.values['Payment Schedule'] = {
+          period: 'Fortnightly',
+          amount: action.payload.paymentAmountInCents / 100,
+        };
 
-          let changes = getBillingChanges(action.payload.memberItem);
-          changes.push({
-            date: moment().format(contact_date_format),
-            user: appSettings.profile.username,
-            action: 'Sync Billing Customer',
-            from: null,
-            to:
-              'Synced Member Billing with payments of [' +
-              action.payload.memberItem.values['Membership Cost'] +
-              ']',
-          });
-          action.payload.memberItem.values['Billing Changes'] = changes;
+        let changes = getBillingChanges(action.payload.memberItem);
+        changes.push({
+          date: moment().format(contact_date_format),
+          user: appSettings.profile.username,
+          action: 'Sync Billing Customer',
+          from: null,
+          to:
+            'Synced Member Billing with payments of [' +
+            action.payload.memberItem.values['Membership Cost'] +
+            ']',
+        });
+        action.payload.memberItem.values['Billing Changes'] = changes;
 
-          action.payload.updateMember({
-            id: action.payload.memberItem.id,
-            memberItem: action.payload.memberItem,
-            myThis: action.payload.myThis,
-          });
-          action.payload.addNotification(
-            NOTICE_TYPES.SUCCESS,
-            'Billing customer synced successfully',
-            'Sync Billing Customer',
-          );
-          action.payload.fetchCurrentMember({
-            id: action.payload.memberItem['id'],
-            myThis: action.payload.myThis,
-          });
-        }
-      })
-      .catch(error => {
-        console.log(error.response);
-        //action.payload.setSystemError(error);
-      });
-    yield put(actions.setDummy());
-  }
+        action.payload.updateMember({
+          id: action.payload.memberItem.id,
+          memberItem: action.payload.memberItem,
+          myThis: action.payload.myThis,
+        });
+        action.payload.addNotification(
+          NOTICE_TYPES.SUCCESS,
+          'Billing customer synced successfully',
+          'Sync Billing Customer',
+        );
+        action.payload.fetchCurrentMember({
+          id: action.payload.memberItem['id'],
+          myThis: action.payload.myThis,
+        });
+      }
+    })
+    .catch(error => {
+      console.log(error.response);
+      //action.payload.setSystemError(error);
+    });
+  yield put(actions.setDummy());
+}
+
+export function* fetchNewCustomers(action) {
+  const appSettings = yield select(getAppSettings);
+  var args = {
+    space: appSettings.spaceSlug,
+    billingService: appSettings.billingCompany,
+  };
+  console.log('action:' + action.payload);
+  axios
+    .post(appSettings.kineticBillingServerUrl + getNewCustomersUrl, args)
+    .then(result => {
+      if (result.data.error && result.data.error > 0) {
+        console.log(result.data.errorMessage);
+        action.payload.addNotification(
+          NOTICE_TYPES.ERROR,
+          result.data.errorMessage,
+          'Get New Customers',
+        );
+      } else {
+        action.payload.setNewCustomers(result.data.data);
+      }
+    })
+    .catch(error => {
+      console.log(error.response);
+      action.payload.setSystemError(error);
+    });
+  yield put(actions.setDummy());
 }
 
 export function* editPaymentAmount(action) {
@@ -727,7 +753,8 @@ export function* registerBillingMember(action) {
 export function* editPaymentMethod(action) {
   const appSettings = yield select(getAppSettings);
   let args = {};
-  args.customerId = action.payload.memberItem.values['Member ID'];
+  args.customerId =
+    action.payload.memberItem.values['Billing Customer Reference'];
   args.space = appSettings.spaceSlug;
   args.billingService = appSettings.billingCompany;
   args.paymentMethod = action.payload.paymentMethod.methodName;
@@ -793,7 +820,8 @@ export function* refundTransaction(action) {
   let args = {};
   args.space = appSettings.spaceSlug;
   args.billingService = appSettings.billingCompany;
-  args.customerId = action.payload.memberItem.values['Member ID'];
+  args.customerId =
+    action.payload.memberItem.values['Billing Customer Reference'];
   args.transactionId = action.payload.transactionId;
   args.bankReceiptId = action.payload.bankReceiptId;
   args.refundAmount = action.payload.refundAmount;
@@ -883,6 +911,7 @@ export function* watchMembers() {
   yield takeEvery(types.EDIT_PAYMENT_METHOD, editPaymentMethod);
   yield takeEvery(types.REFUND_TRANSACTION, refundTransaction);
   yield takeEvery(types.SYNC_BILLING_CUSTOMER, syncBillingCustomer);
+  yield takeEvery(types.FETCH_NEW_CUSTOMERS, fetchNewCustomers);
 }
 
 export default function fetchMemberById(id) {

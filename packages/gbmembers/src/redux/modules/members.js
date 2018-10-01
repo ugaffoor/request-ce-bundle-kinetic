@@ -41,6 +41,8 @@ export const types = {
   EDIT_PAYMENT_METHOD: namespace('members', 'EDIT_PAYMENT_METHOD'),
   REFUND_TRANSACTION: namespace('members', 'REFUND_TRANSACTION'),
   SYNC_BILLING_CUSTOMER: namespace('members', 'SYNC_BILLING_CUSTOMER'),
+  FETCH_NEW_CUSTOMERS: namespace('members', 'FETCH_NEW_CUSTOMERS'),
+  SET_NEW_CUSTOMERS: namespace('members', 'SET_NEW_CUSTOMERS'),
 };
 
 export const actions = {
@@ -79,6 +81,8 @@ export const actions = {
   editPaymentMethod: withPayload(types.EDIT_PAYMENT_METHOD),
   refundTransaction: withPayload(types.REFUND_TRANSACTION),
   syncBillingCustomer: withPayload(types.SYNC_BILLING_CUSTOMER),
+  fetchNewCustomers: withPayload(types.FETCH_NEW_CUSTOMERS),
+  setNewCustomers: withPayload(types.SET_NEW_CUSTOMERS),
 };
 
 export const State = Record({
@@ -100,6 +104,8 @@ export const State = Record({
   processedAndScheduledPaymentsLoading: true,
   familyMembers: [],
   removedBillingMembers: [],
+  newCustomers: [],
+  newCustomersLoading: true,
 });
 
 export const reducer = (state = State(), { type, payload }) => {
@@ -168,12 +174,11 @@ export const reducer = (state = State(), { type, payload }) => {
     }
     case types.SET_BILLING_INFO: {
       if (
-        (state.currentMember.values['Billing Customer Reference'] === null ||
-          state.currentMember.values['Billing Customer Reference'] ===
-            undefined) &&
+        (state.currentMember.values['Billing Customer Id'] === null ||
+          state.currentMember.values['Billing Customer Id'] === undefined) &&
         payload.customerBillingId !== undefined
       )
-        state.currentMember.values['Billing Customer Reference'] =
+        state.currentMember.values['Billing Customer Id'] =
           payload.customerBillingId;
       return state.set('billingInfoLoading', false).set('billingInfo', payload);
     }
@@ -208,6 +213,14 @@ export const reducer = (state = State(), { type, payload }) => {
       return state
         .set('familyMembers', payload)
         .set('removedBillingMembers', []);
+    }
+    case types.FETCH_NEW_CUSTOMERS: {
+      return state.set('newCustomersLoading', true);
+    }
+    case types.SET_NEW_CUSTOMERS: {
+      return state
+        .set('newCustomersLoading', false)
+        .set('newCustomers', payload);
     }
     default:
       return state;

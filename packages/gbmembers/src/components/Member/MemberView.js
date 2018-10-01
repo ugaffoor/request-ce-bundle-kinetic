@@ -28,6 +28,7 @@ import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
 import { actions as campaignActions } from '../../redux/modules/campaigns';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as errorActions } from '../../redux/modules/errors';
+import ReactSpinner from 'react16-spinjs';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -36,6 +37,8 @@ const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
   campaignItem: state.member.campaigns.campaignItem,
   campaignLoading: state.member.campaigns.campaignLoading,
+  newCustomers: state.member.members.newCustomers,
+  newCustomersLoading: state.member.members.newCustomersLoading,
   space: state.member.app.space,
 });
 
@@ -47,7 +50,113 @@ const mapDispatchToProps = {
   setBillingInfo: actions.setBillingInfo,
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
+  fetchNewCustomers: actions.fetchNewCustomers,
+  setNewCustomers: actions.setNewCustomers,
+  fetchMembers: actions.fetchMembers,
 };
+
+export class NewCustomers extends Component {
+  handleClick = () => this.setState({ isShowingModal: true });
+  handleClose = () => {
+    this.setState({ isShowingModal: false });
+    this.props.setShowNewCustomers(false);
+  };
+  constructor(props) {
+    super(props);
+    this.getData = this.getData.bind(this);
+    this.syncCustomer = this.syncCustomer.bind(this);
+    let data = this.getData(this.props.newCustomers);
+    this.columns = this.getColumns();
+    this.state = {
+      data,
+    };
+  }
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.newCustomers.length !== this.props.newCustomers.length) {
+      this.setState({
+        data: this.getData(nextProps.newCustomers),
+      });
+    }
+  }
+  componentWillMount() {
+    this.setState({ isShowingModal: this.props.isShowingModal });
+  }
+  componentDidMount() {
+    this.props.getNewCustomers();
+  }
+  syncCustomer(billingId) {
+    this.props.syncBilling(billingId);
+    this.props.setShowNewCustomers(false);
+  }
+  getData(newCustomers) {
+    if (!newCustomers || newCustomers.length <= 0) {
+      return [];
+    }
+    let data = newCustomers.map(customer => {
+      return {
+        _id: customer['customerBillingId'],
+        firstName: customer.customerFirstName,
+        lastName: customer.customerName,
+        email: customer.email,
+        customerReference: customer.customerReference,
+      };
+    });
+    return data;
+  }
+  getColumns(data) {
+    const columns = [
+      { accessor: 'firstName', Header: 'First Name' },
+      { accessor: 'lastName', Header: 'Last Name' },
+      { accessor: 'email', Header: 'Email' },
+      { accessor: 'customerReference', Header: 'Billing Reference' },
+      {
+        accessor: '$sync',
+        Cell: row => (
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={e => this.syncCustomer(row.original['customerReference'])}
+          >
+            Sync Customer
+          </button>
+        ),
+      },
+    ];
+    return columns;
+  }
+  render() {
+    return (
+      <div onClick={this.handleClick}>
+        <ModalContainer onClose={this.handleClose}>
+          <ModalDialog
+            style={{ width: '50%', height: '60%' }}
+            onClose={this.handleClose}
+          >
+            {this.props.newCustomersLoading ? (
+              <div>
+                Loading... <ReactSpinner />
+              </div>
+            ) : (
+              <span>
+                <h1>New Customers</h1>
+                <div>
+                  <ReactTable
+                    columns={this.columns}
+                    data={this.state.data}
+                    className="-striped -highlight"
+                    defaultPageSize={this.state.data.length}
+                    pageSize={this.state.data.length}
+                    showPagination={false}
+                  />
+                </div>
+              </span>
+            )}
+          </ModalDialog>
+        </ModalContainer>
+      </div>
+    );
+  }
+}
 
 export class BillingParentInfo extends Component {
   constructor(props) {
@@ -93,6 +202,11 @@ export const MemberView = ({
   campaignItem,
   campaignLoading,
   syncBilling,
+  newCustomers,
+  getNewCustomers,
+  showNewCustomers,
+  setShowNewCustomers,
+  newCustomersLoading,
   space,
 }) =>
   currentMemberLoading ? (
@@ -197,8 +311,8 @@ export const MemberView = ({
           <h4>Billing</h4>
           <div
             className={
-              memberItem.values['Billing Customer Reference'] !== undefined &&
-              memberItem.values['Billing Customer Reference'] !== ''
+              memberItem.values['Billing Customer Id'] !== undefined &&
+              memberItem.values['Billing Customer Id'] !== ''
                 ? 'billingInfo show'
                 : 'hide'
             }
@@ -220,8 +334,8 @@ export const MemberView = ({
           </div>
           <div
             className={
-              memberItem.values['Billing Customer Reference'] === undefined ||
-              memberItem.values['Billing Customer Reference'] === ''
+              memberItem.values['Billing Customer Id'] === undefined ||
+              memberItem.values['Billing Customer Id'] === ''
                 ? 'billingInfo show'
                 : 'hide'
             }
@@ -236,6 +350,25 @@ export const MemberView = ({
             >
               Edit Billing
             </NavLink>
+          </div>
+          <div>
+            <br />
+            <button
+              type="button"
+              className={'btn btn-primary'}
+              onClick={e => setShowNewCustomers(true)}
+            >
+              Show New Customers
+            </button>
+            {showNewCustomers && (
+              <NewCustomers
+                getNewCustomers={getNewCustomers}
+                setShowNewCustomers={setShowNewCustomers}
+                newCustomersLoading={newCustomersLoading}
+                syncBilling={syncBilling}
+                newCustomers={newCustomers}
+              />
+            )}
           </div>
           <div>
             <br />
@@ -342,6 +475,7 @@ export const MemberViewContainer = compose(
   withState('isAssigning', 'setIsAssigning', false),
   withState('isDirty', 'setIsDirty', false),
   withState('showViewNotes', 'setShowViewNotes', false),
+  withState('showNewCustomers', 'setShowNewCustomers', false),
   withHandlers({
     saveMember: ({ memberItem, updateMember, setIsDirty }) => () => {
       let note = $('#memberNote').val();
@@ -374,10 +508,16 @@ export const MemberViewContainer = compose(
       syncBillingCustomer,
       setBillingInfo,
       fetchCurrentMember,
+      fetchMembers,
       addNotification,
       setSystemError,
-    }) => () => {
-      let billingRef = $('#customerBillingId').val();
+    }) => billingId => {
+      let billingRef = null;
+      if (billingId) {
+        billingRef = billingId;
+      } else {
+        billingRef = $('#customerBillingId').val();
+      }
       if (!billingRef) {
         console.log('Customer billing Id is required for syncing member');
         return;
@@ -389,6 +529,20 @@ export const MemberViewContainer = compose(
         updateMember: updateMember,
         setBillingInfo: setBillingInfo,
         fetchCurrentMember: fetchCurrentMember,
+        fetchMembers: fetchMembers,
+        addNotification: addNotification,
+        setSystemError: setSystemError,
+      });
+    },
+    getNewCustomers: ({
+      fetchNewCustomers,
+      setNewCustomers,
+      addNotification,
+      setSystemError,
+    }) => () => {
+      console.log('#### in getNewCustomers ');
+      fetchNewCustomers({
+        setNewCustomers: setNewCustomers,
         addNotification: addNotification,
         setSystemError: setSystemError,
       });
