@@ -239,7 +239,7 @@ export function* fetchBillingInfoAfterRegistration(action) {
             result.data.data.paymentPeriod;
           action.payload.memberItem.values['Payment Schedule'] = {
             period: 'Fortnightly',
-            amount: action.payload.paymentAmountInCents / 100,
+            amount: result.data.data.paymentAmountInCents / 100,
           };
 
           let changes = getBillingChanges(action.payload.memberItem);
@@ -250,7 +250,7 @@ export function* fetchBillingInfoAfterRegistration(action) {
             from: null,
             to:
               'Setup Member Billing with payments of [' +
-              action.payload.memberItem.values['Membership Cost'] +
+              result.data.data.paymentAmountInCents / 100 +
               ']',
           });
           action.payload.memberItem.values['Billing Changes'] = changes;
@@ -301,7 +301,7 @@ export function* syncBillingCustomer(action) {
           result.data.data.paymentPeriod;
         action.payload.memberItem.values['Payment Schedule'] = {
           period: 'Fortnightly',
-          amount: action.payload.paymentAmountInCents / 100,
+          amount: result.data.data.paymentAmountInCents / 100,
         };
 
         let changes = getBillingChanges(action.payload.memberItem);
@@ -312,7 +312,7 @@ export function* syncBillingCustomer(action) {
           from: null,
           to:
             'Synced Member Billing with payments of [' +
-            action.payload.memberItem.values['Membership Cost'] +
+            result.data.data.paymentAmountInCents / 100 +
             ']',
         });
         action.payload.memberItem.values['Billing Changes'] = changes;
