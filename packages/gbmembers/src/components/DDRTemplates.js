@@ -18,7 +18,7 @@ import { StatusMessagesContainer } from './StatusMessages';
 import { actions as errorActions } from '../redux/modules/errors';
 
 const mapStateToProps = state => ({
-  ddrTemplates: state.app.ddrTemplates,
+  ddrTemplates: state.member.app.ddrTemplates,
 });
 const mapDispatchToProps = {
   addDDRTemplate: actions.addDDRTemplate,
@@ -35,7 +35,6 @@ export class DDRTemplates extends Component {
     this.addTemplate = this.addTemplate.bind(this);
     this.deleteTemplate = this.deleteTemplate.bind(this);
     this.handleInputChange = this.handleInputChange.bind(this);
-
     let data = this.getData(this.props.ddrTemplates);
     this.columns = this.getColumns();
 

@@ -70,7 +70,9 @@ export const reducer = (state = State(), { type, payload }) => {
         .set(
           'ddrTemplates',
           payload.ddrTemplates
-            ? List(JSON.parse(payload.ddrTemplates))
+            ? typeof payload.ddrTemplates === 'string'
+              ? List(JSON.parse(payload.ddrTemplates))
+              : List(payload.ddrTemplates)
             : List(),
         )
         .set('profile', payload.profile)

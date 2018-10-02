@@ -24,7 +24,7 @@ const KAPP_UPDATE_INCLUDES = 'attributes';
 
 export const selectProfile = ({ app }) => app.profile;
 export const selectMemberLists = ({ member }) => member.app.memberLists;
-export const selectDDRTemplates = ({ app }) => app.ddrTemplates;
+export const selectDDRTemplates = ({ member }) => member.app.ddrTemplates;
 export const selectKapp = ({ app }) => app.kapps;
 
 export const PROGRAMBELTS_SEARCH = new CoreAPI.SubmissionSearch(true)
@@ -259,17 +259,26 @@ const util = require('util');
 export function* updateDDRTemplatesTask(payload) {
   const ddrTemplates = yield select(selectDDRTemplates);
   const kapps = yield select(selectKapp);
-  var kapp = undefined;
-  kapps.forEach(function(k) {
+  let kapp = undefined;
+  yield kapps.forEach(function(k) {
     if (k.slug === 'gbmembers') kapp = k;
   });
+  let templatesAttribute = yield kapp.attributes.find(
+    attribute => attribute.name === 'Billing eDDR Templates',
+  );
+  if (templatesAttribute) {
+    yield (templatesAttribute.values = [JSON.stringify(ddrTemplates)]);
+  } else {
+    yield kapp.attributes.push({
+      name: 'Billing eDDR Templates',
+      values: [JSON.stringify(ddrTemplates)],
+    });
+  }
 
-  yield (kapp.attributes['Billing eDDR Templates'] = [
-    JSON.stringify(ddrTemplates),
-  ]);
   try {
     const { serverError } = yield call(CoreAPI.updateKapp, {
       kapp,
+      kappSlug: 'gbmembers',
       include: KAPP_UPDATE_INCLUDES,
     });
     let message, label;
