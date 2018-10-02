@@ -295,6 +295,10 @@ export function* syncBillingCustomer(action) {
       } else {
         action.payload.setBillingInfo(result.data.data);
         // Update memberItem values from billingInfo
+        action.payload.memberItem.values['Billing Customer Reference'] =
+          result.data.data.customerReference;
+        action.payload.memberItem.values['Billing Customer Id'] =
+          result.data.data.customerBillingId;
         action.payload.memberItem.values['Billing Payment Type'] =
           result.data.data.paymentMethod;
         action.payload.memberItem.values['Billing Payment Period'] =
@@ -331,6 +335,7 @@ export function* syncBillingCustomer(action) {
           id: action.payload.memberItem['id'],
           myThis: action.payload.myThis,
         });
+        action.payload.fetchMembers();
       }
     })
     .catch(error => {

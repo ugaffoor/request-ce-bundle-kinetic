@@ -3045,7 +3045,7 @@ export const BillingContainer = compose(
       fetchCurrentMember,
     }) => () => {
       fetchBillingInfoAfterRegistration({
-        billingRef: memberItem.values['Billing Customer Reference'],
+        billingRef: memberItem.values['Billing Customer Id'],
         memberItem: memberItem,
         setBillingInfo: setBillingInfo,
         updateMember: updateMember,
@@ -3253,7 +3253,7 @@ export const BillingContainer = compose(
       setSystemError,
     }) => () => {
       fetchPaymentHistory({
-        billingRef: memberItem.values['Billing Customer Reference'],
+        billingRef: memberItem.values['Billing Customer Id'],
         paymentType: 'ALL',
         paymentMethod: 'ALL',
         paymentSource: 'ALL',
@@ -3278,7 +3278,7 @@ export const BillingContainer = compose(
       setSystemError,
     }) => billingChangeReason => {
       clearPaymentSchedule({
-        billingRef: memberItem.values['Billing Customer Reference'],
+        billingRef: memberItem.values['Billing Customer Id'],
         keepManualPayments: 'YES',
 
         memberItem: memberItem,
@@ -3304,7 +3304,7 @@ export const BillingContainer = compose(
     }) => (periodType, dayOfWeek, billingChangeReason) => {
       let day = '0';
       let args = {};
-      args.billingRef = memberItem.values['Billing Customer Reference'];
+      args.billingRef = memberItem.values['Billing Customer Id'];
       args.scheduleStartDate = moment
         .utc()
         .add(1, 'days')
@@ -3401,7 +3401,7 @@ export const BillingContainer = compose(
         this.props.history.push('/Member/' + this.props.match.params['id']);
       } else {
         this.props.fetchBillingInfo({
-          billingRef: member.values['Billing Customer Reference'],
+          billingRef: member.values['Billing Customer Id'],
           history: this.props.history,
           myThis: this,
           setBillingInfo: this.props.setBillingInfo,
@@ -3436,7 +3436,7 @@ export const BillingContainer = compose(
           this.props.history.push('/Member/' + this.props.match.params['id']);
         } else {
           this.props.fetchBillingInfo({
-            billingRef: member.values['Billing Customer Reference'],
+            billingRef: member.values['Billing Customer Id'],
             history: this.props.history,
             myThis: this,
             setBillingInfo: this.props.setBillingInfo,
@@ -3486,7 +3486,7 @@ function updatePaymentAmount(
   let response = editPaymentAmount({
     memberItem: member,
     updateMember: updateMember,
-    billingRef: member.values['Billing Customer Reference'],
+    billingRef: member.values['Billing Customer Id'],
     changeFromPaymentNumber: '0',
     changeFromDate: moment
       .utc()
