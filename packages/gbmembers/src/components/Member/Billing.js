@@ -67,7 +67,7 @@ const mapStateToProps = state => ({
   billingWidgetUrl: state.member.app.billingWidgetUrl,
   profile: state.member.app.profile,
   billingCompany: state.member.app.billingCompany,
-  ddrTemplates: state.app.ddrTemplates,
+  ddrTemplates: state.member.app.ddrTemplates,
 });
 
 const mapDispatchToProps = {
