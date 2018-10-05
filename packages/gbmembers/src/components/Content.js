@@ -44,7 +44,7 @@ export const Content = () => (
     <Route path="/MemberFollowUp/:id" component={MemberFollowUpContainer} />
     <Route path="/Send" component={CampaignContainer} />
     <Route
-      path="/NewManualCampaign/:memberId?"
+      path="/NewManualCampaign/:submissionId?/:submissionType?"
       component={ManualCampaignContainer}
     />
     <Route path="/ddrTemplates" component={DDRTemplatesContainer} />

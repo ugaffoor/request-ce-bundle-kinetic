@@ -235,7 +235,7 @@ export const MemberView = ({
             </h1>
             <span className="buttons">
               <NavLink
-                to={`/NewManualCampaign/${memberItem.id}`}
+                to={`/NewManualCampaign/${memberItem.id}/member`}
                 className="btn btn-primary"
               >
                 Send

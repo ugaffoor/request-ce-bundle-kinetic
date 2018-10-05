@@ -21,6 +21,7 @@ import axios, { post } from 'axios';
 import { AttachmentForm } from './AttachmentForm';
 import '../../styles/quill.snow.scss.css';
 import Select, { components } from 'react-select';
+import { actions as leadsActions } from '../../redux/modules/leads';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -29,11 +30,13 @@ const mapStateToProps = state => ({
   memberLists: state.member.app.memberLists,
   snippets: state.member.app.snippets,
   allMembers: state.member.members.allMembers,
+  leadItem: state.member.leads.currentLead,
 });
 const mapDispatchToProps = {
   createCampaign: actions.createCampaign,
   fetchNewCampaign: actions.fetchNewCampaign,
   updateCampaign: actions.updateCampaign,
+  fetchLead: leadsActions.fetchCurrentLead,
 };
 
 const util = require('util');
@@ -160,9 +163,9 @@ export class NewManualCampaign extends Component {
   }
 
   getSelectOptions(memberLists, allMembers) {
-    //If memberId is present that means user has reached here from 'member view' UI by clicking 'send email'.
+    //If submissionId is present then submissionId is the recipient.
     //So no need to populate or display recipient list dropdown.
-    if (this.props.memberId) {
+    if (this.props.submissionId) {
       return [];
     }
     let options = [];
@@ -210,7 +213,7 @@ export class NewManualCampaign extends Component {
   };
 
   createCampaign() {
-    if (!this.props.memberId && this.state.selectedOption.length <= 0) {
+    if (!this.props.submissionId && this.state.selectedOption.length <= 0) {
       console.log('Recipients, subject and body is required');
       return;
     }
@@ -221,8 +224,8 @@ export class NewManualCampaign extends Component {
     }
 
     let recipientIds = [];
-    if (this.props.memberId) {
-      recipientIds = [this.props.memberId];
+    if (this.props.submissionId) {
+      recipientIds = [this.props.submissionId];
     } else {
       this.state.selectedOption.forEach(option => {
         recipientIds.push(...option.members);
@@ -296,17 +299,21 @@ export class NewManualCampaign extends Component {
             You are currently sending this email to
           </div>
           <div className="col-md-4">
-            {this.props.memberId ? (
+            {this.props.submissionId ? (
               <input
                 type="text"
                 readOnly
                 style={{ width: '100%' }}
                 value={
-                  this.props.allMembers && this.props.allMembers.length > 0
-                    ? this.props.allMembers.find(
-                        member => member['id'] === this.props.memberId,
-                      ).values['Email']
-                    : ''
+                  this.props.submissionType === 'member'
+                    ? this.props.allMembers && this.props.allMembers.size > 0
+                      ? this.props.allMembers.find(
+                          member => member['id'] === this.props.submissionId,
+                        ).values['Email']
+                      : ''
+                    : this.props.leadItem && this.props.leadItem.values
+                      ? this.props.leadItem.values['Email']
+                      : ''
                 }
               />
             ) : (
@@ -422,7 +429,9 @@ export const NewManualCampaignView = ({
   setShowPreview,
   updateCampaign,
   allMembers,
-  memberId,
+  submissionId,
+  submissionType,
+  leadItem,
 }) =>
   newCampaignLoading ? (
     <div />
@@ -441,7 +450,9 @@ export const NewManualCampaignView = ({
         setShowPreview={setShowPreview}
         updateCampaign={updateCampaign}
         allMembers={allMembers}
-        memberId={memberId}
+        submissionId={submissionId}
+        submissionType={submissionType}
+        leadItem={leadItem}
       />
     </div>
   );
@@ -453,7 +464,8 @@ export const ManualCampaignContainer = compose(
   ),
   withProps(({ match }) => {
     return {
-      memberId: match.params.memberId,
+      submissionId: match.params.submissionId,
+      submissionType: match.params.submissionType,
     };
   }),
   withState('isDirty', 'setIsDirty', false),
@@ -485,6 +497,11 @@ export const ManualCampaignContainer = compose(
         history: this.props.history,
         fetchCampaigns: null,
       });
+      if (this.props.submissionType && this.props.submissionType === 'lead') {
+        this.props.fetchLead({
+          id: this.props.submissionId,
+        });
+      }
     },
     componentWillReceiveProps(nextProps) {
       if (this.props.pathname !== nextProps.pathname) {
