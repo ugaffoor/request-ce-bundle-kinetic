@@ -39,7 +39,8 @@ export function* createCampaign(action) {
       include: SUBMISSION_INCLUDES,
     });
 
-    if (action.payload.history) action.payload.history.push('/Send');
+    if (action.payload.history)
+      action.payload.history.push('/kapps/gbmembers/Send');
     //if (action.payload.fetchLeads)
     //action.payload.fetchLeads();
     console.log('createCampaign # ' + submission);
@@ -62,7 +63,8 @@ export function* updateCampaign(action) {
       id: action.payload.id,
       values: action.payload.campaignItem.values,
     });
-    if (action.payload.history) action.payload.history.push('/Send');
+    if (action.payload.history)
+      action.payload.history.push('/kapps/gbmembers/Send');
     if (action.payload.fetchCampaigns) action.payload.fetchCampaigns();
     if (action.payload.fetchCampaign)
       action.payload.fetchCampaign({

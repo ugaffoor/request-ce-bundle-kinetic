@@ -29,6 +29,7 @@ const mapStateToProps = state => ({
   memberLists: state.member.app.memberLists,
   snippets: state.member.app.snippets,
   allMembers: state.member.members.allMembers,
+  space: state.member.app.space,
 });
 const mapDispatchToProps = {
   createCampaign: actions.createCampaign,
@@ -99,7 +100,8 @@ export class NewManualCampaign extends Component {
           [{ font: [] }],
           [{ align: [] }],
           ['link'],
-          ['clean'], // remove formatting button
+          //['image'],
+          ['clean'],
           ['firstname'],
           ['lastname'],
           ['emailfooter'],
@@ -259,6 +261,7 @@ export class NewManualCampaign extends Component {
       recipientIds,
       body,
       embeddedImages,
+      this.props.space,
     );
   }
 
@@ -370,7 +373,7 @@ export class NewManualCampaign extends Component {
               </div>
             )}
           </div>
-          <div className="col-md" style={{ verticalAlign: 'middle' }}>
+          <div className="col-md buttons" style={{ verticalAlign: 'middle' }}>
             {this.props.showEditor && (
               <button
                 type="button"
@@ -382,7 +385,7 @@ export class NewManualCampaign extends Component {
               </button>
             )}
             {this.props.showPreview && (
-              <span>
+              <span className="preview">
                 <button
                   type="button"
                   id="saveButton"
@@ -394,7 +397,7 @@ export class NewManualCampaign extends Component {
                 &nbsp;
                 <button
                   type="button"
-                  className="btn btn-primary"
+                  className="btn btn-primary sendback"
                   onClick={e => this.back()}
                 >
                   Back
@@ -423,6 +426,7 @@ export const NewManualCampaignView = ({
   updateCampaign,
   allMembers,
   memberId,
+  space,
 }) =>
   newCampaignLoading ? (
     <div />
@@ -442,6 +446,7 @@ export const NewManualCampaignView = ({
         updateCampaign={updateCampaign}
         allMembers={allMembers}
         memberId={memberId}
+        space={space}
       />
     </div>
   );
@@ -465,8 +470,9 @@ export const ManualCampaignContainer = compose(
       recipients,
       body,
       embeddedImages,
+      space,
     ) => {
-      campaignItem.values['From'] = 'test@test.com';
+      campaignItem.values['From'] = space.attributes['School Email'][0];
       campaignItem.values['Recipients'] = recipients;
       campaignItem.values['Subject'] = subject;
       campaignItem.values['Body'] = body;

@@ -1,3 +1,7 @@
+#campaignsListGrid p {
+  margin-bottom: 0;
+}
+
 #campaignsListGrid {
   .recipients_col,
   .opened_col,
@@ -58,10 +62,15 @@
   .ql-picker.ql-fields [data-value='Last Name']::before {
     content: 'Last Name';
   }
-  .preview_send {
+  .preview_send,
+  .send,
+  .sendback {
     margin-top: 50px;
     @media (min-width: 544px) {
       margin-top: 33px;
     }
+  }
+  #previewDiv p {
+    margin-bottom: 0;
   }
 }
