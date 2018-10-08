@@ -429,6 +429,14 @@ export class LeadDetail extends Component {
                   defaultValue={moment()}
                 />
               </li>
+              <li>
+                <NavLink
+                  to={`/NewManualCampaign/${this.props.leadItem['id']}/lead`}
+                  className="btn btn-primary"
+                >
+                  Send Email
+                </NavLink>
+              </li>
             </ul>
           </div>
           <div className="card-body">

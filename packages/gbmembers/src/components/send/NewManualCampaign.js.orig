@@ -30,8 +30,11 @@ const mapStateToProps = state => ({
   memberLists: state.member.app.memberLists,
   snippets: state.member.app.snippets,
   allMembers: state.member.members.allMembers,
+<<<<<<< HEAD
   space: state.member.app.space,
+=======
   leadItem: state.member.leads.currentLead,
+>>>>>>> b2c0c28c796d634534df09f1417832cbe043ebe7
 });
 const mapDispatchToProps = {
   createCampaign: actions.createCampaign,
@@ -432,9 +435,14 @@ export const NewManualCampaignView = ({
   setShowPreview,
   updateCampaign,
   allMembers,
+<<<<<<< HEAD
+  memberId,
+  space,
+=======
   submissionId,
   submissionType,
   leadItem,
+>>>>>>> b2c0c28c796d634534df09f1417832cbe043ebe7
 }) =>
   newCampaignLoading ? (
     <div />
@@ -453,10 +461,14 @@ export const NewManualCampaignView = ({
         setShowPreview={setShowPreview}
         updateCampaign={updateCampaign}
         allMembers={allMembers}
+<<<<<<< HEAD
+        memberId={memberId}
+        space={space}
+=======
         submissionId={submissionId}
         submissionType={submissionType}
         leadItem={leadItem}
-        space={space}
+>>>>>>> b2c0c28c796d634534df09f1417832cbe043ebe7
       />
     </div>
   );

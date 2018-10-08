@@ -30,6 +30,7 @@ const registerUserUrl = '/registerUser';
 const updatePaymentMethodUrl = '/savePaymentMethod';
 const refundTransactionUrl = '/refundTransaction';
 const getNewCustomersUrl = '/newCustomers';
+const ddrStatusUrl = '/getDDRStatus';
 
 const util = require('util');
 
@@ -889,6 +890,42 @@ export function* refundTransaction(action) {
     });
 }
 
+export function* fetchDdrStatus(action) {
+  const appSettings = yield select(getAppSettings);
+  let args = {};
+  args.space = appSettings.spaceSlug;
+  args.billingService = appSettings.billingCompany;
+  args.customerId =
+    action.payload.memberItem.values['Billing Customer Reference'];
+  axios
+    .post(appSettings.kineticBillingServerUrl + ddrStatusUrl, args)
+    .then(result => {
+      if (result.data.error && result.data.error > 0) {
+        console.log('fetchDdrStatus Error: ' + result.data.errorMessage);
+        action.payload.addNotification(
+          NOTICE_TYPES.ERROR,
+          result.data.errorMessage,
+          'Get DDR Status',
+        );
+      } else {
+        console.log('#### Response = ' + result.data.data);
+        action.payload.setDdrStatus(result.data.data.ddrStatus);
+        /*action.payload.updateMember({
+          id: action.payload.memberItem['id'],
+          memberItem: action.payload.memberItem,
+        });
+        action.payload.fetchCurrentMember({
+          id: action.payload.memberItem['id'],
+          myThis: action.payload.myThis,
+        });*/
+      }
+    })
+    .catch(error => {
+      console.log(util.inspect(error));
+      action.payload.setSystemError(error);
+    });
+}
+
 export function* watchMembers() {
   console.log('watchMembers');
   yield takeEvery(types.FETCH_MEMBERS, fetchMembers);
@@ -917,6 +954,7 @@ export function* watchMembers() {
   yield takeEvery(types.REFUND_TRANSACTION, refundTransaction);
   yield takeEvery(types.SYNC_BILLING_CUSTOMER, syncBillingCustomer);
   yield takeEvery(types.FETCH_NEW_CUSTOMERS, fetchNewCustomers);
+  yield takeEvery(types.FETCH_DDR_STATUS, fetchDdrStatus);
 }
 
 export default function fetchMemberById(id) {
