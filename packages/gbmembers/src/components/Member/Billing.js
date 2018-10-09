@@ -90,6 +90,7 @@ const mapDispatchToProps = {
   refundTransaction: actions.refundTransaction,
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
+  fetchDdrStatus: actions.fetchDdrStatus,
 };
 
 const ezidebit_date_format = 'YYYY-MM-DD HH:mm:ss';
@@ -2430,6 +2431,10 @@ export class BillingInfo extends Component {
                       <th width="70%">Value</th>
                     </tr>
                     <tr>
+                      <td>DDR Statuts:</td>
+                      <td>{this.props.memberItem.values['DDR Status']}</td>
+                    </tr>
+                    <tr>
                       <td>Billing Reference ID:</td>
                       <td>{this.props.billingInfo.customerBillingId}</td>
                     </tr>
@@ -2520,6 +2525,10 @@ export class BillingInfo extends Component {
                       type="button"
                       id="editPaymentType"
                       className="btn btn-primary"
+                      disabled={
+                        this.props.memberItem.values['DDR Status'] !==
+                        'Processed'
+                      }
                       onClick={e =>
                         editPaymentType(
                           e,
@@ -2643,8 +2652,10 @@ export class BillingInfo extends Component {
                         id="createSchedule"
                         className="btn btn-primary"
                         disabled={
-                          !this.props.memberItem.values['Payment Schedule'] ||
-                          this.state.isMemberFeeChanged
+                          (!this.props.memberItem.values['Payment Schedule'] ||
+                            this.state.isMemberFeeChanged) &&
+                          this.props.memberItem.values['DDR Status'] ===
+                            'Processed'
                             ? false
                             : true
                         }
@@ -2684,7 +2695,9 @@ export class BillingInfo extends Component {
                         className={'btn btn-primary'}
                         disabled={
                           this.props.memberItem.values['Payment Schedule'] &&
-                          this.props.billingInfo.statusCode !== '2'
+                          this.props.billingInfo.statusCode !== '2' &&
+                          this.props.memberItem.values['DDR Status'] ===
+                            'Processed'
                             ? false
                             : true
                         }
@@ -3195,7 +3208,10 @@ export const BillingContainer = compose(
         } else {
           //memberItem.values['Membership Cost'] = getMembershipCost(memberItem, membershipFees);
         }
-        if (memberItem.values['Billing Customer Id']) {
+        if (
+          memberItem.values['Billing Customer Id'] &&
+          memberItem.values['DDR Status'] === 'Processed'
+        ) {
           updatePaymentAmount(
             memberItem,
             editPaymentAmount,
@@ -3420,6 +3436,21 @@ export const BillingContainer = compose(
         allMembers: this.props.allMembers,
         setFamilyMembers: this.props.setFamilyMembers,
       });
+      if (
+        member &&
+        member.values['Billing Customer Id'] &&
+        member.values['DDR Status'] !== 'Processed'
+      ) {
+        this.props.fetchDdrStatus({
+          memberItem: member,
+          updateMember: this.props.updateMember,
+          fetchMember: this.props.fetchMember,
+          fetchMembers: this.props.fetchMembers,
+          myThis: this,
+          addNotification: this.props.addNotification,
+          setSystemError: this.props.setSystemError,
+        });
+      }
     },
 
     componentWillReceiveProps(nextProps) {

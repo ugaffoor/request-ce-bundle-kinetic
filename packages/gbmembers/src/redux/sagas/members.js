@@ -908,16 +908,21 @@ export function* fetchDdrStatus(action) {
           'Get DDR Status',
         );
       } else {
-        console.log('#### Response = ' + result.data.data);
-        action.payload.setDdrStatus(result.data.data.ddrStatus);
-        /*action.payload.updateMember({
-          id: action.payload.memberItem['id'],
-          memberItem: action.payload.memberItem,
-        });
-        action.payload.fetchCurrentMember({
-          id: action.payload.memberItem['id'],
-          myThis: action.payload.myThis,
-        });*/
+        if (
+          !action.payload.memberItem.values['DDR Status'] ||
+          action.payload.memberItem.values['DDR Status'] !==
+            result.data.data.ddrStatus
+        ) {
+          action.payload.memberItem.values['DDR Status'] =
+            result.data.data.ddrStatus;
+          action.payload.updateMember({
+            id: action.payload.memberItem['id'],
+            memberItem: action.payload.memberItem,
+            fetchMember: action.payload.fetchMember,
+            fetchMembers: action.payload.fetchMembers,
+            mythis: action.payload.myThis,
+          });
+        }
       }
     })
     .catch(error => {
