@@ -576,6 +576,8 @@ export function* clearPaymentSchedule(action) {
     billingService: appSettings.billingCompany,
     customerId: action.payload.billingRef,
     keepManualPayments: action.payload.keepManualPayments,
+    startDate: action.payload.startDate,
+    resumeDate: action.payload.resumeDate,
   };
 
   axios
@@ -630,6 +632,7 @@ export function* createPaymentSchedule(action) {
   args.space = appSettings.spaceSlug;
   args.billingService = appSettings.billingCompany;
   args.scheduleStartDate = action.payload.scheduleStartDate;
+  args.scheduleResumeDate = action.payload.scheduleResumeDate;
   args.schedulePeriodType = action.payload.schedulePeriodType;
   if (action.payload.dayOfWeek) {
     args.dayOfWeek = action.payload.dayOfWeek;
