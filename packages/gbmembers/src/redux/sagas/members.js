@@ -598,7 +598,10 @@ export function* clearPaymentSchedule(action) {
           date: moment().format(contact_date_format),
           user: appSettings.profile.username,
           action: 'Clear Schedule',
-          to: null,
+          to: {
+            startDate: action.payload.startDate,
+            resumeDate: action.payload.resumeDate,
+          },
           reason: action.payload.billingChangeReason,
         });
         action.payload.memberItem.values['Billing Changes'] = changes;
@@ -620,8 +623,8 @@ export function* clearPaymentSchedule(action) {
       }
     })
     .catch(error => {
-      console.log(error.response);
-      //action.payload.setSystemError(error);
+      console.log(JSON.stringify(error));
+      action.payload.setSystemError(error);
     });
 }
 
@@ -664,6 +667,8 @@ export function* createPaymentSchedule(action) {
           to: {
             period: 'Fortnightly',
             amount: action.payload.paymentAmountInCents / 100,
+            startDate: action.payload.scheduleStartDate,
+            endDate: action.payload.scheduleResumeDate,
           },
           reason: action.payload.billingChangeReason,
         });
