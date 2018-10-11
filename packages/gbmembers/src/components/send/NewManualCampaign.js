@@ -103,7 +103,7 @@ export class NewManualCampaign extends Component {
           [{ font: [] }],
           [{ align: [] }],
           ['link'],
-          //['image'],
+          ['image'],
           ['clean'],
           ['firstname'],
           ['lastname'],
@@ -435,6 +435,7 @@ export const NewManualCampaignView = ({
   submissionId,
   submissionType,
   leadItem,
+  space,
 }) =>
   newCampaignLoading ? (
     <div />
