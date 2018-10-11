@@ -44,7 +44,6 @@ export const types = {
   FETCH_NEW_CUSTOMERS: namespace('members', 'FETCH_NEW_CUSTOMERS'),
   SET_NEW_CUSTOMERS: namespace('members', 'SET_NEW_CUSTOMERS'),
   FETCH_DDR_STATUS: namespace('members', 'FETCH_DDR_STATUS'),
-  SET_DDR_STATUS: namespace('members', 'SET_DDR_STATUS'),
 };
 
 export const actions = {
@@ -86,7 +85,6 @@ export const actions = {
   fetchNewCustomers: withPayload(types.FETCH_NEW_CUSTOMERS),
   setNewCustomers: withPayload(types.SET_NEW_CUSTOMERS),
   fetchDdrStatus: withPayload(types.FETCH_DDR_STATUS),
-  setDdrStatus: withPayload(types.SET_DDR_STATUS),
 };
 
 export const State = Record({
@@ -110,7 +108,6 @@ export const State = Record({
   removedBillingMembers: [],
   newCustomers: [],
   newCustomersLoading: true,
-  ddrStatus: null,
 });
 
 export const reducer = (state = State(), { type, payload }) => {
@@ -226,9 +223,6 @@ export const reducer = (state = State(), { type, payload }) => {
       return state
         .set('newCustomersLoading', false)
         .set('newCustomers', payload);
-    }
-    case types.SET_DDR_STATUS: {
-      return state.set('ddrStatus', payload);
     }
     default:
       return state;

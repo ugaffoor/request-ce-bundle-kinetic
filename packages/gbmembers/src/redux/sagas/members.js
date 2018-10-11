@@ -576,6 +576,8 @@ export function* clearPaymentSchedule(action) {
     billingService: appSettings.billingCompany,
     customerId: action.payload.billingRef,
     keepManualPayments: action.payload.keepManualPayments,
+    startDate: action.payload.startDate,
+    resumeDate: action.payload.resumeDate,
   };
 
   axios
@@ -596,7 +598,10 @@ export function* clearPaymentSchedule(action) {
           date: moment().format(contact_date_format),
           user: appSettings.profile.username,
           action: 'Clear Schedule',
-          to: null,
+          to: {
+            startDate: action.payload.startDate,
+            resumeDate: action.payload.resumeDate,
+          },
           reason: action.payload.billingChangeReason,
         });
         action.payload.memberItem.values['Billing Changes'] = changes;
@@ -618,8 +623,8 @@ export function* clearPaymentSchedule(action) {
       }
     })
     .catch(error => {
-      console.log(error.response);
-      //action.payload.setSystemError(error);
+      console.log(JSON.stringify(error));
+      action.payload.setSystemError(error);
     });
 }
 
@@ -630,6 +635,7 @@ export function* createPaymentSchedule(action) {
   args.space = appSettings.spaceSlug;
   args.billingService = appSettings.billingCompany;
   args.scheduleStartDate = action.payload.scheduleStartDate;
+  args.scheduleResumeDate = action.payload.scheduleResumeDate;
   args.schedulePeriodType = action.payload.schedulePeriodType;
   if (action.payload.dayOfWeek) {
     args.dayOfWeek = action.payload.dayOfWeek;
@@ -661,6 +667,8 @@ export function* createPaymentSchedule(action) {
           to: {
             period: 'Fortnightly',
             amount: action.payload.paymentAmountInCents / 100,
+            startDate: action.payload.scheduleStartDate,
+            endDate: action.payload.scheduleResumeDate,
           },
           reason: action.payload.billingChangeReason,
         });
@@ -908,16 +916,21 @@ export function* fetchDdrStatus(action) {
           'Get DDR Status',
         );
       } else {
-        console.log('#### Response = ' + result.data.data);
-        action.payload.setDdrStatus(result.data.data.ddrStatus);
-        /*action.payload.updateMember({
-          id: action.payload.memberItem['id'],
-          memberItem: action.payload.memberItem,
-        });
-        action.payload.fetchCurrentMember({
-          id: action.payload.memberItem['id'],
-          myThis: action.payload.myThis,
-        });*/
+        if (
+          !action.payload.memberItem.values['DDR Status'] ||
+          action.payload.memberItem.values['DDR Status'] !==
+            result.data.data.ddrStatus
+        ) {
+          action.payload.memberItem.values['DDR Status'] =
+            result.data.data.ddrStatus;
+          action.payload.updateMember({
+            id: action.payload.memberItem['id'],
+            memberItem: action.payload.memberItem,
+            fetchMember: action.payload.fetchMember,
+            fetchMembers: action.payload.fetchMembers,
+            mythis: action.payload.myThis,
+          });
+        }
       }
     })
     .catch(error => {
