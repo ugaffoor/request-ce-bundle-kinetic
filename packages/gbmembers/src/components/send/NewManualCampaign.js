@@ -309,7 +309,7 @@ export class NewManualCampaign extends Component {
                 style={{ width: '100%' }}
                 value={
                   this.props.submissionType === 'member'
-                    ? this.props.allMembers && this.props.allMembers.size > 0
+                    ? this.props.allMembers && this.props.allMembers.length > 0
                       ? this.props.allMembers.find(
                           member => member['id'] === this.props.submissionId,
                         ).values['Email']
@@ -435,6 +435,7 @@ export const NewManualCampaignView = ({
   submissionId,
   submissionType,
   leadItem,
+  space,
 }) =>
   newCampaignLoading ? (
     <div />

@@ -2700,7 +2700,7 @@ export class BillingInfo extends Component {
                   </span>
                   <span className="line">
                     <div style={{ marginTop: '10px' }} className="row">
-                      <div className="form-group col-md-4">
+                      <div className="col-md-4">
                         <label
                           htmlFor="scheduleStartDate"
                           className="control-label"
@@ -2710,6 +2710,7 @@ export class BillingInfo extends Component {
                         <select
                           name="scheduleStartDate"
                           id="scheduleStartDate"
+                          className="form-control"
                           value={this.state.scheduleStartDate}
                           onChange={this.handleInputChange}
                         >
@@ -2726,7 +2727,7 @@ export class BillingInfo extends Component {
                           ))}
                         </select>
                       </div>
-                      <div className="form-group col-md-4">
+                      <div className="col-md-4">
                         <label
                           htmlFor="scheduleResumeDate"
                           className="control-label"
@@ -2736,6 +2737,7 @@ export class BillingInfo extends Component {
                         <select
                           name="scheduleResumeDate"
                           id="scheduleResumeDate"
+                          className="form-control"
                           value={this.state.scheduleResumeDate}
                           onChange={this.handleInputChange}
                         >
@@ -2752,7 +2754,7 @@ export class BillingInfo extends Component {
                           ))}
                         </select>
                       </div>
-                      <div className="form-group col-md-4">
+                      <div className="col-md-4">
                         <label className="control-label">&nbsp;</label>
                         <button
                           type="button"
@@ -2777,7 +2779,7 @@ export class BillingInfo extends Component {
                   </span>
                   <span className="line">
                     <div style={{ marginTop: '10px' }} className="row">
-                      <div className="form-group col-md-4">
+                      <div className="col-md-4">
                         <label
                           htmlFor="suspensionStartDate"
                           className="control-label"
@@ -2787,6 +2789,7 @@ export class BillingInfo extends Component {
                         <select
                           name="suspensionStartDate"
                           id="suspensionStartDate"
+                          className="form-control"
                           value={this.state.suspensionStartDate}
                           onChange={this.handleInputChange}
                         >
@@ -2803,7 +2806,7 @@ export class BillingInfo extends Component {
                           ))}
                         </select>
                       </div>
-                      <div className="form-group col-md-4">
+                      <div className="col-md-4">
                         <label
                           htmlFor="suspensionEndDate"
                           className="control-label"
@@ -2813,6 +2816,7 @@ export class BillingInfo extends Component {
                         <select
                           name="suspensionEndDate"
                           id="suspensionEndDate"
+                          className="form-control"
                           value={this.state.suspensionEndDate}
                           onChange={this.handleInputChange}
                         >
@@ -2829,7 +2833,7 @@ export class BillingInfo extends Component {
                           ))}
                         </select>
                       </div>
-                      <div className="form-group col-md-4">
+                      <div className="col-md-4">
                         <label className="control-label">&nbsp;</label>
                         <button
                           type="button"

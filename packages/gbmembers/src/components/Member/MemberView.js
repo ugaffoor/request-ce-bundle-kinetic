@@ -256,9 +256,9 @@ export const MemberView = ({
             <div className="iconItem">
               <SVGInline svg={emailIcon} className="icon" />
               <span className="value">
-                <a href={'mailto:' + memberItem.values['Email']}>
+                <NavLink to={`/NewManualCampaign/${memberItem.id}/member`}>
                   {memberItem.values['Email']}
-                </a>
+                </NavLink>
               </span>
             </div>
             <div className="iconItem">
