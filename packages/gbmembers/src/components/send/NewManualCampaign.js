@@ -103,7 +103,7 @@ export class NewManualCampaign extends Component {
           [{ font: [] }],
           [{ align: [] }],
           ['link'],
-          //['image'],
+          ['image'],
           ['clean'],
           ['firstname'],
           ['lastname'],
