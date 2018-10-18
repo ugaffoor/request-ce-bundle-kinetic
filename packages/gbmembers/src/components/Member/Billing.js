@@ -2127,9 +2127,11 @@ export class BillingInfo extends Component {
     ) {
       this.setState({
         billingMembers: this.getData(nextProps.familyMembers),
-        isMemberFeeChanged: nextFee === this.memberFee ? false : true,
       });
     }
+    this.setState({
+      isMemberFeeChanged: nextFee === this.memberFee ? false : true,
+    });
   }
 
   componentDidUpdate() {
@@ -2148,6 +2150,7 @@ export class BillingInfo extends Component {
           onOptionClick: this.onFeeProgramOptionClick,
           texts: { placeholder: 'Select Program' },
         });
+    $('#feeProgramDiv button:first-child').addClass('form-control');
   }
 
   componentDidMount() {
@@ -2158,6 +2161,7 @@ export class BillingInfo extends Component {
           onOptionClick: this.onFeeProgramOptionClick,
           texts: { placeholder: 'Select Program' },
         });
+    $('#feeProgramDiv button:first-child').addClass('form-control');
   }
 
   setShowBillingAudit(val) {
@@ -2672,6 +2676,7 @@ export class BillingInfo extends Component {
                         type="text"
                         name="cost"
                         id="cost"
+                        className="form-control"
                         value={this.props.memberItem.values['Membership Cost']}
                         onChange={e =>
                           this.handleChange(
@@ -2713,6 +2718,16 @@ export class BillingInfo extends Component {
                           className="form-control"
                           value={this.state.scheduleStartDate}
                           onChange={this.handleInputChange}
+                          disabled={
+                            (!this.props.memberItem.values[
+                              'Payment Schedule'
+                            ] ||
+                              this.state.isMemberFeeChanged) &&
+                            this.props.memberItem.values['DDR Status'] ===
+                              'Processed'
+                              ? false
+                              : true
+                          }
                         >
                           <option key="" value="">
                             --
@@ -2740,6 +2755,16 @@ export class BillingInfo extends Component {
                           className="form-control"
                           value={this.state.scheduleResumeDate}
                           onChange={this.handleInputChange}
+                          disabled={
+                            (!this.props.memberItem.values[
+                              'Payment Schedule'
+                            ] ||
+                              this.state.isMemberFeeChanged) &&
+                            this.props.memberItem.values['DDR Status'] ===
+                              'Processed'
+                              ? false
+                              : true
+                          }
                         >
                           <option key="" value="">
                             --
@@ -2792,6 +2817,14 @@ export class BillingInfo extends Component {
                           className="form-control"
                           value={this.state.suspensionStartDate}
                           onChange={this.handleInputChange}
+                          disabled={
+                            this.props.memberItem.values['Payment Schedule'] &&
+                            this.props.billingInfo.statusCode !== '2' &&
+                            this.props.memberItem.values['DDR Status'] ===
+                              'Processed'
+                              ? false
+                              : true
+                          }
                         >
                           <option key="" value="">
                             --
@@ -2819,6 +2852,14 @@ export class BillingInfo extends Component {
                           className="form-control"
                           value={this.state.suspensionEndDate}
                           onChange={this.handleInputChange}
+                          disabled={
+                            this.props.memberItem.values['Payment Schedule'] &&
+                            this.props.billingInfo.statusCode !== '2' &&
+                            this.props.memberItem.values['DDR Status'] ===
+                              'Processed'
+                              ? false
+                              : true
+                          }
                         >
                           <option key="" value="">
                             --
