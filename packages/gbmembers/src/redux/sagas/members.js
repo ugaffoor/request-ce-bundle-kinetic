@@ -385,6 +385,8 @@ export function* editPaymentAmount(action) {
     newPaymentAmountInCents: action.payload.newPaymentAmountInCents,
     applyToAllFuturePayments: action.payload.applyToAllFuturePayments,
     keepManualPayments: action.payload.keepManualPayments,
+    scheduleStartDate: action.payload.scheduleStartDate,
+    scheduleResumeDate: action.payload.scheduleResumeDate,
   };
   console.log('action:' + action.payload);
   axios

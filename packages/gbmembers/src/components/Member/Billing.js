@@ -2445,6 +2445,12 @@ export class BillingInfo extends Component {
     this.setState({
       [event.target.name]: event.target.value,
     });
+
+    if (event.target.name === 'scheduleStartDate') {
+      this.props.setScheduleStartDate(event.target.value);
+    } else if (event.target.name === 'scheduleResumeDate') {
+      this.props.setScheduleResumeDate(event.target.value);
+    }
   }
 
   render() {
@@ -2703,7 +2709,15 @@ export class BillingInfo extends Component {
                       </div>
                     )}
                   </span>
-                  <span className="line">
+                  <span
+                    className="line"
+                    style={{
+                      display:
+                        this.props.billingInfo.statusCode == '2'
+                          ? 'block'
+                          : 'none',
+                    }}
+                  >
                     <div style={{ marginTop: '10px' }} className="row">
                       <div className="col-md-4">
                         <label
@@ -2797,7 +2811,7 @@ export class BillingInfo extends Component {
                           }
                           onClick={e => this.createPaymentSchedule()}
                         >
-                          Create Schedule
+                          Resume Payments
                         </button>
                       </div>
                     </div>
@@ -3041,6 +3055,8 @@ export const Billing = ({
   doPaySmartRegistration,
   setDoPaySmartRegistration,
   ddrTemplates,
+  setScheduleStartDate,
+  setScheduleResumeDate,
 }) =>
   currentMemberLoading ? (
     <div />
@@ -3083,6 +3099,8 @@ export const Billing = ({
                 updatePaymentMethod={updatePaymentMethod}
                 refundPayment={refundPayment}
                 setEditPaymentTypeReason={setEditPaymentTypeReason}
+                setScheduleStartDate={setScheduleStartDate}
+                setScheduleResumeDate={setScheduleResumeDate}
               />
             )}
           {(memberItem.values['Billing Customer Id'] === null ||
@@ -3261,6 +3279,8 @@ export const BillingContainer = compose(
   withState('isValidInput', 'setIsValidInput', true),
   withState('errorMessage', 'setErrorMessage', ''),
   withState('doPaySmartRegistration', 'setDoPaySmartRegistration', false),
+  withState('scheduleStartDate', 'setScheduleStartDate', ''),
+  withState('scheduleResumeDate', 'setScheduleResumeDate', ''),
   withHandlers({
     completeMemberRegistration: ({
       memberItem,
@@ -3354,6 +3374,8 @@ export const BillingContainer = compose(
       errorMessage,
       addNotification,
       setSystemError,
+      scheduleStartDate,
+      scheduleResumeDate,
     }) => (memberItem, updateMember, billingChangeReason, isDirty, myThis) => {
       if (!isDirty) {
         return;
@@ -3411,6 +3433,20 @@ export const BillingContainer = compose(
         console.log(
           '#### In Save # membersToRemove # ' + util.inspect(membersToRemove),
         );
+        if (!scheduleStartDate) {
+          console.log('Schedule start date is required');
+          return;
+        }
+        if (
+          scheduleResumeDate &&
+          moment(scheduleStartDate, 'DD-MM-YYYY').isSameOrAfter(
+            moment(scheduleResumeDate, 'DD-MM-YYYY'),
+          )
+        ) {
+          console.log('Schedule resume date must be after schedule start date');
+          return;
+        }
+
         if (familyMembers) {
           //memberItem.values['Membership Cost'] = getFamilyMembershipCost(memberItem, familyMembers, membershipFees);
           memberItem.values['Family Fee Details'] = getFamilyMemberFeeDetails(
@@ -3431,6 +3467,8 @@ export const BillingContainer = compose(
             billingChangeReason,
             addNotification,
             setSystemError,
+            scheduleStartDate,
+            scheduleResumeDate,
           );
         }
         updateBillingMembers(
@@ -3737,6 +3775,8 @@ function updatePaymentAmount(
   billingChangeReason,
   addNotification,
   setSystemError,
+  scheduleStartDate,
+  scheduleResumeDate,
 ) {
   let response = editPaymentAmount({
     memberItem: member,
@@ -3753,6 +3793,8 @@ function updatePaymentAmount(
     billingChangeReason: billingChangeReason,
     setSystemError: setSystemError,
     addNotification: addNotification,
+    scheduleStartDate: scheduleStartDate,
+    scheduleResumeDate: scheduleResumeDate,
   });
 }
 
