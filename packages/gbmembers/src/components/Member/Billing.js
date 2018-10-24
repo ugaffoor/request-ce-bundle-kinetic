@@ -43,6 +43,7 @@ import amex from '../../images/Amex.jpg';
 import jcb from '../../images/JCBCard.jpg';
 import dinersclub from '../../images/DinersClub.jpg';
 import { confirmWithInput } from './Confirm';
+import { confirmWithDates } from './ConfirmWithDates';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as errorActions } from '../../redux/modules/errors';
 <script src="../helpers/jquery.multiselect.js" />;
@@ -185,11 +186,21 @@ const handleSaveBillingChanges = (
   updateMember,
   isDirty,
   myThis,
+  startDates,
+  resumeDates,
 ) => {
-  confirmWithInput({ message: 'hello' }).then(
-    ({ reason }) => {
+  confirmWithDates({ startDates, resumeDates }).then(
+    ({ reason, startDate, resumeDate }) => {
       console.log('proceed! input:' + reason);
-      saveMember(memberItem, updateMember, reason, isDirty, myThis);
+      saveMember(
+        memberItem,
+        updateMember,
+        reason,
+        isDirty,
+        myThis,
+        startDate,
+        resumeDate,
+      );
     },
     () => {
       console.log('cancel!');
@@ -2110,10 +2121,6 @@ export class BillingInfo extends Component {
       paymentHistoryBtnLabel,
       isMemberFeeChanged,
       showBillingAudit: false,
-      scheduleStartDate: '',
-      scheduleResumeDate: '',
-      suspensionStartDate: '',
-      suspensionEndDate: '',
     };
   }
 
@@ -2210,35 +2217,23 @@ export class BillingInfo extends Component {
       console.log('Membership Fee is required');
       return;
     }
-    if (!this.state.scheduleStartDate) {
-      console.log('Schedule start date is required');
-      return;
-    }
-    if (
-      this.state.scheduleResumeDate &&
-      moment(this.state.scheduleStartDate, 'DD-MM-YYYY').isSameOrAfter(
-        moment(this.state.scheduleResumeDate, 'DD-MM-YYYY'),
-      )
-    ) {
-      console.log('Schedule resume date must be after schedule start date');
-      return;
-    }
-
     if (
       window.confirm(
         'Existing payments will be stopped and a new schedule will be setup. Are you sure you wish to continue?',
       )
     ) {
-      confirmWithInput({ message: 'hello' }).then(
-        ({ reason }) => {
+      let startDates = getStartDates(
+        this.props.billingInfo.nextBillingDate,
+        this.props.billingInfo.paymentPeriod,
+      );
+      let resumeDates = getResumeDates(
+        this.props.billingInfo.nextBillingDate,
+        this.props.billingInfo.paymentPeriod,
+      );
+      confirmWithDates({ startDates, resumeDates }).then(
+        ({ reason, startDate, resumeDate }) => {
           console.log('proceed! input:' + reason);
-          this.createSchedule(
-            'F',
-            'MON',
-            this.state.scheduleStartDate,
-            this.state.scheduleResumeDate,
-            reason,
-          );
+          this.createSchedule('F', 'MON', startDate, resumeDate, reason);
         },
         () => {
           console.log('cancel!');
@@ -2248,28 +2243,19 @@ export class BillingInfo extends Component {
   }
 
   stopPayments() {
-    if (!this.state.suspensionStartDate) {
-      console.log('Start date is required');
-      return;
-    }
-    if (
-      this.state.suspensionEndDate &&
-      moment(this.state.suspensionStartDate, 'DD-MM-YYYY').isSameOrAfter(
-        moment(this.state.suspensionEndDate, 'DD-MM-YYYY'),
-      )
-    ) {
-      console.log('Resume date must be after start date');
-      return;
-    }
+    let startDates = getStartDates(
+      this.props.billingInfo.nextBillingDate,
+      this.props.billingInfo.paymentPeriod,
+    );
+    let resumeDates = getResumeDates(
+      this.props.billingInfo.nextBillingDate,
+      this.props.billingInfo.paymentPeriod,
+    );
 
-    confirmWithInput({ message: 'hello' }).then(
-      ({ reason }) => {
+    confirmWithDates({ startDates, resumeDates }).then(
+      ({ reason, startDate, resumeDate }) => {
         console.log('proceed! input:' + reason);
-        this.suspendPayments(
-          this.state.suspensionStartDate,
-          this.state.suspensionEndDate,
-          reason,
-        );
+        this.suspendPayments(startDate, resumeDate, reason);
       },
       () => {
         console.log('cancel!');
@@ -2445,12 +2431,6 @@ export class BillingInfo extends Component {
     this.setState({
       [event.target.name]: event.target.value,
     });
-
-    if (event.target.name === 'scheduleStartDate') {
-      this.props.setScheduleStartDate(event.target.value);
-    } else if (event.target.name === 'scheduleResumeDate') {
-      this.props.setScheduleResumeDate(event.target.value);
-    }
   }
 
   render() {
@@ -2657,6 +2637,12 @@ export class BillingInfo extends Component {
                         defaultValue={getJson(
                           this.props.memberItem.values['Fee Program'],
                         )}
+                        disabled={
+                          this.props.memberItem.values['DDR Status'] ===
+                          'Processed'
+                            ? false
+                            : true
+                        }
                         onChange={e =>
                           this.onFeeProgramChange(
                             'Fee Program',
@@ -2684,6 +2670,12 @@ export class BillingInfo extends Component {
                         id="cost"
                         className="form-control"
                         value={this.props.memberItem.values['Membership Cost']}
+                        disabled={
+                          this.props.memberItem.values['DDR Status'] ===
+                          'Processed'
+                            ? false
+                            : true
+                        }
                         onChange={e =>
                           this.handleChange(
                             this.props.memberItem,
@@ -2718,81 +2710,7 @@ export class BillingInfo extends Component {
                           : 'none',
                     }}
                   >
-                    <div style={{ marginTop: '10px' }} className="row">
-                      <div className="col-md-4">
-                        <label
-                          htmlFor="scheduleStartDate"
-                          className="control-label"
-                        >
-                          Start Date
-                        </label>
-                        <select
-                          name="scheduleStartDate"
-                          id="scheduleStartDate"
-                          className="form-control"
-                          value={this.state.scheduleStartDate}
-                          onChange={this.handleInputChange}
-                          disabled={
-                            (!this.props.memberItem.values[
-                              'Payment Schedule'
-                            ] ||
-                              this.state.isMemberFeeChanged) &&
-                            this.props.memberItem.values['DDR Status'] ===
-                              'Processed'
-                              ? false
-                              : true
-                          }
-                        >
-                          <option key="" value="">
-                            --
-                          </option>
-                          {getStartDates(
-                            this.props.billingInfo.nextBillingDate,
-                            this.props.billingInfo.paymentPeriod,
-                          ).map((startDate, index) => (
-                            <option key={index} value={startDate}>
-                              {startDate}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="col-md-4">
-                        <label
-                          htmlFor="scheduleResumeDate"
-                          className="control-label"
-                        >
-                          Resume Date
-                        </label>
-                        <select
-                          name="scheduleResumeDate"
-                          id="scheduleResumeDate"
-                          className="form-control"
-                          value={this.state.scheduleResumeDate}
-                          onChange={this.handleInputChange}
-                          disabled={
-                            (!this.props.memberItem.values[
-                              'Payment Schedule'
-                            ] ||
-                              this.state.isMemberFeeChanged) &&
-                            this.props.memberItem.values['DDR Status'] ===
-                              'Processed'
-                              ? false
-                              : true
-                          }
-                        >
-                          <option key="" value="">
-                            --
-                          </option>
-                          {getResumeDates(
-                            this.props.billingInfo.nextBillingDate,
-                            this.props.billingInfo.paymentPeriod,
-                          ).map((startDate, index) => (
-                            <option key={index} value={startDate}>
-                              {startDate}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                    <div className="row">
                       <div className="col-md-4">
                         <label className="control-label">&nbsp;</label>
                         <button
@@ -2817,77 +2735,7 @@ export class BillingInfo extends Component {
                     </div>
                   </span>
                   <span className="line">
-                    <div style={{ marginTop: '10px' }} className="row">
-                      <div className="col-md-4">
-                        <label
-                          htmlFor="suspensionStartDate"
-                          className="control-label"
-                        >
-                          Start Date
-                        </label>
-                        <select
-                          name="suspensionStartDate"
-                          id="suspensionStartDate"
-                          className="form-control"
-                          value={this.state.suspensionStartDate}
-                          onChange={this.handleInputChange}
-                          disabled={
-                            this.props.memberItem.values['Payment Schedule'] &&
-                            this.props.billingInfo.statusCode !== '2' &&
-                            this.props.memberItem.values['DDR Status'] ===
-                              'Processed'
-                              ? false
-                              : true
-                          }
-                        >
-                          <option key="" value="">
-                            --
-                          </option>
-                          {getStartDates(
-                            this.props.billingInfo.nextBillingDate,
-                            this.props.billingInfo.paymentPeriod,
-                          ).map((startDate, index) => (
-                            <option key={index} value={startDate}>
-                              {startDate}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="col-md-4">
-                        <label
-                          htmlFor="suspensionEndDate"
-                          className="control-label"
-                        >
-                          Resume Date
-                        </label>
-                        <select
-                          name="suspensionEndDate"
-                          id="suspensionEndDate"
-                          className="form-control"
-                          value={this.state.suspensionEndDate}
-                          onChange={this.handleInputChange}
-                          disabled={
-                            this.props.memberItem.values['Payment Schedule'] &&
-                            this.props.billingInfo.statusCode !== '2' &&
-                            this.props.memberItem.values['DDR Status'] ===
-                              'Processed'
-                              ? false
-                              : true
-                          }
-                        >
-                          <option key="" value="">
-                            --
-                          </option>
-                          {getResumeDates(
-                            this.props.billingInfo.nextBillingDate,
-                            this.props.billingInfo.paymentPeriod,
-                          ).map((startDate, index) => (
-                            <option key={index} value={startDate}>
-                              {startDate}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                    <div className="row">
                       <div className="col-md-4">
                         <label className="control-label">&nbsp;</label>
                         <button
@@ -2991,6 +2839,11 @@ export class BillingInfo extends Component {
                     type="button"
                     id="addMember"
                     className="btn btn-primary"
+                    disabled={
+                      this.props.memberItem.values['DDR Status'] === 'Processed'
+                        ? false
+                        : true
+                    }
                     onClick={e => startAddMember(e, this.setIsAddMember)}
                   >
                     Add Billing Member
@@ -3055,8 +2908,6 @@ export const Billing = ({
   doPaySmartRegistration,
   setDoPaySmartRegistration,
   ddrTemplates,
-  setScheduleStartDate,
-  setScheduleResumeDate,
 }) =>
   currentMemberLoading ? (
     <div />
@@ -3099,8 +2950,6 @@ export const Billing = ({
                 updatePaymentMethod={updatePaymentMethod}
                 refundPayment={refundPayment}
                 setEditPaymentTypeReason={setEditPaymentTypeReason}
-                setScheduleStartDate={setScheduleStartDate}
-                setScheduleResumeDate={setScheduleResumeDate}
               />
             )}
           {(memberItem.values['Billing Customer Id'] === null ||
@@ -3231,6 +3080,7 @@ export const Billing = ({
                         ? 'btn btn-primary dirty'
                         : 'btn btn-primary notDirty'
                     }
+                    disabled={isDirty ? false : true}
                     onClick={e =>
                       handleSaveBillingChanges(
                         saveMember,
@@ -3238,6 +3088,14 @@ export const Billing = ({
                         updateMember,
                         isDirty,
                         memberItem.myThis,
+                        getStartDates(
+                          billingInfo.nextBillingDate,
+                          billingInfo.paymentPeriod,
+                        ),
+                        getResumeDates(
+                          billingInfo.nextBillingDate,
+                          billingInfo.paymentPeriod,
+                        ),
                       )
                     }
                   >
@@ -3279,8 +3137,6 @@ export const BillingContainer = compose(
   withState('isValidInput', 'setIsValidInput', true),
   withState('errorMessage', 'setErrorMessage', ''),
   withState('doPaySmartRegistration', 'setDoPaySmartRegistration', false),
-  withState('scheduleStartDate', 'setScheduleStartDate', ''),
-  withState('scheduleResumeDate', 'setScheduleResumeDate', ''),
   withHandlers({
     completeMemberRegistration: ({
       memberItem,
@@ -3374,9 +3230,15 @@ export const BillingContainer = compose(
       errorMessage,
       addNotification,
       setSystemError,
-      scheduleStartDate,
-      scheduleResumeDate,
-    }) => (memberItem, updateMember, billingChangeReason, isDirty, myThis) => {
+    }) => (
+      memberItem,
+      updateMember,
+      billingChangeReason,
+      isDirty,
+      myThis,
+      startDate,
+      resumeDate,
+    ) => {
       if (!isDirty) {
         return;
       }
@@ -3433,20 +3295,6 @@ export const BillingContainer = compose(
         console.log(
           '#### In Save # membersToRemove # ' + util.inspect(membersToRemove),
         );
-        if (!scheduleStartDate) {
-          console.log('Schedule start date is required');
-          return;
-        }
-        if (
-          scheduleResumeDate &&
-          moment(scheduleStartDate, 'DD-MM-YYYY').isSameOrAfter(
-            moment(scheduleResumeDate, 'DD-MM-YYYY'),
-          )
-        ) {
-          console.log('Schedule resume date must be after schedule start date');
-          return;
-        }
-
         if (familyMembers) {
           //memberItem.values['Membership Cost'] = getFamilyMembershipCost(memberItem, familyMembers, membershipFees);
           memberItem.values['Family Fee Details'] = getFamilyMemberFeeDetails(
@@ -3467,8 +3315,8 @@ export const BillingContainer = compose(
             billingChangeReason,
             addNotification,
             setSystemError,
-            scheduleStartDate,
-            scheduleResumeDate,
+            startDate,
+            resumeDate,
           );
         }
         updateBillingMembers(
