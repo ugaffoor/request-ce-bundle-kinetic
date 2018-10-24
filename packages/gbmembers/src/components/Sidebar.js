@@ -17,6 +17,8 @@ export const Sidebar = ({
   memberLists,
   filterType,
   listName,
+  myFilters,
+  handleFilterChange,
 }) => (
   <div className="sidebar">
     <NavLink to={`/NewMember`} className="btn btn-primary">
@@ -28,6 +30,32 @@ export const Sidebar = ({
     <NavLink to={`/ddrTemplates`} className="btn btn-primary">
       DDR Templates
     </NavLink>
+    <select
+      value="Active Members"
+      className="membersFilters"
+      onChange={e => handleFilterChange(setMemberFilter, fetchMembers)}
+    >
+      <option type="filter" value="Active Members">
+        Active Members
+      </option>
+      <option type="filter" value="Inactive Members">
+        Inactive Members
+      </option>
+      <option type="filter" value="All Members">
+        All Members
+      </option>
+      {myFilters.map(filter => (
+        <option type="filter" value={filter.name}>
+          {filter.name}
+        </option>
+      ))}
+      {memberLists.map(list => (
+        <option type="list" key={list.name} value={list.name}>
+          {list.name}
+        </option>
+      ))}
+    </select>
+    <div className="droparrow" />
     {filterType === 'filter' && membersLoading ? (
       <div />
     ) : (

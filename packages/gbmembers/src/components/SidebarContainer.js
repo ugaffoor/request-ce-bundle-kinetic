@@ -22,6 +22,7 @@ const mapStateToProps = state => ({
   // the route changes, otherwise connect implicitly prevents the update.
   route: `${state.router.location.pathname} ${state.router.location.search}`,
   memberLists: state.member.app.memberLists,
+  myFilters: state.member.app.myFilters,
 });
 
 const mapDispatchToProps = {
@@ -41,6 +42,24 @@ export const SidebarContainer = compose(
   withState('filterType', 'setFilterType', 'filter'),
   withHandlers({
     handleOpenNewItemMenu: ({ openNewItemMenu }) => () => openNewItemMenu(),
+    handleFilterChange: ({
+      setMemberFilter,
+      fetchMembers,
+      setFilterType,
+      setListName,
+    }) => () => {
+      let filterType = $('.membersFilters')
+        .find(':selected')
+        .attr('type');
+      if (filterType === 'filter') {
+        setMemberFilter($('.membersFilters').val());
+        fetchMembers();
+        setFilterType('filter');
+      } else if (filterType === 'list') {
+        setFilterType('list');
+        setListName($('.membersFilters').val());
+      }
+    },
   }),
   lifecycle({
     componentWillMount() {
