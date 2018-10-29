@@ -41,6 +41,8 @@ const mapStateToProps = state => ({
   paymentHistory: state.member.members.paymentHistory,
   paymentHistoryLoading: state.member.members.paymentHistoryLoading,
   billingCompany: state.member.app.billingCompany,
+  variationCustomers: state.member.members.variationCustomers,
+  variationCustomersLoading: state.member.members.variationCustomersLoading,
 });
 
 const mapDispatchToProps = {
@@ -55,6 +57,8 @@ const mapDispatchToProps = {
   setPaymentHistory: actions.setPaymentHistory,
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
+  fetchVariationCustomers: actions.fetchVariationCustomers,
+  setVariationCustomers: actions.setVariationCustomers,
 };
 
 const ezidebit_date_format = 'YYYY-MM-DD HH:mm:ss';
@@ -73,6 +77,8 @@ export const HomeView = ({
   paymentHistoryLoading,
   getFailedPayments,
   billingCompany,
+  variationCustomers,
+  variationCustomersLoading,
 }) => (
   <div className="dashboard">
     <StatusMessagesContainer />
@@ -118,6 +124,12 @@ export const HomeView = ({
       <PaymentHistory
         paymentHistory={paymentHistory}
         paymentHistoryLoading={paymentHistoryLoading}
+      />
+    </div>
+    <div>
+      <VariationCustomers
+        variationCustomers={variationCustomers}
+        variationCustomersLoading={variationCustomersLoading}
       />
     </div>
   </div>
@@ -208,10 +220,12 @@ export const HomeContainer = compose(
       getBillingPayments,
       getProcessedAndScheduledPayments,
       getFailedPayments,
+      getVariationCustomers,
     ) => {
       getBillingPayments('current_month');
       getProcessedAndScheduledPayments();
       getFailedPayments();
+      getVariationCustomers();
     },
     getFailedPayments: ({
       fetchPaymentHistory,
@@ -234,6 +248,18 @@ export const HomeContainer = compose(
         setSystemError: setSystemError,
       });
     },
+    getVariationCustomers: ({
+      fetchVariationCustomers,
+      setVariationCustomers,
+      addNotification,
+      setSystemError,
+    }) => () => {
+      fetchVariationCustomers({
+        setVariationCustomers: setVariationCustomers,
+        setSystemError: setSystemError,
+        addNotification: addNotification,
+      });
+    },
   }),
   lifecycle({
     componentWillMount() {
@@ -254,6 +280,12 @@ export const HomeContainer = compose(
         $.isEmptyObject(this.props.paymentHistory)
       ) {
         this.props.getFailedPayments();
+      }
+      if (
+        !this.props.variationCustomers ||
+        this.props.variationCustomers.length <= 0
+      ) {
+        this.props.getVariationCustomers();
       }
     },
     componentWillReceiveProps(nextProps) {
@@ -1222,6 +1254,87 @@ export class PaymentHistory extends Component {
           pageSize={data.length > 0 ? data.length : 2}
           showPagination={false}
         />
+      </span>
+    );
+  }
+}
+
+export class VariationCustomers extends Component {
+  constructor(props) {
+    super(props);
+    let data = this.getData(this.props.variationCustomers);
+    let columns = this.getColumns();
+    this.state = {
+      data,
+      columns,
+    };
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.variationCustomers) {
+      this.setState({
+        data: this.getData(nextProps.variationCustomers),
+      });
+    }
+  }
+
+  getData(variationCustomers) {
+    if (!variationCustomers || variationCustomers.length <= 0) {
+      return [];
+    }
+
+    const data = variationCustomers.map(variationCustomer => {
+      return {
+        _id: variationCustomer.customerId,
+        firstName: variationCustomer.firstName,
+        lastName: variationCustomer.lastName,
+        customerId: variationCustomer.customerId,
+        variationAmount: variationCustomer.variationAmount,
+        startDate: variationCustomer.startDate,
+        resumeDate: variationCustomer.resumeDate,
+      };
+    });
+    return data;
+  }
+
+  getColumns(data) {
+    const columns = [
+      { accessor: 'firstName', Header: 'First Name' },
+      { accessor: 'lastName', Header: 'Last Name' },
+      { accessor: 'customerId', Header: 'Customer Id' },
+      {
+        accessor: 'variationAmount',
+        Header: 'Variation Amount',
+        Cell: props => '$' + props.value,
+      },
+      { accessor: 'startDate', Header: 'Start Date' },
+      { accessor: 'resumeDate', Header: 'Resume Date' },
+    ];
+    return columns;
+  }
+
+  render() {
+    const { data, columns } = this.state;
+    return this.props.variationCustomersLoading ? (
+      <div>Loading variations ...</div>
+    ) : (
+      <span>
+        <hr />
+        <div
+          className="page-header"
+          style={{ textAlign: 'center', marginBottom: '3%' }}
+        >
+          <h6>Variation Customers</h6>
+        </div>
+        <ReactTable
+          columns={columns}
+          data={data}
+          className="-striped -highlight"
+          defaultPageSize={data.length > 0 ? data.length : 2}
+          pageSize={data.length > 0 ? data.length : 2}
+          showPagination={false}
+        />
+        <br />
       </span>
     );
   }

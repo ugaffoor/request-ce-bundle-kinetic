@@ -44,6 +44,10 @@ export const types = {
   FETCH_NEW_CUSTOMERS: namespace('members', 'FETCH_NEW_CUSTOMERS'),
   SET_NEW_CUSTOMERS: namespace('members', 'SET_NEW_CUSTOMERS'),
   FETCH_DDR_STATUS: namespace('members', 'FETCH_DDR_STATUS'),
+  FETCH_ACTION_REQUESTS: namespace('members', 'FETCH_ACTION_REQUESTS'),
+  SET_ACTION_REQUESTS: namespace('members', 'SET_ACTION_REQUESTS'),
+  FETCH_VARIATION_CUSTOMERS: namespace('members', 'FETCH_VARIATION_CUSTOMERS'),
+  SET_VARIATION_CUSTOMERS: namespace('members', 'SET_VARIATION_CUSTOMERS'),
 };
 
 export const actions = {
@@ -85,6 +89,10 @@ export const actions = {
   fetchNewCustomers: withPayload(types.FETCH_NEW_CUSTOMERS),
   setNewCustomers: withPayload(types.SET_NEW_CUSTOMERS),
   fetchDdrStatus: withPayload(types.FETCH_DDR_STATUS),
+  fetchActionRequests: withPayload(types.FETCH_ACTION_REQUESTS),
+  setActionRequests: withPayload(types.SET_ACTION_REQUESTS),
+  fetchVariationCustomers: withPayload(types.FETCH_VARIATION_CUSTOMERS),
+  setVariationCustomers: withPayload(types.SET_VARIATION_CUSTOMERS),
 };
 
 export const State = Record({
@@ -108,6 +116,10 @@ export const State = Record({
   removedBillingMembers: [],
   newCustomers: [],
   newCustomersLoading: true,
+  actionRequests: [],
+  actionRequestsLoading: true,
+  variationCustomers: [],
+  variationCustomersLoading: true,
 });
 
 export const reducer = (state = State(), { type, payload }) => {
@@ -223,6 +235,22 @@ export const reducer = (state = State(), { type, payload }) => {
       return state
         .set('newCustomersLoading', false)
         .set('newCustomers', payload);
+    }
+    case types.FETCH_ACTION_REQUESTS: {
+      return state.set('actionRequestsLoading', true);
+    }
+    case types.SET_ACTION_REQUESTS: {
+      return state
+        .set('actionRequestsLoading', false)
+        .set('actionRequests', payload);
+    }
+    case types.FETCH_VARIATION_CUSTOMERS: {
+      return state.set('variationCustomersLoading', true);
+    }
+    case types.SET_VARIATION_CUSTOMERS: {
+      return state
+        .set('variationCustomersLoading', false)
+        .set('variationCustomers', payload);
     }
     default:
       return state;

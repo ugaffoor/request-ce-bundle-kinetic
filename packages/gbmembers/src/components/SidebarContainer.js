@@ -40,6 +40,7 @@ export const SidebarContainer = compose(
   }),
   withState('listName', 'setListName', null),
   withState('filterType', 'setFilterType', 'filter'),
+  withState('filterValue', 'setFilterValue', 'All Members'),
   withHandlers({
     handleOpenNewItemMenu: ({ openNewItemMenu }) => () => openNewItemMenu(),
     handleFilterChange: ({
@@ -47,7 +48,10 @@ export const SidebarContainer = compose(
       fetchMembers,
       setFilterType,
       setListName,
+      setFilterValue,
     }) => () => {
+      let filterValue = $('.membersFilters').val();
+      setFilterValue(filterValue);
       let filterType = $('.membersFilters')
         .find(':selected')
         .attr('type');
@@ -56,6 +60,8 @@ export const SidebarContainer = compose(
         fetchMembers();
         setFilterType('filter');
       } else if (filterType === 'list') {
+        setMemberFilter('All Members');
+        fetchMembers();
         setFilterType('list');
         setListName($('.membersFilters').val());
       }

@@ -19,6 +19,7 @@ export const Sidebar = ({
   listName,
   myFilters,
   handleFilterChange,
+  filterValue,
 }) => (
   <div className="sidebar">
     <NavLink to={`/NewMember`} className="btn btn-primary">
@@ -31,7 +32,7 @@ export const Sidebar = ({
       DDR Templates
     </NavLink>
     <select
-      value="Active Members"
+      value={filterValue}
       className="membersFilters"
       onChange={e => handleFilterChange(setMemberFilter, fetchMembers)}
     >

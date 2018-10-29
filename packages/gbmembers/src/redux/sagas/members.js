@@ -31,6 +31,8 @@ const updatePaymentMethodUrl = '/savePaymentMethod';
 const refundTransactionUrl = '/refundTransaction';
 const getNewCustomersUrl = '/newCustomers';
 const ddrStatusUrl = '/getDDRStatus';
+const actionRequestsUrl = '/getActionRequests';
+const getVariationsUrl = '/getVariations';
 
 const util = require('util');
 
@@ -308,6 +310,7 @@ export function* syncBillingCustomer(action) {
           period: 'Fortnightly',
           amount: result.data.data.paymentAmountInCents / 100,
         };
+        action.payload.memberItem.values['DDR Status'] = 'Pending';
 
         let changes = getBillingChanges(action.payload.memberItem);
         changes.push({
@@ -941,6 +944,59 @@ export function* fetchDdrStatus(action) {
     });
 }
 
+export function* fetchActionRequests(action) {
+  const appSettings = yield select(getAppSettings);
+  let args = {};
+  args.customerId = action.payload.customerId;
+  args.space = appSettings.spaceSlug;
+  args.billingService = appSettings.billingCompany;
+  axios
+    .post(appSettings.kineticBillingServerUrl + actionRequestsUrl, args)
+    .then(result => {
+      if (result.data.error && result.data.error > 0) {
+        console.log('fetchActionRequests Error: ' + result.data.errorMessage);
+        action.payload.addNotification(
+          NOTICE_TYPES.ERROR,
+          result.data.errorMessage,
+          'Get Action Requests',
+        );
+      } else {
+        action.payload.setActionRequests(result.data.data);
+      }
+    })
+    .catch(error => {
+      console.log(util.inspect(error));
+      action.payload.setSystemError(error);
+    });
+}
+
+export function* fetchVariationCustomers(action) {
+  const appSettings = yield select(getAppSettings);
+  let args = {};
+  args.space = appSettings.spaceSlug;
+  args.billingService = appSettings.billingCompany;
+  axios
+    .post(appSettings.kineticBillingServerUrl + getVariationsUrl, args)
+    .then(result => {
+      if (result.data.error && result.data.error > 0) {
+        console.log(
+          'fetchVariationCustomers Error: ' + result.data.errorMessage,
+        );
+        action.payload.addNotification(
+          NOTICE_TYPES.ERROR,
+          result.data.errorMessage,
+          'Get Variation Customers',
+        );
+      } else {
+        action.payload.setVariationCustomers(result.data.data);
+      }
+    })
+    .catch(error => {
+      console.log(util.inspect(error));
+      action.payload.setSystemError(error);
+    });
+}
+
 export function* watchMembers() {
   console.log('watchMembers');
   yield takeEvery(types.FETCH_MEMBERS, fetchMembers);
@@ -970,6 +1026,8 @@ export function* watchMembers() {
   yield takeEvery(types.SYNC_BILLING_CUSTOMER, syncBillingCustomer);
   yield takeEvery(types.FETCH_NEW_CUSTOMERS, fetchNewCustomers);
   yield takeEvery(types.FETCH_DDR_STATUS, fetchDdrStatus);
+  yield takeEvery(types.FETCH_ACTION_REQUESTS, fetchActionRequests);
+  yield takeEvery(types.FETCH_VARIATION_CUSTOMERS, fetchVariationCustomers);
 }
 
 export default function fetchMemberById(id) {
