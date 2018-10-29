@@ -189,23 +189,43 @@ const handleSaveBillingChanges = (
   startDates,
   resumeDates,
 ) => {
-  confirmWithDates({ startDates, resumeDates }).then(
-    ({ reason, startDate, resumeDate }) => {
-      console.log('proceed! input:' + reason);
-      saveMember(
-        memberItem,
-        updateMember,
-        reason,
-        isDirty,
-        myThis,
-        startDate,
-        resumeDate,
-      );
-    },
-    () => {
-      console.log('cancel!');
-    },
-  );
+  if (memberItem.values['Billing Customer Id']) {
+    confirmWithDates({ startDates, resumeDates }).then(
+      ({ reason, startDate, resumeDate }) => {
+        console.log('proceed! input:' + reason);
+        saveMember(
+          memberItem,
+          updateMember,
+          reason,
+          isDirty,
+          myThis,
+          startDate,
+          resumeDate,
+        );
+      },
+      () => {
+        console.log('cancel!');
+      },
+    );
+  } else {
+    confirmWithInput({}).then(
+      ({ reason }) => {
+        console.log('proceed! input:' + reason);
+        saveMember(
+          memberItem,
+          updateMember,
+          reason,
+          isDirty,
+          myThis,
+          null,
+          null,
+        );
+      },
+      () => {
+        console.log('cancel!');
+      },
+    );
+  }
 };
 
 const copyToClipboard = str => {
@@ -3678,7 +3698,7 @@ function getStartDates(nextBillingDate, billingPeriod) {
   let toDate = moment(nextBillingDate, 'DD-MM-YYYY').add(1, 'years');
   let dates = [];
   if (billingPeriod === 'Weekly') {
-    if (startDate.isSame(moment(), 'day')) {
+    while (startDate.isSameOrBefore(moment())) {
       startDate = startDate.add(7, 'days');
     }
     dates.push(startDate.format('DD-MM-YYYY'));
@@ -3688,7 +3708,7 @@ function getStartDates(nextBillingDate, billingPeriod) {
     }
     return dates;
   } else if (billingPeriod === 'Fortnightly') {
-    if (startDate.isSame(moment(), 'day')) {
+    while (startDate.isSameOrBefore(moment())) {
       startDate = startDate.add(15, 'days');
     }
     dates.push(startDate.format('DD-MM-YYYY'));
@@ -3698,7 +3718,7 @@ function getStartDates(nextBillingDate, billingPeriod) {
     }
     return dates;
   } else if (billingPeriod === 'Monthly') {
-    if (startDate.isSame(moment(), 'day')) {
+    while (startDate.isSameOrBefore(moment())) {
       startDate = startDate.add(1, 'months');
     }
     dates.push(startDate.format('DD-MM-YYYY'));
