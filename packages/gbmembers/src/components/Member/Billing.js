@@ -548,7 +548,7 @@ export class EditPaymentType extends Component {
       <div onClick={this.handleClick}>
         {
           <ModalContainer onClose={this.handleClose}>
-            <ModalDialog className="" onClose={this.handleClose}>
+            <ModalDialog className="editPaymentType" onClose={this.handleClose}>
               <div className="card-title">
                 <h3>Edit Payment Type</h3>
               </div>
