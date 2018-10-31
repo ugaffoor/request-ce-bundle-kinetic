@@ -88,6 +88,7 @@ export const HomeView = ({
   createBillingMembers,
   billingCustomersLoading,
   fetchMembers,
+  getVariationCustomers,
 }) => (
   <div className="dashboard">
     <StatusMessagesContainer />
@@ -103,6 +104,7 @@ export const HomeView = ({
               getBillingPayments,
               getProcessedAndScheduledPayments,
               getFailedPayments,
+              getVariationCustomers,
             )
           }
         >
