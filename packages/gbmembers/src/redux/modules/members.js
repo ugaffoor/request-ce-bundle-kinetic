@@ -48,6 +48,9 @@ export const types = {
   SET_ACTION_REQUESTS: namespace('members', 'SET_ACTION_REQUESTS'),
   FETCH_VARIATION_CUSTOMERS: namespace('members', 'FETCH_VARIATION_CUSTOMERS'),
   SET_VARIATION_CUSTOMERS: namespace('members', 'SET_VARIATION_CUSTOMERS'),
+  FETCH_BILLING_CUSTOMERS: namespace('members', 'FETCH_BILLING_CUSTOMERS'),
+  CREATE_BILLING_MEMBERS: namespace('members', 'CREATE_BILLING_MEMBERS'),
+  SET_BILLING_CUSTOMERS: namespace('members', 'SET_BILLING_CUSTOMERS'),
 };
 
 export const actions = {
@@ -93,6 +96,9 @@ export const actions = {
   setActionRequests: withPayload(types.SET_ACTION_REQUESTS),
   fetchVariationCustomers: withPayload(types.FETCH_VARIATION_CUSTOMERS),
   setVariationCustomers: withPayload(types.SET_VARIATION_CUSTOMERS),
+  fetchBillingCustomers: withPayload(types.FETCH_BILLING_CUSTOMERS),
+  createBillingMembers: withPayload(types.CREATE_BILLING_MEMBERS),
+  setBillingCustomers: withPayload(types.SET_BILLING_CUSTOMERS),
 };
 
 export const State = Record({
@@ -120,6 +126,7 @@ export const State = Record({
   actionRequestsLoading: true,
   variationCustomers: [],
   variationCustomersLoading: true,
+  billingCustomersLoading: false,
 });
 
 export const reducer = (state = State(), { type, payload }) => {
@@ -251,6 +258,12 @@ export const reducer = (state = State(), { type, payload }) => {
       return state
         .set('variationCustomersLoading', false)
         .set('variationCustomers', payload);
+    }
+    case types.FETCH_BILLING_CUSTOMERS: {
+      return state.set('billingCustomersLoading', true);
+    }
+    case types.SET_BILLING_CUSTOMERS: {
+      return state.set('billingCustomersLoading', false);
     }
     default:
       return state;

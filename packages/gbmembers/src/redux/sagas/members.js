@@ -33,6 +33,7 @@ const getNewCustomersUrl = '/newCustomers';
 const ddrStatusUrl = '/getDDRStatus';
 const actionRequestsUrl = '/getActionRequests';
 const getVariationsUrl = '/getVariations';
+const getCustomersUrl = '/getCustomers';
 
 const util = require('util');
 
@@ -144,9 +145,14 @@ export function* createMember(action) {
       action.payload.history.push('/kapps/gbmembers/Member/' + submission.id);
     if (action.payload.fetchMembers) action.payload.fetchMembers();
 
-    yield put(
-      errorActions.addSuccess('Member created successfully', 'Create Member'),
-    );
+    if (
+      action.payload.showNotification === undefined ||
+      action.payload.showNotification !== false
+    ) {
+      yield put(
+        errorActions.addSuccess('Member created successfully', 'Create Member'),
+      );
+    }
   } catch (error) {
     console.log('Error in createMember: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));
@@ -307,9 +313,11 @@ export function* syncBillingCustomer(action) {
         action.payload.memberItem.values['Billing Payment Period'] =
           result.data.data.paymentPeriod;
         action.payload.memberItem.values['Payment Schedule'] = {
-          period: 'Fortnightly',
+          period: result.data.data.paymentPeriod,
           amount: result.data.data.paymentAmountInCents / 100,
         };
+        action.payload.memberItem.values['Membership Cost'] =
+          result.data.data.paymentAmountInCents / 100;
         action.payload.memberItem.values['DDR Status'] = 'Pending';
 
         let changes = getBillingChanges(action.payload.memberItem);
@@ -908,8 +916,7 @@ export function* fetchDdrStatus(action) {
   let args = {};
   args.space = appSettings.spaceSlug;
   args.billingService = appSettings.billingCompany;
-  args.customerId =
-    action.payload.memberItem.values['Billing Customer Reference'];
+  args.customerId = action.payload.memberItem.values['Billing Customer Id'];
   axios
     .post(appSettings.kineticBillingServerUrl + ddrStatusUrl, args)
     .then(result => {
@@ -997,6 +1004,100 @@ export function* fetchVariationCustomers(action) {
     });
 }
 
+export function* fetchBillingCustomers(action) {
+  const appSettings = yield select(getAppSettings);
+  let args = {};
+  args.space = appSettings.spaceSlug;
+  args.billingService = appSettings.billingCompany;
+  axios
+    .post(appSettings.kineticBillingServerUrl + getCustomersUrl, args)
+    .then(result => {
+      if (result.data.error && result.data.error > 0) {
+        console.log('loadBillingCustomers Error: ' + result.data.errorMessage);
+        action.payload.addNotification(
+          NOTICE_TYPES.ERROR,
+          result.data.errorMessage,
+          'Get Billing Customers',
+        );
+      } else {
+        console.log(
+          '#### loadBillingCustomers # data = ' +
+            JSON.stringify(result.data.data),
+        );
+        action.payload.createBillingMembers({
+          customers: result.data.data,
+          setBillingCustomers: action.payload.setBillingCustomers,
+          fetchMembers: action.payload.fetchMembers,
+        });
+      }
+    })
+    .catch(error => {
+      console.log(util.inspect(error));
+      action.payload.setSystemError(error);
+    });
+}
+
+export function* createBillingMembers(action) {
+  let newMemberAdded = false;
+  for (let i = 0; i < action.payload.customers.length; i++) {
+    let customer = action.payload.customers[i];
+    let memberId =
+      customer.firstName.charAt(0).toLowerCase() +
+      customer.firstName.slice(1) +
+      customer.lastName.charAt(0).toLowerCase() +
+      customer.lastName.slice(1);
+    const MEMBER_SEARCH = new CoreAPI.SubmissionSearch(true)
+      .eq('values[Member ID]', memberId)
+      .include('details')
+      .limit(1)
+      .build();
+
+    const { submissions } = yield call(CoreAPI.searchSubmissions, {
+      form: 'member',
+      kapp: 'gbmembers',
+      search: MEMBER_SEARCH,
+    });
+    console.log(
+      '#### createMembers # submissions = ' + util.inspect(submissions),
+    );
+    if (!submissions || submissions.length <= 0) {
+      var memberItem = {
+        values: {},
+      };
+
+      memberItem.values['Status'] = 'Active';
+      memberItem.values['First Name'] = customer.firstName;
+      memberItem.values['Last Name'] = customer.lastName;
+      memberItem.values['Member ID'] = memberId;
+      memberItem.values['Address'] = customer.address;
+      memberItem.values['Suburb'] = customer.suburb;
+      memberItem.values['State'] = customer.state;
+      memberItem.values['Postcode'] = customer.postCode;
+      memberItem.values['Email'] = customer.email;
+      memberItem.values['Phone Number'] = customer.phone;
+      memberItem.values['DOB'] = customer.dob;
+
+      memberItem.values['Billing Customer Id'] = customer.customerId;
+      memberItem.values['Billing Payment Type'] = customer.paymentMethod;
+      memberItem.values['Billing Payment Period'] = customer.billingPeriod;
+      memberItem.values['Payment Schedule'] = {
+        period: customer.billingPeriod,
+        amount: customer.billingAmount,
+      };
+      memberItem.values['Membership Cost'] = customer.billingAmount;
+      memberItem.values['DDR Status'] = 'Pending';
+
+      yield put(actions.createMember({ memberItem, showNotification: false }));
+      newMemberAdded = true;
+    }
+  }
+
+  action.payload.setBillingCustomers();
+  if (newMemberAdded) {
+    action.payload.fetchMembers();
+  }
+}
+
 export function* watchMembers() {
   console.log('watchMembers');
   yield takeEvery(types.FETCH_MEMBERS, fetchMembers);
@@ -1028,6 +1129,8 @@ export function* watchMembers() {
   yield takeEvery(types.FETCH_DDR_STATUS, fetchDdrStatus);
   yield takeEvery(types.FETCH_ACTION_REQUESTS, fetchActionRequests);
   yield takeEvery(types.FETCH_VARIATION_CUSTOMERS, fetchVariationCustomers);
+  yield takeEvery(types.FETCH_BILLING_CUSTOMERS, fetchBillingCustomers);
+  yield takeEvery(types.CREATE_BILLING_MEMBERS, createBillingMembers);
 }
 
 export default function fetchMemberById(id) {

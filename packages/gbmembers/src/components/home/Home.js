@@ -43,6 +43,7 @@ const mapStateToProps = state => ({
   billingCompany: state.member.app.billingCompany,
   variationCustomers: state.member.members.variationCustomers,
   variationCustomersLoading: state.member.members.variationCustomersLoading,
+  billingCustomersLoading: state.member.members.billingCustomersLoading,
 });
 
 const mapDispatchToProps = {
@@ -59,6 +60,9 @@ const mapDispatchToProps = {
   setSystemError: errorActions.setSystemError,
   fetchVariationCustomers: actions.fetchVariationCustomers,
   setVariationCustomers: actions.setVariationCustomers,
+  fetchBillingCustomers: actions.fetchBillingCustomers,
+  setBillingCustomers: actions.setBillingCustomers,
+  createBillingMembers: actions.createBillingMembers,
 };
 
 const ezidebit_date_format = 'YYYY-MM-DD HH:mm:ss';
@@ -79,25 +83,56 @@ export const HomeView = ({
   billingCompany,
   variationCustomers,
   variationCustomersLoading,
+  fetchBillingCustomers,
+  setBillingCustomers,
+  createBillingMembers,
+  billingCustomersLoading,
+  fetchMembers,
 }) => (
   <div className="dashboard">
     <StatusMessagesContainer />
-    <div className="buttons">
-      <button
-        type="button"
-        id="reloadCharts"
-        className={'btn btn-primary'}
-        style={{ borderRadius: '0' }}
-        onClick={e =>
-          reloadCharts(
-            getBillingPayments,
-            getProcessedAndScheduledPayments,
-            getFailedPayments,
-          )
-        }
-      >
-        Reload Dashboard
-      </button>
+    <div className="buttons row" style={{ marginLeft: '10px' }}>
+      <div className="col-xs-3">
+        <button
+          type="button"
+          id="reloadCharts"
+          className={'btn btn-primary'}
+          style={{ borderRadius: '0', marginRight: '5px' }}
+          onClick={e =>
+            reloadCharts(
+              getBillingPayments,
+              getProcessedAndScheduledPayments,
+              getFailedPayments,
+            )
+          }
+        >
+          Reload Dashboard
+        </button>
+      </div>
+      <div className="col-xs-3">
+        <button
+          type="button"
+          id="loadBillingCustomers"
+          className={'btn btn-primary'}
+          style={{ borderRadius: '0', marginRight: '5px' }}
+          onClick={e =>
+            fetchBillingCustomers({
+              setBillingCustomers,
+              createBillingMembers,
+              fetchMembers,
+            })
+          }
+        >
+          Load Billing Members
+        </button>
+      </div>
+      <div className="col-xs-3">
+        {billingCustomersLoading ? (
+          <p>Loading billing customers ....</p>
+        ) : (
+          <span />
+        )}
+      </div>
     </div>
     <div className="chart1">
       <ProcessedPaymentsBillingChart
