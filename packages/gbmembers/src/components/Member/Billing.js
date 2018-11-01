@@ -69,6 +69,8 @@ const mapStateToProps = state => ({
   profile: state.member.app.profile,
   billingCompany: state.member.app.billingCompany,
   ddrTemplates: state.member.app.ddrTemplates,
+  actionRequests: state.member.members.actionRequests,
+  actionRequestsLoading: state.member.members.actionRequestsLoading,
 });
 
 const mapDispatchToProps = {
@@ -92,6 +94,8 @@ const mapDispatchToProps = {
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
   fetchDdrStatus: actions.fetchDdrStatus,
+  fetchActionRequests: actions.fetchActionRequests,
+  setActionRequests: actions.setActionRequests,
 };
 
 const ezidebit_date_format = 'YYYY-MM-DD HH:mm:ss';
@@ -248,6 +252,77 @@ const copyToClipboard = str => {
     document.getSelection().addRange(selected); // Restore the original selection
   }
 };
+
+export class ActionRequests extends Component {
+  constructor(props) {
+    super(props);
+    let data = this.getData(this.props.actionRequests);
+    let columns = this.getColumns();
+    this.state = {
+      data,
+      columns,
+    };
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.actionRequests) {
+      this.setState({
+        data: this.getData(nextProps.actionRequests),
+      });
+    }
+  }
+
+  getData(actionRequests) {
+    const data = actionRequests.map(actionRequest => {
+      return {
+        _id: actionRequest.customerId,
+        requestType: actionRequest.actionRequestType,
+        customerId: actionRequest.customerId,
+        amount: actionRequest.amount,
+        billingPeriod: actionRequest.billingPeriod,
+        startDate: actionRequest.startDate,
+        resumeDate: actionRequest.resumeDate,
+        status: actionRequest.status,
+      };
+    });
+    return data;
+  }
+
+  getColumns(data) {
+    const columns = [
+      { accessor: 'requestType', Header: 'Request Type' },
+      { accessor: 'customerId', Header: 'Customer Id' },
+      {
+        accessor: 'amount',
+        Header: 'Amount',
+        Cell: props => '$' + props.value,
+      },
+      { accessor: 'billingPeriod', Header: 'Billing Period' },
+      { accessor: 'startDate', Header: 'Start Date' },
+      { accessor: 'resumeDate', Header: 'Resume Date' },
+      { accessor: 'status', Header: 'Status' },
+    ];
+    return columns;
+  }
+
+  render() {
+    const { data, columns } = this.state;
+    return this.props.actionRequestsLoading ? (
+      <div>Loading action requests ...</div>
+    ) : (
+      <span>
+        <ReactTable
+          columns={columns}
+          data={data}
+          className="-striped -highlight"
+          defaultPageSize={data.length > 0 ? data.length : 2}
+          pageSize={data.length > 0 ? data.length : 2}
+          showPagination={false}
+        />
+      </span>
+    );
+  }
+}
 
 export class RegisterPaySmartMemberBilling extends Component {
   handleClick = () => this.setState({ isShowingModal: true });
@@ -2111,6 +2186,7 @@ export class BillingInfo extends Component {
     this.suspendPayments = this.props.suspendPayments;
     this.createSchedule = this.props.createSchedule;
     this.setIsAddMember = this.props.setIsAddMember;
+    this.getActionRequests = this.props.getActionRequests;
 
     let billingMembers = this.getData(this.props.familyMembers);
     this.formattedFeeData = this.getFormattedFeeData(this.props.membershipFees);
@@ -2128,6 +2204,10 @@ export class BillingInfo extends Component {
     let paymentHistoryBtnLabel = 'Show Payment History';
     this.showHidePaymentHistory = this.showHidePaymentHistory.bind(this);
 
+    let showActionRequests = false;
+    let actionRequestsBtnLabel = 'Show Action Requests';
+    this.showHideActionRequests = this.showHideActionRequests.bind(this);
+
     this.memberFee = this.props.memberItem.values['Membership Cost']
       ? Number(this.props.memberItem.values['Membership Cost'])
       : undefined;
@@ -2141,6 +2221,8 @@ export class BillingInfo extends Component {
       paymentHistoryBtnLabel,
       isMemberFeeChanged,
       showBillingAudit: false,
+      showActionRequests,
+      actionRequestsBtnLabel,
     };
   }
 
@@ -2229,6 +2311,20 @@ export class BillingInfo extends Component {
     this.setState({
       showPaymentHistory: !this.state.showPaymentHistory,
       paymentHistoryBtnLabel: label,
+    });
+  }
+
+  showHideActionRequests() {
+    if (!this.state.showActionRequests) {
+      this.getActionRequests();
+    }
+
+    let label = this.state.showActionRequests
+      ? 'Show Action Requests'
+      : 'Hide Action Requests';
+    this.setState({
+      showActionRequests: !this.state.showActionRequests,
+      actionRequestsBtnLabel: label,
     });
   }
 
@@ -2819,6 +2915,30 @@ export class BillingInfo extends Component {
                     <div style={{ marginTop: '10px' }}>
                       <button
                         type="button"
+                        id="showHideActionRequests"
+                        className={'btn btn-primary'}
+                        onClick={e => this.showHideActionRequests()}
+                      >
+                        {this.state.actionRequestsBtnLabel}
+                      </button>
+                    </div>
+                  </span>
+                  <span className="line">
+                    <div style={{ width: '90vw', marginTop: '10px' }}>
+                      {this.state.showActionRequests && (
+                        <ActionRequests
+                          actionRequests={this.props.actionRequests}
+                          actionRequestsLoading={
+                            this.props.actionRequestsLoading
+                          }
+                        />
+                      )}
+                    </div>
+                  </span>
+                  <span className="line">
+                    <div style={{ marginTop: '10px' }}>
+                      <button
+                        type="button"
                         className={'btn btn-primary'}
                         onClick={e => this.setShowBillingAudit(true)}
                       >
@@ -2928,6 +3048,9 @@ export const Billing = ({
   doPaySmartRegistration,
   setDoPaySmartRegistration,
   ddrTemplates,
+  actionRequests,
+  actionRequestsLoading,
+  getActionRequests,
 }) =>
   currentMemberLoading ? (
     <div />
@@ -2970,6 +3093,9 @@ export const Billing = ({
                 updatePaymentMethod={updatePaymentMethod}
                 refundPayment={refundPayment}
                 setEditPaymentTypeReason={setEditPaymentTypeReason}
+                actionRequests={actionRequests}
+                actionRequestsLoading={actionRequestsLoading}
+                getActionRequests={getActionRequests}
               />
             )}
           {(memberItem.values['Billing Customer Id'] === null ||
@@ -3530,6 +3656,20 @@ export const BillingContainer = compose(
       args.addNotification = addNotification;
       args.setSystemError = setSystemError;
       refundTransaction(args);
+    },
+    getActionRequests: ({
+      memberItem,
+      fetchActionRequests,
+      setActionRequests,
+      addNotification,
+      setSystemError,
+    }) => () => {
+      fetchActionRequests({
+        customerId: memberItem.values['Billing Customer Id'],
+        setActionRequests: setActionRequests,
+        setSystemError: setSystemError,
+        addNotification: addNotification,
+      });
     },
   }),
   lifecycle({
