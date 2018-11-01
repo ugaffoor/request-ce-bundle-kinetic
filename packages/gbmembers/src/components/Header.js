@@ -9,6 +9,7 @@ import attendanceIcon from '../images/flag.svg?raw';
 import leadsIcon from '../images/smile.svg?raw';
 import sendIcon from '../images/envelop.svg?raw';
 import gradingIcon from '../images/star-full.svg?raw';
+import settingsIcon from '../images/settings-icon.svg?raw';
 
 export const Header = ({ loading }) => (
   <Navbar color="faded" light>
@@ -67,6 +68,17 @@ export const Header = ({ loading }) => (
         >
           <SVGInline svg={gradingIcon} className="icon" />
           <span className="appName">Grading</span>
+        </NavLink>
+      </NavItem>
+      <NavItem>
+        <NavLink
+          to="/Settings"
+          className="nav-link icon-wrapper"
+          strict
+          activeClassName="active"
+        >
+          <SVGInline svg={settingsIcon} className="icon" />
+          <span className="appName">Settings</span>
         </NavLink>
       </NavItem>
     </Nav>

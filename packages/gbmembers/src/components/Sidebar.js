@@ -28,9 +28,6 @@ export const Sidebar = ({
     <NavLink to={`/memberLists`} className="btn btn-primary">
       Member Lists
     </NavLink>
-    <NavLink to={`/ddrTemplates`} className="btn btn-primary">
-      DDR Templates
-    </NavLink>
     <select
       value={filterValue}
       className="membersFilters"

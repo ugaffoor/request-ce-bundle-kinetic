@@ -21,6 +21,7 @@ import { MemberFollowUpContainer } from './Member/MemberFollowUp';
 import { CampaignContainer } from './send/Send';
 import { ManualCampaignContainer } from './send/NewManualCampaign';
 import { DDRTemplatesContainer } from './DDRTemplates';
+import { SettingsContainer } from './settings/Settings';
 
 export const Content = () => (
   <div className="content" id="mainContent">
@@ -48,6 +49,7 @@ export const Content = () => (
       component={ManualCampaignContainer}
     />
     <Route path="/ddrTemplates" component={DDRTemplatesContainer} />
+    <Route path="/Settings" component={SettingsContainer} />
     <ModalFormContainer />
   </div>
 );
