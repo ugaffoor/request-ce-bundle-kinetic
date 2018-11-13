@@ -6,6 +6,7 @@ export const types = {
   CLEAR_SYSTEM_ERROR: '@kd/boilerplate/CLEAR_SYSTEM_ERROR',
   ADD_NOTIFICATION: namespace('errors', 'ADD_NOTIFICATION'),
   REMOVE_NOTIFICATION: namespace('errors', 'REMOVE_NOTIFICATION'),
+  ADD_RECENT_NOTIFICATION: namespace('errors', 'ADD_RECENT_NOTIFICATION'),
 };
 
 export const NOTICE_TYPES = {
@@ -42,11 +43,13 @@ export const actions = {
   removeNotification: withPayload(types.REMOVE_NOTIFICATION),
   addNotification: (msgType, msg, title) =>
     getNotificationMessage(msgType, msg, title),
+  addRecentNotification: withPayload(types.ADD_RECENT_NOTIFICATION),
 };
 
 export const State = Record({
   system: {},
   notifications: List(),
+  recentNotifications: List(),
 });
 
 const reducer = (state = State(), action) => {
@@ -61,6 +64,8 @@ const reducer = (state = State(), action) => {
       return state.update('notifications', ns =>
         ns.filterNot(n => n.id === action.payload),
       );
+    case types.ADD_RECENT_NOTIFICATION:
+      return state.update('recentNotifications', ns => ns.push(action.payload));
     default:
       return state;
   }

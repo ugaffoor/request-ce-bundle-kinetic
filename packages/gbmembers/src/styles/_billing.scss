@@ -45,3 +45,18 @@
     left: 417px !important;
   }
 }
+
+.newCustomers {
+  top: 133px !important;
+  width: 80% !important;
+  left: 50px !important;
+  @media (min-width: 544px) {
+    top: 120px !important;
+    width: 70% !important;
+    left: 417px !important;
+  }
+}
+
+.whiteSpaceNoWrap {
+  white-space: unset !important;
+}

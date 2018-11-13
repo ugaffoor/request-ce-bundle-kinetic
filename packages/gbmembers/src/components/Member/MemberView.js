@@ -128,10 +128,7 @@ export class NewCustomers extends Component {
     return (
       <div onClick={this.handleClick}>
         <ModalContainer onClose={this.handleClose}>
-          <ModalDialog
-            style={{ width: '50%', height: '60%' }}
-            onClose={this.handleClose}
-          >
+          <ModalDialog className="newCustomers" onClose={this.handleClose}>
             {this.props.newCustomersLoading ? (
               <div>
                 Loading... <ReactSpinner />

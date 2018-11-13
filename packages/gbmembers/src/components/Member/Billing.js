@@ -46,6 +46,7 @@ import { confirmWithInput } from './Confirm';
 import { confirmWithDates } from './ConfirmWithDates';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as errorActions } from '../../redux/modules/errors';
+import { RecentNotificationsContainer } from '../notifications/RecentNotifications';
 <script src="../helpers/jquery.multiselect.js" />;
 
 const ReactDataGrid = require('react-data-grid');
@@ -3057,6 +3058,7 @@ export const Billing = ({
   ) : (
     <div className="memberBillingDetails">
       <StatusMessagesContainer />
+      <RecentNotificationsContainer />
       <div className="general">
         <div className="userDetails">
           {memberItem.values['Billing Customer Id'] !== null &&
