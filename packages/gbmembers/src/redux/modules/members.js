@@ -51,6 +51,14 @@ export const types = {
   FETCH_BILLING_CUSTOMERS: namespace('members', 'FETCH_BILLING_CUSTOMERS'),
   CREATE_BILLING_MEMBERS: namespace('members', 'CREATE_BILLING_MEMBERS'),
   SET_BILLING_CUSTOMERS: namespace('members', 'SET_BILLING_CUSTOMERS'),
+  FETCH_INACTIVE_CUSTOMERS_COUNT: namespace(
+    'members',
+    'FETCH_INACTIVE_CUSTOMERS_COUNT',
+  ),
+  SET_INACTIVE_CUSTOMERS_COUNT: namespace(
+    'members',
+    'SET_INACTIVE_CUSTOMERS_COUNT',
+  ),
 };
 
 export const actions = {
@@ -99,6 +107,10 @@ export const actions = {
   fetchBillingCustomers: withPayload(types.FETCH_BILLING_CUSTOMERS),
   createBillingMembers: withPayload(types.CREATE_BILLING_MEMBERS),
   setBillingCustomers: withPayload(types.SET_BILLING_CUSTOMERS),
+  fetchInactiveCustomersCount: withPayload(
+    types.FETCH_INACTIVE_CUSTOMERS_COUNT,
+  ),
+  setInactiveCustomersCount: withPayload(types.SET_INACTIVE_CUSTOMERS_COUNT),
 };
 
 export const State = Record({
@@ -127,6 +139,8 @@ export const State = Record({
   variationCustomers: [],
   variationCustomersLoading: true,
   billingCustomersLoading: false,
+  inactiveCustomersCount: [],
+  inactiveCustomersLoading: true,
 });
 
 export const reducer = (state = State(), { type, payload }) => {
@@ -264,6 +278,14 @@ export const reducer = (state = State(), { type, payload }) => {
     }
     case types.SET_BILLING_CUSTOMERS: {
       return state.set('billingCustomersLoading', false);
+    }
+    case types.FETCH_INACTIVE_CUSTOMERS_COUNT: {
+      return state.set('inactiveCustomersLoading', true);
+    }
+    case types.SET_INACTIVE_CUSTOMERS_COUNT: {
+      return state
+        .set('inactiveCustomersLoading', false)
+        .set('inactiveCustomersCount', payload);
     }
     default:
       return state;

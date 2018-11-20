@@ -34,6 +34,7 @@ const ddrStatusUrl = '/getDDRStatus';
 const actionRequestsUrl = '/getActionRequests';
 const getVariationsUrl = '/getVariations';
 const getCustomersUrl = '/getCustomers';
+const getInactiveCustomersCountUrl = '/getInactiveCustomersCount';
 
 const util = require('util');
 
@@ -1098,6 +1099,39 @@ export function* createBillingMembers(action) {
   }
 }
 
+export function* fetchInactiveCustomersCount(action) {
+  const appSettings = yield select(getAppSettings);
+  let args = {};
+  args.space = appSettings.spaceSlug;
+  args.billingService = appSettings.billingCompany;
+  args.fromDate = action.payload.fromDate;
+  args.toDate = action.payload.toDate;
+
+  axios
+    .post(
+      appSettings.kineticBillingServerUrl + getInactiveCustomersCountUrl,
+      args,
+    )
+    .then(result => {
+      if (result.data.error && result.data.error > 0) {
+        console.log(
+          'fetchInactiveCustomersCount Error: ' + result.data.errorMessage,
+        );
+        action.payload.addNotification(
+          NOTICE_TYPES.ERROR,
+          result.data.errorMessage,
+          'Get Inactive Customers',
+        );
+      } else {
+        action.payload.setInactiveCustomersCount(result.data.data);
+      }
+    })
+    .catch(error => {
+      console.log(util.inspect(error));
+      action.payload.setSystemError(error);
+    });
+}
+
 export function* watchMembers() {
   console.log('watchMembers');
   yield takeEvery(types.FETCH_MEMBERS, fetchMembers);
@@ -1131,6 +1165,10 @@ export function* watchMembers() {
   yield takeEvery(types.FETCH_VARIATION_CUSTOMERS, fetchVariationCustomers);
   yield takeEvery(types.FETCH_BILLING_CUSTOMERS, fetchBillingCustomers);
   yield takeEvery(types.CREATE_BILLING_MEMBERS, createBillingMembers);
+  yield takeEvery(
+    types.FETCH_INACTIVE_CUSTOMERS_COUNT,
+    fetchInactiveCustomersCount,
+  );
 }
 
 export default function fetchMemberById(id) {

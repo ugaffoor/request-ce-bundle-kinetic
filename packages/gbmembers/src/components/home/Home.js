@@ -43,6 +43,9 @@ const mapStateToProps = state => ({
   billingCompany: state.member.app.billingCompany,
   variationCustomers: state.member.members.variationCustomers,
   variationCustomersLoading: state.member.members.variationCustomersLoading,
+  programs: state.member.app.programs,
+  inactiveCustomersCount: state.member.members.inactiveCustomersCount,
+  inactiveCustomersLoading: state.member.members.inactiveCustomersLoading,
 });
 
 const mapDispatchToProps = {
@@ -59,6 +62,8 @@ const mapDispatchToProps = {
   setSystemError: errorActions.setSystemError,
   fetchVariationCustomers: actions.fetchVariationCustomers,
   setVariationCustomers: actions.setVariationCustomers,
+  fetchInactiveCustomersCount: actions.fetchInactiveCustomersCount,
+  setInactiveCustomersCount: actions.setInactiveCustomersCount,
 };
 
 const ezidebit_date_format = 'YYYY-MM-DD HH:mm:ss';
@@ -80,6 +85,10 @@ export const HomeView = ({
   variationCustomers,
   variationCustomersLoading,
   getVariationCustomers,
+  programs,
+  getInactiveCustomersCount,
+  inactiveCustomersCount,
+  inactiveCustomersLoading,
 }) => (
   <div className="dashboard">
     <StatusMessagesContainer />
@@ -96,6 +105,7 @@ export const HomeView = ({
               getProcessedAndScheduledPayments,
               getFailedPayments,
               getVariationCustomers,
+              getInactiveCustomersCount,
             )
           }
         >
@@ -122,7 +132,20 @@ export const HomeView = ({
       </div>
     )}
     <div className="chart3">
+      <InactiveCustomersChart
+        inactiveCustomersCount={inactiveCustomersCount}
+        getInactiveCustomersCount={getInactiveCustomersCount}
+        inactiveCustomersLoading={inactiveCustomersLoading}
+      />
+    </div>
+    <div className="chart4">
       <DemographicChart allMembers={allMembers} />
+    </div>
+    <div className="chart5">
+      <ProgramsChart allMembers={allMembers} programs={programs} />
+    </div>
+    <div className="chart6">
+      <KidsChart allMembers={allMembers} />
     </div>
     <div>
       <PaymentHistory
@@ -225,11 +248,13 @@ export const HomeContainer = compose(
       getProcessedAndScheduledPayments,
       getFailedPayments,
       getVariationCustomers,
+      getInactiveCustomersCount,
     ) => {
       getBillingPayments('current_month');
       getProcessedAndScheduledPayments();
       getFailedPayments();
       getVariationCustomers();
+      getInactiveCustomersCount();
     },
     getFailedPayments: ({
       fetchPaymentHistory,
@@ -264,6 +289,71 @@ export const HomeContainer = compose(
         addNotification: addNotification,
       });
     },
+    getInactiveCustomersCount: ({
+      fetchInactiveCustomersCount,
+      setInactiveCustomersCount,
+      addNotification,
+      setSystemError,
+    }) => () => {
+      let dateRange = $('#dateRange').val();
+      let fromDate = null;
+      let toDate = null;
+      if (!dateRange) {
+        dateRange = 'last_30_days';
+      }
+
+      if (dateRange === 'last_30_days') {
+        fromDate = moment()
+          .subtract(30, 'days')
+          .format('DD-MM-YYYY');
+        toDate = moment().format('DD-MM-YYYY');
+      } else if (dateRange === 'last_month') {
+        fromDate = moment()
+          .subtract(1, 'months')
+          .startOf('month')
+          .format('DD-MM-YYYY');
+        toDate = moment()
+          .subtract(1, 'months')
+          .endOf('month')
+          .format('DD-MM-YYYY');
+      } else if (dateRange === 'last_3_months') {
+        fromDate = moment()
+          .subtract(3, 'months')
+          .startOf('month')
+          .format('DD-MM-YYYY');
+        toDate = moment()
+          .subtract(1, 'months')
+          .endOf('month')
+          .format('DD-MM-YYYY');
+      } else if (dateRange === 'last_6_months') {
+        fromDate = moment()
+          .subtract(6, 'months')
+          .startOf('month')
+          .format('DD-MM-YYYY');
+        toDate = moment()
+          .subtract(1, 'months')
+          .endOf('month')
+          .format('DD-MM-YYYY');
+      } else if (dateRange === 'last_year') {
+        fromDate = moment()
+          .subtract(1, 'years')
+          .startOf('month')
+          .format('DD-MM-YYYY');
+        toDate = moment()
+          .subtract(1, 'months')
+          .endOf('month')
+          .format('DD-MM-YYYY');
+      } else if (dateRange === 'custom') {
+      }
+
+      fetchInactiveCustomersCount({
+        fromDate: fromDate,
+        toDate: toDate,
+        setInactiveCustomersCount: setInactiveCustomersCount,
+        setSystemError: setSystemError,
+        addNotification: addNotification,
+      });
+    },
   }),
   lifecycle({
     componentWillMount() {
@@ -290,6 +380,12 @@ export const HomeContainer = compose(
         this.props.variationCustomers.length <= 0
       ) {
         this.props.getVariationCustomers();
+      }
+      if (
+        !this.props.inactiveCustomersCount ||
+        this.props.inactiveCustomersCount.length <= 0
+      ) {
+        this.props.getInactiveCustomersCount();
       }
     },
     componentWillReceiveProps(nextProps) {
@@ -426,16 +522,6 @@ export class DemographicChart extends Component {
         }
       }
     });
-
-    /*console.log("maleTotal = " + maleTotal + ", femaleTotal  = " + femaleTotal);
-    console.log("m_age_less_than_6 = " + m_age_less_than_6 + ", f_age_less_than_6  = " + f_age_less_than_6);
-    console.log("m_age_7_12 = " + m_age_7_12 + ", f_age_7_12  = " + f_age_7_12);
-    console.log("m_age_13_17 = " + m_age_13_17 + ", f_age_13_17  = " + f_age_13_17);
-    console.log("m_age_18_24 = " + m_age_18_24 + ", f_age_18_24  = " + f_age_18_24);
-    console.log("m_age_25_34 = " + m_age_25_34 + ", f_age_25_34  = " + f_age_25_34);
-    console.log("m_age_35_44 = " + m_age_35_44 + ", f_age_35_44  = " + f_age_35_44);
-    console.log("m_age_45_54 = " + m_age_45_54 + ", f_age_45_54  = " + f_age_45_54);
-    console.log("m_age_55_plus = " + m_age_55_plus + ", f_age_55_plus  = " + f_age_55_plus);*/
 
     demographicData.push({
       ageGroup: '< 6',
@@ -612,15 +698,460 @@ export class DemographicChart extends Component {
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="ageGroup" tickFormatter={this.xAxisTickFormatter} />
-            {/*<YAxis label={({ viewBox }) => <AxisLabel axisType='yAxis' {...viewBox}>Amount</AxisLabel>} tickFormatter={this.xAxisTickFormatter}/>*/}
             <YAxis tickFormatter={this.yAxisTickFormatter} />
             <Tooltip
               labelFormatter={this.toolTipLabelFormatter}
               formatter={this.toolTipFormatter}
             />
             <Legend content={this.renderCusomizedLegend} />
-            <Bar dataKey="Male" fill="#8884d8" stackId="a" /> {/*label*/}
-            <Bar dataKey="Female" fill="#82ca9d" stackId="a" /> {/*label*/}
+            <Bar dataKey="Male" fill="#8884d8" />
+            <Bar dataKey="Female" fill="#82ca9d" />
+          </BarChart>
+        </ResponsiveContainer>
+      </span>
+    );
+  }
+}
+
+export class ProgramsChart extends Component {
+  constructor(props) {
+    super(props);
+    this.allMembers = this.props.allMembers;
+    let data = this.getData(this.props.allMembers, this.props.programs);
+    this.renderCusomizedLegend = this.renderCusomizedLegend.bind(this);
+    this.state = {
+      data,
+    };
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.allMembers) {
+      this.allMembers = nextProps.allMembers;
+      this.setState({
+        data: this.getData(nextProps.allMembers, nextProps.programs),
+      });
+    }
+  }
+
+  getData(allMembers, programs) {
+    if (!allMembers || allMembers.size <= 0) {
+      return [];
+    }
+
+    let data = [];
+    programs.forEach(program => {
+      data.push({ Program: program.program, 'Member Count': 0 });
+    });
+
+    allMembers.forEach(member => {
+      let program = data.find(
+        obj => obj['Program'] === member.values['Ranking Program'],
+      );
+      if (program) {
+        program['Member Count'] = program['Member Count'] + 1;
+      }
+    });
+
+    return data;
+  }
+
+  renderCusomizedLegend(props) {
+    return (
+      <ul
+        className="recharts-default-legend"
+        style={{ padding: '0px', margin: '0px', textAlign: 'center' }}
+      >
+        <li
+          className="recharts-legend-item legend-item-0"
+          style={{ display: 'inline-block', marginRight: '10px' }}
+        >
+          <svg
+            className="recharts-surface"
+            viewBox="0 0 32 32"
+            version="1.1"
+            style={{
+              display: 'inline-block',
+              verticalAlign: 'middle',
+              marginRight: '4px',
+              width: '14px',
+              height: '14px',
+            }}
+          >
+            <path
+              stroke="none"
+              fill="#8884d8"
+              d="M0,4h32v24h-32z"
+              className="recharts-legend-icon"
+            />
+          </svg>
+          <span className="recharts-legend-item-text">Programs</span>
+        </li>
+      </ul>
+    );
+  }
+
+  yAxisTickFormatter(memberCount) {
+    return memberCount;
+  }
+
+  xAxisTickFormatter(program) {
+    return program;
+  }
+
+  toolTipFormatter(value, name, payload) {
+    return payload.value;
+  }
+
+  toolTipLabelFormatter(label) {
+    return label;
+  }
+
+  render() {
+    const { data } = this.state;
+    return (
+      <span>
+        {' '}
+        <hr />
+        <div
+          className="page-header"
+          style={{ textAlign: 'center', marginBottom: '3%' }}
+        >
+          <h6>Programs</h6>
+        </div>
+        <ResponsiveContainer minHeight={300}>
+          <BarChart
+            width={600}
+            height={300}
+            data={data}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="Program" tickFormatter={this.xAxisTickFormatter} />
+            <YAxis
+              tickFormatter={this.yAxisTickFormatter}
+              label={{
+                value: 'Member Count',
+                angle: -90,
+                position: 'insideLeft',
+              }}
+            />
+            <Tooltip
+              labelFormatter={this.toolTipLabelFormatter}
+              formatter={this.toolTipFormatter}
+            />
+            <Legend content={this.renderCusomizedLegend} />
+            <Bar dataKey="Member Count" fill="#8884d8" stackId="a" />
+          </BarChart>
+        </ResponsiveContainer>
+      </span>
+    );
+  }
+}
+
+export class KidsChart extends Component {
+  constructor(props) {
+    super(props);
+    let data = this.getData(this.props.allMembers);
+    this.state = {
+      data,
+    };
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.allMembers) {
+      this.setState({
+        data: this.getData(nextProps.allMembers),
+      });
+    }
+  }
+
+  getData(allMembers) {
+    if (!allMembers || allMembers.size <= 0) {
+      return [];
+    }
+
+    let data = [];
+    let totalMembers = allMembers.length;
+    let m_tiny_champions = 0,
+      m_lc1 = 0,
+      m_lc2 = 0,
+      m_juniors = 0,
+      m_teens = 0;
+    let f_tiny_champions = 0,
+      f_lc1 = 0,
+      f_lc2 = 0,
+      f_juniors = 0,
+      f_teens = 0;
+
+    allMembers.forEach(member => {
+      let gender = member.values['Gender'];
+      let age = getAgeInYears(member.values['DOB']);
+
+      if (age >= 3 && age <= 4) {
+        if (gender === 'Male') {
+          m_tiny_champions++;
+        } else if (gender === 'Female') {
+          f_tiny_champions++;
+        }
+      }
+
+      if (age >= 4 && age <= 6) {
+        if (gender === 'Male') {
+          m_lc1++;
+        } else if (gender === 'Female') {
+          f_lc1++;
+        }
+      }
+
+      if (age >= 7 && age <= 9) {
+        if (gender === 'Male') {
+          m_lc2++;
+        } else if (gender === 'Female') {
+          f_lc2++;
+        }
+      }
+
+      if (age >= 10 && age <= 12) {
+        if (gender === 'Male') {
+          m_juniors++;
+        } else if (gender === 'Female') {
+          f_juniors++;
+        }
+      }
+
+      if (age >= 13 && age <= 15) {
+        if (gender === 'Male') {
+          m_teens++;
+        } else if (gender === 'Female') {
+          f_teens++;
+        }
+      }
+    });
+
+    data.push({
+      ageGroup: 'Tiny Champions (3-4 yrs)',
+      Male: m_tiny_champions,
+      Female: f_tiny_champions,
+    });
+    data.push({
+      ageGroup: 'LC1 (4-6 yrs)',
+      Male: m_lc1,
+      Female: f_lc1,
+    });
+    data.push({
+      ageGroup: 'LC2 (7-9 yrs)',
+      Male: m_lc2,
+      Female: f_lc2,
+    });
+    data.push({
+      ageGroup: 'Juniors (10-12 yrs)',
+      Male: m_juniors,
+      Female: f_juniors,
+    });
+    data.push({
+      ageGroup: 'Teens (13-15 yrs)',
+      Male: m_teens,
+      Female: f_teens,
+    });
+
+    return data;
+  }
+
+  yAxisTickFormatter(memberCount) {
+    return memberCount;
+  }
+
+  xAxisTickFormatter(ageGroup) {
+    return ageGroup;
+  }
+
+  toolTipFormatter(value, name, payload) {
+    return payload.value;
+  }
+
+  toolTipLabelFormatter(label) {
+    return label;
+  }
+
+  render() {
+    const { data } = this.state;
+    return (
+      <span>
+        {' '}
+        <hr />
+        <div
+          className="page-header"
+          style={{ textAlign: 'center', marginBottom: '3%' }}
+        >
+          <h6>Kids</h6>
+        </div>
+        <ResponsiveContainer minHeight={300}>
+          <BarChart
+            width={600}
+            height={300}
+            data={data}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="ageGroup" tickFormatter={this.xAxisTickFormatter} />
+            <YAxis
+              tickFormatter={this.yAxisTickFormatter}
+              label={{
+                value: 'Member Count',
+                angle: -90,
+                position: 'insideLeft',
+              }}
+            />
+            <Tooltip
+              labelFormatter={this.toolTipLabelFormatter}
+              formatter={this.toolTipFormatter}
+            />
+            <Legend />
+            <Bar dataKey="Male" fill="#8884d8" />
+            <Bar dataKey="Female" fill="#82ca9d" />
+          </BarChart>
+        </ResponsiveContainer>
+      </span>
+    );
+  }
+}
+
+export class InactiveCustomersChart extends Component {
+  constructor(props) {
+    super(props);
+    let data = this.getData(this.props.inactiveCustomersCount);
+    this.renderCusomizedLegend = this.renderCusomizedLegend.bind(this);
+    this.showChart = this.showChart.bind(this);
+    this.handleInputChange = this.handleInputChange.bind(this);
+
+    this.state = {
+      data,
+      dateRange: 'last_30_days',
+    };
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.inactiveCustomersCount) {
+      this.setState({
+        data: this.getData(nextProps.inactiveCustomersCount),
+      });
+    }
+  }
+
+  componentWillMount() {}
+
+  componentDidUpdate() {}
+
+  getData(inactiveCustomersCount) {
+    return inactiveCustomersCount;
+  }
+
+  showChart() {
+    this.props.getInactiveCustomersCount();
+  }
+
+  handleInputChange(event) {
+    this.setState({
+      [event.target.name]: event.target.value,
+    });
+    if (event.target.name === 'dateRange') {
+      this.showChart();
+    }
+  }
+
+  renderCusomizedLegend(props) {
+    return (
+      <ul
+        className="recharts-default-legend"
+        style={{ padding: '0px', margin: '0px', textAlign: 'center' }}
+      >
+        <li
+          className="recharts-legend-item legend-item-0"
+          style={{ display: 'inline-block', marginRight: '10px' }}
+        >
+          <svg
+            className="recharts-surface"
+            viewBox="0 0 32 32"
+            version="1.1"
+            style={{
+              display: 'inline-block',
+              verticalAlign: 'middle',
+              marginRight: '4px',
+              width: '14px',
+              height: '14px',
+            }}
+          >
+            <path
+              stroke="none"
+              fill="#8884d8"
+              d="M0,4h32v24h-32z"
+              className="recharts-legend-icon"
+            />
+          </svg>
+          <span className="recharts-legend-item-text">
+            <div>
+              <label htmlFor="dateRange">Date Range</label>
+              <select
+                name="dateRange"
+                id="dateRange"
+                ref={this.input}
+                value={this.state.dateRange}
+                onChange={e => this.handleInputChange(e)}
+              >
+                <option value="last_30_days">Last 30 Days</option>
+                <option value="last_month">Last Month</option>
+                <option value="last_3_months">Last 3 Months</option>
+                <option value="last_6_months">Last 6 Months</option>
+                <option value="last_year">Last Year</option>
+                <option value="custom">Custom</option>
+              </select>
+              <div className="droparrow" />
+            </div>
+          </span>
+        </li>
+      </ul>
+    );
+  }
+
+  yAxisTickFormatter(memberCount) {
+    return memberCount;
+  }
+
+  xAxisTickFormatter(date) {
+    return date;
+  }
+
+  render() {
+    const { data } = this.state;
+    return this.props.inactiveCustomersLoading ? (
+      <div style={{ height: '50vh', width: '50vw' }}>
+        <p>Loading Inactive Customers Chart ...</p>
+        <ReactSpinner />
+      </div>
+    ) : (
+      <span>
+        <hr />
+        <div
+          className="page-header"
+          style={{ textAlign: 'center', marginBottom: '3%' }}
+        >
+          <br />
+          <h6>Inactive Customers</h6>
+        </div>
+        <ResponsiveContainer minHeight={300}>
+          <BarChart
+            width={600}
+            height={300}
+            data={data}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="date" tickFormatter={this.xAxisTickFormatter} />
+            <YAxis tickFormatter={this.yAxisTickFormatter} />
+            <Tooltip />
+            <Legend content={this.renderCusomizedLegend} />
+            <Bar dataKey="suspendedCount" fill="#8884d8" />
+            <Bar dataKey="cancelledCount" fill="#82ca9d" />
           </BarChart>
         </ResponsiveContainer>
       </span>
@@ -1176,6 +1707,7 @@ export class PaymentHistory extends Component {
     const data = payments.map(payment => {
       return {
         _id: payment.paymentID,
+        name: payment.firstName + ' ' + payment.lastName,
         scheduledAmount: payment.scheduledAmount,
         paymentAmount: payment.paymentAmount,
         paymentMethod: payment.paymentMethod,
@@ -1189,6 +1721,10 @@ export class PaymentHistory extends Component {
 
   getColumns(data) {
     const columns = [
+      {
+        accessor: 'name',
+        Header: 'Name',
+      },
       {
         accessor: 'scheduledAmount',
         Header: 'Scheduled Amount',
@@ -1211,27 +1747,6 @@ export class PaymentHistory extends Component {
         Header: 'Debit Date',
         Cell: props =>
           moment(props.value, ezidebit_date_format).format('YYYY-MM-DD'),
-      },
-      {
-        accessor: '$refundPayment',
-        Cell: row =>
-          row.original.paymentStatus === 'S' ||
-          row.original.paymentStatus === 'Settled' ? (
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={e =>
-                this.props.refundPayment(
-                  row.original['_id'],
-                  row.original.paymentAmount,
-                )
-              }
-            >
-              Refund Payment
-            </button>
-          ) : (
-            ''
-          ),
       },
     ];
     return columns;

@@ -531,6 +531,59 @@ export class LeadNew extends Component {
                 )}
               </span>
               <span className="line">
+                <div>
+                  <label htmlFor="sourceReference1">Source Reference 1</label>
+                  <input
+                    type="text"
+                    name="sourceReference1"
+                    id="sourceReference1"
+                    size="20"
+                    ref={input => (this.input = input)}
+                    defaultValue={
+                      this.props.leadItem.values['Source Reference 1']
+                    }
+                    onChange={e =>
+                      handleChange(this.props.leadItem, 'Source Reference 1', e)
+                    }
+                  />
+                </div>
+                <div>
+                  <label htmlFor="sourceReference2">Source Reference 2</label>
+                  <input
+                    type="text"
+                    name="sourceReference2"
+                    id="sourceReference2"
+                    size="20"
+                    ref={input => (this.input = input)}
+                    defaultValue={
+                      this.props.leadItem.values['Source Reference 2']
+                    }
+                    onChange={e =>
+                      handleChange(this.props.leadItem, 'Source Reference 2', e)
+                    }
+                  />
+                </div>
+                <div>
+                  <label htmlFor="sourceReference3">Source Reference 3</label>
+                  <select
+                    name="sourceReference3"
+                    id="sourceReference3"
+                    ref={input => (this.input = input)}
+                    defaultValue={
+                      this.props.leadItem.values['Source Reference 3']
+                    }
+                    onChange={e =>
+                      handleChange(this.props.leadItem, 'Source Reference 3', e)
+                    }
+                  >
+                    <option value="" />
+                    <option value="Adult">Adult</option>
+                    <option value="Kids">Kids</option>
+                  </select>
+                  <div className="droparrow" />
+                </div>
+              </span>
+              <span className="line">
                 <div style={{ width: '60%' }}>
                   <label htmlFor="note" required>
                     Contact Note
@@ -629,6 +682,7 @@ export const LeadNewContainer = compose(
           );
         }
         leadItem.values['Status'] = 'Open';
+        leadItem.values['Date Created'] = moment().format('DD-MM-YYYY');
         //console.log("### saving lead # " + util.inspect(leadItem.values));
         createLead({
           leadItem,

@@ -14,6 +14,16 @@ import sort2 from '../../images/sort2.png';
 import { contact_date_format, reminder_date_format } from './LeadsUtils';
 import ReactTable from 'react-table';
 import { StatusMessagesContainer } from '../StatusMessages';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from 'recharts';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -581,8 +591,8 @@ export class TasksDetail extends Component {
             <ReactTable
               columns={this._columns}
               data={tasks}
-              defaultPageSize={tasks.length}
-              pageSize={tasks.length}
+              defaultPageSize={tasks.length > 0 ? tasks.length : 2}
+              pageSize={tasks.length > 0 ? tasks.length : 2}
               showPagination={false}
               style={{
                 /*height: '500px',*/
@@ -603,8 +613,8 @@ export class TasksDetail extends Component {
             <ReactTable
               columns={this._memberTasksColumns}
               data={memberTasks}
-              defaultPageSize={memberTasks.length}
-              pageSize={memberTasks.length}
+              defaultPageSize={memberTasks.length > 0 ? memberTasks.length : 2}
+              pageSize={memberTasks.length > 0 ? memberTasks.length : 2}
               showPagination={false}
               style={{
                 /*height: '500px',*/
@@ -845,6 +855,351 @@ export class LeadsDetail extends Component {
   }
 }
 
+export class LeadsCreatedChart extends Component {
+  constructor(props) {
+    super(props);
+    let data = this.getData(this.props.allLeads);
+    this.state = {
+      data,
+    };
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.allLeads) {
+      this.setState({
+        data: this.getData(nextProps.allLeads),
+      });
+    }
+  }
+
+  getData(allLeads) {
+    if (!allLeads || allLeads.length <= 0) {
+      return [];
+    }
+
+    let data = [];
+    let fromDate = moment().subtract('30', 'days');
+    let toDate = moment();
+
+    allLeads.forEach(lead => {
+      let createdDate = moment(lead.values['Date Created'], 'DD-MM-YYYY');
+      if (
+        createdDate.isSameOrAfter(fromDate) &&
+        createdDate.isSameOrBefore(toDate)
+      ) {
+        let objFound = data.find(
+          obj => obj['Date Created'] === createdDate.format('DD-MM-YYYY'),
+        );
+        if (objFound) {
+          objFound['Leads Created'] = objFound['Leads Created'] + 1;
+        } else {
+          data.push({
+            'Date Created': createdDate.format('DD-MM-YYYY'),
+            'Leads Created': 1,
+          });
+        }
+      }
+    });
+    return data;
+  }
+
+  yAxisTickFormatter(leadsCount) {
+    return leadsCount;
+  }
+
+  xAxisTickFormatter(date) {
+    return date;
+  }
+
+  toolTipFormatter(value, name, payload) {
+    return payload.value;
+  }
+
+  toolTipLabelFormatter(label) {
+    return label;
+  }
+
+  render() {
+    const { data } = this.state;
+    return (
+      <span>
+        {' '}
+        <hr />
+        <div
+          className="page-header"
+          style={{ textAlign: 'center', marginBottom: '3%' }}
+        >
+          <h6>Leads Created - Last 30 Days</h6>
+        </div>
+        <ResponsiveContainer minHeight={300}>
+          <BarChart
+            width={600}
+            height={300}
+            data={data}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis
+              dataKey="Date Created"
+              tickFormatter={this.xAxisTickFormatter}
+            />
+            <YAxis
+              tickFormatter={this.yAxisTickFormatter}
+              label={{
+                value: 'Leads Count',
+                angle: -90,
+                position: 'insideLeft',
+              }}
+            />
+            <Tooltip
+              labelFormatter={this.toolTipLabelFormatter}
+              formatter={this.toolTipFormatter}
+            />
+            <Legend />
+            <Bar dataKey="Leads Created" fill="#8884d8" />
+          </BarChart>
+        </ResponsiveContainer>
+      </span>
+    );
+  }
+}
+
+export class SourceReference3Chart extends Component {
+  constructor(props) {
+    super(props);
+    let data = this.getData(this.props.allLeads);
+    this.state = {
+      data,
+    };
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.allLeads) {
+      this.setState({
+        data: this.getData(nextProps.allLeads),
+      });
+    }
+  }
+
+  getData(allLeads) {
+    if (!allLeads || allLeads.length <= 0) {
+      return [];
+    }
+
+    let data = [
+      { 'Source Reference 3': 'Adult', Count: 0 },
+      { 'Source Reference 3': 'Kids', Count: 0 },
+      { 'Source Reference 3': 'Unknown', Count: 0 },
+    ];
+    let fromDate = moment().subtract('30', 'days');
+    let toDate = moment();
+    allLeads.forEach(lead => {
+      let createdDate = moment(lead.values['Date Created'], 'DD-MM-YYYY');
+      if (
+        createdDate.isSameOrAfter(fromDate) &&
+        createdDate.isSameOrBefore(toDate)
+      ) {
+        if (lead.values['Source Reference 3'] === 'Adult') {
+          let objFound = data.find(
+            obj => obj['Source Reference 3'] === 'Adult',
+          );
+          objFound['Count'] = objFound['Count'] + 1;
+        } else if (lead.values['Source Reference 3'] === 'Kids') {
+          let objFound = data.find(obj => obj['Source Reference 3'] === 'Kids');
+          objFound['Count'] = objFound['Count'] + 1;
+        } else if (!lead.values['Source Reference 3']) {
+          let objFound = data.find(
+            obj => obj['Source Reference 3'] === 'Unknown',
+          );
+          objFound['Count'] = objFound['Count'] + 1;
+        }
+      }
+    });
+    return data;
+  }
+
+  yAxisTickFormatter(leadsCount) {
+    return leadsCount;
+  }
+
+  xAxisTickFormatter(date) {
+    return date;
+  }
+
+  toolTipFormatter(value, name, payload) {
+    return payload.value;
+  }
+
+  toolTipLabelFormatter(label) {
+    return label;
+  }
+
+  render() {
+    const { data } = this.state;
+    return (
+      <span>
+        {' '}
+        <hr />
+        <div
+          className="page-header"
+          style={{ textAlign: 'center', marginBottom: '3%' }}
+        >
+          <h6>Source Reference 3 - Last 30 Days</h6>
+        </div>
+        <ResponsiveContainer minHeight={300}>
+          <BarChart
+            width={600}
+            height={300}
+            data={data}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis
+              dataKey="Source Reference 3"
+              tickFormatter={this.xAxisTickFormatter}
+            />
+            <YAxis
+              tickFormatter={this.yAxisTickFormatter}
+              label={{ value: 'Count', angle: -90, position: 'insideLeft' }}
+            />
+            <Tooltip
+              labelFormatter={this.toolTipLabelFormatter}
+              formatter={this.toolTipFormatter}
+            />
+            <Legend />
+            <Bar dataKey="Count" fill="#8884d8" />
+          </BarChart>
+        </ResponsiveContainer>
+      </span>
+    );
+  }
+}
+
+export class SourceReferenceChart extends Component {
+  constructor(props) {
+    super(props);
+    let data = this.getData(this.props.allLeads);
+    this.state = {
+      data,
+    };
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.allLeads) {
+      this.setState({
+        data: this.getData(nextProps.allLeads),
+      });
+    }
+  }
+
+  getData(allLeads) {
+    if (!allLeads || allLeads.length <= 0) {
+      return [];
+    }
+
+    let data = [];
+    let fromDate = moment().subtract('30', 'days');
+    let toDate = moment();
+    allLeads.forEach(lead => {
+      let createdDate = moment(lead.values['Date Created'], 'DD-MM-YYYY');
+      if (
+        createdDate.isSameOrAfter(fromDate) &&
+        createdDate.isSameOrBefore(toDate)
+      ) {
+        let objFound = data.find(
+          obj => obj['date'] === createdDate.format('DD-MM-YYYY'),
+        );
+        if (
+          !objFound &&
+          (lead.values['Source Reference 1'] ||
+            lead.values['Source Reference 2'] ||
+            lead.values['Source Reference 3'])
+        ) {
+          objFound = { date: createdDate.format('DD-MM-YYYY') };
+          data.push(objFound);
+        }
+        if (lead.values['Source Reference 1']) {
+          if (objFound['Source Reference 1']) {
+            objFound['Source Reference 1'] = objFound['Source Reference 1'] + 1;
+          } else {
+            objFound['Source Reference 1'] = 1;
+          }
+        }
+        if (lead.values['Source Reference 2']) {
+          if (objFound['Source Reference 2']) {
+            objFound['Source Reference 2'] = objFound['Source Reference 2'] + 1;
+          } else {
+            objFound['Source Reference 2'] = 1;
+          }
+        }
+        if (lead.values['Source Reference 3']) {
+          if (objFound['Source Reference 3']) {
+            objFound['Source Reference 3'] = objFound['Source Reference 3'] + 1;
+          } else {
+            objFound['Source Reference 3'] = 1;
+          }
+        }
+      }
+    });
+    return data;
+  }
+
+  yAxisTickFormatter(leadsCount) {
+    return leadsCount;
+  }
+
+  xAxisTickFormatter(date) {
+    return date;
+  }
+
+  toolTipFormatter(value, name, payload) {
+    return payload.value;
+  }
+
+  toolTipLabelFormatter(label) {
+    return label;
+  }
+
+  render() {
+    const { data } = this.state;
+    return (
+      <span>
+        {' '}
+        <hr />
+        <div
+          className="page-header"
+          style={{ textAlign: 'center', marginBottom: '3%' }}
+        >
+          <h6>Source Reference - Last 30 Days</h6>
+        </div>
+        <ResponsiveContainer minHeight={300}>
+          <BarChart
+            width={600}
+            height={300}
+            data={data}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="date" tickFormatter={this.xAxisTickFormatter} />
+            <YAxis
+              tickFormatter={this.yAxisTickFormatter}
+              label={{ value: 'Count', angle: -90, position: 'insideLeft' }}
+            />
+            <Tooltip
+              labelFormatter={this.toolTipLabelFormatter}
+              formatter={this.toolTipFormatter}
+            />
+            <Legend />
+            <Bar dataKey="Source Reference 1" fill="#8884d8" />
+            <Bar dataKey="Source Reference 2" fill="#82ca9d" />
+            <Bar dataKey="Source Reference 3" fill="#ffc658" />
+          </BarChart>
+        </ResponsiveContainer>
+      </span>
+    );
+  }
+}
+
 export const LeadsView = ({ allLeads, saveLead, fetchLeads, allMembers }) => (
   <div className="container-fluid leads">
     <StatusMessagesContainer />
@@ -859,6 +1214,15 @@ export const LeadsView = ({ allLeads, saveLead, fetchLeads, allMembers }) => (
       <div className="leadContents">
         <LeadsDetail allLeads={allLeads} />
       </div>
+    </div>
+    <div>
+      <LeadsCreatedChart allLeads={allLeads} />
+    </div>
+    <div>
+      <SourceReference3Chart allLeads={allLeads} />
+    </div>
+    <div>
+      <SourceReferenceChart allLeads={allLeads} />
     </div>
   </div>
 );

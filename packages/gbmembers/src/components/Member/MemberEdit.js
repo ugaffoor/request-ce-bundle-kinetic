@@ -752,6 +752,47 @@ export const MemberEdit = ({
                 <div className="droparrow" />
               </div>
             </span>
+            <span className="line">
+              <div>
+                <label htmlFor="lastPromotion">Last Promotion</label>
+                <input
+                  type="date"
+                  name="lastPromotion"
+                  id="lastPromotion"
+                  ref={input => (this.input = input)}
+                  defaultValue={memberItem.values['Last Promotion']}
+                  onChange={e =>
+                    handleChange(
+                      memberItem,
+                      'Last Promotion',
+                      e,
+                      setIsDirty,
+                      memberChanges,
+                    )
+                  }
+                />
+              </div>
+              <div>
+                <label htmlFor="nextPromotion">Next Scheduled Promotion</label>
+                <input
+                  type="date"
+                  name="nextPromotion"
+                  id="nextPromotion"
+                  style={{ width: '230px' }}
+                  ref={input => (this.input = input)}
+                  defaultValue={memberItem.values['Next Schedule Promotion']}
+                  onChange={e =>
+                    handleChange(
+                      memberItem,
+                      'Next Schedule Promotion',
+                      e,
+                      setIsDirty,
+                      memberChanges,
+                    )
+                  }
+                />
+              </div>
+            </span>
           </div>
           <div className="section4">
             <span className="line">

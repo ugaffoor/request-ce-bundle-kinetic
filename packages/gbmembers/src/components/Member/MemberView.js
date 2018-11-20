@@ -303,6 +303,24 @@ export const MemberView = ({
               {memberItem.values['Ranking Belt']}
             </p>
           </div>
+          <div className="row">
+            <div className="form-group col-xs-6 col-md-6">
+              <label htmlFor="lastPromotion" className="control-label">
+                Last Promotion
+              </label>
+              <span className="form-control">
+                {memberItem.values['Last Promotion']}
+              </span>
+            </div>
+            <div className="form-group col-xs-6 col-md-6">
+              <label htmlFor="nextPromotion" className="control-label">
+                Next Scheduled Promotion
+              </label>
+              <span className="form-control">
+                {memberItem.values['Next Schedule Promotion']}
+              </span>
+            </div>
+          </div>
         </div>
         <div className="billing">
           <h4>Billing</h4>
