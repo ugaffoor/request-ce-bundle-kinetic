@@ -882,7 +882,7 @@ export class LeadsCreatedChart extends Component {
     let toDate = moment();
 
     allLeads.forEach(lead => {
-      let createdDate = moment(lead.values['Date Created'], 'DD-MM-YYYY');
+      let createdDate = moment(lead.createdAt, 'YYYY-MM-DDTHH:mm:ssZ');
       if (
         createdDate.isSameOrAfter(fromDate) &&
         createdDate.isSameOrBefore(toDate)
@@ -994,7 +994,7 @@ export class SourceReference3Chart extends Component {
     let fromDate = moment().subtract('30', 'days');
     let toDate = moment();
     allLeads.forEach(lead => {
-      let createdDate = moment(lead.values['Date Created'], 'DD-MM-YYYY');
+      let createdDate = moment(lead.createdAt, 'YYYY-MM-DDTHH:mm:ssZ');
       if (
         createdDate.isSameOrAfter(fromDate) &&
         createdDate.isSameOrBefore(toDate)
@@ -1101,7 +1101,7 @@ export class SourceReferenceChart extends Component {
     let fromDate = moment().subtract('30', 'days');
     let toDate = moment();
     allLeads.forEach(lead => {
-      let createdDate = moment(lead.values['Date Created'], 'DD-MM-YYYY');
+      let createdDate = moment(lead.createdAt, 'YYYY-MM-DDTHH:mm:ssZ');
       if (
         createdDate.isSameOrAfter(fromDate) &&
         createdDate.isSameOrBefore(toDate)
