@@ -1007,7 +1007,7 @@ export class SourceReference3Chart extends Component {
         } else if (lead.values['Source Reference 3'] === 'Kids') {
           let objFound = data.find(obj => obj['Source Reference 3'] === 'Kids');
           objFound['Count'] = objFound['Count'] + 1;
-        } else if (!lead.values['Source Reference 3']) {
+        } else {
           let objFound = data.find(
             obj => obj['Source Reference 3'] === 'Unknown',
           );
@@ -1044,7 +1044,7 @@ export class SourceReference3Chart extends Component {
           className="page-header"
           style={{ textAlign: 'center', marginBottom: '3%' }}
         >
-          <h6>Source Reference 3 - Last 30 Days</h6>
+          <h6>Adults/Kids - Last 30 Days</h6>
         </div>
         <ResponsiveContainer minHeight={300}>
           <BarChart
@@ -1221,9 +1221,7 @@ export const LeadsView = ({ allLeads, saveLead, fetchLeads, allMembers }) => (
     <div>
       <SourceReference3Chart allLeads={allLeads} />
     </div>
-    <div>
-      <SourceReferenceChart allLeads={allLeads} />
-    </div>
+    <div>{/*      <SourceReferenceChart allLeads={allLeads} /> */}</div>
   </div>
 );
 function tick(mythis) {
