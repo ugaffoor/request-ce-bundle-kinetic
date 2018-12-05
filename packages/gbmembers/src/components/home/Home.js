@@ -198,7 +198,6 @@ export const HomeContainer = compose(
           .endOf('month')
           .format('YYYY-MM-DD');
       }
-      //console.log("######### start date = " + startDate + ", end date = " + endDate);
       fetchBillingPayments({
         paymentType: 'SUCCESSFUL',
         paymentMethod: 'ALL',
@@ -294,10 +293,7 @@ export const HomeContainer = compose(
       setInactiveCustomersCount,
       addNotification,
       setSystemError,
-    }) => () => {
-      let dateRange = $('#dateRange').val();
-      let fromDate = null;
-      let toDate = null;
+    }) => (dateRange, fromDate, toDate) => {
       if (!dateRange) {
         dateRange = 'last_30_days';
       }
@@ -344,6 +340,8 @@ export const HomeContainer = compose(
           .endOf('month')
           .format('DD-MM-YYYY');
       } else if (dateRange === 'custom') {
+        fromDate = moment(fromDate, 'YYYY-MM-DD').format('DD-MM-YYYY');
+        toDate = moment(toDate, 'YYYY-MM-DD').format('DD-MM-YYYY');
       }
 
       fetchInactiveCustomersCount({
@@ -1020,13 +1018,15 @@ export class InactiveCustomersChart extends Component {
   constructor(props) {
     super(props);
     let data = this.getData(this.props.inactiveCustomersCount);
-    this.renderCusomizedLegend = this.renderCusomizedLegend.bind(this);
     this.showChart = this.showChart.bind(this);
     this.handleInputChange = this.handleInputChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
 
     this.state = {
       data,
       dateRange: 'last_30_days',
+      fromDate: '',
+      toDate: '',
     };
   }
 
@@ -1046,71 +1046,30 @@ export class InactiveCustomersChart extends Component {
     return inactiveCustomersCount;
   }
 
-  showChart() {
-    this.props.getInactiveCustomersCount();
+  showChart(dateRange, fromDate, toDate) {
+    this.props.getInactiveCustomersCount(dateRange, fromDate, toDate);
   }
 
   handleInputChange(event) {
     this.setState({
       [event.target.name]: event.target.value,
     });
-    if (event.target.name === 'dateRange') {
-      this.showChart();
+    if (event.target.name === 'dateRange' && event.target.value !== 'custom') {
+      this.showChart(event.target.value, null, null);
     }
   }
 
-  renderCusomizedLegend(props) {
-    return (
-      <ul
-        className="recharts-default-legend"
-        style={{ padding: '0px', margin: '0px', textAlign: 'center' }}
-      >
-        <li
-          className="recharts-legend-item legend-item-0"
-          style={{ display: 'inline-block', marginRight: '10px' }}
-        >
-          <svg
-            className="recharts-surface"
-            viewBox="0 0 32 32"
-            version="1.1"
-            style={{
-              display: 'inline-block',
-              verticalAlign: 'middle',
-              marginRight: '4px',
-              width: '14px',
-              height: '14px',
-            }}
-          >
-            <path
-              stroke="none"
-              fill="#8884d8"
-              d="M0,4h32v24h-32z"
-              className="recharts-legend-icon"
-            />
-          </svg>
-          <span className="recharts-legend-item-text">
-            <div>
-              <label htmlFor="dateRange">Date Range</label>
-              <select
-                name="dateRange"
-                id="dateRange"
-                ref={this.input}
-                value={this.state.dateRange}
-                onChange={e => this.handleInputChange(e)}
-              >
-                <option value="last_30_days">Last 30 Days</option>
-                <option value="last_month">Last Month</option>
-                <option value="last_3_months">Last 3 Months</option>
-                <option value="last_6_months">Last 6 Months</option>
-                <option value="last_year">Last Year</option>
-                <option value="custom">Custom</option>
-              </select>
-              <div className="droparrow" />
-            </div>
-          </span>
-        </li>
-      </ul>
-    );
+  handleSubmit() {
+    if (!this.state.fromDate || !this.state.toDate) {
+      console.log('From and To dates are required');
+      return;
+    } else {
+      this.showChart(
+        this.state.dateRange,
+        this.state.fromDate,
+        this.state.toDate,
+      );
+    }
   }
 
   yAxisTickFormatter(memberCount) {
@@ -1149,11 +1108,84 @@ export class InactiveCustomersChart extends Component {
             <XAxis dataKey="date" tickFormatter={this.xAxisTickFormatter} />
             <YAxis tickFormatter={this.yAxisTickFormatter} />
             <Tooltip />
-            <Legend content={this.renderCusomizedLegend} />
+            <Legend />
             <Bar dataKey="suspendedCount" fill="#8884d8" />
             <Bar dataKey="cancelledCount" fill="#82ca9d" />
           </BarChart>
         </ResponsiveContainer>
+        <div style={{ textAlign: 'center' }}>
+          <div className="row" style={{ width: '50%', margin: '0 auto' }}>
+            <div
+              className={
+                this.state.dateRange !== 'custom' ? 'col-md-12' : 'col-md-4'
+              }
+            >
+              <div className="col-xs-2 mr-1">
+                <label htmlFor="dateRange" className="control-label">
+                  Date Range
+                </label>
+                <select
+                  name="dateRange"
+                  id="dateRange"
+                  className="form-control input-sm"
+                  value={this.state.dateRange}
+                  onChange={e => this.handleInputChange(e)}
+                >
+                  <option value="last_30_days">Last 30 Days</option>
+                  <option value="last_month">Last Month</option>
+                  <option value="last_3_months">Last 3 Months</option>
+                  <option value="last_6_months">Last 6 Months</option>
+                  <option value="last_year">Last Year</option>
+                  <option value="custom">Custom</option>
+                </select>
+                <div className="droparrow" />
+              </div>
+            </div>
+            {this.state.dateRange === 'custom' && (
+              <div className="col-md-8">
+                <div className="row">
+                  <div className="form-group col-xs-2 mr-1">
+                    <label htmlFor="fromDate" className="control-label">
+                      From Date
+                    </label>
+                    <input
+                      type="date"
+                      name="fromDate"
+                      id="fromDate"
+                      className="form-control input-sm"
+                      required
+                      defaultValue={this.state.fromDate}
+                      onChange={e => this.handleInputChange(e)}
+                    />
+                  </div>
+                  <div className="form-group col-xs-2 mr-1">
+                    <label htmlFor="toDate" className="control-label">
+                      To Date
+                    </label>
+                    <input
+                      type="date"
+                      name="toDate"
+                      id="toDate"
+                      className="form-control input-sm"
+                      required
+                      defaultValue={this.state.toDate}
+                      onChange={e => this.handleInputChange(e)}
+                    />
+                  </div>
+                  <div className="form-group col-xs-2">
+                    <label className="control-label">&nbsp;</label>
+                    <button
+                      className="btn btn-primary form-control input-sm"
+                      onClick={e => this.handleSubmit()}
+                    >
+                      Go
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </span>
     );
   }

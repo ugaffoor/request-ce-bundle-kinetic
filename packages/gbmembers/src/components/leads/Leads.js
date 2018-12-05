@@ -23,6 +23,9 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
+  PieChart,
+  Pie,
+  Cell,
 } from 'recharts';
 
 const mapStateToProps = state => ({
@@ -176,7 +179,7 @@ export class TasksDetail extends Component {
     if (duration === 'Todays Tasks') {
       const today = moment().startOf('day');
       allLeads.forEach(lead => {
-        if (lead.values['Reminder Date']) {
+        if (lead.values['Status'] === 'Open' && lead.values['Reminder Date']) {
           if (
             moment(lead.values['Reminder Date'], date_format).isBefore(
               today,
@@ -200,7 +203,7 @@ export class TasksDetail extends Component {
         .add(1, 'weeks')
         .startOf('day');
       allLeads.forEach(lead => {
-        if (lead.values['Reminder Date']) {
+        if (lead.values['Status'] === 'Open' && lead.values['Reminder Date']) {
           if (
             moment(lead.values['Reminder Date'], date_format).isBefore(
               startDate,
@@ -229,7 +232,7 @@ export class TasksDetail extends Component {
         .add(1, 'months')
         .startOf('day');
       allLeads.forEach(lead => {
-        if (lead.values['Reminder Date']) {
+        if (lead.values['Status'] === 'Open' && lead.values['Reminder Date']) {
           if (
             moment(lead.values['Reminder Date'], date_format).isBefore(
               startDate,
@@ -253,7 +256,7 @@ export class TasksDetail extends Component {
       });
     } else if (duration === 'All Tasks') {
       allLeads.forEach(lead => {
-        if (lead.values['Reminder Date']) {
+        if (lead.values['Status'] === 'Open' && lead.values['Reminder Date']) {
           leads[leads.length] = {
             _id: lead['id'],
             date: lead.values['Reminder Date'],
@@ -654,12 +657,15 @@ export class LeadsDetail extends Component {
   }
 
   getData(allLeads) {
-    const leads = allLeads.map(lead => {
-      return {
-        _id: lead['id'],
-        name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
-        lastContact: moment(lead.values['Last Contact']).format('L LT'),
-      };
+    let leads = [];
+    allLeads.forEach(lead => {
+      if (lead.values['Status'] === 'Open') {
+        leads.push({
+          _id: lead['id'],
+          name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
+          lastContact: moment(lead.values['Last Contact']).format('L LT'),
+        });
+      }
     });
     return leads;
   }
@@ -964,6 +970,394 @@ export class LeadsCreatedChart extends Component {
   }
 }
 
+const COLORS = [
+  '#800000',
+  '#D2691E',
+  '#DAA520',
+  '#BC8F8F',
+  '#2F4F4F',
+  '#708090',
+  '#A9A9A9',
+  '#DB7093',
+  '#FFB6C1',
+  '#9932CC',
+  '#8A2BE2',
+  '#1E90FF',
+  '#6495ED',
+  '#ADD8E6',
+  '#48D1CC',
+  '#6B8E23',
+  '#00FF00',
+  '#F08080',
+];
+const RADIAN = Math.PI / 180;
+const renderCustomizedLabel = ({
+  cx,
+  cy,
+  midAngle,
+  innerRadius,
+  outerRadius,
+  percent,
+  index,
+  name,
+  tooltipPayload,
+}) => {
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  return (
+    <text
+      x={x}
+      y={y}
+      fill="white"
+      textAnchor={x > cx ? 'start' : 'end'}
+      dominantBaseline="central"
+    >
+      {`${(percent * 100).toFixed(0)}%`}
+    </text>
+  );
+};
+
+const chartLabels = {
+  last_30_days: 'Last 30 Days',
+  last_month: 'Last Month',
+  last_3_months: 'Last 3 Months',
+  last_6_months: 'Last 6 Months',
+  last_year: 'Last Year',
+  custom: 'Custom Dates',
+};
+
+export class LeadsConversionChart extends Component {
+  constructor(props) {
+    super(props);
+    let data = this.getData(this.props.allLeads, 'last_30_days');
+    this.onPieEnter = this.onPieEnter.bind(this);
+    this.calculateConversion = this.calculateConversion.bind(this);
+
+    this.handleInputChange = this.handleInputChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+
+    this.state = {
+      data,
+      totalLeads: 0,
+      leadsConverted: 0,
+      conversionPercent: 0.0,
+      activeIndex: 0,
+      leadType: 'All Types',
+      dateRange: 'last_30_days',
+      fromDate: '',
+      toDate: '',
+      chartLabel: 'Last 30 Days',
+    };
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.allLeads) {
+      this.setState({
+        data: this.getData(nextProps.allLeads, this.state.dateRange),
+      });
+    }
+  }
+
+  getData(allLeads, dateRange) {
+    if (!allLeads || allLeads.length <= 0) {
+      return [];
+    }
+
+    let leadsByType = [];
+    let fromDate = null;
+    let toDate = null;
+    let totalLeads = 0;
+    let leadsConverted = 0;
+
+    dateRange = dateRange ? dateRange : 'last_30_days';
+
+    if (dateRange === 'last_30_days') {
+      fromDate = moment().subtract('30', 'days');
+      toDate = moment();
+    } else if (dateRange === 'last_month') {
+      fromDate = moment()
+        .subtract(1, 'months')
+        .startOf('month');
+      toDate = moment()
+        .subtract(1, 'months')
+        .endOf('month');
+    } else if (dateRange === 'last_3_months') {
+      fromDate = moment()
+        .subtract(3, 'months')
+        .startOf('month');
+      toDate = moment()
+        .subtract(1, 'months')
+        .endOf('month');
+    } else if (dateRange === 'last_6_months') {
+      fromDate = moment()
+        .subtract(6, 'months')
+        .startOf('month');
+      toDate = moment()
+        .subtract(1, 'months')
+        .endOf('month');
+    } else if (dateRange === 'last_year') {
+      fromDate = moment()
+        .subtract(1, 'years')
+        .startOf('month');
+      toDate = moment()
+        .subtract(1, 'months')
+        .endOf('month');
+    } else if (dateRange === 'custom') {
+      fromDate = moment(this.state.fromDate, 'YYYY-MM-DD');
+      toDate = moment(this.state.toDate, 'YYYY-MM-DD');
+    }
+
+    allLeads.forEach(lead => {
+      let createdDate = moment(lead.createdAt, 'YYYY-MM-DDTHH:mm:ssZ');
+      if (
+        createdDate.isSameOrAfter(fromDate) &&
+        createdDate.isSameOrBefore(toDate)
+      ) {
+        totalLeads++;
+        if (lead.values['Converted Member ID']) {
+          leadsConverted++;
+        }
+        let objFound = leadsByType.find(
+          obj => obj['name'] === lead.values['Source'],
+        );
+        if (objFound) {
+          objFound['value'] = objFound['value'] + 1;
+          if (lead.values['Converted Member ID']) {
+            objFound['leadsConverted'] = objFound['leadsConverted'] + 1;
+          }
+        } else {
+          leadsByType.push({
+            name: lead.values['Source'],
+            value: 1,
+            key: lead.values['Source'],
+            leadsConverted: lead.values['Converted Member ID'] ? 1 : 0,
+          });
+        }
+      }
+    });
+
+    this.setState({
+      totalLeads: totalLeads,
+      leadsConverted: leadsConverted,
+      conversionPercent:
+        totalLeads === 0 || leadsConverted === 0
+          ? 0.0
+          : (leadsConverted * 100) / totalLeads,
+    });
+    return leadsByType;
+  }
+
+  calculateConversion(entry, index) {
+    this.setState({
+      leadType: entry.name,
+      totalLeads: entry.value,
+      leadsConverted: entry.leadsConverted,
+      conversionPercent:
+        entry.value === 0 || entry.leadsConverted === 0
+          ? 0
+          : (entry.leadsConverted * 100) / entry.value,
+    });
+  }
+
+  handleInputChange(event) {
+    this.setState({
+      [event.target.name]: event.target.value,
+    });
+    if (event.target.name === 'dateRange') {
+      this.setState({
+        chartLabel: chartLabels[event.target.value],
+      });
+    }
+    if (event.target.name === 'dateRange' && event.target.value !== 'custom') {
+      this.setState({
+        data: this.getData(this.props.allLeads, event.target.value),
+      });
+    }
+  }
+
+  handleSubmit() {
+    if (!this.state.fromDate || !this.state.toDate) {
+      console.log('From and To dates are required');
+      return;
+    } else {
+      this.setState({
+        data: this.getData(this.props.allLeads, this.state.dateRange),
+      });
+    }
+  }
+
+  onPieEnter(data, index) {
+    this.setState({
+      activeIndex: index,
+    });
+  }
+
+  render() {
+    const { data } = this.state;
+    return (
+      <span>
+        {' '}
+        <hr />
+        <div
+          className="page-header"
+          style={{ textAlign: 'center', marginBottom: '3%' }}
+        >
+          <h6>Leads Conversion - {this.state.chartLabel}</h6>
+          <h6>
+            Lead Type -{' '}
+            <span style={{ color: '#086A87', fontWeight: 'bold' }}>
+              {this.state.leadType}
+            </span>
+          </h6>
+        </div>
+        <div className="row">
+          <div className="col-md-5">
+            <div>
+              <ResponsiveContainer minHeight={400}>
+                <PieChart width={800} height={400}>
+                  <Pie
+                    isAnimationActive={true}
+                    activeIndex={this.state.activeIndex}
+                    onMouseEnter={this.onPieEnter}
+                    data={data}
+                    dataKey="value"
+                    cx={400}
+                    cy={160}
+                    labelLine={false}
+                    label={renderCustomizedLabel}
+                    outerRadius={160}
+                    fill="#8884d8"
+                  >
+                    {data.map((entry, index) => (
+                      <Cell
+                        fill={COLORS[index % COLORS.length]}
+                        key={entry.id}
+                        onClick={e => {
+                          this.calculateConversion(entry, index);
+                        }}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          <div className="col-md-1" style={{ marginTop: '160px' }}>
+            <i
+              className="fa fa-chevron-right"
+              style={{ fontSize: '48px', color: '#086A87' }}
+            />
+          </div>
+          <div className="col-md-5">
+            <div className="circle">
+              <span style={{ top: '30px', position: 'relative' }}>
+                <span style={{ color: '#086A87', fontWeight: 'bold' }}>
+                  {this.state.totalLeads} LEAD/S
+                </span>
+                <br />
+                <span style={{ color: 'black', fontWeight: 'normal' }}>
+                  CONVERTED TO
+                </span>
+                <br />
+                <span style={{ color: 'black', fontWeight: 'bold' }}>
+                  {this.state.leadsConverted} STUDENT/S
+                </span>
+                <br />
+                <span
+                  style={{
+                    color: '#086A87',
+                    fontWeight: 'bold',
+                    fontSize: '250%',
+                  }}
+                >
+                  {this.state.conversionPercent.toFixed(0)}%
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <div className="row" style={{ width: '50%', margin: '0 auto' }}>
+            <div
+              className={
+                this.state.dateRange !== 'custom' ? 'col-md-12' : 'col-md-4'
+              }
+            >
+              <div className="col-xs-2 mr-1">
+                <label htmlFor="dateRange" className="control-label">
+                  Date Range
+                </label>
+                <select
+                  name="dateRange"
+                  id="dateRange"
+                  className="form-control input-sm"
+                  value={this.state.dateRange}
+                  onChange={e => this.handleInputChange(e)}
+                >
+                  <option value="last_30_days">Last 30 Days</option>
+                  <option value="last_month">Last Month</option>
+                  <option value="last_3_months">Last 3 Months</option>
+                  <option value="last_6_months">Last 6 Months</option>
+                  <option value="last_year">Last Year</option>
+                  <option value="custom">Custom</option>
+                </select>
+                <div className="droparrow" />
+              </div>
+            </div>
+            {this.state.dateRange === 'custom' && (
+              <div className="col-md-8">
+                <div className="row">
+                  <div className="form-group col-xs-2 mr-1">
+                    <label htmlFor="fromDate" className="control-label">
+                      From Date
+                    </label>
+                    <input
+                      type="date"
+                      name="fromDate"
+                      id="fromDate"
+                      className="form-control input-sm"
+                      required
+                      defaultValue={this.state.fromDate}
+                      onChange={e => this.handleInputChange(e)}
+                    />
+                  </div>
+                  <div className="form-group col-xs-2 mr-1">
+                    <label htmlFor="toDate" className="control-label">
+                      To Date
+                    </label>
+                    <input
+                      type="date"
+                      name="toDate"
+                      id="toDate"
+                      className="form-control input-sm"
+                      required
+                      defaultValue={this.state.toDate}
+                      onChange={e => this.handleInputChange(e)}
+                    />
+                  </div>
+                  <div className="form-group col-xs-2">
+                    <label className="control-label">&nbsp;</label>
+                    <button
+                      className="btn btn-primary form-control input-sm"
+                      onClick={e => this.handleSubmit()}
+                    >
+                      Go
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </span>
+    );
+    circle1;
+  }
+}
+
 export class SourceReference3Chart extends Component {
   constructor(props) {
     super(props);
@@ -1217,6 +1611,9 @@ export const LeadsView = ({ allLeads, saveLead, fetchLeads, allMembers }) => (
     </div>
     <div>
       <LeadsCreatedChart allLeads={allLeads} />
+    </div>
+    <div>
+      <LeadsConversionChart allLeads={allLeads} />
     </div>
     <div>
       <SourceReference3Chart allLeads={allLeads} />

@@ -18,7 +18,7 @@ const util = require('util');
 export function* fetchLeads(action) {
   try {
     const search = new CoreAPI.SubmissionSearch()
-      .eq('values[Status]', 'Open')
+      //.eq('values[Status]', 'Open')
       .includes(['details', 'values'])
       .build();
 
