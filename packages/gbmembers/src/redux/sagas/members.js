@@ -63,7 +63,6 @@ export function* fetchCurrentMember(action) {
       id: action.payload.id,
       include: SUBMISSION_INCLUDES,
     });
-
     if (action.payload.myThis) submission.myThis = action.payload.myThis;
     if (action.payload.history) submission.history = action.payload.history;
     if (action.payload.fetchMembers)
@@ -268,11 +267,8 @@ export function* fetchBillingInfoAfterRegistration(action) {
           action.payload.updateMember({
             id: action.payload.memberItem.id,
             memberItem: action.payload.memberItem,
-            myThis: action.payload.myThis,
-          });
-          action.payload.fetchCurrentMember({
-            id: action.payload.memberItem['id'],
-            myThis: action.payload.myThis,
+            myThis: action.payload.memberItem.myThis,
+            fetchMember: action.payload.fetchCurrentMember,
           });
         }
       })
@@ -737,17 +733,37 @@ export function fetchFamilyMembers(action) {
 export function* registerBillingMember(action) {
   const appSettings = yield select(getAppSettings);
   let args = {};
-  args.addIfNotExists = '1';
+  //args.addIfNotExists = '1';
   args.customerId = action.payload.memberItem.values['Member ID'];
-  args.firstName = action.payload.memberItem.values['Billing First Name'];
-  args.lastName = action.payload.memberItem.values['Billing Last Name'];
-  args.address = action.payload.memberItem.values['Address'];
-  args.suburb = action.payload.memberItem.values['Suburb'];
-  args.state = action.payload.memberItem.values['State'];
-  args.postCode = action.payload.memberItem.values['Postcode'];
-  args.country = 'Australia';
-  args.email = action.payload.memberItem.values['Email'];
-  args.phone = action.payload.memberItem.values['Phone Number'];
+  args.firstName = action.payload.billingInfo.values['First Name'];
+  args.lastName = action.payload.billingInfo.values['Last Name'];
+  args.dob = action.payload.billingInfo.values['DOB'];
+  args.address = action.payload.billingInfo.values['Address'];
+  args.suburb = action.payload.billingInfo.values['Suburb'];
+  args.state = action.payload.billingInfo.values['State'];
+  args.postCode = action.payload.billingInfo.values['Postcode'];
+  //args.country = 'Australia';
+  args.email = action.payload.billingInfo.values['Email'];
+  args.phoneHome = action.payload.billingInfo.values['Phone Home'];
+  args.phoneWork = action.payload.billingInfo.values['Phone Work'];
+  args.mobile = action.payload.billingInfo.values['Mobile'];
+  args.payment = action.payload.billingInfo.values['Payment'];
+  args.firstPayment = action.payload.billingInfo.values['First Payment'];
+  args.billingPeriod = action.payload.billingInfo.values['Billing Period'];
+  args.contractStartDate =
+    action.payload.billingInfo.values['Billing Start Date'];
+  args.creditCardName = action.payload.billingInfo.values['Name On Card'];
+  args.creditCardNumber =
+    action.payload.billingInfo.values['Credit Card Number'];
+  args.creditCardExpiryMonth =
+    action.payload.billingInfo.values['Credit Card Expiry Month'];
+  args.creditCardExpiryYear =
+    action.payload.billingInfo.values['Credit Card Expiry Year'];
+  args.creditCardType = action.payload.billingInfo.values['Credit Card Type'];
+  args.paymentMethod = 'Credit Card';
+  args.contractByValue = false;
+  args.fta = false;
+
   args.space = appSettings.spaceSlug;
   args.billingService = appSettings.billingCompany;
   args.gbmemberId = action.payload.memberItem['id'];
@@ -756,7 +772,6 @@ export function* registerBillingMember(action) {
   axios
     .post(appSettings.kineticBillingServerUrl + registerUserUrl, args)
     .then(result => {
-      //console.log("fetchWebToken # result = " + util.inspect(result));
       if (result.data.error && result.data.error > 0) {
         console.log('registerBillingMember Error: ' + result.data.errorMessage);
         action.payload.addNotification(
@@ -765,11 +780,19 @@ export function* registerBillingMember(action) {
           'Register Billing Member',
         );
       } else {
-        //console.log("#### Response = " + util.inspect(result));
-        window.location.replace(
-          'https://testpayments.integrapay.com.au/DDR/DDR.aspx?webPageToken=' +
-            result.data.data,
+        action.payload.addNotification(
+          NOTICE_TYPES.SUCCESS,
+          'Billing Member registered successfully',
+          'Register Billing Member',
         );
+        action.payload.fetchBillingInfoAfterRegistration({
+          billingRef: action.payload.memberItem.values['Member ID'],
+          memberItem: action.payload.memberItem,
+          setBillingInfo: action.payload.setBillingInfo,
+          updateMember: action.payload.updateMember,
+          fetchCurrentMember: action.payload.fetchCurrentMember,
+          addNotification: action.payload.addNotification,
+        });
       }
     })
     .catch(error => {
