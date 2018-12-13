@@ -25,6 +25,7 @@ import 'react-datetime/css/react-datetime.css';
 import { StatusMessagesContainer } from '../StatusMessages';
 
 const mapStateToProps = state => ({
+  profile: state.app.profile,
   pathname: state.router.location.pathname,
   leadItem: state.member.leads.currentLead,
   currentLeadLoading: state.member.leads.currentLeadLoading,
@@ -63,6 +64,7 @@ export class LeadDetail extends Component {
   constructor(props) {
     super(props);
     this.saveLead = this.props.saveLead;
+    let profile = this.props.profile;
     let contactMethod = 'phone';
     let contactLabel = 'Phone Call';
     let note = undefined;
@@ -73,6 +75,7 @@ export class LeadDetail extends Component {
     let data = this.getData(this.props.leadItem);
     let columns = this.getColumns();
     this.state = {
+      profile,
       contactMethod,
       contactLabel,
       note,
@@ -140,6 +143,7 @@ export class LeadDetail extends Component {
       return;
     }
     let newHistory = {
+      submitter: this.state.profile.displayName,
       note: this.state.note,
       contactMethod: this.state.contactMethod,
       contactDate: this.state.contactDate,
@@ -162,7 +166,12 @@ export class LeadDetail extends Component {
     columns.push({
       accessor: 'contactDate',
       width: 150,
-      Cell: row => moment(row.original.contactDate).format('Do MMMM YYYY'),
+      Cell: row => moment(row.original.contactDate).format('MMM Do:h:hh A'),
+    });
+    columns.push({
+      accessor: 'submitter',
+      width: 150,
+      Cell: row => this.formatSubmitterCell(row),
     });
 
     return columns;
@@ -239,6 +248,13 @@ export class LeadDetail extends Component {
     }
 
     return row.original.note;
+  }
+  formatSubmitterCell(row) {
+    if (!row.original.submitter) {
+      return '';
+    }
+
+    return row.original.submitter;
   }
 
   render() {
@@ -495,11 +511,16 @@ export class LeadDetail extends Component {
   }
 }
 
-export const LeadDetailView = ({ leadItem, saveLead, currentLeadLoading }) =>
+export const LeadDetailView = ({
+  profile,
+  leadItem,
+  saveLead,
+  currentLeadLoading,
+}) =>
   currentLeadLoading ? (
     <div />
   ) : (
-    <LeadDetail leadItem={leadItem} saveLead={saveLead} />
+    <LeadDetail profile={profile} leadItem={leadItem} saveLead={saveLead} />
   );
 
 export const LeadDetailContainer = compose(
@@ -512,7 +533,7 @@ export const LeadDetailContainer = compose(
   }),
   withState('isDirty', 'setIsDirty', false),
   withHandlers({
-    saveLead: ({ leadItem, updateLead, fetchLead }) => newHistory => {
+    saveLead: ({ profile, leadItem, updateLead, fetchLead }) => newHistory => {
       let history = getJson(leadItem.values['History']);
       history.push(newHistory);
       leadItem.values['History'] = history;

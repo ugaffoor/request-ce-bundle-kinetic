@@ -423,7 +423,6 @@ export const MemberNew = ({
                 <NumberFormat
                   format="+1 (###) ###-####"
                   mask="_"
-                  required
                   ref={input => (this.input = input)}
                   value={memberItem.values['Emergency Contact Phone']}
                   onValueChange={(values, e) =>

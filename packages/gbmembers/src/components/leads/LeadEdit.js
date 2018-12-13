@@ -9,6 +9,7 @@ import {
 } from 'recompose';
 import { actions } from '../../redux/modules/leads';
 import { KappNavLink as NavLink } from 'common';
+import moment from 'moment';
 import $ from 'jquery';
 import NumberFormat from 'react-number-format';
 import { handleChange, handleFormattedChange } from './LeadsUtils';

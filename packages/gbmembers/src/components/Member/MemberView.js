@@ -22,6 +22,7 @@ import moment from 'moment';
 import {
   contact_date_format,
   email_sent_date_format,
+  reminder_date_format,
 } from '../leads/LeadsUtils';
 import ReactTable from 'react-table';
 import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
@@ -305,20 +306,20 @@ export const MemberView = ({
           </div>
           <div className="row">
             <div className="form-group col-xs-6 col-md-6">
-              <label htmlFor="lastPromotion" className="control-label">
-                Last Promotion
-              </label>
-              <span className="form-control">
-                {memberItem.values['Last Promotion']}
-              </span>
+              <h7>Last Promotion</h7>
+              <p>
+                {new Date(
+                  memberItem.values['Last Promotion'],
+                ).toLocaleDateString()}
+              </p>
             </div>
             <div className="form-group col-xs-6 col-md-6">
-              <label htmlFor="nextPromotion" className="control-label">
-                Next Scheduled Promotion
-              </label>
-              <span className="form-control">
-                {memberItem.values['Next Schedule Promotion']}
-              </span>
+              <h7>Next Scheduled Promotion</h7>
+              <p>
+                {new Date(
+                  memberItem.values['Next Schedule Promotion'],
+                ).toLocaleDateString()}
+              </p>
             </div>
           </div>
         </div>

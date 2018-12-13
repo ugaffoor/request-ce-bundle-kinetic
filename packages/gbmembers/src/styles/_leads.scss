@@ -267,8 +267,8 @@
   }
   .notesCell {
     float: left;
-    border: 'none';
-    margin-right: '10px';
+    border: none;
+    margin-right: 10px;
   }
   .rt-td.notes {
     text-align: left;
@@ -285,17 +285,87 @@
   }
 }
 
-.circle {
+.leadConversion {
   width: 300px;
-  height: 300px;
-  border-radius: 250px;
-  font-size: 20px;
-  color: #fff;
-  text-align: center;
-  background: #f5ecce;
-  margin-top: 10px;
-}
+  @media (min-width: 630px) {
+    width: 650px;
+  }
+  margin: 0 auto;
+  .chart1 {
+    width: 100%;
+    @media (min-width: 630px) {
+      width: 45%;
+    }
+  }
+  .arrow {
+    width: 60px;
+    margin-top: 0;
+    margin-left: 41%;
+    @media (min-width: 630px) {
+      width: 10%;
+      margin-top: 100px;
+      margin-left: 0;
+    }
+    .fa {
+      font-size: 48px;
+      color: #086a87;
+    }
 
+    .fa-chevron-right {
+      display: none;
+    }
+    .fa-chevron-down {
+      display: block;
+    }
+    @media (min-width: 630px) {
+      .fa-chevron-right {
+        display: block;
+      }
+      .fa-chevron-down {
+        display: none;
+      }
+    }
+  }
+  .chart2 {
+    width: 100%;
+    @media (min-width: 630px) {
+      width: 45%;
+    }
+    .circle {
+      width: 250px;
+      height: 250px;
+      border-radius: 250px;
+      font-size: 20px;
+      color: #fff;
+      text-align: center;
+      background: #f5ecce;
+      margin: 0 auto;
+      @media (min-width: 630px) {
+        margin-top: 10px;
+        margin-left: 0;
+        margin-right: 0;
+        margin-bottom: 0;
+      }
+    }
+    .info {
+      top: 60px;
+      position: relative;
+      .leadsCount {
+        color: #086a87;
+        font-weight: bold;
+      }
+      .convertedTo {
+        color: black;
+        font-weight: normal;
+      }
+      .students {
+        color: #086a87;
+        font-weight: bold;
+        font-size: 150%;
+      }
+    }
+  }
+}
 /*.datepicker td, .datepicker th {
     width: 1.5em;
     height: 1.5em;

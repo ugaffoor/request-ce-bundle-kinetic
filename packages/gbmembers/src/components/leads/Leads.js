@@ -1212,22 +1212,22 @@ export class LeadsConversionChart extends Component {
             </span>
           </h6>
         </div>
-        <div className="row">
-          <div className="col-md-5">
+        <div className="row leadConversion">
+          <div className="chart1">
             <div>
-              <ResponsiveContainer minHeight={400}>
-                <PieChart width={800} height={400}>
+              <ResponsiveContainer minHeight={250}>
+                <PieChart width={300} height={250}>
                   <Pie
                     isAnimationActive={true}
                     activeIndex={this.state.activeIndex}
                     onMouseEnter={this.onPieEnter}
                     data={data}
                     dataKey="value"
-                    cx={400}
-                    cy={160}
+                    cx={140}
+                    cy={120}
                     labelLine={false}
                     label={renderCustomizedLabel}
-                    outerRadius={160}
+                    outerRadius={120}
                     fill="#8884d8"
                   >
                     {data.map((entry, index) => (
@@ -1245,34 +1245,24 @@ export class LeadsConversionChart extends Component {
               </ResponsiveContainer>
             </div>
           </div>
-          <div className="col-md-1" style={{ marginTop: '160px' }}>
-            <i
-              className="fa fa-chevron-right"
-              style={{ fontSize: '48px', color: '#086A87' }}
-            />
+          <div className="arrow">
+            <i className="fa fa-chevron-right" />
+            <i className="fa fa-chevron-down" />
           </div>
-          <div className="col-md-5">
+          <div className="chart2">
             <div className="circle">
-              <span style={{ top: '30px', position: 'relative' }}>
-                <span style={{ color: '#086A87', fontWeight: 'bold' }}>
+              <span className="info">
+                <span className="leadsCount">
                   {this.state.totalLeads} LEAD/S
                 </span>
                 <br />
-                <span style={{ color: 'black', fontWeight: 'normal' }}>
-                  CONVERTED TO
-                </span>
+                <span className="convertedTo">CONVERTED TO</span>
                 <br />
                 <span style={{ color: 'black', fontWeight: 'bold' }}>
                   {this.state.leadsConverted} STUDENT/S
                 </span>
                 <br />
-                <span
-                  style={{
-                    color: '#086A87',
-                    fontWeight: 'bold',
-                    fontSize: '250%',
-                  }}
-                >
+                <span className="students">
                   {this.state.conversionPercent.toFixed(0)}%
                 </span>
               </span>
