@@ -177,3 +177,6 @@ export const getConfig = ({
     );
   }
 };
+
+export const displayableFormPredicate = form =>
+  form.type === 'Service' && form.status === 'Active';

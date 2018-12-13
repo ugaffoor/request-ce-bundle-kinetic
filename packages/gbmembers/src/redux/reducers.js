@@ -9,6 +9,7 @@ import { reducer as kinops } from '../lib/react-kinops-components';
 import { reducer as leads } from './modules/leads';
 import { reducer as campaigns } from './modules/campaigns';
 import { reducer as auth } from './modules/auth';
+import formsReducer from './modules/forms';
 
 export default {
   errors: errorsReducer,
@@ -22,4 +23,5 @@ export default {
   leads,
   campaigns,
   auth,
+  forms: formsReducer,
 };

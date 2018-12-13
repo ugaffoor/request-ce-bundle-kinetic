@@ -47,6 +47,8 @@ import { confirmWithDates } from './ConfirmWithDates';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as errorActions } from '../../redux/modules/errors';
 import { RecentNotificationsContainer } from '../notifications/RecentNotifications';
+import { FormContainer } from '../form/FormContainer';
+
 <script src="../helpers/jquery.multiselect.js" />;
 
 const ReactDataGrid = require('react-data-grid');
@@ -333,82 +335,29 @@ export class RegisterPaySmartMemberBilling extends Component {
   };
   constructor(props) {
     super(props);
-    let data = this.getData(this.props.ddrTemplates);
-    this.columns = this.getColumns();
-    this.state = {
-      data,
-    };
   }
   componentWillMount() {
     this.setState({ isShowingModal: this.props.isShowingModal });
   }
-  getData(ddrTemplates) {
-    if (!ddrTemplates || ddrTemplates.size <= 0) {
-      return [];
-    }
-    let data = [];
-    ddrTemplates.forEach(template => {
-      data.push({
-        _id: template.name,
-        name: template.name,
-        url: template.url,
-      });
-    });
-    return data;
-  }
-  getColumns(data) {
-    const columns = [
-      { accessor: 'name', Header: 'Name' },
-      { accessor: 'url', Header: 'URL' },
-      {
-        accessor: '$launch',
-        Cell: row => (
-          <span>
-            <a
-              href={row.original['url']}
-              target="_blank"
-              className="btn btn-primary"
-            >
-              Launch
-            </a>
-          </span>
-        ),
-      },
-      {
-        accessor: '$copy',
-        Cell: row => (
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={e => copyToClipboard(row.original['url'])}
-          >
-            Copy URL
-          </button>
-        ),
-      },
-    ];
-    return columns;
-  }
+
   render() {
     return (
       <div onClick={this.handleClick}>
         {this.state.isShowingModal && (
-          <ModalContainer onClose={this.handleClose}>
+          <ModalContainer
+            onClose={this.handleClose}
+            dismissOnBackgroundClick={false}
+          >
             <ModalDialog
-              style={{ width: '50%', height: '60%' }}
+              style={{ width: '60vw', maxHeight: '80vh', overflowY: 'auto' }}
               onClose={this.handleClose}
+              dismissOnBackgroundClick={false}
             >
-              <h1>DDR Templates</h1>
-              <div>
-                <ReactTable
-                  columns={this.columns}
-                  data={this.state.data}
-                  className="-striped -highlight"
-                  defaultPageSize={this.state.data.length}
-                  pageSize={this.state.data.length}
-                  showPagination={false}
-                />
-              </div>
+              <FormContainer
+                memberItem={this.props.memberItem}
+                formSlug="paysmart-member-registration"
+                handleClose={this.handleClose}
+              />
             </ModalDialog>
           </ModalContainer>
         )}
@@ -3688,14 +3637,16 @@ export const BillingContainer = compose(
       if (member === undefined) {
         this.props.history.push('/Member/' + this.props.match.params['id']);
       } else {
-        this.props.fetchBillingInfo({
-          billingRef: member.values['Billing Customer Id'],
-          history: this.props.history,
-          myThis: this,
-          setBillingInfo: this.props.setBillingInfo,
-          addNotification: this.props.addNotification,
-          setSystemError: this.props.setSystemError,
-        });
+        if (member.values['Billing Customer Id']) {
+          this.props.fetchBillingInfo({
+            billingRef: member.values['Billing Customer Id'],
+            history: this.props.history,
+            myThis: this,
+            setBillingInfo: this.props.setBillingInfo,
+            addNotification: this.props.addNotification,
+            setSystemError: this.props.setSystemError,
+          });
+        }
         this.props.fetchCurrentMember({
           id: this.props.match.params['id'],
           myThis: this,
