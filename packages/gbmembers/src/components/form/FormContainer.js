@@ -9,8 +9,6 @@ import {
 } from 'recompose';
 import { parse } from 'query-string';
 import { Form } from './Form';
-import { actions as memberActions } from '../../redux/modules/members';
-import { actions as errorActions } from '../../redux/modules/errors';
 import { actions as formActions } from '../../redux/modules/forms';
 import $ from 'jquery';
 
@@ -27,34 +25,17 @@ const valuesFromQueryParams = queryParams => {
 
 const util = require('util');
 
-const populateFormFields = memberItem => {
-  $('[name="First Name"]').val(memberItem.values['First Name']);
-  $('[name="Last Name"]').val(memberItem.values['Last Name']);
-  $('[name="Address"]').val(memberItem.values['Address']);
-  $('[name="Suburb"]').val(memberItem.values['Suburb']);
-  $('[name="Postcode"]').val(memberItem.values['Postcode']);
-  $('[name="State"]').val(memberItem.values['State']);
-
-  $('[name="DOB"]').val(memberItem.values['DOB']);
-  $('[name="Email"]').val(memberItem.values['Email']);
-  $('[name="Payment"]').val(memberItem.values['Membership Cost']);
-  $('[name="First Payment"]').val(memberItem.values['Membership Cost']);
-  $('[name="Billing Period"]').val('2');
+const populateFormFields = values => {
+  for (let key in values) {
+    $('[name="' + key + '"]').val(values[key]);
+  }
 };
 
 export const handleCompleted = props => response => {
-  props.registerBillingMember({
-    memberItem: props.memberItem,
-    billingInfo: response.submission,
-    addNotification: props.addNotification,
-    setSystemError: props.setSystemError,
-    fetchBillingInfoAfterRegistration: props.fetchBillingInfoAfterRegistration,
-    setBillingInfo: props.setBillingInfo,
-    updateMember: props.updateMember,
-    fetchCurrentMember: props.fetchCurrentMember,
-  });
-  //$('#billingDialogClsBtn').click();
-  props.handleClose();
+  props.state.onSubmit({ submission: response.submission });
+  if (props.history && props.state.redirectTo) {
+    props.history.push(props.state.redirectTo);
+  }
 };
 
 export const handleCreated = props => response => {
@@ -62,7 +43,12 @@ export const handleCreated = props => response => {
 };
 
 export const handleLoaded = props => form => {
-  populateFormFields(props.memberItem);
+  console.log('in handleLoaded');
+  if (props.state && props.state.autoFillValues) {
+    populateFormFields(props.state.autoFillValues);
+  } else {
+    props.history.push('/kapps/gbmembers/Home');
+  }
   props.setFormSlug(form.slug());
 };
 
@@ -78,6 +64,11 @@ export const handleDelete = props => () => {
   props.deleteSubmission(props.submissionId, deleteCallback);
 };
 
+export const getSubmissionId = props =>
+  props.match.isExact
+    ? props.match.params.submissionId
+    : props.location.pathname.replace(props.match.url, '').replace('/', '');
+
 export const mapStateToProps = state => ({
   forms: state.services.forms.data,
   kappSlug: state.app.config.kappSlug,
@@ -87,14 +78,6 @@ export const mapStateToProps = state => ({
 
 export const mapDispatchToProps = {
   push,
-  registerBillingMember: memberActions.registerBillingMember,
-  addNotification: errorActions.addNotification,
-  setSystemError: errorActions.setSystemError,
-  fetchBillingInfoAfterRegistration:
-    memberActions.fetchBillingInfoAfterRegistration,
-  setBillingInfo: memberActions.setBillingInfo,
-  updateMember: memberActions.updateMember,
-  fetchCurrentMember: memberActions.fetchCurrentMember,
   fetchForms: formActions.fetchForms,
 };
 
@@ -103,9 +86,11 @@ const enhance = compose(
     mapStateToProps,
     mapDispatchToProps,
   ),
-  withState('formSlug', 'setFormSlug', props => props.formSlug),
+  withState('submissionId', 'setSubmissionId', getSubmissionId),
+  withState('formSlug', 'setFormSlug', props => props.match.params.formSlug),
   withProps(props => ({
     form: props.forms.find(form => form.slug === props.formSlug),
+    state: props.location.state,
   })),
   withHandlers({
     handleUpdated,

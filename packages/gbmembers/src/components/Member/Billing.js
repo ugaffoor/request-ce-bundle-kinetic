@@ -48,6 +48,7 @@ import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as errorActions } from '../../redux/modules/errors';
 import { RecentNotificationsContainer } from '../notifications/RecentNotifications';
 import { FormContainer } from '../form/FormContainer';
+import { Link } from 'react-router-dom';
 
 <script src="../helpers/jquery.multiselect.js" />;
 
@@ -328,40 +329,38 @@ export class ActionRequests extends Component {
 }
 
 export class RegisterPaySmartMemberBilling extends Component {
-  handleClick = () => this.setState({ isShowingModal: true });
-  handleClose = () => {
-    this.setState({ isShowingModal: false });
-    this.props.setDoPaySmartRegistration(false);
-  };
   constructor(props) {
     super(props);
+    this.getAutoFillValues = this.getAutoFillValues.bind(this);
+    this.state = {
+      autoFillValues: this.getAutoFillValues(this.props.memberItem),
+    };
   }
-  componentWillMount() {
-    this.setState({ isShowingModal: this.props.isShowingModal });
+
+  getAutoFillValues(memberItem) {
+    let autoFillValues = $.extend(true, {}, memberItem.values);
+    autoFillValues['Payment'] = memberItem.values['Membership Cost'];
+    autoFillValues['First Payment'] = memberItem.values['Membership Cost'];
+    autoFillValues['Billing Period'] = '2';
+    return autoFillValues;
   }
 
   render() {
     return (
-      <div onClick={this.handleClick}>
-        {this.state.isShowingModal && (
-          <ModalContainer
-            onClose={this.handleClose}
-            dismissOnBackgroundClick={false}
-          >
-            <ModalDialog
-              style={{ width: '60vw', maxHeight: '80vh', overflowY: 'auto' }}
-              onClose={this.handleClose}
-              dismissOnBackgroundClick={false}
-            >
-              <FormContainer
-                memberItem={this.props.memberItem}
-                formSlug="paysmart-member-registration"
-                handleClose={this.handleClose}
-              />
-            </ModalDialog>
-          </ModalContainer>
-        )}
-      </div>
+      <Link
+        to={{
+          pathname: '/kapps/gbmembers/forms/paysmart-member-registration',
+          state: {
+            onSubmit: this.props.registerMember,
+            redirectTo: '/Billing/' + this.props.memberItem['id'],
+            label: 'Edit Billing',
+            autoFillValues: this.state.autoFillValues,
+          },
+        }}
+        className="btn btn-primary"
+      >
+        Setup Member Billing
+      </Link>
     );
   }
 }
@@ -3072,25 +3071,10 @@ export const Billing = ({
               <br />
               {!memberItem.values['Billing Parent Member'] && (
                 <span>
-                  <button
-                    type="button"
-                    id="setupBilling"
-                    className="btn btn-primary"
-                    onClick={e =>
-                      validateAndRegister(
-                        e,
-                        memberItem,
-                        setIsValidInput,
-                        setErrorMessage,
-                        setDoRegistration,
-                        setDoPaySmartRegistration,
-                        registerMember,
-                        billingCompany,
-                      )
-                    }
-                  >
-                    Setup Member Billing
-                  </button>
+                  <RegisterPaySmartMemberBilling
+                    memberItem={memberItem}
+                    registerMember={registerMember}
+                  />
                   <div>
                     <label
                       htmlFor="datejoined"
@@ -3115,6 +3099,29 @@ export const Billing = ({
               )}
             </span>
           )}
+          {!memberItem.values['Billing Parent Member'] &&
+            memberItem.values['Billing Customer Id'] && (
+              <div className="section1">
+                <span className="line">
+                  <Link
+                    to={{
+                      pathname:
+                        '/kapps/gbmembers/forms/paysmart-member-registration/' +
+                        memberItem.values['Billing Info Form Id'],
+                      state: {
+                        onSubmit: registerMember,
+                        redirectTo:
+                          '/kapps/gbmembers/Billing/' + memberItem['id'],
+                        label: 'Edit Billing',
+                      },
+                    }}
+                    className="btn btn-primary"
+                  >
+                    Show Billing Details
+                  </Link>
+                </span>
+              </div>
+            )}
           {doRegistration && (
             <RegisterMemberBilling
               isShowingModal={true}
@@ -3560,10 +3567,24 @@ export const BillingContainer = compose(
     registerMember: ({
       memberItem,
       registerBillingMember,
+      fetchBillingInfoAfterRegistration,
+      setBillingInfo,
+      updateMember,
+      fetchCurrentMember,
       addNotification,
       setSystemError,
-    }) => () => {
-      registerBillingMember({ memberItem, addNotification, setSystemError });
+    }) => args => {
+      //registerBillingMember({ memberItem, addNotification, setSystemError });
+      registerBillingMember({
+        memberItem: memberItem,
+        billingInfo: args.submission,
+        fetchBillingInfoAfterRegistration: fetchBillingInfoAfterRegistration,
+        setBillingInfo: setBillingInfo,
+        updateMember: updateMember,
+        fetchCurrentMember: fetchCurrentMember,
+        addNotification: addNotification,
+        setSystemError: setSystemError,
+      });
     },
     updatePaymentMethod: ({
       memberItem,
