@@ -22,6 +22,7 @@ import { CampaignContainer } from './send/Send';
 import { ManualCampaignContainer } from './send/NewManualCampaign';
 import { DDRTemplatesContainer } from './DDRTemplates';
 import { SettingsContainer } from './settings/Settings';
+import { FormContainer } from './form/FormContainer';
 
 export const Content = () => (
   <div className="content" id="mainContent">
@@ -50,6 +51,12 @@ export const Content = () => (
     />
     <Route path="/ddrTemplates" component={DDRTemplatesContainer} />
     <Route path="/Settings" component={SettingsContainer} />
+    <Route exact path="/forms/:formSlug" component={FormContainer} />
+    <Route
+      exact
+      path="/forms/:formSlug/:submissionId"
+      component={FormContainer}
+    />
     <ModalFormContainer />
   </div>
 );

@@ -744,6 +744,7 @@ export function* registerBillingMember(action) {
   args.postCode = action.payload.billingInfo.values['Postcode'];
   //args.country = 'Australia';
   args.email = action.payload.billingInfo.values['Email'];
+  args.driversLicence = action.payload.billingInfo.values['Drivers Licence'];
   args.phoneHome = action.payload.billingInfo.values['Phone Home'];
   args.phoneWork = action.payload.billingInfo.values['Phone Work'];
   args.mobile = action.payload.billingInfo.values['Mobile'];
@@ -752,18 +753,24 @@ export function* registerBillingMember(action) {
   args.billingPeriod = action.payload.billingInfo.values['Billing Period'];
   args.contractStartDate =
     action.payload.billingInfo.values['Billing Start Date'];
-  args.creditCardName = action.payload.billingInfo.values['Name On Card'];
-  args.creditCardNumber =
-    action.payload.billingInfo.values['Credit Card Number'];
-  args.creditCardExpiryMonth =
-    action.payload.billingInfo.values['Credit Card Expiry Month'];
-  args.creditCardExpiryYear =
-    action.payload.billingInfo.values['Credit Card Expiry Year'];
-  args.creditCardType = action.payload.billingInfo.values['Credit Card Type'];
-  args.paymentMethod = 'Credit Card';
+  args.paymentMethod = action.payload.billingInfo.values['Payment Method'];
+  if (args.paymentMethod === 'Credit Card') {
+    args.creditCardName = action.payload.billingInfo.values['Name On Card'];
+    args.creditCardNumber =
+      action.payload.billingInfo.values['Credit Card Number'];
+    args.creditCardExpiryMonth =
+      action.payload.billingInfo.values['Credit Card Expiry Month'];
+    args.creditCardExpiryYear =
+      action.payload.billingInfo.values['Credit Card Expiry Year'];
+    args.creditCardType = action.payload.billingInfo.values['Credit Card Type'];
+  } else if (args.paymentMethod === 'Bank Account') {
+    args.bankAccountName = action.payload.billingInfo.values['Account Name'];
+    args.bankAccountNumber =
+      action.payload.billingInfo.values['Account Number'];
+    args.bankAccountBsb = action.payload.billingInfo.values['BSB'];
+  }
   args.contractByValue = false;
   args.fta = false;
-
   args.space = appSettings.spaceSlug;
   args.billingService = appSettings.billingCompany;
   args.gbmemberId = action.payload.memberItem['id'];
@@ -785,6 +792,10 @@ export function* registerBillingMember(action) {
           'Billing Member registered successfully',
           'Register Billing Member',
         );
+
+        action.payload.memberItem.values['Billing Info Form Id'] =
+          action.payload.billingInfo['id'];
+
         action.payload.fetchBillingInfoAfterRegistration({
           billingRef: action.payload.memberItem.values['Member ID'],
           memberItem: action.payload.memberItem,
