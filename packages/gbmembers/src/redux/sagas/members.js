@@ -731,6 +731,19 @@ export function fetchFamilyMembers(action) {
 }
 
 export function* registerBillingMember(action) {
+  if (action.payload.billingInfo.values['Credit Card Number']) {
+    action.payload.billingInfo.values[
+      'Credit Card Number'
+    ] = action.payload.billingInfo.values['Credit Card Number'].replace(
+      /.(?=.{4,}$)/g,
+      '*',
+    );
+    const { submission } = yield call(CoreAPI.updateSubmission, {
+      id: action.payload.billingInfo['id'],
+      values: action.payload.billingInfo.values,
+    });
+  }
+
   const appSettings = yield select(getAppSettings);
   let args = {};
   //args.addIfNotExists = '1';

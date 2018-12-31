@@ -25,9 +25,17 @@ const valuesFromQueryParams = queryParams => {
 
 const util = require('util');
 
-const populateFormFields = values => {
+const populateFormFields = (formSlug, values) => {
   for (let key in values) {
     $('[name="' + key + '"]').val(values[key]);
+  }
+
+  if (formSlug === 'paysmart-member-registration') {
+    //$('[name="Billing Start Date"]').next('input').val(values['Billing Start Date']).change();
+    $('[name="DOB"]')
+      .next('input')
+      .val(values['DOB'])
+      .change();
   }
 };
 
@@ -45,23 +53,11 @@ export const handleCreated = props => response => {
 export const handleLoaded = props => form => {
   console.log('in handleLoaded');
   if (props.state && props.state.autoFillValues) {
-    populateFormFields(props.state.autoFillValues);
+    populateFormFields(form.slug(), props.state.autoFillValues);
   } else {
     props.history.push('/kapps/gbmembers/Home');
   }
   props.setFormSlug(form.slug());
-};
-
-export const handleUpdated = props => response => {
-  console.log('In handleUpdated');
-};
-
-export const handleDelete = props => () => {
-  const deleteCallback = () => {
-    props.fetchCurrentPage();
-    props.push(`/kapps/${props.kappSlug}`);
-  };
-  props.deleteSubmission(props.submissionId, deleteCallback);
 };
 
 export const getSubmissionId = props =>
@@ -72,7 +68,6 @@ export const getSubmissionId = props =>
 export const mapStateToProps = state => ({
   forms: state.services.forms.data,
   kappSlug: state.app.config.kappSlug,
-  memberItem: state.member.members.currentMember,
   forms: state.member.forms.data,
 });
 
@@ -93,11 +88,9 @@ const enhance = compose(
     state: props.location.state,
   })),
   withHandlers({
-    handleUpdated,
     handleCompleted,
     handleCreated,
     handleLoaded,
-    handleDelete,
   }),
   lifecycle({
     componentWillReceiveProps(nextProps) {
