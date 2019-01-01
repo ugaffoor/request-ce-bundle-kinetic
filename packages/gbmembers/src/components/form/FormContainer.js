@@ -11,6 +11,7 @@ import { parse } from 'query-string';
 import { Form } from './Form';
 import { actions as formActions } from '../../redux/modules/forms';
 import $ from 'jquery';
+import moment from 'moment';
 
 const valuesFromQueryParams = queryParams => {
   const params = parse(queryParams);
@@ -34,7 +35,7 @@ const populateFormFields = (formSlug, values) => {
     //$('[name="Billing Start Date"]').next('input').val(values['Billing Start Date']).change();
     $('[name="DOB"]')
       .next('input')
-      .val(values['DOB'])
+      .val(moment(values['DOB'], 'YYYY-MM-DD').format('DD/MM/YYYY'))
       .change();
   }
 };
