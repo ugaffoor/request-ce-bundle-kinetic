@@ -43,7 +43,7 @@ const populateFormFields = (formSlug, values) => {
 export const handleCompleted = props => response => {
   props.state.onSubmit({ submission: response.submission });
   if (props.history && props.state.redirectTo) {
-    props.history.push(props.state.redirectTo);
+    props.history.push('/kapps/' + props.kappSlug + props.state.redirectTo);
   }
 };
 
@@ -53,10 +53,12 @@ export const handleCreated = props => response => {
 
 export const handleLoaded = props => form => {
   console.log('in handleLoaded');
-  if (props.state && props.state.autoFillValues) {
-    populateFormFields(form.slug(), props.state.autoFillValues);
-  } else {
-    props.history.push('/kapps/gbmembers/Home');
+  if (!props.match.params.submissionId) {
+    if (props.state && props.state.autoFillValues) {
+      populateFormFields(form.slug(), props.state.autoFillValues);
+    } else {
+      props.history.push('/kapps/' + props.kappSlug + '/Home');
+    }
   }
   props.setFormSlug(form.slug());
 };

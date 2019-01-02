@@ -731,7 +731,9 @@ export function fetchFamilyMembers(action) {
 }
 
 export function* registerBillingMember(action) {
+  let ccNumber = null;
   if (action.payload.billingInfo.values['Credit Card Number']) {
+    ccNumber = action.payload.billingInfo.values['Credit Card Number'];
     action.payload.billingInfo.values[
       'Credit Card Number'
     ] = action.payload.billingInfo.values['Credit Card Number'].replace(
@@ -769,8 +771,7 @@ export function* registerBillingMember(action) {
   args.paymentMethod = action.payload.billingInfo.values['Payment Method'];
   if (args.paymentMethod === 'Credit Card') {
     args.creditCardName = action.payload.billingInfo.values['Name On Card'];
-    args.creditCardNumber =
-      action.payload.billingInfo.values['Credit Card Number'];
+    args.creditCardNumber = ccNumber;
     args.creditCardExpiryMonth =
       action.payload.billingInfo.values['Credit Card Expiry Month'];
     args.creditCardExpiryYear =
