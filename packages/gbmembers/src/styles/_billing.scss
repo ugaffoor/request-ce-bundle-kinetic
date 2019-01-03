@@ -60,3 +60,48 @@
 .whiteSpaceNoWrap {
   white-space: unset !important;
 }
+
+section.paysmart-billing-details h1 {
+  padding: 10px;
+  background: #43d1af;
+  font-weight: 300;
+  text-align: left;
+  color: #fff;
+  font: 140% Arial, Helvetica, sans-serif;
+}
+
+section.paysmart-billing-details label {
+  color: #2196f3 !important;
+}
+
+section.paysmart-billing-details input[type='text'],
+section.paysmart-billing-details select {
+  width: 100%;
+  padding: 6px 10px;
+  margin: 4px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+section.paysmart-billing-details button {
+  width: 100%;
+  background-color: #4caf50;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+section.paysmart-billing-details button:hover {
+  background-color: #45a049;
+}
+
+section.paysmart-billing-detailsss div {
+  border-radius: 5px;
+  background-color: #f2f2f2;
+  padding: 5px;
+}

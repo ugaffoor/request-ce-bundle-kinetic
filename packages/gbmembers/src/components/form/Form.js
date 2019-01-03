@@ -54,6 +54,7 @@ export const Form = ({
             <CoreForm
               submission={submissionId}
               globals={globals}
+              review
               loaded={handleLoaded}
               completed={handleCompleted}
             />
