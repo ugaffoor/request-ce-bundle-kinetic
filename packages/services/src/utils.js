@@ -128,3 +128,29 @@ export const getFeedbackFormConfig = (kappSlug, submissionId) => ({
 
 export const displayableFormPredicate = form =>
   form.type === 'Service' && form.status === 'Active';
+
+export const namespace = (category, action) =>
+  `@kd/common/${category}/${action}`;
+
+export const noPayload = type => () => ({ type });
+
+export const withPayload = (type, ...names) => (...data) =>
+  names.length === 0
+    ? { type, payload: data[0] }
+    : { type, payload: zip(names, data) };
+
+export function getJson(input) {
+  if (!input) {
+    return [];
+  }
+
+  if (typeof input === 'string') {
+    try {
+      return $.parseJSON(input);
+    } catch (err) {
+      return [input];
+    }
+  } else {
+    return input;
+  }
+}

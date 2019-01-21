@@ -8,6 +8,8 @@ import systemErrorReducer from './modules/systemError';
 import servicesSettingsReducer from './modules/settingsServices';
 import settingsFormsReducer from './modules/settingsForms';
 import settingsCategoriesReducer from './modules/settingsCategories';
+import { reducer as members } from './modules/members';
+import errorsReducer from './modules/errors';
 
 export default {
   categories: categoriesReducer,
@@ -20,4 +22,6 @@ export default {
   servicesSettings: servicesSettingsReducer,
   settingsForms: settingsFormsReducer,
   settingsCategories: settingsCategoriesReducer,
+  members,
+  errors: errorsReducer
 };

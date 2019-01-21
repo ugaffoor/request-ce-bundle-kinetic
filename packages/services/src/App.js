@@ -19,6 +19,7 @@ import { RequestListContainer } from './components/request_list/RequestListConta
 import { RequestShowContainer } from './components/request/RequestShowContainer';
 import { Settings } from './components/settings/Settings';
 import { displayableFormPredicate } from './utils';
+import { PaySmartRegistrationFormContainer } from './components/form/PaySmartRegistrationFormContainer';
 
 import './assets/styles/master.scss';
 
@@ -118,6 +119,16 @@ export const AppComponent = props => {
           exact
           path="/categories/:categorySlug/:formSlug/:submissionId"
           component={FormContainer}
+        />
+        <Route
+          exact
+          path="/billingCategories/:categorySlug/:formSlug"
+          component={PaySmartRegistrationFormContainer}
+        />
+        <Route
+          exact
+          path="/billingCategories/:categorySlug/:formSlug/:submissionId"
+          component={PaySmartRegistrationFormContainer}
         />
         <Route exact path="/forms" component={FormListContainer} />
         <Route path="/forms/:formSlug" component={FormContainer} />
