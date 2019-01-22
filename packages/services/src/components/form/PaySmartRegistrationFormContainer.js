@@ -12,7 +12,6 @@ import { PaySmartRegistrationForm } from './PaySmartRegistrationForm';
 import { actions } from '../../redux/modules/submission';
 import { actions as submissionsActions } from '../../redux/modules/submissions';
 import { actions as memberActions } from '../../redux/modules/members';
-import { actions as errorActions } from '../../redux/modules/errors';
 
 var React = require('react');
 var SignaturePad = require('react-signature-pad');
@@ -47,9 +46,7 @@ export const handleCompleted = props => response => {
       billingInfo: response.submission,
       fetchBillingInfoAfterRegistration: props.fetchBillingInfoAfterRegistration,
       updateMember: props.updateMember,
-      fetchMembers: props.fetchMembers,
-      addNotification: props.addNotification,
-      setSystemError: props.setSystemError
+      fetchMembers: props.fetchMembers
     });
   }
   if (!response.submission.currentPage) {
@@ -73,9 +70,20 @@ export const handleCreated = props => response => {
 };
 
 export const handleLoaded = props => form => {
+
+  /*props.registerBillingMember({
+    memberItem: {values:{}},
+    billingInfo: {values:{}},
+    fetchBillingInfoAfterRegistration: props.fetchBillingInfoAfterRegistration,
+    updateMember: props.updateMember,
+    fetchMembers: props.fetchMembers
+  });*/
+
+
   if (!props.submissionId) {
     $('#signature-canvas').attr('width', '666');
     $('#signature-canvas').attr('height', '268');
+    $("[data-element-name='Encoded Member Signature']").css( {"line-height":0, "height": 0, "overflow": "hidden" });
     let selectedMember = null;
     for (let i = 0; i < props.members.length; i++) {
       if (props.members[i].values['Member ID'] === props.selectedMemberId) {
@@ -129,9 +137,7 @@ export const mapDispatchToProps = {
   fetchMembers: memberActions.fetchMembers,
   fetchBillingInfoAfterRegistration: memberActions.fetchBillingInfoAfterRegistration,
   updateMember: memberActions.updateMember,
-  registerBillingMember: memberActions.registerBillingMember,
-  addNotification: errorActions.addNotification,
-  setSystemError: errorActions.setSystemError
+  registerBillingMember: memberActions.registerBillingMember
 };
 
 const util = require('util');

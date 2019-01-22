@@ -9,7 +9,6 @@ import { watchSettingsServices } from './sagas/settingsServices';
 import { watchSettingsForms } from './sagas/settingsForms';
 import { watchSettingsCategories } from './sagas/settingsCategories';
 import { watchMembers } from './sagas/members';
-import { watchErrors } from './sagas/errors';
 
 export default function*() {
   yield all([
@@ -22,7 +21,6 @@ export default function*() {
     watchSettingsServices(),
     watchSettingsForms(),
     watchSettingsCategories(),
-    watchMembers(),
-    watchErrors()
+    watchMembers()
   ]);
 }
