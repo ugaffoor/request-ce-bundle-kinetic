@@ -12,9 +12,9 @@ import { PaySmartRegistrationForm } from './PaySmartRegistrationForm';
 import { actions } from '../../redux/modules/submission';
 import { actions as submissionsActions } from '../../redux/modules/submissions';
 import { actions as memberActions } from '../../redux/modules/members';
-
-var React = require('react');
-var SignaturePad = require('react-signature-pad');
+import { MemberSignature } from './MemberSignature';
+import ReactDOM from 'react-dom';
+import React from 'react';
 
 const valuesFromQueryParams = queryParams => {
   const params = parse(queryParams);
@@ -70,19 +70,7 @@ export const handleCreated = props => response => {
 };
 
 export const handleLoaded = props => form => {
-
-  /*props.registerBillingMember({
-    memberItem: {values:{}},
-    billingInfo: {values:{}},
-    fetchBillingInfoAfterRegistration: props.fetchBillingInfoAfterRegistration,
-    updateMember: props.updateMember,
-    fetchMembers: props.fetchMembers
-  });*/
-
-
   if (!props.submissionId) {
-    $('#signature-canvas').attr('width', '666');
-    $('#signature-canvas').attr('height', '268');
     $("[data-element-name='Encoded Member Signature']").css( {"line-height":0, "height": 0, "overflow": "hidden" });
     let selectedMember = null;
     for (let i = 0; i < props.members.length; i++) {
@@ -108,6 +96,11 @@ export const handleLoaded = props => form => {
   }
 
   props.setFormSlug(form.slug());
+
+  ReactDOM.render(
+  <MemberSignature/>,
+    document.getElementById('signature-canvas')
+  )
 };
 
 export const handleDelete = props => () => {
