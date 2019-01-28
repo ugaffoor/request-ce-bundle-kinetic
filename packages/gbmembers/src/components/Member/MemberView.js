@@ -30,6 +30,7 @@ import { actions as campaignActions } from '../../redux/modules/campaigns';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as errorActions } from '../../redux/modules/errors';
 import ReactSpinner from 'react16-spinjs';
+import { actions as teamActions} from '../../redux/modules/teams';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -41,6 +42,8 @@ const mapStateToProps = state => ({
   newCustomers: state.member.members.newCustomers,
   newCustomersLoading: state.member.members.newCustomersLoading,
   space: state.member.app.space,
+  isBillingUser: state.member.teams.isBillingUser,
+  isBillingUserLoading: state.member.teams.isBillingUserLoading
 });
 
 const mapDispatchToProps = {
@@ -54,6 +57,7 @@ const mapDispatchToProps = {
   fetchNewCustomers: actions.fetchNewCustomers,
   setNewCustomers: actions.setNewCustomers,
   fetchMembers: actions.fetchMembers,
+  fetchIsBillingUser: teamActions.fetchIsBillingUser
 };
 
 export class NewCustomers extends Component {
@@ -206,6 +210,7 @@ export const MemberView = ({
   setShowNewCustomers,
   newCustomersLoading,
   space,
+  isBillingUser
 }) =>
   currentMemberLoading ? (
     <div />
@@ -391,6 +396,7 @@ export const MemberView = ({
             <button
               type="button"
               className={'btn btn-primary'}
+              disabled={!isBillingUser}
               onClick={e => syncBilling()}
             >
               Sync Billing Info
@@ -399,6 +405,7 @@ export const MemberView = ({
               type="text"
               name="customerBillingId"
               id="customerBillingId"
+              readOnly={!isBillingUser}
             />
             <label htmlFor="customerBillingId">Billing Id</label>
           </div>
@@ -567,6 +574,7 @@ export const MemberViewContainer = compose(
   lifecycle({
     componentWillMount() {
       this.props.fetchCurrentMember({ id: this.props.match.params.id });
+      this.props.fetchIsBillingUser();
     },
     componentWillReceiveProps(nextProps) {
       //$('#mainContent').offset({ top: 98});

@@ -7,6 +7,7 @@ import { watchKinops } from '../lib/react-kinops-components';
 import { watchLeads } from './sagas/leads';
 import { watchCampaigns } from './sagas/campaigns';
 import { watchForms } from './sagas/forms';
+import { watchTeams } from './sagas/teams';
 
 export default function* sagas() {
   yield all([
@@ -18,5 +19,6 @@ export default function* sagas() {
     watchLeads(),
     watchCampaigns(),
     watchForms(),
+    watchTeams()
   ]);
 }

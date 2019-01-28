@@ -10,6 +10,7 @@ import { reducer as leads } from './modules/leads';
 import { reducer as campaigns } from './modules/campaigns';
 import { reducer as auth } from './modules/auth';
 import formsReducer from './modules/forms';
+import { reducer as teams } from './modules/teams';
 
 export default {
   errors: errorsReducer,
@@ -24,4 +25,5 @@ export default {
   campaigns,
   auth,
   forms: formsReducer,
+  teams
 };

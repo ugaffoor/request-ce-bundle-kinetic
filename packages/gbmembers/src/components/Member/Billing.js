@@ -49,6 +49,7 @@ import { actions as errorActions } from '../../redux/modules/errors';
 import { RecentNotificationsContainer } from '../notifications/RecentNotifications';
 import { FormContainer } from '../form/FormContainer';
 import { Link } from 'react-router-dom';
+import { actions as teamActions} from '../../redux/modules/teams';
 
 <script src="../helpers/jquery.multiselect.js" />;
 
@@ -75,6 +76,8 @@ const mapStateToProps = state => ({
   ddrTemplates: state.member.app.ddrTemplates,
   actionRequests: state.member.members.actionRequests,
   actionRequestsLoading: state.member.members.actionRequestsLoading,
+  isBillingUser: state.member.teams.isBillingUser,
+  isBillingUserLoading: state.member.teams.isBillingUserLoading
 });
 
 const mapDispatchToProps = {
@@ -100,6 +103,7 @@ const mapDispatchToProps = {
   fetchDdrStatus: actions.fetchDdrStatus,
   fetchActionRequests: actions.fetchActionRequests,
   setActionRequests: actions.setActionRequests,
+  fetchIsBillingUser: teamActions.fetchIsBillingUser
 };
 
 const ezidebit_date_format = 'YYYY-MM-DD HH:mm:ss';
@@ -2633,7 +2637,7 @@ export class BillingInfo extends Component {
                       className="btn btn-primary"
                       disabled={
                         this.props.memberItem.values['DDR Status'] !==
-                        'Processed'
+                        'Processed' || !this.props.isBillingUser
                       }
                       onClick={e =>
                         editPaymentType(
@@ -2703,10 +2707,7 @@ export class BillingInfo extends Component {
                           this.props.memberItem.values['Fee Program'],
                         )}
                         disabled={
-                          this.props.memberItem.values['DDR Status'] ===
-                          'Processed'
-                            ? false
-                            : true
+                          this.props.memberItem.values['DDR Status'] !== 'Processed' || !this.props.isBillingUser
                         }
                         onChange={e =>
                           this.onFeeProgramChange(
@@ -2736,10 +2737,7 @@ export class BillingInfo extends Component {
                         className="form-control"
                         value={this.props.memberItem.values['Membership Cost']}
                         disabled={
-                          this.props.memberItem.values['DDR Status'] ===
-                          'Processed'
-                            ? false
-                            : true
+                          this.props.memberItem.values['DDR Status'] !== 'Processed' || !this.props.isBillingUser
                         }
                         onChange={e =>
                           this.handleChange(
@@ -2787,10 +2785,7 @@ export class BillingInfo extends Component {
                               'Payment Schedule'
                             ] ||
                               this.state.isMemberFeeChanged) &&
-                            this.props.memberItem.values['DDR Status'] ===
-                              'Processed'
-                              ? false
-                              : true
+                            this.props.memberItem.values['DDR Status'] !== 'Processed' || !this.props.isBillingUser
                           }
                           onClick={e => this.createPaymentSchedule()}
                         >
@@ -2810,10 +2805,7 @@ export class BillingInfo extends Component {
                           disabled={
                             this.props.memberItem.values['Payment Schedule'] &&
                             this.props.billingInfo.statusCode !== '2' &&
-                            this.props.memberItem.values['DDR Status'] ===
-                              'Processed'
-                              ? false
-                              : true
+                            this.props.memberItem.values['DDR Status'] === 'Processed' || !this.props.isBillingUser
                           }
                           onClick={e => this.stopPayments()}
                         >
@@ -2929,9 +2921,7 @@ export class BillingInfo extends Component {
                     id="addMember"
                     className="btn btn-primary"
                     disabled={
-                      this.props.memberItem.values['DDR Status'] === 'Processed'
-                        ? false
-                        : true
+                      this.props.memberItem.values['DDR Status'] !== 'Processed' || !this.props.isBillingUser
                     }
                     onClick={e => startAddMember(e, this.setIsAddMember)}
                   >
@@ -3000,6 +2990,8 @@ export const Billing = ({
   actionRequests,
   actionRequestsLoading,
   getActionRequests,
+  isBillingUser,
+  isBillingUserLoading
 }) =>
   currentMemberLoading ? (
     <div />
@@ -3046,6 +3038,7 @@ export const Billing = ({
                 actionRequests={actionRequests}
                 actionRequestsLoading={actionRequestsLoading}
                 getActionRequests={getActionRequests}
+                isBillingUser={isBillingUser}
               />
             )}
           {(memberItem.values['Billing Customer Id'] === null ||
@@ -3069,7 +3062,7 @@ export const Billing = ({
                 setIsAddMember={setIsAddMember}
               />
               <br />
-              {!memberItem.values['Billing Parent Member'] && (
+              {!memberItem.values['Billing Parent Member'] && isBillingUser && (
                 <span>
                   <RegisterPaySmartMemberBilling
                     memberItem={memberItem}
@@ -3648,6 +3641,7 @@ export const BillingContainer = compose(
     constructor() {},
     componentDidUpdate() {},
     componentWillMount() {
+      this.props.fetchIsBillingUser();
       var member = undefined;
       for (var j = 0; j < this.props.members.length; j++) {
         if (this.props.members[j]['id'] === this.props.match.params['id']) {
