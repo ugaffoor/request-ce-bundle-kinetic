@@ -2803,9 +2803,9 @@ export class BillingInfo extends Component {
                           id="clearSchedule"
                           className={'btn btn-primary'}
                           disabled={
-                            this.props.memberItem.values['Payment Schedule'] &&
-                            this.props.billingInfo.statusCode !== '2' &&
-                            this.props.memberItem.values['DDR Status'] === 'Processed' || !this.props.isBillingUser
+                            this.props.memberItem.values['Payment Schedule'] ||
+                            this.props.billingInfo.statusCode !== '2' ||
+                            this.props.memberItem.values['DDR Status'] !== 'Processed' || !this.props.isBillingUser
                           }
                           onClick={e => this.stopPayments()}
                         >
