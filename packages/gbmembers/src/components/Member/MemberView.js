@@ -405,7 +405,7 @@ export const MemberView = ({
               type="text"
               name="customerBillingId"
               id="customerBillingId"
-              readOnly={!isBillingUser}
+              disabled={!isBillingUser}
             />
             <label htmlFor="customerBillingId">Billing Id</label>
           </div>

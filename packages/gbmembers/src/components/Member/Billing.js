@@ -2630,14 +2630,18 @@ export class BillingInfo extends Component {
                 </table>
                 <hr />
                 <div className="section1">
+                <span
+                  style={{
+                    display: this.props.isBillingUser ? 'block' : 'none'
+                  }}
+                >
                   {this.props.editPaymentType === false ? (
                     <button
                       type="button"
                       id="editPaymentType"
                       className="btn btn-primary"
                       disabled={
-                        this.props.memberItem.values['DDR Status'] !==
-                        'Processed' || !this.props.isBillingUser
+                        this.props.memberItem.values['DDR Status'] !== 'Processed'
                       }
                       onClick={e =>
                         editPaymentType(
@@ -2684,6 +2688,7 @@ export class BillingInfo extends Component {
                       updatePaymentMethod={this.props.updatePaymentMethod}
                     />
                   )}
+                  </span>
                   <span className="line">
                     <div id="feeProgramDiv" ref="feeProgramDiv">
                       <label
@@ -2768,7 +2773,7 @@ export class BillingInfo extends Component {
                     className="line"
                     style={{
                       display:
-                        this.props.billingInfo.statusCode == '2'
+                        this.props.billingInfo.statusCode == '2' && this.props.isBillingUser
                           ? 'block'
                           : 'none',
                     }}
@@ -2785,7 +2790,7 @@ export class BillingInfo extends Component {
                               'Payment Schedule'
                             ] ||
                               this.state.isMemberFeeChanged) &&
-                            this.props.memberItem.values['DDR Status'] !== 'Processed' || !this.props.isBillingUser
+                            this.props.memberItem.values['DDR Status'] !== 'Processed'
                           }
                           onClick={e => this.createPaymentSchedule()}
                         >
@@ -2794,7 +2799,12 @@ export class BillingInfo extends Component {
                       </div>
                     </div>
                   </span>
-                  <span className="line">
+                  <span
+                    className="line"
+                    style={{
+                      display: this.props.isBillingUser ? 'block' : 'none'
+                    }}
+                  >
                     <div className="row">
                       <div className="col-md-4">
                         <label className="control-label">&nbsp;</label>
@@ -2805,7 +2815,7 @@ export class BillingInfo extends Component {
                           disabled={
                             this.props.memberItem.values['Payment Schedule'] ||
                             this.props.billingInfo.statusCode !== '2' ||
-                            this.props.memberItem.values['DDR Status'] !== 'Processed' || !this.props.isBillingUser
+                            this.props.memberItem.values['DDR Status'] !== 'Processed'
                           }
                           onClick={e => this.stopPayments()}
                         >
@@ -2915,13 +2925,17 @@ export class BillingInfo extends Component {
                     </div>
                   </span>
                 </div>
-                <span>
+                <span
+                  style={{
+                    display: this.props.isBillingUser ? 'block' : 'none'
+                  }}
+                >
                   <button
                     type="button"
                     id="addMember"
                     className="btn btn-primary"
                     disabled={
-                      this.props.memberItem.values['DDR Status'] !== 'Processed' || !this.props.isBillingUser
+                      this.props.memberItem.values['DDR Status'] !== 'Processed'
                     }
                     onClick={e => startAddMember(e, this.setIsAddMember)}
                   >
