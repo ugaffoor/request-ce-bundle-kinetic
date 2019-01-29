@@ -12,7 +12,7 @@ import gradingIcon from '../images/star-full.svg?raw';
 import settingsIcon from '../images/settings-icon.svg?raw';
 
 export const Header = ({ loading }) => (
-  <Navbar color="faded" light>
+  <Navbar color="faded" light className="fixed-top">
     <CompanyLogoContainer />
     <Nav className="nav-header apps">
       <NavItem>
