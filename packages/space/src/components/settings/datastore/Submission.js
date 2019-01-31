@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { push } from 'connected-react-router';
 import { compose, withHandlers, withState, lifecycle } from 'recompose';
@@ -18,6 +18,8 @@ import {
 } from '../../../redux/modules/settingsDatastore';
 
 import { DatastoreDiscussions } from './DatastoreDiscussions';
+import ReactQuill from 'react-quill';
+import ReactDOM from 'react-dom';
 
 const globals = import('common/globals');
 
@@ -26,6 +28,7 @@ const DatastoreSubmissionComponent = ({
   showPrevAndNext,
   prevAndNext,
   submissionId,
+  handleLoaded,
   handleCreated,
   handleUpdated,
   handleError,
@@ -101,6 +104,7 @@ const DatastoreSubmissionComponent = ({
             key={formKey}
             form={form.slug}
             datastore
+            onLoaded={handleLoaded}
             onCreated={handleCreated}
             error={handleError}
             values={values}
@@ -159,6 +163,27 @@ export const handleCreated = props => (response, actions) => {
   props.setFormKey(getRandomKey());
 };
 
+export const handleLoaded = props => form => {
+  if (!props.submissionId) {
+    $("[data-element-name='Script']").css( {"line-height":0, "height": 0, "overflow": "hidden" });
+    ReactDOM.render(
+    <ScriptEditor/>,
+      document.getElementById('script_editor')
+    );
+    $("[data-element-name='Submit Button']").click(onFormSubmit);
+  }
+};
+
+function onFormSubmit() {
+  if ($("[name='Script']").val().length <= 0) {
+    $('.quill').css({"border-color":"red", "border-style": "solid", "border-width": "1px"});
+    $('#script_label').css({"color": "red"});
+  } else {
+    $('.quill').css({"border-color":"#d3dce7", "border-style": "none"});
+    $('#script_label').css({"color": "rgba(34, 34, 34, 0.75)"});
+  }
+}
+
 export const mapStateToProps = (state, { match: { params } }) => ({
   submissionId: params.id,
   submission: state.space.settingsDatastore.submission,
@@ -188,6 +213,7 @@ export const DatastoreSubmission = compose(
     handleUpdated,
     handleCreated,
     handleError,
+    handleLoaded
   }),
   lifecycle({
     componentWillMount() {
@@ -208,3 +234,84 @@ export const DatastoreSubmission = compose(
     },
   }),
 )(DatastoreSubmissionComponent);
+
+export class ScriptEditor extends Component {
+  constructor(props) {
+    super(props);
+    this.reactQuillRef = null;
+    this.handleChange = this.handleChange.bind(this);
+    this.state = {
+      text: '', // You can also pass a Quill Delta here
+    };
+
+    this.modules = {
+      toolbar: {
+        container: [
+          ['bold', 'italic', 'underline', 'strike'], // toggled buttons
+          ['blockquote', 'code-block'],
+
+          [{ header: 1 }, { header: 2 }], // custom button values
+          [{ list: 'ordered' }, { list: 'bullet' }],
+          [{ script: 'sub' }, { script: 'super' }], // superscript/subscript
+          [{ indent: '-1' }, { indent: '+1' }], // outdent/indent
+          [{ direction: 'rtl' }], // text direction
+
+          [{ size: ['small', false, 'large', 'huge'] }], // custom dropdown
+          [{ header: [1, 2, 3, 4, 5, 6, false] }],
+
+          [{ color: [] }, { background: [] }], // dropdown with defaults from theme
+          [{ font: [] }],
+          [{ align: [] }],
+          ['link'],
+          ['image'],
+          ['clean']
+        ]
+      },
+    };
+  }
+
+  componentWillReceiveProps(nextProps) {
+  }
+
+  formats = [
+    'header',
+    'bold',
+    'italic',
+    'underline',
+    'strike',
+    'blockquote',
+    'list',
+    'bullet',
+    'indent',
+    'link',
+    'image',
+    'color',
+  ];
+
+  handleChange(html, text) {
+    this.setState({ text: html });
+    if (this.reactQuillRef.getEditor().getText().trim().length > 0) {
+      $("[name='Script']").val(html);
+    } else {
+      $("[name='Script']").val('');
+    }
+  }
+
+  render() {
+    return (
+      <div className="form-group required">
+        <label className="field-label" id="script_label">Script</label>
+        <ReactQuill
+          ref={el => {
+            this.reactQuillRef = el;
+          }}
+          value={this.state.text}
+          onChange={this.handleChange}
+          theme="snow"
+          modules={this.modules}
+          formats={this.formats}
+        />
+        </div>
+    );
+  }
+}
