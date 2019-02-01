@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Fragment, Component } from 'react';
 import { connect } from 'react-redux';
 import {
   compose,
@@ -23,17 +23,25 @@ import { getJson } from '../Member/MemberUtils';
 import ReactTable from 'react-table';
 import 'react-datetime/css/react-datetime.css';
 import { StatusMessagesContainer } from '../StatusMessages';
+import { actions as dataStoreActions} from '../../redux/modules/settingsDatastore';
+import Select from 'react-select';
+const globals = import('common/globals');
+import { CoreForm } from 'react-kinetic-core';
+import { PageTitle } from 'common';
 
 const mapStateToProps = state => ({
   profile: state.app.profile,
   pathname: state.router.location.pathname,
   leadItem: state.member.leads.currentLead,
   currentLeadLoading: state.member.leads.currentLeadLoading,
+  scriptSubmissions: state.member.datastore.submissions,
+  scriptSubmissionsLoading: state.member.datastore.submissionsLoading
 });
 const mapDispatchToProps = {
   fetchLead: actions.fetchCurrentLead,
   updateLead: actions.updateLead,
   fetchLeads: actions.fetchLeads,
+  fetchSubmissions: dataStoreActions.fetchSubmissions
 };
 
 const Datetime = require('react-datetime');
@@ -74,6 +82,8 @@ export class LeadDetail extends Component {
 
     let data = this.getData(this.props.leadItem);
     let columns = this.getColumns();
+    this.getScriptOptions = this.getScriptOptions.bind(this);
+
     this.state = {
       profile,
       contactMethod,
@@ -83,6 +93,9 @@ export class LeadDetail extends Component {
       latestHistory,
       data,
       columns,
+      selectedScriptOption: null,
+      scriptOptions: this.getScriptOptions(this.props.scriptSubmissions),
+      submissionId: null
     };
   }
 
@@ -92,6 +105,12 @@ export class LeadDetail extends Component {
       data: this.getData(nextProps.leadItem),
       columns: this.getColumns(),
     });
+
+    if (this.props.scriptSubmissions.length !== nextProps.scriptSubmissions.length) {
+      this.setState({
+        scriptOptions: this.getScriptOptions(nextProps.scriptSubmissions)
+      });
+    }
   }
 
   handleContactMethodChange(method) {
@@ -256,9 +275,31 @@ export class LeadDetail extends Component {
 
     return row.original.submitter;
   }
+  handleScriptOptionChange = (selectedOption) => {
+    this.setState({
+      selectedScriptOption:  selectedOption,
+      submissionId: selectedOption ? selectedOption.value : null
+    });
+  }
+
+  getScriptOptions(scripts) {
+    let options = [];
+    if (!scripts || scripts.length <= 0) {
+      return options;
+    } else {
+      scripts.forEach(script => {
+        options.push({value: script['id'], label: script.values['Script Name']})
+      });
+      return options;
+    }
+  }
 
   render() {
     return (
+      <span>
+      {this.state.submissionId &&
+        <ScriptFormContainer submissionId={this.state.submissionId} />
+      }
       <div className="container-fluid" id="noteDetailDiv">
         <StatusMessagesContainer />
         <div className="card">
@@ -453,6 +494,16 @@ export class LeadDetail extends Component {
                   Send Email
                 </NavLink>
               </li>
+              <li>
+                <Select
+                value={this.state.selectedScriptOption}
+                onChange={this.handleScriptOptionChange}
+                options={this.state.scriptOptions}
+                isClearable={true}
+                className="script-dropdown"
+                placeholder={this.props.scriptSubmissionsLoading? "Loading scripts ..." : "Select script"}
+                />
+              </li>
             </ul>
           </div>
           <div className="card-body">
@@ -507,6 +558,7 @@ export class LeadDetail extends Component {
           </div>
         </div>
       </div>
+      </span>
     );
   }
 }
@@ -516,11 +568,14 @@ export const LeadDetailView = ({
   leadItem,
   saveLead,
   currentLeadLoading,
+  scriptSubmissions,
+  scriptSubmissionsLoading
 }) =>
   currentLeadLoading ? (
     <div />
   ) : (
-    <LeadDetail profile={profile} leadItem={leadItem} saveLead={saveLead} />
+    <LeadDetail profile={profile} leadItem={leadItem} saveLead={saveLead}
+     scriptSubmissions={scriptSubmissions} scriptSubmissionsLoading={scriptSubmissionsLoading}/>
   );
 
 export const LeadDetailContainer = compose(
@@ -559,6 +614,7 @@ export const LeadDetailContainer = compose(
         myThis: this,
         history: this.props.history,
       });
+      this.props.fetchSubmissions({formSlug: 'call-scripts'});
     },
     componentWillReceiveProps(nextProps) {
       if (this.props.pathname !== nextProps.pathname) {
@@ -575,3 +631,61 @@ export const LeadDetailContainer = compose(
     componentWillUnmount() {},
   }),
 )(LeadDetailView);
+
+export class ScriptForm extends Component {
+  constructor(props) {
+    super(props);
+    this.hideScript = this.hideScript.bind(this);
+    this.showScript = this.showScript.bind(this);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    this.showScript();
+  }
+
+  componentDidMount() {
+    this.showScript();
+  }
+
+  showScript() {
+    $("#script_overlay").show();
+    $("#noteDetailDiv").hide();
+  }
+
+  hideScript() {
+    $("#script_overlay").hide();
+    $("#noteDetailDiv").show();
+  }
+
+  render() {
+    return (
+      <div id="script_overlay" onClick={e => this.hideScript()}>
+        <Fragment>
+        <span className="services-color-bar" style={{height: '2.5rem', backgroundColor: '#f3f3f3'}}>
+          <button type="button" className="close btn-lg" aria-label="Close" style={{float: 'left'}} onClick={e => this.off()}>
+            <span aria-hidden="true" style={{fontSize: '40px', padding: '10px'}}>&times;</span>
+          </button>
+        </span>
+        <div className="page-panel page-panel--three-fifths page-panel--space-datastore-submission page-panel--scrollable">
+          <div className="embedded-core-form--wrapper">
+              <CoreForm
+                datastore
+                review
+                submission={this.props.submissionId}
+                globals={globals}
+                loaded={this.props.handleLoaded}
+              />
+          </div>
+        </div>
+        </Fragment>
+      </div>
+    );
+  }
+}
+
+export const handleLoaded = props => form => {
+}
+const enhance = compose(
+  withHandlers({ handleLoaded }),
+);
+export const ScriptFormContainer = enhance(ScriptForm);

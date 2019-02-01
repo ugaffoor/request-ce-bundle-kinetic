@@ -8,6 +8,7 @@ import { watchLeads } from './sagas/leads';
 import { watchCampaigns } from './sagas/campaigns';
 import { watchForms } from './sagas/forms';
 import { watchTeams } from './sagas/teams';
+import { watchSettingsDatastore } from './sagas/settingsDatastore';
 
 export default function* sagas() {
   yield all([
@@ -19,6 +20,7 @@ export default function* sagas() {
     watchLeads(),
     watchCampaigns(),
     watchForms(),
-    watchTeams()
+    watchTeams(),
+    watchSettingsDatastore()
   ]);
 }
