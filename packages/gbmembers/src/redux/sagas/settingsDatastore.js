@@ -11,8 +11,7 @@ export const getAppSettings = state => state.member.app;
 
 const util = require('util');
 
-const TEAMS_SETTING_INCLUDES = 'details,memberships,memberships.user';
-export function* fetchSubmissions(action) {
+export function* fetchCallScripts(action) {
   try {
     const search = new CoreAPI.SubmissionSearch()
       .includes(['details', 'values'])
@@ -23,18 +22,18 @@ export function* fetchSubmissions(action) {
       CoreAPI.searchSubmissions,
       {
         datastore: true,
-        form: action.payload.formSlug,
+        form: 'call-scripts',
         search
       }
     );
-    yield put(actions.setSubmissions(submissions));
+    yield put(actions.setCallScripts(submissions));
   } catch (error) {
-    console.log('Error in fetchSubmissions: ' + util.inspect(error));
+    console.log('Error in fetchCallScripts: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));
   }
 }
 
 export function* watchSettingsDatastore() {
   console.log('watchSettingsDatastore');
-  yield takeEvery(types.FETCH_SUBMISSIONS, fetchSubmissions);
+  yield takeEvery(types.FETCH_CALL_SCRIPTS, fetchCallScripts);
 }

@@ -28,20 +28,22 @@ import Select from 'react-select';
 const globals = import('common/globals');
 import { CoreForm } from 'react-kinetic-core';
 import { PageTitle } from 'common';
+import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
+import ReactSpinner from 'react16-spinjs';
 
 const mapStateToProps = state => ({
   profile: state.app.profile,
   pathname: state.router.location.pathname,
   leadItem: state.member.leads.currentLead,
   currentLeadLoading: state.member.leads.currentLeadLoading,
-  scriptSubmissions: state.member.datastore.submissions,
-  scriptSubmissionsLoading: state.member.datastore.submissionsLoading
+  callScripts: state.member.datastore.callScripts,
+  callScriptsLoading: state.member.datastore.callScriptsLoading
 });
 const mapDispatchToProps = {
   fetchLead: actions.fetchCurrentLead,
   updateLead: actions.updateLead,
   fetchLeads: actions.fetchLeads,
-  fetchSubmissions: dataStoreActions.fetchSubmissions
+  fetchCallScripts: dataStoreActions.fetchCallScripts
 };
 
 const Datetime = require('react-datetime');
@@ -67,7 +69,7 @@ function getLatestHistory(history) {
 
   return sortedHistory[0];
 }
-
+const util = require('util');
 export class LeadDetail extends Component {
   constructor(props) {
     super(props);
@@ -82,7 +84,7 @@ export class LeadDetail extends Component {
 
     let data = this.getData(this.props.leadItem);
     let columns = this.getColumns();
-    this.getScriptOptions = this.getScriptOptions.bind(this);
+    this.setShowCallScriptModal = this.setShowCallScriptModal.bind(this);
 
     this.state = {
       profile,
@@ -93,24 +95,17 @@ export class LeadDetail extends Component {
       latestHistory,
       data,
       columns,
-      selectedScriptOption: null,
-      scriptOptions: this.getScriptOptions(this.props.scriptSubmissions),
-      submissionId: null
+      showCallScriptModal: false
     };
   }
 
   componentWillReceiveProps(nextProps) {
+    console.log("### props = " + util.inspect(nextProps));
     this.setState({
       latestHistory: getLatestHistory(nextProps.leadItem.values['History']),
       data: this.getData(nextProps.leadItem),
       columns: this.getColumns(),
     });
-
-    if (this.props.scriptSubmissions.length !== nextProps.scriptSubmissions.length) {
-      this.setState({
-        scriptOptions: this.getScriptOptions(nextProps.scriptSubmissions)
-      });
-    }
   }
 
   handleContactMethodChange(method) {
@@ -275,30 +270,22 @@ export class LeadDetail extends Component {
 
     return row.original.submitter;
   }
-  handleScriptOptionChange = (selectedOption) => {
+  setShowCallScriptModal(flag) {
     this.setState({
-      selectedScriptOption:  selectedOption,
-      submissionId: selectedOption ? selectedOption.value : null
+      showCallScriptModal: flag
     });
-  }
-
-  getScriptOptions(scripts) {
-    let options = [];
-    if (!scripts || scripts.length <= 0) {
-      return options;
-    } else {
-      scripts.forEach(script => {
-        options.push({value: script['id'], label: script.values['Script Name']})
-      });
-      return options;
-    }
   }
 
   render() {
     return (
       <span>
-      {this.state.submissionId &&
-        <ScriptFormContainer submissionId={this.state.submissionId} />
+      {this.state.showCallScriptModal &&
+        <ScriptFormContainer
+          getCallScripts={this.props.getCallScripts}
+          callScripts={this.props.callScripts}
+          callScriptsLoading={this.props.callScriptsLoading}
+          setShowCallScriptModal={this.setShowCallScriptModal}
+        />
       }
       <div className="container-fluid" id="noteDetailDiv">
         <StatusMessagesContainer />
@@ -495,14 +482,12 @@ export class LeadDetail extends Component {
                 </NavLink>
               </li>
               <li>
-                <Select
-                value={this.state.selectedScriptOption}
-                onChange={this.handleScriptOptionChange}
-                options={this.state.scriptOptions}
-                isClearable={true}
-                className="script-dropdown"
-                placeholder={this.props.scriptSubmissionsLoading? "Loading scripts ..." : "Select script"}
-                />
+                <a
+                onClick={e => this.setShowCallScriptModal(true)}
+                className="btn btn-primary"
+                style={{marginLeft: '10px', color: 'white'}}>
+                View Call Scripts
+                </a>
               </li>
             </ul>
           </div>
@@ -568,14 +553,16 @@ export const LeadDetailView = ({
   leadItem,
   saveLead,
   currentLeadLoading,
-  scriptSubmissions,
-  scriptSubmissionsLoading
+  callScripts,
+  callScriptsLoading,
+  getCallScripts
 }) =>
   currentLeadLoading ? (
     <div />
   ) : (
     <LeadDetail profile={profile} leadItem={leadItem} saveLead={saveLead}
-     scriptSubmissions={scriptSubmissions} scriptSubmissionsLoading={scriptSubmissionsLoading}/>
+     getCallScripts={getCallScripts} callScripts={callScripts}
+     callScriptsLoading={callScriptsLoading}/>
   );
 
 export const LeadDetailContainer = compose(
@@ -606,6 +593,9 @@ export const LeadDetailContainer = compose(
         myThis: this,
       });
     },
+    getCallScripts: ({ fetchCallScripts }) => () => {
+      fetchCallScripts();
+    }
   }),
   lifecycle({
     componentWillMount() {
@@ -614,7 +604,6 @@ export const LeadDetailContainer = compose(
         myThis: this,
         history: this.props.history,
       });
-      this.props.fetchSubmissions({formSlug: 'call-scripts'});
     },
     componentWillReceiveProps(nextProps) {
       if (this.props.pathname !== nextProps.pathname) {
@@ -632,52 +621,104 @@ export const LeadDetailContainer = compose(
   }),
 )(LeadDetailView);
 
-export class ScriptForm extends Component {
+export class CallScriptModal extends Component {
+  handleClick = () => this.setState({ isShowingModal: true });
+  handleClose = () => {
+    this.setState({ isShowingModal: false });
+    this.props.setShowCallScriptModal(false);
+  };
   constructor(props) {
     super(props);
-    this.hideScript = this.hideScript.bind(this);
-    this.showScript = this.showScript.bind(this);
-  }
+    this.getOptions = this.getOptions.bind(this);
+    this.handleOptionChange = this.handleOptionChange.bind(this);
 
+    this.state = {
+      selectedOption: null,
+      options: this.getOptions(this.props.callScripts)
+    }
+  }
   componentWillReceiveProps(nextProps) {
-    this.showScript();
+    if (this.props.callScripts.length !== nextProps.callScripts.length) {
+      this.setState({
+        options: this.getOptions(nextProps.callScripts)
+      });
+    }
+  }
+  componentWillMount() {
+    this.setState({ isShowingModal: this.props.isShowingModal });
+    this.props.getCallScripts();
   }
 
-  componentDidMount() {
-    this.showScript();
+  getOptions(callScripts) {
+    let options = [];
+    if (!callScripts || callScripts.length <= 0) {
+      return [];
+    } else {
+      callScripts.forEach(script => {
+        if (script.values['Target'] === 'Leads') {
+          options.push({value: script['id'], label: script.values['Script Name']});
+        }
+      });
+      return options;
+    }
   }
 
-  showScript() {
-    $("#script_overlay").show();
-    $("#noteDetailDiv").hide();
-  }
+  handleOptionChange = (selectedOption) => {
+    let selectedScript = null;
+    if (selectedOption) {
+      selectedScript = this.props.callScripts.find(script => script['id'] === selectedOption.value);
+    }
 
-  hideScript() {
-    $("#script_overlay").hide();
-    $("#noteDetailDiv").show();
+    this.setState({
+      selectedOption:  selectedOption,
+      selectedScript: selectedScript
+    });
   }
 
   render() {
     return (
-      <div id="script_overlay" onClick={e => this.hideScript()}>
-        <Fragment>
-        <span className="services-color-bar" style={{height: '2.5rem', backgroundColor: '#f3f3f3'}}>
-          <button type="button" className="close btn-lg" aria-label="Close" style={{float: 'left'}} onClick={e => this.off()}>
-            <span aria-hidden="true" style={{fontSize: '40px', padding: '10px'}}>&times;</span>
-          </button>
-        </span>
-        <div className="page-panel page-panel--three-fifths page-panel--space-datastore-submission page-panel--scrollable">
-          <div className="embedded-core-form--wrapper">
-              <CoreForm
-                datastore
-                review
-                submission={this.props.submissionId}
-                globals={globals}
-                loaded={this.props.handleLoaded}
-              />
+      <div onClick={this.handleClick}>
+        <ModalContainer onClose={this.handleClose}>
+          <ModalDialog className="call-scripts-modal" onClose={this.handleClose}>
+          {this.props.callScriptsLoading ? <div>Loading ... <ReactSpinner /></div>:
+          <div>
+          <div className="row">
+          <div className="col-md-12" style={{margin:'10px'}}>
+            <Select
+            value={this.state.selectedOption}
+            onChange={this.handleOptionChange}
+            options={this.state.options}
+            isClearable={true}
+            className="script-dropdown"
+            placeholder="Select script"
+            />
           </div>
+          </div>
+          <div className="row">
+          <div className="col-md-12">
+          <span className="services-color-bar services-color-bar__blue-slate" />
+          {this.state.selectedOption && this.state.selectedScript &&
+          <div className="page-container page-container--services-form">
+            <div className="embedded-core-form--wrapper">
+              <div className="form-group col-xs-4 col-md-12">
+                  <label htmlFor="name" className="control-label">Target</label>
+                  <span className="form-control">{this.state.selectedScript.values['Target']}</span>
+              </div>
+              <div className="form-group col-xs-4 col-md-12">
+                  <label htmlFor="name" className="control-label">Script Name</label>
+                  <span className="form-control">{this.state.selectedScript.values['Script Name']}</span>
+              </div>
+              <div className="form-group col-xs-4 col-md-12">
+                  <label htmlFor="name" className="control-label">Script</label>
+                  <div className="form-control" style={{overflowY: 'scroll', height: '400px'}} dangerouslySetInnerHTML={{ __html: this.state.selectedScript.values['Script'] }}></div>
+              </div>
+            </div>
+          </div>}
         </div>
-        </Fragment>
+        </div>
+        </div>}
+          </ModalDialog>
+        </ModalContainer>
       </div>
     );
   }
@@ -688,4 +729,4 @@ export const handleLoaded = props => form => {
 const enhance = compose(
   withHandlers({ handleLoaded }),
 );
-export const ScriptFormContainer = enhance(ScriptForm);
+export const ScriptFormContainer = enhance(CallScriptModal);

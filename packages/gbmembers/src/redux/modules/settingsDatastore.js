@@ -3,26 +3,26 @@ import { Record, List } from 'immutable';
 import { namespace, withPayload } from '../../utils';
 
 export const types = {
-  FETCH_SUBMISSIONS: namespace('datastore', 'FETCH_SUBMISSIONS'),
-  SET_SUBMISSIONS: namespace('datastore', 'SET_SUBMISSIONS')
+  FETCH_CALL_SCRIPTS: namespace('datastore', 'FETCH_CALL_SCRIPTS'),
+  SET_CALL_SCRIPTS: namespace('datastore', 'SET_CALL_SCRIPTS')
 };
 
 export const actions = {
-  fetchSubmissions: withPayload(types.FETCH_SUBMISSIONS),
-  setSubmissions: withPayload(types.SET_SUBMISSIONS)
+  fetchCallScripts: withPayload(types.FETCH_CALL_SCRIPTS),
+  setCallScripts: withPayload(types.SET_CALL_SCRIPTS)
 };
 
 export const State = Record({
-  submissions: [],
-  submissionsLoading: true
+  callScripts: [],
+  callScriptsLoading: true
 });
 
 export const reducer = (state = State(), { type, payload }) => {
   switch (type) {
-    case types.FETCH_SUBMISSIONS:
-      return state.set('submissionsLoading', true);
-    case types.SET_SUBMISSIONS: {
-      return state.set('submissionsLoading', false).set('submissions', payload);
+    case types.FETCH_CALL_SCRIPTS:
+      return state.set('callScriptsLoading', true);
+    case types.SET_CALL_SCRIPTS: {
+      return state.set('callScriptsLoading', false).set('callScripts', payload);
     }
     default:
       return state;
