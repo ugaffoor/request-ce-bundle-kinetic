@@ -23,27 +23,19 @@ import { getJson } from '../Member/MemberUtils';
 import ReactTable from 'react-table';
 import 'react-datetime/css/react-datetime.css';
 import { StatusMessagesContainer } from '../StatusMessages';
-import { actions as dataStoreActions} from '../../redux/modules/settingsDatastore';
-import Select from 'react-select';
-const globals = import('common/globals');
-import { CoreForm } from 'react-kinetic-core';
-import { PageTitle } from 'common';
-import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
 import ReactSpinner from 'react16-spinjs';
+import {CallScriptModalContainer} from '../Member/CallScriptModalContainer';
 
 const mapStateToProps = state => ({
   profile: state.app.profile,
   pathname: state.router.location.pathname,
   leadItem: state.member.leads.currentLead,
-  currentLeadLoading: state.member.leads.currentLeadLoading,
-  callScripts: state.member.datastore.callScripts,
-  callScriptsLoading: state.member.datastore.callScriptsLoading
+  currentLeadLoading: state.member.leads.currentLeadLoading
 });
 const mapDispatchToProps = {
   fetchLead: actions.fetchCurrentLead,
   updateLead: actions.updateLead,
-  fetchLeads: actions.fetchLeads,
-  fetchCallScripts: dataStoreActions.fetchCallScripts
+  fetchLeads: actions.fetchLeads
 };
 
 const Datetime = require('react-datetime');
@@ -84,7 +76,6 @@ export class LeadDetail extends Component {
 
     let data = this.getData(this.props.leadItem);
     let columns = this.getColumns();
-    this.setShowCallScriptModal = this.setShowCallScriptModal.bind(this);
 
     this.state = {
       profile,
@@ -94,13 +85,11 @@ export class LeadDetail extends Component {
       contactDate,
       latestHistory,
       data,
-      columns,
-      showCallScriptModal: false
+      columns
     };
   }
 
   componentWillReceiveProps(nextProps) {
-    console.log("### props = " + util.inspect(nextProps));
     this.setState({
       latestHistory: getLatestHistory(nextProps.leadItem.values['History']),
       data: this.getData(nextProps.leadItem),
@@ -270,23 +259,9 @@ export class LeadDetail extends Component {
 
     return row.original.submitter;
   }
-  setShowCallScriptModal(flag) {
-    this.setState({
-      showCallScriptModal: flag
-    });
-  }
 
   render() {
     return (
-      <span>
-      {this.state.showCallScriptModal &&
-        <ScriptFormContainer
-          getCallScripts={this.props.getCallScripts}
-          callScripts={this.props.callScripts}
-          callScriptsLoading={this.props.callScriptsLoading}
-          setShowCallScriptModal={this.setShowCallScriptModal}
-        />
-      }
       <div className="container-fluid" id="noteDetailDiv">
         <StatusMessagesContainer />
         <div className="card">
@@ -483,11 +458,17 @@ export class LeadDetail extends Component {
               </li>
               <li>
                 <a
-                onClick={e => this.setShowCallScriptModal(true)}
+                onClick={e => this.props.setShowCallScriptModal(true)}
                 className="btn btn-primary"
                 style={{marginLeft: '10px', color: 'white'}}>
                 View Call Scripts
                 </a>
+                {this.props.showCallScriptModal &&
+                  <CallScriptModalContainer
+                    scriptTarget="Leads"
+                    setShowCallScriptModal={this.props.setShowCallScriptModal}
+                  />
+                }
               </li>
             </ul>
           </div>
@@ -543,7 +524,6 @@ export class LeadDetail extends Component {
           </div>
         </div>
       </div>
-      </span>
     );
   }
 }
@@ -553,16 +533,19 @@ export const LeadDetailView = ({
   leadItem,
   saveLead,
   currentLeadLoading,
-  callScripts,
-  callScriptsLoading,
-  getCallScripts
+  setShowCallScriptModal,
+  showCallScriptModal
 }) =>
   currentLeadLoading ? (
     <div />
   ) : (
-    <LeadDetail profile={profile} leadItem={leadItem} saveLead={saveLead}
-     getCallScripts={getCallScripts} callScripts={callScripts}
-     callScriptsLoading={callScriptsLoading}/>
+    <LeadDetail
+      profile={profile}
+      leadItem={leadItem}
+      saveLead={saveLead}
+      setShowCallScriptModal={setShowCallScriptModal}
+      showCallScriptModal={showCallScriptModal}
+    />
   );
 
 export const LeadDetailContainer = compose(
@@ -574,6 +557,7 @@ export const LeadDetailContainer = compose(
     return {};
   }),
   withState('isDirty', 'setIsDirty', false),
+  withState('showCallScriptModal', 'setShowCallScriptModal', false),
   withHandlers({
     saveLead: ({ profile, leadItem, updateLead, fetchLead }) => newHistory => {
       let history = getJson(leadItem.values['History']);
@@ -592,9 +576,6 @@ export const LeadDetailContainer = compose(
         fetchLead: fetchLead,
         myThis: this,
       });
-    },
-    getCallScripts: ({ fetchCallScripts }) => () => {
-      fetchCallScripts();
     }
   }),
   lifecycle({
@@ -620,113 +601,3 @@ export const LeadDetailContainer = compose(
     componentWillUnmount() {},
   }),
 )(LeadDetailView);
-
-export class CallScriptModal extends Component {
-  handleClick = () => this.setState({ isShowingModal: true });
-  handleClose = () => {
-    this.setState({ isShowingModal: false });
-    this.props.setShowCallScriptModal(false);
-  };
-  constructor(props) {
-    super(props);
-    this.getOptions = this.getOptions.bind(this);
-    this.handleOptionChange = this.handleOptionChange.bind(this);
-
-    this.state = {
-      selectedOption: null,
-      options: this.getOptions(this.props.callScripts)
-    }
-  }
-  componentWillReceiveProps(nextProps) {
-    if (this.props.callScripts.length !== nextProps.callScripts.length) {
-      this.setState({
-        options: this.getOptions(nextProps.callScripts)
-      });
-    }
-  }
-  componentWillMount() {
-    this.setState({ isShowingModal: this.props.isShowingModal });
-    this.props.getCallScripts();
-  }
-
-  getOptions(callScripts) {
-    let options = [];
-    if (!callScripts || callScripts.length <= 0) {
-      return [];
-    } else {
-      callScripts.forEach(script => {
-        if (script.values['Target'] === 'Leads') {
-          options.push({value: script['id'], label: script.values['Script Name']});
-        }
-      });
-      return options;
-    }
-  }
-
-  handleOptionChange = (selectedOption) => {
-    let selectedScript = null;
-    if (selectedOption) {
-      selectedScript = this.props.callScripts.find(script => script['id'] === selectedOption.value);
-    }
-
-    this.setState({
-      selectedOption:  selectedOption,
-      selectedScript: selectedScript
-    });
-  }
-
-  render() {
-    return (
-      <div onClick={this.handleClick}>
-        <ModalContainer onClose={this.handleClose}>
-          <ModalDialog className="call-scripts-modal" onClose={this.handleClose}>
-          {this.props.callScriptsLoading ? <div>Loading ... <ReactSpinner /></div>:
-          <div>
-          <div className="row">
-          <div className="col-md-12" style={{margin:'10px'}}>
-            <Select
-            value={this.state.selectedOption}
-            onChange={this.handleOptionChange}
-            options={this.state.options}
-            isClearable={true}
-            className="script-dropdown"
-            placeholder="Select script"
-            />
-          </div>
-          </div>
-          <div className="row">
-          <div className="col-md-12">
-          <span className="services-color-bar services-color-bar__blue-slate" />
-          {this.state.selectedOption && this.state.selectedScript &&
-          <div className="page-container page-container--services-form">
-            <div className="embedded-core-form--wrapper">
-              <div className="form-group col-xs-4 col-md-12">
-                  <label htmlFor="name" className="control-label">Target</label>
-                  <span className="form-control">{this.state.selectedScript.values['Target']}</span>
-              </div>
-              <div className="form-group col-xs-4 col-md-12">
-                  <label htmlFor="name" className="control-label">Script Name</label>
-                  <span className="form-control">{this.state.selectedScript.values['Script Name']}</span>
-              </div>
-              <div className="form-group col-xs-4 col-md-12">
-                  <label htmlFor="name" className="control-label">Script</label>
-                  <div className="form-control" style={{overflowY: 'scroll', height: '400px'}} dangerouslySetInnerHTML={{ __html: this.state.selectedScript.values['Script'] }}></div>
-              </div>
-            </div>
-          </div>}
-        </div>
-        </div>
-        </div>}
-          </ModalDialog>
-        </ModalContainer>
-      </div>
-    );
-  }
-}
-
-export const handleLoaded = props => form => {
-}
-const enhance = compose(
-  withHandlers({ handleLoaded }),
-);
-export const ScriptFormContainer = enhance(CallScriptModal);

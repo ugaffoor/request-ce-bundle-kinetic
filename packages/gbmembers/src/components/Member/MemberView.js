@@ -31,6 +31,7 @@ import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as errorActions } from '../../redux/modules/errors';
 import ReactSpinner from 'react16-spinjs';
 import { actions as teamActions} from '../../redux/modules/teams';
+import {CallScriptModalContainer} from './CallScriptModalContainer';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -210,7 +211,9 @@ export const MemberView = ({
   setShowNewCustomers,
   newCustomersLoading,
   space,
-  isBillingUser
+  isBillingUser,
+  setShowCallScriptModal,
+  showCallScriptModal
 }) =>
   currentMemberLoading ? (
     <div />
@@ -391,12 +394,15 @@ export const MemberView = ({
               />
             )}
           </div>
-          <div>
+          <div
+            style={{
+              display: isBillingUser ? 'block' : 'none'
+            }}
+          >
             <br />
             <button
               type="button"
               className={'btn btn-primary'}
-              disabled={!isBillingUser}
               onClick={e => syncBilling()}
             >
               Sync Billing Info
@@ -405,9 +411,24 @@ export const MemberView = ({
               type="text"
               name="customerBillingId"
               id="customerBillingId"
-              disabled={!isBillingUser}
             />
             <label htmlFor="customerBillingId">Billing Id</label>
+          </div>
+          <div>
+            <br />
+            <button
+              type="button"
+              className={'btn btn-primary'}
+              onClick={e => setShowCallScriptModal(true)}
+            >
+              View Call Scripts
+            </button>
+            {showCallScriptModal &&
+              <CallScriptModalContainer
+                scriptTarget="Members"
+                setShowCallScriptModal={setShowCallScriptModal}
+              />
+            }
           </div>
         </div>
       </div>
@@ -499,6 +520,7 @@ export const MemberViewContainer = compose(
   withState('isDirty', 'setIsDirty', false),
   withState('showViewNotes', 'setShowViewNotes', false),
   withState('showNewCustomers', 'setShowNewCustomers', false),
+  withState('showCallScriptModal', 'setShowCallScriptModal', false),
   withHandlers({
     saveMember: ({ memberItem, updateMember, setIsDirty }) => () => {
       let note = $('#memberNote').val();
