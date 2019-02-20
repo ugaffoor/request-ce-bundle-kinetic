@@ -24,18 +24,19 @@ import ReactTable from 'react-table';
 import 'react-datetime/css/react-datetime.css';
 import { StatusMessagesContainer } from '../StatusMessages';
 import ReactSpinner from 'react16-spinjs';
-import {CallScriptModalContainer} from '../Member/CallScriptModalContainer';
+import { CallScriptModalContainer } from '../Member/CallScriptModalContainer';
+import { SMSModalContainer } from '../Member/SMSModalContainer';
 
 const mapStateToProps = state => ({
   profile: state.app.profile,
   pathname: state.router.location.pathname,
   leadItem: state.member.leads.currentLead,
-  currentLeadLoading: state.member.leads.currentLeadLoading
+  currentLeadLoading: state.member.leads.currentLeadLoading,
 });
 const mapDispatchToProps = {
   fetchLead: actions.fetchCurrentLead,
   updateLead: actions.updateLead,
-  fetchLeads: actions.fetchLeads
+  fetchLeads: actions.fetchLeads,
 };
 
 const Datetime = require('react-datetime');
@@ -85,7 +86,7 @@ export class LeadDetail extends Component {
       contactDate,
       latestHistory,
       data,
-      columns
+      columns,
     };
   }
 
@@ -291,7 +292,7 @@ export class LeadDetail extends Component {
                       alt="Phone"
                       style={{ border: 'none', marginRight: '5px' }}
                     />
-                    {this.props.leadItem.values['Phone']}
+                    {this.props.leadItem.values['Phone Number']}
                   </div>
                 </span>
               </div>
@@ -458,17 +459,34 @@ export class LeadDetail extends Component {
               </li>
               <li>
                 <a
-                onClick={e => this.props.setShowCallScriptModal(true)}
-                className="btn btn-primary"
-                style={{marginLeft: '10px', color: 'white'}}>
-                View Call Scripts
+                  onClick={e => this.props.setShowSMSModal(true)}
+                  className="btn btn-primary"
+                  style={{ marginLeft: '10px', color: 'white' }}
+                >
+                  Send SMS
                 </a>
-                {this.props.showCallScriptModal &&
+                {this.props.showSMSModal && (
+                  <SMSModalContainer
+                    submission={this.props.leadItem}
+                    target="Leads"
+                    setShowSMSModal={this.props.setShowSMSModal}
+                  />
+                )}
+              </li>
+              <li>
+                <a
+                  onClick={e => this.props.setShowCallScriptModal(true)}
+                  className="btn btn-primary"
+                  style={{ marginLeft: '10px', color: 'white' }}
+                >
+                  View Call Scripts
+                </a>
+                {this.props.showCallScriptModal && (
                   <CallScriptModalContainer
                     scriptTarget="Leads"
                     setShowCallScriptModal={this.props.setShowCallScriptModal}
                   />
-                }
+                )}
               </li>
             </ul>
           </div>
@@ -534,7 +552,9 @@ export const LeadDetailView = ({
   saveLead,
   currentLeadLoading,
   setShowCallScriptModal,
-  showCallScriptModal
+  showCallScriptModal,
+  setShowSMSModal,
+  showSMSModal,
 }) =>
   currentLeadLoading ? (
     <div />
@@ -545,6 +565,8 @@ export const LeadDetailView = ({
       saveLead={saveLead}
       setShowCallScriptModal={setShowCallScriptModal}
       showCallScriptModal={showCallScriptModal}
+      setShowSMSModal={setShowSMSModal}
+      showSMSModal={showSMSModal}
     />
   );
 
@@ -558,6 +580,7 @@ export const LeadDetailContainer = compose(
   }),
   withState('isDirty', 'setIsDirty', false),
   withState('showCallScriptModal', 'setShowCallScriptModal', false),
+  withState('showSMSModal', 'setShowSMSModal', false),
   withHandlers({
     saveLead: ({ profile, leadItem, updateLead, fetchLead }) => newHistory => {
       let history = getJson(leadItem.values['History']);
@@ -576,7 +599,7 @@ export const LeadDetailContainer = compose(
         fetchLead: fetchLead,
         myThis: this,
       });
-    }
+    },
   }),
   lifecycle({
     componentWillMount() {

@@ -30,8 +30,9 @@ import { actions as campaignActions } from '../../redux/modules/campaigns';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as errorActions } from '../../redux/modules/errors';
 import ReactSpinner from 'react16-spinjs';
-import { actions as teamActions} from '../../redux/modules/teams';
-import {CallScriptModalContainer} from './CallScriptModalContainer';
+import { actions as teamActions } from '../../redux/modules/teams';
+import { CallScriptModalContainer } from './CallScriptModalContainer';
+import { SMSModalContainer } from './SMSModalContainer';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -44,7 +45,7 @@ const mapStateToProps = state => ({
   newCustomersLoading: state.member.members.newCustomersLoading,
   space: state.member.app.space,
   isBillingUser: state.member.teams.isBillingUser,
-  isBillingUserLoading: state.member.teams.isBillingUserLoading
+  isBillingUserLoading: state.member.teams.isBillingUserLoading,
 });
 
 const mapDispatchToProps = {
@@ -58,7 +59,7 @@ const mapDispatchToProps = {
   fetchNewCustomers: actions.fetchNewCustomers,
   setNewCustomers: actions.setNewCustomers,
   fetchMembers: actions.fetchMembers,
-  fetchIsBillingUser: teamActions.fetchIsBillingUser
+  fetchIsBillingUser: teamActions.fetchIsBillingUser,
 };
 
 export class NewCustomers extends Component {
@@ -213,7 +214,9 @@ export const MemberView = ({
   space,
   isBillingUser,
   setShowCallScriptModal,
-  showCallScriptModal
+  showCallScriptModal,
+  setShowSMSModal,
+  showSMSModal,
 }) =>
   currentMemberLoading ? (
     <div />
@@ -244,8 +247,22 @@ export const MemberView = ({
                 to={`/NewManualCampaign/${memberItem.id}/member`}
                 className="btn btn-primary"
               >
-                Send
+                Send Email
               </NavLink>
+              <a
+                onClick={e => setShowSMSModal(true)}
+                className="btn btn-primary"
+                style={{ marginLeft: '10px', color: 'white' }}
+              >
+                Send SMS
+              </a>
+              {showSMSModal && (
+                <SMSModalContainer
+                  submission={memberItem}
+                  target="Member"
+                  setShowSMSModal={setShowSMSModal}
+                />
+              )}
               <NavLink
                 to={`/Edit/${memberItem.id}`}
                 className="btn btn-primary"
@@ -314,7 +331,7 @@ export const MemberView = ({
           </div>
           <div className="row">
             <div className="form-group col-xs-6 col-md-6">
-              <h7>Last Promotion</h7>
+              <h6>Last Promotion</h6>
               <p>
                 {new Date(
                   memberItem.values['Last Promotion'],
@@ -322,7 +339,7 @@ export const MemberView = ({
               </p>
             </div>
             <div className="form-group col-xs-6 col-md-6">
-              <h7>Next Scheduled Promotion</h7>
+              <h6>Next Scheduled Promotion</h6>
               <p>
                 {new Date(
                   memberItem.values['Next Schedule Promotion'],
@@ -396,7 +413,7 @@ export const MemberView = ({
           </div>
           <div
             style={{
-              display: isBillingUser ? 'block' : 'none'
+              display: isBillingUser ? 'block' : 'none',
             }}
           >
             <br />
@@ -423,12 +440,12 @@ export const MemberView = ({
             >
               View Call Scripts
             </button>
-            {showCallScriptModal &&
+            {showCallScriptModal && (
               <CallScriptModalContainer
                 scriptTarget="Members"
                 setShowCallScriptModal={setShowCallScriptModal}
               />
-            }
+            )}
           </div>
         </div>
       </div>
@@ -521,6 +538,7 @@ export const MemberViewContainer = compose(
   withState('showViewNotes', 'setShowViewNotes', false),
   withState('showNewCustomers', 'setShowNewCustomers', false),
   withState('showCallScriptModal', 'setShowCallScriptModal', false),
+  withState('showSMSModal', 'setShowSMSModal', false),
   withHandlers({
     saveMember: ({ memberItem, updateMember, setIsDirty }) => () => {
       let note = $('#memberNote').val();
@@ -602,16 +620,6 @@ export const MemberViewContainer = compose(
       //$('#mainContent').offset({ top: 98});
       if (this.props.pathname !== nextProps.pathname) {
         this.props.fetchCurrentMember({ id: nextProps.match.params.id });
-        /*        var args = {
-          DigitalKey: '7ADDAF94-3AAC-4F68-3789-484A3EDA760F',
-          YourSystemReference: 'TESTUSER1'
-        };
-        soap.createClient(proxyUrl + targetUrl, function(err, client) {
-            client.GetCustomerDetails(args, function(err, result) {
-                console.log(result);
-            });
-        });
-*/
       }
     },
     componentDidMount() {

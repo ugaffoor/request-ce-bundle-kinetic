@@ -790,7 +790,7 @@ export class LeadsDetail extends Component {
           '","' +
           lead.values['Email'] +
           '","' +
-          lead.values['Phone'] +
+          lead.values['Phone Number'] +
           '","' +
           lead.values['DOB'] +
           '","' +

@@ -9,6 +9,7 @@ import { watchCampaigns } from './sagas/campaigns';
 import { watchForms } from './sagas/forms';
 import { watchTeams } from './sagas/teams';
 import { watchSettingsDatastore } from './sagas/settingsDatastore';
+import { watchMessaging } from './sagas/messaging';
 
 export default function* sagas() {
   yield all([
@@ -21,6 +22,7 @@ export default function* sagas() {
     watchCampaigns(),
     watchForms(),
     watchTeams(),
-    watchSettingsDatastore()
+    watchSettingsDatastore(),
+    watchMessaging(),
   ]);
 }

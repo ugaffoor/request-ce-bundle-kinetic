@@ -12,6 +12,7 @@ import { reducer as auth } from './modules/auth';
 import formsReducer from './modules/forms';
 import { reducer as teams } from './modules/teams';
 import { reducer as datastore } from './modules/settingsDatastore';
+import { reducer as messaging } from './modules/messaging';
 
 export default {
   errors: errorsReducer,
@@ -27,5 +28,6 @@ export default {
   auth,
   forms: formsReducer,
   teams,
-  datastore
+  datastore,
+  messaging,
 };

@@ -383,7 +383,7 @@ export class LeadEdit extends Component {
                   <label
                     htmlFor="phone"
                     required={
-                      this.props.leadItem.values['Phone'] === undefined
+                      this.props.leadItem.values['Phone Number'] === undefined
                         ? true
                         : false
                     }
@@ -395,7 +395,7 @@ export class LeadEdit extends Component {
                     mask="_"
                     required
                     ref={input => (this.input = input)}
-                    value={this.props.leadItem.values['Phone']}
+                    value={this.props.leadItem.values['Phone Number']}
                     onValueChange={(values, e) =>
                       handleFormattedChange(
                         values,
