@@ -13,7 +13,7 @@ export function* sendSms(action) {
   const appSettings = yield select(getAppSettings);
   var args = {
     space: appSettings.spaceSlug,
-    toNumber: '91' + action.payload.sms.to,
+    toNumber: '61' + action.payload.sms.to,
     text: action.payload.sms.text,
     target: action.payload.target,
   };
