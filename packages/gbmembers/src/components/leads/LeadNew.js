@@ -435,7 +435,7 @@ export class LeadNew extends Component {
                       handleFormattedChange(
                         values,
                         this.props.leadItem,
-                        'Phone',
+                        'Phone Number',
                         e,
                       )
                     }

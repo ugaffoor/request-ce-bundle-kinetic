@@ -400,7 +400,7 @@ export class LeadEdit extends Component {
                       handleFormattedChange(
                         values,
                         this.props.leadItem,
-                        'Phone',
+                        'Phone Number',
                         e,
                         this.setIsDirty,
                       )
