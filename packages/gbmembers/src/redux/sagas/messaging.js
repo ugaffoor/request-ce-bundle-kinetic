@@ -41,7 +41,7 @@ export function* sendSms(action) {
           action.payload.updateMember({
             id: action.payload.memberItem['id'],
             memberItem: action.payload.memberItem,
-            fetchMember: action.payload.fetchCurrentMember,
+            fetchMember: action.payload.fetchMember,
             myThis: this,
           });
         } else if (action.payload.target === 'Leads') {
