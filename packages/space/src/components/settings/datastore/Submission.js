@@ -96,6 +96,7 @@ const DatastoreSubmissionComponent = ({
             review={!isEditing}
             submission={submissionId}
             updated={handleUpdated}
+            onLoaded={handleLoaded}
             error={handleError}
             globals={globals}
           />
@@ -164,11 +165,16 @@ export const handleCreated = props => (response, actions) => {
 };
 
 export const handleLoaded = props => form => {
-  if (!props.submissionId) {
-    $("[data-element-name='Script']").css( {"line-height":0, "height": 0, "overflow": "hidden" });
+  if (!props.submissionId || props.match.params.mode === 'edit') {
+    $("[data-element-name='Script']").css({
+      'line-height': 0,
+      height: 0,
+      overflow: 'hidden',
+    });
+    let scriptContent = $("[name='Script']").val();
     ReactDOM.render(
-    <ScriptEditor/>,
-      document.getElementById('script_editor')
+      <ScriptEditor text={scriptContent} />,
+      document.getElementById('script_editor'),
     );
     $("[data-element-name='Submit Button']").click(onFormSubmit);
   }
@@ -176,11 +182,15 @@ export const handleLoaded = props => form => {
 
 function onFormSubmit() {
   if ($("[name='Script']").val().length <= 0) {
-    $('.quill').css({"border-color":"red", "border-style": "solid", "border-width": "1px"});
-    $('#script_label').css({"color": "red"});
+    $('.quill').css({
+      'border-color': 'red',
+      'border-style': 'solid',
+      'border-width': '1px',
+    });
+    $('#script_label').css({ color: 'red' });
   } else {
-    $('.quill').css({"border-color":"#d3dce7", "border-style": "none"});
-    $('#script_label').css({"color": "rgba(34, 34, 34, 0.75)"});
+    $('.quill').css({ 'border-color': '#d3dce7', 'border-style': 'none' });
+    $('#script_label').css({ color: 'rgba(34, 34, 34, 0.75)' });
   }
 }
 
@@ -213,7 +223,7 @@ export const DatastoreSubmission = compose(
     handleUpdated,
     handleCreated,
     handleError,
-    handleLoaded
+    handleLoaded,
   }),
   lifecycle({
     componentWillMount() {
@@ -241,7 +251,7 @@ export class ScriptEditor extends Component {
     this.reactQuillRef = null;
     this.handleChange = this.handleChange.bind(this);
     this.state = {
-      text: '', // You can also pass a Quill Delta here
+      text: this.props.text ? this.props.text : '', // You can also pass a Quill Delta here
     };
 
     this.modules = {
@@ -264,14 +274,13 @@ export class ScriptEditor extends Component {
           [{ align: [] }],
           ['link'],
           ['image'],
-          ['clean']
-        ]
+          ['clean'],
+        ],
       },
     };
   }
 
-  componentWillReceiveProps(nextProps) {
-  }
+  componentWillReceiveProps(nextProps) {}
 
   formats = [
     'header',
@@ -290,7 +299,13 @@ export class ScriptEditor extends Component {
 
   handleChange(html, text) {
     this.setState({ text: html });
-    if (this.reactQuillRef.getEditor().getText().trim().length > 0) {
+    if (
+      this.reactQuillRef &&
+      this.reactQuillRef
+        .getEditor()
+        .getText()
+        .trim().length > 0
+    ) {
       $("[name='Script']").val(html);
     } else {
       $("[name='Script']").val('');
@@ -300,7 +315,9 @@ export class ScriptEditor extends Component {
   render() {
     return (
       <div className="form-group required">
-        <label className="field-label" id="script_label">Script</label>
+        <label className="field-label" id="script_label">
+          Script
+        </label>
         <ReactQuill
           ref={el => {
             this.reactQuillRef = el;
@@ -311,7 +328,7 @@ export class ScriptEditor extends Component {
           modules={this.modules}
           formats={this.formats}
         />
-        </div>
+      </div>
     );
   }
 }
