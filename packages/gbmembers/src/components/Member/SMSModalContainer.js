@@ -135,6 +135,41 @@ export class SMSModal extends Component {
                 </div>
               </div>
               <div className="row">
+                <div
+                  className="col-md-6 form-inline"
+                  style={{ margin: '10px 0px 10px 0px' }}
+                >
+                  <label htmlFor="phone_number" className="label label-default">
+                    Phone Number
+                  </label>
+                  <span
+                    className="form-control"
+                    style={{ marginLeft: '10px', width: '70%' }}
+                  >
+                    {this.props.submission.values['Phone Number']}
+                  </span>
+                </div>
+                <div
+                  className="col-md-6 form-inline"
+                  style={{ margin: '10px 0px 10px 0px' }}
+                >
+                  <label
+                    htmlFor="account_credit"
+                    className="label label-default"
+                  >
+                    Account Credit
+                  </label>
+                  <span
+                    className="form-control"
+                    style={{ marginLeft: '10px', width: '70%' }}
+                  >
+                    {this.props.smsAccountCreditLoading
+                      ? 'Loading...'
+                      : '$' + this.props.smsAccountCredit}
+                  </span>
+                </div>
+              </div>
+              <div className="row">
                 <div className="col-md-12">
                   <label htmlFor="sms_text">SMS Text</label>
                   <div className="input-group">
@@ -155,24 +190,6 @@ export class SMSModal extends Component {
                       Send
                     </button>
                   </div>
-                </div>
-              </div>
-              <div className="row">
-                <div
-                  className="col-md-12 form-inline"
-                  style={{ margin: '10px 0px 10px 0px' }}
-                >
-                  <label htmlFor="sms_text" className="label label-default">
-                    Account Credit
-                  </label>
-                  <span
-                    className="form-control"
-                    style={{ marginLeft: '10px', width: '30%' }}
-                  >
-                    {this.props.smsAccountCreditLoading
-                      ? 'Loading...'
-                      : '$' + this.props.smsAccountCredit}
-                  </span>
                 </div>
               </div>
               <div className="row">
