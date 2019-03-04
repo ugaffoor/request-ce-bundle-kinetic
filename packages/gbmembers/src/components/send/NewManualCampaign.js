@@ -22,6 +22,7 @@ import { AttachmentForm } from './AttachmentForm';
 import '../../styles/quill.snow.scss.css';
 import Select, { components } from 'react-select';
 import { actions as leadsActions } from '../../redux/modules/leads';
+import { actions as dataStoreActions } from '../../redux/modules/settingsDatastore';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -32,12 +33,15 @@ const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
   space: state.member.app.space,
   leadItem: state.member.leads.currentLead,
+  emailTemplates: state.member.datastore.emailTemplates,
+  emailTemplatesLoading: state.member.datastore.emailTemplatesLoading,
 });
 const mapDispatchToProps = {
   createCampaign: actions.createCampaign,
   fetchNewCampaign: actions.fetchNewCampaign,
   updateCampaign: actions.updateCampaign,
   fetchLead: leadsActions.fetchCurrentLead,
+  fetchEmailTemplates: dataStoreActions.fetchEmailTemplates,
 };
 
 const util = require('util');
@@ -73,6 +77,11 @@ export class NewManualCampaign extends Component {
     this.handleSubjectChange = this.handleSubjectChange.bind(this);
     this.createCampaign = this.createCampaign.bind(this);
     this.getSelectOptions = this.getSelectOptions.bind(this);
+    this.insertEmailTemplate = this.insertEmailTemplate.bind(this);
+    this.renderTemplatesList = this.renderTemplatesList.bind(this);
+    this.quillRef = null;
+    this.reactQuillRef = null;
+    this.attachQuillRefs = this.attachQuillRefs.bind(this);
 
     this.state = {
       text: '', // You can also pass a Quill Delta here
@@ -108,6 +117,7 @@ export class NewManualCampaign extends Component {
           ['firstname'],
           ['lastname'],
           ['emailfooter'],
+          [{ templates: [] }],
         ],
         handlers: {
           firstname: this.insertFirstName,
@@ -127,6 +137,25 @@ export class NewManualCampaign extends Component {
         ),
       });
     }
+
+    if (nextProps.emailTemplates.length !== this.props.emailTemplates.length) {
+      this.renderTemplatesList(
+        nextProps.emailTemplates,
+        nextProps.emailTemplatesLoading,
+      );
+    }
+  }
+
+  componentDidMount() {
+    this.attachQuillRefs();
+    this.renderTemplatesList(
+      this.props.emailTemplates,
+      this.props.emailTemplatesLoading,
+    );
+  }
+
+  componentDidUpdate() {
+    this.attachQuillRefs();
   }
 
   formats = [
@@ -143,6 +172,16 @@ export class NewManualCampaign extends Component {
     'image',
     'color',
   ];
+
+  attachQuillRefs() {
+    // Ensure React-Quill reference is available:
+    if (typeof this.reactQuillRef.getEditor !== 'function') return;
+    // Skip if Quill reference is defined:
+    if (this.quillRef != null) return;
+
+    const quillRef = this.reactQuillRef.getEditor();
+    if (quillRef != null) this.quillRef = quillRef;
+  }
   insertFirstName() {
     const cursorPosition = this.quill.getSelection().index;
     this.quill.insertText(cursorPosition, "member('First Name')");
@@ -155,13 +194,53 @@ export class NewManualCampaign extends Component {
   }
   insertEmailFooter() {
     const cursorPosition = this.reactQuillRef.editor.getSelection().index;
-    this.reactQuillRef.editor.pasteHTML(
-      cursorPosition,
-      this.props.snippets.find(function(el) {
-        if (el.name === 'Email Footer') return el;
-      }).value,
-    );
-    this.reactQuillRef.editor.setSelection(cursorPosition + 1);
+    let footer = this.props.snippets.find(function(el) {
+      if (el.name === 'Email Footer') return el;
+    }).value;
+    this.reactQuillRef.editor.pasteHTML(cursorPosition, footer);
+    this.reactQuillRef.editor.setSelection(cursorPosition + footer.length + 1);
+  }
+  insertEmailTemplate() {
+    let templateId = $('.ql-templates-list').val();
+    if (!templateId) {
+      console.log('Please select a template');
+      return;
+    }
+    let content = this.props.emailTemplates.find(
+      template => template['id'] === templateId,
+    ).values['Email Content'];
+    var range = this.quillRef.getSelection();
+    let position = range ? range.index : 0;
+    this.quillRef.pasteHTML(position, content);
+  }
+
+  renderTemplatesList(emailTemplates, emailTemplatesLoading) {
+    let templates = [];
+    let selectHtml = "<select class='ql-templates-list' >";
+    if (emailTemplatesLoading) {
+      selectHtml += "<option value=''>Loading templates...</option>";
+    } else {
+      selectHtml += "<option value=''>- Select Template -</option>";
+      emailTemplates.forEach(template => {
+        templates.push({
+          value: template['id'],
+          label: template.values['Template Name'],
+          template: template,
+        });
+        selectHtml +=
+          "<option value='" +
+          template['id'] +
+          "'>" +
+          template.values['Template Name'] +
+          '</option>';
+      });
+    }
+
+    selectHtml += '</select>';
+    document.querySelectorAll(
+      '.ql-templates.ql-picker',
+    )[0].innerHTML = selectHtml;
+    $('.ql-templates-list').change(this.insertEmailTemplate);
   }
 
   getSelectOptions(memberLists, allMembers) {
@@ -436,6 +515,8 @@ export const NewManualCampaignView = ({
   submissionType,
   leadItem,
   space,
+  emailTemplates,
+  emailTemplatesLoading,
 }) =>
   newCampaignLoading ? (
     <div />
@@ -458,6 +539,8 @@ export const NewManualCampaignView = ({
         submissionType={submissionType}
         leadItem={leadItem}
         space={space}
+        emailTemplates={emailTemplates}
+        emailTemplatesLoading={emailTemplatesLoading}
       />
     </div>
   );
@@ -508,6 +591,7 @@ export const ManualCampaignContainer = compose(
           id: this.props.submissionId,
         });
       }
+      this.props.fetchEmailTemplates();
     },
     componentWillReceiveProps(nextProps) {
       if (this.props.pathname !== nextProps.pathname) {

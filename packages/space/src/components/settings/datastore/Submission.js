@@ -166,31 +166,71 @@ export const handleCreated = props => (response, actions) => {
 
 export const handleLoaded = props => form => {
   if (!props.submissionId || props.match.params.mode === 'edit') {
-    $("[data-element-name='Script']").css({
-      'line-height': 0,
-      height: 0,
-      overflow: 'hidden',
-    });
-    let scriptContent = $("[name='Script']").val();
-    ReactDOM.render(
-      <ScriptEditor text={scriptContent} />,
-      document.getElementById('script_editor'),
-    );
-    $("[data-element-name='Submit Button']").click(onFormSubmit);
+    if (props.form.slug === 'call-scripts') {
+      onCallScriptFormLoaded();
+    } else if (props.form.slug === 'email-templates') {
+      onEmailTemplateFormLoaded();
+    }
   }
 };
 
-function onFormSubmit() {
+function onCallScriptFormLoaded() {
+  $("[data-element-name='Script']").css({
+    'line-height': 0,
+    height: 0,
+    overflow: 'hidden',
+  });
+  let scriptContent = $("[name='Script']").val();
+  ReactDOM.render(
+    <ScriptEditor text={scriptContent} label="Script" elementName="Script" />,
+    document.getElementById('script_editor'),
+  );
+  $("[data-element-name='Submit Button']").click(onCallScriptFormSubmit);
+}
+
+function onCallScriptFormSubmit() {
   if ($("[name='Script']").val().length <= 0) {
     $('.quill').css({
       'border-color': 'red',
       'border-style': 'solid',
       'border-width': '1px',
     });
-    $('#script_label').css({ color: 'red' });
+    $('#quill_editor_label').css({ color: 'red' });
   } else {
     $('.quill').css({ 'border-color': '#d3dce7', 'border-style': 'none' });
-    $('#script_label').css({ color: 'rgba(34, 34, 34, 0.75)' });
+    $('#quill_editor_label').css({ color: 'rgba(34, 34, 34, 0.75)' });
+  }
+}
+
+function onEmailTemplateFormLoaded() {
+  $("[data-element-name='Email Content']").css({
+    'line-height': 0,
+    height: 0,
+    overflow: 'hidden',
+  });
+  let scriptContent = $("[name='Email Content']").val();
+  ReactDOM.render(
+    <ScriptEditor
+      text={scriptContent}
+      label="Email Content"
+      elementName="Email Content"
+    />,
+    document.getElementById('email_editor'),
+  );
+  $("[data-element-name='Submit Button']").click(onEmailTemplateFormSubmit);
+}
+
+function onEmailTemplateFormSubmit() {
+  if ($("[name='Email Content']").val().length <= 0) {
+    $('.quill').css({
+      'border-color': 'red',
+      'border-style': 'solid',
+      'border-width': '1px',
+    });
+    $('#quill_editor_label').css({ color: 'red' });
+  } else {
+    $('.quill').css({ 'border-color': '#d3dce7', 'border-style': 'none' });
+    $('#quill_editor_label').css({ color: 'rgba(34, 34, 34, 0.75)' });
   }
 }
 
@@ -306,17 +346,17 @@ export class ScriptEditor extends Component {
         .getText()
         .trim().length > 0
     ) {
-      $("[name='Script']").val(html);
+      $("[name='" + this.props.elementName + "']").val(html);
     } else {
-      $("[name='Script']").val('');
+      $("[name='" + this.props.elementName + "']").val('');
     }
   }
 
   render() {
     return (
       <div className="form-group required">
-        <label className="field-label" id="script_label">
-          Script
+        <label className="field-label" id="quill_editor_label">
+          {this.props.label}
         </label>
         <ReactQuill
           ref={el => {
