@@ -169,7 +169,7 @@ export const handleLoaded = props => form => {
     if (props.form.slug === 'call-scripts') {
       onCallScriptFormLoaded();
     } else if (props.form.slug === 'email-templates') {
-      onEmailTemplateFormLoaded();
+      onEmailTemplateFormLoaded(props.snippets);
     }
   }
 };
@@ -202,7 +202,7 @@ function onCallScriptFormSubmit() {
   }
 }
 
-function onEmailTemplateFormLoaded() {
+function onEmailTemplateFormLoaded(snippets) {
   $("[data-element-name='Email Content']").css({
     'line-height': 0,
     height: 0,
@@ -210,10 +210,11 @@ function onEmailTemplateFormLoaded() {
   });
   let scriptContent = $("[name='Email Content']").val();
   ReactDOM.render(
-    <ScriptEditor
+    <EmailEditor
       text={scriptContent}
       label="Email Content"
       elementName="Email Content"
+      snippets={snippets}
     />,
     document.getElementById('email_editor'),
   );
@@ -243,6 +244,7 @@ export const mapStateToProps = (state, { match: { params } }) => ({
   values: valuesFromQueryParams(state.router.location.search),
   isEditing: params.mode && params.mode === 'edit' ? true : false,
   discussionsEnabled: selectDiscussionsEnabled(state),
+  snippets: state.space.spaceApp.snippets,
 });
 
 export const mapDispatchToProps = {
@@ -320,7 +322,141 @@ export class ScriptEditor extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {}
+  formats = [
+    'header',
+    'bold',
+    'italic',
+    'underline',
+    'strike',
+    'blockquote',
+    'list',
+    'bullet',
+    'indent',
+    'link',
+    'image',
+    'color',
+  ];
+
+  handleChange(html, text) {
+    this.setState({ text: html });
+    if (
+      this.reactQuillRef &&
+      this.reactQuillRef
+        .getEditor()
+        .getText()
+        .trim().length > 0
+    ) {
+      $("[name='" + this.props.elementName + "']").val(html);
+    } else {
+      $("[name='" + this.props.elementName + "']").val('');
+    }
+  }
+
+  render() {
+    return (
+      <div className="form-group required">
+        <label className="field-label" id="quill_editor_label">
+          {this.props.label}
+        </label>
+        <ReactQuill
+          ref={el => {
+            this.reactQuillRef = el;
+          }}
+          value={this.state.text}
+          onChange={this.handleChange}
+          theme="snow"
+          modules={this.modules}
+          formats={this.formats}
+        />
+      </div>
+    );
+  }
+}
+
+export class EmailEditor extends Component {
+  constructor(props) {
+    super(props);
+    this.quillRef = null;
+    this.reactQuillRef = null;
+    this.attachQuillRefs = this.attachQuillRefs.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+    this.state = {
+      text: this.props.text ? this.props.text : '', // You can also pass a Quill Delta here
+    };
+
+    this.modules = {
+      toolbar: {
+        container: [
+          ['bold', 'italic', 'underline', 'strike'], // toggled buttons
+          ['blockquote', 'code-block'],
+
+          [{ header: 1 }, { header: 2 }], // custom button values
+          [{ list: 'ordered' }, { list: 'bullet' }],
+          [{ script: 'sub' }, { script: 'super' }], // superscript/subscript
+          [{ indent: '-1' }, { indent: '+1' }], // outdent/indent
+          [{ direction: 'rtl' }], // text direction
+
+          [{ size: ['small', false, 'large', 'huge'] }], // custom dropdown
+          [{ header: [1, 2, 3, 4, 5, 6, false] }],
+
+          [{ color: [] }, { background: [] }], // dropdown with defaults from theme
+          [{ font: [] }],
+          [{ align: [] }],
+          ['link'],
+          ['image'],
+          ['clean'],
+          ['firstname'],
+          ['lastname'],
+          ['emailfooter'],
+        ],
+        handlers: {
+          firstname: this.insertFirstName,
+          lastname: this.insertLastName,
+          emailfooter: this.insertEmailFooter.bind(this),
+        },
+      },
+    };
+  }
+
+  componentDidMount() {
+    this.attachQuillRefs();
+  }
+  componentDidUpdate() {
+    this.attachQuillRefs();
+  }
+
+  attachQuillRefs() {
+    // Ensure React-Quill reference is available:
+    if (
+      this.reactQuillRef &&
+      typeof this.reactQuillRef.getEditor !== 'function'
+    )
+      return;
+    // Skip if Quill reference is defined:
+    if (this.quillRef != null) return;
+
+    const quillRef = this.reactQuillRef ? this.reactQuillRef.getEditor() : null;
+    if (quillRef != null) this.quillRef = quillRef;
+  }
+
+  insertFirstName() {
+    const cursorPosition = this.quill.getSelection().index;
+    this.quill.insertText(cursorPosition, "member('First Name')");
+    this.quill.setSelection(cursorPosition + "member('First Name')".length + 1);
+  }
+  insertLastName() {
+    const cursorPosition = this.quill.getSelection().index;
+    this.quill.insertText(cursorPosition, "member('Last Name')");
+    this.quill.setSelection(cursorPosition + "member('Last Name')".length + 1);
+  }
+  insertEmailFooter() {
+    const cursorPosition = this.reactQuillRef.editor.getSelection().index;
+    let footer = this.props.snippets.find(function(el) {
+      if (el.name === 'Email Footer') return el;
+    }).value;
+    this.reactQuillRef.editor.pasteHTML(cursorPosition, footer);
+    this.reactQuillRef.editor.setSelection(cursorPosition + footer.length + 1);
+  }
 
   formats = [
     'header',

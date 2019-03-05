@@ -92,6 +92,7 @@ export const State = Record({
   userAttributeDefinitions: {},
   userProfileAttributeDefinitions: {},
   settingsBackPath: null,
+  snippets: List(),
 });
 
 export const reducer = (state = State(), { type, payload }) => {
@@ -106,6 +107,7 @@ export const reducer = (state = State(), { type, payload }) => {
           'userProfileAttributeDefinitions',
           payload.userProfileAttributeDefinitions,
         )
+        .set('snippets', List(payload.snippets))
         .set('appLoading', false);
     case types.SET_SIDEBAR_OPEN:
       return state.set('sidebarOpen', payload);
