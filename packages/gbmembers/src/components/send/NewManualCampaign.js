@@ -175,7 +175,11 @@ export class NewManualCampaign extends Component {
 
   attachQuillRefs() {
     // Ensure React-Quill reference is available:
-    if (typeof this.reactQuillRef.getEditor !== 'function') return;
+    if (
+      this.reactQuillRef &&
+      typeof this.reactQuillRef.getEditor !== 'function'
+    )
+      return;
     // Skip if Quill reference is defined:
     if (this.quillRef != null) return;
 
