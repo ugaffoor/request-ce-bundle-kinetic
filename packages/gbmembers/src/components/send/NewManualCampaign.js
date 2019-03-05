@@ -183,7 +183,7 @@ export class NewManualCampaign extends Component {
     // Skip if Quill reference is defined:
     if (this.quillRef != null) return;
 
-    const quillRef = this.reactQuillRef.getEditor();
+    const quillRef = this.reactQuillRef ? this.reactQuillRef.getEditor() : null;
     if (quillRef != null) this.quillRef = quillRef;
   }
   insertFirstName() {
