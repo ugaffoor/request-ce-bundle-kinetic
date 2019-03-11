@@ -71,7 +71,7 @@ export class PhotoForm extends Component {
   }
   appliedForm(response, actions) {
     var link =
-      window.location.pathname.split('/gbmembers')[0] +
+      //      window.location.pathname.split('/gbmembers')[0] +
       '/submissions/' +
       response.submission.values.Photo[0].link.split('/submissions/')[1];
     this.props.memberItem.values['Photo'] = link;

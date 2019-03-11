@@ -93,9 +93,11 @@ ul.nav-header.apps.nav {
 .navbar .nav-link {
   font-size: 16px;
   color: $black;
-  padding: 1em;
+  padding: 0.7em;
   line-height: 1;
-
+  @media (min-width: 544px) {
+    padding: 1em;
+  }
   .badge {
     background-color: $orange1;
     border-radius: 50%;

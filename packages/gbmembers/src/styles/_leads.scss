@@ -372,10 +372,18 @@
 }
 
 .call-scripts-modal {
-  width: 70% !important;
-  left: 20% !important;
+  width: 98% !important;
+  left: 1% !important;
   top: 15% !important;
   min-height: 750px;
+  @media (min-width: 544px) {
+    width: 70% !important;
+    left: 20% !important;
+  }
+}
+.call-scripts-modal .narcissus_x3xwbs {
+  left: 0;
+  top: -11px;
 }
 /*.datepicker td, .datepicker th {
     width: 1.5em;

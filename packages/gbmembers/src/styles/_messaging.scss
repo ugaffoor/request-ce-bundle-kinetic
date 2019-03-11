@@ -62,7 +62,7 @@
   }
   .sent_msg {
     float: right;
-    width: 46%;
+    width: 86%;
   }
   .input_msg_write input {
     background: rgba(0, 0, 0, 0) none repeat scroll 0 0;
@@ -83,8 +83,16 @@
 }
 
 .sms-modal {
-  min-height: 750px;
-  width: 70% !important;
-  left: 20% !important;
+  width: 98% !important;
+  left: 1% !important;
   top: 15% !important;
+  min-height: 750px;
+  @media (min-width: 544px) {
+    width: 70% !important;
+    left: 20% !important;
+  }
+}
+.sms-modal .narcissus_x3xwbs {
+  left: 0;
+  top: -11px;
 }
