@@ -49,7 +49,7 @@ import { actions as errorActions } from '../../redux/modules/errors';
 import { RecentNotificationsContainer } from '../notifications/RecentNotifications';
 import { FormContainer } from '../form/FormContainer';
 import { Link } from 'react-router-dom';
-import { actions as teamActions} from '../../redux/modules/teams';
+import { actions as teamActions } from '../../redux/modules/teams';
 
 <script src="../helpers/jquery.multiselect.js" />;
 
@@ -77,7 +77,7 @@ const mapStateToProps = state => ({
   actionRequests: state.member.members.actionRequests,
   actionRequestsLoading: state.member.members.actionRequestsLoading,
   isBillingUser: state.member.teams.isBillingUser,
-  isBillingUserLoading: state.member.teams.isBillingUserLoading
+  isBillingUserLoading: state.member.teams.isBillingUserLoading,
 });
 
 const mapDispatchToProps = {
@@ -103,7 +103,7 @@ const mapDispatchToProps = {
   fetchDdrStatus: actions.fetchDdrStatus,
   fetchActionRequests: actions.fetchActionRequests,
   setActionRequests: actions.setActionRequests,
-  fetchIsBillingUser: teamActions.fetchIsBillingUser
+  fetchIsBillingUser: teamActions.fetchIsBillingUser,
 };
 
 const ezidebit_date_format = 'YYYY-MM-DD HH:mm:ss';
@@ -197,6 +197,7 @@ const handleSaveBillingChanges = (
   memberItem,
   updateMember,
   isDirty,
+  setIsDirty,
   myThis,
   startDates,
   resumeDates,
@@ -210,6 +211,7 @@ const handleSaveBillingChanges = (
           updateMember,
           reason,
           isDirty,
+          setIsDirty,
           myThis,
           startDate,
           resumeDate,
@@ -228,6 +230,7 @@ const handleSaveBillingChanges = (
           updateMember,
           reason,
           isDirty,
+          setIsDirty,
           myThis,
           null,
           null,
@@ -362,6 +365,7 @@ export class RegisterPaySmartMemberBilling extends Component {
           },
         }}
         className="btn btn-primary"
+        disabled={this.props.isDirty}
       >
         Setup Member Billing
       </Link>
@@ -2630,64 +2634,65 @@ export class BillingInfo extends Component {
                 </table>
                 <hr />
                 <div className="section1">
-                <span
-                  style={{
-                    display: this.props.isBillingUser ? 'block' : 'none'
-                  }}
-                >
-                  {this.props.editPaymentType === false ? (
-                    <button
-                      type="button"
-                      id="editPaymentType"
-                      className="btn btn-primary"
-                      disabled={
-                        this.props.memberItem.values['DDR Status'] !== 'Processed'
-                      }
-                      onClick={e =>
-                        editPaymentType(
-                          e,
-                          this,
-                          this.props.setEditPaymentTypeReason,
-                        )
-                      }
-                    >
-                      Edit Payment Type
-                    </button>
-                  ) : (
-                    this.props.billingCompany === 'EziDebit' && (
+                  <span
+                    style={{
+                      display: this.props.isBillingUser ? 'block' : 'none',
+                    }}
+                  >
+                    {this.props.editPaymentType === false ? (
                       <button
                         type="button"
-                        id="closeEditPaymentType"
+                        id="editPaymentType"
                         className="btn btn-primary"
-                        onClick={e => closeEditPaymentType(e, this)}
+                        disabled={
+                          this.props.memberItem.values['DDR Status'] !==
+                          'Processed'
+                        }
+                        onClick={e =>
+                          editPaymentType(
+                            e,
+                            this,
+                            this.props.setEditPaymentTypeReason,
+                          )
+                        }
                       >
-                        Close Edit Payment Type
+                        Edit Payment Type
                       </button>
-                    )
-                  )}
-                  {this.props.editPaymentType === false ? (
-                    <div />
-                  ) : (
-                    <iframe
-                      src={this.src}
-                      title="Edit Payment Type"
-                      width="400px"
-                      height="400px"
-                      id="editPaymentTypeiFrame"
-                      className="editPaymentTypeiFrame"
-                      allowFullScreen
-                    />
-                  )}
-                  {this.props.editPaymentTypeModal && (
-                    <EditPaymentType
-                      memberItem={this.props.memberItem}
-                      setEditPaymentTypeModal={
-                        this.props.setEditPaymentTypeModal
-                      }
-                      billingCompany={this.props.billingCompany}
-                      updatePaymentMethod={this.props.updatePaymentMethod}
-                    />
-                  )}
+                    ) : (
+                      this.props.billingCompany === 'EziDebit' && (
+                        <button
+                          type="button"
+                          id="closeEditPaymentType"
+                          className="btn btn-primary"
+                          onClick={e => closeEditPaymentType(e, this)}
+                        >
+                          Close Edit Payment Type
+                        </button>
+                      )
+                    )}
+                    {this.props.editPaymentType === false ? (
+                      <div />
+                    ) : (
+                      <iframe
+                        src={this.src}
+                        title="Edit Payment Type"
+                        width="400px"
+                        height="400px"
+                        id="editPaymentTypeiFrame"
+                        className="editPaymentTypeiFrame"
+                        allowFullScreen
+                      />
+                    )}
+                    {this.props.editPaymentTypeModal && (
+                      <EditPaymentType
+                        memberItem={this.props.memberItem}
+                        setEditPaymentTypeModal={
+                          this.props.setEditPaymentTypeModal
+                        }
+                        billingCompany={this.props.billingCompany}
+                        updatePaymentMethod={this.props.updatePaymentMethod}
+                      />
+                    )}
                   </span>
                   <span className="line">
                     <div id="feeProgramDiv" ref="feeProgramDiv">
@@ -2712,7 +2717,8 @@ export class BillingInfo extends Component {
                           this.props.memberItem.values['Fee Program'],
                         )}
                         disabled={
-                          this.props.memberItem.values['DDR Status'] !== 'Processed' || !this.props.isBillingUser
+                          this.props.memberItem.values['DDR Status'] !==
+                            'Processed' || !this.props.isBillingUser
                         }
                         onChange={e =>
                           this.onFeeProgramChange(
@@ -2742,7 +2748,8 @@ export class BillingInfo extends Component {
                         className="form-control"
                         value={this.props.memberItem.values['Membership Cost']}
                         disabled={
-                          this.props.memberItem.values['DDR Status'] !== 'Processed' || !this.props.isBillingUser
+                          this.props.memberItem.values['DDR Status'] !==
+                            'Processed' || !this.props.isBillingUser
                         }
                         onChange={e =>
                           this.handleChange(
@@ -2773,7 +2780,8 @@ export class BillingInfo extends Component {
                     className="line"
                     style={{
                       display:
-                        this.props.billingInfo.statusCode == '2' && this.props.isBillingUser
+                        this.props.billingInfo.statusCode == '2' &&
+                        this.props.isBillingUser
                           ? 'block'
                           : 'none',
                     }}
@@ -2790,7 +2798,8 @@ export class BillingInfo extends Component {
                               'Payment Schedule'
                             ] ||
                               this.state.isMemberFeeChanged) &&
-                            this.props.memberItem.values['DDR Status'] !== 'Processed'
+                            this.props.memberItem.values['DDR Status'] !==
+                              'Processed'
                           }
                           onClick={e => this.createPaymentSchedule()}
                         >
@@ -2802,7 +2811,7 @@ export class BillingInfo extends Component {
                   <span
                     className="line"
                     style={{
-                      display: this.props.isBillingUser ? 'block' : 'none'
+                      display: this.props.isBillingUser ? 'block' : 'none',
                     }}
                   >
                     <div className="row">
@@ -2815,7 +2824,8 @@ export class BillingInfo extends Component {
                           disabled={
                             this.props.memberItem.values['Payment Schedule'] ||
                             this.props.billingInfo.statusCode !== '2' ||
-                            this.props.memberItem.values['DDR Status'] !== 'Processed'
+                            this.props.memberItem.values['DDR Status'] !==
+                              'Processed'
                           }
                           onClick={e => this.stopPayments()}
                         >
@@ -2927,7 +2937,7 @@ export class BillingInfo extends Component {
                 </div>
                 <span
                   style={{
-                    display: this.props.isBillingUser ? 'block' : 'none'
+                    display: this.props.isBillingUser ? 'block' : 'none',
                   }}
                 >
                   <button
@@ -3005,7 +3015,7 @@ export const Billing = ({
   actionRequestsLoading,
   getActionRequests,
   isBillingUser,
-  isBillingUserLoading
+  isBillingUserLoading,
 }) =>
   currentMemberLoading ? (
     <div />
@@ -3076,34 +3086,36 @@ export const Billing = ({
                 setIsAddMember={setIsAddMember}
               />
               <br />
-              {!memberItem.values['Billing Parent Member'] && isBillingUser && (
-                <span>
-                  <RegisterPaySmartMemberBilling
-                    memberItem={memberItem}
-                    registerMember={registerMember}
-                  />
-                  <div>
-                    <label
-                      htmlFor="datejoined"
-                      required={
-                        memberItem.values['Date Joined'] === undefined
-                          ? true
-                          : false
-                      }
-                    >
-                      Billing Start Date
-                    </label>
-                    <input
-                      type="date"
-                      name="billingStartDate"
-                      id="billingStartDate"
-                      required
-                      ref={input => (this.input = input)}
-                      defaultValue={moment().format('YYYY-MM-DD')}
+              {!memberItem.values['Billing Parent Member'] &&
+                isBillingUser && (
+                  <span>
+                    <RegisterPaySmartMemberBilling
+                      memberItem={memberItem}
+                      registerMember={registerMember}
+                      isDirty={isDirty}
                     />
-                  </div>
-                </span>
-              )}
+                    <div>
+                      <label
+                        htmlFor="datejoined"
+                        required={
+                          memberItem.values['Date Joined'] === undefined
+                            ? true
+                            : false
+                        }
+                      >
+                        Billing Start Date
+                      </label>
+                      <input
+                        type="date"
+                        name="billingStartDate"
+                        id="billingStartDate"
+                        required
+                        ref={input => (this.input = input)}
+                        defaultValue={moment().format('YYYY-MM-DD')}
+                      />
+                    </div>
+                  </span>
+                )}
             </span>
           )}
           {!memberItem.values['Billing Parent Member'] &&
@@ -3198,6 +3210,7 @@ export const Billing = ({
                         memberItem,
                         updateMember,
                         isDirty,
+                        setIsDirty,
                         memberItem.myThis,
                         getStartDates(
                           billingInfo.nextBillingDate,
@@ -3346,6 +3359,7 @@ export const BillingContainer = compose(
       updateMember,
       billingChangeReason,
       isDirty,
+      setIsDirty,
       myThis,
       startDate,
       resumeDate,
@@ -3444,7 +3458,9 @@ export const BillingContainer = compose(
           memberItem,
           history: memberItem.myThis.props.history,
           fetchMembers: memberItem.myThis.props.fetchMembers,
+          fromBilling: true,
         });
+        setIsDirty(false);
       }
     },
     onFeeProgramChange: ({ memberItem, familyMembers, membershipFees }) => (

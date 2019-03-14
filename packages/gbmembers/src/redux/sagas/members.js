@@ -95,7 +95,11 @@ export function* updateCurrentMember(action) {
       id: action.payload.id,
       values: action.payload.memberItem.values,
     });
-    if (action.payload.history && action.payload.fromTasks === undefined) {
+    if (
+      action.payload.history &&
+      action.payload.fromTasks === undefined &&
+      action.payload.fromBilling === undefined
+    ) {
       action.payload.history.push(
         '/kapps/gbmembers/Member/' + action.payload.id,
       );
