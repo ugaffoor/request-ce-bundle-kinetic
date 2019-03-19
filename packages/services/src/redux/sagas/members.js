@@ -6,8 +6,12 @@ import { types, actions } from '../modules/members';
 import axios from 'axios';
 import moment from 'moment';
 
-
-export const getBillingServerUrl = state => state.app.kapps.find(kapp => kapp.slug === 'services').attributes.find(attribute => attribute.name === 'Kinetic Billing Server URL').values[0];
+export const getBillingServerUrl = state =>
+  state.app.kapps
+    .find(kapp => kapp.slug === 'services')
+    .attributes.find(
+      attribute => attribute.name === 'Kinetic Billing Server URL',
+    ).values[0];
 export const getUserName = state => state.app.profile.username;
 export const spaceSlug = 'gbmembers-template'; //hard-coded till we figure out how to retrieve it dynamically
 export const billingCompany = 'PaySmart'; //hard-coded till we figure out how to retrieve it dynamically
@@ -92,59 +96,59 @@ export function* fetchBillingInfo(action) {
 }
 
 export function* fetchBillingInfoAfterRegistration(action) {
-    const kineticBillingServerUrl = yield select(getBillingServerUrl);
-    const username = yield select(getUserName);
-    var args = {
-      customerId: action.payload.billingRef,
-      space: spaceSlug,
-      billingService: billingCompany,
-    };
-    console.log('action:' + action.payload);
-    axios
-      .post(kineticBillingServerUrl + getBillingInfoUrl, args)
-      .then(result => {
-        if (result.data.error && result.data.error > 0) {
-          console.log(result.data.errorMessage);
-        } else {
-          // Update memberItem values from billingInfo
-          action.payload.memberItem.values['Billing Customer Reference'] =
-            result.data.data.customerReference;
-          action.payload.memberItem.values['Billing Customer Id'] =
-            result.data.data.customerBillingId;
-          action.payload.memberItem.values['Billing Payment Type'] =
-            result.data.data.paymentMethod;
-          action.payload.memberItem.values['Billing Payment Period'] =
-            result.data.data.paymentPeriod;
-          action.payload.memberItem.values['Payment Schedule'] = {
-            period: 'Fortnightly',
-            amount: result.data.data.paymentAmountInCents / 100,
-          };
+  const kineticBillingServerUrl = yield select(getBillingServerUrl);
+  const username = yield select(getUserName);
+  var args = {
+    customerId: action.payload.billingRef,
+    space: spaceSlug,
+    billingService: billingCompany,
+  };
+  console.log('action:' + action.payload);
+  axios
+    .post(kineticBillingServerUrl + getBillingInfoUrl, args)
+    .then(result => {
+      if (result.data.error && result.data.error > 0) {
+        console.log(result.data.errorMessage);
+      } else {
+        // Update memberItem values from billingInfo
+        action.payload.memberItem.values['Billing Customer Reference'] =
+          result.data.data.customerReference;
+        action.payload.memberItem.values['Billing Customer Id'] =
+          result.data.data.customerBillingId;
+        action.payload.memberItem.values['Billing Payment Type'] =
+          result.data.data.paymentMethod;
+        action.payload.memberItem.values['Billing Payment Period'] =
+          result.data.data.paymentPeriod;
+        action.payload.memberItem.values['Payment Schedule'] = {
+          period: 'Fortnightly',
+          amount: result.data.data.paymentAmountInCents / 100,
+        };
 
-          let changes = getBillingChanges(action.payload.memberItem);
-          changes.push({
-            date: moment().format(contact_date_format),
-            user: username,
-            action: 'Setup Billing',
-            from: null,
-            to:
-              'Setup Member Billing with payments of [' +
-              result.data.data.paymentAmountInCents / 100 +
-              ']',
-          });
-          action.payload.memberItem.values['Billing Changes'] = changes;
+        let changes = getBillingChanges(action.payload.memberItem);
+        changes.push({
+          date: moment().format(contact_date_format),
+          user: username,
+          action: 'Setup Billing',
+          from: null,
+          to:
+            'Setup Member Billing with payments of [' +
+            result.data.data.paymentAmountInCents / 100 +
+            ']',
+        });
+        action.payload.memberItem.values['Billing Changes'] = changes;
 
-          action.payload.updateMember({
-            id: action.payload.memberItem.id,
-            memberItem: action.payload.memberItem,
-            myThis: action.payload.memberItem.myThis,
-            fetchMembers: action.payload.fetchMembers
-          });
-        }
-      })
-      .catch(error => {
-        console.log(error.response);
-      });
-    yield put(actions.setDummy());
+        action.payload.updateMember({
+          id: action.payload.memberItem.id,
+          memberItem: action.payload.memberItem,
+          myThis: action.payload.memberItem.myThis,
+          fetchMembers: action.payload.fetchMembers,
+        });
+      }
+    })
+    .catch(error => {
+      console.log(error.response);
+    });
+  yield put(actions.setDummy());
 }
 
 export function* registerBillingMember(action) {
@@ -162,7 +166,7 @@ export function* registerBillingMember(action) {
       values: action.payload.billingInfo.values,
     });
   }
-  
+
   const kineticBillingServerUrl = yield select(getBillingServerUrl);
   let args = {};
   //args.addIfNotExists = '1';
@@ -220,7 +224,7 @@ export function* registerBillingMember(action) {
           billingRef: action.payload.memberItem.values['Member ID'],
           memberItem: action.payload.memberItem,
           updateMember: action.payload.updateMember,
-          fetchMembers: action.payload.fetchMembers
+          fetchMembers: action.payload.fetchMembers,
         });
       }
     })

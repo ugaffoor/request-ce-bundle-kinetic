@@ -1,5 +1,8 @@
 import React, { Fragment } from 'react';
+import ReactDOM from 'react-dom';
 import { CoreForm } from 'react-kinetic-core';
+import { bundle } from 'react-kinetic-core';
+import SignatureCanvas from 'react-signature-canvas';
 import {
   KappLink as Link,
   ErrorNotFound,
@@ -93,3 +96,66 @@ export const Form = ({
     </div>
   </Fragment>
 );
+
+class SignatureCanvasWrapper extends React.Component {
+  constructor(props) {
+    super(props);
+    this.onEnd = this.onEnd.bind(this);
+  }
+
+  setValue(value) {
+    const { height, width } = this.props;
+    if (value) {
+      this.signatureCanvas.fromDataURL(value, { height, width });
+    } else {
+      this.signatureCanvas.clear();
+    }
+  }
+
+  componentDidMount() {
+    const { initialValue, height, width } = this.props;
+    if (initialValue) {
+      this.signatureCanvas.fromDataURL(initialValue, { height, width });
+    }
+  }
+
+  onEnd() {
+    const { onChange } = this.props;
+    if (typeof onChange === 'function') {
+      onChange(this.signatureCanvas.toDataURL());
+    }
+  }
+
+  render() {
+    const { height, width } = this.props;
+    return (
+      <SignatureCanvas
+        canvasProps={{ height, width }}
+        onEnd={this.onEnd}
+        ref={el => (this.signatureCanvas = el)}
+      />
+    );
+  }
+}
+
+bundle.config.widgets = {
+  signatureCanvas: ({
+    element,
+    initialValue,
+    height,
+    width,
+    ref,
+    onChange,
+  }) => {
+    ReactDOM.render(
+      <SignatureCanvasWrapper
+        initialValue={initialValue}
+        onChange={onChange}
+        ref={ref}
+        height={height}
+        width={width}
+      />,
+      element,
+    );
+  },
+};
