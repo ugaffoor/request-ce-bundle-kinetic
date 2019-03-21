@@ -26,6 +26,7 @@ import { StatusMessagesContainer } from '../StatusMessages';
 import ReactSpinner from 'react16-spinjs';
 import { CallScriptModalContainer } from '../Member/CallScriptModalContainer';
 import { SMSModalContainer } from '../Member/SMSModalContainer';
+import { EmailsReceived } from '../Member/EmailsReceived';
 
 const mapStateToProps = state => ({
   profile: state.app.profile,
@@ -540,6 +541,11 @@ export class LeadDetail extends Component {
               }}
             />
           </div>
+        </div>
+        <div>
+            <EmailsReceived
+              submission={this.props.leadItem}
+            />
         </div>
       </div>
     );
