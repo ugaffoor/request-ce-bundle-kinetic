@@ -7,8 +7,6 @@ export class EmailsReceived extends Component {
     super(props);
     const data = this.getData(this.props.submission);
     this._columns = this.getColumns();
-    this.substituteFields = this.substituteFields.bind(this);
-    this.escapeRegExp = this.escapeRegExp.bind(this);
 
     this.state = {
       data
@@ -55,34 +53,6 @@ export class EmailsReceived extends Component {
     });
   }
 
-  escapeRegExp(str) {
-    return str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1');
-  }
-  substituteFields(body) {
-    if (body === undefined) return '';
-    body = body.replace(
-      /member\('First Name'\)/g,
-      this.props.submission.values['First Name'],
-    );
-    body = body.replace(
-      /member\('Last Name'\)/g,
-      this.props.submission.values['Last Name'],
-    );
-    var matches = body.match(/\$\{.*?\('(.*?)'\)\}/g);
-    var self = this;
-    if (matches !== null) {
-      matches.forEach(function(value, index) {
-        console.log(value);
-        if (value.indexOf('spaceAttributes') !== -1) {
-          body = body.replace(
-            new RegExp(this.escapeRegExp(value), 'g'),
-            self.props.space.attributes[value.split("'")[1]][0],
-          );
-        }
-      });
-    }
-    return body;
-  }
   render() {
     return (
       <div className="row">
@@ -99,7 +69,7 @@ export class EmailsReceived extends Component {
               SubComponent={row => {
                 return (
                   <div style={{ padding: '20px', textAlign: 'left' }}>
-                    {this.substituteFields(row.original.Content)}
+                    {row.original.Content}
                   </div>
                 );
               }}
