@@ -5,6 +5,7 @@ export const contact_date_format = 'YYYY-MM-DD HH:mm';
 export const reminder_date_format = 'YYYY-MM-DD';
 export const gmt_format = 'YYYY-MM-DDTHH:mm:ss'; // Must manually add Z to result.
 export const email_sent_date_format = 'DD-MM-YYYY HH:mm';
+export const email_received_date_format = 'DD-MM-YYYY HH:mm';
 
 export function handleChange(leadItem, key, event, setIsDirty) {
   if (setIsDirty !== undefined) setIsDirty(true);

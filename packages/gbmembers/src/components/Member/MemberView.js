@@ -33,6 +33,7 @@ import ReactSpinner from 'react16-spinjs';
 import { actions as teamActions } from '../../redux/modules/teams';
 import { CallScriptModalContainer } from './CallScriptModalContainer';
 import { SMSModalContainer } from './SMSModalContainer';
+import { EmailsReceived } from './EmailsReceived';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -520,6 +521,11 @@ export const MemberView = ({
           campaignItem={campaignItem}
           campaignLoading={campaignLoading}
           space={space}
+        />
+      </div>
+      <div>
+        <EmailsReceived
+          submission={memberItem}
         />
       </div>
     </div>
