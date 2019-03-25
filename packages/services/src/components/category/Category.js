@@ -23,17 +23,18 @@ export const Category = ({ category }) => (
             path: getPath(category.slug, form.slug),
             key: form.slug,
           }))
-          .map(props => <ServiceCard {...props} />)}
+          .map(props => (
+            <ServiceCard {...props} />
+          ))}
       </div>
     </div>
   </Fragment>
 );
 
-
 function getPath(categorySlug, formSlug) {
-    if (formSlug === 'paysmart-member-registration') {
-      return `/billingCategories/${categorySlug}/${formSlug}`;
-    } else {
-      return `/categories/${categorySlug}/${formSlug}`;
-    }
+  //    if (formSlug === 'paysmart-member-registration') {
+  //      return `/billingCategories/${categorySlug}/${formSlug}`;
+  //    } else {
+  return `/categories/${categorySlug}/${formSlug}`;
+  //    }
 }

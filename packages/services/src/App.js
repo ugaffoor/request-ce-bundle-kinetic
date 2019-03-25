@@ -120,16 +120,6 @@ export const AppComponent = props => {
           path="/categories/:categorySlug/:formSlug/:submissionId"
           component={FormContainer}
         />
-        <Route
-          exact
-          path="/billingCategories/:categorySlug/:formSlug"
-          component={PaySmartRegistrationFormContainer}
-        />
-        <Route
-          exact
-          path="/billingCategories/:categorySlug/:formSlug/:submissionId"
-          component={PaySmartRegistrationFormContainer}
-        />
         <Route exact path="/forms" component={FormListContainer} />
         <Route path="/forms/:formSlug" component={FormContainer} />
         <Route exact path="/search" component={CatalogSearchResultsContainer} />

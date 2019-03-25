@@ -8,7 +8,7 @@ import {
   TimeAgo,
   Utils as CommonUtils,
 } from 'common';
-import { bundle, CoreForm } from 'react-kinetic-core';
+import { bundle } from 'react-kinetic-core';
 import { RequestShowConfirmationContainer } from './RequestShowConfirmation';
 import { RequestActivityList } from './RequestActivityList';
 import { CancelButtonContainer } from './CancelButton';
@@ -22,6 +22,7 @@ import {
   getStatus,
   getSubmissionPath,
 } from '../../utils';
+import { ReviewRequest } from './ReviewRequest';
 
 const globals = import('common/globals');
 
@@ -131,7 +132,7 @@ const CompletedInItem = ({ submission }) => {
   );
 };
 
-export const RequestShow = ({ submission, listType, mode }) => (
+export const RequestShow = ({ submission, listType, mode, kappSlug }) => (
   <Fragment>
     <PageTitle parts={[submission && `#${submission.handle}`, 'Requests']} />
     <span className="services-color-bar services-color-bar__blue-slate" />
@@ -211,11 +212,7 @@ export const RequestShow = ({ submission, listType, mode }) => (
               </ul>
               <div className="submission-tabs__content">
                 {mode === 'review' ? (
-                  <CoreForm
-                    submission={submission.id}
-                    review
-                    globals={globals}
-                  />
+                  <ReviewRequest kappSlug={kappSlug} submission={submission} />
                 ) : (
                   <RequestActivityList submission={submission} />
                 )}

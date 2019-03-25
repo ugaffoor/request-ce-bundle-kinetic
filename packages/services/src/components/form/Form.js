@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { CoreForm } from 'react-kinetic-core';
 import { bundle } from 'react-kinetic-core';
 import SignatureCanvas from 'react-signature-canvas';
+import Select, { components } from 'react-select';
 import {
   KappLink as Link,
   ErrorNotFound,
@@ -97,7 +98,7 @@ export const Form = ({
   </Fragment>
 );
 
-class SignatureCanvasWrapper extends React.Component {
+export class SignatureCanvasWrapper extends React.Component {
   constructor(props) {
     super(props);
     this.onEnd = this.onEnd.bind(this);
@@ -113,12 +114,27 @@ class SignatureCanvasWrapper extends React.Component {
   }
 
   componentDidMount() {
-    const { initialValue, height, width } = this.props;
+    const { initialValue, height, width, disable } = this.props;
     if (initialValue) {
       this.signatureCanvas.fromDataURL(initialValue, { height, width });
     }
+    if (disable) this.signatureCanvas.off();
   }
 
+  clear = () => {
+    this.signatureCanvas.clear();
+    const { onChange } = this.props;
+    if (typeof onChange === 'function') {
+      onChange('');
+    }
+  };
+  undo = () => {
+    var data = this.signatureCanvas.toData();
+    if (data) {
+      data.pop(); // remove the last dot or line
+      this.signatureCanvas.fromData(data);
+    }
+  };
   onEnd() {
     const { onChange } = this.props;
     if (typeof onChange === 'function') {
@@ -127,13 +143,36 @@ class SignatureCanvasWrapper extends React.Component {
   }
 
   render() {
-    const { height, width } = this.props;
+    const { height, width, disable } = this.props;
     return (
-      <SignatureCanvas
-        canvasProps={{ height, width }}
-        onEnd={this.onEnd}
-        ref={el => (this.signatureCanvas = el)}
-      />
+      <div className="signature-pad">
+        <SignatureCanvas
+          canvasProps={{ height, width }}
+          onEnd={this.onEnd}
+          ref={el => (this.signatureCanvas = el)}
+        />
+        <div
+          className={
+            'signature-pad--footer' + (this.props.disable ? ' disabled' : '')
+          }
+        >
+          <div className="description">Sign above</div>
+          <div className="signature-pad--actions">
+            <div>
+              <button
+                type="button"
+                className="button clear"
+                onClick={this.clear}
+              >
+                Clear
+              </button>
+              <button type="button" className="button" onClick={this.undo}>
+                Undo
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     );
   }
 }
@@ -146,6 +185,7 @@ bundle.config.widgets = {
     width,
     ref,
     onChange,
+    disable,
   }) => {
     ReactDOM.render(
       <SignatureCanvasWrapper
@@ -154,6 +194,19 @@ bundle.config.widgets = {
         ref={ref}
         height={height}
         width={width}
+        disable={disable}
+      />,
+      element,
+    );
+  },
+  selectMenu: ({ element, onChange, options }) => {
+    ReactDOM.render(
+      <Select
+        onChange={onChange}
+        options={options}
+        closeMenuOnSelect={true}
+        hideSelectedOptions={false}
+        isMulti={false}
       />,
       element,
     );

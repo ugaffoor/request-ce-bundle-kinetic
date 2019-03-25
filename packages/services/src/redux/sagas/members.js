@@ -210,7 +210,7 @@ export function* registerBillingMember(action) {
   args.billingService = billingCompany;
   args.gbmemberId = action.payload.memberItem['id'];
   args.gbmembersReturn = window.location.href;
-
+  /*
   axios
     .post(kineticBillingServerUrl + registerUserUrl, args)
     .then(result => {
@@ -231,6 +231,7 @@ export function* registerBillingMember(action) {
     .catch(error => {
       console.log(util.inspect(error));
     });
+*/
 }
 
 export function* watchMembers() {

@@ -12,9 +12,9 @@ import { PaySmartRegistrationForm } from './PaySmartRegistrationForm';
 import { actions } from '../../redux/modules/submission';
 import { actions as submissionsActions } from '../../redux/modules/submissions';
 import { actions as memberActions } from '../../redux/modules/members';
-import { MemberSignature } from './MemberSignature';
 import ReactDOM from 'react-dom';
 import React from 'react';
+import { SignatureCanvasWrapper } from './Form';
 
 const valuesFromQueryParams = queryParams => {
   const params = parse(queryParams);
@@ -44,9 +44,10 @@ export const handleCompleted = props => response => {
     props.registerBillingMember({
       memberItem: selectedMember,
       billingInfo: response.submission,
-      fetchBillingInfoAfterRegistration: props.fetchBillingInfoAfterRegistration,
+      fetchBillingInfoAfterRegistration:
+        props.fetchBillingInfoAfterRegistration,
       updateMember: props.updateMember,
-      fetchMembers: props.fetchMembers
+      fetchMembers: props.fetchMembers,
     });
   }
   if (!response.submission.currentPage) {
@@ -71,7 +72,6 @@ export const handleCreated = props => response => {
 
 export const handleLoaded = props => form => {
   if (!props.submissionId) {
-    $("[data-element-name='Encoded Member Signature']").css( {"line-height":0, "height": 0, "overflow": "hidden" });
     let selectedMember = null;
     for (let i = 0; i < props.members.length; i++) {
       if (props.members[i].values['Member ID'] === props.selectedMemberId) {
@@ -96,11 +96,6 @@ export const handleLoaded = props => form => {
   }
 
   props.setFormSlug(form.slug());
-
-  ReactDOM.render(
-  <MemberSignature/>,
-    document.getElementById('signature-canvas')
-  )
 };
 
 export const handleDelete = props => () => {
@@ -120,7 +115,7 @@ export const mapStateToProps = (state, { match: { params } }) => ({
   forms: state.services.forms.data,
   values: valuesFromQueryParams(state.router.location.search),
   kappSlug: state.app.config.kappSlug,
-  members: state.services.members.allMembers
+  members: state.services.members.allMembers,
 });
 
 export const mapDispatchToProps = {
@@ -128,9 +123,10 @@ export const mapDispatchToProps = {
   deleteSubmission: actions.deleteSubmission,
   fetchCurrentPage: submissionsActions.fetchCurrentPage,
   fetchMembers: memberActions.fetchMembers,
-  fetchBillingInfoAfterRegistration: memberActions.fetchBillingInfoAfterRegistration,
+  fetchBillingInfoAfterRegistration:
+    memberActions.fetchBillingInfoAfterRegistration,
   updateMember: memberActions.updateMember,
-  registerBillingMember: memberActions.registerBillingMember
+  registerBillingMember: memberActions.registerBillingMember,
 };
 
 const util = require('util');
@@ -169,4 +165,6 @@ const enhance = compose(
   }),
 );
 
-export const PaySmartRegistrationFormContainer = enhance(PaySmartRegistrationForm);
+export const PaySmartRegistrationFormContainer = enhance(
+  PaySmartRegistrationForm,
+);
