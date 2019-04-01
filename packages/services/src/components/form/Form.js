@@ -199,7 +199,7 @@ bundle.config.widgets = {
       element,
     );
   },
-  selectMenu: ({ element, onChange, options }) => {
+  selectMenu: ({ element, value, onChange, options }) => {
     ReactDOM.render(
       <Select
         onChange={onChange}
@@ -207,6 +207,7 @@ bundle.config.widgets = {
         closeMenuOnSelect={true}
         hideSelectedOptions={false}
         isMulti={false}
+        value={value}
       />,
       element,
     );

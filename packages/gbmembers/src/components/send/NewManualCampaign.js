@@ -451,6 +451,7 @@ export class NewManualCampaign extends Component {
                 theme="snow"
                 modules={this.modules}
                 formats={this.formats}
+                debug={true}
               />
             )}
             {this.props.showPreview && (

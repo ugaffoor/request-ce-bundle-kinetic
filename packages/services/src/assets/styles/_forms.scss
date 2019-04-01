@@ -54,3 +54,10 @@
 .member-dropdown {
   width: 50%;
 }
+.has-error .signature-pad {
+  border-color: red;
+}
+label.field-label.required:after {
+  content: '*';
+  color: red;
+}

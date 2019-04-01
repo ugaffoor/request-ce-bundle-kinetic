@@ -533,9 +533,11 @@ export class TasksDetail extends Component {
             .toUpperCase()
             .includes(this.state.leadSearchvalue.toUpperCase()) ||
           row.date.includes(this.state.leadSearchvalue) ||
-          row.note
-            .toUpperCase()
-            .includes(this.state.leadSearchvalue.toUpperCase())
+          (row.note !== undefined
+            ? row.note
+                .toUpperCase()
+                .includes(this.state.leadSearchvalue.toUpperCase())
+            : false)
         );
       });
       memberTasks = memberTasks.filter(row => {
@@ -544,9 +546,11 @@ export class TasksDetail extends Component {
             .toUpperCase()
             .includes(this.state.leadSearchvalue.toUpperCase()) ||
           row.date.includes(this.state.leadSearchvalue) ||
-          row.note
-            .toUpperCase()
-            .includes(this.state.leadSearchvalue.toUpperCase())
+          (row.note !== undefined
+            ? row.note
+                .toUpperCase()
+                .includes(this.state.leadSearchvalue.toUpperCase())
+            : false)
         );
       });
     }
