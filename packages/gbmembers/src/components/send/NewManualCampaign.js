@@ -342,6 +342,11 @@ export class NewManualCampaign extends Component {
     } else {
       body = this.state.text;
     }
+
+    if (this.props.submissionId) {
+      body += "<div id='__gbmembers-" + this.props.submissionType + "-" + this.props.submissionId + "' />"
+    }
+
     this.props.saveCampaign(
       this.state.subject,
       recipientIds,
