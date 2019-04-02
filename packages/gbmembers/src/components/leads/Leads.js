@@ -68,11 +68,12 @@ function getLatestHistory(history) {
 export class TasksDetail extends Component {
   constructor(props) {
     super(props);
-    let leadSearchvalue = '';
+    let leadSearchValue = '';
+    let allLeads = this.getLeadsData(this.props.allLeads);
     let tasks = this.getData(
       this.props.allLeads,
       'Todays Tasks',
-      leadSearchvalue,
+      leadSearchValue,
     );
     this._columns = this.getColumns();
     let showTasksSelectValue = 'Todays Tasks';
@@ -80,15 +81,16 @@ export class TasksDetail extends Component {
     let memberTasksData = this.getMemberTasksData(
       this.props.allMembers,
       'Todays Tasks',
-      leadSearchvalue,
+      leadSearchValue,
     );
     this._memberTasksColumns = this.getMemberTasksColumns();
 
     this.state = {
+      allLeads,
       tasks,
       showTasksSelectValue,
-      leadSearchvalue,
       memberTasksData,
+      leadSearchValue,
     };
   }
 
@@ -97,15 +99,18 @@ export class TasksDetail extends Component {
       tasks: this.getData(
         nextProps.allLeads,
         this.state.showTasksSelectValue,
-        this.state.leadsearchvalue,
+        this.state.leadSearchValue,
       ),
     });
     this.setState({
       memberTasksData: this.getMemberTasksData(
         nextProps.allMembers,
         this.state.showTasksSelectValue,
-        this.state.leadSearchvalue,
+        this.state.leadSearchValue,
       ),
+    });
+    this.setState({
+      allLeads: this.getLeadsData(nextProps.allLeads),
     });
   }
 
@@ -115,7 +120,7 @@ export class TasksDetail extends Component {
       this.getData(
         this.props.allLeads,
         event.target.value,
-        this.state.leadSearchvalue,
+        this.state.leadSearchValue,
       ),
       'date',
     );
@@ -123,7 +128,7 @@ export class TasksDetail extends Component {
       this.getMemberTasksData(
         this.props.allMembers,
         event.target.value,
-        this.state.leadSearchvalue,
+        this.state.leadSearchValue,
       ),
       'date',
     );
@@ -506,6 +511,19 @@ export class TasksDetail extends Component {
       },
     ];
   }
+  getLeadsData(allLeads) {
+    let leads = [];
+    allLeads.forEach(lead => {
+      if (lead.values['Status'] === 'Open') {
+        leads.push({
+          _id: lead['id'],
+          name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
+          lastContact: moment(lead.values['Last Contact']).format('L LT'),
+        });
+      }
+    });
+    return leads;
+  }
 
   getDay(date) {
     if (!date) {
@@ -526,17 +544,18 @@ export class TasksDetail extends Component {
   render() {
     let tasks = this.state.tasks;
     let memberTasks = this.state.memberTasksData;
-    if (this.state.leadSearchvalue) {
+    let allLeads = this.state.allLeads;
+    if (this.state.leadSearchValue) {
       tasks = tasks.filter(row => {
         return (
           row.name
             .toUpperCase()
-            .includes(this.state.leadSearchvalue.toUpperCase()) ||
-          row.date.includes(this.state.leadSearchvalue) ||
+            .includes(this.state.leadSearchValue.toUpperCase()) ||
+          row.date.includes(this.state.leadSearchValue) ||
           (row.note !== undefined
             ? row.note
                 .toUpperCase()
-                .includes(this.state.leadSearchvalue.toUpperCase())
+                .includes(this.state.leadSearchValue.toUpperCase())
             : false)
         );
       });
@@ -544,14 +563,19 @@ export class TasksDetail extends Component {
         return (
           row.name
             .toUpperCase()
-            .includes(this.state.leadSearchvalue.toUpperCase()) ||
-          row.date.includes(this.state.leadSearchvalue) ||
+            .includes(this.state.leadSearchValue.toUpperCase()) ||
+          row.date.includes(this.state.leadSearchValue) ||
           (row.note !== undefined
             ? row.note
                 .toUpperCase()
-                .includes(this.state.leadSearchvalue.toUpperCase())
+                .includes(this.state.leadSearchValue.toUpperCase())
             : false)
         );
+      });
+      allLeads = allLeads.filter(row => {
+        return row.name
+          .toUpperCase()
+          .includes(this.state.leadSearchValue.toUpperCase());
       });
     }
     return (
@@ -579,11 +603,11 @@ export class TasksDetail extends Component {
                 className="form-control"
                 style={{ width: '50%' }}
                 id="leadSearch"
-                value={this.state.leadSearchvalue}
+                value={this.state.leadSearchValue}
                 placeholder="Lead Search"
-                onChange={e =>
-                  this.setState({ leadSearchvalue: e.target.value })
-                }
+                onChange={e => {
+                  this.setState({ leadSearchValue: e.target.value });
+                }}
               />
             </div>
           </div>
@@ -631,6 +655,12 @@ export class TasksDetail extends Component {
             />
           </div>
         </div>
+        <div className="leadContents">
+          <LeadsDetail
+            allLeads={allLeads}
+            leadSearchValue={this.state.leadSearchValue}
+          />
+        </div>
       </div>
     );
   }
@@ -644,11 +674,12 @@ export class LeadsDetail extends Component {
 
     let nameSortOrder = 'desc';
     let lastContactSortOrder = 'desc';
-
+    let leadSearchValue = this.props.leadSearchValue;
     this.state = {
       leads,
       nameSortOrder,
       lastContactSortOrder,
+      leadSearchValue,
     };
   }
 
@@ -661,9 +692,9 @@ export class LeadsDetail extends Component {
   }
 
   getData(allLeads) {
-    let leads = [];
+    /*    let leads = [];
     allLeads.forEach(lead => {
-      if (lead.values['Status'] === 'Open') {
+       if (lead.values['Status'] === 'Open') {
         leads.push({
           _id: lead['id'],
           name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
@@ -671,7 +702,8 @@ export class LeadsDetail extends Component {
         });
       }
     });
-    return leads;
+*/
+    return allLeads;
   }
 
   getColumns = () => {
@@ -810,6 +842,14 @@ export class LeadsDetail extends Component {
   }
 
   render() {
+    let leads = this.state.leads;
+    if (this.state.leadSearchValue) {
+      leads = leads.filter(row => {
+        return row.name
+          .toUpperCase()
+          .includes(this.state.leadSearchValue.toUpperCase());
+      });
+    }
     return (
       <div>
         <div className="row">
@@ -850,9 +890,9 @@ export class LeadsDetail extends Component {
         <div id="leadsListGrid1" className="row" style={{ marginTop: '20px' }}>
           <ReactTable
             columns={this._columns}
-            data={this.state.leads}
-            defaultPageSize={this.state.leads.length}
-            pageSize={this.state.leads.length}
+            data={leads}
+            defaultPageSize={leads.length}
+            pageSize={leads.length}
             showPagination={false}
             style={{
               /*height: '500px',*/
@@ -1598,9 +1638,6 @@ export const LeadsView = ({ allLeads, saveLead, fetchLeads, allMembers }) => (
           saveLead={saveLead}
           allMembers={allMembers}
         />
-      </div>
-      <div className="leadContents">
-        <LeadsDetail allLeads={allLeads} />
       </div>
     </div>
     <div>

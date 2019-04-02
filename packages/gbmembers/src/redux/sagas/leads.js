@@ -20,6 +20,7 @@ export function* fetchLeads(action) {
     const search = new CoreAPI.SubmissionSearch()
       //.eq('values[Status]', 'Open')
       .includes(['details', 'values'])
+      .limit(1000)
       .build();
 
     const { submissions } = yield call(CoreAPI.searchSubmissions, {

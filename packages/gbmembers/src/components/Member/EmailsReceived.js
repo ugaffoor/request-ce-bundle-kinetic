@@ -9,21 +9,18 @@ export class EmailsReceived extends Component {
     this._columns = this.getColumns();
 
     this.state = {
-      data
+      data,
     };
   }
 
-  componentWillReceiveProps(nextProps) {
-  }
+  componentWillReceiveProps(nextProps) {}
 
-  componentWillMount() {
-  }
+  componentWillMount() {}
 
   getColumns() {
     return [
-      { accessor: 'Content', Header: 'Content' },
       { accessor: 'Subject', Header: 'Subject' },
-      { accessor: 'Received Date', Header: 'Received Date' }
+      { accessor: 'Received Date', Header: 'Received Date' },
     ];
   }
 
@@ -38,13 +35,13 @@ export class EmailsReceived extends Component {
     return emails.sort(function(email1, email2) {
       if (
         moment(email1['Received Date'], email_received_date_format).isAfter(
-          moment(email2['Received Date'], email_received_date_format)
+          moment(email2['Received Date'], email_received_date_format),
         )
       ) {
         return -1;
       } else if (
         moment(email1['Received Date'], email_received_date_format).isBefore(
-          moment(email2['Received Date'], email_received_date_format)
+          moment(email2['Received Date'], email_received_date_format),
         )
       ) {
         return 1;
@@ -62,14 +59,18 @@ export class EmailsReceived extends Component {
             <ReactTable
               columns={this._columns}
               data={this.state.data}
-              defaultPageSize={this.state.data.length > 0 ? this.state.data.length : 2}
+              defaultPageSize={
+                this.state.data.length > 0 ? this.state.data.length : 2
+              }
               pageSize={this.state.data.length > 0 ? this.state.data.length : 2}
               showPagination={false}
               width={500}
               SubComponent={row => {
                 return (
                   <div style={{ padding: '20px', textAlign: 'left' }}>
-                    {row.original.Content}
+                    <div
+                      dangerouslySetInnerHTML={{ __html: row.original.Content }}
+                    />
                   </div>
                 );
               }}
