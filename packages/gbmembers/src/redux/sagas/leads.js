@@ -1,4 +1,4 @@
-import { call, put, takeEvery } from 'redux-saga/effects';
+import { call, put, takeEvery, all } from 'redux-saga/effects';
 import { CoreAPI } from 'react-kinetic-core';
 import { types, actions } from '../modules/leads';
 import { actions as errorActions } from '../modules/errors';
@@ -38,17 +38,48 @@ export function* fetchLeads(action) {
 
 export function* fetchCurrentLead(action) {
   try {
-    const { submission } = yield call(CoreAPI.fetchSubmission, {
-      id: action.payload.id,
-      include: SUBMISSION_INCLUDES,
-    });
+    const LEAD_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
+      .eq('values[Lead ID]', action.payload.id)
+      .eq('values[Type]', 'Email')
+      .eq('values[Direction]', 'Inbound')
+      .include(['details', 'values'])
+      .limit(1000)
+      .build();
+    const [submission, leadActivities] = yield all([
+      call(CoreAPI.fetchSubmission, {
+        id: action.payload.id,
+        include: SUBMISSION_INCLUDES,
+      }),
+      call(CoreAPI.searchSubmissions, {
+        form: 'lead-activities',
+        kapp: 'gbmembers',
+        search: LEAD_ACTIVITIES_SEARCH,
+      }),
+    ]);
 
     if (action.payload.myThis) submission.myThis = action.payload.myThis;
     if (action.payload.history) submission.history = action.payload.history;
     if (action.payload.fetchLeads)
       submission.fetchLeads = action.payload.fetchLeads;
 
-    yield put(actions.setCurrentLead(submission));
+    // Add Email Sent/Recieved submissions
+    let emailSentContent = [];
+    let emailReceivedContent = [];
+    for (let i = 0; i < leadActivities.submissions.length; i++) {
+      if (leadActivities.submissions[i].values['Direction'] === 'Outbound') {
+        emailSentContent[emailSentContent.length] = JSON.parse(
+          leadActivities.submissions[i].values['Content'],
+        );
+      }
+      if (leadActivities.submissions[i].values['Direction'] === 'Inbound') {
+        emailReceivedContent[emailReceivedContent.length] = JSON.parse(
+          leadActivities.submissions[i].values['Content'],
+        );
+      }
+    }
+    submission.submission.emailsReceived = emailReceivedContent;
+    submission.submission.emailsSent = emailSentContent;
+    yield put(actions.setCurrentLead(submission.submission));
   } catch (error) {
     console.log('Error in fetchCurrentLead: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));

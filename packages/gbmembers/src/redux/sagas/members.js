@@ -1,4 +1,4 @@
-import { select, call, put, takeEvery } from 'redux-saga/effects';
+import { select, call, put, takeEvery, all } from 'redux-saga/effects';
 import { CoreAPI } from 'react-kinetic-core';
 import $ from 'jquery';
 
@@ -59,6 +59,51 @@ export function* fetchMembers(action) {
 }
 export function* fetchCurrentMember(action) {
   try {
+    const MEMBER_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
+      .eq('values[Member ID]', action.payload.id)
+      .eq('values[Type]', 'Email')
+      .include(['details', 'values'])
+      .limit(1000)
+      .build();
+    const [submission, memberActivities] = yield all([
+      call(CoreAPI.fetchSubmission, {
+        id: action.payload.id,
+        include: SUBMISSION_INCLUDES,
+      }),
+      call(CoreAPI.searchSubmissions, {
+        form: 'member-activities',
+        kapp: 'gbmembers',
+        search: MEMBER_ACTIVITIES_SEARCH,
+      }),
+    ]);
+
+    if (action.payload.myThis) submission.myThis = action.payload.myThis;
+    if (action.payload.history) submission.history = action.payload.history;
+    if (action.payload.fetchMembers)
+      submission.fetchMembers = action.payload.fetchMembers;
+    if (action.payload.forBilling)
+      submission.forBilling = action.payload.forBilling;
+
+    // Add Email Sent/Recieved submissions
+    let emailSentContent = [];
+    let emailReceivedContent = [];
+    for (let i = 0; i < memberActivities.submissions.length; i++) {
+      if (memberActivities.submissions[i].values['Direction'] === 'Outbound') {
+        emailSentContent[emailSentContent.length] = JSON.parse(
+          memberActivities.submissions[i].values['Content'],
+        );
+      }
+      if (memberActivities.submissions[i].values['Direction'] === 'Inbound') {
+        emailReceivedContent[emailReceivedContent.length] = JSON.parse(
+          memberActivities.submissions[i].values['Content'],
+        );
+      }
+    }
+    submission.submission.emailsReceived = emailReceivedContent;
+    submission.submission.emailsSent = emailSentContent;
+    yield put(actions.setCurrentMember(submission.submission));
+    /*
+
     const { submission } = yield call(CoreAPI.fetchSubmission, {
       id: action.payload.id,
       include: SUBMISSION_INCLUDES,
@@ -71,6 +116,7 @@ export function* fetchCurrentMember(action) {
       submission.forBilling = action.payload.forBilling;
 
     yield put(actions.setCurrentMember(submission));
+*/
   } catch (error) {
     console.log('Error in fetchCurrentMember: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));

@@ -25,7 +25,7 @@ export class EmailsReceived extends Component {
   }
 
   getData(submission) {
-    let emails = submission.values['Emails Received'];
+    let emails = submission.emailsReceived;
     if (!emails) {
       return [];
     } else if (typeof emails !== 'object') {

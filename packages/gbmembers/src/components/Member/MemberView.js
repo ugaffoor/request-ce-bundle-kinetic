@@ -524,9 +524,7 @@ export const MemberView = ({
         />
       </div>
       <div>
-        <EmailsReceived
-          submission={memberItem}
-        />
+        <EmailsReceived submission={memberItem} />
       </div>
     </div>
   );
@@ -766,7 +764,7 @@ class MemberEmails extends Component {
   }
 
   getData(memberItem) {
-    let emails = memberItem.values['Emails Sent'];
+    let emails = memberItem.emailsSent;
     if (!emails) {
       return [];
     } else if (typeof emails !== 'object') {
