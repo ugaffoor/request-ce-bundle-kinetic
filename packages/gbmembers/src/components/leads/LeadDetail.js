@@ -10,7 +10,11 @@ import {
 import { actions } from '../../redux/modules/leads';
 import { KappNavLink as NavLink } from 'common';
 import $ from 'jquery';
-import { contact_date_format } from './LeadsUtils';
+import {
+  contact_date_format,
+  email_sent_date_format,
+  reminder_date_format,
+} from '../leads/LeadsUtils';
 import lead_dtls from '../../images/lead_details.png';
 import convert_to_member from '../../images/convert_to_member.png';
 import phone from '../../images/phone.png';
@@ -23,6 +27,7 @@ import { getJson } from '../Member/MemberUtils';
 import ReactTable from 'react-table';
 import 'react-datetime/css/react-datetime.css';
 import { StatusMessagesContainer } from '../StatusMessages';
+import { actions as campaignActions } from '../../redux/modules/campaigns';
 import ReactSpinner from 'react16-spinjs';
 import { CallScriptModalContainer } from '../Member/CallScriptModalContainer';
 import { SMSModalContainer } from '../Member/SMSModalContainer';
@@ -32,10 +37,14 @@ const mapStateToProps = state => ({
   profile: state.app.profile,
   pathname: state.router.location.pathname,
   leadItem: state.member.leads.currentLead,
+  campaignItem: state.member.campaigns.campaignItem,
+  campaignLoading: state.member.campaigns.campaignLoading,
   currentLeadLoading: state.member.leads.currentLeadLoading,
+  space: state.member.app.space,
 });
 const mapDispatchToProps = {
   fetchLead: actions.fetchCurrentLead,
+  fetchCampaign: campaignActions.fetchCampaign,
   updateLead: actions.updateLead,
   fetchLeads: actions.fetchLeads,
 };
@@ -543,9 +552,16 @@ export class LeadDetail extends Component {
           </div>
         </div>
         <div>
-            <EmailsReceived
-              submission={this.props.leadItem}
-            />
+          <LeadEmails
+            leadItem={this.props.leadItem}
+            fetchCampaign={this.props.fetchCampaign}
+            campaignItem={this.props.campaignItem}
+            campaignLoading={this.props.campaignLoading}
+            space={this.state.space}
+          />
+        </div>
+        <div>
+          <EmailsReceived submission={this.props.leadItem} />
         </div>
       </div>
     );
@@ -556,6 +572,9 @@ export const LeadDetailView = ({
   profile,
   leadItem,
   saveLead,
+  fetchCampaign,
+  campaignItem,
+  campaignLoading,
   currentLeadLoading,
   setShowCallScriptModal,
   showCallScriptModal,
@@ -569,6 +588,9 @@ export const LeadDetailView = ({
       profile={profile}
       leadItem={leadItem}
       saveLead={saveLead}
+      fetchCampaign={fetchCampaign}
+      campaignItem={campaignItem}
+      campaignLoading={campaignLoading}
       setShowCallScriptModal={setShowCallScriptModal}
       showCallScriptModal={showCallScriptModal}
       setShowSMSModal={setShowSMSModal}
@@ -630,3 +652,169 @@ export const LeadDetailContainer = compose(
     componentWillUnmount() {},
   }),
 )(LeadDetailView);
+
+class LeadEmails extends Component {
+  constructor(props) {
+    super(props);
+    const data = this.getData(this.props.leadItem);
+    this._columns = this.getColumns();
+    this.getCampaign = this.getCampaign.bind(this);
+    this.substituteFields = this.substituteFields.bind(this);
+    this.state = {
+      data,
+    };
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.leadItem) {
+      this.setState({
+        data: this.getData(nextProps.leadItem),
+      });
+    }
+  }
+
+  componentWillMount() {
+    this.props.fetchCampaign({ setDummy: true });
+  }
+
+  getColumns() {
+    return [
+      {
+        accessor: 'Subject',
+        Header: 'Subject',
+        width: 600,
+        style: { whiteSpace: 'unset' },
+        Cell: row => (
+          <span>
+            <a
+              href="javascript:;"
+              onClick={() => this.getCampaign(row.original['Campaign Id'])}
+            >
+              {row.original['Subject']}
+            </a>
+          </span>
+        ),
+      },
+      { accessor: 'Sent Date', Header: 'Sent Date' },
+    ];
+  }
+
+  getData(leadItem) {
+    let emails = leadItem.emailsSent;
+    if (!emails) {
+      return [];
+    } else if (typeof emails !== 'object') {
+      emails = JSON.parse(emails);
+    }
+
+    return emails.sort(function(email1, email2) {
+      if (
+        moment(email1['Sent Date'], email_sent_date_format).isAfter(
+          moment(email2['Sent Date'], email_sent_date_format),
+        )
+      ) {
+        return -1;
+      } else if (
+        moment(email1['Sent Date'], email_sent_date_format).isBefore(
+          moment(email2['Sent Date'], email_sent_date_format),
+        )
+      ) {
+        return 1;
+      }
+      return 0;
+    });
+  }
+
+  getCampaign(campaignId) {
+    this.props.fetchCampaign({ id: campaignId, history: this.props.history });
+  }
+  escapeRegExp(str) {
+    return str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1');
+  }
+  substituteFields(body) {
+    if (body === undefined) return '';
+    body = body.replace(
+      /member\('First Name'\)/g,
+      this.props.leadItem.values['First Name'],
+    );
+    body = body.replace(
+      /member\('Last Name'\)/g,
+      this.props.leadItem.values['Last Name'],
+    );
+    var matches = body.match(/\$\{.*?\('(.*?)'\)\}/g);
+    var self = this;
+    if (matches !== null) {
+      matches.forEach(function(value, index) {
+        console.log(value);
+        if (value.indexOf('spaceAttributes') !== -1) {
+          body = body.replace(
+            new RegExp(self.escapeRegExp(value), 'g'),
+            self.props.space.attributes[value.split("'")[1]][0],
+          );
+        }
+      });
+    }
+    return body;
+  }
+  render() {
+    return (
+      <div className="row">
+        <div className="col-sm-6">
+          <span style={{ width: '100%' }}>
+            <h3>Emails Sent</h3>
+            <ReactTable
+              columns={this._columns}
+              data={this.state.data}
+              defaultPageSize={this.state.data.length}
+              pageSize={this.state.data.length}
+              showPagination={false}
+              width={500}
+            />
+          </span>
+        </div>
+        <div className="col-sm-6">
+          <h3>&nbsp;</h3>
+          {this.props.campaignLoading ? (
+            <div>Loading... </div>
+          ) : (
+            <div style={{ border: 'solid 1px rgba(0,0,0,0.05)' }}>
+              <div className="row">
+                <div className="col-sm-2">
+                  <label>Subject:</label>
+                </div>
+                <div className="col-sm-8">
+                  {this.props.campaignItem.values['Subject']}
+                </div>
+              </div>
+              <div className="row">
+                <div className="col-sm-2">
+                  <label>Sent Date:</label>
+                </div>
+                <div className="col-sm-8">
+                  {this.props.campaignItem.values['Sent Date']}
+                </div>
+              </div>
+              <div className="row">
+                <div className="col-sm-2">
+                  <label>Content:</label>
+                </div>
+                <div
+                  className="col-sm-8"
+                  style={{ border: 'solid 1px rgba(0,0,0,0.05)' }}
+                >
+                  <span
+                    dangerouslySetInnerHTML={{
+                      __html: this.substituteFields(
+                        this.props.campaignItem.values['Body'],
+                      ),
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+}
