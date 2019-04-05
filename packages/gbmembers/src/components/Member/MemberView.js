@@ -614,6 +614,22 @@ export const MemberViewContainer = compose(
         setSystemError: setSystemError,
       });
     },
+    updateIsNewReplyReceived: ({
+      memberItem,
+      updateMember,
+      fetchMembers,
+      addNotification,
+      setSystemError,
+    }) => () => {
+      memberItem.values['Is New Reply Received'] = false;
+      updateMember({
+        id: memberItem.id,
+        memberItem,
+        fetchMembers,
+        addNotification,
+        setSystemError
+      });
+    }
   }),
   lifecycle({
     componentWillMount() {
@@ -624,6 +640,9 @@ export const MemberViewContainer = compose(
       //$('#mainContent').offset({ top: 98});
       if (this.props.pathname !== nextProps.pathname) {
         this.props.fetchCurrentMember({ id: nextProps.match.params.id });
+      }
+      if (nextProps.memberItem.values && nextProps.memberItem.values['Is New Reply Received'] === 'true') {
+        this.props.updateIsNewReplyReceived();
       }
     },
     componentDidMount() {

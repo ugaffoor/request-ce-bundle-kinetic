@@ -519,6 +519,7 @@ export class TasksDetail extends Component {
           _id: lead['id'],
           name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
           lastContact: moment(lead.values['Last Contact']).format('L LT'),
+          isNewReplyReceived: lead.values['Is New Reply Received']
         });
       }
     });
@@ -716,7 +717,7 @@ export class LeadsDetail extends Component {
         Cell: row => (
           <NavLink
             to={`/LeadDetail/${row.original['_id']}`}
-            className="leadDetailAnchor"
+            className={(row.original.isNewReplyReceived === 'true' ? 'newReplyReceived ' : '') + 'leadDetailAnchor'}
           >
             {row.original.name}
           </NavLink>

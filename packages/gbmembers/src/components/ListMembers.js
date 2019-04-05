@@ -60,7 +60,7 @@ export class ListMembers extends React.Component {
     return (
       <NavLink
         to={`/Member/${cellInfo.original.id}`}
-        className={cellInfo.original['Status'] + ' nav-link icon-wrapper'}
+        className={cellInfo.original['Status'] + ' nav-link icon-wrapper' + (cellInfo.original['Is New Reply Received'] === 'true' ? ' newReplyReceived' : '')}
         activeClassName="active"
       >
         {cellInfo.original['Last Name']}

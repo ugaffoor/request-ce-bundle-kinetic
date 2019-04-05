@@ -628,6 +628,22 @@ export const LeadDetailContainer = compose(
         myThis: this,
       });
     },
+    updateIsNewReplyReceived: ({
+      leadItem,
+      updateLead,
+      fetchLeads,
+      addNotification,
+      setSystemError
+    }) => () => {
+      leadItem.values['Is New Reply Received'] = false;
+      updateLead({
+        id: leadItem.id,
+        leadItem,
+        //fetchLeads,
+        addNotification,
+        setSystemError
+      });
+    }
   }),
   lifecycle({
     componentWillMount() {
@@ -644,6 +660,10 @@ export const LeadDetailContainer = compose(
           myThis: this,
           history: this.props.history,
         });
+      }
+
+      if (nextProps.leadItem.values && nextProps.leadItem.values['Is New Reply Received'] === 'true') {
+        this.props.updateIsNewReplyReceived();
       }
     },
     componentDidMount() {
