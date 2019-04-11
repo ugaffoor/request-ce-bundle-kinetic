@@ -62,13 +62,22 @@ export class ListMembers extends React.Component {
     return (
       <NavLink
         to={`/Member/${cellInfo.original.id}`}
-        className={cellInfo.original['Status'] + ' nav-link icon-wrapper' + (cellInfo.original['Is New Reply Received'] === 'true' ? ' newReplyReceived' : '')}
+        className={
+          cellInfo.original['Status'] +
+          ' nav-link icon-wrapper' +
+          (cellInfo.original['Is New Reply Received'] === 'true'
+            ? ' newReplyReceived'
+            : '')
+        }
         activeClassName="active"
       >
-        <SVGInline svg={attentionRequired}
-        className={
-          cellInfo.original['Is New Reply Received'] === 'true' ? 'attention icon' : 'attention icon hide'
-        }
+        <SVGInline
+          svg={attentionRequired}
+          className={
+            cellInfo.original['Is New Reply Received'] === 'true'
+              ? 'attention icon'
+              : 'attention icon hide'
+          }
         />
         {cellInfo.original['Last Name']}
         &nbsp;

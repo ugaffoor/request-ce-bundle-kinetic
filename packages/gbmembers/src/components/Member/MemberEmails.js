@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
 import ReactTable from 'react-table';
 import moment from 'moment';
-import {
-  email_sent_date_format,
-} from '../leads/LeadsUtils';
+import { email_sent_date_format } from '../leads/LeadsUtils';
 
 export class MemberEmails extends Component {
   constructor(props) {

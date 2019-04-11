@@ -359,7 +359,8 @@ export const MemberNotesView = ({
     <div />
   ) : (
     <MemberNotesHome
-      memberItem={memberItem} saveMember={saveMember}
+      memberItem={memberItem}
+      saveMember={saveMember}
       fetchCampaign={fetchCampaign}
       campaignItem={campaignItem}
       campaignLoading={campaignLoading}

@@ -412,15 +412,15 @@ div.react-grid-Row div.react-grid-Cell:nth-of-type(5){
   display: none;
 }
 input#leadSearch {
-    float: left;
+  float: left;
 }
 button#attentionRequiredOnly {
-    cursor: pointer;
-    margin-left: 8px;
-    margin-top: 4px;
+  cursor: pointer;
+  margin-left: 8px;
+  margin-top: 4px;
 }
 button#attentionRequiredOnly.Active {
-    border-style: inset;
-    border-width: 2px;
-    background-color: #eee8e8;
+  border-style: inset;
+  border-width: 2px;
+  background-color: #eee8e8;
 }

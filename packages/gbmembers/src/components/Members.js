@@ -27,8 +27,16 @@ export class Members extends React.Component {
   }
 
   compare(member1, member2) {
-    if ((member1['Last Name']+member1['First Name']).toLowerCase() < (member2['Last Name']+member2['First Name']).toLowerCase()) return -1;
-    if ((member1['Last Name']+member1['First Name']).toLowerCase() > (member2['Last Name']+member2['First Name']).toLowerCase()) return 1;
+    if (
+      (member1['Last Name'] + member1['First Name']).toLowerCase() <
+      (member2['Last Name'] + member2['First Name']).toLowerCase()
+    )
+      return -1;
+    if (
+      (member1['Last Name'] + member1['First Name']).toLowerCase() >
+      (member2['Last Name'] + member2['First Name']).toLowerCase()
+    )
+      return 1;
     return 0;
   }
 
@@ -36,13 +44,22 @@ export class Members extends React.Component {
     return (
       <NavLink
         to={`/Member/${cellInfo.original.id}`}
-        className={cellInfo.original['Status'] + ' nav-link icon-wrapper' + (cellInfo.original['Is New Reply Received'] === 'true' ? ' newReplyReceived' : '')}
+        className={
+          cellInfo.original['Status'] +
+          ' nav-link icon-wrapper' +
+          (cellInfo.original['Is New Reply Received'] === 'true'
+            ? ' newReplyReceived'
+            : '')
+        }
         activeClassName="active"
       >
-        <SVGInline svg={attentionRequired}
-        className={
-          cellInfo.original['Is New Reply Received'] === 'true' ? 'attention icon' : 'attention icon hide'
-        }
+        <SVGInline
+          svg={attentionRequired}
+          className={
+            cellInfo.original['Is New Reply Received'] === 'true'
+              ? 'attention icon'
+              : 'attention icon hide'
+          }
         />
         {cellInfo.original['Last Name']}
         &nbsp;

@@ -2,7 +2,12 @@ import React, { Fragment } from 'react';
 import { connect } from 'react-redux';
 import { matchPath, Switch } from 'react-router-dom';
 import { compose, lifecycle, withHandlers, withProps } from 'recompose';
-import { KappRoute as Route, KappRedirect as Redirect, Loading, Utils } from 'common';
+import {
+  KappRoute as Route,
+  KappRedirect as Redirect,
+  Loading,
+  Utils,
+} from 'common';
 import { actions as categoriesActions } from './redux/modules/categories';
 import { actions as formsActions } from './redux/modules/forms';
 import { actions as submissionsActions } from './redux/modules/submissions';

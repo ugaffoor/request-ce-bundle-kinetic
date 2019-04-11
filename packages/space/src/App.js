@@ -121,11 +121,7 @@ export const mapStateToProps = state => ({
   isGuest: selectors.selectIsGuest(state),
   pathname: state.router.location.pathname,
   settingsBackPath: state.space.spaceApp.settingsBackPath || '/',
-  companyLogoURL: Utils.getAttributeValue(
-    state.app.space,
-    'Company Logo',
-    '',
-  ),
+  companyLogoURL: Utils.getAttributeValue(state.app.space, 'Company Logo', ''),
 });
 const mapDispatchToProps = {
   fetchSettings: actions.fetchAppSettings,

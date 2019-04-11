@@ -19,9 +19,7 @@ import { PaymentPeriod, PaymentType } from './BillingUtils';
 import NumberFormat from 'react-number-format';
 import $ from 'jquery';
 import moment from 'moment';
-import {
-  contact_date_format,
-} from '../leads/LeadsUtils';
+import { contact_date_format } from '../leads/LeadsUtils';
 import ReactTable from 'react-table';
 import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
 import { StatusMessagesContainer } from '../StatusMessages';
@@ -626,9 +624,9 @@ export const MemberViewContainer = compose(
         memberItem,
         fetchMembers,
         addNotification,
-        setSystemError
+        setSystemError,
       });
-    }
+    },
   }),
   lifecycle({
     componentWillMount() {
@@ -640,7 +638,10 @@ export const MemberViewContainer = compose(
       if (this.props.pathname !== nextProps.pathname) {
         this.props.fetchCurrentMember({ id: nextProps.match.params.id });
       }
-      if (nextProps.memberItem.values && nextProps.memberItem.values['Is New Reply Received'] === 'true') {
+      if (
+        nextProps.memberItem.values &&
+        nextProps.memberItem.values['Is New Reply Received'] === 'true'
+      ) {
         this.props.updateIsNewReplyReceived();
       }
     },
