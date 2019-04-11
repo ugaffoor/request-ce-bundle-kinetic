@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import SVGInline from 'react-svg-inline';
 import { compose, lifecycle, withHandlers, withProps } from 'recompose';
 import { actions } from '../../redux/modules/leads';
 import { actions as memberActions } from '../../redux/modules/members';
@@ -11,6 +12,7 @@ import { getJson } from '../Member/MemberUtils';
 import download from '../../images/download.png';
 import sort1 from '../../images/sort1.png';
 import sort2 from '../../images/sort2.png';
+import attentionRequired from '../../images/flag.svg?raw';
 import { contact_date_format, reminder_date_format } from './LeadsUtils';
 import ReactTable from 'react-table';
 import { StatusMessagesContainer } from '../StatusMessages';
@@ -69,19 +71,18 @@ export class TasksDetail extends Component {
   constructor(props) {
     super(props);
     let leadSearchValue = '';
+    let attentionRequiredOnly=false;
     let allLeads = this.getLeadsData(this.props.allLeads);
-    let tasks = this.getData(
+    let tasks = this.getLeadTasksData(
       this.props.allLeads,
       'Todays Tasks',
-      leadSearchValue,
     );
-    this._columns = this.getColumns();
+    this._columns = this.getLeadColumns();
     let showTasksSelectValue = 'Todays Tasks';
 
     let memberTasksData = this.getMemberTasksData(
       this.props.allMembers,
-      'Todays Tasks',
-      leadSearchValue,
+      'Todays Tasks'
     );
     this._memberTasksColumns = this.getMemberTasksColumns();
 
@@ -91,44 +92,58 @@ export class TasksDetail extends Component {
       showTasksSelectValue,
       memberTasksData,
       leadSearchValue,
+      attentionRequiredOnly,
     };
   }
 
   componentWillReceiveProps(nextProps) {
     this.setState({
-      tasks: this.getData(
+      tasks: this.getLeadTasksData(
         nextProps.allLeads,
         this.state.showTasksSelectValue,
-        this.state.leadSearchValue,
       ),
     });
     this.setState({
       memberTasksData: this.getMemberTasksData(
         nextProps.allMembers,
-        this.state.showTasksSelectValue,
-        this.state.leadSearchValue,
+        this.state.showTasksSelectValue
       ),
     });
     this.setState({
       allLeads: this.getLeadsData(nextProps.allLeads),
     });
+    let attentionRequiredOnly=false;
+    // Determine if there are any Leads that requireAttention
+    nextProps.allLeads.forEach(lead => {
+      if (lead.values['Is New Reply Received']==="true"){
+        attentionRequiredOnly=true;
+      }
+    });
+    // Determine if there are any Leads that requireAttention
+    nextProps.allMembers.forEach(member => {
+      if (member.values['Is New Reply Received']==="true"){
+        attentionRequiredOnly=true;
+      }
+    });
+    this.setState({
+      attentionRequiredOnly: attentionRequiredOnly,
+    });
+
   }
 
   onShowTasksSelectChange(event) {
     console.log('onShowTasksSelectChange # ' + event.target.value);
     let tasks = this.sort(
-      this.getData(
+      this.getLeadTasksData(
         this.props.allLeads,
         event.target.value,
-        this.state.leadSearchValue,
       ),
       'date',
     );
     let memberTasksData = this.sort(
       this.getMemberTasksData(
         this.props.allMembers,
-        event.target.value,
-        this.state.leadSearchValue,
+        event.target.value
       ),
       'date',
     );
@@ -172,7 +187,7 @@ export class TasksDetail extends Component {
     result = result.concat(left, right);
     return result;
   }
-  getData(allLeads, duration, searchString) {
+  getLeadTasksData(allLeads, duration) {
     //console.log("#### In get data");
     if (!allLeads) {
       return [];
@@ -197,6 +212,7 @@ export class TasksDetail extends Component {
               date: lead.values['Reminder Date'],
               name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
               note: getLatestHistory(lead.values['History']).note,
+              attentionRequired: lead.values['Is New Reply Received'],
             });
           }
         }
@@ -226,6 +242,7 @@ export class TasksDetail extends Component {
               date: lead.values['Reminder Date'],
               name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
               note: getLatestHistory(lead.values['History']).note,
+              attentionRequired: lead.values['Is New Reply Received'],
             });
           }
         }
@@ -255,6 +272,7 @@ export class TasksDetail extends Component {
               date: lead.values['Reminder Date'],
               name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
               note: getLatestHistory(lead.values['History']).note,
+              attentionRequired: lead.values['Is New Reply Received'],
             });
           }
         }
@@ -267,6 +285,7 @@ export class TasksDetail extends Component {
             date: lead.values['Reminder Date'],
             name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
             note: getLatestHistory(lead.values['History']).note,
+            attentionRequired: lead.values['Is New Reply Received'],
           };
         }
       });
@@ -275,8 +294,18 @@ export class TasksDetail extends Component {
     return leads;
   }
 
-  getColumns = () => {
+  getLeadColumns = () => {
     return [
+      {
+        width: 30,
+        Cell: row => (
+            <SVGInline svg={attentionRequired}
+            className={
+              row.original.attentionRequired === 'true' ? 'attention icon' : 'attention icon hide'
+            }
+            />
+        ),
+      },
       {
         accessor: 'date',
         width: 60,
@@ -335,7 +364,7 @@ export class TasksDetail extends Component {
     ];
   };
 
-  getMemberTasksData(allMembers, duration, searchString) {
+  getMemberTasksData(allMembers, duration) {
     if (!allMembers) {
       return;
     }
@@ -346,7 +375,7 @@ export class TasksDetail extends Component {
     if (duration === 'Todays Tasks') {
       const today = moment().startOf('day');
       allMembers.forEach(member => {
-        if (member.values['Reminder Date']) {
+        if (member.values['Reminder Date'] || member.values['Is New Reply Received']==="true") {
           if (
             moment(member.values['Reminder Date'], date_format).isBefore(
               today,
@@ -355,16 +384,17 @@ export class TasksDetail extends Component {
             moment(member.values['Reminder Date'], date_format).isSame(
               today,
               'd',
-            )
+            ) || member.values['Is New Reply Received']==="true"
           ) {
             members.push({
               _id: member['id'],
-              date: moment(member.values['Reminder Date']).format('L LT'),
+              date: (member.values['Reminder Date']!==undefined ? moment(member.values['Reminder Date']).format('L LT') : moment().format('L LT')),
               name:
                 member.values['First Name'] + ' ' + member.values['Last Name'],
               note: getLatestHistory(member.values['Notes History'])
                 ? getLatestHistory(member.values['Notes History']).note
                 : '',
+              attentionRequired: member.values['Is New Reply Received'],
             });
           }
         }
@@ -376,7 +406,7 @@ export class TasksDetail extends Component {
         .add(1, 'weeks')
         .startOf('day');
       allMembers.forEach(member => {
-        if (member.values['Reminder Date']) {
+        if (member.values['Reminder Date'] || member.values['Is New Reply Received']==="true") {
           if (
             moment(member.values['Reminder Date'], date_format).isBefore(
               startDate,
@@ -387,16 +417,17 @@ export class TasksDetail extends Component {
               endDate,
               'days',
               '[]',
-            )
+            ) || member.values['Is New Reply Received']==="true"
           ) {
             members.push({
               _id: member['id'],
-              date: moment(member.values['Reminder Date']).format('L LT'),
+              date: (member.values['Reminder Date']!==undefined ? moment(member.values['Reminder Date']).format('L LT') : moment().format('L LT')),
               name:
                 member.values['First Name'] + ' ' + member.values['Last Name'],
               note: getLatestHistory(member.values['Notes History'])
                 ? getLatestHistory(member.values['Notes History']).note
                 : '',
+              attentionRequired: member.values['Is New Reply Received'],
             });
           }
         }
@@ -408,7 +439,7 @@ export class TasksDetail extends Component {
         .add(1, 'months')
         .startOf('day');
       allMembers.forEach(member => {
-        if (member.values['Reminder Date']) {
+        if (member.values['Reminder Date'] || member.values['Is New Reply Received']==="true") {
           if (
             moment(member.values['Reminder Date'], date_format).isBefore(
               startDate,
@@ -419,31 +450,33 @@ export class TasksDetail extends Component {
               endDate,
               'days',
               '[]',
-            )
+            ) || member.values['Is New Reply Received']==="true"
           ) {
             members.push({
               _id: member['id'],
-              date: member.values['Reminder Date'],
+              date: (member.values['Reminder Date']!==undefined ? moment(member.values['Reminder Date']).format('L LT') : moment().format('L LT')),
               name:
                 member.values['First Name'] + ' ' + member.values['Last Name'],
               note: getLatestHistory(member.values['Notes History'])
                 ? getLatestHistory(member.values['Notes History']).note
                 : '',
+              attentionRequired: member.values['Is New Reply Received'],
             });
           }
         }
       });
     } else if (duration === 'All Tasks') {
       allMembers.forEach(member => {
-        if (member.values['Reminder Date']) {
+        if (member.values['Reminder Date'] || member.values['Is New Reply Received']==="true") {
           members[members.length] = {
             _id: member['id'],
-            date: member.values['Reminder Date'],
+            date: (member.values['Reminder Date']!==undefined ? moment(member.values['Reminder Date']).format('L LT') : moment().format('L LT')),
             name:
               member.values['First Name'] + ' ' + member.values['Last Name'],
             note: getLatestHistory(member.values['Notes History'])
               ? getLatestHistory(member.values['Notes History']).note
               : '',
+            attentionRequired: member.values['Is New Reply Received'],
           };
         }
       });
@@ -454,6 +487,16 @@ export class TasksDetail extends Component {
 
   getMemberTasksColumns(allMembers) {
     return [
+      {
+        width: 30,
+        Cell: row => (
+            <SVGInline svg={attentionRequired}
+            className={
+              row.original.attentionRequired === 'true' ? 'attention icon' : 'attention icon hide'
+            }
+            />
+        ),
+      },
       {
         accessor: 'date',
         width: 60,
@@ -519,7 +562,7 @@ export class TasksDetail extends Component {
           _id: lead['id'],
           name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
           lastContact: moment(lead.values['Last Contact']).format('L LT'),
-          isNewReplyReceived: lead.values['Is New Reply Received']
+          attentionRequired: lead.values['Is New Reply Received'],
         });
       }
     });
@@ -546,13 +589,36 @@ export class TasksDetail extends Component {
     let tasks = this.state.tasks;
     let memberTasks = this.state.memberTasksData;
     let allLeads = this.state.allLeads;
+    if (this.state.attentionRequiredOnly) {
+      tasks = tasks.filter(row => {
+        return (
+          row.attentionRequired==="true"
+            ? true
+            : false
+        );
+      });
+      memberTasks = memberTasks.filter(row => {
+        return (
+          row.attentionRequired==="true"
+            ? true
+            : false
+        );
+      });
+      allLeads = allLeads.filter(row => {
+        return (
+          row.attentionRequired==="true"
+            ? true
+            : false
+        );
+      });
+    }
+
     if (this.state.leadSearchValue) {
       tasks = tasks.filter(row => {
         return (
           row.name
             .toUpperCase()
             .includes(this.state.leadSearchValue.toUpperCase()) ||
-          row.date.includes(this.state.leadSearchValue) ||
           (row.note !== undefined
             ? row.note
                 .toUpperCase()
@@ -565,7 +631,6 @@ export class TasksDetail extends Component {
           row.name
             .toUpperCase()
             .includes(this.state.leadSearchValue.toUpperCase()) ||
-          row.date.includes(this.state.leadSearchValue) ||
           (row.note !== undefined
             ? row.note
                 .toUpperCase()
@@ -610,6 +675,20 @@ export class TasksDetail extends Component {
                   this.setState({ leadSearchValue: e.target.value });
                 }}
               />
+              <button
+                id="attentionRequiredOnly"
+                type="button"
+                className={this.state.attentionRequiredOnly ? "attentionRequiredOnly Active" : "attentionRequiredOnly"}
+                onClick={e => {
+                  this.setState({ attentionRequiredOnly: (this.state.attentionRequiredOnly ? false : true)});
+                }}
+              >
+                <SVGInline svg={attentionRequired}
+                className={'attention icon'}
+                />
+                Show Attention Required
+              </button>
+
             </div>
           </div>
         </div>
@@ -719,6 +798,11 @@ export class LeadsDetail extends Component {
             to={`/LeadDetail/${row.original['_id']}`}
             className={(row.original.isNewReplyReceived === 'true' ? 'newReplyReceived ' : '') + 'leadDetailAnchor'}
           >
+            <SVGInline svg={attentionRequired}
+            className={
+              row.original.attentionRequired === 'true' ? 'attention icon' : 'attention icon hide'
+            }
+            />
             {row.original.name}
           </NavLink>
         ),
@@ -1656,6 +1740,7 @@ export const LeadsView = ({ allLeads, saveLead, fetchLeads, allMembers }) => (
 function tick(mythis) {
   console.log('Ticking ...' + mythis);
   mythis.props.fetchLeads();
+  mythis.props.fetchMembers();
 }
 export const LeadsContainer = compose(
   connect(

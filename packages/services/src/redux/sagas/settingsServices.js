@@ -7,7 +7,7 @@ import { CoreAPI } from 'react-kinetic-core';
 
 const SERVICES_SETTING_INCLUDES = 'formTypes,attributesMap,forms,forms.details';
 const TEAMS_SETTING_INCLUDES = 'teams';
-const SPACE_SETTING_INCLUDES = 'kapps,kapps.forms,attributesMap';
+const SPACE_SETTING_INCLUDES = 'kapps,kapps.forms,attributes,attributesMap';
 
 export function* fetchServicesSettingsSaga({ payload }) {
   const [{ serverError, kapp }, manageableForms] = yield all([

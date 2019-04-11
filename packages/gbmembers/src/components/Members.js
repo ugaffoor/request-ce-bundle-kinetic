@@ -3,6 +3,8 @@ import React from 'react';
 import ReactTable from 'react-table';
 import 'react-table/react-table.css';
 import { KappNavLink as NavLink } from 'common';
+import SVGInline from 'react-svg-inline';
+import attentionRequired from '../images/flag.svg?raw';
 
 export class Members extends React.Component {
   constructor(props) {
@@ -25,8 +27,8 @@ export class Members extends React.Component {
   }
 
   compare(member1, member2) {
-    if (member1['Last Name'] < member2['Last Name']) return -1;
-    if (member1['Last Name'] > member2['Last Name']) return 1;
+    if ((member1['Last Name']+member1['First Name']).toLowerCase() < (member2['Last Name']+member2['First Name']).toLowerCase()) return -1;
+    if ((member1['Last Name']+member1['First Name']).toLowerCase() > (member2['Last Name']+member2['First Name']).toLowerCase()) return 1;
     return 0;
   }
 
@@ -37,6 +39,11 @@ export class Members extends React.Component {
         className={cellInfo.original['Status'] + ' nav-link icon-wrapper' + (cellInfo.original['Is New Reply Received'] === 'true' ? ' newReplyReceived' : '')}
         activeClassName="active"
       >
+        <SVGInline svg={attentionRequired}
+        className={
+          cellInfo.original['Is New Reply Received'] === 'true' ? 'attention icon' : 'attention icon hide'
+        }
+        />
         {cellInfo.original['Last Name']}
         &nbsp;
         {cellInfo.original['First Name']}
@@ -83,7 +90,7 @@ export class Members extends React.Component {
                   .includes(filter.value.toLowerCase()),
             },
           ]}
-          defaultPageSize={100}
+          defaultPageSize={1000}
           className="-striped -highlight"
         />
       </div>

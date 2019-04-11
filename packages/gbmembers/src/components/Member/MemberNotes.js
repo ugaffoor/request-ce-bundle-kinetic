@@ -17,16 +17,24 @@ import ReactTable from 'react-table';
 import 'react-datetime/css/react-datetime.css';
 import phone from '../../images/phone.png';
 import { StatusMessagesContainer } from '../StatusMessages';
+import { EmailsReceived } from './EmailsReceived';
+import { MemberEmails } from './MemberEmails';
+import { actions as campaignActions } from '../../redux/modules/campaigns';
+import { SMSModalContainer } from './SMSModalContainer';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   memberItem: state.member.members.currentMember,
+  campaignItem: state.member.campaigns.campaignItem,
+  campaignLoading: state.member.campaigns.campaignLoading,
   currentMemberLoading: state.member.members.currentMemberLoading,
+  space: state.member.app.space,
 });
 const mapDispatchToProps = {
   updateMember: actions.updateMember,
   fetchCurrentMember: actions.fetchCurrentMember,
   fetchMembers: actions.fetchMembers,
+  fetchCampaign: campaignActions.fetchCampaign,
 };
 
 const Datetime = require('react-datetime');
@@ -237,6 +245,30 @@ export class MemberNotesHome extends Component {
                   defaultValue={moment()}
                 />
               </li>
+              <li>
+                <NavLink
+                  to={`/NewManualCampaign/${this.props.memberItem['id']}/lead`}
+                  className="btn btn-primary"
+                >
+                  Send Email
+                </NavLink>
+              </li>
+              <li>
+                <a
+                  onClick={e => this.props.setShowSMSModal(true)}
+                  className="btn btn-primary"
+                  style={{ marginLeft: '10px', color: 'white' }}
+                >
+                  Send SMS
+                </a>
+                {this.props.showSMSModal && (
+                  <SMSModalContainer
+                    submission={this.props.memberItem}
+                    target="Leads"
+                    setShowSMSModal={this.props.setShowSMSModal}
+                  />
+                )}
+              </li>
             </ul>
           </div>
           <div className="card-body">
@@ -295,6 +327,18 @@ export class MemberNotesHome extends Component {
             />
           </div>
         </div>
+        <div>
+          <MemberEmails
+            memberItem={this.props.memberItem}
+            fetchCampaign={this.props.fetchCampaign}
+            campaignItem={this.props.campaignItem}
+            campaignLoading={this.props.campaignLoading}
+            space={this.props.space}
+          />
+        </div>
+        <div>
+          <EmailsReceived submission={this.props.memberItem} />
+        </div>
       </div>
     );
   }
@@ -304,11 +348,25 @@ export const MemberNotesView = ({
   memberItem,
   saveMember,
   currentMemberLoading,
+  fetchCampaign,
+  campaignItem,
+  campaignLoading,
+  space,
+  setShowSMSModal,
+  showSMSModal,
 }) =>
   currentMemberLoading ? (
     <div />
   ) : (
-    <MemberNotesHome memberItem={memberItem} saveMember={saveMember} />
+    <MemberNotesHome
+      memberItem={memberItem} saveMember={saveMember}
+      fetchCampaign={fetchCampaign}
+      campaignItem={campaignItem}
+      campaignLoading={campaignLoading}
+      space={space}
+      setShowSMSModal={setShowSMSModal}
+      showSMSModal={showSMSModal}
+    />
   );
 
 export const MemberNotesContainer = compose(
@@ -320,6 +378,7 @@ export const MemberNotesContainer = compose(
     return {};
   }),
   withState('isDirty', 'setIsDirty', false),
+  withState('showSMSModal', 'setShowSMSModal', false),
   withHandlers({
     saveMember: ({
       memberItem,

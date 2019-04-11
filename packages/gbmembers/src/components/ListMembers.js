@@ -3,6 +3,8 @@ import React from 'react';
 import ReactTable from 'react-table';
 import 'react-table/react-table.css';
 import { KappNavLink as NavLink } from 'common';
+import SVGInline from 'react-svg-inline';
+import attentionRequired from '../images/flag.svg?raw';
 
 export class ListMembers extends React.Component {
   constructor(props) {
@@ -63,6 +65,11 @@ export class ListMembers extends React.Component {
         className={cellInfo.original['Status'] + ' nav-link icon-wrapper' + (cellInfo.original['Is New Reply Received'] === 'true' ? ' newReplyReceived' : '')}
         activeClassName="active"
       >
+        <SVGInline svg={attentionRequired}
+        className={
+          cellInfo.original['Is New Reply Received'] === 'true' ? 'attention icon' : 'attention icon hide'
+        }
+        />
         {cellInfo.original['Last Name']}
         &nbsp;
         {cellInfo.original['First Name']}

@@ -41,7 +41,6 @@ export function* fetchCurrentLead(action) {
     const LEAD_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
       .eq('values[Lead ID]', action.payload.id)
       .eq('values[Type]', 'Email')
-      .eq('values[Direction]', 'Inbound')
       .include(['details', 'values'])
       .limit(1000)
       .build();

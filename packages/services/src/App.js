@@ -2,7 +2,7 @@ import React, { Fragment } from 'react';
 import { connect } from 'react-redux';
 import { matchPath, Switch } from 'react-router-dom';
 import { compose, lifecycle, withHandlers, withProps } from 'recompose';
-import { KappRoute as Route, KappRedirect as Redirect, Loading } from 'common';
+import { KappRoute as Route, KappRedirect as Redirect, Loading, Utils } from 'common';
 import { actions as categoriesActions } from './redux/modules/categories';
 import { actions as formsActions } from './redux/modules/forms';
 import { actions as submissionsActions } from './redux/modules/submissions';
@@ -19,7 +19,6 @@ import { RequestListContainer } from './components/request_list/RequestListConta
 import { RequestShowContainer } from './components/request/RequestShowContainer';
 import { Settings } from './components/settings/Settings';
 import { displayableFormPredicate } from './utils';
-import { PaySmartRegistrationFormContainer } from './components/form/PaySmartRegistrationFormContainer';
 
 import './assets/styles/master.scss';
 
@@ -36,6 +35,11 @@ const mapStateToProps = (state, props) => {
     systemError: state.services.systemError,
     pathname: state.router.location.pathname,
     settingsBackPath: state.space.spaceApp.settingsBackPath || '/',
+    companyLogoURL: Utils.getAttributeValue(
+      state.app.space,
+      'Company Logo',
+      '',
+    ),
   };
 };
 
@@ -138,6 +142,11 @@ export const AppComponent = props => {
           exact
           path="/requests/:type?/request/:submissionId/:mode"
           component={RequestShowContainer}
+        />
+        <img
+          src={props.companyLogoURL}
+          alt="Company Logo"
+          className="companyLogo"
         />
       </main>
     ),

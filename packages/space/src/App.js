@@ -98,6 +98,11 @@ export const AppComponent = props => {
             <Route path="/reset-password" render={() => <Redirect to="/" />} />
             <Route component={ErrorNotFound} />
           </Switch>
+          <img
+            src={props.companyLogoURL}
+            alt="Company Logo"
+            className="companyLogo"
+          />
         </main>
       </Fragment>
     ),
@@ -116,6 +121,11 @@ export const mapStateToProps = state => ({
   isGuest: selectors.selectIsGuest(state),
   pathname: state.router.location.pathname,
   settingsBackPath: state.space.spaceApp.settingsBackPath || '/',
+  companyLogoURL: Utils.getAttributeValue(
+    state.app.space,
+    'Company Logo',
+    '',
+  ),
 });
 const mapDispatchToProps = {
   fetchSettings: actions.fetchAppSettings,

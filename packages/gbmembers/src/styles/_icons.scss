@@ -24,3 +24,13 @@
     display: flex;
   }
 }
+
+span.SVGInline.attention.icon .icon-svg path {
+    fill: orange;
+}
+span.SVGInline.attention.icon {
+    padding-right: 4px;
+}
+span.SVGInline.attention.hide{
+  display: none;
+}
