@@ -4,6 +4,8 @@ import { types, actions } from '../modules/messaging';
 import { actions as errorActions } from '../modules/errors';
 import axios from 'axios';
 
+export const SUBMISSION_INCLUDES =
+  'details,values,attributes,form,children,children.details,children.form,children.values,form.attributes';
 export const getAppSettings = state => state.member.app;
 const sendSmsUrl = '/send_sms';
 const getAccountCreditUrl = '/account_credit';
@@ -11,9 +13,10 @@ const util = require('util');
 
 export function* sendSms(action) {
   const appSettings = yield select(getAppSettings);
+  let status = null;
   var args = {
     space: appSettings.spaceSlug,
-    toNumber: '61' + action.payload.sms.to,
+    toNumber: '91' + action.payload.sms.to,
     text: action.payload.sms.text,
     target: action.payload.target,
   };
@@ -38,20 +41,21 @@ export function* sendSms(action) {
           'Send SMS',
         );*/
         if (action.payload.target === 'Member') {
-          action.payload.updateMember({
-            id: action.payload.memberItem['id'],
-            memberItem: action.payload.memberItem,
-            fetchMember: action.payload.fetchMember,
-            myThis: this,
-          });
+          let memberActivities = {values: {}};
+          memberActivities.values['Member ID'] = action.payload.memberItem['id'];
+          memberActivities.values['Type'] = 'SMS';
+          memberActivities.values['Direction'] = 'Outbound';
+          memberActivities.values['Content'] = {'To': action.payload.sms.to, 'Content': action.payload.sms.text, 'Sent Date': moment().format('DD-MM-YYYY hh:mm')};
+          action.payload.createMemberActivities({memberActivities});
         } else if (action.payload.target === 'Leads') {
-          action.payload.updateLead({
-            id: action.payload.leadItem['id'],
-            leadItem: action.payload.leadItem,
-            fetchLead: action.payload.fetchLead,
-            myThis: this,
-          });
+          let leadActivities = {values: {}};
+          leadActivities.values['Lead ID'] = action.payload.leadItem['id'];
+          leadActivities.values['Type'] = 'SMS';
+          leadActivities.values['Direction'] = 'Outbound';
+          leadActivities.values['Content'] = {'To': action.payload.sms.to, 'Content': action.payload.sms.text, 'Sent Date': moment().format('DD-MM-YYYY hh:mm')};
+          action.payload.createLeadActivities({leadActivities});
         }
+
       }
     })
     .catch(error => {
@@ -90,7 +94,39 @@ export function* getAccountCredit(action) {
     });
 }
 
+export function* createMemberActivities(action) {
+  try {
+    const { submission } = yield call(CoreAPI.createSubmission, {
+      kappSlug: 'gbmembers',
+      formSlug: 'member-activities',
+      values: action.payload.memberActivities.values,
+      completed: false,
+      include: SUBMISSION_INCLUDES
+    });
+  } catch (error) {
+    console.log('Error in createMemberActivities: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
+
+export function* createLeadActivities(action) {
+  try {
+    const { submission } = yield call(CoreAPI.createSubmission, {
+      kappSlug: 'gbmembers',
+      formSlug: 'lead-activities',
+      values: action.payload.leadActivities.values,
+      completed: false,
+      include: SUBMISSION_INCLUDES
+    });
+  } catch (error) {
+    console.log('Error in createLeadActivities: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
+
 export function* watchMessaging() {
   yield takeEvery(types.SEND_SMS, sendSms);
   yield takeEvery(types.GET_ACCOUNT_CREDIT, getAccountCredit);
+  yield takeEvery(types.CREATE_MEMBER_ACTIVITIES, createMemberActivities);
+  yield takeEvery(types.CREATE_LEAD_ACTIVITIES, createLeadActivities);
 }
