@@ -16,7 +16,7 @@ export function* sendSms(action) {
   let status = null;
   var args = {
     space: appSettings.spaceSlug,
-    toNumber: '61' + action.payload.sms.to,
+    toNumber: action.payload.sms.to,
     text: action.payload.sms.text,
     target: action.payload.target,
   };
