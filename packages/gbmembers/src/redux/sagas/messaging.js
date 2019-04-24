@@ -19,6 +19,7 @@ export function* sendSms(action) {
     toNumber: action.payload.sms.to,
     text: action.payload.sms.text,
     target: action.payload.target,
+    submissionId: action.payload['id']
   };
   axios
     .post(
