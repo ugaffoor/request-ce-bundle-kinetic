@@ -5,12 +5,16 @@ export const types = {
   SEND_SMS: namespace('messaging', 'SEND_SMS'),
   GET_ACCOUNT_CREDIT: namespace('messaging', 'GET_ACCOUNT_CREDIT'),
   SET_ACCOUNT_CREDIT: namespace('messaging', 'SET_ACCOUNT_CREDIT'),
+  CREATE_MEMBER_ACTIVITIES: namespace('messaging', 'CREATE_MEMBER_ACTIVITIES'),
+  CREATE_LEAD_ACTIVITIES: namespace('messaging', 'CREATE_LEAD_ACTIVITIES')
 };
 
 export const actions = {
   sendSms: withPayload(types.SEND_SMS),
   getAccountCredit: withPayload(types.GET_ACCOUNT_CREDIT),
   setAccountCredit: withPayload(types.SET_ACCOUNT_CREDIT),
+  createMemberActivities: withPayload(types.CREATE_MEMBER_ACTIVITIES),
+  createLeadActivities: withPayload(types.CREATE_LEAD_ACTIVITIES)
 };
 
 export const State = Record({

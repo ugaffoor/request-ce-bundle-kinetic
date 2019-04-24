@@ -32,6 +32,8 @@ const mapDispatchToProps = {
   sendSms: messagingActions.sendSms,
   getAccountCredit: messagingActions.getAccountCredit,
   setAccountCredit: messagingActions.setAccountCredit,
+  createMemberActivities: messagingActions.createMemberActivities,
+  createLeadActivities: messagingActions.createLeadActivities,
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
 };
@@ -249,8 +251,8 @@ const enhance = compose(
     sendSmsMessage: ({
       submission,
       sendSms,
-      updateMember,
-      updateLead,
+      createLeadActivities,
+      createMemberActivities,
       fetchCurrentMember,
       fetchLead,
       target,
@@ -262,36 +264,26 @@ const enhance = compose(
         return;
       }
 
-      let messages = submission.values['SMS Messages'];
-      if (!messages) {
-        messages = [];
-      } else if (typeof messages !== 'object') {
-        messages = JSON.parse(messages);
-      }
-
-      messages.push(sms);
-      submission.values['SMS Messages'] = messages;
-
       if (target === 'Member') {
         sendSms({
           sms: sms,
           target: target,
           id: submission['id'],
           memberItem: submission,
+          createMemberActivities: createMemberActivities,
           fetchMember: fetchCurrentMember,
-          updateMember: updateMember,
           addNotification: addNotification,
           setSystemError: setSystemError,
           myThis: this,
         });
       } else if (target === 'Leads') {
-        updateLead({
+        sendSms({
           sms: sms,
           target: target,
           id: submission['id'],
           leadItem: submission,
+          createLeadActivities: createLeadActivities,
           fetchLead: fetchLead,
-          updateLead: updateLead,
           addNotification: addNotification,
           setSystemError: setSystemError,
           myThis: this,
