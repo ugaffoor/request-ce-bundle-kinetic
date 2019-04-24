@@ -1,7 +1,7 @@
 import { select, call, put, takeEvery } from 'redux-saga/effects';
 import { CoreAPI } from 'react-kinetic-core';
 import { types, actions } from '../modules/messaging';
-import { actions as errorActions } from '../modules/errors';
+import { actions as errorActions, NOTICE_TYPES } from '../modules/errors';
 import axios from 'axios';
 
 export const SUBMISSION_INCLUDES =
@@ -36,11 +36,6 @@ export function* sendSms(action) {
         );
       } else {
         console.log(result.data.data);
-        /*action.payload.addNotification(
-          NOTICE_TYPES.SUCCESS,
-          'SMS queued successfully',
-          'Send SMS',
-        );*/
         if (action.payload.target === 'Member') {
           let memberActivities = {values: {}};
           memberActivities.values['Member ID'] = action.payload.memberItem['id'];
@@ -56,11 +51,16 @@ export function* sendSms(action) {
           leadActivities.values['Content'] = {'To': action.payload.sms.to, 'Content': action.payload.sms.text, 'Sent Date': moment().format('DD-MM-YYYY hh:mm')};
           action.payload.createLeadActivities({leadActivities});
         }
-
+        action.payload.addNotification(
+          NOTICE_TYPES.SUCCESS,
+          'SMS queued successfully',
+          'Send SMS',
+        );
+        action.payload.smsInputElm.val('');
       }
     })
     .catch(error => {
-      console.log(error.response);
+      console.log(error);
       //action.payload.setSystemError(error);
     });
 }

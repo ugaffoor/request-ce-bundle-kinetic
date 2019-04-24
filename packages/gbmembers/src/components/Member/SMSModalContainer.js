@@ -83,27 +83,28 @@ export class SMSModal extends Component {
 
   getMessages(submission) {
     let sms_msgs = [];
-    if (!submission.values['SMS Messages']) {
+    if (!submission.smsContent) {
       return null;
     }
     let messageHistory = [];
-    if (typeof submission.values['SMS Messages'] !== 'object') {
-      messageHistory = JSON.parse(submission.values['SMS Messages']);
+    if (typeof submission.smsContent !== 'object') {
+      messageHistory = JSON.parse(submission.smsContent);
     } else {
-      messageHistory = submission.values['SMS Messages'];
+      messageHistory = submission.smsContent;
     }
 
     messageHistory.forEach((msg, index) => {
-      if (msg.type === 'outbound') {
+      let content = JSON.parse(msg.values.Content);
+      if (msg.values.Direction === 'Outbound') {
         sms_msgs.push(
           <div className="outgoing_msg" key={index}>
             <div className="sent_msg">
-              <p>{msg.text}</p>
-              <span className="time_date">{msg.datetime}</span>{' '}
+              <p>{content['Content']}</p>
+              <span className="time_date">{content['Sent Date']}</span>{' '}
             </div>
           </div>,
         );
-      } else if (msg.type === 'inbound') {
+      } else if (msg.values.Direction === 'Inbound') {
         sms_msgs.push(
           <div className="incoming_msg" key={index}>
             <div className="incoming_msg_img">
@@ -112,8 +113,8 @@ export class SMSModal extends Component {
             </div>
             <div className="received_msg">
               <div className="received_withd_msg">
-                <p>{msg.text}</p>
-                <span className="time_date">{msg.datetime}</span>
+                <p>{content['Content']}</p>
+                <span className="time_date">{content['Received Date']}</span>
               </div>
             </div>
           </div>,
@@ -275,6 +276,7 @@ const enhance = compose(
           addNotification: addNotification,
           setSystemError: setSystemError,
           myThis: this,
+          smsInputElm: $('#sms_text')
         });
       } else if (target === 'Leads') {
         sendSms({
@@ -287,6 +289,7 @@ const enhance = compose(
           addNotification: addNotification,
           setSystemError: setSystemError,
           myThis: this,
+          smsInputElm: $('#sms_text')
         });
       }
     },

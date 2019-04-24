@@ -86,6 +86,7 @@ export function* fetchCurrentMember(action) {
     // Add Email Sent/Recieved submissions
     let emailSentContent = [];
     let emailReceivedContent = [];
+    let smsContent = [];
     let requestContent = [];
     for (let i = 0; i < memberActivities.submissions.length; i++) {
       if (
@@ -105,6 +106,11 @@ export function* fetchCurrentMember(action) {
         );
       }
       if (
+        memberActivities.submissions[i].values['Type'] === 'SMS'
+      ) {
+        smsContent[smsContent.length] = memberActivities.submissions[i];
+      }
+      if (
         memberActivities.submissions[i].values['Type'] === 'Request' &&
         memberActivities.submissions[i].values['Direction'] === 'Inbound'
       ) {
@@ -113,8 +119,10 @@ export function* fetchCurrentMember(action) {
         );
       }
     }
+
     submission.submission.emailsReceived = emailReceivedContent;
     submission.submission.emailsSent = emailSentContent;
+    submission.submission.smsContent = smsContent;
     submission.submission.requestContent = requestContent;
     yield put(actions.setCurrentMember(submission.submission));
     /*
