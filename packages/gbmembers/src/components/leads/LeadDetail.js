@@ -32,6 +32,7 @@ import ReactSpinner from 'react16-spinjs';
 import { CallScriptModalContainer } from '../Member/CallScriptModalContainer';
 import { SMSModalContainer } from '../Member/SMSModalContainer';
 import { EmailsReceived } from '../Member/EmailsReceived';
+import { Requests } from '../Member/Requests';
 
 const mapStateToProps = state => ({
   profile: state.app.profile,
@@ -563,6 +564,9 @@ export class LeadDetail extends Component {
         <div>
           <EmailsReceived submission={this.props.leadItem} />
         </div>
+        <div>
+          <Requests submission={this.props.leadItem} />
+        </div>
       </div>
     );
   }
@@ -633,7 +637,7 @@ export const LeadDetailContainer = compose(
       updateLead,
       fetchLeads,
       addNotification,
-      setSystemError
+      setSystemError,
     }) => () => {
       leadItem.values['Is New Reply Received'] = false;
       updateLead({
@@ -641,9 +645,9 @@ export const LeadDetailContainer = compose(
         leadItem,
         //fetchLeads,
         addNotification,
-        setSystemError
+        setSystemError,
       });
-    }
+    },
   }),
   lifecycle({
     componentWillMount() {
@@ -662,7 +666,10 @@ export const LeadDetailContainer = compose(
         });
       }
 
-      if (nextProps.leadItem.values && nextProps.leadItem.values['Is New Reply Received'] === 'true') {
+      if (
+        nextProps.leadItem.values &&
+        nextProps.leadItem.values['Is New Reply Received'] === 'true'
+      ) {
         this.props.updateIsNewReplyReceived();
       }
     },

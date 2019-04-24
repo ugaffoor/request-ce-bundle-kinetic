@@ -3,7 +3,7 @@ import ReactTable from 'react-table';
 import { email_received_date_format } from '../leads/LeadsUtils';
 import moment from 'moment';
 
-export class EmailsReceived extends Component {
+export class Requests extends Component {
   constructor(props) {
     super(props);
     const data = this.getData(this.props.submission);
@@ -20,29 +20,37 @@ export class EmailsReceived extends Component {
 
   getColumns() {
     return [
-      { accessor: 'Subject', Header: 'Subject' },
-      { accessor: 'Received Date', Header: 'Received Date' },
+      {
+        accessor: 'Date',
+        Header: 'Submitted Date',
+        Cell: props => moment(props.value).format(email_received_date_format),
+      },
+      { accessor: 'Form', Header: 'Form Name' },
+      {
+        accessor: 'url',
+        Cell: props => <a href={props.value}>Review</a>,
+      },
     ];
   }
 
   getData(submission) {
-    let emails = submission.emailsReceived;
-    if (!emails) {
+    let requests = submission.requestContent;
+    if (!requests || requests.length === 0) {
       return [];
-    } else if (typeof emails !== 'object') {
-      emails = JSON.parse(emails);
+    } else if (typeof requests !== 'object') {
+      requests = JSON.parse(requests);
     }
 
-    return emails.sort(function(email1, email2) {
+    return requests.sort(function(request1, request2) {
       if (
-        moment(email1['Received Date'], email_received_date_format).isAfter(
-          moment(email2['Received Date'], email_received_date_format),
+        moment(request1['Date'], email_received_date_format).isAfter(
+          moment(request2['Date'], email_received_date_format),
         )
       ) {
         return -1;
       } else if (
-        moment(email1['Received Date'], email_received_date_format).isBefore(
-          moment(email2['Received Date'], email_received_date_format),
+        moment(request1['Date'], email_received_date_format).isBefore(
+          moment(request2['Date'], email_received_date_format),
         )
       ) {
         return 1;
@@ -56,7 +64,7 @@ export class EmailsReceived extends Component {
       <div className="row">
         <div className="col-sm-12">
           <span style={{ width: '100%' }}>
-            <h3>Emails Received</h3>
+            <h3>Requests</h3>
             <ReactTable
               columns={this._columns}
               data={this.state.data}
@@ -66,15 +74,6 @@ export class EmailsReceived extends Component {
               pageSize={this.state.data.length > 0 ? this.state.data.length : 2}
               showPagination={false}
               width={500}
-              SubComponent={row => {
-                return (
-                  <div style={{ padding: '20px', textAlign: 'left' }}>
-                    <div
-                      dangerouslySetInnerHTML={{ __html: row.original.Content }}
-                    />
-                  </div>
-                );
-              }}
             />
           </span>
         </div>
@@ -83,4 +82,4 @@ export class EmailsReceived extends Component {
   }
 }
 
-export default EmailsReceived;
+export default Requests;

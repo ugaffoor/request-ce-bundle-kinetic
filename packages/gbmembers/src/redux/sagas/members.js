@@ -61,7 +61,6 @@ export function* fetchCurrentMember(action) {
   try {
     const MEMBER_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
       .eq('values[Member ID]', action.payload.id)
-      .eq('values[Type]', 'Email')
       .include(['details', 'values'])
       .limit(1000)
       .build();
@@ -87,20 +86,36 @@ export function* fetchCurrentMember(action) {
     // Add Email Sent/Recieved submissions
     let emailSentContent = [];
     let emailReceivedContent = [];
+    let requestContent = [];
     for (let i = 0; i < memberActivities.submissions.length; i++) {
-      if (memberActivities.submissions[i].values['Direction'] === 'Outbound') {
+      if (
+        memberActivities.submissions[i].values['Type'] === 'Email' &&
+        memberActivities.submissions[i].values['Direction'] === 'Outbound'
+      ) {
         emailSentContent[emailSentContent.length] = JSON.parse(
           memberActivities.submissions[i].values['Content'],
         );
       }
-      if (memberActivities.submissions[i].values['Direction'] === 'Inbound') {
+      if (
+        memberActivities.submissions[i].values['Type'] === 'Email' &&
+        memberActivities.submissions[i].values['Direction'] === 'Inbound'
+      ) {
         emailReceivedContent[emailReceivedContent.length] = JSON.parse(
+          memberActivities.submissions[i].values['Content'],
+        );
+      }
+      if (
+        memberActivities.submissions[i].values['Type'] === 'Request' &&
+        memberActivities.submissions[i].values['Direction'] === 'Inbound'
+      ) {
+        requestContent[requestContent.length] = JSON.parse(
           memberActivities.submissions[i].values['Content'],
         );
       }
     }
     submission.submission.emailsReceived = emailReceivedContent;
     submission.submission.emailsSent = emailSentContent;
+    submission.submission.requestContent = requestContent;
     yield put(actions.setCurrentMember(submission.submission));
     /*
 

@@ -30,6 +30,7 @@ import { CallScriptModalContainer } from './CallScriptModalContainer';
 import { SMSModalContainer } from './SMSModalContainer';
 import { EmailsReceived } from './EmailsReceived';
 import { MemberEmails } from './MemberEmails';
+import { Requests } from './Requests';
 import { actions as campaignActions } from '../../redux/modules/campaigns';
 
 const mapStateToProps = state => ({
@@ -522,6 +523,9 @@ export const MemberView = ({
       </div>
       <div>
         <EmailsReceived submission={memberItem} />
+      </div>
+      <div>
+        <Requests submission={memberItem} />
       </div>
     </div>
   );

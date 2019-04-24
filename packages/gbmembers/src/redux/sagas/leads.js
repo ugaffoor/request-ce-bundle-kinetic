@@ -40,7 +40,6 @@ export function* fetchCurrentLead(action) {
   try {
     const LEAD_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
       .eq('values[Lead ID]', action.payload.id)
-      .eq('values[Type]', 'Email')
       .include(['details', 'values'])
       .limit(1000)
       .build();
@@ -64,20 +63,36 @@ export function* fetchCurrentLead(action) {
     // Add Email Sent/Recieved submissions
     let emailSentContent = [];
     let emailReceivedContent = [];
+    let requestContent = [];
     for (let i = 0; i < leadActivities.submissions.length; i++) {
-      if (leadActivities.submissions[i].values['Direction'] === 'Outbound') {
+      if (
+        leadActivities.submissions[i].values['Type'] === 'Email' &&
+        leadActivities.submissions[i].values['Direction'] === 'Outbound'
+      ) {
         emailSentContent[emailSentContent.length] = JSON.parse(
           leadActivities.submissions[i].values['Content'],
         );
       }
-      if (leadActivities.submissions[i].values['Direction'] === 'Inbound') {
+      if (
+        leadActivities.submissions[i].values['Type'] === 'Email' &&
+        leadActivities.submissions[i].values['Direction'] === 'Inbound'
+      ) {
         emailReceivedContent[emailReceivedContent.length] = JSON.parse(
+          leadActivities.submissions[i].values['Content'],
+        );
+      }
+      if (
+        leadActivities.submissions[i].values['Type'] === 'Request' &&
+        leadActivities.submissions[i].values['Direction'] === 'Inbound'
+      ) {
+        requestContent[requestContent.length] = JSON.parse(
           leadActivities.submissions[i].values['Content'],
         );
       }
     }
     submission.submission.emailsReceived = emailReceivedContent;
     submission.submission.emailsSent = emailSentContent;
+    submission.submission.requestContent = requestContent;
     yield put(actions.setCurrentLead(submission.submission));
   } catch (error) {
     console.log('Error in fetchCurrentLead: ' + util.inspect(error));
