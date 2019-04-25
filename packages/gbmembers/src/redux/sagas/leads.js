@@ -63,6 +63,7 @@ export function* fetchCurrentLead(action) {
     // Add Email Sent/Recieved submissions
     let emailSentContent = [];
     let emailReceivedContent = [];
+    let smsContent = [];
     let requestContent = [];
     for (let i = 0; i < leadActivities.submissions.length; i++) {
       if (
@@ -82,6 +83,11 @@ export function* fetchCurrentLead(action) {
         );
       }
       if (
+        leadActivities.submissions[i].values['Type'] === 'SMS'
+      ) {
+          smsContent[smsContent.length] = leadActivities.submissions[i];
+      }
+      if (
         leadActivities.submissions[i].values['Type'] === 'Request' &&
         leadActivities.submissions[i].values['Direction'] === 'Inbound'
       ) {
@@ -92,6 +98,7 @@ export function* fetchCurrentLead(action) {
     }
     submission.submission.emailsReceived = emailReceivedContent;
     submission.submission.emailsSent = emailSentContent;
+    submission.submission.smsContent = smsContent;
     submission.submission.requestContent = requestContent;
     yield put(actions.setCurrentLead(submission.submission));
   } catch (error) {
