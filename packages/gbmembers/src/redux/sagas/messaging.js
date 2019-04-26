@@ -42,14 +42,14 @@ export function* sendSms(action) {
           memberActivities.values['Type'] = 'SMS';
           memberActivities.values['Direction'] = 'Outbound';
           memberActivities.values['Content'] = {'To': action.payload.sms.to, 'Content': action.payload.sms.text, 'Sent Date': moment().format('DD-MM-YYYY hh:mm')};
-          action.payload.createMemberActivities({memberActivities});
+          action.payload.createMemberActivities({memberActivities, id: action.payload.id, myThis: action.payload.myThis, fetchMember: action.payload.fetchMember});
         } else if (action.payload.target === 'Leads') {
           let leadActivities = {values: {}};
           leadActivities.values['Lead ID'] = action.payload.leadItem['id'];
           leadActivities.values['Type'] = 'SMS';
           leadActivities.values['Direction'] = 'Outbound';
           leadActivities.values['Content'] = {'To': action.payload.sms.to, 'Content': action.payload.sms.text, 'Sent Date': moment().format('DD-MM-YYYY hh:mm')};
-          action.payload.createLeadActivities({leadActivities});
+          action.payload.createLeadActivities({leadActivities, id: action.payload.id, myThis: action.payload.myThis, fetchLead: action.payload.fetchLead});
         }
         action.payload.addNotification(
           NOTICE_TYPES.SUCCESS,
@@ -57,11 +57,6 @@ export function* sendSms(action) {
           'Send SMS',
         );
         action.payload.smsInputElm.val('');
-        if (action.payload.target === 'Member') {
-          action.payload.fetchMember({id: action.payload.id, myThis: action.payload.myThis})
-        } else if (action.payload.target === 'Leads') {
-          action.payload.fetchLead({id: action.payload.id, myThis: action.payload.myThis})
-        }
       }
     })
     .catch(error => {
@@ -109,6 +104,9 @@ export function* createMemberActivities(action) {
       completed: false,
       include: SUBMISSION_INCLUDES
     });
+    if(action.payload.fetchMember) {
+      action.payload.fetchMember({id: action.payload.id, myThis: action.payload.myThis});
+    }
   } catch (error) {
     console.log('Error in createMemberActivities: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));
@@ -124,6 +122,9 @@ export function* createLeadActivities(action) {
       completed: false,
       include: SUBMISSION_INCLUDES
     });
+    if(action.payload.fetchLead) {
+      action.payload.fetchLead({id: action.payload.id, myThis: action.payload.myThis});
+    }
   } catch (error) {
     console.log('Error in createLeadActivities: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));

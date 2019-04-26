@@ -226,7 +226,7 @@ export class SMSModal extends Component {
                             {this.state.messages &&
                             this.state.messages.length > 0
                               ? this.state.messages
-                              : 'No messages no show'}
+                              : 'No messages to show'}
                           </div>
                         </div>
                       </div>
@@ -247,7 +247,7 @@ const enhance = compose(
     mapStateToProps,
     mapDispatchToProps,
   ),
-  withState('showMessageHistory', 'setShowMessageHistory', false),
+  withState('showMessageHistory', 'setShowMessageHistory', true),
   withHandlers({
     sendSmsMessage: ({
       submission,
