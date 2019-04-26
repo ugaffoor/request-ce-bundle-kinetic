@@ -57,6 +57,11 @@ export function* sendSms(action) {
           'Send SMS',
         );
         action.payload.smsInputElm.val('');
+        if (action.payload.target === 'Member') {
+          action.payload.fetchMember({id: action.payload.id, myThis: action.payload.myThis})
+        } else if (action.payload.target === 'Leads') {
+          action.payload.fetchLead({id: action.payload.id, myThis: action.payload.myThis})
+        }
       }
     })
     .catch(error => {
