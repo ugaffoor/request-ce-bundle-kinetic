@@ -240,6 +240,7 @@ export function* fetchMemberAppSettingsTask() {
       kapp,
       space,
     )[0],
+    isSmsEnabled: getAttributeValue('SMS Enabled', '', kapp, space)[0],
     discussionServerUrl: `/${space.slug}/kinetic-response`,
     profile,
     space,

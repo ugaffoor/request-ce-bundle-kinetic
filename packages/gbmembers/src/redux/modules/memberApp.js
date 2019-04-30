@@ -38,6 +38,7 @@ export const State = Record({
   billingWidgetUrl: '',
   discussionServerUrl: '',
   billingCompany: '',
+  isSmsEnabled: false,
   ddrTemplates: List(),
   allTeams: List(),
   programs: List(),
@@ -67,6 +68,7 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('billingWidgetUrl', payload.billingWidgetUrl)
         .set('discussionServerUrl', payload.discussionServerUrl)
         .set('billingCompany', payload.billingCompany)
+        .set('isSmsEnabled', payload.isSmsEnabled === 'true' ? true : false)
         .set(
           'ddrTemplates',
           payload.ddrTemplates

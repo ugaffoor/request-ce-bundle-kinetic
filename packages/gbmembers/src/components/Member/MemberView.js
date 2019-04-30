@@ -45,6 +45,7 @@ const mapStateToProps = state => ({
   space: state.member.app.space,
   isBillingUser: state.member.teams.isBillingUser,
   isBillingUserLoading: state.member.teams.isBillingUserLoading,
+  isSmsEnabled: state.member.app.isSmsEnabled
 });
 
 const mapDispatchToProps = {
@@ -216,6 +217,7 @@ export const MemberView = ({
   showCallScriptModal,
   setShowSMSModal,
   showSMSModal,
+  isSmsEnabled
 }) =>
   currentMemberLoading ? (
     <div />
@@ -252,6 +254,7 @@ export const MemberView = ({
                 onClick={e => setShowSMSModal(true)}
                 className="btn btn-primary"
                 style={{ marginLeft: '10px', color: 'white' }}
+                disabled={!isSmsEnabled}
               >
                 Send SMS
               </a>

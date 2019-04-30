@@ -42,6 +42,7 @@ const mapStateToProps = state => ({
   campaignLoading: state.member.campaigns.campaignLoading,
   currentLeadLoading: state.member.leads.currentLeadLoading,
   space: state.member.app.space,
+  isSmsEnabled: state.member.app.isSmsEnabled
 });
 const mapDispatchToProps = {
   fetchLead: actions.fetchCurrentLead,
@@ -473,6 +474,7 @@ export class LeadDetail extends Component {
                   onClick={e => this.props.setShowSMSModal(true)}
                   className="btn btn-primary"
                   style={{ marginLeft: '10px', color: 'white' }}
+                  disabled={!this.props.isSmsEnabled}
                 >
                   Send SMS
                 </a>
@@ -584,6 +586,7 @@ export const LeadDetailView = ({
   showCallScriptModal,
   setShowSMSModal,
   showSMSModal,
+  isSmsEnabled
 }) =>
   currentLeadLoading ? (
     <div />
@@ -599,6 +602,7 @@ export const LeadDetailView = ({
       showCallScriptModal={showCallScriptModal}
       setShowSMSModal={setShowSMSModal}
       showSMSModal={showSMSModal}
+      isSmsEnabled={isSmsEnabled}
     />
   );
 
