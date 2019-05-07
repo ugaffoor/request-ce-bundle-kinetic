@@ -81,6 +81,17 @@ export const Header = ({ loading }) => (
           <span className="appName">Settings</span>
         </NavLink>
       </NavItem>
+      <NavItem>
+        <NavLink
+          to="/Reports"
+          className="nav-link icon-wrapper"
+          strict
+          activeClassName="active"
+        >
+          <SVGInline svg={settingsIcon} className="icon" />
+          <span className="appName">Reports</span>
+        </NavLink>
+      </NavItem>
     </Nav>
   </Navbar>
 );

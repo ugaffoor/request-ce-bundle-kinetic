@@ -13,6 +13,7 @@ import formsReducer from './modules/forms';
 import { reducer as teams } from './modules/teams';
 import { reducer as datastore } from './modules/settingsDatastore';
 import { reducer as messaging } from './modules/messaging';
+import { reducer as reporting } from './modules/reporting';
 
 export default {
   errors: errorsReducer,
@@ -30,4 +31,5 @@ export default {
   teams,
   datastore,
   messaging,
+  reporting
 };

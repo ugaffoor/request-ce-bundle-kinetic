@@ -10,6 +10,7 @@ import { watchForms } from './sagas/forms';
 import { watchTeams } from './sagas/teams';
 import { watchSettingsDatastore } from './sagas/settingsDatastore';
 import { watchMessaging } from './sagas/messaging';
+import { watchReports } from './sagas/reporting';
 
 export default function* sagas() {
   yield all([
@@ -24,5 +25,6 @@ export default function* sagas() {
     watchTeams(),
     watchSettingsDatastore(),
     watchMessaging(),
+    watchReports()
   ]);
 }

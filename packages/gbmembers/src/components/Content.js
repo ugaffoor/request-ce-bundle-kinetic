@@ -23,6 +23,7 @@ import { ManualCampaignContainer } from './send/NewManualCampaign';
 import { DDRTemplatesContainer } from './DDRTemplates';
 import { SettingsContainer } from './settings/Settings';
 import { FormContainer } from './form/FormContainer';
+import { ReportsContainer } from './reports/Reports';
 
 export const Content = () => (
   <div className="content" id="mainContent">
@@ -58,5 +59,6 @@ export const Content = () => (
       component={FormContainer}
     />
     <ModalFormContainer />
+    <Route path="/Reports" component={ReportsContainer} />
   </div>
 );
