@@ -43,6 +43,7 @@ export function* sendSms(action) {
           memberActivities.values['Direction'] = 'Outbound';
           memberActivities.values['Content'] = {'To': action.payload.sms.to, 'Content': action.payload.sms.text, 'Sent Date': moment().format('DD-MM-YYYY hh:mm')};
           action.payload.createMemberActivities({memberActivities, id: action.payload.id, myThis: action.payload.myThis, fetchMember: action.payload.fetchMember});
+          action.payload.updateMember({id: action.payload.memberItem['id'], memberItem: action.payload.memberItem, history: action.payload.memberItem.history});
         } else if (action.payload.target === 'Leads') {
           let leadActivities = {values: {}};
           leadActivities.values['Lead ID'] = action.payload.leadItem['id'];
@@ -50,6 +51,7 @@ export function* sendSms(action) {
           leadActivities.values['Direction'] = 'Outbound';
           leadActivities.values['Content'] = {'To': action.payload.sms.to, 'Content': action.payload.sms.text, 'Sent Date': moment().format('DD-MM-YYYY hh:mm')};
           action.payload.createLeadActivities({leadActivities, id: action.payload.id, myThis: action.payload.myThis, fetchLead: action.payload.fetchLead});
+          action.payload.updateLead({id: action.payload.leadItem['id'], leadItem: action.payload.leadItem, history: action.payload.leadItem.history});
         }
         action.payload.addNotification(
           NOTICE_TYPES.SUCCESS,

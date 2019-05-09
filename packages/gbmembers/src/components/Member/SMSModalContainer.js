@@ -256,6 +256,10 @@ const enhance = compose(
       createMemberActivities,
       fetchCurrentMember,
       fetchLead,
+      updateMember,
+      updateLead,
+      memberItem,
+      leadItem,
       target,
       addNotification,
       setSystemError,
@@ -266,11 +270,13 @@ const enhance = compose(
       }
 
       if (target === 'Member') {
+        memberItem.values['SMS Sent Count'] = (!memberItem.values['SMS Sent Count'] || isNaN(memberItem.values['SMS Sent Count']) ?  0 : parseInt(memberItem.values['SMS Sent Count'])) + 1;
         sendSms({
           sms: sms,
           target: target,
           id: submission['id'],
           memberItem: submission,
+          updateMember,
           createMemberActivities: createMemberActivities,
           fetchMember: fetchCurrentMember,
           addNotification: addNotification,
@@ -279,11 +285,13 @@ const enhance = compose(
           smsInputElm: $('#sms_text')
         });
       } else if (target === 'Leads') {
+        leadItem.values['SMS Sent Count'] = (!leadItem.values['SMS Sent Count'] || isNaN(leadItem.values['SMS Sent Count']) ?  0 : parseInt(leadItem.values['SMS Sent Count'])) + 1;
         sendSms({
           sms: sms,
           target: target,
           id: submission['id'],
           leadItem: submission,
+          updateLead,
           createLeadActivities: createLeadActivities,
           fetchLead: fetchLead,
           addNotification: addNotification,
