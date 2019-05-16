@@ -405,6 +405,17 @@ export const MemberNotesContainer = compose(
         myThis: this,
       });
     },
+    updateIsNewReplyReceived: ({
+      memberItem,
+      updateMember,
+      fetchMembers,
+    }) => () => {
+      memberItem.values['Is New Reply Received'] = false;
+      updateMember({
+        id: memberItem['id'],
+        memberItem: memberItem,
+      });
+    },
   }),
   lifecycle({
     componentWillMount() {
@@ -421,6 +432,12 @@ export const MemberNotesContainer = compose(
           myThis: this,
           history: this.props.history,
         });
+      }
+      if (
+        nextProps.memberItem.values &&
+        nextProps.memberItem.values['Is New Reply Received'] === 'true'
+      ) {
+        this.props.updateIsNewReplyReceived();
       }
     },
     componentDidMount() {

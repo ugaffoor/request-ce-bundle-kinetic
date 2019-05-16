@@ -39,6 +39,8 @@ export const State = Record({
   discussionServerUrl: '',
   billingCompany: '',
   isSmsEnabled: false,
+  leadStatusValues: '',
+  memberStatusValues: '',
   ddrTemplates: List(),
   allTeams: List(),
   programs: List(),
@@ -69,6 +71,9 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('discussionServerUrl', payload.discussionServerUrl)
         .set('billingCompany', payload.billingCompany)
         .set('isSmsEnabled', payload.isSmsEnabled === 'true' ? true : false)
+        .set('leadStatusValues', payload.leadStatusValues.split(','))
+        .set('memberStatusValues', payload.memberStatusValues.split(','))
+        .set('billingCompany', payload.billingCompany)
         .set(
           'ddrTemplates',
           payload.ddrTemplates

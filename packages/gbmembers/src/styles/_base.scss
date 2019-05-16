@@ -18,3 +18,15 @@ a {
 .tooltip {
   font-size: 0.75rem;
 }
+
+.fade:not(.show) {
+  opacity: unset; /* Override issue */
+}
+
+.setStatusDialog {
+  top: 15% !important;
+  left: 25% !important;
+}
+.statusOptions label {
+  margin: 15px;
+}

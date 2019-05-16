@@ -189,7 +189,11 @@ export class TasksDetail extends Component {
     if (duration === 'Todays Tasks') {
       const today = moment().startOf('day');
       allLeads.forEach(lead => {
-        if (lead.values['Status'] === 'Open' && lead.values['Reminder Date']) {
+        if (
+          lead.values['Status'] !== 'Converted' &&
+          lead.values['Status'] !== 'Deleted' &&
+          lead.values['Reminder Date']
+        ) {
           if (
             moment(lead.values['Reminder Date'], date_format).isBefore(
               today,
@@ -214,7 +218,11 @@ export class TasksDetail extends Component {
         .add(1, 'weeks')
         .startOf('day');
       allLeads.forEach(lead => {
-        if (lead.values['Status'] === 'Open' && lead.values['Reminder Date']) {
+        if (
+          lead.values['Status'] !== 'Converted' &&
+          lead.values['Status'] !== 'Deleted' &&
+          lead.values['Reminder Date']
+        ) {
           if (
             moment(lead.values['Reminder Date'], date_format).isBefore(
               startDate,
@@ -244,7 +252,11 @@ export class TasksDetail extends Component {
         .add(1, 'months')
         .startOf('day');
       allLeads.forEach(lead => {
-        if (lead.values['Status'] === 'Open' && lead.values['Reminder Date']) {
+        if (
+          lead.values['Status'] !== 'Converted' &&
+          lead.values['Status'] !== 'Deleted' &&
+          lead.values['Reminder Date']
+        ) {
           if (
             moment(lead.values['Reminder Date'], date_format).isBefore(
               startDate,
@@ -269,7 +281,11 @@ export class TasksDetail extends Component {
       });
     } else if (duration === 'All Tasks') {
       allLeads.forEach(lead => {
-        if (lead.values['Status'] === 'Open' && lead.values['Reminder Date']) {
+        if (
+          lead.values['Status'] !== 'Converted' &&
+          lead.values['Status'] !== 'Deleted' &&
+          lead.values['Reminder Date']
+        ) {
           leads[leads.length] = {
             _id: lead['id'],
             date: lead.values['Reminder Date'],
@@ -580,7 +596,10 @@ export class TasksDetail extends Component {
   getLeadsData(allLeads) {
     let leads = [];
     allLeads.forEach(lead => {
-      if (lead.values['Status'] === 'Open') {
+      if (
+        lead.values['Status'] !== 'Converted' &&
+        lead.values['Status'] !== 'Deleted'
+      ) {
         leads.push({
           _id: lead['id'],
           name: lead.values['First Name'] + ' ' + lead.values['Last Name'],

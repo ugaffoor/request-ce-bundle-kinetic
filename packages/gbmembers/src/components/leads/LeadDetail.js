@@ -29,8 +29,10 @@ import 'react-datetime/css/react-datetime.css';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as campaignActions } from '../../redux/modules/campaigns';
 import ReactSpinner from 'react16-spinjs';
+import { Confirm } from 'react-confirm-bootstrap';
 import { CallScriptModalContainer } from '../Member/CallScriptModalContainer';
 import { SMSModalContainer } from '../Member/SMSModalContainer';
+import { SetStatusModalContainer } from './SetStatusModalContainer';
 import { EmailsReceived } from '../Member/EmailsReceived';
 import { Requests } from '../Member/Requests';
 
@@ -42,7 +44,8 @@ const mapStateToProps = state => ({
   campaignLoading: state.member.campaigns.campaignLoading,
   currentLeadLoading: state.member.leads.currentLeadLoading,
   space: state.member.app.space,
-  isSmsEnabled: state.member.app.isSmsEnabled
+  isSmsEnabled: state.member.app.isSmsEnabled,
+  leadStatusValues: state.member.app.leadStatusValues,
 });
 const mapDispatchToProps = {
   fetchLead: actions.fetchCurrentLead,
@@ -79,6 +82,8 @@ export class LeadDetail extends Component {
   constructor(props) {
     super(props);
     this.saveLead = this.props.saveLead;
+    this.saveStatus = this.props.saveStatus;
+
     let profile = this.props.profile;
     let contactMethod = 'phone';
     let contactLabel = 'Phone Call';
@@ -297,6 +302,8 @@ export class LeadDetail extends Component {
                     {this.props.leadItem.values['First Name']}
                     &nbsp;
                     {this.props.leadItem.values['Last Name']}
+                    &nbsp;-&nbsp;[
+                    {this.props.leadItem.values['Status']}]
                   </div>
                   <div>
                     <img
@@ -306,6 +313,25 @@ export class LeadDetail extends Component {
                     />
                     {this.props.leadItem.values['Phone Number']}
                   </div>
+                </span>
+                <span>
+                  <a
+                    onClick={e => this.props.setShowSetStatusModal(true)}
+                    className="btn btn-primary"
+                    style={{ marginLeft: '10px', color: 'white' }}
+                  >
+                    Set Status
+                  </a>
+                  {this.props.showSetStatusModal && (
+                    <SetStatusModalContainer
+                      submission={this.props.leadItem}
+                      target="Leads"
+                      setShowSetStatusModal={this.props.setShowSetStatusModal}
+                      setLeadStatus={this.props.saveStatus}
+                      profile={this.props.profile}
+                      leadStatusValues={this.props.leadStatusValues}
+                    />
+                  )}
                 </span>
               </div>
               <div className="col-md-6 text-center">
@@ -578,6 +604,7 @@ export const LeadDetailView = ({
   profile,
   leadItem,
   saveLead,
+  saveStatus,
   fetchCampaign,
   campaignItem,
   campaignLoading,
@@ -585,8 +612,11 @@ export const LeadDetailView = ({
   setShowCallScriptModal,
   showCallScriptModal,
   setShowSMSModal,
+  setShowSetStatusModal,
   showSMSModal,
-  isSmsEnabled
+  showSetStatusModal,
+  isSmsEnabled,
+  leadStatusValues,
 }) =>
   currentLeadLoading ? (
     <div />
@@ -595,6 +625,7 @@ export const LeadDetailView = ({
       profile={profile}
       leadItem={leadItem}
       saveLead={saveLead}
+      saveStatus={saveStatus}
       fetchCampaign={fetchCampaign}
       campaignItem={campaignItem}
       campaignLoading={campaignLoading}
@@ -602,7 +633,10 @@ export const LeadDetailView = ({
       showCallScriptModal={showCallScriptModal}
       setShowSMSModal={setShowSMSModal}
       showSMSModal={showSMSModal}
+      setShowSetStatusModal={setShowSetStatusModal}
+      showSetStatusModal={showSetStatusModal}
       isSmsEnabled={isSmsEnabled}
+      leadStatusValues={leadStatusValues}
     />
   );
 
@@ -617,6 +651,7 @@ export const LeadDetailContainer = compose(
   withState('isDirty', 'setIsDirty', false),
   withState('showCallScriptModal', 'setShowCallScriptModal', false),
   withState('showSMSModal', 'setShowSMSModal', false),
+  withState('showSetStatusModal', 'setShowSetStatusModal', false),
   withHandlers({
     saveLead: ({ profile, leadItem, updateLead, fetchLead }) => newHistory => {
       let history = getJson(leadItem.values['History']);
@@ -650,6 +685,12 @@ export const LeadDetailContainer = compose(
         //fetchLeads,
         addNotification,
         setSystemError,
+      });
+    },
+    saveStatus: ({ leadItem, updateLead }) => () => {
+      updateLead({
+        id: leadItem.id,
+        leadItem,
       });
     },
   }),
