@@ -20,36 +20,48 @@ import {AgGridReact} from 'ag-grid-react';
 import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-balham.css';
 import { actions as reportingActions} from '../../redux/modules/reporting';
+import { actions as leadsActions} from '../../redux/modules/leads';
 
 const mapStateToProps = state => ({
   reports: state.member.reporting.activityReport,
-  activityReportLoading: state.member.reporting.activityReportLoading
+  activityReportLoading: state.member.reporting.activityReportLoading,
+  members: state.member.members.allMembers,
+  leads: state.member.leads.allLeads,
+  membersLoading: state.member.members.membersLoading,
+  leadsLoading: state.member.leads.leadsLoading
 });
 
 const mapDispatchToProps = {
   fetchReport : reportingActions.fetchActivityReport,
-  setReport : reportingActions.setActivityReport
+  setReport : reportingActions.setActivityReport,
+  fetchLeads: leadsActions.fetchLeads
 };
-
+const util = require('util');
 export const ReportsView = ({
   reports,
-  activityReportLoading
+  activityReportLoading,
+  members,
+  leads,
+  membersLoading,
+  leadsLoading
 }) => (
   <div className="dashboard">
     <StatusMessagesContainer />
-    {activityReportLoading ? <div><p>Loading reports ...</p> <ReactSpinner /> </div> :
-    <div>
     <div className="chart1">
+    {membersLoading ? <div><p>Loading member activity report ...</p><ReactSpinner /> </div>:
        <MemberActivityReport
         reports={reports}
-      />
+        members={members}
+        membersLoading={membersLoading}
+      />}
     </div>
     <div className="chart1">
+    {leadsLoading ? <div><p>Loading leads activity report ...</p><ReactSpinner /> </div>:
       <LeadsActivityReport
         reports={reports}
-      />
+        leads={leads}
+      />}
     </div>
-  </div>}
   </div>
 );
 
@@ -68,9 +80,11 @@ export const ReportsContainer = compose(
   }),
   lifecycle({
     componentWillMount() {
-      this.props.fetchReport({setReport: this.props.setReport});
+      //this.props.fetchReport({setReport: this.props.setReport});
+      this.props.fetchLeads();
     },
     componentWillReceiveProps(nextProps) {
+
       $('.content')[0].scrollIntoView(true);
     },
     componentWillUnmount() {},
@@ -81,7 +95,7 @@ export class MemberActivityReport extends Component {
   constructor(props) {
     super(props);
     this.getGridData = this.getGridData.bind(this);
-    this.data = this.getGridData(this.props.reports);
+    this.data = this.getGridData(this.props.members);
     const topOptions = {alignedGrids: [], suppressHorizontalScroll: true};
     const bottomOptions = {alignedGrids: []};
     topOptions.alignedGrids.push(bottomOptions);
@@ -120,11 +134,14 @@ export class MemberActivityReport extends Component {
   componentWillReceiveProps(nextProps) {
   }
 
-  getGridData(reports) {
+  getGridData(members) {
+
+
+
     let memberActivity = [];
     let emailsSent = 0, emailsReceived = 0, smsSent = 0, smsReceived = 0;
-    if (reports && reports.members) {
-      reports.members.forEach(member => {
+    if (members) {
+      members.forEach(member => {
         memberActivity.push({name: member.values['First Name'] + " " + member.values['Last Name'],
                 gender: member.values['Gender'],
                 email: member.values['Email'],
@@ -163,7 +180,7 @@ export class MemberActivityReport extends Component {
   render() {
     return (
       <span>
-        <div style={{textAlign: 'left', background: '#991b1e', color: 'white', fontSize: '10px'}}>
+        <div style={{textAlign: 'center', background: '#991b1e', color: 'white', fontSize: '10px'}}>
           <h6>Member Activity Report</h6>
         </div>
         <div style={{width: '100%', height: '420px'}} className="ag-theme-balham">
@@ -192,7 +209,7 @@ export class LeadsActivityReport extends Component {
   constructor(props) {
     super(props);
     this.getGridData = this.getGridData.bind(this);
-    this.data = this.getGridData(this.props.reports);
+    this.data = this.getGridData(this.props.leads);
     const topOptions = {alignedGrids: [], suppressHorizontalScroll: true};
     const bottomOptions = {alignedGrids: []};
     topOptions.alignedGrids.push(bottomOptions);
@@ -232,11 +249,11 @@ export class LeadsActivityReport extends Component {
   componentWillReceiveProps(nextProps) {
   }
 
-  getGridData(reports) {
+  getGridData(leads) {
     let leadsActivity = [];
     let emailsSent = 0, emailsReceived = 0, smsSent = 0, smsReceived = 0;
-    if (reports && reports.leads) {
-      reports.leads.forEach(lead => {
+    if (leads) {
+      leads.forEach(lead => {
         leadsActivity.push({name: lead.values['First Name'] + " " + lead.values['Last Name'],
                 gender: lead.values['Gender'],
                 email: lead.values['Email'],
@@ -276,7 +293,7 @@ export class LeadsActivityReport extends Component {
   render() {
     return (
       <span>
-        <div style={{textAlign: 'left', background: '#991b1e', color: 'white', fontSize: '10px'}}>
+        <div style={{textAlign: 'center', background: '#991b1e', color: 'white', fontSize: '10px'}}>
           <h6>Leads Activity Report</h6>
         </div>
         <div style={{width: '100%', height: '420px'}} className="ag-theme-balham">
