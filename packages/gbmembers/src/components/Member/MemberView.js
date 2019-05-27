@@ -45,7 +45,7 @@ const mapStateToProps = state => ({
   space: state.member.app.space,
   isBillingUser: state.member.teams.isBillingUser,
   isBillingUserLoading: state.member.teams.isBillingUserLoading,
-  isSmsEnabled: state.member.app.isSmsEnabled
+  isSmsEnabled: state.member.app.isSmsEnabled,
 });
 
 const mapDispatchToProps = {
@@ -217,7 +217,7 @@ export const MemberView = ({
   showCallScriptModal,
   setShowSMSModal,
   showSMSModal,
-  isSmsEnabled
+  isSmsEnabled,
 }) =>
   currentMemberLoading ? (
     <div />
@@ -241,7 +241,9 @@ export const MemberView = ({
               )&nbsp;
             </h1>
             <h1>
-              {memberItem.values['Status'] === 'Active' ? 'ACTIVE' : 'INACTIVE'}
+              {memberItem.values['Status'] === 'Active'
+                ? 'ACTIVE'
+                : memberItem.values['Status']}
             </h1>
             <span className="buttons">
               <NavLink

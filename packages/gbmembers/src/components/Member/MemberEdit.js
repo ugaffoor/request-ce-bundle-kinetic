@@ -19,6 +19,7 @@ import { contact_date_format } from '../leads/LeadsUtils';
 import ReactTable from 'react-table';
 import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
 import { StatusMessagesContainer } from '../StatusMessages';
+import { SetStatusModalContainer } from './SetStatusModalContainer';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -29,6 +30,7 @@ const mapStateToProps = state => ({
   currentMemberLoading: state.member.members.currentMemberLoading,
   profile: state.member.kinops.profile,
   loggedInUserProfile: state.member.app.profile,
+  memberStatusValues: state.member.app.memberStatusValues,
 });
 
 const mapDispatchToProps = {
@@ -47,38 +49,6 @@ export function getJson(input) {
     return $.parseJSON(input);
   } else {
     return input;
-  }
-}
-
-class MemberStatus extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { selected: props.memberStatus === 'Active' ? true : false };
-    this.setIsDirty = props.setIsDirty;
-  }
-
-  toggle() {
-    const selected = !this.state.selected;
-    this.setState({ selected });
-    this.setIsDirty(true);
-  }
-
-  setSelected(selected) {
-    this.setState({ selected });
-  }
-
-  render() {
-    let classname = this.state.selected ? 'active' : 'inactive';
-    return (
-      <button
-        id="memberStatus"
-        type="button"
-        className={classname}
-        onClick={this.toggle.bind(this)}
-      >
-        {this.state.selected ? 'Active' : 'Inactive'}
-      </button>
-    );
   }
 }
 
@@ -184,6 +154,9 @@ export const MemberEdit = ({
   memberChanges,
   setShowMemberAudit,
   showMemberAudit,
+  memberStatusValues,
+  setShowSetStatusModal,
+  showSetStatusModal,
 }) =>
   currentMemberLoading ? (
     <div />
@@ -197,10 +170,26 @@ export const MemberEdit = ({
               Editing {memberItem.values['First Name']}
               's Profile'
             </h1>
-            <MemberStatus
-              memberStatus={memberItem.values['Status']}
-              setIsDirty={setIsDirty}
-            />
+            <span className="statusInfo">
+              <h4 className="status">Status: {memberItem.values['Status']}</h4>
+              <a
+                onClick={e => setShowSetStatusModal(true)}
+                className="btn btn-primary"
+                style={{ marginLeft: '10px', color: 'white' }}
+              >
+                Set Status
+              </a>
+              {showSetStatusModal && (
+                <SetStatusModalContainer
+                  submission={memberItem}
+                  target="Members"
+                  setShowSetStatusModal={setShowSetStatusModal}
+                  profile={profile}
+                  memberStatusValues={memberStatusValues}
+                  setIsDirty={setIsDirty}
+                />
+              )}
+            </span>
             <p>{memberItem.values['Member ID']}</p>
             <hr />
             <span className="line">
@@ -873,6 +862,7 @@ export const MemberEditContainer = compose(
   withState('isDirty', 'setIsDirty', false),
   withState('memberChanges', 'setMemberChanges', []),
   withState('showMemberAudit', 'setShowMemberAudit', false),
+  withState('showSetStatusModal', 'setShowSetStatusModal', false),
   withHandlers({
     deleteMemberCall: ({ memberItem, deleteMember }) => () => {
       deleteMember({
@@ -888,6 +878,7 @@ export const MemberEditContainer = compose(
       isDirty,
       memberChanges,
       loggedInUserProfile,
+      fetchMembers,
     }) => () => {
       if (!isDirty) {
         return;
@@ -904,7 +895,6 @@ export const MemberEditContainer = compose(
           .first()
           .focus();
       } else {
-        memberItem.values['Status'] = $('#memberStatus').html();
         memberChanges.forEach(change => {
           change.user = loggedInUserProfile.username;
         });
@@ -922,7 +912,7 @@ export const MemberEditContainer = compose(
           id: memberItem.id,
           memberItem,
           history: memberItem.history,
-          fetchMembers: memberItem.fetchMembers,
+          fetchMembers: fetchMembers,
         });
       }
     },

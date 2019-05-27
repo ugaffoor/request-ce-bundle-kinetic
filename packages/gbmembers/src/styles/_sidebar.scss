@@ -19,6 +19,10 @@
   height: unset;
   a.Inactive {
     font-style: italic;
+    color: #1818a8 !important;
+  }
+  a.Suspended {
+    font-style: italic;
     color: #c56868 !important;
   }
   h6 {

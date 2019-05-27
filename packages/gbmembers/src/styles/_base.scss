@@ -30,3 +30,11 @@ a {
 .statusOptions label {
   margin: 15px;
 }
+.statusInfo {
+  width: 100%;
+  .status {
+    color: unset;
+    width: auto;
+    float: left;
+  }
+}

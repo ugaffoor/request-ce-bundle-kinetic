@@ -328,8 +328,12 @@ export function* updateDDRTemplatesTask(payload) {
 export function* updateMembersListTask(payload) {
   const memberLists = yield select(selectMemberLists);
   const profile = yield select(selectProfile);
+  var memberListsArr = memberLists.toJS();
+  for (var i = 0; i < memberListsArr.length; i++) {
+    memberListsArr[i] = JSON.stringify(memberListsArr[i]);
+  }
 
-  profile.profileAttributes['Member Lists'] = memberLists.toJS();
+  profile.profileAttributes['Member Lists'] = memberListsArr;
   const { serverError } = yield call(CoreAPI.updateProfile, {
     profile,
     include: PROFILE_UPDATE_INCLUDES,

@@ -9,15 +9,36 @@ import attentionRequired from '../images/flag.svg?raw';
 export class Members extends React.Component {
   constructor(props) {
     super();
-    this.state = {
-      data: this.getData(props.allMembers),
-    };
     this.actions = props.actions;
+    this.state = {
+      data: this.getData(props.allMembers, props.currentFilter),
+    };
     this.toggleSidebarOpen = props.toggleSidebarOpen;
   }
 
-  getData(allMembers) {
-    let data = allMembers.map(member => {
+  getData(allMembers, currentFilter) {
+    let members = allMembers.filter(member => {
+      let match = false;
+      if (currentFilter === 'Active Members') {
+        if (
+          member.values['Status'] !== 'Inactive' &&
+          member.values['Status'] !== 'Suspended'
+        )
+          match = true;
+      } else if (currentFilter === 'Inactive Members') {
+        if (
+          member.values['Status'] === undefined ||
+          member.values['Status'] === 'Inactive' ||
+          member.values['Status'] === 'Suspended'
+        )
+          match = true;
+      } else if (currentFilter === 'All Members') {
+        match = true;
+      }
+      return match;
+    });
+
+    let data = members.map(member => {
       return {
         id: member.id,
         ...member.values,

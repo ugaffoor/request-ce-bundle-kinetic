@@ -25,15 +25,12 @@ export class SetStatusModal extends Component {
     };
     history.push(newHistory);
     this.props.submission.values['Status History'] = history;
-    this.props.setLeadStatus({
-      id: this.props.submission['id'],
-      status: $('.statusOptions input:checked').val(),
-    });
+    this.props.setIsDirty(true);
     this.handleClose();
   };
   constructor(props) {
     super(props);
-    this.statusValues = props.leadStatusValues;
+    this.statusValues = props.memberStatusValues;
     this.state = {};
   }
   componentWillReceiveProps(nextProps) {}

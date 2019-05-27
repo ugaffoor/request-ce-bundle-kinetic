@@ -18,6 +18,7 @@ const mapStateToProps = state => ({
   membershipTypes: state.member.app.membershipTypes,
   memberLists: state.member.app.memberLists,
   belts: state.member.app.belts,
+  memberStatusValues: state.member.app.memberStatusValues,
 });
 
 const mapDispatchToProps = {
@@ -34,6 +35,7 @@ export const ListNewView = ({
   belts,
   memberLists,
   addNewList,
+  memberStatusValues,
 }) => (
   <div>
     <StatusMessagesContainer />
@@ -44,6 +46,7 @@ export const ListNewView = ({
       belts={belts}
       memberLists={memberLists}
       addNewList={addNewList}
+      memberStatusValues={memberStatusValues}
     />
   </div>
 );
@@ -83,6 +86,13 @@ export class ListNewHome extends Component {
   componentWillReceiveProps(nextProps) {}
 
   componentDidMount() {
+    this.refs.statusDiv &&
+      $(this.refs.statusDiv)
+        .find('select')
+        .multiselect({
+          texts: { placeholder: 'Select Status' },
+        });
+
     this.refs.programsDiv &&
       $(this.refs.programsDiv)
         .find('select')
@@ -107,11 +117,9 @@ export class ListNewHome extends Component {
       return;
     }
 
-    let memberIds = this.state.data.map(member => member['_id']);
     let newList = {
       id: chance.guid(),
       name: $('#listName').val(),
-      members: memberIds,
       filters: this.state.filters,
     };
     this.props.addNewList(newList);
@@ -157,6 +165,10 @@ export class ListNewHome extends Component {
       });
       startDate = moment($('#joiningDateStart').val(), 'YYYY-MM-DD');
       endDate = moment($('#joiningDateEnd').val(), 'YYYY-MM-DD');
+    }
+
+    if ($('#status').val() && $('#status').val().length > 0) {
+      filters.push({ statusFilter: { status: $('#status').val() } });
     }
 
     if ($('#fromAge').val() || $('#toAge').val()) {
@@ -213,6 +225,12 @@ export class ListNewHome extends Component {
               years >= filters[i][keys[0]].fromAge &&
               years <= filters[i][keys[0]].toAge
             )
+          ) {
+            match = false;
+          }
+        } else if (keys[0] === 'statusFilter') {
+          if (
+            $.inArray(member.values['Status'], filters[i][keys[0]].status) < 0
           ) {
             match = false;
           }
@@ -277,6 +295,39 @@ export class ListNewHome extends Component {
                   >
                     Apply Filters
                   </button>
+                </div>
+              </div>
+              <div className="row">
+                <div className="col">
+                  <fieldset
+                    className="scheduler-border"
+                    style={{ position: 'relative' }}
+                  >
+                    <legend className="scheduler-border">Status</legend>
+                    <div className="form-group form-inline" ref="statusDiv">
+                      <label htmlFor="status">Status&nbsp;</label>
+                      <select
+                        className="form-control"
+                        multiple
+                        id="status"
+                        ref={input => (this.input = input)}
+                        style={{ height: 'auto' }}
+                      >
+                        {[
+                          ...new Set(
+                            this.props.memberStatusValues.map(
+                              (status, index) => status,
+                            ),
+                          ),
+                        ].map(status => (
+                          <option key={status} value={status}>
+                            {status}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="droparrow" />
+                    </div>
+                  </fieldset>
                 </div>
               </div>
               <div className="row">

@@ -6,6 +6,7 @@ export const types = {
   FETCH_MEMBERS: namespace('members', 'FETCH_MEMBERS'),
   SET_MEMBERS: namespace('members', 'SET_MEMBERS'),
   SET_MEMBER_FILTER: namespace('members', 'SET_MEMBER_FILTER'),
+  GET_MEMBER_FILTER: namespace('members', 'GET_MEMBER_FILTER'),
   FETCH_CURRENT_MEMBER: namespace('members', 'FETCH_CURRENT_MEMBER'),
   SET_CURRENT_MEMBER: namespace('members', 'SET_CURRENT_MEMBER'),
   UPDATE_MEMBER: namespace('members', 'UPDATE_MEMBER'),
@@ -65,6 +66,7 @@ export const actions = {
   fetchMembers: withPayload(types.FETCH_MEMBERS),
   setMembers: withPayload(types.SET_MEMBERS),
   setMemberFilter: withPayload(types.SET_MEMBER_FILTER),
+  getMemberFilter: withPayload(types.GET_MEMBER_FILTER),
   fetchCurrentMember: withPayload(types.FETCH_CURRENT_MEMBER),
   setCurrentMember: withPayload(types.SET_CURRENT_MEMBER),
   updateMember: withPayload(types.UPDATE_MEMBER),
@@ -158,9 +160,10 @@ export const reducer = (state = State(), { type, payload }) => {
     case types.SET_MEMBERS: {
       // Apply currentFilter
       var members = [];
-      if (state.get('currentFilter') === 'Active Members') {
+      /*      if (state.get('currentFilter') === 'Active Members') {
         for (var i = 0; i < payload.length; i++) {
-          if (payload[i].values['Status'] === 'Active')
+          if (payload[i].values['Status'] !== 'Inactive' &&
+            payload[i].values['Status'] !== 'Suspended')
             members[members.length] = payload[i];
         }
       }
@@ -168,7 +171,8 @@ export const reducer = (state = State(), { type, payload }) => {
         for (var j = 0; j < payload.length; j++) {
           if (
             payload[j].values['Status'] === undefined ||
-            payload[j].values['Status'] === 'Inactive'
+            payload[j].values['Status'] === 'Inactive' ||
+            payload[j].values['Status'] === 'Suspended'
           )
             members[members.length] = payload[j];
         }
@@ -178,10 +182,18 @@ export const reducer = (state = State(), { type, payload }) => {
           members[members.length] = payload[k];
         }
       }
+*/
+      for (var k = 0; k < payload.length; k++) {
+        members[members.length] = payload[k];
+      }
+
       return state.set('membersLoading', false).set('allMembers', members);
     }
     case types.SET_MEMBER_FILTER: {
       return state.set('currentFilter', payload);
+    }
+    case types.GET_MEMBER_FILTER: {
+      return state.get('currentFilter');
     }
     case types.SET_CURRENT_MEMBER: {
       if (payload.forBilling) {

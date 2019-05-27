@@ -9,6 +9,8 @@ import { actions as appActions } from '../../redux/modules/memberApp';
 import { KappNavLink as NavLink } from 'common';
 import { Confirm } from 'react-confirm-bootstrap';
 import { StatusMessagesContainer } from '../StatusMessages';
+import moment from 'moment';
+import { matchesMemberFilter } from '../../utils/utils';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -67,8 +69,12 @@ export class ListHome extends Component {
     super(props);
     this.showMembers = this.showMembers.bind(this);
     this._listColumns = this.getListColumns();
-    let listData = this.getListData(this.props.memberLists);
+    let listData = this.getListData(
+      this.props.allMembers,
+      this.props.memberLists,
+    );
     this._listMembersColumns = this.getListMembersColumns();
+    this.allMembers = this.props.allMembers;
 
     this.state = {
       listData: listData,
@@ -81,7 +87,10 @@ export class ListHome extends Component {
   componentWillReceiveProps(nextProps) {
     if (nextProps.memberLists) {
       this.setState({
-        listData: this.getListData(nextProps.memberLists),
+        listData: this.getListData(
+          this.props.allMembers,
+          nextProps.memberLists,
+        ),
       });
     }
   }
@@ -90,7 +99,7 @@ export class ListHome extends Component {
     return [{ accessor: 'name', Header: 'List Name' }];
   };
 
-  getListData(memberLists) {
+  getListData(allMembers, memberLists) {
     if (!memberLists) {
       return [];
     }
@@ -99,7 +108,8 @@ export class ListHome extends Component {
     memberLists.forEach(list => {
       data.push({
         name: list.name,
-        members: list.members,
+        members: allMembers,
+        filters: list.filters,
       });
     });
 
@@ -116,14 +126,8 @@ export class ListHome extends Component {
     ];
   }
 
-  getListMembersData(memberIds) {
-    if (!memberIds || $.isEmptyObject(memberIds)) {
-      return [];
-    }
-
-    const members = this.props.allMembers.filter(member => {
-      return memberIds.some(memberId => memberId === member['id']);
-    });
+  getListMembersData(filters) {
+    let members = matchesMemberFilter(this.props.allMembers, filters);
 
     let data = [];
     members.forEach(member => {
@@ -140,7 +144,7 @@ export class ListHome extends Component {
     return {
       onClick: (e, handleOriginal) => {
         this.setState({
-          listMembersData: this.getListMembersData(rowInfo.original.members),
+          listMembersData: this.getListMembersData(rowInfo.original.filters),
           selected: rowInfo.index,
           selectedList: rowInfo.original.name,
         });

@@ -13,6 +13,7 @@ export const Sidebar = ({
   allMembers,
   membersLoading,
   setMemberFilter,
+  currentFilter,
   fetchMembers,
   memberLists,
   filterType,
@@ -58,7 +59,11 @@ export const Sidebar = ({
       <div />
     ) : (
       filterType === 'filter' && (
-        <Members allMembers={allMembers} actions={actions} />
+        <Members
+          allMembers={allMembers}
+          currentFilter={currentFilter}
+          actions={actions}
+        />
       )
     )}
     {filterType === 'list' && (

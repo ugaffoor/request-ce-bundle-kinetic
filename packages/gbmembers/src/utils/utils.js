@@ -1,5 +1,7 @@
 import isarray from 'isarray';
 import { all, fork } from 'redux-saga/effects';
+import $ from 'jquery';
+import moment from 'moment';
 
 export const zip = (array1, array2) =>
   array1.reduce(
@@ -180,3 +182,72 @@ export const getConfig = ({
 
 export const displayableFormPredicate = form =>
   form.type === 'Service' && form.status === 'Active';
+
+export const matchesMemberFilter = (allMembers, filters) => {
+  let members = allMembers.filter(member => {
+    let match = true;
+    let startDate = null,
+      endDate = null;
+
+    for (var i = 0; i < filters.length; i++) {
+      let keys = Object.keys(filters[i]);
+      if (keys[0] === 'joiningDateFilter') {
+        if (
+          !moment(member.values['Date Joined'], 'YYYY-MM-DD').isBetween(
+            startDate,
+            endDate,
+          )
+        ) {
+          match = false;
+        }
+      } else if (keys[0] === 'genderFilter') {
+        if (member.values['Gender'] !== filters[i][keys[0]].gender) {
+          match = false;
+        }
+      } else if (keys[0] === 'ageFilter') {
+        let years = moment().diff(member.values['DOB'], 'years');
+        if (
+          !(
+            years >= filters[i][keys[0]].fromAge &&
+            years <= filters[i][keys[0]].toAge
+          )
+        ) {
+          match = false;
+        }
+      } else if (keys[0] === 'statusFilter') {
+        if (
+          $.inArray(member.values['Status'], filters[i][keys[0]].status) < 0
+        ) {
+          match = false;
+        }
+      } else if (keys[0] === 'programFilter') {
+        if (
+          $.inArray(
+            member.values['Ranking Program'],
+            filters[i][keys[0]].programs,
+          ) < 0
+        ) {
+          match = false;
+        }
+      } else if (keys[0] === 'beltFilter') {
+        if (
+          $.inArray(member.values['Ranking Belt'], filters[i][keys[0]].belts) <
+          0
+        ) {
+          match = false;
+        }
+      } else if (keys[0] === 'memberTypeFilter') {
+        if (member.values['Member Type'] !== filters[i][keys[0]].memberType) {
+          match = false;
+        }
+      } else if (keys[0] === 'billingMemberFilter') {
+        if (!member.values['Billing Customer Id']) {
+          match = false;
+        }
+      }
+    }
+    return match;
+  });
+  return members;
+  ß;
+};

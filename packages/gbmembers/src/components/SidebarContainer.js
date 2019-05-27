@@ -17,6 +17,7 @@ const mapStateToProps = state => ({
   documentationUrl: state.member.app.documentationUrl,
   supportUrl: state.member.app.supportUrl,
   allMembers: state.member.members.allMembers,
+  currentFilter: state.member.members.currentFilter,
   membersLoading: state.member.members.membersLoading,
   // The route prop below is just a way to make sure this component updates when
   // the route changes, otherwise connect implicitly prevents the update.
@@ -28,6 +29,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = {
   fetchMembers: memberActions.fetchMembers,
   setMemberFilter: memberActions.setMemberFilter,
+  getMemberFilter: memberActions.getMemberFilter,
 };
 
 export const SidebarContainer = compose(
@@ -40,11 +42,12 @@ export const SidebarContainer = compose(
   }),
   withState('listName', 'setListName', null),
   withState('filterType', 'setFilterType', 'filter'),
-  withState('filterValue', 'setFilterValue', 'All Members'),
+  withState('filterValue', 'setFilterValue', 'Active Members'),
   withHandlers({
     handleOpenNewItemMenu: ({ openNewItemMenu }) => () => openNewItemMenu(),
     handleFilterChange: ({
       setMemberFilter,
+      getMemberFilter,
       fetchMembers,
       setFilterType,
       setListName,

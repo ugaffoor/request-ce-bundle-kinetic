@@ -23,6 +23,7 @@ import '../../styles/quill.snow.scss.css';
 import Select, { components } from 'react-select';
 import { actions as leadsActions } from '../../redux/modules/leads';
 import { actions as dataStoreActions } from '../../redux/modules/settingsDatastore';
+import { matchesMemberFilter } from '../../utils/utils';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -45,14 +46,6 @@ const mapDispatchToProps = {
 };
 
 const util = require('util');
-
-const MultiValueContainer = props => {
-  let members = 0;
-  props.selectProps.value.forEach(option => {
-    members += option.members ? option.members.length : 0;
-  });
-  return <span>{members} Members</span>;
-};
 
 var Link = Quill.import('formats/link');
 var builtInFunc = Link.sanitize;
@@ -257,14 +250,6 @@ export class NewManualCampaign extends Component {
     let activeMembers = [];
     let inactiveMembers = [];
 
-    memberLists.forEach(list => {
-      options.push({
-        value: list.name,
-        label: list.name,
-        members: list.members,
-      });
-    });
-
     allMembers.forEach(member => {
       if (member.values['Status'] === 'Active') {
         activeMembers.push(member['id']);
@@ -288,6 +273,14 @@ export class NewManualCampaign extends Component {
         members: inactiveMembers,
       });
     }
+
+    memberLists.forEach(list => {
+      options.push({
+        value: list.name,
+        label: list.name,
+        members: matchesMemberFilter(allMembers, list.filters),
+      });
+    });
 
     return options;
   }
@@ -344,7 +337,12 @@ export class NewManualCampaign extends Component {
     }
 
     if (this.props.submissionId) {
-      body += "<div id='__gbmembers-" + this.props.submissionType + "-" + this.props.submissionId + "' />"
+      body +=
+        "<div id='__gbmembers-" +
+        this.props.submissionType +
+        '-' +
+        this.props.submissionId +
+        "' />";
     }
 
     this.props.saveCampaign(
@@ -414,7 +412,6 @@ export class NewManualCampaign extends Component {
                 options={this.state.options}
                 closeMenuOnSelect={false}
                 hideSelectedOptions={false}
-                components={{ MultiValueContainer }}
                 controlShouldRenderValue={true}
                 isMulti={true}
               />

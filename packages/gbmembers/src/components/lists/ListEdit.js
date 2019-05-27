@@ -8,6 +8,7 @@ import 'bootstrap/scss/bootstrap.scss';
 import ReactTable from 'react-table';
 import { actions as appActions } from '../../redux/modules/memberApp';
 import { StatusMessagesContainer } from '../StatusMessages';
+import { matchesMemberFilter } from '../../utils/utils';
 <script src="../helpers/jquery.multiselect.js" />;
 
 const mapStateToProps = state => ({
@@ -17,6 +18,7 @@ const mapStateToProps = state => ({
   membershipTypes: state.member.app.membershipTypes,
   memberLists: state.member.app.memberLists,
   belts: state.member.app.belts,
+  memberStatusValues: state.member.app.memberStatusValues,
 });
 
 const mapDispatchToProps = {
@@ -32,6 +34,7 @@ export const ListEditView = ({
   memberLists,
   updateList,
   match,
+  memberStatusValues,
 }) => (
   <div>
     <StatusMessagesContainer />
@@ -43,6 +46,7 @@ export const ListEditView = ({
       memberLists={memberLists}
       updateList={updateList}
       match={match}
+      memberStatusValues={memberStatusValues}
     />
   </div>
 );
@@ -85,11 +89,12 @@ export class ListEditHome extends Component {
       listToBeUpdated = this.props.memberLists
         .filter(list => list.name === this.props.match.params.name)
         .get(0);
-      const members = this.props.allMembers.filter(member => {
-        return listToBeUpdated.members.some(
-          memberId => memberId === member['id'],
-        );
-      });
+
+      let members = matchesMemberFilter(
+        this.props.allMembers,
+        listToBeUpdated.filters,
+      );
+
       data = this.getData(members);
     }
 
@@ -103,16 +108,14 @@ export class ListEditHome extends Component {
     //console.log("next props = " + util.inspect(nextProps));
     if (nextProps.allMembers) {
       let data = [];
-      let members;
       let listToBeUpdated = nextProps.memberLists
         .filter(list => list.name === this.props.match.params.name)
         .get(0);
       if (listToBeUpdated) {
-        members = nextProps.allMembers.filter(member => {
-          return listToBeUpdated.members.some(
-            memberId => memberId === member['id'],
-          );
-        });
+        let members = matchesMemberFilter(
+          this.props.allMembers,
+          listToBeUpdated.filters,
+        );
         data = this.getData(members);
         this.populateFilters(listToBeUpdated);
       }
@@ -126,6 +129,13 @@ export class ListEditHome extends Component {
 
   componentDidMount() {
     this.populateFilters(this.state.listToBeUpdated);
+    this.refs.statusDiv &&
+      $(this.refs.statusDiv)
+        .find('select')
+        .multiselect({
+          texts: { placeholder: 'Select Status' },
+        });
+
     this.refs.programsDiv &&
       $(this.refs.programsDiv)
         .find('select')
@@ -150,11 +160,9 @@ export class ListEditHome extends Component {
       return;
     }
 
-    let memberIds = this.state.data.map(member => member['_id']);
     let newList = {
       id: this.state.listToBeUpdated['id'],
       name: $('#listName').val(),
-      members: memberIds,
       filters: this.state.filters,
     };
     this.props.updateList(newList);
@@ -202,6 +210,10 @@ export class ListEditHome extends Component {
       endDate = moment($('#joiningDateEnd').val(), 'YYYY-MM-DD');
     }
 
+    if ($('#status').val() && $('#status').val().length > 0) {
+      filters.push({ statusFilter: { status: $('#status').val() } });
+    }
+
     if ($('#fromAge').val() || $('#toAge').val()) {
       filters.push({
         ageFilter: { fromAge: $('#fromAge').val(), toAge: $('#toAge').val() },
@@ -232,63 +244,7 @@ export class ListEditHome extends Component {
       filters.push({ billingMemberFilter: true });
     }
 
-    let members = this.props.allMembers.filter(function(member) {
-      let match = true;
-      for (var i = 0; i < filters.length; i++) {
-        let keys = Object.keys(filters[i]);
-        if (keys[0] === 'joiningDateFilter') {
-          if (
-            !moment(member.values['Date Joined'], 'YYYY-MM-DD').isBetween(
-              startDate,
-              endDate,
-            )
-          ) {
-            match = false;
-          }
-        } else if (keys[0] === 'genderFilter') {
-          if (member.values['Gender'] !== filters[i][keys[0]].gender) {
-            match = false;
-          }
-        } else if (keys[0] === 'ageFilter') {
-          let years = moment().diff(member.values['DOB'], 'years');
-          if (
-            !(
-              years >= filters[i][keys[0]].fromAge &&
-              years <= filters[i][keys[0]].toAge
-            )
-          ) {
-            match = false;
-          }
-        } else if (keys[0] === 'programFilter') {
-          if (
-            $.inArray(
-              member.values['Ranking Program'],
-              filters[i][keys[0]].programs,
-            ) < 0
-          ) {
-            match = false;
-          }
-        } else if (keys[0] === 'beltFilter') {
-          if (
-            $.inArray(
-              member.values['Ranking Belt'],
-              filters[i][keys[0]].belts,
-            ) < 0
-          ) {
-            match = false;
-          }
-        } else if (keys[0] === 'memberTypeFilter') {
-          if (member.values['Member Type'] !== filters[i][keys[0]].memberType) {
-            match = false;
-          }
-        } else if (keys[0] === 'billingMemberFilter') {
-          if (!member.values['Billing Customer Id']) {
-            match = false;
-          }
-        }
-      }
-      return match;
-    });
+    let members = matchesMemberFilter(this.props.allMembers, filters);
 
     this.setState({
       data: this.getData(members),
@@ -314,6 +270,8 @@ export class ListEditHome extends Component {
       } else if (key === 'ageFilter') {
         $('#fromAge').val(filter[key].fromAge);
         $('#toAge').val(filter[key].toAge);
+      } else if (key === 'statusFilter') {
+        $('#status').val(filter[key].status);
       } else if (key === 'programFilter') {
         $('#program').val(filter[key].programs);
       } else if (key === 'beltFilter') {
@@ -354,6 +312,39 @@ export class ListEditHome extends Component {
                   >
                     Apply Filters
                   </button>
+                </div>
+              </div>
+              <div className="row">
+                <div className="col">
+                  <fieldset
+                    className="scheduler-border"
+                    style={{ position: 'relative' }}
+                  >
+                    <legend className="scheduler-border">Status</legend>
+                    <div className="form-group form-inline" ref="statusDiv">
+                      <label htmlFor="status">Status&nbsp;</label>
+                      <select
+                        className="form-control"
+                        multiple
+                        id="status"
+                        ref={input => (this.input = input)}
+                        style={{ height: 'auto' }}
+                      >
+                        {[
+                          ...new Set(
+                            this.props.memberStatusValues.map(
+                              (status, index) => status,
+                            ),
+                          ),
+                        ].map(status => (
+                          <option key={status} value={status}>
+                            {status}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="droparrow" />
+                    </div>
+                  </fieldset>
                 </div>
               </div>
               <div className="row">

@@ -5,6 +5,9 @@ import 'react-table/react-table.css';
 import { KappNavLink as NavLink } from 'common';
 import SVGInline from 'react-svg-inline';
 import attentionRequired from '../images/flag.svg?raw';
+import moment from 'moment';
+import $ from 'jquery';
+import { matchesMemberFilter } from '../utils/utils';
 
 export class ListMembers extends React.Component {
   constructor(props) {
@@ -39,9 +42,7 @@ export class ListMembers extends React.Component {
       return [];
     }
 
-    let members = allMembers.filter(member => {
-      return selectedList.members.some(memberId => memberId === member['id']);
-    });
+    let members = matchesMemberFilter(allMembers, selectedList.filters);
 
     let data = members.map(member => {
       return {

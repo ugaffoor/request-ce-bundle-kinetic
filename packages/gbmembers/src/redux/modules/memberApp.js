@@ -64,6 +64,19 @@ export const State = Record({
 export const reducer = (state = State(), { type, payload }) => {
   switch (type) {
     case types.SET_MEMBER_APP_SETTINGS: {
+      for (
+        var i = 0;
+        i < payload.profile.profileAttributes['Member Lists'].length;
+        i++
+      ) {
+        payload.profile.profileAttributes['Member Lists'][i] = JSON.parse(
+          payload.profile.profileAttributes['Member Lists'][i],
+        );
+      }
+      var memberLists = payload.profile.profileAttributes['Member Lists']
+        ? List(payload.profile.profileAttributes['Member Lists'])
+        : List();
+
       return state
         .set('kineticBillingServerUrl', payload.kineticBillingServerUrl)
         .set('billingDDRUrl', payload.billingDDRUrl)
@@ -90,12 +103,7 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('snippets', List(payload.snippets))
         .set('space', payload.space)
         .set('spaceSlug', payload.space.slug)
-        .set(
-          'memberLists',
-          payload.profile.profileAttributes['Member Lists']
-            ? List(payload.profile.profileAttributes['Member Lists'])
-            : List(),
-        )
+        .set('memberLists', memberLists)
         .set('kapp', payload.kapp)
         .set('loading', false);
     }
