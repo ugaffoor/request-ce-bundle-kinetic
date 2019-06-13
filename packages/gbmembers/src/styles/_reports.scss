@@ -1,0 +1,36 @@
+.grid-cell-expand {
+  float: right;
+  display: table;
+  height: 100%;
+}
+
+/*div.grid-cell-expand:before {
+   content: " ▶";
+}
+
+.grid-cell-collapse {
+    float: right;
+    display: table;
+    height: 100%;
+}
+
+div.grid-cell-collapse:before {
+   content: " ▼";
+}*/
+
+.report-sub-table {
+  box-sizing: border-box;
+  padding: 10px 30px 10px 10px;
+  border-top: 1px solid #333;
+  border-bottom: 1px solid #333;
+  background: #ddd;
+  border: 1px solid #333;
+}
+
+.btn-xs {
+  padding: 0.25rem 0.4rem;
+  font-size: 0.875rem;
+  line-height: 0.5;
+  border-radius: 0 !important;
+  background: rgb(153, 27, 30);
+}

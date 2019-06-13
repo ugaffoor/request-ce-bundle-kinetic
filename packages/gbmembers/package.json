@@ -46,7 +46,6 @@
     "sassy-gridlover": "^5.2.1",
     "tether": "^1.4.4",
     "underscore": "^1.8.3",
-    "ag-grid-community": "^20.2.0",
-    "ag-grid-react": "^20.2.0"
+    "react-tabulator": "^0.9.1"
   }
 }
