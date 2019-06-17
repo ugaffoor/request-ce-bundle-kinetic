@@ -111,15 +111,15 @@ export class MemberActivityReport extends Component {
     this.activityData = this.data.memberActivity;
 
     this.columns = [
-      { title: 'Name', field: 'name' },
-      { title: 'Gender', field: 'gender' },
-      { title: 'Email', field: 'email' },
-      { title: 'Phone', field: 'phone' },
-      { title: 'Address', field: 'address' },
-      { title: 'Suburb', field: 'suburb' },
-      { title: 'State', field: 'state' },
-      { title: 'Age (Years)', field: 'age' },
-      { title: 'Member Type', field: 'memberType' },
+      { title: 'Name', field: 'name', headerFilter: 'input' },
+      { title: 'Gender', field: 'gender', headerFilter: 'input' },
+      { title: 'Email', field: 'email', headerFilter: 'input' },
+      { title: 'Phone', field: 'phone', headerFilter: 'input' },
+      { title: 'Address', field: 'address', headerFilter: 'input' },
+      { title: 'Suburb', field: 'suburb', headerFilter: 'input' },
+      { title: 'State', field: 'state', headerFilter: 'input' },
+      { title: 'Age (Years)', field: 'age', headerFilter: 'input' },
+      { title: 'Member Type', field: 'memberType', headerFilter: 'input' },
       {
         title: 'Emails Sent',
         field: 'emailsSent',
@@ -398,6 +398,9 @@ export class MemberActivityReport extends Component {
     const options = {
       height: 450,
       movableRows: true,
+      pagination: 'local',
+      paginationSize: 10,
+      paginationSizeSelector: [10, 20, 50, 100],
     };
     return (
       <span>
@@ -437,15 +440,15 @@ export class LeadsActivityReport extends Component {
     this.activityData = this.data.leadsActivity;
 
     this.columns = [
-      { title: 'Name', field: 'name' },
-      { title: 'Gender', field: 'gender' },
-      { title: 'Email', field: 'email' },
-      { title: 'Phone', field: 'phone' },
-      { title: 'Address', field: 'address' },
-      { title: 'Suburb', field: 'suburb' },
-      { title: 'State', field: 'state' },
-      { title: 'Age (Years)', field: 'age' },
-      { title: 'Source', field: 'source' },
+      { title: 'Name', field: 'name', headerFilter: 'input' },
+      { title: 'Gender', field: 'gender', headerFilter: 'input' },
+      { title: 'Email', field: 'email', headerFilter: 'input' },
+      { title: 'Phone', field: 'phone', headerFilter: 'input' },
+      { title: 'Address', field: 'address', headerFilter: 'input' },
+      { title: 'Suburb', field: 'suburb', headerFilter: 'input' },
+      { title: 'State', field: 'state', headerFilter: 'input' },
+      { title: 'Age (Years)', field: 'age', headerFilter: 'input' },
+      { title: 'Source', field: 'source', headerFilter: 'input' },
       { title: 'Reminder Date', field: 'reminderDate' },
       { title: 'Emails Sent', field: 'emailsSent' },
       {
@@ -722,6 +725,9 @@ export class LeadsActivityReport extends Component {
     const options = {
       height: 450,
       movableRows: true,
+      pagination: 'local',
+      paginationSize: 10,
+      paginationSizeSelector: [10, 20, 50, 100],
     };
     return (
       <span>

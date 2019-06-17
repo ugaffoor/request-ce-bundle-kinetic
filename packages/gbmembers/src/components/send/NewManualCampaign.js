@@ -278,7 +278,9 @@ export class NewManualCampaign extends Component {
       options.push({
         value: list.name,
         label: list.name,
-        members: matchesMemberFilter(allMembers, list.filters),
+        members: matchesMemberFilter(allMembers, list.filters).map(
+          member => member['id'],
+        ),
       });
     });
 
