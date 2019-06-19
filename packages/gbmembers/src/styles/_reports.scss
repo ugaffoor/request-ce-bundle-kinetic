@@ -34,3 +34,8 @@ div.grid-cell-collapse:before {
   border-radius: 0 !important;
   background: rgb(153, 27, 30);
 }
+
+btn:disabled {
+  cursor: not-allowed;
+  pointer-events: all !important;
+}

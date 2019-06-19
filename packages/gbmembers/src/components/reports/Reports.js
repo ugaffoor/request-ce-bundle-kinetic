@@ -111,7 +111,7 @@ export class MemberActivityReport extends Component {
     this.activityData = this.data.memberActivity;
 
     this.columns = [
-      { title: 'Name', field: 'name', headerFilter: 'input' },
+      { title: 'Name', field: 'name', headerFilter: 'input', bottomCalc: function() {return 'Total'} },
       { title: 'Gender', field: 'gender', headerFilter: 'input' },
       { title: 'Email', field: 'email', headerFilter: 'input' },
       { title: 'Phone', field: 'phone', headerFilter: 'input' },
@@ -124,21 +124,25 @@ export class MemberActivityReport extends Component {
         title: 'Emails Sent',
         field: 'emailsSent',
         formatter: reactFormatter(<this.ExpandCellButton />),
+        bottomCalc: 'sum'
       },
       {
         title: 'Emails Received',
         field: 'emailsReceived',
         formatter: reactFormatter(<this.ExpandCellButton />),
+        bottomCalc: 'sum'
       },
       {
         title: 'SMS Sent',
         field: 'smsSent',
         formatter: reactFormatter(<this.ExpandCellButton />),
+        bottomCalc: 'sum'
       },
       {
         title: 'SMS Received',
         field: 'smsReceived',
         formatter: reactFormatter(<this.ExpandCellButton />),
+        bottomCalc: 'sum'
       },
     ];
 
@@ -172,7 +176,7 @@ export class MemberActivityReport extends Component {
       <span>
         {value}{' '}
         <button
-          className="grid-cell-expand show-sub-grid btn btn-xs"
+          className={value === 0 ? "grid-cell-expand show-sub-grid btn btn-xs disabled" : "grid-cell-expand show-sub-grid btn btn-xs"}
           onClick={() => this.handleCellClick(this, props.cell)}
         >
           Show
@@ -440,7 +444,7 @@ export class LeadsActivityReport extends Component {
     this.activityData = this.data.leadsActivity;
 
     this.columns = [
-      { title: 'Name', field: 'name', headerFilter: 'input' },
+      { title: 'Name', field: 'name', headerFilter: 'input', bottomCalc: function() {return 'Total'} },
       { title: 'Gender', field: 'gender', headerFilter: 'input' },
       { title: 'Email', field: 'email', headerFilter: 'input' },
       { title: 'Phone', field: 'phone', headerFilter: 'input' },
@@ -450,21 +454,27 @@ export class LeadsActivityReport extends Component {
       { title: 'Age (Years)', field: 'age', headerFilter: 'input' },
       { title: 'Source', field: 'source', headerFilter: 'input' },
       { title: 'Reminder Date', field: 'reminderDate' },
-      { title: 'Emails Sent', field: 'emailsSent' },
+      { title: 'Emails Sent', field: 'emailsSent',
+        formatter: reactFormatter(<this.ExpandCellButton />),
+        bottomCalc: 'sum'
+      },
       {
         title: 'Emails Received',
         field: 'emailsReceived',
         formatter: reactFormatter(<this.ExpandCellButton />),
+        bottomCalc: 'sum'
       },
       {
         title: 'SMS Sent',
         field: 'smsSent',
         formatter: reactFormatter(<this.ExpandCellButton />),
+        bottomCalc: 'sum'
       },
       {
         title: 'SMS Received',
         field: 'smsReceived',
         formatter: reactFormatter(<this.ExpandCellButton />),
+        bottomCalc: 'sum'
       },
     ];
 
@@ -498,7 +508,7 @@ export class LeadsActivityReport extends Component {
       <span>
         {value}{' '}
         <button
-          className="grid-cell-expand show-sub-grid btn btn-xs"
+          className={value === 0 ? "grid-cell-expand show-sub-grid btn btn-xs disabled" : "grid-cell-expand show-sub-grid btn btn-xs"}
           onClick={() => this.handleCellClick(this, props.cell)}
         >
           Show
