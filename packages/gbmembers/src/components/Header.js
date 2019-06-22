@@ -70,7 +70,7 @@ export const Header = ({ loading }) => (
           <span className="appName">Grading</span>
         </NavLink>
       </NavItem>
-      <NavItem>
+      <NavItem className="settingsNavItem">
         <NavLink
           to="/Settings"
           className="nav-link icon-wrapper"
@@ -81,7 +81,7 @@ export const Header = ({ loading }) => (
           <span className="appName">Settings</span>
         </NavLink>
       </NavItem>
-      <NavItem>
+      <NavItem className="reportsNavItem">
         <NavLink
           to="/Reports"
           className="nav-link icon-wrapper"

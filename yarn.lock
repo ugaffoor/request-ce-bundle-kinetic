@@ -101,6 +101,12 @@
   dependencies:
     parchment "^1.1.2"
 
+"@types/react-tag-autocomplete@^5.6.0":
+  version "5.6.1"
+  resolved "https://registry.yarnpkg.com/@types/react-tag-autocomplete/-/react-tag-autocomplete-5.6.1.tgz#02a40add1b67b92b434d7617c05183d5de361054"
+  dependencies:
+    "@types/react" "*"
+
 "@types/react@*":
   version "16.4.14"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-16.4.14.tgz#47c604c8e46ed674bbdf4aabf82b34b9041c6a04"
@@ -176,16 +182,6 @@ active-event-stack@^1.0.0:
 address@1.0.3, address@^1.0.1:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/address/-/address-1.0.3.tgz#b5f50631f8d6cec8bd20c963963afb55e06cbce9"
-
-ag-grid-community@^20.2.0:
-  version "20.2.0"
-  resolved "https://registry.yarnpkg.com/ag-grid-community/-/ag-grid-community-20.2.0.tgz#22f26d53e309b51a156878d180c9ec6f16bc6403"
-
-ag-grid-react@^20.2.0:
-  version "20.2.0"
-  resolved "https://registry.yarnpkg.com/ag-grid-react/-/ag-grid-react-20.2.0.tgz#b2fd24950a31fc491a1c79ce92657b8aa7582c45"
-  dependencies:
-    prop-types "^15.6.2"
 
 agent-base@4, agent-base@^4.1.0, agent-base@~4.2.1:
   version "4.2.1"
@@ -3385,6 +3381,10 @@ date-fns@^1.27.2:
   version "1.29.0"
   resolved "https://registry.yarnpkg.com/date-fns/-/date-fns-1.29.0.tgz#12e609cdcb935127311d04d33334e2960a2a54e6"
 
+date-fns@v2.0.0-alpha.25:
+  version "2.0.0-alpha.25"
+  resolved "https://registry.yarnpkg.com/date-fns/-/date-fns-2.0.0-alpha.25.tgz#651a5d1f59a01af6cf0371e39b2ae29df5d521ee"
+
 date-now@^0.1.4:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/date-now/-/date-now-0.1.4.tgz#eaf439fd4d4848ad74e5cc7dbef200672b9e345b"
@@ -3761,6 +3761,10 @@ dotenv@4.0.0, dotenv@^4.0.0:
 dotenv@^5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-5.0.1.tgz#a5317459bd3d79ab88cff6e44057a6a3fbb1fcef"
+
+dotenv@^6.1.0:
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-6.2.0.tgz#941c0410535d942c8becf28d3f357dbd9d476064"
 
 duplexer3@^0.1.4:
   version "0.1.4"
@@ -5534,6 +5538,10 @@ hpack.js@^2.1.6:
     obuf "^1.0.0"
     readable-stream "^2.0.1"
     wbuf "^1.1.0"
+
+html-attributes@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/html-attributes/-/html-attributes-1.1.0.tgz#82027a4fac7a6070ea6c18cc3886aea18d6dea09"
 
 html-comment-regex@^1.1.0:
   version "1.1.1"
@@ -9275,6 +9283,14 @@ performance-now@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/performance-now/-/performance-now-2.1.0.tgz#6309f4e0e5fa913ec1c69307ae364b4b377c9e7b"
 
+pick-react-known-prop@^0.1.5:
+  version "0.1.5"
+  resolved "https://registry.yarnpkg.com/pick-react-known-prop/-/pick-react-known-prop-0.1.5.tgz#3a888f158b538ecc214ad01921054dc4148c328d"
+  dependencies:
+    html-attributes "^1.1.0"
+    lodash.isplainobject "^4.0.6"
+    svg-attributes "^1.0.0"
+
 pify@^2.0.0, pify@^2.3.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/pify/-/pify-2.3.0.tgz#ed141a6ac043a849ea588498e7dca8b15330e90c"
@@ -10497,6 +10513,21 @@ react-table@^6.7.6:
   resolved "https://registry.yarnpkg.com/react-table/-/react-table-6.8.6.tgz#a0ad8b4839319052d5befc012603fb161e52ede3"
   dependencies:
     classnames "^2.2.5"
+
+react-tabulator@^0.9.1:
+  version "0.9.1"
+  resolved "https://registry.yarnpkg.com/react-tabulator/-/react-tabulator-0.9.1.tgz#2c9f19b73de1fe47abd7ac9149b2c0c951043c8d"
+  dependencies:
+    "@types/react-tag-autocomplete" "^5.6.0"
+    date-fns v2.0.0-alpha.25
+    dotenv "^6.1.0"
+    pick-react-known-prop "^0.1.5"
+    react-tag-autocomplete "^5.7.1"
+    tabulator-tables "^4.2.3"
+
+react-tag-autocomplete@^5.7.1:
+  version "5.11.1"
+  resolved "https://registry.yarnpkg.com/react-tag-autocomplete/-/react-tag-autocomplete-5.11.1.tgz#ee09dccc065c50fd41c31bed8e9129a1a911f4b0"
 
 react-test-renderer@^16.0.0-0:
   version "16.5.2"
@@ -12060,6 +12091,10 @@ supports-color@^5.3.0, supports-color@^5.4.0:
   dependencies:
     has-flag "^3.0.0"
 
+svg-attributes@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/svg-attributes/-/svg-attributes-1.0.0.tgz#b5c5968f36247b7dbe3853207f2a9c68ad806bfc"
+
 svgo@0.4.4:
   version "0.4.4"
   resolved "http://registry.npmjs.org/svgo/-/svgo-0.4.4.tgz#71931b8b18bfaac02daf5d2b4db14e4c9222d900"
@@ -12136,6 +12171,10 @@ tableize-object@^0.1.0:
   resolved "https://registry.yarnpkg.com/tableize-object/-/tableize-object-0.1.0.tgz#7c29e0133b27d48b56b9e76d3a28d241df1b3a24"
   dependencies:
     isobject "^2.0.0"
+
+tabulator-tables@^4.2.3:
+  version "4.2.7"
+  resolved "https://registry.yarnpkg.com/tabulator-tables/-/tabulator-tables-4.2.7.tgz#e1b00a34d362d4178c8c76b16f80372110557d6e"
 
 tapable@^0.2.7:
   version "0.2.8"

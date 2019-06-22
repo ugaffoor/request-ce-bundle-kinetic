@@ -64,14 +64,16 @@ export const State = Record({
 export const reducer = (state = State(), { type, payload }) => {
   switch (type) {
     case types.SET_MEMBER_APP_SETTINGS: {
-      for (
-        var i = 0;
-        i < payload.profile.profileAttributes['Member Lists'].length;
-        i++
-      ) {
-        payload.profile.profileAttributes['Member Lists'][i] = JSON.parse(
-          payload.profile.profileAttributes['Member Lists'][i],
-        );
+      if (payload.profile.profileAttributes['Member Lists']) {
+        for (
+          var i = 0;
+          i < payload.profile.profileAttributes['Member Lists'].length;
+          i++
+        ) {
+          payload.profile.profileAttributes['Member Lists'][i] = JSON.parse(
+            payload.profile.profileAttributes['Member Lists'][i],
+          );
+        }
       }
       var memberLists = payload.profile.profileAttributes['Member Lists']
         ? List(payload.profile.profileAttributes['Member Lists'])

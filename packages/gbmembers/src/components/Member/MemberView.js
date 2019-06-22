@@ -374,7 +374,7 @@ export const MemberView = ({
               to={`/Billing/${memberItem.id}`}
               className="btn btn-primary"
             >
-              Edit Billing
+              Billing
             </NavLink>
           </div>
           <div
@@ -395,25 +395,6 @@ export const MemberView = ({
             >
               Edit Billing
             </NavLink>
-          </div>
-          <div>
-            <br />
-            <button
-              type="button"
-              className={'btn btn-primary'}
-              onClick={e => setShowNewCustomers(true)}
-            >
-              Show New Customers
-            </button>
-            {showNewCustomers && (
-              <NewCustomers
-                getNewCustomers={getNewCustomers}
-                setShowNewCustomers={setShowNewCustomers}
-                newCustomersLoading={newCustomersLoading}
-                syncBilling={syncBilling}
-                newCustomers={newCustomers}
-              />
-            )}
           </div>
           <div
             style={{

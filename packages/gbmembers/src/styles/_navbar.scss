@@ -28,6 +28,13 @@
   .dropdown {
     display: flex;
   }
+  .reportsNavItem,
+  .settingsNavItem {
+    display: none;
+    @media (min-width: 544px) {
+      display: block;
+    }
+  }
 }
 ul.nav-header.apps.nav {
   justify-content: space-around;

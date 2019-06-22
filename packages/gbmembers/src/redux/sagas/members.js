@@ -105,9 +105,7 @@ export function* fetchCurrentMember(action) {
           memberActivities.submissions[i].values['Content'],
         );
       }
-      if (
-        memberActivities.submissions[i].values['Type'] === 'SMS'
-      ) {
+      if (memberActivities.submissions[i].values['Type'] === 'SMS') {
         smsContent[smsContent.length] = memberActivities.submissions[i];
       }
       if (
@@ -124,6 +122,15 @@ export function* fetchCurrentMember(action) {
     submission.submission.emailsSent = emailSentContent;
     submission.submission.smsContent = smsContent;
     submission.submission.requestContent = requestContent;
+
+    if (action.payload.myThis)
+      submission.submission.myThis = action.payload.myThis;
+    /*    if (action.payload.history) submission.history = action.payload.history;
+    if (action.payload.fetchMembers)
+      submission.fetchMembers = action.payload.fetchMembers;
+    if (action.payload.forBilling)
+      submission.forBilling = action.payload.forBilling;
+*/
     yield put(actions.setCurrentMember(submission.submission));
     /*
 

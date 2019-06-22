@@ -586,7 +586,7 @@ export class LeadDetail extends Component {
             fetchCampaign={this.props.fetchCampaign}
             campaignItem={this.props.campaignItem}
             campaignLoading={this.props.campaignLoading}
-            space={this.state.space}
+            space={this.props.space}
           />
         </div>
         <div>
@@ -617,6 +617,7 @@ export const LeadDetailView = ({
   showSetStatusModal,
   isSmsEnabled,
   leadStatusValues,
+  space,
 }) =>
   currentLeadLoading ? (
     <div />
@@ -637,6 +638,7 @@ export const LeadDetailView = ({
       showSetStatusModal={showSetStatusModal}
       isSmsEnabled={isSmsEnabled}
       leadStatusValues={leadStatusValues}
+      space={space}
     />
   );
 
@@ -871,7 +873,7 @@ class LeadEmails extends Component {
                   <label>Content:</label>
                 </div>
                 <div
-                  className="col-sm-8"
+                  className="col-sm-8 emailBodyView"
                   style={{ border: 'solid 1px rgba(0,0,0,0.05)' }}
                 >
                   <span
