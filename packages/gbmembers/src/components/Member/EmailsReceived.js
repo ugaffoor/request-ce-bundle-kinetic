@@ -33,6 +33,13 @@ export class EmailsReceived extends Component {
       emails = JSON.parse(emails);
     }
 
+    // Convert date to Locale date, Received date is bbeing stored as utc
+    for (var i = 0; i < emails.length; i++) {
+      var dt = moment(emails[i]['Received Date'], 'DD-MM-YYYY HH:mm');
+      dt = dt.add(moment().utcOffset() * 60, 'seconds');
+      emails[i]['Received Date'] = dt.format(email_received_date_format);
+    }
+
     return emails.sort(function(email1, email2) {
       if (
         moment(email1['Received Date'], email_received_date_format).isAfter(

@@ -19,7 +19,7 @@ export function* sendSms(action) {
     toNumber: action.payload.sms.to,
     text: action.payload.sms.text,
     target: action.payload.target,
-    submissionId: action.payload['id']
+    submissionId: action.payload['id'],
   };
   axios
     .post(
@@ -37,21 +37,52 @@ export function* sendSms(action) {
       } else {
         console.log(result.data.data);
         if (action.payload.target === 'Member') {
-          let memberActivities = {values: {}};
-          memberActivities.values['Member ID'] = action.payload.memberItem['id'];
+          let memberActivities = { values: {} };
+          memberActivities.values['Member ID'] =
+            action.payload.memberItem['id'];
           memberActivities.values['Type'] = 'SMS';
           memberActivities.values['Direction'] = 'Outbound';
-          memberActivities.values['Content'] = {'To': action.payload.sms.to, 'Content': action.payload.sms.text, 'Sent Date': moment().format('DD-MM-YYYY hh:mm')};
-          action.payload.createMemberActivities({memberActivities, id: action.payload.id, myThis: action.payload.myThis, fetchMember: action.payload.fetchMember});
-          action.payload.updateMember({id: action.payload.memberItem['id'], memberItem: action.payload.memberItem, history: action.payload.memberItem.history});
+          memberActivities.values['Content'] = {
+            To: action.payload.sms.to,
+            Content: action.payload.sms.text,
+            'Sent Date': moment()
+              .utc()
+              .format('DD-MM-YYYY hh:mm'),
+          };
+          action.payload.createMemberActivities({
+            memberActivities,
+            id: action.payload.id,
+            myThis: action.payload.myThis,
+            fetchMember: action.payload.fetchMember,
+          });
+          action.payload.updateMember({
+            id: action.payload.memberItem['id'],
+            memberItem: action.payload.memberItem,
+            history: action.payload.memberItem.history,
+          });
         } else if (action.payload.target === 'Leads') {
-          let leadActivities = {values: {}};
+          let leadActivities = { values: {} };
           leadActivities.values['Lead ID'] = action.payload.leadItem['id'];
           leadActivities.values['Type'] = 'SMS';
           leadActivities.values['Direction'] = 'Outbound';
-          leadActivities.values['Content'] = {'To': action.payload.sms.to, 'Content': action.payload.sms.text, 'Sent Date': moment().format('DD-MM-YYYY hh:mm')};
-          action.payload.createLeadActivities({leadActivities, id: action.payload.id, myThis: action.payload.myThis, fetchLead: action.payload.fetchLead});
-          action.payload.updateLead({id: action.payload.leadItem['id'], leadItem: action.payload.leadItem, history: action.payload.leadItem.history});
+          leadActivities.values['Content'] = {
+            To: action.payload.sms.to,
+            Content: action.payload.sms.text,
+            'Sent Date': moment()
+              .utc()
+              .format('DD-MM-YYYY hh:mm'),
+          };
+          action.payload.createLeadActivities({
+            leadActivities,
+            id: action.payload.id,
+            myThis: action.payload.myThis,
+            fetchLead: action.payload.fetchLead,
+          });
+          action.payload.updateLead({
+            id: action.payload.leadItem['id'],
+            leadItem: action.payload.leadItem,
+            history: action.payload.leadItem.history,
+          });
         }
         action.payload.addNotification(
           NOTICE_TYPES.SUCCESS,
@@ -104,10 +135,13 @@ export function* createMemberActivities(action) {
       formSlug: 'member-activities',
       values: action.payload.memberActivities.values,
       completed: false,
-      include: SUBMISSION_INCLUDES
+      include: SUBMISSION_INCLUDES,
     });
-    if(action.payload.fetchMember) {
-      action.payload.fetchMember({id: action.payload.id, myThis: action.payload.myThis});
+    if (action.payload.fetchMember) {
+      action.payload.fetchMember({
+        id: action.payload.id,
+        myThis: action.payload.myThis,
+      });
     }
   } catch (error) {
     console.log('Error in createMemberActivities: ' + util.inspect(error));
@@ -122,10 +156,13 @@ export function* createLeadActivities(action) {
       formSlug: 'lead-activities',
       values: action.payload.leadActivities.values,
       completed: false,
-      include: SUBMISSION_INCLUDES
+      include: SUBMISSION_INCLUDES,
     });
-    if(action.payload.fetchLead) {
-      action.payload.fetchLead({id: action.payload.id, myThis: action.payload.myThis});
+    if (action.payload.fetchLead) {
+      action.payload.fetchLead({
+        id: action.payload.id,
+        myThis: action.payload.myThis,
+      });
     }
   } catch (error) {
     console.log('Error in createLeadActivities: ' + util.inspect(error));

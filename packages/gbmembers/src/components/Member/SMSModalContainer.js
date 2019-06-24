@@ -95,7 +95,11 @@ export class SMSModal extends Component {
 
     messageHistory.forEach((msg, index) => {
       let content = JSON.parse(msg.values.Content);
+
       if (msg.values.Direction === 'Outbound') {
+        var dt = moment(content['Sent Date'], 'DD-MM-YYYY HH:mm');
+        dt = dt.add(moment().utcOffset() * 60, 'seconds');
+        content['Sent Date'] = dt.format('DD-MM-YYYY HH:mm');
         sms_msgs.push(
           <div className="outgoing_msg" key={index}>
             <div className="sent_msg">
@@ -105,6 +109,9 @@ export class SMSModal extends Component {
           </div>,
         );
       } else if (msg.values.Direction === 'Inbound') {
+        var dt = moment(content['Received Date'], 'DD-MM-YYYY HH:mm');
+        dt = dt.add(moment().utcOffset() * 60, 'seconds');
+        content['Received Date'] = dt.format('DD-MM-YYYY HH:mm');
         sms_msgs.push(
           <div className="incoming_msg" key={index}>
             <div className="incoming_msg_img">
@@ -168,7 +175,7 @@ export class SMSModal extends Component {
                   >
                     {this.props.smsAccountCreditLoading
                       ? 'Loading...'
-                      : '$' + this.props.smsAccountCredit}
+                      : this.props.smsAccountCredit}
                   </span>
                 </div>
               </div>
@@ -270,7 +277,11 @@ const enhance = compose(
       }
 
       if (target === 'Member') {
-        memberItem.values['SMS Sent Count'] = (!memberItem.values['SMS Sent Count'] || isNaN(memberItem.values['SMS Sent Count']) ?  0 : parseInt(memberItem.values['SMS Sent Count'])) + 1;
+        memberItem.values['SMS Sent Count'] =
+          (!memberItem.values['SMS Sent Count'] ||
+          isNaN(memberItem.values['SMS Sent Count'])
+            ? 0
+            : parseInt(memberItem.values['SMS Sent Count'])) + 1;
         sendSms({
           sms: sms,
           target: target,
@@ -282,10 +293,14 @@ const enhance = compose(
           addNotification: addNotification,
           setSystemError: setSystemError,
           myThis: this,
-          smsInputElm: $('#sms_text')
+          smsInputElm: $('#sms_text'),
         });
       } else if (target === 'Leads') {
-        leadItem.values['SMS Sent Count'] = (!leadItem.values['SMS Sent Count'] || isNaN(leadItem.values['SMS Sent Count']) ?  0 : parseInt(leadItem.values['SMS Sent Count'])) + 1;
+        leadItem.values['SMS Sent Count'] =
+          (!leadItem.values['SMS Sent Count'] ||
+          isNaN(leadItem.values['SMS Sent Count'])
+            ? 0
+            : parseInt(leadItem.values['SMS Sent Count'])) + 1;
         sendSms({
           sms: sms,
           target: target,
@@ -297,7 +312,7 @@ const enhance = compose(
           addNotification: addNotification,
           setSystemError: setSystemError,
           myThis: this,
-          smsInputElm: $('#sms_text')
+          smsInputElm: $('#sms_text'),
         });
       }
     },

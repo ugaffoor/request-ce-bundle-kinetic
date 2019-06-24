@@ -247,7 +247,9 @@ export class MemberNotesHome extends Component {
               </li>
               <li>
                 <NavLink
-                  to={`/NewManualCampaign/${this.props.memberItem['id']}/lead`}
+                  to={`/NewManualCampaign/${
+                    this.props.memberItem['id']
+                  }/member`}
                   className="btn btn-primary"
                 >
                   Send Email
@@ -264,7 +266,7 @@ export class MemberNotesHome extends Component {
                 {this.props.showSMSModal && (
                   <SMSModalContainer
                     submission={this.props.memberItem}
-                    target="Leads"
+                    target="Member"
                     setShowSMSModal={this.props.setShowSMSModal}
                   />
                 )}

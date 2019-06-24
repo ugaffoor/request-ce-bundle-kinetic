@@ -385,6 +385,7 @@ export function* syncBillingCustomer(action) {
           result.data.data.customerReference;
         action.payload.memberItem.values['Billing Customer Id'] =
           result.data.data.customerBillingId;
+        action.payload.memberItem.values['Billing User'] = 'YES';
         action.payload.memberItem.values['Billing Payment Type'] =
           result.data.data.paymentMethod;
         action.payload.memberItem.values['Billing Payment Period'] =
@@ -1189,11 +1190,10 @@ export function* createBillingMembers(action) {
     console.log(
       '#### createMembers # submissions = ' + util.inspect(submissions),
     );
+    var memberItem = {
+      values: {},
+    };
     if (!submissions || submissions.length <= 0) {
-      var memberItem = {
-        values: {},
-      };
-
       memberItem.values['Status'] = 'Active';
       memberItem.values['First Name'] = customer.firstName;
       memberItem.values['Last Name'] = customer.lastName;
@@ -1207,6 +1207,7 @@ export function* createBillingMembers(action) {
       memberItem.values['DOB'] = customer.dob;
 
       memberItem.values['Billing Customer Id'] = customer.customerId;
+      memberItem.values['Billing User'] = 'YES';
       memberItem.values['Billing Payment Type'] = customer.paymentMethod;
       memberItem.values['Billing Payment Period'] = customer.billingPeriod;
       memberItem.values['Payment Schedule'] = {
@@ -1218,12 +1219,28 @@ export function* createBillingMembers(action) {
 
       yield put(actions.createMember({ memberItem, showNotification: false }));
       newMemberAdded = true;
+    } else if (submissions && submissions.length === 1) {
+      memberItem.values['Billing User'] = 'YES';
+      memberItem.values['Billing Payment Type'] = customer.paymentMethod;
+      memberItem.values['Billing Payment Period'] = customer.billingPeriod;
+      memberItem.values['Payment Schedule'] = {
+        period: customer.billingPeriod,
+        amount: customer.billingAmount,
+      };
+      memberItem.values['Membership Cost'] = customer.billingAmount;
+      memberItem.id = submissions[0].id;
+      yield put(
+        actions.updateMember({
+          id: memberItem.id,
+          memberItem: memberItem,
+        }),
+      );
     }
-  }
 
-  action.payload.setBillingCustomers();
-  if (newMemberAdded) {
-    action.payload.fetchMembers();
+    action.payload.setBillingCustomers();
+    if (newMemberAdded) {
+      action.payload.fetchMembers();
+    }
   }
 }
 
