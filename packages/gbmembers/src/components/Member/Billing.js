@@ -1630,7 +1630,7 @@ export const BillingContainer = compose(
         allMembers: this.props.allMembers,
         setFamilyMembers: this.props.setFamilyMembers,
       });
-      if (
+      /*      if (
         member &&
         member.values['Billing Customer Id'] &&
         member.values['DDR Status'] !== 'Processed'
@@ -1645,6 +1645,7 @@ export const BillingContainer = compose(
           setSystemError: this.props.setSystemError,
         });
       }
+*/
     },
 
     componentWillReceiveProps(nextProps) {
