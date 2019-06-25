@@ -23,6 +23,8 @@ import DateEditor from 'react-tabulator/lib/editors/DateEditor';
 import 'react-tabulator/lib/styles.css'; // default theme
 import 'react-tabulator/css/bootstrap/tabulator_bootstrap.min.css'; // use Theme(s)
 import { ReactTabulator, reactFormatter } from 'react-tabulator';
+import Select, { components } from "react-select";
+import createClass from "create-react-class";
 
 const mapStateToProps = state => ({
   reports: state.member.reporting.activityReport,
@@ -52,29 +54,34 @@ export const ReportsView = ({
   members,
   leads,
   membersLoading,
+  fetchLeads,
   leadsLoading,
+  showMemberActivityReport,
+  setShowMemberActivityReport,
+  showLeadActivityReport,
+  setShowLeadActivityReport
 }) => (
   <div className="dashboard">
     <StatusMessagesContainer />
     <div className="row" style={{ margin: '10px' }}>
-      {membersLoading ? (
-        <div>
-          <p>Loading member activity report ...</p>
-          <ReactSpinner />{' '}
-        </div>
-      ) : (
-        <MemberActivityReport reports={reports} members={members} />
-      )}
+      <button
+        type="button"
+        className="btn btn-primary report-btn-default"
+        onClick={e => setShowMemberActivityReport(showMemberActivityReport ? false : true)}
+      >
+        {showMemberActivityReport ? "Hide Member Activity Report" : "Show Member Activity Report"}
+      </button>
+        {!showMemberActivityReport ? null : <MemberActivityReport reports={reports} members={members} />}
     </div>
-    <div className="row" style={{ margin: '10px' }}>
-      {leadsLoading ? (
-        <div>
-          <p>Loading leads activity report ...</p>
-          <ReactSpinner />{' '}
-        </div>
-      ) : (
-        <LeadsActivityReport reports={reports} leads={leads} />
-      )}
+    <div className="row" style={{ margin: '20px 10px 10px 10px' }}>
+      <button
+        type="button"
+        className="btn btn-primary report-btn-default"
+        onClick={e => setShowLeadActivityReport(showLeadActivityReport ? false : true)}
+      >
+        {showLeadActivityReport ? "Hide Leads Activity Report" : "Show Leads Activity Report"}
+      </button>
+      {!showLeadActivityReport ? null : <LeadsActivityReport fetchLeads={fetchLeads} leads={leads} leadsLoading={leadsLoading}/>}
     </div>
   </div>
 );
@@ -84,17 +91,14 @@ export const ReportsContainer = compose(
     mapStateToProps,
     mapDispatchToProps,
   ),
+  withState('showMemberActivityReport', 'setShowMemberActivityReport', false),
+  withState('showLeadActivityReport', 'setShowLeadActivityReport', false),
   withHandlers({
-    getReportData: ({ fetchReport }) => () => {
-      fetchReport({});
+    fetchLeads: ({ fetchLeads }) => () => {
+      fetchLeads({});
     },
   }),
-
   lifecycle({
-    componentWillMount() {
-      //this.props.fetchReport({setReport: this.props.setReport});
-      this.props.fetchLeads();
-    },
     componentWillReceiveProps(nextProps) {
       $('.content')[0].scrollIntoView(true);
     },
@@ -111,15 +115,15 @@ export class MemberActivityReport extends Component {
     this.activityData = this.data.memberActivity;
 
     this.columns = [
-      { title: 'Name', field: 'name', headerFilter: 'input', bottomCalc: function() {return 'Total'} },
-      { title: 'Gender', field: 'gender', headerFilter: 'input' },
-      { title: 'Email', field: 'email', headerFilter: 'input' },
-      { title: 'Phone', field: 'phone', headerFilter: 'input' },
-      { title: 'Address', field: 'address', headerFilter: 'input' },
-      { title: 'Suburb', field: 'suburb', headerFilter: 'input' },
-      { title: 'State', field: 'state', headerFilter: 'input' },
-      { title: 'Age (Years)', field: 'age', headerFilter: 'input' },
-      { title: 'Member Type', field: 'memberType', headerFilter: 'input' },
+      { title: 'Name', field: 'name', bottomCalc: function() {return 'Total'} },
+      { title: 'Gender', field: 'gender' },
+      { title: 'Email', field: 'email' },
+      { title: 'Phone', field: 'phone' },
+      { title: 'Address', field: 'address' },
+      { title: 'Suburb', field: 'suburb' },
+      { title: 'State', field: 'state' },
+      { title: 'Age (Years)', field: 'age' },
+      { title: 'Member Type', field: 'memberType' },
       {
         title: 'Emails Sent',
         field: 'emailsSent',
@@ -162,12 +166,57 @@ export class MemberActivityReport extends Component {
       { title: 'Content', field: 'Content' },
       { title: 'Received Date', field: 'Received Date' },
     ];
+
+    this.columnsToHide = [
+      { label: 'Name', value: 'name' },
+      { label: 'Gender', value: 'gender' },
+      { label: 'Email', value: 'email' },
+      { label: 'Phone', value: 'phone' },
+      { label: 'Address', value: 'address' },
+      { label: 'Suburb', value: 'suburb' },
+      { label: 'State', value: 'state' },
+      { label: 'Age (Years)', value: 'age' },
+      { label: 'Member Type', value: 'memberType' },
+      { label: 'Emails Sent', value: 'emailsSent' },
+      { label: 'Emails Received', value: 'emailsReceived' },
+      { label: 'SMS Sent', value: 'smsSent' },
+      { label: 'SMS Received', value: 'smsReceived' }
+    ];
+
     this.state = {
-      isGridLoading: false,
+      filterColumns: this.columnsToHide
     };
   }
 
   componentWillReceiveProps(nextProps) {}
+
+  componentDidMount() {
+    //Update filters on value change
+    let tableRef = this.memberActivityGridref;
+    $("#filter-field, #filter-type").change(this.updateFilter);
+    $("#filter-value").keyup(this.updateFilter);
+
+    //Clear filters on "Clear Filters" button click
+    $("#filter-clear").click(function(){
+        $("#filter-field").val("");
+        $("#filter-type").val("=");
+        $("#filter-value").val("");
+
+        tableRef.table.clearFilter();
+    });
+  }
+
+  updateFilter = () => {
+    var filter = $("#filter-field").val();
+    if($("#filter-field").val() == "function" ){
+        $("#filter-type").prop("disabled", true);
+        $("#filter-value").prop("disabled", true);
+    }else{
+        $("#filter-type").prop("disabled", false);
+        $("#filter-value").prop("disabled", false);
+    }
+    this.memberActivityGridref.table.setFilter(filter, $("#filter-type").val(), $("#filter-value").val());
+  }
 
   ExpandCellButton = (props: any) => {
     const cellData = props.cell._cell.row.data;
@@ -398,6 +447,28 @@ export class MemberActivityReport extends Component {
       );
   };
 
+  downLoadTableAsCsv() {
+    this.memberActivityGridref.table.download("csv", "member-activity-report.csv");
+  }
+
+  onHideColumnCheckboxChange = (that, e) => {
+    //console.log("event=" + util.inspect(e));
+  }
+
+  onColumnDropdownChange = (e) => {
+    this.columnsToHide.forEach(column => {
+      this.memberActivityGridref.table.showColumn(column.value);
+    });
+
+    e.forEach(column => {
+      this.memberActivityGridref.table.hideColumn(column.value);
+    });
+
+    this.setState({
+      filterColumns: this.columnsToHide.filter(column => !e.some(elm => elm.value === column.value ))
+    });
+  }
+
   render() {
     const options = {
       height: 450,
@@ -405,6 +476,8 @@ export class MemberActivityReport extends Component {
       pagination: 'local',
       paginationSize: 10,
       paginationSizeSelector: [10, 20, 50, 100],
+      downloadDataFormatter: (data) => data,
+      downloadReady: (fileContents, blob) => blob
     };
     return (
       <span>
@@ -419,6 +492,50 @@ export class MemberActivityReport extends Component {
         >
           <h6>Member Activity Report</h6>
         </div>
+        <div className="table-controls">
+            <span>
+              <label>Field: </label>
+              <select id="filter-field">
+                  <option></option>
+                  {this.state.filterColumns.map(column => <option key={column.value} value={column.value}>{column.label}</option>)}
+              </select>
+            </span>
+            <span>
+              <label>Type: </label>
+              <select id="filter-type">
+                  <option value="=">=</option>
+                  <option value="<">&lt;</option>
+                  <option value="<=">&lt;=</option>
+                  <option value=">">&gt;</option>
+                  <option value=">=">&gt;=</option>
+                  <option value="!=">!=</option>
+                  <option value="like">like</option>
+              </select>
+            </span>
+              <span><label>Value: </label> <input id="filter-value" type="text" placeholder="value to filter" size="15"/></span>
+              <button id="filter-clear">Clear Filter</button>
+              <span className="vl"></span>
+              <button name="download" onClick={(e) => this.downLoadTableAsCsv(e)}><i className="fa fa-download"></i> Download Data as CSV</button>
+              <div style={{display: 'inline-block'}}>
+              <Select
+                closeMenuOnSelect={false}
+                isMulti
+                components={{ Option, MultiValue }}
+                options={this.columnsToHide}
+                hideSelectedOptions={false}
+                backspaceRemovesValue={false}
+                onChange={e => this.onColumnDropdownChange(e)}
+                className="hide-columns-select"
+                onHideColumnCheckboxChange={this.onHideColumnCheckboxChange}
+                placeholder="Select columns to hide"
+              />
+              </div>
+        </div>
+        <div id="tabulator-controls" className="table-controls  hidden-xs row">
+            <div className="col-md-3">
+
+          </div>
+    		</div>
         <div
           style={{ width: '100%', height: '420px', margin: '10px' }}
           className="row"
@@ -495,11 +612,20 @@ export class LeadsActivityReport extends Component {
       { title: 'Received Date', field: 'Received Date' },
     ];
     this.state = {
-      isGridLoading: false,
+      activityData: this.activityData
     };
   }
 
-  componentWillReceiveProps(nextProps) {}
+  componentWillReceiveProps(nextProps) {
+    let data = this.getGridData(nextProps.leads);
+    this.setState({
+      activityData: data.leadsActivity
+    })
+  }
+
+  componentWillMount() {
+    this.props.fetchLeads();
+  }
 
   ExpandCellButton = (props: any) => {
     const cellData = props.cell._cell.row.data;
@@ -518,12 +644,14 @@ export class LeadsActivityReport extends Component {
   };
 
   getGridData(leads) {
+    if (!leads || leads.length <= 0) {
+      return { leadsActivity: [] };
+    }
     let leadsActivity = [];
     let emailsSent = 0,
       emailsReceived = 0,
       smsSent = 0,
       smsReceived = 0;
-    if (leads) {
       leads.forEach(lead => {
         leadsActivity.push({
           id: lead['id'],
@@ -564,7 +692,6 @@ export class LeadsActivityReport extends Component {
           ? 0
           : parseInt(lead.values['SMS Received Count']);
       });
-    }
     return { leadsActivity: leadsActivity };
   }
 
@@ -739,9 +866,13 @@ export class LeadsActivityReport extends Component {
       paginationSize: 10,
       paginationSizeSelector: [10, 20, 50, 100],
     };
-    return (
-      <span>
-        {this.state.isGridLoading && <ReactSpinner />}
+    return this.props.leadsLoading ? (
+        <div>
+          <p>Loading leads activity report ...</p>
+          <ReactSpinner />{' '}
+        </div>
+      ) :
+      (<span>
         <div
           style={{
             textAlign: 'center',
@@ -759,11 +890,36 @@ export class LeadsActivityReport extends Component {
           <ReactTabulator
             ref={ref => (this.leadsActivityGridref = ref)}
             columns={this.columns}
-            data={this.activityData}
+            data={this.state.activityData}
             options={options}
           />
         </div>
-      </span>
-    );
+      </span>);
   }
 }
+
+const Option = createClass({
+  render() {
+    return (
+      <div>
+        <components.Option {...this.props}>
+          <input
+            type="checkbox"
+            checked={this.props.isSelected}
+            value={this.props.value}
+            onChange={e => this.props.selectProps.onHideColumnCheckboxChange(this, e)}
+          />{" "}
+          <label>{this.props.label}</label>
+        </components.Option>
+      </div>
+    );
+  }
+});
+
+const MultiValue = props => {
+  return (
+    <components.MultiValue {...props}>
+      <span>{props.data.label}</span>
+    </components.MultiValue>
+  );
+};
