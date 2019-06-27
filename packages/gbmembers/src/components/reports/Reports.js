@@ -183,39 +183,67 @@ export class MemberActivityReport extends Component {
       { label: 'SMS Received', value: 'smsReceived' }
     ];
 
+    this.addedFiltersColumns = [
+      { title: 'Filter Column', field: 'filterColumn'},
+      { title: 'Filter Type', field: 'filterType'},
+      { title: 'Filter Value', field: 'filterValue'},
+      { headerSort: false, formatter:"buttonCross", width:40, align:"center", cellClick:(e, cell) => this.removeFilter(e, cell)}
+    ];
+
     this.state = {
-      filterColumns: this.columnsToHide
+      filterColumns: this.columnsToHide,
+      filters:[]
     };
   }
 
   componentWillReceiveProps(nextProps) {}
 
-  componentDidMount() {
-    //Update filters on value change
-    let tableRef = this.memberActivityGridref;
-    $("#filter-field, #filter-type").change(this.updateFilter);
-    $("#filter-value").keyup(this.updateFilter);
+  componentDidMount() {}
 
-    //Clear filters on "Clear Filters" button click
-    $("#filter-clear").click(function(){
-        $("#filter-field").val("");
-        $("#filter-type").val("=");
-        $("#filter-value").val("");
+  removeFilter = (e, cell) => {
+    cell.getRow().delete();
+    const filterColumn = cell.getRow().getData()['filterColumn'];
+    const filterType = cell.getRow().getData()['filterType'];
+    const filterValue = cell.getRow().getData()['filterValue'];
 
-        tableRef.table.clearFilter();
+    if (this.state.filters && this.state.filters.length > 0) {
+      this.memberActivityGridref.table.removeFilter(filterColumn, filterType, filterValue);
+    } else {
+      this.memberActivityGridref.table.clearFilter(filterColumn, filterType, filterValue);
+    }
+
+    let newFilters = [...this.state.filters].filter(filter => !(filter.filterColumn ===  filterColumn && filter.filterType ===  filterType && filter.filterValue === filterValue));
+    this.setState({
+      filters: newFilters
+    })
+  }
+
+  addFilter () {
+    const filterColumn = $("#filter-field").val();
+    const type = $("#filter-type").val();
+    const value = $("#filter-value").val();
+
+    if (!filterColumn || !type || !value) {
+      return;
+    }
+
+    this.setState({
+      filters: [...this.state.filters, {"filterColumn": filterColumn, "filterType": type, "filterValue": value}]
+    }, function() {
+      if (this.state.filters && this.state.filters.length > 0) {
+        this.memberActivityGridref.table.addFilter(filterColumn, type, value);
+      } else {
+        this.memberActivityGridref.table.setFilter(filterColumn, type, value);
+      }
     });
+
+    $("#filter-field").val("");
+    $("#filter-type").val("=");
+    $("#filter-value").val("");
+    //tableRef.table.clearFilter();
   }
 
   updateFilter = () => {
-    var filter = $("#filter-field").val();
-    if($("#filter-field").val() == "function" ){
-        $("#filter-type").prop("disabled", true);
-        $("#filter-value").prop("disabled", true);
-    }else{
-        $("#filter-type").prop("disabled", false);
-        $("#filter-value").prop("disabled", false);
-    }
-    this.memberActivityGridref.table.setFilter(filter, $("#filter-type").val(), $("#filter-value").val());
   }
 
   ExpandCellButton = (props: any) => {
@@ -481,7 +509,6 @@ export class MemberActivityReport extends Component {
     };
     return (
       <span>
-        {this.state.isGridLoading && <ReactSpinner />}
         <div
           style={{
             textAlign: 'center',
@@ -513,10 +540,10 @@ export class MemberActivityReport extends Component {
               </select>
             </span>
               <span><label>Value: </label> <input id="filter-value" type="text" placeholder="value to filter" size="15"/></span>
-              <button id="filter-clear">Clear Filter</button>
+              <button id="filter-add" onClick={(e) => this.addFilter(e)}>Create Filter</button>
               <span className="vl"></span>
               <button name="download" onClick={(e) => this.downLoadTableAsCsv(e)}><i className="fa fa-download"></i> Download Data as CSV</button>
-              <div style={{display: 'inline-block'}}>
+              <div style={{display: 'inline-block', width: '350px'}}>
               <Select
                 closeMenuOnSelect={false}
                 isMulti
@@ -525,17 +552,26 @@ export class MemberActivityReport extends Component {
                 hideSelectedOptions={false}
                 backspaceRemovesValue={false}
                 onChange={e => this.onColumnDropdownChange(e)}
-                className="hide-columns-select"
+                className="hide-columns-container"
+                classNamePrefix="hide-columns"
                 onHideColumnCheckboxChange={this.onHideColumnCheckboxChange}
                 placeholder="Select columns to hide"
+                style={{width: '350px'}}
               />
               </div>
         </div>
-        <div id="tabulator-controls" className="table-controls  hidden-xs row">
-            <div className="col-md-3">
-
-          </div>
+        {this.state.filters && this.state.filters.length > 0
+            ? <div className="table-controls">
+              <div style={{margin: '10px' }}>
+              <ReactTabulator
+                ref={ref => (this.filtersGridref = ref)}
+                columns={this.addedFiltersColumns}
+                data={this.state.filters}
+                options={{width: '100%'}}
+              />
+            </div>
     		</div>
+        : null}
         <div
           style={{ width: '100%', height: '420px', margin: '10px' }}
           className="row"
