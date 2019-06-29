@@ -82,15 +82,57 @@ btn:disabled {
   }
 }
 
-.hide-columns-select {
-  height: 20px;
-  width: 300px;
-  border: 1px solid rgb(153, 27, 30);
+.hide-columns-container {
+  width: 350px;
 }
 
-.Select-placeholder {
-		font-size: smaller;
-	}
+.hide-columns__control {
+  min-height: 30px !important;
+  border: 1px solid rgb(153, 27, 30) !important;
+  border-radius: 0px !important;
+}
+
+.hide-columns__control:hover {
+  border-color: rgb(153, 27, 30) !important;
+  box-shadow: none !important;
+}
+
+.hide-columns__control--is-focused {
+  box-shadow: none !important;
+}
+
+.hide-columns__value-container {
+  min-height: 30px !important;
+}
+
+.hide-columns__option--is-selected {
+    background-color: rgb(153, 27, 30) !important;
+}
+
+.hide-columns__indicator-separator {
+  background-color: rgb(153, 27, 30) !important;
+}
+
+.hide-columns__indicators {
+  border-color: rgb(153, 27, 30) !important;
+}
+
+.hide-columns__indicator {
+  color: rgb(153, 27, 30) !important;
+}
+
+.hide-columns__multi-value {
+  color: rgb(153, 27, 30) !important;
+  text-color: rgb(153, 27, 30) !important;
+}
+
+.hide-columns__multi-value__label {
+  //color: rgb(153, 27, 30) !important;
+}
+
+.hide-columns__placeholder {
+  top: 50% !important;
+}
 
 .vl {
   border-left: 6px solid grey;
