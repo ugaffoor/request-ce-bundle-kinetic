@@ -123,6 +123,7 @@ export class MemberActivityReport extends Component {
       { title: 'State', field: 'state' },
       { title: 'Age (Years)', field: 'age' },
       { title: 'Member Type', field: 'memberType' },
+      { title: 'Billing User', field: 'billingUser' },
       {
         title: 'Emails Sent',
         field: 'emailsSent',
@@ -176,6 +177,7 @@ export class MemberActivityReport extends Component {
       { label: 'State', value: 'state' },
       { label: 'Age (Years)', value: 'age' },
       { label: 'Member Type', value: 'memberType' },
+      { label: 'Billing User', value: 'billingUser' },
       { label: 'Emails Sent', value: 'emailsSent' },
       { label: 'Emails Received', value: 'emailsReceived' },
       { label: 'SMS Sent', value: 'smsSent' },
@@ -282,6 +284,7 @@ export class MemberActivityReport extends Component {
         state: member.values['State'],
         age: moment().diff(member.values['DOB'], 'years'),
         memberType: member.values['Member Type'],
+        billingUser: member.values['Billing User'] && member.values['Billing User'] === 'YES' ? 'YES' : 'NO',
         emailsSent: isNaN(member.values['Emails Sent Count'])
           ? 0
           : parseInt(member.values['Emails Sent Count']),
