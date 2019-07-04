@@ -110,9 +110,8 @@ export class MemberActivityReport extends Component {
   constructor(props) {
     super(props);
     this.getGridData = this.getGridData.bind(this);
-    this.data = this.getGridData(this.props.members);
+    this.activityData = this.getGridData(this.props.members);
     this.handleCellClick = this.handleCellClick.bind(this);
-    this.activityData = this.data.memberActivity;
 
     this.columns = [
       { title: 'Name', field: 'name', bottomCalc: function() {return 'Total'} },
@@ -124,6 +123,7 @@ export class MemberActivityReport extends Component {
       { title: 'State', field: 'state' },
       { title: 'Age (Years)', field: 'age' },
       { title: 'Member Type', field: 'memberType' },
+      { title: 'Billing User', field: 'billingUser' },
       {
         title: 'Emails Sent',
         field: 'emailsSent',
@@ -177,6 +177,7 @@ export class MemberActivityReport extends Component {
       { label: 'State', value: 'state' },
       { label: 'Age (Years)', value: 'age' },
       { label: 'Member Type', value: 'memberType' },
+      { label: 'Billing User', value: 'billingUser' },
       { label: 'Emails Sent', value: 'emailsSent' },
       { label: 'Emails Received', value: 'emailsReceived' },
       { label: 'SMS Sent', value: 'smsSent' },
@@ -263,53 +264,55 @@ export class MemberActivityReport extends Component {
   };
 
   getGridData(members) {
-    let memberActivity = [];
+    if (!members || members.length <0) {
+      return []
+    }
+    let memberActivityData = [];
     let emailsSent = 0,
       emailsReceived = 0,
       smsSent = 0,
       smsReceived = 0;
-    if (members) {
-      members.forEach(member => {
-        memberActivity.push({
-          id: member['id'],
-          name: member.values['First Name'] + ' ' + member.values['Last Name'],
-          gender: member.values['Gender'],
-          email: member.values['Email'],
-          phone: member.values['Phone Number'],
-          address: member.values['Address'],
-          suburb: member.values['Suburb'],
-          state: member.values['State'],
-          age: moment().diff(member.values['DOB'], 'years'),
-          memberType: member.values['Member Type'],
-          emailsSent: isNaN(member.values['Emails Sent Count'])
-            ? 0
-            : parseInt(member.values['Emails Sent Count']),
-          emailsReceived: isNaN(member.values['Emails Received Count'])
-            ? 0
-            : parseInt(member.values['Emails Received Count']),
-          smsSent: isNaN(member.values['SMS Sent Count'])
-            ? 0
-            : parseInt(member.values['SMS Sent Count']),
-          smsReceived: isNaN(member.values['SMS Received Count'])
-            ? 0
-            : parseInt(member.values['SMS Received Count']),
-        });
-
-        emailsSent += isNaN(member.values['Emails Sent Count'])
+    members.forEach(member => {
+      memberActivityData.push({
+        id: member['id'],
+        name: member.values['First Name'] + ' ' + member.values['Last Name'],
+        gender: member.values['Gender'],
+        email: member.values['Email'],
+        phone: member.values['Phone Number'],
+        address: member.values['Address'],
+        suburb: member.values['Suburb'],
+        state: member.values['State'],
+        age: moment().diff(member.values['DOB'], 'years'),
+        memberType: member.values['Member Type'],
+        billingUser: member.values['Billing User'] && member.values['Billing User'] === 'YES' ? 'YES' : 'NO',
+        emailsSent: isNaN(member.values['Emails Sent Count'])
           ? 0
-          : parseInt(member.values['Emails Sent Count']);
-        emailsReceived += isNaN(member.values['Emails Received Count'])
+          : parseInt(member.values['Emails Sent Count']),
+        emailsReceived: isNaN(member.values['Emails Received Count'])
           ? 0
-          : parseInt(member.values['Emails Received Count']);
-        smsSent += isNaN(member.values['SMS Sent Count'])
+          : parseInt(member.values['Emails Received Count']),
+        smsSent: isNaN(member.values['SMS Sent Count'])
           ? 0
-          : parseInt(member.values['SMS Sent Count']);
-        smsReceived += isNaN(member.values['SMS Received Count'])
+          : parseInt(member.values['SMS Sent Count']),
+        smsReceived: isNaN(member.values['SMS Received Count'])
           ? 0
-          : parseInt(member.values['SMS Received Count']);
+          : parseInt(member.values['SMS Received Count']),
       });
-    }
-    return { memberActivity: memberActivity };
+
+      emailsSent += isNaN(member.values['Emails Sent Count'])
+        ? 0
+        : parseInt(member.values['Emails Sent Count']);
+      emailsReceived += isNaN(member.values['Emails Received Count'])
+        ? 0
+        : parseInt(member.values['Emails Received Count']);
+      smsSent += isNaN(member.values['SMS Sent Count'])
+        ? 0
+        : parseInt(member.values['SMS Sent Count']);
+      smsReceived += isNaN(member.values['SMS Received Count'])
+        ? 0
+        : parseInt(member.values['SMS Received Count']);
+    });
+    return memberActivityData;
   }
 
   handleCellClick = (that, cell) => {
@@ -479,10 +482,6 @@ export class MemberActivityReport extends Component {
     this.memberActivityGridref.table.download("csv", "member-activity-report.csv");
   }
 
-  onHideColumnCheckboxChange = (that, e) => {
-    //console.log("event=" + util.inspect(e));
-  }
-
   onColumnDropdownChange = (e) => {
     this.columnsToHide.forEach(column => {
       this.memberActivityGridref.table.showColumn(column.value);
@@ -554,7 +553,6 @@ export class MemberActivityReport extends Component {
                 onChange={e => this.onColumnDropdownChange(e)}
                 className="hide-columns-container"
                 classNamePrefix="hide-columns"
-                onHideColumnCheckboxChange={this.onHideColumnCheckboxChange}
                 placeholder="Select columns to hide"
                 style={{width: '350px'}}
               />
@@ -592,20 +590,19 @@ export class LeadsActivityReport extends Component {
   constructor(props) {
     super(props);
     this.getGridData = this.getGridData.bind(this);
-    this.data = this.getGridData(this.props.leads);
+    this.activityData = this.getGridData(this.props.leads);
     this.handleCellClick = this.handleCellClick.bind(this);
-    this.activityData = this.data.leadsActivity;
 
     this.columns = [
-      { title: 'Name', field: 'name', headerFilter: 'input', bottomCalc: function() {return 'Total'} },
-      { title: 'Gender', field: 'gender', headerFilter: 'input' },
-      { title: 'Email', field: 'email', headerFilter: 'input' },
-      { title: 'Phone', field: 'phone', headerFilter: 'input' },
-      { title: 'Address', field: 'address', headerFilter: 'input' },
-      { title: 'Suburb', field: 'suburb', headerFilter: 'input' },
-      { title: 'State', field: 'state', headerFilter: 'input' },
-      { title: 'Age (Years)', field: 'age', headerFilter: 'input' },
-      { title: 'Source', field: 'source', headerFilter: 'input' },
+      { title: 'Name', field: 'name', bottomCalc: function() {return 'Total'} },
+      { title: 'Gender', field: 'gender' },
+      { title: 'Email', field: 'email' },
+      { title: 'Phone', field: 'phone' },
+      { title: 'Address', field: 'address' },
+      { title: 'Suburb', field: 'suburb' },
+      { title: 'State', field: 'state' },
+      { title: 'Age (Years)', field: 'age' },
+      { title: 'Source', field: 'source' },
       { title: 'Reminder Date', field: 'reminderDate' },
       { title: 'Emails Sent', field: 'emailsSent',
         formatter: reactFormatter(<this.ExpandCellButton />),
@@ -647,20 +644,89 @@ export class LeadsActivityReport extends Component {
       { title: 'Content', field: 'Content' },
       { title: 'Received Date', field: 'Received Date' },
     ];
+
+    this.columnsToHide = [
+      { label: 'Name', value: 'name' },
+      { label: 'Gender', value: 'gender' },
+      { label: 'Email', value: 'email' },
+      { label: 'Phone', value: 'phone' },
+      { label: 'Address', value: 'address' },
+      { label: 'Suburb', value: 'suburb' },
+      { label: 'State', value: 'state' },
+      { label: 'Age (Years)', value: 'age' },
+      { label: 'Source', value: 'source' },
+      { label: 'Reminder Date', value: 'reminderDate' },
+      { label: 'Emails Sent', value: 'emailsSent' },
+      { label: 'Emails Received', value: 'emailsReceived' },
+      { label: 'SMS Sent', value: 'smsSent' },
+      { label: 'SMS Received', value: 'smsReceived' }
+    ];
+
+    this.addedFiltersColumns = [
+      { title: 'Filter Column', field: 'filterColumn'},
+      { title: 'Filter Type', field: 'filterType'},
+      { title: 'Filter Value', field: 'filterValue'},
+      { headerSort: false, formatter:"buttonCross", width:40, align:"center", cellClick:(e, cell) => this.removeFilter(e, cell)}
+    ];
+
     this.state = {
-      activityData: this.activityData
+      filterColumns: this.columnsToHide,
+      filters:[]
     };
   }
 
   componentWillReceiveProps(nextProps) {
     let data = this.getGridData(nextProps.leads);
     this.setState({
-      activityData: data.leadsActivity
+      activityData: data
     })
   }
 
   componentWillMount() {
     this.props.fetchLeads();
+  }
+
+  removeFilter = (e, cell) => {
+    cell.getRow().delete();
+    const filterColumn = cell.getRow().getData()['filterColumn'];
+    const filterType = cell.getRow().getData()['filterType'];
+    const filterValue = cell.getRow().getData()['filterValue'];
+
+    if (this.state.filters && this.state.filters.length > 0) {
+      this.leadsActivityGridref.table.removeFilter(filterColumn, filterType, filterValue);
+    } else {
+      this.leadsActivityGridref.table.clearFilter(filterColumn, filterType, filterValue);
+    }
+
+    let newFilters = [...this.state.filters].filter(filter => !(filter.filterColumn ===  filterColumn && filter.filterType ===  filterType && filter.filterValue === filterValue));
+    this.setState({
+      filters: newFilters
+    })
+  }
+
+  addFilter () {
+    const filterColumn = $("#filter-field-leads").val();
+    const type = $("#filter-type-leads").val();
+    const value = $("#filter-value-leads").val();
+
+    if (!filterColumn || !type || !value) {
+      return;
+    }
+
+    this.setState({
+      filters: [...this.state.filters, {"filterColumn": filterColumn, "filterType": type, "filterValue": value}]
+    }, function() {
+      if (this.state.filters && this.state.filters.length > 0) {
+        this.leadsActivityGridref.table.addFilter(filterColumn, type, value);
+      } else {
+        this.leadsActivityGridref.table.setFilter(filterColumn, type, value);
+      }
+    });
+
+    $("#filter-field-leads").val("");
+    $("#filter-type-leads").val("=");
+    $("#filter-value-leads").val("");
+    //tableRef.table.clearFilter();
   }
 
   ExpandCellButton = (props: any) => {
@@ -681,54 +747,54 @@ export class LeadsActivityReport extends Component {
 
   getGridData(leads) {
     if (!leads || leads.length <= 0) {
-      return { leadsActivity: [] };
+      return [];
     }
-    let leadsActivity = [];
+    let leadsActivityData = [];
     let emailsSent = 0,
       emailsReceived = 0,
       smsSent = 0,
       smsReceived = 0;
-      leads.forEach(lead => {
-        leadsActivity.push({
-          id: lead['id'],
-          name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
-          gender: lead.values['Gender'],
-          email: lead.values['Email'],
-          phone: lead.values['Phone Number'],
-          address: lead.values['Address'],
-          suburb: lead.values['Suburb'],
-          state: lead.values['State'],
-          age: moment().diff(lead.values['DOB'], 'years'),
-          source: lead.values['Source'],
-          reminderDate: lead.values['Reminder Date'],
-          emailsSent: isNaN(lead.values['Emails Sent Count'])
-            ? 0
-            : parseInt(lead.values['Emails Sent Count']),
-          emailsReceived: isNaN(lead.values['Emails Received Count'])
-            ? 0
-            : parseInt(lead.values['Emails Received Count']),
-          smsSent: isNaN(lead.values['SMS Sent Count'])
-            ? 0
-            : parseInt(lead.values['SMS Sent Count']),
-          smsReceived: isNaN(lead.values['SMS Received Count'])
-            ? 0
-            : parseInt(lead.values['SMS Received Count']),
-        });
-
-        emailsSent += isNaN(lead.values['Emails Sent Count'])
+    leads.forEach(lead => {
+      leadsActivityData.push({
+        id: lead['id'],
+        name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
+        gender: lead.values['Gender'],
+        email: lead.values['Email'],
+        phone: lead.values['Phone Number'],
+        address: lead.values['Address'],
+        suburb: lead.values['Suburb'],
+        state: lead.values['State'],
+        age: moment().diff(lead.values['DOB'], 'years'),
+        source: lead.values['Source'],
+        reminderDate: lead.values['Reminder Date'],
+        emailsSent: isNaN(lead.values['Emails Sent Count'])
           ? 0
-          : parseInt(lead.values['Emails Sent Count']);
-        emailsReceived += isNaN(lead.values['Emails Received Count'])
+          : parseInt(lead.values['Emails Sent Count']),
+        emailsReceived: isNaN(lead.values['Emails Received Count'])
           ? 0
-          : parseInt(lead.values['Emails Received Count']);
-        smsSent += isNaN(lead.values['SMS Sent Count'])
+          : parseInt(lead.values['Emails Received Count']),
+        smsSent: isNaN(lead.values['SMS Sent Count'])
           ? 0
-          : parseInt(lead.values['SMS Sent Count']);
-        smsReceived += isNaN(lead.values['SMS Received Count'])
+          : parseInt(lead.values['SMS Sent Count']),
+        smsReceived: isNaN(lead.values['SMS Received Count'])
           ? 0
-          : parseInt(lead.values['SMS Received Count']);
+          : parseInt(lead.values['SMS Received Count']),
       });
-    return { leadsActivity: leadsActivity };
+
+      emailsSent += isNaN(lead.values['Emails Sent Count'])
+        ? 0
+        : parseInt(lead.values['Emails Sent Count']);
+      emailsReceived += isNaN(lead.values['Emails Received Count'])
+        ? 0
+        : parseInt(lead.values['Emails Received Count']);
+      smsSent += isNaN(lead.values['SMS Sent Count'])
+        ? 0
+        : parseInt(lead.values['SMS Sent Count']);
+      smsReceived += isNaN(lead.values['SMS Received Count'])
+        ? 0
+        : parseInt(lead.values['SMS Received Count']);
+    });
+    return leadsActivityData;
   }
 
   handleCellClick = (that, cell) => {
@@ -894,6 +960,24 @@ export class LeadsActivityReport extends Component {
       );
   };
 
+  downLoadTableAsCsv() {
+    this.leadsActivityGridref.table.download("csv", "leads-activity-report.csv");
+  }
+
+  onColumnDropdownChange = (e) => {
+    this.columnsToHide.forEach(column => {
+      this.leadsActivityGridref.table.showColumn(column.value);
+    });
+
+    e.forEach(column => {
+      this.leadsActivityGridref.table.hideColumn(column.value);
+    });
+
+    this.setState({
+      filterColumns: this.columnsToHide.filter(column => !e.some(elm => elm.value === column.value ))
+    });
+  }
+
   render() {
     const options = {
       height: 450,
@@ -901,6 +985,8 @@ export class LeadsActivityReport extends Component {
       pagination: 'local',
       paginationSize: 10,
       paginationSizeSelector: [10, 20, 50, 100],
+      downloadDataFormatter: (data) => data,
+      downloadReady: (fileContents, blob) => blob
     };
     return this.props.leadsLoading ? (
         <div>
@@ -919,6 +1005,58 @@ export class LeadsActivityReport extends Component {
         >
           <h6>Leads Activity Report</h6>
         </div>
+        <div className="table-controls">
+            <span>
+              <label>Field: </label>
+              <select id="filter-field-leads">
+                  <option></option>
+                  {this.state.filterColumns.map(column => <option key={column.value} value={column.value}>{column.label}</option>)}
+              </select>
+            </span>
+            <span>
+              <label>Type: </label>
+              <select id="filter-type-leads">
+                  <option value="=">=</option>
+                  <option value="<">&lt;</option>
+                  <option value="<=">&lt;=</option>
+                  <option value=">">&gt;</option>
+                  <option value=">=">&gt;=</option>
+                  <option value="!=">!=</option>
+                  <option value="like">like</option>
+              </select>
+            </span>
+              <span><label>Value: </label> <input id="filter-value-leads" type="text" placeholder="value to filter" size="15"/></span>
+              <button id="filter-add-leads" onClick={(e) => this.addFilter(e)}>Create Filter</button>
+              <span className="vl"></span>
+              <button name="download" onClick={(e) => this.downLoadTableAsCsv(e)}><i className="fa fa-download"></i> Download Data as CSV</button>
+              <div style={{display: 'inline-block', width: '350px'}}>
+              <Select
+                closeMenuOnSelect={false}
+                isMulti
+                components={{ Option, MultiValue }}
+                options={this.columnsToHide}
+                hideSelectedOptions={false}
+                backspaceRemovesValue={false}
+                onChange={e => this.onColumnDropdownChange(e)}
+                className="hide-columns-container"
+                classNamePrefix="hide-columns"
+                placeholder="Select columns to hide"
+                style={{width: '350px'}}
+              />
+              </div>
+        </div>
+        {this.state.filters && this.state.filters.length > 0
+            ? <div className="table-controls">
+              <div style={{margin: '10px' }}>
+              <ReactTabulator
+                ref={ref => (this.filtersGridref = ref)}
+                columns={this.addedFiltersColumns}
+                data={this.state.filters}
+                options={{width: '100%'}}
+              />
+            </div>
+    		</div>
+        : null}
         <div
           style={{ width: '100%', height: '420px', margin: '10px' }}
           className="row"
@@ -943,7 +1081,7 @@ const Option = createClass({
             type="checkbox"
             checked={this.props.isSelected}
             value={this.props.value}
-            onChange={e => this.props.selectProps.onHideColumnCheckboxChange(this, e)}
+            onChange={e => console.log()}
           />{" "}
           <label>{this.props.label}</label>
         </components.Option>
