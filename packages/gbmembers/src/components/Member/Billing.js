@@ -552,7 +552,7 @@ export class FamilyFeeDetails extends Component {
         accessor: 'discount',
         Header: 'Discount',
         align: 'center',
-        Cell: props => (props.value ? '$' + props.value : 'NA'),
+        Cell: props => (props.value ? props.value : 'NA'),
         headerClassName: 'col-align-center',
       },
       {
@@ -1047,6 +1047,31 @@ export class BillingInfo extends Component {
                           <PaymentPeriod
                             period={this.props.billingInfo.paymentPeriod}
                           />
+                        </td>
+                      </tr>
+                    )}
+                    {this.props.billingInfo.nextBillingDate && (
+                      <tr>
+                        <td>Next Billing Date:</td>
+                        <td>
+                          {new Date(
+                            moment(
+                              this.props.billingInfo.nextBillingDate,
+                              'DD-MM-YYYY',
+                            ),
+                          ).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    )}
+                    {this.props.billingInfo.paymentAmountInCents && (
+                      <tr>
+                        <td>Payment Amount:</td>
+                        <td>
+                          {'$' +
+                            Number(
+                              this.props.billingInfo.paymentAmountInCents,
+                            ) /
+                              100}
                         </td>
                       </tr>
                     )}
