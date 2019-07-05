@@ -83,7 +83,7 @@ btn:disabled {
 }
 
 .hide-columns-container {
-  width: 350px;
+  width: 300px;
 }
 
 .hide-columns__control {
@@ -132,6 +132,12 @@ btn:disabled {
 
 .hide-columns__placeholder {
   top: 50% !important;
+}
+
+.hide-columns__group-heading {
+  border-bottom: 1px solid !important;
+  color: rgb(153, 27, 30) !important;
+  font: italic bold 12px/30px Georgia, serif !important;
 }
 
 .vl {

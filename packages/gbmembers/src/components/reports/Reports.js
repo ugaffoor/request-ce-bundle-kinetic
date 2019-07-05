@@ -25,6 +25,7 @@ import 'react-tabulator/css/bootstrap/tabulator_bootstrap.min.css'; // use Theme
 import { ReactTabulator, reactFormatter } from 'react-tabulator';
 import Select, { components } from "react-select";
 import createClass from "create-react-class";
+import { actions as appActions } from '../../redux/modules/memberApp';
 
 const mapStateToProps = state => ({
   reports: state.member.reporting.activityReport,
@@ -33,12 +34,14 @@ const mapStateToProps = state => ({
   leads: state.member.leads.allLeads,
   membersLoading: state.member.members.membersLoading,
   leadsLoading: state.member.leads.leadsLoading,
+  reportPreferences: state.member.app.reportPreferences
 });
 
 const mapDispatchToProps = {
   fetchReport: reportingActions.fetchActivityReport,
   setReport: reportingActions.setActivityReport,
   fetchLeads: leadsActions.fetchLeads,
+  updateReportPreferences: appActions.updateReportPreferences
 };
 
 const util = require('util');
@@ -59,7 +62,9 @@ export const ReportsView = ({
   showMemberActivityReport,
   setShowMemberActivityReport,
   showLeadActivityReport,
-  setShowLeadActivityReport
+  setShowLeadActivityReport,
+  updatePreferences,
+  reportPreferences
 }) => (
   <div className="dashboard">
     <StatusMessagesContainer />
@@ -71,7 +76,14 @@ export const ReportsView = ({
       >
         {showMemberActivityReport ? "Hide Member Activity Report" : "Show Member Activity Report"}
       </button>
-        {!showMemberActivityReport ? null : <MemberActivityReport reports={reports} members={members} />}
+        {!showMemberActivityReport ? null :
+          <MemberActivityReport
+          reports={reports}
+          members={members}
+          reportPreferences={reportPreferences}
+          updatePreferences={updatePreferences}
+          />
+        }
     </div>
     <div className="row" style={{ margin: '20px 10px 10px 10px' }}>
       <button
@@ -81,7 +93,15 @@ export const ReportsView = ({
       >
         {showLeadActivityReport ? "Hide Leads Activity Report" : "Show Leads Activity Report"}
       </button>
-      {!showLeadActivityReport ? null : <LeadsActivityReport fetchLeads={fetchLeads} leads={leads} leadsLoading={leadsLoading}/>}
+      {!showLeadActivityReport ? null :
+        <LeadsActivityReport
+        fetchLeads={fetchLeads}
+        leads={leads}
+        leadsLoading={leadsLoading}
+        reportPreferences={reportPreferences}
+        updatePreferences={updatePreferences}
+        />
+      }
     </div>
   </div>
 );
@@ -97,6 +117,10 @@ export const ReportsContainer = compose(
     fetchLeads: ({ fetchLeads }) => () => {
       fetchLeads({});
     },
+    updatePreferences:({updateReportPreferences}) => (key, value) => {
+      console.log("##### reportPreferences = " + util.inspect(value));
+      updateReportPreferences({key, reportPreferences: value});
+    }
   }),
   lifecycle({
     componentWillReceiveProps(nextProps) {
@@ -114,16 +138,19 @@ export class MemberActivityReport extends Component {
     this.handleCellClick = this.handleCellClick.bind(this);
 
     this.columns = [
-      { title: 'Name', field: 'name', bottomCalc: function() {return 'Total'} },
+      { title: 'Name', field: 'name', tooltip: true, bottomCalc: function() {return 'Total'} },
       { title: 'Gender', field: 'gender' },
-      { title: 'Email', field: 'email' },
-      { title: 'Phone', field: 'phone' },
-      { title: 'Address', field: 'address' },
-      { title: 'Suburb', field: 'suburb' },
+      { title: 'Email', field: 'email', tooltip: true },
+      { title: 'Phone', field: 'phone', tooltip: true },
+      { title: 'Address', field: 'address', tooltip: true },
+      { title: 'Suburb', field: 'suburb', tooltip: true },
       { title: 'State', field: 'state' },
       { title: 'Age (Years)', field: 'age' },
       { title: 'Member Type', field: 'memberType' },
       { title: 'Billing User', field: 'billingUser' },
+      { title: 'Cost', field: 'cost' },
+      { title: 'Payment Period', field: 'paymentPeriod' },
+      { title: 'Family Members', field: 'familyMembers' },
       {
         title: 'Emails Sent',
         field: 'emailsSent',
@@ -168,6 +195,43 @@ export class MemberActivityReport extends Component {
     ];
 
     this.columnsToHide = [
+      { label: "Member Columns",
+        options: [
+        { label: 'Name', value: 'name' },
+        { label: 'Gender', value: 'gender' },
+        { label: 'Email', value: 'email' },
+        { label: 'Phone', value: 'phone' },
+        { label: 'Address', value: 'address' },
+        { label: 'Suburb', value: 'suburb' },
+        { label: 'State', value: 'state' },
+        { label: 'Age (Years)', value: 'age' },
+        { label: 'Member Type', value: 'memberType' },
+        { label: 'Emails Sent', value: 'emailsSent' },
+        { label: 'Emails Received', value: 'emailsReceived' },
+        { label: 'SMS Sent', value: 'smsSent' },
+        { label: 'SMS Received', value: 'smsReceived' } ]
+      },
+        { label: "Billing Columns",
+          options: [
+          { label: 'Billing User', value: 'billingUser' },
+          { label: 'Cost', value: 'cost' },
+          { label: 'Payment Period', value: 'paymentPeriod' },
+          { label: 'Family Members', value: 'familyMembers' }]
+        }
+      ];
+
+    this.addedFiltersColumns = [
+      { title: 'Filter Column', field: 'filterColumn'},
+      { title: 'Filter Type', field: 'filterType'},
+      { title: 'Filter Value', field: 'filterValue'},
+      { headerSort: false, formatter:"buttonCross", width:40, align:"center", cellClick:(e, cell) => this.removeFilter(e, cell)}
+    ];
+
+    this.selectedColumns = [];
+
+    this.hiddenColumns = this.getHiddenColumnPreference();
+
+    this.filterColumns = [
       { label: 'Name', value: 'name' },
       { label: 'Gender', value: 'gender' },
       { label: 'Email', value: 'email' },
@@ -178,28 +242,42 @@ export class MemberActivityReport extends Component {
       { label: 'Age (Years)', value: 'age' },
       { label: 'Member Type', value: 'memberType' },
       { label: 'Billing User', value: 'billingUser' },
+      { label: 'Cost', value: 'cost', key: 'cost' },
+      { label: 'Payment Period', value: 'paymentPeriod' },
+      { label: 'Family Members', value: 'familyMembers' },
       { label: 'Emails Sent', value: 'emailsSent' },
       { label: 'Emails Received', value: 'emailsReceived' },
       { label: 'SMS Sent', value: 'smsSent' },
       { label: 'SMS Received', value: 'smsReceived' }
     ];
 
-    this.addedFiltersColumns = [
-      { title: 'Filter Column', field: 'filterColumn'},
-      { title: 'Filter Type', field: 'filterType'},
-      { title: 'Filter Value', field: 'filterValue'},
-      { headerSort: false, formatter:"buttonCross", width:40, align:"center", cellClick:(e, cell) => this.removeFilter(e, cell)}
-    ];
-
     this.state = {
-      filterColumns: this.columnsToHide,
+      filterColumns: this.filterColumns,
       filters:[]
     };
   }
 
   componentWillReceiveProps(nextProps) {}
 
-  componentDidMount() {}
+  getHiddenColumnPreference = () => {
+      let obj = null;
+      let hiddenCols = null;
+      if (this.props.reportPreferences && this.props.reportPreferences.size > 0) {
+        obj = this.props.reportPreferences.find(x => x.hasOwnProperty("Member Activity Report"));
+      }
+      if (obj) {
+        hiddenCols = obj["Member Activity Report"]["Hidden Columns"];
+      }
+      return hiddenCols ? hiddenCols : [];
+  }
+
+  hideColumns = (gridRef) => {
+    if(this.hiddenColumns) {
+      this.hiddenColumns.forEach(column => {
+        this.memberActivityGridref.table.hideColumn(column.value);
+      });
+    }
+  }
 
   removeFilter = (e, cell) => {
     cell.getRow().delete();
@@ -284,7 +362,10 @@ export class MemberActivityReport extends Component {
         state: member.values['State'],
         age: moment().diff(member.values['DOB'], 'years'),
         memberType: member.values['Member Type'],
-        billingUser: member.values['Billing User'] && member.values['Billing User'] === 'YES' ? 'YES' : 'NO',
+        billingUser: member.values['Billing User'] === 'YES' ? 'YES' : 'NO',
+        cost: member.values['Billing User'] === 'YES' ? member.values['Membership Cost'] : '',
+        paymentPeriod: member.values['Billing User'] === 'YES' ? member.values['Billing Payment Period'] : '',
+        familyMembers: member.values['Billing User'] === 'YES' && member.values['Billing Family Members'] ? JSON.parse(member.values['Billing Family Members']).length : '',
         emailsSent: isNaN(member.values['Emails Sent Count'])
           ? 0
           : parseInt(member.values['Emails Sent Count']),
@@ -482,18 +563,34 @@ export class MemberActivityReport extends Component {
     this.memberActivityGridref.table.download("csv", "member-activity-report.csv");
   }
 
-  onColumnDropdownChange = (e) => {
-    this.columnsToHide.forEach(column => {
+  onColumnDropdownChange = (options) => {
+    this.filterColumns.forEach(column => {
       this.memberActivityGridref.table.showColumn(column.value);
     });
 
-    e.forEach(column => {
+    options.forEach(column => {
       this.memberActivityGridref.table.hideColumn(column.value);
     });
 
     this.setState({
-      filterColumns: this.columnsToHide.filter(column => !e.some(elm => elm.value === column.value ))
+      filterColumns: this.filterColumns.filter(column => !options.some(elm => elm.value === column.value ))
     });
+    this.selectedColumns = options;
+  }
+
+  updateReportPreferences = () => {
+    let memberActivityReport = null;
+    let obj = null;
+    if (this.props.reportPreferences && this.props.reportPreferences.size > 0) {
+      obj = this.props.reportPreferences.find(x => x.hasOwnProperty("Member Activity Report"));
+    }
+    if (obj) {
+      memberActivityReport = obj["Member Activity Report"];
+      memberActivityReport["Hidden Columns"] = this.selectedColumns;
+    } else {
+      memberActivityReport = {"Hidden Columns": this.selectedColumns};
+    }
+    this.props.updatePreferences("Member Activity Report", memberActivityReport);
   }
 
   render() {
@@ -503,6 +600,7 @@ export class MemberActivityReport extends Component {
       pagination: 'local',
       paginationSize: 10,
       paginationSizeSelector: [10, 20, 50, 100],
+      tooltipsHeader:true,
       downloadDataFormatter: (data) => data,
       downloadReady: (fileContents, blob) => blob
     };
@@ -542,21 +640,24 @@ export class MemberActivityReport extends Component {
               <button id="filter-add" onClick={(e) => this.addFilter(e)}>Create Filter</button>
               <span className="vl"></span>
               <button name="download" onClick={(e) => this.downLoadTableAsCsv(e)}><i className="fa fa-download"></i> Download Data as CSV</button>
-              <div style={{display: 'inline-block', width: '350px'}}>
+              <div style={{display: 'inline-block', width: '300px'}}>
               <Select
                 closeMenuOnSelect={false}
                 isMulti
                 components={{ Option, MultiValue }}
                 options={this.columnsToHide}
+                defaultValue={this.hiddenColumns}
                 hideSelectedOptions={false}
                 backspaceRemovesValue={false}
                 onChange={e => this.onColumnDropdownChange(e)}
                 className="hide-columns-container"
                 classNamePrefix="hide-columns"
                 placeholder="Select columns to hide"
-                style={{width: '350px'}}
+                style={{width: '300px'}}
+                //defaultMenuIsOpen={true}
               />
               </div>
+              <button name="updateMemberPereference" style={{whiteSpace: 'normal'}} onClick={(e) => this.updateReportPreferences(e)}>Update<br/>Preferences</button>
         </div>
         {this.state.filters && this.state.filters.length > 0
             ? <div className="table-controls">
@@ -575,10 +676,11 @@ export class MemberActivityReport extends Component {
           className="row"
         >
           <ReactTabulator
-            ref={ref => (this.memberActivityGridref = ref)}
             columns={this.columns}
             data={this.activityData}
             options={options}
+            //renderComplete={(e) => this.hideColumns(e)}
+            ref={ref => (this.memberActivityGridref = ref)}
           />
         </div>
       </span>
@@ -594,12 +696,12 @@ export class LeadsActivityReport extends Component {
     this.handleCellClick = this.handleCellClick.bind(this);
 
     this.columns = [
-      { title: 'Name', field: 'name', bottomCalc: function() {return 'Total'} },
+      { title: 'Name', field: 'name', tooltip: true, bottomCalc: function() {return 'Total'} },
       { title: 'Gender', field: 'gender' },
-      { title: 'Email', field: 'email' },
-      { title: 'Phone', field: 'phone' },
-      { title: 'Address', field: 'address' },
-      { title: 'Suburb', field: 'suburb' },
+      { title: 'Email', field: 'email', tooltip: true },
+      { title: 'Phone', field: 'phone', tooltip: true },
+      { title: 'Address', field: 'address', tooltip: true },
+      { title: 'Suburb', field: 'suburb', tooltip: true },
       { title: 'State', field: 'state' },
       { title: 'Age (Years)', field: 'age' },
       { title: 'Source', field: 'source' },
@@ -669,7 +771,12 @@ export class LeadsActivityReport extends Component {
       { headerSort: false, formatter:"buttonCross", width:40, align:"center", cellClick:(e, cell) => this.removeFilter(e, cell)}
     ];
 
+    this.selectedColumns = [];
+
+    this.hiddenColumns = this.getHiddenColumnPreference();
+
     this.state = {
+      activityData: this.activityData,
       filterColumns: this.columnsToHide,
       filters:[]
     };
@@ -684,6 +791,26 @@ export class LeadsActivityReport extends Component {
 
   componentWillMount() {
     this.props.fetchLeads();
+  }
+
+  getHiddenColumnPreference = () => {
+      let obj = null;
+      let hiddenCols = null;
+      if (this.props.reportPreferences && this.props.reportPreferences.size > 0) {
+        obj = this.props.reportPreferences.find(x => x.hasOwnProperty("Leads Activity Report"));
+      }
+      if (obj) {
+        hiddenCols = obj["Leads Activity Report"]["Hidden Columns"];
+      }
+      return hiddenCols ? hiddenCols : [];
+  }
+
+  hideColumns = () => {
+    if(this.hiddenColumns && this.leadsActivityGridref) {
+      this.hiddenColumns.forEach(column => {
+        this.leadsActivityGridref.table.hideColumn(column.value);
+      });
+    }
   }
 
   removeFilter = (e, cell) => {
@@ -964,18 +1091,36 @@ export class LeadsActivityReport extends Component {
     this.leadsActivityGridref.table.download("csv", "leads-activity-report.csv");
   }
 
-  onColumnDropdownChange = (e) => {
+  onColumnDropdownChange = (options) => {
     this.columnsToHide.forEach(column => {
       this.leadsActivityGridref.table.showColumn(column.value);
     });
 
-    e.forEach(column => {
+    options.forEach(column => {
       this.leadsActivityGridref.table.hideColumn(column.value);
     });
 
     this.setState({
-      filterColumns: this.columnsToHide.filter(column => !e.some(elm => elm.value === column.value ))
+      filterColumns: this.columnsToHide.filter(column => !options.some(elm => elm.value === column.value ))
     });
+    this.selectedColumns = options;
+    console.log("#### selected = " + util.inspect(options));
+  }
+
+  updateReportPreferences = () => {
+    let leadsActivityReport = null;
+    let obj = null;
+
+    if (this.props.reportPreferences && this.props.reportPreferences.size > 0) {
+      obj = this.props.reportPreferences.find(x => x.hasOwnProperty("Leads Activity Report"));
+    }
+    if (obj) {
+      leadsActivityReport = obj["Leads Activity Report"];
+      leadsActivityReport["Hidden Columns"] = this.selectedColumns;
+    } else {
+      leadsActivityReport = {"Hidden Columns": this.selectedColumns};
+    }
+    this.props.updatePreferences("Leads Activity Report", leadsActivityReport);
   }
 
   render() {
@@ -985,6 +1130,7 @@ export class LeadsActivityReport extends Component {
       pagination: 'local',
       paginationSize: 10,
       paginationSizeSelector: [10, 20, 50, 100],
+      tooltipsHeader:true,
       downloadDataFormatter: (data) => data,
       downloadReady: (fileContents, blob) => blob
     };
@@ -1028,22 +1174,24 @@ export class LeadsActivityReport extends Component {
               <span><label>Value: </label> <input id="filter-value-leads" type="text" placeholder="value to filter" size="15"/></span>
               <button id="filter-add-leads" onClick={(e) => this.addFilter(e)}>Create Filter</button>
               <span className="vl"></span>
-              <button name="download" onClick={(e) => this.downLoadTableAsCsv(e)}><i className="fa fa-download"></i> Download Data as CSV</button>
-              <div style={{display: 'inline-block', width: '350px'}}>
+              <button name="download" onClick={(e) => this.downLoadTableAsCsv(e)}><i className="fa fa-download"></i>Download Data as CSV</button>
+              <div style={{display: 'inline-block', width: '300px'}}>
               <Select
                 closeMenuOnSelect={false}
                 isMulti
                 components={{ Option, MultiValue }}
                 options={this.columnsToHide}
+                defaultValue={this.hiddenColumns}
                 hideSelectedOptions={false}
                 backspaceRemovesValue={false}
                 onChange={e => this.onColumnDropdownChange(e)}
                 className="hide-columns-container"
                 classNamePrefix="hide-columns"
                 placeholder="Select columns to hide"
-                style={{width: '350px'}}
+                style={{width: '300px'}}
               />
               </div>
+              <button name="updateLeadPereference" style={{whiteSpace: 'normal'}} onClick={(e) => this.updateReportPreferences(e)}>Update<br/>Preferences</button>
         </div>
         {this.state.filters && this.state.filters.length > 0
             ? <div className="table-controls">

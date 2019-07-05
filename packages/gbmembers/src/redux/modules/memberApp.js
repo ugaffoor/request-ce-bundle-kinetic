@@ -13,6 +13,7 @@ export const types = {
   REMOVE_MEMBERS_LIST: namespace('app', 'REMOVE_MEMBERS_LIST'),
   ADD_DDR_TEMPLATE: namespace('app', 'ADD_DDR_TEMPLATE'),
   REMOVE_DDR_TEMPLATE: namespace('app', 'REMOVE_DDR_TEMPLATE'),
+  UPDATE_REPORT_PREFERENCES: namespace('app', 'UPDATE_REPORT_PREFERENCES'),
 };
 
 export const actions = {
@@ -23,6 +24,7 @@ export const actions = {
   removeMembersList: withPayload(types.REMOVE_MEMBERS_LIST),
   addDDRTemplate: withPayload(types.ADD_DDR_TEMPLATE),
   removeDDRTemplate: withPayload(types.REMOVE_DDR_TEMPLATE),
+  updateReportPreferences: withPayload(types.UPDATE_REPORT_PREFERENCES)
 };
 /*
  *
@@ -59,6 +61,7 @@ export const State = Record({
   lastFilterName: null,
   memberLists: List(),
   kapp: {},
+  reportPreferences: List()
 });
 
 export const reducer = (state = State(), { type, payload }) => {
@@ -78,6 +81,15 @@ export const reducer = (state = State(), { type, payload }) => {
       var memberLists = payload.profile.profileAttributes['Member Lists']
         ? List(payload.profile.profileAttributes['Member Lists'])
         : List();
+
+      var reportPreferencesArr = payload.profile.profileAttributes['Report Preferences'];
+        if(reportPreferencesArr) {
+          for (var i = 0; i < reportPreferencesArr.length; i++) {
+            reportPreferencesArr[i] = JSON.parse(reportPreferencesArr[i]);
+          }
+        }
+
+      var reportPreferences = reportPreferencesArr ? List(reportPreferencesArr) : List();
 
       return state
         .set('kineticBillingServerUrl', payload.kineticBillingServerUrl)
@@ -107,6 +119,7 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('spaceSlug', payload.space.slug)
         .set('memberLists', memberLists)
         .set('kapp', payload.kapp)
+        .set('reportPreferences', reportPreferences)
         .set('loading', false);
     }
     case types.ADD_MEMBERS_LIST:
@@ -132,6 +145,20 @@ export const reducer = (state = State(), { type, payload }) => {
       return state.update('ddrTemplates', ddrTemplates =>
         ddrTemplates.filter(template => template.name !== payload.name),
       );
+    case types.UPDATE_REPORT_PREFERENCES:
+    return state.update('reportPreferences', reportPreferences => {
+      let index = -1;
+      if (reportPreferences && reportPreferences.size > 0) {
+        index = reportPreferences.findIndex(x => x.hasOwnProperty(payload.key));
+      }
+      let obj = {};
+      obj[payload.key] = payload.reportPreferences;
+      if (index >= 0) {
+        return reportPreferences.set(index, obj);
+      } else {
+        return reportPreferences.push(obj);
+      }
+    });
     default:
       return state;
   }

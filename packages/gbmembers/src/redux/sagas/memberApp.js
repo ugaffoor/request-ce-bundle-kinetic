@@ -26,6 +26,7 @@ export const selectProfile = ({ app }) => app.profile;
 export const selectMemberLists = ({ member }) => member.app.memberLists;
 export const selectDDRTemplates = ({ member }) => member.app.ddrTemplates;
 export const selectKapp = ({ app }) => app.kapps;
+export const selectReportPreferences = ({ member }) => member.app.reportPreferences;
 
 export const PROGRAMBELTS_SEARCH = new CoreAPI.SubmissionSearch(true)
   .eq('values[Status]', 'Active')
@@ -347,6 +348,26 @@ export function* updateMembersListTask(payload) {
   }
 }
 
+export function* updateReportPreferences(action) {
+  const reportPreferences = yield select(selectReportPreferences);
+  const profile = yield select(selectProfile);
+  var reportPreferencesArr = reportPreferences.toJS();
+  for (var i = 0; i < reportPreferencesArr.length; i++) {
+    reportPreferencesArr[i] = JSON.stringify(reportPreferencesArr[i]);
+  }
+
+  console.log("updateReportPreferences 2 = " + JSON.stringify(reportPreferencesArr));
+  profile.profileAttributes['Report Preferences'] = reportPreferencesArr;
+  const { serverError } = yield call(CoreAPI.updateProfile, {
+    profile,
+    include: PROFILE_UPDATE_INCLUDES,
+  });
+
+  if (!serverError) {
+    // TODO: What should we do on success?
+  }
+}
+
 export function* watchApp() {
   console.log('watchApp');
   yield takeEvery(types.LOAD_MEMBER_APP_SETTINGS, fetchMemberAppSettingsTask);
@@ -362,4 +383,5 @@ export function* watchApp() {
     [types.ADD_DDR_TEMPLATE, types.REMOVE_DDR_TEMPLATE],
     updateDDRTemplatesTask,
   );
+  yield takeEvery(types.UPDATE_REPORT_PREFERENCES, updateReportPreferences);
 }
