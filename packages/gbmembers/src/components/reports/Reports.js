@@ -227,10 +227,6 @@ export class MemberActivityReport extends Component {
       { headerSort: false, formatter:"buttonCross", width:40, align:"center", cellClick:(e, cell) => this.removeFilter(e, cell)}
     ];
 
-    this.selectedColumns = [];
-
-    this.hiddenColumns = this.getHiddenColumnPreference();
-
     this.filterColumns = [
       { label: 'Name', value: 'name' },
       { label: 'Gender', value: 'gender' },
@@ -250,6 +246,10 @@ export class MemberActivityReport extends Component {
       { label: 'SMS Sent', value: 'smsSent' },
       { label: 'SMS Received', value: 'smsReceived' }
     ];
+
+    this.hiddenColumns = this.getHiddenColumnPreference();
+    this.visibleColumns = this.filterColumns.filter(column => !this.hiddenColumns.some(hc => hc.value === column.value));
+    this.selectedColumns = this.visibleColumns;
 
     this.state = {
       filterColumns: this.filterColumns,
@@ -271,8 +271,8 @@ export class MemberActivityReport extends Component {
       return hiddenCols ? hiddenCols : [];
   }
 
-  hideColumns = (gridRef) => {
-    if(this.hiddenColumns) {
+  hideColumns = () => {
+    if(this.hiddenColumns && this.memberActivityGridref) {
       this.hiddenColumns.forEach(column => {
         this.memberActivityGridref.table.hideColumn(column.value);
       });
@@ -565,15 +565,15 @@ export class MemberActivityReport extends Component {
 
   onColumnDropdownChange = (options) => {
     this.filterColumns.forEach(column => {
-      this.memberActivityGridref.table.showColumn(column.value);
-    });
-
-    options.forEach(column => {
       this.memberActivityGridref.table.hideColumn(column.value);
     });
 
+    options.forEach(column => {
+      this.memberActivityGridref.table.showColumn(column.value);
+    });
+
     this.setState({
-      filterColumns: this.filterColumns.filter(column => !options.some(elm => elm.value === column.value ))
+      filterColumns: this.filterColumns.filter(column => options.some(elm => elm.value === column.value ))
     });
     this.selectedColumns = options;
   }
@@ -586,9 +586,9 @@ export class MemberActivityReport extends Component {
     }
     if (obj) {
       memberActivityReport = obj["Member Activity Report"];
-      memberActivityReport["Hidden Columns"] = this.selectedColumns;
+      memberActivityReport["Hidden Columns"] = this.filterColumns.filter(column => !this.selectedColumns.some(elm => elm.value === column.value ));
     } else {
-      memberActivityReport = {"Hidden Columns": this.selectedColumns};
+      memberActivityReport = {"Hidden Columns": this.filterColumns.filter(column => !this.selectedColumns.some(elm => elm.value === column.value ))};
     }
     this.props.updatePreferences("Member Activity Report", memberActivityReport);
   }
@@ -646,13 +646,13 @@ export class MemberActivityReport extends Component {
                 isMulti
                 components={{ Option, MultiValue }}
                 options={this.columnsToHide}
-                defaultValue={this.hiddenColumns}
+                defaultValue={this.visibleColumns}
                 hideSelectedOptions={false}
                 backspaceRemovesValue={false}
                 onChange={e => this.onColumnDropdownChange(e)}
                 className="hide-columns-container"
                 classNamePrefix="hide-columns"
-                placeholder="Select columns to hide"
+                placeholder="Show/hide columns"
                 style={{width: '300px'}}
                 //defaultMenuIsOpen={true}
               />
@@ -679,7 +679,7 @@ export class MemberActivityReport extends Component {
             columns={this.columns}
             data={this.activityData}
             options={options}
-            //renderComplete={(e) => this.hideColumns(e)}
+            renderComplete={(e) => this.hideColumns()}
             ref={ref => (this.memberActivityGridref = ref)}
           />
         </div>
@@ -771,9 +771,9 @@ export class LeadsActivityReport extends Component {
       { headerSort: false, formatter:"buttonCross", width:40, align:"center", cellClick:(e, cell) => this.removeFilter(e, cell)}
     ];
 
-    this.selectedColumns = [];
-
     this.hiddenColumns = this.getHiddenColumnPreference();
+    this.visibleColumns = this.columnsToHide.filter(column => !this.hiddenColumns.some(hc => hc.value === column.value));
+    this.selectedColumns = this.visibleColumns;
 
     this.state = {
       activityData: this.activityData,
@@ -1093,18 +1093,18 @@ export class LeadsActivityReport extends Component {
 
   onColumnDropdownChange = (options) => {
     this.columnsToHide.forEach(column => {
-      this.leadsActivityGridref.table.showColumn(column.value);
-    });
-
-    options.forEach(column => {
       this.leadsActivityGridref.table.hideColumn(column.value);
     });
 
+    options.forEach(column => {
+      this.leadsActivityGridref.table.showColumn(column.value);
+    });
+
     this.setState({
-      filterColumns: this.columnsToHide.filter(column => !options.some(elm => elm.value === column.value ))
+      filterColumns: this.columnsToHide.filter(column => options.some(elm => elm.value === column.value ))
     });
     this.selectedColumns = options;
-    console.log("#### selected = " + util.inspect(options));
+    //console.log("#### selected = " + util.inspect(options));
   }
 
   updateReportPreferences = () => {
@@ -1116,9 +1116,9 @@ export class LeadsActivityReport extends Component {
     }
     if (obj) {
       leadsActivityReport = obj["Leads Activity Report"];
-      leadsActivityReport["Hidden Columns"] = this.selectedColumns;
+      leadsActivityReport["Hidden Columns"] = this.columnsToHide.filter(column => !this.selectedColumns.some(elm => elm.value === column.value ));
     } else {
-      leadsActivityReport = {"Hidden Columns": this.selectedColumns};
+      leadsActivityReport = {"Hidden Columns": this.columnsToHide.filter(column => !this.selectedColumns.some(elm => elm.value === column.value ))};
     }
     this.props.updatePreferences("Leads Activity Report", leadsActivityReport);
   }
@@ -1181,13 +1181,13 @@ export class LeadsActivityReport extends Component {
                 isMulti
                 components={{ Option, MultiValue }}
                 options={this.columnsToHide}
-                defaultValue={this.hiddenColumns}
+                defaultValue={this.visibleColumns}
                 hideSelectedOptions={false}
                 backspaceRemovesValue={false}
                 onChange={e => this.onColumnDropdownChange(e)}
                 className="hide-columns-container"
                 classNamePrefix="hide-columns"
-                placeholder="Select columns to hide"
+                placeholder="Show/hide columns"
                 style={{width: '300px'}}
               />
               </div>
@@ -1214,6 +1214,7 @@ export class LeadsActivityReport extends Component {
             columns={this.columns}
             data={this.state.activityData}
             options={options}
+            renderComplete={(e) => this.hideColumns()}
           />
         </div>
       </span>);
