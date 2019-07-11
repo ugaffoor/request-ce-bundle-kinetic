@@ -148,7 +148,8 @@ export class MemberActivityReport extends Component {
       { title: 'Age (Years)', field: 'age' },
       { title: 'Member Type', field: 'memberType' },
       { title: 'Billing User', field: 'billingUser' },
-      { title: 'Cost', field: 'cost' },
+      { title: 'Cost', field: 'cost', bottomCalc: 'sum' },
+      { title: 'Average', field: 'average', bottomCalc: this.averageCostCalc },
       { title: 'Payment Period', field: 'paymentPeriod' },
       { title: 'Family Members', field: 'familyMembers' },
       {
@@ -215,6 +216,7 @@ export class MemberActivityReport extends Component {
           options: [
           { label: 'Billing User', value: 'billingUser' },
           { label: 'Cost', value: 'cost' },
+          { label: 'Average', value: 'average' },
           { label: 'Payment Period', value: 'paymentPeriod' },
           { label: 'Family Members', value: 'familyMembers' }]
         }
@@ -239,6 +241,7 @@ export class MemberActivityReport extends Component {
       { label: 'Member Type', value: 'memberType' },
       { label: 'Billing User', value: 'billingUser' },
       { label: 'Cost', value: 'cost', key: 'cost' },
+      { label: 'Average', value: 'average', key: 'cost' },
       { label: 'Payment Period', value: 'paymentPeriod' },
       { label: 'Family Members', value: 'familyMembers' },
       { label: 'Emails Sent', value: 'emailsSent' },
@@ -258,6 +261,19 @@ export class MemberActivityReport extends Component {
   }
 
   componentWillReceiveProps(nextProps) {}
+
+  averageCostCalc = (values, data, calcParams) => {
+    //values - array of column values
+    //data - all table data
+    //calcParams - params passed from the column definition object
+    var cost = 0;
+    values.forEach(function(value){
+      if(!isNaN(parseFloat(value))) {
+        cost += parseFloat(value);
+      }
+    });
+    return cost.toFixed(2);
+  }
 
   getHiddenColumnPreference = () => {
       let obj = null;
@@ -364,6 +380,7 @@ export class MemberActivityReport extends Component {
         memberType: member.values['Member Type'],
         billingUser: member.values['Billing User'] === 'YES' ? 'YES' : 'NO',
         cost: member.values['Billing User'] === 'YES' ? member.values['Membership Cost'] : '',
+        average: member.values['Billing User'] === 'YES' && member.values['Billing Family Members'] ? (member.values['Membership Cost']/JSON.parse(member.values['Billing Family Members']).length).toFixed(2): '',
         paymentPeriod: member.values['Billing User'] === 'YES' ? member.values['Billing Payment Period'] : '',
         familyMembers: member.values['Billing User'] === 'YES' && member.values['Billing Family Members'] ? JSON.parse(member.values['Billing Family Members']).length : '',
         emailsSent: isNaN(member.values['Emails Sent Count'])

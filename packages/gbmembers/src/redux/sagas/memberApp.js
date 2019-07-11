@@ -365,6 +365,9 @@ export function* updateReportPreferences(action) {
 
   if (!serverError) {
     // TODO: What should we do on success?
+    yield put(errorActions.addSuccess("Preferences updated successfully", "Update Preference"));
+  } else {
+    yield put(errorActions.addError("Error updating preferences", "Update Preference"));
   }
 }
 
