@@ -34,7 +34,9 @@ const mapStateToProps = state => ({
   leads: state.member.leads.allLeads,
   membersLoading: state.member.members.membersLoading,
   leadsLoading: state.member.leads.leadsLoading,
-  reportPreferences: state.member.app.reportPreferences
+  reportPreferences: state.member.app.reportPreferences,
+  memberStatusValues: state.member.app.memberStatusValues,
+  leadStatusValues: state.member.app.leadStatusValues
 });
 
 const mapDispatchToProps = {
@@ -64,7 +66,9 @@ export const ReportsView = ({
   showLeadActivityReport,
   setShowLeadActivityReport,
   updatePreferences,
-  reportPreferences
+  reportPreferences,
+  memberStatusValues,
+  leadStatusValues
 }) => (
   <div className="dashboard">
     <StatusMessagesContainer />
@@ -82,6 +86,7 @@ export const ReportsView = ({
           members={members}
           reportPreferences={reportPreferences}
           updatePreferences={updatePreferences}
+          memberStatusValues={memberStatusValues}
           />
         }
     </div>
@@ -100,6 +105,7 @@ export const ReportsView = ({
         leadsLoading={leadsLoading}
         reportPreferences={reportPreferences}
         updatePreferences={updatePreferences}
+        leadStatusValues={leadStatusValues}
         />
       }
     </div>
@@ -140,6 +146,7 @@ export class MemberActivityReport extends Component {
     this.columns = [
       { title: 'Name', field: 'name', tooltip: true, bottomCalc: function() {return 'Total'} },
       { title: 'Gender', field: 'gender' },
+      { title: 'Status', field: 'status' },
       { title: 'Email', field: 'email', tooltip: true },
       { title: 'Phone', field: 'phone', tooltip: true },
       { title: 'Address', field: 'address', tooltip: true },
@@ -200,6 +207,7 @@ export class MemberActivityReport extends Component {
         options: [
         { label: 'Name', value: 'name' },
         { label: 'Gender', value: 'gender' },
+        { label: 'Status', value: 'status' },
         { label: 'Email', value: 'email' },
         { label: 'Phone', value: 'phone' },
         { label: 'Address', value: 'address' },
@@ -232,6 +240,7 @@ export class MemberActivityReport extends Component {
     this.filterColumns = [
       { label: 'Name', value: 'name' },
       { label: 'Gender', value: 'gender' },
+      { label: 'Status', value: 'status' },
       { label: 'Email', value: 'email' },
       { label: 'Phone', value: 'phone' },
       { label: 'Address', value: 'address' },
@@ -254,9 +263,16 @@ export class MemberActivityReport extends Component {
     this.visibleColumns = this.filterColumns.filter(column => !this.hiddenColumns.some(hc => hc.value === column.value));
     this.selectedColumns = this.visibleColumns;
 
+    this.filterValueOptions = {
+      'gender': ['Male', 'Female'],
+     'status': this.props.memberStatusValues,
+     'billingUser': ['YES', 'NO']
+   };
+
     this.state = {
       filterColumns: this.filterColumns,
-      filters:[]
+      filters:[],
+      selectedFilterValueOptions: []
     };
   }
 
@@ -296,7 +312,6 @@ export class MemberActivityReport extends Component {
   }
 
   removeFilter = (e, cell) => {
-    cell.getRow().delete();
     const filterColumn = cell.getRow().getData()['filterColumn'];
     const filterType = cell.getRow().getData()['filterType'];
     const filterValue = cell.getRow().getData()['filterValue'];
@@ -316,7 +331,7 @@ export class MemberActivityReport extends Component {
   addFilter () {
     const filterColumn = $("#filter-field").val();
     const type = $("#filter-type").val();
-    const value = $("#filter-value").val();
+    const value = $("#filter-value-text").val() ? $("#filter-value-text").val() : $("#filter-value-select").val();
 
     if (!filterColumn || !type || !value) {
       return;
@@ -334,11 +349,25 @@ export class MemberActivityReport extends Component {
 
     $("#filter-field").val("");
     $("#filter-type").val("=");
-    $("#filter-value").val("");
+    $("#filter-value-text").val("");
+    $("#filter-value-select").val("");
     //tableRef.table.clearFilter();
   }
 
   updateFilter = () => {
+  }
+
+  onFilterFieldChange = (event) => {
+    let options = this.filterValueOptions[event.target.value];
+    if(options) {
+      $('#filter-value-text').hide();
+      $('#filter-value-select').show();
+      this.setState({selectedFilterValueOptions: options});
+    } else {
+      $('#filter-value-text').show();
+      $('#filter-value-select').hide();
+      this.setState({selectedFilterValueOptions: []});
+    }
   }
 
   ExpandCellButton = (props: any) => {
@@ -371,6 +400,7 @@ export class MemberActivityReport extends Component {
         id: member['id'],
         name: member.values['First Name'] + ' ' + member.values['Last Name'],
         gender: member.values['Gender'],
+        status: member.values['Status'],
         email: member.values['Email'],
         phone: member.values['Phone Number'],
         address: member.values['Address'],
@@ -636,7 +666,7 @@ export class MemberActivityReport extends Component {
         <div className="table-controls">
             <span>
               <label>Field: </label>
-              <select id="filter-field">
+              <select id="filter-field" onChange={e => this.onFilterFieldChange(e)}>
                   <option></option>
                   {this.state.filterColumns.map(column => <option key={column.value} value={column.value}>{column.label}</option>)}
               </select>
@@ -653,7 +683,13 @@ export class MemberActivityReport extends Component {
                   <option value="like">like</option>
               </select>
             </span>
-              <span><label>Value: </label> <input id="filter-value" type="text" placeholder="value to filter" size="15"/></span>
+              <span>
+              <label>Value:</label>
+              <input id="filter-value-text" type="text" placeholder="value to filter" size="15"/>
+              <select id="filter-value-select" style={{display:'none', width: '134px'}} className="filter-value-select">
+                {this.state.selectedFilterValueOptions.map(fo => <option key={fo} value={fo}>{fo}</option>)}
+              </select>
+              </span>
               <button id="filter-add" onClick={(e) => this.addFilter(e)}>Create Filter</button>
               <span className="vl"></span>
               <button name="download" onClick={(e) => this.downLoadTableAsCsv(e)}><i className="fa fa-download"></i> Download Data as CSV</button>
@@ -715,6 +751,7 @@ export class LeadsActivityReport extends Component {
     this.columns = [
       { title: 'Name', field: 'name', tooltip: true, bottomCalc: function() {return 'Total'} },
       { title: 'Gender', field: 'gender' },
+      { title: 'Status', field: 'status' },
       { title: 'Email', field: 'email', tooltip: true },
       { title: 'Phone', field: 'phone', tooltip: true },
       { title: 'Address', field: 'address', tooltip: true },
@@ -767,6 +804,7 @@ export class LeadsActivityReport extends Component {
     this.columnsToHide = [
       { label: 'Name', value: 'name' },
       { label: 'Gender', value: 'gender' },
+      { label: 'Status', value: 'status' },
       { label: 'Email', value: 'email' },
       { label: 'Phone', value: 'phone' },
       { label: 'Address', value: 'address' },
@@ -791,11 +829,16 @@ export class LeadsActivityReport extends Component {
     this.hiddenColumns = this.getHiddenColumnPreference();
     this.visibleColumns = this.columnsToHide.filter(column => !this.hiddenColumns.some(hc => hc.value === column.value));
     this.selectedColumns = this.visibleColumns;
+    this.filterValueOptions = {
+     'gender': ['Male', 'Female'],
+     'status': this.props.leadStatusValues
+    };
 
     this.state = {
       activityData: this.activityData,
       filterColumns: this.columnsToHide,
-      filters:[]
+      filters:[],
+      selectedFilterValueOptions: []
     };
   }
 
@@ -831,7 +874,6 @@ export class LeadsActivityReport extends Component {
   }
 
   removeFilter = (e, cell) => {
-    cell.getRow().delete();
     const filterColumn = cell.getRow().getData()['filterColumn'];
     const filterType = cell.getRow().getData()['filterType'];
     const filterValue = cell.getRow().getData()['filterValue'];
@@ -851,7 +893,7 @@ export class LeadsActivityReport extends Component {
   addFilter () {
     const filterColumn = $("#filter-field-leads").val();
     const type = $("#filter-type-leads").val();
-    const value = $("#filter-value-leads").val();
+    const value = $("#filter-value-leads-text").val() ? $("#filter-value-leads-text").val() : $("#filter-value-leads-select").val();
 
     if (!filterColumn || !type || !value) {
       return;
@@ -869,8 +911,22 @@ export class LeadsActivityReport extends Component {
 
     $("#filter-field-leads").val("");
     $("#filter-type-leads").val("=");
-    $("#filter-value-leads").val("");
+    $("#filter-value-leads-text").val("");
+    $("#filter-value-leads-select").val("");
     //tableRef.table.clearFilter();
+  }
+
+  onFilterFieldChange = (event) => {
+    let options = this.filterValueOptions[event.target.value];
+    if(options) {
+      $('#filter-value-leads-text').hide();
+      $('#filter-value-leads-select').show();
+      this.setState({selectedFilterValueOptions: options});
+    } else {
+      $('#filter-value-leads-text').show();
+      $('#filter-value-leads-select').hide();
+      this.setState({selectedFilterValueOptions: []});
+    }
   }
 
   ExpandCellButton = (props: any) => {
@@ -903,6 +959,7 @@ export class LeadsActivityReport extends Component {
         id: lead['id'],
         name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
         gender: lead.values['Gender'],
+        status: lead.values['Status'],
         email: lead.values['Email'],
         phone: lead.values['Phone Number'],
         address: lead.values['Address'],
@@ -1171,7 +1228,7 @@ export class LeadsActivityReport extends Component {
         <div className="table-controls">
             <span>
               <label>Field: </label>
-              <select id="filter-field-leads">
+              <select id="filter-field-leads" onChange={e => this.onFilterFieldChange(e)}>
                   <option></option>
                   {this.state.filterColumns.map(column => <option key={column.value} value={column.value}>{column.label}</option>)}
               </select>
@@ -1188,7 +1245,13 @@ export class LeadsActivityReport extends Component {
                   <option value="like">like</option>
               </select>
             </span>
-              <span><label>Value: </label> <input id="filter-value-leads" type="text" placeholder="value to filter" size="15"/></span>
+              <span>
+              <label>Value: </label>
+              <input id="filter-value-leads-text" type="text" placeholder="value to filter" size="15"/>
+              <select id="filter-value-leads-select" style={{display:'none', width: '134px'}} className="filter-value-select">
+                {this.state.selectedFilterValueOptions.map(fo => <option key={fo} value={fo}>{fo}</option>)}
+              </select>
+              </span>
               <button id="filter-add-leads" onClick={(e) => this.addFilter(e)}>Create Filter</button>
               <span className="vl"></span>
               <button name="download" onClick={(e) => this.downLoadTableAsCsv(e)}><i className="fa fa-download"></i>Download Data as CSV</button>
