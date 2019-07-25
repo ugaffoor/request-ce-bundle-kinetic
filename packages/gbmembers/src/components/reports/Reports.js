@@ -163,25 +163,29 @@ export class MemberActivityReport extends Component {
         title: 'Emails Sent',
         field: 'emailsSent',
         formatter: reactFormatter(<this.ExpandCellButton />),
-        bottomCalc: 'sum'
+        bottomCalc: 'sum',
+        width:100
       },
       {
         title: 'Emails Received',
         field: 'emailsReceived',
         formatter: reactFormatter(<this.ExpandCellButton />),
-        bottomCalc: 'sum'
+        bottomCalc: 'sum',
+        width:100
       },
       {
         title: 'SMS Sent',
         field: 'smsSent',
         formatter: reactFormatter(<this.ExpandCellButton />),
-        bottomCalc: 'sum'
+        bottomCalc: 'sum',
+        width:100
       },
       {
         title: 'SMS Received',
         field: 'smsReceived',
         formatter: reactFormatter(<this.ExpandCellButton />),
-        bottomCalc: 'sum'
+        bottomCalc: 'sum',
+        width:100
       },
     ];
 
@@ -272,7 +276,9 @@ export class MemberActivityReport extends Component {
     this.state = {
       filterColumns: this.filterColumns,
       filters:[],
-      selectedFilterValueOptions: []
+      selectedFilterValueOptions: [],
+      selectedColumns: this.selectedColumns,
+      hiddenColumns: this.hiddenColumns
     };
   }
 
@@ -304,8 +310,8 @@ export class MemberActivityReport extends Component {
   }
 
   hideColumns = () => {
-    if(this.hiddenColumns && this.memberActivityGridref) {
-      this.hiddenColumns.forEach(column => {
+    if(this.state.hiddenColumns && this.memberActivityGridref) {
+      this.state.hiddenColumns.forEach(column => {
         this.memberActivityGridref.table.hideColumn(column.value);
       });
     }
@@ -620,9 +626,11 @@ export class MemberActivityReport extends Component {
     });
 
     this.setState({
-      filterColumns: this.filterColumns.filter(column => options.some(elm => elm.value === column.value ))
+      filterColumns: this.filterColumns.filter(column => options.some(elm => elm.value === column.value )),
+      selectedColumns: options,
+      hiddenColumns: this.filterColumns.filter(column => !options.some(elm => elm.value === column.value ))
     });
-    this.selectedColumns = options;
+    //this.selectedColumns = options;
   }
 
   updateReportPreferences = () => {
@@ -633,9 +641,9 @@ export class MemberActivityReport extends Component {
     }
     if (obj) {
       memberActivityReport = obj["Member Activity Report"];
-      memberActivityReport["Hidden Columns"] = this.filterColumns.filter(column => !this.selectedColumns.some(elm => elm.value === column.value ));
+      memberActivityReport["Hidden Columns"] = this.filterColumns.filter(column => !this.state.selectedColumns.some(elm => elm.value === column.value ));
     } else {
-      memberActivityReport = {"Hidden Columns": this.filterColumns.filter(column => !this.selectedColumns.some(elm => elm.value === column.value ))};
+      memberActivityReport = {"Hidden Columns": this.filterColumns.filter(column => !this.state.selectedColumns.some(elm => elm.value === column.value ))};
     }
     this.props.updatePreferences("Member Activity Report", memberActivityReport);
   }
@@ -643,13 +651,15 @@ export class MemberActivityReport extends Component {
   render() {
     const options = {
       height: 450,
+      width: '100%',
       movableRows: true,
       pagination: 'local',
       paginationSize: 10,
       paginationSizeSelector: [10, 20, 50, 100],
       tooltipsHeader:true,
       downloadDataFormatter: (data) => data,
-      downloadReady: (fileContents, blob) => blob
+      downloadReady: (fileContents, blob) => blob,
+      layout: 'fitColumns'
     };
     return (
       <span>
@@ -699,8 +709,8 @@ export class MemberActivityReport extends Component {
                 isMulti
                 components={{ Option, MultiValue }}
                 options={this.columnsToHide}
-                defaultValue={this.visibleColumns}
-                hideSelectedOptions={false}
+                defaultValue={this.state.selectedColumns}
+                hideSelectedOptions={true}
                 backspaceRemovesValue={false}
                 onChange={e => this.onColumnDropdownChange(e)}
                 className="hide-columns-container"
@@ -725,7 +735,7 @@ export class MemberActivityReport extends Component {
     		</div>
         : null}
         <div
-          style={{ width: '100%', height: '420px', margin: '10px' }}
+          style={{height: '420px', margin: '10px' }}
           className="row"
         >
           <ReactTabulator
@@ -734,6 +744,7 @@ export class MemberActivityReport extends Component {
             options={options}
             renderComplete={(e) => this.hideColumns()}
             ref={ref => (this.memberActivityGridref = ref)}
+            layout="fitColumns"
           />
         </div>
       </span>
@@ -762,25 +773,29 @@ export class LeadsActivityReport extends Component {
       { title: 'Reminder Date', field: 'reminderDate' },
       { title: 'Emails Sent', field: 'emailsSent',
         formatter: reactFormatter(<this.ExpandCellButton />),
-        bottomCalc: 'sum'
+        bottomCalc: 'sum',
+        width:100
       },
       {
         title: 'Emails Received',
         field: 'emailsReceived',
         formatter: reactFormatter(<this.ExpandCellButton />),
-        bottomCalc: 'sum'
+        bottomCalc: 'sum',
+        width:100
       },
       {
         title: 'SMS Sent',
         field: 'smsSent',
         formatter: reactFormatter(<this.ExpandCellButton />),
-        bottomCalc: 'sum'
+        bottomCalc: 'sum',
+        width:100
       },
       {
         title: 'SMS Received',
         field: 'smsReceived',
         formatter: reactFormatter(<this.ExpandCellButton />),
-        bottomCalc: 'sum'
+        bottomCalc: 'sum',
+        width:100
       },
     ];
 
@@ -838,7 +853,9 @@ export class LeadsActivityReport extends Component {
       activityData: this.activityData,
       filterColumns: this.columnsToHide,
       filters:[],
-      selectedFilterValueOptions: []
+      selectedFilterValueOptions: [],
+      selectedColumns: this.selectedColumns,
+      hiddenColumns: this.hiddenColumns
     };
   }
 
@@ -866,8 +883,8 @@ export class LeadsActivityReport extends Component {
   }
 
   hideColumns = () => {
-    if(this.hiddenColumns && this.leadsActivityGridref) {
-      this.hiddenColumns.forEach(column => {
+    if(this.state.hiddenColumns && this.leadsActivityGridref) {
+      this.state.hiddenColumns.forEach(column => {
         this.leadsActivityGridref.table.hideColumn(column.value);
       });
     }
@@ -1175,9 +1192,11 @@ export class LeadsActivityReport extends Component {
     });
 
     this.setState({
-      filterColumns: this.columnsToHide.filter(column => options.some(elm => elm.value === column.value ))
+      filterColumns: this.columnsToHide.filter(column => options.some(elm => elm.value === column.value )),
+      selectedColumns: options,
+      hiddenColumns: this.columnsToHide.filter(column => !options.some(elm => elm.value === column.value ))
     });
-    this.selectedColumns = options;
+    //this.selectedColumns = options;
     //console.log("#### selected = " + util.inspect(options));
   }
 
@@ -1190,9 +1209,9 @@ export class LeadsActivityReport extends Component {
     }
     if (obj) {
       leadsActivityReport = obj["Leads Activity Report"];
-      leadsActivityReport["Hidden Columns"] = this.columnsToHide.filter(column => !this.selectedColumns.some(elm => elm.value === column.value ));
+      leadsActivityReport["Hidden Columns"] = this.columnsToHide.filter(column => !this.state.selectedColumns.some(elm => elm.value === column.value ));
     } else {
-      leadsActivityReport = {"Hidden Columns": this.columnsToHide.filter(column => !this.selectedColumns.some(elm => elm.value === column.value ))};
+      leadsActivityReport = {"Hidden Columns": this.columnsToHide.filter(column => !this.state.selectedColumns.some(elm => elm.value === column.value ))};
     }
     this.props.updatePreferences("Leads Activity Report", leadsActivityReport);
   }
@@ -1206,7 +1225,8 @@ export class LeadsActivityReport extends Component {
       paginationSizeSelector: [10, 20, 50, 100],
       tooltipsHeader:true,
       downloadDataFormatter: (data) => data,
-      downloadReady: (fileContents, blob) => blob
+      downloadReady: (fileContents, blob) => blob,
+      layout: "fitColumns"
     };
     return this.props.leadsLoading ? (
         <div>
@@ -1261,8 +1281,8 @@ export class LeadsActivityReport extends Component {
                 isMulti
                 components={{ Option, MultiValue }}
                 options={this.columnsToHide}
-                defaultValue={this.visibleColumns}
-                hideSelectedOptions={false}
+                defaultValue={this.state.selectedColumns}
+                hideSelectedOptions={true}
                 backspaceRemovesValue={false}
                 onChange={e => this.onColumnDropdownChange(e)}
                 className="hide-columns-container"
@@ -1286,7 +1306,7 @@ export class LeadsActivityReport extends Component {
     		</div>
         : null}
         <div
-          style={{ width: '100%', height: '420px', margin: '10px' }}
+          style={{ height: '420px', margin: '10px' }}
           className="row"
         >
           <ReactTabulator
@@ -1295,6 +1315,7 @@ export class LeadsActivityReport extends Component {
             data={this.state.activityData}
             options={options}
             renderComplete={(e) => this.hideColumns()}
+            layout="fitColumns"
           />
         </div>
       </span>);
