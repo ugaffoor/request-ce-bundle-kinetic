@@ -72,14 +72,17 @@ export const ReportsView = ({
 }) => (
   <div className="dashboard">
     <StatusMessagesContainer />
-    <div className="row" style={{ margin: '10px' }}>
-      <button
-        type="button"
-        className="btn btn-primary report-btn-default"
-        onClick={e => setShowMemberActivityReport(showMemberActivityReport ? false : true)}
-      >
-        {showMemberActivityReport ? "Hide Member Activity Report" : "Show Member Activity Report"}
-      </button>
+    <div style={{ margin: '10px' }}>
+      <div className="row">
+        <button
+          type="button"
+          className="btn btn-primary report-btn-default"
+          onClick={e => setShowMemberActivityReport(showMemberActivityReport ? false : true)}
+        >
+          {showMemberActivityReport ? "Hide Member Activity Report" : "Show Member Activity Report"}
+        </button>
+      </div>
+      <div className="row">
         {!showMemberActivityReport ? null :
           <MemberActivityReport
           reports={reports}
@@ -89,25 +92,30 @@ export const ReportsView = ({
           memberStatusValues={memberStatusValues}
           />
         }
+      </div>
     </div>
-    <div className="row" style={{ margin: '20px 10px 10px 10px' }}>
-      <button
-        type="button"
-        className="btn btn-primary report-btn-default"
-        onClick={e => setShowLeadActivityReport(showLeadActivityReport ? false : true)}
-      >
-        {showLeadActivityReport ? "Hide Leads Activity Report" : "Show Leads Activity Report"}
-      </button>
-      {!showLeadActivityReport ? null :
-        <LeadsActivityReport
-        fetchLeads={fetchLeads}
-        leads={leads}
-        leadsLoading={leadsLoading}
-        reportPreferences={reportPreferences}
-        updatePreferences={updatePreferences}
-        leadStatusValues={leadStatusValues}
-        />
-      }
+    <div style={{ margin: '20px 0px 0px 10px' }} id="leads-report">
+      <div className="row">
+        <button
+          type="button"
+          className="btn btn-primary report-btn-default"
+          onClick={e => {setShowLeadActivityReport(showLeadActivityReport ? false : true); document.getElementById("leads-report").scrollIntoView()}}
+        >
+          {showLeadActivityReport ? "Hide Leads Activity Report" : "Show Leads Activity Report"}
+        </button>
+      </div>
+      <div className="row">
+        {!showLeadActivityReport ? null :
+          <LeadsActivityReport
+          fetchLeads={fetchLeads}
+          leads={leads}
+          leadsLoading={leadsLoading}
+          reportPreferences={reportPreferences}
+          updatePreferences={updatePreferences}
+          leadStatusValues={leadStatusValues}
+          />
+        }
+      </div>
     </div>
   </div>
 );
@@ -668,7 +676,7 @@ export class MemberActivityReport extends Component {
             textAlign: 'center',
             background: '#991b1e',
             color: 'white',
-            fontSize: '10px',
+            fontSize: '10px'
           }}
         >
           <h6>Member Activity Report</h6>
@@ -1229,7 +1237,7 @@ export class LeadsActivityReport extends Component {
       layout: "fitColumns"
     };
     return this.props.leadsLoading ? (
-        <div>
+        <div style={{margin: '10px'}}>
           <p>Loading leads activity report ...</p>
           <ReactSpinner />{' '}
         </div>
