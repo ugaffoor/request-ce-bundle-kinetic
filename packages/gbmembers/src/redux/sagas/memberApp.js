@@ -348,6 +348,14 @@ export function* updateMembersListTask(payload) {
   }
 }
 
+//TODO - fetch only reportPreferences instead of entire profile
+export function* fetchReportPreferences() {
+  const { profile } = yield call(CoreAPI.fetchProfile, {
+      include: PROFILE_INCLUDES
+  });
+  yield put(actions.setReportPreferences(profile));
+}
+
 export function* updateReportPreferences(action) {
   const reportPreferences = yield select(selectReportPreferences);
   const profile = yield select(selectProfile);
@@ -356,7 +364,6 @@ export function* updateReportPreferences(action) {
     reportPreferencesArr[i] = JSON.stringify(reportPreferencesArr[i]);
   }
 
-  console.log("updateReportPreferences 2 = " + JSON.stringify(reportPreferencesArr));
   yield profile.profileAttributes['Report Preferences'] = reportPreferencesArr;
   const { serverError } = yield call(CoreAPI.updateProfile, {
     profile,
@@ -366,6 +373,7 @@ export function* updateReportPreferences(action) {
   if (!serverError) {
     // TODO: What should we do on success?
     yield put(errorActions.addSuccess("Preferences updated successfully", "Update Preference"));
+    yield put(actions.fetchReportPreferences());
   } else {
     yield put(errorActions.addError("Error updating preferences", "Update Preference"));
   }
@@ -387,4 +395,5 @@ export function* watchApp() {
     updateDDRTemplatesTask,
   );
   yield takeEvery(types.UPDATE_REPORT_PREFERENCES, updateReportPreferences);
+  yield takeEvery(types.FETCH_REPORT_PREFERENCES, fetchReportPreferences);
 }

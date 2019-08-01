@@ -14,6 +14,8 @@ export const types = {
   ADD_DDR_TEMPLATE: namespace('app', 'ADD_DDR_TEMPLATE'),
   REMOVE_DDR_TEMPLATE: namespace('app', 'REMOVE_DDR_TEMPLATE'),
   UPDATE_REPORT_PREFERENCES: namespace('app', 'UPDATE_REPORT_PREFERENCES'),
+  FETCH_REPORT_PREFERENCES: namespace('app', 'FETCH_REPORT_PREFERENCES'),
+  SET_REPORT_PREFERENCES: namespace('app', 'SET_REPORT_PREFERENCES')
 };
 
 export const actions = {
@@ -24,7 +26,9 @@ export const actions = {
   removeMembersList: withPayload(types.REMOVE_MEMBERS_LIST),
   addDDRTemplate: withPayload(types.ADD_DDR_TEMPLATE),
   removeDDRTemplate: withPayload(types.REMOVE_DDR_TEMPLATE),
-  updateReportPreferences: withPayload(types.UPDATE_REPORT_PREFERENCES)
+  updateReportPreferences: withPayload(types.UPDATE_REPORT_PREFERENCES),
+  fetchReportPreferences: withPayload(types.FETCH_REPORT_PREFERENCES),
+  setReportPreferences: withPayload(types.SET_REPORT_PREFERENCES)
 };
 /*
  *
@@ -159,6 +163,17 @@ export const reducer = (state = State(), { type, payload }) => {
         return reportPreferences.push(obj);
       }
     });
+    case types.SET_REPORT_PREFERENCES: {
+      var reportPreferencesArr = payload.profileAttributes['Report Preferences'];
+        if(reportPreferencesArr) {
+          for (var i = 0; i < reportPreferencesArr.length; i++) {
+            reportPreferencesArr[i] = JSON.parse(reportPreferencesArr[i]);
+          }
+        }
+
+      var reportPreferences = reportPreferencesArr ? List(reportPreferencesArr) : List();
+      return state.set('reportPreferences', reportPreferences);
+    }
     default:
       return state;
   }

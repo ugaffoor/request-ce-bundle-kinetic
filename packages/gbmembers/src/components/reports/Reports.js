@@ -132,7 +132,6 @@ export const ReportsContainer = compose(
       fetchLeads({});
     },
     updatePreferences:({updateReportPreferences}) => (key, value) => {
-      console.log("##### reportPreferences = " + util.inspect(value));
       updateReportPreferences({key, reportPreferences: value});
     }
   }),
@@ -271,7 +270,7 @@ export class MemberActivityReport extends Component {
       { label: 'SMS Received', value: 'smsReceived' }
     ];
 
-    this.preferences = this.getHiddenColumnPreference();
+    this.preferences = this.getTablePreferences(this.props.reportPreferences);
     this.visibleColumns = this.filterColumns.filter(column => !this.preferences.hiddenCols.some(hc => hc.value === column.value));
     this.selectedColumns = this.visibleColumns;
 
@@ -293,7 +292,14 @@ export class MemberActivityReport extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {}
+  componentWillReceiveProps(nextProps) {
+    if(!this.props.reportPreferences.equals(nextProps.reportPreferences)) {
+      let preferences = this.getTablePreferences(nextProps.reportPreferences);
+      this.setState({
+        preferences: preferences.preferences
+      });
+    }
+  }
 
   averageCostCalc = (values, data, calcParams) => {
     //values - array of column values
@@ -308,11 +314,11 @@ export class MemberActivityReport extends Component {
     return cost.toFixed(2);
   }
 
-  getHiddenColumnPreference = () => {
+  getTablePreferences = (reportPreferences) => {
       let obj = null;
       let hiddenCols = [];
-      if (this.props.reportPreferences && this.props.reportPreferences.size > 0) {
-        obj = this.props.reportPreferences.find(x => x.hasOwnProperty("Member Activity Report"));
+      if (reportPreferences && reportPreferences.size > 0) {
+        obj = reportPreferences.find(x => x.hasOwnProperty("Member Activity Report"));
       }
       let preferences = [];
       let selectedPreference = '';
@@ -699,8 +705,12 @@ export class MemberActivityReport extends Component {
   }
 
   updateReportPreferences = () => {
-    if (!$('#new-preference').val() && !this.state.selectedPreference) {
+    if (!$('#new-preference').val().trim() && !this.state.selectedPreference) {
       console.log("Preference name is required to create or update preference");
+      return;
+    }
+    if ($('#new-preference').val().trim() && this.state.preferences.includes($('#new-preference').val().trim())) {
+      console.log("Preference name already exists. Please choose a different name.");
       return;
     }
     let memberActivityReport = null;
@@ -710,17 +720,16 @@ export class MemberActivityReport extends Component {
     }
 
     if (obj) {
-      memberActivityReport = obj["Member Activity Report"];
-      if ($('#new-preference').val()) { // add new preference
-          memberActivityReport.push({'Preference Name': $('#new-preference').val(), 'Filters': (this.state.filters ? this.state.filters : []), 'Hidden Columns': this.filterColumns.filter(column => !this.state.selectedColumns.some(elm => elm.value === column.value ))});
+      memberActivityReport = _.cloneDeep(obj["Member Activity Report"]);
+      if ($('#new-preference').val().trim()) { // add new preference
+          memberActivityReport.push({'Preference Name': $('#new-preference').val().trim(), 'Filters': (this.state.filters ? this.state.filters : []), 'Hidden Columns': this.filterColumns.filter(column => !this.state.selectedColumns.some(elm => elm.value === column.value ))});
       } else { // update existing preference
         let preferenceIndex = memberActivityReport.findIndex(x => x['Preference Name'] === this.state.selectedPreference);
         memberActivityReport[preferenceIndex] = {'Preference Name': this.state.selectedPreference, 'Filters': (this.state.filters ? this.state.filters : []), 'Hidden Columns': this.filterColumns.filter(column => !this.state.selectedColumns.some(elm => elm.value === column.value ))};
       }
-      //memberActivityReport["Hidden Columns"] = this.filterColumns.filter(column => !this.state.selectedColumns.some(elm => elm.value === column.value ));
     } else {
       memberActivityReport = [];
-      memberActivityReport.push({'Preference Name': $('#new-preference').val(), 'Filters': (this.state.filters ? this.state.filters : []), 'Hidden Columns': this.filterColumns.filter(column => !this.state.selectedColumns.some(elm => elm.value === column.value ))});
+      memberActivityReport.push({'Preference Name': $('#new-preference').val().trim(), 'Filters': (this.state.filters ? this.state.filters : []), 'Hidden Columns': this.filterColumns.filter(column => !this.state.selectedColumns.some(elm => elm.value === column.value ))});
     }
     this.props.updatePreferences("Member Activity Report", memberActivityReport);
   }
