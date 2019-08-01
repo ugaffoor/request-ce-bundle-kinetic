@@ -357,7 +357,7 @@ export function* updateReportPreferences(action) {
   }
 
   console.log("updateReportPreferences 2 = " + JSON.stringify(reportPreferencesArr));
-  profile.profileAttributes['Report Preferences'] = reportPreferencesArr;
+  yield profile.profileAttributes['Report Preferences'] = reportPreferencesArr;
   const { serverError } = yield call(CoreAPI.updateProfile, {
     profile,
     include: PROFILE_UPDATE_INCLUDES,
