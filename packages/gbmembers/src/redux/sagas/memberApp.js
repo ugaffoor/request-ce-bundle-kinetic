@@ -13,6 +13,7 @@ import { getAttributeValue } from '../../utils';
 
 import { actions, types } from '../modules/memberApp';
 import { actions as errorActions, NOTICE_TYPES } from '../modules/errors';
+import _ from 'lodash';
 
 const PROFILE_INCLUDES =
   //  'attributes,profileAttributes,memberships,memberships.team,memberships.team.attributes,memberships.team.memberships,memberships.team.memberships.user,attributes,space,space.attributes,space.kapps';
@@ -364,14 +365,14 @@ export function* updateReportPreferences(action) {
     reportPreferencesArr[i] = JSON.stringify(reportPreferencesArr[i]);
   }
 
-  yield profile.profileAttributes['Report Preferences'] = reportPreferencesArr;
+  let profileCopy = _.cloneDeep(profile);
+  profileCopy.profileAttributes['Report Preferences'] = reportPreferencesArr;
   const { serverError } = yield call(CoreAPI.updateProfile, {
-    profile,
+    profile: profileCopy,
     include: PROFILE_UPDATE_INCLUDES,
   });
 
   if (!serverError) {
-    // TODO: What should we do on success?
     yield put(errorActions.addSuccess("Preferences updated successfully", "Update Preference"));
     yield put(actions.fetchReportPreferences());
   } else {
