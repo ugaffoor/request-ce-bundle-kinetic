@@ -26,6 +26,7 @@ import { ReactTabulator, reactFormatter } from 'react-tabulator';
 import Select, { components } from "react-select";
 import createClass from "create-react-class";
 import { actions as appActions } from '../../redux/modules/memberApp';
+import { Confirm } from 'react-confirm-bootstrap';
 
 const mapStateToProps = state => ({
   reports: state.member.reporting.activityReport,
@@ -734,6 +735,31 @@ export class MemberActivityReport extends Component {
     this.props.updatePreferences("Member Activity Report", memberActivityReport);
   }
 
+  deleteReportPreference = () => {
+    if (!this.state.selectedPreference) {
+      console.log("Please select a preference to delete");
+      return;
+    }
+
+    let memberActivityReport = null;
+    let obj = this.props.reportPreferences.find(x => x.hasOwnProperty("Member Activity Report"));
+    memberActivityReport = _.cloneDeep(obj["Member Activity Report"]);
+    memberActivityReport = memberActivityReport.filter(preference => preference['Preference Name'] !== this.state.selectedPreference);
+    this.props.updatePreferences("Member Activity Report", memberActivityReport);
+    this.setState({
+      filterColumns: this.filterColumns,
+      selectedColumns: this.filterColumns,
+      hiddenColumns: [],
+      selectedPreference: '',
+      filters: [],
+      key: Math.random()
+    });
+    this.filterColumns.forEach(column => {
+      this.memberActivityGridref.table.showColumn(column.value);
+    });
+    this.memberActivityGridref.table.clearFilter();
+  }
+
   render() {
     const options = {
       height: 450,
@@ -817,6 +843,14 @@ export class MemberActivityReport extends Component {
                 <option key='' value=''>-- Select preference --</option>
                 {this.state.preferences.map(pref => <option key={pref} value={pref}>{pref}</option>)}
               </select>
+              <Confirm
+                onConfirm={e => this.deleteReportPreference()}
+                body="Are you sure you want to delete this preference?"
+                confirmText="Confirm Delete"
+                title="Deleting Preference"
+              >
+              <button className={this.state.selectedPreference ? "input-group-addon" : "input-group-addon disabled"} disabled={this.state.selectedPreference ? false : true} id="clear_addon">Delete</button>
+              </Confirm>
               {!this.state.selectedPreference && <input id="new-preference" type="text" placeholder="New preference name" size="25"/>}
               <button name="updateMemberPereference" style={{whiteSpace: 'normal'}} onClick={(e) => this.updateReportPreferences(e)}>{this.state.selectedPreference ? 'Update ' : 'Create '}<br/>Preference</button>
             </div>
@@ -1394,6 +1428,31 @@ export class LeadsActivityReport extends Component {
     this.props.updatePreferences("Leads Activity Report", leadsActivityReport);
   }
 
+  deleteReportPreference = () => {
+    if (!this.state.selectedPreference) {
+      console.log("Please select a preference to delete");
+      return;
+    }
+
+    let leadsActivityReport = null;
+    let obj = this.props.reportPreferences.find(x => x.hasOwnProperty("Leads Activity Report"));
+    leadsActivityReport = _.cloneDeep(obj["Leads Activity Report"]);
+    this.setState({
+      filterColumns: this.columnsToHide,
+      selectedColumns: this.columnsToHide,
+      hiddenColumns: [],
+      selectedPreference: '',
+      filters: [],
+      key: Math.random()
+    });
+    this.columnsToHide.forEach(column => {
+      this.leadsActivityGridref.table.showColumn(column.value);
+    });
+    this.leadsActivityGridref.table.clearFilter();
+    this.props.updatePreferences("Leads Activity Report", leadsActivityReport);
+    leadsActivityReport = leadsActivityReport.filter(preference => preference['Preference Name'] !== this.state.selectedPreference);
+  }
+
   render() {
     const options = {
       height: 450,
@@ -1481,6 +1540,14 @@ export class LeadsActivityReport extends Component {
                 <option key='' value=''>-- Select preference --</option>
                 {this.state.preferences.map(pref => <option key={pref} value={pref}>{pref}</option>)}
               </select>
+              <Confirm
+                onConfirm={e => this.deleteReportPreference()}
+                body="Are you sure you want to delete this preference?"
+                confirmText="Confirm Delete"
+                title="Deleting Preference"
+              >
+              <button className={this.state.selectedPreference ? "input-group-addon" : "input-group-addon disabled"} disabled={this.state.selectedPreference ? false : true} id="clear_addon">Delete</button>
+              </Confirm>
               {!this.state.selectedPreference && <input id="new-preference-leads" type="text" placeholder="New preference name" size="25"/>}
               <button name="updateLeadsPereference" style={{whiteSpace: 'normal'}} onClick={(e) => this.updateReportPreferences(e)}>{this.state.selectedPreference ? 'Update ' : 'Create '}<br/>Preference</button>
             </div>
