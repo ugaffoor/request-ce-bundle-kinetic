@@ -270,8 +270,8 @@ export class MemberActivityReport extends Component {
       { label: 'SMS Received', value: 'smsReceived' }
     ];
 
-    this.preferences = this.getTablePreferences(this.props.reportPreferences);
-    this.visibleColumns = this.filterColumns.filter(column => !this.preferences.hiddenCols.some(hc => hc.value === column.value));
+    this.memberPreferences = this.getTablePreferences(this.props.reportPreferences);
+    this.visibleColumns = this.filterColumns.filter(column => !this.memberPreferences.hiddenCols.some(hc => hc.value === column.value));
     this.selectedColumns = this.visibleColumns;
 
     this.filterValueOptions = {
@@ -285,9 +285,9 @@ export class MemberActivityReport extends Component {
       filters:[],
       selectedFilterValueOptions: [],
       selectedColumns: this.selectedColumns,
-      hiddenColumns: this.preferences.hiddenCols,
-      preferences: this.preferences.preferences,
-      selectedPreference: this.preferences.selectedPreference,
+      hiddenColumns: this.memberPreferences.hiddenCols,
+      preferences: this.memberPreferences.preferences,
+      selectedPreference: this.memberPreferences.selectedPreference,
       key: Math.random()
     };
   }
@@ -705,11 +705,11 @@ export class MemberActivityReport extends Component {
   }
 
   updateReportPreferences = () => {
-    if (!$('#new-preference').val().trim() && !this.state.selectedPreference) {
+    if (!$('#new-preference').val() && !this.state.selectedPreference) {
       console.log("Preference name is required to create or update preference");
       return;
     }
-    if ($('#new-preference').val().trim() && this.state.preferences.includes($('#new-preference').val().trim())) {
+    if ($('#new-preference').val() && this.state.preferences.includes($('#new-preference').val())) {
       console.log("Preference name already exists. Please choose a different name.");
       return;
     }
@@ -721,15 +721,15 @@ export class MemberActivityReport extends Component {
 
     if (obj) {
       memberActivityReport = _.cloneDeep(obj["Member Activity Report"]);
-      if ($('#new-preference').val().trim()) { // add new preference
-          memberActivityReport.push({'Preference Name': $('#new-preference').val().trim(), 'Filters': (this.state.filters ? this.state.filters : []), 'Hidden Columns': this.filterColumns.filter(column => !this.state.selectedColumns.some(elm => elm.value === column.value ))});
+      if ($('#new-preference').val()) { // add new preference
+          memberActivityReport.push({'Preference Name': $('#new-preference').val(), 'Filters': (this.state.filters ? this.state.filters : []), 'Hidden Columns': this.filterColumns.filter(column => !this.state.selectedColumns.some(elm => elm.value === column.value ))});
       } else { // update existing preference
         let preferenceIndex = memberActivityReport.findIndex(x => x['Preference Name'] === this.state.selectedPreference);
         memberActivityReport[preferenceIndex] = {'Preference Name': this.state.selectedPreference, 'Filters': (this.state.filters ? this.state.filters : []), 'Hidden Columns': this.filterColumns.filter(column => !this.state.selectedColumns.some(elm => elm.value === column.value ))};
       }
     } else {
       memberActivityReport = [];
-      memberActivityReport.push({'Preference Name': $('#new-preference').val().trim(), 'Filters': (this.state.filters ? this.state.filters : []), 'Hidden Columns': this.filterColumns.filter(column => !this.state.selectedColumns.some(elm => elm.value === column.value ))});
+      memberActivityReport.push({'Preference Name': $('#new-preference').val(), 'Filters': (this.state.filters ? this.state.filters : []), 'Hidden Columns': this.filterColumns.filter(column => !this.state.selectedColumns.some(elm => elm.value === column.value ))});
     }
     this.props.updatePreferences("Member Activity Report", memberActivityReport);
   }
@@ -942,8 +942,8 @@ export class LeadsActivityReport extends Component {
       { headerSort: false, formatter:"buttonCross", width:40, align:"center", cellClick:(e, cell) => this.removeFilter(e, cell)}
     ];
 
-    this.hiddenColumns = this.getHiddenColumnPreference();
-    this.visibleColumns = this.columnsToHide.filter(column => !this.hiddenColumns.some(hc => hc.value === column.value));
+    this.leadsPreferences = this.getTablePreferences(this.props.reportPreferences);
+    this.visibleColumns = this.columnsToHide.filter(column => !this.leadsPreferences.hiddenCols.some(hc => hc.value === column.value));
     this.selectedColumns = this.visibleColumns;
     this.filterValueOptions = {
      'gender': ['Male', 'Female'],
@@ -956,7 +956,10 @@ export class LeadsActivityReport extends Component {
       filters:[],
       selectedFilterValueOptions: [],
       selectedColumns: this.selectedColumns,
-      hiddenColumns: this.hiddenColumns
+      hiddenColumns: this.leadsPreferences.hiddenCols,
+      preferences: this.leadsPreferences.preferences,
+      selectedPreference: this.leadsPreferences.selectedPreference,
+      key: Math.random()
     };
   }
 
@@ -964,23 +967,38 @@ export class LeadsActivityReport extends Component {
     let data = this.getGridData(nextProps.leads);
     this.setState({
       activityData: data
-    })
+    });
+
+    if(!this.props.reportPreferences.equals(nextProps.reportPreferences)) {
+     let preferences = this.getTablePreferences(nextProps.reportPreferences);
+     this.setState({
+       preferences: preferences.preferences
+     });
+   }
   }
 
   componentWillMount() {
     this.props.fetchLeads();
   }
 
-  getHiddenColumnPreference = () => {
+  getTablePreferences = (reportPreferences) => {
       let obj = null;
-      let hiddenCols = null;
-      if (this.props.reportPreferences && this.props.reportPreferences.size > 0) {
-        obj = this.props.reportPreferences.find(x => x.hasOwnProperty("Leads Activity Report"));
+      let hiddenCols = [];
+      if (reportPreferences && reportPreferences.size > 0) {
+        obj = reportPreferences.find(x => x.hasOwnProperty("Leads Activity Report"));
       }
+      let preferences = [];
+      let selectedPreference = '';
       if (obj) {
-        hiddenCols = obj["Leads Activity Report"]["Hidden Columns"];
+        obj["Leads Activity Report"].forEach(pref => {
+          preferences.push(pref['Preference Name']);
+          if (pref['Is Default'] && pref['Is Default'] === true) {
+            selectedPreference = pref['Preference Name'];
+            hiddenCols = pref['Hidden Columns'];
+          }
+        });
       }
-      return hiddenCols ? hiddenCols : [];
+      return {hiddenCols: hiddenCols, preferences: preferences, selectedPreference: selectedPreference};
   }
 
   hideColumns = () => {
@@ -1045,6 +1063,51 @@ export class LeadsActivityReport extends Component {
       $('#filter-value-leads-select').hide();
       this.setState({selectedFilterValueOptions: []});
     }
+  }
+
+  handlePreferenceChange = (event) => {
+    this.setState({selectedPreference: event.target.value});
+    if (!event.target.value) {
+      this.setState({
+        filterColumns: this.columnsToHide,
+        selectedColumns: this.columnsToHide,
+        hiddenColumns: [],
+        filters: [],
+        key: Math.random()
+      });
+      this.columnsToHide.forEach(column => {
+        this.leadsActivityGridref.table.showColumn(column.value);
+      });
+      this.leadsActivityGridref.table.clearFilter();
+      return;
+    }
+
+    let obj = this.props.reportPreferences.find(x => x.hasOwnProperty("Leads Activity Report"));
+    let preference = obj['Leads Activity Report'].find(preference => preference['Preference Name'] === event.target.value);
+    let filters = preference['Filters'] ? preference['Filters'] : [];
+    this.setState({
+      filterColumns: this.columnsToHide.filter(column => !preference['Hidden Columns'].some(elm => elm.value === column.value )),
+      selectedColumns: this.columnsToHide.filter(column => !preference['Hidden Columns'].some(elm => elm.value === column.value )),
+      hiddenColumns: this.columnsToHide.filter(column => preference['Hidden Columns'].some(elm => elm.value === column.value )),
+      filters: filters,
+      key: Math.random()
+    }, function() {
+      this.columnsToHide.forEach(column => {
+        this.leadsActivityGridref.table.showColumn(column.value);
+      });
+
+      preference['Hidden Columns'].forEach(column => {
+        this.leadsActivityGridref.table.hideColumn(column.value);
+      });
+      this.leadsActivityGridref.table.clearFilter();
+      filters.forEach((filter, index) => {
+        if (index == 0) {
+          this.leadsActivityGridref.table.addFilter(filter.filterColumn, filter.filterType, filter.filterValue);
+        } else {
+          this.leadsActivityGridref.table.setFilter(filter.filterColumn, filter.filterType, filter.filterValue);
+        }
+      });
+    });
   }
 
   ExpandCellButton = (props: any) => {
@@ -1302,17 +1365,31 @@ export class LeadsActivityReport extends Component {
   }
 
   updateReportPreferences = () => {
+    if (!$('#new-preference-leads').val() && !this.state.selectedPreference) {
+      console.log("Preference name is required to create or update preference");
+      return;
+    }
+    if ($('#new-preference-leads').val() && this.state.preferences.includes($('#new-preference-leads').val())) {
+      console.log("Preference name already exists. Please choose a different name.");
+      return;
+    }
     let leadsActivityReport = null;
     let obj = null;
-
     if (this.props.reportPreferences && this.props.reportPreferences.size > 0) {
       obj = this.props.reportPreferences.find(x => x.hasOwnProperty("Leads Activity Report"));
     }
+
     if (obj) {
-      leadsActivityReport = obj["Leads Activity Report"];
-      leadsActivityReport["Hidden Columns"] = this.columnsToHide.filter(column => !this.state.selectedColumns.some(elm => elm.value === column.value ));
+      leadsActivityReport = _.cloneDeep(obj["Leads Activity Report"]);
+      if ($('#new-preference-leads').val()) { // add new preference
+          leadsActivityReport.push({'Preference Name': $('#new-preference-leads').val(), 'Filters': (this.state.filters ? this.state.filters : []), 'Hidden Columns': this.columnsToHide.filter(column => !this.state.selectedColumns.some(elm => elm.value === column.value ))});
+      } else { // update existing preference
+        let preferenceIndex = leadsActivityReport.findIndex(x => x['Preference Name'] === this.state.selectedPreference);
+        leadsActivityReport[preferenceIndex] = {'Preference Name': this.state.selectedPreference, 'Filters': (this.state.filters ? this.state.filters : []), 'Hidden Columns': this.columnsToHide.filter(column => !this.state.selectedColumns.some(elm => elm.value === column.value ))};
+      }
     } else {
-      leadsActivityReport = {"Hidden Columns": this.columnsToHide.filter(column => !this.state.selectedColumns.some(elm => elm.value === column.value ))};
+      leadsActivityReport = [];
+      leadsActivityReport.push({'Preference Name': $('#new-preference-leads').val(), 'Filters': (this.state.filters ? this.state.filters : []), 'Hidden Columns': this.columnsToHide.filter(column => !this.state.selectedColumns.some(elm => elm.value === column.value ))});
     }
     this.props.updatePreferences("Leads Activity Report", leadsActivityReport);
   }
@@ -1347,6 +1424,9 @@ export class LeadsActivityReport extends Component {
           <h6>Leads Activity Report</h6>
         </div>
         <div className="table-controls">
+          <div className="col-md-12">
+            <div className="row">
+            <div className="col-md-12">
             <span>
               <label>Field: </label>
               <select id="filter-field-leads" onChange={e => this.onFilterFieldChange(e)}>
@@ -1367,7 +1447,7 @@ export class LeadsActivityReport extends Component {
               </select>
             </span>
               <span>
-              <label>Value: </label>
+              <label>Value:</label>
               <input id="filter-value-leads-text" type="text" placeholder="value to filter" size="15"/>
               <select id="filter-value-leads-select" style={{display:'none', width: '134px'}} className="filter-value-select">
                 {this.state.selectedFilterValueOptions.map(fo => <option key={fo} value={fo}>{fo}</option>)}
@@ -1375,8 +1455,12 @@ export class LeadsActivityReport extends Component {
               </span>
               <button id="filter-add-leads" onClick={(e) => this.addFilter(e)}>Create Filter</button>
               <span className="vl"></span>
-              <button name="download" onClick={(e) => this.downLoadTableAsCsv(e)}><i className="fa fa-download"></i>Download Data as CSV</button>
-              <div style={{display: 'inline-block', width: '300px'}}>
+              <button name="download" onClick={(e) => this.downLoadTableAsCsv(e)}><i className="fa fa-download"></i> Download Data as CSV</button>
+              </div>
+              </div>
+              <div className="row">
+              <div className="col-md-12">
+              <div style={{display: 'inline-block'}} key={this.state.key}>
               <Select
                 closeMenuOnSelect={false}
                 isMulti
@@ -1390,9 +1474,18 @@ export class LeadsActivityReport extends Component {
                 classNamePrefix="hide-columns"
                 placeholder="Show/hide columns"
                 style={{width: '300px'}}
+                //defaultMenuIsOpen={true}
               />
               </div>
-              <button name="updateLeadPereference" style={{whiteSpace: 'normal'}} onClick={(e) => this.updateReportPreferences(e)}>Update<br/>Preferences</button>
+              <select id="preferences-list-leads" value={this.state.selectedPreference} onChange={this.handlePreferenceChange}>
+                <option key='' value=''>-- Select preference --</option>
+                {this.state.preferences.map(pref => <option key={pref} value={pref}>{pref}</option>)}
+              </select>
+              {!this.state.selectedPreference && <input id="new-preference-leads" type="text" placeholder="New preference name" size="25"/>}
+              <button name="updateLeadsPereference" style={{whiteSpace: 'normal'}} onClick={(e) => this.updateReportPreferences(e)}>{this.state.selectedPreference ? 'Update ' : 'Create '}<br/>Preference</button>
+            </div>
+            </div>
+          </div>
         </div>
         {this.state.filters && this.state.filters.length > 0
             ? <div className="table-controls">
@@ -1407,15 +1500,15 @@ export class LeadsActivityReport extends Component {
     		</div>
         : null}
         <div
-          style={{ height: '420px', margin: '10px' }}
+          style={{height: '420px', margin: '10px' }}
           className="row"
         >
           <ReactTabulator
-            ref={ref => (this.leadsActivityGridref = ref)}
             columns={this.columns}
             data={this.state.activityData}
             options={options}
             renderComplete={(e) => this.hideColumns()}
+            ref={ref => (this.leadsActivityGridref = ref)}
             layout="fitColumns"
           />
         </div>
