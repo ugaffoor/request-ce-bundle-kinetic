@@ -506,6 +506,8 @@ export class MemberActivityReport extends Component {
         state: member.values['State'],
         age: moment().diff(member.values['DOB'], 'years'),
         memberType: member.values['Member Type'],
+        program: member.values['Ranking Program'],
+        belt: member.values['Ranking Belt'],
         billingUser: member.values['Billing User'] === 'YES' ? 'YES' : 'NO',
         cost: member.values['Billing User'] === 'YES' ? member.values['Membership Cost'] : '',
         average: member.values['Billing User'] === 'YES' && member.values['Billing Family Members'] ? (member.values['Membership Cost']/JSON.parse(member.values['Billing Family Members']).length).toFixed(2): '',
