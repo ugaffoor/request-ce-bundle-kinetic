@@ -295,7 +295,7 @@ export const MemberView = ({
                   <NumberFormat
                     value={memberItem.values['Phone Number']}
                     displayType={'text'}
-                    format="+1 (###) ###-####"
+                    format="(##) ####-####"
                   />
                 </a>
               </span>
@@ -319,7 +319,7 @@ export const MemberView = ({
               className="emergencyNumber"
               value={memberItem.values['Emergency Contact Phone']}
               displayType={'text'}
-              format="+1 (###) ###-####"
+              format="(##) ####-####"
             />
           </span>
         </div>

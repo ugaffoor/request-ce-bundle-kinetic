@@ -294,7 +294,7 @@ export const MemberNew = ({
                 </label>
                 <NumberFormat
                   id="phonenumber"
-                  format="+1 (###) ###-####"
+                  format="(##) ####-####"
                   mask="_"
                   required
                   ref={input => (this.input = input)}
@@ -421,7 +421,7 @@ export const MemberNew = ({
               <div>
                 <label htmlFor="emergencyphone">Phone</label>
                 <NumberFormat
-                  format="+1 (###) ###-####"
+                  format="(##) ####-####"
                   mask="_"
                   ref={input => (this.input = input)}
                   value={memberItem.values['Emergency Contact Phone']}

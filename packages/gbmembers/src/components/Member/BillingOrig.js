@@ -1855,7 +1855,7 @@ export class BillerDetails extends Component {
                   Phone
                 </label>
                 <NumberFormat
-                  format="+1 (###) ###-####"
+                  format="(##) ####-####"
                   mask="_"
                   required
                   ref={input => (this.input = input)}
