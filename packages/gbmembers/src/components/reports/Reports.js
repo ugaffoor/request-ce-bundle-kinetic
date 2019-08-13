@@ -37,7 +37,10 @@ const mapStateToProps = state => ({
   leadsLoading: state.member.leads.leadsLoading,
   reportPreferences: state.member.app.reportPreferences,
   memberStatusValues: state.member.app.memberStatusValues,
-  leadStatusValues: state.member.app.leadStatusValues
+  leadStatusValues: state.member.app.leadStatusValues,
+  programs: state.member.app.programs,
+  belts: state.member.app.belts,
+  membershipTypes: state.member.app.membershipTypes
 });
 
 const mapDispatchToProps = {
@@ -69,7 +72,10 @@ export const ReportsView = ({
   updatePreferences,
   reportPreferences,
   memberStatusValues,
-  leadStatusValues
+  leadStatusValues,
+  programs,
+  belts,
+  membershipTypes
 }) => (
   <div className="dashboard">
     <StatusMessagesContainer />
@@ -91,6 +97,9 @@ export const ReportsView = ({
           reportPreferences={reportPreferences}
           updatePreferences={updatePreferences}
           memberStatusValues={memberStatusValues}
+          programs={programs}
+          belts={belts}
+          membershipTypes={membershipTypes}
           />
         }
       </div>
@@ -162,6 +171,8 @@ export class MemberActivityReport extends Component {
       { title: 'State', field: 'state' },
       { title: 'Age (Years)', field: 'age' },
       { title: 'Member Type', field: 'memberType' },
+      { title: 'Program', field: 'program' },
+      { title: 'Belt', field: 'belt' },
       { title: 'Billing User', field: 'billingUser' },
       { title: 'Cost', field: 'cost', bottomCalc: 'sum' },
       { title: 'Average', field: 'average', bottomCalc: this.averageCostCalc },
@@ -227,6 +238,8 @@ export class MemberActivityReport extends Component {
         { label: 'State', value: 'state' },
         { label: 'Age (Years)', value: 'age' },
         { label: 'Member Type', value: 'memberType' },
+        { label: 'Program', value: 'program' },
+        { label: 'Belt', value: 'belt' },
         { label: 'Emails Sent', value: 'emailsSent' },
         { label: 'Emails Received', value: 'emailsReceived' },
         { label: 'SMS Sent', value: 'smsSent' },
@@ -260,6 +273,8 @@ export class MemberActivityReport extends Component {
       { label: 'State', value: 'state' },
       { label: 'Age (Years)', value: 'age' },
       { label: 'Member Type', value: 'memberType' },
+      { label: 'Program', value: 'program' },
+      { label: 'Belt', value: 'belt' },
       { label: 'Billing User', value: 'billingUser' },
       { label: 'Cost', value: 'cost', key: 'cost' },
       { label: 'Average', value: 'average', key: 'cost' },
@@ -278,7 +293,10 @@ export class MemberActivityReport extends Component {
     this.filterValueOptions = {
       'gender': ['Male', 'Female'],
      'status': this.props.memberStatusValues,
-     'billingUser': ['YES', 'NO']
+     'billingUser': ['YES', 'NO'],
+     'memberType': this.props.membershipTypes.map(type => type.type),
+     'program': this.props.programs.map(program => program.program),
+     'belt': this.props.belts.map(belt => belt.belt)
    };
 
     this.state = {
@@ -415,6 +433,7 @@ export class MemberActivityReport extends Component {
       this.filterColumns.forEach(column => {
         this.memberActivityGridref.table.showColumn(column.value);
       });
+      this.memberActivityGridref.table.redraw();
       this.memberActivityGridref.table.clearFilter();
       return;
     }
@@ -437,6 +456,7 @@ export class MemberActivityReport extends Component {
       preference['Hidden Columns'].forEach(column => {
         this.memberActivityGridref.table.hideColumn(column.value);
       });
+      this.memberActivityGridref.table.redraw();
       this.memberActivityGridref.table.clearFilter();
       filters.forEach((filter, index) => {
         if (index == 0) {
@@ -696,11 +716,13 @@ export class MemberActivityReport extends Component {
     options.forEach(column => {
       this.memberActivityGridref.table.showColumn(column.value);
     });
-    this.memberActivityGridref.table.redraw();
+
     this.setState({
       filterColumns: this.filterColumns.filter(column => options.some(elm => elm.value === column.value )),
       selectedColumns: options,
       hiddenColumns: this.filterColumns.filter(column => !options.some(elm => elm.value === column.value ))
+    }, function(){
+      this.memberActivityGridref.table.redraw();
     });
     //this.selectedColumns = options;
   }
@@ -812,7 +834,7 @@ export class MemberActivityReport extends Component {
               <label>Value:</label>
               <input id="filter-value-text" type="text" placeholder="value to filter" size="15"/>
               <select id="filter-value-select" style={{display:'none', width: '134px'}} className="filter-value-select">
-                {this.state.selectedFilterValueOptions.map(fo => <option key={fo} value={fo}>{fo}</option>)}
+                {this.state.selectedFilterValueOptions.map((fo, index) => <option key={fo + index} value={fo}>{fo}</option>)}
               </select>
               </span>
               <button id="filter-add" onClick={(e) => this.addFilter(e)}>Create Filter</button>
@@ -870,7 +892,7 @@ export class MemberActivityReport extends Component {
     		</div>
         : null}
         <div
-          style={{height: '420px', margin: '10px' }}
+          style={{height: '420px', margin: '10px', width: '99%' }}
           className="row"
         >
           <ReactTabulator
@@ -1112,6 +1134,7 @@ export class LeadsActivityReport extends Component {
       this.columnsToHide.forEach(column => {
         this.leadsActivityGridref.table.showColumn(column.value);
       });
+      this.leadsActivityGridref.table.redraw();
       this.leadsActivityGridref.table.clearFilter();
       return;
     }
@@ -1133,6 +1156,7 @@ export class LeadsActivityReport extends Component {
       preference['Hidden Columns'].forEach(column => {
         this.leadsActivityGridref.table.hideColumn(column.value);
       });
+      this.leadsActivityGridref.table.redraw();
       this.leadsActivityGridref.table.clearFilter();
       filters.forEach((filter, index) => {
         if (index == 0) {
@@ -1393,9 +1417,9 @@ export class LeadsActivityReport extends Component {
       filterColumns: this.columnsToHide.filter(column => options.some(elm => elm.value === column.value )),
       selectedColumns: options,
       hiddenColumns: this.columnsToHide.filter(column => !options.some(elm => elm.value === column.value ))
+    }, function() {
+      this.leadsActivityGridref.table.redraw();
     });
-    //this.selectedColumns = options;
-    //console.log("#### selected = " + util.inspect(options));
   }
 
   updateReportPreferences = () => {
@@ -1567,7 +1591,7 @@ export class LeadsActivityReport extends Component {
     		</div>
         : null}
         <div
-          style={{height: '420px', margin: '10px' }}
+          style={{height: '420px', margin: '10px', width: '99%' }}
           className="row"
         >
           <ReactTabulator
