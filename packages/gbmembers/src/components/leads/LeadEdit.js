@@ -391,7 +391,7 @@ export class LeadEdit extends Component {
                     Phone
                   </label>
                   <NumberFormat
-                    format="+1 (###) ###-####"
+                    format="(##) ####-####"
                     mask="_"
                     required
                     ref={input => (this.input = input)}
@@ -410,21 +410,11 @@ export class LeadEdit extends Component {
               </span>
               <span className="line">
                 <div>
-                  <label
-                    htmlFor="birthday"
-                    required={
-                      this.props.leadItem.values['DOB'] === undefined
-                        ? true
-                        : false
-                    }
-                  >
-                    Birthday
-                  </label>
+                  <label htmlFor="birthday">Birthday</label>
                   <input
                     type="date"
                     name="birthday"
                     id="birthday"
-                    required
                     ref={input => (this.input = input)}
                     value={this.props.leadItem.values['DOB']}
                     onChange={e =>

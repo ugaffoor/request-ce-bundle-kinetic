@@ -488,7 +488,7 @@ export const MemberEdit = ({
                   Phone
                 </label>
                 <NumberFormat
-                  format="+1 (###) ###-####"
+                  format="(##) ####-####"
                   mask="_"
                   required
                   ref={input => (this.input = input)}
@@ -643,7 +643,7 @@ export const MemberEdit = ({
               <div>
                 <label htmlFor="emergencyphone">Phone</label>
                 <NumberFormat
-                  format="+1 (###) ###-####"
+                  format="(##) ####-####"
                   mask="_"
                   required
                   ref={input => (this.input = input)}
