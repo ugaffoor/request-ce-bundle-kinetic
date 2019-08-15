@@ -305,7 +305,7 @@ export class MemberActivityReport extends Component {
      'billingUser': ['YES', 'NO'],
      'memberType': this.props.membershipTypes.map(type => type.type),
      'program': this.props.programs.map(program => program.program),
-     'belt': this.props.belts.map(belt => belt.belt)
+     'belt': [...new Set(this.props.belts.map(belt => belt.belt))]
    };
    this.filterIds = {};
 
