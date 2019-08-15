@@ -27,6 +27,7 @@ import Select, { components } from "react-select";
 import createClass from "create-react-class";
 import { actions as appActions } from '../../redux/modules/memberApp';
 import { Confirm } from 'react-confirm-bootstrap';
+import { Creatable } from 'react-select';
 
 const mapStateToProps = state => ({
   reports: state.member.reporting.activityReport,
@@ -152,6 +153,15 @@ export const ReportsContainer = compose(
     componentWillUnmount() {},
   }),
 )(ReportsView);
+
+const includesComponents = {
+  DropdownIndicator: null,
+};
+
+const includesCreateOption = (label: string) => ({
+  label,
+  value: label,
+});
 
 export class MemberActivityReport extends Component {
   constructor(props) {
@@ -289,7 +299,6 @@ export class MemberActivityReport extends Component {
     this.memberPreferences = this.getTablePreferences(this.props.reportPreferences);
     this.visibleColumns = this.filterColumns.filter(column => !this.memberPreferences.hiddenCols.some(hc => hc.value === column.value));
     this.selectedColumns = this.visibleColumns;
-
     this.filterValueOptions = {
       'gender': ['Male', 'Female'],
      'status': this.props.memberStatusValues,
@@ -298,8 +307,9 @@ export class MemberActivityReport extends Component {
      'program': this.props.programs.map(program => program.program),
      'belt': this.props.belts.map(belt => belt.belt)
    };
+   this.filterIds = {};
 
-    this.state = {
+   this.state = {
       filterColumns: this.filterColumns,
       filters:[],
       selectedFilterValueOptions: [],
@@ -307,7 +317,9 @@ export class MemberActivityReport extends Component {
       hiddenColumns: this.memberPreferences.hiddenCols,
       preferences: this.memberPreferences.preferences,
       selectedPreference: this.memberPreferences.selectedPreference,
-      key: Math.random()
+      key: Math.random(),
+      includesInputValue: '',
+      includesValue: [],
     };
   }
 
@@ -365,11 +377,20 @@ export class MemberActivityReport extends Component {
     const filterColumn = cell.getRow().getData()['filterColumn'];
     const filterType = cell.getRow().getData()['filterType'];
     const filterValue = cell.getRow().getData()['filterValue'];
+    const filterId = cell.getRow().getData()['filterId'];
 
     if (this.state.filters && this.state.filters.length > 0) {
-      this.memberActivityGridref.table.removeFilter(filterColumn, filterType, filterValue);
+      if (filterType === 'includes') {
+        this.memberActivityGridref.table.removeFilter(this.includesFilter, this.filterIds[filterId]);
+      } else {
+        this.memberActivityGridref.table.removeFilter(filterColumn, filterType, filterValue);
+      }
     } else {
-      this.memberActivityGridref.table.clearFilter(filterColumn, filterType, filterValue);
+      if (filterType === 'includes') {
+        this.memberActivityGridref.table.clearFilter(this.includesFilter, this.filterIds[filterId]);
+      } else {
+        this.memberActivityGridref.table.clearFilter(filterColumn, filterType, filterValue);
+      }
     }
 
     let newFilters = [...this.state.filters].filter(filter => !(filter.filterColumn ===  filterColumn && filter.filterType ===  filterType && filter.filterValue === filterValue));
@@ -381,21 +402,42 @@ export class MemberActivityReport extends Component {
   addFilter () {
     const filterColumn = $("#filter-field").val();
     const type = $("#filter-type").val();
-    const value = $("#filter-value-text").val() ? $("#filter-value-text").val() : $("#filter-value-select").val();
+    let value = $("#filter-value-text").val() ? $("#filter-value-text").val() : $("#filter-value-select").val();
+
+    if (!value) {
+      value = this.state.includesValue && this.state.includesValue.length > 0 ? this.state.includesValue : null;
+    }
 
     if (!filterColumn || !type || !value) {
       return;
     }
 
-    this.setState({
-      filters: [...this.state.filters, {"filterColumn": filterColumn, "filterType": type, "filterValue": value}]
-    }, function() {
-      if (this.state.filters && this.state.filters.length > 0) {
-        this.memberActivityGridref.table.addFilter(filterColumn, type, value);
-      } else {
-        this.memberActivityGridref.table.setFilter(filterColumn, type, value);
-      }
-    });
+    if (type === 'includes') {
+      let values = this.state.includesValue.map(val => val.value);
+      let filterId = Math.random();
+      let filterParams = {field: filterColumn, includes: values};
+      this.filterIds[filterId] = filterParams;
+      this.setState({
+        filters: [...this.state.filters, {"filterId": filterId, "filterColumn": filterColumn, "filterType": type, "filterValue": JSON.stringify(values)}],
+        includesValue: []
+      }, function(){
+        if (this.state.filters && this.state.filters.length > 0) {
+          this.memberActivityGridref.table.addFilter(this.includesFilter, filterParams);
+        } else {
+          this.memberActivityGridref.table.setFilter(this.includesFilter, filterParams);
+        };
+      });
+    } else {
+      this.setState({
+        filters: [...this.state.filters, {"filterColumn": filterColumn, "filterType": type, "filterValue": value}]
+      }, function() {
+        if (this.state.filters && this.state.filters.length > 0) {
+          this.memberActivityGridref.table.addFilter(filterColumn, type, value);
+        } else {
+          this.memberActivityGridref.table.setFilter(filterColumn, type, value);
+        }
+      });
+    }
 
     $("#filter-field").val("");
     $("#filter-type").val("=");
@@ -407,7 +449,17 @@ export class MemberActivityReport extends Component {
   updateFilter = () => {
   }
 
+  includesFilter = (data, params) => {
+    const filterColumn = $("#filter-field").val();
+    let result = params.includes.some(value => value === data[params.field]);
+    return result;
+  }
+
   onFilterFieldChange = (event) => {
+    const type = $("#filter-type").val();
+    if (type === 'includes') {
+      return;
+    }
     let options = this.filterValueOptions[event.target.value];
     if(options) {
       $('#filter-value-text').hide();
@@ -417,6 +469,28 @@ export class MemberActivityReport extends Component {
       $('#filter-value-text').show();
       $('#filter-value-select').hide();
       this.setState({selectedFilterValueOptions: []});
+    }
+  }
+
+  onFilterTypeChange = (event) => {
+    if (event.target.value === 'includes') {
+      $('#filter-value-text').hide();
+      $('#filter-value-select').hide();
+      //$(".includes-container").show();
+      $('.includes-container').attr('style','display:inline-flex !important');
+    } else {
+      //$(".includes-container").hide();
+      $('.includes-container').attr('style','display:none !important');
+      let options = this.filterValueOptions[$('#filter-field').val()];
+      if(options) {
+        $('#filter-value-text').hide();
+        $('#filter-value-select').show();
+        this.setState({selectedFilterValueOptions: options});
+      } else {
+        $('#filter-value-text').show();
+        $('#filter-value-select').hide();
+        this.setState({selectedFilterValueOptions: []});
+      }
     }
   }
 
@@ -467,6 +541,34 @@ export class MemberActivityReport extends Component {
       });
     });
   }
+
+  handleIncludesChange = (value: any, actionMeta: any) => {
+    console.group('Value Changed');
+    console.log(value);
+    console.log("##### VALUE = " + util.inspect(value));
+    console.log(`action: ${actionMeta.action}`);
+    console.groupEnd();
+    this.setState({ includesValue: value });
+  };
+  handleIncludesInputChange = (inputValue: string) => {
+    this.setState({ includesInputValue:  inputValue});
+  };
+  handleIncludesKeyDown = (event: SyntheticKeyboardEvent<HTMLElement>) => {
+    const { includesInputValue, includesValue } = this.state;
+    if (!includesInputValue) return;
+    switch (event.key) {
+      case 'Enter':
+      case 'Tab':
+        console.group('Value Added');
+        console.log(includesValue);
+        console.groupEnd();
+        this.setState({
+          includesInputValue: '',
+          includesValue: [...includesValue, includesCreateOption(includesInputValue)],
+        });
+        event.preventDefault();
+    }
+  };
 
   ExpandCellButton = (props: any) => {
     const cellData = props.cell._cell.row.data;
@@ -822,7 +924,7 @@ export class MemberActivityReport extends Component {
             </span>
             <span>
               <label>Type: </label>
-              <select id="filter-type">
+              <select id="filter-type" onChange={e => this.onFilterTypeChange(e)}>
                   <option value="=">=</option>
                   <option value="<">&lt;</option>
                   <option value="<=">&lt;=</option>
@@ -830,6 +932,7 @@ export class MemberActivityReport extends Component {
                   <option value=">=">&gt;=</option>
                   <option value="!=">!=</option>
                   <option value="like">like</option>
+                  <option value="includes">includes</option>
               </select>
             </span>
               <span>
@@ -838,6 +941,20 @@ export class MemberActivityReport extends Component {
               <select id="filter-value-select" style={{display:'none', width: '134px'}} className="filter-value-select">
                 {this.state.selectedFilterValueOptions.map((fo, index) => <option key={fo + index} value={fo}>{fo}</option>)}
               </select>
+              <Creatable
+                components={includesComponents}
+                inputValue={this.state.includesInputValue}
+                isClearable
+                isMulti
+                menuIsOpen={false}
+                onChange={this.handleIncludesChange}
+                onInputChange={this.handleIncludesInputChange}
+                onKeyDown={this.handleIncludesKeyDown}
+                placeholder="Type something and press enter..."
+                value={this.state.includesValue}
+                className="includes-container"
+                classNamePrefix="includes-container"
+              />
               </span>
               <button id="filter-add" onClick={(e) => this.addFilter(e)}>Create Filter</button>
               <span className="vl"></span>
