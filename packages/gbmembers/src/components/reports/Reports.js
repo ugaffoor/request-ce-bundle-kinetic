@@ -439,6 +439,8 @@ export class MemberActivityReport extends Component {
       });
     }
 
+    $('.includes-container').attr('style','display:none !important');
+    $('#filter-value-text').show();
     $("#filter-field").val("");
     $("#filter-type").val("=");
     $("#filter-value-text").val("");
@@ -468,7 +470,8 @@ export class MemberActivityReport extends Component {
       return;
     }
 
-    if(options) {
+    $('.includes-container').attr('style','display:none !important');
+    if(options && options.length > 0) {
       $('#filter-value-text').hide();
       $('#filter-value-select').show();
       this.setState({selectedFilterValueOptions: options});
