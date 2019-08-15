@@ -457,10 +457,17 @@ export class MemberActivityReport extends Component {
 
   onFilterFieldChange = (event) => {
     const type = $("#filter-type").val();
+    let options = this.filterValueOptions[event.target.value];
+    if (!options) {
+      options = [];
+    }
     if (type === 'includes') {
+      let includesOptions = [];
+      options.forEach(option => includesOptions.push({label: option, value: option}));
+      this.setState({includesValue: includesOptions});
       return;
     }
-    let options = this.filterValueOptions[event.target.value];
+
     if(options) {
       $('#filter-value-text').hide();
       $('#filter-value-select').show();
@@ -473,15 +480,19 @@ export class MemberActivityReport extends Component {
   }
 
   onFilterTypeChange = (event) => {
+    let options = this.filterValueOptions[$('#filter-field').val()];
+    if (!options) {
+      options = [];
+    }
     if (event.target.value === 'includes') {
+      let includesOptions = [];
+      options.forEach(option => includesOptions.push({label: option, value: option}));
+      this.setState({includesValue: includesOptions});
       $('#filter-value-text').hide();
       $('#filter-value-select').hide();
-      //$(".includes-container").show();
       $('.includes-container').attr('style','display:inline-flex !important');
     } else {
-      //$(".includes-container").hide();
       $('.includes-container').attr('style','display:none !important');
-      let options = this.filterValueOptions[$('#filter-field').val()];
       if(options) {
         $('#filter-value-text').hide();
         $('#filter-value-select').show();
