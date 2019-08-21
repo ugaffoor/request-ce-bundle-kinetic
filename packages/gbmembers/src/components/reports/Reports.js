@@ -154,15 +154,6 @@ export const ReportsContainer = compose(
   }),
 )(ReportsView);
 
-const includesComponents = {
-  DropdownIndicator: null,
-};
-
-const includesCreateOption = (label: string) => ({
-  label,
-  value: label,
-});
-
 export class MemberActivityReport extends Component {
   constructor(props) {
     super(props);
@@ -318,8 +309,8 @@ export class MemberActivityReport extends Component {
       preferences: this.memberPreferences.preferences,
       selectedPreference: this.memberPreferences.selectedPreference,
       key: Math.random(),
-      includesInputValue: '',
-      includesValue: [],
+      includesOptions: [],
+      includesValue: []
     };
   }
 
@@ -463,10 +454,11 @@ export class MemberActivityReport extends Component {
     if (!options) {
       options = [];
     }
+    this.setState({includesValue: null});
     if (type === 'includes') {
       let includesOptions = [];
       options.forEach(option => includesOptions.push({label: option, value: option}));
-      this.setState({includesValue: includesOptions});
+      this.setState({includesOptions: includesOptions});
       return;
     }
 
@@ -487,16 +479,17 @@ export class MemberActivityReport extends Component {
     if (!options) {
       options = [];
     }
+    this.setState({includesValue: null});
     if (event.target.value === 'includes') {
       let includesOptions = [];
       options.forEach(option => includesOptions.push({label: option, value: option}));
-      this.setState({includesValue: includesOptions});
+      this.setState({includesOptions: includesOptions});
       $('#filter-value-text').hide();
       $('#filter-value-select').hide();
-      $('.includes-container').attr('style','display:inline-flex !important');
+      $('.includes-container').attr('style','display:inline-block !important');
     } else {
       $('.includes-container').attr('style','display:none !important');
-      if(options) {
+      if(options && options.length > 0) {
         $('#filter-value-text').hide();
         $('#filter-value-select').show();
         this.setState({selectedFilterValueOptions: options});
@@ -556,32 +549,12 @@ export class MemberActivityReport extends Component {
     });
   }
 
-  handleIncludesChange = (value: any, actionMeta: any) => {
-    console.group('Value Changed');
-    console.log(value);
-    console.log("##### VALUE = " + util.inspect(value));
-    console.log(`action: ${actionMeta.action}`);
-    console.groupEnd();
-    this.setState({ includesValue: value });
-  };
-  handleIncludesInputChange = (inputValue: string) => {
-    this.setState({ includesInputValue:  inputValue});
-  };
-  handleIncludesKeyDown = (event: SyntheticKeyboardEvent<HTMLElement>) => {
-    const { includesInputValue, includesValue } = this.state;
-    if (!includesInputValue) return;
-    switch (event.key) {
-      case 'Enter':
-      case 'Tab':
-        console.group('Value Added');
-        console.log(includesValue);
-        console.groupEnd();
-        this.setState({
-          includesInputValue: '',
-          includesValue: [...includesValue, includesCreateOption(includesInputValue)],
-        });
-        event.preventDefault();
-    }
+  noIncludesOptionsMessage = () => {
+    return null;
+  }
+
+  handleIncludesChange = (options) => {
+    this.setState({ includesValue: options });
   };
 
   ExpandCellButton = (props: any) => {
@@ -956,16 +929,12 @@ export class MemberActivityReport extends Component {
                 {this.state.selectedFilterValueOptions.map((fo, index) => <option key={fo + index} value={fo}>{fo}</option>)}
               </select>
               <Creatable
-                components={includesComponents}
-                inputValue={this.state.includesInputValue}
-                isClearable
                 isMulti
-                menuIsOpen={false}
-                onChange={this.handleIncludesChange}
-                onInputChange={this.handleIncludesInputChange}
-                onKeyDown={this.handleIncludesKeyDown}
-                placeholder="Type something and press enter..."
+                placeholder="Type and hit enter..."
                 value={this.state.includesValue}
+                options={this.state.includesOptions}
+                onChange={e => this.handleIncludesChange(e)}
+                noOptionsMessage={e => this.noIncludesOptionsMessage(e)}
                 className="includes-container"
                 classNamePrefix="includes-container"
               />
