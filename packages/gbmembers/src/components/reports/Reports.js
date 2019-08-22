@@ -430,16 +430,13 @@ export class MemberActivityReport extends Component {
       });
     }
 
-    $('.includes-container').attr('style','display:none !important');
+    $('.includes-container-member').attr('style','display:none !important');
     $('#filter-value-text').show();
     $("#filter-field").val("");
     $("#filter-type").val("=");
     $("#filter-value-text").val("");
     $("#filter-value-select").val("");
     //tableRef.table.clearFilter();
-  }
-
-  updateFilter = () => {
   }
 
   includesFilter = (data, params) => {
@@ -462,7 +459,7 @@ export class MemberActivityReport extends Component {
       return;
     }
 
-    $('.includes-container').attr('style','display:none !important');
+    $('.includes-container-member').attr('style','display:none !important');
     if(options && options.length > 0) {
       $('#filter-value-text').hide();
       $('#filter-value-select').show();
@@ -486,9 +483,9 @@ export class MemberActivityReport extends Component {
       this.setState({includesOptions: includesOptions});
       $('#filter-value-text').hide();
       $('#filter-value-select').hide();
-      $('.includes-container').attr('style','display:inline-block !important');
+      $('.includes-container-member').attr('style','display:inline-block !important');
     } else {
-      $('.includes-container').attr('style','display:none !important');
+      $('.includes-container-member').attr('style','display:none !important');
       if(options && options.length > 0) {
         $('#filter-value-text').hide();
         $('#filter-value-select').show();
@@ -547,10 +544,6 @@ export class MemberActivityReport extends Component {
         }
       });
     });
-  }
-
-  noIncludesOptionsMessage = () => {
-    return null;
   }
 
   handleIncludesChange = (options) => {
@@ -934,8 +927,9 @@ export class MemberActivityReport extends Component {
                 value={this.state.includesValue}
                 options={this.state.includesOptions}
                 onChange={e => this.handleIncludesChange(e)}
-                noOptionsMessage={e => this.noIncludesOptionsMessage(e)}
-                className="includes-container"
+                closeMenuOnSelect={false}
+                noOptionsMessage={() => null}
+                className="includes-container includes-container-member"
                 classNamePrefix="includes-container"
               />
               </span>
@@ -1107,6 +1101,7 @@ export class LeadsActivityReport extends Component {
      'gender': ['Male', 'Female'],
      'status': this.props.leadStatusValues
     };
+    this.filterIds = {};
 
     this.state = {
       activityData: this.activityData,
@@ -1117,7 +1112,9 @@ export class LeadsActivityReport extends Component {
       hiddenColumns: this.leadsPreferences.hiddenCols,
       preferences: this.leadsPreferences.preferences,
       selectedPreference: this.leadsPreferences.selectedPreference,
-      key: Math.random()
+      key: Math.random(),
+      includesOptions: [],
+      includesValue: []
     };
   }
 
@@ -1167,15 +1164,30 @@ export class LeadsActivityReport extends Component {
     }
   }
 
+  includesFilter = (data, params) => {
+    const filterColumn = $("#filter-field-leads").val();
+    let result = params.includes.some(value => value === data[params.field]);
+    return result;
+  }
+
   removeFilter = (e, cell) => {
     const filterColumn = cell.getRow().getData()['filterColumn'];
     const filterType = cell.getRow().getData()['filterType'];
     const filterValue = cell.getRow().getData()['filterValue'];
+    const filterId = cell.getRow().getData()['filterId'];
 
     if (this.state.filters && this.state.filters.length > 0) {
-      this.leadsActivityGridref.table.removeFilter(filterColumn, filterType, filterValue);
+      if (filterType === 'includes') {
+        this.leadsActivityGridref.table.removeFilter(this.includesFilter, this.filterIds[filterId]);
+      } else {
+        this.leadsActivityGridref.table.removeFilter(filterColumn, filterType, filterValue);
+      }
     } else {
-      this.leadsActivityGridref.table.clearFilter(filterColumn, filterType, filterValue);
+      if (filterType === 'includes') {
+        this.leadsActivityGridref.table.clearFilter(this.includesFilter, this.filterIds[filterId]);
+      } else {
+        this.leadsActivityGridref.table.clearFilter(filterColumn, filterType, filterValue);
+      }
     }
 
     let newFilters = [...this.state.filters].filter(filter => !(filter.filterColumn ===  filterColumn && filter.filterType ===  filterType && filter.filterValue === filterValue));
@@ -1187,22 +1199,45 @@ export class LeadsActivityReport extends Component {
   addFilter () {
     const filterColumn = $("#filter-field-leads").val();
     const type = $("#filter-type-leads").val();
-    const value = $("#filter-value-leads-text").val() ? $("#filter-value-leads-text").val() : $("#filter-value-leads-select").val();
+    let value = $("#filter-value-leads-text").val() ? $("#filter-value-leads-text").val() : $("#filter-value-leads-select").val();
+
+    if (!value) {
+      value = this.state.includesValue && this.state.includesValue.length > 0 ? this.state.includesValue : null;
+    }
 
     if (!filterColumn || !type || !value) {
       return;
     }
 
-    this.setState({
-      filters: [...this.state.filters, {"filterColumn": filterColumn, "filterType": type, "filterValue": value}]
-    }, function() {
-      if (this.state.filters && this.state.filters.length > 0) {
-        this.leadsActivityGridref.table.addFilter(filterColumn, type, value);
-      } else {
-        this.leadsActivityGridref.table.setFilter(filterColumn, type, value);
-      }
-    });
+    if (type === 'includes') {
+      let values = this.state.includesValue.map(val => val.value);
+      let filterId = Math.random();
+      let filterParams = {field: filterColumn, includes: values};
+      this.filterIds[filterId] = filterParams;
+      this.setState({
+        filters: [...this.state.filters, {"filterId": filterId, "filterColumn": filterColumn, "filterType": type, "filterValue": JSON.stringify(values)}],
+        includesValue: []
+      }, function(){
+        if (this.state.filters && this.state.filters.length > 0) {
+          this.leadsActivityGridref.table.addFilter(this.includesFilter, filterParams);
+        } else {
+          this.leadsActivityGridref.table.setFilter(this.includesFilter, filterParams);
+        };
+      });
+    } else {
+        this.setState({
+        filters: [...this.state.filters, {"filterColumn": filterColumn, "filterType": type, "filterValue": value}]
+      }, function() {
+        if (this.state.filters && this.state.filters.length > 0) {
+          this.leadsActivityGridref.table.addFilter(filterColumn, type, value);
+        } else {
+          this.leadsActivityGridref.table.setFilter(filterColumn, type, value);
+        }
+      });
+    }
 
+    $('.includes-container-leads').attr('style','display:none !important');
+    $('#filter-value-leads-text').show();
     $("#filter-field-leads").val("");
     $("#filter-type-leads").val("=");
     $("#filter-value-leads-text").val("");
@@ -1211,8 +1246,22 @@ export class LeadsActivityReport extends Component {
   }
 
   onFilterFieldChange = (event) => {
+    const type = $("#filter-type-leads").val();
     let options = this.filterValueOptions[event.target.value];
-    if(options) {
+    if (!options) {
+      options = [];
+    }
+
+    this.setState({includesValue: null});
+    if (type === 'includes') {
+      let includesOptions = [];
+      options.forEach(option => includesOptions.push({label: option, value: option}));
+      this.setState({includesOptions: includesOptions});
+      return;
+    }
+
+    $('.includes-container-leads').attr('style','display:none !important');
+    if(options && options.length > 0) {
       $('#filter-value-leads-text').hide();
       $('#filter-value-leads-select').show();
       this.setState({selectedFilterValueOptions: options});
@@ -1220,6 +1269,33 @@ export class LeadsActivityReport extends Component {
       $('#filter-value-leads-text').show();
       $('#filter-value-leads-select').hide();
       this.setState({selectedFilterValueOptions: []});
+    }
+  }
+
+  onFilterTypeChange = (event) => {
+    let options = this.filterValueOptions[$('#filter-field-leads').val()];
+    if (!options) {
+      options = [];
+    }
+    this.setState({includesValue: null});
+    if (event.target.value === 'includes') {
+      let includesOptions = [];
+      options.forEach(option => includesOptions.push({label: option, value: option}));
+      this.setState({includesOptions: includesOptions});
+      $('#filter-value-leads-text').hide();
+      $('#filter-value-leads-select').hide();
+      $('.includes-container-leads').attr('style','display:inline-block !important');
+    } else {
+      $('.includes-container-leads').attr('style','display:none !important');
+      if(options && options.length > 0) {
+        $('#filter-value-leads-text').hide();
+        $('#filter-value-leads-select').show();
+        this.setState({selectedFilterValueOptions: options});
+      } else {
+        $('#filter-value-leads-text').show();
+        $('#filter-value-leads-select').hide();
+        this.setState({selectedFilterValueOptions: []});
+      }
     }
   }
 
@@ -1269,6 +1345,10 @@ export class LeadsActivityReport extends Component {
       });
     });
   }
+
+  handleIncludesChange = (options) => {
+    this.setState({ includesValue: options });
+  };
 
   ExpandCellButton = (props: any) => {
     const cellData = props.cell._cell.row.data;
@@ -1621,7 +1701,7 @@ export class LeadsActivityReport extends Component {
             </span>
             <span>
               <label>Type: </label>
-              <select id="filter-type-leads">
+              <select id="filter-type-leads" onChange={e => this.onFilterTypeChange(e)}>
                   <option value="=">=</option>
                   <option value="<">&lt;</option>
                   <option value="<=">&lt;=</option>
@@ -1629,6 +1709,7 @@ export class LeadsActivityReport extends Component {
                   <option value=">=">&gt;=</option>
                   <option value="!=">!=</option>
                   <option value="like">like</option>
+                  <option value="includes">includes</option>
               </select>
             </span>
               <span>
@@ -1637,6 +1718,17 @@ export class LeadsActivityReport extends Component {
               <select id="filter-value-leads-select" style={{display:'none', width: '134px'}} className="filter-value-select">
                 {this.state.selectedFilterValueOptions.map(fo => <option key={fo} value={fo}>{fo}</option>)}
               </select>
+              <Creatable
+                isMulti
+                placeholder="Type and hit enter..."
+                value={this.state.includesValue}
+                options={this.state.includesOptions}
+                onChange={e => this.handleIncludesChange(e)}
+                closeMenuOnSelect={false}
+                noOptionsMessage={() => null}
+                className="includes-container includes-container-leads"
+                classNamePrefix="includes-container"
+              />
               </span>
               <button id="filter-add-leads" onClick={(e) => this.addFilter(e)}>Create Filter</button>
               <span className="vl"></span>
