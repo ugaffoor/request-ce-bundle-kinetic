@@ -1102,7 +1102,6 @@ export class LeadsActivityReport extends Component {
      'status': this.props.leadStatusValues
     };
     this.filterIds = {};
-    this.dateFilterFormat = "";
 
     this.state = {
       activityData: this.activityData,
