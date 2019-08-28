@@ -1080,7 +1080,7 @@ export class LeadsActivityReport extends Component {
       { label: 'State', value: 'state' },
       { label: 'Age (Years)', value: 'age' },
       { label: 'Source', value: 'source' },
-      { label: 'Reminder Date', value: 'reminderDate' },
+      { label: 'Reminder Date', value: 'reminderDate', dataType: 'date' },
       { label: 'Emails Sent', value: 'emailsSent' },
       { label: 'Emails Received', value: 'emailsReceived' },
       { label: 'SMS Sent', value: 'smsSent' },
@@ -1165,9 +1165,43 @@ export class LeadsActivityReport extends Component {
   }
 
   includesFilter = (data, params) => {
-    const filterColumn = $("#filter-field-leads").val();
     let result = params.includes.some(value => value === data[params.field]);
     return result;
+  }
+
+  dateFilter = (data, params) => {
+    let dateValue = moment(params.value).format('YYYY-MM-DD');
+    switch(params.type) {
+      case '=':
+      return data[params.field] ? moment(data[params.field], 'YYYY-MM-DD').isSame(dateValue) : false;
+      break;
+    case '<':
+      return data[params.field] ? moment(data[params.field], 'YYYY-MM-DD').isBefore(dateValue) : false;
+      break;
+    case '<=':
+      return data[params.field] ? moment(data[params.field], 'YYYY-MM-DD').isSameOrBefore(dateValue) : false;
+      break;
+    case '>':
+      return data[params.field] ? moment(data[params.field], 'YYYY-MM-DD').isAfter(dateValue) : false;
+      break;
+    case '>=':
+      return data[params.field] ? moment(data[params.field], 'YYYY-MM-DD').isSameOrAfter(dateValue) : false;
+      break;
+    case '!=':
+      return data[params.field] ? !moment(data[params.field], 'YYYY-MM-DD').isSame(dateValue) : false;
+      break;
+    case 'like':
+      return data[params.field] ? data[params.field].includes(params.value) : false;
+      break;
+    case 'includes':
+      if (!data[params.field]) {
+        return false;
+      }
+      let dateVal = moment(data[params.field]).format('YYYY-MM-DD');
+      return params.includes.some(value => moment(value, 'YYYY-MM-DD').isSame(dateVal));
+      break;
+    }
+    return null;
   }
 
   removeFilter = (e, cell) => {
@@ -1176,14 +1210,20 @@ export class LeadsActivityReport extends Component {
     const filterValue = cell.getRow().getData()['filterValue'];
     const filterId = cell.getRow().getData()['filterId'];
 
+    let dataType = this.columnsToHide.filter(column => column.value === filterColumn)[0].dataType;
+
     if (this.state.filters && this.state.filters.length > 0) {
-      if (filterType === 'includes') {
+      if (dataType === 'date') {
+        this.leadsActivityGridref.table.removeFilter(this.dateFilter, this.filterIds[filterId]);
+      } else if (filterType === 'includes') {
         this.leadsActivityGridref.table.removeFilter(this.includesFilter, this.filterIds[filterId]);
       } else {
         this.leadsActivityGridref.table.removeFilter(filterColumn, filterType, filterValue);
       }
     } else {
-      if (filterType === 'includes') {
+      if (dataType === 'date') {
+        this.leadsActivityGridref.table.clearFilter(this.dateFilter, this.filterIds[filterId]);
+      } else if (filterType === 'includes') {
         this.leadsActivityGridref.table.clearFilter(this.includesFilter, this.filterIds[filterId]);
       } else {
         this.leadsActivityGridref.table.clearFilter(filterColumn, filterType, filterValue);
@@ -1209,7 +1249,22 @@ export class LeadsActivityReport extends Component {
       return;
     }
 
-    if (type === 'includes') {
+    let dataType = this.columnsToHide.filter(column => column.value === filterColumn)[0].dataType;
+    if (dataType === 'date') {
+      let values = this.state.includesValue ? this.state.includesValue.map(val => val.value) : [];
+      let filterId = Math.random();
+      let filterParams = {field: filterColumn, type: type, value: (type !== 'includes' ? value : null), includes: values};
+      this.filterIds[filterId] = filterParams;
+      this.setState({
+        filters: [...this.state.filters, {"filterId": filterId, "filterColumn": filterColumn, "filterType": type, "filterValue": (type !== 'includes' ? value : JSON.stringify(values))}]
+      }, function(){
+        if (this.state.filters && this.state.filters.length > 0) {
+          this.leadsActivityGridref.table.addFilter(this.dateFilter, filterParams);
+        } else {
+          this.leadsActivityGridref.table.setFilter(this.dateFilter, filterParams);
+        };
+      });
+    } else if (type === 'includes') {
       let values = this.state.includesValue.map(val => val.value);
       let filterId = Math.random();
       let filterParams = {field: filterColumn, includes: values};
