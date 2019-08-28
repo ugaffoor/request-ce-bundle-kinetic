@@ -27,9 +27,16 @@ export const selectProfile = ({ app }) => app.profile;
 export const selectMemberLists = ({ member }) => member.app.memberLists;
 export const selectDDRTemplates = ({ member }) => member.app.ddrTemplates;
 export const selectKapp = ({ app }) => app.kapps;
-export const selectReportPreferences = ({ member }) => member.app.reportPreferences;
+export const selectReportPreferences = ({ member }) =>
+  member.app.reportPreferences;
 
 export const PROGRAMBELTS_SEARCH = new CoreAPI.SubmissionSearch(true)
+  .eq('values[Status]', 'Active')
+  .index('values[Status]')
+  .include('details,values')
+  .limit(1000)
+  .build();
+export const ADD_PROGRAMS_SEARCH = new CoreAPI.SubmissionSearch(true)
   .eq('values[Status]', 'Active')
   .index('values[Status]')
   .include('details,values')
@@ -203,6 +210,35 @@ export function* fetchMemberAppSettingsTask() {
   });
   var membershipFees = membershipFeesMap.toList();
 
+  const addPrograms = yield all({
+    submissions: call(CoreAPI.searchSubmissions, {
+      datastore: true,
+      form: 'additional-programs',
+      search: ADD_PROGRAMS_SEARCH,
+    }),
+  });
+  var additionalProgramsMap = OrderedMap();
+  var additionalProgramsSubmissions = addPrograms.submissions.submissions;
+
+  for (i = 0; i < additionalProgramsSubmissions.length; i++) {
+    additionalProgramsMap = additionalProgramsMap.set(
+      additionalProgramsSubmissions[i].values['Program'],
+      {
+        program: additionalProgramsSubmissions[i].values['Program'],
+      },
+    );
+  }
+  additionalProgramsMap = additionalProgramsMap.sort((a, b) => {
+    if (a.program < b.program) {
+      return -1;
+    }
+    if (a.program > b.program) {
+      return 1;
+    }
+    return 0;
+  });
+  var additionalPrograms = additionalProgramsMap.toList();
+
   const snippetsSubs = yield all({
     submissions: call(CoreAPI.searchSubmissions, {
       datastore: true,
@@ -262,6 +298,7 @@ export function* fetchMemberAppSettingsTask() {
     belts,
     membershipTypes,
     membershipFees,
+    additionalPrograms,
     snippets,
     kapp,
   };
@@ -352,7 +389,7 @@ export function* updateMembersListTask(payload) {
 //TODO - fetch only reportPreferences instead of entire profile
 export function* fetchReportPreferences() {
   const { profile } = yield call(CoreAPI.fetchProfile, {
-      include: PROFILE_INCLUDES
+    include: PROFILE_INCLUDES,
   });
   yield put(actions.setReportPreferences(profile));
 }
@@ -373,10 +410,17 @@ export function* updateReportPreferences(action) {
   });
 
   if (!serverError) {
-    yield put(errorActions.addSuccess("Preferences updated successfully", "Update Preference"));
+    yield put(
+      errorActions.addSuccess(
+        'Preferences updated successfully',
+        'Update Preference',
+      ),
+    );
     yield put(actions.fetchReportPreferences());
   } else {
-    yield put(errorActions.addError("Error updating preferences", "Update Preference"));
+    yield put(
+      errorActions.addError('Error updating preferences', 'Update Preference'),
+    );
   }
 }
 

@@ -238,6 +238,24 @@ export const matchesMemberFilter = (allMembers, filters) => {
         ) {
           match = false;
         }
+      } else if (keys[0] === 'additionalProgram1Filter') {
+        if (
+          $.inArray(
+            member.values['Additional Program 1'],
+            filters[i][keys[0]].programs,
+          ) < 0
+        ) {
+          match = false;
+        }
+      } else if (keys[0] === 'additionalProgram2Filter') {
+        if (
+          $.inArray(
+            member.values['Additional Program 2'],
+            filters[i][keys[0]].programs,
+          ) < 0
+        ) {
+          match = false;
+        }
       } else if (keys[0] === 'memberTypeFilter') {
         if (member.values['Member Type'] !== filters[i][keys[0]].memberType) {
           match = false;
