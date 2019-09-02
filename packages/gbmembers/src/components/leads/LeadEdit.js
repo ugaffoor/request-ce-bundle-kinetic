@@ -19,6 +19,7 @@ import { StatusMessagesContainer } from '../StatusMessages';
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   leadItem: state.member.leads.currentLead,
+  programs: state.member.app.programs,
   currentLeadLoading: state.member.leads.currentLeadLoading,
 });
 const mapDispatchToProps = {
@@ -48,10 +49,7 @@ export class LeadEdit extends Component {
               <h3>Edit Lead</h3>
               <hr />
               <span className="line">
-                <div
-                  className="form-group form-inline"
-                  style={{ width: 'auto' }}
-                >
+                <div>
                   <label
                     htmlFor="source"
                     required={
@@ -65,8 +63,6 @@ export class LeadEdit extends Component {
                   <select
                     name="source"
                     id="source"
-                    className="form-group"
-                    style={{ marginLeft: '10px' }}
                     required
                     ref={input => (this.input = input)}
                     value={this.props.leadItem.values['Source']}
@@ -98,7 +94,7 @@ export class LeadEdit extends Component {
                     <option value="Walk-In">Walk-In</option>
                     <option value="Other Advertising">Other Advertising</option>
                   </select>
-                  <span className="droparrow" />
+                  <div className="droparrow" />
                 </div>
                 <div
                   className="form-group form-inline"
@@ -430,6 +426,34 @@ export class LeadEdit extends Component {
               </span>
               <span className="line">
                 <div>
+                  <label htmlFor="program">Interest in Program</label>
+                  <select
+                    name="program"
+                    id="program"
+                    ref={input => (this.input = input)}
+                    defaultValue={
+                      this.props.leadItem.values['Interest in Program']
+                    }
+                    onChange={e =>
+                      handleChange(
+                        this.props.leadItem,
+                        'Interest in Program',
+                        e,
+                      )
+                    }
+                  >
+                    <option value="" />
+                    {this.props.programs.map(program => (
+                      <option key={program.program} value={program.program}>
+                        {program.program}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="droparrow" />
+                </div>
+              </span>
+              <span className="line">
+                <div>
                   <label htmlFor="sourceReference1">Source Reference 1</label>
                   <input
                     type="text"
@@ -549,6 +573,7 @@ export const LeadEditView = ({
   leadItem,
   saveLead,
   removeLead,
+  programs,
   currentLeadLoading,
   isDirty,
   setIsDirty,
@@ -559,6 +584,7 @@ export const LeadEditView = ({
     <LeadEdit
       leadItem={leadItem}
       saveLead={saveLead}
+      programs={programs}
       removeLead={removeLead}
       isDirty={isDirty}
       setIsDirty={setIsDirty}
