@@ -371,13 +371,17 @@ export class MemberActivityReport extends Component {
     const filterId = cell.getRow().getData()['filterId'];
 
     if (this.state.filters && this.state.filters.length > 0) {
-      if (filterType === 'includes') {
+      if (filterColumn === 'createdDate' || filterColumn === 'lastModifiedDate') {
+        this.memberActivityGridref.table.removeFilter(this.dateRangeFilter, this.filterIds[filterId]);
+      } else if (filterType === 'includes') {
         this.memberActivityGridref.table.removeFilter(this.includesFilter, this.filterIds[filterId]);
       } else {
         this.memberActivityGridref.table.removeFilter(filterColumn, filterType, filterValue);
       }
     } else {
-      if (filterType === 'includes') {
+      if (filterColumn === 'createdDate' || filterColumn === 'lastModifiedDate') {
+        this.memberActivityGridref.table.clearFilter(this.dateRangeFilter, this.filterIds[filterId]);
+      } else if (filterType === 'includes') {
         this.memberActivityGridref.table.clearFilter(this.includesFilter, this.filterIds[filterId]);
       } else {
         this.memberActivityGridref.table.clearFilter(filterColumn, filterType, filterValue);
@@ -393,17 +397,44 @@ export class MemberActivityReport extends Component {
   addFilter () {
     const filterColumn = $("#filter-field").val();
     const type = $("#filter-type").val();
-    let value = $("#filter-value-text").val() ? $("#filter-value-text").val() : $("#filter-value-select").val();
 
-    if (!value) {
-      value = this.state.includesValue && this.state.includesValue.length > 0 ? this.state.includesValue : null;
-    }
-
-    if (!filterColumn || !type || !value) {
+    if (!filterColumn) {
+      console.log("Please select column to filter");
       return;
     }
 
-    if (type === 'includes') {
+    if (filterColumn !== 'createdDate' && filterColumn !== 'lastModifiedDate') {
+      if (!type) {
+        console.log("Please select filter type");
+        return;
+      }
+    } else {
+      if (!$("#filter-start-date").val() || !$("#filter-end-date").val()) {
+        console.log("Please provide start and end date");
+        return;
+      }
+    }
+
+    if (filterColumn === 'createdDate' || filterColumn === 'lastModifiedDate') {
+      let filterId = Math.random();
+      let filterParams = {field: filterColumn, startDate: $("#filter-start-date").val(), endDate: $("#filter-end-date").val()};
+      this.filterIds[filterId] = filterParams;
+      let filterVal = "[ startDate:" + $("#filter-start-date").val() + ", endDate:" + $("#filter-end-date").val() + "]";
+      this.setState({
+        filters: [...this.state.filters, {"filterId": filterId, "filterColumn": filterColumn, "filterType": 'Date Range', "filterValue": filterVal}],
+        includesValue: []
+      }, function(){
+        if (this.state.filters && this.state.filters.length > 0) {
+          this.memberActivityGridref.table.addFilter(this.dateRangeFilter, filterParams);
+        } else {
+          this.memberActivityGridref.table.setFilter(this.dateRangeFilter, filterParams);
+        };
+      });
+    } else if (type === 'includes') {
+      if (!this.state.includesValue || this.state.includesValue.length <= 0) {
+        console.log("Please provide values to include");
+        return;
+      }
       let values = this.state.includesValue.map(val => val.value);
       let filterId = Math.random();
       let filterParams = {field: filterColumn, includes: values};
@@ -419,6 +450,11 @@ export class MemberActivityReport extends Component {
         };
       });
     } else {
+      let value = $("#filter-value-text").val() ? $("#filter-value-text").val() : $("#filter-value-select").val();
+      if (!value) {
+        console.log("Please provide value to filter");
+        return;
+      }
       this.setState({
         filters: [...this.state.filters, {"filterColumn": filterColumn, "filterType": type, "filterValue": value}]
       }, function() {
@@ -431,6 +467,9 @@ export class MemberActivityReport extends Component {
     }
 
     $('.includes-container-member').attr('style','display:none !important');
+    $('#filter-value-container').show();
+    $('#filter-type-container').show();
+    $('#filter-date-range-container').hide();
     $('#filter-value-text').show();
     $("#filter-field").val("");
     $("#filter-type").val("=");
@@ -440,9 +479,15 @@ export class MemberActivityReport extends Component {
   }
 
   includesFilter = (data, params) => {
-    const filterColumn = $("#filter-field").val();
     let result = params.includes.some(value => value === data[params.field]);
     return result;
+  }
+
+  dateRangeFilter = (data, params) => {
+    let startDate = moment(params.startDate, 'YYYY-MM-DD');
+    let endDate = moment(params.endDate, 'YYYY-MM-DD');
+    let dateVal = moment(data[params.field], 'YYYY-MM-DDTHH:mm:ss.SSSZ');
+    return dateVal.isSameOrAfter(startDate, 'day') && dateVal.isSameOrBefore(endDate, 'day');
   }
 
   onFilterFieldChange = (event) => {
@@ -452,14 +497,25 @@ export class MemberActivityReport extends Component {
       options = [];
     }
     this.setState({includesValue: null});
-    if (type === 'includes') {
+    if (type === 'includes' && !event.target.value === 'createdDate' && !event.target.value === 'lastModifiedDate') {
       let includesOptions = [];
       options.forEach(option => includesOptions.push({label: option, value: option}));
       this.setState({includesOptions: includesOptions});
       return;
     }
 
+    if (event.target.value === 'createdDate' || event.target.value === 'lastModifiedDate') {
+      $('#filter-value-container').hide();
+      $('#filter-type-container').hide();
+      $('#filter-date-range-container').show();
+      return;
+    }
+
     $('.includes-container-member').attr('style','display:none !important');
+    $('#filter-value-container').show();
+    $('#filter-type-container').show();
+    $('#filter-date-range-container').hide();
+    $('#filter-type').val('=');
     if(options && options.length > 0) {
       $('#filter-value-text').hide();
       $('#filter-value-select').show();
@@ -578,6 +634,8 @@ export class MemberActivityReport extends Component {
     members.forEach(member => {
       memberActivityData.push({
         id: member['id'],
+        createdDate: member['createdAt'],
+        lastModifiedDate: member['updatedAt'],
         name: member.values['First Name'] + ' ' + member.values['Last Name'],
         gender: member.values['Gender'],
         status: member.values['Status'],
@@ -900,9 +958,11 @@ export class MemberActivityReport extends Component {
               <select id="filter-field" onChange={e => this.onFilterFieldChange(e)}>
                   <option></option>
                   {this.state.filterColumns.map(column => <option key={column.value} value={column.value}>{column.label}</option>)}
+                  <option key="createdDate" value="createdDate">Created Date</option>
+                  <option key="lastModifiedDate" value="lastModifiedDate">Last Modified Date</option>
               </select>
             </span>
-            <span>
+            <span id="filter-type-container">
               <label>Type: </label>
               <select id="filter-type" onChange={e => this.onFilterTypeChange(e)}>
                   <option value="=">=</option>
@@ -915,7 +975,7 @@ export class MemberActivityReport extends Component {
                   <option value="includes">includes</option>
               </select>
             </span>
-              <span>
+              <span id="filter-value-container">
               <label>Value:</label>
               <input id="filter-value-text" type="text" placeholder="value to filter" size="15"/>
               <select id="filter-value-select" style={{display:'none', width: '134px'}} className="filter-value-select">
@@ -932,6 +992,20 @@ export class MemberActivityReport extends Component {
                 className="includes-container includes-container-member"
                 classNamePrefix="includes-container"
               />
+              </span>
+              <span id="filter-date-range-container" style={{display: 'none'}}>
+                <label>Start: </label>
+                <input
+                  type="date"
+                  name="filter-start-date"
+                  id="filter-start-date"
+                />
+                <label>End: </label>
+                <input
+                  type="date"
+                  name="filter-end-date"
+                  id="filter-end-date"
+                />
               </span>
               <button id="filter-add" onClick={(e) => this.addFilter(e)}>Create Filter</button>
               <span className="vl"></span>
@@ -1114,7 +1188,8 @@ export class LeadsActivityReport extends Component {
       selectedPreference: this.leadsPreferences.selectedPreference,
       key: Math.random(),
       includesOptions: [],
-      includesValue: []
+      includesValue: [],
+      selectedFilterFieldDataType: null,
     };
   }
 
@@ -1173,22 +1248,22 @@ export class LeadsActivityReport extends Component {
     let dateValue = moment(params.value).format('YYYY-MM-DD');
     switch(params.type) {
       case '=':
-      return data[params.field] ? moment(data[params.field], 'YYYY-MM-DD').isSame(dateValue) : false;
+      return data[params.field] ? moment(data[params.field], 'DD-MM-YYYY').isSame(dateValue, 'day') : false;
       break;
     case '<':
-      return data[params.field] ? moment(data[params.field], 'YYYY-MM-DD').isBefore(dateValue) : false;
+      return data[params.field] ? moment(data[params.field], 'DD-MM-YYYY').isBefore(dateValue, 'day') : false;
       break;
     case '<=':
-      return data[params.field] ? moment(data[params.field], 'YYYY-MM-DD').isSameOrBefore(dateValue) : false;
+      return data[params.field] ? moment(data[params.field], 'DD-MM-YYYY').isSameOrBefore(dateValue, 'day') : false;
       break;
     case '>':
-      return data[params.field] ? moment(data[params.field], 'YYYY-MM-DD').isAfter(dateValue) : false;
+      return data[params.field] ? moment(data[params.field], 'DD-MM-YYYY').isAfter(dateValue, 'day') : false;
       break;
     case '>=':
-      return data[params.field] ? moment(data[params.field], 'YYYY-MM-DD').isSameOrAfter(dateValue) : false;
+      return data[params.field] ? moment(data[params.field], 'DD-MM-YYYY').isSameOrAfter(dateValue, 'day') : false;
       break;
     case '!=':
-      return data[params.field] ? !moment(data[params.field], 'YYYY-MM-DD').isSame(dateValue) : false;
+      return data[params.field] ? !moment(data[params.field], 'DD-MM-YYYY').isSame(dateValue, 'day') : false;
       break;
     case 'like':
       return data[params.field] ? data[params.field].includes(params.value) : false;
@@ -1197,8 +1272,8 @@ export class LeadsActivityReport extends Component {
       if (!data[params.field]) {
         return false;
       }
-      let dateVal = moment(data[params.field]).format('YYYY-MM-DD');
-      return params.includes.some(value => moment(value, 'YYYY-MM-DD').isSame(dateVal));
+      let dateVal = moment(data[params.field]).format('DD-MM-YYYY');
+      return params.includes.some(value => moment(value, 'YYYY-MM-DD').isSame(dateVal, 'day'));
       break;
     }
     return null;
@@ -1256,7 +1331,8 @@ export class LeadsActivityReport extends Component {
       let filterParams = {field: filterColumn, type: type, value: (type !== 'includes' ? value : null), includes: values};
       this.filterIds[filterId] = filterParams;
       this.setState({
-        filters: [...this.state.filters, {"filterId": filterId, "filterColumn": filterColumn, "filterType": type, "filterValue": (type !== 'includes' ? value : JSON.stringify(values))}]
+        filters: [...this.state.filters, {"filterId": filterId, "filterColumn": filterColumn, "filterType": type, "filterValue": (type !== 'includes' ? value : JSON.stringify(values))}],
+        selectedFilterFieldDataType: null
       }, function(){
         if (this.state.filters && this.state.filters.length > 0) {
           this.leadsActivityGridref.table.addFilter(this.dateFilter, filterParams);
@@ -1307,7 +1383,10 @@ export class LeadsActivityReport extends Component {
       options = [];
     }
 
-    this.setState({includesValue: null});
+    this.setState({
+      includesValue: null,
+      selectedFilterFieldDataType: this.columnsToHide.filter(column => column.value === event.target.value)[0].dataType
+    });
     if (type === 'includes') {
       let includesOptions = [];
       options.forEach(option => includesOptions.push({label: option, value: option}));
@@ -1443,7 +1522,7 @@ export class LeadsActivityReport extends Component {
         state: lead.values['State'],
         age: moment().diff(lead.values['DOB'], 'years'),
         source: lead.values['Source'],
-        reminderDate: lead.values['Reminder Date'],
+        reminderDate: lead.values['Reminder Date'] ? moment(lead.values['Reminder Date']).format('DD-MM-YYYY') : '',
         emailsSent: isNaN(lead.values['Emails Sent Count'])
           ? 0
           : parseInt(lead.values['Emails Sent Count']),
@@ -1769,7 +1848,7 @@ export class LeadsActivityReport extends Component {
             </span>
               <span>
               <label>Value:</label>
-              <input id="filter-value-leads-text" type="text" placeholder="value to filter" size="15"/>
+              <input id="filter-value-leads-text" type={this.state.selectedFilterFieldDataType === 'date' ? 'date' : 'text'} placeholder="value to filter" size="15"/>
               <select id="filter-value-leads-select" style={{display:'none', width: '134px'}} className="filter-value-select">
                 {this.state.selectedFilterValueOptions.map(fo => <option key={fo} value={fo}>{fo}</option>)}
               </select>
