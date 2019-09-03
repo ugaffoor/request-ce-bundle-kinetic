@@ -123,6 +123,8 @@ export class ListHome extends Component {
       { accessor: 'Member Type', Header: 'Member Type' },
       { accessor: 'Ranking Program', Header: 'Program' },
       { accessor: 'Ranking Belt', Header: 'Belt' },
+      { accessor: 'Additional Program 1', Header: 'Additional Program 1' },
+      { accessor: 'Additional Program 2', Header: 'Additional Program 2' },
     ];
   }
 

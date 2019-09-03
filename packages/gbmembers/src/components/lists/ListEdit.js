@@ -15,6 +15,7 @@ const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   allMembers: state.member.members.allMembers,
   programs: state.member.app.programs,
+  additionalPrograms: state.member.app.additionalPrograms,
   membershipTypes: state.member.app.membershipTypes,
   memberLists: state.member.app.memberLists,
   belts: state.member.app.belts,
@@ -29,6 +30,7 @@ const mapDispatchToProps = {
 export const ListEditView = ({
   allMembers,
   programs,
+  additionalPrograms,
   membershipTypes,
   belts,
   memberLists,
@@ -41,6 +43,7 @@ export const ListEditView = ({
     <ListEditHome
       allMembers={allMembers}
       programs={programs}
+      additionalPrograms={additionalPrograms}
       membershipTypes={membershipTypes}
       belts={belts}
       memberLists={memberLists}
@@ -149,6 +152,18 @@ export class ListEditHome extends Component {
         .multiselect({
           texts: { placeholder: 'Select Belt' },
         });
+    this.refs.additionalProgram1Div &&
+      $(this.refs.additionalProgram1Div)
+        .find('select')
+        .multiselect({
+          texts: { placeholder: 'Select Additional Program 1' },
+        });
+    this.refs.additionalProgram2Div &&
+      $(this.refs.additionalProgram2Div)
+        .find('select')
+        .multiselect({
+          texts: { placeholder: 'Select Additional Program 2' },
+        });
   }
 
   updateList() {
@@ -175,6 +190,8 @@ export class ListEditHome extends Component {
       { accessor: 'Member Type', Header: 'Member Type' },
       { accessor: 'Ranking Program', Header: 'Program' },
       { accessor: 'Ranking Belt', Header: 'Belt' },
+      { accessor: 'Additional Program 1', Header: 'Additional Program 1' },
+      { accessor: 'Additional Program 2', Header: 'Additional Program 2' },
     ];
   };
 
@@ -234,6 +251,24 @@ export class ListEditHome extends Component {
       filters.push({ beltFilter: { belts: $('#belt').val() } });
     }
 
+    if (
+      $('#additionalProgram1').val() &&
+      $('#additionalProgram1').val().length > 0
+    ) {
+      filters.push({
+        additionalProgram1Filter: { programs: $('#additionalProgram1').val() },
+      });
+    }
+
+    if (
+      $('#additionalProgram2').val() &&
+      $('#additionalProgram2').val().length > 0
+    ) {
+      filters.push({
+        additionalProgram2Filter: { programs: $('#additionalProgram2').val() },
+      });
+    }
+
     if ($('#memberType').val()) {
       filters.push({
         memberTypeFilter: { memberType: $('#memberType').val() },
@@ -276,6 +311,10 @@ export class ListEditHome extends Component {
         $('#program').val(filter[key].programs);
       } else if (key === 'beltFilter') {
         $('#belt').val(filter[key].belts);
+      } else if (key === 'additionalProgram1Filter') {
+        $('#additionalProgram1').val(filter[key].programs);
+      } else if (key === 'additionalProgram2Filter') {
+        $('#additionalProgram2').val(filter[key].programs);
       } else if (key === 'memberTypeFilter') {
         $('#memberType').val(filter[key].memberType);
       } else if (key === 'billingMemberFilter') {
@@ -491,6 +530,62 @@ export class ListEditHome extends Component {
                         ].map(belt => (
                           <option key={belt} value={belt}>
                             {belt}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="droparrow" />
+                    </div>
+                  </fieldset>
+                </div>
+              </div>
+              <div className="row">
+                <div className="col">
+                  <fieldset
+                    className="scheduler-border"
+                    style={{ position: 'relative' }}
+                  >
+                    <legend className="scheduler-border">
+                      Additional Programs
+                    </legend>
+                    <div
+                      className="form-group form-inline"
+                      ref="additionalProgram1Div"
+                    >
+                      <label htmlFor="additionalProgram1">
+                        Additional Program 1&nbsp;
+                      </label>
+                      <select
+                        className="form-control"
+                        multiple
+                        id="additionalProgram1"
+                        ref={input => (this.input = input)}
+                        style={{ height: 'auto' }}
+                      >
+                        {this.props.additionalPrograms.map(program => (
+                          <option key={program.program} value={program.program}>
+                            {program.program}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="droparrow" />
+                    </div>
+                    <div
+                      className="form-group form-inline"
+                      ref="additionalProgram2Div"
+                    >
+                      <label htmlFor="additionalProgram2">
+                        Additional Program 2&nbsp;
+                      </label>
+                      <select
+                        className="form-control"
+                        multiple
+                        id="additionalProgram2"
+                        ref={input => (this.input = input)}
+                        style={{ height: 'auto' }}
+                      >
+                        {this.props.additionalPrograms.map(program => (
+                          <option key={program.program} value={program.program}>
+                            {program.program}
                           </option>
                         ))}
                       </select>

@@ -26,6 +26,7 @@ const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   memberItem: state.member.members.newMember,
   programs: state.member.app.programs,
+  additionalPrograms: state.member.app.additionalPrograms,
   belts: state.member.app.belts,
   membershipTypes: state.member.app.membershipTypes,
   newMemberLoading: state.member.members.newMemberLoading,
@@ -58,6 +59,7 @@ export const MemberNew = ({
   saveMember,
   createMember,
   programs,
+  additionalPrograms,
   belts,
   membershipTypes,
   newMemberLoading,
@@ -521,6 +523,52 @@ export const MemberNew = ({
                     handleChange(memberItem, 'Next Schedule Promotion', e)
                   }
                 />
+              </div>
+            </span>
+          </div>
+          <div className="section3">
+            <h1>Other Information</h1>
+            <hr />
+            <span className="line">
+              <div>
+                <label htmlFor="additionalprogram1">Additional Program 1</label>
+                <select
+                  name="additionalprogram1"
+                  id="additionalprogram1"
+                  ref={input => (this.input = input)}
+                  defaultValue={memberItem.values['Additional Program 1']}
+                  onChange={e =>
+                    handleProgramChange(memberItem, 'Additional Program 1', e)
+                  }
+                >
+                  <option value="" />
+                  {additionalPrograms.map(program => (
+                    <option key={program.program} value={program.program}>
+                      {program.program}
+                    </option>
+                  ))}
+                </select>
+                <div className="droparrow" />
+              </div>
+              <div>
+                <label htmlFor="additionalprogram2">Additional Program 2</label>
+                <select
+                  name="additionalprogram2"
+                  id="additionalprogram2"
+                  ref={input => (this.input = input)}
+                  defaultValue={memberItem.values['Additional Program 2']}
+                  onChange={e =>
+                    handleProgramChange(memberItem, 'Additional Program 2', e)
+                  }
+                >
+                  <option value="" />
+                  {additionalPrograms.map(program => (
+                    <option key={program.program} value={program.program}>
+                      {program.program}
+                    </option>
+                  ))}
+                </select>
+                <div className="droparrow" />
               </div>
             </span>
           </div>

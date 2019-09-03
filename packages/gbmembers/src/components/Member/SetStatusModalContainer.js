@@ -31,6 +31,7 @@ export class SetStatusModal extends Component {
   constructor(props) {
     super(props);
     this.statusValues = props.memberStatusValues;
+    this.statusHistory = getJson(props.submission.values['Status History']);
     this.state = {};
   }
   componentWillReceiveProps(nextProps) {}
@@ -68,6 +69,17 @@ export class SetStatusModal extends Component {
               >
                 Apply Status
               </button>
+              <table className="statusHistory">
+                <tbody>
+                  {this.statusHistory.map(history => (
+                    <tr>
+                      <td>{history.status}</td>
+                      <td>{moment(history.date).format('L LT')}</td>
+                      <td>{history.submitter}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </ModalDialog>
         </ModalContainer>

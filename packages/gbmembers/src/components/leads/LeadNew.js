@@ -24,6 +24,7 @@ import { StatusMessagesContainer } from '../StatusMessages';
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   leadItem: state.member.leads.newLead,
+  programs: state.member.app.programs,
   newLeadLoading: state.member.leads.newLeadLoading,
   allLeads: state.member.leads.allLeads,
 });
@@ -522,6 +523,34 @@ export class LeadNew extends Component {
               </span>
               <span className="line">
                 <div>
+                  <label htmlFor="program">Interest in Program</label>
+                  <select
+                    name="program"
+                    id="program"
+                    ref={input => (this.input = input)}
+                    defaultValue={
+                      this.props.leadItem.values['Interest in Program']
+                    }
+                    onChange={e =>
+                      handleChange(
+                        this.props.leadItem,
+                        'Interest in Program',
+                        e,
+                      )
+                    }
+                  >
+                    <option value="" />
+                    {this.props.programs.map(program => (
+                      <option key={program.program} value={program.program}>
+                        {program.program}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="droparrow" />
+                </div>
+              </span>
+              <span className="line">
+                <div>
                   <label htmlFor="sourceReference1">Source Reference 1</label>
                   <input
                     type="text"
@@ -617,6 +646,7 @@ export const LeadNewView = ({
   leadItem,
   saveLead,
   isDirty,
+  programs,
   setIsDirty,
   newLeadLoading,
 }) =>
@@ -626,6 +656,7 @@ export const LeadNewView = ({
     <LeadNew
       leadItem={leadItem}
       saveLead={saveLead}
+      programs={programs}
       isDirty={isDirty}
       setIsDirty={setIsDirty}
     />

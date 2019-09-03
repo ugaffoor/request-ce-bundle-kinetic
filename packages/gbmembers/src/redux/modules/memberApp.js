@@ -15,7 +15,7 @@ export const types = {
   REMOVE_DDR_TEMPLATE: namespace('app', 'REMOVE_DDR_TEMPLATE'),
   UPDATE_REPORT_PREFERENCES: namespace('app', 'UPDATE_REPORT_PREFERENCES'),
   FETCH_REPORT_PREFERENCES: namespace('app', 'FETCH_REPORT_PREFERENCES'),
-  SET_REPORT_PREFERENCES: namespace('app', 'SET_REPORT_PREFERENCES')
+  SET_REPORT_PREFERENCES: namespace('app', 'SET_REPORT_PREFERENCES'),
 };
 
 export const actions = {
@@ -28,7 +28,7 @@ export const actions = {
   removeDDRTemplate: withPayload(types.REMOVE_DDR_TEMPLATE),
   updateReportPreferences: withPayload(types.UPDATE_REPORT_PREFERENCES),
   fetchReportPreferences: withPayload(types.FETCH_REPORT_PREFERENCES),
-  setReportPreferences: withPayload(types.SET_REPORT_PREFERENCES)
+  setReportPreferences: withPayload(types.SET_REPORT_PREFERENCES),
 };
 /*
  *
@@ -50,6 +50,7 @@ export const State = Record({
   ddrTemplates: List(),
   allTeams: List(),
   programs: List(),
+  additionalPrograms: List(),
   belts: List(),
   membershipTypes: List(),
   membershipFees: List(),
@@ -65,7 +66,7 @@ export const State = Record({
   lastFilterName: null,
   memberLists: List(),
   kapp: {},
-  reportPreferences: List()
+  reportPreferences: List(),
 });
 
 export const reducer = (state = State(), { type, payload }) => {
@@ -86,14 +87,17 @@ export const reducer = (state = State(), { type, payload }) => {
         ? List(payload.profile.profileAttributes['Member Lists'])
         : List();
 
-      var reportPreferencesArr = payload.profile.profileAttributes['Report Preferences'];
-        if(reportPreferencesArr) {
-          for (var i = 0; i < reportPreferencesArr.length; i++) {
-            reportPreferencesArr[i] = JSON.parse(reportPreferencesArr[i]);
-          }
+      var reportPreferencesArr =
+        payload.profile.profileAttributes['Report Preferences'];
+      if (reportPreferencesArr) {
+        for (var i = 0; i < reportPreferencesArr.length; i++) {
+          reportPreferencesArr[i] = JSON.parse(reportPreferencesArr[i]);
         }
+      }
 
-      var reportPreferences = reportPreferencesArr ? List(reportPreferencesArr) : List();
+      var reportPreferences = reportPreferencesArr
+        ? List(reportPreferencesArr)
+        : List();
 
       return state
         .set('kineticBillingServerUrl', payload.kineticBillingServerUrl)
@@ -115,6 +119,7 @@ export const reducer = (state = State(), { type, payload }) => {
         )
         .set('profile', payload.profile)
         .set('programs', List(payload.programs))
+        .set('additionalPrograms', List(payload.additionalPrograms))
         .set('belts', List(payload.belts))
         .set('membershipTypes', List(payload.membershipTypes))
         .set('membershipFees', List(payload.membershipFees))
@@ -150,28 +155,33 @@ export const reducer = (state = State(), { type, payload }) => {
         ddrTemplates.filter(template => template.name !== payload.name),
       );
     case types.UPDATE_REPORT_PREFERENCES:
-    return state.update('reportPreferences', reportPreferences => {
-      let index = -1;
-      if (reportPreferences && reportPreferences.size > 0) {
-        index = reportPreferences.findIndex(x => x.hasOwnProperty(payload.key));
-      }
-      let obj = {};
-      obj[payload.key] = payload.reportPreferences;
-      if (index >= 0) {
-        return reportPreferences.set(index, obj);
-      } else {
-        return reportPreferences.push(obj);
-      }
-    });
-    case types.SET_REPORT_PREFERENCES: {
-      var reportPreferencesArr = payload.profileAttributes['Report Preferences'];
-        if(reportPreferencesArr) {
-          for (var i = 0; i < reportPreferencesArr.length; i++) {
-            reportPreferencesArr[i] = JSON.parse(reportPreferencesArr[i]);
-          }
+      return state.update('reportPreferences', reportPreferences => {
+        let index = -1;
+        if (reportPreferences && reportPreferences.size > 0) {
+          index = reportPreferences.findIndex(x =>
+            x.hasOwnProperty(payload.key),
+          );
         }
+        let obj = {};
+        obj[payload.key] = payload.reportPreferences;
+        if (index >= 0) {
+          return reportPreferences.set(index, obj);
+        } else {
+          return reportPreferences.push(obj);
+        }
+      });
+    case types.SET_REPORT_PREFERENCES: {
+      var reportPreferencesArr =
+        payload.profileAttributes['Report Preferences'];
+      if (reportPreferencesArr) {
+        for (var i = 0; i < reportPreferencesArr.length; i++) {
+          reportPreferencesArr[i] = JSON.parse(reportPreferencesArr[i]);
+        }
+      }
 
-      var reportPreferences = reportPreferencesArr ? List(reportPreferencesArr) : List();
+      var reportPreferences = reportPreferencesArr
+        ? List(reportPreferencesArr)
+        : List();
       return state.set('reportPreferences', reportPreferences);
     }
     default:
