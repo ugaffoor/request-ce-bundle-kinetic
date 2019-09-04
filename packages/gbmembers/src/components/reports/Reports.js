@@ -1252,6 +1252,13 @@ export class LeadsActivityReport extends Component {
     return result;
   }
 
+  dateRangeFilter = (data, params) => {
+    let startDate = moment(params.startDate, 'YYYY-MM-DD');
+    let endDate = moment(params.endDate, 'YYYY-MM-DD');
+    let dateVal = moment(data[params.field], 'YYYY-MM-DDTHH:mm:ss.SSSZ');
+    return dateVal.isSameOrAfter(startDate, 'day') && dateVal.isSameOrBefore(endDate, 'day');
+  }
+
   dateFilter = (data, params) => {
     let dateValue = moment(params.value).format('YYYY-MM-DD');
     switch(params.type) {
@@ -1292,12 +1299,14 @@ export class LeadsActivityReport extends Component {
     const filterType = cell.getRow().getData()['filterType'];
     const filterValue = cell.getRow().getData()['filterValue'];
     const filterId = cell.getRow().getData()['filterId'];
-
-    let dataType = this.columnsToHide.filter(column => column.value === filterColumn)[0].dataType;
+    let col = this.columnsToHide.filter(column => column.value === filterColumn)[0];
+    let dataType = col ? col.dataType : null;
 
     if (this.state.filters && this.state.filters.length > 0) {
       if (dataType === 'date') {
         this.leadsActivityGridref.table.removeFilter(this.dateFilter, this.filterIds[filterId]);
+      } else if (filterColumn === 'createdDate' || filterColumn === 'lastModifiedDate') {
+        this.leadsActivityGridref.table.removeFilter(this.dateRangeFilter, this.filterIds[filterId]);
       } else if (filterType === 'includes') {
         this.leadsActivityGridref.table.removeFilter(this.includesFilter, this.filterIds[filterId]);
       } else {
@@ -1306,6 +1315,8 @@ export class LeadsActivityReport extends Component {
     } else {
       if (dataType === 'date') {
         this.leadsActivityGridref.table.clearFilter(this.dateFilter, this.filterIds[filterId]);
+      } else if (filterColumn === 'createdDate' || filterColumn === 'lastModifiedDate') {
+        this.leadsActivityGridref.table.clearFilter(this.dateRangeFilter, this.filterIds[filterId]);
       } else if (filterType === 'includes') {
         this.leadsActivityGridref.table.clearFilter(this.includesFilter, this.filterIds[filterId]);
       } else {
@@ -1324,15 +1335,25 @@ export class LeadsActivityReport extends Component {
     const type = $("#filter-type-leads").val();
     let value = $("#filter-value-leads-text").val() ? $("#filter-value-leads-text").val() : $("#filter-value-leads-select").val();
 
-    if (!value) {
-      value = this.state.includesValue && this.state.includesValue.length > 0 ? this.state.includesValue : null;
-    }
-
-    if (!filterColumn || !type || !value) {
+    if (!filterColumn) {
+      console.log("Please select column to filter");
       return;
     }
 
-    let dataType = this.columnsToHide.filter(column => column.value === filterColumn)[0].dataType;
+    if (filterColumn !== 'createdDate' && filterColumn !== 'lastModifiedDate') {
+      if (!type) {
+        console.log("Please select filter type");
+        return;
+      }
+    } else {
+      if (!$("#filter-start-date-leads").val() || !$("#filter-end-date-leads").val()) {
+        console.log("Please provide start and end date");
+        return;
+      }
+    }
+
+    let col = this.columnsToHide.filter(column => column.value === filterColumn)[0];
+    let dataType = col ? col.dataType : null;
     if (dataType === 'date') {
       let values = this.state.includesValue ? this.state.includesValue.map(val => val.value) : [];
       let filterId = Math.random();
@@ -1348,34 +1369,61 @@ export class LeadsActivityReport extends Component {
           this.leadsActivityGridref.table.setFilter(this.dateFilter, filterParams);
         };
       });
-    } else if (type === 'includes') {
-      let values = this.state.includesValue.map(val => val.value);
-      let filterId = Math.random();
-      let filterParams = {field: filterColumn, includes: values};
-      this.filterIds[filterId] = filterParams;
-      this.setState({
-        filters: [...this.state.filters, {"filterId": filterId, "filterColumn": filterColumn, "filterType": type, "filterValue": JSON.stringify(values)}],
-        includesValue: []
-      }, function(){
-        if (this.state.filters && this.state.filters.length > 0) {
-          this.leadsActivityGridref.table.addFilter(this.includesFilter, filterParams);
-        } else {
-          this.leadsActivityGridref.table.setFilter(this.includesFilter, filterParams);
-        };
-      });
-    } else {
+    } else if (filterColumn === 'createdDate' || filterColumn === 'lastModifiedDate') {
+        let filterId = Math.random();
+        let filterParams = {field: filterColumn, startDate: $("#filter-start-date-leads").val(), endDate: $("#filter-end-date-leads").val()};
+        this.filterIds[filterId] = filterParams;
+        let filterVal = "[ startDate:" + $("#filter-start-date-leads").val() + ", endDate:" + $("#filter-end-date-leads").val() + "]";
         this.setState({
-        filters: [...this.state.filters, {"filterColumn": filterColumn, "filterType": type, "filterValue": value}]
-      }, function() {
-        if (this.state.filters && this.state.filters.length > 0) {
-          this.leadsActivityGridref.table.addFilter(filterColumn, type, value);
-        } else {
-          this.leadsActivityGridref.table.setFilter(filterColumn, type, value);
+          filters: [...this.state.filters, {"filterId": filterId, "filterColumn": filterColumn, "filterType": 'Date Range', "filterValue": filterVal}],
+          includesValue: []
+        }, function(){
+          if (this.state.filters && this.state.filters.length > 0) {
+            this.leadsActivityGridref.table.addFilter(this.dateRangeFilter, filterParams);
+          } else {
+            this.leadsActivityGridref.table.setFilter(this.dateRangeFilter, filterParams);
+          };
+        });
+      } else if (type === 'includes') {
+        if (!this.state.includesValue || this.state.includesValue.length <= 0) {
+          console.log("Please provide values to include");
+          return;
         }
-      });
-    }
+        let values = this.state.includesValue.map(val => val.value);
+        let filterId = Math.random();
+        let filterParams = {field: filterColumn, includes: values};
+        this.filterIds[filterId] = filterParams;
+        this.setState({
+          filters: [...this.state.filters, {"filterId": filterId, "filterColumn": filterColumn, "filterType": type, "filterValue": JSON.stringify(values)}],
+          includesValue: []
+        }, function(){
+          if (this.state.filters && this.state.filters.length > 0) {
+            this.leadsActivityGridref.table.addFilter(this.includesFilter, filterParams);
+          } else {
+            this.leadsActivityGridref.table.setFilter(this.includesFilter, filterParams);
+          };
+        });
+      } else {
+          let value = $("#filter-value-leads-text").val() ? $("#filter-value-leads-text").val() : $("#filter-value-leads-select").val();
+          if (!value) {
+            console.log("Please provide value to filter");
+            return;
+          }
+          this.setState({
+          filters: [...this.state.filters, {"filterColumn": filterColumn, "filterType": type, "filterValue": value}]
+        }, function() {
+          if (this.state.filters && this.state.filters.length > 0) {
+            this.leadsActivityGridref.table.addFilter(filterColumn, type, value);
+          } else {
+            this.leadsActivityGridref.table.setFilter(filterColumn, type, value);
+          }
+        });
+      }
 
     $('.includes-container-leads').attr('style','display:none !important');
+    $('#filter-value-container-leads').show();
+    $('#filter-type-container-leads').show();
+    $('#filter-date-range-container-leads').hide();
     $('#filter-value-leads-text').show();
     $("#filter-field-leads").val("");
     $("#filter-type-leads").val("=");
@@ -1390,19 +1438,30 @@ export class LeadsActivityReport extends Component {
     if (!options) {
       options = [];
     }
-
+    let filterColumn = this.columnsToHide.filter(column => column.value === event.target.value)[0];
     this.setState({
       includesValue: null,
-      selectedFilterFieldDataType: this.columnsToHide.filter(column => column.value === event.target.value)[0].dataType
+      selectedFilterFieldDataType: filterColumn ? filterColumn.dataType : null
     });
-    if (type === 'includes') {
+    if (type === 'includes' && !event.target.value === 'createdDate' && !event.target.value === 'lastModifiedDate') {
       let includesOptions = [];
       options.forEach(option => includesOptions.push({label: option, value: option}));
       this.setState({includesOptions: includesOptions});
       return;
     }
 
+    if (event.target.value === 'createdDate' || event.target.value === 'lastModifiedDate') {
+      $('#filter-value-container-leads').hide();
+      $('#filter-type-container-leads').hide();
+      $('#filter-date-range-container-leads').show();
+      return;
+    }
+
     $('.includes-container-leads').attr('style','display:none !important');
+    $('#filter-value-container-leads').show();
+    $('#filter-type-container-leads').show();
+    $('#filter-date-range-container-leads').hide();
+    $('#filter-type-leads').val('=');
     if(options && options.length > 0) {
       $('#filter-value-leads-text').hide();
       $('#filter-value-leads-select').show();
@@ -1520,6 +1579,8 @@ export class LeadsActivityReport extends Component {
     leads.forEach(lead => {
       leadsActivityData.push({
         id: lead['id'],
+        createdDate: lead['createdAt'],
+        lastModifiedDate: lead['updatedAt'],
         name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
         gender: lead.values['Gender'],
         status: lead.values['Status'],
@@ -1839,9 +1900,11 @@ export class LeadsActivityReport extends Component {
               <select id="filter-field-leads" onChange={e => this.onFilterFieldChange(e)}>
                   <option></option>
                   {this.state.filterColumns.map(column => <option key={column.value} value={column.value}>{column.label}</option>)}
+                  <option key="createdDate" value="createdDate">Created Date</option>
+                  <option key="lastModifiedDate" value="lastModifiedDate">Last Modified Date</option>
               </select>
             </span>
-            <span>
+            <span id="filter-type-container-leads">
               <label>Type: </label>
               <select id="filter-type-leads" onChange={e => this.onFilterTypeChange(e)}>
                   <option value="=">=</option>
@@ -1854,7 +1917,7 @@ export class LeadsActivityReport extends Component {
                   <option value="includes">includes</option>
               </select>
             </span>
-              <span>
+            <span id="filter-value-container-leads">
               <label>Value:</label>
               <input id="filter-value-leads-text" type={this.state.selectedFilterFieldDataType === 'date' ? 'date' : 'text'} placeholder="value to filter" size="15"/>
               <select id="filter-value-leads-select" style={{display:'none', width: '134px'}} className="filter-value-select">
@@ -1871,6 +1934,20 @@ export class LeadsActivityReport extends Component {
                 className="includes-container includes-container-leads"
                 classNamePrefix="includes-container"
               />
+              </span>
+              <span id="filter-date-range-container-leads" style={{display: 'none'}}>
+                <label>Start: </label>
+                <input
+                  type="date"
+                  name="filter-start-date-leads"
+                  id="filter-start-date-leads"
+                />
+                <label>End: </label>
+                <input
+                  type="date"
+                  name="filter-end-date-leads"
+                  id="filter-end-date-leads"
+                />
               </span>
               <button id="filter-add-leads" onClick={(e) => this.addFilter(e)}>Create Filter</button>
               <span className="vl"></span>
