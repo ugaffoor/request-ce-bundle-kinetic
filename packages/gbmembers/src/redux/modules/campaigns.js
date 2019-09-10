@@ -3,54 +3,97 @@ import { Record } from 'immutable';
 import { namespace, withPayload } from '../../utils';
 
 export const types = {
-  CREATE_CAMPAIGN: namespace('campaigns', 'CREATE_CAMPAIGN'),
-  FETCH_NEW_CAMPAIGN: namespace('campaigns', 'FETCH_NEW_CAMPAIGN'),
-  SET_NEW_CAMPAIGN: namespace('campaigns', 'SET_NEW_CAMPAIGN'),
-  FETCH_CAMPAIGNS: namespace('campaigns', 'FETCH_CAMPAIGNS'),
-  SET_CAMPAIGNS: namespace('campaigns', 'SET_CAMPAIGNS'),
-  FETCH_CAMPAIGN: namespace('campaigns', 'FETCH_CAMPAIGN'),
-  SET_CAMPAIGN: namespace('campaigns', 'SET_CAMPAIGN'),
-  UPDATE_CAMPAIGN: namespace('campaigns', 'UPDATE_CAMPAIGN'),
+  CREATE_EMAIL_CAMPAIGN: namespace('campaigns', 'CREATE_EMAIL_CAMPAIGN'),
+  FETCH_NEW_EMAIL_CAMPAIGN: namespace('campaigns', 'FETCH_NEW_EMAIL_CAMPAIGN'),
+  SET_NEW_EMAIL_CAMPAIGN: namespace('campaigns', 'SET_NEW_EMAIL_CAMPAIGN'),
+  FETCH_EMAIL_CAMPAIGNS: namespace('campaigns', 'FETCH_EMAIL_CAMPAIGNS'),
+  SET_EMAIL_CAMPAIGNS: namespace('campaigns', 'SET_EMAIL_CAMPAIGNS'),
+  FETCH_EMAIL_CAMPAIGN: namespace('campaigns', 'FETCH_EMAIL_CAMPAIGN'),
+  SET_EMAIL_CAMPAIGN: namespace('campaigns', 'SET_EMAIL_CAMPAIGN'),
+  UPDATE_EMAIL_CAMPAIGN: namespace('campaigns', 'UPDATE_EMAIL_CAMPAIGN'),
+
+  CREATE_SMS_CAMPAIGN: namespace('campaigns', 'CREATE_SMS_CAMPAIGN'),
+  FETCH_NEW_SMS_CAMPAIGN: namespace('campaigns', 'FETCH_NEW_SMS_CAMPAIGN'),
+  SET_NEW_SMS_CAMPAIGN: namespace('campaigns', 'SET_NEW_SMS_CAMPAIGN'),
+  FETCH_SMS_CAMPAIGNS: namespace('campaigns', 'FETCH_SMS_CAMPAIGNS'),
+  SET_SMS_CAMPAIGNS: namespace('campaigns', 'SET_SMS_CAMPAIGNS'),
+  FETCH_SMS_CAMPAIGN: namespace('campaigns', 'FETCH_SMS_CAMPAIGN'),
+  SET_SMS_CAMPAIGN: namespace('campaigns', 'SET_SMS_CAMPAIGN'),
+  UPDATE_SMS_CAMPAIGN: namespace('campaigns', 'UPDATE_SMS_CAMPAIGN'),
 };
 
 export const actions = {
-  createCampaign: withPayload(types.CREATE_CAMPAIGN),
-  fetchNewCampaign: withPayload(types.FETCH_NEW_CAMPAIGN),
-  setNewCampaign: withPayload(types.SET_NEW_CAMPAIGN),
-  fetchCampaigns: withPayload(types.FETCH_CAMPAIGNS),
-  setCampaigns: withPayload(types.SET_CAMPAIGNS),
-  fetchCampaign: withPayload(types.FETCH_CAMPAIGN),
-  setCampaign: withPayload(types.SET_CAMPAIGN),
-  updateCampaign: withPayload(types.UPDATE_CAMPAIGN),
+  createEmailCampaign: withPayload(types.CREATE_EMAIL_CAMPAIGN),
+  fetchNewEmailCampaign: withPayload(types.FETCH_NEW_EMAIL_CAMPAIGN),
+  setNewEmailCampaign: withPayload(types.SET_NEW_EMAIL_CAMPAIGN),
+  fetchEmailCampaigns: withPayload(types.FETCH_EMAIL_CAMPAIGNS),
+  setEmailCampaigns: withPayload(types.SET_EMAIL_CAMPAIGNS),
+  fetchEmailCampaign: withPayload(types.FETCH_EMAIL_CAMPAIGN),
+  setEmailCampaign: withPayload(types.SET_EMAIL_CAMPAIGN),
+  updateEmailCampaign: withPayload(types.UPDATE_EMAIL_CAMPAIGN),
+
+  createSmsCampaign: withPayload(types.CREATE_SMS_CAMPAIGN),
+  fetchNewSmsCampaign: withPayload(types.FETCH_NEW_SMS_CAMPAIGN),
+  setNewSmsCampaign: withPayload(types.SET_NEW_SMS_CAMPAIGN),
+  fetchSmsCampaigns: withPayload(types.FETCH_SMS_CAMPAIGNS),
+  setSmsCampaigns: withPayload(types.SET_SMS_CAMPAIGNS),
+  fetchSmsCampaign: withPayload(types.FETCH_SMS_CAMPAIGN),
+  setSmsCampaign: withPayload(types.SET_SMS_CAMPAIGN),
+  updateSmsCampaign: withPayload(types.UPDATE_SMS_CAMPAIGN),
 };
 
 export const State = Record({
-  newCampaign: {},
-  campaignItem: {},
-  allCampaigns: [],
-  newCampaignLoading: true,
-  campaignsLoading: true,
-  campaignLoading: true,
+  newEmailCampaign: {},
+  emailCampaignItem: {},
+  allEmailCampaigns: [],
+  newEmailCampaignLoading: true,
+  emailCampaignsLoading: true,
+  emailCampaignLoading: true,
+
+  newSmsCampaign: {},
+  smsCampaignItem: {},
+  allSmsCampaigns: [],
+  newSmsCampaignLoading: true,
+  smsCampaignsLoading: true,
+  smsCampaignLoading: true,
 });
 
 export const reducer = (state = State(), { type, payload }) => {
   switch (type) {
-    case types.FETCH_NEW_CAMPAIGN:
-      return state.set('newCampaignLoading', true);
-    case types.SET_NEW_CAMPAIGN: {
-      return state.set('newCampaignLoading', false).set('newCampaign', payload);
+    case types.FETCH_NEW_EMAIL_CAMPAIGN:
+      return state.set('newEmailCampaignLoading', true);
+    case types.SET_NEW_EMAIL_CAMPAIGN: {
+      return state.set('newEmailCampaignLoading', false).set('newEmailCampaign', payload);
     }
-    case types.FETCH_CAMPAIGN: {
-      return state.set('campaignLoading', true);
+    case types.FETCH_EMAIL_CAMPAIGN: {
+      return state.set('emailCampaignLoading', true);
     }
-    case types.SET_CAMPAIGN: {
-      return state.set('campaignLoading', false).set('campaignItem', payload);
+    case types.SET_EMAIL_CAMPAIGN: {
+      return state.set('emailCampaignLoading', false).set('emailCampaignItem', payload);
     }
-    case types.FETCH_CAMPAIGNS: {
-      return state.set('campaignsLoading', true);
+    case types.FETCH_EMAIL_CAMPAIGNS: {
+      return state.set('emailCampaignsLoading', true);
     }
-    case types.SET_CAMPAIGNS: {
-      return state.set('allCampaigns', payload).set('campaignsLoading', false);
+    case types.SET_EMAIL_CAMPAIGNS: {
+      return state.set('allEmailCampaigns', payload).set('emailCampaignsLoading', false);
+    }
+
+    case types.FETCH_NEW_SMS_CAMPAIGN:
+      return state.set('newSmsCampaignLoading', true);
+    case types.SET_NEW_SMS_CAMPAIGN: {
+      return state.set('newSmsCampaignLoading', false).set('newSmsCampaign', payload);
+    }
+    case types.FETCH_SMS_CAMPAIGN: {
+      return state.set('smsCampaignLoading', true);
+    }
+    case types.SET_SMS_CAMPAIGN: {
+      return state.set('smsCampaignLoading', false).set('smsCampaignItem', payload);
+    }
+    case types.FETCH_SMS_CAMPAIGNS: {
+      return state.set('smsCampaignsLoading', true);
+    }
+    case types.SET_SMS_CAMPAIGNS: {
+      return state.set('allSmsCampaigns', payload).set('smsCampaignsLoading', false);
     }
     default:
       return state;

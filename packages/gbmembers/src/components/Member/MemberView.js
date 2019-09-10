@@ -38,8 +38,8 @@ const mapStateToProps = state => ({
   memberItem: state.member.members.currentMember,
   currentMemberLoading: state.member.members.currentMemberLoading,
   allMembers: state.member.members.allMembers,
-  campaignItem: state.member.campaigns.campaignItem,
-  campaignLoading: state.member.campaigns.campaignLoading,
+  campaignItem: state.member.campaigns.emailCampaignItem,
+  campaignLoading: state.member.campaigns.emailCampaignLoading,
   newCustomers: state.member.members.newCustomers,
   newCustomersLoading: state.member.members.newCustomersLoading,
   space: state.member.app.space,
@@ -51,7 +51,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = {
   fetchCurrentMember: actions.fetchCurrentMember,
   updateMember: actions.updateMember,
-  fetchCampaign: campaignActions.fetchCampaign,
+  fetchCampaign: campaignActions.fetchEmailCampaign,
   syncBillingCustomer: actions.syncBillingCustomer,
   setBillingInfo: actions.setBillingInfo,
   addNotification: errorActions.addNotification,
@@ -247,7 +247,7 @@ export const MemberView = ({
             </h1>
             <span className="buttons">
               <NavLink
-                to={`/NewManualCampaign/${memberItem.id}/member`}
+                to={`/NewEmailCampaign/${memberItem.id}/member`}
                 className="btn btn-primary"
               >
                 Send Email
@@ -283,7 +283,7 @@ export const MemberView = ({
             <div className="iconItem">
               <SVGInline svg={emailIcon} className="icon" />
               <span className="value">
-                <NavLink to={`/NewManualCampaign/${memberItem.id}/member`}>
+                <NavLink to={`/NewEmailCampaign/${memberItem.id}/member`}>
                   {memberItem.values['Email']}
                 </NavLink>
               </span>

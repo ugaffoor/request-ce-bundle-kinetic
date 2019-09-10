@@ -8,6 +8,7 @@ export const SUBMISSION_INCLUDES =
   'details,values,attributes,form,children,children.details,children.form,children.values,form.attributes';
 export const getAppSettings = state => state.member.app;
 const sendSmsUrl = '/send_sms';
+const sendBulkSmsUrl = '/send_bulk_sms';
 const getAccountCreditUrl = '/account_credit';
 const util = require('util');
 
@@ -98,6 +99,59 @@ export function* sendSms(action) {
     });
 }
 
+export function* sendBulkSms(action) {
+  const appSettings = yield select(getAppSettings);
+  let status = null;
+  var args = {
+    space: appSettings.spaceSlug,
+    toNumbers: action.payload.phoneNumbers,
+    text: action.payload.campaignItem.values['SMS Content'],
+    target: action.payload.target
+  };
+  axios
+    .post(
+      appSettings.kapp.attributes['Kinetic Messaging Server URL'] + sendBulkSmsUrl,
+      args,
+    )
+    .then(result => {
+      if (result.data.error && result.data.error > 0) {
+        console.log(result.data.errorMessage);
+        action.payload.addNotification(
+          NOTICE_TYPES.ERROR,
+          result.data.errorMessage,
+          'Create sms campaign',
+        );
+      } else {
+        console.log(result.data.data);
+        if (action.payload.target === 'Member') {
+          for (let i = 0; i < args.toNumbers.length; i++)  {
+            let memberActivities = { values: {} };
+            memberActivities.values['Member ID'] = args.toNumbers[i]['id'];
+            memberActivities.values['Type'] = 'SMS';
+            memberActivities.values['Direction'] = 'Outbound';
+            memberActivities.values['Content'] = {
+              To: args.toNumbers[i]['number'],
+              Content: action.payload.campaignItem.values['SMS Content'],
+              'Sent Date': moment()
+                .utc()
+                .format('DD-MM-YYYY hh:mm'),
+            };
+
+            action.payload.createMemberActivities({
+              memberActivities,
+              myThis: action.payload.myThis,
+            });
+          }
+        }
+        action.payload.fetchMembers();
+      }
+    })
+    .catch(error => {
+      console.log(error);
+      //action.payload.setSystemError(error);
+    });
+}
+
 export function* getAccountCredit(action) {
   const appSettings = yield select(getAppSettings);
   var args = {
@@ -172,6 +226,7 @@ export function* createLeadActivities(action) {
 
 export function* watchMessaging() {
   yield takeEvery(types.SEND_SMS, sendSms);
+  yield takeEvery(types.SEND_BULK_SMS, sendBulkSms);
   yield takeEvery(types.GET_ACCOUNT_CREDIT, getAccountCredit);
   yield takeEvery(types.CREATE_MEMBER_ACTIVITIES, createMemberActivities);
   yield takeEvery(types.CREATE_LEAD_ACTIVITIES, createLeadActivities);

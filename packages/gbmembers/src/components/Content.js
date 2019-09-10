@@ -19,7 +19,8 @@ import { ListEditContainer } from './lists/ListEdit';
 import { MemberNotesContainer } from './Member/MemberNotes';
 import { MemberFollowUpContainer } from './Member/MemberFollowUp';
 import { CampaignContainer } from './send/Send';
-import { ManualCampaignContainer } from './send/NewManualCampaign';
+import { EmailCampaignContainer } from './send/NewEmailCampaign';
+import { SmsCampaignContainer } from './send/NewSmsCampaign';
 import { DDRTemplatesContainer } from './DDRTemplates';
 import { SettingsContainer } from './settings/Settings';
 import { FormContainer } from './form/FormContainer';
@@ -47,8 +48,12 @@ export const Content = () => (
     <Route path="/MemberFollowUp/:id" component={MemberFollowUpContainer} />
     <Route path="/Send" component={CampaignContainer} />
     <Route
-      path="/NewManualCampaign/:submissionId?/:submissionType?"
-      component={ManualCampaignContainer}
+      path="/NewEmailCampaign/:submissionId?/:submissionType?"
+      component={EmailCampaignContainer}
+    />
+    <Route
+      path="/NewSmsCampaign/:submissionId?/:submissionType?"
+      component={SmsCampaignContainer}
     />
     <Route path="/ddrTemplates" component={DDRTemplatesContainer} />
     <Route path="/Settings" component={SettingsContainer} />

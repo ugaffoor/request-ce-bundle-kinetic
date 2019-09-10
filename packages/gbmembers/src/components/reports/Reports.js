@@ -40,6 +40,7 @@ const mapStateToProps = state => ({
   memberStatusValues: state.member.app.memberStatusValues,
   leadStatusValues: state.member.app.leadStatusValues,
   programs: state.member.app.programs,
+  additionalPrograms: state.member.app.additionalPrograms,
   belts: state.member.app.belts,
   membershipTypes: state.member.app.membershipTypes
 });
@@ -75,6 +76,7 @@ export const ReportsView = ({
   memberStatusValues,
   leadStatusValues,
   programs,
+  additionalPrograms,
   belts,
   membershipTypes
 }) => (
@@ -99,6 +101,7 @@ export const ReportsView = ({
           updatePreferences={updatePreferences}
           memberStatusValues={memberStatusValues}
           programs={programs}
+          additionalPrograms={additionalPrograms}
           belts={belts}
           membershipTypes={membershipTypes}
           />
@@ -302,6 +305,8 @@ export class MemberActivityReport extends Component {
      'billingUser': ['YES', 'NO'],
      'memberType': this.props.membershipTypes.map(type => type.type),
      'program': this.props.programs.map(program => program.program),
+     'additionalProgram1': this.props.additionalPrograms.map(program => program.program),
+     'additionalProgram2': this.props.additionalPrograms.map(program => program.program),
      'belt': [...new Set(this.props.belts.map(belt => belt.belt))]
    };
    this.filterIds = {};
@@ -502,6 +507,7 @@ export class MemberActivityReport extends Component {
     if (!options) {
       options = [];
     }
+
     this.setState({includesValue: null});
     if (type === 'includes' && !event.target.value === 'createdDate' && !event.target.value === 'lastModifiedDate') {
       let includesOptions = [];
@@ -522,7 +528,7 @@ export class MemberActivityReport extends Component {
     $('#filter-type-container').show();
     $('#filter-date-range-container').hide();
     $('#filter-type').val('=');
-    if(options && options.length > 0) {
+    if(options && (options.length > 0 || options.size > 0)) {
       $('#filter-value-text').hide();
       $('#filter-value-select').show();
       this.setState({selectedFilterValueOptions: options});
