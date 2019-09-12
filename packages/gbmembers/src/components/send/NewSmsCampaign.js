@@ -27,7 +27,8 @@ const mapStateToProps = state => ({
   memberLists: state.member.app.memberLists,
   allMembers: state.member.members.allMembers,
   space: state.member.app.space,
-  leadItem: state.member.leads.currentLead,
+  smsAccountCredit: state.member.messaging.smsAccountCredit,
+  smsAccountCreditLoading: state.member.messaging.smsAccountCreditLoading,
 });
 const mapDispatchToProps = {
   createCampaign: actions.createSmsCampaign,
@@ -35,7 +36,9 @@ const mapDispatchToProps = {
   updateCampaign: actions.updateSmsCampaign,
   sendSms: messagingActions.sendBulkSms,
   createMemberActivities: messagingActions.createMemberActivities,
-  fetchMembers: memberActions.fetchMembers
+  fetchMembers: memberActions.fetchMembers,
+  getAccountCredit: messagingActions.getAccountCredit,
+  setAccountCredit: messagingActions.setAccountCredit
 };
 
 const util = require('util');
@@ -44,7 +47,7 @@ export class NewSmsCampaign extends Component {
   constructor(props) {
     super(props);
 
-    this.handleChange = this.handleChange.bind(this);
+    this.handleSmsTextChange = this.handleSmsTextChange.bind(this);
     this.handleRecipientChange = this.handleRecipientChange.bind(this);
 
     this.createCampaign = this.createCampaign.bind(this);
@@ -57,6 +60,9 @@ export class NewSmsCampaign extends Component {
         this.props.allMembers,
       ),
       selectedOption: [],
+      smsCreditsRequired: 0,
+      uniquePhoneNumbersCount: 0,
+      disableCreateCampaign: false
     };
   }
 
@@ -69,6 +75,12 @@ export class NewSmsCampaign extends Component {
         ),
       });
     }
+  }
+
+  componentWillMount() {
+    this.props.getAccountCredit({
+      setAccountCredit: this.props.setAccountCredit,
+    });
   }
 
   getSelectOptions(memberLists, allMembers) {
@@ -123,11 +135,51 @@ export class NewSmsCampaign extends Component {
 
   handleRecipientChange = selectedOption => {
     this.setState({ selectedOption });
+
+    let phoneNumbers = [];
+    selectedOption.forEach(option => {
+      phoneNumbers.push(...option.phoneNumbers.map(phoneNumber => phoneNumber.number));
+    });
+
+    let uniquePhoneNumbers = new Set(phoneNumbers);
+    let creditsRequired = uniquePhoneNumbers.size * this.getSmsCount(this.state.content);
+
+    this.setState({
+      smsCreditsRequired: creditsRequired,
+      uniquePhoneNumbersCount: uniquePhoneNumbers.size,
+      disableCreateCampaign: ((creditsRequired > this.props.smsAccountCredit || this.state.content.length > 765) ? true : false)
+    })
   };
+
+  getSmsCount = (smsText) => {
+    if (smsText.length <= 160 ) {
+      return 1;
+    } else if (smsText.length > 160 && smsText.length <= 306) {
+      return 2;
+    } else if (smsText.length > 306 && smsText.length <= 459) {
+      return 3;
+    } else if (smsText.length > 459 && smsText.length <= 612) {
+      return 4;
+    } else if (smsText.length > 612 && smsText.length <= 765) {
+      return 5;
+    }
+
+    return -0;
+  }
 
   createCampaign() {
     if (this.state.selectedOption.length <= 0 || this.state.content.length <= 0) {
       console.log('Recipients and sms content is required');
+      return;
+    }
+
+    if (this.state.content.length > 765) {
+      console.log("The sms text length can not exceed 765 charatcers.");
+      return;
+    }
+
+    if (this.state.smsCreditsRequired > this.props.smsAccountCredit) {
+      console.log("Credits required for this operation exceed available credits.");
       return;
     }
 
@@ -143,9 +195,6 @@ export class NewSmsCampaign extends Component {
       return;
     }
 
-    console.log("### memberIds = " + JSON.stringify(memberIds));
-    console.log("### recipientNumbers = " + JSON.stringify(phoneNumbers));
-
     this.props.saveCampaign(
       memberIds,
       phoneNumbers,
@@ -154,43 +203,28 @@ export class NewSmsCampaign extends Component {
     );
   }
 
-  handleChange(event) {
-    this.setState({ content: event.target.value });
+  handleSmsTextChange(event) {
+    let smsCreditsRequired = this.state.uniquePhoneNumbersCount * this.getSmsCount(event.target.value);
+    this.setState({
+      content: event.target.value,
+      smsCreditsRequired,
+      disableCreateCampaign: ((smsCreditsRequired > this.props.smsAccountCredit) || event.target.value.length > 765 ? true : false)
+    });
   }
 
   render() {
     return (
       <div className="new_campaign" style={{ marginTop: '2%' }}>
         <div
-          className="row"
+          className="row form-group mb-0"
           style={{
             height: '100px',
             backgroundColor: '#f7f7f7',
             paddingTop: '2%',
           }}
         >
-          <div className="col-md-4" style={{ textAlign: 'right' }}>
-            You are currently sending this sms to
-          </div>
-          <div className="col-md-4">
-            {this.props.submissionId ? (
-              <input
-                type="text"
-                readOnly
-                style={{ width: '100%' }}
-                value={
-                  this.props.submissionType === 'member'
-                    ? this.props.allMembers && this.props.allMembers.length > 0
-                      ? this.props.allMembers.find(
-                          member => member['id'] === this.props.submissionId,
-                        ).values['Phone Number']
-                      : ''
-                    : this.props.leadItem && this.props.leadItem.values
-                      ? this.props.leadItem.values['Phone Number']
-                      : ''
-                }
-              />
-            ) : (
+          <label htmlFor="memberList" className="col-form-label mt-0 ml-1">You are currently sending this sms to</label>
+          <div className="col-sm-7">
               <Select
                 value={this.state.selectedOption}
                 onChange={this.handleRecipientChange}
@@ -200,17 +234,48 @@ export class NewSmsCampaign extends Component {
                 controlShouldRenderValue={true}
                 isMulti={true}
               />
-            )}
           </div>
-          <div className="col-md-3">&nbsp;</div>
+        </div>
+        <div className="row form-group mt-0 pb-1"
+        style={{
+          backgroundColor: '#f7f7f7'
+        }}>
+            <label
+              htmlFor="sms_cost"
+              className="label label-default ml-1"
+            >
+            Credits Required
+            </label>
+            <div className="col-sm-4">
+              <span
+                className="form-control input-sm"
+              >
+                {this.state.smsCreditsRequired}
+              </span>
+            </div>
+            <label
+              htmlFor="account_credit"
+              className="label label-default"
+            >
+            Available Credits
+            </label>
+            <div className="col-sm-4">
+              <span
+                className="form-control input-sm"
+              >
+                {this.props.smsAccountCreditLoading
+                  ? 'Loading...'
+                  : this.props.smsAccountCredit}
+              </span>
+            </div>
         </div>
         <div className="row">
           <div className="col-md-10" style={{ height: '1000px' }}>
             <span className="line">
               <label htmlFor="sms_text">SMS Text</label>
               <div className="input-group">
-                <textarea value={this.state.content} onChange={this.handleChange} className="form-control custom-control" rows="5" style={{resize:'none'}}/>
-                <button type="button" id="saveButton" onClick={e => this.createCampaign()} className="input-group-addon btn btn-primary">Send</button>
+                <textarea value={this.state.content} onChange={this.handleSmsTextChange} className="form-control custom-control" rows="8" style={{resize:'none'}} placeholder="Max 765 charatcers allowed"/>
+                <button type="button" id="createCampaignBtn" onClick={e => this.createCampaign()} disabled={this.state.disableCreateCampaign} className="input-group-addon btn btn-primary">Send</button>
               </div>
             </span>
           </div>
@@ -230,7 +295,11 @@ export const NewSmsCampaignView = ({
   updateCampaign,
   allMembers,
   leadItem,
-  space
+  space,
+  smsAccountCreditLoading,
+  smsAccountCredit,
+  getAccountCredit,
+  setAccountCredit
 }) =>
   newCampaignLoading ? (
     <div />
@@ -246,6 +315,10 @@ export const NewSmsCampaignView = ({
         allMembers={allMembers}
         leadItem={leadItem}
         space={space}
+        smsAccountCreditLoading={smsAccountCreditLoading}
+        smsAccountCredit={smsAccountCredit}
+        getAccountCredit={getAccountCredit}
+        setAccountCredit={setAccountCredit}
       />
     </div>
   );
