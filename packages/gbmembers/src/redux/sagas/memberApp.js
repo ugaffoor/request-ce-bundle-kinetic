@@ -122,8 +122,8 @@ export function* fetchMemberAppSettingsTask() {
   beltsMap = beltsMap.sort((a, b) => {
     const p1Order = a.programOrder;
     const p2Order = b.programOrder;
-    const belt1Order = a.beltOrder.padStart(2, '0');
-    const belt2Order = b.beltOrder.padStart(2, '0');
+    const belt1Order = a.beltOrder.padStart(3, '0');
+    const belt2Order = b.beltOrder.padStart(3, '0');
 
     const beforeIndex = -1;
     const afterIndex = 1;
