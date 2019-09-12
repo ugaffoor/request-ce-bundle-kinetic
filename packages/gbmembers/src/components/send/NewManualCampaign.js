@@ -12,11 +12,11 @@ import { KappNavLink as NavLink } from 'common';
 import $ from 'jquery';
 import NumberFormat from 'react-number-format';
 import 'react-datetime/css/react-datetime.css';
+import ReactQuill, { Quill } from 'react-quill';
 import ReactTable from 'react-table';
-import ReactQuill from 'react-quill';
+import ImageResize from 'quill-image-resize-module-react';
 import moment from 'moment';
 import { email_sent_date_format } from '../leads/LeadsUtils';
-import { Quill } from 'react-quill';
 import axios, { post } from 'axios';
 import { AttachmentForm } from './AttachmentForm';
 import '../../styles/quill.snow.scss.css';
@@ -47,6 +47,7 @@ const mapDispatchToProps = {
 
 const util = require('util');
 
+Quill.register('modules/imageResize', ImageResize);
 var Link = Quill.import('formats/link');
 var builtInFunc = Link.sanitize;
 Link.sanitize = function modifyLinkInput(linkValueInput) {
@@ -117,6 +118,9 @@ export class NewManualCampaign extends Component {
           lastname: this.insertLastName,
           emailfooter: this.insertEmailFooter.bind(this),
         },
+      },
+      imageResize: {
+        parchment: Quill.import('parchment'),
       },
     };
   }
