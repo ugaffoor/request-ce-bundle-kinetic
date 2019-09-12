@@ -27,8 +27,8 @@ import { matchesMemberFilter } from '../../utils/utils';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
-  campaignItem: state.member.campaigns.newCampaign,
-  newCampaignLoading: state.member.campaigns.newCampaignLoading,
+  campaignItem: state.member.campaigns.newEmailCampaign,
+  newCampaignLoading: state.member.campaigns.newEmailCampaignLoading,
   memberLists: state.member.app.memberLists,
   snippets: state.member.app.snippets,
   allMembers: state.member.members.allMembers,
@@ -38,9 +38,9 @@ const mapStateToProps = state => ({
   emailTemplatesLoading: state.member.datastore.emailTemplatesLoading,
 });
 const mapDispatchToProps = {
-  createCampaign: actions.createCampaign,
-  fetchNewCampaign: actions.fetchNewCampaign,
-  updateCampaign: actions.updateCampaign,
+  createCampaign: actions.createEmailCampaign,
+  fetchNewCampaign: actions.fetchNewEmailCampaign,
+  updateCampaign: actions.updateEmailCampaign,
   fetchLead: leadsActions.fetchCurrentLead,
   fetchEmailTemplates: dataStoreActions.fetchEmailTemplates,
 };
@@ -59,7 +59,7 @@ Link.sanitize = function modifyLinkInput(linkValueInput) {
   ); // retain the built-in logic
 };
 
-export class NewManualCampaign extends Component {
+export class NewEmailCampaign extends Component {
   constructor(props) {
     super(props);
 
@@ -510,7 +510,7 @@ export class NewManualCampaign extends Component {
   }
 }
 
-export const NewManualCampaignView = ({
+export const NewEmailCampaignView = ({
   campaignItem,
   newCampaignLoading,
   saveCampaign,
@@ -535,7 +535,7 @@ export const NewManualCampaignView = ({
     <div />
   ) : (
     <div className="container-fluid">
-      <NewManualCampaign
+      <NewEmailCampaign
         campaignItem={campaignItem}
         saveCampaign={saveCampaign}
         memberLists={memberLists}
@@ -558,7 +558,7 @@ export const NewManualCampaignView = ({
     </div>
   );
 
-export const ManualCampaignContainer = compose(
+export const EmailCampaignContainer = compose(
   connect(
     mapStateToProps,
     mapDispatchToProps,
@@ -597,7 +597,7 @@ export const ManualCampaignContainer = compose(
       this.props.fetchNewCampaign({
         myThis: this,
         history: this.props.history,
-        fetchCampaigns: null,
+        fetchEmailCampaigns: null,
       });
       if (this.props.submissionType && this.props.submissionType === 'lead') {
         this.props.fetchLead({
@@ -611,7 +611,7 @@ export const ManualCampaignContainer = compose(
         this.props.fetchNewCampaign({
           myThis: this,
           history: this.props.history,
-          fetchCampaigns: null,
+          fetchEmailCampaigns: null,
         });
       }
     },
@@ -620,4 +620,4 @@ export const ManualCampaignContainer = compose(
     },
     componentWillUnmount() {},
   }),
-)(NewManualCampaignView);
+)(NewEmailCampaignView);

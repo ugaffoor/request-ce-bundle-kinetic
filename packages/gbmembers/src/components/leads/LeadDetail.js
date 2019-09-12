@@ -40,8 +40,8 @@ const mapStateToProps = state => ({
   profile: state.app.profile,
   pathname: state.router.location.pathname,
   leadItem: state.member.leads.currentLead,
-  campaignItem: state.member.campaigns.campaignItem,
-  campaignLoading: state.member.campaigns.campaignLoading,
+  campaignItem: state.member.campaigns.emailCampaignItem,
+  campaignLoading: state.member.campaigns.emailCampaignLoading,
   currentLeadLoading: state.member.leads.currentLeadLoading,
   space: state.member.app.space,
   isSmsEnabled: state.member.app.isSmsEnabled,
@@ -49,7 +49,7 @@ const mapStateToProps = state => ({
 });
 const mapDispatchToProps = {
   fetchLead: actions.fetchCurrentLead,
-  fetchCampaign: campaignActions.fetchCampaign,
+  fetchCampaign: campaignActions.fetchEmailCampaign,
   updateLead: actions.updateLead,
   fetchLeads: actions.fetchLeads,
 };
@@ -489,7 +489,7 @@ export class LeadDetail extends Component {
               </li>
               <li>
                 <NavLink
-                  to={`/NewManualCampaign/${this.props.leadItem['id']}/lead`}
+                  to={`/NewEmailCampaign/${this.props.leadItem['id']}/lead`}
                   className="btn btn-primary"
                 >
                   Send Email

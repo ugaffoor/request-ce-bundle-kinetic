@@ -3,6 +3,7 @@ import { namespace, withPayload } from '../../utils';
 
 export const types = {
   SEND_SMS: namespace('messaging', 'SEND_SMS'),
+  SEND_BULK_SMS: namespace('messaging', 'SEND_BULK_SMS'),
   GET_ACCOUNT_CREDIT: namespace('messaging', 'GET_ACCOUNT_CREDIT'),
   SET_ACCOUNT_CREDIT: namespace('messaging', 'SET_ACCOUNT_CREDIT'),
   CREATE_MEMBER_ACTIVITIES: namespace('messaging', 'CREATE_MEMBER_ACTIVITIES'),
@@ -11,6 +12,7 @@ export const types = {
 
 export const actions = {
   sendSms: withPayload(types.SEND_SMS),
+  sendBulkSms: withPayload(types.SEND_BULK_SMS),
   getAccountCredit: withPayload(types.GET_ACCOUNT_CREDIT),
   setAccountCredit: withPayload(types.SET_ACCOUNT_CREDIT),
   createMemberActivities: withPayload(types.CREATE_MEMBER_ACTIVITIES),
@@ -18,7 +20,7 @@ export const actions = {
 };
 
 export const State = Record({
-  sendSmsInProgress: true,
+  sendBulkSmsInProgress: true,
   smsAccountCredit: '0.0',
   smsAccountCreditLoading: true,
 });
@@ -27,6 +29,8 @@ export const reducer = (state = State(), { type, payload }) => {
   switch (type) {
     case types.SEND_SMS:
       return state.set('sendSmsInProgress', true);
+    case types.SEND_BULK_SMS:
+      return state.set('sendBulkSmsInProgress', true);  
     case types.GET_ACCOUNT_CREDIT:
       return state.set('smsAccountCreditLoading', true);
     case types.SET_ACCOUNT_CREDIT:

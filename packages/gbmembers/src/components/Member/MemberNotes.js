@@ -247,7 +247,7 @@ export class MemberNotesHome extends Component {
               </li>
               <li>
                 <NavLink
-                  to={`/NewManualCampaign/${
+                  to={`/NewEmailCampaign/${
                     this.props.memberItem['id']
                   }/member`}
                   className="btn btn-primary"
