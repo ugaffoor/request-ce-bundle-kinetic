@@ -123,8 +123,12 @@ export function* sendBulkSms(action) {
         );
       } else {
         console.log(result.data.data);
+        let deliveredToMemberIds = result.data.data['deliveredToIds'];
         if (action.payload.target === 'Member') {
           for (let i = 0; i < args.toNumbers.length; i++)  {
+            if (!deliveredToMemberIds.includes(args.toNumbers[i]['id'])) {
+              continue;
+            }
             let memberActivities = { values: {} };
             memberActivities.values['Member ID'] = args.toNumbers[i]['id'];
             memberActivities.values['Type'] = 'SMS';

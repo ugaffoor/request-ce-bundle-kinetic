@@ -62,7 +62,7 @@ export class NewSmsCampaign extends Component {
       selectedOption: [],
       smsCreditsRequired: 0,
       uniquePhoneNumbersCount: 0,
-      disableCreateCampaign: false
+      disableCreateCampaign: true
     };
   }
 
@@ -143,11 +143,12 @@ export class NewSmsCampaign extends Component {
 
     let uniquePhoneNumbers = new Set(phoneNumbers);
     let creditsRequired = uniquePhoneNumbers.size * this.getSmsCount(this.state.content);
+    let disableCreateCampaign = (creditsRequired > this.props.smsAccountCredit || uniquePhoneNumbers.size <= 0 || this.state.content.length <= 0 || this.state.content.length > 765) ? true : false;
 
     this.setState({
       smsCreditsRequired: creditsRequired,
       uniquePhoneNumbersCount: uniquePhoneNumbers.size,
-      disableCreateCampaign: ((creditsRequired > this.props.smsAccountCredit || this.state.content.length > 765) ? true : false)
+      disableCreateCampaign
     })
   };
 
@@ -205,10 +206,11 @@ export class NewSmsCampaign extends Component {
 
   handleSmsTextChange(event) {
     let smsCreditsRequired = this.state.uniquePhoneNumbersCount * this.getSmsCount(event.target.value);
+    let disableCreateCampaign = (smsCreditsRequired > this.props.smsAccountCredit || this.state.uniquePhoneNumbersCount <= 0 || event.target.value.length <= 0 || event.target.value.length > 765) ? true : false;
     this.setState({
       content: event.target.value,
       smsCreditsRequired,
-      disableCreateCampaign: ((smsCreditsRequired > this.props.smsAccountCredit) || event.target.value.length > 765 ? true : false)
+      disableCreateCampaign
     });
   }
 
