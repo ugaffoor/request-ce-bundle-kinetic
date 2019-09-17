@@ -478,28 +478,23 @@ export const MemberEdit = ({
                   }
                 />
               </div>
-              <div>
+              <div className="emailDiv ml-1">
                 <label
-                  htmlFor="phone"
-                  required={
-                    memberItem.values['Phone Number'] === undefined
-                      ? true
-                      : false
-                  }
+                  htmlFor="additionalEmail"
                 >
-                  Phone
+                  Additional Email
                 </label>
-                <NumberFormat
-                  format="(##) ####-####"
-                  mask="_"
-                  required
+                <input
+                  type="text"
+                  name="additionalEmail"
+                  id="additionalEmail"
+                  size="40"
                   ref={input => (this.input = input)}
-                  value={memberItem.values['Phone Number']}
-                  onValueChange={(values, e) =>
-                    handleFormattedChange(
-                      values,
+                  defaultValue={memberItem.values['Additional Email']}
+                  onChange={e =>
+                    handleChange(
                       memberItem,
-                      'Phone Number',
+                      'Additional Email',
                       e,
                       setIsDirty,
                       memberChanges,
@@ -507,7 +502,62 @@ export const MemberEdit = ({
                   }
                 />
               </div>
-            </span>
+              </span>
+              <span className="line">
+                <div>
+                  <label
+                    htmlFor="phone"
+                    required={
+                      memberItem.values['Phone Number'] === undefined
+                        ? true
+                        : false
+                    }
+                  >
+                    Phone
+                  </label>
+                  <NumberFormat
+                    format="(##) ####-####"
+                    mask="_"
+                    required
+                    ref={input => (this.input = input)}
+                    value={memberItem.values['Phone Number']}
+                    onValueChange={(values, e) =>
+                      handleFormattedChange(
+                        values,
+                        memberItem,
+                        'Phone Number',
+                        e,
+                        setIsDirty,
+                        memberChanges,
+                      )
+                    }
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="additionalPhone"
+                  >
+                    Additional Phone
+                  </label>
+                  <NumberFormat
+                    format="(##) ####-####"
+                    mask="_"
+                    required
+                    ref={input => (this.input = input)}
+                    value={memberItem.values['Additional Phone Number']}
+                    onValueChange={(values, e) =>
+                      handleFormattedChange(
+                        values,
+                        memberItem,
+                        'Additional Phone Number',
+                        e,
+                        setIsDirty,
+                        memberChanges,
+                      )
+                    }
+                  />
+                </div>
+              </span>
             <span className="line">
               <div>
                 <label

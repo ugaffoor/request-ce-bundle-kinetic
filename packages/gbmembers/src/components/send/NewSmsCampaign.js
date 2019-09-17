@@ -91,12 +91,18 @@ export class NewSmsCampaign extends Component {
     let inactiveMemberPhoneNumbers = [];
 
     allMembers.forEach(member => {
+      let numbersMap = {};
+      numbersMap['id'] = member['id'];
+      numbersMap['number'] = member.values['Phone Number'];
+      if (member.values['Additional Phone Number']) {
+        numbersMap['additionalNumber'] = member.values['Additional Phone Number'];
+      }
       if (member.values['Status'] === 'Active') {
         activeMemberIds.push(member['id']);
-        activeMemberPhoneNumbers.push({id: member['id'], number: member.values['Phone Number']});
+        activeMemberPhoneNumbers.push(numbersMap);
       } else {
         inactiveMemberIds.push(member['id']);
-        inactiveMemberPhoneNumbers.push({id: member['id'], number: member.values['Phone Number']});
+        inactiveMemberPhoneNumbers.push(numbersMap);
       }
     });
 
@@ -124,9 +130,15 @@ export class NewSmsCampaign extends Component {
         value: list.name,
         label: list.name,
         memberIds: matchesFilter.map(member => member['id']),
-        phoneNumbers: matchesFilter.map(member =>
-          ({id: member['id'], number: member.values['Phone Number']})
-        ),
+        phoneNumbers: matchesFilter.map(member => {
+          let numbersMap = {};
+          numbersMap['id'] = member['id'];
+          numbersMap['number'] = member.values['Phone Number'];
+          if (member.values['Additional Phone Number']) {
+            numbersMap['additionalNumber'] = member.values['Additional Phone Number'];
+          }
+          return numbersMap;
+        }),
       });
     });
 
@@ -138,7 +150,12 @@ export class NewSmsCampaign extends Component {
 
     let phoneNumbers = [];
     selectedOption.forEach(option => {
-      phoneNumbers.push(...option.phoneNumbers.map(phoneNumber => phoneNumber.number));
+      option.phoneNumbers.forEach(phoneNumber => {
+        phoneNumbers.push(phoneNumber.number);
+        if(phoneNumber.additionalNumber) {
+          phoneNumbers.push(phoneNumber.additionalNumber);
+        }
+      });
     });
 
     let uniquePhoneNumbers = new Set(phoneNumbers);

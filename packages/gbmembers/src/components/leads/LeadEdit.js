@@ -375,6 +375,31 @@ export class LeadEdit extends Component {
                     }
                   />
                 </div>
+                <div className="emailDiv ml-1">
+                  <label
+                    htmlFor="additionalEmail"
+                  >
+                    Additional Email
+                  </label>
+                  <input
+                    type="text"
+                    name="additionalEmail"
+                    id="additionalEmail"
+                    size="40"
+                    ref={input => (this.input = input)}
+                    value={this.props.leadItem.values['Additional Email']}
+                    onChange={e =>
+                      handleChange(
+                        this.props.leadItem,
+                        'Additional Email',
+                        e,
+                        this.setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+              </span>
+              <span className="line">
                 <div>
                   <label
                     htmlFor="phone"
@@ -397,6 +422,28 @@ export class LeadEdit extends Component {
                         values,
                         this.props.leadItem,
                         'Phone Number',
+                        e,
+                        this.setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="additionalPhone"
+                  >
+                    Additional Phone
+                  </label>
+                  <NumberFormat
+                    format="(##) ####-####"
+                    mask="_"
+                    ref={input => (this.input = input)}
+                    value={this.props.leadItem.values['Additional Phone Number']}
+                    onValueChange={(values, e) =>
+                      handleFormattedChange(
+                        values,
+                        this.props.leadItem,
+                        'Additional Phone Number',
                         e,
                         this.setIsDirty,
                       )

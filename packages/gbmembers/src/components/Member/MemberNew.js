@@ -283,6 +283,24 @@ export const MemberNew = ({
                   onChange={e => handleChange(memberItem, 'Email', e)}
                 />
               </div>
+              <div className="emailDiv ml-1">
+                <label
+                  htmlFor="additionalEmail"
+                >
+                  Additional Email
+                </label>
+                <input
+                  type="text"
+                  name="additionalEmail"
+                  id="additionalEmail"
+                  size="40"
+                  ref={input => (this.input = input)}
+                  defaultValue={memberItem.values['Additional Email']}
+                  onChange={e => handleChange(memberItem, 'Additional Email', e)}
+                />
+              </div>
+            </span>
+            <span className="line">
               <div>
                 <label
                   htmlFor="phone"
@@ -303,6 +321,23 @@ export const MemberNew = ({
                   value={memberItem.values['Phone Number']}
                   onValueChange={(values, e) =>
                     handleFormattedChange(values, memberItem, 'Phone Number', e)
+                  }
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="additionalPhone"
+                >
+                  Additional Phone
+                </label>
+                <NumberFormat
+                  id="additionalPhoneNumber"
+                  format="(##) ####-####"
+                  mask="_"
+                  ref={input => (this.input = input)}
+                  value={memberItem.values['Additional Phone Number']}
+                  onValueChange={(values, e) =>
+                    handleFormattedChange(values, memberItem, 'Additional Phone Number', e)
                   }
                 />
               </div>

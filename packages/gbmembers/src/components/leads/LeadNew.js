@@ -415,28 +415,69 @@ export class LeadNew extends Component {
                     }
                   />
                 </div>
+                <div className="emailDiv ml-1">
+                  <label
+                    htmlFor="additionalEmail"
+                  >
+                    Additional Email
+                  </label>
+                  <input
+                    type="text"
+                    name="additionalEmail"
+                    id="additionalEmail"
+                    size="40"
+                    ref={input => (this.input = input)}
+                    defaultValue={this.props.leadItem.values['Additional Email']}
+                    onChange={e =>
+                      handleChange(this.props.leadItem, 'Additional Email', e)
+                    }
+                  />
+                </div>
+                </span>
+                <span className="line">
+                  <div>
+                    <label
+                      htmlFor="phone"
+                      required={
+                        this.props.leadItem.values['Phone Number'] === undefined
+                          ? true
+                          : false
+                      }
+                    >
+                      Phone
+                    </label>
+                    <NumberFormat
+                      format="(##) ####-####"
+                      mask="_"
+                      required
+                      ref={input => (this.input = input)}
+                      value={this.props.leadItem.values['Phone Number']}
+                      onValueChange={(values, e) =>
+                        handleFormattedChange(
+                          values,
+                          this.props.leadItem,
+                          'Phone Number',
+                          e,
+                        )
+                      }
+                    />
+                </div>
                 <div>
                   <label
-                    htmlFor="phone"
-                    required={
-                      this.props.leadItem.values['Phone Number'] === undefined
-                        ? true
-                        : false
-                    }
+                    htmlFor="additionalPhone"
                   >
-                    Phone
+                    Additional Phone
                   </label>
                   <NumberFormat
                     format="(##) ####-####"
                     mask="_"
-                    required
                     ref={input => (this.input = input)}
-                    value={this.props.leadItem.values['Phone Number']}
+                    value={this.props.leadItem.values['Additional Phone Number']}
                     onValueChange={(values, e) =>
                       handleFormattedChange(
                         values,
                         this.props.leadItem,
-                        'Phone Number',
+                        'Additional Phone Number',
                         e,
                       )
                     }
