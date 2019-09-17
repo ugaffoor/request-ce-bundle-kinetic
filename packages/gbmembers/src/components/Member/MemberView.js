@@ -30,6 +30,7 @@ import { CallScriptModalContainer } from './CallScriptModalContainer';
 import { SMSModalContainer } from './SMSModalContainer';
 import { EmailsReceived } from './EmailsReceived';
 import { MemberEmails } from './MemberEmails';
+import { MemberViewNotes } from './MemberViewNotes';
 import { Requests } from './Requests';
 import { actions as campaignActions } from '../../redux/modules/campaigns';
 
@@ -43,6 +44,7 @@ const mapStateToProps = state => ({
   newCustomers: state.member.members.newCustomers,
   newCustomersLoading: state.member.members.newCustomersLoading,
   space: state.member.app.space,
+  profile: state.member.app.profile,
   isBillingUser: state.member.teams.isBillingUser,
   isBillingUserLoading: state.member.teams.isBillingUserLoading,
   isSmsEnabled: state.member.app.isSmsEnabled,
@@ -197,8 +199,6 @@ export const MemberView = ({
   memberItem,
   allMembers,
   saveMember,
-  showViewNotes,
-  setShowViewNotes,
   isDirty,
   setIsDirty,
   currentMemberLoading,
@@ -212,6 +212,7 @@ export const MemberView = ({
   setShowNewCustomers,
   newCustomersLoading,
   space,
+  profile,
   isBillingUser,
   setShowCallScriptModal,
   showCallScriptModal,
@@ -443,17 +444,6 @@ export const MemberView = ({
             Notes
           </label>
         </div>
-        <div className="viewNotes">
-          <a className="cursorPointer">
-            <img
-              style={{ border: 'none', width: '127px', height: '23px' }}
-              src={viewNotes}
-              alt="View Notes"
-              title="View notes"
-              onClick={e => setShowViewNotes(true)}
-            />
-          </a>
-        </div>
       </div>
       <div className="row">
         <div className="col-sm-10 notes">
@@ -489,14 +479,8 @@ export const MemberView = ({
           </NavLink>
         </div>
       </div>
-      <div className="row">
-        {showViewNotes && (
-          <ViewNotes
-            memberItem={memberItem}
-            setShowViewNotes={setShowViewNotes}
-            space={space}
-          />
-        )}
+      <div>
+        <MemberViewNotes memberItem={memberItem} />
       </div>
       <div>
         <MemberEmails
@@ -526,12 +510,11 @@ export const MemberViewContainer = compose(
   }),
   withState('isAssigning', 'setIsAssigning', false),
   withState('isDirty', 'setIsDirty', false),
-  withState('showViewNotes', 'setShowViewNotes', false),
   withState('showNewCustomers', 'setShowNewCustomers', false),
   withState('showCallScriptModal', 'setShowCallScriptModal', false),
   withState('showSMSModal', 'setShowSMSModal', false),
   withHandlers({
-    saveMember: ({ memberItem, updateMember, setIsDirty }) => () => {
+    saveMember: ({ memberItem, updateMember, setIsDirty, profile }) => () => {
       let note = $('#memberNote').val();
       if (!note) {
         return;
@@ -547,6 +530,7 @@ export const MemberViewContainer = compose(
       notesHistory.push({
         note: note,
         contactDate: moment().format(contact_date_format),
+        submitter: profile.displayName,
       });
       memberItem.values['Notes History'] = notesHistory;
       updateMember({
@@ -641,86 +625,3 @@ export const MemberViewContainer = compose(
     componentWillUnmount() {},
   }),
 )(MemberView);
-
-class ViewNotes extends Component {
-  handleClick = () => this.setState({ isShowingModal: true });
-  handleClose = () => {
-    this.setState({ isShowingModal: false });
-    this.props.setShowViewNotes(false);
-  };
-
-  constructor(props) {
-    super(props);
-    const data = this.getData(this.props.memberItem);
-    this._columns = this.getColumns();
-
-    this.state = {
-      data,
-    };
-  }
-
-  componentWillMount() {
-    this.setState({ isShowingModal: this.props.isShowingModal });
-  }
-
-  getColumns() {
-    return [
-      { accessor: 'note', Header: 'Note', style: { whiteSpace: 'unset' } },
-      { accessor: 'contactDate', Header: 'Created Date' },
-    ];
-  }
-
-  getData(memberItem) {
-    let histories = memberItem.values['Notes History'];
-    if (!histories) {
-      return [];
-    } else if (typeof histories !== 'object') {
-      histories = JSON.parse(histories);
-    }
-
-    return histories.sort(function(history1, history2) {
-      if (
-        moment(history1.contactDate, contact_date_format).isAfter(
-          moment(history2.contactDate, contact_date_format),
-        )
-      ) {
-        return -1;
-      }
-      if (
-        moment(history1.contactDate, contact_date_format).isBefore(
-          moment(history2.contactDate, contact_date_format),
-        )
-      ) {
-        return 1;
-      }
-      return 0;
-    });
-  }
-
-  render() {
-    return (
-      <div onClick={this.handleClick}>
-        {
-          <ModalContainer onClose={this.handleClose} style={{ width: '90vw' }}>
-            <ModalDialog style={{ width: '50%' }} onClose={this.handleClose}>
-              <h1>
-                Notes for {this.props.memberItem.values['First Name']}{' '}
-                {this.props.memberItem.values['Last Name']}
-              </h1>
-              <ReactTable
-                columns={this._columns}
-                data={this.state.data}
-                defaultPageSize={this.state.data.length}
-                pageSize={this.state.data.length}
-                showPagination={false}
-                style={{
-                  height: '60vh',
-                }}
-              />
-            </ModalDialog>
-          </ModalContainer>
-        }
-      </div>
-    );
-  }
-}

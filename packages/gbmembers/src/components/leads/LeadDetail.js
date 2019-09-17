@@ -164,7 +164,7 @@ export class LeadDetail extends Component {
       return;
     }
     let newHistory = {
-      submitter: this.state.profile.displayName,
+      submitter: this.state.profile.username,
       note: this.state.note,
       contactMethod: this.state.contactMethod,
       contactDate: this.state.contactDate,
@@ -187,7 +187,7 @@ export class LeadDetail extends Component {
     columns.push({
       accessor: 'contactDate',
       width: 150,
-      Cell: row => moment(row.original.contactDate).format('MMM Do:h:hh A'),
+      Cell: row => moment(row.original.contactDate).format('DD-MM-YYY h:hh A'),
     });
     columns.push({
       accessor: 'submitter',
