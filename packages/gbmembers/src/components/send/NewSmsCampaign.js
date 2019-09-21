@@ -19,6 +19,8 @@ import Select, { components } from 'react-select';
 import { actions as memberActions } from '../../redux/modules/members';
 import { matchesMemberFilter } from '../../utils/utils';
 import { actions as messagingActions } from '../../redux/modules/messaging';
+import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
+import PropTypes from 'prop-types';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -62,7 +64,8 @@ export class NewSmsCampaign extends Component {
       selectedOption: [],
       smsCreditsRequired: 0,
       uniquePhoneNumbersCount: 0,
-      disableCreateCampaign: true
+      disableCreateCampaign: true,
+      showManageNumbersModal: false
     };
   }
 
@@ -146,13 +149,24 @@ export class NewSmsCampaign extends Component {
   }
 
   handleRecipientChange = selectedOption => {
-    this.setState({ selectedOption });
+    let difference = this.state.selectedOption.filter(x => !selectedOption.includes(x));
+    difference.forEach(option => {
+      option.phoneNumbers.forEach(phoneNumber => {
+        phoneNumber.primaryDeleted = false;
+        if(phoneNumber.additionalNumber) {
+          phoneNumber.secondaryDeleted = false;
+        }
+      });
+    });
 
+    this.setState({ selectedOption });
     let phoneNumbers = [];
     selectedOption.forEach(option => {
       option.phoneNumbers.forEach(phoneNumber => {
-        phoneNumbers.push(phoneNumber.number);
-        if(phoneNumber.additionalNumber) {
+        if (!phoneNumber.primaryDeleted) {
+          phoneNumbers.push(phoneNumber.number);
+        }
+        if(phoneNumber.additionalNumber && !phoneNumber.secondaryDeleted) {
           phoneNumbers.push(phoneNumber.additionalNumber);
         }
       });
@@ -168,6 +182,27 @@ export class NewSmsCampaign extends Component {
       disableCreateCampaign
     })
   };
+
+  updateCreditsRequired = () => {
+    let phoneNumbers = [];
+    this.state.selectedOption.forEach(option => {
+      option.phoneNumbers.forEach(phoneNumber => {
+        if (!phoneNumber.primaryDeleted) {
+          phoneNumbers.push(phoneNumber.number);
+        }
+        if(phoneNumber.additionalNumber && !phoneNumber.secondaryDeleted) {
+          phoneNumbers.push(phoneNumber.additionalNumber);
+        }
+      });
+    });
+
+    let uniquePhoneNumbers = new Set(phoneNumbers);
+    let creditsRequired = uniquePhoneNumbers.size * this.getSmsCount(this.state.content);
+    this.setState({
+      uniquePhoneNumbersCount: uniquePhoneNumbers.size,
+      smsCreditsRequired: creditsRequired
+    });
+  }
 
   getSmsCount = (smsText) => {
     if (smsText.length <= 160 ) {
@@ -204,7 +239,16 @@ export class NewSmsCampaign extends Component {
     let memberIds = [];
     let phoneNumbers = [];
     this.state.selectedOption.forEach(option => {
-      phoneNumbers.push(...option.phoneNumbers);
+      option.phoneNumbers.forEach(phoneNumber => {
+        let obj = {id: phoneNumber.id};
+        if (!phoneNumber.primaryDeleted) {
+          obj.number = phoneNumber.number;
+        }
+        if (phoneNumber.additionalNumber && !phoneNumber.secondaryDeleted) {
+          obj.additionalNumber = phoneNumber.additionalNumber;
+        }
+        phoneNumbers.push(obj);
+      });
       memberIds.push(...option.memberIds);
     });
 
@@ -231,6 +275,10 @@ export class NewSmsCampaign extends Component {
     });
   }
 
+  showManageNumbersModal = (val) => {
+    this.setState({showManageNumbersModal: val})
+  }
+
   render() {
     return (
       <div className="new_campaign" style={{ marginTop: '2%' }}>
@@ -243,7 +291,7 @@ export class NewSmsCampaign extends Component {
           }}
         >
           <label htmlFor="memberList" className="col-form-label mt-0 ml-1">You are currently sending this sms to</label>
-          <div className="col-sm-7">
+          <div className="col-sm-5">
               <Select
                 value={this.state.selectedOption}
                 onChange={this.handleRecipientChange}
@@ -253,6 +301,17 @@ export class NewSmsCampaign extends Component {
                 controlShouldRenderValue={true}
                 isMulti={true}
               />
+          </div>
+          <div className="col-sm-4">
+            <button onClick={e => this.showManageNumbersModal(true)} disabled={this.state.selectedOption.length > 0 ? false : true}>Manage Numbers</button>
+            {this.state.showManageNumbersModal &&
+               <ManageNumbersModal
+               allMembers={this.props.allMembers}
+               options={this.state.selectedOption}
+               showManageNumbersModal={this.showManageNumbersModal}
+               updateCreditsRequired={this.updateCreditsRequired}
+               />
+             }
           </div>
         </div>
         <div className="row form-group mt-0 pb-1"
@@ -387,3 +446,142 @@ export const SmsCampaignContainer = compose(
     componentWillUnmount() {},
   }),
 )(NewSmsCampaignView);
+
+class ManageNumbersModal extends Component {
+  handleClick = () => this.setState({ isShowingModal: true });
+  handleClose = () => {
+    this.setState({ isShowingModal: false });
+    this.props.showManageNumbersModal(false);
+  };
+
+  constructor(props) {
+    super(props);
+    this.memberLists = this.props.options;
+    let checkedItems = new Map();
+    this.numbers = [];
+    this.memberLists.forEach(list => {
+      list.phoneNumbers.forEach(phoneNumber => {
+        if (phoneNumber.additionalNumber) {
+          phoneNumber['listName'] = list['label'];
+          this.numbers.push(phoneNumber);
+          checkedItems.set(phoneNumber.listName + phoneNumber.id + phoneNumber.number, phoneNumber.primaryDeleted ? !phoneNumber.primaryDeleted : true);
+          checkedItems.set(phoneNumber.listName + phoneNumber.id + phoneNumber.additionalNumber, phoneNumber.secondaryDeleted ? !phoneNumber.secondaryDeleted : true);
+        }
+      });
+    });
+
+    this.state = {
+      checkedItems
+    };
+  }
+
+  componentWillMount() {
+    this.setState({ isShowingModal: this.props.isShowingModal });
+  }
+
+  handleCheckboxChange = (e, memberId, listName, numberType, number) => {
+    const item = e.target.name;
+    const isChecked = e.target.checked;
+
+    let obj = this.memberLists.find(list => list.label === listName)['phoneNumbers'].find(phone => phone.id === memberId);
+    if (numberType === 'primary') {
+      if(!isChecked && obj.secondaryDeleted) {
+        console.log("At least one number must be checked");
+        return;
+      }
+      obj.primaryDeleted = !isChecked;
+    } else {
+      if(!isChecked && obj.primaryDeleted) {
+        console.log("At least one number must be checked");
+        return;
+      }
+      obj.secondaryDeleted = !isChecked;
+    }
+    this.setState(prevState => ({ checkedItems: prevState.checkedItems.set(item, isChecked) }));
+    this.props.updateCreditsRequired();
+  }
+
+  render() {
+    return (
+      <div onClick={this.handleClick}>
+        {
+          <ModalContainer onClose={this.handleClose} zIndex={1030}>
+            <ModalDialog
+              onClose={this.handleClose}
+              style={inlineStyle}
+            >
+              <div className="jumbotron" style={{textAlign: 'center', padding: 0, marginBottom: 0}}>
+              <h5 style={{margin: '0'}} >Manage Phone Numebers</h5>
+              </div>
+              <div className="mt-1">
+                <button
+                  type="button"
+                  className="btn btn-primary ml-3"
+                  onClick={e => this.handleClose()}
+                >
+                  Close
+                </button>
+                <table className="table table-striped table-hover mt-4">
+                  <thead>
+                    <tr><th>Member Id</th><th>Primary Number</th><th>Secondary Number</th></tr>
+                  </thead>
+                  <tbody>
+                    {this.numbers.map((phoneNumber, index) => {
+                      	return (
+                          <tr key={phoneNumber.listName + phoneNumber.id}>
+                            <td>
+                            <label key={phoneNumber.id}>
+                                  <span>{this.props.allMembers.filter(member => member['id'] === phoneNumber.id)[0].values['Member ID']}</span>
+                            </label>
+                            </td>
+                            <td>
+                            <label key={phoneNumber.number}>
+                                        {phoneNumber.number}
+                                  <Checkbox name={phoneNumber.listName + phoneNumber.id + phoneNumber.number} checked={this.state.checkedItems.get(phoneNumber.listName + phoneNumber.id + phoneNumber.number)} onChange={this.handleCheckboxChange} memberId={phoneNumber.id} listName={phoneNumber.listName} number={phoneNumber.number} numberType="primary"/>
+                          	</label>
+                            </td>
+                            <td>
+                            <label key={phoneNumber.additionalNumber}>
+                                        {phoneNumber.additionalNumber}
+                                  <Checkbox name={phoneNumber.listName + phoneNumber.id + phoneNumber.additionalNumber} checked={this.state.checkedItems.get(phoneNumber.listName + phoneNumber.id + phoneNumber.additionalNumber)} onChange={this.handleCheckboxChange} memberId={phoneNumber.id} listName={phoneNumber.listName} number={phoneNumber.additionalNumber} numberType="secondary"/>
+                            </label>
+                            </td>
+                          </tr>
+                      )
+                  })}
+                  </tbody>
+                </table>
+              </div>
+            </ModalDialog>
+          </ModalContainer>
+        }
+      </div>
+    );
+  }
+}
+
+const Checkbox = ({ type = 'checkbox', name, checked, onChange, memberId, listName, numberType, number }) => (
+  <input type={type} name={name} checked={checked} onChange={e => onChange(e, memberId, listName, numberType, number)} className="ml-2"/>
+);
+
+Checkbox.propTypes = {
+  type: PropTypes.string,
+  name: PropTypes.string.isRequired,
+  checked: PropTypes.bool,
+  onChange: PropTypes.func.isRequired,
+  memberId: PropTypes.string.isRequired,
+  listName: PropTypes.string.isRequired,
+  numberType: PropTypes.string.isRequired,
+  number: PropTypes.string.isRequired
+}
+
+const inlineStyle = {
+  position: 'absolute',
+  marginBottom: '20px',
+  width: '80%',
+  height: '80%',
+  top: '10%',
+  transform: 'matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)',
+  left: '10%',
+  overflowY:'scroll'
+};
