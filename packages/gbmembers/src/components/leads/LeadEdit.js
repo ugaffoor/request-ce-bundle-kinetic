@@ -9,18 +9,20 @@ import {
 } from 'recompose';
 import { actions } from '../../redux/modules/leads';
 import { KappNavLink as NavLink } from 'common';
-import moment from 'moment';
 import $ from 'jquery';
 import NumberFormat from 'react-number-format';
 import { handleChange, handleFormattedChange } from './LeadsUtils';
 import { Confirm } from 'react-confirm-bootstrap';
 import { StatusMessagesContainer } from '../StatusMessages';
+import Select from 'react-select';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   leadItem: state.member.leads.currentLead,
   programs: state.member.app.programs,
   currentLeadLoading: state.member.leads.currentLeadLoading,
+  members: state.member.members.allMembers,
+  leads: state.member.leads.allLeads,
 });
 const mapDispatchToProps = {
   fetchLead: actions.fetchCurrentLead,
@@ -35,6 +37,43 @@ export class LeadEdit extends Component {
     this.saveLead = this.props.saveLead;
     this.removeLead = this.props.removeLead;
     this.setIsDirty = this.props.setIsDirty;
+    let parentGuardian;
+    if (
+      this.props.leadItem.values['ParentLead'] !== undefined &&
+      this.props.leadItem.values['ParentLead'] !== null
+    ) {
+      parentGuardian = 'Lead';
+    } else if (
+      this.props.leadItem.values['ParentMember'] !== undefined &&
+      this.props.leadItem.values['ParentMember'] !== null
+    ) {
+      parentGuardian = 'Member';
+    } else if (this.props.leadItem.values['Parent or Guardian'] !== undefined) {
+      parentGuardian = 'Other';
+    }
+    this.state = {
+      parentGuardian,
+    };
+  }
+  getAllLeads() {
+    let leadsVals = [];
+    this.props.leads.forEach(lead => {
+      leadsVals.push({
+        label: lead.values['Last Name'] + ' ' + lead.values['First Name'],
+        value: lead.id,
+      });
+    });
+    return leadsVals;
+  }
+  getAllMembers() {
+    let membersVals = [];
+    this.props.members.forEach(member => {
+      membersVals.push({
+        label: member.values['Last Name'] + ' ' + member.values['First Name'],
+        value: member.id,
+      });
+    });
+    return membersVals;
   }
 
   componentWillReceiveProps(nextProps) {}
@@ -376,11 +415,7 @@ export class LeadEdit extends Component {
                   />
                 </div>
                 <div className="emailDiv ml-1">
-                  <label
-                    htmlFor="additionalEmail"
-                  >
-                    Additional Email
-                  </label>
+                  <label htmlFor="additionalEmail">Additional Email</label>
                   <input
                     type="text"
                     name="additionalEmail"
@@ -429,16 +464,14 @@ export class LeadEdit extends Component {
                   />
                 </div>
                 <div>
-                  <label
-                    htmlFor="additionalPhone"
-                  >
-                    Additional Phone
-                  </label>
+                  <label htmlFor="additionalPhone">Additional Phone</label>
                   <NumberFormat
                     format="(##) ####-####"
                     mask="_"
                     ref={input => (this.input = input)}
-                    value={this.props.leadItem.values['Additional Phone Number']}
+                    value={
+                      this.props.leadItem.values['Additional Phone Number']
+                    }
                     onValueChange={(values, e) =>
                       handleFormattedChange(
                         values,
@@ -451,6 +484,165 @@ export class LeadEdit extends Component {
                   />
                 </div>
               </span>
+              <div className="sectionParent">
+                <h4>Parent or Guardian</h4>
+                <span className="line">
+                  <div className="radioGroup">
+                    <label>Lead, Member or Other</label>
+                    <br />
+                    <label htmlFor="SAFL1B8-13" className="radio">
+                      <input
+                        id="SAFL1B8-13"
+                        name="LeadMemberOther"
+                        type="radio"
+                        value="Lead"
+                        onChange={e => {
+                          this.setState({ parentGuardian: 'Lead' });
+                          this.props.leadItem.values['ParentMember'] = '';
+                          this.props.leadItem.values['Parent or Guardian'] = '';
+                        }}
+                        defaultChecked={
+                          this.props.leadItem.values['ParentLead'] !==
+                            undefined &&
+                          this.props.leadItem.values['ParentLead'] !== null
+                            ? 'defaultChecked'
+                            : ''
+                        }
+                      />
+                      Lead
+                    </label>
+                    <label htmlFor="SAFL1B8-14" className="radio">
+                      <input
+                        id="SAFL1B8-14"
+                        name="LeadMemberOther"
+                        type="radio"
+                        value="Member"
+                        onChange={e => {
+                          this.setState({ parentGuardian: 'Member' });
+                          this.props.leadItem.values['ParentLead'] = '';
+                          this.props.leadItem.values['Parent or Guardian'] = '';
+                        }}
+                        defaultChecked={
+                          this.props.leadItem.values['ParentMember'] !==
+                            undefined &&
+                          this.props.leadItem.values['ParentMember'] !== null
+                            ? 'defaultChecked'
+                            : ''
+                        }
+                      />
+                      Member
+                    </label>
+                    <label htmlFor="SAFL1B8-15" className="radio">
+                      <input
+                        id="SAFL1B8-15"
+                        name="LeadMemberOther"
+                        type="radio"
+                        value="Other"
+                        onChange={e => {
+                          this.setState({ parentGuardian: 'Other' });
+                          this.props.leadItem.values['ParentLead'] = '';
+                          this.props.leadItem.values['ParentMember'] = '';
+                          this.props.leadItem.values['Parent or Guardian'] = '';
+                        }}
+                        defaultChecked={
+                          (this.props.leadItem.values['ParentLead'] ===
+                            undefined ||
+                            this.props.leadItem.values['ParentLead'] ===
+                              null) &&
+                          (this.props.leadItem.values['ParentMember'] ===
+                            undefined ||
+                            this.props.leadItem.values['ParentMember'] === null)
+                            ? 'defaultChecked'
+                            : ''
+                        }
+                      />
+                      Other
+                    </label>
+                  </div>
+                </span>
+                <span className="line">
+                  {this.state.parentGuardian !== 'Lead' ? null : (
+                    <Select
+                      closeMenuOnSelect={true}
+                      options={this.getAllLeads()}
+                      className="hide-columns-container"
+                      classNamePrefix="hide-columns"
+                      placeholder="Select Lead"
+                      defaultInputValue={
+                        this.props.leadItem.values['ParentLead'] !==
+                          undefined &&
+                        this.props.leadItem.values['ParentLead'] !== null
+                          ? this.props.leadItem.values['Parent or Guardian']
+                          : ''
+                      }
+                      onChange={e => {
+                        handleChange(
+                          this.props.leadItem,
+                          'ParentLead',
+                          e,
+                          this.setIsDirty,
+                        );
+                        this.props.leadItem.values['Parent or Guardian'] =
+                          e.label;
+                      }}
+                      style={{ width: '300px' }}
+                    />
+                  )}
+                </span>
+                <span className="line">
+                  {this.state.parentGuardian !== 'Member' ? null : (
+                    <Select
+                      closeMenuOnSelect={true}
+                      options={this.getAllMembers()}
+                      className="hide-columns-container"
+                      classNamePrefix="hide-columns"
+                      placeholder="Select Member"
+                      defaultInputValue={
+                        this.props.leadItem.values['ParentMember'] !==
+                          undefined &&
+                        this.props.leadItem.values['ParentMember'] !== null
+                          ? this.props.leadItem.values['Parent or Guardian']
+                          : ''
+                      }
+                      onChange={e => {
+                        handleChange(
+                          this.props.leadItem,
+                          'ParentMember',
+                          e,
+                          this.setIsDirty,
+                        );
+                        this.props.leadItem.values['Parent or Guardian'] =
+                          e.label;
+                      }}
+                      style={{ width: '300px' }}
+                    />
+                  )}
+                </span>
+                <span className="line">
+                  {this.state.parentGuardian !== 'Other' ? null : (
+                    <div>
+                      <label htmlFor="ParentGuardian">Parent or Guardian</label>
+                      <input
+                        type="text"
+                        name="ParentGuardian"
+                        id="ParentGuardian"
+                        ref={input => (this.input = input)}
+                        defaultValue={
+                          this.props.leadItem.values['Parent or Guardian']
+                        }
+                        onChange={e =>
+                          handleChange(
+                            this.props.leadItem,
+                            'Parent or Guardian',
+                            e,
+                            this.setIsDirty,
+                          )
+                        }
+                      />
+                    </div>
+                  )}
+                </span>
+              </div>
               <span className="line">
                 <div>
                   <label htmlFor="birthday">Birthday</label>
@@ -619,6 +811,9 @@ export class LeadEdit extends Component {
 export const LeadEditView = ({
   leadItem,
   saveLead,
+  members,
+  leads,
+  fetchLeads,
   removeLead,
   programs,
   currentLeadLoading,
@@ -630,6 +825,8 @@ export const LeadEditView = ({
   ) : (
     <LeadEdit
       leadItem={leadItem}
+      leads={leads}
+      members={members}
       saveLead={saveLead}
       programs={programs}
       removeLead={removeLead}
@@ -648,6 +845,9 @@ export const LeadEditContainer = compose(
   }),
   withState('isDirty', 'setIsDirty', false),
   withHandlers({
+    fetchLeads: ({ fetchLeads }) => () => {
+      fetchLeads({});
+    },
     saveLead: ({ updateLead, fetchLeads, isDirty }) => leadItem => {
       if (!isDirty) {
         return;
@@ -683,6 +883,7 @@ export const LeadEditContainer = compose(
   }),
   lifecycle({
     componentWillMount() {
+      this.props.fetchLeads();
       this.props.fetchLead({
         id: this.props.match.params['id'],
         myThis: this,

@@ -9,7 +9,8 @@ export const email_received_date_format = 'DD-MM-YYYY HH:mm';
 
 export function handleChange(leadItem, key, event, setIsDirty) {
   if (setIsDirty !== undefined) setIsDirty(true);
-  leadItem.values[key] = event.target.value;
+  leadItem.values[key] =
+    event.target !== undefined ? event.target.value : event.value;
 
   if ($(event.target).attr('required')) {
     var val = leadItem.values[key];

@@ -98,6 +98,8 @@ form {
       width: 100%;
       outline: none;
       padding: 0.25rem;
+      -webkit-text-fill-color: #000;
+      -webkit-transform: translateZ(0px);
     }
     &[type='text'][disabled],
     &[type='password'][disabled],

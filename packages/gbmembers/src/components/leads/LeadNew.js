@@ -7,7 +7,7 @@ import {
   withHandlers,
   withProps,
 } from 'recompose';
-import { actions } from '../../redux/modules/leads';
+import { actions as leadsActions } from '../../redux/modules/leads';
 import { KappNavLink as NavLink } from 'common';
 import $ from 'jquery';
 import NumberFormat from 'react-number-format';
@@ -20,18 +20,20 @@ import {
 import moment from 'moment';
 import 'react-datetime/css/react-datetime.css';
 import { StatusMessagesContainer } from '../StatusMessages';
+import Select from 'react-select';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   leadItem: state.member.leads.newLead,
   programs: state.member.app.programs,
   newLeadLoading: state.member.leads.newLeadLoading,
-  allLeads: state.member.leads.allLeads,
+  members: state.member.members.allMembers,
+  leads: state.member.leads.allLeads,
 });
 const mapDispatchToProps = {
-  createLead: actions.createLead,
-  fetchNewLead: actions.fetchNewLead,
-  fetchLeads: actions.fetchLeads,
+  createLead: leadsActions.createLead,
+  fetchNewLead: leadsActions.fetchNewLead,
+  fetchLeads: leadsActions.fetchLeads,
 };
 
 const Datetime = require('react-datetime');
@@ -47,14 +49,36 @@ export class LeadNew extends Component {
     let contactMethod;
     let contactDate = moment().format(contact_date_format);
     let note;
-
+    let parentGuardian;
     this.state = {
       contactMethod,
       contactDate,
       note,
       reminderDateString,
       reminderDate,
+      parentGuardian,
     };
+  }
+
+  getAllLeads() {
+    let leadsVals = [];
+    this.props.leads.forEach(lead => {
+      leadsVals.push({
+        label: lead.values['Last Name'] + ' ' + lead.values['First Name'],
+        value: lead.id,
+      });
+    });
+    return leadsVals;
+  }
+  getAllMembers() {
+    let membersVals = [];
+    this.props.members.forEach(member => {
+      membersVals.push({
+        label: member.values['Last Name'] + ' ' + member.values['First Name'],
+        value: member.id,
+      });
+    });
+    return membersVals;
   }
 
   handleChange(key, event) {
@@ -282,22 +306,12 @@ export class LeadNew extends Component {
               </span>
               <span className="line">
                 <div>
-                  <label
-                    htmlFor="address"
-                    required={
-                      this.props.leadItem.values['Address'] === undefined
-                        ? true
-                        : false
-                    }
-                  >
-                    Address
-                  </label>
+                  <label htmlFor="address">Address</label>
                   <input
                     type="text"
                     name="address"
                     id="address"
                     size="80"
-                    required
                     ref={input => (this.input = input)}
                     defaultValue={this.props.leadItem.values['Address']}
                     onChange={e =>
@@ -308,21 +322,11 @@ export class LeadNew extends Component {
               </span>
               <span className="line">
                 <div>
-                  <label
-                    htmlFor="suburb"
-                    required={
-                      this.props.leadItem.values['Suburb'] === undefined
-                        ? true
-                        : false
-                    }
-                  >
-                    Suburb
-                  </label>
+                  <label htmlFor="suburb">Suburb</label>
                   <input
                     type="text"
                     name="suburb"
                     id="suburb"
-                    required
                     ref={input => (this.input = input)}
                     defaultValue={this.props.leadItem.values['Suburb']}
                     onChange={e =>
@@ -331,20 +335,10 @@ export class LeadNew extends Component {
                   />
                 </div>
                 <div>
-                  <label
-                    htmlFor="State"
-                    required={
-                      this.props.leadItem.values['State'] === undefined
-                        ? true
-                        : false
-                    }
-                  >
-                    State
-                  </label>
+                  <label htmlFor="State">State</label>
                   <select
                     name="state"
                     id="state"
-                    required
                     ref={input => (this.input = input)}
                     defaultValue={this.props.leadItem.values['State']}
                     onChange={e =>
@@ -363,20 +357,10 @@ export class LeadNew extends Component {
                   <div className="droparrow" />
                 </div>
                 <div>
-                  <label
-                    htmlFor="postcode"
-                    required={
-                      this.props.leadItem.values['Postcode'] === undefined
-                        ? true
-                        : false
-                    }
-                  >
-                    Postcode
-                  </label>
+                  <label htmlFor="postcode">Postcode</label>
                   <NumberFormat
                     format="####"
                     mask="_"
-                    required
                     ref={input => (this.input = input)}
                     value={this.props.leadItem.values['Postcode']}
                     onValueChange={(values, e) =>
@@ -395,7 +379,7 @@ export class LeadNew extends Component {
                   <label
                     htmlFor="email"
                     required={
-                      this.props.leadItem.values['Email'] === null
+                      this.props.leadItem.values['Email'] === undefined
                         ? true
                         : false
                     }
@@ -416,63 +400,49 @@ export class LeadNew extends Component {
                   />
                 </div>
                 <div className="emailDiv ml-1">
-                  <label
-                    htmlFor="additionalEmail"
-                  >
-                    Additional Email
-                  </label>
+                  <label htmlFor="additionalEmail">Additional Email</label>
                   <input
                     type="text"
                     name="additionalEmail"
                     id="additionalEmail"
                     size="40"
                     ref={input => (this.input = input)}
-                    defaultValue={this.props.leadItem.values['Additional Email']}
+                    defaultValue={
+                      this.props.leadItem.values['Additional Email']
+                    }
                     onChange={e =>
                       handleChange(this.props.leadItem, 'Additional Email', e)
                     }
                   />
                 </div>
-                </span>
-                <span className="line">
-                  <div>
-                    <label
-                      htmlFor="phone"
-                      required={
-                        this.props.leadItem.values['Phone Number'] === undefined
-                          ? true
-                          : false
-                      }
-                    >
-                      Phone
-                    </label>
-                    <NumberFormat
-                      format="(##) ####-####"
-                      mask="_"
-                      required
-                      ref={input => (this.input = input)}
-                      value={this.props.leadItem.values['Phone Number']}
-                      onValueChange={(values, e) =>
-                        handleFormattedChange(
-                          values,
-                          this.props.leadItem,
-                          'Phone Number',
-                          e,
-                        )
-                      }
-                    />
-                </div>
+              </span>
+              <span className="line">
                 <div>
-                  <label
-                    htmlFor="additionalPhone"
-                  >
-                    Additional Phone
-                  </label>
+                  <label htmlFor="phone">Phone</label>
                   <NumberFormat
                     format="(##) ####-####"
                     mask="_"
                     ref={input => (this.input = input)}
-                    value={this.props.leadItem.values['Additional Phone Number']}
+                    value={this.props.leadItem.values['Phone Number']}
+                    onValueChange={(values, e) =>
+                      handleFormattedChange(
+                        values,
+                        this.props.leadItem,
+                        'Phone Number',
+                        e,
+                      )
+                    }
+                  />
+                </div>
+                <div>
+                  <label htmlFor="additionalPhone">Additional Phone</label>
+                  <NumberFormat
+                    format="(##) ####-####"
+                    mask="_"
+                    ref={input => (this.input = input)}
+                    value={
+                      this.props.leadItem.values['Additional Phone Number']
+                    }
                     onValueChange={(values, e) =>
                       handleFormattedChange(
                         values,
@@ -484,6 +454,108 @@ export class LeadNew extends Component {
                   />
                 </div>
               </span>
+              <div className="sectionParent">
+                <h4>Parent or Guardian</h4>
+                <span className="line">
+                  <div className="radioGroup">
+                    <label>Lead, Member or Other</label>
+                    <br />
+                    <label htmlFor="SAFL1B8-13" className="radio">
+                      <input
+                        id="SAFL1B8-13"
+                        name="LeadMemberOther"
+                        type="radio"
+                        value="Lead"
+                        onChange={e =>
+                          this.setState({ parentGuardian: 'Lead' })
+                        }
+                      />
+                      Lead
+                    </label>
+                    <label htmlFor="SAFL1B8-14" className="radio">
+                      <input
+                        id="SAFL1B8-14"
+                        name="LeadMemberOther"
+                        type="radio"
+                        value="Member"
+                        onChange={e =>
+                          this.setState({ parentGuardian: 'Member' })
+                        }
+                      />
+                      Member
+                    </label>
+                    <label htmlFor="SAFL1B8-15" className="radio">
+                      <input
+                        id="SAFL1B8-15"
+                        name="LeadMemberOther"
+                        type="radio"
+                        value="Other"
+                        onChange={e =>
+                          this.setState({ parentGuardian: 'Other' })
+                        }
+                      />
+                      Other
+                    </label>
+                  </div>
+                </span>
+                <span className="line">
+                  {this.state.parentGuardian !== 'Lead' ? null : (
+                    <Select
+                      closeMenuOnSelect={true}
+                      options={this.getAllLeads()}
+                      className="hide-columns-container"
+                      classNamePrefix="hide-columns"
+                      placeholder="Select Lead"
+                      onChange={e => {
+                        handleChange(this.props.leadItem, 'ParentLead', e);
+                        this.props.leadItem.values['Parent or Guardian'] =
+                          e.label;
+                      }}
+                      style={{ width: '300px' }}
+                    />
+                  )}
+                </span>
+                <span className="line">
+                  {this.state.parentGuardian !== 'Member' ? null : (
+                    <Select
+                      closeMenuOnSelect={true}
+                      options={this.getAllMembers()}
+                      className="hide-columns-container"
+                      classNamePrefix="hide-columns"
+                      placeholder="Select Member"
+                      onChange={e => {
+                        handleChange(this.props.leadItem, 'ParentMember', e);
+                        this.props.leadItem.values['Parent or Guardian'] =
+                          e.label;
+                      }}
+                      style={{ width: '300px' }}
+                    />
+                  )}
+                </span>
+                <span className="line">
+                  {this.state.parentGuardian !== 'Other' ? null : (
+                    <div>
+                      <label htmlFor="ParentGuardian">Parent or Guardian</label>
+                      <input
+                        type="text"
+                        name="ParentGuardian"
+                        id="ParentGuardian"
+                        ref={input => (this.input = input)}
+                        defaultValue={
+                          this.props.leadItem.values['Parent or Guardian']
+                        }
+                        onChange={e =>
+                          handleChange(
+                            this.props.leadItem,
+                            'Parent or Guardian',
+                            e,
+                          )
+                        }
+                      />
+                    </div>
+                  )}
+                </span>
+              </div>
               <span className="line">
                 <div>
                   <label htmlFor="birthday">Birthday</label>
@@ -685,6 +757,9 @@ export class LeadNew extends Component {
 
 export const LeadNewView = ({
   leadItem,
+  members,
+  leads,
+  fetchLeads,
   saveLead,
   isDirty,
   programs,
@@ -696,6 +771,8 @@ export const LeadNewView = ({
   ) : (
     <LeadNew
       leadItem={leadItem}
+      leads={leads}
+      members={members}
       saveLead={saveLead}
       programs={programs}
       isDirty={isDirty}
@@ -713,6 +790,9 @@ export const LeadNewContainer = compose(
   }),
   withState('isDirty', 'setIsDirty', false),
   withHandlers({
+    fetchLeads: ({ fetchLeads }) => () => {
+      fetchLeads({});
+    },
     saveLead: ({ createLead, fetchLeads }) => (
       leadItem,
       history,
@@ -756,6 +836,7 @@ export const LeadNewContainer = compose(
   }),
   lifecycle({
     componentWillMount() {
+      this.props.fetchLeads();
       this.props.fetchNewLead({
         myThis: this,
         history: this.props.history,
