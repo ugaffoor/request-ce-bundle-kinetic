@@ -1,7 +1,8 @@
-import { call, put, takeEvery, all } from 'redux-saga/effects';
+import { select, call, put, takeEvery, all } from 'redux-saga/effects';
 import { CoreAPI } from 'react-kinetic-core';
 import { types, actions } from '../modules/leads';
-import { actions as errorActions } from '../modules/errors';
+import { actions as errorActions, NOTICE_TYPES } from '../modules/errors';
+import axios from 'axios';
 
 export const ERROR_STATUS_STRING = 'There was a problem retrieving items.';
 export const TOO_MANY_STATUS_STRING = 'Your filter matches too many items.';
@@ -13,6 +14,8 @@ export const SUBMISSION_INCLUDES =
 export const getAppSettings = state => state.member.app;
 export const getCurrentLead = state => state.currentLead;
 export const getNewLead = state => state.newLead;
+
+const createEventUrl = '/create-event'
 const util = require('util');
 
 export function* fetchLeads(action) {
@@ -119,6 +122,7 @@ export function* fetchNewLead(action) {
 }
 
 export function* updateCurrentLead(action) {
+  const appSettings = yield select(getAppSettings);
   try {
     //console.log("### updateCurrentLead # item.history = " + util.inspect(action.payload.history));
     const { submission } = yield call(CoreAPI.updateSubmission, {
@@ -139,6 +143,53 @@ export function* updateCurrentLead(action) {
     yield put(
       errorActions.addSuccess('Lead updated successfully', 'Update Lead'),
     );
+
+    if(!action.payload.calendarEvent) {
+      return;
+    }
+
+    var args = {
+      space: appSettings.spaceSlug,
+      summary: action.payload.calendarEvent.summary,
+      description: action.payload.calendarEvent.description,
+      location: action.payload.calendarEvent.location,
+      attendeeEmail: action.payload.calendarEvent.attendeeEmail,
+      startDateTime: action.payload.calendarEvent.startDateTime,
+      endDateTime: action.payload.calendarEvent.endDateTime,
+      timeZone: action.payload.calendarEvent.timeZone
+    };
+    axios
+      .post("https://gbbilling.com.au:8443/mail-handler" + createEventUrl, args)
+      .then(result => {
+        if (result.data.error && result.data.error > 0) {
+          console.log(result.data.errorMessage);
+          action.payload.addNotification(
+            NOTICE_TYPES.ERROR,
+            result.data.errorMessage,
+            'Create Calendar Event',
+          );
+        } else {
+          let data = result.data.data;
+          let msg = null;
+          if (data) {
+            msg = "Event created successfully. Following events already exist for the date\n"
+            data.forEach(dt => msg += dt + " \n")
+          } else {
+            msg = "Event created successfully.";
+          }
+
+          action.payload.addNotification(
+            NOTICE_TYPES.SUCCESS,
+            msg,
+            'Create Calendar Event'
+          );
+        }
+      })
+      .catch(error => {
+        console.log(error.response);
+        //action.payload.setSystemError(error);
+      });
+
   } catch (error) {
     console.log('Error in updateCurrentLead: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));

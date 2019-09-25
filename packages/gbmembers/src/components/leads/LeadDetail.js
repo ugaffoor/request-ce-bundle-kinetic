@@ -35,6 +35,7 @@ import { SMSModalContainer } from '../Member/SMSModalContainer';
 import { SetStatusModalContainer } from './SetStatusModalContainer';
 import { EmailsReceived } from '../Member/EmailsReceived';
 import { Requests } from '../Member/Requests';
+import { actions as errorActions } from '../../redux/modules/errors';
 
 const mapStateToProps = state => ({
   profile: state.app.profile,
@@ -52,6 +53,8 @@ const mapDispatchToProps = {
   fetchCampaign: campaignActions.fetchEmailCampaign,
   updateLead: actions.updateLead,
   fetchLeads: actions.fetchLeads,
+  addNotification: errorActions.addNotification,
+  setSystemError: errorActions.setSystemError
 };
 
 const Datetime = require('react-datetime');
@@ -655,7 +658,7 @@ export const LeadDetailContainer = compose(
   withState('showSMSModal', 'setShowSMSModal', false),
   withState('showSetStatusModal', 'setShowSetStatusModal', false),
   withHandlers({
-    saveLead: ({ profile, leadItem, updateLead, fetchLead }) => newHistory => {
+    saveLead: ({ profile, leadItem, updateLead, fetchLead, addNotification, setSystemError }) => newHistory => {
       let history = getJson(leadItem.values['History']);
       history.push(newHistory);
       leadItem.values['History'] = history;
@@ -666,11 +669,33 @@ export const LeadDetailContainer = compose(
       ) {
         leadItem.values['Last Contact'] = newHistory.contactDate;
       }
+      let calendarEvent = null;
+
+      if (newHistory.contactMethod === 'intro_class' || newHistory.contactMethod === 'free_class') {
+        calendarEvent = {
+                          summary: 'New lead - ' + leadItem.values['First Name'] + ' ' + leadItem.values['Last Name'] + ' - ' + newHistory.contactMethod,
+                          description:  newHistory['note'],
+                          location: 'Gym',
+                          attendeeEmail: leadItem.values['Email'],
+                          timeZone: 'Australia/Sydney'
+                        };
+
+        let startDateTime = moment(newHistory.contactDate, 'YYYY-MM-DD HH:mm');
+        let endDateTime = startDateTime.clone().add(1, 'hours');
+        let rfcStartDateTime = startDateTime.format("YYYY-MM-DDTHH:mm:ss");
+        let rfcEndDateTime = endDateTime.format("YYYY-MM-DDTHH:mm:ss");
+        calendarEvent.startDateTime = rfcStartDateTime;
+        calendarEvent.endDateTime = rfcEndDateTime;
+      }
+
       updateLead({
         id: leadItem['id'],
         leadItem: leadItem,
         fetchLead: fetchLead,
         myThis: this,
+        addNotification,
+        setSystemError,
+        calendarEvent
       });
     },
     updateIsNewReplyReceived: ({
