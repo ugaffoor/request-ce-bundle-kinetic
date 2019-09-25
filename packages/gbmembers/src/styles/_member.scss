@@ -256,6 +256,17 @@
       float: left;
       clear: left;
     }
+    .sectionParent {
+      .radioGroup {
+        width: 70% !important;
+      }
+      br {
+        clear: left;
+      }
+      label.radio {
+        min-width: unset;
+      }
+    }
   }
   .general {
     max-width: 700px;

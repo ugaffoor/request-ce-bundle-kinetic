@@ -82,4 +82,6 @@ img:not([alt]) {
 input,
 textarea {
   font-size: initial;
+  -webkit-text-fill-color: #000;
+  -webkit-transform: translateZ(0px);
 }

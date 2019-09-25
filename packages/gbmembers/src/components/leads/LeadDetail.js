@@ -189,12 +189,12 @@ export class LeadDetail extends Component {
     });
     columns.push({
       accessor: 'contactDate',
-      width: 150,
-      Cell: row => moment(row.original.contactDate).format('DD-MM-YYY h:hh A'),
+      width: 250,
+      Cell: row => moment(row.original.contactDate).format('DD-MM-YYYY h:hh A'),
     });
     columns.push({
       accessor: 'submitter',
-      width: 150,
+      width: 200,
       Cell: row => this.formatSubmitterCell(row),
     });
 
@@ -305,7 +305,59 @@ export class LeadDetail extends Component {
                     {this.props.leadItem.values['First Name']}
                     &nbsp;
                     {this.props.leadItem.values['Last Name']}
-                    &nbsp;-&nbsp;[
+                    {(this.props.leadItem.values['Parent or Guardian'] !==
+                      undefined ||
+                      this.props.leadItem.values['Parent or Guardian'] !==
+                        null) &&
+                    (this.props.leadItem.values['ParentMember'] !== undefined &&
+                      this.props.leadItem.values['ParentMember'] !== null) ? (
+                      <span>
+                        <NavLink
+                          to={`/Member/${
+                            this.props.leadItem.values['ParentMember']
+                          }`}
+                          className={'nav-link icon-wrapper'}
+                          activeClassName="active"
+                          style={{ display: 'inline' }}
+                        >
+                          &nbsp;(
+                          {this.props.leadItem.values['Parent or Guardian']})
+                        </NavLink>
+                      </span>
+                    ) : null}
+                    {(this.props.leadItem.values['Parent or Guardian'] !==
+                      undefined ||
+                      this.props.leadItem.values['Parent or Guardian'] !==
+                        null) &&
+                    (this.props.leadItem.values['ParentLead'] !== undefined &&
+                      this.props.leadItem.values['ParentLead'] !== null) ? (
+                      <span>
+                        <NavLink
+                          to={`/LeadDetail/${
+                            this.props.leadItem.values['ParentLead']
+                          }`}
+                          className={'nav-link icon-wrapper'}
+                          activeClassName="active"
+                          style={{ display: 'inline' }}
+                        >
+                          &nbsp;(
+                          {this.props.leadItem.values['Parent or Guardian']})
+                        </NavLink>
+                      </span>
+                    ) : null}
+                    {this.props.leadItem.values['Parent or Guardian'] !==
+                      undefined &&
+                    this.props.leadItem.values['Parent or Guardian'] !== null &&
+                    (this.props.leadItem.values['ParentLead'] === undefined ||
+                      this.props.leadItem.values['ParentLead'] === null) &&
+                    (this.props.leadItem.values['ParentMember'] === undefined ||
+                      this.props.leadItem.values['ParentMember'] === null) ? (
+                      <span>
+                        &nbsp;(
+                        {this.props.leadItem.values['Parent or Guardian']})
+                      </span>
+                    ) : null}
+                    -&nbsp;[
                     {this.props.leadItem.values['Status']}]
                   </div>
                   <div>
