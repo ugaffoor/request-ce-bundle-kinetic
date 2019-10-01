@@ -25,8 +25,8 @@ import { SMSModalContainer } from './SMSModalContainer';
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   memberItem: state.member.members.currentMember,
-  campaignItem: state.member.campaigns.campaignItem,
-  campaignLoading: state.member.campaigns.campaignLoading,
+  campaignItem: state.member.campaigns.emailCampaignItem,
+  campaignLoading: state.member.campaigns.emailCampaignLoading,
   currentMemberLoading: state.member.members.currentMemberLoading,
   space: state.member.app.space,
 });
@@ -34,7 +34,7 @@ const mapDispatchToProps = {
   updateMember: actions.updateMember,
   fetchCurrentMember: actions.fetchCurrentMember,
   fetchMembers: actions.fetchMembers,
-  fetchCampaign: campaignActions.fetchCampaign,
+  fetchCampaign: campaignActions.fetchEmailCampaign,
 };
 
 const Datetime = require('react-datetime');
@@ -247,9 +247,7 @@ export class MemberNotesHome extends Component {
               </li>
               <li>
                 <NavLink
-                  to={`/NewEmailCampaign/${
-                    this.props.memberItem['id']
-                  }/member`}
+                  to={`/NewEmailCampaign/${this.props.memberItem['id']}/member`}
                   className="btn btn-primary"
                 >
                   Send Email

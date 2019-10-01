@@ -823,6 +823,7 @@ export const LeadNewContainer = compose(
             reminderDateString,
           );
         }
+        leadItem.values['Lead State'] = 'Open';
         leadItem.values['Status'] = 'Open';
         leadItem.values['Date Created'] = moment().format('DD-MM-YYYY');
         //console.log("### saving lead # " + util.inspect(leadItem.values));

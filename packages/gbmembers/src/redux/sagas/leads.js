@@ -15,13 +15,13 @@ export const getAppSettings = state => state.member.app;
 export const getCurrentLead = state => state.currentLead;
 export const getNewLead = state => state.newLead;
 
-const createEventUrl = '/create-event'
+const createEventUrl = '/create-event';
 const util = require('util');
 
 export function* fetchLeads(action) {
   try {
     const search = new CoreAPI.SubmissionSearch()
-      //.eq('values[Status]', 'Open')
+      .eq('values[Lead State]', 'Open')
       .includes(['details', 'values'])
       .limit(1000)
       .build();
@@ -42,7 +42,7 @@ export function* fetchLeads(action) {
 export function* fetchCurrentLead(action) {
   try {
     const LEAD_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
-      .eq('values[Lead ID]', action.payload.id)
+      .eq('id', action.payload.id)
       .include(['details', 'values'])
       .limit(1000)
       .build();
@@ -85,10 +85,8 @@ export function* fetchCurrentLead(action) {
           leadActivities.submissions[i].values['Content'],
         );
       }
-      if (
-        leadActivities.submissions[i].values['Type'] === 'SMS'
-      ) {
-          smsContent[smsContent.length] = leadActivities.submissions[i];
+      if (leadActivities.submissions[i].values['Type'] === 'SMS') {
+        smsContent[smsContent.length] = leadActivities.submissions[i];
       }
       if (
         leadActivities.submissions[i].values['Type'] === 'Request' &&
@@ -144,7 +142,7 @@ export function* updateCurrentLead(action) {
       errorActions.addSuccess('Lead updated successfully', 'Update Lead'),
     );
 
-    if(!action.payload.calendarEvent) {
+    if (!action.payload.calendarEvent) {
       return;
     }
 
@@ -156,10 +154,10 @@ export function* updateCurrentLead(action) {
       attendeeEmail: action.payload.calendarEvent.attendeeEmail,
       startDateTime: action.payload.calendarEvent.startDateTime,
       endDateTime: action.payload.calendarEvent.endDateTime,
-      timeZone: action.payload.calendarEvent.timeZone
+      timeZone: action.payload.calendarEvent.timeZone,
     };
     axios
-      .post("https://gbbilling.com.au:8443/mail-handler" + createEventUrl, args)
+      .post('https://gbbilling.com.au:8443/mail-handler' + createEventUrl, args)
       .then(result => {
         if (result.data.error && result.data.error > 0) {
           console.log(result.data.errorMessage);
@@ -172,16 +170,17 @@ export function* updateCurrentLead(action) {
           let data = result.data.data;
           let msg = null;
           if (data) {
-            msg = "Event created successfully. Following events already exist for the date\n"
-            data.forEach(dt => msg += dt + " \n")
+            msg =
+              'Event created successfully. Following events already exist for the date\n';
+            data.forEach(dt => (msg += dt + ' \n'));
           } else {
-            msg = "Event created successfully.";
+            msg = 'Event created successfully.';
           }
 
           action.payload.addNotification(
             NOTICE_TYPES.SUCCESS,
             msg,
-            'Create Calendar Event'
+            'Create Calendar Event',
           );
         }
       })
@@ -189,7 +188,6 @@ export function* updateCurrentLead(action) {
         console.log(error.response);
         //action.payload.setSystemError(error);
       });
-
   } catch (error) {
     console.log('Error in updateCurrentLead: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));

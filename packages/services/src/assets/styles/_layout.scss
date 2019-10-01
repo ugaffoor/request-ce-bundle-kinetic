@@ -15,7 +15,12 @@
     background-color: $green-grass;
   }
 }
-
+.page--container.public {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
 .package-layout--services {
   // Services Page Container
   .page-container {

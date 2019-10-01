@@ -325,6 +325,20 @@ export const MemberView = ({
           </span>
         </div>
       </div>
+      <div
+        className={
+          memberItem.values['Lead Submission ID'] === undefined
+            ? 'hide'
+            : 'leadInfo'
+        }
+      >
+        <NavLink
+          to={`/LeadDetail/${memberItem.values['Lead Submission ID']}`}
+          className="value"
+        >
+          Converted Lead
+        </NavLink>
+      </div>
       <div className="userDetails2">
         <div className="ranking">
           <h4>Rank</h4>

@@ -424,3 +424,12 @@ button#attentionRequiredOnly.Active {
   border-width: 2px;
   background-color: #eee8e8;
 }
+
+.converted {
+  .followup {
+    display: none;
+  }
+  #notesDiv {
+    display: none;
+  }
+}

@@ -71,7 +71,11 @@ export class SMSModal extends Component {
     this.props.sendSmsMessage({
       type: 'outbound',
       status: 'sent',
-      to: this.props.submission.values['Phone Number'] + (this.props.submission.values['Additional Phone Number'] ? "," + this.props.submission.values['Additional Phone Number'] : ''),
+      to:
+        this.props.submission.values['Phone Number'] +
+        (this.props.submission.values['Additional Phone Number']
+          ? ',' + this.props.submission.values['Additional Phone Number']
+          : ''),
       text: this.state.smsText,
       datetime: moment().format('DD-MM-YYYY hh:mm A'),
     });
@@ -156,7 +160,11 @@ export class SMSModal extends Component {
                     className="form-control"
                     style={{ marginLeft: '10px', width: '70%' }}
                   >
-                    {this.props.submission.values['Phone Number']}
+                    {this.props.submission.values['Phone Number']}{' '}
+                    {this.props.submission.values['Additional Phone Number']
+                      ? ',' +
+                        this.props.submission.values['Additional Phone Number']
+                      : ''}
                   </span>
                 </div>
                 <div

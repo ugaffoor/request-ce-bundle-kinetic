@@ -203,6 +203,8 @@ export function* createMember(action) {
     action.payload.memberItem.myThis = undefined;
     action.payload.memberItem.history = undefined;
     action.payload.memberItem.fetchMembers = undefined;
+    action.payload.memberItem.values['Lead Source'] =
+      action.payload.leadItem.values['Source'];
     const { submission } = yield call(CoreAPI.createSubmission, {
       kappSlug: 'gbmembers',
       formSlug: 'member',
@@ -214,6 +216,7 @@ export function* createMember(action) {
     //if leadId is present then the lead is being converted into a member
     if (action.payload.leadId) {
       action.payload.leadItem.values['Status'] = 'Converted';
+      action.payload.leadItem.values['Lead State'] = 'Converted';
       action.payload.leadItem.values['Converted Member ID'] = submission.id;
       action.payload.updateLead({
         id: action.payload.leadItem['id'],

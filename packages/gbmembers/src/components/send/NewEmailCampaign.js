@@ -76,7 +76,11 @@ export class NewEmailCampaign extends Component {
     this.quillRef = null;
     this.reactQuillRef = null;
     this.attachQuillRefs = this.attachQuillRefs.bind(this);
-
+    if (this.props.submissionId != null) {
+      this.currentMember = this.props.allMembers.find(
+        member => member['id'] === this.props.submissionId,
+      );
+    }
     this.state = {
       text: '', // You can also pass a Quill Delta here
       subject: '',
@@ -402,12 +406,16 @@ export class NewEmailCampaign extends Component {
                 value={
                   this.props.submissionType === 'member'
                     ? this.props.allMembers && this.props.allMembers.length > 0
-                      ? this.props.allMembers.find(
-                          member => member['id'] === this.props.submissionId,
-                        ).values['Email']
+                      ? this.currentMember.values['Email'] +
+                        (this.currentMember.values['Additional Email']
+                          ? ',' + this.currentMember.values['Additional Email']
+                          : '')
                       : ''
                     : this.props.leadItem && this.props.leadItem.values
-                      ? this.props.leadItem.values['Email']
+                      ? this.props.leadItem.values['Email'] +
+                        (this.props.leadItem.values['Additional Email']
+                          ? ',' + this.props.leadItem.values['Additional Email']
+                          : '')
                       : ''
                 }
               />

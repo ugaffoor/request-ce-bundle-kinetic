@@ -177,7 +177,10 @@ export const MemberNew = ({
                 <label
                   htmlFor="address"
                   required={
-                    memberItem.values['Address'] === undefined ? true : false
+                    memberItem.values['Address'] === undefined ||
+                    memberItem.values['Address'] === ''
+                      ? true
+                      : false
                   }
                 >
                   Address
@@ -199,7 +202,10 @@ export const MemberNew = ({
                 <label
                   htmlFor="suburb"
                   required={
-                    memberItem.values['Suburb'] === undefined ? true : false
+                    memberItem.values['Suburb'] === undefined ||
+                    memberItem.values['Suburb'] === ''
+                      ? true
+                      : false
                   }
                 >
                   Suburb
@@ -218,7 +224,10 @@ export const MemberNew = ({
                 <label
                   htmlFor="State"
                   required={
-                    memberItem.values['State'] === undefined ? true : false
+                    memberItem.values['State'] === undefined ||
+                    memberItem.values['State'] === ''
+                      ? true
+                      : false
                   }
                 >
                   State
@@ -246,7 +255,10 @@ export const MemberNew = ({
                 <label
                   htmlFor="postcode"
                   required={
-                    memberItem.values['Postcode'] === undefined ? true : false
+                    memberItem.values['Postcode'] === undefined ||
+                    memberItem.values['Postcode'] === ''
+                      ? true
+                      : false
                   }
                 >
                   Postcode
@@ -268,7 +280,12 @@ export const MemberNew = ({
               <div className="emailDiv">
                 <label
                   htmlFor="email"
-                  required={memberItem.values['Email'] === null ? true : false}
+                  required={
+                    memberItem.values['Email'] === null ||
+                    memberItem.values['Email'] === ''
+                      ? true
+                      : false
+                  }
                 >
                   Email
                 </label>
@@ -284,11 +301,7 @@ export const MemberNew = ({
                 />
               </div>
               <div className="emailDiv ml-1">
-                <label
-                  htmlFor="additionalEmail"
-                >
-                  Additional Email
-                </label>
+                <label htmlFor="additionalEmail">Additional Email</label>
                 <input
                   type="text"
                   name="additionalEmail"
@@ -296,7 +309,9 @@ export const MemberNew = ({
                   size="40"
                   ref={input => (this.input = input)}
                   defaultValue={memberItem.values['Additional Email']}
-                  onChange={e => handleChange(memberItem, 'Additional Email', e)}
+                  onChange={e =>
+                    handleChange(memberItem, 'Additional Email', e)
+                  }
                 />
               </div>
             </span>
@@ -325,11 +340,7 @@ export const MemberNew = ({
                 />
               </div>
               <div>
-                <label
-                  htmlFor="additionalPhone"
-                >
-                  Additional Phone
-                </label>
+                <label htmlFor="additionalPhone">Additional Phone</label>
                 <NumberFormat
                   id="additionalPhoneNumber"
                   format="(##) ####-####"
@@ -337,7 +348,12 @@ export const MemberNew = ({
                   ref={input => (this.input = input)}
                   value={memberItem.values['Additional Phone Number']}
                   onValueChange={(values, e) =>
-                    handleFormattedChange(values, memberItem, 'Additional Phone Number', e)
+                    handleFormattedChange(
+                      values,
+                      memberItem,
+                      'Additional Phone Number',
+                      e,
+                    )
                   }
                 />
               </div>
@@ -347,7 +363,8 @@ export const MemberNew = ({
                 <label
                   htmlFor="datejoined"
                   required={
-                    memberItem.values['Date Joined'] === undefined
+                    memberItem.values['Date Joined'] === undefined ||
+                    memberItem.values['Date Joined'] === ''
                       ? true
                       : false
                   }
@@ -368,7 +385,10 @@ export const MemberNew = ({
                 <label
                   htmlFor="birthday"
                   required={
-                    memberItem.values['DOB'] === undefined ? true : false
+                    memberItem.values['DOB'] === undefined ||
+                    memberItem.values['DOB'] === ''
+                      ? true
+                      : false
                   }
                 >
                   Birthday
@@ -389,7 +409,8 @@ export const MemberNew = ({
                 <label
                   htmlFor="membertype"
                   required={
-                    memberItem.values['Member Type'] === undefined
+                    memberItem.values['Member Type'] === undefined ||
+                    memberItem.values['Member Type'] === ''
                       ? true
                       : false
                   }
@@ -625,7 +646,7 @@ export const MemberNew = ({
                   className="btn btn-primary"
                   onClick={e => saveMember(memberItem, createMember)}
                 >
-                  Save
+                  Create New Member
                 </button>
               </span>
             </span>
@@ -685,6 +706,7 @@ export const MemberNewContainer = compose(
           .focus();
       } else {
         memberItem.values['Status'] = 'Active';
+        memberItem.values['Lead Submission ID'] = match.params['leadId'];
         createMember({
           memberItem,
           history: memberItem.history,

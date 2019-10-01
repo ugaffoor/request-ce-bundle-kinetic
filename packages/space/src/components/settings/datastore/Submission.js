@@ -405,11 +405,13 @@ export class EmailEditor extends Component {
           ['link'],
           ['image'],
           ['clean'],
+          ['id'],
           ['firstname'],
           ['lastname'],
           ['emailfooter'],
         ],
         handlers: {
+          id: this.insertID,
           firstname: this.insertFirstName,
           lastname: this.insertLastName,
           emailfooter: this.insertEmailFooter.bind(this),
@@ -439,6 +441,11 @@ export class EmailEditor extends Component {
     if (quillRef != null) this.quillRef = quillRef;
   }
 
+  insertID() {
+    const cursorPosition = this.quill.getSelection().index;
+    this.quill.insertText(cursorPosition, "member('ID')");
+    this.quill.setSelection(cursorPosition + "member('ID')".length + 1);
+  }
   insertFirstName() {
     const cursorPosition = this.quill.getSelection().index;
     this.quill.insertText(cursorPosition, "member('First Name')");

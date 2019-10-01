@@ -150,6 +150,9 @@
 }
 
 .embedded-core-form #email_editor {
+  .ql-id::before {
+    content: 'ID';
+  }
   .ql-firstname::before {
     content: 'First Name';
   }

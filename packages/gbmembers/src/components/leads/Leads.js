@@ -189,11 +189,7 @@ export class TasksDetail extends Component {
     if (duration === 'Todays Tasks') {
       const today = moment().startOf('day');
       allLeads.forEach(lead => {
-        if (
-          lead.values['Status'] !== 'Converted' &&
-          lead.values['Status'] !== 'Deleted' &&
-          lead.values['Reminder Date']
-        ) {
+        if (lead.values['Reminder Date'] !== undefined) {
           if (
             moment(lead.values['Reminder Date'], date_format).isBefore(
               today,
@@ -218,11 +214,7 @@ export class TasksDetail extends Component {
         .add(1, 'weeks')
         .startOf('day');
       allLeads.forEach(lead => {
-        if (
-          lead.values['Status'] !== 'Converted' &&
-          lead.values['Status'] !== 'Deleted' &&
-          lead.values['Reminder Date']
-        ) {
+        if (lead.values['Reminder Date'] !== undefined) {
           if (
             moment(lead.values['Reminder Date'], date_format).isBefore(
               startDate,
@@ -252,11 +244,7 @@ export class TasksDetail extends Component {
         .add(1, 'months')
         .startOf('day');
       allLeads.forEach(lead => {
-        if (
-          lead.values['Status'] !== 'Converted' &&
-          lead.values['Status'] !== 'Deleted' &&
-          lead.values['Reminder Date']
-        ) {
+        if (lead.values['Reminder Date']) {
           if (
             moment(lead.values['Reminder Date'], date_format).isBefore(
               startDate,
@@ -281,11 +269,7 @@ export class TasksDetail extends Component {
       });
     } else if (duration === 'All Tasks') {
       allLeads.forEach(lead => {
-        if (
-          lead.values['Status'] !== 'Converted' &&
-          lead.values['Status'] !== 'Deleted' &&
-          lead.values['Reminder Date']
-        ) {
+        if (lead.values['Reminder Date'] !== undefined) {
           leads[leads.length] = {
             _id: lead['id'],
             date: lead.values['Reminder Date'],
@@ -1205,7 +1189,11 @@ const chartLabels = {
 export class LeadsConversionChart extends Component {
   constructor(props) {
     super(props);
-    let data = this.getData(this.props.allLeads, 'last_30_days');
+    let data = this.getData(
+      this.props.allLeads,
+      this.props.allMembers,
+      'last_30_days',
+    );
     this.onPieEnter = this.onPieEnter.bind(this);
     this.calculateConversion = this.calculateConversion.bind(this);
 
@@ -1229,12 +1217,16 @@ export class LeadsConversionChart extends Component {
   componentWillReceiveProps(nextProps) {
     if (nextProps.allLeads) {
       this.setState({
-        data: this.getData(nextProps.allLeads, this.state.dateRange),
+        data: this.getData(
+          nextProps.allLeads,
+          nextProps.allMembers,
+          this.state.dateRange,
+        ),
       });
     }
   }
 
-  getData(allLeads, dateRange) {
+  getData(allLeads, allMembers, dateRange) {
     if (!allLeads || allLeads.length <= 0) {
       return [];
     }
@@ -1290,23 +1282,44 @@ export class LeadsConversionChart extends Component {
         createdDate.isSameOrBefore(toDate)
       ) {
         totalLeads++;
-        if (lead.values['Converted Member ID']) {
-          leadsConverted++;
-        }
         let objFound = leadsByType.find(
           obj => obj['name'] === lead.values['Source'],
         );
         if (objFound) {
           objFound['value'] = objFound['value'] + 1;
-          if (lead.values['Converted Member ID']) {
-            objFound['leadsConverted'] = objFound['leadsConverted'] + 1;
-          }
         } else {
           leadsByType.push({
             name: lead.values['Source'],
             value: 1,
             key: lead.values['Source'],
-            leadsConverted: lead.values['Converted Member ID'] ? 1 : 0,
+            leadsConverted: 0,
+          });
+        }
+      }
+    });
+    allMembers.forEach(member => {
+      let createdDate = moment(member.createdAt, 'YYYY-MM-DDTHH:mm:ssZ');
+      if (
+        createdDate.isSameOrAfter(fromDate) &&
+        createdDate.isSameOrBefore(toDate) &&
+        member.values['Lead Submission ID'] !== undefined
+      ) {
+        totalLeads++;
+        leadsConverted++;
+        let objFound = leadsByType.find(
+          obj => obj['name'] === member.values['Lead Source'],
+        );
+        if (objFound) {
+          objFound['value'] = objFound['value'] + 1;
+          if (member.values['Lead Submission ID']) {
+            objFound['leadsConverted'] = objFound['leadsConverted'] + 1;
+          }
+        } else {
+          leadsByType.push({
+            name: member.values['Lead Source'],
+            value: 1,
+            key: member.values['Lead Source'],
+            leadsConverted: member.values['Lead Submission ID'] ? 1 : 0,
           });
         }
       }
@@ -1346,7 +1359,11 @@ export class LeadsConversionChart extends Component {
     }
     if (event.target.name === 'dateRange' && event.target.value !== 'custom') {
       this.setState({
-        data: this.getData(this.props.allLeads, event.target.value),
+        data: this.getData(
+          this.props.allLeads,
+          this.props.allMembers,
+          event.target.value,
+        ),
       });
     }
   }
@@ -1357,7 +1374,11 @@ export class LeadsConversionChart extends Component {
       return;
     } else {
       this.setState({
-        data: this.getData(this.props.allLeads, this.state.dateRange),
+        data: this.getData(
+          this.props.allLeads,
+          this.props.allMembers,
+          this.state.dateRange,
+        ),
       });
     }
   }
@@ -1774,7 +1795,7 @@ export const LeadsView = ({ allLeads, saveLead, fetchLeads, allMembers }) => (
       <LeadsCreatedChart allLeads={allLeads} />
     </div>
     <div>
-      <LeadsConversionChart allLeads={allLeads} />
+      <LeadsConversionChart allLeads={allLeads} allMembers={allMembers} />
     </div>
     <div>
       <SourceReference3Chart allLeads={allLeads} />

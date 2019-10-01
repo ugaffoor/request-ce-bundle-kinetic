@@ -54,7 +54,7 @@ const mapDispatchToProps = {
   updateLead: actions.updateLead,
   fetchLeads: actions.fetchLeads,
   addNotification: errorActions.addNotification,
-  setSystemError: errorActions.setSystemError
+  setSystemError: errorActions.setSystemError,
 };
 
 const Datetime = require('react-datetime');
@@ -283,7 +283,14 @@ export class LeadDetail extends Component {
 
   render() {
     return (
-      <div className="container-fluid" id="noteDetailDiv">
+      <div
+        className={
+          this.props.leadItem.values['Lead State'] === 'Converted'
+            ? 'container-fluid converted'
+            : 'container-fluid'
+        }
+        id="noteDetailDiv"
+      >
         <StatusMessagesContainer />
         <div className="card">
           <div className="card-header card-subtitle mb-2 text-muted">
@@ -389,7 +396,7 @@ export class LeadDetail extends Component {
                   )}
                 </span>
               </div>
-              <div className="col-md-6 text-center">
+              <div className="col-md-6 text-center followup">
                 <span className="float-md-right">
                   <NavLink to={`/LeadEdit/${this.props.leadItem['id']}`}>
                     <img
@@ -618,7 +625,7 @@ export class LeadDetail extends Component {
           </div>
         </div>
         <div className="row">
-          <div className="col-md-12 text-center" id="notesDiv">
+          <div className="col-md-12 text-center">
             <ReactTable
               data={this.state.data}
               columns={this.state.columns}
@@ -710,7 +717,14 @@ export const LeadDetailContainer = compose(
   withState('showSMSModal', 'setShowSMSModal', false),
   withState('showSetStatusModal', 'setShowSetStatusModal', false),
   withHandlers({
-    saveLead: ({ profile, leadItem, updateLead, fetchLead, addNotification, setSystemError }) => newHistory => {
+    saveLead: ({
+      profile,
+      leadItem,
+      updateLead,
+      fetchLead,
+      addNotification,
+      setSystemError,
+    }) => newHistory => {
       let history = getJson(leadItem.values['History']);
       history.push(newHistory);
       leadItem.values['History'] = history;
@@ -723,19 +737,28 @@ export const LeadDetailContainer = compose(
       }
       let calendarEvent = null;
 
-      if (newHistory.contactMethod === 'intro_class' || newHistory.contactMethod === 'free_class') {
+      if (
+        newHistory.contactMethod === 'intro_class' ||
+        newHistory.contactMethod === 'free_class'
+      ) {
         calendarEvent = {
-                          summary: 'New lead - ' + leadItem.values['First Name'] + ' ' + leadItem.values['Last Name'] + ' - ' + newHistory.contactMethod,
-                          description:  newHistory['note'],
-                          location: 'Gym',
-                          attendeeEmail: leadItem.values['Email'],
-                          timeZone: 'Australia/Sydney'
-                        };
+          summary:
+            'New lead - ' +
+            leadItem.values['First Name'] +
+            ' ' +
+            leadItem.values['Last Name'] +
+            ' - ' +
+            newHistory.contactMethod,
+          description: newHistory['note'],
+          location: 'Gym',
+          attendeeEmail: leadItem.values['Email'],
+          timeZone: 'Australia/Sydney',
+        };
 
         let startDateTime = moment(newHistory.contactDate, 'YYYY-MM-DD HH:mm');
         let endDateTime = startDateTime.clone().add(1, 'hours');
-        let rfcStartDateTime = startDateTime.format("YYYY-MM-DDTHH:mm:ss");
-        let rfcEndDateTime = endDateTime.format("YYYY-MM-DDTHH:mm:ss");
+        let rfcStartDateTime = startDateTime.format('YYYY-MM-DDTHH:mm:ss');
+        let rfcEndDateTime = endDateTime.format('YYYY-MM-DDTHH:mm:ss');
         calendarEvent.startDateTime = rfcStartDateTime;
         calendarEvent.endDateTime = rfcEndDateTime;
       }
@@ -747,7 +770,7 @@ export const LeadDetailContainer = compose(
         myThis: this,
         addNotification,
         setSystemError,
-        calendarEvent
+        calendarEvent,
       });
     },
     updateIsNewReplyReceived: ({

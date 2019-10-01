@@ -873,7 +873,7 @@ export const LeadEditContainer = compose(
       }
     },
     removeLead: ({ leadItem, deleteLead, fetchLeads }) => () => {
-      leadItem.values['Status'] = 'Closed';
+      leadItem.values['Lead State'] = 'Deleted';
       deleteLead({
         leadItem: leadItem,
         history: leadItem.history,

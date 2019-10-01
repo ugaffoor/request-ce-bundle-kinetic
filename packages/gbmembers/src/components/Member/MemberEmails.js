@@ -133,7 +133,9 @@ export class MemberEmails extends Component {
                   <label>Subject:</label>
                 </div>
                 <div className="col-sm-8">
-                  {this.props.campaignItem.values['Subject']}
+                  {this.props.campaignItem !== undefined
+                    ? this.props.campaignItem.values['Subject']
+                    : ''}
                 </div>
               </div>
               <div className="row">
@@ -141,7 +143,9 @@ export class MemberEmails extends Component {
                   <label>Sent Date:</label>
                 </div>
                 <div className="col-sm-8">
-                  {this.props.campaignItem.values['Sent Date']}
+                  {this.props.campaignItem !== undefined
+                    ? this.props.campaignItem.values['Sent Date']
+                    : ''}
                 </div>
               </div>
               <div className="row">
@@ -155,7 +159,9 @@ export class MemberEmails extends Component {
                   <span
                     dangerouslySetInnerHTML={{
                       __html: this.substituteFields(
-                        this.props.campaignItem.values['Body'],
+                        this.props.campaignItem !== undefined
+                          ? this.props.campaignItem.values['Body']
+                          : '',
                       ),
                     }}
                   />
