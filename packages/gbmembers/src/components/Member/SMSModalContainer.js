@@ -50,9 +50,26 @@ export class SMSModal extends Component {
     this.getMessages = this.getMessages.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.sendSms = this.sendSms.bind(this);
+
+    let numberOptions = [
+      {
+        value: this.props.submission.values['Phone Number'],
+        label: this.props.submission.values['Phone Number'],
+      },
+    ];
+
+    if (this.props.submission.values['Additional Phone Number']) {
+      numberOptions.push({
+        value: this.props.submission.values['Additional Phone Number'],
+        label: this.props.submission.values['Additional Phone Number'],
+      });
+    }
+
     this.state = {
       messages: this.getMessages(this.props.submission),
       smsText: '',
+      selectedOption: numberOptions,
+      options: numberOptions,
     };
   }
 
@@ -68,18 +85,33 @@ export class SMSModal extends Component {
       return;
     }
 
+    if (!this.state.selectedOption.length > 0) {
+      console.log('At least one phone number must be selected');
+      return;
+    }
+
+    let to = null;
+    if (this.state.selectedOption.length == 1) {
+      to = this.state.selectedOption[0].value;
+    } else {
+      to =
+        this.state.selectedOption[0].value +
+        ',' +
+        this.state.selectedOption[1].value;
+    }
+
     this.props.sendSmsMessage({
       type: 'outbound',
       status: 'sent',
-      to:
-        this.props.submission.values['Phone Number'] +
-        (this.props.submission.values['Additional Phone Number']
-          ? ',' + this.props.submission.values['Additional Phone Number']
-          : ''),
+      to: to,
       text: this.state.smsText,
       datetime: moment().format('DD-MM-YYYY hh:mm A'),
     });
   }
+
+  handleRecipientChange = selectedOption => {
+    this.setState({ selectedOption });
+  };
 
   handleChange(event) {
     this.setState({ smsText: event.target.value });
@@ -138,8 +170,8 @@ export class SMSModal extends Component {
   render() {
     return (
       <div onClick={this.handleClick}>
-        <ModalContainer onClose={this.handleClose}>
-          <ModalDialog onClose={this.handleClose} className="sms-modal">
+        <ModalContainer onClose={this.handleClose} zIndex={1030}>
+          <ModalDialog onClose={this.handleClose} style={inlineStyle}>
             <div>
               <div className="row">
                 <div className="col-md-12" style={{ textAlign: 'center' }}>
@@ -156,15 +188,18 @@ export class SMSModal extends Component {
                   <label htmlFor="phone_number" className="label label-default">
                     Phone Number
                   </label>
-                  <span
-                    className="form-control"
-                    style={{ marginLeft: '10px', width: '70%' }}
-                  >
-                    {this.props.submission.values['Phone Number']}{' '}
-                    {this.props.submission.values['Additional Phone Number']
-                      ? ',' +
-                        this.props.submission.values['Additional Phone Number']
-                      : ''}
+                  <span style={{ marginLeft: '10px', width: '70%' }}>
+                    <Select
+                      value={this.state.selectedOption}
+                      onChange={this.handleRecipientChange}
+                      options={this.state.options}
+                      closeMenuOnSelect={false}
+                      hideSelectedOptions={false}
+                      controlShouldRenderValue={true}
+                      isMulti={true}
+                      isDisabled={this.state.options.length > 1 ? false : true}
+                      isClearable={false}
+                    />
                   </span>
                 </div>
                 <div
@@ -334,3 +369,14 @@ const enhance = compose(
   }),
 );
 export const SMSModalContainer = enhance(SMSModal);
+
+const inlineStyle = {
+  position: 'absolute',
+  marginBottom: '20px',
+  width: '80%',
+  height: '80%',
+  top: '10%',
+  transform: 'matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)',
+  left: '10%',
+  overflowY: 'scroll',
+};
