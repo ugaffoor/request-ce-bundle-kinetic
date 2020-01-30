@@ -85,3 +85,20 @@ textarea {
   -webkit-text-fill-color: #000;
   -webkit-transform: translateZ(0px);
 }
+
+.embedded-core-form {
+  .photoImg {
+    width: 300px;
+    height: 300px;
+    border: unset;
+  }
+
+  .htmlData {
+    background-color: #e9e8e8;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+}
+#email_editor p {
+  margin: unset;
+}

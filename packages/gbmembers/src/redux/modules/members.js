@@ -1,4 +1,6 @@
 import { Record, List } from 'immutable';
+import moment from 'moment';
+import { setMemberPromotionValues } from '../../components/Member/MemberUtils';
 
 import { namespace, withPayload } from '../../utils';
 
@@ -8,6 +10,8 @@ export const types = {
   SET_MEMBER_FILTER: namespace('members', 'SET_MEMBER_FILTER'),
   GET_MEMBER_FILTER: namespace('members', 'GET_MEMBER_FILTER'),
   FETCH_CURRENT_MEMBER: namespace('members', 'FETCH_CURRENT_MEMBER'),
+  FETCH_MEMBER_PROMOTIONS: namespace('members', 'FETCH_MEMBER_PROMOTIONS'),
+  SET_MEMBER_PROMOTIONS: namespace('members', 'SET_MEMBER_PROMOTIONS'),
   SET_CURRENT_MEMBER: namespace('members', 'SET_CURRENT_MEMBER'),
   UPDATE_MEMBER: namespace('members', 'UPDATE_MEMBER'),
   CREATE_MEMBER: namespace('members', 'CREATE_MEMBER'),
@@ -60,6 +64,8 @@ export const types = {
     'members',
     'SET_INACTIVE_CUSTOMERS_COUNT',
   ),
+  PROMOTE_MEMBER: namespace('members', 'PROMOTE_MEMBER'),
+  MEMBER_PROMOTED: namespace('members', 'MEMBER_PROMOTED'),
 };
 
 export const actions = {
@@ -69,6 +75,8 @@ export const actions = {
   getMemberFilter: withPayload(types.GET_MEMBER_FILTER),
   fetchCurrentMember: withPayload(types.FETCH_CURRENT_MEMBER),
   setCurrentMember: withPayload(types.SET_CURRENT_MEMBER),
+  fetchMemberPromotions: withPayload(types.FETCH_MEMBER_PROMOTIONS),
+  setMemberPromotions: withPayload(types.SET_MEMBER_PROMOTIONS),
   updateMember: withPayload(types.UPDATE_MEMBER),
   createMember: withPayload(types.CREATE_MEMBER),
   deleteMember: withPayload(types.DELETE_MEMBER),
@@ -113,12 +121,15 @@ export const actions = {
     types.FETCH_INACTIVE_CUSTOMERS_COUNT,
   ),
   setInactiveCustomersCount: withPayload(types.SET_INACTIVE_CUSTOMERS_COUNT),
+  promoteMember: withPayload(types.PROMOTE_MEMBER),
+  memberPromoted: withPayload(types.MEMBER_PROMOTED),
 };
 
 export const State = Record({
-  allMembers: List(),
+  allMembers: [],
   currentMember: {},
   newMember: {},
+  initialLoad: true,
   currentMemberLoading: true,
   newMemberLoading: true,
   membersLoading: true,
@@ -137,12 +148,14 @@ export const State = Record({
   newCustomers: [],
   newCustomersLoading: true,
   actionRequests: [],
+  memberPromotions: [],
   actionRequestsLoading: true,
   variationCustomers: [],
   variationCustomersLoading: true,
   billingCustomersLoading: false,
   inactiveCustomersCount: [],
   inactiveCustomersLoading: true,
+  promotingMember: false,
 });
 
 export const reducer = (state = State(), { type, payload }) => {
@@ -183,8 +196,9 @@ export const reducer = (state = State(), { type, payload }) => {
         }
       }
 */
-      for (var k = 0; k < payload.length; k++) {
-        members[members.length] = payload[k];
+      for (var k = 0; k < payload.members.length; k++) {
+        setMemberPromotionValues(payload.members[k], payload.belts);
+        members[members.length] = payload.members[k];
       }
 
       return state.set('membersLoading', false).set('allMembers', members);
@@ -196,28 +210,39 @@ export const reducer = (state = State(), { type, payload }) => {
       return state.get('currentFilter');
     }
     case types.SET_CURRENT_MEMBER: {
-      if (payload.forBilling) {
-        if (payload.values['Billing First Name'] === undefined)
-          payload.values['Billing First Name'] = payload.values['First Name'];
-        if (payload.values['Billing Last Name'] === undefined)
-          payload.values['Billing Last Name'] = payload.values['Last Name'];
-        if (payload.values['Billing Email'] === undefined)
-          payload.values['Billing Email'] = payload.values['Email'];
-        if (payload.values['Billing Phone Number'] === undefined)
-          payload.values['Billing Phone Number'] =
-            payload.values['Phone Number'];
-        if (payload.values['Billing Address'] === undefined)
-          payload.values['Billing Address'] = payload.values['Address'];
-        if (payload.values['Billing Suburb'] === undefined)
-          payload.values['Billing Suburb'] = payload.values['Suburb'];
-        if (payload.values['Billing State'] === undefined)
-          payload.values['Billing State'] = payload.values['State'];
-        if (payload.values['Billing Postcode'] === undefined)
-          payload.values['Billing Postcode'] = payload.values['Postcode'];
+      if (payload.member.forBilling) {
+        if (payload.member.values['Billing First Name'] === undefined)
+          payload.member.values['Billing First Name'] =
+            payload.member.values['First Name'];
+        if (payload.member.values['Billing Last Name'] === undefined)
+          payload.member.values['Billing Last Name'] =
+            payload.member.values['Last Name'];
+        if (payload.member.values['Billing Email'] === undefined)
+          payload.member.values['Billing Email'] =
+            payload.member.values['Email'];
+        if (payload.member.values['Billing Phone Number'] === undefined)
+          payload.member.values['Billing Phone Number'] =
+            payload.member.values['Phone Number'];
+        if (payload.member.values['Billing Address'] === undefined)
+          payload.member.values['Billing Address'] =
+            payload.member.values['Address'];
+        if (payload.member.values['Billing Suburb'] === undefined)
+          payload.member.values['Billing Suburb'] =
+            payload.member.values['Suburb'];
+        if (payload.member.values['Billing State'] === undefined)
+          payload.member.values['Billing State'] =
+            payload.member.values['State'];
+        if (payload.member.values['Billing Postcode'] === undefined)
+          payload.member.values['Billing Postcode'] =
+            payload.member.values['Postcode'];
       }
+
+      setMemberPromotionValues(payload.member, payload.belts);
+
       return state
+        .set('initialLoad', false)
         .set('currentMemberLoading', false)
-        .set('currentMember', payload);
+        .set('currentMember', payload.member);
     }
     case types.SET_BILLING_INFO: {
       if (
@@ -244,6 +269,12 @@ export const reducer = (state = State(), { type, payload }) => {
     }
     case types.FETCH_BILLING_PAYMENTS: {
       return state.set('billingPaymentsLoading', true);
+    }
+    case types.FETCH_MEMBER_PROMOTIONS: {
+      return state.set('memberPromotionsLoading', true);
+    }
+    case types.SET_MEMBER_PROMOTIONS: {
+      return state.set('memberPromotionsLoading', false);
     }
     case types.FETCH_PAYMENT_HISTORY: {
       return state.set('paymentHistoryLoading', true);
@@ -298,6 +329,12 @@ export const reducer = (state = State(), { type, payload }) => {
       return state
         .set('inactiveCustomersLoading', false)
         .set('inactiveCustomersCount', payload);
+    }
+    case types.PROMOTE_MEMBER: {
+      return state.set('promotingMember', true);
+    }
+    case types.MEMBER_PROMOTED: {
+      return state.set('promotingMember', false);
     }
     default:
       return state;

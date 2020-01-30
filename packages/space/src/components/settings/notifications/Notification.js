@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, Component } from 'react';
 import { connect } from 'react-redux';
 import { compose, withHandlers, withState, lifecycle } from 'recompose';
 import { Link } from 'react-router-dom';
@@ -7,6 +7,10 @@ import { push } from 'connected-react-router';
 import { toastActions, PageTitle } from 'common';
 import { actions } from '../../../redux/modules/settingsNotifications';
 import { NotificationMenu } from './NotificationMenu';
+import ReactQuill, { Quill } from 'react-quill';
+import ImageResize from 'quill-image-resize-module-react';
+
+Quill.register('modules/imageResize', ImageResize);
 
 const fields = {
   Name: {
@@ -20,7 +24,7 @@ const fields = {
     visible: values => values.get('Type') === 'Template',
   },
   'HTML Content': {
-    required: true,
+    required: values => values.get('Type') === 'Template',
   },
   'Text Content': {
     required: values => values.get('Type') === 'Template',
@@ -34,8 +38,8 @@ const evaluate = (condition, values) =>
   typeof condition === 'boolean'
     ? condition
     : typeof condition === 'function'
-      ? condition(values)
-      : false;
+    ? condition(values)
+    : false;
 
 const isRequired = (name, values) => evaluate(fields[name].required, values);
 
@@ -45,6 +49,133 @@ const isValid = values =>
   !Object.entries(fields).some(
     ([name, _]) => isRequired(name, values) && !values.get(name),
   );
+function imageHandler() {
+  var range = quillRef.getSelection();
+  var value = prompt('What is the image URL');
+  if (value) {
+    quillRef.insertEmbed(range.index, 'image', value, Quill.sources.USER);
+  }
+}
+
+export class HTMLContent extends Component {
+  constructor(props) {
+    super(props);
+    this.setDirty = this.props.setDirty;
+    this.values = null;
+    this.setValues = this.props.setValues;
+    this.setValues.bind(this);
+    this.setCursorPosition = this.props.setCursorPosition;
+    this.setCursorPosition.bind(this);
+    this.setSelection = this.props.setSelection;
+    this.setSelection.bind(this);
+    this.setQuillRef = this.props.setQuillRef;
+    this.setQuillRef.bind(this);
+    this.reactQuillRef = null;
+    this.attachQuillRefs = this.attachQuillRefs.bind(this);
+  }
+  componentDidMount() {
+    this.attachQuillRefs(this);
+  }
+  componentWillReceiveProps(nextProps) {
+    if (this.values === null) {
+      console.log('HTMLContent componentWillReceiveProps');
+      this.values = nextProps.values;
+    }
+  }
+  modules = {
+    toolbar: {
+      container: [
+        ['bold', 'italic', 'underline', 'strike'], // toggled buttons
+        ['blockquote', 'code-block'],
+
+        [{ header: 1 }, { header: 2 }], // custom button values
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        [{ script: 'sub' }, { script: 'super' }], // superscript/subscript
+        [{ indent: '-1' }, { indent: '+1' }], // outdent/indent
+        [{ direction: 'rtl' }], // text direction
+
+        [{ size: ['small', false, 'large', 'huge'] }], // custom dropdown
+        [{ header: [1, 2, 3, 4, 5, 6, false] }],
+
+        [{ color: [] }, { background: [] }], // dropdown with defaults from theme
+        [{ font: [] }],
+        [{ align: [] }],
+        ['link'],
+        ['image'],
+        ['clean'],
+      ],
+      handlers: {
+        image: imageHandler,
+      },
+    },
+    imageResize: {
+      parchment: Quill.import('parchment'),
+    },
+  };
+  formats = [
+    'header',
+    'bold',
+    'italic',
+    'underline',
+    'strike',
+    'blockquote',
+    'list',
+    'bullet',
+    'indent',
+    'link',
+    'image',
+    'color',
+    'width',
+    'height',
+    'table',
+    'td',
+    'tr',
+  ];
+  attachQuillRefs = props => variable => {
+    const quillRef = this.reactQuillRef ? this.reactQuillRef.getEditor() : null;
+    if (quillRef != null) this.quillRef = quillRef;
+  };
+  handleHTMLChange(event) {
+    console.log('in handleHTMLChange');
+    if (this.values !== null) {
+      this.setValues(this.values.set('HTML Content', event));
+      console.log('in handleHTMLChange');
+    }
+  }
+
+  handleHTMLBlur(event) {
+    console.log('in handleHTMLBlur');
+    const name = 'HTML Content';
+    const start = event.index;
+    const end = event.index + event.length;
+    this.setCursorPosition({ name, start, end });
+    this.setSelection(this.values.get(name).substring(start, end));
+
+    //          this.setDirty(true);
+    //        this.setValues(this.values.set("HTML Content", this.reactQuillRef.editingArea.innerHTML));
+  }
+  render() {
+    return (
+      <ReactQuill
+        ref={el => {
+          this.reactQuillRef = el;
+          if (el !== null) this.setQuillRef(el.getEditor());
+        }}
+        value={this.props.values.get('HTML Content')}
+        onChange={this.handleHTMLChange}
+        modules={this.modules}
+        formats={this.formats}
+        onBlur={this.handleHTMLBlur}
+        setDirty={this.setDirty}
+        values={this.values}
+        setValues={this.setValues}
+        setCursorPosition={this.setCursorPosition}
+        setSelection={this.setSelection}
+        reactQuillRef={this.reactQuillRef}
+      />
+    );
+  }
+}
 
 const NotificationComponent = ({
   loading,
@@ -52,12 +183,20 @@ const NotificationComponent = ({
   type,
   title,
   dirty,
+  setDirty,
   values,
+  setValues,
   selection,
   handleFieldChange,
   handleFieldBlur,
+  handleHTMLChange,
+  handleHTMLBlur,
   handleSubmit,
   handleVariableSelection,
+  quillRef,
+  setCursorPosition,
+  setSelection,
+  setQuillRef,
 }) => (
   <div className="page-container page-container--notifications">
     <PageTitle
@@ -76,120 +215,120 @@ const NotificationComponent = ({
             <Link to={`/settings/notifications/${type}`}>
               notification {type}
             </Link>
-            {` `}
-            /
+            {` `}/
           </h3>
           {!loading && (
             <h1>{submission ? submission.label : `New ${title}`}</h1>
           )}
         </div>
       </div>
-      {!loading &&
-        values && (
-          <form onSubmit={handleSubmit}>
-            <Fragment>
-              <NotificationMenu
-                selection={selection}
-                onSelect={handleVariableSelection}
-              />
-            </Fragment>
-            <div className="form-group required">
-              <label className="field-label" htmlFor="name">
-                Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="Name"
-                onChange={handleFieldChange}
-                onBlur={handleFieldBlur}
-                value={values.get('Name')}
-              />
-            </div>
+      {!loading && values && (
+        <form onSubmit={handleSubmit}>
+          <Fragment>
+            <NotificationMenu
+              selection={selection}
+              onSelect={handleVariableSelection}
+              quillRef={quillRef}
+            />
+          </Fragment>
+          <div className="form-group required">
+            <label className="field-label" htmlFor="name">
+              Name
+            </label>
+            <input
+              type="text"
+              id="name"
+              name="Name"
+              onChange={handleFieldChange}
+              onBlur={handleFieldBlur}
+              value={values.get('Name')}
+            />
+          </div>
 
-            <div className="radio required">
-              <label className="field-label">Status</label>
-              <label>
-                <input
-                  type="radio"
-                  name="Status"
-                  value="Active"
-                  onChange={handleFieldChange}
-                  onBlur={handleFieldBlur}
-                  checked={values.get('Status') === 'Active'}
-                />
-                Active
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name="Status"
-                  value="Inactive"
-                  onChange={handleFieldChange}
-                  onBlur={handleFieldBlur}
-                  checked={values.get('Status') === 'Inactive'}
-                />
-                Inactive
-              </label>
-            </div>
-            {isVisible('Subject', values) && (
-              <div className="form-group required">
-                <label className="field-label" htmlFor="subject">
-                  Subject
-                </label>
-                <textarea
-                  id="subject"
-                  name="Subject"
-                  rows="2"
-                  onChange={handleFieldChange}
-                  onBlur={handleFieldBlur}
-                  value={values.get('Subject')}
-                />
-              </div>
-            )}
+          <div className="radio required">
+            <label className="field-label">Status</label>
+            <label>
+              <input
+                type="radio"
+                name="Status"
+                value="Active"
+                onChange={handleFieldChange}
+                onBlur={handleFieldBlur}
+                checked={values.get('Status') === 'Active'}
+              />
+              Active
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="Status"
+                value="Inactive"
+                onChange={handleFieldChange}
+                onBlur={handleFieldBlur}
+                checked={values.get('Status') === 'Inactive'}
+              />
+              Inactive
+            </label>
+          </div>
+          {isVisible('Subject', values) && (
             <div className="form-group required">
-              <label className="field-label" htmlFor="htmlContent">
-                HTML Content
+              <label className="field-label" htmlFor="subject">
+                Subject
               </label>
               <textarea
-                id="htmlContent"
-                name="HTML Content"
-                rows="8"
+                id="subject"
+                name="Subject"
+                rows="2"
                 onChange={handleFieldChange}
                 onBlur={handleFieldBlur}
-                value={values.get('HTML Content')}
+                value={values.get('Subject')}
               />
             </div>
-            <div
-              className={`form-group ${
-                isRequired('Text Content', values) ? 'required' : ''
-              }`}
-            >
-              <label className="field-label" htmlFor="textContent">
-                Text Content
-              </label>
-              <textarea
-                id="textContent"
-                name="Text Content"
-                rows="8"
-                onChange={handleFieldChange}
-                onBlur={handleFieldBlur}
-                value={values.get('Text Content')}
-              />
+          )}
+          <div className="form-group required">
+            <label className="field-label" htmlFor="htmlContent">
+              HTML Content
+            </label>
+            <HTMLContent
+              values={values}
+              quillRef={quillRef}
+              setDirty={setDirty}
+              setValues={setValues}
+              setCursorPosition={setCursorPosition}
+              setSelection={setSelection}
+              setQuillRef={setQuillRef}
+            />
+          </div>
+          <div
+            className={`form-group ${
+              isRequired('Text Content', values) ? 'required' : ''
+            }`}
+          >
+            <label className="field-label" htmlFor="textContent">
+              Text Content
+            </label>
+            <textarea
+              id="textContent"
+              name="Text Content"
+              rows="8"
+              onChange={handleFieldChange}
+              onBlur={handleFieldBlur}
+              value={values.get('Text Content')}
+            />
+          </div>
+          <div className="form__footer">
+            <div className="form_footer__right">
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={!isValid(values)}
+              >
+                Save
+              </button>
             </div>
-            <div className="form__footer">
-              <div className="form_footer__right">
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  disabled={!dirty || !isValid(values)}
-                >
-                  Save
-                </button>
-              </div>
-            </div>
-          </form>
-        )}
+          </div>
+        </form>
+      )}
     </div>
   </div>
 );
@@ -231,16 +370,28 @@ export const handleFieldBlur = props => event => {
 export const handleVariableSelection = props => variable => {
   if (props.cursorPosition) {
     const { name, start, end } = props.cursorPosition;
-    const value = props.values.get(name);
-    const newValue = Seq(value || [])
-      .take(start)
-      .concat(Seq(variable))
-      .concat(Seq(value || []).skip(end))
-      .join('');
-    props.setValues(props.values.set(name, newValue));
+    if (name === 'HTML Content') {
+      console.log('quillRef:' + quillRef);
+      quillRef.editor.insertText(start, variable);
+      var text = quillRef.getContents();
+      props.setValues(props.values.set(name, text));
+    } else {
+      const value = props.values.get(name);
+      const newValue = Seq(value || [])
+        .take(start)
+        .concat(Seq(variable))
+        .concat(Seq(value || []).skip(end))
+        .join('');
+      props.setValues(props.values.set(name, newValue));
+    }
   }
 };
 
+var quillRef = null;
+
+const setQuillRef = props => ref => {
+  quillRef = ref;
+};
 export const mapStateToProps = (state, props) => ({
   submission: state.space.settingsNotifications.notification,
   type: props.match.params.type,
@@ -259,10 +410,7 @@ export const mapDispatchToProps = {
 };
 
 export const Notification = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withState('dirty', 'setDirty', false),
   withState('values', 'setValues', props =>
     Map(Object.keys(fields).map(field => [field, ''])).set('Type', props.title),
@@ -274,6 +422,7 @@ export const Notification = compose(
     handleFieldChange,
     handleFieldBlur,
     handleVariableSelection,
+    setQuillRef,
   }),
   lifecycle({
     componentWillMount() {

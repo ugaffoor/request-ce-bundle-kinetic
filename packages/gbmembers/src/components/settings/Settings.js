@@ -9,15 +9,11 @@ import {
 } from 'recompose';
 import { actions } from '../../redux/modules/members';
 import $ from 'jquery';
-import moment from 'moment';
-import PropTypes from 'prop-types';
-import ReactSpinner from 'react16-spinjs';
+import html2canvas from 'html2canvas';
+import Barcode from 'react-barcode';
 import 'bootstrap/scss/bootstrap.scss';
-import _ from 'lodash';
-import ReactTable from 'react-table';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as errorActions } from '../../redux/modules/errors';
-import { KappNavLink as NavLink } from 'common';
 
 const mapStateToProps = state => ({
   memberItem: state.member.members.currentMember,
@@ -46,19 +42,13 @@ export const SettingsView = ({
   createBillingMembers,
   billingCustomersLoading,
   fetchMembers,
+  printMemberBarcodes,
+  printingBarcodes,
+  setPrintingBarcodes,
 }) => (
   <div className="dashboard">
     <StatusMessagesContainer />
     <div className="buttons row" style={{ marginLeft: '10px' }}>
-      <div className="col-xs-3">
-        <NavLink
-          to={`/ddrTemplates`}
-          style={{ borderRadius: '0', marginRight: '5px' }}
-          className="btn btn-primary"
-        >
-          Manage DDR Templates
-        </NavLink>
-      </div>
       <div className="col-xs-3">
         <button
           type="button"
@@ -83,37 +73,102 @@ export const SettingsView = ({
           <span />
         )}
       </div>
+      <div className="col-xs-3">
+        <button
+          type="button"
+          id="printMemberbarcodes"
+          className={'btn btn-primary'}
+          style={{ borderRadius: '0', marginRight: '5px' }}
+          onClick={e =>
+            printMemberBarcodes({
+              allMembers,
+              setPrintingBarcodes,
+            })
+          }
+        >
+          Print Member barcodes
+        </button>
+      </div>
+      {!printingBarcodes ? (
+        <div />
+      ) : (
+        <div id="memberBarcodesSection">
+          <div id="memberBarcodes">
+            {allMembers.map(member => (
+              <span className="barCode">
+                <Barcode
+                  value={member.id.split('-')[4].substring(6, 12)}
+                  width={1.3}
+                  height={46}
+                  text={
+                    member.values['Last Name'].substring(0, 1) +
+                    ' ' +
+                    member.values['Last Name']
+                  }
+                  type={'CODE128'}
+                  font={'monospace'}
+                  textAlign={'center'}
+                  textPosition={'bottom'}
+                  textMargin={2}
+                  fontSize={8}
+                />
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   </div>
 );
 
 export const SettingsContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withProps(({ memberItem }) => {
     return {};
   }),
-  withState('isAssigning', 'setIsAssigning', false),
-  withHandlers({}),
+  withState('printingBarcodes', 'setPrintingBarcodes', false),
+  withHandlers({
+    printMemberBarcodes: ({ allMembers, setPrintingBarcodes }) => () => {
+      console.log('Printing:' + allMembers.length);
+      setPrintingBarcodes(true);
+
+      setTimeout(function() {
+        const opt = {
+          scale: 1,
+        };
+        var iframe = null;
+        if ($('#printf').length > 0) {
+          iframe = $('#printf')[0];
+        } else {
+          iframe = document.createElement('iframe');
+        }
+        iframe.name = 'printf';
+        iframe.id = 'printf';
+        //           iframe.height = '1100px';
+        //           iframe.width = '2000px';
+        document.body.appendChild(iframe);
+
+        var newWin = window.frames['printf'];
+        newWin.document.write(
+          '<style> #memberBarcodes{margin-top: 50px;margin-left:10px;display: flow-root;width: 800px;} ' +
+            '.barCode {position: relative;width: 160px; flex: 30 0 auto;}' +
+            '.barCode svg{width:160px;}' +
+            '</style><body onload="window.print()">' +
+            $('#memberBarcodesSection').html() +
+            '</body>',
+        );
+        newWin.document.close();
+        setPrintingBarcodes(false);
+      }, 1000);
+    },
+  }),
   lifecycle({
-    componentWillMount() {},
+    componentWillMount() {
+      //      this.setState({ printingBarcodes: false });
+    },
     componentWillReceiveProps(nextProps) {
       $('.content')[0].scrollIntoView(true);
     },
     componentWillUnmount() {},
   }),
 )(SettingsView);
-
-export class Settings extends Component {
-  constructor(props) {
-    super(props);
-  }
-
-  componentWillReceiveProps(nextProps) {}
-
-  render() {
-    <span />;
-  }
-}

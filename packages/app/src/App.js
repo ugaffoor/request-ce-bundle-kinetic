@@ -14,6 +14,7 @@ import { HeaderContainer } from './components/HeaderContainer';
 import { actions as loadActions } from './redux/modules/loading';
 import { actions as alertsActions } from './redux/modules/alerts';
 import { actions as layoutActions } from './redux/modules/layout';
+import { App as RegistrationsApp } from 'registrations/src/App';
 import { App as ServicesApp } from 'services/src/App';
 import { App as QueueApp } from 'queue/src/App';
 import { App as SpaceApp } from 'space/src/App';
@@ -74,6 +75,8 @@ const getAppProvider = kapp => {
     ? Utils.getAttributeValue(kapp, 'Bundle Package', kapp.slug)
     : SpaceApp;
   switch (bundlePackage) {
+    case 'registrations':
+      return RegistrationsApp;
     case 'services':
       return ServicesApp;
     case 'queue':
@@ -86,10 +89,7 @@ const getAppProvider = kapp => {
 };
 
 export const App = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withProps(props => {
     const AppProvider = getAppProvider(
       props.kapps.find(kapp => kapp.slug === props.kappSlug),

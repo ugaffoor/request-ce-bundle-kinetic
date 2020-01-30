@@ -1,7 +1,7 @@
 .app .navbar {
   position: absolute;
   top: 47px;
-  width: 90%;
+  width: 85%;
 }
 .navbar {
   padding: 0;
@@ -73,6 +73,7 @@ ul.nav-header.apps.nav {
 .nav.nav-header .dropdown-menu {
   border-radius: 0;
   border: none;
+  top: 50px !important;
   filter: drop-shadow(rgba(0, 0, 0, 0.3) 0 3px 4px);
   margin-top: 0;
   &:after {
@@ -139,7 +140,7 @@ img.companyLogo {
   top: 0%;
   right: -10%;
   display: none;
-  width: 95px;
+  width: 60px;
   z-index: 100;
   @media (min-width: 768px) {
     display: block;

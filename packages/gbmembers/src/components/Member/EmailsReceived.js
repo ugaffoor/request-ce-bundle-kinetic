@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import ReactTable from 'react-table';
 import { email_received_date_format } from '../leads/LeadsUtils';
 import moment from 'moment';
+import mail from '../../images/mail.png';
+import { KappNavLink as NavLink } from 'common';
 
 export class EmailsReceived extends Component {
   constructor(props) {
@@ -22,6 +24,18 @@ export class EmailsReceived extends Component {
     return [
       { accessor: 'Subject', Header: 'Subject' },
       { accessor: 'Received Date', Header: 'Received Date' },
+      {
+        accessor: 'replyEmail',
+        Header: 'Reply',
+        Cell: row => (
+          <NavLink
+            className="replyIcon"
+            to={`/NewEmailCampaign/${row.original['User ID']}/${row.original['User Type']}/activity/${row.original['Activity ID']}`}
+          >
+            <img src={mail} alt="Email" />
+          </NavLink>
+        ),
+      },
     ];
   }
 
@@ -38,6 +52,9 @@ export class EmailsReceived extends Component {
       var dt = moment(emails[i]['Received Date'], 'DD-MM-YYYY HH:mm');
       dt = dt.add(moment().utcOffset() * 60, 'seconds');
       emails[i]['Received Date'] = dt.format(email_received_date_format);
+      emails[i]['User Type'] = submission.form.slug;
+      emails[i]['User ID'] = submission.id;
+      emails[i]['Campaign ID'] = submission.id;
     }
 
     return emails.sort(function(email1, email2) {

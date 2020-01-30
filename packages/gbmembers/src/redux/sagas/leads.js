@@ -42,7 +42,7 @@ export function* fetchLeads(action) {
 export function* fetchCurrentLead(action) {
   try {
     const LEAD_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
-      .eq('id', action.payload.id)
+      .eq('values[Lead ID]', action.payload.id)
       .include(['details', 'values'])
       .limit(1000)
       .build();
@@ -84,6 +84,8 @@ export function* fetchCurrentLead(action) {
         emailReceivedContent[emailReceivedContent.length] = JSON.parse(
           leadActivities.submissions[i].values['Content'],
         );
+        emailReceivedContent[emailReceivedContent.length - 1]['Activity ID'] =
+          leadActivities.submissions[i].id;
       }
       if (leadActivities.submissions[i].values['Type'] === 'SMS') {
         smsContent[smsContent.length] = leadActivities.submissions[i];

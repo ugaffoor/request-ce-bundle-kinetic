@@ -2,6 +2,7 @@ import React from 'react';
 import { KappRoute as Route, KappRedirect as Redirect, Loading } from 'common';
 import { HomeContainer } from './home/Home';
 import { AttendanceContainer } from './attendance/Attendance';
+import { GradingContainer } from './attendance/Grading';
 import { LeadsContainer } from './leads/Leads';
 import { LeadNewContainer } from './leads/LeadNew';
 import { LeadDetailContainer } from './leads/LeadDetail';
@@ -32,6 +33,7 @@ export const Content = () => (
     <Route path="/" exact render={() => <Redirect to="/Home" />} />
     <Route path="/Home" component={HomeContainer} />
     <Route path="/Attendance" component={AttendanceContainer} />
+    <Route path="/Grading" component={GradingContainer} />
     <Route path="/Leads" component={LeadsContainer} />
     <Route path="/NewLead" component={LeadNewContainer} />
     <Route path="/LeadDetail/:id" component={LeadDetailContainer} />
@@ -48,7 +50,7 @@ export const Content = () => (
     <Route path="/MemberFollowUp/:id" component={MemberFollowUpContainer} />
     <Route path="/Send" component={CampaignContainer} />
     <Route
-      path="/NewEmailCampaign/:submissionId?/:submissionType?"
+      path="/NewEmailCampaign/:submissionId?/:submissionType?/:replyType?/:campaignId?"
       component={EmailCampaignContainer}
     />
     <Route

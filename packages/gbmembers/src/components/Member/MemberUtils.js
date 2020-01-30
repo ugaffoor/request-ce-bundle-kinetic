@@ -183,3 +183,68 @@ export function getJson(input) {
     return input;
   }
 }
+
+export function setMemberPromotionValues(member, belts) {
+  let statusIndicator = 'notready';
+  let statusText = 'NOT READY';
+  let programOrder = 0;
+  let promotionSort = 2;
+  let attendClasses = 0;
+  let durationPeriod = 0;
+  if (
+    member.values !== undefined &&
+    member.values['Ranking Program'] !== undefined &&
+    member.values['Ranking Belt'] !== undefined
+  ) {
+    let belt = belts.find(
+      obj =>
+        obj['program'] === member.values['Ranking Program'] &&
+        obj['belt'] === member.values['Ranking Belt'],
+    );
+    if (belt !== undefined) {
+      attendClasses = belt.attendClasses;
+      durationPeriod = belt.durationPeriod;
+      programOrder = belt.programOrder;
+    }
+  }
+
+  let attendanceVal = member.values['Attendance Count'] / attendClasses;
+  let daysElapsed = moment().diff(
+    moment(member.values['Last Promotion']),
+    'days',
+  );
+  let daysVal = daysElapsed / durationPeriod;
+
+  if (attendanceVal <= 0.6 || daysVal <= 0.6) {
+    statusIndicator = 'notready';
+    statusText = 'NOT READY';
+    promotionSort = 2;
+  } else if (
+    attendanceVal >= 0.8 &&
+    member.values['Attendance Count'] < attendClasses &&
+    daysVal >= 0.8
+  ) {
+    statusIndicator = 'almost';
+    statusText = 'ALMOST READY';
+    promotionSort = 1;
+  } else if (attendanceVal >= 1 && daysVal >= 0.9) {
+    statusIndicator = 'ready';
+    statusText = 'READY';
+    promotionSort = 0;
+  }
+  let attendancePerc = attendanceVal * 100;
+  if (attendancePerc > 100) attendancePerc = 100;
+
+  member.programOrder = programOrder;
+  member.promotionSort = promotionSort;
+  member.statusText = statusText;
+  member.attendClasses = attendClasses;
+  member.durationPeriod = durationPeriod;
+  member.attendanceVal = attendanceVal;
+  member.daysElapsed = daysElapsed;
+  member.daysVal = daysVal;
+  member.attendancePerc = attendancePerc;
+  member.statusIndicator = statusIndicator;
+
+  return member;
+}

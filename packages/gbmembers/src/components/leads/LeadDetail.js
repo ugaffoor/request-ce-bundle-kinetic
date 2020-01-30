@@ -190,7 +190,7 @@ export class LeadDetail extends Component {
     columns.push({
       accessor: 'contactDate',
       width: 250,
-      Cell: row => moment(row.original.contactDate).format('DD-MM-YYYY h:hh A'),
+      Cell: row => moment(row.original.contactDate).format('DD-MM-YYYY h:mm A'),
     });
     columns.push({
       accessor: 'submitter',
@@ -263,6 +263,8 @@ export class LeadDetail extends Component {
           Free Class
         </span>
       );
+    } else {
+      return <span className="notesCell"></span>;
     }
   }
 
@@ -316,13 +318,11 @@ export class LeadDetail extends Component {
                       undefined ||
                       this.props.leadItem.values['Parent or Guardian'] !==
                         null) &&
-                    (this.props.leadItem.values['ParentMember'] !== undefined &&
-                      this.props.leadItem.values['ParentMember'] !== null) ? (
+                    this.props.leadItem.values['ParentMember'] !== undefined &&
+                      this.props.leadItem.values['ParentMember'] !== null ? (
                       <span>
                         <NavLink
-                          to={`/Member/${
-                            this.props.leadItem.values['ParentMember']
-                          }`}
+                          to={`/Member/${this.props.leadItem.values['ParentMember']}`}
                           className={'nav-link icon-wrapper'}
                           activeClassName="active"
                           style={{ display: 'inline' }}
@@ -336,13 +336,11 @@ export class LeadDetail extends Component {
                       undefined ||
                       this.props.leadItem.values['Parent or Guardian'] !==
                         null) &&
-                    (this.props.leadItem.values['ParentLead'] !== undefined &&
-                      this.props.leadItem.values['ParentLead'] !== null) ? (
+                    this.props.leadItem.values['ParentLead'] !== undefined &&
+                      this.props.leadItem.values['ParentLead'] !== null ? (
                       <span>
                         <NavLink
-                          to={`/LeadDetail/${
-                            this.props.leadItem.values['ParentLead']
-                          }`}
+                          to={`/LeadDetail/${this.props.leadItem.values['ParentLead']}`}
                           className={'nav-link icon-wrapper'}
                           activeClassName="active"
                           style={{ display: 'inline' }}
@@ -545,6 +543,7 @@ export class LeadDetail extends Component {
               <li className="nav-item date">
                 <Datetime
                   className="float-right"
+                  dateFormat="DD/MM/YYYY"
                   onChange={this.handleDateChange}
                   defaultValue={moment()}
                 />
@@ -705,10 +704,7 @@ export const LeadDetailView = ({
   );
 
 export const LeadDetailContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withProps(() => {
     return {};
   }),
@@ -724,6 +720,7 @@ export const LeadDetailContainer = compose(
       fetchLead,
       addNotification,
       setSystemError,
+      space,
     }) => newHistory => {
       let history = getJson(leadItem.values['History']);
       history.push(newHistory);
@@ -752,13 +749,18 @@ export const LeadDetailContainer = compose(
           description: newHistory['note'],
           location: 'Gym',
           attendeeEmail: leadItem.values['Email'],
-          timeZone: 'Australia/Sydney',
+          timeZone:
+            profile.timezone !== null
+              ? profile.timezone
+              : space.defaultTimezone,
         };
 
         let startDateTime = moment(newHistory.contactDate, 'YYYY-MM-DD HH:mm');
         let endDateTime = startDateTime.clone().add(1, 'hours');
-        let rfcStartDateTime = startDateTime.format('YYYY-MM-DDTHH:mm:ss');
-        let rfcEndDateTime = endDateTime.format('YYYY-MM-DDTHH:mm:ss');
+        let rfcStartDateTime = startDateTime
+          .utc()
+          .format('YYYY-MM-DDTHH:mm:ssZ');
+        let rfcEndDateTime = endDateTime.utc().format('YYYY-MM-DDTHH:mm:ssZ');
         calendarEvent.startDateTime = rfcStartDateTime;
         calendarEvent.endDateTime = rfcEndDateTime;
       }

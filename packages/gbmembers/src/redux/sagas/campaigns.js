@@ -65,7 +65,8 @@ export function* updateEmailCampaign(action) {
     });
     if (action.payload.history)
       action.payload.history.push('/kapps/gbmembers/Send');
-    if (action.payload.fetchEmailCampaigns) action.payload.fetchEmailCampaigns();
+    if (action.payload.fetchEmailCampaigns)
+      action.payload.fetchEmailCampaigns();
     if (action.payload.fetchEmailCampaign)
       action.payload.fetchEmailCampaign({
         id: action.payload.id,
@@ -125,6 +126,7 @@ export function* fetchEmailCampaigns(action) {
         'values[Sent Date]',
         'values[Opened By Members]',
         'values[Clicked By Members]',
+        'values[Attachments]',
       ])
       .build();
 
@@ -175,7 +177,7 @@ export function* createSmsCampaign(action) {
       phoneNumbers: action.payload.phoneNumbers,
       target: action.payload.target,
       createMemberActivities: action.payload.createMemberActivities,
-      fetchMembers: action.payload.fetchMembers
+      fetchMembers: action.payload.fetchMembers,
     });
     yield put(
       errorActions.addSuccess(
@@ -250,7 +252,7 @@ export function* fetchSmsCampaigns(action) {
         'values[Recipients]',
         'values[From Number]',
         'values[SMS Content]',
-        'values[Sent Date]'
+        'values[Sent Date]',
       ])
       .build();
 

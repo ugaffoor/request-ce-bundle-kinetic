@@ -6,7 +6,7 @@ import {
   takeLatest,
   takeEvery,
 } from 'redux-saga/effects';
-import { OrderedMap } from 'immutable';
+import { OrderedMap, fromJS } from 'immutable';
 import { CoreAPI } from 'react-kinetic-core';
 
 import { getAttributeValue } from '../../utils';
@@ -31,8 +31,14 @@ export const selectReportPreferences = ({ member }) =>
   member.app.reportPreferences;
 
 export const PROGRAMBELTS_SEARCH = new CoreAPI.SubmissionSearch(true)
-  .eq('values[Status]', 'Active')
-  .index('values[Status]')
+  .in('values[Program Order]', ['1', '2', '3', '4', '5', '6', '7'])
+  .index('values[Program Order]')
+  .include('details,values')
+  .limit(1000)
+  .build();
+export const PROGRAMBELTS_SEARCH2 = new CoreAPI.SubmissionSearch(true)
+  .in('values[Program Order]', ['8', '9', '10', '11', '12', '13', '14'])
+  .index('values[Program Order]')
   .include('details,values')
   .limit(1000)
   .build();
@@ -71,7 +77,7 @@ export function* fetchMemberAppSettingsTask() {
     profile: { profile },
     submissions: { submissions },
   } = yield all({
-    space: call(CoreAPI.fetchSpace, { include: 'attributes' }),
+    space: call(CoreAPI.fetchSpace, { include: 'details,attributes' }),
     kapps: call(CoreAPI.fetchKapps, { include: 'attributes' }),
     profile: call(CoreAPI.fetchProfile, {
       include: PROFILE_INCLUDES,
@@ -88,30 +94,44 @@ export function* fetchMemberAppSettingsTask() {
     if (k.slug === 'gbmembers') kapp = k;
   });
   console.log('debug 3:' + kapp);
-
+  const submissions2 = yield all({
+    submissions: call(CoreAPI.searchSubmissions, {
+      datastore: true,
+      form: 'program-belts',
+      search: PROGRAMBELTS_SEARCH2,
+    }),
+  });
+  console.log('debug 4:' + submissions2);
+  var beltSubmissions = [];
+  beltSubmissions = beltSubmissions.concat(submissions);
+  beltSubmissions = beltSubmissions.concat(
+    submissions2.submissions.submissions,
+  );
   var programsMap = OrderedMap();
   var beltsMap = OrderedMap();
-  for (var i = 0; i < submissions.length; i++) {
-    programsMap = programsMap.set(submissions[i].values['Program Order'], {
-      order: submissions[i].values['Program Order'],
-      program: submissions[i].values['Program'],
+  for (var i = 0; i < beltSubmissions.length; i++) {
+    programsMap = programsMap.set(beltSubmissions[i].values['Program Order'], {
+      order: beltSubmissions[i].values['Program Order'],
+      program: beltSubmissions[i].values['Program'],
     });
     beltsMap = beltsMap.set(
-      submissions[i].values['Program Order'] +
-        submissions[i].values['Belt Order'],
+      beltSubmissions[i].values['Program Order'] +
+        beltSubmissions[i].values['Belt Order'],
       {
-        programOrder: submissions[i].values['Program Order'],
-        program: submissions[i].values['Program'],
-        beltOrder: submissions[i].values['Belt Order'],
-        belt: submissions[i].values['Belt'],
+        programOrder: beltSubmissions[i].values['Program Order'],
+        program: beltSubmissions[i].values['Program'],
+        beltOrder: beltSubmissions[i].values['Belt Order'],
+        belt: beltSubmissions[i].values['Belt'],
+        attendClasses: beltSubmissions[i].values['Attend Classes'],
+        durationPeriod: beltSubmissions[i].values['Duration Period'],
       },
     );
   }
   programsMap = programsMap.sort((a, b) => {
-    if (a.order < b.order) {
+    if (a.order.padStart(3, '0') < b.order.padStart(3, '0')) {
       return -1;
     }
-    if (a.order > b.order) {
+    if (a.order.padStart(3, '0') > b.order.padStart(3, '0')) {
       return 1;
     }
     return 0;
@@ -120,8 +140,8 @@ export function* fetchMemberAppSettingsTask() {
   var programs = programsMap.toList();
 
   beltsMap = beltsMap.sort((a, b) => {
-    const p1Order = a.programOrder;
-    const p2Order = b.programOrder;
+    const p1Order = a.programOrder.padStart(3, '0');
+    const p2Order = b.programOrder.padStart(3, '0');
     const belt1Order = a.beltOrder.padStart(3, '0');
     const belt2Order = b.beltOrder.padStart(3, '0');
 

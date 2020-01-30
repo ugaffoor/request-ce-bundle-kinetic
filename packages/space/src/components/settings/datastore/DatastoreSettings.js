@@ -47,6 +47,7 @@ const SettingsComponent = ({
   staleFields,
   setStaleFields,
   fetchForm,
+  isPlatform,
 }) =>
   !loading && (
     <div className="page-container page-container--panels page-container--datastore">
@@ -66,9 +67,15 @@ const SettingsComponent = ({
           </div>
           <div className="page-title__actions">
             <a
-              href={`${bundle.spaceLocation()}/app/#/admin/datastore/form/${
-                origForm.slug
-              }/builder`}
+              href={
+                isPlatform
+                  ? `${bundle.spaceLocation()}/app/builder/#/forms/${
+                      origForm.slug
+                    }/builder`
+                  : `${bundle.spaceLocation()}/app/#/admin/datastore/form/${
+                      origForm.slug
+                    }/builder`
+              }
               className="btn btn-primary"
               target="blank"
             >
@@ -153,7 +160,7 @@ const SettingsComponent = ({
                     }
                     className="form-control"
                   >
-                    <option value="">Don't perform default search</option>
+                    <option value="">Do not perform default search</option>
                     <optgroup label="Search by Index:">
                       {List(origForm.indexDefinitions)
                         .filter(d => d.status === 'Built')
@@ -1207,6 +1214,7 @@ export const mapStateToProps = (state, { match: { params } }) => ({
   ),
   bridges: state.space.settingsDatastore.bridges,
   bridgeName: '',
+  isPlatform: state.app.config.isPlatform,
 });
 
 export const mapDispatchToProps = {
@@ -1218,10 +1226,7 @@ export const mapDispatchToProps = {
 };
 
 export const DatastoreSettings = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withState('newQualification', 'setNewQualification', null),
   withState('newAttribute', 'setNewAttribute', new BridgeAttribute()),
   withState('editAttribute', 'setEditAttribute', new BridgeAttribute()),

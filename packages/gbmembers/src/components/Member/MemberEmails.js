@@ -9,16 +9,33 @@ export class MemberEmails extends Component {
     const data = this.getData(this.props.memberItem);
     this._columns = this.getColumns();
     this.getCampaign = this.getCampaign.bind(this);
+    let attachments = '';
+
     this.substituteFields = this.substituteFields.bind(this);
     this.state = {
       data,
+      attachments,
     };
   }
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.memberItem) {
+      let attachments = '';
+
+      if (nextProps.campaignItem.values['Attachments'] !== undefined) {
+        JSON.parse(nextProps.campaignItem.values['Attachments']).forEach(
+          attachment => {
+            attachments +=
+              decodeURI(
+                attachment.split('/')[attachment.split('/').length - 1],
+              ) + ' ';
+          },
+        );
+      }
+
       this.setState({
         data: this.getData(nextProps.memberItem),
+        attachments: attachments,
       });
     }
   }
@@ -145,6 +162,16 @@ export class MemberEmails extends Component {
                 <div className="col-sm-8">
                   {this.props.campaignItem !== undefined
                     ? this.props.campaignItem.values['Sent Date']
+                    : ''}
+                </div>
+              </div>
+              <div className="row">
+                <div className="col-sm-2">
+                  <label>Attachments:</label>
+                </div>
+                <div className="col-sm-8">
+                  {this.props.campaignItem !== undefined
+                    ? this.state.attachments
                     : ''}
                 </div>
               </div>

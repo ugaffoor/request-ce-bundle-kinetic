@@ -387,15 +387,14 @@ const mapDispatchToProps = {
 };
 
 export const NotificationMenu = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withState('selectedKapp', 'setSelectedKapp', null),
   withState('selectedForm', 'setSelectedForm', null),
   withState('isDatastore', 'setIsDatastore', false),
   withHandlers({
-    handleClick: props => event => props.onSelect(event.target.dataset.value),
+    handleClick: props => event => {
+      props.onSelect(event.target.dataset.value);
+    },
     handleKappSelect: props => event => {
       props.fetchVariables(event.target.value);
       props.setSelectedKapp(

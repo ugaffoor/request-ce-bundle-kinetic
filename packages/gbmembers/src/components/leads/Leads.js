@@ -587,7 +587,9 @@ export class TasksDetail extends Component {
         leads.push({
           _id: lead['id'],
           name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
-          lastContact: moment(lead.values['Last Contact']).format('L LT'),
+          lastContact: moment(lead.values['Last Contact']).format(
+            'DD/MM/YYYY LT',
+          ),
           attentionRequired: lead.values['Is New Reply Received'],
         });
       }
@@ -1428,7 +1430,7 @@ export class LeadsConversionChart extends Component {
                     {data.map((entry, index) => (
                       <Cell
                         fill={COLORS[index % COLORS.length]}
-                        key={entry.id}
+                        key={index}
                         onClick={e => {
                           this.calculateConversion(entry, index);
                         }}
@@ -1809,10 +1811,7 @@ function tick(mythis) {
   mythis.props.fetchMembers();
 }
 export const LeadsContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withProps(() => {
     return {};
   }),

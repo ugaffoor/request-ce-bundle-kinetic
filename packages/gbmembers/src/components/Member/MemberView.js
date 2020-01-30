@@ -12,8 +12,10 @@ import phoneIcon from '../../images/phone.svg?raw';
 import emailIcon from '../../images/envelop.svg?raw';
 import dobIcon from '../../images/reddit.svg?raw';
 import aidIcon from '../../images/aid-kit.svg?raw';
-import viewNotes from '../../images/view_notes.png?raw';
+import printerIcon from '../../images/printer.svg?raw';
+import statsBarIcon from '../../images/stats-bars.svg?raw';
 import SVGInline from 'react-svg-inline';
+import html2canvas from 'html2canvas';
 import { KappNavLink as NavLink } from 'common';
 import { PaymentPeriod, PaymentType } from './BillingUtils';
 import NumberFormat from 'react-number-format';
@@ -21,6 +23,7 @@ import $ from 'jquery';
 import moment from 'moment';
 import { contact_date_format } from '../leads/LeadsUtils';
 import ReactTable from 'react-table';
+import Barcode from 'react-barcode';
 import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as errorActions } from '../../redux/modules/errors';
@@ -31,12 +34,27 @@ import { SMSModalContainer } from './SMSModalContainer';
 import { EmailsReceived } from './EmailsReceived';
 import { MemberEmails } from './MemberEmails';
 import { MemberViewNotes } from './MemberViewNotes';
+import { GradingStatus } from '../attendance/GradingStatus';
+import { AttendanceDialogContainer } from '../attendance/AttendanceDialog';
 import { Requests } from './Requests';
+import { MemberAttendanceContainer } from './MemberAttendance';
 import { actions as campaignActions } from '../../redux/modules/campaigns';
+import { actions as attendanceActions } from '../../redux/modules/attendance';
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from 'recharts';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   memberItem: state.member.members.currentMember,
+  initialLoad: state.member.members.initialLoad,
   currentMemberLoading: state.member.members.currentMemberLoading,
   allMembers: state.member.members.allMembers,
   campaignItem: state.member.campaigns.emailCampaignItem,
@@ -48,11 +66,15 @@ const mapStateToProps = state => ({
   isBillingUser: state.member.teams.isBillingUser,
   isBillingUserLoading: state.member.teams.isBillingUserLoading,
   isSmsEnabled: state.member.app.isSmsEnabled,
+  belts: state.member.app.belts,
+  attendances: state.member.attendance.memberAttendances,
+  attendancesLoading: state.member.attendance.fetchingMemberAttendances,
 });
 
 const mapDispatchToProps = {
   fetchCurrentMember: actions.fetchCurrentMember,
   updateMember: actions.updateMember,
+  setCurrentMember: actions.setCurrentMember,
   fetchCampaign: campaignActions.fetchEmailCampaign,
   syncBillingCustomer: actions.syncBillingCustomer,
   setBillingInfo: actions.setBillingInfo,
@@ -62,6 +84,7 @@ const mapDispatchToProps = {
   setNewCustomers: actions.setNewCustomers,
   fetchMembers: actions.fetchMembers,
   fetchIsBillingUser: teamActions.fetchIsBillingUser,
+  fetchMemberAttendances: attendanceActions.fetchMemberAttendances,
 };
 
 export class NewCustomers extends Component {
@@ -170,14 +193,20 @@ export class BillingParentInfo extends Component {
     this.memberId = this.props.memberId;
     this.allMembers = this.props.allMembers;
     this.member = undefined;
-    for (var j = 0; j < this.props.allMembers.length; j++) {
-      if (this.props.allMembers[j].id === this.memberId) {
-        this.member = this.props.allMembers[j];
-        break;
+  }
+  componentWillReceiveProps(nextProps) {
+    //    if (this.member===undefined /*|| this.allMembers.length!==nextProps.allMembers.length){
+    if (nextProps.memberId !== undefined) {
+      for (var j = 0; j < nextProps.allMembers.length; j++) {
+        if (nextProps.allMembers[j].id === nextProps.memberId) {
+          this.member = nextProps.allMembers[j];
+          break;
+        }
       }
+    } else {
+      this.member = undefined;
     }
   }
-
   render() {
     return this.member ? (
       <p>
@@ -192,6 +221,184 @@ export class BillingParentInfo extends Component {
         </NavLink>
       </p>
     ) : null;
+  }
+}
+
+export class AttendanceChart extends Component {
+  constructor(props) {
+    super(props);
+    const data = this.getData(this.props.attendances);
+    this.renderCusomizedLegend = this.renderCusomizedLegend.bind(this);
+    let average = 0;
+    this.state = {
+      data,
+      average,
+    };
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (this.props.id !== nextProps.id) {
+      this.props.fetchMemberAttendances({
+        id: nextProps.id,
+        fromDate: moment()
+          .subtract(90, 'days')
+          .format('YYYY-MM-DD'),
+        toDate: moment().format('YYYY-MM-DD'),
+      });
+    }
+    let data = this.getData(nextProps.attendances);
+    let average = this.getAverage(data);
+    this.setState({
+      data: data,
+      average: average,
+    });
+  }
+
+  componentWillMount() {
+    this.props.fetchMemberAttendances({
+      id: this.props.id,
+      fromDate: moment()
+        .subtract(90, 'days')
+        .format('YYYY-MM-DD'),
+      toDate: moment().format('YYYY-MM-DD'),
+    });
+  }
+  getAverage(data) {
+    let total = 0;
+    data.forEach((value, key) => {
+      total += value['Count'];
+    });
+    return total / data.length;
+  }
+
+  getData(attendances) {
+    if (!attendances || attendances.size === 0) {
+      return [];
+    }
+
+    let attendanceMap = new Map();
+    attendances.forEach(attendance => {
+      let week = moment(attendance.values['Class Date']).week();
+      if (attendanceMap.get(week) === undefined) {
+        attendanceMap.set(week, 1);
+      } else {
+        let count = attendanceMap.get(week);
+        attendanceMap.set(week, count + 1);
+      }
+    });
+
+    let data = [];
+    attendanceMap.forEach((value, key, map) => {
+      data.push({ Week: key, Count: value });
+    });
+    data = data.sort(function(a, b) {
+      return a['Week'] > b['Week'] ? 1 : b['Week'] > a['Week'] ? -1 : 0;
+    });
+    return data;
+  }
+
+  renderCusomizedLegend(props) {
+    return (
+      <ul
+        className="recharts-default-legend"
+        style={{ padding: '0px', margin: '0px', textAlign: 'center' }}
+      >
+        <li
+          className="recharts-legend-item legend-item-0"
+          style={{ display: 'inline-block', marginRight: '10px' }}
+        >
+          <svg
+            className="recharts-surface"
+            viewBox="0 0 32 32"
+            version="1.1"
+            style={{
+              display: 'inline-block',
+              verticalAlign: 'middle',
+              marginRight: '4px',
+              width: '14px',
+              height: '14px',
+            }}
+          ></svg>
+        </li>
+      </ul>
+    );
+  }
+
+  yAxisTickFormatter(count) {
+    return count;
+  }
+
+  xAxisTickFormatter(week) {
+    let sunday = moment()
+      .day('Sunday')
+      .week(week);
+    let saturday = moment()
+      .day('Saturday')
+      .week(week);
+
+    return sunday.format('D MMM') + '-' + saturday.format('D MMM');
+  }
+
+  toolTipFormatter(value, name, payload) {
+    return payload.value;
+  }
+
+  toolTipLabelFormatter(week) {
+    let sunday = moment()
+      .day('Sunday')
+      .week(week);
+    let saturday = moment()
+      .day('Saturday')
+      .week(week);
+
+    return sunday.format('D MMM') + '-' + saturday.format('D MMM');
+  }
+
+  render() {
+    const { data } = this.state;
+    return (
+      <span>
+        {' '}
+        <hr />
+        <div
+          className="page-header"
+          style={{ textAlign: 'center', marginBottom: '3%' }}
+        >
+          <h6>Attendance {this.state.average} PER WEEK</h6>
+        </div>
+        <ResponsiveContainer minHeight={300}>
+          <LineChart
+            width={600}
+            height={300}
+            data={data}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="Week" tickFormatter={this.xAxisTickFormatter} />
+            <YAxis
+              tickFormatter={this.yAxisTickFormatter}
+              label={{
+                value: 'Count',
+                angle: -90,
+                position: 'insideLeft',
+              }}
+            />
+            <Tooltip
+              labelFormatter={this.toolTipLabelFormatter}
+              formatter={this.toolTipFormatter}
+            />
+            <Legend content={this.renderCusomizedLegend} />
+            <Line
+              type="monotone"
+              strokeWidth={2}
+              dataKey="Count"
+              fill="#8884d8"
+              stackId="a"
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </span>
+    );
   }
 }
 
@@ -219,19 +426,45 @@ export const MemberView = ({
   setShowSMSModal,
   showSMSModal,
   isSmsEnabled,
+  printBarcode,
+  attendClasses,
+  durationPeriod,
+  initialLoad,
+  belts,
+  attendances,
+  fetchMemberAttendances,
+  showAttendanceDialog,
+  setShowAttendanceDialog,
 }) =>
-  currentMemberLoading ? (
-    <div />
+  initialLoad ? (
+    <div className="loading">
+      <ReactSpinner />
+    </div>
   ) : (
     <div className="memberDetails">
+      {currentMemberLoading ? (
+        <div className="loading">
+          <ReactSpinner />
+        </div>
+      ) : (
+        <div />
+      )}
       <StatusMessagesContainer />
       <div className="general">
         <div className="userDetails">
-          <img
-            src={memberItem.values['Photo']}
-            alt="Member Photograph"
-            className="photo"
-          />
+          {memberItem.values['Photo'] === undefined &&
+          memberItem.values['First Name'] !== undefined ? (
+            <span className="noPhoto">
+              {memberItem.values['First Name'][0]}
+              {memberItem.values['Last Name'][0]}
+            </span>
+          ) : (
+            <img
+              src={memberItem.values['Photo']}
+              alt="Member Photograph"
+              className="photo"
+            />
+          )}
           <span className="details1">
             <h1>
               {memberItem.values['First Name']} {memberItem.values['Last Name']}
@@ -324,6 +557,20 @@ export const MemberView = ({
             />
           </span>
         </div>
+        <div className="memberBarcode">
+          <Barcode
+            value={memberItem.id.split('-')[4].substring(6, 12)}
+            width={1.3}
+            height={30}
+            displayValue={false}
+            type={'CODE128'}
+          />
+        </div>
+        <SVGInline
+          svg={printerIcon}
+          className="icon barcodePrint"
+          onClick={e => printBarcode()}
+        />
       </div>
       <div
         className={
@@ -343,29 +590,42 @@ export const MemberView = ({
         <div className="ranking">
           <h4>Rank</h4>
           <div className="program">
-            <p>
-              {memberItem.values['Ranking Program']}-
-              {memberItem.values['Ranking Belt']}
-            </p>
+            <p>{memberItem.values['Ranking Program']}</p>
+            <span placeholder="View Attendance">
+              <SVGInline
+                svg={statsBarIcon}
+                className="icon statsbar"
+                onClick={e => setShowAttendanceDialog(true)}
+              />
+            </span>
+            {showAttendanceDialog && (
+              <AttendanceDialogContainer
+                setShowAttendanceDialog={setShowAttendanceDialog}
+                memberItem={memberItem}
+              />
+            )}
           </div>
-          <div className="row">
-            <div className="form-group col-xs-6 col-md-6">
-              <h6>Last Promotion</h6>
+          {memberItem.values['Last Promotion'] === undefined ? (
+            <div className="nolastPromotion"> No Last promotion date set</div>
+          ) : (
+            <div className="beltProgress">
               <p>
-                {new Date(
-                  memberItem.values['Last Promotion'],
-                ).toLocaleDateString()}
+                <b>{memberItem.values['Ranking Belt']}</b> SINCE{' '}
+                <b>
+                  {new Date(
+                    memberItem.values['Last Promotion'],
+                  ).toLocaleDateString()}
+                </b>
               </p>
+              <GradingStatus
+                setIsDirty={setIsDirty}
+                memberItem={memberItem}
+                belts={belts}
+                allMembers={allMembers}
+              />
+              <div></div>
             </div>
-            <div className="form-group col-xs-6 col-md-6">
-              <h6>Next Scheduled Promotion</h6>
-              <p>
-                {new Date(
-                  memberItem.values['Next Schedule Promotion'],
-                ).toLocaleDateString()}
-              </p>
-            </div>
-          </div>
+          )}
         </div>
         <div className="billing">
           <h4>Billing</h4>
@@ -404,12 +664,6 @@ export const MemberView = ({
               memberId={memberItem.values['Billing Parent Member']}
               allMembers={allMembers}
             />
-            <NavLink
-              to={`/Billing/${memberItem.id}`}
-              className="btn btn-primary"
-            >
-              Edit Billing
-            </NavLink>
           </div>
           <div
             style={{
@@ -511,14 +765,22 @@ export const MemberView = ({
       <div>
         <Requests submission={memberItem} />
       </div>
+      {/*      <div>
+        <AttendanceChart
+          id={memberItem.id}
+          attendances={attendances}
+          fetchMemberAttendances={fetchMemberAttendances}
+        />
+      </div>
+      <div>
+        <MemberAttendanceContainer id={memberItem.id} />
+      </div>
+*/}
     </div>
   );
 
 export const MemberViewContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withProps(({ memberItem }) => {
     return {};
   }),
@@ -526,7 +788,10 @@ export const MemberViewContainer = compose(
   withState('isDirty', 'setIsDirty', false),
   withState('showNewCustomers', 'setShowNewCustomers', false),
   withState('showCallScriptModal', 'setShowCallScriptModal', false),
+  withState('showAttendanceDialog', 'setShowAttendanceDialog', false),
   withState('showSMSModal', 'setShowSMSModal', false),
+  withState('attendClasses', 'setAttendClasses', 0),
+  withState('durationPeriod', 'setDurationPeriod', 0),
   withHandlers({
     saveMember: ({ memberItem, updateMember, setIsDirty, profile }) => () => {
       let note = $('#memberNote').val();
@@ -557,6 +822,7 @@ export const MemberViewContainer = compose(
     syncBilling: ({
       memberItem,
       updateMember,
+      setCurrentMember,
       syncBillingCustomer,
       setBillingInfo,
       fetchCurrentMember,
@@ -579,6 +845,7 @@ export const MemberViewContainer = compose(
         memberItem: memberItem,
         myThis: this,
         updateMember: updateMember,
+        setCurrentMember: setCurrentMember,
         setBillingInfo: setBillingInfo,
         fetchCurrentMember: fetchCurrentMember,
         fetchMembers: fetchMembers,
@@ -615,9 +882,39 @@ export const MemberViewContainer = compose(
         setSystemError,
       });
     },
+    printBarcode: () => () => {
+      console.log('Printing');
+      const opt = {
+        scale: 4,
+      };
+
+      html2canvas($('.memberBarcode')[0], opt).then(canvas => {
+        var iframe = null;
+        if ($('#printf').length > 0) {
+          iframe = $('#printf')[0];
+        } else {
+          iframe = document.createElement('iframe');
+        }
+        iframe.name = 'printf';
+        iframe.id = 'printf';
+        //           iframe.height = '1100px';
+        //           iframe.width = '2000px';
+        document.body.appendChild(iframe);
+
+        var newWin = window.frames['printf'];
+        newWin.document.write(
+          '<body onload="window.print()">' +
+            $('.memberBarcode').html() +
+            '</body>',
+        );
+        newWin.document.close();
+      });
+    },
   }),
   lifecycle({
     componentWillMount() {
+      this.props.memberItem.values = [];
+      this.props.memberItem.id = 'xx-xx-xx-xx-xx';
       this.props.fetchCurrentMember({ id: this.props.match.params.id });
       this.props.fetchIsBillingUser();
     },
@@ -632,6 +929,32 @@ export const MemberViewContainer = compose(
       ) {
         this.props.updateIsNewReplyReceived();
       }
+      if (
+        nextProps.memberItem.values !== undefined &&
+        nextProps.memberItem.values['Ranking Program'] !== undefined &&
+        nextProps.memberItem.values['Ranking Belt'] !== undefined
+      ) {
+        let belt = nextProps.belts.find(
+          obj =>
+            obj['program'] === nextProps.memberItem.values['Ranking Program'] &&
+            obj['belt'] === nextProps.memberItem.values['Ranking Belt'],
+        );
+        if (belt !== undefined) {
+          this.setState({
+            attendClasses: belt.attendClasses,
+            durationPeriod: belt.durationPeriod,
+          });
+        } else {
+          this.setState({ attendClasses: 0, durationPeriod: 0 });
+        }
+      }
+      /*      if (this.props.initialLoad && this.props.memberItem.id!=="xx-xx-xx-xx-xx") {
+        console.log("setInitialLoad");
+        this.props.setInitialLoad(false);
+      } else {
+        console.log("setInitialLoad XXX:"+this.props.initialLoad+" "+this.props.memberItem.id);
+      }
+*/
     },
     componentDidMount() {
       $('.content')[0].scrollIntoView(true);

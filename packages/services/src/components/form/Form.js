@@ -11,6 +11,7 @@ import {
   ErrorUnexpected,
   PageTitle,
 } from 'common';
+import ReactQuill from 'react-quill';
 
 // Asynchronously import the global dependencies that are used in the embedded
 // forms. Note that we deliberately do this as a const so that it should start
@@ -42,12 +43,11 @@ export const Form = ({
               <Link to="/requests">requests</Link>
             )}
             {match.url.startsWith('/request') && ' / '}
-            {match.url.startsWith('/request') &&
-              match.params.type && (
-                <Link to={`/requests/${match.params.type || ''}`}>
-                  {match.params.type}
-                </Link>
-              )}
+            {match.url.startsWith('/request') && match.params.type && (
+              <Link to={`/requests/${match.params.type || ''}`}>
+                {match.params.type}
+              </Link>
+            )}
             {match.url.startsWith('/request') && match.params.type && ' / '}
             {category && <Link to="/categories">categories</Link>}
             {category && ' / '}
@@ -177,6 +177,120 @@ export class SignatureCanvasWrapper extends React.Component {
   }
 }
 
+export class QuillEditorWrapper extends React.Component {
+  constructor(props) {
+    super(props);
+    this.quillRef = null;
+    this.reactQuillRef = null;
+    this.attachQuillRefs = this.attachQuillRefs.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+    this.state = {
+      text: this.props.text ? this.props.text : '', // You can also pass a Quill Delta here
+    };
+
+    this.modules = {
+      toolbar: {
+        container: [
+          ['bold', 'italic', 'underline', 'strike'], // toggled buttons
+          ['blockquote', 'code-block'],
+
+          [{ header: 1 }, { header: 2 }], // custom button values
+          [{ list: 'ordered' }, { list: 'bullet' }],
+          [{ script: 'sub' }, { script: 'super' }], // superscript/subscript
+          [{ indent: '-1' }, { indent: '+1' }], // outdent/indent
+          [{ direction: 'rtl' }], // text direction
+
+          [{ size: ['small', false, 'large', 'huge'] }], // custom dropdown
+          [{ header: [1, 2, 3, 4, 5, 6, false] }],
+
+          [{ color: [] }, { background: [] }], // dropdown with defaults from theme
+          [{ font: [] }],
+          [{ align: [] }],
+          ['link'],
+          ['image'],
+          ['clean'],
+          ['id'],
+          ['firstname'],
+          ['lastname'],
+          ['emailfooter'],
+        ],
+        handlers: {},
+      },
+    };
+  }
+
+  componentDidMount() {
+    this.attachQuillRefs();
+  }
+  componentDidUpdate() {
+    this.attachQuillRefs();
+  }
+
+  attachQuillRefs() {
+    // Ensure React-Quill reference is available:
+    if (
+      this.reactQuillRef &&
+      typeof this.reactQuillRef.getEditor !== 'function'
+    )
+      return;
+    // Skip if Quill reference is defined:
+    if (this.quillRef != null) return;
+
+    const quillRef = this.reactQuillRef ? this.reactQuillRef.getEditor() : null;
+    if (quillRef != null) this.quillRef = quillRef;
+  }
+
+  formats = [
+    'header',
+    'bold',
+    'italic',
+    'underline',
+    'strike',
+    'blockquote',
+    'list',
+    'bullet',
+    'indent',
+    'link',
+    'image',
+    'color',
+  ];
+
+  handleChange(html, text) {
+    this.setState({ text: html });
+    if (
+      this.reactQuillRef &&
+      this.reactQuillRef
+        .getEditor()
+        .getText()
+        .trim().length > 0
+    ) {
+      $("[name='" + this.props.elementName + "']").val(html);
+    } else {
+      $("[name='" + this.props.elementName + "']").val('');
+    }
+  }
+
+  render() {
+    return (
+      <div className="form-group required">
+        <label className="field-label" id="quill_editor_label">
+          {this.props.label}
+        </label>
+        <ReactQuill
+          ref={el => {
+            this.reactQuillRef = el;
+          }}
+          value={this.state.text}
+          onChange={this.handleChange}
+          theme="snow"
+          modules={this.modules}
+          formats={this.formats}
+        />
+      </div>
+    );
+  }
+}
+
 bundle.config.widgets = {
   signatureCanvas: ({
     element,
@@ -195,6 +309,16 @@ bundle.config.widgets = {
         height={height}
         width={width}
         disable={disable}
+      />,
+      element,
+    );
+  },
+  quillEditor: ({ element, editorContent, label, elementName }) => {
+    ReactDOM.render(
+      <QuillEditorWrapper
+        text={editorContent}
+        label={label}
+        elementName={elementName}
       />,
       element,
     );

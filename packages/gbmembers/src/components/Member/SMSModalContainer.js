@@ -229,11 +229,12 @@ export class SMSModal extends Component {
                     <textarea
                       className="form-control custom-control"
                       rows="3"
+                      maxlength="765"
                       style={{ resize: 'none' }}
                       id="sms_text"
                       value={this.state.smsText}
                       onChange={this.handleChange}
-                      placeholder="Type SMS text here ..."
+                      placeholder="Max 765 characters allowed"
                     />
                     <button
                       className="input-group-addon btn btn-primary"
@@ -293,10 +294,7 @@ export class SMSModal extends Component {
 }
 
 const enhance = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withState('showMessageHistory', 'setShowMessageHistory', true),
   withHandlers({
     sendSmsMessage: ({

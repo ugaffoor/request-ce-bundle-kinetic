@@ -40,6 +40,7 @@ const util = require('util');
 
 export function* fetchMembers(action) {
   try {
+    const appSettings = yield select(getAppSettings);
     const search = new CoreAPI.SubmissionSearch()
       .includes(['details', 'values'])
       .limit(1000)
@@ -51,7 +52,11 @@ export function* fetchMembers(action) {
       search,
     });
     console.log('AllMembers' + submissions);
-    yield put(actions.setMembers(submissions));
+    let memberInfo = {
+      members: submissions,
+      belts: appSettings.belts,
+    };
+    yield put(actions.setMembers(memberInfo));
   } catch (error) {
     console.log('Error in fetchMembers: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));
@@ -59,6 +64,7 @@ export function* fetchMembers(action) {
 }
 export function* fetchCurrentMember(action) {
   try {
+    const appSettings = yield select(getAppSettings);
     const MEMBER_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
       .eq('values[Member ID]', action.payload.id)
       .include(['details', 'values'])
@@ -88,6 +94,7 @@ export function* fetchCurrentMember(action) {
     let emailReceivedContent = [];
     let smsContent = [];
     let requestContent = [];
+    let promotionContent = [];
     for (let i = 0; i < memberActivities.submissions.length; i++) {
       if (
         memberActivities.submissions[i].values['Type'] === 'Email' &&
@@ -104,6 +111,8 @@ export function* fetchCurrentMember(action) {
         emailReceivedContent[emailReceivedContent.length] = JSON.parse(
           memberActivities.submissions[i].values['Content'],
         );
+        emailReceivedContent[emailReceivedContent.length - 1]['Activity ID'] =
+          memberActivities.submissions[i].id;
       }
       if (memberActivities.submissions[i].values['Type'] === 'SMS') {
         smsContent[smsContent.length] = memberActivities.submissions[i];
@@ -116,12 +125,23 @@ export function* fetchCurrentMember(action) {
           memberActivities.submissions[i].values['Content'],
         );
       }
+      if (memberActivities.submissions[i].values['Type'] === 'Promotion') {
+        var content = JSON.parse(
+          memberActivities.submissions[i].values['Content'],
+        );
+        content['Submitter'] = memberActivities.submissions[i].updatedBy;
+        promotionContent[promotionContent.length] = content;
+      }
     }
 
     submission.submission.emailsReceived = emailReceivedContent;
     submission.submission.emailsSent = emailSentContent;
     submission.submission.smsContent = smsContent;
     submission.submission.requestContent = requestContent;
+    submission.submission.promotionContent = promotionContent;
+    if (action.payload.setInitialLoad) {
+      console.log('members.js setInitialLoad 111');
+    }
 
     if (action.payload.myThis)
       submission.submission.myThis = action.payload.myThis;
@@ -131,7 +151,11 @@ export function* fetchCurrentMember(action) {
     if (action.payload.forBilling)
       submission.forBilling = action.payload.forBilling;
 */
-    yield put(actions.setCurrentMember(submission.submission));
+    let memberInfo = {
+      member: submission.submission,
+      belts: appSettings.belts,
+    };
+    yield put(actions.setCurrentMember(memberInfo));
     /*
 
     const { submission } = yield call(CoreAPI.fetchSubmission, {
@@ -149,6 +173,35 @@ export function* fetchCurrentMember(action) {
 */
   } catch (error) {
     console.log('Error in fetchCurrentMember: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
+export function* fetchMemberPromotions(action) {
+  try {
+    const MEMBER_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
+      .eq('values[Member ID]', action.payload.id)
+      .eq('values[Type]', 'Promotion')
+      .include(['details', 'values'])
+      .limit(1000)
+      .build();
+    const { submissions } = yield call(CoreAPI.searchSubmissions, {
+      form: 'member-activities',
+      kapp: 'gbmembers',
+      search: MEMBER_ACTIVITIES_SEARCH,
+    });
+
+    let promotionContent = [];
+    for (let i = 0; i < submissions.length; i++) {
+      if (submissions[i].values['Type'] === 'Promotion') {
+        var content = JSON.parse(submissions[i].values['Content']);
+        content['Submitter'] = submissions[i].updatedBy;
+        promotionContent[promotionContent.length] = content;
+      }
+    }
+
+    yield put(action.payload.setMemberPromotions(promotionContent));
+  } catch (error) {
+    console.log('Error in fetchMemberPromotions: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));
   }
 }
@@ -203,8 +256,13 @@ export function* createMember(action) {
     action.payload.memberItem.myThis = undefined;
     action.payload.memberItem.history = undefined;
     action.payload.memberItem.fetchMembers = undefined;
-    action.payload.memberItem.values['Lead Source'] =
-      action.payload.leadItem.values['Source'];
+    if (
+      action.payload.leadItem !== undefined &&
+      action.payload.leadItem.values !== undefined &&
+      action.payload.leadItem.values['Source'] !== undefined
+    )
+      action.payload.memberItem.values['Lead Source'] =
+        action.payload.leadItem.values['Source'];
     const { submission } = yield call(CoreAPI.createSubmission, {
       kappSlug: 'gbmembers',
       formSlug: 'member',
@@ -399,7 +457,24 @@ export function* syncBillingCustomer(action) {
         };
         action.payload.memberItem.values['Membership Cost'] =
           result.data.data.paymentAmountInCents / 100;
-        action.payload.memberItem.values['DDR Status'] = 'Pending';
+
+        if (
+          result.data.data.statusDescription === 'Inactive' &&
+          action.payload.memberItem.values['Status'] !== 'Inactive'
+        ) {
+          action.payload.memberItem.values['Status'] = 'Inactive';
+          let history = getJson(
+            action.payload.memberItem.values['Status History'],
+          );
+          let newHistory = {
+            submitter: appSettings.profile.displayName,
+            date: moment().toString(),
+            status: 'Inactive',
+          };
+          history.push(newHistory);
+          action.payload.memberItem.values['Status History'] = history;
+        }
+        //        action.payload.memberItem.values['DDR Status'] = 'Pending';
 
         let changes = getBillingChanges(action.payload.memberItem);
         changes.push({
@@ -424,11 +499,18 @@ export function* syncBillingCustomer(action) {
           'Billing customer synced successfully',
           'Sync Billing Customer',
         );
-        action.payload.fetchCurrentMember({
+        let memberInfo = {
+          member: action.payload.memberItem,
+          belts: appSettings.belts,
+        };
+        action.setCurrentMember(memberInfo);
+
+        /*        action.payload.fetchCurrentMember({
           id: action.payload.memberItem['id'],
           myThis: action.payload.myThis,
         });
         action.payload.fetchMembers();
+*/
       }
     })
     .catch(error => {
@@ -1004,10 +1086,8 @@ export function* refundTransaction(action) {
           'object'
             ? action.payload.memberItem.values['Refunded Payments']
             : action.payload.memberItem.values['Refunded Payments']
-              ? JSON.parse(
-                  action.payload.memberItem.values['Refunded Payments'],
-                )
-              : [];
+            ? JSON.parse(action.payload.memberItem.values['Refunded Payments'])
+            : [];
 
         paymentsRefunded.push(action.payload.transactionId);
         action.payload.memberItem.values[
@@ -1142,27 +1222,57 @@ export function* fetchBillingCustomers(action) {
   let args = {};
   args.space = appSettings.spaceSlug;
   args.billingService = appSettings.billingCompany;
+  args.active = true;
   axios
     .post(appSettings.kineticBillingServerUrl + getCustomersUrl, args)
-    .then(result => {
-      if (result.data.error && result.data.error > 0) {
-        console.log('loadBillingCustomers Error: ' + result.data.errorMessage);
+    .then(resultActive => {
+      if (resultActive.data.error && resultActive.data.error > 0) {
+        console.log(
+          'loadBillingCustomers Error: ' + resultActive.data.errorMessage,
+        );
         action.payload.addNotification(
           NOTICE_TYPES.ERROR,
-          result.data.errorMessage,
+          resultActive.data.errorMessage,
           'Get Billing Customers',
         );
       } else {
         console.log(
-          '#### loadBillingCustomers # data = ' +
-            JSON.stringify(result.data.data),
+          '#### loadBillingCustomers ACTIVE # data = ' +
+            JSON.stringify(resultActive.data.data),
         );
-        action.payload.createBillingMembers({
-          customers: result.data.data,
-          setBillingCustomers: action.payload.setBillingCustomers,
-          fetchMembers: action.payload.fetchMembers,
-        });
       }
+      args.active = false;
+      axios
+        .post(appSettings.kineticBillingServerUrl + getCustomersUrl, args)
+        .then(resultInactive => {
+          if (resultInactive.data.error && resultInactive.data.error > 0) {
+            console.log(
+              'loadBillingCustomers Error: ' + resultInactive.data.errorMessage,
+            );
+            action.payload.addNotification(
+              NOTICE_TYPES.ERROR,
+              resultInactive.data.errorMessage,
+              'Get Billing Customers',
+            );
+          } else {
+            console.log(
+              '#### loadBillingCustomers INACTIVE # data = ' +
+                JSON.stringify(resultInactive.data.data),
+            );
+            action.payload.createBillingMembers({
+              customers: resultActive.data.data.concat(
+                resultInactive.data.data,
+              ),
+              setBillingCustomers: action.payload.setBillingCustomers,
+              fetchMembers: action.payload.fetchMembers,
+              appSettings: appSettings,
+            });
+          }
+        })
+        .catch(error => {
+          console.log(util.inspect(error));
+          action.payload.setSystemError(error);
+        });
     })
     .catch(error => {
       console.log(util.inspect(error));
@@ -1179,9 +1289,10 @@ export function* createBillingMembers(action) {
       customer.firstName.slice(1) +
       customer.lastName.charAt(0).toLowerCase() +
       customer.lastName.slice(1);
+
     const MEMBER_SEARCH = new CoreAPI.SubmissionSearch(true)
       .eq('values[Member ID]', memberId)
-      .include('details')
+      .include('details,values')
       .limit(1)
       .build();
 
@@ -1197,7 +1308,11 @@ export function* createBillingMembers(action) {
       values: {},
     };
     if (!submissions || submissions.length <= 0) {
-      memberItem.values['Status'] = 'Active';
+      if (customer.statusDescription === 'Inactive') {
+        action.payload.memberItem.values['Status'] = 'Inactive';
+      } else {
+        memberItem.values['Status'] = 'Active';
+      }
       memberItem.values['First Name'] = customer.firstName;
       memberItem.values['Last Name'] = customer.lastName;
       memberItem.values['Member ID'] = memberId;
@@ -1223,23 +1338,69 @@ export function* createBillingMembers(action) {
       yield put(actions.createMember({ memberItem, showNotification: false }));
       newMemberAdded = true;
     } else if (submissions && submissions.length === 1) {
-      memberItem.values['Billing User'] = 'YES';
-      memberItem.values['Billing Payment Type'] = customer.paymentMethod;
-      memberItem.values['Billing Payment Period'] = customer.billingPeriod;
-      memberItem.values['Payment Schedule'] = {
-        period: customer.billingPeriod,
-        amount: customer.billingAmount,
-      };
-      memberItem.values['Membership Cost'] = customer.billingAmount;
-      memberItem.id = submissions[0].id;
-      yield put(
-        actions.updateMember({
-          id: memberItem.id,
-          memberItem: memberItem,
-        }),
-      );
+      memberItem.values = submissions[0].values;
+      let changeMade = false;
+      if (
+        customer.status === 'Inactive' &&
+        memberItem.values['Status'] !== 'Inactive'
+      ) {
+        memberItem.values['Status'] = 'Inactive';
+        let history = getJson(memberItem.values['Status History']);
+        let newHistory = {
+          submitter: action.payload.appSettings.profile.displayName,
+          date: moment().toString(),
+          status: 'Inactive',
+        };
+        history.push(newHistory);
+        memberItem.values['Status History'] = history;
+        changeMade = true;
+      } else if (
+        customer.status === 'Active' &&
+        memberItem.values['Status'] !== 'Active'
+      ) {
+        memberItem.values['Status'] = 'Active';
+        changeMade = true;
+      }
+      if (memberItem.values['Billing User'] !== 'YES') {
+        memberItem.values['Billing User'] = 'YES';
+        changeMade = true;
+      }
+      if (
+        memberItem.values['Billing Payment Type'] !== customer.paymentMethod
+      ) {
+        memberItem.values['Billing Payment Type'] = customer.paymentMethod;
+        changeMade = true;
+      }
+      if (
+        memberItem.values['Billing Payment Period'] !== customer.billingPeriod
+      ) {
+        memberItem.values['Billing Payment Period'] = customer.billingPeriod;
+        changeMade = true;
+      }
+      if (
+        parseInt(memberItem.values['Membership Cost']) !==
+        customer.billingAmount
+      ) {
+        memberItem.values['Payment Schedule'] = {
+          period: customer.billingPeriod,
+          amount: customer.billingAmount,
+        };
+        memberItem.values['Membership Cost'] = customer.billingAmount;
+        changeMade = true;
+      }
+      if (changeMade) {
+        memberItem.id = submissions[0].id;
+        yield put(
+          actions.updateMember({
+            id: memberItem.id,
+            memberItem: memberItem,
+          }),
+        );
+      }
     }
+  }
 
+  if (action.payload.setBillingCustomers) {
     action.payload.setBillingCustomers();
     if (newMemberAdded) {
       action.payload.fetchMembers();
@@ -1279,6 +1440,43 @@ export function* fetchInactiveCustomersCount(action) {
       action.payload.setSystemError(error);
     });
 }
+export function* promoteMember(action) {
+  try {
+    let memberActivities = { values: {} };
+    memberActivities.values['Member ID'] = action.payload.memberItem['id'];
+    memberActivities.values['Type'] = 'Promotion';
+    memberActivities.values['Direction'] = '';
+    memberActivities.values['Content'] = {
+      Program: action.payload.memberItem.values['Ranking Program'],
+      Belt: action.payload.memberItem.values['Ranking Belt'],
+      PromotionDate: action.payload.memberItem.values['Last Promotion'],
+      Notes: action.payload.notes,
+    };
+
+    action.payload.createMemberActivities({
+      memberActivities,
+      id: action.payload.memberItem['id'],
+      myThis: action.payload.myThis,
+      fetchMember: action.payload.fetchMember,
+    });
+    action.payload.updateMember({
+      id: action.payload.memberItem['id'],
+      memberItem: action.payload.memberItem,
+    });
+    memberActivities.values['Content']['Submitter'] = action.payload.submitter;
+    action.payload.memberItem.promotionContent.splice(
+      0,
+      0,
+      memberActivities.values['Content'],
+    );
+
+    yield put(actions.memberPromoted());
+    yield put(action.payload.promotionComplete());
+  } catch (error) {
+    console.log('Error in updateCurrentMember: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
 
 export function* watchMembers() {
   console.log('watchMembers');
@@ -1294,6 +1492,7 @@ export function* watchMembers() {
     fetchBillingInfoAfterRegistration,
   );
   yield takeEvery(types.EDIT_PAYMENT_AMOUNT, editPaymentAmount);
+  yield takeEvery(types.FETCH_MEMBER_PROMOTIONS, fetchMemberPromotions);
   yield takeEvery(types.FETCH_PAYMENT_HISTORY, fetchPaymentHistory);
   yield takeEvery(types.CLEAR_PAYMENT_SCHEDULE, clearPaymentSchedule);
   yield takeEvery(types.CREATE_PAYMENT_SCHEDULE, createPaymentSchedule);
@@ -1317,6 +1516,7 @@ export function* watchMembers() {
     types.FETCH_INACTIVE_CUSTOMERS_COUNT,
     fetchInactiveCustomersCount,
   );
+  yield takeEvery(types.PROMOTE_MEMBER, promoteMember);
 }
 
 export default function fetchMemberById(id) {

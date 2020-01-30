@@ -45,9 +45,12 @@ export function handleNameChange(memberItem, event) {
   var firstName = memberItem.values['First Name'];
   var lastName = memberItem.values['Last Name'];
 
-  memberItem.values['Member ID'] =
+  memberItem.values['Member ID'] = (
     (firstName !== undefined ? firstName.toLowerCase() : '') +
-    (lastName !== undefined ? lastName.toLowerCase() : '');
+    (lastName !== undefined ? lastName.toLowerCase() : '')
+  )
+    .replace(/ /g, '')
+    .substring(0, 30);
 
   $('#username').val(memberItem.values['Member ID']);
   //Remove/add the 'required' attribute by calling handleDynamicChange
@@ -514,7 +517,16 @@ export const MemberNew = ({
             <hr />
             <span className="line">
               <div>
-                <label htmlFor="program">Program</label>
+                <label
+                  htmlFor="program"
+                  required={
+                    memberItem.values['Ranking Program'] === undefined
+                      ? true
+                      : false
+                  }
+                >
+                  Program
+                </label>
                 <select
                   name="program"
                   id="program"
@@ -534,7 +546,16 @@ export const MemberNew = ({
                 <div className="droparrow" />
               </div>
               <div>
-                <label htmlFor="belt">Belt</label>
+                <label
+                  htmlFor="belt"
+                  required={
+                    memberItem.values['Ranking Belt'] === undefined
+                      ? true
+                      : false
+                  }
+                >
+                  Belt
+                </label>
                 <select
                   name="belt"
                   id="belt"
@@ -542,6 +563,7 @@ export const MemberNew = ({
                   defaultValue={memberItem.values['Ranking Belt']}
                   onChange={e => handleChange(memberItem, 'Ranking Belt', e)}
                 >
+                  <option value="" />
                   {belts.map(
                     belt =>
                       belt.program === memberItem.values['Ranking Program'] && (
@@ -567,16 +589,16 @@ export const MemberNew = ({
                 />
               </div>
               <div>
-                <label htmlFor="nextPromotion">Next Scheduled Promotion</label>
+                <label htmlFor="attendanceCount">Attendance Count</label>
                 <input
-                  type="date"
-                  name="nextPromotion"
-                  id="nextPromotion"
-                  style={{ width: '230px' }}
+                  type="number"
+                  name="attendanceCount"
+                  id="attendanceCount"
+                  style={{ width: '130px' }}
                   ref={input => (this.input = input)}
-                  defaultValue={memberItem.values['Next Schedule Promotion']}
+                  defaultValue={memberItem.values['Attendance Count']}
                   onChange={e =>
-                    handleChange(memberItem, 'Next Schedule Promotion', e)
+                    handleChange(memberItem, 'Attendance Count', e)
                   }
                 />
               </div>
@@ -657,10 +679,7 @@ export const MemberNew = ({
   );
 
 export const MemberNewContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withProps(({ memberItem, createMember }) => {
     return {};
   }),
@@ -677,23 +696,25 @@ export const MemberNewContainer = compose(
         .removeClass('show')
         .addClass('hide');
       var duplicateUser = false;
-      /*      for (var i=0; i<memberItem.myThis.props.allMembers.length; i++) {
-        console.log(memberItem.myThis.props.allMembers[i].username);
-        console.log();
-      	if (memberItem.myThis.props.allMembers[i].username===memberItem.username ||
-            (getAttributeValue(memberItem, "First Name")===getAttributeValue(memberItem.myThis.props.allMembers[i], "First Name") &&
-             getAttributeValue(memberItem, "Last Name")===getAttributeValue(memberItem.myThis.props.allMembers[i], "Last Name"))
+      for (var i = 0; i < memberItem.myThis.props.allMembers.length; i++) {
+        if (
+          memberItem.myThis.props.allMembers[i].values['Member ID'] ===
+            memberItem.values['Member ID'] ||
+          (memberItem.values['First Name'] ===
+            memberItem.myThis.props.allMembers[i].values['First Name'] &&
+            memberItem.values['Last Name'] ===
+              memberItem.myThis.props.allMembers[i].values['Last Name'])
         ) {
-      		duplicateUser=true;
+          duplicateUser = true;
         }
       }
-*/
+
       if (duplicateUser) {
         $('#duplicateUserInfo')
           .removeClass('hide')
           .addClass('show');
       }
-      if ($('label[required]').length > 0) {
+      if ($('label[required]').length > 0 || duplicateUser) {
         $('label[required]')
           .siblings('input[required]')
           .css('border-color', 'red');
@@ -770,8 +791,12 @@ export const MemberNewContainer = compose(
         $('#lastName').val(nextProps.leadItem.values['Last Name']);
         handleDynamicChange(nextProps.memberItem, 'Last Name', 'lastName');
         $('#username').val(
-          nextProps.leadItem.values['First Name'] +
-            nextProps.leadItem.values['Last Name'],
+          (
+            nextProps.leadItem.values['First Name'] +
+            nextProps.leadItem.values['Last Name']
+          )
+            .replace(/ /g, '')
+            .substring(0, 30),
         );
         handleDynamicChange(nextProps.memberItem, 'Member ID', 'username');
         $('#gender').val(nextProps.leadItem.values['Gender']);

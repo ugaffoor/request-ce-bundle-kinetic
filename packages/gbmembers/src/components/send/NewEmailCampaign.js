@@ -8,22 +8,20 @@ import {
   withProps,
 } from 'recompose';
 import { actions } from '../../redux/modules/campaigns';
-import { KappNavLink as NavLink } from 'common';
 import $ from 'jquery';
-import NumberFormat from 'react-number-format';
 import 'react-datetime/css/react-datetime.css';
 import ReactQuill, { Quill } from 'react-quill';
-import ReactTable from 'react-table';
 import ImageResize from 'quill-image-resize-module-react';
 import moment from 'moment';
 import { email_sent_date_format } from '../leads/LeadsUtils';
-import axios, { post } from 'axios';
 import { AttachmentForm } from './AttachmentForm';
 import '../../styles/quill.snow.scss.css';
-import Select, { components } from 'react-select';
 import { actions as leadsActions } from '../../redux/modules/leads';
+import { actions as membersActions } from '../../redux/modules/members';
+import { actions as campaignActions } from '../../redux/modules/campaigns';
 import { actions as dataStoreActions } from '../../redux/modules/settingsDatastore';
 import { matchesMemberFilter } from '../../utils/utils';
+import Select from 'react-select';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -34,6 +32,7 @@ const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
   space: state.member.app.space,
   leadItem: state.member.leads.currentLead,
+  memberItem: state.member.members.currentMember,
   emailTemplates: state.member.datastore.emailTemplates,
   emailTemplatesLoading: state.member.datastore.emailTemplatesLoading,
 });
@@ -42,19 +41,27 @@ const mapDispatchToProps = {
   fetchNewCampaign: actions.fetchNewEmailCampaign,
   updateCampaign: actions.updateEmailCampaign,
   fetchLead: leadsActions.fetchCurrentLead,
+  fetchMember: membersActions.fetchCurrentMember,
   fetchEmailTemplates: dataStoreActions.fetchEmailTemplates,
+  fetchEmailCampaign: campaignActions.fetchEmailCampaign,
 };
 
 const util = require('util');
 
-Quill.register('modules/imageResize', ImageResize);
+/*Quill.register('modules/imageResize', ImageResize);*/
+
 var Link = Quill.import('formats/link');
 var builtInFunc = Link.sanitize;
+var campaignSpace = null;
 Link.sanitize = function modifyLinkInput(linkValueInput) {
-  var val = btoa(linkValueInput);
+  console.log('linkValueInput:' + linkValueInput);
+  if (linkValueInput.indexOf('${') !== -1) return linkValueInput;
+  var val = btoa(linkValueInput).replace('/', 'XXX');
   return builtInFunc.call(
     this,
-    'http://18.222.185.221/billingservice/goToUrl/__campaign_id__/__member_id__/' +
+    'https://gbbilling.com.au:8443/billingservice/goToUrl/' +
+      campaignSpace +
+      '/__campaign_id__/__member_id__/' +
       val,
   ); // retain the built-in logic
 };
@@ -63,6 +70,7 @@ export class NewEmailCampaign extends Component {
   constructor(props) {
     super(props);
 
+    campaignSpace = this.props.space.slug;
     this.handleChange = this.handleChange.bind(this);
     this.handleRecipientChange = this.handleRecipientChange.bind(this);
 
@@ -145,6 +153,44 @@ export class NewEmailCampaign extends Component {
         nextProps.emailTemplatesLoading,
       );
     }
+    let subject = '';
+    let text = '';
+    if (
+      this.state.subject === '' &&
+      this.state.text === '' &&
+      nextProps.replyType === 'activity' &&
+      nextProps.leadItem.emailsReceived
+    ) {
+      for (var i = 0; i < nextProps.leadItem.emailsReceived.length; i++) {
+        if (
+          nextProps.leadItem.emailsReceived[i]['Activity ID'] ===
+          nextProps.campaignId
+        ) {
+          subject = 'Re: ' + nextProps.leadItem.emailsReceived[i]['Subject'];
+          text = ' ' + nextProps.leadItem.emailsReceived[i]['Content'];
+          break;
+        }
+      }
+      this.setState({ subject: subject, text: text });
+    }
+    if (
+      this.state.subject === '' &&
+      this.state.text === '' &&
+      nextProps.replyType === 'activity' &&
+      nextProps.memberItem.emailsReceived
+    ) {
+      for (i = 0; i < nextProps.memberItem.emailsReceived.length; i++) {
+        if (
+          nextProps.memberItem.emailsReceived[i]['Activity ID'] ===
+          nextProps.campaignId
+        ) {
+          subject = 'Re: ' + nextProps.memberItem.emailsReceived[i]['Subject'];
+          text = ' ' + nextProps.memberItem.emailsReceived[i]['Content'];
+          break;
+        }
+      }
+      this.setState({ subject: subject, text: text });
+    }
   }
 
   componentDidMount() {
@@ -172,6 +218,8 @@ export class NewEmailCampaign extends Component {
     'link',
     'image',
     'color',
+    'width',
+    'height',
   ];
 
   attachQuillRefs() {
@@ -365,8 +413,17 @@ export class NewEmailCampaign extends Component {
   }
 
   preview() {
-    this.props.setShowEditor(false);
-    this.props.setShowPreview(true);
+    if (
+      $('.attachment-form')
+        .find('button[data-element-name="Submit Button"]')
+        .css('display') === 'inline-block'
+    ) {
+      this.props.setShowAttachmentError(true);
+    } else {
+      this.props.setShowEditor(false);
+      this.props.setShowPreview(true);
+      this.props.setShowAttachmentError(false);
+    }
   }
 
   back() {
@@ -405,18 +462,19 @@ export class NewEmailCampaign extends Component {
                 style={{ width: '100%' }}
                 value={
                   this.props.submissionType === 'member'
-                    ? this.props.allMembers && this.props.allMembers.length > 0
-                      ? this.currentMember.values['Email'] +
-                        (this.currentMember.values['Additional Email']
-                          ? ',' + this.currentMember.values['Additional Email']
+                    ? this.props.memberItem && this.props.memberItem.values
+                      ? this.props.memberItem.values['Email'] +
+                        (this.props.memberItem.values['Additional Email']
+                          ? ',' +
+                            this.props.memberItem.values['Additional Email']
                           : '')
                       : ''
                     : this.props.leadItem && this.props.leadItem.values
-                      ? this.props.leadItem.values['Email'] +
-                        (this.props.leadItem.values['Additional Email']
-                          ? ',' + this.props.leadItem.values['Additional Email']
-                          : '')
-                      : ''
+                    ? this.props.leadItem.values['Email'] +
+                      (this.props.leadItem.values['Additional Email']
+                        ? ',' + this.props.leadItem.values['Additional Email']
+                        : '')
+                    : ''
                 }
               />
             ) : (
@@ -446,7 +504,7 @@ export class NewEmailCampaign extends Component {
                   id="subject"
                   style={{ width: '100%' }}
                   required
-                  defaultValue={this.state.subject}
+                  value={this.state.subject}
                   onChange={e => this.handleSubjectChange(e)}
                   readOnly={this.props.showPreview}
                 />
@@ -491,6 +549,11 @@ export class NewEmailCampaign extends Component {
                 Preview & Send
               </button>
             )}
+            {this.props.showAttachmentError && (
+              <span className="attachmentWarning">
+                Submit your Attachment or remove to continue
+              </span>
+            )}
             {this.props.showPreview && (
               <span className="preview">
                 <button
@@ -528,6 +591,8 @@ export const NewEmailCampaignView = ({
   setIsDirty,
   showEditor,
   setShowEditor,
+  showAttachmentError,
+  setShowAttachmentError,
   showPreview,
   setShowPreview,
   updateCampaign,
@@ -535,9 +600,12 @@ export const NewEmailCampaignView = ({
   submissionId,
   submissionType,
   leadItem,
+  memberItem,
   space,
   emailTemplates,
   emailTemplatesLoading,
+  replyType,
+  campaignId,
 }) =>
   newCampaignLoading ? (
     <div />
@@ -551,6 +619,8 @@ export const NewEmailCampaignView = ({
         isDirty={isDirty}
         setIsDirty={setIsDirty}
         showEditor={showEditor}
+        showAttachmentError={showAttachmentError}
+        setShowAttachmentError={setShowAttachmentError}
         setShowEditor={setShowEditor}
         showPreview={showPreview}
         setShowPreview={setShowPreview}
@@ -559,26 +629,29 @@ export const NewEmailCampaignView = ({
         submissionId={submissionId}
         submissionType={submissionType}
         leadItem={leadItem}
+        memberItem={memberItem}
         space={space}
         emailTemplates={emailTemplates}
         emailTemplatesLoading={emailTemplatesLoading}
+        replyType={replyType}
+        campaignId={campaignId}
       />
     </div>
   );
 
 export const EmailCampaignContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withProps(({ match }) => {
     return {
       submissionId: match.params.submissionId,
       submissionType: match.params.submissionType,
+      replyType: match.params.replyType,
+      campaignId: match.params.campaignId,
     };
   }),
   withState('isDirty', 'setIsDirty', false),
   withState('showEditor', 'setShowEditor', true),
+  withState('showAttachmentError', 'setShowAttachmentError', false),
   withState('showPreview', 'setShowPreview', false),
   withHandlers({
     saveCampaign: ({ campaignItem, createCampaign }) => (
@@ -609,6 +682,11 @@ export const EmailCampaignContainer = compose(
       });
       if (this.props.submissionType && this.props.submissionType === 'lead') {
         this.props.fetchLead({
+          id: this.props.submissionId,
+        });
+      }
+      if (this.props.submissionType && this.props.submissionType === 'member') {
+        this.props.fetchMember({
           id: this.props.submissionId,
         });
       }

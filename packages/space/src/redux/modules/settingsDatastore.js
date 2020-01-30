@@ -294,14 +294,18 @@ export const selectBridgeNameByModel = model => {
     const activeMapping = model.mappings
       ? model.mappings.find(m => m.name === activeMappingName)
       : '';
-    return activeMapping ? activeMapping.bridgeName : '';
+    return activeMapping
+      ? activeMapping.bridgeName || activeMapping.bridgeSlug
+      : '';
   } else {
     return '';
   }
 };
 export const selectUpdatedFormActiveBridge = state =>
   state.space.settingsDatastore.currentFormChanges.bridgeModelMapping
-    .bridgeName;
+    .bridgeName ||
+  state.space.settingsDatastore.currentFormChanges.bridgeModelMapping
+    .bridgeSlug;
 export const selectCurrentForm = state =>
   state.space.settingsDatastore.currentForm;
 export const selectCurrentFormChanges = state =>
@@ -368,7 +372,7 @@ export const reducer = (state = State(), { type, payload }) => {
           return DatastoreForm({ ...form, canManage, isHidden });
         }),
       );
-      const bridges = payload.bridges.map(b => b.name);
+      const bridges = payload.bridges.map(b => b.name || b.slug);
       return state
         .set('loading', false)
         .set('errors', [])
@@ -399,7 +403,8 @@ export const reducer = (state = State(), { type, payload }) => {
         canManage,
         columns,
         defaultSearchIndex,
-        bridgeName: bridgeModelMapping.bridgeName,
+        bridgeName:
+          bridgeModelMapping.bridgeName || bridgeModelMapping.bridgeSlug,
         bridgeModel,
         bridgeModelMapping,
       });
@@ -444,13 +449,12 @@ export const reducer = (state = State(), { type, payload }) => {
               }),
             ),
           )
-          .map(
-            (part, index) =>
-              index > partIndex && operation !== 'Is Equal To'
-                ? part
-                    .set('operation', 'All')
-                    .set('value', IndexValues({ values: List() }))
-                : part,
+          .map((part, index) =>
+            index > partIndex && operation !== 'Is Equal To'
+              ? part
+                  .set('operation', 'All')
+                  .set('value', IndexValues({ values: List() }))
+              : part,
           ),
       );
     }
@@ -458,16 +462,19 @@ export const reducer = (state = State(), { type, payload }) => {
       const { part, input } = payload;
 
       return state.updateIn(['searchParams', 'indexParts'], indexParts =>
-        indexParts.update(indexParts.findIndex(p => part.name === p.name), p =>
-          p.updateIn(['value', 'input'], () => input),
+        indexParts.update(
+          indexParts.findIndex(p => part.name === p.name),
+          p => p.updateIn(['value', 'input'], () => input),
         ),
       );
     }
     case types.SET_INDEX_PART_BETWEEN: {
       const { part, field, value } = payload;
       return state.updateIn(['searchParams', 'indexParts'], indexParts =>
-        indexParts.update(indexParts.findIndex(p => part.name === p.name), p =>
-          p.updateIn(['value', 'values'], values => values.set(field, value)),
+        indexParts.update(
+          indexParts.findIndex(p => part.name === p.name),
+          p =>
+            p.updateIn(['value', 'values'], values => values.set(field, value)),
         ),
       );
     }

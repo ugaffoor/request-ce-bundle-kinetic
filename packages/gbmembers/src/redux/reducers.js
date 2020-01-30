@@ -14,6 +14,7 @@ import { reducer as teams } from './modules/teams';
 import { reducer as datastore } from './modules/settingsDatastore';
 import { reducer as messaging } from './modules/messaging';
 import { reducer as reporting } from './modules/reporting';
+import { reducer as attendance } from './modules/attendance';
 
 export default {
   errors: errorsReducer,
@@ -31,5 +32,6 @@ export default {
   teams,
   datastore,
   messaging,
-  reporting
+  reporting,
+  attendance,
 };

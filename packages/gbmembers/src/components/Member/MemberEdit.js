@@ -193,6 +193,24 @@ export const MemberEdit = ({
               )}
             </span>
             <p>{memberItem.values['Member ID']}</p>
+            {/*            <input
+              type="text"
+              name="username"
+              id="username"
+              required
+              ref={input => (this.input = input)}
+              defaultValue={memberItem.values['Member ID']}
+              onChange={e =>
+                handleChange(
+                  memberItem,
+                  'Member ID',
+                  e,
+                  setIsDirty,
+                  memberChanges,
+                )
+              }
+            />
+*/}
             <hr />
             <span className="line">
               <div>
@@ -479,11 +497,7 @@ export const MemberEdit = ({
                 />
               </div>
               <div className="emailDiv ml-1">
-                <label
-                  htmlFor="additionalEmail"
-                >
-                  Additional Email
-                </label>
+                <label htmlFor="additionalEmail">Additional Email</label>
                 <input
                   type="text"
                   name="additionalEmail"
@@ -502,62 +516,58 @@ export const MemberEdit = ({
                   }
                 />
               </div>
-              </span>
-              <span className="line">
-                <div>
-                  <label
-                    htmlFor="phone"
-                    required={
-                      memberItem.values['Phone Number'] === undefined
-                        ? true
-                        : false
-                    }
-                  >
-                    Phone
-                  </label>
-                  <NumberFormat
-                    format="(##) ####-####"
-                    mask="_"
-                    required
-                    ref={input => (this.input = input)}
-                    value={memberItem.values['Phone Number']}
-                    onValueChange={(values, e) =>
-                      handleFormattedChange(
-                        values,
-                        memberItem,
-                        'Phone Number',
-                        e,
-                        setIsDirty,
-                        memberChanges,
-                      )
-                    }
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="additionalPhone"
-                  >
-                    Additional Phone
-                  </label>
-                  <NumberFormat
-                    format="(##) ####-####"
-                    mask="_"
-                    required
-                    ref={input => (this.input = input)}
-                    value={memberItem.values['Additional Phone Number']}
-                    onValueChange={(values, e) =>
-                      handleFormattedChange(
-                        values,
-                        memberItem,
-                        'Additional Phone Number',
-                        e,
-                        setIsDirty,
-                        memberChanges,
-                      )
-                    }
-                  />
-                </div>
-              </span>
+            </span>
+            <span className="line">
+              <div>
+                <label
+                  htmlFor="phone"
+                  required={
+                    memberItem.values['Phone Number'] === undefined
+                      ? true
+                      : false
+                  }
+                >
+                  Phone
+                </label>
+                <NumberFormat
+                  format="(##) ####-####"
+                  mask="_"
+                  required
+                  ref={input => (this.input = input)}
+                  value={memberItem.values['Phone Number']}
+                  onValueChange={(values, e) =>
+                    handleFormattedChange(
+                      values,
+                      memberItem,
+                      'Phone Number',
+                      e,
+                      setIsDirty,
+                      memberChanges,
+                    )
+                  }
+                />
+              </div>
+              <div>
+                <label htmlFor="additionalPhone">Additional Phone</label>
+                <NumberFormat
+                  format="(##) ####-####"
+                  mask="_"
+                  required
+                  ref={input => (this.input = input)}
+                  value={memberItem.values['Additional Phone Number']}
+                  onValueChange={(values, e) =>
+                    handleFormattedChange(
+                      values,
+                      memberItem,
+                      'Additional Phone Number',
+                      e,
+                      setIsDirty,
+                      memberChanges,
+                    )
+                  }
+                />
+              </div>
+            </span>
             <span className="line">
               <div>
                 <label
@@ -697,7 +707,6 @@ export const MemberEdit = ({
                 <NumberFormat
                   format="(##) ####-####"
                   mask="_"
-                  required
                   ref={input => (this.input = input)}
                   value={memberItem.values['Emergency Contact Phone']}
                   onValueChange={(values, e) =>
@@ -739,21 +748,36 @@ export const MemberEdit = ({
             <hr />
             <span className="line">
               <div>
-                <label htmlFor="program">Program</label>
+                <label
+                  htmlFor="program"
+                  required={
+                    memberItem.values['Ranking Program'] === undefined
+                      ? true
+                      : false
+                  }
+                >
+                  Program
+                </label>
                 <select
                   name="program"
                   id="program"
+                  required
                   ref={input => (this.input = input)}
                   defaultValue={memberItem.values['Ranking Program']}
-                  onChange={e =>
+                  onChange={e => {
                     handleChange(
                       memberItem,
                       'Ranking Program',
                       e,
                       setIsDirty,
                       memberChanges,
-                    )
-                  }
+                    );
+                    memberItem.values['Ranking Belt'] = undefined;
+                    console.log(
+                      'Ranking Program change belt=' +
+                        memberItem.values['Ranking Belt'],
+                    );
+                  }}
                 >
                   <option value="" />
                   {programs.map(program => (
@@ -765,10 +789,20 @@ export const MemberEdit = ({
                 <div className="droparrow" />
               </div>
               <div>
-                <label htmlFor="belt">Belt</label>
+                <label
+                  htmlFor="belt"
+                  required={
+                    memberItem.values['Ranking Belt'] === undefined
+                      ? true
+                      : false
+                  }
+                >
+                  Belt
+                </label>
                 <select
                   name="belt"
                   id="belt"
+                  required
                   ref={input => (this.input = input)}
                   defaultValue={memberItem.values['Ranking Belt']}
                   onChange={e =>
@@ -781,6 +815,7 @@ export const MemberEdit = ({
                     )
                   }
                 >
+                  <option key="" value=""></option>
                   {belts.map(
                     belt =>
                       belt.program === memberItem.values['Ranking Program'] && (
@@ -814,25 +849,24 @@ export const MemberEdit = ({
                 />
               </div>
               <div>
-                <label htmlFor="nextPromotion">Next Scheduled Promotion</label>
+                <label htmlFor="attendanceCount">Attendance Count</label>
                 <input
-                  type="date"
-                  name="nextPromotion"
-                  id="nextPromotion"
-                  style={{ width: '230px' }}
+                  type="number"
+                  name="attendanceCount"
+                  id="attendanceCount"
                   ref={input => (this.input = input)}
-                  defaultValue={memberItem.values['Next Schedule Promotion']}
+                  defaultValue={memberItem.values['Attendance Count']}
                   onChange={e =>
                     handleChange(
                       memberItem,
-                      'Next Schedule Promotion',
+                      'Attendance Count',
                       e,
                       setIsDirty,
                       memberChanges,
                     )
                   }
                 />
-              </div>
+              </div>{' '}
             </span>
           </div>
           <div className="section3">
@@ -962,10 +996,7 @@ export const MemberEdit = ({
   );
 
 export const MemberEditContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withProps(({ memberItem, updateMember, deleteMember }) => {
     return {};
   }),

@@ -42,10 +42,7 @@ export const ListView = ({
 );
 
 export const ListContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withProps(() => {
     return {};
   }),
@@ -73,7 +70,6 @@ export class ListHome extends Component {
       this.props.allMembers,
       this.props.memberLists,
     );
-    this._listMembersColumns = this.getListMembersColumns();
     this.allMembers = this.props.allMembers;
 
     this.state = {
@@ -114,18 +110,6 @@ export class ListHome extends Component {
     });
 
     return data;
-  }
-
-  getListMembersColumns() {
-    return [
-      { accessor: 'Member ID', Header: 'Member Id' },
-      { accessor: 'Gender', Header: 'Gender' },
-      { accessor: 'Member Type', Header: 'Member Type' },
-      { accessor: 'Ranking Program', Header: 'Program' },
-      { accessor: 'Ranking Belt', Header: 'Belt' },
-      { accessor: 'Additional Program 1', Header: 'Additional Program 1' },
-      { accessor: 'Additional Program 2', Header: 'Additional Program 2' },
-    ];
   }
 
   getListMembersData(filters) {
@@ -236,7 +220,30 @@ export class ListHome extends Component {
             <div className="row">
               <div className="col">
                 <ReactTable
-                  columns={this._listMembersColumns}
+                  columns={[
+                    {
+                      accessor: 'Member ID',
+                      Header: 'Member Id',
+                      Footer: (
+                        <span>
+                          <strong>Total: </strong>
+                          {this.state.listMembersData.length}
+                        </span>
+                      ),
+                    },
+                    { accessor: 'Gender', Header: 'Gender' },
+                    { accessor: 'Member Type', Header: 'Member Type' },
+                    { accessor: 'Ranking Program', Header: 'Program' },
+                    { accessor: 'Ranking Belt', Header: 'Belt' },
+                    {
+                      accessor: 'Additional Program 1',
+                      Header: 'Additional Program 1',
+                    },
+                    {
+                      accessor: 'Additional Program 2',
+                      Header: 'Additional Program 2',
+                    },
+                  ]}
                   data={this.state.listMembersData}
                   defaultPageSize={this.state.listMembersData.length}
                   pageSize={this.state.listMembersData.length}

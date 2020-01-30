@@ -16,6 +16,7 @@ export const SidebarComponent = ({
   showDatastore,
   showNotifications,
   showRobots,
+  isPlatform,
 }) => (
   <div className="sidebar space-sidebar">
     <Link to={settingsBackPath} className="nav-return">
@@ -97,11 +98,11 @@ export const SidebarComponent = ({
               target="blank"
               className="nav-link nav-link--admin"
             >
-              Kinetic Request Admin
+              {isPlatform ? 'Kinetic Platform Admin' : 'Kinetic Request Admin'}
               <span className="fa fa-fw fa-external-link" />
             </a>
           </li>
-          {!hasSharedTaskEngine && (
+          {!isPlatform && !hasSharedTaskEngine && (
             <li>
               <a
                 href={`${bundle.spaceLocation()}/kinetic-task`}
@@ -125,6 +126,7 @@ export const mapStateToProps = state => ({
   spaceAdmin: state.app.profile.spaceAdmin,
   pathname: state.router.location.pathname,
   hasSharedTaskEngine: selectHasSharedTaskEngine(state),
+  isPlatform: state.app.config.isPlatform,
 });
 
 export const Sidebar = compose(

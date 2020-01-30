@@ -1,0 +1,564 @@
+.attendanceDialog {
+  .narcissus_x3xwbs {
+    display: none;
+  }
+  .graphs {
+    .page-header {
+      height: 120px;
+      text-align: center;
+      margin-bottom: 3%;
+      .average {
+        float: left;
+        margin: 0;
+      }
+      .periods {
+        float: right;
+        width: auto;
+        display: flex;
+        span {
+          margin-right: 8px;
+          cursor: pointer;
+        }
+        .selected {
+          background-color: #ece8e8;
+        }
+      }
+      .dateRange {
+        float: left;
+        width: 100%;
+        margin-top: 10px;
+        height: 100%;
+        label {
+          float: left;
+          margin-top: 4px;
+          margin-right: 4px;
+        }
+        #dateRange {
+          float: left;
+          width: 70%;
+        }
+        .selection {
+          float: left;
+          width: 100%;
+        }
+        .customDates {
+          margin: 0;
+          width: 100%;
+          float: left;
+          margin-top: 4px;
+          margin-left: 100px;
+          .form-group {
+            width: 35%;
+            float: left;
+            margin-bottom: 0px;
+            #fromDate {
+              width: 170px;
+            }
+            #toDate {
+              width: 170px;
+              float: left;
+            }
+          }
+          .customButton {
+            margin-top: 4px;
+            float: left;
+          }
+        }
+      }
+    }
+  }
+  .attendanceTable {
+    .header {
+      table {
+        width: calc(100%);
+        thead {
+          background-color: #eae6e6;
+          td {
+            border-right-style: solid;
+            border-right-color: #ffffff;
+            padding: 4px;
+          }
+          td {
+            width: 20%;
+          }
+        }
+      }
+      tr {
+        height: 30px;
+      }
+    }
+    .body {
+      max-height: 300px;
+      overflow: auto;
+      table {
+        width: calc(100%);
+        tbody {
+          .classDate {
+            width: 180px;
+          }
+          td {
+            width: 20%;
+            padding-left: 6px;
+          }
+          .status {
+            color: unset;
+            text-align: left;
+          }
+        }
+      }
+    }
+  }
+}
+.membersGradingSection {
+  margin: 20px;
+  .memberGrading {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    .programName {
+      height: 45px;
+      font-size: x-large;
+      background-color: #f0e7e7;
+      padding: 5px;
+      margin-top: 20px;
+    }
+    .memberRow {
+      margin: 10px;
+      float: left;
+      .memberName {
+        width: 300px;
+        float: left;
+        margin-top: 4px;
+      }
+      .lastPromotion {
+        float: left;
+        margin-top: 7px;
+        margin-right: 4px;
+      }
+      .grading {
+        float: left;
+        width: 350px;
+        margin-top: 7px;
+      }
+      .statistics {
+        float: left;
+        margin-top: 7px;
+      }
+      .belt {
+        float: left;
+        margin-top: 7px;
+        margin-left: 20px;
+      }
+    }
+  }
+}
+.promotionDialog {
+  width: 900px !important;
+  .promotionHistory {
+    float: left;
+    width: 100%;
+    padding: 20px;
+    max-height: 300px;
+    overflow-y: auto;
+    .promotionRow.even {
+      background-color: #f4efef;
+    }
+    .info {
+      margin-left: 4px;
+      margin-right: 4px;
+      .rank_name {
+        float: left;
+      }
+      .date {
+        float: right;
+      }
+      .submitter {
+        float: left;
+        clear: left;
+        font-style: italic;
+        font-weight: bold;
+      }
+    }
+    .note {
+      clear: left;
+      margin-left: 4px;
+      margin-right: 4px;
+    }
+  }
+
+  .promoteNow {
+    width: 100%;
+    height: 100%;
+    float: left;
+    border-bottom: solid;
+    border-color: #ece6e6;
+    .dateDiv {
+      width: 122px;
+      margin-right: 40px;
+      input {
+        width: 160px;
+      }
+    }
+    .classesDiv {
+      width: 106px;
+      #classCarry {
+        width: 100px;
+      }
+    }
+    .programDiv {
+    }
+    .beltDiv {
+    }
+    .notesDiv {
+      textarea {
+        width: 800px;
+      }
+    }
+    div {
+      float: left;
+      margin: 10px;
+    }
+    .apply {
+      background-color: #991b1e;
+      clear: left;
+      float: right;
+      margin-right: 40px;
+      margin-bottom: 10px;
+    }
+    label {
+      float: left;
+      min-width: 180px;
+    }
+    input,
+    select,
+    textarea {
+      float: left;
+      clear: left;
+    }
+  }
+  .action {
+    .promote {
+      float: right;
+      margin-right: 8px;
+      cursor: pointer;
+    }
+  }
+  .rankbar {
+    .left {
+      float: left;
+    }
+    .right {
+      float: right;
+    }
+  }
+  .infoAction {
+    background-color: #ece6e6;
+    height: 90px;
+    clear: left;
+    .name {
+      height: 32px;
+      font-size: 20px;
+    }
+    .status {
+      color: black;
+      font-size: 20px;
+    }
+  }
+  .narcissus_x3xwbs {
+    display: none;
+  }
+  img {
+    width: 90px;
+    height: 90px;
+    float: left;
+    border-style: solid;
+    border-color: #d5d5d5;
+    margin-right: 10px;
+  }
+  .noPhoto {
+    width: 90px;
+    height: 90px;
+    float: left;
+    border-style: solid;
+    border-color: #d5d5d5;
+    text-align: center;
+    margin: 0 auto;
+    background-color: #f8f8f8;
+    background-size: cover;
+    background-position: 50%;
+    background-repeat: no-repeat;
+    position: relative;
+    line-height: 85px;
+    font-size: 40px;
+    margin-right: 10px;
+  }
+}
+
+.beltProgress p {
+  margin-bottom: 2px;
+}
+
+.grading {
+  max-width: 350px;
+  cursor: pointer;
+  .bar {
+    height: 22px;
+    width: 200px;
+    background-color: #434343;
+    float: left;
+    position: relative;
+    margin-right: 4px;
+  }
+  .notready {
+    .percent {
+      height: 22px;
+      position: absolute;
+      background-color: #fa1919;
+    }
+  }
+  .almost {
+    .percent {
+      height: 22px;
+      position: absolute;
+      background-color: #ffb500;
+    }
+  }
+  .ready {
+    .percent {
+      height: 22px;
+      position: absolute;
+      background-color: #5ea85e;
+    }
+  }
+  .gradeStatus {
+    font-weight: bold;
+  }
+}
+
+.attendanceSection {
+  min-height: 2000px;
+  clear: left;
+  .readyToScan {
+    margin: 40px;
+  }
+  .classAttendancesLabel {
+    margin-left: 40px;
+  }
+}
+.classSection {
+  padding-left: 40px;
+  padding-top: 20px;
+  .buttons {
+    margin-top: 35px;
+  }
+  .line {
+    display: flex;
+    div {
+      margin-right: 10px;
+    }
+  }
+  label {
+    float: left;
+    min-width: 180px;
+  }
+  input {
+    float: left;
+    clear: left;
+  }
+  .rdt {
+    float: left;
+    clear: left;
+  }
+  select {
+    float: left;
+    clear: left;
+    display: inline-block;
+    padding: 5px 30px 5px 25px;
+    cursor: pointer;
+    color: #7b7b7b;
+    border: 0;
+    border-radius: 0;
+    outline: 0;
+    background: #e6e6e6;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    border: solid 1px;
+  }
+  .droparrow {
+    position: relative;
+    top: 46px;
+    right: -9px;
+    width: 0 !important;
+    height: 0;
+    pointer-events: none;
+    border-width: 8px 5px 0;
+    border-style: solid;
+    border-color: #7b7b7b transparent transparent;
+  }
+}
+.checkinSection {
+  margin: 40px;
+  float: left;
+  .manual {
+    #changeToScan {
+      width: 200px;
+      margin-top: 20px;
+    }
+  }
+  .memberInfo {
+    padding-left: 6px;
+    float: left;
+    .info {
+      float: left;
+      margin-left: 20px;
+      .noProgramSetLabel,
+      .alreadyCheckedinLabel {
+        color: red;
+      }
+    }
+    .noProgramSetLabel {
+    }
+    img {
+      width: 100px;
+      height: 100px;
+      float: left;
+      border-style: solid;
+      border-color: #d5d5d5;
+    }
+    .noPhoto {
+      width: 100px;
+      height: 100px;
+      float: left;
+      border-style: solid;
+      border-color: #d5d5d5;
+      text-align: center;
+      margin: 0 auto;
+      background-color: #f8f8f8;
+      background-size: cover;
+      background-position: 50%;
+      background-repeat: no-repeat;
+      position: relative;
+      line-height: 85px;
+      font-size: 40px;
+    }
+    .applyCheckin {
+      float: left;
+      padding-top: 36px;
+      padding-left: 20px;
+      #status {
+        margin-bottom: 10px;
+      }
+    }
+    #manualNewMember {
+      width: 200px;
+      margin-left: 120px;
+      margin-top: 20px;
+      float: left;
+      clear: left;
+    }
+  }
+}
+
+.checkinMembers,
+.classMembers {
+  clear: left;
+  border-top-style: solid;
+  border-top-color: #d5d5d5;
+  padding-top: 5px;
+  display: flex;
+  background-color: #f2efef;
+  .memberCell:hover {
+    background-color: #d5d5d5;
+    .deleteCheckin {
+      visibility: visible;
+    }
+  }
+  .memberCell.alreadyCheckedIn {
+    background-color: red;
+  }
+  .memberCell {
+    float: left;
+    margin: 10px;
+    min-width: 30%;
+    .memberInfo {
+      padding-left: 6px;
+      float: left;
+    }
+    .L {
+      font-weight: bold;
+      font-size: 40px;
+      color: red;
+    }
+    .F,
+    .C {
+      font-weight: bold;
+      font-size: 40px;
+    }
+    .S {
+      font-weight: bold;
+      font-size: 40px;
+    }
+    .deleteCheckin {
+      cursor: pointer;
+      visibility: hidden;
+      margin-top: 15px;
+      float: left;
+      margin-left: 20px;
+      .icon-svg {
+        height: 2rem;
+        width: 2rem;
+      }
+    }
+    .deleteCheckin:hover {
+      path {
+        fill: #991b1e;
+      }
+    }
+    img {
+      width: 100px;
+      height: 100px;
+      float: left;
+      border-style: solid;
+      border-color: #d5d5d5;
+    }
+    .noPhoto {
+      width: 100px;
+      height: 100px;
+      float: left;
+      border-style: solid;
+      border-color: #d5d5d5;
+      text-align: center;
+      margin: 0 auto;
+      background-color: #f8f8f8;
+      background-size: cover;
+      background-position: 50%;
+      background-repeat: no-repeat;
+      position: relative;
+      line-height: 85px;
+      font-size: 40px;
+    }
+    h4 {
+      float: left;
+      margin-top: 4px;
+    }
+  }
+}
+.readyToScan {
+  h5 {
+    float: left;
+    margin-top: 10px;
+    margin-right: 20px;
+  }
+  span.SVGInline.icon {
+    float: left;
+  }
+  .icon-svg {
+    height: 3rem;
+    width: 3rem;
+  }
+}

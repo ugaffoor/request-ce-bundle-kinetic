@@ -7,7 +7,7 @@ import moment from 'moment';
 import 'bootstrap/scss/bootstrap.scss';
 import ReactTable from 'react-table';
 import { actions as appActions } from '../../redux/modules/memberApp';
-import Chance from 'chance';
+import uuid from 'uuid';
 import { StatusMessagesContainer } from '../StatusMessages';
 <script src="../helpers/jquery.multiselect.js" />;
 
@@ -26,8 +26,6 @@ const mapDispatchToProps = {
   fetchMembers: actions.fetchMembers,
   addMembersList: appActions.addMembersList,
 };
-
-const chance = new Chance();
 
 export const ListNewView = ({
   allMembers,
@@ -55,10 +53,7 @@ export const ListNewView = ({
 );
 
 export const ListNewContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withProps(() => {
     return {};
   }),
@@ -133,7 +128,7 @@ export class ListNewHome extends Component {
     }
 
     let newList = {
-      id: chance.guid(),
+      id: uuid(),
       name: $('#listName').val(),
       filters: this.state.filters,
     };

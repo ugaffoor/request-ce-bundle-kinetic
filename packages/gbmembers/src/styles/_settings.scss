@@ -1,0 +1,14 @@
+#memberBarcodes {
+  width: 1000px;
+  display: flow-root;
+  top: 0;
+  left: 0;
+  .barCode {
+    height: 130px;
+    position: relative;
+    width: 200px;
+    svg {
+      width: 200px;
+    }
+  }
+}

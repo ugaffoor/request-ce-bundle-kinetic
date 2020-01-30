@@ -65,6 +65,16 @@ export class EmailCampaignsList extends Component {
           props.value ? JSON.parse(props.value).length : undefined,
       },
       {
+        accessor: 'attachments',
+        Header: 'Attachments',
+        headerClassName: 'attachments_col',
+        className: 'attachments_col',
+        maxWidth: 75,
+        Cell: props => {
+          return props.value ? JSON.parse(props.value).length : 0;
+        },
+      },
+      {
         accessor: 'opened',
         Header: 'Opened',
         headerClassName: 'opened_col',
@@ -97,6 +107,7 @@ export class EmailCampaignsList extends Component {
         body: campaign.values['Body'],
         opened: campaign.values['Opened By Members'],
         clicked: campaign.values['Clicked By Members'],
+        attachments: campaign.values['Attachments'],
       };
     });
     return data;
@@ -119,6 +130,13 @@ export class EmailCampaignsList extends Component {
         style: { whiteSpace: 'unset' },
         maxWidth: 200,
       },
+      {
+        accessor: 'attachments',
+        Header: 'Attachments',
+        headerClassName: 'attachments_col',
+        className: 'attachments_col',
+        style: { whiteSpace: 'unset' },
+      },
     ];
   }
 
@@ -128,15 +146,24 @@ export class EmailCampaignsList extends Component {
     this.props.allMembers.forEach(member => {
       JSON.parse(row['recipients']).forEach(recipient => {
         if (recipient === member['id']) {
-          //members.push(member.values['Member ID']);
-          members += member.values['Member ID'] + ', ';
+          if (members !== '') members += ', ';
+          members += member.values['Email'];
         }
       });
     });
+    let attachments = '';
+    if (row['attachments'] !== undefined) {
+      JSON.parse(row['attachments']).forEach(attachment => {
+        attachments +=
+          decodeURI(attachment.split('/')[attachment.split('/').length - 1]) +
+          '<br>';
+      });
+    }
     return [
       {
         body: <span dangerouslySetInnerHTML={{ __html: row['body'] }} />,
         recipients: members,
+        attachments: <span dangerouslySetInnerHTML={{ __html: attachments }} />,
       },
     ];
   }
@@ -159,10 +186,14 @@ export class EmailCampaignsList extends Component {
               columns={this._columns}
               data={this.state.emailCampaigns}
               defaultPageSize={
-                this.state.emailCampaigns.length ? this.state.emailCampaigns.length : 2
+                this.state.emailCampaigns.length
+                  ? this.state.emailCampaigns.length
+                  : 2
               }
               pageSize={
-                this.state.emailCampaigns.length ? this.state.emailCampaigns.length : 2
+                this.state.emailCampaigns.length
+                  ? this.state.emailCampaigns.length
+                  : 2
               }
               showPagination={false}
               style={{
@@ -212,7 +243,9 @@ export class SmsCampaignsList extends Component {
   }
 
   componentWillMount() {
-    this.props.fetchSmsCampaigns({setSmsCampaigns: this.props.setSmsCampaigns});
+    this.props.fetchSmsCampaigns({
+      setSmsCampaigns: this.props.setSmsCampaigns,
+    });
   }
 
   getColumns = () => {
@@ -227,7 +260,7 @@ export class SmsCampaignsList extends Component {
         maxWidth: 100,
         Cell: props =>
           props.value ? JSON.parse(props.value).length : undefined,
-      }
+      },
     ];
   };
 
@@ -241,7 +274,7 @@ export class SmsCampaignsList extends Component {
         _id: campaign['id'],
         content: campaign.values['SMS Content'],
         sentDate: campaign.values['Sent Date'],
-        recipients: campaign.values['Recipients']
+        recipients: campaign.values['Recipients'],
       };
     });
     return data;
@@ -273,7 +306,7 @@ export class SmsCampaignsList extends Component {
     });
     return [
       {
-        recipients: members
+        recipients: members,
       },
     ];
   }
@@ -296,10 +329,14 @@ export class SmsCampaignsList extends Component {
               columns={this._columns}
               data={this.state.smsCampaigns}
               defaultPageSize={
-                this.state.smsCampaigns.length ? this.state.smsCampaigns.length : 2
+                this.state.smsCampaigns.length
+                  ? this.state.smsCampaigns.length
+                  : 2
               }
               pageSize={
-                this.state.smsCampaigns.length ? this.state.smsCampaigns.length : 2
+                this.state.smsCampaigns.length
+                  ? this.state.smsCampaigns.length
+                  : 2
               }
               showPagination={false}
               style={{
@@ -371,7 +408,15 @@ export class CreateCampaign extends Component {
   }
 }
 
-export const CampaignView = ({ emailCampaigns, emailCampaignsLoading, smsCampaigns, fetchSmsCampaigns, setSmsCampaigns, smsCampaignLoading, allMembers }) =>
+export const CampaignView = ({
+  emailCampaigns,
+  emailCampaignsLoading,
+  smsCampaigns,
+  fetchSmsCampaigns,
+  setSmsCampaigns,
+  smsCampaignLoading,
+  allMembers,
+}) =>
   emailCampaignsLoading ? (
     <ReactSpinner />
   ) : (
@@ -379,23 +424,28 @@ export const CampaignView = ({ emailCampaigns, emailCampaignsLoading, smsCampaig
       <StatusMessagesContainer />
       <div className="row">
         <div className="leadContents">
-          <CreateCampaign/>
+          <CreateCampaign />
         </div>
         <div className="taskContents">
-          <EmailCampaignsList emailCampaigns={emailCampaigns} allMembers={allMembers} />
+          <EmailCampaignsList
+            emailCampaigns={emailCampaigns}
+            allMembers={allMembers}
+          />
         </div>
         <div className="taskContents">
-          <SmsCampaignsList smsCampaigns={smsCampaigns} fetchSmsCampaigns={fetchSmsCampaigns} setSmsCampaigns={setSmsCampaigns} allMembers={allMembers} />
+          <SmsCampaignsList
+            smsCampaigns={smsCampaigns}
+            fetchSmsCampaigns={fetchSmsCampaigns}
+            setSmsCampaigns={setSmsCampaigns}
+            allMembers={allMembers}
+          />
         </div>
       </div>
     </div>
   );
 
 export const CampaignContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withProps(({}) => {
     return {};
   }),
@@ -403,11 +453,15 @@ export const CampaignContainer = compose(
   withHandlers({}),
   lifecycle({
     componentWillMount() {
-      this.props.fetchEmailCampaigns({ setEmailCampaigns: this.props.setEmailCampaigns });
+      this.props.fetchEmailCampaigns({
+        setEmailCampaigns: this.props.setEmailCampaigns,
+      });
     },
     componentWillReceiveProps(nextProps) {
       if (this.props.pathname !== nextProps.pathname) {
-        this.props.fetchEmailCampaigns({ setEmailCampaigns: this.props.setEmailCampaigns });
+        this.props.fetchEmailCampaigns({
+          setEmailCampaigns: this.props.setEmailCampaigns,
+        });
       }
     },
     componentDidMount() {
