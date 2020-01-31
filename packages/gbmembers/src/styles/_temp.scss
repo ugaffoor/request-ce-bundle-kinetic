@@ -74,11 +74,15 @@ ins {
 
 /// Accessibility
 // You forgot the 'alt' attribute
-img[alt=''],
-img:not([alt]) {
-  border: 5px dashed #c00;
+.ql-editor {
+  img[alt=''],
+  img:not([alt]) {
+    border: 5px dashed #c00;
+  }
 }
-
+#previewDiv img {
+  border: unset;
+}
 input,
 textarea {
   font-size: initial;

@@ -107,16 +107,13 @@ export class NewEmailCampaign extends Component {
 
           [{ header: 1 }, { header: 2 }], // custom button values
           [{ list: 'ordered' }, { list: 'bullet' }],
-          [{ script: 'sub' }, { script: 'super' }], // superscript/subscript
           [{ indent: '-1' }, { indent: '+1' }], // outdent/indent
-          [{ direction: 'rtl' }], // text direction
 
-          [{ size: ['small', false, 'large', 'huge'] }], // custom dropdown
+          [{ align: [] }],
           [{ header: [1, 2, 3, 4, 5, 6, false] }],
 
           [{ color: [] }, { background: [] }], // dropdown with defaults from theme
           [{ font: [] }],
-          [{ align: [] }],
           ['link'],
           ['image'],
           ['clean'],
@@ -220,6 +217,8 @@ export class NewEmailCampaign extends Component {
     'color',
     'width',
     'height',
+    'align',
+    'text-align',
   ];
 
   attachQuillRefs() {
@@ -394,6 +393,18 @@ export class NewEmailCampaign extends Component {
       body = this.state.text;
     }
 
+    body = body.replace(
+      /class="ql-align-center"/g,
+      'style="text-align: center;"',
+    );
+    body = body.replace(
+      /class="ql-align-right"/g,
+      'style="text-align: right;"',
+    );
+    body = body.replace(
+      /class="ql-align-justify"/g,
+      'style="text-align: justify;"',
+    );
     if (this.props.submissionId) {
       body +=
         "<div id='__gbmembers-" +
@@ -532,6 +543,7 @@ export class NewEmailCampaign extends Component {
               <div
                 id="previewDiv"
                 ref="previewDiv"
+                className="ql-editor"
                 style={{ border: '1px solid #ccc' }}
               >
                 <span dangerouslySetInnerHTML={{ __html: this.state.text }} />

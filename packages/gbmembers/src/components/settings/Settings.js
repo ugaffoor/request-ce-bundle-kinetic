@@ -94,8 +94,15 @@ export const SettingsView = ({
       ) : (
         <div id="memberBarcodesSection">
           <div id="memberBarcodes">
-            {allMembers.map(member => (
-              <span className="barCode">
+            {allMembers.map((member, index) => (
+              <span
+                className={
+                  index !== 0 && index % 65 === 0
+                    ? 'barCode pageBreak'
+                    : 'barCode'
+                }
+                key={index}
+              >
                 <Barcode
                   value={member.id.split('-')[4].substring(6, 12)}
                   width={1.3}
@@ -150,9 +157,11 @@ export const SettingsContainer = compose(
 
         var newWin = window.frames['printf'];
         newWin.document.write(
-          '<style> #memberBarcodes{margin-top: 50px;margin-left:10px;display: flow-root;width: 800px;} ' +
-            '.barCode {position: relative;width: 160px; flex: 30 0 auto;}' +
-            '.barCode svg{width:160px;}' +
+          '<style> ' +
+            '#memberBarcodes{margin-top: 50px;margin-left:10px;display: flow-root;width: 800px;} ' +
+            '.pageBreak{page-break-before: always;background-color: red;} ' +
+            '.barCode {position: relative;width: 160px; flex: 30 0 auto;} ' +
+            '.barCode svg{width:160px;} ' +
             '</style><body onload="window.print()">' +
             $('#memberBarcodesSection').html() +
             '</body>',
