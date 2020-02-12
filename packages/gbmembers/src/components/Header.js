@@ -10,8 +10,9 @@ import leadsIcon from '../images/smile.svg?raw';
 import sendIcon from '../images/envelop.svg?raw';
 import gradingIcon from '../images/star-full.svg?raw';
 import settingsIcon from '../images/settings-icon.svg?raw';
+import { Utils } from 'common';
 
-export const Header = ({ loading }) => (
+export const Header = ({ loading, profile }) => (
   <Navbar color="faded" light className="fixed-top">
     <CompanyLogoContainer />
     <Nav className="nav-header apps">
@@ -70,28 +71,36 @@ export const Header = ({ loading }) => (
           <span className="appName">Grading</span>
         </NavLink>
       </NavItem>
-      <NavItem className="settingsNavItem">
-        <NavLink
-          to="/Settings"
-          className="nav-link icon-wrapper"
-          strict
-          activeClassName="active"
-        >
-          <SVGInline svg={settingsIcon} className="icon" />
-          <span className="appName">Settings</span>
-        </NavLink>
-      </NavItem>
-      <NavItem className="reportsNavItem">
-        <NavLink
-          to="/Reports"
-          className="nav-link icon-wrapper"
-          strict
-          activeClassName="active"
-        >
-          <SVGInline svg={settingsIcon} className="icon" />
-          <span className="appName">Reports</span>
-        </NavLink>
-      </NavItem>
+      {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
+        <div />
+      ) : (
+        <NavItem className="settingsNavItem">
+          <NavLink
+            to="/Settings"
+            className="nav-link icon-wrapper"
+            strict
+            activeClassName="active"
+          >
+            <SVGInline svg={settingsIcon} className="icon" />
+            <span className="appName">Settings</span>
+          </NavLink>
+        </NavItem>
+      )}
+      {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
+        <div />
+      ) : (
+        <NavItem className="reportsNavItem">
+          <NavLink
+            to="/Reports"
+            className="nav-link icon-wrapper"
+            strict
+            activeClassName="active"
+          >
+            <SVGInline svg={settingsIcon} className="icon" />
+            <span className="appName">Reports</span>
+          </NavLink>
+        </NavItem>
+      )}
     </Nav>
   </Navbar>
 );

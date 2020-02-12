@@ -24,6 +24,7 @@ const mapStateToProps = state => ({
   route: `${state.router.location.pathname} ${state.router.location.search}`,
   memberLists: state.member.app.memberLists,
   myFilters: state.member.app.myFilters,
+  profile: state.member.app.profile,
 });
 
 const mapDispatchToProps = {
@@ -33,10 +34,7 @@ const mapDispatchToProps = {
 };
 
 export const SidebarContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withProps(({ setMemberFilter }) => {
     return {};
   }),

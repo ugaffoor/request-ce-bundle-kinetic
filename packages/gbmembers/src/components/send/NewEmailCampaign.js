@@ -48,7 +48,13 @@ const mapDispatchToProps = {
 
 const util = require('util');
 
-/*Quill.register('modules/imageResize', ImageResize);*/
+var Block = Quill.import('blots/block');
+Block.tagName = 'DIV';
+Quill.register(Block, true);
+
+var Size = Quill.import('attributors/style/size');
+Size.whitelist = ['10px', '18px', '32px', '64px'];
+Quill.register(Size, true);
 
 var Link = Quill.import('formats/link');
 var builtInFunc = Link.sanitize;
@@ -105,13 +111,12 @@ export class NewEmailCampaign extends Component {
           ['bold', 'italic', 'underline', 'strike'], // toggled buttons
           ['blockquote', 'code-block'],
 
-          [{ header: 1 }, { header: 2 }], // custom button values
+          [{ size: ['10px', '18px', '32px', '64px'] }],
           [{ list: 'ordered' }, { list: 'bullet' }],
           [{ indent: '-1' }, { indent: '+1' }], // outdent/indent
 
           [{ align: [] }],
           [{ header: [1, 2, 3, 4, 5, 6, false] }],
-
           [{ color: [] }, { background: [] }], // dropdown with defaults from theme
           [{ font: [] }],
           ['link'],
@@ -219,6 +224,7 @@ export class NewEmailCampaign extends Component {
     'height',
     'align',
     'text-align',
+    'size',
   ];
 
   attachQuillRefs() {

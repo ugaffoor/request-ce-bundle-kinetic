@@ -14,7 +14,13 @@ export class Requests extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {}
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.submission) {
+      this.setState({
+        data: this.getData(nextProps.submission),
+      });
+    }
+  }
 
   componentWillMount() {}
 

@@ -3,6 +3,7 @@ import { Members } from './Members';
 import { ListMembers } from './ListMembers';
 import { actions } from '../redux/modules/members';
 import { KappNavLink as NavLink } from 'common';
+import { Utils } from 'common';
 
 export const Sidebar = ({
   documentationUrl,
@@ -21,11 +22,16 @@ export const Sidebar = ({
   myFilters,
   handleFilterChange,
   filterValue,
+  profile,
 }) => (
   <div className="sidebar">
-    <NavLink to={`/NewMember`} className="btn btn-primary">
-      Create New Member
-    </NavLink>
+    {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
+      <div />
+    ) : (
+      <NavLink to={`/NewMember`} className="btn btn-primary">
+        Create New Member
+      </NavLink>
+    )}
     <NavLink to={`/memberLists`} className="btn btn-primary">
       Member Lists
     </NavLink>

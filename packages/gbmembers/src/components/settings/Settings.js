@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { connect } from 'react-redux';
 import {
   compose,
@@ -9,17 +9,20 @@ import {
 } from 'recompose';
 import { actions } from '../../redux/modules/members';
 import $ from 'jquery';
-import html2canvas from 'html2canvas';
+import ReactToPrint from 'react-to-print';
 import Barcode from 'react-barcode';
 import 'bootstrap/scss/bootstrap.scss';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as errorActions } from '../../redux/modules/errors';
+import { Utils } from 'common';
+import DateTimePicker from 'react-xdsoft-datetimepicker';
 
 const mapStateToProps = state => ({
   memberItem: state.member.members.currentMember,
   allMembers: state.member.members.allMembers,
   billingCompany: state.member.app.billingCompany,
   billingCustomersLoading: state.member.members.billingCustomersLoading,
+  profile: state.member.app.profile,
 });
 
 const mapDispatchToProps = {
@@ -31,6 +34,56 @@ const mapDispatchToProps = {
   setBillingCustomers: actions.setBillingCustomers,
   createBillingMembers: actions.createBillingMembers,
 };
+
+class ComponentToPrint extends React.Component {
+  render() {
+    return (
+      <div id="memberBarcodes">
+        {this.props.allMembers.map((member, index) =>
+          index !== 0 && index % 65 === 0 ? (
+            <div className="barCode pageBreak" key={index}>
+              <Barcode
+                value={member.id.split('-')[4].substring(6, 12)}
+                width={1.3}
+                height={36}
+                text={
+                  member.values['Last Name'].substring(0, 1) +
+                  ' ' +
+                  member.values['Last Name']
+                }
+                type={'CODE128'}
+                font={'monospace'}
+                textAlign={'center'}
+                textPosition={'bottom'}
+                textMargin={2}
+                fontSize={8}
+              />
+            </div>
+          ) : (
+            <span className="barCode" key={index}>
+              <Barcode
+                value={member.id.split('-')[4].substring(6, 12)}
+                width={1.3}
+                height={36}
+                text={
+                  member.values['Last Name'].substring(0, 1) +
+                  ' ' +
+                  member.values['Last Name']
+                }
+                type={'CODE128'}
+                font={'monospace'}
+                textAlign={'center'}
+                textPosition={'bottom'}
+                textMargin={2}
+                fontSize={8}
+              />
+            </span>
+          ),
+        )}
+      </div>
+    );
+  }
+}
 
 export const SettingsView = ({
   memberItem,
@@ -45,27 +98,33 @@ export const SettingsView = ({
   printMemberBarcodes,
   printingBarcodes,
   setPrintingBarcodes,
+  profile,
 }) => (
-  <div className="dashboard">
+  <div className="settings">
     <StatusMessagesContainer />
-    <div className="buttons row" style={{ marginLeft: '10px' }}>
-      <div className="col-xs-3">
-        <button
-          type="button"
-          id="loadBillingCustomers"
-          className={'btn btn-primary'}
-          style={{ borderRadius: '0', marginRight: '5px' }}
-          onClick={e =>
-            fetchBillingCustomers({
-              setBillingCustomers,
-              createBillingMembers,
-              fetchMembers,
-            })
-          }
-        >
-          Import Billing Members
-        </button>
-      </div>
+    <div className="buttons column" style={{ marginLeft: '10px' }}>
+      {!Utils.isMemberOf(profile, 'Billing') ? (
+        <div />
+      ) : (
+        <div className="col-xs-3">
+          <button
+            type="button"
+            id="loadBillingCustomers"
+            className={'btn btn-primary'}
+            style={{ borderRadius: '0', marginRight: '5px' }}
+            onClick={e =>
+              fetchBillingCustomers({
+                setBillingCustomers,
+                createBillingMembers,
+                fetchMembers,
+                allMembers,
+              })
+            }
+          >
+            Import Billing Members
+          </button>
+        </div>
+      )}
       <div className="col-xs-3">
         {billingCustomersLoading ? (
           <p>Importing billing customers ....</p>
@@ -86,42 +145,22 @@ export const SettingsView = ({
             })
           }
         >
-          Print Member barcodes
+          Show Member barcodes
         </button>
       </div>
       {!printingBarcodes ? (
         <div />
       ) : (
-        <div id="memberBarcodesSection">
-          <div id="memberBarcodes">
-            {allMembers.map((member, index) => (
-              <span
-                className={
-                  index !== 0 && index % 65 === 0
-                    ? 'barCode pageBreak'
-                    : 'barCode'
-                }
-                key={index}
-              >
-                <Barcode
-                  value={member.id.split('-')[4].substring(6, 12)}
-                  width={1.3}
-                  height={46}
-                  text={
-                    member.values['Last Name'].substring(0, 1) +
-                    ' ' +
-                    member.values['Last Name']
-                  }
-                  type={'CODE128'}
-                  font={'monospace'}
-                  textAlign={'center'}
-                  textPosition={'bottom'}
-                  textMargin={2}
-                  fontSize={8}
-                />
-              </span>
-            ))}
-          </div>
+        <div id="memberBarcodesSection" className="col-xs-3">
+          <ReactToPrint
+            trigger={() => <button>Print Barcodes!</button>}
+            content={() => this.componentRef}
+            copyStyles={true}
+          />
+          <ComponentToPrint
+            ref={el => (this.componentRef = el)}
+            allMembers={allMembers}
+          />
         </div>
       )}
     </div>
@@ -138,7 +177,7 @@ export const SettingsContainer = compose(
     printMemberBarcodes: ({ allMembers, setPrintingBarcodes }) => () => {
       console.log('Printing:' + allMembers.length);
       setPrintingBarcodes(true);
-
+      /*
       setTimeout(function() {
         const opt = {
           scale: 1,
@@ -169,6 +208,7 @@ export const SettingsContainer = compose(
         newWin.document.close();
         setPrintingBarcodes(false);
       }, 1000);
+*/
     },
   }),
   lifecycle({

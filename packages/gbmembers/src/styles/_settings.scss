@@ -1,18 +1,50 @@
-#memberBarcodes {
-  width: 1000px;
-  display: flow-root;
-  top: 0;
-  left: 0;
-  .barCode {
-    height: 130px;
-    position: relative;
-    width: 200px;
-    svg {
-      width: 200px;
-    }
+.settings {
+  button {
+    margin: 6px;
   }
 }
 
-.pageBreak {
-  background-color: red;
+@media print {
+  html,
+  body {
+    height: initial !important;
+    overflow: initial !important;
+    -webkit-print-color-adjust: exact;
+    float: none;
+  }
+}
+@page {
+  size: a4;
+  margin-top: 0mm;
+  margin-left: -5mm;
+  margin-right: -10mm;
+  margin-bottom: 0mm;
+}
+#memberBarcodes {
+  width: 900px;
+  height: auto;
+  /*  border-style: solid;
+  border-color: red;
+  border-size: 1px; */
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  .barCode {
+    display: inline-flex;
+    margin-left: 24px;
+    margin-right: 24px;
+    svg {
+      width: 130px;
+      height: 95px;
+    }
+  }
+}
+.pageBreak,
+.pageBreak + .barCode,
+.pageBreak + .barCode + .barCode,
+.pageBreak + .barCode + .barCode + .barCode,
+.pageBreak + .barCode + .barCode + .barCode + .barCode {
+  svg {
+    margin-top: 21mm;
+  }
 }

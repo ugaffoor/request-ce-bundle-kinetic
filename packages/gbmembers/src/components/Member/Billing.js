@@ -49,7 +49,7 @@ import { actions as errorActions } from '../../redux/modules/errors';
 import { RecentNotificationsContainer } from '../notifications/RecentNotifications';
 import { FormContainer } from '../form/FormContainer';
 import { Link } from 'react-router-dom';
-import { actions as teamActions } from '../../redux/modules/teams';
+import { Utils } from 'common';
 
 <script src="../helpers/jquery.multiselect.js" />;
 
@@ -76,8 +76,6 @@ const mapStateToProps = state => ({
   ddrTemplates: state.member.app.ddrTemplates,
   actionRequests: state.member.members.actionRequests,
   actionRequestsLoading: state.member.members.actionRequestsLoading,
-  isBillingUser: state.member.teams.isBillingUser,
-  isBillingUserLoading: state.member.teams.isBillingUserLoading,
 });
 
 const mapDispatchToProps = {
@@ -93,12 +91,12 @@ const mapDispatchToProps = {
   setPaymentHistory: actions.setPaymentHistory,
   fetchFamilyMembers: actions.fetchFamilyMembers,
   setFamilyMembers: actions.setFamilyMembers,
+  refundTransaction: actions.refundTransaction,
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
   fetchDdrStatus: actions.fetchDdrStatus,
   fetchActionRequests: actions.fetchActionRequests,
   setActionRequests: actions.setActionRequests,
-  fetchIsBillingUser: teamActions.fetchIsBillingUser,
 };
 
 const ezidebit_date_format = 'YYYY-MM-DD HH:mm:ss';
@@ -638,8 +636,8 @@ export class PaymentHistory extends Component {
       typeof this.props.memberItem.values['Refunded Payments'] === 'object'
         ? this.props.memberItem.values['Refunded Payments']
         : this.props.memberItem.values['Refunded Payments']
-          ? JSON.parse(this.props.memberItem.values['Refunded Payments'])
-          : [];
+        ? JSON.parse(this.props.memberItem.values['Refunded Payments'])
+        : [];
 
     const columns = [
       {
@@ -768,8 +766,8 @@ class BillingAudit extends Component {
           typeof props.value === 'object'
             ? objectToString(props.value)
             : props.value
-              ? props.value
-              : '',
+            ? props.value
+            : '',
       },
       { accessor: 'reason', Header: 'Reason' },
     ];
@@ -1130,6 +1128,23 @@ export class BillingInfo extends Component {
                       )}
                     </div>
                   </span>
+                  <span className="line">
+                    <div style={{ marginTop: '10px' }}>
+                      <button
+                        type="button"
+                        className={'btn btn-primary'}
+                        onClick={e => this.setShowBillingAudit(true)}
+                      >
+                        Billing Audit
+                      </button>
+                    </div>
+                    {this.state.showBillingAudit && (
+                      <BillingAudit
+                        memberItem={this.props.memberItem}
+                        setShowBillingAudit={this.setShowBillingAudit}
+                      />
+                    )}
+                  </span>
                 </div>
               </span>
             )}
@@ -1185,8 +1200,7 @@ export const Billing = ({
   actionRequests,
   actionRequestsLoading,
   getActionRequests,
-  isBillingUser,
-  isBillingUserLoading,
+  profile,
 }) =>
   currentMemberLoading ? (
     <div />
@@ -1226,7 +1240,7 @@ export const Billing = ({
                 actionRequests={actionRequests}
                 actionRequestsLoading={actionRequestsLoading}
                 getActionRequests={getActionRequests}
-                isBillingUser={isBillingUser}
+                profile={profile}
               />
             )}
           {(memberItem.values['Billing Customer Id'] === null ||
@@ -1348,10 +1362,7 @@ function getResumeDates(nextBillingDate, billingPeriod) {
 }
 
 export const BillingContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withProps(
     ({
       memberItem,
@@ -1603,6 +1614,29 @@ export const BillingContainer = compose(
         setSystemError: setSystemError,
       });
     },
+    refundPayment: ({
+      memberItem,
+      refundTransaction,
+      updateMember,
+      fetchCurrentMember,
+      fetchMembers,
+      addNotification,
+      setSystemError,
+    }) => (paymentId, paymentAmount, billingChangeReason) => {
+      console.log('### paymentId = ' + paymentId);
+      let args = {};
+      args.transactionId = paymentId;
+      args.refundAmount = paymentAmount * 100;
+      args.memberItem = memberItem;
+      args.updateMember = updateMember;
+      args.fetchCurrentMember = fetchCurrentMember;
+      args.fetchMembers = fetchMembers;
+      args.myThis = memberItem.myThis;
+      args.billingChangeReason = billingChangeReason;
+      args.addNotification = addNotification;
+      args.setSystemError = setSystemError;
+      refundTransaction(args);
+    },
     getActionRequests: ({
       memberItem,
       fetchActionRequests,
@@ -1622,7 +1656,6 @@ export const BillingContainer = compose(
     constructor() {},
     componentDidUpdate() {},
     componentWillMount() {
-      this.props.fetchIsBillingUser();
       var member = undefined;
       for (var j = 0; j < this.props.members.length; j++) {
         if (this.props.members[j]['id'] === this.props.match.params['id']) {

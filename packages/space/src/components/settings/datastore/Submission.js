@@ -24,6 +24,13 @@ import ImageResize from 'quill-image-resize-module-react';
 
 Quill.register('modules/imageResize', ImageResize);
 const globals = import('common/globals');
+var Block = Quill.import('blots/block');
+Block.tagName = 'DIV';
+Quill.register(Block, true);
+
+var Size = Quill.import('attributors/style/size');
+Size.whitelist = ['10px', '18px', '32px', '64px'];
+Quill.register(Size, true);
 
 const DatastoreSubmissionComponent = ({
   form,
@@ -299,13 +306,12 @@ export class ScriptEditor extends Component {
           ['bold', 'italic', 'underline', 'strike'], // toggled buttons
           ['blockquote', 'code-block'],
 
-          [{ header: 1 }, { header: 2 }], // custom button values
+          [{ size: ['10px', '18px', '32px', '64px'] }],
           [{ list: 'ordered' }, { list: 'bullet' }],
           [{ indent: '-1' }, { indent: '+1' }], // outdent/indent
 
           [{ align: [] }],
           [{ header: [1, 2, 3, 4, 5, 6, false] }],
-
           [{ color: [] }, { background: [] }], // dropdown with defaults from theme
           [{ font: [] }],
           ['link'],
@@ -333,6 +339,7 @@ export class ScriptEditor extends Component {
     'height',
     'align',
     'text-align',
+    'size',
   ];
 
   handleChange(html, text) {
@@ -388,13 +395,12 @@ export class EmailEditor extends Component {
           ['bold', 'italic', 'underline', 'strike'], // toggled buttons
           ['blockquote', 'code-block'],
 
-          [{ header: 1 }, { header: 2 }], // custom button values
+          [{ size: ['10px', '18px', '32px', '64px'] }],
           [{ list: 'ordered' }, { list: 'bullet' }],
           [{ indent: '-1' }, { indent: '+1' }], // outdent/indent
 
           [{ align: [] }],
           [{ header: [1, 2, 3, 4, 5, 6, false] }],
-
           [{ color: [] }, { background: [] }], // dropdown with defaults from theme
           [{ font: [] }],
           ['link'],
@@ -481,6 +487,7 @@ export class EmailEditor extends Component {
     'height',
     'align',
     'text-align',
+    'size',
   ];
 
   handleChange(html, text) {

@@ -208,7 +208,8 @@ export function setMemberPromotionValues(member, belts) {
     }
   }
 
-  let attendanceVal = member.values['Attendance Count'] / attendClasses;
+  let attendanceVal =
+    parseInt(member.values['Attendance Count']) / attendClasses;
   let daysElapsed = moment().diff(
     moment(member.values['Last Promotion']),
     'days',
@@ -219,18 +220,19 @@ export function setMemberPromotionValues(member, belts) {
     statusIndicator = 'notready';
     statusText = 'NOT READY';
     promotionSort = 2;
-  } else if (
-    attendanceVal >= 0.8 &&
-    member.values['Attendance Count'] < attendClasses &&
-    daysVal >= 0.8
-  ) {
-    statusIndicator = 'almost';
-    statusText = 'ALMOST READY';
-    promotionSort = 1;
-  } else if (attendanceVal >= 1 && daysVal >= 0.9) {
+  } else if (attendanceVal >= 1 && daysVal >= 1) {
     statusIndicator = 'ready';
     statusText = 'READY';
     promotionSort = 0;
+  } /*  if (
+    attendanceVal >= 0.8 &&
+    parseInt(member.values['Attendance Count']) < attendClasses &&
+    daysVal >= 0.8
+  ) */ else {
+    //console.log("attendanceVal:"+attendanceVal+" member.values['Attendance Count']:"+member.values['Attendance Count']+" attendClasses:"+attendClasses+" daysVal:"+daysVal);
+    statusIndicator = 'almost';
+    statusText = 'ALMOST READY';
+    promotionSort = 1;
   }
   let attendancePerc = attendanceVal * 100;
   if (attendancePerc > 100) attendancePerc = 100;

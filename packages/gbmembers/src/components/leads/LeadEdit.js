@@ -447,7 +447,7 @@ export class LeadEdit extends Component {
                     Phone
                   </label>
                   <NumberFormat
-                    format="(##) ####-####"
+                    format="####-###-###"
                     mask="_"
                     required
                     ref={input => (this.input = input)}
@@ -466,7 +466,7 @@ export class LeadEdit extends Component {
                 <div>
                   <label htmlFor="additionalPhone">Additional Phone</label>
                   <NumberFormat
-                    format="(##) ####-####"
+                    format="####-###-###"
                     mask="_"
                     ref={input => (this.input = input)}
                     value={
@@ -836,10 +836,7 @@ export const LeadEditView = ({
   );
 
 export const LeadEditContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withProps(() => {
     return {};
   }),

@@ -28,7 +28,6 @@ import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as errorActions } from '../../redux/modules/errors';
 import ReactSpinner from 'react16-spinjs';
-import { actions as teamActions } from '../../redux/modules/teams';
 import { CallScriptModalContainer } from './CallScriptModalContainer';
 import { SMSModalContainer } from './SMSModalContainer';
 import { EmailsReceived } from './EmailsReceived';
@@ -50,6 +49,7 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
+import { Utils } from 'common';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -63,8 +63,6 @@ const mapStateToProps = state => ({
   newCustomersLoading: state.member.members.newCustomersLoading,
   space: state.member.app.space,
   profile: state.member.app.profile,
-  isBillingUser: state.member.teams.isBillingUser,
-  isBillingUserLoading: state.member.teams.isBillingUserLoading,
   isSmsEnabled: state.member.app.isSmsEnabled,
   belts: state.member.app.belts,
   attendances: state.member.attendance.memberAttendances,
@@ -83,7 +81,6 @@ const mapDispatchToProps = {
   fetchNewCustomers: actions.fetchNewCustomers,
   setNewCustomers: actions.setNewCustomers,
   fetchMembers: actions.fetchMembers,
-  fetchIsBillingUser: teamActions.fetchIsBillingUser,
   fetchMemberAttendances: attendanceActions.fetchMemberAttendances,
 };
 
@@ -420,7 +417,6 @@ export const MemberView = ({
   newCustomersLoading,
   space,
   profile,
-  isBillingUser,
   setShowCallScriptModal,
   showCallScriptModal,
   setShowSMSModal,
@@ -501,12 +497,16 @@ export const MemberView = ({
                   setShowSMSModal={setShowSMSModal}
                 />
               )}
-              <NavLink
-                to={`/Edit/${memberItem.id}`}
-                className="btn btn-primary"
-              >
-                Edit
-              </NavLink>
+              {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
+                <div />
+              ) : (
+                <NavLink
+                  to={`/Edit/${memberItem.id}`}
+                  className="btn btn-primary"
+                >
+                  Edit
+                </NavLink>
+              )}
             </span>
             <p className="address">
               {memberItem.values['Address']}, {memberItem.values['Suburb']},{' '}
@@ -529,7 +529,7 @@ export const MemberView = ({
                   <NumberFormat
                     value={memberItem.values['Phone Number']}
                     displayType={'text'}
-                    format="(##) ####-####"
+                    format="####-###-###"
                   />
                 </a>
               </span>
@@ -553,7 +553,7 @@ export const MemberView = ({
               className="emergencyNumber"
               value={memberItem.values['Emergency Contact Phone']}
               displayType={'text'}
-              format="(##) ####-####"
+              format="####-###-###"
             />
           </span>
         </div>
@@ -645,12 +645,16 @@ export const MemberView = ({
               &nbsp; plan with{' '}
               <PaymentType type={memberItem.values['Billing Payment Type']} />
             </p>
-            <NavLink
-              to={`/Billing/${memberItem.id}`}
-              className="btn btn-primary"
-            >
-              Billing
-            </NavLink>
+            {!Utils.isMemberOf(profile, 'Billing') ? (
+              <div />
+            ) : (
+              <NavLink
+                to={`/Billing/${memberItem.id}`}
+                className="btn btn-primary"
+              >
+                Billing
+              </NavLink>
+            )}
           </div>
           <div
             className={
@@ -667,7 +671,7 @@ export const MemberView = ({
           </div>
           <div
             style={{
-              display: isBillingUser ? 'block' : 'none',
+              display: Utils.isMemberOf(profile, 'Billing') ? 'block' : 'none',
             }}
           >
             <br />
@@ -916,7 +920,6 @@ export const MemberViewContainer = compose(
       this.props.memberItem.values = [];
       this.props.memberItem.id = 'xx-xx-xx-xx-xx';
       this.props.fetchCurrentMember({ id: this.props.match.params.id });
-      this.props.fetchIsBillingUser();
     },
     componentWillReceiveProps(nextProps) {
       //$('#mainContent').offset({ top: 98});

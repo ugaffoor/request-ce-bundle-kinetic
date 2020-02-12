@@ -332,7 +332,7 @@ export const MemberNew = ({
                 </label>
                 <NumberFormat
                   id="phonenumber"
-                  format="(##) ####-####"
+                  format="####-###-###"
                   mask="_"
                   required
                   ref={input => (this.input = input)}
@@ -346,7 +346,7 @@ export const MemberNew = ({
                 <label htmlFor="additionalPhone">Additional Phone</label>
                 <NumberFormat
                   id="additionalPhoneNumber"
-                  format="(##) ####-####"
+                  format="####-###-###"
                   mask="_"
                   ref={input => (this.input = input)}
                   value={memberItem.values['Additional Phone Number']}
@@ -444,10 +444,20 @@ export const MemberNew = ({
             <hr />
             <span className="line">
               <div>
-                <label htmlFor="emergencyname">Name</label>
+                <label
+                  htmlFor="emergencyname"
+                  required={
+                    memberItem.values['Emergency Contact Name'] === undefined
+                      ? true
+                      : false
+                  }
+                >
+                  Name
+                </label>
                 <input
                   type="text"
                   size="40"
+                  required
                   name="emergencyname"
                   id="emergencyname"
                   ref={input => (this.input = input)}
@@ -458,11 +468,22 @@ export const MemberNew = ({
                 />
               </div>
               <div>
-                <label htmlFor="relationship">Relationship</label>
+                <label
+                  htmlFor="relationship"
+                  required={
+                    memberItem.values['Emergency Contact Relationship'] ===
+                    undefined
+                      ? true
+                      : false
+                  }
+                >
+                  Relationship
+                </label>
                 <input
                   type="text"
                   size="40"
                   name="relationship"
+                  required
                   id="relationship"
                   ref={input => (this.input = input)}
                   defaultValue={
@@ -480,10 +501,20 @@ export const MemberNew = ({
             </span>
             <span className="line">
               <div>
-                <label htmlFor="emergencyphone">Phone</label>
+                <label
+                  htmlFor="emergencyphone"
+                  required={
+                    memberItem.values['Emergency Contact Phone'] === undefined
+                      ? true
+                      : false
+                  }
+                >
+                  Phone
+                </label>
                 <NumberFormat
-                  format="(##) ####-####"
+                  format="####-###-###"
                   mask="_"
+                  required
                   ref={input => (this.input = input)}
                   value={memberItem.values['Emergency Contact Phone']}
                   onValueChange={(values, e) =>

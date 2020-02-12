@@ -1266,6 +1266,7 @@ export function* fetchBillingCustomers(action) {
               setBillingCustomers: action.payload.setBillingCustomers,
               fetchMembers: action.payload.fetchMembers,
               appSettings: appSettings,
+              allMembers: action.payload.allMembers,
             });
           }
         })
@@ -1282,18 +1283,13 @@ export function* fetchBillingCustomers(action) {
 
 export function* createBillingMembers(action) {
   let newMemberAdded = false;
+  let newMembers = [];
   for (let i = 0; i < action.payload.customers.length; i++) {
     let customer = action.payload.customers[i];
-    let memberId =
-      customer.firstName.charAt(0).toLowerCase() +
-      customer.firstName.slice(1) +
-      customer.lastName.charAt(0).toLowerCase() +
-      customer.lastName.slice(1);
 
     const MEMBER_SEARCH = new CoreAPI.SubmissionSearch(true)
-      .eq('values[Member ID]', memberId)
+      .eq('values[Billing Customer Id]', customer.customerId)
       .include('details,values')
-      .limit(1)
       .build();
 
     const { submissions } = yield call(CoreAPI.searchSubmissions, {
@@ -1308,6 +1304,24 @@ export function* createBillingMembers(action) {
       values: {},
     };
     if (!submissions || submissions.length <= 0) {
+      let memberId =
+        customer.firstName.charAt(0).toLowerCase() +
+        customer.firstName.slice(1) +
+        customer.lastName.charAt(0).toLowerCase() +
+        customer.lastName.slice(1);
+
+      let memberidInc = 0;
+      action.payload.allMembers.forEach(member => {
+        if (member.values['Member ID'].indexOf(memberId) !== -1) {
+          memberidInc++;
+        }
+      });
+      newMembers.forEach(member => {
+        if (member.values['Member ID'].indexOf(memberId) !== -1) {
+          memberidInc++;
+        }
+      });
+
       if (customer.statusDescription === 'Inactive') {
         action.payload.memberItem.values['Status'] = 'Inactive';
       } else {
@@ -1315,7 +1329,8 @@ export function* createBillingMembers(action) {
       }
       memberItem.values['First Name'] = customer.firstName;
       memberItem.values['Last Name'] = customer.lastName;
-      memberItem.values['Member ID'] = memberId;
+      memberItem.values['Member ID'] =
+        memberId + (memberidInc !== 0 ? memberidInc : '');
       memberItem.values['Address'] = customer.address;
       memberItem.values['Suburb'] = customer.suburb;
       memberItem.values['State'] = customer.state;
@@ -1335,6 +1350,7 @@ export function* createBillingMembers(action) {
       memberItem.values['Membership Cost'] = customer.billingAmount;
       memberItem.values['DDR Status'] = 'Pending';
 
+      newMembers[newMembers.length] = memberItem;
       yield put(actions.createMember({ memberItem, showNotification: false }));
       newMemberAdded = true;
     } else if (submissions && submissions.length === 1) {

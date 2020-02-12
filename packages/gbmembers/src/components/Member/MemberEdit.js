@@ -305,6 +305,12 @@ export const MemberEdit = ({
             {/*
           <span className="line">
             <div>
+              <label htmlFor="billingId">
+                Billing Customer Id
+              </label>
+              <input type="text" name="billingId" id="billingId" size="30" ref={(input) => this.input = input} defaultValue={memberItem.values['Billing Customer Id']} onChange={(e) => handleChange(memberItem,'Billing Customer Id', e, setIsDirty)}/>
+            </div>
+            <div>
               <label htmlFor="billingRef">
                 Billing Reference
               </label>
@@ -322,29 +328,6 @@ export const MemberEdit = ({
               </label>
               <input type="text" name="billingPaymentPeriod" id="billingPaymentPeriod" size="5" ref={(input) => this.input = input} defaultValue={memberItem.values['Billing Payment Period']} onChange={(e) => handleChange(memberItem,'Billing Payment Period', e, setIsDirty)}/>
             </div>
-          </span>
-          <span className="line">
-            <div>
-              <label htmlFor="billingMembers">
-                Billing Members
-              </label>
-              <input type="text" name="billingMembers" id="billingMembers" size="80" ref={(input) => this.input = input} defaultValue={memberItem.values['Billing Members']} onChange={(e) => handleChange(memberItem,'Billing Members', e, setIsDirty)}/>
-            </div>
-            </span>
-            <span className="line">
-            <div>
-              <label htmlFor="billingParentMember">
-                Billing Parent Member
-              </label>
-              <input type="text" name="billingParentMember" id="billingParentMember" size="20" ref={(input) => this.input = input} defaultValue={memberItem.values['Billing Parent Member']} onChange={(e) => handleChange(memberItem,'Billing Parent Member', e, setIsDirty)}/>
-            </div>
-          </span>
-          <span>
-
-          <label htmlFor="billingChanges">
-            Billing Changes
-          </label>
-          <input type="text" name="billingChanges" id="billingChanges" size="60" ref={(input) => this.input = input} defaultValue={memberItem.values['Billing Changes']} onChange={(e) => handleChange(memberItem,'Billing Changes', e, setIsDirty)}/>
           </span>
           */}
             <span className="line">
@@ -530,7 +513,7 @@ export const MemberEdit = ({
                   Phone
                 </label>
                 <NumberFormat
-                  format="(##) ####-####"
+                  format="####-###-###"
                   mask="_"
                   required
                   ref={input => (this.input = input)}
@@ -550,7 +533,7 @@ export const MemberEdit = ({
               <div>
                 <label htmlFor="additionalPhone">Additional Phone</label>
                 <NumberFormat
-                  format="(##) ####-####"
+                  format="####-###-###"
                   mask="_"
                   required
                   ref={input => (this.input = input)}
@@ -659,7 +642,16 @@ export const MemberEdit = ({
             <hr />
             <span className="line">
               <div>
-                <label htmlFor="emergencyname">Name</label>
+                <label
+                  htmlFor="emergencyname"
+                  required={
+                    memberItem.values['Emergency Contact Name'] === undefined
+                      ? true
+                      : false
+                  }
+                >
+                  Name
+                </label>
                 <input
                   type="text"
                   size="40"
@@ -679,7 +671,17 @@ export const MemberEdit = ({
                 />
               </div>
               <div>
-                <label htmlFor="relationship">Relationship</label>
+                <label
+                  htmlFor="relationship"
+                  required={
+                    memberItem.values['Emergency Contact Relationship'] ===
+                    undefined
+                      ? true
+                      : false
+                  }
+                >
+                  Relationship
+                </label>
                 <input
                   type="text"
                   size="40"
@@ -703,9 +705,18 @@ export const MemberEdit = ({
             </span>
             <span className="line">
               <div>
-                <label htmlFor="emergencyphone">Phone</label>
+                <label
+                  htmlFor="emergencyphone"
+                  required={
+                    memberItem.values['Emergency Contact Phone'] === undefined
+                      ? true
+                      : false
+                  }
+                >
+                  Phone
+                </label>
                 <NumberFormat
-                  format="(##) ####-####"
+                  format="####-###-###"
                   mask="_"
                   ref={input => (this.input = input)}
                   value={memberItem.values['Emergency Contact Phone']}

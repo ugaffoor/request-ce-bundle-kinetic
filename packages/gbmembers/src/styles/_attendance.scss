@@ -413,6 +413,13 @@
   .memberInfo {
     padding-left: 6px;
     float: left;
+    .grading {
+      float: left;
+      clear: left;
+      width: 500px;
+      margin-top: 10px;
+      margin-left: 120px;
+    }
     .info {
       float: left;
       margin-left: 20px;

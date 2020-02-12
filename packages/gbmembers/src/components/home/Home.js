@@ -27,7 +27,7 @@ import {
 import ReactTable from 'react-table';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as errorActions } from '../../redux/modules/errors';
-import { actions as teamActions} from '../../redux/modules/teams';
+import { Utils } from 'common';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -47,8 +47,7 @@ const mapStateToProps = state => ({
   programs: state.member.app.programs,
   inactiveCustomersCount: state.member.members.inactiveCustomersCount,
   inactiveCustomersLoading: state.member.members.inactiveCustomersLoading,
-  isBillingUser: state.member.teams.isBillingUser,
-  isBillingUserLoading: state.member.teams.isBillingUserLoading
+  profile: state.member.app.profile,
 });
 
 const mapDispatchToProps = {
@@ -67,7 +66,6 @@ const mapDispatchToProps = {
   setVariationCustomers: actions.setVariationCustomers,
   fetchInactiveCustomersCount: actions.fetchInactiveCustomersCount,
   setInactiveCustomersCount: actions.setInactiveCustomersCount,
-  fetchIsBillingUser: teamActions.fetchIsBillingUser
 };
 
 const ezidebit_date_format = 'YYYY-MM-DD HH:mm:ss';
@@ -93,8 +91,7 @@ export const HomeView = ({
   getInactiveCustomersCount,
   inactiveCustomersCount,
   inactiveCustomersLoading,
-  isBillingUser,
-  isBillingUserLoading
+  profile,
 }) => (
   <div className="dashboard">
     <StatusMessagesContainer />
@@ -107,6 +104,7 @@ export const HomeView = ({
           style={{ borderRadius: '0', marginRight: '5px' }}
           onClick={e =>
             reloadCharts(
+              profile,
               getBillingPayments,
               getProcessedAndScheduledPayments,
               getFailedPayments,
@@ -120,36 +118,40 @@ export const HomeView = ({
       </div>
     </div>
     <div className="chart1">
-    {isBillingUserLoading ? <div/> :
-      isBillingUser && <ProcessedPaymentsBillingChart
-        billingPayments={billingPayments}
-        getBillingPayments={getBillingPayments}
-        billingPaymentsLoading={billingPaymentsLoading}
-      />
-    }
-    </div>
-    {billingCompany !== 'PaySmart' && (
-      isBillingUserLoading ? <div/> :
-        isBillingUser &&
-      <div className="chart2">
-        <ScheduledPaymentsBillingChart
-          processedAndScheduledPayments={processedAndScheduledPayments}
-          getProcessedAndScheduledPayments={getProcessedAndScheduledPayments}
-          processedAndScheduledPaymentsLoading={
-            processedAndScheduledPaymentsLoading
-          }
+      {!Utils.isMemberOf(profile, 'Billing') ? (
+        <div />
+      ) : (
+        <ProcessedPaymentsBillingChart
+          billingPayments={billingPayments}
+          getBillingPayments={getBillingPayments}
+          billingPaymentsLoading={billingPaymentsLoading}
         />
-      </div>
-    )}
+      )}
+    </div>
+    {billingCompany !== 'PaySmart' &&
+      (!Utils.isMemberOf(profile, 'Billing') ? (
+        <div />
+      ) : (
+        <div className="chart2">
+          <ScheduledPaymentsBillingChart
+            processedAndScheduledPayments={processedAndScheduledPayments}
+            getProcessedAndScheduledPayments={getProcessedAndScheduledPayments}
+            processedAndScheduledPaymentsLoading={
+              processedAndScheduledPaymentsLoading
+            }
+          />
+        </div>
+      ))}
     <div className="chart3">
-    {isBillingUserLoading ? <div/> :
-      isBillingUser &&
-      <InactiveCustomersChart
-        inactiveCustomersCount={inactiveCustomersCount}
-        getInactiveCustomersCount={getInactiveCustomersCount}
-        inactiveCustomersLoading={inactiveCustomersLoading}
-      />
-    }
+      {!Utils.isMemberOf(profile, 'Billing') ? (
+        <div />
+      ) : (
+        <InactiveCustomersChart
+          inactiveCustomersCount={inactiveCustomersCount}
+          getInactiveCustomersCount={getInactiveCustomersCount}
+          inactiveCustomersLoading={inactiveCustomersLoading}
+        />
+      )}
     </div>
     <div className="chart4">
       <DemographicChart allMembers={allMembers} />
@@ -161,31 +163,30 @@ export const HomeView = ({
       <KidsChart allMembers={allMembers} />
     </div>
     <div>
-    {isBillingUserLoading ? <div/> :
-      isBillingUser &&
-      <PaymentHistory
-        paymentHistory={paymentHistory}
-        paymentHistoryLoading={paymentHistoryLoading}
-      />
-    }
+      {!Utils.isMemberOf(profile, 'Billing') ? (
+        <div />
+      ) : (
+        <PaymentHistory
+          paymentHistory={paymentHistory}
+          paymentHistoryLoading={paymentHistoryLoading}
+        />
+      )}
     </div>
     <div>
-    {isBillingUserLoading ? <div/> :
-      isBillingUser &&
-      <VariationCustomers
-        variationCustomers={variationCustomers}
-        variationCustomersLoading={variationCustomersLoading}
-      />
-    }
+      {!Utils.isMemberOf(profile, 'Billing') ? (
+        <div />
+      ) : (
+        <VariationCustomers
+          variationCustomers={variationCustomers}
+          variationCustomersLoading={variationCustomersLoading}
+        />
+      )}
     </div>
   </div>
 );
 
 export const HomeContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withProps(({ memberItem }) => {
     return {};
   }),
@@ -261,20 +262,22 @@ export const HomeContainer = compose(
         setSystemError: setSystemError,
       });
     },
-    reloadCharts: (isBillingUser) => (
+    reloadCharts: () => (
+      profile,
       getBillingPayments,
       getProcessedAndScheduledPayments,
       getFailedPayments,
       getVariationCustomers,
       getInactiveCustomersCount,
     ) => {
-      if (isBillingUser) {
+      if (Utils.isMemberOf(profile, 'Billing')) {
         getBillingPayments('current_month');
         getProcessedAndScheduledPayments();
         getFailedPayments();
         getVariationCustomers();
         getInactiveCustomersCount();
-      } {
+      }
+      {
         console.log('Not a billing user');
       }
     },
@@ -378,7 +381,6 @@ export const HomeContainer = compose(
   }),
   lifecycle({
     componentWillMount() {
-      this.props.fetchIsBillingUser();
       if (
         !this.props.billingPayments ||
         this.props.billingPayments.length <= 0

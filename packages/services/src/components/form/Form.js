@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { CoreForm } from 'react-kinetic-core';
 import { bundle } from 'react-kinetic-core';
 import SignatureCanvas from 'react-signature-canvas';
+import DateTimePicker from 'react-xdsoft-datetimepicker';
 import Select, { components } from 'react-select';
 import {
   KappLink as Link,
@@ -11,13 +12,21 @@ import {
   ErrorUnexpected,
   PageTitle,
 } from 'common';
-import ReactQuill from 'react-quill';
+import ReactQuill, { Quill } from 'react-quill';
+import moment from 'moment';
 
 // Asynchronously import the global dependencies that are used in the embedded
 // forms. Note that we deliberately do this as a const so that it should start
 // immediately without making the application wait but it will likely be ready
 // before users nagivate to the actual forms.
 const globals = import('common/globals');
+var Block = Quill.import('blots/block');
+Block.tagName = 'DIV';
+Quill.register(Block, true);
+
+var Size = Quill.import('attributors/style/size');
+Size.whitelist = ['10px', '18px', '32px', '64px'];
+Quill.register(Size, true);
 
 export const Form = ({
   form,
@@ -194,13 +203,12 @@ export class QuillEditorWrapper extends React.Component {
           ['bold', 'italic', 'underline', 'strike'], // toggled buttons
           ['blockquote', 'code-block'],
 
-          [{ header: 1 }, { header: 2 }], // custom button values
+          [{ size: ['10px', '18px', '32px', '64px'] }],
           [{ list: 'ordered' }, { list: 'bullet' }],
           [{ indent: '-1' }, { indent: '+1' }], // outdent/indent
 
           [{ align: [] }],
           [{ header: [1, 2, 3, 4, 5, 6, false] }],
-
           [{ color: [] }, { background: [] }], // dropdown with defaults from theme
           [{ font: [] }],
           ['link'],
@@ -253,6 +261,7 @@ export class QuillEditorWrapper extends React.Component {
     'height',
     'align',
     'text-align',
+    'size',
   ];
 
   handleChange(html, text) {
@@ -291,7 +300,82 @@ export class QuillEditorWrapper extends React.Component {
   }
 }
 
+export class DatepickerWrapper extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      options: this.props.options,
+    };
+  }
+  componentDidMount() {}
+  componentDidUpdate() {
+    if (
+      this.state.options.allowDates.length !==
+        this.props.options.allowDates.length ||
+      (this.state.options.allowDates.length !== 0 &&
+        this.props.options.allowDates !== 0 &&
+        this.state.options.allowDates[0] !== this.props.options.allowDates[0])
+    ) {
+      this.setState({ options: this.props.options });
+    }
+  }
+  render() {
+    const {
+      parentID,
+      value,
+      value_format,
+      displayDateFormat,
+      minDate,
+      timepicker,
+      datepicker,
+      onSelectDate,
+    } = this.props;
+    return (
+      <DateTimePicker
+        value={value}
+        value_format={value_format}
+        displayDateFormat={displayDateFormat}
+        minDate={minDate}
+        options={this.state.options}
+        timepicker={timepicker}
+        datepicker={datepicker}
+        onSelectDate={onSelectDate}
+      />
+    );
+  }
+}
+
 bundle.config.widgets = {
+  xdsoftDatepickerRemove: ({ element }) => {
+    ReactDOM.unmountComponentAtNode(element);
+  },
+  xdsoftDatepicker: ({
+    element,
+    parentID,
+    value,
+    value_format,
+    displayDateFormat,
+    minDate,
+    options,
+    timepicker,
+    datepicker,
+    onSelectDate,
+  }) => {
+    ReactDOM.render(
+      <DatepickerWrapper
+        parentID={parentID}
+        value={value}
+        value_format={value_format}
+        minDate={minDate}
+        displayDateFormat={displayDateFormat}
+        options={options}
+        timepicker={timepicker}
+        datepicker={datepicker}
+        onSelectDate={onSelectDate}
+      />,
+      element,
+    );
+  },
   signatureCanvas: ({
     element,
     initialValue,

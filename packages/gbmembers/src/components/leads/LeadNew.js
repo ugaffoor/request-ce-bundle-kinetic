@@ -420,7 +420,7 @@ export class LeadNew extends Component {
                 <div>
                   <label htmlFor="phone">Phone</label>
                   <NumberFormat
-                    format="(##) ####-####"
+                    format="####-###-###"
                     mask="_"
                     ref={input => (this.input = input)}
                     value={this.props.leadItem.values['Phone Number']}
@@ -437,7 +437,7 @@ export class LeadNew extends Component {
                 <div>
                   <label htmlFor="additionalPhone">Additional Phone</label>
                   <NumberFormat
-                    format="(##) ####-####"
+                    format="####-###-###"
                     mask="_"
                     ref={input => (this.input = input)}
                     value={
@@ -781,10 +781,7 @@ export const LeadNewView = ({
   );
 
 export const LeadNewContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withProps(({ leadItem, createLead }) => {
     return {};
   }),

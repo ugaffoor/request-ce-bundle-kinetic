@@ -12,6 +12,7 @@ import binIcon from '../../images/bin.svg?raw';
 import SVGInline from 'react-svg-inline';
 import Select from 'react-select';
 import { withHandlers } from 'recompose';
+import { GradingStatus } from './GradingStatus';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -19,6 +20,7 @@ const mapStateToProps = state => ({
   additionalPrograms: state.member.app.additionalPrograms,
   classAttendances: state.member.attendance.classAttendances,
   fetchingClassAttendances: state.member.attendance.fetchingClassAttendances,
+  belts: state.member.app.belts,
 });
 
 const mapDispatchToProps = {
@@ -410,6 +412,11 @@ export class AttendanceDetail extends Component {
                   </div>
                 </div>
               )}
+              <GradingStatus
+                memberItem={this.state.memberItem}
+                belts={this.props.belts}
+                allMembers={this.props.allMembers}
+              />
               {this.state.captureType === 'manual' ? (
                 <button
                   type="button"
