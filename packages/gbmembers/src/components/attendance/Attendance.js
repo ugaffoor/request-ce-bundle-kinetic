@@ -230,7 +230,7 @@ export class AttendanceDetail extends Component {
         <div className="classSection">
           <span className="line">
             <div>
-              <label htmlFor="sessionDate">Date</label>
+              <label htmlFor="sessionDate">DATE</label>
               <Datetime
                 className="float-right"
                 defaultValue={moment().set({
@@ -253,7 +253,7 @@ export class AttendanceDetail extends Component {
               />
             </div>
             <div>
-              <label htmlFor="programClass">Class</label>
+              <label htmlFor="programClass">CLASS</label>
               <select
                 name="programClass"
                 id="programClass"
@@ -279,7 +279,7 @@ export class AttendanceDetail extends Component {
           {this.state.memberItem === undefined &&
           this.state.captureType === 'scanner' ? (
             <div className="readyToScan">
-              <h5>Ready to scan member</h5>
+              <h5>READY TO SCAN MEMBER</h5>
               <SVGInline svg={barcodeIcon} className="icon" />
               <button
                 type="button"
@@ -296,7 +296,7 @@ export class AttendanceDetail extends Component {
           {this.state.memberItem === undefined &&
           this.state.captureType === 'manual' ? (
             <div className="manual">
-              <h5>Please select Member</h5>
+              <h5>PLEASE SELECT MEMBER</h5>
               <Select
                 closeMenuOnSelect={true}
                 options={this.getAllMembers()}
@@ -581,7 +581,9 @@ export const AttendanceContainer = compose(
   lifecycle({
     componentWillMount() {},
     componentWillReceiveProps(nextProps) {
-      $('.content')[0].scrollIntoView(true);
+      $('.content')
+        .parent('div')[0]
+        .scrollIntoView(true);
     },
     componentWillUnmount() {},
   }),

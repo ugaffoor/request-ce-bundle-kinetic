@@ -371,10 +371,7 @@ export const MemberNotesView = ({
   );
 
 export const MemberNotesContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withProps(() => {
     return {};
   }),
@@ -441,7 +438,9 @@ export const MemberNotesContainer = compose(
       }
     },
     componentDidMount() {
-      $('.content')[0].scrollIntoView(true);
+      $('.content')
+        .parent('div')[0]
+        .scrollIntoView(true);
     },
     componentWillUnmount() {},
   }),

@@ -150,10 +150,7 @@ export const FollowUpView = ({ leadItem, saveLead, currentLeadLoading }) =>
   );
 
 export const FollowUpContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withProps(() => {
     return {};
   }),
@@ -193,7 +190,9 @@ export const FollowUpContainer = compose(
       }
     },
     componentDidMount() {
-      $('.content')[0].scrollIntoView(true);
+      $('.content')
+        .parent('div')[0]
+        .scrollIntoView(true);
     },
     componentWillUnmount() {},
   }),

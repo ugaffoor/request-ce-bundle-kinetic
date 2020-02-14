@@ -36,6 +36,7 @@ const KITCHEN_SINK_FORM_CONFIG = {
 
 export const mapStateToProps = state => ({
   profile: state.app.profile,
+  space: state.app.space,
   isGuest: selectors.selectIsGuest(state),
 });
 
@@ -44,10 +45,7 @@ const mapDispatchToProps = {
 };
 
 export const ProfileContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withState('isOpen', 'setIsOpen', false),
   withHandlers({
     openHelpForm: props => () => {

@@ -413,7 +413,9 @@ export const HomeContainer = compose(
       }
     },
     componentWillReceiveProps(nextProps) {
-      $('.content')[0].scrollIntoView(true);
+      $('.content')
+        .parent('div')[0]
+        .scrollIntoView(true);
     },
     componentWillUnmount() {},
   }),

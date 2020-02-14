@@ -1,6 +1,9 @@
 .content {
   height: auto;
   background-color: white;
+  margin: 10px;
+  padding: 20px;
+  border-radius: 10px;
   .two-panels {
     display: flex;
     min-height: $page-height;

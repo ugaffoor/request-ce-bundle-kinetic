@@ -111,7 +111,6 @@ export const SettingsView = ({
             type="button"
             id="loadBillingCustomers"
             className={'btn btn-primary'}
-            style={{ borderRadius: '0', marginRight: '5px' }}
             onClick={e =>
               fetchBillingCustomers({
                 setBillingCustomers,
@@ -137,7 +136,6 @@ export const SettingsView = ({
           type="button"
           id="printMemberbarcodes"
           className={'btn btn-primary'}
-          style={{ borderRadius: '0', marginRight: '5px' }}
           onClick={e =>
             printMemberBarcodes({
               allMembers,
@@ -216,7 +214,9 @@ export const SettingsContainer = compose(
       //      this.setState({ printingBarcodes: false });
     },
     componentWillReceiveProps(nextProps) {
-      $('.content')[0].scrollIntoView(true);
+      $('.content')
+        .parent('div')[0]
+        .scrollIntoView(true);
     },
     componentWillUnmount() {},
   }),

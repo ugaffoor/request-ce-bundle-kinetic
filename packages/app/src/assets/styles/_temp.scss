@@ -3,3 +3,15 @@
  *     -Used for development
  *     -Move css into appropriate sass files when ready
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+@font-face {
+  font-family: 'AdiHaus DIN Regular';
+  src: url('../fonts/AdihausDIN-Regular.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'AdiHaus DIN Medium';
+  src: url('../fonts/AdihausDIN-Medium.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'AdiHaus DIN BoldItalic';
+  src: url('../fonts/AdihausDIN-BoldItalic.ttf') format('truetype');
+}

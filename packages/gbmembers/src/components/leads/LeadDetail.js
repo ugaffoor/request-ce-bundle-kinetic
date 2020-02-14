@@ -319,7 +319,7 @@ export class LeadDetail extends Component {
                       this.props.leadItem.values['Parent or Guardian'] !==
                         null) &&
                     this.props.leadItem.values['ParentMember'] !== undefined &&
-                      this.props.leadItem.values['ParentMember'] !== null ? (
+                    this.props.leadItem.values['ParentMember'] !== null ? (
                       <span>
                         <NavLink
                           to={`/Member/${this.props.leadItem.values['ParentMember']}`}
@@ -337,7 +337,7 @@ export class LeadDetail extends Component {
                       this.props.leadItem.values['Parent or Guardian'] !==
                         null) &&
                     this.props.leadItem.values['ParentLead'] !== undefined &&
-                      this.props.leadItem.values['ParentLead'] !== null ? (
+                    this.props.leadItem.values['ParentLead'] !== null ? (
                       <span>
                         <NavLink
                           to={`/LeadDetail/${this.props.leadItem.values['ParentLead']}`}
@@ -823,7 +823,9 @@ export const LeadDetailContainer = compose(
       }
     },
     componentDidMount() {
-      $('.content')[0].scrollIntoView(true);
+      $('.content')
+        .parent('div')[0]
+        .scrollIntoView(true);
     },
     componentWillUnmount() {},
   }),

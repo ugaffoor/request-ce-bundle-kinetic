@@ -157,7 +157,9 @@ export const ReportsContainer = compose(
   }),
   lifecycle({
     componentWillReceiveProps(nextProps) {
-      $('.content')[0].scrollIntoView(true);
+      $('.content')
+        .parent('div')[0]
+        .scrollIntoView(true);
     },
     componentWillUnmount() {},
   }),

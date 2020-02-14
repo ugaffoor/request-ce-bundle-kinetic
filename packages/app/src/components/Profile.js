@@ -13,6 +13,7 @@ export const Profile = ({
   isOpen,
   toggle,
   isGuest,
+  space,
 }) => (
   <Dropdown isOpen={isOpen} toggle={toggle}>
     <DropdownToggle
@@ -21,8 +22,12 @@ export const Profile = ({
       className="icon-wrapper"
       style={{ padding: '0 1em' }}
     >
+      <span className="userCompanyName">
+        <div className="userName">{profile.displayName}</div>
+        <div className="schoolName">{space.name}</div>
+      </span>
       <Avatar
-        size={24}
+        size={38}
         email={profile.email}
         name={profile.displayName}
         round

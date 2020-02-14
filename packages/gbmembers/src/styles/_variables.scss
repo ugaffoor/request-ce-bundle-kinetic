@@ -15,8 +15,8 @@ $modularscale: (
 );
 
 $transparent-gray1: rgba(51, 51, 51, 0.15);
-$gray2: rgba(213, 213, 213, 1);
-$gray3: rgba(223, 226, 229, 1);
+$gray2: #bdbdbd;
+$gray3: #4d5059;
 $gray4: rgba(236, 236, 236, 1);
 
 $blue0: rgba(0, 59, 114, 1);
@@ -30,7 +30,7 @@ $present: rgba(0, 212, 100, 1);
 
 // Colors
 // --------------------------------------
-$button: #991b1e;
+$button: #f2f2f2;
 $primary: #313e47;
 $primary-complement: #ffffff;
 $secondary: #6f7e82;
@@ -40,7 +40,7 @@ $tertiary-complement: #ffffff;
 $lightestgray: #f1f1f1;
 $lightgray: #d5d6d7;
 $gray: #7e8083;
-$darkgray: #4b4c4e;
+$darkgray: #4d5059;
 $darkestgray: #333333;
 $black: #222222;
 $white: #ffffff;

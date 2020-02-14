@@ -16,8 +16,12 @@
 }
 .btn.btn-primary {
   color: white;
-  background-color: $blue1;
+  background-color: $darkgray;
   border: none;
+  font-variant-caps: all-small-caps;
+  font-weight: bold;
+  font-size: large;
+  padding-top: 0px;
   &:focus,
   &.focus {
     box-shadow: none;

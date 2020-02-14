@@ -1,22 +1,38 @@
 .sidebarMain {
-  top: 129px !important;
+  top: 153px !important;
+  background-color: $darkgray;
   @media (min-width: 544px) {
-    top: 98px !important;
+    top: 128px !important;
   }
 }
 .sidebar-content {
-  background-color: #f7f7f7;
   z-index: 200 !important;
 }
-
 .sidebar {
   border-right: 1px solid $gray3;
+  background-color: $darkgray;
   display: flex;
   flex-direction: column;
   min-height: $page-height;
   padding: 1.5rem 0;
   width: 252px;
   height: unset;
+  .buttons {
+    display: flex;
+    .btn-primary {
+      margin-left: auto !important;
+      margin-right: auto !important;
+    }
+  }
+  .ReactTable input {
+    border-radius: 0.4rem !important;
+  }
+  .ReactTable .rt-tbody {
+    background-color: white;
+    border-radius: 0.4rem;
+    margin-left: 5px;
+    margin-right: 5px;
+  }
   a.Inactive {
     font-style: italic;
     color: #1818a8 !important;
@@ -44,6 +60,7 @@
     margin: 0 auto;
     &.btn-primary {
       background-color: $button;
+      color: $gray3;
       border: none;
       margin: 0 1.5rem;
       line-height: 1.75rem;
@@ -115,6 +132,7 @@
     margin-left: 10px;
     margin-right: 10px;
     min-height: 35px;
+    border-radius: 0.4rem;
   }
   .droparrow {
     position: relative;

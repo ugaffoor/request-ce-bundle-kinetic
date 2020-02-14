@@ -83,9 +83,7 @@ export const AppComponent = props => {
               path="/datastore/forms/:slug/submissions/:id"
               render={({ match }) => (
                 <Redirect
-                  to={`/settings/datastore/${match.params.slug}/${
-                    match.params.id
-                  }`}
+                  to={`/settings/datastore/${match.params.slug}/${match.params.id}`}
                 />
               )}
             />
@@ -98,11 +96,6 @@ export const AppComponent = props => {
             <Route path="/reset-password" render={() => <Redirect to="/" />} />
             <Route component={ErrorNotFound} />
           </Switch>
-          <img
-            src={props.companyLogoURL}
-            alt="Company Logo"
-            className="companyLogo"
-          />
         </main>
       </Fragment>
     ),
@@ -129,10 +122,7 @@ const mapDispatchToProps = {
 };
 
 export const App = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withHandlers({
     openSettings: props => () => props.setSettingsBackPath(props.pathname),
   }),

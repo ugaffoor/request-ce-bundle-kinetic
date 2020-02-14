@@ -57,7 +57,7 @@ btn:disabled {
 .table-controls input,
 .table-controls select {
   -webkit-box-sizing: border-box;
-          box-sizing: border-box;
+  box-sizing: border-box;
   padding: 2px 5px;
   border: 1px solid rgb(153, 27, 30);
   background: #fafafa;
@@ -67,13 +67,19 @@ btn:disabled {
 }
 
 .table-controls button {
-    padding: 2px 5px;
-    border: 1px solid #25682a;
-    background: rgb(153, 27, 30);
-    background: -webkit-gradient(linear, left top, left bottom, from(#3FB449), to(#25682a));
-    background: rgb(153, 27, 30);
-    color: #fff;
-    font-weight: bold;
+  padding: 2px 5px;
+  border: 1px solid #25682a;
+  background: rgb(153, 27, 30);
+  background: -webkit-gradient(
+    linear,
+    left top,
+    left bottom,
+    from(#3fb449),
+    to(#25682a)
+  );
+  background: rgb(153, 27, 30);
+  color: #fff;
+  font-weight: bold;
 }
 
 @media (max-width: 767px) {
@@ -106,7 +112,7 @@ btn:disabled {
 }
 
 .hide-columns__option--is-selected {
-    background-color: rgb(153, 27, 30) !important;
+  background-color: rgb(153, 27, 30) !important;
 }
 
 .hide-columns__indicator-separator {
@@ -144,11 +150,6 @@ btn:disabled {
   border-left: 6px solid grey;
   height: 40px;
   border-width: thin;
-}
-
-.report-btn-default {
-  border-radius: 0 !important;
-  background: rgb(153, 27, 30) !important;
 }
 
 .tabulator {

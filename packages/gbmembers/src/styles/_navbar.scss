@@ -1,23 +1,35 @@
 .app .navbar {
   position: absolute;
-  top: 47px;
+  top: 80px;
   width: 85%;
 }
 .navbar {
   padding: 0;
   background-color: $white;
-  border-bottom: 1px solid $gray2;
+  border-bottom: unset;
   flex-direction: column;
   align-items: stretch;
   .profile {
     margin-right: 9%;
   }
+  .nav-item {
+    .svg-gb-icon-svg {
+      width: 11rem !important;
+      height: 3rem !important;
+    }
+  }
+  .dropdown-item {
+    .svg-gb-icon-svg {
+      width: 5rem !important;
+      height: 2rem !important;
+    }
+  }
   .icon-svg {
-    height: 2rem;
-    width: 2rem;
+    height: 26.28px;
+    width: 38.74px;
     @media (min-width: 544px) {
-      height: 1rem;
-      width: 1rem;
+      height: 26.28px;
+      width: 38.74px;
     }
   }
 }
@@ -32,48 +44,70 @@
   .settingsNavItem {
     display: none;
     @media (min-width: 544px) {
-      display: block;
+      display: flex;
     }
   }
 }
 ul.nav-header.apps.nav {
-  justify-content: space-around;
-  border-top: 1px solid #d5d5d5;
+  justify-content: left;
+  border-top: unset;
 }
 .nav-header.apps li.nav-item {
   a {
     text-align: center;
     width: 100%;
     display: flex;
+    background-color: $gray2;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
   }
   a.active {
-    background-color: $gray2;
+    background-color: $darkgray;
   }
 }
 .nav-header.apps li.nav-item:hover {
-  background-color: $gray2;
   cursor: pointer;
 }
 .navbar .apps .appName {
-  margin-left: 20px;
+  margin-left: 5px;
+  font-family: AdiHaus DIN Medium;
+  line-height: 32px;
+  size: 25px;
+  font-size: 20px;
   display: none;
   // Medium
   @media (min-width: 768px) {
     display: block;
   }
 }
+.nav.nav-header > .nav-item-centre {
+  margin-left: auto;
+  .GBLogo {
+    height: 50px;
+    margin-top: 20px;
+  }
+}
 .nav.nav-header > .nav-item-right {
   margin-left: auto;
+  .nav-link {
+    font-size: 21px !important;
+    padding-top: 24px !important;
+    padding-left: 0px !important;
+    padding-right: 10px !important;
+  }
+  .icon-wrapper {
+    padding-top: unset !important;
+  }
 }
 
 .navbar .nav-item {
   display: flex;
+  margin-left: 2px;
 }
 
 .nav.nav-header .dropdown-menu {
   border-radius: 0;
   border: none;
-  top: 50px !important;
   filter: drop-shadow(rgba(0, 0, 0, 0.3) 0 3px 4px);
   margin-top: 0;
   &:after {
@@ -98,13 +132,13 @@ ul.nav-header.apps.nav {
   }
 }
 
-.navbar .nav-link {
+.navbar .apps .nav-link {
   font-size: 16px;
   color: $black;
-  padding: 0.7em;
+  padding: 0.5rem 1rem;
   line-height: 1;
   @media (min-width: 544px) {
-    padding: 1em;
+    padding: 0.5rem 1rem;
   }
   .badge {
     background-color: $orange1;
@@ -115,12 +149,108 @@ ul.nav-header.apps.nav {
     right: 5px;
     top: 5px;
   }
+  span {
+    color: white;
+  }
+  .icon-svg path {
+    fill: $gray2;
+    stroke: white;
+    stroke-width: 2px;
+  }
+}
+.reportsNavItem {
+  .cls-1,
+  .cls-2 {
+    stroke-width: 32px !important;
+  }
+}
+.homeNavItem .nav-link.active {
+  .icon-svg path {
+    fill: #e1251b;
+    stroke: #e1251b;
+  }
+}
+.attendanceNavItem .nav-link.active {
+  .icon-svg path {
+    fill: #8ec640;
+    stroke: #8ec640;
+    stroke-width: 1px;
+  }
+}
+.leadsNavItem .nav-link.active {
+  .icon-svg path {
+    fill: #bdbdbd;
+    stroke: #bdbdbd;
+  }
+  .icon-svg {
+    #Path_212,
+    #Path_213,
+    #Path_214,
+    #Path_215 {
+      fill: white;
+      stroke: white;
+    }
+    .Path_216 {
+      fill: black;
+      stroke: black;
+    }
+    #Path_206,
+    #Path_207,
+    #Path_208,
+    #Path_209 {
+      fill: #39f;
+      stroke: #39f;
+    }
+    #Path_210 {
+      fill: black;
+      stroke: black;
+    }
+  }
+}
+.sendNavItem .nav-link.active {
+  .icon-svg path {
+    fill: #8ec640;
+    stroke: #8ec640;
+  }
+}
+.gradingNavItem .nav-link.active {
+  .icon-svg {
+    #Path_186,
+    #Path_187 {
+      fill: #39f;
+      stroke: #39f;
+    }
+    #Path_188 {
+      fill: black;
+      stroke: black;
+    }
+  }
+}
+.settingsNavItem .nav-link.active {
+  .icon-svg path {
+    fill: #e1251b;
+    stroke: #e1251b;
+  }
+}
+.reportsNavItem .nav-link.active {
+  .cls-1 {
+    fill: #39f !important;
+    stroke: #39f !important;
+  }
+  .cls-2 {
+    fill: #f00 !important;
+    stroke: #f00 !important;
+  }
 }
 
 .navbar .drawer-button {
-  border-right: 1px solid $gray2;
+  border-right: unset;
   .icon-svg path {
     fill: $black;
+  }
+  .fa {
+    color: $darkgray;
+    font-size: 46px;
   }
 }
 

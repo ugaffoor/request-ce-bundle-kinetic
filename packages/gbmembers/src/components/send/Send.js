@@ -171,7 +171,7 @@ export class EmailCampaignsList extends Component {
   render() {
     return (
       <div>
-        <div className="row">
+        <div className="">
           <div className="pageHeader">
             <h3>Emails Sent</h3>
           </div>
@@ -422,7 +422,7 @@ export const CampaignView = ({
   ) : (
     <div className="container-fluid leads">
       <StatusMessagesContainer />
-      <div className="row">
+      <div className="">
         <div className="leadContents">
           <CreateCampaign />
         </div>
@@ -465,7 +465,9 @@ export const CampaignContainer = compose(
       }
     },
     componentDidMount() {
-      $('.content')[0].scrollIntoView(true);
+      $('.content')
+        .parent('div')[0]
+        .scrollIntoView(true);
     },
     componentWillUnmount() {},
   }),

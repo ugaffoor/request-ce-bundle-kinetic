@@ -364,10 +364,13 @@
   label {
     float: left;
     min-width: 180px;
+    font-family: AdiHaus DIN Medium;
+    font-size: 26px;
   }
   input {
     float: left;
     clear: left;
+    font-size: 26px;
   }
   .rdt {
     float: left;
@@ -388,17 +391,19 @@
     -webkit-appearance: none;
     -moz-appearance: none;
     border: solid 1px;
+    font-size: 26px;
   }
   .droparrow {
     position: relative;
-    top: 46px;
-    right: -9px;
+    top: 66px;
+    right: -4px;
     width: 0 !important;
     height: 0;
     pointer-events: none;
-    border-width: 8px 5px 0;
+    border-width: 13px 10px 0;
     border-style: solid;
     border-color: #7b7b7b transparent transparent;
+    background-color: transparent;
   }
 }
 .checkinSection {

@@ -195,9 +195,11 @@ export const GradingContainer = compose(
   withHandlers({}),
   lifecycle({
     componentWillMount() {},
-    componentWillReceiveProps(nextProps) {
-      $('.content')[0].scrollIntoView(true);
+    componentWillReceiveProps(nextProps) {},
+    componentDidMount() {
+      $('.content')
+        .parent('div')[0]
+        .scrollIntoView(true);
     },
-    componentWillUnmount() {},
   }),
 )(GradingView);

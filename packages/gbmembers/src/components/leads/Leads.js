@@ -325,12 +325,6 @@ export class TasksDetail extends Component {
           <NavLink
             to={`/LeadDetail/${row.original['_id']}`}
             className="btn btn-primary"
-            style={{
-              borderRadius: '0',
-              backgroundColor: '#991B1E',
-              height: '30px',
-              width: '90px',
-            }}
           >
             Follow Up
           </NavLink>
@@ -343,12 +337,6 @@ export class TasksDetail extends Component {
           <NavLink
             to={`/FollowUp/${row.original['_id']}`}
             className="btn btn-primary"
-            style={{
-              borderRadius: '0',
-              backgroundColor: '#991B1E',
-              height: '30px',
-              width: '90px',
-            }}
           >
             Skip
           </NavLink>
@@ -546,12 +534,6 @@ export class TasksDetail extends Component {
           <NavLink
             to={`/MemberNotesDetail/${row.original['_id']}`}
             className="btn btn-primary"
-            style={{
-              borderRadius: '0',
-              backgroundColor: '#991B1E',
-              height: '30px',
-              width: '90px',
-            }}
           >
             Follow Up
           </NavLink>
@@ -564,12 +546,6 @@ export class TasksDetail extends Component {
           <NavLink
             to={`/MemberFollowUp/${row.original['_id']}`}
             className="btn btn-primary"
-            style={{
-              borderRadius: '0',
-              backgroundColor: '#991B1E',
-              height: '30px',
-              width: '90px',
-            }}
           >
             Skip
           </NavLink>
@@ -1835,7 +1811,9 @@ export const LeadsContainer = compose(
     },
     componentWillReceiveProps(nextProps) {},
     componentDidMount() {
-      $('.content')[0].scrollIntoView(true);
+      $('.content')
+        .parent('div')[0]
+        .scrollIntoView(true);
     },
     componentWillUnmount() {
       clearInterval(this.state.timer);

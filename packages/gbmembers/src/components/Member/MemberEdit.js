@@ -1095,7 +1095,9 @@ export const MemberEditContainer = compose(
       }
     },
     componentDidMount() {
-      $('.content')[0].scrollIntoView(true);
+      $('.content')
+        .parent('div')[0]
+        .scrollIntoView(true);
       this.props.setMemberChanges([]);
     },
     componentWillUnmount() {},
