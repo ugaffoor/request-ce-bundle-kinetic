@@ -20,11 +20,10 @@ export function handleChange(
     memberChange.date = moment().format(contact_date_format);
   }
   //console.log("key = " + key + ", changes = " + JSON.stringify(memberChanges));
-
   memberItem.values[key] = event.target.value;
 
   if ($(event.target).attr('required')) {
-    var val = memberItem.values[key];
+    var val = memberItem.values[key].trim();
     if (val === undefined || val === null || val === '') {
       $(event.target)
         .siblings('label')

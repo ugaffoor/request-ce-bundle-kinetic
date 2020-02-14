@@ -165,6 +165,9 @@ export const MemberNew = ({
                   required
                   ref={input => (this.input = input)}
                   defaultValue={memberItem.values['Member ID']}
+                  onBlur={e => {
+                    e.target.value = e.target.value.trim();
+                  }}
                   onChange={e => handleChange(memberItem, 'Member ID', e)}
                 />
               </div>

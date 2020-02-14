@@ -193,24 +193,25 @@ export const MemberEdit = ({
               )}
             </span>
             <p>{memberItem.values['Member ID']}</p>
-            {/*            <input
-              type="text"
-              name="username"
-              id="username"
-              required
-              ref={input => (this.input = input)}
-              defaultValue={memberItem.values['Member ID']}
-              onChange={e =>
-                handleChange(
-                  memberItem,
-                  'Member ID',
-                  e,
-                  setIsDirty,
-                  memberChanges,
-                )
-              }
-            />
-*/}
+            {
+              <input
+                type="text"
+                name="username"
+                id="username"
+                required
+                ref={input => (this.input = input)}
+                defaultValue={memberItem.values['Member ID']}
+                onChange={e =>
+                  handleChange(
+                    memberItem,
+                    'Member ID',
+                    e,
+                    setIsDirty,
+                    memberChanges,
+                  )
+                }
+              />
+            }
             <hr />
             <span className="line">
               <div>

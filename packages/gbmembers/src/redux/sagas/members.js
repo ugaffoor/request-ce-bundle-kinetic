@@ -1312,7 +1312,10 @@ export function* createBillingMembers(action) {
 
       let memberidInc = 0;
       action.payload.allMembers.forEach(member => {
-        if (member.values['Member ID'].indexOf(memberId) !== -1) {
+        if (
+          member.values['Member ID'] !== null &&
+          member.values['Member ID'].indexOf(memberId) !== -1
+        ) {
           memberidInc++;
         }
       });
