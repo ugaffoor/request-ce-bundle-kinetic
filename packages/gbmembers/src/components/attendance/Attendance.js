@@ -176,10 +176,12 @@ export class AttendanceDetail extends Component {
   getAllMembers() {
     let membersVals = [];
     this.props.allMembers.forEach(member => {
-      membersVals.push({
-        label: member.values['Last Name'] + ' ' + member.values['First Name'],
-        value: member.id,
-      });
+      if (member.values['Status'] !== 'Inactive') {
+        membersVals.push({
+          label: member.values['Last Name'] + ' ' + member.values['First Name'],
+          value: member.id,
+        });
+      }
     });
     return membersVals;
   }
