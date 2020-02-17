@@ -11,6 +11,8 @@ import sendIcon from '../images/Send.svg?raw';
 import gradingIcon from '../images/Grading.svg?raw';
 import settingsIcon from '../images/Settings.svg?raw';
 import reportsIcon from '../images/Reports.svg?raw';
+import gbwearIcon from '../images/GBWear.svg?raw';
+
 import { Utils } from 'common';
 
 export const Header = ({ loading, profile }) => (
@@ -98,6 +100,21 @@ export const Header = ({ loading, profile }) => (
           >
             <SVGInline svg={reportsIcon} className="icon" />
             <span className="appName">REPORTS</span>
+          </NavLink>
+        </NavItem>
+      )}
+      {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
+        <div />
+      ) : (
+        <NavItem className="gbwearNavItem">
+          <NavLink
+            to="/GBWear"
+            className="nav-link icon-wrapper"
+            strict
+            activeClassName="active"
+          >
+            <SVGInline svg={gbwearIcon} className="icon" />
+            <span className="appName">GB Wear</span>
           </NavLink>
         </NavItem>
       )}

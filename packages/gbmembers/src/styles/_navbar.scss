@@ -242,7 +242,22 @@ ul.nav-header.apps.nav {
     stroke: #f00 !important;
   }
 }
-
+.gbwearNavItem svg {
+  .cls-1 {
+    fill: white;
+  }
+}
+.gbwearNavItem .nav-link.active {
+  path {
+    fill: white !important;
+  }
+  .cls-1 {
+    fill: #e1251b;
+  }
+  path.cls-2 {
+    fill: black !important;
+  }
+}
 .navbar .drawer-button {
   border-right: unset;
   .icon-svg path {

@@ -106,3 +106,20 @@ textarea {
 #email_editor p {
   margin: unset;
 }
+
+.rt-th.rt-resizable-header.-sort-asc.-cursor-pointer {
+  box-shadow: inset -2px -3px 3px 0px #d4caca !important;
+}
+
+.ReactTable .rt-thead .rt-th,
+.ReactTable .rt-thead .rt-td {
+  color: white;
+  background-color: #4d5059;
+  border: none;
+  font-variant-caps: all-small-caps;
+  font-weight: bold;
+  font-size: medium;
+  padding-top: 0px;
+  border-radius: 0.4rem;
+  margin-right: 2px;
+}

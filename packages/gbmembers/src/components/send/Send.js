@@ -66,7 +66,7 @@ export class EmailCampaignsList extends Component {
       },
       {
         accessor: 'attachments',
-        Header: 'Attachments',
+        Header: '',
         headerClassName: 'attachments_col',
         className: 'attachments_col',
         maxWidth: 75,
@@ -374,31 +374,13 @@ export class CreateCampaign extends Component {
       <div className="">
         <div className="row">
           <div className="col-md-2">
-            <NavLink
-              to={`/NewEmailCampaign`}
-              className="btn btn-primary"
-              style={{
-                borderRadius: '0',
-                backgroundColor: '#991B1E',
-                height: '30px',
-                width: 'auto',
-              }}
-            >
+            <NavLink to={`/NewEmailCampaign`} className="btn btn-primary">
               Email Send
             </NavLink>
           </div>
           <div className="col-md-1">OR</div>
           <div className="col-md-2">
-            <NavLink
-              to={`/NewSmsCampaign`}
-              className="btn btn-primary"
-              style={{
-                borderRadius: '0',
-                backgroundColor: '#991B1E',
-                height: '30px',
-                width: 'auto',
-              }}
-            >
+            <NavLink to={`/NewSmsCampaign`} className="btn btn-primary">
               SMS Send
             </NavLink>
           </div>

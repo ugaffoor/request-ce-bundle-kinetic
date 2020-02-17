@@ -21,7 +21,7 @@ export const App = ({ loading }) => (
     {loading ? (
       <div />
     ) : (
-      <div className="app">
+      <div className="app gbmembers">
         <HeaderContainer />
         <LayoutContainer
           sidebarContent={<SidebarContainer />}

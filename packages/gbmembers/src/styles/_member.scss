@@ -52,7 +52,6 @@
     }
   }
   .btn-primary {
-    background-color: $button;
     border: none;
     margin: 0 5px;
     line-height: 1.75rem;
@@ -313,7 +312,6 @@
     float: left;
   }
   .btn-primary {
-    background-color: $button;
     border: none;
     margin: 0 5px;
     line-height: 1.75rem;
@@ -380,10 +378,9 @@
     }
   }
   #saveButton.notDirty {
-    background-color: #9e6567;
+    background-color: #dbd7d7;
   }
   #saveButton.dirty {
-    background-color: #991b1e;
   }
   #duplicateUserInfo.hide {
     display: none;

@@ -26,7 +26,6 @@ export const AppComponent = props =>
       <ToastsContainer />
       <LoginModal />
       <ModalFormContainer />
-      <HeaderContainer hasSidebar toggleSidebarOpen={props.toggleSidebarOpen} />
       <props.AppProvider
         render={({ main, sidebar }) =>
           sidebar ? (
@@ -51,6 +50,7 @@ export const AppComponent = props =>
           )
         }
       />
+      <HeaderContainer hasSidebar toggleSidebarOpen={props.toggleSidebarOpen} />
     </Fragment>
   );
 

@@ -497,6 +497,13 @@
     float: left;
     margin: 10px;
     min-width: 30%;
+    .top {
+      float: left;
+    }
+    .bottom {
+      float: left;
+      clear: left;
+    }
     .memberInfo {
       padding-left: 6px;
       float: left;
@@ -505,15 +512,27 @@
       font-weight: bold;
       font-size: 40px;
       color: red;
+      clear: left;
+      float: left;
+      margin-top: 0;
+      margin-bottom: 0;
     }
     .F,
     .C {
       font-weight: bold;
       font-size: 40px;
+      clear: left;
+      float: left;
+      margin-top: 0;
+      margin-bottom: 0;
     }
     .S {
       font-weight: bold;
       font-size: 40px;
+      clear: left;
+      float: left;
+      margin-top: 0;
+      margin-bottom: 0;
     }
     .deleteCheckin {
       cursor: pointer;

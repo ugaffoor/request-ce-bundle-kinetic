@@ -13,7 +13,14 @@ export const Layout = ({
   mainContent,
   sidebarContent,
 }) => (
-  <div className="layout">
+  <div
+    className={
+      /Safari/.test(navigator.userAgent) &&
+      /Apple Computer/.test(navigator.vendor)
+        ? 'layout isSafari'
+        : 'layout'
+    }
+  >
     <Sidebar
       sidebar={sidebarContent}
       shadow={false}

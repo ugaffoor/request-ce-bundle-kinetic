@@ -176,10 +176,12 @@ export class AttendanceDetail extends Component {
   getAllMembers() {
     let membersVals = [];
     this.props.allMembers.forEach(member => {
-      membersVals.push({
-        label: member.values['Last Name'] + ' ' + member.values['First Name'],
-        value: member.id,
-      });
+      if (member.values['Status'] !== 'Inactive') {
+        membersVals.push({
+          label: member.values['Last Name'] + ' ' + member.values['First Name'],
+          value: member.id,
+        });
+      }
     });
     return membersVals;
   }
@@ -460,34 +462,41 @@ export class AttendanceDetail extends Component {
                         }
                         id={checkin.id}
                       >
-                        {checkin.values['Photo'] === undefined ? (
-                          <span className="noPhoto">
-                            {checkin.values['First Name'][0]}
-                            {checkin.values['Last Name'][0]}
+                        <span className="top">
+                          {checkin.values['Photo'] === undefined ? (
+                            <span className="noPhoto">
+                              {checkin.values['First Name'][0]}
+                              {checkin.values['Last Name'][0]}
+                            </span>
+                          ) : (
+                            <img
+                              src={checkin.values['Photo']}
+                              alt="Member Photograph"
+                              className="photo"
+                            />
+                          )}
+                          <span className="memberInfo">
+                            <h4 className="memberName">
+                              {checkin.values['First Name']}{' '}
+                              {checkin.values['Last Name']}
+                            </h4>
+                            <h5
+                              className={checkin.values['Attendance Status'][0]}
+                            >
+                              {checkin.values['Attendance Status'][0]}
+                            </h5>
+                            <span
+                              className="deleteCheckin"
+                              onClick={e => this.deleteCheckin(checkin)}
+                            >
+                              <SVGInline svg={binIcon} className="icon" />
+                            </span>
                           </span>
-                        ) : (
-                          <img
-                            src={checkin.values['Photo']}
-                            alt="Member Photograph"
-                            className="photo"
-                          />
-                        )}
-                        <span className="memberInfo">
-                          <h4 className="memberName">
-                            {checkin.values['First Name']}{' '}
-                            {checkin.values['Last Name']}
-                          </h4>
-                          <br />
-                          <h4
-                            className={checkin.values['Attendance Status'][0]}
-                          >
-                            {checkin.values['Attendance Status'][0]}
-                          </h4>
-                          <span
-                            className="deleteCheckin"
-                            onClick={e => this.deleteCheckin(checkin)}
-                          >
-                            <SVGInline svg={binIcon} className="icon" />
+                        </span>
+                        <span className="bottom">
+                          <span className="ranking">
+                            {checkin.values['Ranking Program']}-
+                            {checkin.values['Ranking Belt']}
                           </span>
                         </span>
                       </span>

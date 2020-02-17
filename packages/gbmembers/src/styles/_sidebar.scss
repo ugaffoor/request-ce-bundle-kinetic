@@ -8,9 +8,18 @@
 .sidebar-content {
   z-index: 200 !important;
 }
+.isSafari {
+  .sidebar-content {
+    padding-right: 14px;
+  }
+}
+.gbmembers {
+  .sidebar {
+    border-right: 1px solid $gray3;
+    background-color: $darkgray;
+  }
+}
 .sidebar {
-  border-right: 1px solid $gray3;
-  background-color: $darkgray;
   display: flex;
   flex-direction: column;
   min-height: $page-height;
