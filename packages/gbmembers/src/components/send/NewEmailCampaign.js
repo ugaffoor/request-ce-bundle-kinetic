@@ -15,7 +15,7 @@ import ImageResize from 'quill-image-resize-module-react';
 import moment from 'moment';
 import { email_sent_date_format } from '../leads/LeadsUtils';
 import { AttachmentForm } from './AttachmentForm';
-import '../../styles/quill.snow.scss.css';
+import '../../styles/quill.snow.scss';
 import { actions as leadsActions } from '../../redux/modules/leads';
 import { actions as membersActions } from '../../redux/modules/members';
 import { actions as campaignActions } from '../../redux/modules/campaigns';
