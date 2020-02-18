@@ -350,27 +350,40 @@
   }
 }
 .classSection {
-  padding-left: 40px;
+  padding-left: 0px;
+  @media (min-width: 414px) {
+    padding-left: 40px;
+  }
   padding-top: 20px;
+  float: left;
   .buttons {
     margin-top: 35px;
   }
   .line {
-    display: flex;
     div {
       margin-right: 10px;
+    }
+    .sessionDate,
+    .class {
+      float: left;
     }
   }
   label {
     float: left;
     min-width: 180px;
     font-family: AdiHaus DIN Medium;
-    font-size: 26px;
+    font-size: 20px;
+    @media (min-width: 414px) {
+      font-size: 26px;
+    }
   }
   input {
     float: left;
     clear: left;
-    font-size: 26px;
+    font-size: 20px;
+    @media (min-width: 414px) {
+      font-size: 26px;
+    }
   }
   .rdt {
     float: left;
@@ -391,11 +404,17 @@
     -webkit-appearance: none;
     -moz-appearance: none;
     border: solid 1px;
-    font-size: 26px;
+    font-size: 20px;
+    @media (min-width: 414px) {
+      font-size: 26px;
+    }
   }
   .droparrow {
     position: relative;
-    top: 66px;
+    top: 53px;
+    @media (min-width: 414px) {
+      top: 66px;
+    }
     right: -4px;
     width: 0 !important;
     height: 0;
@@ -408,7 +427,15 @@
 }
 .checkinSection {
   margin: 40px;
+  margin-left: 0;
+  @media (min-width: 414px) {
+    margin: 40px;
+  }
   float: left;
+  clear: left;
+  .hide-columns-container {
+    width: auto;
+  }
   .manual {
     #changeToScan {
       width: 200px;
@@ -421,13 +448,20 @@
     .grading {
       float: left;
       clear: left;
-      width: 500px;
+      width: 100%;
       margin-top: 10px;
-      margin-left: 120px;
+      margin-left: 0;
+      @media (min-width: 414px) {
+        margin-left: 120px;
+        width: 500px;
+      }
     }
     .info {
       float: left;
-      margin-left: 20px;
+      margin-left: 0;
+      @media (min-width: 414px) {
+        margin-left: 20px;
+      }
       .noProgramSetLabel,
       .alreadyCheckedinLabel {
         color: red;
@@ -468,7 +502,10 @@
     }
     #manualNewMember {
       width: 200px;
-      margin-left: 120px;
+      margin-left: 0;
+      @media (min-width: 414px) {
+        margin-left: 120px;
+      }
       margin-top: 20px;
       float: left;
       clear: left;

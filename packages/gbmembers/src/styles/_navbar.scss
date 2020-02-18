@@ -14,8 +14,16 @@
   }
   .nav-item {
     .svg-gb-icon-svg {
-      width: 11rem !important;
-      height: 3rem !important;
+      width: 5rem !important;
+      height: 2rem !important;
+      @media (min-width: 400px) {
+        width: 10rem !important;
+        height: 3rem !important;
+      }
+      @media (min-width: 431px) {
+        width: 11rem !important;
+        height: 3rem !important;
+      }
     }
   }
   .dropdown-item {
@@ -41,9 +49,10 @@
     display: flex;
   }
   .reportsNavItem,
-  .settingsNavItem {
+  .settingsNavItem,
+  .gbwearNavItem {
     display: none;
-    @media (min-width: 544px) {
+    @media (min-width: 600px) {
       display: flex;
     }
   }
@@ -82,6 +91,10 @@ ul.nav-header.apps.nav {
 }
 .nav.nav-header > .nav-item-centre {
   margin-left: auto;
+  display: none;
+  @media (min-width: 635px) {
+    display: block;
+  }
   .GBLogo {
     height: 50px;
     margin-top: 20px;
@@ -94,6 +107,12 @@ ul.nav-header.apps.nav {
     padding-top: 24px !important;
     padding-left: 0px !important;
     padding-right: 10px !important;
+    .userCompanyName {
+      display: none;
+      @media (min-width: 820px) {
+        display: block;
+      }
+    }
   }
   .icon-wrapper {
     padding-top: unset !important;
@@ -135,9 +154,12 @@ ul.nav-header.apps.nav {
 .navbar .apps .nav-link {
   font-size: 16px;
   color: $black;
-  padding: 0.5rem 1rem;
   line-height: 1;
-  @media (min-width: 544px) {
+  padding: 0.3rem 0.2rem;
+  @media (min-width: 414px) {
+    padding: 0.3rem 0.7rem;
+  }
+  @media (min-width: 692px) {
     padding: 0.5rem 1rem;
   }
   .badge {
@@ -265,7 +287,10 @@ ul.nav-header.apps.nav {
   }
   .fa {
     color: $darkgray;
-    font-size: 46px;
+    font-size: 34px;
+    @media (min-width: 431px) {
+      font-size: 46px;
+    }
   }
 }
 

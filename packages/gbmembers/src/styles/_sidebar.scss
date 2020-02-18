@@ -1,7 +1,16 @@
 .sidebarMain {
-  top: 153px !important;
+  top: 116px !important;
   background-color: $darkgray;
-  @media (min-width: 544px) {
+  @media (min-width: 692px) {
+    top: 122px !important;
+  }
+  @media (min-width: 768px) {
+    top: 224px !important;
+  }
+  @media (min-width: 810px) {
+    top: 176px !important;
+  }
+  @media (min-width: 1585px) {
     top: 128px !important;
   }
 }

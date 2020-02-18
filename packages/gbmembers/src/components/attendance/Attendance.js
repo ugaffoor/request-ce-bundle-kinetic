@@ -231,7 +231,7 @@ export class AttendanceDetail extends Component {
       <div className="attendanceSection">
         <div className="classSection">
           <span className="line">
-            <div>
+            <div className="sessionDate">
               <label htmlFor="sessionDate">DATE</label>
               <Datetime
                 className="float-right"
@@ -254,7 +254,7 @@ export class AttendanceDetail extends Component {
                 }}
               />
             </div>
-            <div>
+            <div className="class">
               <label htmlFor="programClass">CLASS</label>
               <select
                 name="programClass"
