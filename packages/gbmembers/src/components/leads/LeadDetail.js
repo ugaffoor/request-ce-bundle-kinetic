@@ -750,7 +750,7 @@ export const LeadDetailContainer = compose(
           location: 'Gym',
           attendeeEmail: leadItem.values['Email'],
           timeZone:
-            profile.timezone !== null
+            profile.timezone !== null && profile.timezone !== ''
               ? profile.timezone
               : space.defaultTimezone,
         };

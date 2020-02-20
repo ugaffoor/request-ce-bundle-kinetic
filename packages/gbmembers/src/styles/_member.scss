@@ -2,13 +2,55 @@
   cursor: pointer;
 }
 .memberDetails {
-  margin-top: -1px;
-  background-color: white;
+  margin: -20px;
+  background-color: $gray2;
+  padding: 20px;
+  border-radius: 10px;
   .loading {
     position: absolute;
     width: 100%;
     height: 100%;
     background-color: #e3e5e8;
+  }
+  .memberHeader {
+    .name {
+      height: 64px;
+      float: left;
+      background-color: $darkgray;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+      font-size: 25px;
+      color: white;
+      padding: 12px;
+    }
+    .rankingImages {
+      float: right;
+      margin-top: 15px;
+      .program {
+        float: left;
+        .icon-svg {
+          height: 3rem;
+          width: 4.5rem;
+          path {
+            fill: $darkgray;
+          }
+        }
+      }
+      .belt {
+        float: left;
+        .icon-svg {
+          height: 3rem;
+          width: 8.5rem;
+          margin-left: 10px;
+          path {
+            fill: $darkgray;
+          }
+        }
+      }
+    }
+  }
+  .general {
+    clear: left;
   }
   .row {
     margin-left: 20px;

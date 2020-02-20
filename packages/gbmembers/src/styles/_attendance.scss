@@ -122,9 +122,12 @@
     .programName {
       height: 45px;
       font-size: x-large;
-      background-color: #f0e7e7;
+      background-color: $darkgray;
       padding: 5px;
       margin-top: 20px;
+      color: white;
+      border-radius: 10px;
+      padding-left: 20px;
     }
     .memberRow {
       margin: 10px;
@@ -303,8 +306,9 @@
 }
 
 .grading {
-  max-width: 350px;
+  min-width: 287px;
   cursor: pointer;
+  margin-right: 10px;
   .bar {
     height: 22px;
     width: 200px;
@@ -352,16 +356,18 @@
 .classSection {
   padding-left: 0px;
   @media (min-width: 414px) {
-    padding-left: 40px;
+    padding-left: 20px;
   }
   padding-top: 20px;
-  float: left;
+  width: 100%;
+  display: flex;
   .buttons {
     margin-top: 35px;
   }
   .line {
     div {
       margin-right: 10px;
+      float: left;
     }
     .sessionDate,
     .class {
@@ -395,11 +401,11 @@
     display: inline-block;
     padding: 5px 30px 5px 25px;
     cursor: pointer;
-    color: #7b7b7b;
+    color: white;
     border: 0;
-    border-radius: 0;
+    border-radius: 10px;
     outline: 0;
-    background: #e6e6e6;
+    background: $darkgray;
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -411,18 +417,26 @@
   }
   .droparrow {
     position: relative;
-    top: 53px;
+    top: 15px;
     @media (min-width: 414px) {
-      top: 66px;
+      top: 15px;
     }
-    right: -4px;
+    right: 40px;
     width: 0 !important;
     height: 0;
     pointer-events: none;
-    border-width: 13px 10px 0;
+    border-width: 20px 14px 0;
     border-style: solid;
-    border-color: #7b7b7b transparent transparent;
+    border-color: white transparent transparent;
     background-color: transparent;
+  }
+  .program {
+    select {
+      min-width: 170px;
+    }
+  }
+  .class {
+    min-width: 287px;
   }
 }
 .checkinSection {

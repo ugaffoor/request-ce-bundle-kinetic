@@ -644,8 +644,7 @@ export class TasksDetail extends Component {
               <label htmlFor="allTasks">Show Tasks</label>
               <select
                 id="allTasks"
-                className="form-control"
-                style={{ width: '50%' }}
+                className="form-control showTasks"
                 value={this.state.showTasksSelectValue}
                 onChange={e => this.onShowTasksSelectChange(e)}
               >
@@ -658,8 +657,7 @@ export class TasksDetail extends Component {
             <div className="form-group">
               <input
                 type="text"
-                className="form-control"
-                style={{ width: '50%' }}
+                className="form-control leadSearch"
                 id="leadSearch"
                 value={this.state.leadSearchValue}
                 placeholder="Lead Search"

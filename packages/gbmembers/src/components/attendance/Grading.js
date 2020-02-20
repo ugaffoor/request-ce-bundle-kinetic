@@ -47,7 +47,7 @@ export class GradingDetail extends Component {
       <div className="gradingSection">
         <div className="classSection">
           <span className="line">
-            <div>
+            <div className="grading">
               <label htmlFor="program">Program</label>
               <select
                 name="program"
@@ -65,7 +65,7 @@ export class GradingDetail extends Component {
               </select>
               <div className="droparrow" />
             </div>
-            <div>
+            <div className="program">
               <label htmlFor="program">Belt</label>
               <select
                 name="belt"

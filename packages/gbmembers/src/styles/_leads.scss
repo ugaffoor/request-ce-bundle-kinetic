@@ -48,6 +48,12 @@
       label {
         margin-left: 3px;
       }
+      .showTasks {
+        width: 100%;
+        @media (min-width: 544px) {
+          width: 50%;
+        }
+      }
     }
   }
   .leadContents {
