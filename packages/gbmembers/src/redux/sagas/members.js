@@ -474,6 +474,22 @@ export function* syncBillingCustomer(action) {
           history.push(newHistory);
           action.payload.memberItem.values['Status History'] = history;
         }
+        if (
+          result.data.data.statusDescription === 'Suspended' &&
+          action.payload.memberItem.values['Status'] !== 'Suspended'
+        ) {
+          action.payload.memberItem.values['Status'] = 'Suspended';
+          let history = getJson(
+            action.payload.memberItem.values['Status History'],
+          );
+          let newHistory = {
+            submitter: appSettings.profile.displayName,
+            date: moment().toString(),
+            status: 'Suspended',
+          };
+          history.push(newHistory);
+          action.payload.memberItem.values['Status History'] = history;
+        }
         //        action.payload.memberItem.values['DDR Status'] = 'Pending';
 
         let changes = getBillingChanges(action.payload.memberItem);

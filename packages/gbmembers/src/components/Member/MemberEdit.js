@@ -193,7 +193,7 @@ export const MemberEdit = ({
               )}
             </span>
             <p>{memberItem.values['Member ID']}</p>
-            {
+            {/*
               <input
                 type="text"
                 name="username"
@@ -211,7 +211,7 @@ export const MemberEdit = ({
                   )
                 }
               />
-            }
+            */}
             <hr />
             <span className="line">
               <div>
