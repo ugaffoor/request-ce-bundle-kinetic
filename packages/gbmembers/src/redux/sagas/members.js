@@ -475,17 +475,17 @@ export function* syncBillingCustomer(action) {
           action.payload.memberItem.values['Status History'] = history;
         }
         if (
-          result.data.data.statusDescription === 'Suspended' &&
-          action.payload.memberItem.values['Status'] !== 'Suspended'
+          result.data.data.statusDescription === 'Frozen' &&
+          action.payload.memberItem.values['Status'] !== 'Frozen'
         ) {
-          action.payload.memberItem.values['Status'] = 'Suspended';
+          action.payload.memberItem.values['Status'] = 'Frozen';
           let history = getJson(
             action.payload.memberItem.values['Status History'],
           );
           let newHistory = {
             submitter: appSettings.profile.displayName,
             date: moment().toString(),
-            status: 'Suspended',
+            status: 'Frozen',
           };
           history.push(newHistory);
           action.payload.memberItem.values['Status History'] = history;

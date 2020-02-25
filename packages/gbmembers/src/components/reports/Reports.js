@@ -267,6 +267,7 @@ export class MemberActivityReport extends Component {
         label: 'Billing Columns',
         options: [
           { label: 'Billing User', value: 'billingUser' },
+          { label: 'Last Payment Date', value: 'lastPaymentDate' },
           { label: 'Cost', value: 'cost' },
           { label: 'Average', value: 'average' },
           { label: 'Payment Period', value: 'paymentPeriod' },
@@ -419,7 +420,8 @@ export class MemberActivityReport extends Component {
     if (this.state.filters && this.state.filters.length > 0) {
       if (
         filterColumn === 'createdDate' ||
-        filterColumn === 'lastModifiedDate'
+        filterColumn === 'lastModifiedDate' ||
+        filterColumn === 'lastPaymentDate'
       ) {
         this.memberActivityGridref.table.removeFilter(
           this.dateRangeFilter,
@@ -440,7 +442,8 @@ export class MemberActivityReport extends Component {
     } else {
       if (
         filterColumn === 'createdDate' ||
-        filterColumn === 'lastModifiedDate'
+        filterColumn === 'lastModifiedDate' ||
+        filterColumn === 'lastPaymentDate'
       ) {
         this.memberActivityGridref.table.clearFilter(
           this.dateRangeFilter,
@@ -482,7 +485,11 @@ export class MemberActivityReport extends Component {
       return;
     }
 
-    if (filterColumn !== 'createdDate' && filterColumn !== 'lastModifiedDate') {
+    if (
+      filterColumn !== 'createdDate' &&
+      filterColumn !== 'lastModifiedDate' &&
+      filterColumn !== 'lastPaymentDate'
+    ) {
       if (!type) {
         console.log('Please select filter type');
         return;
@@ -494,7 +501,11 @@ export class MemberActivityReport extends Component {
       }
     }
 
-    if (filterColumn === 'createdDate' || filterColumn === 'lastModifiedDate') {
+    if (
+      filterColumn === 'createdDate' ||
+      filterColumn === 'lastModifiedDate' ||
+      filterColumn === 'lastPaymentDate'
+    ) {
       let filterId = Math.random();
       let filterParams = {
         field: filterColumn,
@@ -646,7 +657,8 @@ export class MemberActivityReport extends Component {
     if (
       type === 'includes' &&
       !event.target.value === 'createdDate' &&
-      !event.target.value === 'lastModifiedDate'
+      !event.target.value === 'lastModifiedDate' &&
+      !event.target.value === 'lastPaymentDate'
     ) {
       let includesOptions = [];
       options.forEach(option =>
@@ -658,7 +670,8 @@ export class MemberActivityReport extends Component {
 
     if (
       event.target.value === 'createdDate' ||
-      event.target.value === 'lastModifiedDate'
+      event.target.value === 'lastModifiedDate' ||
+      event.target.value === 'lastPaymentDate'
     ) {
       $('#filter-value-container').hide();
       $('#filter-type-container').hide();
@@ -1237,6 +1250,9 @@ export class MemberActivityReport extends Component {
                     </option>
                     <option key="lastModifiedDate" value="lastModifiedDate">
                       Last Modified Date
+                    </option>
+                    <option key="lastPaymentDate" value="lastPaymentDate">
+                      Last Payment Date
                     </option>
                   </select>
                 </span>

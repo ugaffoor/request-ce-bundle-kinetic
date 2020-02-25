@@ -1,4 +1,22 @@
 .sidebarMain {
+  .btn-primary:not(:disabled):not(.disabled):active,
+  .btn-primary:not(:disabled):not(.disabled).active,
+  .show > .btn-primary.dropdown-toggle {
+    background-color: $button;
+    border-color: $button;
+    color: $darkgray;
+  }
+  .rightButtons {
+    .btn-primary:not(:disabled):not(.disabled).active {
+      background-color: $darkgray;
+      border-color: $darkgray;
+      color: white;
+    }
+  }
+  .btn-primary:hover {
+    color: $white !important;
+    background-color: darken($button, 25%) !important;
+  }
   top: 116px !important;
   background-color: $darkgray;
   @media (min-width: 692px) {
@@ -40,6 +58,8 @@
     .btn-primary {
       margin-left: auto !important;
       margin-right: auto !important;
+      font-size: 15px;
+      padding-bottom: 0 !important;
     }
   }
   .ReactTable input {

@@ -120,14 +120,15 @@
     -ms-flex-direction: column;
     flex-direction: column;
     .programName {
-      height: 45px;
-      font-size: x-large;
+      height: 33px;
+      font-size: 15px;
       background-color: $darkgray;
       padding: 5px;
       margin-top: 20px;
       color: white;
       border-radius: 10px;
       padding-left: 20px;
+      text-transform: uppercase;
     }
     .memberRow {
       margin: 10px;
@@ -144,17 +145,31 @@
       }
       .grading {
         float: left;
-        width: 350px;
         margin-top: 7px;
+        width: 250px;
+        @media (min-width: 321px) {
+          width: 300px;
+        }
+        @media (min-width: 415px) {
+          width: 350px;
+        }
       }
       .statistics {
         float: left;
         margin-top: 7px;
+        width: 220px;
+        @media (min-width: 321px) {
+          width: 280px;
+        }
       }
       .belt {
         float: left;
         margin-top: 7px;
         margin-left: 20px;
+        .icon-svg {
+          height: 2rem;
+          width: 6rem;
+        }
       }
     }
   }
@@ -306,7 +321,7 @@
 }
 
 .grading {
-  min-width: 287px;
+  min-width: 250px;
   cursor: pointer;
   margin-right: 10px;
   .bar {
@@ -355,7 +370,7 @@
 }
 .classSection {
   padding-left: 0px;
-  @media (min-width: 414px) {
+  @media (min-width: 415px) {
     padding-left: 20px;
   }
   padding-top: 20px;
@@ -374,12 +389,23 @@
       float: left;
     }
   }
+  .sessionDate {
+    .rdtPicker .dow {
+      padding-right: 15px;
+    }
+    .rdtCounter .rdtCount {
+      min-width: 20px;
+    }
+    .rdtMonths {
+      width: 100%;
+    }
+  }
   label {
     float: left;
     min-width: 180px;
     font-family: AdiHaus DIN Medium;
     font-size: 20px;
-    @media (min-width: 414px) {
+    @media (min-width: 415px) {
       font-size: 26px;
     }
   }
@@ -387,8 +413,8 @@
     float: left;
     clear: left;
     font-size: 20px;
-    @media (min-width: 414px) {
-      font-size: 26px;
+    @media (min-width: 415px) {
+      font-size: 20px;
     }
   }
   .rdt {
@@ -410,22 +436,24 @@
     -webkit-appearance: none;
     -moz-appearance: none;
     border: solid 1px;
-    font-size: 20px;
-    @media (min-width: 414px) {
-      font-size: 26px;
+    font-size: 15px;
+    text-transform: uppercase;
+    @media (min-width: 415px) {
+      font-size: 15px;
+      text-transform: uppercase;
     }
   }
   .droparrow {
     position: relative;
-    top: 15px;
-    @media (min-width: 414px) {
+    top: 12px;
+    @media (min-width: 415px) {
       top: 15px;
     }
     right: 40px;
     width: 0 !important;
     height: 0;
     pointer-events: none;
-    border-width: 20px 14px 0;
+    border-width: 12px 10px 0;
     border-style: solid;
     border-color: white transparent transparent;
     background-color: transparent;
@@ -442,7 +470,7 @@
 .checkinSection {
   margin: 40px;
   margin-left: 0;
-  @media (min-width: 414px) {
+  @media (min-width: 415px) {
     margin: 40px;
   }
   float: left;
@@ -465,7 +493,7 @@
       width: 100%;
       margin-top: 10px;
       margin-left: 0;
-      @media (min-width: 414px) {
+      @media (min-width: 415px) {
         margin-left: 120px;
         width: 500px;
       }
@@ -473,12 +501,18 @@
     .info {
       float: left;
       margin-left: 0;
-      @media (min-width: 414px) {
+      @media (min-width: 415px) {
         margin-left: 20px;
       }
       .noProgramSetLabel,
       .alreadyCheckedinLabel {
         color: red;
+      }
+      h4 {
+        width: 90%;
+        @media (min-width: 321px) {
+          width: unset;
+        }
       }
     }
     .noProgramSetLabel {
@@ -517,7 +551,7 @@
     #manualNewMember {
       width: 200px;
       margin-left: 0;
-      @media (min-width: 414px) {
+      @media (min-width: 415px) {
         margin-left: 120px;
       }
       margin-top: 20px;
@@ -554,6 +588,16 @@
     .bottom {
       float: left;
       clear: left;
+      .ranking {
+        .program,
+        .belt {
+          float: left;
+        }
+        .icon-svg {
+          height: 1rem;
+          width: 3rem;
+        }
+      }
     }
     .memberInfo {
       padding-left: 6px;

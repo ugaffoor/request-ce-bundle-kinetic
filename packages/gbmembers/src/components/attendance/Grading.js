@@ -4,6 +4,7 @@ import $ from 'jquery';
 import { connect } from 'react-redux';
 import { GradingStatus } from './GradingStatus';
 import { withHandlers } from 'recompose';
+import { getProgramSVG, getBeltSVG } from '../Member/MemberUtils';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -170,7 +171,7 @@ export class GradingDetail extends Component {
                           {member.daysElapsed}/{member.durationPeriod} DAYS
                         </span>
                         <span className="belt">
-                          {member.values['Ranking Belt']}
+                          {getBeltSVG(member.values['Ranking Belt'])}
                         </span>
                       </span>
                     </div>

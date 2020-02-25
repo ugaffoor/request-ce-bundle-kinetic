@@ -16,6 +16,7 @@ import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as errorActions } from '../../redux/modules/errors';
 import { Utils } from 'common';
 import DateTimePicker from 'react-xdsoft-datetimepicker';
+import { getBeltSVG } from '../Member/MemberUtils';
 
 const mapStateToProps = state => ({
   memberItem: state.member.members.currentMember,
@@ -23,6 +24,7 @@ const mapStateToProps = state => ({
   billingCompany: state.member.app.billingCompany,
   billingCustomersLoading: state.member.members.billingCustomersLoading,
   profile: state.member.app.profile,
+  belts: state.member.app.belts,
 });
 
 const mapDispatchToProps = {
@@ -99,6 +101,7 @@ export const SettingsView = ({
   printingBarcodes,
   setPrintingBarcodes,
   profile,
+  belts,
 }) => (
   <div className="settings">
     <StatusMessagesContainer />
@@ -162,6 +165,17 @@ export const SettingsView = ({
         </div>
       )}
     </div>
+    {/*
+    <div>
+      {allMembers.map(
+        member =>
+              <span>
+                <p>{member.values['Ranking Belt']}-{member.values['First Name']} {member.values['Last Name']}</p>
+                {getBeltSVG(member.values['Ranking Belt'])}
+            </span>
+      )}
+    </div>
+  */}
   </div>
 );
 

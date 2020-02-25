@@ -55,7 +55,7 @@ import Grey_White_Belt_3_White_StripesIcon from '../../images/Grey_White_Belt_3_
 import Grey_White_Belt_4_Red_StripesIcon from '../../images/Grey_White_Belt_4_Red_Stripes.svg?raw';
 import Grey_White_Belt_4_White_StripesIcon from '../../images/Grey_White_Belt_4_White_Stripes.svg?raw';
 
-import Grey_Black_Belt_No_StripeIcon from '../../images/Grey_Black_Belt_No_Stripe.svg?raw';
+import Grey_Black_Belt_No_StripesIcon from '../../images/Grey_Black_Belt_No_Stripes.svg?raw';
 import Grey_Black_Belt_1_Black_StripeIcon from '../../images/Grey_Black_Belt_1_Black_Stripe.svg?raw';
 import Grey_Black_Belt_1_Red_StripeIcon from '../../images/Grey_Black_Belt_1_Red_Stripe.svg?raw';
 import Grey_Black_Belt_1_White_StripeIcon from '../../images/Grey_Black_Belt_1_White_Stripe.svg?raw';
@@ -323,8 +323,10 @@ export function getBeltSVG(belt) {
         <SVGInline svg={Grey_White_Belt_4_White_StripesIcon} className="icon" />
       );
 
-    case 'Grey / Black Belt No Stripe':
-      return <SVGInline svg={Grey_Black_Belt_No_StripeIcon} className="icon" />;
+    case 'Grey / Black Belt No Stripes':
+      return (
+        <SVGInline svg={Grey_Black_Belt_No_StripesIcon} className="icon" />
+      );
     case 'Grey / Black Belt 1 Black Stripe':
       return (
         <SVGInline svg={Grey_Black_Belt_1_Black_StripeIcon} className="icon" />

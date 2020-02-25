@@ -13,6 +13,7 @@ import SVGInline from 'react-svg-inline';
 import Select from 'react-select';
 import { withHandlers } from 'recompose';
 import { GradingStatus } from './GradingStatus';
+import { getProgramSVG, getBeltSVG } from '../Member/MemberUtils';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -495,8 +496,12 @@ export class AttendanceDetail extends Component {
                         </span>
                         <span className="bottom">
                           <span className="ranking">
-                            {checkin.values['Ranking Program']}-
-                            {checkin.values['Ranking Belt']}
+                            <div className="program">
+                              {getProgramSVG(checkin.values['Ranking Program'])}
+                            </div>
+                            <div className="belt">
+                              {getBeltSVG(checkin.values['Ranking Belt'])}
+                            </div>
                           </span>
                         </span>
                       </span>

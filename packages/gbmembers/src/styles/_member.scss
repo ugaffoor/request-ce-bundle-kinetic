@@ -3,16 +3,68 @@
 }
 .memberDetails {
   margin: -20px;
-  background-color: $gray2;
+  background-color: white;
   padding: 20px;
   border-radius: 10px;
+  .btn-primary:not(:disabled):not(.disabled):active,
+  .btn-primary:not(:disabled):not(.disabled).active,
+  .show > .btn-primary.dropdown-toggle {
+    background-color: $darkgray;
+    border-color: $darkgray;
+  }
+
+  h3 {
+    font-size: 18px;
+    text-transform: uppercase;
+  }
   .loading {
     position: absolute;
     width: 100%;
     height: 100%;
     background-color: #e3e5e8;
   }
+  .row {
+    .col-sm-10 {
+      max-width: 100%;
+      flex: 0 0 100%;
+      padding-left: 0;
+    }
+    .col-sm-9.notes {
+      flex: 0 0 100%;
+      max-width: 100%;
+      @media (min-width: 544px) {
+        flex: 0 0 70%;
+        max-width: 70%;
+      }
+      @media (min-width: 1065px) {
+        flex: 0 0 75%;
+        max-width: 75%;
+      }
+      @media (min-width: 1220px) {
+        flex: 0 0 83%;
+        max-width: 83%;
+      }
+    }
+
+    .col-sm-2.notesButton {
+      flex: 0 0 100%;
+      max-width: 90%;
+      @media (min-width: 544px) {
+        flex: 0 0 30%;
+        max-width: 30%;
+      }
+      @media (min-width: 1065px) {
+        flex: 0 0 20%;
+        max-width: 20%;
+      }
+      @media (min-width: 1220px) {
+        flex: 0 0 16.66667%;
+        max-width: 16.66667%;
+      }
+    }
+  }
   .memberHeader {
+    height: 64px;
     .name {
       height: 64px;
       float: left;
@@ -22,6 +74,11 @@
       font-size: 25px;
       color: white;
       padding: 12px;
+    }
+    .viewContent {
+      background-color: white;
+      border-bottom-left-radius: 10px;
+      border-bottom-right-radius: 10px;
     }
     .rankingImages {
       float: right;
@@ -82,48 +139,52 @@
   .iconItem {
     text-align: center;
     width: auto;
-    display: block;
+    display: flex;
     float: left;
+    clear: left;
     margin-right: 20px;
+    padding: 4px;
     .value {
       margin-left: 10px;
-      font-size: 1.5em;
+      font-size: 18px;
     }
     a {
-      color: white;
+      color: $darkgray;
     }
   }
   .btn-primary {
     border: none;
     margin: 0 5px;
     line-height: 1.75rem;
+    text-transform: capitalize;
+    font-size: 15px;
     &:hover {
       color: $white;
       background-color: darken($button, 25%);
     }
   }
   .icon-svg {
-    height: 2rem;
-    width: 2rem;
+    height: 1.5rem;
+    width: 1.5rem;
     path {
-      fill: white;
+      fill: $darkgray;
     }
   }
   .photo {
     width: 200px;
     margin-left: 20px;
-    position: absolute;
     margin-top: 20px;
     height: 180px;
+    float: left;
   }
   .noPhoto {
     width: 200px;
     margin-left: 59px;
-    position: absolute;
     margin-top: 20px;
     height: 180px;
     line-height: 150px;
     font-size: 80px;
+    float: left;
   }
   .leadInfo {
     margin-top: 9px;
@@ -138,14 +199,11 @@
       height: auto;
       position: relative;
       display: inline-block;
-      width: 100%;
-      color: white;
+      color: $darkgray;
       padding-left: 20px;
-      padding-top: 230px;
-      @media (min-width: 544px) {
-        padding-left: 240px;
-        padding-top: 20px;
-      }
+      padding-top: 20px;
+      font-size: 18px;
+      float: left;
       h1 {
         margin-top: 0;
         width: auto;
@@ -154,9 +212,7 @@
       }
       p {
         float: left;
-        margin: 4px 10px 0px 10px;
-        font-variant-caps: all-small-caps;
-        font-size: 1.5em;
+        margin: 0;
       }
       .buttons {
         float: right;
@@ -171,14 +227,71 @@
     .details2 {
       height: auto;
       position: relative;
-      display: inline-block;
-      width: 100%;
-      color: white;
+      color: #4d5059;
       padding-left: 20px;
       padding-top: 20px;
-      @media (min-width: 544px) {
-        padding-left: 240px;
-        padding-top: 20px;
+      float: left;
+      clear: left;
+      @media (min-width: 1157px) {
+        padding-left: auto;
+        padding-right: 20px;
+        float: right;
+        clear: none;
+      }
+      .status {
+        color: gray;
+        float: right;
+        p {
+          width: 100px;
+          float: left;
+          margin: 0;
+        }
+        .green {
+          height: 25px;
+          width: 25px;
+          background-color: green;
+          border-radius: 16px;
+          float: left;
+        }
+        .red {
+          height: 25px;
+          width: 25px;
+          background-color: red;
+          border-radius: 16px;
+          float: left;
+        }
+        .blue {
+          height: 25px;
+          width: 25px;
+          background-color: blue;
+          border-radius: 16px;
+          float: left;
+        }
+      }
+      .buttons {
+        float: right;
+        clear: right;
+        .btn-primary {
+          border: none;
+          margin: 0 10px;
+          margin-bottom: 2px;
+          line-height: 1.75rem;
+          clear: right;
+          float: right;
+          width: 100px;
+          text-transform: capitalize;
+          font-size: 15px;
+        }
+      }
+      .emergency {
+        margin-left: 0px;
+        clear: both;
+        .icon.barcodePrint {
+          float: left;
+        }
+        .memberBarcode {
+          float: left;
+        }
       }
     }
   }
@@ -189,7 +302,7 @@
     }
     .icon-svg {
       path {
-        fill: $button;
+        fill: $darkgray;
       }
     }
     .emergencyNumber {
@@ -213,13 +326,15 @@
   .userDetails2 {
     display: flex;
     clear: left;
+    width: 100%;
     h4 {
       margin-top: 10px;
     }
     .ranking {
       width: 100%;
       margin: 20px;
-      border-top: 1px solid $gray3;
+      margin-right: 0;
+      border-top: 1px solid $darkgray;
       .program {
         padding: 10px;
         p {
@@ -238,8 +353,9 @@
     }
     .billing {
       width: 100%;
-      border-top: 1px solid $gray3;
+      border-top: 1px solid $darkgray;
       margin: 20px;
+      margin-left: 0;
       .billingPlan {
         padding: 10px;
         background-color: #f7f7f7;
@@ -358,6 +474,7 @@
     margin: 0 5px;
     line-height: 1.75rem;
     margin-bottom: 0.75rem;
+    font-size: 15px;
     &:hover {
       color: $white;
       background-color: darken($button, 25%);
