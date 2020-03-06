@@ -26,7 +26,7 @@ const ResetPassword = ({
       <div>
         <h3 className="form-title">Reset Password</h3>
         <div className="form-group">
-          <label htmlFor="email">Email Address</label>
+          <label htmlFor="email">User Name</label>
           <input
             type="text"
             id="email"

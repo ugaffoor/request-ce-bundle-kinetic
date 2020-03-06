@@ -22,6 +22,7 @@ import mail from '../../images/mail.png';
 import in_person from '../../images/in_person.png';
 import intro_class from '../../images/intro_class.png';
 import free_class from '../../images/free_class.png';
+import attended_class from '../../images/user-check.png';
 import moment from 'moment';
 import { getJson } from '../Member/MemberUtils';
 import ReactTable from 'react-table';
@@ -135,6 +136,9 @@ export class LeadDetail extends Component {
         break;
       case 'free_class':
         label = 'Free Class';
+        break;
+      case 'attended_class':
+        label = 'Attended Class';
         break;
       default:
     }
@@ -261,6 +265,13 @@ export class LeadDetail extends Component {
         <span className="notesCell free_class">
           <img src={free_class} alt="Free Class" />
           Free Class
+        </span>
+      );
+    } else if (row.original.contactMethod === 'attended_class') {
+      return (
+        <span className="notesCell attended_class">
+          <img src={attended_class} alt="Attended Class" />
+          Attended Class
         </span>
       );
     } else {
@@ -416,7 +427,7 @@ export class LeadDetail extends Component {
                     to={`/FollowUp/${this.props.leadItem['id']}`}
                     className="btn btn-primary followup_button followup_image"
                     style={{
-                      backgroundColor: '#991B1E',
+                      backgroundColor: '#4d5059',
                       height: '45px',
                       width: '100px',
                       textAlign: 'center',
@@ -534,6 +545,26 @@ export class LeadDetail extends Component {
                   />
                 </a>
               </li>
+              <li className="nav-item icon">
+                <a
+                  className="nav-link"
+                  title="Attended Class"
+                  data-toggle="tab"
+                  href="#method"
+                  id="attended_tab"
+                  role="tab"
+                  aria-controls="contact_method"
+                  onClick={() =>
+                    this.handleContactMethodChange('attended_class')
+                  }
+                >
+                  <img
+                    src={attended_class}
+                    alt="Attended Class"
+                    style={{ border: 'none' }}
+                  />
+                </a>
+              </li>
             </ul>
             <ul
               className="nav nav-tabs card-header-tabs pull-left contact-method-select"
@@ -624,7 +655,7 @@ export class LeadDetail extends Component {
           </div>
         </div>
         <div className="row">
-          <div className="col-md-12 text-center">
+          <div className="col-md-12 text-center notesTable">
             <ReactTable
               data={this.state.data}
               columns={this.state.columns}

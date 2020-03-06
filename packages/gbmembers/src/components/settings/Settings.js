@@ -167,11 +167,11 @@ export const SettingsView = ({
     </div>
     {/*
     <div>
-      {allMembers.map(
-        member =>
+      {belts.map(
+        belt =>
               <span>
-                <p>{member.values['Ranking Belt']}-{member.values['First Name']} {member.values['Last Name']}</p>
-                {getBeltSVG(member.values['Ranking Belt'])}
+                <p>{belt.belt}</p>
+                {getBeltSVG(belt.belt)}
             </span>
       )}
     </div>

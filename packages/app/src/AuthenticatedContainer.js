@@ -16,19 +16,11 @@ import { UnauthenticatedForm } from './components/authentication/Unauthenticated
 
 export const LoginScreen = props => (
   <div className="login-container">
-    <div className="login-wrapper">
-      {props.children}
-      <div
-        className="login-image-container"
-        style={{ backgroundImage: `url(${logoImage})` }}
-      >
-        <div className="kinops-text">
-          <img src={logoName} alt="Gracie Barra - School Management" />
-          <h3>Welcome to Gracie Barra</h3>
-          <p>Managing your school better.</p>
-        </div>
-      </div>
-    </div>
+    <div
+      className="login-image-container"
+      style={{ backgroundImage: `url(${logoImage})` }}
+    ></div>
+    <div className="login-wrapper">{props.children}</div>
   </div>
 );
 
@@ -172,10 +164,7 @@ const mapStateToProps = state => ({
 });
 
 export const AuthenticatedContainer = compose(
-  connect(
-    mapStateToProps,
-    { push },
-  ),
+  connect(mapStateToProps, { push }),
   withState('display', 'setDisplay', 'none'),
   withState('error', 'setError', ''),
   withState('email', 'setEmail', ''),

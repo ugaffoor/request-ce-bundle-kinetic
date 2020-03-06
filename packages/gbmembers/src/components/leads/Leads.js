@@ -1034,13 +1034,19 @@ export class LeadsCreatedChart extends Component {
           objFound['Leads Created'] = objFound['Leads Created'] + 1;
         } else {
           data.push({
+            date: createdDate,
             'Date Created': createdDate.format('DD-MM-YYYY'),
             'Leads Created': 1,
           });
         }
       }
     });
-    return data;
+    return data.sort(this.compare);
+  }
+  compare(a, b) {
+    if (moment(a['date']).isAfter(b['date'])) return 1;
+    if (moment(a['date']).isBefore(b['date'])) return -1;
+    return 0;
   }
 
   yAxisTickFormatter(leadsCount) {

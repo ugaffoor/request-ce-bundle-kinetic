@@ -52,6 +52,7 @@ import {
 } from 'recharts';
 import { Utils } from 'common';
 import { getProgramSVG, getBeltSVG } from './MemberUtils';
+import ReactToPrint from 'react-to-print';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -401,6 +402,69 @@ export class AttendanceChart extends Component {
   }
 }
 
+class AttendanceCardToPrint extends React.Component {
+  render() {
+    return this.props.memberItem.values['Ranking Program'] === undefined ? (
+      <div />
+    ) : (
+      <div className="attendanceCard">
+        <div
+          id="attendanceCard_p1"
+          className={
+            'card1 ' +
+            this.props.memberItem.values['Ranking Program'].replace(/ /g, '_')
+          }
+        >
+          <div className="photoDiv">
+            {this.props.memberItem.values['Photo'] === undefined &&
+            this.props.memberItem.values['First Name'] !== undefined ? (
+              <span className="noPhotoDiv">
+                <span className="name">
+                  {this.props.memberItem.values['First Name'][0]}
+                  {this.props.memberItem.values['Last Name'][0]}
+                </span>
+              </span>
+            ) : (
+              <img
+                src={this.props.memberItem.values['Photo']}
+                alt="Member Photograph"
+                className="photoImg"
+              />
+            )}
+          </div>
+          <div className="attendanceBarcode">
+            <Barcode
+              value={this.props.memberItem.id.split('-')[4].substring(6, 12)}
+              width={1.3}
+              height={30}
+              displayValue={false}
+              type={'CODE128'}
+            />
+          </div>
+          <div
+            className={
+              'attendanceName ' +
+              this.props.memberItem.values['Ranking Program'].replace(/ /g, '_')
+            }
+          >
+            <p>
+              {this.props.memberItem.values['First Name']}{' '}
+              {this.props.memberItem.values['Last Name']}
+            </p>
+          </div>
+        </div>
+        <div
+          id="attendanceCard_p2"
+          className={
+            'card2 ' +
+            this.props.memberItem.values['Ranking Program'].replace(/ /g, '_')
+          }
+        ></div>
+      </div>
+    );
+  }
+}
+
 export const MemberView = ({
   memberItem,
   allMembers,
@@ -473,11 +537,13 @@ export const MemberView = ({
                   {memberItem.values['Last Name'][0]}
                 </span>
               ) : (
-                <img
-                  src={memberItem.values['Photo']}
-                  alt="Member Photograph"
-                  className="photo"
-                />
+                <div className="viewPhotoDiv">
+                  <img
+                    src={memberItem.values['Photo']}
+                    alt="Member Photograph"
+                    className="photo"
+                  />
+                </div>
               )}
               <span className="details1">
                 <div className="iconItem">
@@ -591,10 +657,15 @@ export const MemberView = ({
                       type={'CODE128'}
                     />
                   </div>
-                  <SVGInline
-                    svg={printerIcon}
-                    className="icon barcodePrint"
-                    onClick={e => printBarcode()}
+                  <ReactToPrint
+                    trigger={() => (
+                      <SVGInline
+                        svg={printerIcon}
+                        className="icon barcodePrint"
+                      />
+                    )}
+                    content={() => this.componentRef}
+                    copyStyles={true}
                   />
                 </div>
               </span>
@@ -613,6 +684,12 @@ export const MemberView = ({
             >
               Converted Lead
             </NavLink>
+          </div>
+          <div style={{ display: 'none' }}>
+            <AttendanceCardToPrint
+              ref={el => (this.componentRef = el)}
+              memberItem={memberItem}
+            />
           </div>
           <div className="userDetails2">
             <div className="ranking">

@@ -22,6 +22,8 @@ export function* fetchLeads(action) {
   try {
     const search = new CoreAPI.SubmissionSearch()
       .eq('values[Lead State]', 'Open')
+      .sortBy('updatedAt')
+      .sortDirection('DESC')
       .includes(['details', 'values'])
       .limit(1000)
       .build();
@@ -35,6 +37,27 @@ export function* fetchLeads(action) {
     yield put(actions.setLeads(submissions));
   } catch (error) {
     console.log('Error in fetchLeads: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
+export function* fetchLeadsByDate(action) {
+  try {
+    const search = new CoreAPI.SubmissionSearch()
+      .sortBy('updatedAt')
+      .sortDirection('DESC')
+      .includes(['details', 'values'])
+      .limit(1000)
+      .build();
+
+    const { submissions } = yield call(CoreAPI.searchSubmissions, {
+      kapp: 'gbmembers',
+      form: 'lead',
+      search,
+    });
+    console.log('Leads by Date# ' + submissions);
+    yield put(actions.setLeadsByDate(submissions));
+  } catch (error) {
+    console.log('Error in fetchLeadsByDate: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));
   }
 }
@@ -241,6 +264,7 @@ export function* deleteLead(action) {
 
 export function* watchLeads() {
   yield takeEvery(types.FETCH_LEADS, fetchLeads);
+  yield takeEvery(types.FETCH_LEADS_BY_DATE, fetchLeadsByDate);
   yield takeEvery(types.FETCH_CURRENT_LEAD, fetchCurrentLead);
   yield takeEvery(types.UPDATE_LEAD, updateCurrentLead);
   yield takeEvery(types.CREATE_LEAD, createLead);

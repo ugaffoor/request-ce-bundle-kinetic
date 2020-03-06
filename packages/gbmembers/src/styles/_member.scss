@@ -1,3 +1,105 @@
+.card1,
+.card2 {
+  background-size: cover;
+  background-repeat: no-repeat;
+  width: 240mm;
+  height: 330mm;
+  float: left;
+  clear: left;
+}
+@media print {
+  html,
+  body {
+    height: initial !important;
+    overflow: initial !important;
+    -webkit-print-color-adjust: exact;
+    float: none;
+  }
+  .attendanceCard {
+    .card1 {
+      margin-top: 0mm;
+    }
+    .card2 {
+      margin-top: 10mm;
+      height: 324mm !important;
+    }
+    .card1,
+    .card2 {
+      width: 240mm;
+      height: 330mm;
+      /*      width: 148mm;
+      height: 209mm;*/
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+  }
+}
+@page {
+  size: a5;
+  margin: 0;
+}
+.card1.GB1 {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/GB1-P1.png);
+}
+.card1.GB2 {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/GB2-P1.png);
+}
+.card1.GB3 {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/GB3-P1.png);
+}
+.card1.Tiny_Champions {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Tiny_Champions-P1.png);
+}
+.card1.Little_Champions_1 {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Little_Champions_1-P1.png);
+}
+.card1.Little_Champions_2 {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Little_Champions_2-P1.png);
+}
+.card1.Juniors {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Juniors-P1.png);
+}
+.card1.Teens {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Teens-P1.png);
+}
+.card1.Advanced_Kids {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Advanced_Kids-P1.png);
+}
+.card1.Kids_Competition_Team {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Kids_Competition_Team-P1.png);
+}
+
+.card2.GB1 {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/GB1-P2.png);
+}
+.card2.GB2 {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/GB2-P2.png);
+}
+.card2.GB3 {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/GB3-P2.png);
+}
+.card2.Tiny_Champions {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Tiny_Champions-P2.png);
+}
+.card2.Little_Champions_1 {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Little_Champions_1-P2.png);
+}
+.card2.Little_Champions_2 {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Little_Champions_2-P2.png);
+}
+.card2.Juniors {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Juniors-P2.png);
+}
+.card2.Teens {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Teens-P2.png);
+}
+.card2.Advanced_Kids {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Advanced_Kids-P2.png);
+}
+.card2.Kids_Competition_Team {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Kids_Competition_Team-P2.png);
+}
+
 .replyIcon {
   cursor: pointer;
 }
@@ -83,6 +185,8 @@
     .rankingImages {
       float: right;
       margin-top: 15px;
+      padding-right: 4px;
+      background-color: #f8f8f8;
       .program {
         float: left;
         .icon-svg {
@@ -170,16 +274,20 @@
       fill: $darkgray;
     }
   }
-  .photo {
+  .viewPhotoDiv {
     width: 200px;
     margin-left: 20px;
     margin-top: 20px;
     height: 180px;
     float: left;
+    .photo {
+      width: 100%;
+      height: 100%;
+    }
   }
   .noPhoto {
     width: 200px;
-    margin-left: 59px;
+    margin-left: 20px;
     margin-top: 20px;
     height: 180px;
     line-height: 150px;
@@ -242,9 +350,10 @@
         color: gray;
         float: right;
         p {
-          width: 100px;
+          width: auto;
           float: left;
           margin: 0;
+          margin-right: 2px;
         }
         .green {
           height: 25px;
@@ -286,6 +395,7 @@
       .emergency {
         margin-left: 0px;
         clear: both;
+        float: right;
         .icon.barcodePrint {
           float: left;
         }
@@ -477,7 +587,7 @@
     font-size: 15px;
     &:hover {
       color: $white;
-      background-color: darken($button, 25%);
+      background-color: darken($darkgray, 25%);
     }
   }
   input#male {
@@ -566,14 +676,14 @@
     height: 75%;
   }
   .btn-primary {
-    background-color: $button;
+    background-color: $darkgray;
     border: none;
     margin: 0 5px;
     line-height: 1.75rem;
     margin-bottom: 0.75rem;
     &:hover {
       color: $white;
-      background-color: darken($button, 25%);
+      background-color: darken($darkgray, 25%);
     }
   }
   h1 {
@@ -586,6 +696,7 @@
 
 .memberBillingDetails {
   background-color: white;
+  height: 2000px;
   #registeriFrame {
     height: 1800px;
     border: 0;
@@ -660,14 +771,14 @@
     float: left;
   }
   .btn-primary {
-    background-color: $button;
+    background-color: $darkgray;
     border: none;
     margin: 0 5px;
     line-height: 1.75rem;
     margin-bottom: 0.75rem;
     &:hover {
       color: $white;
-      background-color: darken($button, 25%);
+      background-color: darken($darkgray, 25%);
     }
   }
   #saveButton.notDirty {
@@ -720,14 +831,14 @@
     height: 75%;
   }
   .btn-primary {
-    background-color: $button;
+    background-color: $darkgray;
     border: none;
     margin: 0 5px;
     line-height: 1.75rem;
     margin-bottom: 0.75rem;
     &:hover {
       color: $white;
-      background-color: darken($button, 25%);
+      background-color: darken($darkgray, 25%);
     }
   }
   h1 {
@@ -740,4 +851,83 @@
 
 iframe#printf {
   display: none;
+}
+.attendanceCard {
+  .photoDiv {
+    width: 82px;
+    margin-left: 174mm;
+    margin-top: 10.5mm;
+    line-height: 95px;
+    background-color: #f1f1f0;
+    float: left;
+    .noPhotoDiv {
+      width: auto;
+      margin-left: 92px;
+      margin-bottom: 23px;
+      margin-top: 10px;
+      font-size: 54px;
+      transform-origin: 0 0;
+      transform: rotate(90deg);
+      -webkit-transform: rotate(90deg);
+      -moz-transform: rotate(90deg);
+      -ms-transform: rotate(90deg);
+      -o-transform: rotate(90deg);
+      filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
+      position: absolute;
+      background-color: #f1f1f0;
+    }
+    .photoImg {
+      margin-left: 0px;
+      margin-top: 5px;
+      height: 162px;
+      width: 174px;
+      transform: rotate(90deg);
+      -webkit-transform: rotate(90deg);
+      -moz-transform: rotate(90deg);
+      -ms-transform: rotate(90deg);
+      -o-transform: rotate(90deg);
+      filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
+      float: left;
+    }
+  }
+  .attendanceBarcode {
+    margin-top: 74mm;
+    margin-left: 194mm;
+    transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
+    width: 100px;
+    svg {
+      width: 207px;
+      height: 84px;
+    }
+  }
+  .attendanceName.Advanced_Kids {
+    margin-top: 40mm;
+    margin-left: 127mm;
+  }
+  .attendanceName.Little_Champions_1,
+  .attendanceName.Little_Champions_2,
+  .attendanceName.Tiny_Champions,
+  .attendanceName.Juniors,
+  .attendanceName.Teens {
+    margin-top: 40mm;
+    margin-left: 127mm;
+  }
+  .attendanceName {
+    margin-top: 44mm;
+    margin-left: 120mm;
+    transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
+    p {
+      font-size: 26px;
+    }
+  }
 }

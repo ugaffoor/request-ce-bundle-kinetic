@@ -39,14 +39,8 @@ const mapStateToProps = state => ({
     state.member.members.processedAndScheduledPayments,
   processedAndScheduledPaymentsLoading:
     state.member.members.processedAndScheduledPaymentsLoading,
-  paymentHistory: state.member.members.paymentHistory,
-  paymentHistoryLoading: state.member.members.paymentHistoryLoading,
   billingCompany: state.member.app.billingCompany,
-  variationCustomers: state.member.members.variationCustomers,
-  variationCustomersLoading: state.member.members.variationCustomersLoading,
   programs: state.member.app.programs,
-  inactiveCustomersCount: state.member.members.inactiveCustomersCount,
-  inactiveCustomersLoading: state.member.members.inactiveCustomersLoading,
   profile: state.member.app.profile,
 });
 
@@ -58,14 +52,8 @@ const mapDispatchToProps = {
   fetchProcessedAndScheduledPayments:
     actions.fetchProcessedAndScheduledPayments,
   setProcessedAndScheduledPayments: actions.setProcessedAndScheduledPayments,
-  fetchPaymentHistory: actions.fetchPaymentHistory,
-  setPaymentHistory: actions.setPaymentHistory,
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
-  fetchVariationCustomers: actions.fetchVariationCustomers,
-  setVariationCustomers: actions.setVariationCustomers,
-  fetchInactiveCustomersCount: actions.fetchInactiveCustomersCount,
-  setInactiveCustomersCount: actions.setInactiveCustomersCount,
 };
 
 const ezidebit_date_format = 'YYYY-MM-DD HH:mm:ss';
@@ -80,17 +68,8 @@ export const HomeView = ({
   processedAndScheduledPayments,
   processedAndScheduledPaymentsLoading,
   reloadCharts,
-  paymentHistory,
-  paymentHistoryLoading,
-  getFailedPayments,
   billingCompany,
-  variationCustomers,
-  variationCustomersLoading,
-  getVariationCustomers,
   programs,
-  getInactiveCustomersCount,
-  inactiveCustomersCount,
-  inactiveCustomersLoading,
   profile,
 }) => (
   <div className="dashboard">
@@ -107,9 +86,6 @@ export const HomeView = ({
               profile,
               getBillingPayments,
               getProcessedAndScheduledPayments,
-              getFailedPayments,
-              getVariationCustomers,
-              getInactiveCustomersCount,
             )
           }
         >
@@ -142,17 +118,6 @@ export const HomeView = ({
           />
         </div>
       ))}
-    <div className="chart3">
-      {!Utils.isMemberOf(profile, 'Billing') ? (
-        <div />
-      ) : (
-        <InactiveCustomersChart
-          inactiveCustomersCount={inactiveCustomersCount}
-          getInactiveCustomersCount={getInactiveCustomersCount}
-          inactiveCustomersLoading={inactiveCustomersLoading}
-        />
-      )}
-    </div>
     <div className="chart4">
       <DemographicChart allMembers={allMembers} />
     </div>
@@ -161,26 +126,6 @@ export const HomeView = ({
     </div>
     <div className="chart6">
       <KidsChart allMembers={allMembers} />
-    </div>
-    <div>
-      {!Utils.isMemberOf(profile, 'Billing') ? (
-        <div />
-      ) : (
-        <PaymentHistory
-          paymentHistory={paymentHistory}
-          paymentHistoryLoading={paymentHistoryLoading}
-        />
-      )}
-    </div>
-    <div>
-      {!Utils.isMemberOf(profile, 'Billing') ? (
-        <div />
-      ) : (
-        <VariationCustomers
-          variationCustomers={variationCustomers}
-          variationCustomersLoading={variationCustomersLoading}
-        />
-      )}
     </div>
   </div>
 );
@@ -266,117 +211,14 @@ export const HomeContainer = compose(
       profile,
       getBillingPayments,
       getProcessedAndScheduledPayments,
-      getFailedPayments,
-      getVariationCustomers,
-      getInactiveCustomersCount,
     ) => {
       if (Utils.isMemberOf(profile, 'Billing')) {
         getBillingPayments('current_month');
         getProcessedAndScheduledPayments();
-        getFailedPayments();
-        getVariationCustomers();
-        getInactiveCustomersCount();
       }
       {
         console.log('Not a billing user');
       }
-    },
-    getFailedPayments: ({
-      fetchPaymentHistory,
-      setPaymentHistory,
-      addNotification,
-      setSystemError,
-    }) => () => {
-      fetchPaymentHistory({
-        paymentType: 'FAILED',
-        paymentMethod: 'ALL',
-        paymentSource: 'ALL',
-        dateField: 'PAYMENT',
-        dateFrom: moment()
-          .subtract(1, 'week')
-          .format('YYYY-MM-DD'),
-        dateTo: moment().format('YYYY-MM-DD'),
-        setPaymentHistory: setPaymentHistory,
-        internalPaymentType: 'client_failed',
-        addNotification: addNotification,
-        setSystemError: setSystemError,
-      });
-    },
-    getVariationCustomers: ({
-      fetchVariationCustomers,
-      setVariationCustomers,
-      addNotification,
-      setSystemError,
-    }) => () => {
-      fetchVariationCustomers({
-        setVariationCustomers: setVariationCustomers,
-        setSystemError: setSystemError,
-        addNotification: addNotification,
-      });
-    },
-    getInactiveCustomersCount: ({
-      fetchInactiveCustomersCount,
-      setInactiveCustomersCount,
-      addNotification,
-      setSystemError,
-    }) => (dateRange, fromDate, toDate) => {
-      if (!dateRange) {
-        dateRange = 'last_30_days';
-      }
-
-      if (dateRange === 'last_30_days') {
-        fromDate = moment()
-          .subtract(30, 'days')
-          .format('DD-MM-YYYY');
-        toDate = moment().format('DD-MM-YYYY');
-      } else if (dateRange === 'last_month') {
-        fromDate = moment()
-          .subtract(1, 'months')
-          .startOf('month')
-          .format('DD-MM-YYYY');
-        toDate = moment()
-          .subtract(1, 'months')
-          .endOf('month')
-          .format('DD-MM-YYYY');
-      } else if (dateRange === 'last_3_months') {
-        fromDate = moment()
-          .subtract(3, 'months')
-          .startOf('month')
-          .format('DD-MM-YYYY');
-        toDate = moment()
-          .subtract(1, 'months')
-          .endOf('month')
-          .format('DD-MM-YYYY');
-      } else if (dateRange === 'last_6_months') {
-        fromDate = moment()
-          .subtract(6, 'months')
-          .startOf('month')
-          .format('DD-MM-YYYY');
-        toDate = moment()
-          .subtract(1, 'months')
-          .endOf('month')
-          .format('DD-MM-YYYY');
-      } else if (dateRange === 'last_year') {
-        fromDate = moment()
-          .subtract(1, 'years')
-          .startOf('month')
-          .format('DD-MM-YYYY');
-        toDate = moment()
-          .subtract(1, 'months')
-          .endOf('month')
-          .format('DD-MM-YYYY');
-      } else if (dateRange === 'custom') {
-        fromDate = moment(fromDate, 'YYYY-MM-DD').format('DD-MM-YYYY');
-        toDate = moment(toDate, 'YYYY-MM-DD').format('DD-MM-YYYY');
-      }
-
-      fetchInactiveCustomersCount({
-        fromDate: fromDate,
-        toDate: toDate,
-        setInactiveCustomersCount: setInactiveCustomersCount,
-        setSystemError: setSystemError,
-        addNotification: addNotification,
-      });
     },
   }),
   lifecycle({
@@ -392,24 +234,6 @@ export const HomeContainer = compose(
         $.isEmptyObject(this.props.processedAndScheduledPayments)
       ) {
         this.props.getProcessedAndScheduledPayments();
-      }
-      if (
-        !this.props.paymentHistory ||
-        $.isEmptyObject(this.props.paymentHistory)
-      ) {
-        this.props.getFailedPayments();
-      }
-      if (
-        !this.props.variationCustomers ||
-        this.props.variationCustomers.length <= 0
-      ) {
-        this.props.getVariationCustomers();
-      }
-      if (
-        !this.props.inactiveCustomersCount ||
-        this.props.inactiveCustomersCount.length <= 0
-      ) {
-        this.props.getInactiveCustomersCount();
       }
     },
     componentWillReceiveProps(nextProps) {
@@ -1042,183 +866,6 @@ export class KidsChart extends Component {
   }
 }
 
-export class InactiveCustomersChart extends Component {
-  constructor(props) {
-    super(props);
-    let data = this.getData(this.props.inactiveCustomersCount);
-    this.showChart = this.showChart.bind(this);
-    this.handleInputChange = this.handleInputChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-
-    this.state = {
-      data,
-      dateRange: 'last_30_days',
-      fromDate: '',
-      toDate: '',
-    };
-  }
-
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.inactiveCustomersCount) {
-      this.setState({
-        data: this.getData(nextProps.inactiveCustomersCount),
-      });
-    }
-  }
-
-  componentWillMount() {}
-
-  componentDidUpdate() {}
-
-  getData(inactiveCustomersCount) {
-    return inactiveCustomersCount;
-  }
-
-  showChart(dateRange, fromDate, toDate) {
-    this.props.getInactiveCustomersCount(dateRange, fromDate, toDate);
-  }
-
-  handleInputChange(event) {
-    this.setState({
-      [event.target.name]: event.target.value,
-    });
-    if (event.target.name === 'dateRange' && event.target.value !== 'custom') {
-      this.showChart(event.target.value, null, null);
-    }
-  }
-
-  handleSubmit() {
-    if (!this.state.fromDate || !this.state.toDate) {
-      console.log('From and To dates are required');
-      return;
-    } else {
-      this.showChart(
-        this.state.dateRange,
-        this.state.fromDate,
-        this.state.toDate,
-      );
-    }
-  }
-
-  yAxisTickFormatter(memberCount) {
-    return memberCount;
-  }
-
-  xAxisTickFormatter(date) {
-    return date;
-  }
-
-  render() {
-    const { data } = this.state;
-    return this.props.inactiveCustomersLoading ? (
-      <div style={{ height: '50vh', width: '50vw' }}>
-        <p>Loading Inactive Customers Chart ...</p>
-        <ReactSpinner />
-      </div>
-    ) : (
-      <span>
-        <hr />
-        <div
-          className="page-header"
-          style={{ textAlign: 'center', marginBottom: '3%' }}
-        >
-          <br />
-          <h6>Inactive Customers</h6>
-        </div>
-        <ResponsiveContainer minHeight={300}>
-          <BarChart
-            width={600}
-            height={300}
-            data={data}
-            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" tickFormatter={this.xAxisTickFormatter} />
-            <YAxis tickFormatter={this.yAxisTickFormatter} />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="suspendedCount" fill="#8884d8" />
-            <Bar dataKey="cancelledCount" fill="#82ca9d" />
-          </BarChart>
-        </ResponsiveContainer>
-        <div style={{ textAlign: 'center' }}>
-          <div className="row" style={{ width: '50%', margin: '0 auto' }}>
-            <div
-              className={
-                this.state.dateRange !== 'custom' ? 'col-md-12' : 'col-md-4'
-              }
-            >
-              <div className="col-xs-2 mr-1">
-                <label htmlFor="dateRange" className="control-label">
-                  Date Range
-                </label>
-                <select
-                  name="dateRange"
-                  id="dateRange"
-                  className="form-control input-sm"
-                  value={this.state.dateRange}
-                  onChange={e => this.handleInputChange(e)}
-                >
-                  <option value="last_30_days">Last 30 Days</option>
-                  <option value="last_month">Last Month</option>
-                  <option value="last_3_months">Last 3 Months</option>
-                  <option value="last_6_months">Last 6 Months</option>
-                  <option value="last_year">Last Year</option>
-                  <option value="custom">Custom</option>
-                </select>
-                <div className="droparrow" />
-              </div>
-            </div>
-            {this.state.dateRange === 'custom' && (
-              <div className="col-md-8">
-                <div className="row">
-                  <div className="form-group col-xs-2 mr-1">
-                    <label htmlFor="fromDate" className="control-label">
-                      From Date
-                    </label>
-                    <input
-                      type="date"
-                      name="fromDate"
-                      id="fromDate"
-                      className="form-control input-sm"
-                      required
-                      defaultValue={this.state.fromDate}
-                      onChange={e => this.handleInputChange(e)}
-                    />
-                  </div>
-                  <div className="form-group col-xs-2 mr-1">
-                    <label htmlFor="toDate" className="control-label">
-                      To Date
-                    </label>
-                    <input
-                      type="date"
-                      name="toDate"
-                      id="toDate"
-                      className="form-control input-sm"
-                      required
-                      defaultValue={this.state.toDate}
-                      onChange={e => this.handleInputChange(e)}
-                    />
-                  </div>
-                  <div className="form-group col-xs-2">
-                    <label className="control-label">&nbsp;</label>
-                    <button
-                      className="btn btn-primary form-control input-sm"
-                      onClick={e => this.handleSubmit()}
-                    >
-                      Go
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </span>
-    );
-  }
-}
-
 export class ProcessedPaymentsBillingChart extends Component {
   constructor(props) {
     super(props);
@@ -1740,181 +1387,4 @@ function getPercent(members, totalMembers) {
     return 0;
   }
   return Math.round((members * 100) / totalMembers);
-}
-
-export class PaymentHistory extends Component {
-  constructor(props) {
-    super(props);
-    this.paymentHistory = this.props.paymentHistory;
-    let data = this.getData(this.paymentHistory);
-    let columns = this.getColumns();
-    this.state = {
-      data,
-      columns,
-    };
-  }
-
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.paymentHistory) {
-      this.paymentHistory = nextProps.paymentHistory;
-      this.setState({
-        data: this.getData(nextProps.paymentHistory),
-      });
-    }
-  }
-
-  getData(payments) {
-    const data = payments.map(payment => {
-      return {
-        _id: payment.paymentID,
-        name: payment.firstName + ' ' + payment.lastName,
-        scheduledAmount: payment.scheduledAmount,
-        paymentAmount: payment.paymentAmount,
-        paymentMethod: payment.paymentMethod,
-        paymentStatus: payment.paymentStatus,
-        transactionFee: payment.transactionFeeCustomer,
-        debitDate: payment.debitDate,
-      };
-    });
-    return data;
-  }
-
-  getColumns(data) {
-    const columns = [
-      {
-        accessor: 'name',
-        Header: 'Name',
-      },
-      {
-        accessor: 'scheduledAmount',
-        Header: 'Scheduled Amount',
-        Cell: props => '$' + props.value,
-      },
-      {
-        accessor: 'paymentAmount',
-        Header: 'Payment Amount',
-        Cell: props => '$' + props.value,
-      },
-      { accessor: 'paymentMethod', Header: 'Payment Method' },
-      { accessor: 'paymentStatus', Header: 'Payment Status' },
-      {
-        accessor: 'transactionFee',
-        Header: 'Transaction Fee',
-        Cell: props => '$' + props.value,
-      },
-      {
-        accessor: 'debitDate',
-        Header: 'Debit Date',
-        Cell: props =>
-          moment(props.value, ezidebit_date_format).format('YYYY-MM-DD'),
-      },
-    ];
-    return columns;
-  }
-
-  render() {
-    const { data, columns } = this.state;
-    return this.props.paymentHistoryLoading ? (
-      <div>Loading Payment History ...</div>
-    ) : (
-      <span>
-        <hr />
-        <div
-          className="page-header"
-          style={{ textAlign: 'center', marginBottom: '3%' }}
-        >
-          <h6>Failed Payments - Last Week</h6>
-        </div>
-        <ReactTable
-          columns={columns}
-          data={data}
-          className="-striped -highlight"
-          defaultPageSize={data.length > 0 ? data.length : 2}
-          pageSize={data.length > 0 ? data.length : 2}
-          showPagination={false}
-        />
-      </span>
-    );
-  }
-}
-
-export class VariationCustomers extends Component {
-  constructor(props) {
-    super(props);
-    let data = this.getData(this.props.variationCustomers);
-    let columns = this.getColumns();
-    this.state = {
-      data,
-      columns,
-    };
-  }
-
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.variationCustomers) {
-      this.setState({
-        data: this.getData(nextProps.variationCustomers),
-      });
-    }
-  }
-
-  getData(variationCustomers) {
-    if (!variationCustomers || variationCustomers.length <= 0) {
-      return [];
-    }
-
-    const data = variationCustomers.map(variationCustomer => {
-      return {
-        _id: variationCustomer.customerId,
-        firstName: variationCustomer.firstName,
-        lastName: variationCustomer.lastName,
-        customerId: variationCustomer.customerId,
-        variationAmount: variationCustomer.variationAmount,
-        startDate: variationCustomer.startDate,
-        resumeDate: variationCustomer.resumeDate,
-      };
-    });
-    return data;
-  }
-
-  getColumns(data) {
-    const columns = [
-      { accessor: 'firstName', Header: 'First Name' },
-      { accessor: 'lastName', Header: 'Last Name' },
-      { accessor: 'customerId', Header: 'Customer Id' },
-      {
-        accessor: 'variationAmount',
-        Header: 'Variation Amount',
-        Cell: props => '$' + props.value,
-      },
-      { accessor: 'startDate', Header: 'Start Date' },
-      { accessor: 'resumeDate', Header: 'Resume Date' },
-    ];
-    return columns;
-  }
-
-  render() {
-    const { data, columns } = this.state;
-    return this.props.variationCustomersLoading ? (
-      <div>Loading variations ...</div>
-    ) : (
-      <span>
-        <hr />
-        <div
-          className="page-header"
-          style={{ textAlign: 'center', marginBottom: '3%' }}
-        >
-          <h6>Variation Customers</h6>
-        </div>
-        <ReactTable
-          columns={columns}
-          data={data}
-          className="-striped -highlight"
-          defaultPageSize={data.length > 0 ? data.length : 2}
-          pageSize={data.length > 0 ? data.length : 2}
-          showPagination={false}
-        />
-        <br />
-      </span>
-    );
-  }
 }

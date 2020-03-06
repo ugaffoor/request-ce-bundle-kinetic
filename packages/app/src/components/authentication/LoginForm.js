@@ -14,15 +14,7 @@ export const Login = ({
   routed,
 }) => (
   <form className="login-form-container" onSubmit={handleLogin}>
-    <h3>
-      Sign In
-      <small>
-        {'or '}
-        <a role="button" tabIndex="0" onClick={toCreateAccount(routed)}>
-          Create Account
-        </a>
-      </small>
-    </h3>
+    <h3>Sign In</h3>
     <div
       style={{
         display: 'flex',
@@ -30,7 +22,7 @@ export const Login = ({
       }}
     >
       <div className="form-group">
-        <label htmlFor="email">Email Address</label>
+        <label htmlFor="email">User Name</label>
         <input
           type="text"
           autoFocus
@@ -55,7 +47,7 @@ export const Login = ({
       <span className="text-danger">{error || ' '}</span>
     </div>
     <div className="button-group">
-      <button className="btn btn-primary">Sign In</button>
+      <button className="btn btn-primary">Log In</button>
       <hr />
       <button
         type="button"

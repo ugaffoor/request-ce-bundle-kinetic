@@ -87,6 +87,31 @@ export class LeadEdit extends Component {
             <div className="section1">
               <h3>Edit Lead</h3>
               <hr />
+              {
+                <div>
+                  <label htmlFor="emailsReceivedCount">
+                    emailsReceivedCount
+                  </label>
+                  <input
+                    type="text"
+                    name="emailsReceivedCount"
+                    id="emailsReceivedCount"
+                    size="5"
+                    ref={input => (this.input = input)}
+                    defaultValue={
+                      this.props.leadItem.values['Emails Received Count']
+                    }
+                    onChange={e =>
+                      handleChange(
+                        this.props.leadItem,
+                        'Emails Received Count',
+                        e,
+                        this.setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+              }
               <span className="line">
                 <div>
                   <label

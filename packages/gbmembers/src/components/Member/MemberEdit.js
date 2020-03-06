@@ -302,34 +302,113 @@ export const MemberEdit = ({
                 <PhotoForm memberItem={memberItem} setIsDirty={setIsDirty} />
               </span>
             </span>
-            {/*
-          <span className="line">
-            <div>
-              <label htmlFor="billingId">
-                Billing Customer Id
-              </label>
-              <input type="text" name="billingId" id="billingId" size="30" ref={(input) => this.input = input} defaultValue={memberItem.values['Billing Customer Id']} onChange={(e) => handleChange(memberItem,'Billing Customer Id', e, setIsDirty)}/>
-            </div>
-            <div>
-              <label htmlFor="billingRef">
-                Billing Reference
-              </label>
-              <input type="text" name="billingRef" id="billingRef" size="30" ref={(input) => this.input = input} defaultValue={memberItem.values['Billing Customer Reference']} onChange={(e) => handleChange(memberItem,'Billing Customer Reference', e, setIsDirty)}/>
-            </div>
-            <div>
-              <label htmlFor="billingPaymentType">
-                Billing Payment Type
-              </label>
-              <input type="text" name="billingPaymentType" id="billingPaymentType" size="5" ref={(input) => this.input = input} defaultValue={memberItem.values['Billing Payment Type']} onChange={(e) => handleChange(memberItem,'Billing Payment Type', e, setIsDirty)}/>
-            </div>
-            <div>
-              <label htmlFor="billingPaymentPeriod">
-                Billing Payment Period
-              </label>
-              <input type="text" name="billingPaymentPeriod" id="billingPaymentPeriod" size="5" ref={(input) => this.input = input} defaultValue={memberItem.values['Billing Payment Period']} onChange={(e) => handleChange(memberItem,'Billing Payment Period', e, setIsDirty)}/>
-            </div>
-          </span>
-          */}
+            {
+              <span className="line">
+                <div>
+                  <label htmlFor="billingId">Billing Customer Id</label>
+                  <input
+                    type="text"
+                    name="billingId"
+                    id="billingId"
+                    size="30"
+                    ref={input => (this.input = input)}
+                    defaultValue={memberItem.values['Billing Customer Id']}
+                    onChange={e =>
+                      handleChange(
+                        memberItem,
+                        'Billing Customer Id',
+                        e,
+                        setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+                <div>
+                  <label htmlFor="billingRef">Billing Reference</label>
+                  <input
+                    type="text"
+                    name="billingRef"
+                    id="billingRef"
+                    size="30"
+                    ref={input => (this.input = input)}
+                    defaultValue={
+                      memberItem.values['Billing Customer Reference']
+                    }
+                    onChange={e =>
+                      handleChange(
+                        memberItem,
+                        'Billing Customer Reference',
+                        e,
+                        setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+                <div>
+                  <label htmlFor="billingPaymentType">
+                    Billing Payment Type
+                  </label>
+                  <input
+                    type="text"
+                    name="billingPaymentType"
+                    id="billingPaymentType"
+                    size="5"
+                    ref={input => (this.input = input)}
+                    defaultValue={memberItem.values['Billing Payment Type']}
+                    onChange={e =>
+                      handleChange(
+                        memberItem,
+                        'Billing Payment Type',
+                        e,
+                        setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+                <div>
+                  <label htmlFor="billingPaymentPeriod">
+                    Billing Payment Period
+                  </label>
+                  <input
+                    type="text"
+                    name="billingPaymentPeriod"
+                    id="billingPaymentPeriod"
+                    size="5"
+                    ref={input => (this.input = input)}
+                    defaultValue={memberItem.values['Billing Payment Period']}
+                    onChange={e =>
+                      handleChange(
+                        memberItem,
+                        'Billing Payment Period',
+                        e,
+                        setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+                <div>
+                  <label htmlFor="emailsReceivedCount">
+                    emailsReceivedCount
+                  </label>
+                  <input
+                    type="text"
+                    name="emailsReceivedCount"
+                    id="emailsReceivedCount"
+                    size="5"
+                    ref={input => (this.input = input)}
+                    defaultValue={memberItem.values['Emails Received Count']}
+                    onChange={e =>
+                      handleChange(
+                        memberItem,
+                        'Emails Received Count',
+                        e,
+                        setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+              </span>
+            }
             <span className="line">
               <div>
                 <label
