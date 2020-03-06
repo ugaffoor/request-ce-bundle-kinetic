@@ -32,6 +32,33 @@ var Size = Quill.import('attributors/style/size');
 Size.whitelist = ['10px', '18px', '32px', '64px'];
 Quill.register(Size, true);
 
+var BaseImageFormat = Quill.import('formats/image');
+const ImageFormatAttributesList = ['alt', 'height', 'width', 'style'];
+
+class ImageFormat extends BaseImageFormat {
+  static formats(domNode) {
+    return ImageFormatAttributesList.reduce(function(formats, attribute) {
+      if (domNode.hasAttribute(attribute)) {
+        formats[attribute] = domNode.getAttribute(attribute);
+      }
+      return formats;
+    }, {});
+  }
+  format(name, value) {
+    if (ImageFormatAttributesList.indexOf(name) > -1) {
+      if (value) {
+        this.domNode.setAttribute(name, value);
+      } else {
+        this.domNode.removeAttribute(name);
+      }
+    } else {
+      super.format(name, value);
+    }
+  }
+}
+
+Quill.register(ImageFormat, true);
+
 const DatastoreSubmissionComponent = ({
   form,
   showPrevAndNext,
@@ -340,6 +367,7 @@ export class ScriptEditor extends Component {
     'align',
     'text-align',
     'size',
+    'style',
   ];
 
   handleChange(html, text) {
@@ -488,6 +516,7 @@ export class EmailEditor extends Component {
     'align',
     'text-align',
     'size',
+    'style',
   ];
 
   handleChange(html, text) {
