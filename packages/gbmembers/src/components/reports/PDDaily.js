@@ -26,27 +26,22 @@ export class PDDailyReport extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    let startOfWeek = moment()
-      .startOf('week')
-      .add(1, 'days');
-    let endOfWeek = moment()
-      .endOf('week')
-      .add(1, 'days');
     let leads = nextProps.leadsByDate;
-    let data = this.getData(leads, startOfWeek, endOfWeek);
+    let data = this.getData(
+      leads,
+      this.state.startOfWeek,
+      this.state.endOfWeek,
+    );
     this.setState({
       leads,
       data: data,
-      startOfWeek,
-      endOfWeek,
     });
   }
 
   componentWillMount() {
-    this.props.fetchLeadsByDate({
-      fromDate: this.state.startOfWeek.format('YYYY-MM-DD'),
-      endDate: this.state.endOfWeek.format('YYYY-MM-DD'),
-    });
+    if (this.props.leadsByDate.length === 0) {
+      this.props.fetchLeadsByDate();
+    }
   }
 
   getData(leads, startOfWeek, endOfWeek) {

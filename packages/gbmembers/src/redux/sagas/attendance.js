@@ -9,6 +9,31 @@ export const SUBMISSION_INCLUDES = 'details,values';
 export const getMembersApp = state => state.member.members;
 const util = require('util');
 
+export function* fetchAttendancesByDate(action) {
+  try {
+    let dtFrom = moment(action.payload.fromDate);
+    let dtTo = moment(action.payload.toDate);
+
+    const search = new CoreAPI.SubmissionSearch(true)
+      .gteq('values[Class Date]', dtFrom.format('YYYY-MM-DD'))
+      .lteq('values[Class Date]', dtTo.format('YYYY-MM-DD'))
+      .index('values[Class Date]')
+      .includes(['details', 'values'])
+      .limit(1000)
+      .build();
+
+    const { submissions } = yield call(CoreAPI.searchSubmissions, {
+      form: 'member-attendance',
+      datastore: true,
+      search,
+    });
+
+    yield put(actions.setAttendancesByDate(submissions));
+  } catch (error) {
+    console.log('Error in fetchClassAttendances: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
 export function* fetchClassAttendances(action) {
   try {
     let dt = moment(action.payload.classDate);
@@ -194,4 +219,5 @@ export function* watchAttendance() {
   yield takeEvery(types.DELETE_ATTENDANCE, deleteAttendance);
   yield takeEvery(types.FETCH_CLASS_ATTENDANCES, fetchClassAttendances);
   yield takeEvery(types.FETCH_MEMBER_ATTENDANCES, fetchMemberAttendances);
+  yield takeEvery(types.FETCH_ATTENDANCES_BY_DATE, fetchAttendancesByDate);
 }
