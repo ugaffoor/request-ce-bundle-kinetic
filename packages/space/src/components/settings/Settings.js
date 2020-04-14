@@ -8,7 +8,7 @@ import { Icon, PageTitle } from 'common';
 import { SpaceSettings } from './spaceSettings/SpaceSettings';
 import { Notifications } from './notifications/Notifications';
 import { Datastore } from './datastore/Datastore';
-import { Robots } from './robots/Robots';
+import { RobotsWrapper } from './robots/RobotsWrapper';
 import { Users } from './users/Users';
 import { Profile } from './profile/Profile';
 import { actions as datastoreActions } from '../../redux/modules/settingsDatastore';
@@ -18,7 +18,7 @@ export const SettingsComponent = () => (
     <Route path="/settings/profile" component={Profile} />
     <Route path="/settings/space" component={SpaceSettings} />
     <Route path="/settings/datastore" component={Datastore} />
-    <Route path="/settings/robots" component={Robots} />
+    <Route path="/settings/robots" component={RobotsWrapper} />
     <Route path="/settings/users" component={Users} />
     <Route path="/settings/notifications" component={Notifications} />
     <Route component={SettingsNavigation} />
@@ -30,10 +30,7 @@ const mapDispatchToProps = {
 };
 
 export const Settings = compose(
-  connect(
-    null,
-    mapDispatchToProps,
-  ),
+  connect(null, mapDispatchToProps),
   lifecycle({
     componentWillMount(prev, next) {
       this.props.fetchForms();
@@ -116,9 +113,6 @@ const mapStateToProps = state => ({
   isSpaceAdmin: state.app.profile.spaceAdmin,
 });
 
-export const SettingsNavigation = compose(
-  connect(
-    mapStateToProps,
-    {},
-  ),
-)(SettingsNavigationComponent);
+export const SettingsNavigation = compose(connect(mapStateToProps, {}))(
+  SettingsNavigationComponent,
+);

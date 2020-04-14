@@ -9,6 +9,7 @@ import { watchCampaigns } from './sagas/campaigns';
 import { watchForms } from './sagas/forms';
 import { watchTeams } from './sagas/teams';
 import { watchSettingsDatastore } from './sagas/settingsDatastore';
+import { watchMonthlyStatistics } from './sagas/monthlyStatistics';
 import { watchMessaging } from './sagas/messaging';
 import { watchAttendance } from './sagas/attendance';
 import { watchReports } from './sagas/reporting';
@@ -25,6 +26,7 @@ export default function* sagas() {
     watchForms(),
     watchTeams(),
     watchSettingsDatastore(),
+    watchMonthlyStatistics(),
     watchMessaging(),
     watchAttendance(),
     watchReports(),

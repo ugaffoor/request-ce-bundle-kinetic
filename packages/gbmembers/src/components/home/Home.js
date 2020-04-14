@@ -23,8 +23,10 @@ import { Statistics } from './Statistics';
 import { KidsChart } from './Kids';
 import { LeadsOriginChart } from './LeadsOrigin';
 import { AttendancePerDay } from './AttendancePerDay';
+import { Finances } from './Finances';
 import { actions as leadsActions } from '../../redux/modules/leads';
 import { actions as attendanceActions } from '../../redux/modules/attendance';
+import { actions as monthlyStatisticsActions } from '../../redux/modules/monthlyStatistics';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -44,6 +46,9 @@ const mapStateToProps = state => ({
   leadsByDateLoading: state.member.leads.leadsByDateLoading,
   fetchingAttendancesByDate: state.member.attendance.fetchingAttendancesByDate,
   attendancesByDate: state.member.attendance.attendancesByDate,
+  monthlyStatistics: state.member.monthlyStatistics.monthlyStatistics,
+  monthlyStatisticsLoading:
+    state.member.monthlyStatistics.monthlyStatisticsLoading,
 });
 
 const mapDispatchToProps = {
@@ -58,6 +63,7 @@ const mapDispatchToProps = {
   setProcessedAndScheduledPayments: actions.setProcessedAndScheduledPayments,
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
+  fetchMonthlyStatistics: monthlyStatisticsActions.fetchMonthlyStatistics,
 };
 
 export const HomeView = ({
@@ -79,6 +85,9 @@ export const HomeView = ({
   attendancesByDate,
   fetchAttendancesByDate,
   fetchingAttendancesByDate,
+  monthlyStatistics,
+  fetchMonthlyStatistics,
+  fetchingMonthlyStatistics,
 }) => (
   <div className="dashboard">
     <StatusMessagesContainer />
@@ -114,7 +123,7 @@ export const HomeView = ({
         />
       )}
     </div>
-   */}
+    */}
     {/*billingCompany !== 'PaySmart' &&
       (!Utils.isMemberOf(profile, 'Billing') ? (
         <div />
@@ -161,6 +170,19 @@ export const HomeView = ({
           {/*      <KidsChart allMembers={allMembers} /> */}
         </div>
       </div>
+      {!Utils.isMemberOf(profile, 'Billing') ? (
+        <div />
+      ) : (
+        <div className="chart1Column">
+          <div className="col">
+            <Finances
+              monthlyStatistics={monthlyStatistics}
+              fetchMonthlyStatistics={fetchMonthlyStatistics}
+              fetchingMonthlyStatistics={fetchingMonthlyStatistics}
+            />
+          </div>
+        </div>
+      )}
     </div>
   </div>
 );
@@ -189,12 +211,12 @@ export const HomeContainer = compose(
       } else if (month === 'previous_month') {
         startDate = moment
           .utc()
-          .subtract(1, 'months')
+          .subtract(2, 'months')
           .startOf('month')
           .format('YYYY-MM-DD');
         endDate = moment
           .utc()
-          .subtract(1, 'months')
+          .subtract(2, 'months')
           .endOf('month')
           .format('YYYY-MM-DD');
       }

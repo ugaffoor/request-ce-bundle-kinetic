@@ -310,6 +310,7 @@ export class LeadsOriginChart extends Component {
               labelLine={false}
               outerRadius={120}
               fill="#8884d8"
+              isAnimationActive={false}
             >
               {data.map((entry, index) => (
                 <Cell fill={COLORS[index % COLORS.length]} key={entry.key} />

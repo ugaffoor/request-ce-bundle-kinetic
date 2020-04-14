@@ -96,6 +96,7 @@ export class ProgramsChart extends Component {
               outerRadius={120}
               innerRadius={60}
               fill="#8884d8"
+              isAnimationActive={false}
             >
               {data.map((entry, index) => (
                 <Cell fill={COLORS[index % COLORS.length]} key={index} />

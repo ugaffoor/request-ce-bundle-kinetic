@@ -51,7 +51,6 @@ export function* fetchMembers(action) {
       kapp: 'gbmembers',
       search,
     });
-    console.log('AllMembers' + submissions);
     let memberInfo = {
       members: submissions,
       belts: appSettings.belts,
@@ -458,6 +457,17 @@ export function* syncBillingCustomer(action) {
         action.payload.memberItem.values['Membership Cost'] =
           result.data.data.paymentAmountInCents / 100;
 
+        if (action.payload.memberItem.values['DOB'].indexOf('-') === 2) {
+          action.payload.memberItem.values['DOB'] = result.data.data.dob;
+        }
+        if (
+          action.payload.memberItem.values['Date Joined'] === undefined ||
+          action.payload.memberItem.values['Date Joined'] === null
+        ) {
+          action.payload.memberItem.values['Date Joined'] =
+            result.data.data.contractStartDate;
+        }
+
         if (
           result.data.data.statusDescription === 'Inactive' &&
           action.payload.memberItem.values['Status'] !== 'Inactive'
@@ -684,8 +694,13 @@ export function* fetchBillingPayments(action) {
           result.data.errorMessage,
           'Get Billing Payments',
         );
-      } else {
+      } else if (action.payload.setBillingPayments) {
         action.payload.setBillingPayments(result.data.data);
+      } else if (action.payload.createBillingStatistics) {
+        action.payload.createBillingStatistics({
+          data: result.data.data,
+          createStatistic: action.payload.createStatistic,
+        });
       }
     })
     .catch(error => {
@@ -694,6 +709,101 @@ export function* fetchBillingPayments(action) {
     });
 
   yield put(actions.setDummy());
+}
+export function* createBillingStatistics(action) {
+  const search = new CoreAPI.SubmissionSearch(true)
+    .includes(['details', 'values'])
+    .limit(1000)
+    .build();
+
+  const { submissions } = yield call(CoreAPI.searchSubmissions, {
+    form: 'monthly-statistics',
+    datastore: true,
+    search,
+  });
+
+  var statistics = new Map();
+  for (let i = 0; i < action.payload.data.length; i++) {
+    let customer = action.payload.data[i];
+    let monthDate = moment(customer.debitDate, 'YYYY-MM-DD HH:mm:ss').format(
+      'YYYY-MM',
+    );
+    let monthStats = statistics.get(monthDate);
+    if (monthStats === undefined) {
+      monthStats = {
+        income: customer.scheduledAmount,
+        memberCount: '',
+        activeMemberCount: '',
+        inactiveMemberCount: '',
+        frozenMemberCount: '',
+        billingMemberCount: '',
+        nonBillingMemberCount: '',
+        averagePricePerStudent: '',
+      };
+    } else {
+      monthStats = {
+        income: monthStats['income'] + customer.scheduledAmount,
+        memberCount: monthStats['memberCount'],
+        activeMemberCount: monthStats['activeMemberCount'],
+        inactiveMemberCount: monthStats['inactiveMemberCount'],
+        frozenMemberCount: monthStats['frozenMemberCount'],
+        billingMemberCount: monthStats['billingMemberCount'],
+        nonBillingMemberCount: monthStats['nonBillingMemberCount'],
+        averagePricePerStudent: monthStats['averagePricePerStudent'],
+      };
+    }
+    statistics.set(monthDate, monthStats);
+  }
+  for (let statsKey of statistics.keys()) {
+    let newStatistic = true;
+    console.log('-' + statistics.get(statsKey)['income']);
+    if (submissions && submissions.length > 0) {
+      submissions.forEach(statRecord => {
+        if (
+          statRecord.values['Year'] + '-' + statRecord.values['Month'] ===
+          statsKey
+        ) {
+          newStatistic = false;
+        }
+      });
+    }
+    console.log('newStatistic:' + newStatistic);
+    if (newStatistic) {
+      action.payload.createStatistic({
+        key: statsKey,
+        statistics: statistics.get(statsKey),
+      });
+    }
+  }
+}
+export function* createStatistic(payload) {
+  try {
+    let values = {};
+    let key = payload.payload.key;
+    let statistic = payload.payload.statistics;
+
+    values['Year'] = key.split('-')[0];
+    values['Month'] = key.split('-')[1];
+    values['All Member Count'] = '';
+    values['Active Member Count'] = '';
+    values['Inactive Member Count'] = '';
+    values['Frozen Member Count'] = '';
+    values['Billing Member Count'] = '';
+    values['Non Billing Member Count'] = '';
+    values['Monthly Revenue'] = statistic['income'];
+    values['Average Price Per Student'] = '';
+
+    const { submission } = yield call(CoreAPI.createSubmission, {
+      datastore: true,
+      formSlug: 'monthly-statistics',
+      values: values,
+      completed: true,
+      include: SUBMISSION_INCLUDES,
+    });
+  } catch (error) {
+    console.log('Error in createStatistic: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
 }
 
 export function* fetchProcessedAndScheduledPayments(action) {
@@ -1276,9 +1386,10 @@ export function* fetchBillingCustomers(action) {
                 JSON.stringify(resultInactive.data.data),
             );
             action.payload.createBillingMembers({
-              customers: resultActive.data.data.concat(
+              /*              customers: resultActive.data.data.concat(
                 resultInactive.data.data,
-              ),
+              ), */
+              customers: resultInactive.data.data,
               setBillingCustomers: action.payload.setBillingCustomers,
               fetchMembers: action.payload.fetchMembers,
               appSettings: appSettings,
@@ -1313,8 +1424,14 @@ export function* createBillingMembers(action) {
       kapp: 'gbmembers',
       search: MEMBER_SEARCH,
     });
+    //  console.log('#### createMembers # submissions = ' + util.inspect(submissions));
     console.log(
-      '#### createMembers # submissions = ' + util.inspect(submissions),
+      'Name:' +
+        customer.firstName +
+        ' ' +
+        customer.lastName +
+        ' - PaySmartID:' +
+        customer.ffaid,
     );
     var memberItem = {
       values: {},
@@ -1338,8 +1455,8 @@ export function* createBillingMembers(action) {
         }
       });
 
-      if (customer.statusDescription === 'Inactive') {
-        action.payload.memberItem.values['Status'] = 'Inactive';
+      if (customer.status === 'Inactive') {
+        memberItem.values['Status'] = 'Inactive';
       } else {
         memberItem.values['Status'] = 'Active';
       }
@@ -1354,6 +1471,7 @@ export function* createBillingMembers(action) {
       memberItem.values['Email'] = customer.email;
       memberItem.values['Phone Number'] = customer.phone;
       memberItem.values['DOB'] = customer.dob;
+      memberItem.values['Date Joined'] = customer.contractStartDate;
 
       memberItem.values['Billing Customer Id'] = customer.customerId;
       memberItem.values['Billing User'] = 'YES';
@@ -1418,6 +1536,17 @@ export function* createBillingMembers(action) {
           amount: customer.billingAmount,
         };
         memberItem.values['Membership Cost'] = customer.billingAmount;
+        changeMade = true;
+      }
+      if (memberItem.values['DOB'].indexOf('-') === 2) {
+        memberItem.values['DOB'] = customer.dob;
+        changeMade = true;
+      }
+      if (
+        memberItem.values['Date Joined'] === undefined ||
+        memberItem.values['Date Joined'] === null
+      ) {
+        memberItem.values['Date Joined'] = customer.contractStartDate;
         changeMade = true;
       }
       if (changeMade) {
@@ -1544,6 +1673,8 @@ export function* watchMembers() {
   yield takeEvery(types.FETCH_VARIATION_CUSTOMERS, fetchVariationCustomers);
   yield takeEvery(types.FETCH_BILLING_CUSTOMERS, fetchBillingCustomers);
   yield takeEvery(types.CREATE_BILLING_MEMBERS, createBillingMembers);
+  yield takeEvery(types.CREATE_BILLING_STATISTICS, createBillingStatistics);
+  yield takeEvery(types.CREATE_STATISTIC, createStatistic);
   yield takeEvery(
     types.FETCH_INACTIVE_CUSTOMERS_COUNT,
     fetchInactiveCustomersCount,

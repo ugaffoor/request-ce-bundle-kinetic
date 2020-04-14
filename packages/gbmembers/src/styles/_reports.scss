@@ -203,3 +203,54 @@ btn:disabled {
   border: 1px solid $darkgray !important;
   border-radius: 0px !important;
 }
+
+.formatterCell {
+  .firstNote {
+    .note {
+      width: 80%;
+      float: left;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+    .rt-expander {
+      display: inline-block;
+      position: relative;
+      margin: 0;
+      color: transparent;
+      float: left;
+      margin-right: 2px;
+    }
+    .rt-expander.opened:after {
+      -webkit-transform: translate(-50%, -50%) rotate(0);
+      transform: translate(-50%, -50%) rotate(0);
+
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 0;
+      top: 50%;
+      left: 50%;
+      border-left: 5.04px solid transparent;
+      border-right: 5.04px solid transparent;
+      border-top: 7px solid rgba(0, 0, 0, 0.8);
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      cursor: pointer;
+    }
+    .rt-expander.closed:after {
+      -webkit-transform: translate(-50%, -50%) rotate(-90deg);
+      transform: translate(-50%, -50%) rotate(-90deg);
+
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 0;
+      top: 50%;
+      left: 50%;
+      border-left: 5.04px solid transparent;
+      border-right: 5.04px solid transparent;
+      border-top: 7px solid rgba(0, 0, 0, 0.8);
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      cursor: pointer;
+    }
+  }
+}

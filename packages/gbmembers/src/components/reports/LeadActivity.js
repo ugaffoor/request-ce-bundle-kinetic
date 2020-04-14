@@ -28,6 +28,7 @@ export class LeadsActivityReport extends Component {
 
     this.columns = [
       { title: 'Created Date', field: 'createdDate' },
+      { title: 'Last Modified Date', field: 'lastModifiedDate' },
       { title: 'Name', field: 'name', tooltip: true, bottomCalc: 'count' },
       { title: 'Gender', field: 'gender' },
       { title: 'Status', field: 'status' },
@@ -39,6 +40,11 @@ export class LeadsActivityReport extends Component {
       { title: 'Age (Years)', field: 'age' },
       { title: 'Source', field: 'source' },
       { title: 'Reminder Date', field: 'reminderDate' },
+      {
+        title: 'Notes',
+        field: 'history',
+        formatter: reactFormatter(<this.ExpandNotesCellButton />),
+      },
       {
         title: 'Emails Sent',
         field: 'emailsSent',
@@ -68,7 +74,16 @@ export class LeadsActivityReport extends Component {
         width: 100,
       },
     ];
-
+    this.hiddenColumns = [
+      { label: 'Address', value: 'address' },
+      { label: 'Suburb', value: 'suburb' },
+      { label: 'State', value: 'state' },
+    ];
+    this.notesColumns = [
+      { title: 'Contact Method', field: 'contactMethod' },
+      { title: 'Date', field: 'contactDate', type: 'date' },
+      { title: 'Note', field: 'note' },
+    ];
     this.emailsSentColumns = [
       { title: 'Subject', field: 'Subject' },
       { title: 'Sent Date', field: 'Sent Date' },
@@ -87,7 +102,6 @@ export class LeadsActivityReport extends Component {
     ];
 
     this.columnsToHide = [
-      { label: 'Created Date', value: 'createdDate', dataType: 'date' },
       { label: 'Name', value: 'name' },
       { label: 'Gender', value: 'gender' },
       { label: 'Status', value: 'status' },
@@ -99,6 +113,7 @@ export class LeadsActivityReport extends Component {
       { label: 'Age (Years)', value: 'age' },
       { label: 'Source', value: 'source' },
       { label: 'Reminder Date', value: 'reminderDate', dataType: 'date' },
+      { label: 'Notes', value: 'history' },
       { label: 'Emails Sent', value: 'emailsSent' },
       { label: 'Emails Received', value: 'emailsReceived' },
       { label: 'SMS Sent', value: 'smsSent' },
@@ -122,8 +137,7 @@ export class LeadsActivityReport extends Component {
       this.props.reportPreferences,
     );
     this.visibleColumns = this.columnsToHide.filter(
-      column =>
-        !this.leadsPreferences.hiddenCols.some(hc => hc.value === column.value),
+      column => !this.hiddenColumns.some(hc => hc.value === column.value),
     );
     this.selectedColumns = this.visibleColumns;
     this.filterValueOptions = {
@@ -138,7 +152,7 @@ export class LeadsActivityReport extends Component {
       filters: [],
       selectedFilterValueOptions: [],
       selectedColumns: this.selectedColumns,
-      hiddenColumns: this.leadsPreferences.hiddenCols,
+      hiddenColumns: this.hiddenColumns,
       preferences: this.leadsPreferences.preferences,
       selectedPreference: this.leadsPreferences.selectedPreference,
       key: Math.random(),
@@ -208,7 +222,7 @@ export class LeadsActivityReport extends Component {
   dateRangeFilter = (data, params) => {
     let startDate = moment(params.startDate, 'YYYY-MM-DD');
     let endDate = moment(params.endDate, 'YYYY-MM-DD');
-    let dateVal = moment(data[params.field], 'YYYY-MM-DDTHH:mm:ss.SSSZ');
+    let dateVal = moment(data[params.field], 'DD-MM-YYYY HH:mm');
     return (
       dateVal.isSameOrAfter(startDate, 'day') &&
       dateVal.isSameOrBefore(endDate, 'day')
@@ -638,7 +652,7 @@ export class LeadsActivityReport extends Component {
       this.setState({
         filterColumns: this.columnsToHide,
         selectedColumns: this.columnsToHide,
-        hiddenColumns: [],
+        hiddenColumns: this.hiddenColumns,
         filters: [],
         key: Math.random(),
       });
@@ -710,8 +724,24 @@ export class LeadsActivityReport extends Component {
     this.setState({ includesValue: options });
   };
 
+  ExpandNotesCellButton = (props: any) => {
+    var notes = JSON.parse(props.cell.getValue());
+
+    const value = notes[notes.length - 1]['note'];
+    return (
+      <span className="firstNote">
+        <div
+          className="rt-expander closed"
+          onClick={() => this.handleNotesCellClick(this, props.cell)}
+        >
+          •
+        </div>
+        <span className="note">{value}</span>{' '}
+      </span>
+    );
+  };
+
   ExpandCellButton = (props: any) => {
-    const cellData = props.cell._cell.row.data;
     const value = props.cell.getValue();
     return (
       <span>
@@ -743,7 +773,7 @@ export class LeadsActivityReport extends Component {
       leadsActivityData.push({
         id: lead['id'],
         createdDate: moment(lead['createdAt']).format('DD-MM-YYYY HH:mm'),
-        lastModifiedDate: lead['updatedAt'],
+        lastModifiedDate: moment(lead['updatedAt']).format('DD-MM-YYYY HH:mm'),
         name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
         gender: lead.values['Gender'],
         status: lead.values['Status'],
@@ -754,6 +784,7 @@ export class LeadsActivityReport extends Component {
         state: lead.values['State'],
         age: moment().diff(lead.values['DOB'], 'years'),
         source: lead.values['Source'],
+        history: lead.values['History'],
         reminderDate: lead.values['Reminder Date']
           ? moment(lead.values['Reminder Date']).format('DD-MM-YYYY')
           : '',
@@ -817,7 +848,7 @@ export class LeadsActivityReport extends Component {
       var cells = row.getCells();
       for (var i = 0; i < cells.length; i++) {
         var otherField = cells[i].getColumn().getField();
-        if (otherField !== field) {
+        if (otherField !== field && otherField !== 'history') {
           $(cells[i].getElement()).css('background-color', 'white');
           $(cells[i].getElement())
             .find('.hide-sub-grid')
@@ -826,6 +857,12 @@ export class LeadsActivityReport extends Component {
             .find('.hide-sub-grid')
             .removeClass('hide-sub-grid')
             .addClass('show-sub-grid');
+        } else if (otherField !== field && otherField === 'history') {
+          $(cells[i].getElement()).css('background-color', 'white');
+          $(cells[i].getElement())
+            .find('.opened')
+            .removeClass('opened')
+            .addClass('closed');
         }
       }
       $(cellElement).css('background-color', '#ced7e5');
@@ -929,6 +966,71 @@ export class LeadsActivityReport extends Component {
         .removeClass('show-sub-grid')
         .addClass('hide-sub-grid');
       $(btnElement).text('Hide');
+      //that.setState({isGridLoading: false});
+    }
+  };
+
+  handleNotesCellClick = (that, cell) => {
+    var field = cell.getColumn().getField();
+
+    var cellElement = cell.getElement();
+    var row = cell.getRow();
+    var btnElement = $(cellElement).find('.rt-expander.opened');
+    if (btnElement.length > 0) {
+      $(btnElement)
+        .removeClass('opened')
+        .addClass('closed');
+      $(row.getElement())
+        .find('.report-sub-table')
+        .remove();
+      $(cellElement).css('background-color', 'white');
+    } else {
+      //that.setState({isGridLoading: true});
+      $(row.getElement())
+        .find('.report-sub-table')
+        .remove();
+      var cells = row.getCells();
+      for (var i = 0; i < cells.length; i++) {
+        var otherField = cells[i].getColumn().getField();
+        if (otherField !== field) {
+          $(cells[i].getElement()).css('background-color', 'white');
+          $(cells[i].getElement())
+            .find('.hide-sub-grid')
+            .text('Show');
+          $(cells[i].getElement())
+            .find('.hide-sub-grid')
+            .removeClass('hide-sub-grid')
+            .addClass('show-sub-grid');
+        }
+      }
+      $(cellElement).css('background-color', '#ced7e5');
+      //$(cellElement).css("background-color", "#9dbae8");
+      //$(cellElement).css("background-color", "#c0c6d6");
+      var holderEl = document.createElement('div');
+      var tableEl = document.createElement('div');
+      $(holderEl).addClass('report-sub-table');
+      holderEl.appendChild(tableEl);
+      var history = JSON.parse(row.getData()['history']);
+      for (var i = 0; i < history.length; i++) {
+        history[i]['contactDate'] = moment(history[i]['contactDate']).format(
+          'DD-MM-YYYY HH:mm',
+        );
+      }
+      ReactDOM.render(
+        <ReactTabulator
+          ref={ref => (this.ref = ref)}
+          columns={this.notesColumns}
+          data={history}
+          placeholder={no_data_placeholder}
+        />,
+        tableEl,
+      );
+
+      row.getElement().appendChild(holderEl);
+      btnElement = $(cellElement).find('.rt-expander.closed');
+      $(btnElement)
+        .removeClass('closed')
+        .addClass('opened');
       //that.setState({isGridLoading: false});
     }
   };
@@ -1062,7 +1164,7 @@ export class LeadsActivityReport extends Component {
     this.setState({
       filterColumns: this.columnsToHide,
       selectedColumns: this.columnsToHide,
-      hiddenColumns: [],
+      hiddenColumns: this.hiddenColumns,
       selectedPreference: '',
       filters: [],
       key: Math.random(),

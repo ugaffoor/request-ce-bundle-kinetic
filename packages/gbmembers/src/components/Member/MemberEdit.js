@@ -302,7 +302,7 @@ export const MemberEdit = ({
                 <PhotoForm memberItem={memberItem} setIsDirty={setIsDirty} />
               </span>
             </span>
-            {
+            {/*
               <span className="line">
                 <div>
                   <label htmlFor="billingId">Billing Customer Id</label>
@@ -408,7 +408,7 @@ export const MemberEdit = ({
                   />
                 </div>
               </span>
-            }
+            */}
             <span className="line">
               <div>
                 <label

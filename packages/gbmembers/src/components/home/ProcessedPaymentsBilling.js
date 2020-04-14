@@ -113,13 +113,13 @@ export class ProcessedPaymentsBillingChart extends Component {
     } else if (month === 'previous_month') {
       let start = moment
         .utc()
-        .subtract(1, 'months')
+        .subtract(2, 'months')
         .startOf('month');
       let firstDay = start.date();
       let month = start.format('MMMM');
       let lastDay = moment
         .utc()
-        .subtract(1, 'months')
+        .subtract(2, 'months')
         .endOf('month')
         .date();
       return (

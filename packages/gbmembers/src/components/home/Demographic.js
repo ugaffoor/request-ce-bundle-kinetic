@@ -368,6 +368,7 @@ export class DemographicChart extends Component {
             height={370}
             data={data}
             margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            isAnimationActive={false}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="ageGroup" tickFormatter={this.xAxisTickFormatter} />

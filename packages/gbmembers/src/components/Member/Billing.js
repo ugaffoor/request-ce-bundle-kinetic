@@ -985,6 +985,10 @@ export class BillingInfo extends Component {
                       <td>{this.props.memberItem.values['DDR Status']}</td>
                     </tr>
                     <tr>
+                      <td>FFA ID:</td>
+                      <td>{this.props.billingInfo.ffaid}</td>
+                    </tr>
+                    <tr>
                       <td>Billing Reference ID:</td>
                       <td>{this.props.billingInfo.customerBillingId}</td>
                     </tr>

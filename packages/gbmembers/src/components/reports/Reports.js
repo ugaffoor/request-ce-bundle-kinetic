@@ -255,7 +255,7 @@ export const ReportsView = ({
               document.getElementById('failed-report').scrollIntoView();
             }}
           >
-            {showVariationsReport
+            {showFailedPaymentsReport
               ? 'Hide Failed Payments Report'
               : 'Show Failed Payments Report'}
           </button>

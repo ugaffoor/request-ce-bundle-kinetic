@@ -1,24 +1,18 @@
-import React, { Fragment } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { push } from 'connected-react-router';
 import { connect } from 'react-redux';
 import { compose, lifecycle, withHandlers } from 'recompose';
-import { actions } from '../../../redux/modules/settingsRobots';
+import {
+  actions,
+  ROBOT_EXECUTIONS_FORM_SLUG,
+} from '../../../redux/modules/settingsRobots';
 import { CoreForm } from 'react-kinetic-core';
 import { toastActions } from 'common';
 
 const globals = import('common/globals');
 
-const RobotExecutionComponent = ({
-  robot,
-  robotExecution,
-  match,
-  handleError,
-}) => {
-  const scheduleId =
-    robotExecution &&
-    robotExecution.id === match.params.executionId &&
-    robotExecution.values['Schedule ID'];
+const RobotExecutionComponent = ({ robotExecution, match, handleError }) => {
   return (
     <div className="page-container page-container--robots">
       <div className="page-panel page-panel--scrollable page-panel--robots-content">
@@ -28,21 +22,10 @@ const RobotExecutionComponent = ({
               <Link to="/">home</Link> /{` `}
               <Link to="/settings">settings</Link> /{` `}
               <Link to="/settings/robots">robots</Link> /{` `}
-              <Link to={`/settings/robots/${robot.id}/executions`}>
-                {robot.values['Name']}
-              </Link>{' '}
-              /{` `}
-              {scheduleId && (
-                <Fragment>
-                  <Link
-                    to={`/settings/robots/${
-                      robot.id
-                    }/schedules/${scheduleId}/executions`}
-                  >
-                    {robotExecution.values['Schedule Name']}
-                  </Link>{' '}
-                  /{` `}
-                </Fragment>
+              {robotExecution && (
+                <Link to={`/settings/robots/${match.params.robotId}`}>
+                  <span>{robotExecution.values['Robot Name']}</span>
+                </Link>
               )}
             </h3>
             <h1>Execution Details</h1>
@@ -76,10 +59,7 @@ export const mapDispatchToProps = {
 };
 
 export const RobotExecution = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withHandlers({
     handleError,
   }),

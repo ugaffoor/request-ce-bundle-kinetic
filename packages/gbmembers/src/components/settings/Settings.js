@@ -15,8 +15,7 @@ import 'bootstrap/scss/bootstrap.scss';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as errorActions } from '../../redux/modules/errors';
 import { Utils } from 'common';
-import DateTimePicker from 'react-xdsoft-datetimepicker';
-import { getBeltSVG } from '../Member/MemberUtils';
+import moment from 'moment';
 
 const mapStateToProps = state => ({
   memberItem: state.member.members.currentMember,
@@ -25,6 +24,8 @@ const mapStateToProps = state => ({
   billingCustomersLoading: state.member.members.billingCustomersLoading,
   profile: state.member.app.profile,
   belts: state.member.app.belts,
+  billingPayments: state.member.members.billingPayments,
+  billingPaymentsLoading: state.member.members.billingPaymentsLoading,
 });
 
 const mapDispatchToProps = {
@@ -35,6 +36,9 @@ const mapDispatchToProps = {
   fetchBillingCustomers: actions.fetchBillingCustomers,
   setBillingCustomers: actions.setBillingCustomers,
   createBillingMembers: actions.createBillingMembers,
+  fetchBillingPayments: actions.fetchBillingPayments,
+  createBillingStatistics: actions.createBillingStatistics,
+  createStatistic: actions.createStatistic,
 };
 
 class ComponentToPrint extends React.Component {
@@ -90,7 +94,6 @@ class ComponentToPrint extends React.Component {
 export const SettingsView = ({
   memberItem,
   allMembers,
-  billingPayments,
   billingCompany,
   fetchBillingCustomers,
   setBillingCustomers,
@@ -102,6 +105,13 @@ export const SettingsView = ({
   setPrintingBarcodes,
   profile,
   belts,
+  billingPayments,
+  billingPaymentsLoading,
+  fetchBillingPayments,
+  createBillingStatistics,
+  createStatistic,
+  addNotification,
+  setSystemError,
 }) => (
   <div className="settings">
     <StatusMessagesContainer />
@@ -164,6 +174,53 @@ export const SettingsView = ({
           />
         </div>
       )}
+      {profile.username !== 'unus.gaffoor@kineticdata.com' ? (
+        <div />
+      ) : (
+        <div className="col-xs-3">
+          <button
+            type="button"
+            id="loadBillingPayments"
+            className={'btn btn-primary'}
+            onClick={e => {
+              let startDate, endDate;
+              startDate = moment
+                .utc()
+                .subtract(4, 'months')
+                .startOf('month')
+                .format('YYYY-MM-DD');
+              endDate = moment
+                .utc()
+                .subtract(2, 'months')
+                .endOf('month')
+                .format('YYYY-MM-DD');
+
+              fetchBillingPayments({
+                paymentType: 'SUCCESSFUL',
+                paymentMethod: 'ALL',
+                paymentSource: 'ALL',
+                dateField: 'PAYMENT',
+                dateFrom: startDate,
+                dateTo: endDate,
+                createBillingStatistics: createBillingStatistics,
+                createStatistic: createStatistic,
+                internalPaymentType: 'client_successful',
+                addNotification: addNotification,
+                setSystemError: setSystemError,
+              });
+            }}
+          >
+            Import Billing History(1 year)
+          </button>
+        </div>
+      )}
+      <div className="col-xs-3">
+        {billingPaymentsLoading ? (
+          <p>Importing billing payments ....</p>
+        ) : (
+          <span />
+        )}
+      </div>
     </div>
     {/*
     <div>

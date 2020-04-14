@@ -26,6 +26,7 @@ export class MemberActivityReport extends Component {
     this.handleCellClick = this.handleCellClick.bind(this);
 
     this.columns = [
+      { title: 'Last Modified Date', field: 'lastModifiedDate' },
       { title: 'Name', field: 'name', tooltip: true, bottomCalc: 'count' },
       { title: 'Gender', field: 'gender' },
       { title: 'Status', field: 'status' },
@@ -45,6 +46,11 @@ export class MemberActivityReport extends Component {
       { title: 'Average', field: 'average', bottomCalc: this.averageCostCalc },
       { title: 'Payment Period', field: 'paymentPeriod' },
       { title: 'Family Members', field: 'familyMembers' },
+      {
+        title: 'Notes',
+        field: 'history',
+        formatter: reactFormatter(<this.ExpandNotesCellButton />),
+      },
       {
         title: 'Emails Sent',
         field: 'emailsSent',
@@ -74,7 +80,27 @@ export class MemberActivityReport extends Component {
         width: 100,
       },
     ];
-
+    this.hiddenColumns = [
+      { label: 'Address', value: 'address' },
+      { label: 'Suburb', value: 'suburb' },
+      { label: 'State', value: 'state' },
+      { label: 'Age (Years)', value: 'age' },
+      { label: 'Member Type', value: 'memberType' },
+      { label: 'Program', value: 'program' },
+      { label: 'Belt', value: 'belt' },
+      { label: 'Additional Program 1', value: 'additionalProgram1' },
+      { label: 'Additional Program 2', value: 'additionalProgram2' },
+      { label: 'Billing User', value: 'billingUser' },
+      { label: 'Cost', value: 'cost', key: 'cost' },
+      { label: 'Average', value: 'average', key: 'cost' },
+      { label: 'Payment Period', value: 'paymentPeriod' },
+      { label: 'Family Members', value: 'familyMembers' },
+    ];
+    this.notesColumns = [
+      { title: 'Submitter', field: 'submitter' },
+      { title: 'Date', field: 'contactDate', type: 'date' },
+      { title: 'Note', field: 'note' },
+    ];
     this.emailsSentColumns = [
       { title: 'Subject', field: 'Subject' },
       { title: 'Sent Date', field: 'Sent Date' },
@@ -110,6 +136,7 @@ export class MemberActivityReport extends Component {
           { label: 'Belt', value: 'belt' },
           { label: 'Additional Program 1', value: 'additionalProgram1' },
           { label: 'Additional Program 2', value: 'additionalProgram2' },
+          { label: 'Notes', value: 'history' },
           { label: 'Emails Sent', value: 'emailsSent' },
           { label: 'Emails Received', value: 'emailsReceived' },
           { label: 'SMS Sent', value: 'smsSent' },
@@ -172,11 +199,9 @@ export class MemberActivityReport extends Component {
       this.props.reportPreferences,
     );
     this.visibleColumns = this.filterColumns.filter(
-      column =>
-        !this.memberPreferences.hiddenCols.some(
-          hc => hc.value === column.value,
-        ),
+      column => !this.hiddenColumns.some(hc => hc.value === column.value),
     );
+    this.visibleColumns.push({ label: 'Notes', value: 'history' });
     this.selectedColumns = this.visibleColumns;
     this.filterValueOptions = {
       gender: ['Male', 'Female'],
@@ -199,7 +224,7 @@ export class MemberActivityReport extends Component {
       filters: [],
       selectedFilterValueOptions: [],
       selectedColumns: this.selectedColumns,
-      hiddenColumns: this.memberPreferences.hiddenCols,
+      hiddenColumns: this.hiddenColumns,
       preferences: this.memberPreferences.preferences,
       selectedPreference: this.memberPreferences.selectedPreference,
       key: Math.random(),
@@ -586,7 +611,7 @@ export class MemberActivityReport extends Component {
       this.setState({
         filterColumns: this.filterColumns,
         selectedColumns: this.filterColumns,
-        hiddenColumns: [],
+        hiddenColumns: this.hiddenColumns,
         filters: [],
         key: Math.random(),
       });
@@ -659,6 +684,26 @@ export class MemberActivityReport extends Component {
     this.setState({ includesValue: options });
   };
 
+  ExpandNotesCellButton = (props: any) => {
+    if (props.cell.getValue() === undefined) {
+      return <span />;
+    }
+    var notes = JSON.parse(props.cell.getValue());
+
+    const value = notes[notes.length - 1]['note'];
+    return (
+      <span className="firstNote">
+        <div
+          className="rt-expander closed"
+          onClick={() => this.handleNotesCellClick(this, props.cell)}
+        >
+          •
+        </div>
+        <span className="note">{value}</span>{' '}
+      </span>
+    );
+  };
+
   ExpandCellButton = (props: any) => {
     const cellData = props.cell._cell.row.data;
     const value = props.cell.getValue();
@@ -692,7 +737,9 @@ export class MemberActivityReport extends Component {
       memberActivityData.push({
         id: member['id'],
         createdDate: member['createdAt'],
-        lastModifiedDate: member['updatedAt'],
+        lastModifiedDate: moment(member['updatedAt']).format(
+          'DD-MM-YYYY HH:mm',
+        ),
         name: member.values['First Name'] + ' ' + member.values['Last Name'],
         gender: member.values['Gender'],
         status: member.values['Status'],
@@ -729,6 +776,7 @@ export class MemberActivityReport extends Component {
           member.values['Billing Family Members']
             ? JSON.parse(member.values['Billing Family Members']).length
             : '',
+        history: member.values['Notes History'],
         emailsSent: isNaN(member.values['Emails Sent Count'])
           ? 0
           : parseInt(member.values['Emails Sent Count']),
@@ -789,7 +837,7 @@ export class MemberActivityReport extends Component {
       var cells = row.getCells();
       for (var i = 0; i < cells.length; i++) {
         var otherField = cells[i].getColumn().getField();
-        if (otherField !== field) {
+        if (otherField !== field && otherField !== 'history') {
           $(cells[i].getElement()).css('background-color', 'white');
           $(cells[i].getElement())
             .find('.hide-sub-grid')
@@ -798,6 +846,12 @@ export class MemberActivityReport extends Component {
             .find('.hide-sub-grid')
             .removeClass('hide-sub-grid')
             .addClass('show-sub-grid');
+        } else if (otherField !== field && otherField === 'history') {
+          $(cells[i].getElement()).css('background-color', 'white');
+          $(cells[i].getElement())
+            .find('.opened')
+            .removeClass('opened')
+            .addClass('closed');
         }
       }
       $(cellElement).css('background-color', '#ced7e5');
@@ -901,6 +955,71 @@ export class MemberActivityReport extends Component {
         .removeClass('show-sub-grid')
         .addClass('hide-sub-grid');
       $(btnElement).text('Hide');
+      //that.setState({isGridLoading: false});
+    }
+  };
+
+  handleNotesCellClick = (that, cell) => {
+    var field = cell.getColumn().getField();
+
+    var cellElement = cell.getElement();
+    var row = cell.getRow();
+    var btnElement = $(cellElement).find('.rt-expander.opened');
+    if (btnElement.length > 0) {
+      $(btnElement)
+        .removeClass('opened')
+        .addClass('closed');
+      $(row.getElement())
+        .find('.report-sub-table')
+        .remove();
+      $(cellElement).css('background-color', 'white');
+    } else {
+      //that.setState({isGridLoading: true});
+      $(row.getElement())
+        .find('.report-sub-table')
+        .remove();
+      var cells = row.getCells();
+      for (var i = 0; i < cells.length; i++) {
+        var otherField = cells[i].getColumn().getField();
+        if (otherField !== field) {
+          $(cells[i].getElement()).css('background-color', 'white');
+          $(cells[i].getElement())
+            .find('.hide-sub-grid')
+            .text('Show');
+          $(cells[i].getElement())
+            .find('.hide-sub-grid')
+            .removeClass('hide-sub-grid')
+            .addClass('show-sub-grid');
+        }
+      }
+      $(cellElement).css('background-color', '#ced7e5');
+      //$(cellElement).css("background-color", "#9dbae8");
+      //$(cellElement).css("background-color", "#c0c6d6");
+      var holderEl = document.createElement('div');
+      var tableEl = document.createElement('div');
+      $(holderEl).addClass('report-sub-table');
+      holderEl.appendChild(tableEl);
+      var history = JSON.parse(row.getData()['history']);
+      for (var i = 0; i < history.length; i++) {
+        history[i]['contactDate'] = moment(history[i]['contactDate']).format(
+          'DD-MM-YYYY HH:mm',
+        );
+      }
+      ReactDOM.render(
+        <ReactTabulator
+          ref={ref => (this.ref = ref)}
+          columns={this.notesColumns}
+          data={history}
+          placeholder={no_data_placeholder}
+        />,
+        tableEl,
+      );
+
+      row.getElement().appendChild(holderEl);
+      btnElement = $(cellElement).find('.rt-expander.closed');
+      $(btnElement)
+        .removeClass('closed')
+        .addClass('opened');
       //that.setState({isGridLoading: false});
     }
   };
@@ -1046,7 +1165,7 @@ export class MemberActivityReport extends Component {
     this.setState({
       filterColumns: this.filterColumns,
       selectedColumns: this.filterColumns,
-      hiddenColumns: [],
+      hiddenColumns: this.hiddenColumns,
       selectedPreference: '',
       filters: [],
       key: Math.random(),

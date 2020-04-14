@@ -113,7 +113,6 @@ export class Members extends React.Component {
               : true;
           }}
           getTdProps={(state, rowInfo, column, instance) => {
-            console.log('rowInfo:' + rowInfo);
             return {};
           }}
           columns={[
