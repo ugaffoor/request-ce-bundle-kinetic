@@ -31,14 +31,14 @@ export class Members extends React.Component {
       if (currentFilter === 'Active Members') {
         if (
           member.values['Status'] !== 'Inactive' &&
-          member.values['Status'] !== 'Suspended'
+          member.values['Status'] !== 'Frozen'
         )
           match = true;
       } else if (currentFilter === 'Inactive Members') {
         if (
           member.values['Status'] === undefined ||
           member.values['Status'] === 'Inactive' ||
-          member.values['Status'] === 'Suspended'
+          member.values['Status'] === 'Frozen'
         )
           match = true;
       } else if (currentFilter === 'All Members') {

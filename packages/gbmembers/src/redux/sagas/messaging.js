@@ -106,11 +106,12 @@ export function* sendBulkSms(action) {
     space: appSettings.spaceSlug,
     toNumbers: action.payload.phoneNumbers,
     text: action.payload.campaignItem.values['SMS Content'],
-    target: action.payload.target
+    target: action.payload.target,
   };
   axios
     .post(
-      appSettings.kapp.attributes['Kinetic Messaging Server URL'] + sendBulkSmsUrl,
+      appSettings.kapp.attributes['Kinetic Messaging Server URL'] +
+        sendBulkSmsUrl,
       args,
     )
     .then(result => {
@@ -125,7 +126,7 @@ export function* sendBulkSms(action) {
         console.log(result.data.data);
         let deliveredToMemberIds = result.data.data['deliveredToIds'];
         if (action.payload.target === 'Member') {
-          for (let i = 0; i < args.toNumbers.length; i++)  {
+          for (let i = 0; i < args.toNumbers.length; i++) {
             if (!deliveredToMemberIds.includes(args.toNumbers[i]['id'])) {
               continue;
             }
@@ -228,10 +229,54 @@ export function* createLeadActivities(action) {
   }
 }
 
+export function* getIndividualSMS(action) {
+  try {
+    const MEMBER_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
+      .eq('values[Type]', 'SMS')
+      .eq('values[Direction]', 'Outbound')
+      .include(['details', 'values'])
+      .limit(25)
+      .build();
+    const LEAD_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
+      .eq('values[Type]', 'SMS')
+      .eq('values[Direction]', 'Outbound')
+      .include(['details', 'values'])
+      .limit(25)
+      .build();
+    const [memberActivities, leadActivities] = yield all([
+      call(CoreAPI.searchSubmissions, {
+        form: 'member-activities',
+        kapp: 'gbmembers',
+        search: MEMBER_ACTIVITIES_SEARCH,
+      }),
+      call(CoreAPI.searchSubmissions, {
+        form: 'lead-activities',
+        kapp: 'gbmembers',
+        search: LEAD_ACTIVITIES_SEARCH,
+      }),
+    ]);
+
+    let individualSMS = [];
+    for (let i = 0; i < submissions.length; i++) {
+      if (submissions[i].values['Type'] === 'Promotion') {
+        var content = JSON.parse(submissions[i].values['Content']);
+        content['Submitter'] = submissions[i].updatedBy;
+        promotionContent[promotionContent.length] = content;
+      }
+    }
+
+    yield put(action.payload.setMemberPromotions(promotionContent));
+  } catch (error) {
+    console.log('Error in fetchMemberPromotions: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
+
 export function* watchMessaging() {
   yield takeEvery(types.SEND_SMS, sendSms);
   yield takeEvery(types.SEND_BULK_SMS, sendBulkSms);
   yield takeEvery(types.GET_ACCOUNT_CREDIT, getAccountCredit);
   yield takeEvery(types.CREATE_MEMBER_ACTIVITIES, createMemberActivities);
   yield takeEvery(types.CREATE_LEAD_ACTIVITIES, createLeadActivities);
+  yield takeEvery(types.GET_INDIVIDUAL_SMS, getIndividualSMS);
 }

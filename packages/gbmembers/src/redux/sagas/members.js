@@ -1386,10 +1386,9 @@ export function* fetchBillingCustomers(action) {
                 JSON.stringify(resultInactive.data.data),
             );
             action.payload.createBillingMembers({
-              /*              customers: resultActive.data.data.concat(
+              customers: resultActive.data.data.concat(
                 resultInactive.data.data,
-              ), */
-              customers: resultInactive.data.data,
+              ),
               setBillingCustomers: action.payload.setBillingCustomers,
               fetchMembers: action.payload.fetchMembers,
               appSettings: appSettings,
@@ -1411,9 +1410,25 @@ export function* fetchBillingCustomers(action) {
 export function* createBillingMembers(action) {
   let newMemberAdded = false;
   let newMembers = [];
+  let threeMonths = moment().subtract(3, 'months');
   for (let i = 0; i < action.payload.customers.length; i++) {
     let customer = action.payload.customers[i];
-
+    if (customer.dateArchived > 0) {
+      var dt = new Date(customer.dateArchived);
+      if (moment(dt).isBefore(threeMonths)) {
+        console.log(
+          'Archived Name:' +
+            customer.firstName +
+            ' ' +
+            customer.lastName +
+            ' - PaySmartID:' +
+            customer.customerId +
+            ' - Status:' +
+            customer.status,
+        );
+        continue;
+      }
+    }
     const MEMBER_SEARCH = new CoreAPI.SubmissionSearch(true)
       .eq('values[Billing Customer Id]', customer.customerId)
       .include('details,values')
@@ -1431,7 +1446,12 @@ export function* createBillingMembers(action) {
         ' ' +
         customer.lastName +
         ' - PaySmartID:' +
-        customer.ffaid,
+        customer.customerId +
+        ' - Status:' +
+        customer.status +
+        (!submissions || submissions.length <= 0
+          ? 'NEW'
+          : submissions[0].values['Status']),
     );
     var memberItem = {
       values: {},
@@ -1455,11 +1475,7 @@ export function* createBillingMembers(action) {
         }
       });
 
-      if (customer.status === 'Inactive') {
-        memberItem.values['Status'] = 'Inactive';
-      } else {
-        memberItem.values['Status'] = 'Active';
-      }
+      memberItem.values['Status'] = customer.status;
       memberItem.values['First Name'] = customer.firstName;
       memberItem.values['Last Name'] = customer.lastName;
       memberItem.values['Member ID'] =
@@ -1490,27 +1506,19 @@ export function* createBillingMembers(action) {
     } else if (submissions && submissions.length === 1) {
       memberItem.values = submissions[0].values;
       let changeMade = false;
-      if (
-        customer.status === 'Inactive' &&
-        memberItem.values['Status'] !== 'Inactive'
-      ) {
-        memberItem.values['Status'] = 'Inactive';
+      if (customer.status !== memberItem.values['Status']) {
+        memberItem.values['Status'] = customer.status;
         let history = getJson(memberItem.values['Status History']);
         let newHistory = {
           submitter: action.payload.appSettings.profile.displayName,
           date: moment().toString(),
-          status: 'Inactive',
+          status: customer.status,
         };
         history.push(newHistory);
         memberItem.values['Status History'] = history;
         changeMade = true;
-      } else if (
-        customer.status === 'Active' &&
-        memberItem.values['Status'] !== 'Active'
-      ) {
-        memberItem.values['Status'] = 'Active';
-        changeMade = true;
       }
+
       if (memberItem.values['Billing User'] !== 'YES') {
         memberItem.values['Billing User'] = 'YES';
         changeMade = true;
