@@ -1313,9 +1313,23 @@ export function* createBillingMembers(action) {
       kapp: 'gbmembers',
       search: MEMBER_SEARCH,
     });
+    //    console.log(
+    //      '#### createMembers # submissions = ' + util.inspect(submissions),
+    //    );
     console.log(
-      '#### createMembers # submissions = ' + util.inspect(submissions),
+      'Name:' +
+        customer.firstName +
+        ' ' +
+        customer.lastName +
+        ' - PaySmartID:' +
+        customer.customerId +
+        ' - Status:' +
+        customer.status +
+        (!submissions || submissions.length <= 0
+          ? 'NEW'
+          : submissions[0].values['Status']),
     );
+
     var memberItem = {
       values: {},
     };
@@ -1341,11 +1355,8 @@ export function* createBillingMembers(action) {
         }
       });
 
-      if (customer.statusDescription === 'Inactive') {
-        action.payload.memberItem.values['Status'] = 'Inactive';
-      } else {
-        memberItem.values['Status'] = 'Active';
-      }
+      memberItem.values['Status'] = customer.status;
+
       memberItem.values['First Name'] = customer.firstName;
       memberItem.values['Last Name'] = customer.lastName;
       memberItem.values['Member ID'] =
@@ -1375,11 +1386,8 @@ export function* createBillingMembers(action) {
     } else if (submissions && submissions.length === 1) {
       memberItem.values = submissions[0].values;
       let changeMade = false;
-      if (
-        customer.status === 'Inactive' &&
-        memberItem.values['Status'] !== 'Inactive'
-      ) {
-        memberItem.values['Status'] = 'Inactive';
+      if (customer.status !== memberItem.values['Status']) {
+        memberItem.values['Status'] = customer.status;
         let history = getJson(memberItem.values['Status History']);
         let newHistory = {
           submitter: action.payload.appSettings.profile.displayName,
@@ -1388,12 +1396,6 @@ export function* createBillingMembers(action) {
         };
         history.push(newHistory);
         memberItem.values['Status History'] = history;
-        changeMade = true;
-      } else if (
-        customer.status === 'Active' &&
-        memberItem.values['Status'] !== 'Active'
-      ) {
-        memberItem.values['Status'] = 'Active';
         changeMade = true;
       }
       if (memberItem.values['Billing User'] !== 'YES') {
