@@ -1,3 +1,11 @@
+.emailSentSubject {
+  cursor: pointer;
+}
+.smsTable {
+  .nowrap {
+    white-space: normal !important;
+  }
+}
 .card1,
 .card2 {
   background-size: cover;

@@ -67,7 +67,7 @@ export function* fetchCurrentMember(action) {
     const MEMBER_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
       .eq('values[Member ID]', action.payload.id)
       .include(['details', 'values'])
-      .limit(1000)
+      .limit(100)
       .build();
     const [submission, memberActivities] = yield all([
       call(CoreAPI.fetchSubmission, {
@@ -240,6 +240,7 @@ export function* updateCurrentMember(action) {
         id: action.payload.id,
         myThis: action.payload.myThis,
       });
+
     console.log('updateCurrentMember:' + submission);
     yield put(
       errorActions.addSuccess('Member updated successfully', 'Update Member'),
@@ -1501,7 +1502,7 @@ export function* createBillingMembers(action) {
       memberItem.values['DDR Status'] = 'Pending';
 
       newMembers[newMembers.length] = memberItem;
-      yield put(actions.createMember({ memberItem, showNotification: false }));
+      //      yield put(actions.createMember({ memberItem, showNotification: false }));
       newMemberAdded = true;
     } else if (submissions && submissions.length === 1) {
       memberItem.values = submissions[0].values;
@@ -1559,12 +1560,12 @@ export function* createBillingMembers(action) {
       }
       if (changeMade) {
         memberItem.id = submissions[0].id;
-        yield put(
+        /*      yield put(
           actions.updateMember({
             id: memberItem.id,
             memberItem: memberItem,
           }),
-        );
+        );*/
       }
     }
   }

@@ -727,7 +727,15 @@ export class LeadsActivityReport extends Component {
   ExpandNotesCellButton = (props: any) => {
     var notes = JSON.parse(props.cell.getValue());
 
-    const value = notes[notes.length - 1]['note'];
+    notes.sort(function(a, b) {
+      if (a['contactDate'] > b['contactDate']) {
+        return -1;
+      } else if (a['contactDate'] < b['contactDate']) {
+        return 1;
+      }
+      return 0;
+    });
+    const value = notes.length > 0 ? notes[0]['note'] : '';
     return (
       <span className="firstNote">
         <div
@@ -1011,6 +1019,14 @@ export class LeadsActivityReport extends Component {
       $(holderEl).addClass('report-sub-table');
       holderEl.appendChild(tableEl);
       var history = JSON.parse(row.getData()['history']);
+      history.sort(function(a, b) {
+        if (a['contactDate'] > b['contactDate']) {
+          return -1;
+        } else if (a['contactDate'] < b['contactDate']) {
+          return 1;
+        }
+        return 0;
+      });
       for (var i = 0; i < history.length; i++) {
         history[i]['contactDate'] = moment(history[i]['contactDate']).format(
           'DD-MM-YYYY HH:mm',

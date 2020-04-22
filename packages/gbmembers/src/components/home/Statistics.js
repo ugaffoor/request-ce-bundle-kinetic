@@ -16,8 +16,13 @@ export class Statistics extends Component {
   };
   constructor(props) {
     super(props);
-    let fromDate = moment().subtract(7, 'days');
-    let toDate = moment();
+    this.setIsAssigning = this.props.setIsAssigning;
+    this.datesChanged = this.props.datesChanged;
+    this.setFromDate = this.props.setFromDate;
+    this.setToDate = this.props.setToDate;
+
+    let fromDate = this.props.fromDate;
+    let toDate = this.props.toDate;
 
     let leads = this.props.leadsByDate;
     let leadData = this.getData(leads, fromDate, toDate);
@@ -191,6 +196,12 @@ export class Statistics extends Component {
           this.state.toDate,
         ),
       });
+      this.datesChanged(
+        this.setFromDate,
+        this.setToDate,
+        this.state.fromDate,
+        this.state.toDate,
+      );
     }
   }
   setStatisticDates(e, type) {
@@ -212,6 +223,7 @@ export class Statistics extends Component {
       });
       $('.dateSettings button[active=true]').attr('active', 'false');
       $(e.target).attr('active', 'true');
+      this.datesChanged(this.setFromDate, this.setToDate, fromDate, toDate);
     } else if (type === 'last_7_days') {
       let fromDate = moment().subtract(7, 'days');
       let toDate = moment();
@@ -230,6 +242,7 @@ export class Statistics extends Component {
         fromDate: fromDate,
         toDate: toDate,
       });
+      this.datesChanged(this.setFromDate, this.setToDate, fromDate, toDate);
     } else if (type === 'last_30_days') {
       let fromDate = moment().subtract(30, 'days');
       let toDate = moment();
@@ -248,6 +261,7 @@ export class Statistics extends Component {
         fromDate: fromDate,
         toDate: toDate,
       });
+      this.datesChanged(this.setFromDate, this.setToDate, fromDate, toDate);
     } else if (type === 'year') {
       let fromDate = moment().subtract(1, 'years');
       let toDate = moment();
@@ -266,6 +280,7 @@ export class Statistics extends Component {
         fromDate: fromDate,
         toDate: toDate,
       });
+      this.datesChanged(this.setFromDate, this.setToDate, fromDate, toDate);
     } else if (type === 'custom') {
       var lastActive = $('.dateSettings button[active=true]');
       $('.dateSettings button[active=true]').attr('active', 'false');

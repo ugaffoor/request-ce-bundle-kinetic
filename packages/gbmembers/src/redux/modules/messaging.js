@@ -42,7 +42,9 @@ export const reducer = (state = State(), { type, payload }) => {
     case types.GET_INDIVIDUAL_SMS:
       return state.set('individualSMSLoading', true);
     case types.SET_INDIVIDUAL_SMS: {
-      return state.set('individualSMS', payload);
+      return state
+        .set('individualSMSLoading', false)
+        .set('individualSMS', payload);
     }
     case types.SET_ACCOUNT_CREDIT:
       return state

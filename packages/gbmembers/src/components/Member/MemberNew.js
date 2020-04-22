@@ -640,6 +640,25 @@ export const MemberNew = ({
             <hr />
             <span className="line">
               <div>
+                <label htmlFor="nopaying" style={{ minWidth: '100px' }}>
+                  Non Paying
+                </label>
+                <input
+                  type="checkbox"
+                  name="nonpaying"
+                  id="nonpaying"
+                  style={{ clear: 'none', margin: '4px' }}
+                  ref={input => (this.input = input)}
+                  value="YES"
+                  checked={
+                    memberItem.values['Non Paying'] === 'YES' ? true : false
+                  }
+                  onChange={e => handleChange(memberItem, 'Non Paying', e)}
+                />
+              </div>
+            </span>
+            <span className="line">
+              <div>
                 <label htmlFor="additionalprogram1">Additional Program 1</label>
                 <select
                   name="additionalprogram1"

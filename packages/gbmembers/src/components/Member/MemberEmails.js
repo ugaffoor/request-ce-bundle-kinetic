@@ -50,13 +50,11 @@ export class MemberEmails extends Component {
         accessor: 'Subject',
         Header: 'Subject',
         width: 600,
+        className: 'emailSentSubject',
         style: { whiteSpace: 'unset' },
         Cell: row => (
           <span>
-            <a
-              href="javascript:;"
-              onClick={() => this.getCampaign(row.original['Campaign Id'])}
-            >
+            <a onClick={() => this.getCampaign(row.original['Campaign Id'])}>
               {row.original['Subject']}
             </a>
           </span>

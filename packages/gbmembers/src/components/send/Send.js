@@ -8,6 +8,8 @@ import {
   withProps,
 } from 'recompose';
 import { actions } from '../../redux/modules/campaigns';
+import { actions as messageActions } from '../../redux/modules/messaging';
+import { actions as leadActions } from '../../redux/modules/leads';
 import { KappNavLink as NavLink } from 'common';
 import $ from 'jquery';
 import ReactSpinner from 'react16-spinjs';
@@ -22,12 +24,18 @@ const mapStateToProps = state => ({
   emailCampaignsLoading: state.member.campaigns.emailCampaignsLoading,
   smsCampaigns: state.member.campaigns.allSmsCampaigns,
   smsCampaignsLoading: state.member.campaigns.smsCampaignsLoading,
+  individualSMS: state.member.messaging.individualSMS,
+  individualSMSLoading: state.member.messaging.individualSMSLoading,
+  allLeads: state.member.leads.allLeads,
 });
 const mapDispatchToProps = {
   fetchEmailCampaigns: actions.fetchEmailCampaigns,
   setEmailCampaigns: actions.setEmailCampaigns,
   fetchSmsCampaigns: actions.fetchSmsCampaigns,
   setSmsCampaigns: actions.setSmsCampaigns,
+  getIndividualSMS: messageActions.getIndividualSMS,
+  setIndividualSMS: messageActions.setIndividualSMS,
+  fetchLeads: leadActions.fetchLeads,
 };
 
 export class EmailCampaignsList extends Component {
@@ -37,7 +45,7 @@ export class EmailCampaignsList extends Component {
     this._columns = this.getColumns();
     this.getNestedTableData = this.getNestedTableData.bind(this);
     this._nestedTableColumns = this.getNestedTableColumns();
-
+    this._getRecipientColumns = this.getRecipientColumns();
     this.state = {
       emailCampaigns,
     };
@@ -112,6 +120,26 @@ export class EmailCampaignsList extends Component {
     });
     return data;
   }
+  getRecipientColumns = () => {
+    return [
+      {
+        accessor: 'recipients',
+        Header: '',
+        headerClassName: 'recipients_col',
+        className: 'recipients_col',
+        Cell: props => {
+          return (
+            <NavLink
+              to={`/${props.original['type']}/${props.original['id']}`}
+              className=""
+            >
+              {props.original['name']}
+            </NavLink>
+          );
+        },
+      },
+    ];
+  };
 
   getNestedTableColumns(row) {
     return [
@@ -128,13 +156,40 @@ export class EmailCampaignsList extends Component {
         headerClassName: 'recipients_col',
         className: 'recipients_col',
         style: { whiteSpace: 'unset' },
-        maxWidth: 200,
+        width: 300,
+        Cell: props => {
+          let values = props.value;
+          values.forEach(value => {
+            this.props.allMembers.forEach(member => {
+              if (value['id'] === member['id']) {
+                value['type'] = 'Member';
+                return;
+              }
+            });
+
+            this.props.allLeads.forEach(lead => {
+              if (value['id'] === lead['id']) {
+                value['type'] = 'LeadDetail';
+                return;
+              }
+            });
+          });
+          return (
+            <ReactTable
+              columns={this._getRecipientColumns}
+              pageSize={values.length > 20 ? 20 : values.length}
+              showPagination={values.length > 20 ? true : false}
+              data={values}
+            />
+          );
+        },
       },
       {
         accessor: 'attachments',
         Header: 'Attachments',
         headerClassName: 'attachments_col',
         className: 'attachments_col',
+        width: 150,
         style: { whiteSpace: 'unset' },
       },
     ];
@@ -142,12 +197,27 @@ export class EmailCampaignsList extends Component {
 
   getNestedTableData(row) {
     //let members = [];
-    let members = '';
+    let members = [];
     this.props.allMembers.forEach(member => {
       JSON.parse(row['recipients']).forEach(recipient => {
         if (recipient === member['id']) {
-          if (members !== '') members += ', ';
-          members += member.values['Email'];
+          members[members.length] = {
+            id: member.id,
+            name:
+              member.values['First Name'] + ' ' + member.values['Last Name'],
+          };
+          return;
+        }
+      });
+    });
+    this.props.allLeads.forEach(lead => {
+      JSON.parse(row['recipients']).forEach(recipient => {
+        if (recipient === lead['id']) {
+          members[members.length] = {
+            id: lead.id,
+            name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
+          };
+          return;
         }
       });
     });
@@ -227,8 +297,8 @@ export class SmsCampaignsList extends Component {
     let smsCampaigns = this.getData(this.props.smsCampaigns);
     this._columns = this.getColumns();
     this.getNestedTableData = this.getNestedTableData.bind(this);
-    this._nestedTableColumns = this.getNestedTableColumns();
-
+    this._getNestedTableColumns = this.getNestedTableColumns;
+    this._getRecipientColumns = this.getRecipientColumns();
     this.state = {
       smsCampaigns,
     };
@@ -279,6 +349,90 @@ export class SmsCampaignsList extends Component {
     });
     return data;
   }
+  getRecipientColumns = () => {
+    return [
+      {
+        headerClassName: 'recipients_col',
+        className: 'recipients_col',
+        Cell: props => {
+          return props.original.recipients_col1 === undefined ? (
+            <div />
+          ) : (
+            <NavLink
+              to={`/Member/${props.original.recipients_col1['memberId']}`}
+              className=""
+            >
+              {props.original.recipients_col1['name']}
+            </NavLink>
+          );
+        },
+      },
+      {
+        headerClassName: 'recipients_col',
+        className: 'recipients_col',
+        Cell: props => {
+          return props.original.recipients_col2 === undefined ? (
+            <div />
+          ) : (
+            <NavLink
+              to={`/Member/${props.original.recipients_col2['memberId']}`}
+              className=""
+            >
+              {props.original.recipients_col2['name']}
+            </NavLink>
+          );
+        },
+      },
+      {
+        headerClassName: 'recipients_col',
+        className: 'recipients_col',
+        Cell: props => {
+          return props.original.recipients_col3 === undefined ? (
+            <div />
+          ) : (
+            <NavLink
+              to={`/Member/${props.original.recipients_col3['memberId']}`}
+              className=""
+            >
+              {props.original.recipients_col3['name']}
+            </NavLink>
+          );
+        },
+      },
+      {
+        headerClassName: 'recipients_col',
+        className: 'recipients_col',
+        Cell: props => {
+          return props.original.recipients_col4 === undefined ? (
+            <div />
+          ) : (
+            <NavLink
+              to={`/Member/${props.original.recipients_col4['memberId']}`}
+              className=""
+            >
+              {props.original.recipients_col4['name']}
+            </NavLink>
+          );
+        },
+      },
+      {
+        headerClassName: 'recipients_col',
+        className: 'recipients_col',
+        Cell: props => {
+          return props.original.recipients_col5 === undefined ? (
+            <div />
+          ) : (
+            <NavLink
+              to={`/Member/${props.original.recipients_col5['memberId']}`}
+              className=""
+            >
+              {props.original.recipients_col5['name']}
+            </NavLink>
+          );
+        },
+      },
+    ];
+  };
 
   getNestedTableColumns(row) {
     return [
@@ -289,8 +443,115 @@ export class SmsCampaignsList extends Component {
         className: 'recipients_col',
         style: { whiteSpace: 'unset' },
         maxWidth: '100%',
+        Cell: props => {
+          let recipients_col1 = props.value.recipients_col1;
+          let recipients_col2 = props.value.recipients_col2;
+          let recipients_col3 = props.value.recipients_col3;
+          let recipients_col4 = props.value.recipients_col4;
+          let recipients_col5 = props.value.recipients_col5;
+          recipients_col1.forEach(value => {
+            this.props.allMembers.forEach(member => {
+              if (value['memberId'] === member.values['Member ID']) {
+                value['memberId'] = member.id;
+                value['name'] =
+                  member.values['First Name'] +
+                  ' ' +
+                  member.values['Last Name'];
+                return;
+              }
+            });
+          });
+          recipients_col2.forEach(value => {
+            this.props.allMembers.forEach(member => {
+              if (value['memberId'] === member.values['Member ID']) {
+                value['memberId'] = member.id;
+                value['name'] =
+                  member.values['First Name'] +
+                  ' ' +
+                  member.values['Last Name'];
+                return;
+              }
+            });
+          });
+          recipients_col3.forEach(value => {
+            this.props.allMembers.forEach(member => {
+              if (value['memberId'] === member.values['Member ID']) {
+                value['memberId'] = member.id;
+                value['name'] =
+                  member.values['First Name'] +
+                  ' ' +
+                  member.values['Last Name'];
+                return;
+              }
+            });
+          });
+          recipients_col4.forEach(value => {
+            this.props.allMembers.forEach(member => {
+              if (value['memberId'] === member.values['Member ID']) {
+                value['memberId'] = member.id;
+                value['name'] =
+                  member.values['First Name'] +
+                  ' ' +
+                  member.values['Last Name'];
+                return;
+              }
+            });
+          });
+          recipients_col5.forEach(value => {
+            this.props.allMembers.forEach(member => {
+              if (value['memberId'] === member.values['Member ID']) {
+                value['memberId'] = member.id;
+                value['name'] =
+                  member.values['First Name'] +
+                  ' ' +
+                  member.values['Last Name'];
+                return;
+              }
+            });
+          });
+          let recipients = [];
+          for (var i = 0; i < recipients_col1.length; i++) {
+            recipients[recipients.length] = {
+              recipients_col1: recipients_col1[i],
+              recipients_col2:
+                recipients_col2.length > i ? recipients_col2[i] : undefined,
+              recipients_col3:
+                recipients_col3.length > i ? recipients_col3[i] : undefined,
+              recipients_col4:
+                recipients_col4.length > i ? recipients_col4[i] : undefined,
+              recipients_col5:
+                recipients_col5.length > i ? recipients_col5[i] : undefined,
+            };
+          }
+          return (
+            <ReactTable
+              columns={this._getRecipientColumns}
+              pageSize={
+                recipients_col1.length > 20 ? 20 : recipients_col1.length
+              }
+              showPagination={recipients_col1.length > 20 ? true : false}
+              data={recipients}
+            />
+          );
+        },
       },
     ];
+  }
+
+  getRecipients(recipients, col) {
+    var items = recipients.split(',');
+    var recipients_col = [];
+
+    for (var i = col - 1; i < items.length; i = i + 5) {
+      //if (i % (col-1) === 0){
+      recipients_col[recipients_col.length] = {
+        memberId: items[i].trim(),
+        name: '',
+      };
+      //}
+    }
+
+    return recipients_col;
   }
 
   getNestedTableData(row) {
@@ -304,9 +565,21 @@ export class SmsCampaignsList extends Component {
         }
       });
     });
+    let recipients_col1 = this.getRecipients(members, 1);
+    let recipients_col2 = this.getRecipients(members, 2);
+    let recipients_col3 = this.getRecipients(members, 3);
+    let recipients_col4 = this.getRecipients(members, 4);
+    let recipients_col5 = this.getRecipients(members, 5);
+
     return [
       {
-        recipients: members,
+        recipients: {
+          recipients_col1: recipients_col1,
+          recipients_col2: recipients_col2,
+          recipients_col3: recipients_col3,
+          recipients_col4: recipients_col4,
+          recipients_col5: recipients_col5,
+        },
       },
     ];
   }
@@ -349,7 +622,7 @@ export class SmsCampaignsList extends Component {
                   <div style={{ padding: '20px' }}>
                     <ReactTable
                       data={this.getNestedTableData(row.original)}
-                      columns={this._nestedTableColumns}
+                      columns={this._getNestedTableColumns(row)}
                       defaultPageSize={1}
                       showPagination={false}
                     />
@@ -364,11 +637,129 @@ export class SmsCampaignsList extends Component {
   }
 }
 
-export class CreateCampaign extends Component {
+export class IndividualSmsList extends Component {
   constructor(props) {
     super(props);
+    let individualSMS = this.getData(this.props.individualSMS);
+    this._columns = this.getColumns();
+
+    this.state = {
+      individualSMS,
+    };
   }
 
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.individualSMS) {
+      this.setState({
+        individualSMS: this.getData(nextProps.individualSMS),
+      });
+    }
+  }
+
+  componentWillMount() {
+    this.props.getIndividualSMS({
+      setIndividualSMS: this.props.setIndividualSMS,
+    });
+  }
+
+  getColumns = () => {
+    return [
+      { accessor: 'content', Header: 'Content', width: '90%' },
+      { accessor: 'sentDate', Header: 'Date', maxWidth: 150 },
+      {
+        accessor: 'to',
+        Header: 'Recipient',
+        headerClassName: 'recipients_col',
+        className: 'recipients_col',
+        maxWidth: 150,
+        Cell: props => {
+          let values = props.value.split(',');
+          let value = values[1];
+          let type = values[2] === 'Member' ? 'Member' : 'LeadDetail';
+          this.props.allMembers.forEach(member => {
+            if (values[0] === member['id']) {
+              value =
+                member.values['First Name'] + ' ' + member.values['Last Name'];
+              return;
+            }
+          });
+
+          this.props.allLeads.forEach(lead => {
+            if (values[0] === lead['id']) {
+              value =
+                lead.values['First Name'] + ' ' + lead.values['Last Name'];
+              return;
+            }
+          });
+          return (
+            <NavLink to={`/${type}/${values[0]}`} className="">
+              {value}
+            </NavLink>
+          );
+        },
+      },
+    ];
+  };
+
+  getData(individualSms) {
+    if (!individualSms) {
+      return [];
+    }
+
+    const data = individualSms.map(sms => {
+      return {
+        content: sms['Content'],
+        sentDate: sms['Date'],
+        to: sms['id'] + ',' + sms['To'] + ',' + sms['Type'],
+      };
+    });
+    return data;
+  }
+
+  render() {
+    return this.props.individualSMSLoading ? (
+      <div />
+    ) : (
+      <div>
+        <div className="row">
+          <div className="pageHeader">
+            <h3>Individual SMS Sent</h3>
+          </div>
+        </div>
+        <div
+          id="campaignsListGrid"
+          className="row"
+          style={{ marginTop: '10px' }}
+        >
+          <div className="col">
+            <ReactTable
+              columns={this._columns}
+              data={this.state.individualSMS}
+              defaultPageSize={
+                this.state.individualSMS.length
+                  ? this.state.individualSMS.length
+                  : 2
+              }
+              pageSize={
+                this.state.individualSMS.length
+                  ? this.state.individualSMS.length
+                  : 2
+              }
+              showPagination={false}
+              style={{
+                /*height: '500px',*/
+                borderLeft: '0 !important',
+              }}
+              ref="individualSmsListGrid"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+}
+
+export class CreateCampaign extends Component {
   render() {
     return (
       <div className="">
@@ -398,6 +789,11 @@ export const CampaignView = ({
   setSmsCampaigns,
   smsCampaignLoading,
   allMembers,
+  allLeads,
+  individualSMS,
+  individualSMSLoading,
+  getIndividualSMS,
+  setIndividualSMS,
 }) =>
   emailCampaignsLoading ? (
     <ReactSpinner />
@@ -412,6 +808,7 @@ export const CampaignView = ({
           <EmailCampaignsList
             emailCampaigns={emailCampaigns}
             allMembers={allMembers}
+            allLeads={allLeads}
           />
         </div>
         <div className="taskContents">
@@ -420,6 +817,16 @@ export const CampaignView = ({
             fetchSmsCampaigns={fetchSmsCampaigns}
             setSmsCampaigns={setSmsCampaigns}
             allMembers={allMembers}
+          />
+        </div>
+        <div className="taskContents">
+          <IndividualSmsList
+            individualSMSLoading={individualSMSLoading}
+            individualSMS={individualSMS}
+            getIndividualSMS={getIndividualSMS}
+            setIndividualSMS={setIndividualSMS}
+            allMembers={allMembers}
+            allLeads={allLeads}
           />
         </div>
       </div>
@@ -435,16 +842,24 @@ export const CampaignContainer = compose(
   withHandlers({}),
   lifecycle({
     componentWillMount() {
+      if (this.props.allLeads.length === 0) {
+        this.props.fetchLeads();
+      }
       this.props.fetchEmailCampaigns({
         setEmailCampaigns: this.props.setEmailCampaigns,
       });
+      this.props.getIndividualSMS({
+        setIndividualSMS: this.props.setIndividualSMS,
+      });
     },
     componentWillReceiveProps(nextProps) {
-      if (this.props.pathname !== nextProps.pathname) {
+      /*      if (this.props.pathname !== nextProps.pathname) {
         this.props.fetchEmailCampaigns({
           setEmailCampaigns: this.props.setEmailCampaigns,
         });
+        this.props.getIndividualSMS({setIndividualSMS: this.props.setIndividualSMS});
       }
+*/
     },
     componentDidMount() {
       $('.content')

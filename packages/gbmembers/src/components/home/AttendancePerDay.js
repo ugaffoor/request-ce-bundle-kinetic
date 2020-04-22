@@ -32,16 +32,14 @@ export class AttendancePerDay extends Component {
   };
   constructor(props) {
     super(props);
-    let fromDate = moment().subtract(moment().day() - 1, 'days');
-    let toDate = moment();
+    let fromDate = this.props.fromDate;
+    let toDate = this.props.toDate;
     let attendances = this.props.attendancesByDate;
     let data = this.getData(attendances);
 
     this.renderAttendancesCustomizedLabel = this.renderAttendancesCustomizedLabel.bind(
       this,
     );
-    this.handleInputChange = this.handleInputChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
 
     this.state = {
       data: data,
@@ -54,7 +52,20 @@ export class AttendancePerDay extends Component {
   componentWillReceiveProps(nextProps) {
     if (nextProps.attendancesByDate) {
       this.setState({
-        data: this.getData(nextProps.attendancesByDate, this.state.dateRange),
+        data: this.getData(nextProps.attendancesByDate),
+      });
+    }
+    if (
+      nextProps.fromDate !== this.state.fromDate ||
+      nextProps.toDate !== this.state.toDate
+    ) {
+      this.setState({
+        fromDate: nextProps.fromDate,
+        toDate: nextProps.toDate,
+      });
+      this.props.fetchAttendancesByDate({
+        fromDate: nextProps.fromDate,
+        toDate: nextProps.toDate,
       });
     }
   }
@@ -65,7 +76,7 @@ export class AttendancePerDay extends Component {
     });
   }
 
-  getData(attendances, dateRange) {
+  getData(attendances) {
     if (!attendances || attendances.size <= 0) {
       return [];
     }
@@ -143,52 +154,6 @@ export class AttendancePerDay extends Component {
       </g>
     );
   };
-  handleInputChange(event) {
-    this.setState({
-      [event.target.name]: event.target.value,
-    });
-    if (event.target.name === 'dateRange') {
-      this.setState({
-        chartLabel: chartLabels[event.target.value],
-      });
-    }
-    if (event.target.name === 'dateRange' && event.target.value === 'custom') {
-      this.setState({
-        isShowCustom: true,
-        lastDateRange: this.state.dateRange,
-      });
-    }
-    if (event.target.name === 'dateRange' && event.target.value !== 'custom') {
-      let fromDate = null;
-      let toDate = null;
-
-      let dateRange = event.target.value;
-
-      if (dateRange === 'this_week') {
-        fromDate = moment().subtract(moment().day() - 1, 'days');
-        toDate = moment();
-      } else if (dateRange === 'last_week') {
-        toDate = moment().subtract(moment().day(), 'days');
-        fromDate = moment(toDate).subtract(6, 'days');
-      }
-
-      this.props.fetchAttendancesByDate({
-        fromDate: fromDate,
-        toDate: toDate,
-      });
-    }
-  }
-
-  handleSubmit() {
-    if (!this.state.fromDate || !this.state.toDate) {
-      console.log('From and To dates are required');
-      return;
-    } else {
-      this.setState({
-        data: this.getData(this.props.attendancesByDate, this.state.dateRange),
-      });
-    }
-  }
 
   xAxisTickFormatter(date) {
     return moment(date).format('ddd');
@@ -212,77 +177,9 @@ export class AttendancePerDay extends Component {
       <span>
         <div className="page-header attendancePerDay">
           <span className="header">
-            <span className="label">
-              Attendances By Date - {this.state.chartLabel}
-            </span>
-            <select
-              name="dateRange"
-              id="dateRange"
-              className="form-control input-sm"
-              value={this.state.dateRange}
-              onChange={e => this.handleInputChange(e)}
-            >
-              <option value="this_week">This Week</option>
-              <option value="last_week">Last Week</option>
-            </select>
+            <span className="label">Attendances</span>
           </span>
         </div>
-        {this.state.isShowCustom && (
-          <div className="customDatesContainer" onClose={this.handleClose}>
-            <div className="attendanceByDateDiv" onClose={this.handleClose}>
-              <div className="col-md-8">
-                <div className="row">
-                  <div className="form-group col-xs-2 mr-1">
-                    <label htmlFor="fromDate" className="control-label">
-                      From Date
-                    </label>
-                    <input
-                      type="date"
-                      name="fromDate"
-                      id="fromDate"
-                      className="form-control input-sm"
-                      required
-                      defaultValue={this.state.fromDate}
-                      onChange={e => this.handleInputChange(e)}
-                    />
-                  </div>
-                  <div className="form-group col-xs-2 mr-1">
-                    <label htmlFor="toDate" className="control-label">
-                      To Date
-                    </label>
-                    <input
-                      type="date"
-                      name="toDate"
-                      id="toDate"
-                      className="form-control input-sm"
-                      required
-                      defaultValue={this.state.toDate}
-                      onChange={e => this.handleInputChange(e)}
-                    />
-                  </div>
-                  <div className="form-group col-xs-2">
-                    <label className="control-label">&nbsp;</label>
-                    <button
-                      className="btn btn-primary form-control input-sm"
-                      onClick={e => this.handleClose()}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                  <div className="form-group col-xs-2">
-                    <label className="control-label">&nbsp;</label>
-                    <button
-                      className="btn btn-primary form-control input-sm"
-                      onClick={e => this.handleSubmit()}
-                    >
-                      Apply
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
         <div className="attendancesByDate">
           <ResponsiveContainer minHeight={370}>
             <BarChart

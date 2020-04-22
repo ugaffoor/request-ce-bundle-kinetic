@@ -1,4 +1,4 @@
-import { select, call, put, takeEvery } from 'redux-saga/effects';
+import { select, call, all, put, takeEvery } from 'redux-saga/effects';
 import { CoreAPI } from 'react-kinetic-core';
 import { types, actions } from '../modules/messaging';
 import { actions as errorActions, NOTICE_TYPES } from '../modules/errors';
@@ -257,15 +257,41 @@ export function* getIndividualSMS(action) {
     ]);
 
     let individualSMS = [];
-    for (let i = 0; i < submissions.length; i++) {
-      if (submissions[i].values['Type'] === 'Promotion') {
-        var content = JSON.parse(submissions[i].values['Content']);
-        content['Submitter'] = submissions[i].updatedBy;
-        promotionContent[promotionContent.length] = content;
-      }
+    for (let i = 0; i < memberActivities.submissions.length; i++) {
+      let contents = JSON.parse(
+        memberActivities.submissions[i].values['Content'],
+      );
+      individualSMS[individualSMS.length] = {
+        id: memberActivities.submissions[i].values['Member ID'],
+        Type: 'Member',
+        To: contents['To'],
+        Date: contents['Sent Date'],
+        Content: contents['Content'],
+      };
     }
+    for (let i = 0; i < leadActivities.submissions.length; i++) {
+      let contents = JSON.parse(
+        leadActivities.submissions[i].values['Content'],
+      );
+      individualSMS[individualSMS.length] = {
+        id: leadActivities.submissions[i].values['Lead ID'],
+        Type: 'Lead',
+        To: contents['To'],
+        Date: contents['Sent Date'],
+        Content: contents['Content'],
+      };
+    }
+    individualSMS = individualSMS.sort((a, b) => {
+      if (a['Date'] < b['Date']) {
+        return -1;
+      }
+      if (a['Date'] > b['Date']) {
+        return 1;
+      }
+      return 0;
+    });
 
-    yield put(action.payload.setMemberPromotions(promotionContent));
+    yield put(action.payload.setIndividualSMS(individualSMS));
   } catch (error) {
     console.log('Error in fetchMemberPromotions: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));

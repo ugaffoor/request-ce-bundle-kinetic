@@ -51,32 +51,49 @@ export class LeadsOriginChart extends Component {
   };
   constructor(props) {
     super(props);
-    let fromDate = moment().subtract(30, 'days');
-    let toDate = moment();
+    let fromDate = this.props.fromDate;
+    let toDate = this.props.toDate;
     let leads = this.props.leadsByDate;
-    let data = this.getData(leads, 'last_30_days');
+    this.state = {
+      fromDate: fromDate,
+      toDate: toDate,
+    };
+
+    let data = this.getData(leads);
 
     this.renderLeadsOriginCustomizedLabel = this.renderLeadsOriginCustomizedLabel.bind(
       this,
     );
-    this.handleInputChange = this.handleInputChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
 
     this.state = {
       data: data,
-      leadType: 'All Types',
-      dateRange: 'last_30_days',
       fromDate: fromDate,
       toDate: toDate,
-      chartLabel: 'Last 30 Days',
     };
   }
   componentWillReceiveProps(nextProps) {
     if (nextProps.leadsByDate) {
       this.setState({
-        data: this.getData(nextProps.leadsByDate, this.state.dateRange),
+        data: this.getData(nextProps.leadsByDate),
       });
     }
+    if (
+      nextProps.fromDate !== this.state.fromDate ||
+      nextProps.toDate !== this.state.toDate
+    ) {
+      this.setState({
+        fromDate: nextProps.fromDate,
+        toDate: nextProps.toDate,
+      });
+      this.setState({
+        data: this.getData(nextProps.leadsByDate),
+      });
+    }
+  }
+  componentWillMount() {
+    this.setState({
+      data: this.getData(this.state.leadsByDate),
+    });
   }
 
   getData(leads, dateRange) {
@@ -85,46 +102,9 @@ export class LeadsOriginChart extends Component {
     }
 
     let leadsByType = [];
-    let fromDate = null;
-    let toDate = null;
 
-    dateRange = dateRange ? dateRange : 'last_30_days';
-
-    if (dateRange === 'last_30_days') {
-      fromDate = moment().subtract('30', 'days');
-      toDate = moment();
-    } else if (dateRange === 'last_month') {
-      fromDate = moment()
-        .subtract(1, 'months')
-        .startOf('month');
-      toDate = moment()
-        .subtract(1, 'months')
-        .endOf('month');
-    } else if (dateRange === 'last_3_months') {
-      fromDate = moment()
-        .subtract(3, 'months')
-        .startOf('month');
-      toDate = moment()
-        .subtract(1, 'months')
-        .endOf('month');
-    } else if (dateRange === 'last_6_months') {
-      fromDate = moment()
-        .subtract(6, 'months')
-        .startOf('month');
-      toDate = moment()
-        .subtract(1, 'months')
-        .endOf('month');
-    } else if (dateRange === 'last_year') {
-      fromDate = moment()
-        .subtract(1, 'years')
-        .startOf('month');
-      toDate = moment()
-        .subtract(1, 'months')
-        .endOf('month');
-    } else if (dateRange === 'custom') {
-      fromDate = moment(this.state.fromDate, 'YYYY-MM-DD');
-      toDate = moment(this.state.toDate, 'YYYY-MM-DD');
-    }
+    let fromDate = moment(this.state.fromDate, 'YYYY-MM-DD');
+    let toDate = moment(this.state.toDate, 'YYYY-MM-DD');
 
     leads.forEach(lead => {
       let createdDate = moment(lead.createdAt, 'YYYY-MM-DDTHH:mm:ssZ');
@@ -175,44 +155,6 @@ export class LeadsOriginChart extends Component {
     );
   };
 
-  handleInputChange(event) {
-    this.setState({
-      [event.target.name]: event.target.value,
-    });
-    if (event.target.name === 'dateRange') {
-      this.setState({
-        chartLabel: chartLabels[event.target.value],
-      });
-    }
-    if (event.target.name === 'dateRange' && event.target.value === 'custom') {
-      this.setState({
-        isShowingModal: true,
-        lastDateRange: this.state.dateRange,
-      });
-    }
-    if (event.target.name === 'dateRange' && event.target.value !== 'custom') {
-      this.setState({
-        data: this.getData(this.props.leadsByDate, event.target.value),
-      });
-    }
-  }
-
-  handleSubmit() {
-    if (!this.state.fromDate || !this.state.toDate) {
-      console.log('From and To dates are required');
-      return;
-    } else {
-      this.setState({
-        data: this.getData(this.props.leadsByDate, this.state.dateRange),
-        isShowingModal: false,
-        chartLabel:
-          moment(this.state.fromDate, 'YYYY-MM-DD').format('DD/MM/YYYY') +
-          '-' +
-          moment(this.state.toDate, 'YYYY-MM-DD').format('DD/MM/YYYY'),
-      });
-    }
-  }
-
   render() {
     const { data } = this.state;
     return this.props.leadsByDateLoading ? (
@@ -224,81 +166,9 @@ export class LeadsOriginChart extends Component {
       <span>
         <div className="page-header leadsOrigin">
           <span className="header">
-            <span className="label">
-              Leads Conversion - {this.state.chartLabel}
-            </span>
-            <select
-              name="dateRange"
-              id="dateRange"
-              className="form-control input-sm"
-              value={this.state.dateRange}
-              onChange={e => this.handleInputChange(e)}
-            >
-              <option value="last_30_days">Last 30 Days</option>
-              <option value="last_month">Last Month</option>
-              <option value="last_3_months">Last 3 Months</option>
-              <option value="last_6_months">Last 6 Months</option>
-              <option value="last_year">Last Year</option>
-              <option value="custom">Custom</option>
-            </select>
+            <span className="label">Leads Conversion</span>
           </span>
         </div>
-        {this.state.isShowingModal && (
-          <div className="customDatesContainer" onClose={this.handleClose}>
-            <div className="leadsOriginDiv" onClose={this.handleClose}>
-              <div className="col-md-8">
-                <div className="row">
-                  <div className="form-group col-xs-2 mr-1">
-                    <label htmlFor="fromDate" className="control-label">
-                      From Date
-                    </label>
-                    <input
-                      type="date"
-                      name="fromDate"
-                      id="fromDate"
-                      className="form-control input-sm"
-                      required
-                      defaultValue={this.state.fromDate}
-                      onChange={e => this.handleInputChange(e)}
-                    />
-                  </div>
-                  <div className="form-group col-xs-2 mr-1">
-                    <label htmlFor="toDate" className="control-label">
-                      To Date
-                    </label>
-                    <input
-                      type="date"
-                      name="toDate"
-                      id="toDate"
-                      className="form-control input-sm"
-                      required
-                      defaultValue={this.state.toDate}
-                      onChange={e => this.handleInputChange(e)}
-                    />
-                  </div>
-                  <div className="form-group col-xs-2">
-                    <label className="control-label">&nbsp;</label>
-                    <button
-                      className="btn btn-primary form-control input-sm"
-                      onClick={e => this.handleClose()}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                  <div className="form-group col-xs-2">
-                    <label className="control-label">&nbsp;</label>
-                    <button
-                      className="btn btn-primary form-control input-sm"
-                      onClick={e => this.handleSubmit()}
-                    >
-                      Apply
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
         <ResponsiveContainer minHeight={370}>
           <PieChart maxWidth={600} height={370}>
             <Pie

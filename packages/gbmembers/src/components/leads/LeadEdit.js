@@ -87,7 +87,7 @@ export class LeadEdit extends Component {
             <div className="section1">
               <h3>Edit Lead</h3>
               <hr />
-              {
+              {/*
                 <div>
                   <label htmlFor="emailsReceivedCount">
                     emailsReceivedCount
@@ -111,7 +111,7 @@ export class LeadEdit extends Component {
                     }
                   />
                 </div>
-              }
+              */}
               <span className="line">
                 <div>
                   <label

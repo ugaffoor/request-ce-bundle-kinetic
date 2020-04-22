@@ -42,6 +42,7 @@ export class MemberActivityReport extends Component {
       { title: 'Additional Program 1', field: 'additionalProgram1' },
       { title: 'Additional Program 2', field: 'additionalProgram2' },
       { title: 'Billing User', field: 'billingUser' },
+      { title: 'Non Paying', field: 'nonPaying' },
       { title: 'Cost', field: 'cost', bottomCalc: 'sum' },
       { title: 'Average', field: 'average', bottomCalc: this.averageCostCalc },
       { title: 'Payment Period', field: 'paymentPeriod' },
@@ -91,6 +92,7 @@ export class MemberActivityReport extends Component {
       { label: 'Additional Program 1', value: 'additionalProgram1' },
       { label: 'Additional Program 2', value: 'additionalProgram2' },
       { label: 'Billing User', value: 'billingUser' },
+      { label: 'Non Paying', value: 'nonPaying' },
       { label: 'Cost', value: 'cost', key: 'cost' },
       { label: 'Average', value: 'average', key: 'cost' },
       { label: 'Payment Period', value: 'paymentPeriod' },
@@ -147,6 +149,7 @@ export class MemberActivityReport extends Component {
         label: 'Billing Columns',
         options: [
           { label: 'Billing User', value: 'billingUser' },
+          { label: 'Non Paying', value: 'nonPaying' },
           { label: 'Last Payment Date', value: 'lastPaymentDate' },
           { label: 'Cost', value: 'cost' },
           { label: 'Average', value: 'average' },
@@ -185,6 +188,7 @@ export class MemberActivityReport extends Component {
       { label: 'Additional Program 1', value: 'additionalProgram1' },
       { label: 'Additional Program 2', value: 'additionalProgram2' },
       { label: 'Billing User', value: 'billingUser' },
+      { label: 'Non Paying', value: 'nonPaying' },
       { label: 'Cost', value: 'cost', key: 'cost' },
       { label: 'Average', value: 'average', key: 'cost' },
       { label: 'Payment Period', value: 'paymentPeriod' },
@@ -207,6 +211,7 @@ export class MemberActivityReport extends Component {
       gender: ['Male', 'Female'],
       status: this.props.memberStatusValues,
       billingUser: ['YES', 'NO'],
+      nonPaying: ['YES'],
       memberType: this.props.membershipTypes.map(type => type.type),
       program: this.props.programs.map(program => program.program),
       additionalProgram1: this.props.additionalPrograms.map(
@@ -689,8 +694,15 @@ export class MemberActivityReport extends Component {
       return <span />;
     }
     var notes = JSON.parse(props.cell.getValue());
-
-    const value = notes[notes.length - 1]['note'];
+    notes.sort(function(a, b) {
+      if (a['contactDate'] > b['contactDate']) {
+        return -1;
+      } else if (a['contactDate'] < b['contactDate']) {
+        return 1;
+      }
+      return 0;
+    });
+    const value = notes.length > 0 ? notes[0]['note'] : '';
     return (
       <span className="firstNote">
         <div
@@ -755,6 +767,7 @@ export class MemberActivityReport extends Component {
         additionalProgram1: member.values['Additional Program 1'],
         additionalProgram2: member.values['Additional Program 2'],
         billingUser: member.values['Billing User'] === 'YES' ? 'YES' : 'NO',
+        nonPaying: member.values['Non Paying'] === 'YES' ? 'YES' : '',
         cost:
           member.values['Billing User'] === 'YES'
             ? member.values['Membership Cost']
@@ -1000,6 +1013,14 @@ export class MemberActivityReport extends Component {
       $(holderEl).addClass('report-sub-table');
       holderEl.appendChild(tableEl);
       var history = JSON.parse(row.getData()['history']);
+      history.sort(function(a, b) {
+        if (a['contactDate'] > b['contactDate']) {
+          return -1;
+        } else if (a['contactDate'] < b['contactDate']) {
+          return 1;
+        }
+        return 0;
+      });
       for (var i = 0; i < history.length; i++) {
         history[i]['contactDate'] = moment(history[i]['contactDate']).format(
           'DD-MM-YYYY HH:mm',

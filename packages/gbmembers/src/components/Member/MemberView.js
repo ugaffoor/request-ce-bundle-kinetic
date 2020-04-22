@@ -9,7 +9,7 @@ import {
 } from 'recompose';
 import { actions } from '../../redux/modules/members';
 import addressIcon from '../../images/Address.svg?raw';
-import phoneIcon from '../../images/Phone.svg?raw';
+import phoneIcon from '../../images/phone.svg?raw';
 import emailIcon from '../../images/E-mail.svg?raw';
 import dobIcon from '../../images/Birthday.svg?raw';
 import aidIcon from '../../images/Emergency.svg?raw';
@@ -33,6 +33,7 @@ import { CallScriptModalContainer } from './CallScriptModalContainer';
 import { SMSModalContainer } from './SMSModalContainer';
 import { EmailsReceived } from './EmailsReceived';
 import { MemberEmails } from './MemberEmails';
+import { MemberSMS } from './MemberSMS';
 import { MemberViewNotes } from './MemberViewNotes';
 import { GradingStatus } from '../attendance/GradingStatus';
 import { AttendanceDialogContainer } from '../attendance/AttendanceDialog';
@@ -654,7 +655,6 @@ export const MemberView = ({
                       width={1.3}
                       height={30}
                       displayValue={false}
-                      type={'CODE128'}
                     />
                   </div>
                   <ReactToPrint
@@ -879,6 +879,9 @@ export const MemberView = ({
             <EmailsReceived submission={memberItem} />
           </div>
           <div>
+            <MemberSMS memberItem={memberItem} />
+          </div>
+          <div>
             <Requests submission={memberItem} />
           </div>
           {/*      <div>
@@ -911,7 +914,13 @@ export const MemberViewContainer = compose(
   withState('attendClasses', 'setAttendClasses', 0),
   withState('durationPeriod', 'setDurationPeriod', 0),
   withHandlers({
-    saveMember: ({ memberItem, updateMember, setIsDirty, profile }) => () => {
+    saveMember: ({
+      memberItem,
+      updateMember,
+      setIsDirty,
+      profile,
+      allMembers,
+    }) => () => {
       let note = $('#memberNote').val();
       if (!note) {
         return;
@@ -934,6 +943,13 @@ export const MemberViewContainer = compose(
         id: memberItem.id,
         memberItem,
       });
+      for (let i = 0; i < allMembers.length; i++) {
+        if (allMembers[i].id === memberItem.id) {
+          allMembers[i].values['Notes History'] = JSON.stringify(notesHistory);
+          break;
+        }
+      }
+
       $('#memberNote').val('');
       setIsDirty(false);
     },

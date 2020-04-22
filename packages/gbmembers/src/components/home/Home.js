@@ -88,6 +88,12 @@ export const HomeView = ({
   monthlyStatistics,
   fetchMonthlyStatistics,
   fetchingMonthlyStatistics,
+  datesChanged,
+  setFromDate,
+  setToDate,
+  fromDate,
+  toDate,
+  setIsAssigning,
 }) => (
   <div className="dashboard">
     <StatusMessagesContainer />
@@ -139,6 +145,12 @@ export const HomeView = ({
         </div>
       ))*/}
     <Statistics
+      setIsAssigning={setIsAssigning}
+      setFromDate={setFromDate}
+      setToDate={setToDate}
+      fromDate={fromDate}
+      toDate={toDate}
+      datesChanged={datesChanged}
       leadsByDate={leadsByDate}
       fetchLeadsByDate={fetchLeadsByDate}
       leadsByDateLoading={leadsByDateLoading}
@@ -151,6 +163,8 @@ export const HomeView = ({
         </div>
         <div className="col2 chart7">
           <AttendancePerDay
+            fromDate={fromDate}
+            toDate={toDate}
             attendancesByDate={attendancesByDate}
             fetchAttendancesByDate={fetchAttendancesByDate}
             fetchingAttendancesByDate={fetchingAttendancesByDate}
@@ -163,6 +177,8 @@ export const HomeView = ({
         </div>
         <div className="col2 chart6">
           <LeadsOriginChart
+            fromDate={fromDate}
+            toDate={toDate}
             leadsByDate={leadsByDate}
             fetchLeadsByDate={fetchLeadsByDate}
             leadsByDateLoading={leadsByDateLoading}
@@ -193,6 +209,8 @@ export const HomeContainer = compose(
     return {};
   }),
   withState('isAssigning', 'setIsAssigning', false),
+  withState('fromDate', 'setFromDate', moment().subtract(7, 'days')),
+  withState('toDate', 'setToDate', moment()),
   withHandlers({
     getBillingPayments: ({
       memberItem,
@@ -263,6 +281,11 @@ export const HomeContainer = compose(
         addNotification: addNotification,
         setSystemError: setSystemError,
       });
+    },
+    datesChanged: () => (setFromDate, setToDate, fromDate, toDate) => {
+      console.log('datesChanged');
+      setFromDate(fromDate);
+      setToDate(toDate);
     },
     reloadCharts: () => (
       profile,
