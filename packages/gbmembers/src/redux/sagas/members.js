@@ -1502,7 +1502,7 @@ export function* createBillingMembers(action) {
       memberItem.values['DDR Status'] = 'Pending';
 
       newMembers[newMembers.length] = memberItem;
-      //      yield put(actions.createMember({ memberItem, showNotification: false }));
+      yield put(actions.createMember({ memberItem, showNotification: false }));
       newMemberAdded = true;
     } else if (submissions && submissions.length === 1) {
       memberItem.values = submissions[0].values;
@@ -1560,12 +1560,12 @@ export function* createBillingMembers(action) {
       }
       if (changeMade) {
         memberItem.id = submissions[0].id;
-        /*      yield put(
+        yield put(
           actions.updateMember({
             id: memberItem.id,
             memberItem: memberItem,
           }),
-        );*/
+        );
       }
     }
   }
