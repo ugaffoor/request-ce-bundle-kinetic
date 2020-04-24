@@ -1506,66 +1506,76 @@ export function* createBillingMembers(action) {
       newMemberAdded = true;
     } else if (submissions && submissions.length === 1) {
       memberItem.values = submissions[0].values;
-      let changeMade = false;
-      if (customer.status !== memberItem.values['Status']) {
-        memberItem.values['Status'] = customer.status;
-        let history = getJson(memberItem.values['Status History']);
-        let newHistory = {
-          submitter: action.payload.appSettings.profile.displayName,
-          date: moment().toString(),
-          status: customer.status,
-        };
-        history.push(newHistory);
-        memberItem.values['Status History'] = history;
-        changeMade = true;
-      }
-
-      if (memberItem.values['Billing User'] !== 'YES') {
-        memberItem.values['Billing User'] = 'YES';
-        changeMade = true;
-      }
-      if (
-        memberItem.values['Billing Payment Type'] !== customer.paymentMethod
-      ) {
-        memberItem.values['Billing Payment Type'] = customer.paymentMethod;
-        changeMade = true;
-      }
-      if (
-        memberItem.values['Billing Payment Period'] !== customer.billingPeriod
-      ) {
-        memberItem.values['Billing Payment Period'] = customer.billingPeriod;
-        changeMade = true;
-      }
-      if (
-        parseInt(memberItem.values['Membership Cost']) !==
-        customer.billingAmount
-      ) {
-        memberItem.values['Payment Schedule'] = {
-          period: customer.billingPeriod,
-          amount: customer.billingAmount,
-        };
-        memberItem.values['Membership Cost'] = customer.billingAmount;
-        changeMade = true;
-      }
-      if (memberItem.values['DOB'].indexOf('-') === 2) {
-        memberItem.values['DOB'] = customer.dob;
-        changeMade = true;
-      }
-      if (
-        memberItem.values['Date Joined'] === undefined ||
-        memberItem.values['Date Joined'] === null
-      ) {
-        memberItem.values['Date Joined'] = customer.contractStartDate;
-        changeMade = true;
-      }
-      if (changeMade) {
-        memberItem.id = submissions[0].id;
-        yield put(
-          actions.updateMember({
-            id: memberItem.id,
-            memberItem: memberItem,
-          }),
+      if (memberItem.values['Non Paying'] === 'YES') {
+        console.log(
+          'Non Paying :' +
+            memberItem.values['First Name'] +
+            ' ' +
+            memberItem.values['Last Name'],
         );
+        //Ignore
+      } else {
+        let changeMade = false;
+        if (customer.status !== memberItem.values['Status']) {
+          memberItem.values['Status'] = customer.status;
+          let history = getJson(memberItem.values['Status History']);
+          let newHistory = {
+            submitter: action.payload.appSettings.profile.displayName,
+            date: moment().toString(),
+            status: customer.status,
+          };
+          history.push(newHistory);
+          memberItem.values['Status History'] = history;
+          changeMade = true;
+        }
+
+        if (memberItem.values['Billing User'] !== 'YES') {
+          memberItem.values['Billing User'] = 'YES';
+          changeMade = true;
+        }
+        if (
+          memberItem.values['Billing Payment Type'] !== customer.paymentMethod
+        ) {
+          memberItem.values['Billing Payment Type'] = customer.paymentMethod;
+          changeMade = true;
+        }
+        if (
+          memberItem.values['Billing Payment Period'] !== customer.billingPeriod
+        ) {
+          memberItem.values['Billing Payment Period'] = customer.billingPeriod;
+          changeMade = true;
+        }
+        if (
+          parseInt(memberItem.values['Membership Cost']) !==
+          customer.billingAmount
+        ) {
+          memberItem.values['Payment Schedule'] = {
+            period: customer.billingPeriod,
+            amount: customer.billingAmount,
+          };
+          memberItem.values['Membership Cost'] = customer.billingAmount;
+          changeMade = true;
+        }
+        if (memberItem.values['DOB'].indexOf('-') === 2) {
+          memberItem.values['DOB'] = customer.dob;
+          changeMade = true;
+        }
+        if (
+          memberItem.values['Date Joined'] === undefined ||
+          memberItem.values['Date Joined'] === null
+        ) {
+          memberItem.values['Date Joined'] = customer.contractStartDate;
+          changeMade = true;
+        }
+        if (changeMade) {
+          memberItem.id = submissions[0].id;
+          yield put(
+            actions.updateMember({
+              id: memberItem.id,
+              memberItem: memberItem,
+            }),
+          );
+        }
       }
     }
   }

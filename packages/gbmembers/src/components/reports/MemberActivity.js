@@ -522,7 +522,7 @@ export class MemberActivityReport extends Component {
   dateRangeFilter = (data, params) => {
     let startDate = moment(params.startDate, 'YYYY-MM-DD');
     let endDate = moment(params.endDate, 'YYYY-MM-DD');
-    let dateVal = moment(data[params.field], 'YYYY-MM-DDTHH:mm:ss.SSSZ');
+    let dateVal = moment(data[params.field], 'DD-MM-YYYY HH:mm');
     return (
       dateVal.isSameOrAfter(startDate, 'day') &&
       dateVal.isSameOrBefore(endDate, 'day')
@@ -748,7 +748,7 @@ export class MemberActivityReport extends Component {
     members.forEach(member => {
       memberActivityData.push({
         id: member['id'],
-        createdDate: member['createdAt'],
+        createdDate: moment(member['createdAt']).format('DD-MM-YYYY HH:mm'),
         lastModifiedDate: moment(member['updatedAt']).format(
           'DD-MM-YYYY HH:mm',
         ),
