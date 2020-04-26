@@ -23,7 +23,7 @@ import { App } from './App';
 const history = createHashHistory();
 
 // Create the redux store with the configureStore helper found in redux/store.js
-const store = configureStore(history);
+export const store = configureStore(history);
 
 const authInterceptor = new AuthInterceptor(
   store,

@@ -16,7 +16,7 @@ const mapStateToProps = state => ({
       ),
   isOpen: state.queue.queue.newItemMenuOpen,
   options: state.queue.queue.newItemMenuOptions,
-  assignments: selectAssignments(state).toJS(),
+  allTeams: state.queue.queueApp.allTeams,
   kappSlug: state.app.config.kappSlug,
 });
 
@@ -69,10 +69,7 @@ const onCreated = ({ options, fetchCurrentItem, closeNewItemMenu }) => (
 };
 
 export const NewItemMenuContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withState('currentAssignment', 'setAssignment', null),
   withState('currentForm', 'setCurrentForm', null),
   withState('kForm', 'setKForm', null),
@@ -84,6 +81,7 @@ export const NewItemMenuContainer = compose(
     return {
       assignmentRequired:
         !assignmentType || assignmentType.toLowerCase() !== 'none',
+      assignments: selectAssignments(props.allTeams, props.currentForm).toJS(),
     };
   }),
   withHandlers({

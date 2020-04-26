@@ -8,6 +8,7 @@ import { PageTitle } from 'common';
 
 import { DatastoreForm } from '../../../records';
 import { actions } from '../../../redux/modules/settingsDatastore';
+import { I18n } from '../../../../../app/src/I18nProvider';
 
 const CreateDatastoreComponent = ({
   spaceAdmin,
@@ -26,20 +27,35 @@ const CreateDatastoreComponent = ({
       <div className="page-title">
         <div className="page-title__wrapper">
           <h3>
-            <Link to="/">home</Link> /{` `}
-            <Link to="/settings">settings</Link> /{` `}
-            <Link to={`/settings/datastore/`}>datastore</Link> /{` `}
+            <Link to="/">
+              <I18n>home</I18n>
+            </Link>{' '}
+            /{` `}
+            <Link to="/settings">
+              <I18n>settings</I18n>
+            </Link>{' '}
+            /{` `}
+            <Link to={`/settings/datastore/`}>
+              <I18n>datastore</I18n>
+            </Link>{' '}
+            /{` `}
           </h3>
-          <h1>New Datastore</h1>
+          <h1>
+            <I18n>New Datastore Form</I18n>
+          </h1>
         </div>
       </div>
       <div className="datastore-settings">
-        <h3 className="section__title">General Settings</h3>
-        <div className="settings">
+        <h3 className="section__title">
+          <I18n>General Settings</I18n>
+        </h3>
+        <div className="settings form">
           <div className="form-row">
             <div className="col">
               <div className="form-group required">
-                <label htmlFor="name">Datastore Name</label>
+                <label htmlFor="name">
+                  <I18n>Datastore Name</I18n>
+                </label>
                 <input
                   id="name"
                   name="name"
@@ -51,7 +67,9 @@ const CreateDatastoreComponent = ({
             </div>
             <div className="col">
               <div className="form-group required">
-                <label htmlFor="slug">Datastore Slug</label>
+                <label htmlFor="slug">
+                  <I18n>Datastore Slug</I18n>
+                </label>
                 <input
                   id="slug"
                   name="slug"
@@ -66,7 +84,10 @@ const CreateDatastoreComponent = ({
           </div>
           <div className="form-group">
             <label htmlFor="name">
-              Datastore Description <small>(optional)</small>
+              <I18n>Datastore Description</I18n>{' '}
+              <small>
+                <I18n>(optional)</I18n>
+              </small>
             </label>
             <textarea
               id="description"
@@ -79,27 +100,35 @@ const CreateDatastoreComponent = ({
               name="description"
             />
           </div>
-          <div className="pull-right">
-            <Link to="/datastore" className="btn btn-link">
-              Cancel
-            </Link>
-            <button
-              disabled={newForm.name === '' || newForm.slug === '' || creating}
-              type="button"
-              onClick={handleSave()}
-              className="btn btn-secondary ml-3"
-            >
-              Create Form
-            </button>
+          <div className="form__footer">
+            <div className="form__footer__right">
+              <Link to="/settings/datastore" className="btn btn-link mb-0">
+                <I18n>Cancel</I18n>
+              </Link>
+              <button
+                disabled={
+                  newForm.name === '' || newForm.slug === '' || creating
+                }
+                type="button"
+                onClick={handleSave()}
+                className="btn btn-secondary"
+              >
+                <I18n>Create Datastore Form</I18n>
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
     <div className="page-panel page-panel--one-thirds page-panel--transparent page-panel--sidebar page-panel--datastore-sidebar">
-      <h3>New Datastore</h3>
+      <h3>
+        <I18n>New Datastore Form</I18n>
+      </h3>
       <p>
-        Creating a new Datastore will create a new Kinetic Request datastore
-        form to be used for storing data.
+        <I18n>
+          Creating a new Datastore will create a new Kinetic Request datastore
+          form to be used for storing data.
+        </I18n>
       </p>
       {/*<p>
         <strong>Bridge Name:</strong> Select the Kinetic Core bridge to allow
@@ -148,10 +177,7 @@ export const mapDispatchToProps = {
 };
 
 export const CreateDatastore = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withState('newForm', 'setNewForm', DatastoreForm()),
   withState('creating', 'setCreating', false),
   withHandlers({

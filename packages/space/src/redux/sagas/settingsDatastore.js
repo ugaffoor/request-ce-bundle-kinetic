@@ -1,4 +1,3 @@
-import axios from 'axios';
 import {
   call,
   put,
@@ -9,7 +8,7 @@ import {
   throttle,
 } from 'redux-saga/effects';
 import { delay } from 'redux-saga';
-import { CoreAPI, bundle } from 'react-kinetic-core';
+import { CoreAPI } from 'react-kinetic-core';
 import { fromJS, Seq, Map, List } from 'immutable';
 import { push } from 'connected-react-router';
 
@@ -31,25 +30,8 @@ import { DatastoreFormSave } from '../../records';
 
 import { chunkList } from '../../utils';
 
-// Implement fetchBridges api call for CE v5
-const fetchBridges = (options = {}) => {
-  return axios
-    .get(`${bundle.spaceLocation()}/app/components/agent/app/api/v1/bridges`)
-    .then(response => ({ bridges: response.data.bridges }))
-    .catch(e => {
-      if (e instanceof Error && !e.response) throw e;
-      const { data = {}, status: statusCode, statusText: msg } = e.response;
-      const { errorKey: key = null, message = data.error, ...rest } = data;
-      const type = types[statusCode];
-      const result = { ...rest, message: message || msg, key, statusCode };
-      if (type) result[type] = true;
-      return { error: result };
-    });
-};
-
 export function* fetchFormsSaga() {
-  const isPlatform = yield select(state => state.app.config.isPlatform);
-  const [displayableForms, manageableForms, space, bridges] = yield all([
+  const [displayableForms, manageableForms, space] = yield all([
     call(CoreAPI.fetchForms, {
       datastore: true,
       include: FORMS_INCLUDES,
@@ -58,12 +40,6 @@ export function* fetchFormsSaga() {
       datastore: true,
       manage: 'true',
     }),
-    !isPlatform
-      ? call(CoreAPI.fetchSpace, {
-          include: SPACE_INCLUDES,
-        })
-      : null,
-    isPlatform ? call(fetchBridges) : null,
     call(CoreAPI.fetchSpace, {
       include: SPACE_INCLUDES,
     }),
@@ -77,10 +53,7 @@ export function* fetchFormsSaga() {
     actions.setForms({
       manageableForms: manageableFormsSlugs,
       displayableForms: displayableForms.forms || [],
-      bridges:
-        (space && space.space && space.space.bridges) ||
-        (bridges && bridges.bridges) ||
-        [],
+      bridges: space.space ? space.space.bridges : [],
     }),
   );
 }
@@ -459,7 +432,7 @@ export function* cloneSubmissionSaga(action) {
     errors,
     serverError,
   } = yield call(CoreAPI.fetchSubmission, {
-    id: action.payload,
+    id: action.payload.id,
     include,
     datastore: true,
   });
@@ -510,6 +483,10 @@ export function* cloneSubmissionSaga(action) {
       yield put(actions.cloneSubmissionErrors(postErrors));
     } else {
       yield put(actions.cloneSubmissionSuccess());
+      yield put(toastActions.addSuccess('Submission Cloned'));
+      if (typeof action.payload.callback === 'function') {
+        action.payload.callback();
+      }
       yield put(push(`/settings/datastore/${form.slug}/${cloneSubmission.id}`));
     }
   }
@@ -527,6 +504,7 @@ export function* deleteSubmissionSaga(action) {
     yield put(actions.deleteSubmissionErrors(errors));
   } else {
     yield put(actions.deleteSubmissionSuccess());
+    yield put(toastActions.addSuccess('Submission Deleted'));
     if (typeof action.payload.callback === 'function') {
       action.payload.callback();
     }
@@ -605,6 +583,10 @@ export function* deleteAllSubmissionsSaga(action) {
 export function* executeImportSaga(action) {
   const { form, records, recordsLength } = action.payload;
   let recordsChunk = null;
+  // This variable keeps the current row number for use with error display.
+  let currentRecordCount = action.currentRecordCount
+    ? action.currentRecordCount
+    : 0;
   const CHUNK_SIZE = 10;
 
   // abstract chunking requirement from function call.
@@ -641,11 +623,34 @@ export function* executeImportSaga(action) {
       .toJS(),
   );
 
-  for (let x = 0; x < responses.length; x++) {
-    const { serverError, errors } = responses[x];
+  // for (let x = 0; x < responses.length; x++) {
+  //   currentRecordCount++;
+  //   const { serverError, errors } = responses[x];
+  //   // Not handling nonconforming errors from CoreAPI.
+  //   if (serverError || errors) {
+  //     const failedRow = {
+  //       rowNumber: currentRecordCount,
+  //       errors: errors ? errors : [serverError.statusText],
+  //     };
+  //     yield put(actions.setImportFailedCall(failedRow));
+  //   }
+  // }
+
+  const errorsArray = responses.reduce((acc, response) => {
+    currentRecordCount++;
+    const { serverError, errors } = response;
+
+    // Not handling nonconforming errors from CoreAPI.
     if (serverError || errors) {
-      yield put(actions.setImportFailedCall(errors ? errors : serverError));
+      acc.push({
+        rowNumber: currentRecordCount,
+        errors: errors ? errors : [serverError.statusText],
+      });
     }
+    return acc;
+  }, []);
+  if (errorsArray.length > 0) {
+    yield put(actions.setImportFailedCalls(errorsArray));
   }
 
   if (tail.size > 0) {
@@ -656,6 +661,7 @@ export function* executeImportSaga(action) {
         records: tail,
       },
       beenChunked: true,
+      currentRecordCount,
     });
   } else {
     yield put(actions.setImportComplete());

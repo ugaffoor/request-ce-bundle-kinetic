@@ -1,12 +1,11 @@
 import React from 'react';
 import { compose, shouldUpdate } from 'recompose';
 import { connect } from 'react-redux';
-import Avatar from 'react-avatar';
+import { Avatar } from 'common';
 import moment from 'moment';
 import Markdown from 'react-markdown';
 import { bundle } from 'react-kinetic-core';
 import { ParticipantCard } from './ParticipantCard';
-import { Hoverable } from 'common';
 
 const AVAILABLE_ICONS = [
   'avi',
@@ -99,34 +98,27 @@ export const MessagesGroup = ({ messages, profile, discussionServerUrl }) => (
     }`}
   >
     {messages.first().user.email !== profile.email && (
-      <Hoverable
+      <Avatar
         key={messages.first().user.id}
-        render={() => <ParticipantCard participant={messages.first().user} />}
-      >
-        <Avatar
-          size={36}
-          email={messages.first().user.email}
-          name={messages.first().user.name}
-          round
-        />
-      </Hoverable>
+        size={36}
+        username={messages.first().user.email}
+      />
     )}
 
     <div className="message-list">
-      {messages.map(
-        message =>
-          message.messageable_type === 'Upload' ? (
-            <UploadMessage
-              key={message.id}
-              message={message}
-              discussionServerUrl={discussionServerUrl}
-              messageOwner={
-                messages.first().user.email === profile.email ? 'mine' : 'other'
-              }
-            />
-          ) : (
-            <TextMessage key={message.id} message={message} />
-          ),
+      {messages.map(message =>
+        message.messageable_type === 'Upload' ? (
+          <UploadMessage
+            key={message.id}
+            message={message}
+            discussionServerUrl={discussionServerUrl}
+            messageOwner={
+              messages.first().user.email === profile.email ? 'mine' : 'other'
+            }
+          />
+        ) : (
+          <TextMessage key={message.id} message={message} />
+        ),
       )}
       <div className="meta">
         <span className="author">

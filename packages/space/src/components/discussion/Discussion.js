@@ -1,11 +1,11 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { compose, withState, lifecycle } from 'recompose';
+import { compose } from 'recompose';
 import { Link } from 'react-router-dom';
 import { Utils, PageTitle } from 'common';
 import { bundle } from 'react-kinetic-core';
 import { Discussion as KinopsDiscussion } from 'discussions';
-import { commonActions } from 'common';
+import { I18n } from '../../../../app/src/I18nProvider';
 
 const buildRelatedItem = issue => {
   const tagList = issue.tag_list;
@@ -55,7 +55,7 @@ const buildRelatedItemLink = (relatedItem, profile) => {
   return (
     link && (
       <a className="btn btn-inverse btn-sm related-link ml-3" href={link}>
-        {label}
+        <I18n>{label}</I18n>
       </a>
     )
   );
@@ -70,7 +70,10 @@ export const DiscussionComponent = ({
   <div className="discussion-wrapper">
     <PageTitle parts={[discussionName, 'Discussions']} />
     <div className="subheader">
-      <Link to={'/'}>home</Link> / {discussionName}
+      <Link to={'/'}>
+        <I18n>home</I18n>
+      </Link>{' '}
+      / {discussionName}
       {relatedItem && buildRelatedItemLink(relatedItem, profile)}
     </div>
     {discussionId ? (
@@ -78,13 +81,15 @@ export const DiscussionComponent = ({
         discussionId={discussionId}
         renderClose={() => (
           <Link to={`/`} className="btn btn-link">
-            Close
+            <I18n>Close</I18n>
           </Link>
         )}
       />
     ) : (
       <div className="empty-discussion">
-        <h6>No discussion to display</h6>
+        <h6>
+          <I18n>No discussion to display</I18n>
+        </h6>
       </div>
     )}
   </div>
@@ -97,7 +102,6 @@ const mapStateToProps = (state, props) => {
   );
 
   return {
-    sidebarOpen: state.app.layout.sidebarOpen,
     profile: state.app.profile,
     discussionId: props.match.params.id,
     discussionName:
@@ -107,26 +111,6 @@ const mapStateToProps = (state, props) => {
   };
 };
 
-const mapDispatchToProps = {
-  setSidebarOpen: commonActions.setSidebarOpen,
-};
-
-export const Discussion = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
-  withState('sidebarWasOpen', '_', true, props => props.sidebarOpen),
-  lifecycle({
-    componentWillMount() {
-      if (this.props.sidebarWasOpen) {
-        this.props.setSidebarOpen(false);
-      }
-    },
-    componentWillUnmount() {
-      if (this.props.sidebarWasOpen) {
-        this.props.setSidebarOpen(true);
-      }
-    },
-  }),
-)(DiscussionComponent);
+export const Discussion = compose(connect(mapStateToProps))(
+  DiscussionComponent,
+);

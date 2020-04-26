@@ -2,6 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { compose, withHandlers } from 'recompose';
 import { actions } from '../../redux/modules/filterMenu';
+import { I18n } from '../../../../app/src/I18nProvider';
 
 export const CreatedByMe = ({ filter, toggleCreatedByMeHandler }) => (
   <button
@@ -9,7 +10,9 @@ export const CreatedByMe = ({ filter, toggleCreatedByMeHandler }) => (
     className="btn btn-link icon-wrapper"
     onClick={toggleCreatedByMeHandler}
   >
-    <span className="button-title">Created By Me</span>
+    <span className="button-title">
+      <I18n>Created By Me</I18n>
+    </span>
     <span>
       <input
         type="checkbox"
@@ -23,12 +26,9 @@ export const CreatedByMe = ({ filter, toggleCreatedByMeHandler }) => (
 );
 
 export const CreatedByMeContainer = compose(
-  connect(
-    null,
-    {
-      toggleCreatedByMe: actions.toggleCreatedByMe,
-    },
-  ),
+  connect(null, {
+    toggleCreatedByMe: actions.toggleCreatedByMe,
+  }),
   withHandlers({
     toggleCreatedByMeHandler: props => event =>
       props.toggleCreatedByMe(!props.filter.createdByMe),

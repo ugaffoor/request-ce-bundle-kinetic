@@ -7,13 +7,20 @@ import { List } from 'immutable';
 import moment from 'moment';
 import wallyHappyImage from 'common/src/assets/images/wally-happy.svg';
 import { Alert } from './Alert';
+import { I18n } from '../../../../app/src/I18nProvider';
 
 const WallyEmptyMessage = ({ canEdit }) => {
   return (
     <div className="empty-state empty-state--wally">
-      <h5>No Alerts Right Now...</h5>
+      <h5>
+        <I18n>No Alerts Right Now...</I18n>
+      </h5>
       <img src={wallyHappyImage} alt="Happy Wally" />
-      {canEdit && <h6>Add an alert by hitting the new button!</h6>}
+      {canEdit && (
+        <h6>
+          <I18n>Add an alert by hitting the new button!</I18n>
+        </h6>
+      )}
     </div>
   );
 };
@@ -29,41 +36,54 @@ const AlertsComponent = ({ alerts, loading, match, error, canEdit }) => {
           <div className="page-title">
             <div className="page-title__wrapper">
               <h3>
-                <Link to="/">home</Link> /
+                <Link to="/">
+                  <I18n>home</I18n>
+                </Link>{' '}
+                /
               </h3>
-              <h1>Alerts</h1>
+              <h1>
+                <I18n>Alerts</I18n>
+              </h1>
             </div>
             {canEdit && (
               <Link to="/alerts/new" className="btn btn-secondary">
-                Create New Alert
+                <I18n>New Alert</I18n>
               </Link>
             )}
           </div>
-          {error && <h3>There was a problem loading the alerts.</h3>}
+          {error && (
+            <h3>
+              <I18n>There was a problem loading the alerts.</I18n>
+            </h3>
+          )}
           <div className="page-content  page-content--space-alerts">
-            {!error &&
-              alerts.size <= 0 && <WallyEmptyMessage canEdit={canEdit} />}
-            {!error &&
-              alerts.size > 0 && (
-                <table className="table table--alerts">
-                  <thead>
-                    <tr>
-                      <th width="25%">Title</th>
-                      <th width="65%">Description</th>
-                      {canEdit && <th width="10%">Actions</th>}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {alerts.map(alert => (
-                      <Alert
-                        key={alert.id}
-                        alert={alert}
-                        active={alert.id === selectedAlert}
-                      />
-                    ))}
-                  </tbody>
-                </table>
-              )}
+            {!error && alerts.size <= 0 && (
+              <WallyEmptyMessage canEdit={canEdit} />
+            )}
+            {!error && alerts.size > 0 && (
+              <table className="table table--alerts">
+                <thead>
+                  <tr>
+                    <th scope="col">
+                      <I18n>Title</I18n>
+                    </th>
+                    <th scope="col" width="50%">
+                      <I18n>Description</I18n>
+                    </th>
+                    {canEdit && <th width="10%" />}
+                  </tr>
+                </thead>
+                <tbody>
+                  {alerts.map(alert => (
+                    <Alert
+                      key={alert.id}
+                      alert={alert}
+                      active={alert.id === selectedAlert}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       )}
@@ -97,10 +117,7 @@ export const mapDispatchToProps = {
 };
 
 export const Alerts = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
     componentWillMount() {
       this.props.fetchAlerts();

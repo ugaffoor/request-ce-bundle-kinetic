@@ -6,12 +6,11 @@
 
 /// Accessibility
 // You forgot the 'alt' attribute
-.ql-editor {
-  img[alt=''],
-  img:not([alt]) {
-    border: 5px dashed #c00;
-  }
+img[alt=''],
+img:not([alt]) {
+  border: 5px dashed #c00;
 }
+
 input,
 textarea {
   font-size: initial;
@@ -174,4 +173,31 @@ textarea {
 
 .notifications-tabs .nav-tabs {
   margin-bottom: 1rem;
+}
+
+.dropzone {
+  display: flex;
+  justify-content: center;
+  .fa {
+    color: $black-50;
+  }
+  &__area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border: 2px dashed $black-16;
+    border-radius: 0.5rem;
+    flex: 0 1 50%;
+    padding: 2rem;
+    &--disabled {
+      border-color: $red !important;
+      border-style: solid;
+    }
+    &--active {
+      border-color: $green;
+      border-style: solid;
+    }
+  }
 }
