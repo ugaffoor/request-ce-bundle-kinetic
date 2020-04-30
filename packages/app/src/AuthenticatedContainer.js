@@ -4,8 +4,9 @@ import { compose, withState, withHandlers, lifecycle } from 'recompose';
 import { Route, Switch } from 'react-router-dom';
 import { push } from 'connected-react-router';
 import { bundle } from 'react-kinetic-core';
+import { I18n } from './I18nProvider';
 
-import logoImage from './assets/images/gb-logo.png';
+import logoImage from './assets/images/login-background.png';
 import logoName from './assets/images/login-name.png';
 
 import { ResetTokenForm } from './components/authentication/ResetTokenForm';
@@ -16,11 +17,26 @@ import { UnauthenticatedForm } from './components/authentication/Unauthenticated
 
 export const LoginScreen = props => (
   <div className="login-container">
-    <div
-      className="login-image-container"
-      style={{ backgroundImage: `url(${logoImage})` }}
-    ></div>
-    <div className="login-wrapper">{props.children}</div>
+    <div className="login-wrapper">
+      {props.children}
+      <div
+        className="login-image-container"
+        style={{ backgroundImage: `url(${logoImage})` }}
+      >
+        <div className="kinops-text">
+          <img
+            src={logoName}
+            alt="Kinops - streamline everyday work for teams"
+          />
+          <h3>
+            <I18n>Welcome to kinops</I18n>
+          </h3>
+          <p>
+            <I18n>Streamline everyday work for teams.</I18n>
+          </p>
+        </div>
+      </div>
+    </div>
   </div>
 );
 

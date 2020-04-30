@@ -155,7 +155,7 @@ export const SidebarComponent = ({
 );
 
 export const mapStateToProps = state => ({
-  loading: state.space.settingsDatastore.loading,
+  loading: state.space.profiles.loading,
   forms: state.space.settingsDatastore.forms,
   spaceAdmin: state.app.profile.spaceAdmin,
   pathname: state.router.location.pathname,

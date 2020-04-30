@@ -5,10 +5,10 @@ import { Utils } from 'common';
 import reducers from './reducers';
 import commonReducers from 'common/src/redux/reducers';
 import servicesReducers from 'services/src/redux/reducers';
-import registrationsReducers from 'registrations/src/redux/reducers';
 import queueReducers from 'queue/src/redux/reducers';
-import memberReducers from 'gbmembers/src/redux/reducers';
 import spaceReducers from 'space/src/redux/reducers';
+import memberReducers from 'gbmembers/src/redux/reducers';
+import techBarReducers from 'tech-bar/src/redux/reducers';
 import {
   sagas as discussionSagas,
   reducers as discussionReducers,
@@ -16,9 +16,9 @@ import {
 import { sagas } from './sagas';
 import commonSagas from 'common/src/redux/sagas';
 import servicesSagas from 'services/src/redux/sagas';
-import reqistrationsSagas from 'registrations/src/redux/sagas';
 import queueSagas from 'queue/src/redux/sagas';
 import spaceSagas from 'space/src/redux/sagas';
+import techBarSagas from 'tech-bar/src/redux/sagas';
 import memberSagas from 'gbmembers/src/redux/sagas';
 
 export const configureStore = history => {
@@ -39,11 +39,11 @@ export const configureStore = history => {
         app: combineReducers(reducers),
         common: combineReducers(commonReducers),
         services: combineReducers(servicesReducers),
-        registrations: combineReducers(registrationsReducers),
         queue: combineReducers(queueReducers),
         space: combineReducers(spaceReducers),
-        member: combineReducers(memberReducers),
         discussions: combineReducers(discussionReducers),
+        member: combineReducers(memberReducers),
+        techBar: combineReducers(techBarReducers),
       }),
     ),
     composeEnhancers(
@@ -59,11 +59,11 @@ export const configureStore = history => {
       sagas,
       commonSagas,
       servicesSagas,
-      reqistrationsSagas,
       queueSagas,
       spaceSagas,
-      memberSagas,
       discussionSagas,
+      memberSagas,
+      techBarSagas,
     ]),
   );
 

@@ -3,21 +3,18 @@ import { CoreAPI } from 'react-kinetic-core';
 import { actions, types } from '../modules/alerts';
 
 // Alerts Search Query
-export const ALERTS_SEARCH = new CoreAPI.SubmissionSearch(true)
+export const ALERTS_SEARCH = new CoreAPI.SubmissionSearch()
   .eq('values[Status]', 'Active')
-  .index('values[Status]')
   .include('details,values')
   .limit(1000)
   .build();
 
 export function* fetchAlertsTask() {
-  console.log('fetchAlertsTask 1');
   const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
-    datastore: true,
+    kapp: 'admin',
     form: 'alerts',
     search: ALERTS_SEARCH,
   });
-  console.log('fetchAlertsTask 2');
 
   yield put(
     serverError

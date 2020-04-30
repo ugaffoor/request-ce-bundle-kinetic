@@ -13,11 +13,13 @@ import { Link } from 'react-router-dom';
 import { KappLink, Utils } from 'common';
 import { AlertsContainer } from './AlertsContainer';
 import { ProfileContainer } from './ProfileContainer';
+import { I18n } from '../I18nProvider';
 import SVGInline from 'react-svg-inline';
 import gbIcon from '../assets/images/GBMEMBERS.svg?raw';
 
-export const dropdownTitleName = currentKapp =>
-  currentKapp ? currentKapp.name : 'Home';
+export const dropdownTitleName = currentKapp => (
+  <I18n>{currentKapp ? currentKapp.name : 'Home'}</I18n>
+);
 
 export const dropdownIcon = currentKapp =>
   currentKapp
