@@ -111,12 +111,14 @@ export class TasksDetail extends Component {
     });
     let attentionRequiredOnly = false;
     // Determine if there are any Leads that requireAttention
-    nextProps.allLeads.forEach(lead => {
+    /*    nextProps.allLeads.forEach(lead => {
       if (lead.values['Is New Reply Received'] === 'true') {
         attentionRequiredOnly = true;
       }
     });
+*/
     // Determine if there are any Leads that requireAttention
+    /*
     nextProps.allMembers.forEach(member => {
       if (member.values['Is New Reply Received'] === 'true') {
         attentionRequiredOnly = true;
@@ -125,6 +127,7 @@ export class TasksDetail extends Component {
     this.setState({
       attentionRequiredOnly: attentionRequiredOnly,
     });
+*/
   }
 
   onShowTasksSelectChange(event) {

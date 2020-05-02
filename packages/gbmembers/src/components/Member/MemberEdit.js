@@ -736,6 +736,7 @@ export const MemberEdit = ({
                   size="40"
                   name="emergencyname"
                   id="emergencyname"
+                  required
                   ref={input => (this.input = input)}
                   defaultValue={memberItem.values['Emergency Contact Name']}
                   onChange={e =>
@@ -766,6 +767,7 @@ export const MemberEdit = ({
                   size="40"
                   name="relationship"
                   id="relationship"
+                  required
                   ref={input => (this.input = input)}
                   defaultValue={
                     memberItem.values['Emergency Contact Relationship']
@@ -797,6 +799,7 @@ export const MemberEdit = ({
                 <NumberFormat
                   format="####-###-###"
                   mask="_"
+                  required
                   ref={input => (this.input = input)}
                   value={memberItem.values['Emergency Contact Phone']}
                   onValueChange={(values, e) =>
