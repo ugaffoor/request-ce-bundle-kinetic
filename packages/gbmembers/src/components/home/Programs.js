@@ -99,7 +99,14 @@ export class ProgramsChart extends Component {
               isAnimationActive={false}
             >
               {data.map((entry, index) => (
-                <Cell fill={COLORS[index % COLORS.length]} key={index} />
+                <Cell
+                  fill={
+                    COLORS[entry.Program] !== undefined
+                      ? COLORS[entry.Program]
+                      : OTHER_COLORS[index % OTHER_COLORS.length]
+                  }
+                  key={index}
+                />
               ))}
             </Pie>
             <Tooltip />
@@ -111,23 +118,24 @@ export class ProgramsChart extends Component {
   }
 }
 const RADIAN = Math.PI / 180;
-
-const COLORS = [
-  'black',
+const COLORS = {
+  GB1: '#4472c4',
+  GB2: '#7030a0',
+  GB3: 'black',
+  'Tiny Champions': '#bdd7ee',
+  'Little Champions 1': '#ffc001',
+  'Little Champions 2': '#ed7d32',
+  Juniors: '#a9d18d',
+  Teens: '#70ad46',
+  'Kids Competition Team': '#48D1CC',
+};
+const OTHER_COLORS = [
   '#c00101',
-  '#bdd7ee',
-  '#ffc001',
-  '#ed7d32',
-  '#a9d18d',
-  '#70ad46',
-  '#4472c4',
-  '#7030a0',
   '#9932CC',
   '#8A2BE2',
   '#1E90FF',
   '#6495ED',
   '#ADD8E6',
-  '#48D1CC',
   '#6B8E23',
   '#00FF00',
   '#F08080',

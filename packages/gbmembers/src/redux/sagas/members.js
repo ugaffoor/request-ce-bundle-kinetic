@@ -41,18 +41,36 @@ const util = require('util');
 export function* fetchMembers(action) {
   try {
     const appSettings = yield select(getAppSettings);
-    const search = new CoreAPI.SubmissionSearch()
+    const searchCurrent = new CoreAPI.SubmissionSearch()
       .includes(['details', 'values'])
+      .in('values[Status]', [
+        'Active',
+        'Frozen',
+        'Pending Freeze',
+        'Pending Cancellation',
+      ])
+      .limit(1000)
+      .build();
+    const searchInactive = new CoreAPI.SubmissionSearch()
+      .includes(['details', 'values'])
+      .in('values[Status]', ['Inactive'])
       .limit(1000)
       .build();
 
-    const { submissions } = yield call(CoreAPI.searchSubmissions, {
-      form: 'member',
-      kapp: 'gbmembers',
-      search,
-    });
+    const [submissions, submissions2] = yield all([
+      call(CoreAPI.searchSubmissions, {
+        form: 'member',
+        kapp: 'gbmembers',
+        search: searchCurrent,
+      }),
+      call(CoreAPI.searchSubmissions, {
+        form: 'member',
+        kapp: 'gbmembers',
+        search: searchInactive,
+      }),
+    ]);
     let memberInfo = {
-      members: submissions,
+      members: submissions.submissions.concat(submissions2.submissions),
       belts: appSettings.belts,
     };
     yield put(actions.setMembers(memberInfo));

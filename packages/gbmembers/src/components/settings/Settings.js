@@ -184,14 +184,12 @@ export const SettingsView = ({
             className={'btn btn-primary'}
             onClick={e => {
               let startDate, endDate;
-              startDate = moment
-                .utc()
-                .subtract(4, 'months')
+              startDate = moment()
+                .subtract(12, 'months')
                 .startOf('month')
                 .format('YYYY-MM-DD');
-              endDate = moment
-                .utc()
-                .subtract(2, 'months')
+              endDate = moment()
+                .subtract(1, 'months')
                 .endOf('month')
                 .format('YYYY-MM-DD');
 

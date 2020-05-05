@@ -13,13 +13,25 @@ import { PhotoForm } from '../PhotoForm';
 import $ from 'jquery';
 import { Confirm } from 'react-confirm-bootstrap';
 import NumberFormat from 'react-number-format';
-import { handleChange, handleFormattedChange } from './MemberUtils';
+import {
+  handleChange,
+  handleFormattedChange,
+  handleDateChange,
+} from './MemberUtils';
 import moment from 'moment';
+import enAU from 'moment/locale/en-au';
 import { contact_date_format } from '../leads/LeadsUtils';
 import ReactTable from 'react-table';
 import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { SetStatusModalContainer } from './SetStatusModalContainer';
+import DayPickerInput from 'react-day-picker/DayPickerInput';
+import 'react-day-picker/lib/style.css';
+
+import MomentLocaleUtils, {
+  formatDate,
+  parseDate,
+} from 'react-day-picker/moment';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -642,23 +654,41 @@ export const MemberEdit = ({
                 >
                   Date Joined
                 </label>
-                <input
-                  type="date"
-                  name="datejoined"
-                  id="datejoined"
-                  required
-                  ref={input => (this.input = input)}
-                  defaultValue={memberItem.values['Date Joined']}
-                  onChange={e =>
-                    handleChange(
-                      memberItem,
-                      'Date Joined',
-                      e,
-                      setIsDirty,
-                      memberChanges,
-                    )
-                  }
-                />
+                {/*                <DayPickerInput
+                  placeholder='dd/mm/yyyy'
+                  formatDate={formatDate}
+                  parseDate={parseDate}
+                  value={moment(memberItem.values['Date Joined'],"YYYY-MM-DD").toDate()}
+                  fieldName='Date Joined'
+                  memberItem={memberItem}
+                  setIsDirty={setIsDirty}
+                  memberChanges={memberChanges}
+                  onDayChange={handleDateChange}
+                  dayPickerProps={{
+                    locale: 'en-AU',
+                    localeUtils: MomentLocaleUtils,
+                  }}
+                           />
+*/}
+                {
+                  <input
+                    type="date"
+                    name="datejoined"
+                    id="datejoined"
+                    required
+                    ref={input => (this.input = input)}
+                    defaultValue={memberItem.values['Date Joined']}
+                    onChange={e =>
+                      handleChange(
+                        memberItem,
+                        'Date Joined',
+                        e,
+                        setIsDirty,
+                        memberChanges,
+                      )
+                    }
+                  />
+                }
               </div>
               <div>
                 <label
@@ -1180,6 +1210,7 @@ export const MemberEditContainer = compose(
   }),
   lifecycle({
     constructor() {
+      moment.locale('en-au', enAU);
       this.props.fetchCurrentMember({
         id: this.props.match.params.id,
         history: this.props.history,

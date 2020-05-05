@@ -31,7 +31,7 @@ const ResetToken = ({
           type="password"
           className="form-control"
           id="password"
-          placeholder="password"
+          placeholder=""
           value={password}
           onChange={handlePassword}
         />
@@ -42,7 +42,7 @@ const ResetToken = ({
           type="password"
           className="form-control"
           id="password-confirm"
-          placeholder="confirm password"
+          placeholder=""
           value={passwordConfirm}
           onChange={handlePasswordConfirm}
         />
