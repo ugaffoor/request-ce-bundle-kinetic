@@ -398,7 +398,10 @@ export const MemberNew = ({
                   memberItem={memberItem}
                   onDayPickerHide={handleDateChange}
                   dayPickerProps={{
-                    locale: profile.preferredLocale.toLowerCase(),
+                    locale:
+                      profile.preferredLocale == null
+                        ? 'en-au'
+                        : profile.preferredLocale.toLowerCase(),
                     localeUtils: MomentLocaleUtils,
                   }}
                 />
@@ -429,7 +432,10 @@ export const MemberNew = ({
                   memberItem={memberItem}
                   onDayPickerHide={handleDateChange}
                   dayPickerProps={{
-                    locale: profile.preferredLocale.toLowerCase(),
+                    locale:
+                      profile.preferredLocale == null
+                        ? 'en-au'
+                        : profile.preferredLocale.toLowerCase(),
                     localeUtils: MomentLocaleUtils,
                   }}
                 />
@@ -653,7 +659,10 @@ export const MemberNew = ({
                   memberItem={memberItem}
                   onDayPickerHide={handleDateChange}
                   dayPickerProps={{
-                    locale: profile.preferredLocale.toLowerCase(),
+                    locale:
+                      profile.preferredLocale == null
+                        ? 'en-au'
+                        : profile.preferredLocale.toLowerCase(),
                     localeUtils: MomentLocaleUtils,
                   }}
                 />

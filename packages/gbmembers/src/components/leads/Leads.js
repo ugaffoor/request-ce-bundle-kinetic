@@ -1528,7 +1528,10 @@ export class LeadsConversionChart extends Component {
                         leadsThis={this}
                         fieldName="fromDate"
                         dayPickerProps={{
-                          locale: this.props.profile.preferredLocale.toLowerCase(),
+                          locale:
+                            this.props.profile.preferredLocale == null
+                              ? 'en-au'
+                              : this.props.profile.preferredLocale.toLowerCase(),
                           localeUtils: MomentLocaleUtils,
                         }}
                       />
@@ -1552,7 +1555,10 @@ export class LeadsConversionChart extends Component {
                         leadsThis={this}
                         fieldName="toDate"
                         dayPickerProps={{
-                          locale: this.props.profile.preferredLocale.toLowerCase(),
+                          locale:
+                            this.props.profile.preferredLocale == null
+                              ? 'en-au'
+                              : this.props.profile.preferredLocale.toLowerCase(),
                           localeUtils: MomentLocaleUtils,
                         }}
                       />

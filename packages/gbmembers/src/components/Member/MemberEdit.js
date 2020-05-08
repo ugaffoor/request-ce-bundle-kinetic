@@ -675,7 +675,10 @@ export const MemberEdit = ({
                   onDayPickerHide={handleDateChange}
                   required
                   dayPickerProps={{
-                    locale: profile.preferredLocale.toLowerCase(),
+                    locale:
+                      profile.preferredLocale == null
+                        ? 'en-au'
+                        : profile.preferredLocale.toLowerCase(),
                     localeUtils: MomentLocaleUtils,
                   }}
                 />
@@ -707,7 +710,10 @@ export const MemberEdit = ({
                   onDayPickerHide={handleDateChange}
                   required
                   dayPickerProps={{
-                    locale: profile.preferredLocale.toLowerCase(),
+                    locale:
+                      profile.preferredLocale == null
+                        ? 'en-au'
+                        : profile.preferredLocale.toLowerCase(),
                     localeUtils: MomentLocaleUtils,
                   }}
                 />
@@ -967,7 +973,10 @@ export const MemberEdit = ({
                   memberChanges={memberChanges}
                   onDayPickerHide={handleDateChange}
                   dayPickerProps={{
-                    locale: profile.preferredLocale.toLowerCase(),
+                    locale:
+                      profile.preferredLocale == null
+                        ? 'en-au'
+                        : profile.preferredLocale.toLowerCase(),
                     localeUtils: MomentLocaleUtils,
                   }}
                 />

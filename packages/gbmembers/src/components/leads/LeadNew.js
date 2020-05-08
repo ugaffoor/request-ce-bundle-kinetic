@@ -242,7 +242,10 @@ export class LeadNew extends Component {
                     leadItem={this.props.leadItem}
                     onDayPickerHide={handleDateChange}
                     dayPickerProps={{
-                      locale: this.props.profile.preferredLocale.toLowerCase(),
+                      locale:
+                        this.props.profile.preferredLocale == null
+                          ? 'en-au'
+                          : this.props.profile.preferredLocale.toLowerCase(),
                       localeUtils: MomentLocaleUtils,
                     }}
                   />
@@ -594,7 +597,10 @@ export class LeadNew extends Component {
                     leadItem={this.props.leadItem}
                     onDayPickerHide={handleDateChange}
                     dayPickerProps={{
-                      locale: this.props.profile.preferredLocale.toLowerCase(),
+                      locale:
+                        this.props.profile.preferredLocale == null
+                          ? 'en-au'
+                          : this.props.profile.preferredLocale.toLowerCase(),
                       localeUtils: MomentLocaleUtils,
                     }}
                   />
@@ -670,7 +676,10 @@ export class LeadNew extends Component {
                       leadItem={this.props.leadItem}
                       onDayPickerHide={handleDateChange}
                       dayPickerProps={{
-                        locale: this.props.profile.preferredLocale.toLowerCase(),
+                        locale:
+                          this.props.profile.preferredLocale == null
+                            ? 'en-au'
+                            : this.props.profile.preferredLocale.toLowerCase(),
                         localeUtils: MomentLocaleUtils,
                       }}
                     />

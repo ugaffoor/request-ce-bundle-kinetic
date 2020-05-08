@@ -204,7 +204,10 @@ export class LeadEdit extends Component {
                     onDayPickerHide={handleDateChange}
                     setIsDirty={this.setIsDirty}
                     dayPickerProps={{
-                      locale: this.props.profile.preferredLocale.toLowerCase(),
+                      locale:
+                        this.props.profile.preferredLocale == null
+                          ? 'en-au'
+                          : this.props.profile.preferredLocale.toLowerCase(),
                       localeUtils: MomentLocaleUtils,
                     }}
                   />
@@ -705,7 +708,10 @@ export class LeadEdit extends Component {
                     onDayPickerHide={handleDateChange}
                     setIsDirty={this.setIsDirty}
                     dayPickerProps={{
-                      locale: this.props.profile.preferredLocale.toLowerCase(),
+                      locale:
+                        this.props.profile.preferredLocale == null
+                          ? 'en-au'
+                          : this.props.profile.preferredLocale.toLowerCase(),
                       localeUtils: MomentLocaleUtils,
                     }}
                   />

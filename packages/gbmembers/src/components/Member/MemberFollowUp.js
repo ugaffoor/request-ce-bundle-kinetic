@@ -144,7 +144,10 @@ export class FollowUpDate extends Component {
                       onDayPickerHide={this.handleDateChange}
                       followUpThis={this}
                       dayPickerProps={{
-                        locale: this.props.profile.preferredLocale.toLowerCase(),
+                        locale:
+                          this.props.profile.preferredLocale == null
+                            ? 'en-au'
+                            : this.props.profile.preferredLocale.toLowerCase(),
                         localeUtils: MomentLocaleUtils,
                       }}
                     />
