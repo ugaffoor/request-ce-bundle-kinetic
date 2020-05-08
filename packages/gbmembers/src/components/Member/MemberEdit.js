@@ -17,9 +17,9 @@ import {
   handleChange,
   handleFormattedChange,
   handleDateChange,
+  getDateValue,
 } from './MemberUtils';
 import moment from 'moment';
-import enAU from 'moment/locale/en-au';
 import { contact_date_format } from '../leads/LeadsUtils';
 import ReactTable from 'react-table';
 import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
@@ -27,6 +27,7 @@ import { StatusMessagesContainer } from '../StatusMessages';
 import { SetStatusModalContainer } from './SetStatusModalContainer';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
 import 'react-day-picker/lib/style.css';
+import enAU from 'moment/locale/en-au';
 
 import MomentLocaleUtils, {
   formatDate,
@@ -36,6 +37,7 @@ import MomentLocaleUtils, {
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   memberItem: state.member.members.currentMember,
+  allMembers: state.member.members.allMembers,
   programs: state.member.app.programs,
   additionalPrograms: state.member.app.additionalPrograms,
   belts: state.member.app.belts,
@@ -154,6 +156,7 @@ class MemberAudit extends Component {
 export const MemberEdit = ({
   memberItem,
   saveMember,
+  allMembers,
   updateMember,
   deleteMemberCall,
   deleteMember,
@@ -646,6 +649,7 @@ export const MemberEdit = ({
               <div>
                 <label
                   htmlFor="datejoined"
+                  id="datejoined"
                   required={
                     memberItem.values['Date Joined'] === undefined
                       ? true
@@ -654,67 +658,58 @@ export const MemberEdit = ({
                 >
                   Date Joined
                 </label>
-                {/*                <DayPickerInput
-                  placeholder='dd/mm/yyyy'
+                <DayPickerInput
+                  name="datejoined"
+                  id="datejoined"
+                  placeholder={moment(new Date())
+                    .localeData()
+                    .longDateFormat('L')
+                    .toLowerCase()}
                   formatDate={formatDate}
                   parseDate={parseDate}
-                  value={moment(memberItem.values['Date Joined'],"YYYY-MM-DD").toDate()}
-                  fieldName='Date Joined'
+                  value={getDateValue(memberItem.values['Date Joined'])}
+                  fieldName="Date Joined"
                   memberItem={memberItem}
                   setIsDirty={setIsDirty}
                   memberChanges={memberChanges}
-                  onDayChange={handleDateChange}
+                  onDayPickerHide={handleDateChange}
+                  required
                   dayPickerProps={{
-                    locale: 'en-AU',
+                    locale: profile.preferredLocale.toLowerCase(),
                     localeUtils: MomentLocaleUtils,
                   }}
-                           />
-*/}
-                {
-                  <input
-                    type="date"
-                    name="datejoined"
-                    id="datejoined"
-                    required
-                    ref={input => (this.input = input)}
-                    defaultValue={memberItem.values['Date Joined']}
-                    onChange={e =>
-                      handleChange(
-                        memberItem,
-                        'Date Joined',
-                        e,
-                        setIsDirty,
-                        memberChanges,
-                      )
-                    }
-                  />
-                }
+                />
               </div>
               <div>
                 <label
                   htmlFor="birthday"
+                  id="birthday"
                   required={
                     memberItem.values['DOB'] === undefined ? true : false
                   }
                 >
                   Birthday
                 </label>
-                <input
-                  type="date"
+                <DayPickerInput
                   name="birthday"
                   id="birthday"
+                  placeholder={moment(new Date())
+                    .localeData()
+                    .longDateFormat('L')
+                    .toLowerCase()}
+                  formatDate={formatDate}
+                  parseDate={parseDate}
+                  value={getDateValue(memberItem.values['DOB'])}
+                  fieldName="DOB"
+                  memberItem={memberItem}
+                  setIsDirty={setIsDirty}
+                  memberChanges={memberChanges}
+                  onDayPickerHide={handleDateChange}
                   required
-                  ref={input => (this.input = input)}
-                  defaultValue={memberItem.values['DOB']}
-                  onChange={e =>
-                    handleChange(
-                      memberItem,
-                      'DOB',
-                      e,
-                      setIsDirty,
-                      memberChanges,
-                    )
-                  }
+                  dayPickerProps={{
+                    locale: profile.preferredLocale.toLowerCase(),
+                    localeUtils: MomentLocaleUtils,
+                  }}
                 />
               </div>
             </span>
@@ -952,26 +947,32 @@ export const MemberEdit = ({
               </div>
             </span>
             <span className="line">
-              <div>
-                <label htmlFor="lastPromotion">Last Promotion</label>
-                <input
-                  type="date"
+              <div className="field">
+                <label id="lastPromotion" htmlFor="lastPromotion">
+                  Last Promotion
+                </label>
+                <DayPickerInput
                   name="lastPromotion"
                   id="lastPromotion"
-                  ref={input => (this.input = input)}
-                  defaultValue={memberItem.values['Last Promotion']}
-                  onChange={e =>
-                    handleChange(
-                      memberItem,
-                      'Last Promotion',
-                      e,
-                      setIsDirty,
-                      memberChanges,
-                    )
-                  }
+                  placeholder={moment(new Date())
+                    .localeData()
+                    .longDateFormat('L')
+                    .toLowerCase()}
+                  formatDate={formatDate}
+                  parseDate={parseDate}
+                  value={getDateValue(memberItem.values['Last Promotion'])}
+                  fieldName="Last Promotion"
+                  memberItem={memberItem}
+                  setIsDirty={setIsDirty}
+                  memberChanges={memberChanges}
+                  onDayPickerHide={handleDateChange}
+                  dayPickerProps={{
+                    locale: profile.preferredLocale.toLowerCase(),
+                    localeUtils: MomentLocaleUtils,
+                  }}
                 />
               </div>
-              <div>
+              <div className="field">
                 <label htmlFor="attendanceCount">Attendance Count</label>
                 <input
                   type="number"
@@ -1127,7 +1128,9 @@ export const MemberEdit = ({
                       ? 'btn btn-primary dirty'
                       : 'btn btn-primary notDirty'
                   }
-                  onClick={e => saveMember(memberItem, updateMember, isDirty)}
+                  onClick={e =>
+                    saveMember(memberItem, updateMember, isDirty, allMembers)
+                  }
                 >
                   Save
                 </button>
@@ -1167,9 +1170,11 @@ export const MemberEditContainer = compose(
       memberItem,
       updateMember,
       isDirty,
+      allMembers,
       memberChanges,
       loggedInUserProfile,
       fetchMembers,
+      setIsDirty,
     }) => () => {
       if (!isDirty) {
         return;
@@ -1202,15 +1207,21 @@ export const MemberEditContainer = compose(
         updateMember({
           id: memberItem.id,
           memberItem,
-          history: memberItem.history,
-          fetchMembers: fetchMembers,
+          /*          history: memberItem.history,
+          fetchMembers: fetchMembers, */
         });
+        for (let i = 0; i < allMembers.length; i++) {
+          if (allMembers[i].id === memberItem.id) {
+            allMembers[i].values = memberItem.values;
+            break;
+          }
+        }
+        setIsDirty(false);
       }
     },
   }),
   lifecycle({
     constructor() {
-      moment.locale('en-au', enAU);
       this.props.fetchCurrentMember({
         id: this.props.match.params.id,
         history: this.props.history,

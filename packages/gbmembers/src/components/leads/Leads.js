@@ -5,7 +5,6 @@ import { compose, lifecycle, withHandlers, withProps } from 'recompose';
 import { actions } from '../../redux/modules/leads';
 import { actions as memberActions } from '../../redux/modules/members';
 import $ from 'jquery';
-import moment from 'moment';
 import 'bootstrap/scss/bootstrap.scss';
 import { KappNavLink as NavLink } from 'common';
 import { getJson } from '../Member/MemberUtils';
@@ -29,12 +28,20 @@ import {
   Pie,
   Cell,
 } from 'recharts';
+import moment from 'moment';
+import DayPickerInput from 'react-day-picker/DayPickerInput';
+import 'react-day-picker/lib/style.css';
+import MomentLocaleUtils, {
+  formatDate,
+  parseDate,
+} from 'react-day-picker/moment';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   leadItem: state.member.leads.currentLead,
   allLeads: state.member.leads.allLeads,
   allMembers: state.member.members.allMembers,
+  profile: state.member.kinops.profile,
 });
 
 const mapDispatchToProps = {
@@ -580,14 +587,14 @@ export class TasksDetail extends Component {
     if (!date) {
       return undefined;
     }
-    return moment(date).date();
+    return moment(date, 'YYYY-MM-DD').date();
   }
 
   getMonth(date) {
     if (!date) {
       return undefined;
     }
-    return moment(date)
+    return moment(date, 'YYYY-MM-DD')
       .format('MMM')
       .toUpperCase();
   }
@@ -1333,6 +1340,29 @@ export class LeadsConversionChart extends Component {
     });
   }
 
+  handleDateChange() {
+    var value = $('#' + this.id)
+      .children('.DayPickerInput')
+      .find('input')
+      .val();
+    console.log('Date value:' + value.trim());
+    var dateValue =
+      value.trim() === '' ? '' : moment(value, 'L').format('YYYY-MM-DD');
+    if (value.trim() !== '' && dateValue === 'Invalid Date') return;
+    if (value.trim() === '') dateValue = '';
+
+    if (this.fieldName === 'fromDate') {
+      this.leadsThis.setState({
+        fromDate: moment(dateValue).format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      });
+    }
+    if (this.fieldName === 'toDate') {
+      this.leadsThis.setState({
+        toDate: moment(dateValue).format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      });
+    }
+  }
+
   handleInputChange(event) {
     this.setState({
       [event.target.name]: event.target.value,
@@ -1484,29 +1514,49 @@ export class LeadsConversionChart extends Component {
                     <label htmlFor="fromDate" className="control-label">
                       From Date
                     </label>
-                    <input
-                      type="date"
-                      name="fromDate"
-                      id="fromDate"
-                      className="form-control input-sm"
-                      required
-                      defaultValue={this.state.fromDate}
-                      onChange={e => this.handleInputChange(e)}
-                    />
+                    <span id="fromDate" className="form-control input-sm">
+                      <DayPickerInput
+                        name="fromDate"
+                        id="fromDate"
+                        placeholder={moment(new Date())
+                          .localeData()
+                          .longDateFormat('L')
+                          .toLowerCase()}
+                        formatDate={formatDate}
+                        parseDate={parseDate}
+                        onDayPickerHide={this.handleDateChange}
+                        leadsThis={this}
+                        fieldName="fromDate"
+                        dayPickerProps={{
+                          locale: this.props.profile.preferredLocale.toLowerCase(),
+                          localeUtils: MomentLocaleUtils,
+                        }}
+                      />
+                    </span>
                   </div>
                   <div className="form-group col-xs-2 mr-1">
                     <label htmlFor="toDate" className="control-label">
                       To Date
                     </label>
-                    <input
-                      type="date"
-                      name="toDate"
-                      id="toDate"
-                      className="form-control input-sm"
-                      required
-                      defaultValue={this.state.toDate}
-                      onChange={e => this.handleInputChange(e)}
-                    />
+                    <span id="toDate" className="form-control input-sm">
+                      <DayPickerInput
+                        name="toDate"
+                        id="toDate"
+                        placeholder={moment(new Date())
+                          .localeData()
+                          .longDateFormat('L')
+                          .toLowerCase()}
+                        formatDate={formatDate}
+                        parseDate={parseDate}
+                        onDayPickerHide={this.handleDateChange}
+                        leadsThis={this}
+                        fieldName="toDate"
+                        dayPickerProps={{
+                          locale: this.props.profile.preferredLocale.toLowerCase(),
+                          localeUtils: MomentLocaleUtils,
+                        }}
+                      />
+                    </span>
                   </div>
                   <div className="form-group col-xs-2">
                     <label className="control-label">&nbsp;</label>
@@ -1764,7 +1814,13 @@ export class SourceReferenceChart extends Component {
   }
 }
 
-export const LeadsView = ({ allLeads, saveLead, fetchLeads, allMembers }) => (
+export const LeadsView = ({
+  allLeads,
+  saveLead,
+  fetchLeads,
+  allMembers,
+  profile,
+}) => (
   <div className="container-fluid leads">
     <StatusMessagesContainer />
     <div className="row">
@@ -1780,7 +1836,11 @@ export const LeadsView = ({ allLeads, saveLead, fetchLeads, allMembers }) => (
       <LeadsCreatedChart allLeads={allLeads} />
     </div>
     <div>
-      <LeadsConversionChart allLeads={allLeads} allMembers={allMembers} />
+      <LeadsConversionChart
+        allLeads={allLeads}
+        allMembers={allMembers}
+        profile={profile}
+      />
     </div>
     <div>
       <SourceReference3Chart allLeads={allLeads} />

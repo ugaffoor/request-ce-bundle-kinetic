@@ -19,8 +19,16 @@ import {
   handleFormattedChange,
   handleDynamicChange,
   handleDynamicFormattedChange,
+  handleDateChange,
 } from './MemberUtils';
 import { StatusMessagesContainer } from '../StatusMessages';
+import moment from 'moment';
+import DayPickerInput from 'react-day-picker/DayPickerInput';
+import 'react-day-picker/lib/style.css';
+import MomentLocaleUtils, {
+  formatDate,
+  parseDate,
+} from 'react-day-picker/moment';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -32,6 +40,7 @@ const mapStateToProps = state => ({
   newMemberLoading: state.member.members.newMemberLoading,
   allMembers: state.member.members.allMembers,
   leadItem: state.member.leads.currentLead,
+  profile: state.member.kinops.profile,
 });
 const mapDispatchToProps = {
   createMember: actions.createMember,
@@ -66,6 +75,7 @@ export const MemberNew = ({
   belts,
   membershipTypes,
   newMemberLoading,
+  profile,
 }) =>
   newMemberLoading ? (
     <div />
@@ -364,6 +374,7 @@ export const MemberNew = ({
             <span className="line">
               <div>
                 <label
+                  id="datejoined"
                   htmlFor="datejoined"
                   required={
                     memberItem.values['Date Joined'] === undefined ||
@@ -374,18 +385,27 @@ export const MemberNew = ({
                 >
                   Date Joined
                 </label>
-                <input
-                  type="date"
+                <DayPickerInput
                   name="datejoined"
                   id="datejoined"
-                  required
-                  ref={input => (this.input = input)}
-                  defaultValue={memberItem.values['Date Joined']}
-                  onChange={e => handleChange(memberItem, 'Date Joined', e)}
+                  placeholder={moment(new Date())
+                    .localeData()
+                    .longDateFormat('L')
+                    .toLowerCase()}
+                  formatDate={formatDate}
+                  parseDate={parseDate}
+                  fieldName="Last Promotion"
+                  memberItem={memberItem}
+                  onDayPickerHide={handleDateChange}
+                  dayPickerProps={{
+                    locale: profile.preferredLocale.toLowerCase(),
+                    localeUtils: MomentLocaleUtils,
+                  }}
                 />
               </div>
               <div>
                 <label
+                  id="birthday"
                   htmlFor="birthday"
                   required={
                     memberItem.values['DOB'] === undefined ||
@@ -396,14 +416,22 @@ export const MemberNew = ({
                 >
                   Birthday
                 </label>
-                <input
-                  type="date"
+                <DayPickerInput
                   name="birthday"
                   id="birthday"
-                  required
-                  ref={input => (this.input = input)}
-                  defaultValue={memberItem.values['DOB']}
-                  onChange={e => handleChange(memberItem, 'DOB', e)}
+                  placeholder={moment(new Date())
+                    .localeData()
+                    .longDateFormat('L')
+                    .toLowerCase()}
+                  formatDate={formatDate}
+                  parseDate={parseDate}
+                  fieldName="DOB"
+                  memberItem={memberItem}
+                  onDayPickerHide={handleDateChange}
+                  dayPickerProps={{
+                    locale: profile.preferredLocale.toLowerCase(),
+                    localeUtils: MomentLocaleUtils,
+                  }}
                 />
               </div>
             </span>
@@ -608,15 +636,26 @@ export const MemberNew = ({
               </div>
             </span>
             <span className="line">
-              <div>
-                <label htmlFor="lastPromotion">Last Promotion</label>
-                <input
-                  type="date"
+              <div className="field">
+                <label id="lastPromotion" htmlFor="lastPromotion">
+                  Last Promotion
+                </label>
+                <DayPickerInput
                   name="lastPromotion"
                   id="lastPromotion"
-                  ref={input => (this.input = input)}
-                  defaultValue={memberItem.values['Last Promotion']}
-                  onChange={e => handleChange(memberItem, 'Last Promotion', e)}
+                  placeholder={moment(new Date())
+                    .localeData()
+                    .longDateFormat('L')
+                    .toLowerCase()}
+                  formatDate={formatDate}
+                  parseDate={parseDate}
+                  fieldName="Last Promotion"
+                  memberItem={memberItem}
+                  onDayPickerHide={handleDateChange}
+                  dayPickerProps={{
+                    locale: profile.preferredLocale.toLowerCase(),
+                    localeUtils: MomentLocaleUtils,
+                  }}
                 />
               </div>
               <div>

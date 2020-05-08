@@ -211,7 +211,6 @@ export class MemberNotesHome extends Component {
                     to={`/MemberFollowUp/${this.props.memberItem['id']}`}
                     className="btn btn-primary followup_button followup_image"
                     style={{
-                      backgroundColor: '#991B1E',
                       height: '45px',
                       width: '100px',
                       textAlign: 'center',

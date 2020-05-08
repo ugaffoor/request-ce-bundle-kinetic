@@ -44,8 +44,14 @@ export class ProgramsChart extends Component {
       let program = data.find(
         obj => obj['Program'] === member.values['Ranking Program'],
       );
-      if (program) {
-        program['MemberCount'] = program['MemberCount'] + 1;
+      if (
+        member.values['Status'] === 'Active' ||
+        member.values['Status'] === 'Pending Freeze' ||
+        member.values['Status'] === 'Pending Cancellation'
+      ) {
+        if (program) {
+          program['MemberCount'] = program['MemberCount'] + 1;
+        }
       }
     });
 
