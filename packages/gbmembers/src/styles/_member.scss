@@ -826,6 +826,25 @@
     button {
       margin-top: 10px;
     }
+    .btn-danger {
+      background-color: $darkgray;
+      border-color: $darkgray;
+    }
+    .btn-danger:focus {
+      box-shadow: 0 0 0 0.2rem $gray2;
+    }
+    .btn-danger:not(:disabled):not(.disabled):active,
+    .btn-danger:not(:disabled):not(.disabled).active,
+    .show > .btn-danger.dropdown-toggle {
+      color: #fff;
+      background-color: $gray2;
+      border-color: $gray2;
+    }
+    .btn-danger:not(:disabled):not(.disabled):active:focus,
+    .btn-danger:not(:disabled):not(.disabled).active:focus,
+    .show > .btn-danger.dropdown-toggle:focus {
+      box-shadow: 0 0 0 0.2rem $gray2;
+    }
   }
 }
 

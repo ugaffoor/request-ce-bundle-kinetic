@@ -158,6 +158,7 @@ export const MemberEdit = ({
   saveMember,
   allMembers,
   updateMember,
+  fetchMembers,
   deleteMemberCall,
   deleteMember,
   isDirty,
@@ -1091,7 +1092,9 @@ export const MemberEdit = ({
             <span className="line">
               <span className="leftButtons">
                 <Confirm
-                  onConfirm={e => deleteMemberCall(memberItem, deleteMember)}
+                  onConfirm={e =>
+                    deleteMemberCall(memberItem, deleteMember, fetchMembers)
+                  }
                   body="Are you sure you want to delete this member?"
                   confirmText="Confirm Delete"
                   title="Deleting Member"
@@ -1167,11 +1170,11 @@ export const MemberEditContainer = compose(
   withState('showMemberAudit', 'setShowMemberAudit', false),
   withState('showSetStatusModal', 'setShowSetStatusModal', false),
   withHandlers({
-    deleteMemberCall: ({ memberItem, deleteMember }) => () => {
+    deleteMemberCall: ({ memberItem, deleteMember, fetchMembers }) => () => {
       deleteMember({
         memberItem,
         history: memberItem.history,
-        fetchMembers: memberItem.fetchMembers,
+        fetchMembers: fetchMembers,
       });
       console.log('delete member:' + memberItem.username);
     },

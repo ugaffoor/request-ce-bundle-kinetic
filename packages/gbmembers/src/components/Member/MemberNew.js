@@ -294,7 +294,7 @@ export const MemberNew = ({
                 <label
                   htmlFor="email"
                   required={
-                    memberItem.values['Email'] === null ||
+                    memberItem.values['Email'] === undefined ||
                     memberItem.values['Email'] === ''
                       ? true
                       : false
@@ -394,8 +394,9 @@ export const MemberNew = ({
                     .toLowerCase()}
                   formatDate={formatDate}
                   parseDate={parseDate}
-                  fieldName="Last Promotion"
+                  fieldName="Date Joined"
                   memberItem={memberItem}
+                  required
                   onDayPickerHide={handleDateChange}
                   dayPickerProps={{
                     locale:
