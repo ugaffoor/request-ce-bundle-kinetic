@@ -90,7 +90,10 @@ export class PhotoForm extends Component {
   }
   componentWillUnmount() {
     console.log('PhotoForm unload');
-    if (window.cameraFeedEl)
+    if (
+      window.cameraFeedEl &&
+      window.cameraFeedEl.videoPlayer.srcObject !== null
+    )
       window.cameraFeedEl.videoPlayer.srcObject
         .getTracks()
         .forEach(track => track.stop());

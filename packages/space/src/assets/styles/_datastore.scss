@@ -152,6 +152,11 @@
 }
 
 .embedded-core-form #email_editor {
+  iframe {
+    border-color: #cccccc !important;
+    border-style: solid !important;
+    border-width: 1px !important;
+  }
   .ql-id::before {
     content: 'ID';
   }

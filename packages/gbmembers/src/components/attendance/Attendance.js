@@ -242,7 +242,7 @@ export class AttendanceDetail extends Component {
                   second: 0,
                 })}
                 dateFormat="DD/MM/YYYY"
-                timeConstraints={{ minutes: { step: 30 } }}
+                timeConstraints={{ minutes: { step: 15 } }}
                 onBlur={dt => {
                   this.doShowAttendance(
                     dt.format('MM/DD/YYYY hh:mm A'),

@@ -122,3 +122,11 @@ textarea {
   border-radius: 0.4rem;
   margin-right: 2px;
 }
+div#email_editor a {
+  color: #0000ee;
+  text-decoration: underline;
+}
+body a {
+  text-decoration: inherit;
+  color: inherit;
+}

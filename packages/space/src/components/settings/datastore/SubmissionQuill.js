@@ -7,11 +7,9 @@ import { parse } from 'query-string';
 import { ButtonGroup, Button } from 'reactstrap';
 import { CoreForm } from 'react-kinetic-core';
 import { LinkContainer } from 'react-router-bootstrap';
-import $ from 'jquery';
 
 import { PageTitle, toastActions } from 'common';
 import { selectDiscussionsEnabled } from 'common/src/redux/modules/common';
-import EmailEditor from 'react-email-editor';
 
 import {
   selectPrevAndNext,
@@ -60,7 +58,7 @@ class ImageFormat extends BaseImageFormat {
 }
 
 Quill.register(ImageFormat, true);
-var emailEditorRef = null;
+
 const DatastoreSubmissionComponent = ({
   form,
   showPrevAndNext,
@@ -207,10 +205,6 @@ export const handleLoaded = props => form => {
     } else if (props.form.slug === 'email-templates') {
       onEmailTemplateFormLoaded(props.snippets);
     }
-  } else if (props.submissionId) {
-    if (props.form.slug === 'email-templates') {
-      $('#email_editor').removeClass('ql-editor');
-    }
   }
 };
 
@@ -241,48 +235,15 @@ function onCallScriptFormSubmit() {
     $('#quill_editor_label').css({ color: 'rgba(34, 34, 34, 0.75)' });
   }
 }
-const BLANK_TEMPLATE =
-  '{"counters":{"u_column":1,"u_row":1,"u_content_text":1},"body":{"rows":[{"cells":[1],"columns":[{"contents":[{"type":"text","values":{"containerPadding":"10px","_meta":{"htmlID":"u_content_text_1","htmlClassNames":"u_content_text"},"selectable":true,"draggable":true,"deletable":true,"color":"#000000","textAlign":"left","lineHeight":"140%","linkStyle":{"inherit":true,"linkColor":"#0000ee","linkHoverColor":"#0000ee","linkUnderline":true,"linkHoverUnderline":true},"text":"<p style=\\"font-size: 14px; line-height: 140%;\\"><span style=\\"font-size: 14px; line-height: 19.6px;\\">##CONTENT##</span></p>"}}],"values":{"backgroundColor":"","padding":"0px","border":{},"_meta":{"htmlID":"u_column_1","htmlClassNames":"u_column"}}}],"values":{"columns":false,"backgroundColor":"","columnsBackgroundColor":"","backgroundImage":{"url":"","fullWidth":true,"repeat":false,"center":true,"cover":false},"padding":"0px","hideDesktop":false,"hideMobile":false,"noStackMobile":false,"_meta":{"htmlID":"u_row_1","htmlClassNames":"u_row"},"selectable":true,"draggable":true,"deletable":true}}],"values":{"backgroundColor":"#e7e7e7","backgroundImage":{"url":"","fullWidth":true,"repeat":false,"center":true,"cover":false},"contentWidth":"500px","fontFamily":{"label":"Arial","value":"arial,helvetica,sans-serif"},"linkStyle":{"body":true,"linkColor":"#0000ee","linkHoverColor":"#0000ee","linkUnderline":true,"linkHoverUnderline":true},"_meta":{"htmlID":"u_body","htmlClassNames":"u_body"}}}}';
-function onLoadEmailTemplate() {
-  setTimeout(function() {
-    emailEditorRef.addEventListener('design:updated', function(updates) {
-      // Design is updated by the user
-      emailEditorRef.exportHtml(function(data) {
-        var json = data.design; // design json
-        var html = data.html; // design html
 
-        // Save the json, or html here
-        $("[name='Email Content']").val(html);
-        $("[name='Email JSON']").val(JSON.stringify(json));
-      });
-    });
-    if ($("[name='Email JSON']").val() !== '') {
-      emailEditorRef.loadDesign(JSON.parse($("[name='Email JSON']").val()));
-    }
-    if ($("[name='Email Content']").val() !== '') {
-      var template = BLANK_TEMPLATE.replace(
-        '##CONTENT##',
-        $("[name='Email Content']").val(),
-      );
-      emailEditorRef.loadDesign(JSON.parse(template));
-    }
-  }, 1000);
-}
 function onEmailTemplateFormLoaded(snippets) {
   $("[data-element-name='Email Content']").css({
     'line-height': 0,
     height: 0,
     overflow: 'hidden',
   });
-  $('#email_editor').removeClass('ql-editor');
+  let scriptContent = $("[name='Email Content']").val();
   ReactDOM.render(
-    <EmailEditor
-      ref={editor => (emailEditorRef = editor)}
-      onLoad={onLoadEmailTemplate}
-    />,
-    document.getElementById('email_editor'),
-  );
-  /*  ReactDOM.render(
     <EmailEditor
       text={scriptContent}
       label="Email Content"
@@ -291,12 +252,11 @@ function onEmailTemplateFormLoaded(snippets) {
     />,
     document.getElementById('email_editor'),
   );
-*/
   $("[data-element-name='Submit Button']").click(onEmailTemplateFormSubmit);
 }
 
 function onEmailTemplateFormSubmit() {
-  /*  if ($("[name='Email Content']").val().length <= 0) {
+  if ($("[name='Email Content']").val().length <= 0) {
     $('.quill').css({
       'border-color': 'red',
       'border-style': 'solid',
@@ -307,13 +267,6 @@ function onEmailTemplateFormSubmit() {
     $('.quill').css({ 'border-color': '#d3dce7', 'border-style': 'none' });
     $('#quill_editor_label').css({ color: 'rgba(34, 34, 34, 0.75)' });
   }
-*/
-  /*   emailEditorRef.exportHtml(data => {
-      const { design, html } = data;
-      $("[name='Email Content']").val(html);
-      console.log('exportHtml', html)
-    })
-*/
 }
 
 export const mapStateToProps = (state, { match: { params } }) => ({
@@ -453,7 +406,7 @@ export class ScriptEditor extends Component {
   }
 }
 
-export class QuillEmailEditor extends Component {
+export class EmailEditor extends Component {
   constructor(props) {
     super(props);
     this.quillRef = null;
