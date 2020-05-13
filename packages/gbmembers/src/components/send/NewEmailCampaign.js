@@ -10,8 +10,6 @@ import {
 import { actions } from '../../redux/modules/campaigns';
 import $ from 'jquery';
 import 'react-datetime/css/react-datetime.css';
-import ReactQuill, { Quill } from 'react-quill';
-import ImageResize from 'quill-image-resize-module-react';
 import moment from 'moment';
 import { email_sent_date_format } from '../leads/LeadsUtils';
 import { AttachmentForm } from './AttachmentForm';
@@ -50,17 +48,8 @@ const mapDispatchToProps = {
 
 const util = require('util');
 
-var Block = Quill.import('blots/block');
-Block.tagName = 'DIV';
-Quill.register(Block, true);
-
-var Size = Quill.import('attributors/style/size');
-Size.whitelist = ['10px', '18px', '32px', '64px'];
-Quill.register(Size, true);
-
-var Link = Quill.import('formats/link');
-var builtInFunc = Link.sanitize;
 var campaignSpace = null;
+/*
 Link.sanitize = function modifyLinkInput(linkValueInput) {
   console.log('linkValueInput:' + linkValueInput);
   if (linkValueInput.indexOf('${') !== -1) return linkValueInput;
@@ -73,6 +62,7 @@ Link.sanitize = function modifyLinkInput(linkValueInput) {
       val,
   ); // retain the built-in logic
 };
+*/
 var emailEditorRef = null;
 var editorThis = null;
 const BLANK_TEMPLATE =
@@ -91,12 +81,7 @@ export class NewEmailCampaign extends Component {
     this.handleSubjectChange = this.handleSubjectChange.bind(this);
     this.createCampaign = this.createCampaign.bind(this);
     this.getSelectOptions = this.getSelectOptions.bind(this);
-    this.insertEmailTemplate = this.insertEmailTemplate.bind(this);
-    this.renderTemplatesList = this.renderTemplatesList.bind(this);
-    /*    this.quillRef = null;
-    this.reactQuillRef = null;
-    this.attachQuillRefs = this.attachQuillRefs.bind(this);
-*/
+
     if (this.props.submissionId != null) {
       this.currentMember = this.props.allMembers.find(
         member => member['id'] === this.props.submissionId,
@@ -113,40 +98,6 @@ export class NewEmailCampaign extends Component {
       isMenuOpen: false,
     };
     editorThis = this;
-    /*
-    this.modules = {
-      toolbar: {
-        container: [
-          ['bold', 'italic', 'underline', 'strike'], // toggled buttons
-          ['blockquote', 'code-block'],
-
-          [{ size: ['10px', '18px', '32px', '64px'] }],
-          [{ list: 'ordered' }, { list: 'bullet' }],
-          [{ indent: '-1' }, { indent: '+1' }], // outdent/indent
-
-          [{ align: [] }],
-          [{ header: [1, 2, 3, 4, 5, 6, false] }],
-          [{ color: [] }, { background: [] }], // dropdown with defaults from theme
-          [{ font: [] }],
-          ['link'],
-          ['image'],
-          ['clean'],
-          ['firstname'],
-          ['lastname'],
-          ['emailfooter'],
-          [{ templates: [] }],
-        ],
-        handlers: {
-          firstname: this.insertFirstName,
-          lastname: this.insertLastName,
-          emailfooter: this.insertEmailFooter.bind(this),
-        },
-      },
-      imageResize: {
-        parchment: Quill.import('parchment'),
-      },
-    };
-*/
   }
 
   componentWillReceiveProps(nextProps) {
@@ -159,13 +110,6 @@ export class NewEmailCampaign extends Component {
       });
     }
 
-    /*    if (nextProps.emailTemplates.length !== this.props.emailTemplates.length) {
-      this.renderTemplatesList(
-        nextProps.emailTemplates,
-        nextProps.emailTemplatesLoading,
-      );
-    }
-*/
     let subject = '';
     let text = '';
     if (
@@ -206,51 +150,10 @@ export class NewEmailCampaign extends Component {
     }
   }
 
-  componentDidMount() {
-    this.attachQuillRefs();
-    /*    this.renderTemplatesList(
-      this.props.emailTemplates,
-      this.props.emailTemplatesLoading,
-    ); */
-  }
+  componentDidMount() {}
 
-  componentDidUpdate() {
-    //this.attachQuillRefs();
-  }
+  componentDidUpdate() {}
 
-  formats = [
-    'header',
-    'bold',
-    'italic',
-    'underline',
-    'strike',
-    'blockquote',
-    'list',
-    'bullet',
-    'indent',
-    'link',
-    'image',
-    'color',
-    'width',
-    'height',
-    'align',
-    'text-align',
-    'size',
-  ];
-
-  attachQuillRefs() {
-    // Ensure React-Quill reference is available:
-    if (
-      this.reactQuillRef &&
-      typeof this.reactQuillRef.getEditor !== 'function'
-    )
-      return;
-    // Skip if Quill reference is defined:
-    if (this.quillRef != null) return;
-
-    const quillRef = this.reactQuillRef ? this.reactQuillRef.getEditor() : null;
-    if (quillRef != null) this.quillRef = quillRef;
-  }
   insertFirstName() {
     const cursorPosition = this.quill.getSelection().index;
     this.quill.insertText(cursorPosition, "member('First Name')");
@@ -269,67 +172,10 @@ export class NewEmailCampaign extends Component {
     this.reactQuillRef.editor.pasteHTML(cursorPosition, footer);
     this.reactQuillRef.editor.setSelection(cursorPosition + footer.length + 1);
   }
-  insertEmailTemplate() {
-    let templateId = $('.templates-list').val();
-    if (!templateId) {
-      console.log('Please select a template');
-      return;
-    }
-    let template = this.props.emailTemplates.find(
-      template => template['id'] === templateId,
-    );
-
-    if (template.values['Email JSON'] !== '') {
-      emailEditorRef.loadDesign(JSON.parse(template.values['Email JSON']));
-      emailEditorRef.exportHtml(function(data) {
-        var html = data.html; // design html
-
-        // Save the json, or html here
-        editorThis.setState({ text: html });
-      });
-    }
-    if (template.values['Email Content'] !== '') {
-      var templateStr = BLANK_TEMPLATE.replace(
-        '##CONTENT##',
-        template.values['Email Content'],
-      );
-      emailEditorRef.loadDesign(JSON.parse(templateStr));
-      emailEditorRef.exportHtml(function(data) {
-        var html = data.html; // design html
-
-        // Save the json, or html here
-        editorThis.setState({ text: html });
-      });
-    }
+  escapeJSON(str) {
+    return str.replace(/(["])/g, '\\$1');
   }
 
-  renderTemplatesList(emailTemplates, emailTemplatesLoading) {
-    let templates = [];
-    let selectHtml = "<select class='templates-list' >";
-
-    if (emailTemplatesLoading) {
-      selectHtml += "<option value=''>Loading templates...</option>";
-    } else {
-      selectHtml += "<option value=''>- Select Template -</option>";
-      emailTemplates.forEach(template => {
-        templates.push({
-          value: template['id'],
-          label: template.values['Template Name'],
-          template: template,
-        });
-        selectHtml +=
-          "<option value='" +
-          template['id'] +
-          "'>" +
-          template.values['Template Name'] +
-          '</option>';
-      });
-    }
-
-    selectHtml += '</select>';
-    document.querySelectorAll('#templateMenu')[0].innerHTML = selectHtml;
-    $('.templates-list').change(this.insertEmailTemplate);
-  }
   getEmailTemplates(emailTemplates) {
     let templates = [];
     emailTemplates.forEach(template => {
@@ -358,6 +204,7 @@ export class NewEmailCampaign extends Component {
 
     if (
       template.values['Email JSON'] !== '' &&
+      template.values['Email JSON'] !== undefined &&
       template.values['Email JSON'] !== null
     ) {
       emailEditorRef.loadDesign(JSON.parse(template.values['Email JSON']));
@@ -370,7 +217,7 @@ export class NewEmailCampaign extends Component {
     } else if (template.values['Email Content'] !== '') {
       var templateStr = BLANK_TEMPLATE.replace(
         '##CONTENT##',
-        template.values['Email Content'],
+        editorThis.escapeJSON(template.values['Email Content']),
       );
       emailEditorRef.loadDesign(JSON.parse(templateStr));
       emailEditorRef.exportHtml(function(data) {
@@ -454,32 +301,30 @@ export class NewEmailCampaign extends Component {
     }
     // Extract Embedded images from the Body
     let embeddedImages = [];
-    /*    let body = '';
-
-    if (this.state.text.indexOf('<img src="data:') !== -1) {
-      let pos = 0;
+    let body = '';
+    if (this.state.text.indexOf('<a href="') !== -1) {
       let idx = 0;
       let endIdx = 0;
-      while (this.state.text.indexOf('<img src="data:', endIdx) !== -1) {
-        idx = this.state.text.indexOf('<img src="data:', endIdx);
-        endIdx = this.state.text.indexOf('>', idx);
-        let now = new Date().getTime() + '_' + pos;
-        let encodedImg =
-          'EMBEDDED_IMAGE_' +
-          now +
-          ':' +
-          this.state.text.substring(idx, endIdx);
-        embeddedImages.push(encodedImg);
-        body = body + this.state.text.substring(pos, idx);
-        body = body + 'EMBEDDED_IMAGE_' + now;
-        pos = endIdx + 1;
+      var contentHTML = this.state.text;
+
+      while (contentHTML.indexOf('<a href="', endIdx) !== -1) {
+        idx = contentHTML.indexOf('<a href="', endIdx);
+        endIdx = contentHTML.indexOf('"', idx + '<a href="'.length);
+        var url = contentHTML.substring(idx + '<a href="'.length, endIdx);
+        var encodeVal = btoa(url).replace('/', 'XXX');
+
+        var newUrl =
+            'https://gbbilling.com.au:8443/billingservice/goToUrl/' +
+            campaignSpace +
+            '/__campaign_id__/__member_id__/' +
+            encodeVal,
+          contentHTML = contentHTML.replace(url, newUrl);
       }
-      body = body + this.state.text.substring(endIdx + 1);
+      body = contentHTML;
     } else {
       body = this.state.text;
     }
-*/
-    let body = this.state.text;
+
     body = body.replace(
       /class="ql-align-center"/g,
       'style="text-align: center;"',
@@ -652,7 +497,6 @@ export class NewEmailCampaign extends Component {
               <EmailEditor
                 ref={editor => (emailEditorRef = editor)}
                 onLoad={this.onLoadEmailTemplate}
-                style={{ backgroundColor: 'white' }}
               />
             </span>
             <div
