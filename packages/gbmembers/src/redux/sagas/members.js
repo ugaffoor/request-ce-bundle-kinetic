@@ -750,7 +750,7 @@ export function* createBillingStatistics(action) {
     let monthStats = statistics.get(monthDate);
     if (monthStats === undefined) {
       monthStats = {
-        income: customer.scheduledAmount,
+        income: customer.paymentAmount,
         memberCount: '',
         activeMemberCount: '',
         inactiveMemberCount: '',
@@ -761,7 +761,7 @@ export function* createBillingStatistics(action) {
       };
     } else {
       monthStats = {
-        income: monthStats['income'] + customer.scheduledAmount,
+        income: monthStats['income'] + customer.paymentAmount,
         memberCount: monthStats['memberCount'],
         activeMemberCount: monthStats['activeMemberCount'],
         inactiveMemberCount: monthStats['inactiveMemberCount'],
