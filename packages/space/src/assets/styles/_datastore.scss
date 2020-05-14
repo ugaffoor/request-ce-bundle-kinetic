@@ -148,3 +148,39 @@
 .page-panel--datastore-sidebar {
   flex-direction: column;
 }
+
+.embedded-core-form #email_editor {
+  iframe {
+    border-color: #cccccc !important;
+    border-style: solid !important;
+    border-width: 1px !important;
+  }
+  .ql-id::before {
+    content: 'ID';
+  }
+  .ql-firstname::before {
+    content: 'First Name';
+  }
+  .ql-lastname::before {
+    content: 'Last Name';
+  }
+  .ql-emailfooter::before {
+    content: 'Email Footer';
+  }
+  .ql-firstname {
+    width: 100px !important;
+  }
+  .ql-lastname {
+    width: 100px !important;
+  }
+  .ql-emailfooter {
+    width: 110px !important;
+  }
+}
+
+.embedded-core-form {
+  .quill {
+    height: 400px;
+    margin-bottom: 50px;
+  }
+}

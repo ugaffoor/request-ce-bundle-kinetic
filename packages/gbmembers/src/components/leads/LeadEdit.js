@@ -11,10 +11,22 @@ import { actions } from '../../redux/modules/leads';
 import { KappNavLink as NavLink } from 'common';
 import $ from 'jquery';
 import NumberFormat from 'react-number-format';
-import { handleChange, handleFormattedChange } from './LeadsUtils';
+import {
+  handleChange,
+  handleFormattedChange,
+  handleDateChange,
+  getDateValue,
+} from './LeadsUtils';
 import { Confirm } from 'react-confirm-bootstrap';
 import { StatusMessagesContainer } from '../StatusMessages';
 import Select from 'react-select';
+import moment from 'moment';
+import DayPickerInput from 'react-day-picker/DayPickerInput';
+import 'react-day-picker/lib/style.css';
+import MomentLocaleUtils, {
+  formatDate,
+  parseDate,
+} from 'react-day-picker/moment';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -23,6 +35,7 @@ const mapStateToProps = state => ({
   currentLeadLoading: state.member.leads.currentLeadLoading,
   members: state.member.members.allMembers,
   leads: state.member.leads.allLeads,
+  profile: state.member.kinops.profile,
 });
 const mapDispatchToProps = {
   fetchLead: actions.fetchCurrentLead,
@@ -165,6 +178,7 @@ export class LeadEdit extends Component {
                   style={{ width: 'auto', margin: '15px 3px !important' }}
                 >
                   <label
+                    id="date"
                     htmlFor="date"
                     required={
                       this.props.leadItem.values['Date'] === undefined
@@ -174,22 +188,28 @@ export class LeadEdit extends Component {
                   >
                     On
                   </label>
-                  <input
-                    type="date"
+                  <DayPickerInput
                     name="date"
                     id="date"
-                    style={{ marginLeft: '10px' }}
+                    placeholder={moment(new Date())
+                      .localeData()
+                      .longDateFormat('L')
+                      .toLowerCase()}
+                    formatDate={formatDate}
+                    parseDate={parseDate}
+                    value={getDateValue(this.props.leadItem.values['Date'])}
+                    fieldName="Date"
                     required
-                    ref={input => (this.input = input)}
-                    value={this.props.leadItem.values['Date']}
-                    onChange={e =>
-                      handleChange(
-                        this.props.leadItem,
-                        'Date',
-                        e,
-                        this.setIsDirty,
-                      )
-                    }
+                    leadItem={this.props.leadItem}
+                    onDayPickerHide={handleDateChange}
+                    setIsDirty={this.setIsDirty}
+                    dayPickerProps={{
+                      locale:
+                        this.props.profile.preferredLocale == null
+                          ? 'en-au'
+                          : this.props.profile.preferredLocale.toLowerCase(),
+                      localeUtils: MomentLocaleUtils,
+                    }}
                   />
                 </div>
               </span>
@@ -670,21 +690,30 @@ export class LeadEdit extends Component {
               </div>
               <span className="line">
                 <div>
-                  <label htmlFor="birthday">Birthday</label>
-                  <input
-                    type="date"
+                  <label id="birthday" htmlFor="birthday">
+                    Birthday
+                  </label>
+                  <DayPickerInput
                     name="birthday"
                     id="birthday"
-                    ref={input => (this.input = input)}
-                    value={this.props.leadItem.values['DOB']}
-                    onChange={e =>
-                      handleChange(
-                        this.props.leadItem,
-                        'DOB',
-                        e,
-                        this.setIsDirty,
-                      )
-                    }
+                    placeholder={moment(new Date())
+                      .localeData()
+                      .longDateFormat('L')
+                      .toLowerCase()}
+                    formatDate={formatDate}
+                    parseDate={parseDate}
+                    value={getDateValue(this.props.leadItem.values['DOB'])}
+                    fieldName="DOB"
+                    leadItem={this.props.leadItem}
+                    onDayPickerHide={handleDateChange}
+                    setIsDirty={this.setIsDirty}
+                    dayPickerProps={{
+                      locale:
+                        this.props.profile.preferredLocale == null
+                          ? 'en-au'
+                          : this.props.profile.preferredLocale.toLowerCase(),
+                      localeUtils: MomentLocaleUtils,
+                    }}
                   />
                 </div>
               </span>
@@ -844,6 +873,7 @@ export const LeadEditView = ({
   currentLeadLoading,
   isDirty,
   setIsDirty,
+  profile,
 }) =>
   currentLeadLoading ? (
     <div />
@@ -857,6 +887,7 @@ export const LeadEditView = ({
       removeLead={removeLead}
       isDirty={isDirty}
       setIsDirty={setIsDirty}
+      profile={profile}
     />
   );
 

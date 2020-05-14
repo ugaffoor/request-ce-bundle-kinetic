@@ -528,7 +528,7 @@
     .section2 div {
       width: 50%;
     }
-    .section3 div {
+    .section3 .field {
       width: 50%;
     }
     .section4 {
@@ -578,6 +578,9 @@
         min-width: unset;
       }
     }
+  }
+  .DayPickerInput input {
+    float: none !important;
   }
   .general {
     max-width: 700px;
@@ -822,6 +825,25 @@
     }
     button {
       margin-top: 10px;
+    }
+    .btn-danger {
+      background-color: $darkgray;
+      border-color: $darkgray;
+    }
+    .btn-danger:focus {
+      box-shadow: 0 0 0 0.2rem $gray2;
+    }
+    .btn-danger:not(:disabled):not(.disabled):active,
+    .btn-danger:not(:disabled):not(.disabled).active,
+    .show > .btn-danger.dropdown-toggle {
+      color: #fff;
+      background-color: $gray2;
+      border-color: $gray2;
+    }
+    .btn-danger:not(:disabled):not(.disabled):active:focus,
+    .btn-danger:not(:disabled):not(.disabled).active:focus,
+    .show > .btn-danger.dropdown-toggle:focus {
+      box-shadow: 0 0 0 0.2rem $gray2;
     }
   }
 }

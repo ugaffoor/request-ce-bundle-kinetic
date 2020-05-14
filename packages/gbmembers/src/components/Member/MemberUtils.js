@@ -911,6 +911,65 @@ export function getBeltSVG(belt) {
       return <div />;
   }
 }
+export function getDateValue(dateValue) {
+  return dateValue === undefined || dateValue === ''
+    ? ''
+    : moment(dateValue, 'YYYY-MM-DD').toDate();
+}
+export function handleDateChange() {
+  var value = $('#' + this.id)
+    .siblings('.DayPickerInput')
+    .find('input')
+    .val();
+  var input = $('#' + this.id)
+    .siblings('.DayPickerInput')
+    .find('input');
+  console.log('Date value:' + value.trim());
+  var dateValue =
+    value.trim() === '' ? '' : moment(value, 'L').format('YYYY-MM-DD');
+  if (value.trim() !== '' && dateValue === 'Invalid Date') return;
+  if (value.trim() === '') dateValue = '';
+  if (this.setIsDirty !== undefined) this.setIsDirty(true);
+  if (this.memberChanges) {
+    let memberChange = this.memberChanges.find(
+      change => change.field === this.fieldName,
+    );
+    if (!memberChange) {
+      memberChange = {
+        field: this.fieldName,
+        from: this.memberItem.values[this.fieldName],
+      };
+      this.memberChanges.push(memberChange);
+    }
+    memberChange.to = dateValue;
+    memberChange.date = moment().format(contact_date_format);
+  }
+  //console.log("key = " + key + ", changes = " + JSON.stringify(memberChanges));
+
+  this.memberItem.values[this.fieldName] = dateValue;
+
+  if (this.required) {
+    var val = this.memberItem.values[this.fieldName];
+    if (val === undefined || val === null || val === '') {
+      input
+        .parent()
+        .siblings('label')
+        .attr('required', 'required');
+    } else {
+      input
+        .parent()
+        .siblings('label')
+        .removeAttr('required');
+      input.css('border-color', '');
+    }
+  }
+  //Commenting out following code since we are using uncontrolled components calling setState on value change (and consequently on every keypress)
+  //is not required and not desirable. It will result in lifecycle methods like componentWillReceiveProps, componentDidUpdate etc being called
+  //on every keypress
+  //A hack to for a redraw of Ranking Belts menu
+  if (this.memberItem.myThis !== undefined)
+    this.memberItem.myThis.setState({ test: 0 });
+}
 
 export function handleChange(
   memberItem,

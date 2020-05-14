@@ -39,7 +39,7 @@ export const Login = ({
           autoFocus
           className="form-control"
           id="email"
-          placeholder="wally@kineticdata.com"
+          placeholder=""
           value={email}
           onChange={handleEmail}
         />
@@ -52,7 +52,7 @@ export const Login = ({
           type="password"
           className="form-control"
           id="password"
-          placeholder="password"
+          placeholder=""
           value={password}
           onChange={handlePassword}
         />

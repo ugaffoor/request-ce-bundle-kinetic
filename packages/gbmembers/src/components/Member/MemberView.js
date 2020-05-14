@@ -79,6 +79,7 @@ const mapDispatchToProps = {
   setCurrentMember: actions.setCurrentMember,
   fetchCampaign: campaignActions.fetchEmailCampaign,
   syncBillingCustomer: actions.syncBillingCustomer,
+  clearBillingCustomer: actions.clearBillingCustomer,
   setBillingInfo: actions.setBillingInfo,
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
@@ -477,6 +478,7 @@ export const MemberView = ({
   campaignItem,
   campaignLoading,
   syncBilling,
+  clearBillingInfo,
   newCustomers,
   getNewCustomers,
   showNewCustomers,
@@ -740,7 +742,8 @@ export const MemberView = ({
               <div
                 className={
                   memberItem.values['Billing Customer Id'] !== undefined &&
-                  memberItem.values['Billing Customer Id'] !== ''
+                  memberItem.values['Billing Customer Id'] !== '' &&
+                  memberItem.values['Billing Customer Id'] !== null
                     ? 'billingInfo show'
                     : 'hide'
                 }
@@ -769,7 +772,8 @@ export const MemberView = ({
               <div
                 className={
                   memberItem.values['Billing Customer Id'] === undefined ||
-                  memberItem.values['Billing Customer Id'] === ''
+                  memberItem.values['Billing Customer Id'] === '' ||
+                  memberItem.values['Billing Customer Id'] === null
                     ? 'billingInfo show'
                     : 'hide'
                 }
@@ -800,6 +804,22 @@ export const MemberView = ({
                   id="customerBillingId"
                 />
                 <label htmlFor="customerBillingId">Billing Id</label>
+              </div>
+              <div
+                style={{
+                  display: Utils.isMemberOf(profile, 'Billing')
+                    ? 'block'
+                    : 'none',
+                }}
+              >
+                <br />
+                <button
+                  type="button"
+                  className={'btn btn-primary'}
+                  onClick={e => clearBillingInfo()}
+                >
+                  CLEAR Billing Info
+                </button>
               </div>
               <div>
                 <br />
@@ -963,6 +983,7 @@ export const MemberViewContainer = compose(
       fetchMembers,
       addNotification,
       setSystemError,
+      setIsDirty,
     }) => billingId => {
       let billingRef = null;
       if (billingId) {
@@ -986,6 +1007,47 @@ export const MemberViewContainer = compose(
         addNotification: addNotification,
         setSystemError: setSystemError,
       });
+      setTimeout(function() {
+        setIsDirty(false);
+      }, 3000);
+    },
+    clearBillingInfo: ({
+      memberItem,
+      updateMember,
+      setIsDirty,
+      profile,
+      allMembers,
+    }) => () => {
+      let customerId = memberItem.values['Billing Customer Id'];
+      // Update memberItem values from billingInfo
+      memberItem.values['Billing Customer Reference'] = null;
+      memberItem.values['Billing Customer Id'] = null;
+      memberItem.values['Billing User'] = null;
+      memberItem.values['Billing Payment Type'] = null;
+      memberItem.values['Billing Payment Period'] = null;
+      memberItem.values['Payment Schedule'] = null;
+      memberItem.values['Membership Cost'] = null;
+
+      let changes = memberItem.values['Billing Changes'];
+      if (!changes) {
+        changes = [];
+      } else if (typeof changes !== 'object') {
+        changes = JSON.parse(changes);
+      }
+      changes.push({
+        date: moment().format(contact_date_format),
+        user: profile.username,
+        action: 'Clear Billing Customer',
+        from: customerId,
+        to: '',
+      });
+      memberItem.values['Billing Changes'] = changes;
+
+      updateMember({
+        id: memberItem.id,
+        memberItem,
+      });
+      setIsDirty(false);
     },
     getNewCustomers: ({
       fetchNewCustomers,
