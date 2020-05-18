@@ -60,9 +60,9 @@ export class ProcessedPaymentsBillingChart extends Component {
   getData(billingPayments) {
     let totalAmt = 0;
     const data = billingPayments.map(payment => {
-      totalAmt += Number(payment.scheduledAmount);
+      totalAmt += Number(payment.paymentAmount);
       return {
-        Amount: Number(payment.scheduledAmount),
+        Amount: Number(payment.paymentAmount),
         DebitDate: moment(payment.debitDate, ezidebit_date_format).format(
           'YYYY-MM-DD',
         ),

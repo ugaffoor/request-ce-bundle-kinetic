@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { push } from 'connected-react-router';
 import { compose, withHandlers, withState, lifecycle } from 'recompose';
@@ -13,6 +13,9 @@ import { PageTitle, toastActions } from 'common';
 import { selectDiscussionsEnabled } from 'common/src/redux/modules/common';
 import EmailEditor from 'react-email-editor';
 import { I18n } from '../../../../../app/src/I18nProvider';
+import ReactDOM from 'react-dom';
+import ReactQuill, { Quill } from 'react-quill';
+import ImageResize from 'quill-image-resize-module-react';
 
 import {
   selectPrevAndNext,
@@ -63,6 +66,7 @@ const DatastoreSubmissionComponent = ({
   showPrevAndNext,
   prevAndNext,
   submissionId,
+  handleLoaded,
   handleCreated,
   handleUpdated,
   handleError,
@@ -148,6 +152,7 @@ const DatastoreSubmissionComponent = ({
               datastore
               review={!isEditing}
               submission={submissionId}
+              onLoaded={handleLoaded}
               updated={handleUpdated}
               error={handleError}
               globals={globals}
@@ -157,6 +162,7 @@ const DatastoreSubmissionComponent = ({
               key={formKey}
               form={form.slug}
               datastore
+              onLoaded={handleLoaded}
               onCreated={handleCreated}
               error={handleError}
               values={values}
@@ -373,6 +379,7 @@ export const DatastoreSubmission = compose(
     handleUpdated,
     handleCreated,
     handleError,
+    handleLoaded,
   }),
   lifecycle({
     componentWillMount() {

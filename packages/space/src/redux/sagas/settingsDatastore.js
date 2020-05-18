@@ -8,9 +8,10 @@ import {
   throttle,
 } from 'redux-saga/effects';
 import { delay } from 'redux-saga';
-import { CoreAPI } from 'react-kinetic-core';
+import { CoreAPI, bundle } from 'react-kinetic-core';
 import { fromJS, Seq, Map, List } from 'immutable';
 import { push } from 'connected-react-router';
+import axios from 'axios';
 
 import { actions as systemErrorActions } from '../modules/errors';
 import { toastActions } from 'common';
@@ -29,9 +30,25 @@ import {
 import { DatastoreFormSave } from '../../records';
 
 import { chunkList } from '../../utils';
+// Implement fetchBridges api call for CE v5
+const fetchBridges = (options = {}) => {
+  return axios
+    .get(`${bundle.spaceLocation()}/app/components/agent/app/api/v1/bridges`)
+    .then(response => ({ bridges: response.data.bridges }))
+    .catch(e => {
+      if (e instanceof Error && !e.response) throw e;
+      const { data = {}, status: statusCode, statusText: msg } = e.response;
+      const { errorKey: key = null, message = data.error, ...rest } = data;
+      const type = types[statusCode];
+      const result = { ...rest, message: message || msg, key, statusCode };
+      if (type) result[type] = true;
+      return { error: result };
+    });
+};
 
 export function* fetchFormsSaga() {
-  const [displayableForms, manageableForms, space] = yield all([
+  const isPlatform = yield select(state => state.app.config.isPlatform);
+  const [displayableForms, manageableForms, space, bridges] = yield all([
     call(CoreAPI.fetchForms, {
       datastore: true,
       include: FORMS_INCLUDES,
@@ -40,6 +57,12 @@ export function* fetchFormsSaga() {
       datastore: true,
       manage: 'true',
     }),
+    !isPlatform
+      ? call(CoreAPI.fetchSpace, {
+          include: SPACE_INCLUDES,
+        })
+      : null,
+    isPlatform ? call(fetchBridges) : null,
     call(CoreAPI.fetchSpace, {
       include: SPACE_INCLUDES,
     }),
@@ -53,7 +76,10 @@ export function* fetchFormsSaga() {
     actions.setForms({
       manageableForms: manageableFormsSlugs,
       displayableForms: displayableForms.forms || [],
-      bridges: space.space ? space.space.bridges : [],
+      bridges:
+        (space && space.space && space.space.bridges) ||
+        (bridges && bridges.bridges) ||
+        [],
     }),
   );
 }
@@ -221,15 +247,14 @@ export function* fetchSubmissionsSimpleSaga() {
     query.sw(index.parts[0], simpleSearchParam);
     query.pageToken(pageToken);
 
-    const {
-      submissions,
-      nextPageToken = null,
-      serverError,
-    } = yield call(CoreAPI.searchSubmissions, {
-      search: query.build(),
-      datastore: true,
-      form: form.slug,
-    });
+    const { submissions, nextPageToken = null, serverError } = yield call(
+      CoreAPI.searchSubmissions,
+      {
+        search: query.build(),
+        datastore: true,
+        form: form.slug,
+      },
+    );
 
     if (serverError) {
       // What should we do?
@@ -384,15 +409,14 @@ export function* fetchSubmissionsAdvancedSaga() {
     }
   });
 
-  const {
-    submissions,
-    nextPageToken = null,
-    serverError,
-  } = yield call(CoreAPI.searchSubmissions, {
-    search: searcher.build(),
-    datastore: true,
-    form: form.slug,
-  });
+  const { submissions, nextPageToken = null, serverError } = yield call(
+    CoreAPI.searchSubmissions,
+    {
+      search: searcher.build(),
+      datastore: true,
+      form: form.slug,
+    },
+  );
 
   if (serverError) {
     // What should we do?
@@ -427,15 +451,14 @@ export function* fetchSubmissionSaga(action) {
 
 export function* cloneSubmissionSaga(action) {
   const include = 'details,values,form,form.fields.details';
-  const {
-    submission,
-    errors,
-    serverError,
-  } = yield call(CoreAPI.fetchSubmission, {
-    id: action.payload.id,
-    include,
-    datastore: true,
-  });
+  const { submission, errors, serverError } = yield call(
+    CoreAPI.fetchSubmission,
+    {
+      id: action.payload.id,
+      include,
+      datastore: true,
+    },
+  );
 
   if (serverError) {
     yield put(systemErrorActions.setSystemError(serverError));
