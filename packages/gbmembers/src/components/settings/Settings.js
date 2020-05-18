@@ -16,6 +16,7 @@ import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as errorActions } from '../../redux/modules/errors';
 import { Utils } from 'common';
 import moment from 'moment';
+import { ClassesCalendar } from './ClassesCalendar';
 
 const mapStateToProps = state => ({
   memberItem: state.member.members.currentMember,
@@ -116,6 +117,20 @@ export const SettingsView = ({
   <div className="settings">
     <StatusMessagesContainer />
     <div className="buttons column" style={{ marginLeft: '10px' }}>
+      {!Utils.isMemberOf(profile, 'Program Manager') ? (
+        <div />
+      ) : (
+        <div className="col-xs-3">
+          <button
+            type="button"
+            id="classCalendar"
+            className={'btn btn-primary'}
+          >
+            Show Class Calendar
+          </button>
+        </div>
+      )}
+      <ClassesCalendar></ClassesCalendar>
       {!Utils.isMemberOf(profile, 'Billing') ? (
         <div />
       ) : (
@@ -244,38 +259,6 @@ export const SettingsContainer = compose(
     printMemberBarcodes: ({ allMembers, setPrintingBarcodes }) => () => {
       console.log('Printing:' + allMembers.length);
       setPrintingBarcodes(true);
-      /*
-      setTimeout(function() {
-        const opt = {
-          scale: 1,
-        };
-        var iframe = null;
-        if ($('#printf').length > 0) {
-          iframe = $('#printf')[0];
-        } else {
-          iframe = document.createElement('iframe');
-        }
-        iframe.name = 'printf';
-        iframe.id = 'printf';
-        //           iframe.height = '1100px';
-        //           iframe.width = '2000px';
-        document.body.appendChild(iframe);
-
-        var newWin = window.frames['printf'];
-        newWin.document.write(
-          '<style> ' +
-            '#memberBarcodes{margin-top: 50px;margin-left:10px;display: flow-root;width: 800px;} ' +
-            '.pageBreak{page-break-before: always;background-color: red;} ' +
-            '.barCode {position: relative;width: 160px; flex: 30 0 auto;} ' +
-            '.barCode svg{width:160px;} ' +
-            '</style><body onload="window.print()">' +
-            $('#memberBarcodesSection').html() +
-            '</body>',
-        );
-        newWin.document.close();
-        setPrintingBarcodes(false);
-      }, 1000);
-*/
     },
   }),
   lifecycle({
