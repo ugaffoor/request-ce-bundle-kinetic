@@ -9,7 +9,6 @@ import {
 } from 'recharts';
 import moment from 'moment';
 import ReactSpinner from 'react16-spinjs';
-import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
 import $ from 'jquery';
 
 const chartLabels = {

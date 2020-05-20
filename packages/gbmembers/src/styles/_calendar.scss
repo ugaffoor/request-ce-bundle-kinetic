@@ -1,4 +1,69 @@
 @charset "UTF-8";
+
+.rbc-event-content {
+  p {
+    margin: 0;
+  }
+}
+.classDialog {
+  display: inline-grid;
+  .datesValue {
+    width: 100%;
+    background-color: gray;
+    text-align: center;
+    color: white;
+  }
+  .titleDiv {
+    margin: 10px;
+  }
+  label {
+    margin-right: 10px;
+    width: 100px;
+  }
+  input#title,
+  select#program {
+    width: 70%;
+  }
+  .programDiv {
+    margin: 10px;
+    margin-top: 0;
+  }
+  input#maxStudents {
+    width: 15%;
+    margin-left: 10px;
+  }
+  .btn {
+    margin: 5px;
+  }
+}
+.GB1 {
+  background-color: #4472c4 !important;
+}
+.GB2 {
+  background-color: #7030a0 !important;
+}
+.GB3 {
+  background-color: black !important;
+}
+.Tiny_Champions {
+  background-color: #bdd7ee !important;
+}
+.Little_Champions_1 {
+  background-color: #ffc001 !important;
+}
+.Little_Champions_2 {
+  background-color: #ed7d32 !important;
+}
+.Juniors {
+  background-color: #a9d18d !important;
+}
+.Teens {
+  background-color: #70ad46 !important;
+}
+.Advanced_Kids {
+  background-color: #48d1cc !important;
+}
+
 .rbc-btn {
   color: inherit;
   font: inherit;
@@ -102,7 +167,7 @@ button.rbc-input::-moz-focus-inner {
 }
 
 .rbc-today {
-  background-color: #eaf6ff;
+  background-color: inherit;
 }
 
 .rbc-toolbar {

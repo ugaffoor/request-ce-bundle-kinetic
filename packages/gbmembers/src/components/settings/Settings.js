@@ -27,6 +27,7 @@ const mapStateToProps = state => ({
   belts: state.member.app.belts,
   billingPayments: state.member.members.billingPayments,
   billingPaymentsLoading: state.member.members.billingPaymentsLoading,
+  classSchedules: state.member.app.classSchedules,
 });
 
 const mapDispatchToProps = {
@@ -113,11 +114,14 @@ export const SettingsView = ({
   createStatistic,
   addNotification,
   setSystemError,
+  showClassCalendar,
+  setShowClassCalendar,
+  classSchedules,
 }) => (
   <div className="settings">
     <StatusMessagesContainer />
     <div className="buttons column" style={{ marginLeft: '10px' }}>
-      {!Utils.isMemberOf(profile, 'Program Manager') ? (
+      {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
         <div />
       ) : (
         <div className="col-xs-3">
@@ -125,12 +129,17 @@ export const SettingsView = ({
             type="button"
             id="classCalendar"
             className={'btn btn-primary'}
+            onClick={e => {
+              setShowClassCalendar(showClassCalendar ? false : true);
+            }}
           >
-            Show Class Calendar
+            {showClassCalendar ? 'Hide Class Calendar' : 'Show Class Calendar'}
           </button>
         </div>
       )}
-      <ClassesCalendar></ClassesCalendar>
+      {showClassCalendar && (
+        <ClassesCalendar classSchedules={classSchedules}></ClassesCalendar>
+      )}
       {!Utils.isMemberOf(profile, 'Billing') ? (
         <div />
       ) : (
@@ -255,6 +264,7 @@ export const SettingsContainer = compose(
     return {};
   }),
   withState('printingBarcodes', 'setPrintingBarcodes', false),
+  withState('showClassCalendar', 'setShowClassCalendar', false),
   withHandlers({
     printMemberBarcodes: ({ allMembers, setPrintingBarcodes }) => () => {
       console.log('Printing:' + allMembers.length);
