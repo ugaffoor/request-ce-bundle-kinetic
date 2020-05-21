@@ -8,6 +8,7 @@ import {
   withProps,
 } from 'recompose';
 import { actions } from '../../redux/modules/members';
+import { actions as classActions } from '../../redux/modules/classes';
 import $ from 'jquery';
 import ReactToPrint from 'react-to-print';
 import Barcode from 'react-barcode';
@@ -27,12 +28,17 @@ const mapStateToProps = state => ({
   belts: state.member.app.belts,
   billingPayments: state.member.members.billingPayments,
   billingPaymentsLoading: state.member.members.billingPaymentsLoading,
-  classSchedules: state.member.app.classSchedules,
+  classSchedules: state.member.classes.classSchedules,
+  fetchingClassSchedules: state.member.classes.fetchingClassSchedules,
 });
 
 const mapDispatchToProps = {
   fetchCurrentMember: actions.fetchCurrentMember,
   fetchMembers: actions.fetchMembers,
+  fetchClassSchedules: classActions.fetchClassSchedules,
+  newClass: classActions.newClass,
+  editClass: classActions.editClass,
+  deleteClass: classActions.deleteClass,
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
   fetchBillingCustomers: actions.fetchBillingCustomers,
@@ -117,6 +123,11 @@ export const SettingsView = ({
   showClassCalendar,
   setShowClassCalendar,
   classSchedules,
+  fetchClassSchedules,
+  fetchingClassSchedules,
+  newClass,
+  editClass,
+  deleteClass,
 }) => (
   <div className="settings">
     <StatusMessagesContainer />
@@ -130,6 +141,7 @@ export const SettingsView = ({
             id="classCalendar"
             className={'btn btn-primary'}
             onClick={e => {
+              fetchClassSchedules();
               setShowClassCalendar(showClassCalendar ? false : true);
             }}
           >
@@ -137,8 +149,17 @@ export const SettingsView = ({
           </button>
         </div>
       )}
-      {showClassCalendar && (
-        <ClassesCalendar classSchedules={classSchedules}></ClassesCalendar>
+      {fetchingClassSchedules && showClassCalendar ? (
+        <p>Loading Calendar ....</p>
+      ) : !fetchingClassSchedules && showClassCalendar ? (
+        <ClassesCalendar
+          classSchedules={classSchedules}
+          newClass={newClass}
+          editClass={editClass}
+          deleteClass={deleteClass}
+        ></ClassesCalendar>
+      ) : (
+        <div />
       )}
       {!Utils.isMemberOf(profile, 'Billing') ? (
         <div />

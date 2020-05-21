@@ -15,15 +15,6 @@ export const Login = ({
   routed,
 }) => (
   <form className="login-form-container" onSubmit={handleLogin}>
-    <h3>
-      <I18n>Sign In</I18n>
-      <small>
-        <I18n>or</I18n>{' '}
-        <a role="button" tabIndex="0" onClick={toCreateAccount(routed)}>
-          <I18n>Create Account</I18n>
-        </a>
-      </small>
-    </h3>
     <div
       style={{
         display: 'flex',
@@ -32,7 +23,7 @@ export const Login = ({
     >
       <div className="form-group">
         <label htmlFor="email">
-          <I18n>Email Address</I18n>
+          <I18n>User Name</I18n>
         </label>
         <input
           type="text"

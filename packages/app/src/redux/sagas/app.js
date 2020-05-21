@@ -77,9 +77,9 @@ export function* fetchAppTask({ payload }) {
         `>=${MINIMUM_TRANSLATIONS_CE_VERSION}`,
       )
     ) {
-      const { defaultLocale } = yield call(CoreAPI.fetchDefaultLocale);
-      importLocale((defaultLocale && defaultLocale.code) || 'en');
-      yield put(configActions.setLocale(defaultLocale && defaultLocale.code));
+      //      const { defaultLocale } = yield call(CoreAPI.fetchDefaultLocale);
+      //      importLocale((defaultLocale && defaultLocale.code) || 'en');
+      //      yield put(configActions.setLocale(defaultLocale && defaultLocale.code));
     }
 
     const currentRoute = yield select(state => state.router.location.pathname);

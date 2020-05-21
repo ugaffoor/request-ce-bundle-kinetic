@@ -23,7 +23,7 @@ export class ClassDialog extends Component {
     //    this.setState({ isShowingModal: false });
     this.setState({ event: undefined });
     this.cancelDialog();
-    if (this.props.setIsDirty) this.props.setIsDirty(true);
+    //  if (this.props.setIsDirty) this.props.setIsDirty(true);
   };
 
   deleteClass = () => {
@@ -59,9 +59,8 @@ export class ClassDialog extends Component {
   constructor(props) {
     super(props);
     this.cancelDialog = this.props.cancelDialog.bind(this);
-    this.applyDates = this.props.applyDates.bind(this);
-    this.deleteEvent = this.props.deleteEvent.bind(this);
-
+    this.applyDates = this.props.applyDates;
+    this.deleteEvent = this.props.deleteEvent;
     if (this.props.event !== undefined) {
       this.state = {
         event: this.props.event,

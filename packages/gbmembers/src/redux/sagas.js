@@ -12,6 +12,7 @@ import { watchSettingsDatastore } from './sagas/settingsDatastore';
 import { watchMonthlyStatistics } from './sagas/monthlyStatistics';
 import { watchMessaging } from './sagas/messaging';
 import { watchAttendance } from './sagas/attendance';
+import { watchClasses } from './sagas/classes';
 import { watchReports } from './sagas/reporting';
 
 export default function* sagas() {
@@ -29,6 +30,7 @@ export default function* sagas() {
     watchMonthlyStatistics(),
     watchMessaging(),
     watchAttendance(),
+    watchClasses(),
     watchReports(),
   ]);
 }

@@ -16,6 +16,7 @@ import { reducer as monthlyStatistics } from './modules/monthlyStatistics';
 import { reducer as messaging } from './modules/messaging';
 import { reducer as reporting } from './modules/reporting';
 import { reducer as attendance } from './modules/attendance';
+import { reducer as classes } from './modules/classes';
 
 export default {
   errors: errorsReducer,
@@ -36,4 +37,5 @@ export default {
   messaging,
   reporting,
   attendance,
+  classes,
 };

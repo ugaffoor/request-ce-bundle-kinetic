@@ -25,10 +25,13 @@ function EventWeek({ event }) {
 export class ClassesCalendar extends Component {
   constructor(props) {
     super(props);
+    this.editClass = this.props.editClass.bind(this);
+    this.deleteClass = this.props.deleteClass.bind(this);
+    this.newClass = this.props.newClass.bind(this);
     this.programs = this.props.programs;
     this.state = {
       showClassDialog: false,
-      events: this.props.classSchedules,
+      events: this.props.classSchedules.toArray(),
     };
     this.moveEvent = this.moveEvent.bind(this);
   }
@@ -48,14 +51,31 @@ export class ClassesCalendar extends Component {
     this.setState({
       showClassDialog: false,
     });
+
+    this.deleteClass({
+      id: event.classID,
+    });
   };
+  formatCalendarDate(date) {
+    return moment(date).day() + '-' + moment(date).format('HH:mm');
+  }
   applyDates = (start, end, title, program, maxStudents, event) => {
     if (event === undefined) {
+      var id = uuidv4();
+
+      let values = {};
+      values['id'] = id;
+      values['Title'] = title;
+      values['Program'] = program;
+      values['Max Students'] = maxStudents;
+      values['Start'] = this.formatCalendarDate(start);
+      values['End'] = this.formatCalendarDate(end);
+
       this.setState({
         events: [
           ...this.state.events,
           {
-            id: uuidv4(),
+            id: id,
             start,
             end,
             title,
@@ -64,6 +84,10 @@ export class ClassesCalendar extends Component {
           },
         ],
         showClassDialog: false,
+      });
+
+      this.newClass({
+        values: values,
       });
     } else {
       this.setState((prevState, props) => {
@@ -76,6 +100,18 @@ export class ClassesCalendar extends Component {
       });
       this.setState({
         showClassDialog: false,
+      });
+      let values = {};
+      values['id'] = event.id;
+      values['Title'] = title;
+      values['Program'] = program;
+      values['Max Students'] = maxStudents;
+      values['Start'] = this.formatCalendarDate(start);
+      values['End'] = this.formatCalendarDate(end);
+
+      this.editClass({
+        id: event.classID,
+        values: values,
       });
     }
   };
@@ -141,7 +177,14 @@ export class ClassesCalendar extends Component {
       events: nextEvents,
     });
 
-    //alert(`${event.title} was resized to ${start}-${end}`)
+    let values = {};
+    values['Start'] = this.formatCalendarDate(start);
+    values['End'] = this.formatCalendarDate(end);
+
+    this.editClass({
+      id: event.classID,
+      values: values,
+    });
   };
   render() {
     let formats = {

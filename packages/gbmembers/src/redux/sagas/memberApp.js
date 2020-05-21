@@ -61,10 +61,6 @@ export const MEMBERSHIP_FEES_SEARCH = new CoreAPI.SubmissionSearch(true)
   .include('details,values')
   .limit(1000)
   .build();
-export const CLASS_SCHEDULE_SEARCH = new CoreAPI.SubmissionSearch(true)
-  .include('details,values')
-  .limit(1000)
-  .build();
 export const SNIPPETS_SEARCH = new CoreAPI.SubmissionSearch(true)
   .eq('values[Status]', 'Active')
   .eq('values[Type]', 'Snippet')
@@ -72,20 +68,6 @@ export const SNIPPETS_SEARCH = new CoreAPI.SubmissionSearch(true)
   .include('details,values')
   .limit(1000)
   .build();
-
-function convertCalenarDate(dateVal) {
-  var dayOfWeek = dateVal.split('-')[0];
-  var hour = dateVal.split('-')[1].split(':')[0];
-  var minute = dateVal.split('-')[1].split(':')[1];
-
-  var dt = moment()
-    .day(dayOfWeek)
-    .hour(hour)
-    .minute(minute)
-    .second(0)
-    .toDate();
-  return dt;
-}
 
 // TODO decide on error handling for these calls.
 export function* fetchMemberAppSettingsTask() {
@@ -249,31 +231,6 @@ export function* fetchMemberAppSettingsTask() {
   });
   var membershipFees = membershipFeesMap.toList();
 
-  const schedules = yield all({
-    submissions: call(CoreAPI.searchSubmissions, {
-      datastore: true,
-      form: 'class-schedule',
-      search: CLASS_SCHEDULE_SEARCH,
-    }),
-  });
-  var classSchedulesMap = OrderedMap();
-  var classSchedulesSubmissions = schedules.submissions.submissions;
-
-  for (i = 0; i < classSchedulesSubmissions.length; i++) {
-    classSchedulesMap = classSchedulesMap.set(
-      classSchedulesSubmissions[i].values['id'],
-      {
-        id: classSchedulesSubmissions[i].values['id'],
-        start: convertCalenarDate(classSchedulesSubmissions[i].values['Start']),
-        end: convertCalenarDate(classSchedulesSubmissions[i].values['End']),
-        title: classSchedulesSubmissions[i].values['Title'],
-        program: classSchedulesSubmissions[i].values['Program'],
-        maxStudents: classSchedulesSubmissions[i].values['Max Students'],
-      },
-    );
-  }
-  var classSchedules = classSchedulesMap.toList();
-
   const addPrograms = yield all({
     submissions: call(CoreAPI.searchSubmissions, {
       datastore: true,
@@ -362,7 +319,6 @@ export function* fetchMemberAppSettingsTask() {
     belts,
     membershipTypes,
     membershipFees,
-    classSchedules,
     additionalPrograms,
     snippets,
     kapp,
