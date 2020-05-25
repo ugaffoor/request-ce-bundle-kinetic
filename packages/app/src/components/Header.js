@@ -71,7 +71,7 @@ export const Header = ({
         </NavItem>
       )}
       <NavItem>
-        <KappLink className="nav-link" to="/">
+        <KappLink className="nav-link" to="/" style={{ padding: 0 }}>
           {dropdownIcon(currentKapp) === 'svg-gb-icon' ? (
             <SVGInline svg={gbIcon} className="icon svg-gb-icon" />
           ) : (

@@ -38,6 +38,7 @@ const mapStateToProps = (state, props) => {
       ...state.services.forms.errors,
     ],
     systemError: state.services.systemError,
+    spaceAdmin: state.app.profile.spaceAdmin,
     pathname: state.router.location.pathname,
     settingsBackPath: state.space.spaceApp.settingsBackPath || '/',
     companyLogoURL: Utils.getAttributeValue(
@@ -70,6 +71,7 @@ export const AppComponent = props => {
         <Route
           render={() => (
             <Sidebar
+              spaceAdmin={props.spaceAdmin}
               counts={props.submissionCounts}
               homePageMode={props.homePageMode}
               homePageItems={props.homePageItems}
@@ -159,10 +161,7 @@ export const AppComponent = props => {
 };
 
 const enhance = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withProps(props => {
     return props.categories.isEmpty()
       ? {
