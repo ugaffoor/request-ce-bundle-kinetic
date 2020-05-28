@@ -41,11 +41,6 @@ const mapStateToProps = (state, props) => {
     spaceAdmin: state.app.profile.spaceAdmin,
     pathname: state.router.location.pathname,
     settingsBackPath: state.space.spaceApp.settingsBackPath || '/',
-    companyLogoURL: Utils.getAttributeValue(
-      state.app.space,
-      'Company Logo',
-      '',
-    ),
   };
 };
 
@@ -149,11 +144,6 @@ export const AppComponent = props => {
           exact
           path="/requests/:type?/request/:submissionId/:mode"
           component={RequestShowContainer}
-        />
-        <img
-          src={props.companyLogoURL}
-          alt="Company Logo"
-          className="companyLogo"
         />
       </main>
     ),

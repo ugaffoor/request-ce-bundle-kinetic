@@ -57,7 +57,11 @@ export class ClassesCalendar extends Component {
     });
   };
   formatCalendarDate(date) {
-    return moment(date).day() + '-' + moment(date).format('HH:mm');
+    return (
+      (moment(date).day() === 0 ? 7 : moment(date).day()) +
+      '-' +
+      moment(date).format('HH:mm')
+    );
   }
   applyDates = (start, end, title, program, maxStudents, event) => {
     if (event === undefined) {
@@ -145,15 +149,8 @@ export class ClassesCalendar extends Component {
     const { events } = this.state;
 
     const idx = events.indexOf(event);
-    let allDay = event.allDay;
 
-    if (!event.allDay && droppedOnAllDaySlot) {
-      allDay = true;
-    } else if (event.allDay && !droppedOnAllDaySlot) {
-      allDay = false;
-    }
-
-    const updatedEvent = { ...event, start, end, allDay };
+    const updatedEvent = { ...event, start, end };
 
     const nextEvents = [...events];
     nextEvents.splice(idx, 1, updatedEvent);
@@ -162,7 +159,13 @@ export class ClassesCalendar extends Component {
       events: nextEvents,
     });
 
-    // alert(`${event.title} was dropped onto ${updatedEvent.start}`)
+    let values = {};
+    values['Start'] = this.formatCalendarDate(start);
+    values['End'] = this.formatCalendarDate(end);
+    this.editClass({
+      id: updatedEvent.classID,
+      values: values,
+    });
   }
   resizeEvent = ({ event, start, end }) => {
     const { events } = this.state;

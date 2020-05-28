@@ -15,7 +15,7 @@ function convertCalenarDate(dateVal) {
   var minute = dateVal.split('-')[1].split(':')[1];
 
   var dt = moment()
-    .day(dayOfWeek)
+    .day(dayOfWeek === '0' ? '7' : dayOfWeek)
     .hour(hour)
     .minute(minute)
     .second(0)
