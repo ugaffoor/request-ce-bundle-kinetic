@@ -87,6 +87,7 @@ const mapDispatchToProps = {
   setNewCustomers: actions.setNewCustomers,
   fetchMembers: actions.fetchMembers,
   fetchMemberAttendances: attendanceActions.fetchMemberAttendances,
+  createMemberUserAccount: actions.createMemberUserAccount,
 };
 
 export class NewCustomers extends Component {
@@ -500,6 +501,10 @@ export const MemberView = ({
   fetchMemberAttendances,
   showAttendanceDialog,
   setShowAttendanceDialog,
+  createUserAccount,
+  createMemberUserAccount,
+  creatingUserAccount,
+  setCreatingUserAccount,
 }) =>
   initialLoad ? (
     <div className="loading">
@@ -649,6 +654,21 @@ export const MemberView = ({
                       Edit
                     </NavLink>
                   )}
+                  <span>
+                    {memberItem.user === undefined ? (
+                      <button
+                        className="btn btn-primary"
+                        onClick={e => createUserAccount()}
+                      >
+                        {creatingUserAccount ? 'Creating...' : 'Create Account'}
+                      </button>
+                    ) : (
+                      <div className="username">
+                        <div className="label">Username:</div>{' '}
+                        <div className="value">{memberItem.user.username}</div>
+                      </div>
+                    )}
+                  </span>
                 </span>
                 <div className="emergency">
                   <div className="memberBarcode">
@@ -933,6 +953,7 @@ export const MemberViewContainer = compose(
   withState('showSMSModal', 'setShowSMSModal', false),
   withState('attendClasses', 'setAttendClasses', 0),
   withState('durationPeriod', 'setDurationPeriod', 0),
+  withState('creatingUserAccount', 'setCreatingUserAccount', false),
   withHandlers({
     saveMember: ({
       memberItem,
@@ -1076,6 +1097,24 @@ export const MemberViewContainer = compose(
         fetchMembers,
         addNotification,
         setSystemError,
+      });
+    },
+    createUserAccount: ({
+      memberItem,
+      updateMember,
+      createMemberUserAccount,
+      addNotification,
+      setSystemError,
+      setCreatingUserAccount,
+    }) => () => {
+      setCreatingUserAccount(true);
+
+      createMemberUserAccount({
+        memberItem,
+        updateMember,
+        addNotification,
+        setSystemError,
+        setCreatingUserAccount,
       });
     },
     printBarcode: () => () => {

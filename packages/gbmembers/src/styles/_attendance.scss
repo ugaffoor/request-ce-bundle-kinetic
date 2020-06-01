@@ -561,15 +561,61 @@
     }
   }
 }
-
+.classBookings {
+  border-top-color: #929090;
+  background-color: #c3bfbf;
+  .memberCell {
+    .checkinBooking {
+      float: left;
+      clear: left;
+      line-height: 2em;
+      margin: 10px;
+      .icon-svg {
+        height: 2em;
+        width: 2em;
+        path {
+          fill: green;
+        }
+      }
+    }
+    .checkinBooking:hover {
+      border-style: inset;
+      border-width: 1px;
+      border-radius: 5px;
+    }
+    .noshowBooking {
+      float: left;
+      line-height: 2em;
+      margin: 10px;
+      .icon-svg {
+        width: 2em;
+        height: 2em;
+        path {
+          fill: red;
+        }
+      }
+    }
+    .noshowBooking:hover {
+      border-style: inset;
+      border-width: 1px;
+      border-radius: 5px;
+    }
+  }
+}
 .checkinMembers,
 .classMembers {
+  border-top-color: #d5d5d5;
+  background-color: #f2efef;
+}
+
+.checkinMembers,
+.classMembers,
+.classBookings {
   clear: left;
   border-top-style: solid;
-  border-top-color: #d5d5d5;
   padding-top: 5px;
   display: flex;
-  background-color: #f2efef;
+  flex-flow: wrap;
   .memberCell:hover {
     background-color: #d5d5d5;
     .deleteCheckin {

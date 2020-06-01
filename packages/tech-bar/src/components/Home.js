@@ -33,7 +33,7 @@ import {
 import moment from 'moment';
 import { I18n } from '../../../app/src/I18nProvider';
 import { DATE_FORMAT, TIME_FORMAT } from '../App';
-import heroImage from '../assets/images/tech-bar-hero.jpg';
+//import heroImage from '../assets/images/tech-bar-hero.jpg';
 
 export const HomeComponent = ({
   kapp,
@@ -57,7 +57,7 @@ export const HomeComponent = ({
       <PageTitle parts={[]} />
       <div
         className="hero--tech-bar"
-        style={{ backgroundImage: `url(${heroImage})` }}
+        /*style={{ backgroundImage: `url(${heroImage})` }} */
       >
         <div className="container">
           <div className="hero-welcome">

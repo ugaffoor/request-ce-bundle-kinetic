@@ -68,6 +68,8 @@ export const types = {
   ),
   PROMOTE_MEMBER: namespace('members', 'PROMOTE_MEMBER'),
   MEMBER_PROMOTED: namespace('members', 'MEMBER_PROMOTED'),
+  CREATE_MEMBER_ACCOUNT: namespace('members', 'CREATE_MEMBER_ACCOUNT'),
+  USER_ACCOUNT_CREATED: namespace('members', 'USER_ACCOUNT_CREATED'),
 };
 
 export const actions = {
@@ -127,6 +129,8 @@ export const actions = {
   setInactiveCustomersCount: withPayload(types.SET_INACTIVE_CUSTOMERS_COUNT),
   promoteMember: withPayload(types.PROMOTE_MEMBER),
   memberPromoted: withPayload(types.MEMBER_PROMOTED),
+  createMemberUserAccount: withPayload(types.CREATE_MEMBER_ACCOUNT),
+  userAccountCreated: withPayload(types.USER_ACCOUNT_CREATED),
 };
 
 export const State = Record({
@@ -241,6 +245,7 @@ export const reducer = (state = State(), { type, payload }) => {
             payload.member.values['Postcode'];
       }
 
+      payload.member.user = payload.user;
       setMemberPromotionValues(payload.member, payload.belts);
 
       return state

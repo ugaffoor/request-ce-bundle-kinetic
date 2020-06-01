@@ -16,12 +16,14 @@ import { CreateAccountForm } from './components/authentication/CreateAccountForm
 import { UnauthenticatedForm } from './components/authentication/UnauthenticatedForm';
 
 export const LoginScreen = props => (
-  <div className="login-container">
+  <div className="login-section">
     <div
       className="login-image-container"
       style={{ backgroundImage: `url(${logoImage})` }}
     ></div>
-    <div className="login-wrapper">{props.children}</div>
+    <div className="login-container">
+      <div className="login-wrapper">{props.children}</div>
+    </div>
   </div>
 );
 

@@ -98,6 +98,12 @@ export function* fetchCurrentMember(action) {
         search: MEMBER_ACTIVITIES_SEARCH,
       }),
     ]);
+    const [user] = yield all([
+      call(CoreAPI.fetchUser, {
+        username: submission.submission.values['Member ID'],
+        include: ['details'],
+      }),
+    ]);
 
     if (action.payload.myThis) submission.myThis = action.payload.myThis;
     if (action.payload.history) submission.history = action.payload.history;
@@ -171,6 +177,7 @@ export function* fetchCurrentMember(action) {
     let memberInfo = {
       member: submission.submission,
       belts: appSettings.belts,
+      user: user.user,
     };
     yield put(actions.setCurrentMember(memberInfo));
     /*
@@ -1675,7 +1682,32 @@ export function* promoteMember(action) {
     yield put(errorActions.setSystemError(error));
   }
 }
+export function* createMemberUserAccount(action) {
+  console.log('createMemberUserAccount');
+  try {
+    let user = {
+      displayName:
+        action.payload.memberItem.values['First Name'] +
+        ' ' +
+        action.payload.memberItem.values['Last Name'],
+      email: action.payload.memberItem.values['Email'],
+      enabled: true,
+      spaceAdmin: false,
+      username: action.payload.memberItem.values['Member ID'],
+      attributesMap: {},
+      profileAttributesMap: { 'Default Kapp Display': ['services'] },
+    };
+    const { submission } = yield call(CoreAPI.createUser, {
+      user: user,
+    });
 
+    action.payload.memberItem.user = user;
+    yield put(action.payload.setCreatingUserAccount(false));
+  } catch (error) {
+    console.log('Error in createMemberUserAccount: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
 export function* watchMembers() {
   console.log('watchMembers');
   yield takeEvery(types.FETCH_MEMBERS, fetchMembers);
@@ -1717,6 +1749,7 @@ export function* watchMembers() {
     fetchInactiveCustomersCount,
   );
   yield takeEvery(types.PROMOTE_MEMBER, promoteMember);
+  yield takeEvery(types.CREATE_MEMBER_ACCOUNT, createMemberUserAccount);
 }
 
 export default function fetchMemberById(id) {

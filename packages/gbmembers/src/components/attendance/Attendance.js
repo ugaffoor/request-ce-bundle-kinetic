@@ -4,11 +4,14 @@ import $ from 'jquery';
 import BarcodeReader from 'react-barcode-reader';
 import { actions as attendanceActions } from '../../redux/modules/attendance';
 import { actions as memberActions } from '../../redux/modules/members';
+import { actions as classActions } from '../../redux/modules/classes';
 import { connect } from 'react-redux';
 import moment from 'moment';
 import Datetime from 'react-datetime';
 import barcodeIcon from '../../images/barcode.svg?raw';
 import binIcon from '../../images/bin.svg?raw';
+import tickIcon from '../../images/tick.svg?raw';
+import crossIcon from '../../images/cross.svg?raw';
 import SVGInline from 'react-svg-inline';
 import Select from 'react-select';
 import { withHandlers } from 'recompose';
@@ -21,14 +24,19 @@ const mapStateToProps = state => ({
   additionalPrograms: state.member.app.additionalPrograms,
   classAttendances: state.member.attendance.classAttendances,
   fetchingClassAttendances: state.member.attendance.fetchingClassAttendances,
+  classBookings: state.member.classes.classBookings,
+  fetchingClassBookings: state.member.classes.fetchingClassBookings,
   belts: state.member.app.belts,
 });
 
 const mapDispatchToProps = {
   fetchClassAttendances: attendanceActions.fetchClassAttendances,
+  fetchClassBookings: classActions.fetchClassBookings,
   createAttendance: attendanceActions.createAttendance,
   deleteAttendance: attendanceActions.deleteAttendance,
   setClassAttendances: attendanceActions.setClassAttendances,
+  setClassBookings: classActions.setClassBookings,
+  updateBooking: classActions.updateBooking,
   updateMember: memberActions.updateMember,
 };
 
@@ -117,8 +125,16 @@ export class AttendanceDetail extends Component {
     });
     if (
       moment(classDate).format('MM/DD/YYYY') !==
-      moment(this.state.classDate).format('MM/DD/YYYY')
+        moment(this.state.classDate).format('MM/DD/YYYY') ||
+      this.state.className !== className
     ) {
+      this.props.fetchClassBookings({
+        classDate: moment(classDate).format('YYYY-MM-DD'),
+        classTime: moment(classDate).format('HH:mm'),
+        program: className,
+        status: 'Booked',
+        allMembers: this.props.allMembers,
+      });
       this.props.fetchClassAttendances({ classDate: classDate });
     }
     $('#programClass').blur(); // Need to avoid scanning setting a value wierdly
@@ -144,6 +160,71 @@ export class AttendanceDetail extends Component {
     console.log('checkInMember');
   }
 
+  checkinBooking(booking) {
+    let memberItem;
+    for (let i = 0; i < this.props.allMembers.length; i++) {
+      if (this.props.allMembers[i].id === booking.memberGUID) {
+        memberItem = this.props.allMembers[i];
+        this.setState({ memberItem: this.props.allMembers[i] });
+        if (
+          this.props.allMembers[i].values['Ranking Program'] === undefined ||
+          this.props.allMembers[i].values['Ranking Belt'] === undefined
+        ) {
+          this.setState({ noProgramSet: true });
+        }
+        break;
+      }
+    }
+    var memberAlreadyCheckedIn = false;
+    for (let j = 0; j < this.props.classAttendances.length; j++) {
+      if (
+        this.props.classAttendances[j].values['Member GUID'] ===
+          booking.memberGUID &&
+        this.props.classAttendances[j].values['Class Time'] ===
+          this.state.classTime
+      ) {
+        this.setState({ memberAlreadyCheckedIn: true });
+        this.props.classAttendances[j].memberAlreadyCheckedIn = true;
+        memberAlreadyCheckedIn = true;
+        break;
+      }
+    }
+
+    let attendance = {
+      attendanceStatus: 'Full Class',
+    };
+    this.setState({ memberItem: undefined });
+    if (!memberAlreadyCheckedIn) {
+      this.props.checkinMember(
+        this.props.createAttendance,
+        attendance,
+        memberItem,
+        this.state.className,
+        this.state.classDate,
+        'Full Class',
+        this.props.classAttendances,
+        this.props.allMembers,
+        this.props.updateMember,
+      );
+    }
+    let values = {};
+    values['Status'] = 'Attended';
+    this.props.updateBooking({
+      id: booking.id,
+      values,
+    });
+    var idx = this.props.classBookings.findIndex(
+      element => element.id === booking.id,
+    );
+    var classBookings = this.props.classBookings.splice(idx, 1);
+    this.props.setClassBookings({
+      allMembers: this.props.allMembers,
+      classBookings: classBookings,
+    });
+
+    console.log('checkInMember');
+  }
+
   deleteCheckin(attendance) {
     console.log('delete checkin:' + attendance.id);
     this.props.deleteAttendance({
@@ -152,6 +233,22 @@ export class AttendanceDetail extends Component {
       updateMember: this.props.updateMember,
       allMembers: this.props.allMembers,
       classDate: this.state.classDate,
+    });
+  }
+  noShowBooking(booking) {
+    let values = {};
+    values['Status'] = 'No Show';
+    this.props.updateBooking({
+      id: booking.id,
+      values,
+    });
+    var idx = this.props.classBookings.findIndex(
+      element => element.id === booking.id,
+    );
+    var classBookings = this.props.classBookings.splice(idx, 1);
+    this.props.setClassBookings({
+      allMembers: this.props.allMembers,
+      classBookings: classBookings,
     });
   }
   handleMemberIDChange(e) {
@@ -277,6 +374,68 @@ export class AttendanceDetail extends Component {
               <div className="droparrow" />
             </div>
           </span>
+        </div>
+        <div className="classBookingSection">
+          <h4 className="classBookingLabel">Class Bookings</h4>
+          {this.props.fetchingClassBookings ? (
+            <h4>Loading Class Bookings....</h4>
+          ) : (
+            <div>
+              {this.props.classBookings.size === 0 ? (
+                <div>
+                  <h4>No bookings for this class</h4>
+                </div>
+              ) : (
+                <div className="classBookings">
+                  {this.props.classBookings.map((booking, index) => (
+                    <span key={index} className={'memberCell'} id={booking.id}>
+                      <span className="top">
+                        {booking.photo === undefined ? (
+                          <span className="noPhoto">
+                            {booking.firstName[0]}
+                            {booking.lastName[0]}
+                          </span>
+                        ) : (
+                          <img
+                            src={booking.photo}
+                            alt="Member Photograph"
+                            className="photo"
+                          />
+                        )}
+                        <span className="memberInfo">
+                          <h4 className="memberName">
+                            {booking.firstName} {booking.lastName}
+                          </h4>
+                          <span
+                            className="checkinBooking"
+                            onClick={e => this.checkinBooking(booking)}
+                          >
+                            <SVGInline svg={tickIcon} className="icon" />
+                          </span>
+                          <span
+                            className="noshowBooking"
+                            onClick={e => this.noShowBooking(booking)}
+                          >
+                            <SVGInline svg={crossIcon} className="icon" />
+                          </span>
+                        </span>
+                      </span>
+                      <span className="bottom">
+                        <span className="ranking">
+                          <div className="program">
+                            {getProgramSVG(booking.rankingProgram)}
+                          </div>
+                          <div className="belt">
+                            {getBeltSVG(booking.rankingBelt)}
+                          </div>
+                        </span>
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
         <div className="checkinSection">
           {this.state.memberItem === undefined &&
@@ -524,10 +683,15 @@ export const AttendanceView = ({
   checkinMember,
   createAttendance,
   fetchClassAttendances,
+  fetchClassBookings,
   classAttendances,
   fetchingClassAttendances,
+  fetchingClassBookings,
+  classBookings,
   deleteAttendance,
   setClassAttendances,
+  setClassBookings,
+  updateBooking,
   updateMember,
 }) => (
   <AttendanceDetail
@@ -537,10 +701,15 @@ export const AttendanceView = ({
     checkinMember={checkinMember}
     createAttendance={createAttendance}
     fetchClassAttendances={fetchClassAttendances}
+    fetchClassBookings={fetchClassBookings}
     classAttendances={classAttendances}
+    classBookings={classBookings}
     fetchingClassAttendances={fetchingClassAttendances}
+    fetchingClassBookings={fetchingClassBookings}
     deleteAttendance={deleteAttendance}
     setClassAttendances={setClassAttendances}
+    setClassBookings={setClassBookings}
+    updateBooking={updateBooking}
     updateMember={updateMember}
   />
 );
