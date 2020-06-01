@@ -25,8 +25,6 @@ export const selectServicesKapp = state =>
   kappBySpaceAttribute(state, 'Catalog Kapp Slug');
 export const selectTeamsKapp = state =>
   kappBySpaceAttribute(state, 'Teams Kapp Slug');
-export const selectTechBarKapp = state =>
-  kappBySpaceAttribute(state, 'Tech Bar Kapp Slug');
 
 // Role Selectors
 export const selectHasRoleDataAdmin = state =>
@@ -61,7 +59,6 @@ export const selectPredefinedKapps = state =>
         selectTeamsKapp(state),
         selectServicesKapp(state),
         selectQueueKapp(state),
-        selectTechBarKapp(state),
       ].filter(kapp => kapp != null)
     : [];
 export const selectAdditionalKapps = state =>

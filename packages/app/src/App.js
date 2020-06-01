@@ -17,7 +17,6 @@ import { actions as layoutActions } from './redux/modules/layout';
 import { App as ServicesApp } from 'services/src/App';
 import { App as QueueApp } from 'queue/src/App';
 import { App as SpaceApp } from 'space/src/App';
-import { App as TechBarApp } from 'tech-bar/src/App';
 import { AppContainer as MemberApp } from 'gbmembers/src/components/AppContainer';
 
 export const AppComponent = props =>
@@ -99,8 +98,6 @@ const getAppProvider = kapp => {
       return QueueApp;
     case 'gbmembers':
       return MemberApp;
-    case 'tech-bar':
-      return TechBarApp;
     default:
       return SpaceApp;
   }
