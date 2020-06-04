@@ -1087,6 +1087,41 @@ export const MemberEdit = ({
                 <div className="droparrow" />
               </div>{' '}
             </span>
+            <span className="line">
+              <div>
+                <label
+                  htmlFor="covid19"
+                  required={
+                    memberItem.values['Covid19 Waiver'] === undefined
+                      ? true
+                      : false
+                  }
+                >
+                  Covid19 Waiver Agreement
+                </label>
+                <select
+                  name="covid19"
+                  id="covid19"
+                  required
+                  ref={input => (this.input = input)}
+                  defaultValue={memberItem.values['Covid19 Waiver']}
+                  onChange={e =>
+                    handleChange(
+                      memberItem,
+                      'Covid19 Waiver',
+                      e,
+                      setIsDirty,
+                      memberChanges,
+                    )
+                  }
+                >
+                  <option value="" />
+                  <option value="Agreed">Agreed</option>
+                  <option value="NOT Agreed">NOT Agreed</option>
+                </select>
+                <div className="droparrow" />
+              </div>
+            </span>
           </div>
           <div className="section4">
             <span className="line">

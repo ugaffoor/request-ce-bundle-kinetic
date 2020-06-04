@@ -181,31 +181,11 @@ export const reducer = (state = State(), { type, payload }) => {
     case types.SET_MEMBERS: {
       // Apply currentFilter
       var members = [];
-      /*      if (state.get('currentFilter') === 'Active Members') {
-        for (var i = 0; i < payload.length; i++) {
-          if (payload[i].values['Status'] !== 'Inactive' &&
-            payload[i].values['Status'] !== 'Suspended')
-            members[members.length] = payload[i];
-        }
-      }
-      if (state.get('currentFilter') === 'Inactive Members') {
-        for (var j = 0; j < payload.length; j++) {
-          if (
-            payload[j].values['Status'] === undefined ||
-            payload[j].values['Status'] === 'Inactive' ||
-            payload[j].values['Status'] === 'Suspended'
-          )
-            members[members.length] = payload[j];
-        }
-      }
-      if (state.get('currentFilter') === 'All Members') {
-        for (var k = 0; k < payload.length; k++) {
-          members[members.length] = payload[k];
-        }
-      }
-*/
       for (var k = 0; k < payload.members.length; k++) {
         setMemberPromotionValues(payload.members[k], payload.belts);
+        payload.members[k].user = payload.users.find(
+          user => user.username === payload.members[k].values['Member ID'],
+        );
         members[members.length] = payload.members[k];
       }
 
@@ -244,7 +224,6 @@ export const reducer = (state = State(), { type, payload }) => {
           payload.member.values['Billing Postcode'] =
             payload.member.values['Postcode'];
       }
-
       payload.member.user = payload.user;
       setMemberPromotionValues(payload.member, payload.belts);
 

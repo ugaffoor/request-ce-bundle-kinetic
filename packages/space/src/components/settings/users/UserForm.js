@@ -4,7 +4,7 @@ import { compose, lifecycle, withHandlers, withState } from 'recompose';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { fromJS, List } from 'immutable';
-import { modalFormActions, PageTitle } from 'common';
+import { modalFormActions, PageTitle, Utils } from 'common';
 
 import { actions as usersActions } from '../../../redux/modules/settingsUsers';
 import { actions as teamsActions } from '../../../redux/modules/teamList';
@@ -21,6 +21,7 @@ export const UserFormComponent = ({
   error,
   roles,
   teams,
+  spaceAdmin,
   locales,
   timezones,
   fieldValues,
@@ -71,6 +72,7 @@ export const UserFormComponent = ({
             </h2>
             <form onSubmit={handleSubmit}>
               <div className="user-admin">
+                {/*
                 <label htmlFor="spaceAdmin">
                   <input
                     type="checkbox"
@@ -81,6 +83,7 @@ export const UserFormComponent = ({
                   />
                   <I18n>Space Admin</I18n>
                 </label>
+              */}
                 <label htmlFor="enabled">
                   <input
                     type="checkbox"

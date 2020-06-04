@@ -603,6 +603,11 @@ export const MemberView = ({
                       format="####-###-###"
                     />
                   </span>
+                  <span className="value">
+                    <span className="medicalValue">
+                      {memberItem.values['Medical Allergies']}
+                    </span>
+                  </span>
                 </div>
               </span>
               <span className="details2">
@@ -655,18 +660,29 @@ export const MemberView = ({
                     </NavLink>
                   )}
                   <span>
-                    {memberItem.user === undefined ? (
-                      <button
-                        className="btn btn-primary"
-                        onClick={e => createUserAccount()}
-                      >
-                        {creatingUserAccount ? 'Creating...' : 'Create Account'}
-                      </button>
+                    {memberItem.values['Status'] === 'Inactive' ||
+                    memberItem.values['Status'] === 'Frozen' ? (
+                      <div />
                     ) : (
-                      <div className="username">
-                        <div className="label">Username:</div>{' '}
-                        <div className="value">{memberItem.user.username}</div>
-                      </div>
+                      <span>
+                        {memberItem.user === undefined ? (
+                          <button
+                            className="btn btn-primary"
+                            onClick={e => createUserAccount()}
+                          >
+                            {creatingUserAccount
+                              ? 'Creating...'
+                              : 'Create Account'}
+                          </button>
+                        ) : (
+                          <div className="username">
+                            <div className="label">Username:</div>{' '}
+                            <div className="value">
+                              {memberItem.user.username}
+                            </div>
+                          </div>
+                        )}
+                      </span>
                     )}
                   </span>
                 </span>

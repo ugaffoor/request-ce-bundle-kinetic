@@ -57,7 +57,7 @@ export function* fetchMembers(action) {
       .limit(1000)
       .build();
 
-    const [submissions, submissions2] = yield all([
+    const [submissions, submissions2, users] = yield all([
       call(CoreAPI.searchSubmissions, {
         form: 'member',
         kapp: 'gbmembers',
@@ -68,10 +68,14 @@ export function* fetchMembers(action) {
         kapp: 'gbmembers',
         search: searchInactive,
       }),
+      call(CoreAPI.fetchUsers, {
+        include: ['details'],
+      }),
     ]);
     let memberInfo = {
       members: submissions.submissions.concat(submissions2.submissions),
       belts: appSettings.belts,
+      users: users.users,
     };
     yield put(actions.setMembers(memberInfo));
   } catch (error) {
@@ -104,7 +108,6 @@ export function* fetchCurrentMember(action) {
         include: ['details'],
       }),
     ]);
-
     if (action.payload.myThis) submission.myThis = action.payload.myThis;
     if (action.payload.history) submission.history = action.payload.history;
     if (action.payload.fetchMembers)

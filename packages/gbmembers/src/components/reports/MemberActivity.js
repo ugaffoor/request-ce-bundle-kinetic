@@ -43,6 +43,8 @@ export class MemberActivityReport extends Component {
       { title: 'Additional Program 2', field: 'additionalProgram2' },
       { title: 'Billing User', field: 'billingUser' },
       { title: 'Non Paying', field: 'nonPaying' },
+      { title: 'Account Created', field: 'accountCreated' },
+      { title: 'Covid19 Waiver', field: 'covid19Waiver' },
       { title: 'Cost', field: 'cost', bottomCalc: 'sum' },
       { title: 'Average', field: 'average', bottomCalc: this.averageCostCalc },
       { title: 'Payment Period', field: 'paymentPeriod' },
@@ -93,6 +95,8 @@ export class MemberActivityReport extends Component {
       { label: 'Additional Program 2', value: 'additionalProgram2' },
       { label: 'Billing User', value: 'billingUser' },
       { label: 'Non Paying', value: 'nonPaying' },
+      { label: 'Account Created', value: 'accountCreated' },
+      { label: 'Covid19 Waiver', value: 'covid19Waiver' },
       { label: 'Cost', value: 'cost', key: 'cost' },
       { label: 'Average', value: 'average', key: 'cost' },
       { label: 'Payment Period', value: 'paymentPeriod' },
@@ -135,6 +139,8 @@ export class MemberActivityReport extends Component {
           { label: 'Age (Years)', value: 'age' },
           { label: 'Member Type', value: 'memberType' },
           { label: 'Program', value: 'program' },
+          { label: 'Account Created', value: 'accountCreated' },
+          { label: 'Covid19 Waiver', value: 'covid19Waiver' },
           { label: 'Belt', value: 'belt' },
           { label: 'Additional Program 1', value: 'additionalProgram1' },
           { label: 'Additional Program 2', value: 'additionalProgram2' },
@@ -189,6 +195,8 @@ export class MemberActivityReport extends Component {
       { label: 'Additional Program 2', value: 'additionalProgram2' },
       { label: 'Billing User', value: 'billingUser' },
       { label: 'Non Paying', value: 'nonPaying' },
+      { label: 'Account Created', value: 'accountCreated' },
+      { label: 'Covid19 Waiver', value: 'covid19Waiver' },
       { label: 'Cost', value: 'cost', key: 'cost' },
       { label: 'Average', value: 'average', key: 'cost' },
       { label: 'Payment Period', value: 'paymentPeriod' },
@@ -212,6 +220,8 @@ export class MemberActivityReport extends Component {
       status: this.props.memberStatusValues,
       billingUser: ['YES', 'NO'],
       nonPaying: ['YES'],
+      accountCreated: ['YES', 'NO'],
+      covid19Waiver: ['Agreed', 'NOT Agreed', ''],
       memberType: this.props.membershipTypes.map(type => type.type),
       program: this.props.programs.map(program => program.program),
       additionalProgram1: this.props.additionalPrograms.map(
@@ -768,6 +778,8 @@ export class MemberActivityReport extends Component {
         additionalProgram2: member.values['Additional Program 2'],
         billingUser: member.values['Billing User'] === 'YES' ? 'YES' : 'NO',
         nonPaying: member.values['Non Paying'] === 'YES' ? 'YES' : '',
+        accountCreated: member.user !== undefined ? 'YES' : 'NO',
+        covid19Waiver: member.values['Covid19 Waiver'],
         cost:
           member.values['Billing User'] === 'YES'
             ? member.values['Membership Cost']

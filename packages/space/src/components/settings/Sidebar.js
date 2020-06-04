@@ -7,6 +7,7 @@ import { selectHasSharedTaskEngine } from '../../redux/modules/spaceApp';
 import {
   selectHasRoleSchedulerAdmin,
   selectHasRoleSchedulerManager,
+  Utils,
 } from 'common';
 import { NOTIFICATIONS_FORM_SLUG } from '../../redux/modules/settingsNotifications';
 import { ROBOT_DEFINITIONS_FORM_SLUG } from '../../redux/modules/settingsRobots';
@@ -17,6 +18,7 @@ export const SidebarComponent = ({
   hasSharedTaskEngine,
   loading,
   spaceAdmin,
+  profile,
   showDatastore,
   showNotifications,
   showRobots,
@@ -79,7 +81,7 @@ export const SidebarComponent = ({
                 <span className="fa fa-fw fa-angle-right" />
               </NavLink>
             )}
-            {spaceAdmin && (
+            {Utils.isMemberOf(profile, 'Role::Data Admin') && (
               <NavLink
                 to="/settings/users"
                 className="nav-link"
@@ -158,6 +160,7 @@ export const mapStateToProps = state => ({
   loading: state.space.profiles.loading,
   forms: state.space.settingsDatastore.forms,
   spaceAdmin: state.app.profile.spaceAdmin,
+  profile: state.app.profile,
   pathname: state.router.location.pathname,
   hasSharedTaskEngine: selectHasSharedTaskEngine(state),
   isSchedulerAdmin: selectHasRoleSchedulerAdmin(state),

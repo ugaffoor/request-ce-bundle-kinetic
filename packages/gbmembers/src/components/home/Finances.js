@@ -34,7 +34,26 @@ export class Finances extends Component {
   componentWillMount() {
     this.props.fetchMonthlyStatistics();
   }
-
+  getMinValue(statistics) {
+    var minValue = -1;
+    statistics.forEach(statistic => {
+      var revenue = parseFloat(statistic.values['Monthly Revenue']);
+      if (minValue === -1 || revenue < minValue) {
+        minValue = revenue;
+      }
+    });
+    return minValue - 1000;
+  }
+  getMaxValue(statistics) {
+    var maxValue = -1;
+    statistics.forEach(statistic => {
+      var revenue = parseFloat(statistic.values['Monthly Revenue']);
+      if (maxValue === -1 || revenue > maxValue) {
+        maxValue = revenue;
+      }
+    });
+    return maxValue + 1000;
+  }
   getData(statistics) {
     if (!statistics || statistics.size <= 0) {
       return [];
@@ -151,10 +170,10 @@ export class Finances extends Component {
       <span>
         <div className="page-header">Finances</div>
         <div className="finances">
-          <ResponsiveContainer minHeight={370}>
+          <ResponsiveContainer minHeight={570}>
             <LineChart
               width={600}
-              height={370}
+              height={570}
               data={data}
               margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
             >
@@ -167,6 +186,11 @@ export class Finances extends Component {
               <YAxis
                 tickFormatter={this.yAxisTickFormatter}
                 padding={{ top: 30 }}
+                type="number"
+                domain={[
+                  this.getMinValue(this.props.monthlyStatistics),
+                  this.getMaxValue(this.props.monthlyStatistics),
+                ]}
               />
               <Tooltip
                 labelFormatter={this.financeToolTipLabelFormatter}
