@@ -269,7 +269,9 @@ export function* updateCurrentMember(action) {
         myThis: action.payload.myThis,
       });
 
-    console.log('updateCurrentMember:' + submission);
+    console.log(
+      'updateCurrentMember:' + action.payload.memberItem.values['Member ID'],
+    );
     yield put(
       errorActions.addSuccess('Member updated successfully', 'Update Member'),
     );

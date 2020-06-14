@@ -310,7 +310,10 @@ export const MemberNew = ({
                   required
                   ref={input => (this.input = input)}
                   defaultValue={memberItem.values['Email']}
-                  onChange={e => handleChange(memberItem, 'Email', e)}
+                  onChange={e => {
+                    e.target.value = e.target.value.trim();
+                    handleChange(memberItem, 'Email', e);
+                  }}
                 />
               </div>
               <div className="emailDiv ml-1">
@@ -322,9 +325,10 @@ export const MemberNew = ({
                   size="40"
                   ref={input => (this.input = input)}
                   defaultValue={memberItem.values['Additional Email']}
-                  onChange={e =>
-                    handleChange(memberItem, 'Additional Email', e)
-                  }
+                  onChange={e => {
+                    e.target.value = e.target.value.trim();
+                    handleChange(memberItem, 'Additional Email', e);
+                  }}
                 />
               </div>
             </span>

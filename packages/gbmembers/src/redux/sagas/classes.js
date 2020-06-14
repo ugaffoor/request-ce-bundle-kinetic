@@ -18,15 +18,18 @@ function convertCalendarDate(dateVal) {
     .day(dayOfWeek === '0' ? '7' : dayOfWeek)
     .hour(hour)
     .minute(minute)
-    .second(0)
-    .toDate();
-  return dt;
+    .second(0);
+  if (dt.isAfter(moment())) {
+    dt.add(-7, 'days');
+  }
+  return dt.toDate();
 }
 
 export function* fetchClassSchedules(action) {
   try {
     const search = new CoreAPI.SubmissionSearch(true)
       .includes(['details', 'values'])
+      .limit(1000)
       .build();
 
     const { submissions } = yield call(CoreAPI.searchSubmissions, {
@@ -50,6 +53,7 @@ export function* fetchClassSchedules(action) {
           title: classSchedulesSubmissions[i].values['Title'],
           program: classSchedulesSubmissions[i].values['Program'],
           maxStudents: classSchedulesSubmissions[i].values['Max Students'],
+          colour: classSchedulesSubmissions[i].values['Colour'],
         },
       );
     }
@@ -74,6 +78,7 @@ export function* fetchClassBookings(action) {
       .eq('values[Class Time]', action.payload.classTime)
       .eq('values[Program]', action.payload.program)
       .eq('values[Status]', action.payload.status)
+      .limit(1000)
       .build();
 
     const { submissions } = yield call(CoreAPI.searchSubmissions, {
@@ -101,6 +106,55 @@ export function* fetchClassBookings(action) {
       actions.setClassBookings({
         classBookings: classBookings,
         allMembers: allMembers,
+      }),
+    );
+  } catch (error) {
+    console.log('Error in fetchClassBookings: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
+
+export function* fetchCurrentClassBookings(action) {
+  try {
+    const search = new CoreAPI.SubmissionSearch(true)
+      .includes(['details', 'values'])
+      .index('values[Class Date]')
+      .gteq('values[Class Date]', moment().format('YYYY-MM-DD'))
+      .limit(1000)
+      .build();
+
+    const { submissions } = yield call(CoreAPI.searchSubmissions, {
+      form: 'class-booking',
+      datastore: true,
+      search,
+    });
+    var classBookingsMap = OrderedMap();
+    var classBookingsSubmissions = submissions;
+    for (var i = 0; i < classBookingsSubmissions.length; i++) {
+      if (
+        classBookingsSubmissions[i].values['Status'] === 'Booked' ||
+        classBookingsSubmissions[i].values['Status'] === 'Cancelled'
+      ) {
+        classBookingsMap = classBookingsMap.set(
+          classBookingsSubmissions[i].id,
+          {
+            id: classBookingsSubmissions[i].id,
+            status: classBookingsSubmissions[i].values['Status'],
+            program: classBookingsSubmissions[i].values['Program'],
+            classDate: classBookingsSubmissions[i].values['Class Date'],
+            classTime: classBookingsSubmissions[i].values['Class Time'],
+            memberID: classBookingsSubmissions[i].values['Member ID'],
+            memberGUID: classBookingsSubmissions[i].values['Member GUID'],
+            memberName: classBookingsSubmissions[i].values['Member Name'],
+          },
+        );
+      }
+    }
+    var currentClassBookings = classBookingsMap.toList();
+
+    yield put(
+      actions.setCurrentClassBookings({
+        currentClassBookings: currentClassBookings,
       }),
     );
   } catch (error) {
@@ -168,11 +222,57 @@ export function* updateBooking(action) {
     yield put(errorActions.setSystemError(error));
   }
 }
+export function* addBooking(action) {
+  try {
+    const { submission } = yield call(CoreAPI.createSubmission, {
+      datastore: true,
+      formSlug: 'class-booking',
+      values: action.payload.values,
+      completed: true,
+    });
+
+    console.log('addBooking');
+    yield put(
+      actions.setAddedBooking({
+        id: submission.id,
+        status: action.payload.values['Status'],
+        program: action.payload.values['Program'],
+        classDate: action.payload.values['Class Date'],
+        classTime: action.payload.values['Class Time'],
+        name: action.payload.values['Member Name'],
+        memberGUID: action.payload.values['Member GUID'],
+      }),
+    );
+  } catch (error) {
+    console.log('Error in addBooking: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
+export function* deleteBooking(action) {
+  try {
+    console.log('deleteBooking: ');
+    const { errors, serverError } = yield call(CoreAPI.deleteSubmission, {
+      id: action.payload.id,
+      datastore: true,
+    });
+
+    console.log('deleteBooking');
+  } catch (error) {
+    console.log('Error in deleteBooking: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
 export function* watchClasses() {
+  yield takeEvery(
+    types.FETCH_CURRENT_CLASS_BOOKINGS,
+    fetchCurrentClassBookings,
+  );
   yield takeEvery(types.FETCH_CLASS_BOOKINGS, fetchClassBookings);
   yield takeEvery(types.FETCH_CLASS_SCHEDULES, fetchClassSchedules);
   yield takeEvery(types.NEW_CLASS, newClass);
   yield takeEvery(types.EDIT_CLASS, editClass);
   yield takeEvery(types.DELETE_CLASS, deleteClass);
   yield takeEvery(types.UPDATE_BOOKING, updateBooking);
+  yield takeEvery(types.ADD_BOOKING, addBooking);
+  yield takeEvery(types.DELETE_BOOKING, deleteBooking);
 }

@@ -303,17 +303,19 @@ export const HomeContainer = compose(
   }),
   lifecycle({
     componentWillMount() {
-      if (
-        !this.props.billingPayments ||
-        this.props.billingPayments.length <= 0
-      ) {
-        this.props.getBillingPayments('current_month');
-      }
-      if (
-        !this.props.processedAndScheduledPayments ||
-        $.isEmptyObject(this.props.processedAndScheduledPayments)
-      ) {
-        this.props.getProcessedAndScheduledPayments();
+      if (Utils.isMemberOf(this.props.profile, 'Billing')) {
+        if (
+          !this.props.billingPayments ||
+          this.props.billingPayments.length <= 0
+        ) {
+          this.props.getBillingPayments('current_month');
+        }
+        if (
+          !this.props.processedAndScheduledPayments ||
+          $.isEmptyObject(this.props.processedAndScheduledPayments)
+        ) {
+          this.props.getProcessedAndScheduledPayments();
+        }
       }
       this.props.fetchLeadsByDate();
     },

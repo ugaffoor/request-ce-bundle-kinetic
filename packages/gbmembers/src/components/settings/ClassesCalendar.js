@@ -29,6 +29,7 @@ export class ClassesCalendar extends Component {
     this.deleteClass = this.props.deleteClass.bind(this);
     this.newClass = this.props.newClass.bind(this);
     this.programs = this.props.programs;
+    this.additionalPrograms = this.props.additionalPrograms;
     this.state = {
       showClassDialog: false,
       events: this.props.classSchedules.toArray(),
@@ -63,7 +64,7 @@ export class ClassesCalendar extends Component {
       moment(date).format('HH:mm')
     );
   }
-  applyDates = (start, end, title, program, maxStudents, event) => {
+  applyDates = (start, end, title, program, maxStudents, colour, event) => {
     if (event === undefined) {
       var id = uuidv4();
 
@@ -74,6 +75,7 @@ export class ClassesCalendar extends Component {
       values['Max Students'] = maxStudents;
       values['Start'] = this.formatCalendarDate(start);
       values['End'] = this.formatCalendarDate(end);
+      values['Colour'] = colour;
 
       this.setState({
         events: [
@@ -85,6 +87,7 @@ export class ClassesCalendar extends Component {
             title,
             maxStudents,
             program,
+            colour,
           },
         ],
         showClassDialog: false,
@@ -100,6 +103,7 @@ export class ClassesCalendar extends Component {
         events[idx].title = title;
         events[idx].program = program;
         events[idx].maxStudents = maxStudents;
+        events[idx].colour = colour;
         return { events };
       });
       this.setState({
@@ -112,6 +116,7 @@ export class ClassesCalendar extends Component {
       values['Max Students'] = maxStudents;
       values['Start'] = this.formatCalendarDate(start);
       values['End'] = this.formatCalendarDate(end);
+      values['Colour'] = colour;
 
       this.editClass({
         id: event.classID,
@@ -135,8 +140,14 @@ export class ClassesCalendar extends Component {
     });
   };
 
-  customEventPropGetter = ({ program, start, end, isSelected }) => {
-    //  console.log(this.state.events);
+  customEventPropGetter = ({ program, start, end, colour, isSelected }) => {
+    if (colour !== undefined) {
+      return {
+        style: {
+          backgroundColor: colour,
+        },
+      };
+    }
     return { className: program.replace(/ /g, '_') };
   };
   handleSelectEvent = event => {
@@ -198,13 +209,15 @@ export class ClassesCalendar extends Component {
         localizer.format(date, 'ddd', culture),
     };
     return (
-      <span>
+      <span className="scheduleCalendar">
         {this.state.showClassDialog && (
           <ClassDialogContainer
             event={this.state.event}
             start={this.state.addStart}
             end={this.state.addEnd}
             programs={this.programs}
+            additionalPrograms={this.additionalPrograms}
+            colour={this.colour}
             cancelDialog={this.cancelDialog}
             applyDates={this.applyDates}
             deleteEvent={this.deleteEvent}

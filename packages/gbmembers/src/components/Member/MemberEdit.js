@@ -175,6 +175,8 @@ export const MemberEdit = ({
   memberStatusValues,
   setShowSetStatusModal,
   showSetStatusModal,
+  setEditUserName,
+  editUserName,
 }) =>
   currentMemberLoading ? (
     <div />
@@ -208,25 +210,49 @@ export const MemberEdit = ({
                 />
               )}
             </span>
-            <p>{memberItem.values['Member ID']}</p>
-            {/*            <input
-              type="text"
-              name="username"
-              id="username"
-              required
-              ref={input => (this.input = input)}
-              defaultValue={memberItem.values['Member ID']}
-              onChange={e =>
-                handleChange(
-                  memberItem,
-                  'Member ID',
-                  e,
-                  setIsDirty,
-                  memberChanges,
-                )
-              }
-            />
-*/}
+            <span className="userNameInfo">
+              {!editUserName && (
+                <span>
+                  <p className="userName">{memberItem.values['Member ID']}</p>
+                  <a
+                    onClick={e => setEditUserName(true)}
+                    className="btn btn-primary editUserName"
+                    style={{ marginLeft: '10px', color: 'white' }}
+                  >
+                    Edit Username
+                  </a>
+                </span>
+              )}
+              {editUserName && (
+                <span>
+                  <label htmlFor="username">User Name</label>
+                  <input
+                    type="text"
+                    name="username"
+                    id="username"
+                    className="userNameField"
+                    required
+                    ref={input => (this.input = input)}
+                    defaultValue={memberItem.values['Member ID']}
+                    onChange={e =>
+                      handleChange(
+                        memberItem,
+                        'Member ID',
+                        e,
+                        setIsDirty,
+                        memberChanges,
+                      )
+                    }
+                  />
+                  <div id="duplicateUserInfo" className="hide">
+                    <p>
+                      Username must be unique for a Member. Another user already
+                      exists.
+                    </p>
+                  </div>
+                </span>
+              )}
+            </span>
             <hr />
             <span className="line">
               <div>
@@ -563,15 +589,19 @@ export const MemberEdit = ({
                   required
                   ref={input => (this.input = input)}
                   defaultValue={memberItem.values['Email']}
-                  onChange={e =>
+                  onChange={e => {
+                    e.target.value = e.target.value.trim();
+                    memberItem.values['Email'] = memberItem.values[
+                      'Email'
+                    ].trim();
                     handleChange(
                       memberItem,
                       'Email',
                       e,
                       setIsDirty,
                       memberChanges,
-                    )
-                  }
+                    );
+                  }}
                 />
               </div>
               <div className="emailDiv ml-1">
@@ -583,15 +613,16 @@ export const MemberEdit = ({
                   size="40"
                   ref={input => (this.input = input)}
                   defaultValue={memberItem.values['Additional Email']}
-                  onChange={e =>
+                  onChange={e => {
+                    e.target.value = e.target.value.trim();
                     handleChange(
                       memberItem,
                       'Additional Email',
                       e,
                       setIsDirty,
                       memberChanges,
-                    )
-                  }
+                    );
+                  }}
                 />
               </div>
             </span>
@@ -1021,15 +1052,20 @@ export const MemberEdit = ({
                   checked={
                     memberItem.values['Non Paying'] === 'YES' ? true : false
                   }
-                  onChange={e =>
+                  onChange={e => {
+                    if (memberItem.values['Non Paying'] === 'YES') {
+                      e.target.value = '';
+                    } else {
+                      e.target.value = 'YES';
+                    }
                     handleChange(
                       memberItem,
                       'Non Paying',
                       e,
                       setIsDirty,
                       memberChanges,
-                    )
-                  }
+                    );
+                  }}
                 />
               </div>
             </span>
@@ -1089,20 +1125,10 @@ export const MemberEdit = ({
             </span>
             <span className="line">
               <div>
-                <label
-                  htmlFor="covid19"
-                  required={
-                    memberItem.values['Covid19 Waiver'] === undefined
-                      ? true
-                      : false
-                  }
-                >
-                  Covid19 Waiver Agreement
-                </label>
+                <label htmlFor="covid19">Covid19 Waiver Agreement</label>
                 <select
                   name="covid19"
                   id="covid19"
-                  required
                   ref={input => (this.input = input)}
                   defaultValue={memberItem.values['Covid19 Waiver']}
                   onChange={e =>
@@ -1204,6 +1230,7 @@ export const MemberEditContainer = compose(
   withState('memberChanges', 'setMemberChanges', []),
   withState('showMemberAudit', 'setShowMemberAudit', false),
   withState('showSetStatusModal', 'setShowSetStatusModal', false),
+  withState('editUserName', 'setEditUserName', false),
   withHandlers({
     deleteMemberCall: ({ memberItem, deleteMember, fetchMembers }) => () => {
       deleteMember({
@@ -1226,7 +1253,26 @@ export const MemberEditContainer = compose(
       if (!isDirty) {
         return;
       }
-      if ($('label[required]').length > 0) {
+      $('#duplicateUserInfo')
+        .removeClass('show')
+        .addClass('hide');
+      var duplicateUser = false;
+      for (var i = 0; i < allMembers.length; i++) {
+        if (
+          allMembers[i].values['Member ID'] ===
+            memberItem.values['Member ID'] &&
+          allMembers[i].id !== memberItem.id
+        ) {
+          duplicateUser = true;
+        }
+      }
+
+      if (duplicateUser) {
+        $('#duplicateUserInfo')
+          .removeClass('hide')
+          .addClass('show');
+      }
+      if ($('label[required]').length > 0 || duplicateUser) {
         $('label[required]')
           .siblings('input[required]')
           .css('border-color', 'red');

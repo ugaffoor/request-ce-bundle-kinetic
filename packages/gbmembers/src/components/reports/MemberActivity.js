@@ -1213,7 +1213,6 @@ export class MemberActivityReport extends Component {
     const options = {
       height: 450,
       width: '100%',
-      movableRows: true,
       pagination: 'local',
       paginationSize: 10,
       paginationSizeSelector: [10, 20, 50, 100],

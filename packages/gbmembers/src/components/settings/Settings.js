@@ -18,6 +18,7 @@ import { actions as errorActions } from '../../redux/modules/errors';
 import { Utils } from 'common';
 import moment from 'moment';
 import { ClassesCalendar } from './ClassesCalendar';
+import { ManageBookings } from './ManageBookings';
 
 const mapStateToProps = state => ({
   memberItem: state.member.members.currentMember,
@@ -30,12 +31,21 @@ const mapStateToProps = state => ({
   billingPaymentsLoading: state.member.members.billingPaymentsLoading,
   classSchedules: state.member.classes.classSchedules,
   fetchingClassSchedules: state.member.classes.fetchingClassSchedules,
+  classBookings: state.member.classes.currentClassBookings,
+  addedBooking: state.member.classes.addedBooking,
+  fetchingClassBookings: state.member.classes.fetchingCurrentClassBookings,
+  programs: state.member.app.programs,
+  additionalPrograms: state.member.app.additionalPrograms,
 });
 
 const mapDispatchToProps = {
   fetchCurrentMember: actions.fetchCurrentMember,
   fetchMembers: actions.fetchMembers,
   fetchClassSchedules: classActions.fetchClassSchedules,
+  fetchClassBookings: classActions.fetchCurrentClassBookings,
+  updateBooking: classActions.updateBooking,
+  addBooking: classActions.addBooking,
+  deleteBooking: classActions.deleteBooking,
   newClass: classActions.newClass,
   editClass: classActions.editClass,
   deleteClass: classActions.deleteClass,
@@ -61,7 +71,7 @@ class ComponentToPrint extends React.Component {
                 width={1.3}
                 height={36}
                 text={
-                  member.values['Last Name'].substring(0, 1) +
+                  member.values['First Name'].substring(0, 3) +
                   ' ' +
                   member.values['Last Name']
                 }
@@ -80,7 +90,7 @@ class ComponentToPrint extends React.Component {
                 width={1.3}
                 height={36}
                 text={
-                  member.values['Last Name'].substring(0, 1) +
+                  member.values['First Name'].substring(0, 3) +
                   ' ' +
                   member.values['Last Name']
                 }
@@ -122,12 +132,23 @@ export const SettingsView = ({
   setSystemError,
   showClassCalendar,
   setShowClassCalendar,
+  showClassBookings,
+  setShowClassBookings,
   classSchedules,
   fetchClassSchedules,
   fetchingClassSchedules,
+  classBookings,
+  fetchClassBookings,
+  fetchingClassBookings,
   newClass,
   editClass,
   deleteClass,
+  programs,
+  additionalPrograms,
+  updateBooking,
+  addBooking,
+  addedBooking,
+  deleteBooking,
 }) => (
   <div className="settings">
     <StatusMessagesContainer />
@@ -154,10 +175,45 @@ export const SettingsView = ({
       ) : !fetchingClassSchedules && showClassCalendar ? (
         <ClassesCalendar
           classSchedules={classSchedules}
+          programs={programs}
+          additionalPrograms={additionalPrograms}
           newClass={newClass}
           editClass={editClass}
           deleteClass={deleteClass}
         ></ClassesCalendar>
+      ) : (
+        <div />
+      )}
+      {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
+        <div />
+      ) : (
+        <div className="col-xs-3">
+          <button
+            type="button"
+            id="classBookings"
+            className={'btn btn-primary'}
+            onClick={e => {
+              fetchClassBookings();
+              setShowClassBookings(showClassBookings ? false : true);
+            }}
+          >
+            {showClassBookings ? 'Hide Class Bookings' : 'Show Class Bookings'}
+          </button>
+        </div>
+      )}
+      {fetchingClassBookings && showClassBookings ? (
+        <p>Loading Class Bookings ....</p>
+      ) : !fetchingClassBookings && showClassBookings ? (
+        <ManageBookings
+          classBookings={classBookings}
+          allMembers={allMembers}
+          programs={programs}
+          additionalPrograms={additionalPrograms}
+          updateBooking={updateBooking}
+          addBooking={addBooking}
+          addedBooking={addedBooking}
+          deleteBooking={deleteBooking}
+        ></ManageBookings>
       ) : (
         <div />
       )}
@@ -286,6 +342,7 @@ export const SettingsContainer = compose(
   }),
   withState('printingBarcodes', 'setPrintingBarcodes', false),
   withState('showClassCalendar', 'setShowClassCalendar', false),
+  withState('showClassBookings', 'setShowClassBookings', false),
   withHandlers({
     printMemberBarcodes: ({ allMembers, setPrintingBarcodes }) => () => {
       console.log('Printing:' + allMembers.length);

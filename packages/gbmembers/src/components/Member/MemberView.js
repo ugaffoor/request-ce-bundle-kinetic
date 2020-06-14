@@ -668,11 +668,13 @@ export const MemberView = ({
                         {memberItem.user === undefined ? (
                           <button
                             className="btn btn-primary"
+                            style={{ 'text-transform': 'unset' }}
                             onClick={e => createUserAccount()}
                           >
                             {creatingUserAccount
                               ? 'Creating...'
-                              : 'Create Account'}
+                              : 'Create Account as ' +
+                                memberItem.values['Member ID']}
                           </button>
                         ) : (
                           <div className="username">

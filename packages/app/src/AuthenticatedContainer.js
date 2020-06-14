@@ -6,7 +6,7 @@ import { push } from 'connected-react-router';
 import { bundle } from 'react-kinetic-core';
 import { I18n } from './I18nProvider';
 
-import logoImage from './assets/images/gb-logo.png';
+import logoImage from './assets/images/gb-logo.jpg';
 import logoName from './assets/images/login-name.png';
 
 import { ResetTokenForm } from './components/authentication/ResetTokenForm';

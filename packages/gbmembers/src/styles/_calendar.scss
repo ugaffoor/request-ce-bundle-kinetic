@@ -36,34 +36,36 @@
     margin: 5px;
   }
 }
-.GB1 {
-  background-color: #4472c4 !important;
+.scheduleCalendar,
+#dayClasses {
+  .GB1 {
+    background-color: #4472c4 !important;
+  }
+  .GB2 {
+    background-color: #7030a0 !important;
+  }
+  .GB3 {
+    background-color: black !important;
+  }
+  .Tiny_Champions {
+    background-color: #bdd7ee !important;
+  }
+  .Little_Champions_1 {
+    background-color: #ffc001 !important;
+  }
+  .Little_Champions_2 {
+    background-color: #ed7d32 !important;
+  }
+  .Juniors {
+    background-color: #a9d18d !important;
+  }
+  .Teens {
+    background-color: #70ad46 !important;
+  }
+  .Advanced_Kids {
+    background-color: #48d1cc !important;
+  }
 }
-.GB2 {
-  background-color: #7030a0 !important;
-}
-.GB3 {
-  background-color: black !important;
-}
-.Tiny_Champions {
-  background-color: #bdd7ee !important;
-}
-.Little_Champions_1 {
-  background-color: #ffc001 !important;
-}
-.Little_Champions_2 {
-  background-color: #ed7d32 !important;
-}
-.Juniors {
-  background-color: #a9d18d !important;
-}
-.Teens {
-  background-color: #70ad46 !important;
-}
-.Advanced_Kids {
-  background-color: #48d1cc !important;
-}
-
 .rbc-btn {
   color: inherit;
   font: inherit;

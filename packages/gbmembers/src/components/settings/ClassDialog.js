@@ -5,6 +5,8 @@ import { actions as memberActions } from '../../redux/modules/members';
 import $ from 'jquery';
 import { compose } from 'recompose';
 import moment from 'moment';
+import reactCSS from 'reactcss';
+import { SketchPicker } from 'react-color';
 
 const mapStateToProps = state => ({
   programs: state.member.app.programs,
@@ -32,6 +34,7 @@ export class ClassDialog extends Component {
       event: undefined,
       title: undefined,
       program: undefined,
+      color: undefined,
     });
   };
 
@@ -46,6 +49,7 @@ export class ClassDialog extends Component {
       this.state.title,
       this.state.program,
       this.state.maxStudents,
+      this.state.color.hex,
       this.state.event,
     );
     this.setState({
@@ -53,7 +57,56 @@ export class ClassDialog extends Component {
       title: undefined,
       program: undefined,
       maxStudents: undefined,
+      color: undefined,
     });
+  };
+
+  getProgramColor = program => {
+    var color = '#6F6E6E';
+
+    switch (program) {
+      case 'GB1':
+        color = '#4472c4';
+        break;
+      case 'GB2':
+        color = '#7030a0';
+        break;
+      case 'GB3':
+        color = 'black';
+        break;
+      case 'Tiny Champions':
+        color = '#bdd7ee';
+        break;
+      case 'Little Champions 1':
+        color = '#ffc001';
+        break;
+      case 'Little Champions 2':
+        color = '#ed7d32';
+        break;
+      case 'Juniors':
+        color = '#a9d18d';
+        break;
+      case 'Teens':
+        color = '#70ad46';
+        break;
+      case 'Advanced Kids':
+        color = '#48d1cc';
+        break;
+      default:
+    }
+    return color;
+  };
+
+  handleColorClick = () => {
+    this.setState({ displayColorPicker: !this.state.displayColorPicker });
+  };
+
+  handleColorClose = () => {
+    this.setState({ displayColorPicker: false });
+  };
+
+  handleColorChange = color => {
+    this.setState({ color: color });
   };
 
   constructor(props) {
@@ -69,6 +122,8 @@ export class ClassDialog extends Component {
         title: this.props.event.title,
         program: this.props.event.program,
         maxStudents: this.props.event.maxStudents,
+        color: { hex: this.props.event.colour },
+        displayColorPicker: false,
       };
     } else {
       this.state = {
@@ -77,6 +132,8 @@ export class ClassDialog extends Component {
         title: undefined,
         program: undefined,
         maxStudents: undefined,
+        color: { hex: '#6F6E6E' },
+        displayColorPicker: false,
       };
     }
   }
@@ -84,6 +141,36 @@ export class ClassDialog extends Component {
   componentWillMount() {}
 
   render() {
+    const styles = reactCSS({
+      default: {
+        color: {
+          width: '36px',
+          height: '14px',
+          borderRadius: '2px',
+          backgroundColor: this.state.color.hex,
+        },
+        swatch: {
+          padding: '5px',
+          background: '#fff',
+          borderRadius: '1px',
+          boxShadow: '0 0 0 1px rgba(0,0,0,.1)',
+          display: 'inline-block',
+          cursor: 'pointer',
+          marginLeft: '11px',
+        },
+        popover: {
+          position: 'absolute',
+          zIndex: '2',
+        },
+        cover: {
+          position: 'fixed',
+          top: '0px',
+          right: '0px',
+          bottom: '0px',
+          left: '0px',
+        },
+      },
+    });
     return (
       <div onClick={this.handleClick}>
         <ModalContainer zIndex={1030}>
@@ -116,11 +203,19 @@ export class ClassDialog extends Component {
                   id="program"
                   defaultValue={this.state.program}
                   onChange={e => {
-                    this.setState({ program: e.target.value });
+                    this.setState({
+                      program: e.target.value,
+                      color: { hex: this.getProgramColor(e.target.value) },
+                    });
                   }}
                 >
                   <option value="" />
                   {this.props.programs.map(program => (
+                    <option key={program.program} value={program.program}>
+                      {program.program}
+                    </option>
+                  ))}
+                  {this.props.additionalPrograms.map(program => (
                     <option key={program.program} value={program.program}>
                       {program.program}
                     </option>
@@ -139,6 +234,25 @@ export class ClassDialog extends Component {
                     this.setState({ maxStudents: e.target.value });
                   }}
                 />
+              </div>
+              <div className="colorChoice">
+                <label htmlFor="colorValue">Colour</label>
+                <div
+                  id="colorValue"
+                  style={styles.swatch}
+                  onClick={this.handleColorClick}
+                >
+                  <div style={styles.color} />
+                </div>
+                {this.state.displayColorPicker ? (
+                  <div style={styles.popover}>
+                    <div style={styles.cover} onClick={this.handleColorClose} />
+                    <SketchPicker
+                      color={this.state.color}
+                      onChange={this.handleColorChange}
+                    />
+                  </div>
+                ) : null}
               </div>
               {this.state.event !== undefined && (
                 <button

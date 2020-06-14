@@ -9,7 +9,18 @@ export const types = {
   SET_CLASS_SCHEDULES: namespace('classes', 'SET_CLASS_SCHEDULES'),
   FETCH_CLASS_BOOKINGS: namespace('classes', 'FETCH_CLASS_BOOKINGS'),
   SET_CLASS_BOOKINGS: namespace('classes', 'SET_CLASS_BOOKINGS'),
+  ADD_BOOKING: namespace('classes', 'ADD_BOOKING'),
   UPDATE_BOOKING: namespace('classes', 'UPDATE_BOOKING'),
+  DELETE_BOOKING: namespace('classes', 'DELETE_BOOKING'),
+  SET_ADD_BOOKING: namespace('classes', 'SET_ADD_BOOKING'),
+  FETCH_CURRENT_CLASS_BOOKINGS: namespace(
+    'classes',
+    'FETCH_CURRENT_CLASS_BOOKINGS',
+  ),
+  SET_CURRENT_CLASS_BOOKINGS: namespace(
+    'classes',
+    'SET_CURRENT_CLASS_BOOKINGS',
+  ),
 };
 
 export const actions = {
@@ -20,7 +31,12 @@ export const actions = {
   setClassSchedules: withPayload(types.SET_CLASS_SCHEDULES),
   fetchClassBookings: withPayload(types.FETCH_CLASS_BOOKINGS),
   setClassBookings: withPayload(types.SET_CLASS_BOOKINGS),
+  addBooking: withPayload(types.ADD_BOOKING),
   updateBooking: withPayload(types.UPDATE_BOOKING),
+  deleteBooking: withPayload(types.DELETE_BOOKING),
+  setAddedBooking: withPayload(types.SET_ADD_BOOKING),
+  fetchCurrentClassBookings: withPayload(types.FETCH_CURRENT_CLASS_BOOKINGS),
+  setCurrentClassBookings: withPayload(types.SET_CURRENT_CLASS_BOOKINGS),
 };
 
 export const State = Record({
@@ -28,6 +44,9 @@ export const State = Record({
   fetchingClassSchedules: true,
   classBookings: List(),
   fetchingClassBookings: false,
+  currentClassBookings: List(),
+  fetchingCurrentClassBookings: false,
+  addedBooking: {},
 });
 
 export const reducer = (state = State(), { type, payload }) => {
@@ -56,6 +75,15 @@ export const reducer = (state = State(), { type, payload }) => {
       return state
         .set('fetchingClassBookings', false)
         .set('classBookings', payload.classBookings);
+    }
+    case types.SET_CURRENT_CLASS_BOOKINGS: {
+      return state
+        .set('fetchingCurrentClassBookings', false)
+        .set('currentClassBookings', payload.currentClassBookings)
+        .set('addedBooking', {});
+    }
+    case types.SET_ADD_BOOKING: {
+      return state.set('addedBooking', payload);
     }
     default:
       return state;

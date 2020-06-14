@@ -1199,7 +1199,6 @@ export class LeadsActivityReport extends Component {
   render() {
     const options = {
       height: 450,
-      movableRows: true,
       pagination: 'local',
       paginationSize: 10,
       paginationSizeSelector: [10, 20, 50, 100],
