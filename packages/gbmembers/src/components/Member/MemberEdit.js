@@ -590,10 +590,12 @@ export const MemberEdit = ({
                   ref={input => (this.input = input)}
                   defaultValue={memberItem.values['Email']}
                   onChange={e => {
-                    e.target.value = e.target.value.trim();
-                    memberItem.values['Email'] = memberItem.values[
-                      'Email'
-                    ].trim();
+                    if (e.target.value !== null)
+                      e.target.value = e.target.value.trim();
+                    memberItem.values['Email'] =
+                      memberItem.values['Email'] === null
+                        ? ''
+                        : memberItem.values['Email'].trim();
                     handleChange(
                       memberItem,
                       'Email',

@@ -47,6 +47,7 @@ export function* fetchMembers(action) {
         'Active',
         'Frozen',
         'Pending Freeze',
+        'Pending Suspension',
         'Pending Cancellation',
       ])
       .limit(1000)

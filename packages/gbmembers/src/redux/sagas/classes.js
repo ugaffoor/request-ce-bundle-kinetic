@@ -19,7 +19,7 @@ function convertCalendarDate(dateVal) {
     .hour(hour)
     .minute(minute)
     .second(0);
-  if (dt.isAfter(moment())) {
+  if (moment().day() === 7 && dt.day() !== 0) {
     dt.add(-7, 'days');
   }
   return dt.toDate();

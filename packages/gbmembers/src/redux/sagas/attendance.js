@@ -54,10 +54,7 @@ export function* fetchClassAttendances(action) {
     submissions.forEach(attendance => {
       let memberItem = undefined;
       for (let i = 0; i < membersApp.allMembers.length; i++) {
-        if (
-          membersApp.allMembers[i].values['Member ID'] ===
-          attendance.values['Member ID']
-        ) {
+        if (membersApp.allMembers[i].id === attendance.values['Member GUID']) {
           memberItem = membersApp.allMembers[i];
           break;
         }
@@ -109,8 +106,7 @@ export function* createAttendance(action) {
     let memberItem = undefined;
     for (let i = 0; i < action.payload.allMembers.length; i++) {
       if (
-        action.payload.allMembers[i].values['Member ID'] ===
-        submission.values['Member ID']
+        action.payload.allMembers[i].id === submission.values['Member GUID']
       ) {
         memberItem = action.payload.allMembers[i];
         break;
@@ -123,7 +119,7 @@ export function* createAttendance(action) {
     // Only Increment attendanceCount if the first classs of the day
     let checkin = action.payload.classAttendances.find(
       checkin =>
-        checkin.values['Member ID'] === submission.values['Member ID'] &&
+        checkin.values['Member GUID'] === submission.values['Member GUID'] &&
         moment(checkin.values['Class Date']).format('MM/DD/YYYY') ===
           moment(action.payload.classDate).format('MM/DD/YYYY'),
     );
@@ -173,8 +169,8 @@ export function* deleteAttendance(action) {
       let memberItem = undefined;
       for (let i = 0; i < action.payload.allMembers.length; i++) {
         if (
-          action.payload.allMembers[i].values['Member ID'] ===
-          action.payload.attendance.values['Member ID']
+          action.payload.allMembers[i].id ===
+          action.payload.attendance.values['Member GUID']
         ) {
           memberItem = action.payload.allMembers[i];
           break;
@@ -184,8 +180,8 @@ export function* deleteAttendance(action) {
       // Only Decrement attendanceCount if no classes for the day
       let checkin = attendances.find(
         checkin =>
-          checkin.values['Member ID'] ===
-            action.payload.attendance.values['Member ID'] &&
+          checkin.values['Member GUID'] ===
+            action.payload.attendance.values['Member GUID'] &&
           moment(checkin.values['Class Date']).format('MM/DD/YYYY') ===
             moment(action.payload.classDate).format('MM/DD/YYYY'),
       );

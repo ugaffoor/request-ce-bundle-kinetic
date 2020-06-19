@@ -124,8 +124,8 @@ export class AttendanceDetail extends Component {
       memberItem: undefined,
     });
     if (
-      moment(classDate).format('MM/DD/YYYY') !==
-        moment(this.state.classDate).format('MM/DD/YYYY') ||
+      moment(classDate).format('MM/DD/YYYY hh:mm A') !==
+        moment(this.state.classDate).format('MM/DD/YYYY hh:mm A') ||
       this.state.className !== className
     ) {
       this.props.fetchClassBookings({

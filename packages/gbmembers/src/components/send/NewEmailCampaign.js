@@ -13,7 +13,6 @@ import 'react-datetime/css/react-datetime.css';
 import moment from 'moment';
 import { email_sent_date_format } from '../leads/LeadsUtils';
 import { AttachmentForm } from './AttachmentForm';
-import '../../styles/quill.snow.scss.css';
 import { actions as leadsActions } from '../../redux/modules/leads';
 import { actions as membersActions } from '../../redux/modules/members';
 import { actions as campaignActions } from '../../redux/modules/campaigns';
@@ -21,6 +20,16 @@ import { actions as dataStoreActions } from '../../redux/modules/settingsDatasto
 import { matchesMemberFilter } from '../../utils/utils';
 import Select from 'react-select';
 import EmailEditor from 'react-email-editor';
+import {
+  BrowserView,
+  MobileView,
+  TabletView,
+  isBrowser,
+  isMobile,
+  isTablet,
+} from 'react-device-detect';
+import './tinymce.min.js';
+import { TinyMCEComponent, createEditorStore } from 'mb-react-tinymce';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -49,20 +58,7 @@ const mapDispatchToProps = {
 const util = require('util');
 
 var campaignSpace = null;
-/*
-Link.sanitize = function modifyLinkInput(linkValueInput) {
-  console.log('linkValueInput:' + linkValueInput);
-  if (linkValueInput.indexOf('${') !== -1) return linkValueInput;
-  var val = btoa(linkValueInput).replace('/', 'XXX');
-  return builtInFunc.call(
-    this,
-    'https://gbbilling.com.au:8443/billingservice/goToUrl/' +
-      campaignSpace +
-      '/__campaign_id__/__member_id__/' +
-      val,
-  ); // retain the built-in logic
-};
-*/
+
 var emailEditorRef = null;
 var editorThis = null;
 const BLANK_TEMPLATE =
@@ -87,8 +83,9 @@ export class NewEmailCampaign extends Component {
         member => member['id'] === this.props.submissionId,
       );
     }
+
     this.state = {
-      text: '', // You can also pass a Quill Delta here
+      text: '',
       subject: '',
       options: this.getSelectOptions(
         this.props.memberLists,
@@ -150,28 +147,14 @@ export class NewEmailCampaign extends Component {
     }
   }
 
-  componentDidMount() {}
+  componentWillMount() {
+    if (isMobile || isTablet) {
+      this.editorStore = createEditorStore();
+    }
+  }
 
   componentDidUpdate() {}
 
-  insertFirstName() {
-    const cursorPosition = this.quill.getSelection().index;
-    this.quill.insertText(cursorPosition, "member('First Name')");
-    this.quill.setSelection(cursorPosition + "member('First Name')".length + 1);
-  }
-  insertLastName() {
-    const cursorPosition = this.quill.getSelection().index;
-    this.quill.insertText(cursorPosition, "member('Last Name')");
-    this.quill.setSelection(cursorPosition + "member('Last Name')".length + 1);
-  }
-  insertEmailFooter() {
-    const cursorPosition = this.reactQuillRef.editor.getSelection().index;
-    let footer = this.props.snippets.find(function(el) {
-      if (el.name === 'Email Footer') return el;
-    }).value;
-    this.reactQuillRef.editor.pasteHTML(cursorPosition, footer);
-    this.reactQuillRef.editor.setSelection(cursorPosition + footer.length + 1);
-  }
   escapeJSON(str) {
     return str.replace(/(["])/g, '\\$1');
   }
@@ -226,6 +209,25 @@ export class NewEmailCampaign extends Component {
         // Save the json, or html here
         editorThis.setState({ text: html });
       });
+    }
+  }
+  selectEmailTemplateMobile(e) {
+    let templateId = e.value;
+    if (!templateId) {
+      console.log('Please select a template');
+      return;
+    }
+    let template = this.props.emailTemplates.find(
+      template => template['id'] === templateId,
+    );
+
+    if (template.values['Email Content'] !== '') {
+      var templateStr = BLANK_TEMPLATE.replace(
+        '##CONTENT##',
+        editorThis.escapeJSON(template.values['Email Content']),
+      );
+      // Save the json, or html here
+      editorThis.setState({ text: template.values['Email Content'] });
     }
   }
   getSelectOptions(memberLists, allMembers) {
@@ -356,6 +358,11 @@ export class NewEmailCampaign extends Component {
   }
 
   preview() {
+    if (isMobile || isTablet) {
+      this.setState({
+        text: $('.emailEditor .mce-content-body').html(),
+      });
+    }
     if (
       $('.attachment-form')
         .find('button[data-element-name="Submit Button"]')
@@ -396,6 +403,9 @@ export class NewEmailCampaign extends Component {
       });
     }, 1000);
   }
+  handleTinyEditorChange = (content, editor) => {
+    console.log('Content was updated:', content);
+  };
 
   render() {
     return (
@@ -449,7 +459,7 @@ export class NewEmailCampaign extends Component {
           <div className="col-md-3">&nbsp;</div>
         </div>
         <div className="row">
-          <div className="col-md-10" style={{ height: '1000px' }}>
+          <div className="col-md-10 details">
             <span className="line">
               <div>
                 <label htmlFor="subject" required>
@@ -484,7 +494,12 @@ export class NewEmailCampaign extends Component {
                   classNamePrefix="hide-columns"
                   placeholder="Select Email Template"
                   onChange={e => {
-                    this.selectEmailTemplate(e);
+                    if (isBrowser) {
+                      this.selectEmailTemplate(e);
+                    }
+                    if (isMobile || isTablet) {
+                      this.selectEmailTemplateMobile(e);
+                    }
                   }}
                   style={{ width: '300px' }}
                 />
@@ -494,10 +509,32 @@ export class NewEmailCampaign extends Component {
               className="line emailEditor"
               style={{ display: this.props.showEditor ? 'block' : 'none' }}
             >
-              <EmailEditor
-                ref={editor => (emailEditorRef = editor)}
-                onLoad={this.onLoadEmailTemplate}
-              />
+              <BrowserView>
+                <EmailEditor
+                  ref={editor => (emailEditorRef = editor)}
+                  onLoad={this.onLoadEmailTemplate}
+                />
+              </BrowserView>
+              <MobileView>
+                <TinyMCEComponent
+                  value={this.state.text}
+                  isActive={true}
+                  editorStore={this.editorStore}
+                  init={{
+                    menubar: false,
+                  }}
+                />
+              </MobileView>
+              <TabletView>
+                <TinyMCEComponent
+                  value={this.state.text}
+                  isActive={true}
+                  editorStore={this.editorStore}
+                  init={{
+                    menubar: false,
+                  }}
+                />
+              </TabletView>
             </span>
             <div
               id="previewDiv"

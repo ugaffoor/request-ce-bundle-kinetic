@@ -464,7 +464,10 @@
     }
   }
   .userDetails2 {
-    display: flex;
+    display: block;
+    @media (min-width: 544px) {
+      display: flex;
+    }
     clear: left;
     width: 100%;
     h4 {

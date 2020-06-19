@@ -1,3 +1,3 @@
-set NODE_OPTIONS=--max_old_space_size=8172
-yarn build
+cp ../mb-react-tinymce/library/index.js node_modules/mb-react-tinymce/library/index.js
 
+yarn build
