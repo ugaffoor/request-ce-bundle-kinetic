@@ -36,6 +36,7 @@ const mapStateToProps = state => ({
   fetchingClassBookings: state.member.classes.fetchingCurrentClassBookings,
   programs: state.member.app.programs,
   additionalPrograms: state.member.app.additionalPrograms,
+  space: state.member.app.space,
 });
 
 const mapDispatchToProps = {
@@ -149,6 +150,7 @@ export const SettingsView = ({
   addBooking,
   addedBooking,
   deleteBooking,
+  space,
 }) => (
   <div className="settings">
     <StatusMessagesContainer />
@@ -180,6 +182,7 @@ export const SettingsView = ({
           newClass={newClass}
           editClass={editClass}
           deleteClass={deleteClass}
+          space={space}
         ></ClassesCalendar>
       ) : (
         <div />
@@ -213,6 +216,7 @@ export const SettingsView = ({
           addBooking={addBooking}
           addedBooking={addedBooking}
           deleteBooking={deleteBooking}
+          space={space}
         ></ManageBookings>
       ) : (
         <div />

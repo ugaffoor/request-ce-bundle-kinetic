@@ -180,4 +180,4 @@ const enhance = compose(
 export const App = enhance(AppComponent);
 
 App.shouldSuppressSidebar = (pathname, kappSlug) =>
-  matchPath(pathname, { path: `/kapps/${kappSlug}`, exact: true });
+  matchPath(pathname, { path: `/kapps/${kappSlug}`, exact: false });

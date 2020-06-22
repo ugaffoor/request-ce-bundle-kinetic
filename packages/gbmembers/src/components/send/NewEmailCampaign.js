@@ -308,7 +308,7 @@ export class NewEmailCampaign extends Component {
       let idx = 0;
       let endIdx = 0;
       var contentHTML = this.state.text;
-
+      /*
       while (contentHTML.indexOf('<a href="', endIdx) !== -1) {
         idx = contentHTML.indexOf('<a href="', endIdx);
         endIdx = contentHTML.indexOf('"', idx + '<a href="'.length);
@@ -321,7 +321,10 @@ export class NewEmailCampaign extends Component {
             '/__campaign_id__/__member_id__/' +
             encodeVal,
           contentHTML = contentHTML.replace(url, newUrl);
+
       }
+*/
+
       body = contentHTML;
     } else {
       body = this.state.text;

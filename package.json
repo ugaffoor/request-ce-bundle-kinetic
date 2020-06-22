@@ -27,6 +27,7 @@
     ]
   },
   "dependencies": {
+    "component-css-extractor": "^1.0.0",
     "downloadjs": "^1.4.7",
     "html2canvas": "^1.0.0-rc.5",
     "inline-style-prefixer": "4.0.2",

@@ -5,6 +5,7 @@ import { ClassDialogContainer } from './ClassDialog';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import { v4 as uuidv4 } from 'uuid';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.scss';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const DragAndDropCalendar = withDragAndDrop(Calendar);
 
@@ -30,6 +31,11 @@ export class ClassesCalendar extends Component {
     this.newClass = this.props.newClass.bind(this);
     this.programs = this.props.programs;
     this.additionalPrograms = this.props.additionalPrograms;
+    this.space = this.props.space;
+    console.log(
+      'Calendar Time Slots',
+      getAttributeValue(this.space, 'Calendar Time Slots', '15'),
+    );
     this.state = {
       showClassDialog: false,
       events: this.props.classSchedules.toArray(),
@@ -227,7 +233,9 @@ export class ClassesCalendar extends Component {
           selectable
           localizer={localizer}
           events={this.state.events}
-          step={15}
+          step={parseInt(
+            getAttributeValue(this.space, 'Calendar Time Slots', '15'),
+          )}
           defaultView={Views.WEEK}
           views={['week']}
           onDoubleClickEvent={event => this.handleSelectEvent(event)}

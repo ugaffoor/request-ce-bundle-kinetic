@@ -9,6 +9,7 @@ import { ReactTabulator } from 'react-tabulator';
 import Select from 'react-select';
 import Datetime from 'react-datetime';
 import { confirm } from '../helpers/Confirmation';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 var yesterday = Datetime.moment().subtract(1, 'day');
 var valid = function(current) {
@@ -23,6 +24,7 @@ export class ManageBookings extends Component {
     this.deleteBooking = this.props.deleteBooking.bind(this);
     this.updateBooking = this.props.updateBooking.bind(this);
     this.addBooking = this.props.addBooking.bind(this);
+    this.space = this.props.space;
 
     this.columns = [
       { title: 'Class Date', field: 'classDate', headerFilter: 'input' },
@@ -146,7 +148,17 @@ export class ManageBookings extends Component {
                   className=""
                   dateFormat="DD/MM/YYYY"
                   isValidDate={valid}
-                  timeConstraints={{ minutes: { step: 15 } }}
+                  timeConstraints={{
+                    minutes: {
+                      step: parseInt(
+                        getAttributeValue(
+                          this.space,
+                          'Calendar Time Slots',
+                          '15',
+                        ),
+                      ),
+                    },
+                  }}
                   onBlur={dt => {
                     if (dt !== '') {
                       this.setState({

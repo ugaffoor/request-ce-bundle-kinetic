@@ -907,19 +907,63 @@
 iframe#printf {
   display: none;
 }
+
 .attendanceCard {
+  .Little_Champions_1 .photoDiv,
+  .Little_Champions_2 .photoDiv,
+  .Tiny_Champions .photoDiv,
+  .Juniors .photoDiv,
+  .Teens .photoDiv {
+    height: 205px;
+    width: 169px;
+    margin-left: 655px;
+    margin-top: 22px;
+    .noPhotoDiv {
+      width: 120px;
+      height: 120px;
+      padding: 20px;
+      margin-left: 150px;
+      margin-bottom: 23px;
+    }
+  }
+  .GB1 .photoDiv {
+    .noPhotoDiv {
+      width: 120px;
+      height: 120px;
+      padding: 20px;
+      margin-left: 120px;
+      margin-bottom: 23px;
+    }
+  }
+  .GB2 .photoDiv,
+  .GB3 .photoDiv {
+    height: 198px;
+    width: 178px;
+    margin-left: 662px;
+    margin-top: 28px;
+    .noPhotoDiv {
+      width: 120px;
+      height: 120px;
+      padding: 20px;
+      margin-left: 150px;
+      margin-bottom: 23px;
+    }
+  }
   .photoDiv {
-    width: 82px;
-    margin-left: 174mm;
-    margin-top: 10.5mm;
+    height: 162px;
+    width: 174px;
+    margin-left: 182mm;
+    margin-top: 12.5mm;
     line-height: 95px;
-    background-color: #f1f1f0;
+    background-color: transparent;
     float: left;
     .noPhotoDiv {
-      width: auto;
-      margin-left: 92px;
+      width: 120px;
+      height: 120px;
+      padding: 20px;
+      margin-left: 120px;
       margin-bottom: 23px;
-      margin-top: 10px;
+      margin-top: 38px;
       font-size: 54px;
       transform-origin: 0 0;
       transform: rotate(90deg);
@@ -934,8 +978,8 @@ iframe#printf {
     .photoImg {
       margin-left: 0px;
       margin-top: 5px;
-      height: 162px;
-      width: 174px;
+      height: 100%;
+      width: 100%;
       transform: rotate(90deg);
       -webkit-transform: rotate(90deg);
       -moz-transform: rotate(90deg);
@@ -969,11 +1013,11 @@ iframe#printf {
   .attendanceName.Tiny_Champions,
   .attendanceName.Juniors,
   .attendanceName.Teens {
-    margin-top: 40mm;
-    margin-left: 127mm;
+    margin-top: 39mm;
+    margin-left: 126mm;
   }
   .attendanceName {
-    margin-top: 44mm;
+    margin-top: 45mm;
     margin-left: 120mm;
     transform: rotate(90deg);
     -webkit-transform: rotate(90deg);

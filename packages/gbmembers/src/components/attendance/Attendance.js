@@ -17,6 +17,7 @@ import Select from 'react-select';
 import { withHandlers } from 'recompose';
 import { GradingStatus } from './GradingStatus';
 import { getProgramSVG, getBeltSVG } from '../Member/MemberUtils';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -27,6 +28,7 @@ const mapStateToProps = state => ({
   classBookings: state.member.classes.classBookings,
   fetchingClassBookings: state.member.classes.fetchingClassBookings,
   belts: state.member.app.belts,
+  space: state.member.app.space,
 });
 
 const mapDispatchToProps = {
@@ -339,7 +341,17 @@ export class AttendanceDetail extends Component {
                   second: 0,
                 })}
                 dateFormat="DD/MM/YYYY"
-                timeConstraints={{ minutes: { step: 15 } }}
+                timeConstraints={{
+                  minutes: {
+                    step: parseInt(
+                      getAttributeValue(
+                        this.props.space,
+                        'Calendar Time Slots',
+                        '15',
+                      ),
+                    ),
+                  },
+                }}
                 onBlur={dt => {
                   this.doShowAttendance(
                     dt.format('MM/DD/YYYY hh:mm A'),
@@ -693,6 +705,7 @@ export const AttendanceView = ({
   setClassBookings,
   updateBooking,
   updateMember,
+  space,
 }) => (
   <AttendanceDetail
     allMembers={allMembers}
@@ -711,6 +724,7 @@ export const AttendanceView = ({
     setClassBookings={setClassBookings}
     updateBooking={updateBooking}
     updateMember={updateMember}
+    space={space}
   />
 );
 

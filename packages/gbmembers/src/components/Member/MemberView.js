@@ -54,6 +54,7 @@ import {
 import { Utils } from 'common';
 import { getProgramSVG, getBeltSVG } from './MemberUtils';
 import ReactToPrint from 'react-to-print';
+import css from 'css';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -89,6 +90,41 @@ const mapDispatchToProps = {
   fetchMemberAttendances: attendanceActions.fetchMemberAttendances,
   createMemberUserAccount: actions.createMemberUserAccount,
 };
+
+function getClassNames(node) {
+  return [
+    node.className,
+    ...Array.from(node.children).map(getClassNames),
+  ].flat();
+}
+
+function extractCSS(node) {
+  // Collect class names for a DOM subtree
+  // Works for styled-components and CSS modules (anything based on CSS classes)
+  const classNames = getClassNames(node)
+    .map(name => {
+      return name instanceof String ? name.split(' ') : [];
+    })
+    .flat()
+    .map(name => `.${name}`);
+
+  // Gets embedded CSS for the entire page
+  const cssStyles = Array.from(document.head.getElementsByTagName('style'))
+    .map(style => style.innerHTML)
+    .join('');
+
+  // Filters CSS for our classes
+  const parsedCSS = css.parse(cssStyles);
+  parsedCSS.stylesheet.rules = parsedCSS.stylesheet.rules
+    .filter(rule => rule.type === 'rule')
+    .filter(rule =>
+      rule.selectors.some(selector =>
+        classNames.some(name => name === selector),
+      ),
+    );
+
+  return css.stringify(parsedCSS);
+}
 
 export class NewCustomers extends Component {
   handleClick = () => this.setState({ isShowingModal: true });
@@ -705,7 +741,6 @@ export const MemberView = ({
                       />
                     )}
                     content={() => this.componentRef}
-                    copyStyles={true}
                   />
                 </div>
               </span>
