@@ -78,30 +78,41 @@ export class Statistics extends Component {
     let attendedTotal = 0;
     let convertedTotal = 0;
     leads.forEach(lead => {
+      if (moment(lead['createdAt']).isBetween(fromDate, toDate)) {
+        leadsTotal++;
+      }
       if (moment(lead['updatedAt']).isBetween(fromDate, toDate)) {
-        if (moment(lead['createdAt']).isBetween(fromDate, toDate)) {
-          leadsTotal++;
-
-          var history =
-            lead.values['History'] !== undefined
-              ? getJson(lead.values['History'])
-              : {};
-          for (var i = 0; i < history.length; i++) {
-            if (history[i]['contactMethod'] === 'intro_class') {
-              introsTotal++;
-            }
-          }
-          for (i = 0; i < history.length; i++) {
-            if (history[i]['contactMethod'] === 'attended_class') {
-              attendedTotal++;
-            }
-          }
+        var history =
+          lead.values['History'] !== undefined
+            ? getJson(lead.values['History'])
+            : {};
+        for (var i = 0; i < history.length; i++) {
           if (
-            moment(lead['updatedAt']).isBetween(fromDate, toDate) &&
-            lead.values['Lead State'] === 'Converted'
+            moment(history[i]['contactDate'], 'YYYY-MM-DD HH:mm').isBetween(
+              fromDate,
+              toDate,
+            ) &&
+            history[i]['contactMethod'] === 'intro_class'
           ) {
-            convertedTotal++;
+            introsTotal++;
           }
+        }
+        for (i = 0; i < history.length; i++) {
+          if (
+            moment(history[i]['contactDate'], 'YYYY-MM-DD HH:mm').isBetween(
+              fromDate,
+              toDate,
+            ) &&
+            history[i]['contactMethod'] === 'attended_class'
+          ) {
+            attendedTotal++;
+          }
+        }
+        if (
+          moment(lead['updatedAt']).isBetween(fromDate, toDate) &&
+          lead.values['Lead State'] === 'Converted'
+        ) {
+          convertedTotal++;
         }
       }
     });
@@ -206,8 +217,12 @@ export class Statistics extends Component {
   }
   setStatisticDates(e, type) {
     if (type === 'today') {
-      let fromDate = moment();
-      let toDate = moment();
+      let fromDate = moment()
+        .hour(0)
+        .minute(0);
+      let toDate = moment()
+        .hour(23)
+        .minute(59);
       let data = this.getData(this.state.leads, fromDate, toDate);
       let memberData = this.getMemberData(
         this.state.allMembers,
@@ -225,8 +240,13 @@ export class Statistics extends Component {
       $(e.target).attr('active', 'true');
       this.datesChanged(this.setFromDate, this.setToDate, fromDate, toDate);
     } else if (type === 'last_7_days') {
-      let fromDate = moment().subtract(7, 'days');
-      let toDate = moment();
+      let fromDate = moment()
+        .subtract(7, 'days')
+        .hour(0)
+        .minute(0);
+      let toDate = moment()
+        .hour(23)
+        .minute(59);
       let data = this.getData(this.state.leads, fromDate, toDate);
       let memberData = this.getMemberData(
         this.state.allMembers,
@@ -244,8 +264,13 @@ export class Statistics extends Component {
       });
       this.datesChanged(this.setFromDate, this.setToDate, fromDate, toDate);
     } else if (type === 'last_30_days') {
-      let fromDate = moment().subtract(30, 'days');
-      let toDate = moment();
+      let fromDate = moment()
+        .subtract(30, 'days')
+        .hour(0)
+        .minute(0);
+      let toDate = moment()
+        .hour(23)
+        .minute(59);
       let data = this.getData(this.state.leads, fromDate, toDate);
       let memberData = this.getMemberData(
         this.state.allMembers,
@@ -263,8 +288,13 @@ export class Statistics extends Component {
       });
       this.datesChanged(this.setFromDate, this.setToDate, fromDate, toDate);
     } else if (type === 'year') {
-      let fromDate = moment().subtract(1, 'years');
-      let toDate = moment();
+      let fromDate = moment()
+        .subtract(1, 'years')
+        .hour(0)
+        .minute(0);
+      let toDate = moment()
+        .hour(23)
+        .minute(59);
       let data = this.getData(this.state.leads, fromDate, toDate);
       let memberData = this.getMemberData(
         this.state.allMembers,
@@ -315,10 +345,10 @@ export class Statistics extends Component {
               type="button"
               active="true"
               className="btn btn-primary report-btn-default"
-              disabled={moment().isBetween(
+              /*  disabled={moment().isBetween(
                 this.state.fromDate,
                 this.state.toDate,
-              )}
+              )} */
               onClick={e => this.setStatisticDates(e, 'last_7_days')}
             >
               Last 7 Days
@@ -327,10 +357,10 @@ export class Statistics extends Component {
               type="button"
               active="false"
               className="btn btn-primary report-btn-default"
-              disabled={moment().isBetween(
+              /*  disabled={moment().isBetween(
                 this.state.fromDate,
                 this.state.toDate,
-              )}
+              )} */
               onClick={e => this.setStatisticDates(e, 'last_30_days')}
             >
               Last 30 Days
@@ -339,10 +369,10 @@ export class Statistics extends Component {
               type="button"
               active="false"
               className="btn btn-primary report-btn-default"
-              disabled={moment().isBetween(
+              /*    disabled={moment().isBetween(
                 this.state.fromDate,
                 this.state.toDate,
-              )}
+              )} */
               onClick={e => this.setStatisticDates(e, 'year')}
             >
               Year
@@ -351,10 +381,10 @@ export class Statistics extends Component {
               type="button"
               active="false"
               className="btn btn-primary report-btn-default"
-              disabled={moment().isBetween(
+              /*  disabled={moment().isBetween(
                 this.state.fromDate,
                 this.state.toDate,
-              )}
+              )} */
               onClick={e => this.setStatisticDates(e, 'custom')}
             >
               Custom

@@ -449,6 +449,27 @@ export const MemberEdit = ({
                     }
                   />
                 </div>
+                <div>
+                  <label htmlFor="leadSubmissionID">
+                    Lead Submission ID
+                  </label>
+                  <input
+                    type="text"
+                    name="leadSubmissionID"
+                    id="leadSubmissionID"
+                    size="5"
+                    ref={input => (this.input = input)}
+                    defaultValue={memberItem.values['Lead Submission ID']}
+                    onChange={e =>
+                      handleChange(
+                        memberItem,
+                        'Lead Submission ID',
+                        e,
+                        setIsDirty,
+                      )
+                    }
+                  />
+                </div>
               </span>
             */}
             <span className="line">
@@ -593,6 +614,7 @@ export const MemberEdit = ({
                     if (e.target.value !== null)
                       e.target.value = e.target.value.trim();
                     memberItem.values['Email'] =
+                      memberItem.values['Email'] === undefined ||
                       memberItem.values['Email'] === null
                         ? ''
                         : memberItem.values['Email'].trim();

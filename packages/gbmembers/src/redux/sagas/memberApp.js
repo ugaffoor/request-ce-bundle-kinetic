@@ -393,9 +393,13 @@ export function* updateMembersListTask(payload) {
     memberListsArr[i] = JSON.stringify(memberListsArr[i]);
   }
 
-  profile.profileAttributes['Member Lists'] = memberListsArr;
+  let profileCopy = {}; //_.cloneDeep(profile);
+  profileCopy = {
+    profileAttributes: profile.profileAttributes,
+  };
+  profileCopy.profileAttributes['Member Lists'] = memberListsArr;
   const { serverError } = yield call(CoreAPI.updateProfile, {
-    profile,
+    profile: profileCopy,
     include: PROFILE_UPDATE_INCLUDES,
   });
 
@@ -423,7 +427,10 @@ export function* updateReportPreferences(action) {
     reportPreferencesArr[i] = JSON.stringify(reportPreferencesArr[i]);
   }
 
-  let profileCopy = _.cloneDeep(profile);
+  let profileCopy = {}; //_.cloneDeep(profile);
+  profileCopy = {
+    profileAttributes: profile.profileAttributes,
+  };
   profileCopy.profileAttributes['Report Preferences'] = reportPreferencesArr;
   const { serverError } = yield call(CoreAPI.updateProfile, {
     profile: profileCopy,

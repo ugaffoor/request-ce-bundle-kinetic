@@ -1488,7 +1488,13 @@ export function* createBillingMembers(action) {
     var memberItem = {
       values: {},
     };
-    if (!submissions || submissions.length <= 0) {
+    if (
+      (!submissions || submissions.length <= 0) &&
+      customer.status === 'Inactive'
+    ) {
+      //Ignore
+      console.log('Not importing Inactive member');
+    } else if (!submissions || submissions.length <= 0) {
       let memberId =
         customer.firstName.charAt(0).toLowerCase() +
         customer.firstName.slice(1) +

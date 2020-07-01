@@ -15,6 +15,7 @@ import { actions as leadsActions } from '../../redux/modules/leads';
 import { actions as messagingActions } from '../../redux/modules/messaging';
 import memberAvatar from '../../images/member_avatar.png';
 import { actions as errorActions } from '../../redux/modules/errors';
+import moment from 'moment';
 
 const mapStateToProps = state => ({
   memberItem: state.member.members.currentMember,
@@ -122,32 +123,91 @@ export class SMSModal extends Component {
     if (!submission.smsContent) {
       return null;
     }
-    let messageHistory = [];
+    let sms = [];
     if (typeof submission.smsContent !== 'object') {
-      messageHistory = JSON.parse(submission.smsContent);
+      sms = JSON.parse(submission.smsContent);
     } else {
-      messageHistory = submission.smsContent;
+      sms = submission.smsContent;
     }
 
-    messageHistory.forEach((msg, index) => {
-      let content = JSON.parse(msg.values.Content);
+    let smsValues = [];
+    sms.forEach(value => {
+      let content = JSON.parse(value.values['Content']);
+      var dt =
+        value.values['Direction'] === 'Outbound'
+          ? content['Sent Date']
+          : content['Received Date'];
 
-      if (msg.values.Direction === 'Outbound') {
-        var dt = moment(content['Sent Date'], 'DD-MM-YYYY HH:mm');
+      dt = moment(dt, 'DD-MM-YYYY HH:mm');
+      dt = dt.add(moment().utcOffset() * 60, 'seconds');
+
+      smsValues[smsValues.length] = {
+        Direction: value.values['Direction'],
+        Date: dt.format('DD-MM-YYYY HH:mm'),
+        Content: content['Content'],
+      };
+    });
+    smsValues.sort(function(sms1, sms2) {
+      if (
+        moment(sms1['Date'], 'DD-MM-YYYY HH:mm').isAfter(
+          moment(sms2['Date'], 'DD-MM-YYYY HH:mm'),
+        )
+      ) {
+        return -1;
+      } else if (
+        moment(sms1['Date'], 'DD-MM-YYYY HH:mm').isBefore(
+          moment(sms2['Date'], 'DD-MM-YYYY HH:mm'),
+        )
+      ) {
+        return 1;
+      }
+      if (sms1['Content'][0] === '[' && sms2['Content'][0] === '[') {
+        var page1 = sms1['Content'].substring(1, sms1['Content'].indexOf('/'));
+        var page2 = sms2['Content'].substring(1, sms2['Content'].indexOf('/'));
+        if (parseInt(page1) > parseInt(page2)) {
+          return 1;
+        } else if (parseInt(page1) < parseInt(page2)) {
+          return -1;
+        }
+      }
+      return 0;
+    });
+
+    var smsResult = [];
+
+    smsValues.forEach(element => {
+      var idx = smsResult.findIndex(el => el['Date'] === element['Date']);
+      if (idx === -1) {
+        if (element['Content'][0] === '[')
+          element['Content'] = element['Content'].split(']')[1].trim();
+        smsResult.push(element);
+      } else {
+        smsResult[idx]['Content'] =
+          smsResult[idx]['Content'] +
+          (element['Content'][0] === '['
+            ? element['Content'].split(']')[1]
+            : element['Content']
+          ).trim();
+      }
+    });
+
+    smsResult.forEach((element, index) => {
+      if (element['Direction'] === 'Outbound') {
+        var dt = moment(element['Date'], 'DD-MM-YYYY HH:mm');
         dt = dt.add(moment().utcOffset() * 60, 'seconds');
-        content['Sent Date'] = dt.format('DD-MM-YYYY HH:mm');
+        element['Date'] = dt.format('DD-MM-YYYY HH:mm');
         sms_msgs.push(
           <div className="outgoing_msg" key={index}>
             <div className="sent_msg">
-              <p>{content['Content']}</p>
-              <span className="time_date">{content['Sent Date']}</span>{' '}
+              <p>{element['Content']}</p>
+              <span className="time_date">{element['Date']}</span>{' '}
             </div>
           </div>,
         );
-      } else if (msg.values.Direction === 'Inbound') {
-        var dt = moment(content['Received Date'], 'DD-MM-YYYY HH:mm');
+      } else if (element['Direction'] === 'Inbound') {
+        dt = moment(element['Date'], 'DD-MM-YYYY HH:mm');
         dt = dt.add(moment().utcOffset() * 60, 'seconds');
-        content['Received Date'] = dt.format('DD-MM-YYYY HH:mm');
+        element['Date'] = dt.format('DD-MM-YYYY HH:mm');
         sms_msgs.push(
           <div className="incoming_msg" key={index}>
             <div className="incoming_msg_img">
@@ -156,8 +216,8 @@ export class SMSModal extends Component {
             </div>
             <div className="received_msg">
               <div className="received_withd_msg">
-                <p>{content['Content']}</p>
-                <span className="time_date">{content['Received Date']}</span>
+                <p>{element['Content']}</p>
+                <span className="time_date">{element['Date']}</span>
               </div>
             </div>
           </div>,

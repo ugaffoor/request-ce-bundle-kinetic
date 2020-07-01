@@ -101,6 +101,7 @@ export class LeadEdit extends Component {
               <h3>Edit Lead</h3>
               <hr />
               {/*
+                <span>
                 <div>
                   <label htmlFor="emailsReceivedCount">
                     emailsReceivedCount
@@ -124,7 +125,77 @@ export class LeadEdit extends Component {
                     }
                   />
                 </div>
-              */}
+                <div>
+                  <label htmlFor="status">
+                    Status
+                  </label>
+                  <input
+                    type="text"
+                    name="status"
+                    id="status"
+                    size="5"
+                    ref={input => (this.input = input)}
+                    defaultValue={
+                      this.props.leadItem.values['Status']
+                    }
+                    onChange={e =>
+                      handleChange(
+                        this.props.leadItem,
+                        'Status',
+                        e,
+                        this.setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+                <div>
+                  <label htmlFor="leadState">
+                    Lead State
+                  </label>
+                  <input
+                    type="text"
+                    name="leadState"
+                    id="leadState"
+                    size="5"
+                    ref={input => (this.input = input)}
+                    defaultValue={
+                      this.props.leadItem.values['Lead State']
+                    }
+                    onChange={e =>
+                      handleChange(
+                        this.props.leadItem,
+                        'Lead State',
+                        e,
+                        this.setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+                <div>
+                  <label htmlFor="convertedMemberID">
+                    Converted Member ID
+                  </label>
+                  <input
+                    type="text"
+                    name="convertedMemberID"
+                    id="convertedMemberID"
+                    size="5"
+                    ref={input => (this.input = input)}
+                    defaultValue={
+                      this.props.leadItem.values['Converted Member ID']
+                    }
+                    onChange={e =>
+                      handleChange(
+                        this.props.leadItem,
+                        'Converted Member ID',
+                        e,
+                        this.setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+                </span>
+            */}
               <span className="line">
                 <div>
                   <label
@@ -153,19 +224,22 @@ export class LeadEdit extends Component {
                     }
                   >
                     <option value="" />
+                    <option value="Brochure">Brochure</option>
                     <option value="Facebook">Facebook</option>
-                    <option value="Twitter">Twitter</option>
-                    <option value="Google+">Google+</option>
-                    <option value="Linkedin">Linkedin</option>
+                    <option value="Facebook Ad">Facebook Ad</option>
                     <option value="Family">Family</option>
-                    <option value="Friend">Friend</option>
+                    <option value="Google+">Google+</option>
+                    <option value="Google Ad">Google Ad</option>
+                    <option value="Instagram">Instagram</option>
+                    <option value="Instagram Ad">Instagram Ad</option>
+                    <option value="Leaflet">Leaflet</option>
+                    <option value="Linkedin">Linkedin</option>
                     <option value="Magazine">Magazine</option>
                     <option value="Newspaper">Newspaper</option>
-                    <option value="Television">Television</option>
-                    <option value="Brochure">Brochure</option>
-                    <option value="Leaflet">Leaflet</option>
-                    <option value="Poster">Poster</option>
                     <option value="Phone Call">Phone Call</option>
+                    <option value="Poster">Poster</option>
+                    <option value="Television">Television</option>
+                    <option value="Twitter">Twitter</option>
                     <option value="Website">Website</option>
                     <option value="Word of Mouth">Word of Mouth</option>
                     <option value="Walk-In">Walk-In</option>

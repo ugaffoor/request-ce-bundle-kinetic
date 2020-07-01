@@ -99,9 +99,13 @@ export class PhotoForm extends Component {
         .forEach(track => track.stop());
   }
   cancel() {
-    window.cameraFeedEl.videoPlayer.srcObject
-      .getTracks()
-      .forEach(track => track.stop());
+    if (
+      window.cameraFeedEl &&
+      window.cameraFeedEl.videoPlayer.srcObject !== null
+    )
+      window.cameraFeedEl.videoPlayer.srcObject
+        .getTracks()
+        .forEach(track => track.stop());
     ReactDOM.render(
       React.createElement(Photo, {
         memberItem: this.props.memberItem,
@@ -143,9 +147,13 @@ export class PhotoForm extends Component {
       this.props.memberItem.values['Photo'] = K('field[Photo Image]').value();
     }
     //    ReactDOM.render(React.createElement(Photo, {memberItem: this.props.memberItem, setUpload: this.setUpload}),$('.photo-form')[0]);
-    window.cameraFeedEl.videoPlayer.srcObject
-      .getTracks()
-      .forEach(track => track.stop());
+    if (
+      window.cameraFeedEl &&
+      window.cameraFeedEl.videoPlayer.srcObject !== null
+    )
+      window.cameraFeedEl.videoPlayer.srcObject
+        .getTracks()
+        .forEach(track => track.stop());
     this.setState(this.state);
     if (this.setIsDirty) this.setIsDirty(true);
   }
@@ -161,9 +169,13 @@ export class PhotoForm extends Component {
     } else {
       this.props.memberItem.values['Photo'] = K('field[Photo Image]').value();
     }
-    window.cameraFeedEl.videoPlayer.srcObject
-      .getTracks()
-      .forEach(track => track.stop());
+    if (
+      window.cameraFeedEl &&
+      window.cameraFeedEl.videoPlayer.srcObject !== null
+    )
+      window.cameraFeedEl.videoPlayer.srcObject
+        .getTracks()
+        .forEach(track => track.stop());
     ReactDOM.render(
       React.createElement(Photo, {
         memberItem: this.props.memberItem,

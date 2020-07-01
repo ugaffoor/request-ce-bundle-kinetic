@@ -55,34 +55,65 @@ export class MemberSMS extends Component {
     let smsValues = [];
     sms.forEach(value => {
       let content = JSON.parse(value.values['Content']);
+      var dt =
+        value.values['Direction'] === 'Outbound'
+          ? content['Sent Date']
+          : content['Received Date'];
+
+      dt = moment(dt, 'DD-MM-YYYY HH:mm');
+      dt = dt.add(moment().utcOffset() * 60, 'seconds');
+
       smsValues[smsValues.length] = {
         Direction: value.values['Direction'],
-        Date:
-          value.values['Direction'] === 'Outbound'
-            ? content['Sent Date']
-            : content['Received Date'],
+        Date: dt.format('DD-MM-YYYY HH:mm'),
         Content: content['Content'],
       };
     });
-
-    return smsValues;
-    /*    return sms.sort(function(sms1, sms2) {
+    smsValues.sort(function(sms1, sms2) {
       if (
-        moment(sms1.createAt, email_sent_date_format).isAfter(
-          moment(sms2.createdAt, email_sent_date_format),
+        moment(sms1['Date'], 'DD-MM-YYYY HH:mm').isAfter(
+          moment(sms2['Date'], 'DD-MM-YYYY HH:mm'),
         )
       ) {
         return -1;
       } else if (
-        moment(sms1.createAt, email_sent_date_format).isBefore(
-          moment(sms2.createdAt, email_sent_date_format),
+        moment(sms1['Date'], 'DD-MM-YYYY HH:mm').isBefore(
+          moment(sms2['Date'], 'DD-MM-YYYY HH:mm'),
         )
       ) {
         return 1;
       }
+      if (sms1['Content'][0] === '[' && sms2['Content'][0] === '[') {
+        var page1 = sms1['Content'].substring(1, sms1['Content'].indexOf('/'));
+        var page2 = sms2['Content'].substring(1, sms2['Content'].indexOf('/'));
+        if (parseInt(page1) > parseInt(page2)) {
+          return 1;
+        } else if (parseInt(page1) < parseInt(page2)) {
+          return -1;
+        }
+      }
       return 0;
     });
-*/
+
+    var smsResult = [];
+
+    smsValues.forEach(element => {
+      var idx = smsResult.findIndex(el => el['Date'] === element['Date']);
+      if (idx === -1) {
+        if (element['Content'][0] === '[')
+          element['Content'] = element['Content'].split(']')[1].trim();
+        smsResult.push(element);
+      } else {
+        smsResult[idx]['Content'] =
+          smsResult[idx]['Content'] +
+          (element['Content'][0] === '['
+            ? element['Content'].split(']')[1]
+            : element['Content']
+          ).trim();
+      }
+    });
+
+    return smsResult;
   }
 
   render() {
