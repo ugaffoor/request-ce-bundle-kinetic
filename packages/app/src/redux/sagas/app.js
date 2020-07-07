@@ -62,8 +62,11 @@ export function* fetchAppTask({ payload }) {
     const defaultKappDisplayProfile =
       profile.space.attributesMap &&
       profile.profileAttributesMap['Default Kapp Display'] &&
-      profile.profileAttributesMap['Default Kapp Display'].length > 0
+      profile.profileAttributesMap['Default Kapp Display'].length > 0 &&
+        profile.profileAttributesMap['Default Kapp Display'][0] !== ''
         ? profile.profileAttributesMap['Default Kapp Display'][0]
+        : profile.memberships.length === 0
+        ? 'services'
         : undefined;
 
     // Preload locale before displaying the app to get rid of flicker

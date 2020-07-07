@@ -22,6 +22,7 @@ import {
   selectFormBySlug,
   actions,
 } from '../../../redux/modules/settingsDatastore';
+import { actions as memberActions } from '../../../../../gbmembers/src/redux/modules/memberApp';
 
 import { DatastoreDiscussions } from './DatastoreDiscussions';
 
@@ -301,6 +302,13 @@ function onEmailTemplateFormLoaded(snippets) {
     height: 0,
     overflow: 'hidden',
   });
+  if (snippets.size > 0) {
+    let footer = snippets.find(function(el) {
+      if (el.name === 'Email Footer') return el;
+    }).value;
+    $('#emailFooter').val(footer);
+  }
+
   $('#email_editor').removeClass('ql-editor');
   ReactDOM.render(
     <EmailEditor
@@ -362,6 +370,7 @@ export const mapStateToProps = (state, { match: { params } }) => ({
   values: valuesFromQueryParams(state.router.location.search),
   isEditing: params.mode && params.mode === 'edit' ? true : false,
   discussionsEnabled: selectDiscussionsEnabled(state),
+  snippets: state.member.app.snippets,
 });
 
 export const mapDispatchToProps = {
@@ -370,6 +379,7 @@ export const mapDispatchToProps = {
   resetSubmission: actions.resetSubmission,
   addSuccess: toastActions.addSuccess,
   addError: toastActions.addError,
+  loadAppSettings: memberActions.loadAppSettings,
 };
 
 export const DatastoreSubmission = compose(
@@ -386,6 +396,9 @@ export const DatastoreSubmission = compose(
       if (this.props.match.params.id) {
         this.props.fetchSubmission(this.props.match.params.id);
       }
+      if (this.props.snippets === undefined || this.props.snippets.size === 0) {
+        this.props.loadAppSettings();
+      }
     },
     componentWillReceiveProps(nextProps) {
       if (
@@ -393,6 +406,17 @@ export const DatastoreSubmission = compose(
         this.props.match.params.id !== nextProps.match.params.id
       ) {
         this.props.fetchSubmission(nextProps.match.params.id);
+      }
+      if (
+        nextProps.snippets.size !== this.props.snippets.size ||
+        $('#emailFooter').val() === ''
+      ) {
+        if (nextProps.snippets.size > 0) {
+          let footer = nextProps.snippets.find(function(el) {
+            if (el.name === 'Email Footer') return el;
+          }).value;
+          $('#emailFooter').val(footer);
+        }
       }
     },
     componentWillUnmount() {

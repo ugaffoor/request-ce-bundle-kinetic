@@ -134,3 +134,16 @@ body a {
   text-decoration: inherit;
   color: inherit;
 }
+
+.copyTags {
+  display: flex;
+  margin: 4px;
+  .copyItem {
+    margin-right: 10px;
+    display: flex;
+    i.fa.fa-clipboard {
+      padding: 4px;
+      cursor: pointer;
+    }
+  }
+}

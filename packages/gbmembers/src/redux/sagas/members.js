@@ -109,6 +109,38 @@ export function* fetchCurrentMember(action) {
         include: ['details'],
       }),
     ]);
+    if (submission.submission.values['Lead Submission ID'] !== undefined) {
+      const LEAD_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
+        .eq(
+          'values[Lead ID]',
+          submission.submission.values['Lead Submission ID'],
+        )
+        .include(['details', 'values'])
+        .limit(1000)
+        .build();
+      const [leadActivities] = yield all([
+        call(CoreAPI.searchSubmissions, {
+          form: 'lead-activities',
+          kapp: 'gbmembers',
+          search: LEAD_ACTIVITIES_SEARCH,
+        }),
+      ]);
+
+      let leadRequestContent = [];
+      for (let i = 0; i < leadActivities.submissions.length; i++) {
+        if (
+          leadActivities.submissions[i].values['Type'] === 'Request' &&
+          leadActivities.submissions[i].values['Direction'] === 'Inbound'
+        ) {
+          leadRequestContent[leadRequestContent.length] = JSON.parse(
+            leadActivities.submissions[i].values['Content'],
+          );
+        }
+      }
+      submission.submission.leadRequestContent = leadRequestContent;
+    } else {
+      submission.submission.leadRequestContent = undefined;
+    }
     if (action.payload.myThis) submission.myThis = action.payload.myThis;
     if (action.payload.history) submission.history = action.payload.history;
     if (action.payload.fetchMembers)

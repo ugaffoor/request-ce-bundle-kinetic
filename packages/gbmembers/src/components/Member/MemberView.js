@@ -975,7 +975,15 @@ export const MemberView = ({
             <MemberSMS memberItem={memberItem} />
           </div>
           <div>
-            <Requests submission={memberItem} />
+            <Requests
+              requestContent={
+                memberItem.leadRequestContent === undefined
+                  ? memberItem.requestContent
+                  : memberItem.leadRequestContent.concat(
+                      memberItem.requestContent,
+                    )
+              }
+            />
           </div>
           {/*      <div>
           <AttendanceChart

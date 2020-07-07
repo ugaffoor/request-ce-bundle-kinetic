@@ -246,6 +246,8 @@ export function* fetchMemberAppSettingsTask() {
       additionalProgramsSubmissions[i].values['Program'],
       {
         program: additionalProgramsSubmissions[i].values['Program'],
+        exludeFromGrading:
+          additionalProgramsSubmissions[i].values['Exclude from Grading'],
       },
     );
   }

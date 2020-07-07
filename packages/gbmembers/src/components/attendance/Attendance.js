@@ -104,7 +104,8 @@ export class AttendanceDetail extends Component {
         this.props.classAttendances[i].values['Member ID'] ===
           this.state.memberItem.values['Member ID'] &&
         this.props.classAttendances[i].values['Class Time'] ===
-          this.state.classTime
+          this.state.classTime &&
+        this.props.classAttendances[i].values['Class'] === this.state.className
       ) {
         this.setState({ memberAlreadyCheckedIn: true });
         this.props.classAttendances[i].memberAlreadyCheckedIn = true;
@@ -151,6 +152,7 @@ export class AttendanceDetail extends Component {
     this.props.checkinMember(
       this.props.createAttendance,
       attendance,
+      this.props.additionalPrograms,
       this.state.memberItem,
       this.state.className,
       this.state.classDate,
@@ -183,7 +185,8 @@ export class AttendanceDetail extends Component {
         this.props.classAttendances[j].values['Member GUID'] ===
           booking.memberGUID &&
         this.props.classAttendances[j].values['Class Time'] ===
-          this.state.classTime
+          this.state.classTime &&
+        this.props.classAttendances[j].values['Class'] === this.state.className
       ) {
         this.setState({ memberAlreadyCheckedIn: true });
         this.props.classAttendances[j].memberAlreadyCheckedIn = true;
@@ -200,6 +203,7 @@ export class AttendanceDetail extends Component {
       this.props.checkinMember(
         this.props.createAttendance,
         attendance,
+        this.props.additionalPrograms,
         memberItem,
         this.state.className,
         this.state.classDate,
@@ -229,8 +233,10 @@ export class AttendanceDetail extends Component {
 
   deleteCheckin(attendance) {
     console.log('delete checkin:' + attendance.id);
+
     this.props.deleteAttendance({
       attendance: attendance,
+      additionalPrograms: this.props.additionalPrograms,
       classAttendances: this.props.classAttendances,
       updateMember: this.props.updateMember,
       allMembers: this.props.allMembers,
@@ -311,7 +317,8 @@ export class AttendanceDetail extends Component {
         this.props.classAttendances[i].values['Member ID'] ===
           memberItem.values['Member ID'] &&
         this.props.classAttendances[i].values['Class Time'] ===
-          this.state.classTime
+          this.state.classTime &&
+        this.props.classAttendances[i].values['Class'] === this.state.className
       ) {
         this.setState({ memberAlreadyCheckedIn: true });
         this.props.classAttendances[i].memberAlreadyCheckedIn = true;
@@ -734,6 +741,7 @@ export const AttendanceContainer = compose(
     checkinMember: ({
       createAttendance,
       attendance,
+      additionalPrograms,
       memberItem,
       className,
       classDate,
@@ -744,6 +752,7 @@ export const AttendanceContainer = compose(
     }) => (
       createAttendance,
       attendance,
+      additionalPrograms,
       memberItem,
       className,
       classDate,
@@ -768,6 +777,7 @@ export const AttendanceContainer = compose(
       createAttendance({
         values: values,
         attendance: attendance,
+        additionalPrograms: additionalPrograms,
         classAttendances: classAttendances,
         allMembers: allMembers,
         updateMember: updateMember,

@@ -30,6 +30,7 @@ import {
 } from 'react-device-detect';
 import './tinymce.min.js';
 import { TinyMCEComponent, createEditorStore } from 'mb-react-tinymce';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -507,6 +508,54 @@ export class NewEmailCampaign extends Component {
                   style={{ width: '300px' }}
                 />
               </span>
+            </span>
+            <span className="line copyTags">
+              <div className="copyItem">
+                <div className="copySample">member('ID')</div>
+                <CopyToClipboard
+                  text={"member('ID')"}
+                  onCopy={console.log("member('ID') copied to Clipboard")}
+                >
+                  <i className="fa fa-clipboard" aria-hidden="true"></i>
+                </CopyToClipboard>
+              </div>
+              <div className="copyItem">
+                <div className="copySample">member('First Name')</div>
+                <CopyToClipboard
+                  text={"member('First Name')"}
+                  onCopy={console.log(
+                    "member('First Name') copied to Clipboard",
+                  )}
+                >
+                  <i className="fa fa-clipboard" aria-hidden="true"></i>
+                </CopyToClipboard>
+              </div>
+              <div className="copyItem">
+                <div className="copySample"> member('Last Name')</div>
+                <CopyToClipboard
+                  text={"member('Last Name')"}
+                  onCopy={console.log(
+                    "member('Last Name') copied to Clipboard",
+                  )}
+                >
+                  <i className="fa fa-clipboard" aria-hidden="true"></i>
+                </CopyToClipboard>
+              </div>
+              <div className="copyItem">
+                <div className="copySample"> Email Footer (HTML only)</div>
+                <CopyToClipboard
+                  text={
+                    this.props.snippets.find(function(el) {
+                      if (el.name === 'Email Footer') return el;
+                    }).value
+                  }
+                  onCopy={console.log(
+                    'Email Footer copied to Clipboard, only paste into a HTML block',
+                  )}
+                >
+                  <i className="fa fa-clipboard" aria-hidden="true"></i>
+                </CopyToClipboard>
+              </div>
             </span>
             <span
               className="line emailEditor"

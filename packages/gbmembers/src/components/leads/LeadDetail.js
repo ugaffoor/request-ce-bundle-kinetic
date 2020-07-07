@@ -172,6 +172,7 @@ export class LeadDetail extends Component {
     }
     let newHistory = {
       submitter: this.state.profile.username,
+      //    createdDate: moment().format("YYYY-MM-DD HH:mm"),
       note: this.state.note,
       contactMethod: this.state.contactMethod,
       contactDate: this.state.contactDate,
@@ -685,7 +686,7 @@ export class LeadDetail extends Component {
           <EmailsReceived submission={this.props.leadItem} />
         </div>
         <div>
-          <Requests submission={this.props.leadItem} />
+          <Requests requestContent={this.props.leadItem.requestContent} />
         </div>
       </div>
     );

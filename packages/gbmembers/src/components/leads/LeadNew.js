@@ -206,6 +206,7 @@ export class LeadNew extends Component {
                     <option value="Newspaper">Newspaper</option>
                     <option value="Phone Call">Phone Call</option>
                     <option value="Poster">Poster</option>
+                    <option value="Signage">Signage</option>
                     <option value="Television">Television</option>
                     <option value="Twitter">Twitter</option>
                     <option value="Website">Website</option>
@@ -768,6 +769,40 @@ export class LeadNew extends Component {
                     <option value="Kids">Kids</option>
                   </select>
                   <div className="droparrow" />
+                </div>
+              </span>
+              <span className="line">
+                <div>
+                  <label htmlFor="sourceReference2">Source Reference 4</label>
+                  <input
+                    type="text"
+                    name="sourceReference4"
+                    id="sourceReference4"
+                    size="20"
+                    ref={input => (this.input = input)}
+                    defaultValue={
+                      this.props.leadItem.values['Source Reference 4']
+                    }
+                    onChange={e =>
+                      handleChange(this.props.leadItem, 'Source Reference 4', e)
+                    }
+                  />
+                </div>
+                <div>
+                  <label htmlFor="sourceReference2">Source Reference 5</label>
+                  <input
+                    type="text"
+                    name="sourceReference5"
+                    id="sourceReference5"
+                    size="20"
+                    ref={input => (this.input = input)}
+                    defaultValue={
+                      this.props.leadItem.values['Source Reference 5']
+                    }
+                    onChange={e =>
+                      handleChange(this.props.leadItem, 'Source Reference 5', e)
+                    }
+                  />
                 </div>
               </span>
               <span className="line">

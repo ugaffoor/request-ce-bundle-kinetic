@@ -9,6 +9,19 @@ export const SUBMISSION_INCLUDES = 'details,values';
 export const getMembersApp = state => state.member.members;
 const util = require('util');
 
+function excludeFromAttendanceCount(additionalPrograms, className) {
+  // Determine if program should exclude from Member Attendance
+  var program = additionalPrograms.find(element => {
+    return element['program'] === className;
+  });
+  return program !== undefined &&
+    program['program'] === className &&
+    (program['exludeFromGrading'] === undefined ||
+      program['exludeFromGrading'].indexOf('Exclude from Grading') !== -1)
+    ? true
+    : false;
+}
+
 export function* fetchAttendancesByDate(action) {
   try {
     let dtFrom = moment(action.payload.fromDate);
@@ -121,9 +134,19 @@ export function* createAttendance(action) {
       checkin =>
         checkin.values['Member GUID'] === submission.values['Member GUID'] &&
         moment(checkin.values['Class Date']).format('MM/DD/YYYY') ===
-          moment(action.payload.classDate).format('MM/DD/YYYY'),
+          moment(action.payload.classDate).format('MM/DD/YYYY') &&
+        !excludeFromAttendanceCount(
+          action.payload.additionalPrograms,
+          checkin.values['Class'],
+        ),
     );
-    if (checkin === undefined) {
+    if (
+      checkin === undefined &&
+      !excludeFromAttendanceCount(
+        action.payload.additionalPrograms,
+        action.payload.values['Class'],
+      )
+    ) {
       let attendanceCount =
         memberItem.values['Attendance Count'] !== undefined
           ? parseFloat(
@@ -183,9 +206,19 @@ export function* deleteAttendance(action) {
           checkin.values['Member GUID'] ===
             action.payload.attendance.values['Member GUID'] &&
           moment(checkin.values['Class Date']).format('MM/DD/YYYY') ===
-            moment(action.payload.classDate).format('MM/DD/YYYY'),
+            moment(action.payload.classDate).format('MM/DD/YYYY') &&
+          !excludeFromAttendanceCount(
+            action.payload.additionalPrograms,
+            checkin.values['Class'],
+          ),
       );
-      if (checkin === undefined) {
+      if (
+        checkin === undefined &&
+        !excludeFromAttendanceCount(
+          action.payload.additionalPrograms,
+          action.payload.attendance.values['Class'],
+        )
+      ) {
         let attendanceCount =
           memberItem.values['Attendance Count'] !== undefined
             ? parseFloat(
