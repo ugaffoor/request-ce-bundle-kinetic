@@ -55,23 +55,25 @@ const SubmissionSummary = ({ submission }) => (
 );
 
 export const RequestCard = props => (
-  <Link to={props.path} className="card card--request">
-    <h1>
-      <Icon image={Form(props.submission.form).icon} background="greenGrass" />
-      <span>{props.submission.form.name}</span>
-      <StatusPill submission={props.submission} />
-    </h1>
-    <SubmissionSummary submission={props.submission} />
-    <span className="meta">
-      <dl className="row">
-        <div className="col">
-          <dt>Confirmation</dt>
-          <dd>{props.submission.handle}</dd>
-        </div>
-        <DisplayDateListItem submission={props.submission} />
-        <EstCompletionListItem submission={props.submission} />
-        <ClosedDateListItem submission={props.submission} />
-      </dl>
-    </span>
-  </Link>
+  <span>
+    <Link to={props.path} className="card card--request">
+      <h1>
+        <span>{props.submission.form.name}</span>
+        <StatusPill submission={props.submission} />
+      </h1>
+      <SubmissionSummary submission={props.submission} />
+      <span className="meta">
+        <dl className="col">
+          <div className="col">
+            <dt>Confirmation</dt>
+            <dd>{props.submission.handle}</dd>
+          </div>
+          <DisplayDateListItem submission={props.submission} />
+          <EstCompletionListItem submission={props.submission} />
+          <ClosedDateListItem submission={props.submission} />
+        </dl>
+      </span>
+    </Link>
+    <hr />
+  </span>
 );

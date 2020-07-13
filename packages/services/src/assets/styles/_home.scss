@@ -1,6 +1,46 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  *   Home ~ services
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+.services-sidebar {
+  width: 350px !important;
+  background-color: #4d5059;
+  border-radius: 10px;
+  margin: 10px;
+  height: auto;
+  font-family: 'AdiHaus DIN Regular';
+  .page-title {
+    color: white;
+  }
+  hr {
+    color: #d3cdcd;
+    margin: 20px;
+  }
+  .search-box {
+    margin-left: 20px !important;
+    margin-right: 20px !important;
+    .fa {
+      font-size: 24px;
+    }
+    button {
+      width: 3rem;
+    }
+    input[type='text'] {
+      padding: 9px !important;
+      font-size: 24px !important;
+    }
+  }
+  .cards__wrapper.cards__wrapper--requests {
+    background-color: white;
+    a.card.card--request {
+      border: 0;
+      margin: 0;
+      padding-bottom: 0;
+    }
+  }
+}
+input::placeholder {
+  color: grey;
+}
 
 // Search container
 .search-services-home {

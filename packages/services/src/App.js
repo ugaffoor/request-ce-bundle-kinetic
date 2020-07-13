@@ -24,6 +24,9 @@ import { RequestListContainer } from './components/request_list/RequestListConta
 import { RequestShowContainer } from './components/request/RequestShowContainer';
 import { Settings } from './components/settings/Settings';
 import { displayableFormPredicate } from './utils';
+import { selectCurrentKapp } from 'common';
+import { Catalog } from './components/home/Catalog';
+import { actions } from './redux/modules/submissions';
 
 import './assets/styles/master.scss';
 
@@ -41,6 +44,8 @@ const mapStateToProps = (state, props) => {
     spaceAdmin: state.app.profile.spaceAdmin,
     pathname: state.router.location.pathname,
     settingsBackPath: state.space.spaceApp.settingsBackPath || '/',
+    kapp: selectCurrentKapp(state),
+    submissions: state.services.submissions.data,
   };
 };
 
@@ -48,6 +53,7 @@ const mapDispatchToProps = {
   fetchCategories: categoriesActions.fetchCategories,
   fetchForms: formsActions.fetchForms,
   fetchSubmissionCounts: submissionCountActions.fetchSubmissionCounts,
+  fetchSubmissions: actions.fetchSubmissions,
 };
 
 export const AppComponent = props => {
@@ -70,6 +76,10 @@ export const AppComponent = props => {
               counts={props.submissionCounts}
               homePageMode={props.homePageMode}
               homePageItems={props.homePageItems}
+              kapp={props.kapp}
+              fetchSubmissions={props.fetchSubmissions}
+              submissions={props.submissions}
+              forms={props.forms}
             />
           )}
         />
@@ -179,5 +189,5 @@ const enhance = compose(
 
 export const App = enhance(AppComponent);
 
-App.shouldSuppressSidebar = (pathname, kappSlug) =>
-  matchPath(pathname, { path: `/kapps/${kappSlug}`, exact: false });
+//App.shouldSuppressSidebar = (pathname, kappSlug) =>
+//  matchPath(pathname, { path: `/kapps/${kappSlug}`, exact: false });

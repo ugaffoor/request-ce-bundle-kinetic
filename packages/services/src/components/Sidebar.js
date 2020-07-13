@@ -1,6 +1,9 @@
 import React from 'react';
 import { KappLink as Link, KappNavLink as NavLink } from 'common';
 import { Nav, NavItem } from 'reactstrap';
+import { CatalogSearchContainer } from './shared/CatalogSearchContainer';
+import { getSubmissionPath } from '../utils';
+import { RequestCard } from './shared/RequestCard';
 
 const formatCount = count =>
   !count ? '' : count >= 1000 ? '(999+)' : `(${count})`;
@@ -11,78 +14,37 @@ const itemLink = (mode, slug) =>
 export const Sidebar = props => (
   <div className="sidebar services-sidebar">
     <div className="sidebar-group--content-wrapper">
-      <div className="sidebar-group sidebar-my-requests">
-        <h1>My Requests</h1>
-        <Nav vertical>
-          <NavItem>
-            <NavLink
-              to="/requests"
-              activeClassName="active"
-              className="nav-link"
-              exact
-            >
-              <span className="fa fa-fw fa-star" />
-              All
-            </NavLink>
-          </NavItem>
-          <NavItem>
-            <NavLink
-              to="/requests/Open"
-              activeClassName="active"
-              className="nav-link"
-              exact
-            >
-              <span className="fa fa-fw fa-book" />
-              Open {formatCount(props.counts.Submitted)}
-            </NavLink>
-          </NavItem>
-          <NavItem>
-            <NavLink
-              to="/requests/Closed"
-              activeClassName="active"
-              className="nav-link"
-              exact
-            >
-              <span className="fa fa-fw fa-times" />
-              Closed {formatCount(props.counts.Closed)}
-            </NavLink>
-          </NavItem>
-          <NavItem>
-            <NavLink
-              to="/requests/Draft"
-              activeClassName="active"
-              className="nav-link"
-              exact
-            >
-              <span className="fa fa-fw fa-inbox" />
-              Draft {formatCount(props.counts.Draft)}
-            </NavLink>
-          </NavItem>
-        </Nav>
+      <div className="search-box">
+        <CatalogSearchContainer />
       </div>
-      <div className="sidebar-group sidebar-home-page-item">
-        <h1>
-          {props.homePageMode}
-          <Link
-            to={props.homePageMode === 'Categories' ? '/categories' : '/forms'}
-          >
-            View All
-          </Link>
-        </h1>
-        <Nav vertical>
-          {props.homePageItems.map(item => (
-            <NavItem key={item.slug}>
-              <NavLink
-                to={itemLink(props.homePageMode, item.slug)}
-                className="nav-link"
-                activeClassName="active"
-                exact
-              >
-                {item.name}
-              </NavLink>
-            </NavItem>
-          ))}
-        </Nav>
+    </div>
+    <hr />
+    <div className="page-panel page-panel--transparent page-panel--one-thirds page-panel--auto-height page-panel--my-requests">
+      <div className="page-title">
+        <div className="page-title__wrapper">
+          <h1>Recent Requests</h1>
+          <Link to="/requests">View All</Link>
+        </div>
+      </div>
+
+      <div className="cards__wrapper cards__wrapper--requests">
+        {props.submissions.size > 0 ? (
+          props.submissions
+            .take(5)
+            .map(submission => ({
+              submission: submission,
+              forms: props.forms,
+              key: submission.id,
+              path: getSubmissionPath(submission),
+              deleteCallback: props.fetchSubmissions,
+            }))
+            .map(props => <RequestCard {...props} />)
+        ) : (
+          <div className="card card--empty-state">
+            <h1>You have no requests yet.</h1>
+            <p>As you request new services, they’ll appear here.</p>
+          </div>
+        )}
       </div>
     </div>
     {props.spaceAdmin && (
