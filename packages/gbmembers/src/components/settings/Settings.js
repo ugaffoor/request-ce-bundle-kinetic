@@ -64,47 +64,49 @@ class ComponentToPrint extends React.Component {
   render() {
     return (
       <div id="memberBarcodes">
-        {this.props.allMembers.map((member, index) =>
-          index !== 0 && index % 65 === 0 ? (
-            <div className="barCode pageBreak" key={index}>
-              <Barcode
-                value={member.id.split('-')[4].substring(6, 12)}
-                width={1.3}
-                height={36}
-                text={
-                  member.values['First Name'].substring(0, 3) +
-                  ' ' +
-                  member.values['Last Name']
-                }
-                type={'CODE128'}
-                font={'monospace'}
-                textAlign={'center'}
-                textPosition={'bottom'}
-                textMargin={2}
-                fontSize={8}
-              />
-            </div>
-          ) : (
-            <span className="barCode" key={index}>
-              <Barcode
-                value={member.id.split('-')[4].substring(6, 12)}
-                width={1.3}
-                height={36}
-                text={
-                  member.values['First Name'].substring(0, 3) +
-                  ' ' +
-                  member.values['Last Name']
-                }
-                type={'CODE128'}
-                font={'monospace'}
-                textAlign={'center'}
-                textPosition={'bottom'}
-                textMargin={2}
-                fontSize={8}
-              />
-            </span>
-          ),
-        )}
+        {this.props.allMembers
+          .filter(member => member.values['Status'] !== 'Inactive')
+          .map((member, index) =>
+            index !== 0 && index % 65 === 0 ? (
+              <div className="barCode pageBreak" key={index}>
+                <Barcode
+                  value={member.id.split('-')[4].substring(6, 12)}
+                  width={1.3}
+                  height={36}
+                  text={
+                    member.values['First Name'].substring(0, 3) +
+                    ' ' +
+                    member.values['Last Name']
+                  }
+                  type={'CODE128'}
+                  font={'monospace'}
+                  textAlign={'center'}
+                  textPosition={'bottom'}
+                  textMargin={2}
+                  fontSize={8}
+                />
+              </div>
+            ) : (
+              <span className="barCode" key={index}>
+                <Barcode
+                  value={member.id.split('-')[4].substring(6, 12)}
+                  width={1.3}
+                  height={36}
+                  text={
+                    member.values['First Name'].substring(0, 3) +
+                    ' ' +
+                    member.values['Last Name']
+                  }
+                  type={'CODE128'}
+                  font={'monospace'}
+                  textAlign={'center'}
+                  textPosition={'bottom'}
+                  textMargin={2}
+                  fontSize={8}
+                />
+              </span>
+            ),
+          )}
       </div>
     );
   }
