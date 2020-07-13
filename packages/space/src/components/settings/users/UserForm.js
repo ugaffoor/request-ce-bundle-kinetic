@@ -8,6 +8,7 @@ import { modalFormActions, PageTitle, Utils } from 'common';
 
 import { actions as usersActions } from '../../../redux/modules/settingsUsers';
 import { actions as teamsActions } from '../../../redux/modules/teamList';
+import { actions as profileActions } from '../../../redux/modules/profiles';
 import { ProfileCard } from 'common';
 import { UsersDropdown } from './DropDown';
 import { I18n } from '../../../../../app/src/I18nProvider';
@@ -33,6 +34,8 @@ export const UserFormComponent = ({
   handleSubmit,
   handleDelete,
   userProfileAttributes,
+  editingPassword,
+  handleTogglePassword,
 }) => (
   <div className="page-container page-container--panels page-container--space-profile-edit">
     <PageTitle parts={['Users', 'Settings']} />
@@ -175,6 +178,58 @@ export const UserFormComponent = ({
                     ))}
                   </select>
                 </div>
+              )}
+              {editingPassword ? (
+                <div>
+                  <hr />
+                  <div className="profile-input-container row">
+                    <div className="form-group col">
+                      <label htmlFor="newPassword" className="required">
+                        <I18n>New Password</I18n>
+                      </label>
+                      <input
+                        type="password"
+                        id="newPassword"
+                        name="newPassword"
+                        onChange={handleFieldChange}
+                        value={fieldValues.newPassword}
+                      />
+                    </div>
+                    <div className="form-group col">
+                      <label htmlFor="confirmPassword" className="required">
+                        <I18n>Password Confirmation</I18n>
+                      </label>
+                      <input
+                        type="password"
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        onChange={handleFieldChange}
+                        value={fieldValues.confirmPassword}
+                      />
+                    </div>
+                  </div>
+                  {fieldValues.newPassword !== fieldValues.confirmPassword && (
+                    <p className="form-alert">
+                      <I18n>Passwords Must Match</I18n>
+                    </p>
+                  )}
+                  <div>
+                    <button
+                      onClick={handleTogglePassword}
+                      className="btn btn-secondary btn-sm"
+                    >
+                      <I18n>Cancel Password Change</I18n>
+                    </button>
+                  </div>
+                  <hr />
+                </div>
+              ) : (
+                <button
+                  onClick={handleTogglePassword}
+                  className="change-password btn btn-secondary btn-sm"
+                >
+                  <I18n>Change Password</I18n>
+                </button>
               )}
               <div>
                 <h2 className="section__title">
@@ -350,7 +405,10 @@ const managerLookup = (users, managerUsername) => {
 };
 
 const fieldValuesValid = fieldValues =>
-  fieldValues.displayName && fieldValues.email && fieldValues.username;
+  fieldValues.displayName &&
+  fieldValues.email &&
+  fieldValues.username &&
+  fieldValues.newPassword === fieldValues.confirmPassword;
 
 const getProfileAttribute = (user, attr) =>
   user.profileAttributes && user.profileAttributes[attr]
@@ -386,6 +444,8 @@ const translateProfileToFieldValues = user => ({
   email: user.email || '',
   preferredLocale: user.preferredLocale || '',
   timezone: user.timezone || '',
+  newPassword: '',
+  confirmPassword: '',
   phoneNumber: getProfileAttribute(user, 'Phone Number'),
   firstName: getProfileAttribute(user, 'First Name'),
   lastName: getProfileAttribute(user, 'Last Name'),
@@ -441,6 +501,9 @@ const translateFieldValuesToProfile = (fieldValues, user) => {
       })),
     ],
   };
+  if (fieldValues.newPassword !== '') {
+    result.password = fieldValues.newPassword;
+  }
   return result;
 };
 
@@ -451,6 +514,7 @@ const mapStateToProps = (state, props) => ({
   user: state.space.settingsUsers.user,
   users: state.space.settingsUsers.users,
   error: state.space.settingsUsers.error,
+  editingPassword: state.space.profiles.isChangePasswordVisible,
   spaceAttributes:
     state.app.space &&
     state.app.space.attributes.reduce((memo, item) => {
@@ -471,6 +535,7 @@ const mapDispatchToProps = {
   createUser: usersActions.createUser,
   deleteUser: usersActions.deleteUser,
   openForm: modalFormActions.openForm,
+  toggleChangePassword: profileActions.setChangePasswordVisible,
   push,
 };
 
@@ -488,6 +553,14 @@ export const UserForm = compose(
     },
     handleFieldChange: props => ({ target: { name, value } }) => {
       name && props.setFieldValues({ ...props.fieldValues, [name]: value });
+    },
+    handleTogglePassword: props => event => {
+      props.toggleChangePassword(!props.editingPassword);
+      props.setFieldValues({
+        ...props.fieldValues,
+        newPassword: '',
+        confirmPassword: '',
+      });
     },
     handleOptionChange: props => (name, value) => {
       name && props.setFieldValues({ ...props.fieldValues, [name]: value });
@@ -529,6 +602,7 @@ export const UserForm = compose(
         props.updateUser(
           translateFieldValuesToProfile(props.fieldValues, props.user),
         );
+        props.toggleChangePassword(false);
       } else {
         props.createUser(translateFieldValuesToProfile(props.fieldValues));
         props.push(`/settings/users`);

@@ -168,6 +168,7 @@ export const HomeView = ({
             attendancesByDate={attendancesByDate}
             fetchAttendancesByDate={fetchAttendancesByDate}
             fetchingAttendancesByDate={fetchingAttendancesByDate}
+            allMembers={allMembers}
           />
         </div>
       </div>

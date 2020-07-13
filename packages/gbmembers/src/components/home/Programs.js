@@ -7,25 +7,45 @@ import {
   Cell,
   Legend,
 } from 'recharts';
+import { KappNavLink as NavLink } from 'common';
+import crossIcon from '../../images/cross.svg?raw';
+import SVGInline from 'react-svg-inline';
+import ReactTable from 'react-table';
 
 export class ProgramsChart extends Component {
   constructor(props) {
     super(props);
     this.allMembers = this.props.allMembers;
+    this.membersOnClick = this.membersOnClick.bind(this);
+    this._getMemberColumns = this.getMemberColumns();
+
     let data = this.getData(this.props.allMembers, this.props.programs);
+    let totalMembers = 0;
+    data.forEach(function(element) {
+      totalMembers += element.MemberCount;
+    });
     this.renderProgramsCustomizedLabel = this.renderProgramsCustomizedLabel.bind(
       this,
     );
     this.state = {
       data,
+      totalMembers,
+      showMembers: false,
     };
   }
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.allMembers) {
       this.allMembers = nextProps.allMembers;
+      let data = this.getData(nextProps.allMembers, nextProps.programs);
+      let totalMembers = 0;
+      data.forEach(function(element) {
+        totalMembers += element.MemberCount;
+      });
+
       this.setState({
-        data: this.getData(nextProps.allMembers, nextProps.programs),
+        data,
+        totalMembers,
       });
     }
   }
@@ -35,15 +55,18 @@ export class ProgramsChart extends Component {
       return [];
     }
 
-    let data = [];
+    let programInfo = new Map();
+
     programs.forEach(program => {
-      data.push({ Program: program.program, MemberCount: 0 });
+      programInfo.set(program.program, {
+        Program: program.program,
+        MemberCount: 0,
+        members: [],
+      });
     });
 
     allMembers.forEach(member => {
-      let program = data.find(
-        obj => obj['Program'] === member.values['Ranking Program'],
-      );
+      let program = programInfo.get(member.values['Ranking Program']);
       if (
         member.values['Status'] === 'Active' ||
         member.values['Status'] === 'Pending Freeze' ||
@@ -51,8 +74,22 @@ export class ProgramsChart extends Component {
       ) {
         if (program) {
           program['MemberCount'] = program['MemberCount'] + 1;
+          program['members'][program['members'].length] = {
+            id: member.id,
+            name:
+              member.values['First Name'] + ' ' + member.values['Last Name'],
+          };
         }
       }
+    });
+
+    let data = [];
+    programInfo.forEach(programInfo => {
+      data.push({
+        Program: programInfo['Program'],
+        MemberCount: programInfo['MemberCount'],
+        members: programInfo['members'],
+      });
     });
 
     return data;
@@ -84,41 +121,222 @@ export class ProgramsChart extends Component {
       </text>
     );
   };
+  membersOnClick(e) {
+    console.log(e.members.length);
+    this.setState({
+      members: e.members,
+      showMembers: true,
+    });
+  }
+  getMembers(members, col) {
+    var members_col = [];
 
+    for (var i = col - 1; i < members.length; i = i + 4) {
+      //if (i % (col-1) === 0){
+      members_col[members_col.length] = {
+        memberId: members[i].id,
+        name: members[i].name,
+      };
+      //}
+    }
+
+    return members_col;
+  }
+
+  getMemberTableData(members) {
+    let members_col1 = this.getMembers(members, 1);
+    let members_col2 = this.getMembers(members, 2);
+    let members_col3 = this.getMembers(members, 3);
+    let members_col4 = this.getMembers(members, 4);
+
+    return [
+      {
+        members: {
+          members_col1: members_col1,
+          members_col2: members_col2,
+          members_col3: members_col3,
+          members_col4: members_col4,
+        },
+      },
+    ];
+  }
+  getMemberColumns = () => {
+    return [
+      {
+        accessor: 'members',
+        Header: '',
+        headerClassName: 'members_col',
+        className: 'members_col',
+        Cell: props => {
+          return props.original.members_col1 === undefined ? (
+            <div />
+          ) : (
+            <NavLink
+              to={`/Member/${props.original.members_col1['memberId']}`}
+              className=""
+            >
+              {props.original.members_col1['name']}
+            </NavLink>
+          );
+        },
+      },
+      {
+        accessor: 'members',
+        Header: '',
+        headerClassName: 'members_col',
+        className: 'members_col',
+        Cell: props => {
+          return props.original.members_col2 === undefined ? (
+            <div />
+          ) : (
+            <NavLink
+              to={`/Member/${props.original.members_col2['memberId']}`}
+              className=""
+            >
+              {props.original.members_col2['name']}
+            </NavLink>
+          );
+        },
+      },
+      {
+        accessor: 'members',
+        Header: '',
+        headerClassName: 'members_col',
+        className: 'members_col',
+        Cell: props => {
+          return props.original.members_col3 === undefined ? (
+            <div />
+          ) : (
+            <NavLink
+              to={`/Member/${props.original.members_col3['memberId']}`}
+              className=""
+            >
+              {props.original.members_col3['name']}
+            </NavLink>
+          );
+        },
+      },
+      {
+        accessor: 'members',
+        Header: '',
+        headerClassName: 'members_col',
+        className: 'members_col',
+        Cell: props => {
+          return props.original.members_col4 === undefined ? (
+            <div />
+          ) : (
+            <NavLink
+              to={`/Member/${props.original.members_col4['memberId']}`}
+              className=""
+            >
+              {props.original.members_col4['name']}
+            </NavLink>
+          );
+        },
+      },
+    ];
+  };
+  getMemberTableColumns(row) {
+    return [
+      {
+        accessor: 'members',
+        Header: 'Members',
+        headerClassName: 'members_col',
+        className: 'members_col',
+        style: { whiteSpace: 'unset' },
+        maxWidth: '100%',
+        Cell: props => {
+          let members_col1 = props.value.members_col1;
+          let members_col2 = props.value.members_col2;
+          let members_col3 = props.value.members_col3;
+          let members_col4 = props.value.members_col4;
+
+          let members = [];
+          for (var i = 0; i < members_col1.length; i++) {
+            members[members.length] = {
+              members_col1: members_col1[i],
+              members_col2:
+                members_col2.length > i ? members_col2[i] : undefined,
+              members_col3:
+                members_col3.length > i ? members_col3[i] : undefined,
+              members_col4:
+                members_col4.length > i ? members_col4[i] : undefined,
+            };
+          }
+          return (
+            <ReactTable
+              columns={this._getMemberColumns}
+              pageSize={members_col1.length > 20 ? 20 : members_col1.length}
+              showPagination={members_col1.length > 20 ? true : false}
+              data={members}
+            />
+          );
+        },
+      },
+    ];
+  }
   render() {
     const { data } = this.state;
     return (
       <span>
-        <div className="page-header">Programs</div>
-        <ResponsiveContainer minHeight={370}>
-          <PieChart width={300} height={370}>
-            <Pie
-              data={data}
-              nameKey="Program"
-              dataKey="MemberCount"
-              cx={'50%'}
-              label={this.renderProgramsCustomizedLabel}
-              labelLine={false}
-              outerRadius={120}
-              innerRadius={60}
-              fill="#8884d8"
-              isAnimationActive={false}
+        <div className="page-header">
+          Programs - Total {this.state.totalMembers}
+        </div>
+        {this.state.showMembers && (
+          <div className="memberChartDetails">
+            <span
+              className="closeMembers"
+              onClick={e =>
+                this.setState({
+                  showMembers: false,
+                })
+              }
             >
-              {data.map((entry, index) => (
-                <Cell
-                  fill={
-                    COLORS[entry.Program] !== undefined
-                      ? COLORS[entry.Program]
-                      : OTHER_COLORS[index % OTHER_COLORS.length]
-                  }
-                  key={index}
-                />
-              ))}
-            </Pie>
-            <Tooltip />
-            <Legend />
-          </PieChart>
-        </ResponsiveContainer>
+              <SVGInline svg={crossIcon} className="icon" />
+            </span>
+            <ReactTable
+              columns={this.getMemberTableColumns()}
+              data={this.getMemberTableData(this.state.members)}
+              defaultPageSize={1}
+              showPagination={false}
+            />
+          </div>
+        )}
+        {!this.state.showMembers && (
+          <div className="programsChart">
+            <ResponsiveContainer minHeight={370}>
+              <PieChart width={300} height={370}>
+                <Pie
+                  data={data}
+                  nameKey="Program"
+                  dataKey="MemberCount"
+                  cx={'50%'}
+                  label={this.renderProgramsCustomizedLabel}
+                  labelLine={false}
+                  outerRadius={120}
+                  innerRadius={60}
+                  fill="#8884d8"
+                  isAnimationActive={false}
+                  onClick={this.membersOnClick}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {data.map((entry, index) => (
+                    <Cell
+                      fill={
+                        COLORS[entry.Program] !== undefined
+                          ? COLORS[entry.Program]
+                          : OTHER_COLORS[index % OTHER_COLORS.length]
+                      }
+                      key={index}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        )}
       </span>
     );
   }

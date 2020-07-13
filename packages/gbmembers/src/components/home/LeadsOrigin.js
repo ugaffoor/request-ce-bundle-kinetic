@@ -10,6 +10,10 @@ import {
 import moment from 'moment';
 import ReactSpinner from 'react16-spinjs';
 import $ from 'jquery';
+import { KappNavLink as NavLink } from 'common';
+import crossIcon from '../../images/cross.svg?raw';
+import SVGInline from 'react-svg-inline';
+import ReactTable from 'react-table';
 
 const chartLabels = {
   last_30_days: 'Last 30 Days',
@@ -58,6 +62,9 @@ export class LeadsOriginChart extends Component {
       toDate: toDate,
     };
 
+    this.leadsOnClick = this.leadsOnClick.bind(this);
+    this._getLeadColumns = this.getLeadColumns();
+
     let data = this.getData(leads);
 
     this.renderLeadsOriginCustomizedLabel = this.renderLeadsOriginCustomizedLabel.bind(
@@ -100,7 +107,7 @@ export class LeadsOriginChart extends Component {
       return [];
     }
 
-    let leadsByType = [];
+    let leadsByType = new Map();
 
     let fromDate = moment(this.state.fromDate, 'YYYY-MM-DD');
     let toDate = moment(this.state.toDate, 'YYYY-MM-DD');
@@ -111,21 +118,41 @@ export class LeadsOriginChart extends Component {
         createdDate.isSameOrAfter(fromDate) &&
         createdDate.isSameOrBefore(toDate)
       ) {
-        let objFound = leadsByType.find(
-          obj => obj['name'] === lead.values['Source'],
-        );
+        let objFound = leadsByType.get(lead.values['Source']);
         if (objFound) {
           objFound['value'] = objFound['value'] + 1;
+          objFound['leads'][objFound['leads'].length] = {
+            id: lead.id,
+            name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
+          };
         } else {
-          leadsByType.push({
+          leadsByType.set(lead.values['Source'], {
             name: lead.values['Source'],
             value: 1,
             key: lead.values['Source'],
+            leads: [
+              {
+                id: lead.id,
+                name:
+                  lead.values['First Name'] + ' ' + lead.values['Last Name'],
+              },
+            ],
           });
         }
       }
     });
-    return leadsByType;
+
+    let data = [];
+    leadsByType.forEach(leadInfo => {
+      data.push({
+        name: leadInfo.name,
+        value: leadInfo.value,
+        key: leadInfo.key,
+        leads: leadInfo.leads,
+      });
+    });
+
+    return data;
   }
   renderLeadsOriginCustomizedLabel = ({
     cx,
@@ -153,7 +180,157 @@ export class LeadsOriginChart extends Component {
       </text>
     );
   };
+  leadsOnClick(e) {
+    console.log(e.leads.length);
+    this.setState({
+      leads: e.leads,
+      showLeads: true,
+    });
+  }
+  getLeads(leads, col) {
+    var leads_col = [];
 
+    for (var i = col - 1; i < leads.length; i = i + 4) {
+      //if (i % (col-1) === 0){
+      leads_col[leads_col.length] = {
+        leadId: leads[i].id,
+        name: leads[i].name,
+      };
+      //}
+    }
+
+    return leads_col;
+  }
+
+  getLeadTableData(leads) {
+    let leads_col1 = this.getLeads(leads, 1);
+    let leads_col2 = this.getLeads(leads, 2);
+    let leads_col3 = this.getLeads(leads, 3);
+    let leads_col4 = this.getLeads(leads, 4);
+
+    return [
+      {
+        leads: {
+          leads_col1: leads_col1,
+          leads_col2: leads_col2,
+          leads_col3: leads_col3,
+          leads_col4: leads_col4,
+        },
+      },
+    ];
+  }
+  getLeadColumns = () => {
+    return [
+      {
+        accessor: 'leads',
+        Header: '',
+        headerClassName: 'leads_col',
+        className: 'leads_col',
+        Cell: props => {
+          return props.original.leads_col1 === undefined ? (
+            <div />
+          ) : (
+            <NavLink
+              to={`/LeadDetail/${props.original.leads_col1['leadId']}`}
+              className=""
+            >
+              {props.original.leads_col1['name']}
+            </NavLink>
+          );
+        },
+      },
+      {
+        accessor: 'leads',
+        Header: '',
+        headerClassName: 'leads_col',
+        className: 'leads_col',
+        Cell: props => {
+          return props.original.leads_col2 === undefined ? (
+            <div />
+          ) : (
+            <NavLink
+              to={`/LeadDetail/${props.original.leads_col2['leadId']}`}
+              className=""
+            >
+              {props.original.leads_col2['name']}
+            </NavLink>
+          );
+        },
+      },
+      {
+        accessor: 'leads',
+        Header: '',
+        headerClassName: 'leads_col',
+        className: 'leads_col',
+        Cell: props => {
+          return props.original.leads_col3 === undefined ? (
+            <div />
+          ) : (
+            <NavLink
+              to={`/LeadDetail/${props.original.leads_col3['leadId']}`}
+              className=""
+            >
+              {props.original.leads_col3['name']}
+            </NavLink>
+          );
+        },
+      },
+      {
+        accessor: 'leads',
+        Header: '',
+        headerClassName: 'leads_col',
+        className: 'leads_col',
+        Cell: props => {
+          return props.original.leads_col4 === undefined ? (
+            <div />
+          ) : (
+            <NavLink
+              to={`/LeadDetail/${props.original.leads_col4['leadId']}`}
+              className=""
+            >
+              {props.original.leads_col4['name']}
+            </NavLink>
+          );
+        },
+      },
+    ];
+  };
+  getLeadTableColumns(row) {
+    return [
+      {
+        accessor: 'leads',
+        Header: 'Leads',
+        headerClassName: 'leads_col',
+        className: 'leads_col',
+        style: { whiteSpace: 'unset' },
+        maxWidth: '100%',
+        Cell: props => {
+          let leads_col1 = props.original.leads.leads_col1;
+          let leads_col2 = props.original.leads.leads_col2;
+          let leads_col3 = props.original.leads.leads_col3;
+          let leads_col4 = props.original.leads.leads_col4;
+
+          let leads = [];
+          for (var i = 0; i < leads_col1.length; i++) {
+            leads[leads.length] = {
+              leads_col1: leads_col1[i],
+              leads_col2: leads_col2.length > i ? leads_col2[i] : undefined,
+              leads_col3: leads_col3.length > i ? leads_col3[i] : undefined,
+              leads_col4: leads_col4.length > i ? leads_col4[i] : undefined,
+            };
+          }
+          return (
+            <ReactTable
+              columns={this._getLeadColumns}
+              pageSize={leads_col1.length > 20 ? 20 : leads_col1.length}
+              showPagination={leads_col1.length > 20 ? true : false}
+              data={leads}
+            />
+          );
+        },
+      },
+    ];
+  }
   render() {
     const { data } = this.state;
     return this.props.leadsByDateLoading ? (
@@ -168,27 +345,56 @@ export class LeadsOriginChart extends Component {
             <span className="label">Leads Conversion</span>
           </span>
         </div>
-        <ResponsiveContainer minHeight={370}>
-          <PieChart maxWidth={600} height={370}>
-            <Pie
-              data={data}
-              nameKey="name"
-              dataKey="value"
-              cx={'50%'}
-              label={this.renderLeadsOriginCustomizedLabel}
-              labelLine={false}
-              outerRadius={120}
-              fill="#8884d8"
-              isAnimationActive={false}
+        {this.state.showLeads && (
+          <div className="memberChartDetails">
+            <span
+              className="closeMembers"
+              onClick={e =>
+                this.setState({
+                  showLeads: false,
+                })
+              }
             >
-              {data.map((entry, index) => (
-                <Cell fill={COLORS[index % COLORS.length]} key={entry.key} />
-              ))}
-            </Pie>
-            <Tooltip />
-            <Legend />
-          </PieChart>
-        </ResponsiveContainer>
+              <SVGInline svg={crossIcon} className="icon" />
+            </span>
+            <ReactTable
+              columns={this.getLeadTableColumns()}
+              data={this.getLeadTableData(this.state.leads)}
+              defaultPageSize={1}
+              showPagination={false}
+            />
+          </div>
+        )}
+        {!this.state.showLeads && (
+          <div className="leadsChart">
+            <ResponsiveContainer minHeight={370}>
+              <PieChart maxWidth={600} height={370}>
+                <Pie
+                  data={data}
+                  nameKey="name"
+                  dataKey="value"
+                  cx={'50%'}
+                  label={this.renderLeadsOriginCustomizedLabel}
+                  labelLine={false}
+                  outerRadius={120}
+                  fill="#8884d8"
+                  isAnimationActive={false}
+                  onClick={this.leadsOnClick}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {data.map((entry, index) => (
+                    <Cell
+                      fill={COLORS[index % COLORS.length]}
+                      key={entry.key}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        )}
       </span>
     );
   }

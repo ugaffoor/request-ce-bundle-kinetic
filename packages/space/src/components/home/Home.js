@@ -96,16 +96,7 @@ const HomeComponent = ({
         </div>
       ) : (
         <div className="empty-state empty-state--wally">
-          <h5>
-            <I18n>Woops...</I18n>
-          </h5>
           <img src={wallyMissingImage} alt="Missing Wally" />
-          <h6>
-            <I18n>
-              Looks like this space does not have a Discussion Server
-              configured!
-            </I18n>
-          </h6>
         </div>
       )}
 

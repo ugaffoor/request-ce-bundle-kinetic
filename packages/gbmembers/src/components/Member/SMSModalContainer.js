@@ -299,7 +299,7 @@ export class SMSModal extends Component {
                     <button
                       className="input-group-addon btn btn-primary"
                       onClick={e => this.sendSms()}
-                      style={{ backgroundColor: '#05728f' }}
+                      style={{ backgroundColor: '#4d5059' }}
                     >
                       Send
                     </button>
@@ -314,7 +314,7 @@ export class SMSModal extends Component {
                   <button
                     type="button"
                     className="btn btn-primary"
-                    style={{ backgroundColor: '#05728f' }}
+                    style={{ backgroundColor: '#4d5059' }}
                     onClick={e =>
                       this.props.setShowMessageHistory(
                         this.props.showMessageHistory ? false : true,

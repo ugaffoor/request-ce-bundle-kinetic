@@ -1,3 +1,37 @@
+.hide {
+  display: none;
+}
+.memberChartDetails {
+  background-color: white;
+  height: 370px;
+  margin-left: 10px;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  .nameCol {
+    background-color: white;
+  }
+  .rt-tr.-odd {
+    background: rgba(0, 0, 0, 0.03);
+  }
+  .closeMembers {
+    position: absolute;
+    z-index: 100;
+    margin-left: 8px;
+    margin-top: 2px;
+    cursor: pointer;
+  }
+  .closeMembers path {
+    fill: white !important;
+  }
+  .ReactTable {
+    overflow: auto;
+    height: 100%;
+  }
+  .rt-th.members_col.rt-resizable-header.-cursor-pointer {
+    border-radius: 0;
+    margin: 0;
+  }
+}
 .attendanceDialog {
   .narcissus_x3xwbs {
     display: none;

@@ -10,11 +10,17 @@ import {
   Legend,
 } from 'recharts';
 import moment from 'moment';
+import { KappNavLink as NavLink } from 'common';
+import crossIcon from '../../images/cross.svg?raw';
+import SVGInline from 'react-svg-inline';
+import ReactTable from 'react-table';
 
 export class DemographicChart extends Component {
   constructor(props) {
     super(props);
     this.allMembers = this.props.allMembers;
+    this.membersOnClick = this.membersOnClick.bind(this);
+    this._getMemberColumns = this.getMemberColumns();
 
     let data = this.getData(this.props.allMembers);
     let malePercent = this.getMalePercent(this.props.allMembers);
@@ -25,6 +31,7 @@ export class DemographicChart extends Component {
       data,
       malePercent,
       femalePercent,
+      showMembers: false,
     };
   }
 
@@ -50,28 +57,28 @@ export class DemographicChart extends Component {
     let totalMembers = 0;
     let maleTotal = 0,
       femaleTotal = 0;
-    let m_age_less_than_6 = 0,
-      m_age_7_9 = 0,
-      m_age_10_12 = 0,
-      m_age_13_15 = 0,
-      m_age_16_17 = 0,
-      m_age_18_29 = 0,
-      m_age_30_35 = 0,
-      m_age_36_40 = 0,
-      m_age_41_45 = 0,
-      m_age_46_50 = 0,
-      m_age_51_plus = 0;
-    let f_age_less_than_6 = 0,
-      f_age_7_9 = 0,
-      f_age_10_12 = 0,
-      f_age_13_15 = 0,
-      f_age_16_17 = 0,
-      f_age_18_29 = 0,
-      f_age_30_35 = 0,
-      f_age_36_40 = 0,
-      f_age_41_45 = 0,
-      f_age_46_50 = 0,
-      f_age_51_plus = 0;
+    let m_age_less_than_6 = { count: 0, members: [] },
+      m_age_7_9 = { count: 0, members: [] },
+      m_age_10_12 = { count: 0, members: [] },
+      m_age_13_15 = { count: 0, members: [] },
+      m_age_16_17 = { count: 0, members: [] },
+      m_age_18_29 = { count: 0, members: [] },
+      m_age_30_35 = { count: 0, members: [] },
+      m_age_36_40 = { count: 0, members: [] },
+      m_age_41_45 = { count: 0, members: [] },
+      m_age_46_50 = { count: 0, members: [] },
+      m_age_51_plus = { count: 0, members: [] };
+    let f_age_less_than_6 = { count: 0, members: [] },
+      f_age_7_9 = { count: 0, members: [] },
+      f_age_10_12 = { count: 0, members: [] },
+      f_age_13_15 = { count: 0, members: [] },
+      f_age_16_17 = { count: 0, members: [] },
+      f_age_18_29 = { count: 0, members: [] },
+      f_age_30_35 = { count: 0, members: [] },
+      f_age_36_40 = { count: 0, members: [] },
+      f_age_41_45 = { count: 0, members: [] },
+      f_age_46_50 = { count: 0, members: [] },
+      f_age_51_plus = { count: 0, members: [] };
     allMembers.forEach(member => {
       if (
         member.values['Status'] === 'Active' ||
@@ -89,86 +96,196 @@ export class DemographicChart extends Component {
 
         if (age <= 6) {
           if (gender === 'Male') {
-            m_age_less_than_6++;
+            m_age_less_than_6.count++;
+            m_age_less_than_6.members[m_age_less_than_6.members.length] = {
+              id: member.id,
+              name:
+                member.values['First Name'] + ' ' + member.values['Last Name'],
+            };
           } else if (gender === 'Female') {
-            f_age_less_than_6++;
+            f_age_less_than_6.count++;
+            f_age_less_than_6.members[f_age_less_than_6.members.length] = {
+              id: member.id,
+              name:
+                member.values['First Name'] + ' ' + member.values['Last Name'],
+            };
           }
         }
 
         if (age >= 7 && age <= 9) {
           if (gender === 'Male') {
-            m_age_7_9++;
+            m_age_7_9.count++;
+            m_age_7_9.members[m_age_7_9.members.length] = {
+              id: member.id,
+              name:
+                member.values['First Name'] + ' ' + member.values['Last Name'],
+            };
           } else if (gender === 'Female') {
-            f_age_7_9++;
+            f_age_7_9.count++;
+            f_age_7_9.members[f_age_7_9.members.length] = {
+              id: member.id,
+              name:
+                member.values['First Name'] + ' ' + member.values['Last Name'],
+            };
           }
         }
 
         if (age >= 10 && age <= 12) {
           if (gender === 'Male') {
-            m_age_10_12++;
+            m_age_10_12.count++;
+            m_age_10_12.members[m_age_10_12.members.length] = {
+              id: member.id,
+              name:
+                member.values['First Name'] + ' ' + member.values['Last Name'],
+            };
           } else if (gender === 'Female') {
-            f_age_10_12++;
+            f_age_10_12.count++;
+            f_age_10_12.members[f_age_10_12.members.length] = {
+              id: member.id,
+              name:
+                member.values['First Name'] + ' ' + member.values['Last Name'],
+            };
           }
         }
 
         if (age >= 13 && age <= 15) {
           if (gender === 'Male') {
-            m_age_13_15++;
+            m_age_13_15.count++;
+            m_age_13_15.members[m_age_13_15.members.length] = {
+              id: member.id,
+              name:
+                member.values['First Name'] + ' ' + member.values['Last Name'],
+            };
           } else if (gender === 'Female') {
-            f_age_13_15++;
+            f_age_13_15.count++;
+            f_age_13_15.members[f_age_13_15.members.length] = {
+              id: member.id,
+              name:
+                member.values['First Name'] + ' ' + member.values['Last Name'],
+            };
           }
         }
 
         if (age >= 16 && age <= 17) {
           if (gender === 'Male') {
-            m_age_16_17++;
+            m_age_16_17.count++;
+            m_age_16_17.members[m_age_16_17.members.length] = {
+              id: member.id,
+              name:
+                member.values['First Name'] + ' ' + member.values['Last Name'],
+            };
           } else if (gender === 'Female') {
-            f_age_16_17++;
+            f_age_16_17.count++;
+            f_age_16_17.members[f_age_16_17.members.length] = {
+              id: member.id,
+              name:
+                member.values['First Name'] + ' ' + member.values['Last Name'],
+            };
           }
         }
 
         if (age >= 18 && age <= 29) {
           if (gender === 'Male') {
-            m_age_18_29++;
+            m_age_18_29.count++;
+            m_age_18_29.members[m_age_18_29.members.length] = {
+              id: member.id,
+              name:
+                member.values['First Name'] + ' ' + member.values['Last Name'],
+            };
           } else if (gender === 'Female') {
-            f_age_18_29++;
+            f_age_18_29.count++;
+            f_age_18_29.members[f_age_18_29.members.length] = {
+              id: member.id,
+              name:
+                member.values['First Name'] + ' ' + member.values['Last Name'],
+            };
           }
         }
 
         if (age >= 30 && age <= 35) {
           if (gender === 'Male') {
-            m_age_30_35++;
+            m_age_30_35.count++;
+            m_age_30_35.members[m_age_30_35.members.length] = {
+              id: member.id,
+              name:
+                member.values['First Name'] + ' ' + member.values['Last Name'],
+            };
           } else if (gender === 'Female') {
-            f_age_30_35++;
+            f_age_30_35.count++;
+            f_age_30_35.members[f_age_30_35.members.length] = {
+              id: member.id,
+              name:
+                member.values['First Name'] + ' ' + member.values['Last Name'],
+            };
           }
         }
         if (age >= 36 && age <= 40) {
           if (gender === 'Male') {
-            m_age_36_40++;
+            m_age_36_40.count++;
+            m_age_36_40.members[m_age_36_40.members.length] = {
+              id: member.id,
+              name:
+                member.values['First Name'] + ' ' + member.values['Last Name'],
+            };
           } else if (gender === 'Female') {
-            f_age_36_40++;
+            f_age_36_40.count++;
+            f_age_36_40.members[f_age_36_40.members.length] = {
+              id: member.id,
+              name:
+                member.values['First Name'] + ' ' + member.values['Last Name'],
+            };
           }
         }
         if (age >= 41 && age <= 45) {
           if (gender === 'Male') {
-            m_age_41_45++;
+            m_age_41_45.count++;
+            m_age_41_45.members[m_age_41_45.members.length] = {
+              id: member.id,
+              name:
+                member.values['First Name'] + ' ' + member.values['Last Name'],
+            };
           } else if (gender === 'Female') {
-            f_age_41_45++;
+            f_age_41_45.count++;
+            f_age_41_45.members[f_age_41_45.members.length] = {
+              id: member.id,
+              name:
+                member.values['First Name'] + ' ' + member.values['Last Name'],
+            };
           }
         }
         if (age >= 46 && age <= 50) {
           if (gender === 'Male') {
-            m_age_46_50++;
+            m_age_46_50.count++;
+            m_age_46_50.members[m_age_46_50.members.length] = {
+              id: member.id,
+              name:
+                member.values['First Name'] + ' ' + member.values['Last Name'],
+            };
           } else if (gender === 'Female') {
-            f_age_46_50++;
+            f_age_46_50.count++;
+            f_age_46_50.members[f_age_46_50.members.length] = {
+              id: member.id,
+              name:
+                member.values['First Name'] + ' ' + member.values['Last Name'],
+            };
           }
         }
 
         if (age >= 51) {
           if (gender === 'Male') {
-            m_age_51_plus++;
+            m_age_51_plus.count++;
+            m_age_51_plus.members[m_age_51_plus.members.length] = {
+              id: member.id,
+              name:
+                member.values['First Name'] + ' ' + member.values['Last Name'],
+            };
           } else if (gender === 'Female') {
-            f_age_51_plus++;
+            f_age_51_plus.count++;
+            f_age_51_plus.members[f_age_51_plus.members.length] = {
+              id: member.id,
+              name:
+                member.values['First Name'] + ' ' + member.values['Last Name'],
+            };
           }
         }
       }
@@ -176,58 +293,69 @@ export class DemographicChart extends Component {
 
     demographicData.push({
       ageGroup: '< 6',
-      Male: getPercent(m_age_less_than_6, totalMembers),
-      Female: getPercent(f_age_less_than_6, totalMembers),
+      Male: getPercent(m_age_less_than_6.count, totalMembers),
+      Female: getPercent(f_age_less_than_6.count, totalMembers),
+      members: m_age_less_than_6.members.concat(f_age_less_than_6.members),
     });
     demographicData.push({
       ageGroup: '7-9',
-      Male: getPercent(m_age_7_9, totalMembers),
-      Female: getPercent(f_age_7_9, totalMembers),
+      Male: getPercent(m_age_7_9.count, totalMembers),
+      Female: getPercent(f_age_7_9.count, totalMembers),
+      members: m_age_7_9.members.concat(f_age_7_9.members),
     });
     demographicData.push({
       ageGroup: '10-12',
-      Male: getPercent(m_age_10_12, totalMembers),
-      Female: getPercent(f_age_10_12, totalMembers),
+      Male: getPercent(m_age_10_12.count, totalMembers),
+      Female: getPercent(f_age_10_12.count, totalMembers),
+      members: m_age_10_12.members.concat(f_age_10_12.members),
     });
     demographicData.push({
       ageGroup: '12-15',
-      Male: getPercent(m_age_13_15, totalMembers),
-      Female: getPercent(f_age_13_15, totalMembers),
+      Male: getPercent(m_age_13_15.count, totalMembers),
+      Female: getPercent(f_age_13_15.count, totalMembers),
+      members: m_age_13_15.members.concat(f_age_13_15.members),
     });
     demographicData.push({
       ageGroup: '16-17',
-      Male: getPercent(m_age_16_17, totalMembers),
-      Female: getPercent(f_age_16_17, totalMembers),
+      Male: getPercent(m_age_16_17.count, totalMembers),
+      Female: getPercent(f_age_16_17.count, totalMembers),
+      members: m_age_16_17.members.concat(f_age_16_17.members),
     });
     demographicData.push({
       ageGroup: '18-29',
-      Male: getPercent(m_age_18_29, totalMembers),
-      Female: getPercent(f_age_18_29, totalMembers),
+      Male: getPercent(m_age_18_29.count, totalMembers),
+      Female: getPercent(f_age_18_29.count, totalMembers),
+      members: f_age_18_29.members,
     });
     demographicData.push({
       ageGroup: '30-35',
-      Male: getPercent(m_age_30_35, totalMembers),
-      Female: getPercent(f_age_30_35, totalMembers),
+      Male: getPercent(m_age_30_35.count, totalMembers),
+      Female: getPercent(f_age_30_35.count, totalMembers),
+      members: m_age_30_35.members.concat(f_age_30_35.members),
     });
     demographicData.push({
       ageGroup: '36-40',
-      Male: getPercent(m_age_36_40, totalMembers),
-      Female: getPercent(f_age_36_40, totalMembers),
+      Male: getPercent(m_age_36_40.count, totalMembers),
+      Female: getPercent(f_age_36_40.count, totalMembers),
+      members: m_age_36_40.members.concat(f_age_36_40.members),
     });
     demographicData.push({
       ageGroup: '41-45',
-      Male: getPercent(m_age_41_45, totalMembers),
-      Female: getPercent(f_age_41_45, totalMembers),
+      Male: getPercent(m_age_41_45.count, totalMembers),
+      Female: getPercent(f_age_41_45.count, totalMembers),
+      members: m_age_41_45.members.concat(f_age_41_45.members),
     });
     demographicData.push({
       ageGroup: '46-50',
-      Male: getPercent(m_age_46_50, totalMembers),
-      Female: getPercent(f_age_46_50, totalMembers),
+      Male: getPercent(m_age_46_50.count, totalMembers),
+      Female: getPercent(f_age_46_50.count, totalMembers),
+      members: m_age_46_50.members.concat(f_age_46_50.members),
     });
     demographicData.push({
       ageGroup: '51+',
-      Male: getPercent(m_age_51_plus, totalMembers),
-      Female: getPercent(f_age_51_plus, totalMembers),
+      Male: getPercent(m_age_51_plus.count, totalMembers),
+      Female: getPercent(f_age_51_plus.count, totalMembers),
+      members: m_age_51_plus.members.concat(f_age_51_plus.members),
     });
 
     return demographicData;
@@ -356,32 +484,223 @@ export class DemographicChart extends Component {
   toolTipLabelFormatter(label) {
     return 'Age Group: ' + label;
   }
+  membersOnClick(e) {
+    console.log(e.members.length);
+    this.setState({
+      members: e.members,
+      showMembers: true,
+    });
+  }
+  getMembers(members, col) {
+    var members_col = [];
+
+    for (var i = col - 1; i < members.length; i = i + 4) {
+      //if (i % (col-1) === 0){
+      members_col[members_col.length] = {
+        memberId: members[i].id,
+        name: members[i].name,
+      };
+      //}
+    }
+
+    return members_col;
+  }
+
+  getMemberTableData(members) {
+    let members_col1 = this.getMembers(members, 1);
+    let members_col2 = this.getMembers(members, 2);
+    let members_col3 = this.getMembers(members, 3);
+    let members_col4 = this.getMembers(members, 4);
+
+    return [
+      {
+        members: {
+          members_col1: members_col1,
+          members_col2: members_col2,
+          members_col3: members_col3,
+          members_col4: members_col4,
+        },
+      },
+    ];
+  }
+  getMemberColumns = () => {
+    return [
+      {
+        accessor: 'members',
+        Header: '',
+        headerClassName: 'members_col',
+        className: 'members_col',
+        Cell: props => {
+          return props.original.members_col1 === undefined ? (
+            <div />
+          ) : (
+            <NavLink
+              to={`/Member/${props.original.members_col1['memberId']}`}
+              className=""
+            >
+              {props.original.members_col1['name']}
+            </NavLink>
+          );
+        },
+      },
+      {
+        accessor: 'members',
+        Header: '',
+        headerClassName: 'members_col',
+        className: 'members_col',
+        Cell: props => {
+          return props.original.members_col2 === undefined ? (
+            <div />
+          ) : (
+            <NavLink
+              to={`/Member/${props.original.members_col2['memberId']}`}
+              className=""
+            >
+              {props.original.members_col2['name']}
+            </NavLink>
+          );
+        },
+      },
+      {
+        accessor: 'members',
+        Header: '',
+        headerClassName: 'members_col',
+        className: 'members_col',
+        Cell: props => {
+          return props.original.members_col3 === undefined ? (
+            <div />
+          ) : (
+            <NavLink
+              to={`/Member/${props.original.members_col3['memberId']}`}
+              className=""
+            >
+              {props.original.members_col3['name']}
+            </NavLink>
+          );
+        },
+      },
+      {
+        accessor: 'members',
+        Header: '',
+        headerClassName: 'members_col',
+        className: 'members_col',
+        Cell: props => {
+          return props.original.members_col4 === undefined ? (
+            <div />
+          ) : (
+            <NavLink
+              to={`/Member/${props.original.members_col4['memberId']}`}
+              className=""
+            >
+              {props.original.members_col4['name']}
+            </NavLink>
+          );
+        },
+      },
+    ];
+  };
+  getMemberTableColumns(row) {
+    return [
+      {
+        accessor: 'members',
+        Header: 'Members',
+        headerClassName: 'members_col',
+        className: 'members_col',
+        style: { whiteSpace: 'unset' },
+        maxWidth: '100%',
+        Cell: props => {
+          let members_col1 = props.value.members_col1;
+          let members_col2 = props.value.members_col2;
+          let members_col3 = props.value.members_col3;
+          let members_col4 = props.value.members_col4;
+
+          let members = [];
+          for (var i = 0; i < members_col1.length; i++) {
+            members[members.length] = {
+              members_col1: members_col1[i],
+              members_col2:
+                members_col2.length > i ? members_col2[i] : undefined,
+              members_col3:
+                members_col3.length > i ? members_col3[i] : undefined,
+              members_col4:
+                members_col4.length > i ? members_col4[i] : undefined,
+            };
+          }
+          return (
+            <ReactTable
+              columns={this._getMemberColumns}
+              pageSize={members_col1.length > 20 ? 20 : members_col1.length}
+              showPagination={members_col1.length > 20 ? true : false}
+              data={members}
+            />
+          );
+        },
+      },
+    ];
+  }
 
   render() {
     const { data, malePercent, femalePercent } = this.state;
     return (
       <span>
         <div className="page-header"> Demographics</div>
-        <ResponsiveContainer minHeight={370}>
-          <BarChart
-            width={600}
-            height={370}
-            data={data}
-            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-            isAnimationActive={false}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="ageGroup" tickFormatter={this.xAxisTickFormatter} />
-            <YAxis tickFormatter={this.yAxisTickFormatter} />
-            <Tooltip
-              labelFormatter={this.toolTipLabelFormatter}
-              formatter={this.toolTipFormatter}
+        {this.state.showMembers && (
+          <div className="memberChartDetails">
+            <span
+              className="closeMembers"
+              onClick={e =>
+                this.setState({
+                  showMembers: false,
+                })
+              }
+            >
+              <SVGInline svg={crossIcon} className="icon" />
+            </span>
+            <ReactTable
+              columns={this.getMemberTableColumns()}
+              data={this.getMemberTableData(this.state.members)}
+              defaultPageSize={1}
+              showPagination={false}
             />
-            <Legend content={this.renderCusomizedLegend} />
-            <Bar dataKey="Male" fill="#4472c4" />
-            <Bar dataKey="Female" fill="#ff99cc" />
-          </BarChart>
-        </ResponsiveContainer>
+          </div>
+        )}
+        {!this.state.showMembers && (
+          <div className="demographicsChart">
+            <ResponsiveContainer minHeight={370}>
+              <BarChart
+                width={600}
+                height={370}
+                data={data}
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                isAnimationActive={false}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="ageGroup"
+                  tickFormatter={this.xAxisTickFormatter}
+                />
+                <YAxis tickFormatter={this.yAxisTickFormatter} />
+                <Tooltip
+                  labelFormatter={this.toolTipLabelFormatter}
+                  formatter={this.toolTipFormatter}
+                />
+                <Legend content={this.renderCusomizedLegend} />
+                <Bar
+                  dataKey="Male"
+                  fill="#4472c4"
+                  style={{ cursor: 'pointer' }}
+                  onClick={this.membersOnClick}
+                />
+                <Bar
+                  dataKey="Female"
+                  fill="#ff99cc"
+                  style={{ cursor: 'pointer' }}
+                  onClick={this.membersOnClick}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
       </span>
     );
   }
