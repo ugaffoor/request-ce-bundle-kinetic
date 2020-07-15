@@ -189,5 +189,9 @@ const enhance = compose(
 
 export const App = enhance(AppComponent);
 
-//App.shouldSuppressSidebar = (pathname, kappSlug) =>
-//  matchPath(pathname, { path: `/kapps/${kappSlug}`, exact: false });
+App.shouldSuppressSidebar = (pathname, kappSlug) => {
+  if (window.matchMedia('(max-width: 767px)').matches) {
+    return matchPath(pathname, { path: `/kapps/${kappSlug}`, exact: false });
+  }
+  return undefined;
+};

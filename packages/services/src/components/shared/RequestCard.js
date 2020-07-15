@@ -8,13 +8,13 @@ import { Form } from '../../models';
 const DisplayDateListItem = ({ submission }) => {
   const isDraft = submission.coreState === constants.CORE_STATE_DRAFT;
   return (
-    <div className="col">
-      <dt className="">{isDraft ? 'Created' : 'Submitted'}</dt>
-      <dd className="">
+    <div className="item">
+      <div className="label">{isDraft ? 'Created' : 'Submitted'}</div>
+      <div className="value">
         <TimeAgo
           timestamp={isDraft ? submission.createdAt : submission.submittedAt}
         />
-      </dd>
+      </div>
     </div>
   );
 };
@@ -26,11 +26,11 @@ const EstCompletionListItem = ({ submission }) => {
   );
   return (
     submission.coreState === constants.CORE_STATE_SUBMITTED && (
-      <div className="col">
-        <dt className="">Est. Completion</dt>
-        <dd className="">
+      <div className="item">
+        <div className="label">Est. Completion</div>
+        <div className="value">
           <TimeAgo timestamp={dueDate} />
-        </dd>
+        </div>
       </div>
     )
   );
@@ -38,11 +38,11 @@ const EstCompletionListItem = ({ submission }) => {
 
 const ClosedDateListItem = ({ submission }) =>
   submission.coreState === constants.CORE_STATE_CLOSED && (
-    <div className="col">
-      <dt className="">Closed</dt>
-      <dd className="">
+    <div className="item">
+      <div className="label">Closed</div>
+      <div className="value">
         <TimeAgo timestamp={submission.closedAt} />
-      </dd>
+      </div>
     </div>
   );
 
@@ -62,16 +62,14 @@ export const RequestCard = props => (
         <StatusPill submission={props.submission} />
       </h1>
       <SubmissionSummary submission={props.submission} />
-      <span className="meta">
-        <dl className="col">
-          <div className="col">
-            <dt>Confirmation</dt>
-            <dd>{props.submission.handle}</dd>
-          </div>
-          <DisplayDateListItem submission={props.submission} />
-          <EstCompletionListItem submission={props.submission} />
-          <ClosedDateListItem submission={props.submission} />
-        </dl>
+      <span className="info">
+        <div className="item">
+          <div className="label">Confirmation</div>
+          <div className="value">{props.submission.handle}</div>
+        </div>
+        <DisplayDateListItem submission={props.submission} />
+        {/*        <EstCompletionListItem submission={props.submission} /> */}
+        <ClosedDateListItem submission={props.submission} />
       </span>
     </Link>
     <hr />

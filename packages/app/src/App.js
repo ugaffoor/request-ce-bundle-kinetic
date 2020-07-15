@@ -130,10 +130,12 @@ export const App = compose(
     };
   }),
   withHandlers({
-    toggleSidebarOpen: props => () =>
-      props.shouldSuppressSidebar
+    toggleSidebarOpen: props => () => {
+      console.log('sidebar');
+      return props.shouldSuppressSidebar
         ? props.setSuppressedSidebarOpen(!props.sidebarOpen)
-        : props.setSidebarOpen(!props.sidebarOpen),
+        : props.setSidebarOpen(!props.sidebarOpen);
+    },
   }),
   lifecycle({
     componentDidMount() {

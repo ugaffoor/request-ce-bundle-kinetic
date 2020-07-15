@@ -9,8 +9,6 @@ export const CatalogSearch = props => (
       autoFocus
       onChange={event => props.catalogSearchInput(event.target.value)}
     />
-    <button type="submit">
-      <span className="fa fa-search" />
-    </button>
+    <span className="fa fa-search" />
   </form>
 );

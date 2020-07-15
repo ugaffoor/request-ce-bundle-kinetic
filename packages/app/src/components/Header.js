@@ -57,8 +57,12 @@ export const Header = ({
   space,
 }) => (
   <Navbar color="faded" light fixed="top">
-    <Nav className="nav-header">
-      {hasSidebar && !isGuest && (
+    <Nav
+      className={
+        currentKapp !== null ? currentKapp.slug + ' nav-header' : 'nav-header'
+      }
+    >
+      {hasSidebar && (
         <NavItem id="header-sidebar-toggle">
           <NavLink
             className="drawer-button"
@@ -71,9 +75,12 @@ export const Header = ({
         </NavItem>
       )}
       <NavItem>
-        <KappLink className="nav-link" to="/" style={{ padding: 0 }}>
-          {dropdownIcon(currentKapp) === 'svg-gb-icon' ? (
-            <SVGInline svg={gbIcon} className="icon svg-gb-icon" />
+        <KappLink className="nav-link" to="/">
+          {dropdownIcon(currentKapp) === 'svg-gb-icon' ||
+          (currentKapp !== null && currentKapp.slug === 'services') ? (
+            <span>
+              <SVGInline svg={gbIcon} className="icon svg-gb-icon" />
+            </span>
           ) : (
             <span>
               <span className={`fa fa-fw ${dropdownIcon(currentKapp)}`} />
@@ -81,6 +88,11 @@ export const Header = ({
             </span>
           )}
         </KappLink>
+        {currentKapp !== null && currentKapp.slug === 'services' ? (
+          <span className="headerLabel">Services</span>
+        ) : (
+          ''
+        )}
       </NavItem>
       <div className="nav-item-centre">
         <img
