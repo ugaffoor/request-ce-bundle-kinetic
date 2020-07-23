@@ -92,6 +92,11 @@ export class GradingDetail extends Component {
         <div className="membersGradingSection">
           <div className="memberGrading">
             {this.props.allMembers
+              .filter(
+                member =>
+                  member.values['Status'] !== 'Inactive' &&
+                  member.values['Status'] !== 'Frozen',
+              )
               .sort(function(a, b) {
                 if (a.programOrder < b.programOrder) {
                   return -1;

@@ -1216,7 +1216,7 @@ export class LeadsActivityReport extends Component {
       height: 450,
       pagination: 'local',
       paginationSize: 10,
-      paginationSizeSelector: [10, 20, 50, 100],
+      paginationSizeSelector: [10, 20, 50, 100, 1000],
       tooltipsHeader: true,
       downloadDataFormatter: data => data,
       downloadReady: (fileContents, blob) => blob,

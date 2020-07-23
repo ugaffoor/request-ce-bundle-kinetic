@@ -41,6 +41,7 @@ export class MemberActivityReport extends Component {
       { title: 'Belt', field: 'belt' },
       { title: 'Additional Program 1', field: 'additionalProgram1' },
       { title: 'Additional Program 2', field: 'additionalProgram2' },
+      { title: 'Last Attendance Date', field: 'lastAttendanceDate' },
       { title: 'Billing User', field: 'billingUser' },
       { title: 'Non Paying', field: 'nonPaying' },
       { title: 'Account Created', field: 'accountCreated' },
@@ -93,6 +94,7 @@ export class MemberActivityReport extends Component {
       { label: 'Belt', value: 'belt' },
       { label: 'Additional Program 1', value: 'additionalProgram1' },
       { label: 'Additional Program 2', value: 'additionalProgram2' },
+      { label: 'Last Attendance Date', value: 'lastAttendanceDate' },
       { label: 'Billing User', value: 'billingUser' },
       { label: 'Non Paying', value: 'nonPaying' },
       { label: 'Account Created', value: 'accountCreated' },
@@ -149,6 +151,7 @@ export class MemberActivityReport extends Component {
           { label: 'Emails Received', value: 'emailsReceived' },
           { label: 'SMS Sent', value: 'smsSent' },
           { label: 'SMS Received', value: 'smsReceived' },
+          { label: 'Last Attendance Date', value: 'lastAttendanceDate' },
         ],
       },
       {
@@ -197,6 +200,7 @@ export class MemberActivityReport extends Component {
       { label: 'Non Paying', value: 'nonPaying' },
       { label: 'Account Created', value: 'accountCreated' },
       { label: 'Covid19 Waiver', value: 'covid19Waiver' },
+      { label: 'Notes', value: 'history' },
       { label: 'Cost', value: 'cost', key: 'cost' },
       { label: 'Average', value: 'average', key: 'cost' },
       { label: 'Payment Period', value: 'paymentPeriod' },
@@ -213,7 +217,7 @@ export class MemberActivityReport extends Component {
     this.visibleColumns = this.filterColumns.filter(
       column => !this.hiddenColumns.some(hc => hc.value === column.value),
     );
-    this.visibleColumns.push({ label: 'Notes', value: 'history' });
+    //    this.visibleColumns.push({ label: 'Notes', value: 'history' });
     this.selectedColumns = this.visibleColumns;
     this.filterValueOptions = {
       gender: ['Male', 'Female'],
@@ -314,7 +318,8 @@ export class MemberActivityReport extends Component {
       if (
         filterColumn === 'createdDate' ||
         filterColumn === 'lastModifiedDate' ||
-        filterColumn === 'lastPaymentDate'
+        filterColumn === 'lastPaymentDate' ||
+        filterColumn === 'lastAttendanceDate'
       ) {
         this.memberActivityGridref.table.removeFilter(
           this.dateRangeFilter,
@@ -336,7 +341,8 @@ export class MemberActivityReport extends Component {
       if (
         filterColumn === 'createdDate' ||
         filterColumn === 'lastModifiedDate' ||
-        filterColumn === 'lastPaymentDate'
+        filterColumn === 'lastPaymentDate' ||
+        filterColumn === 'lastAttendanceDate'
       ) {
         this.memberActivityGridref.table.clearFilter(
           this.dateRangeFilter,
@@ -381,7 +387,8 @@ export class MemberActivityReport extends Component {
     if (
       filterColumn !== 'createdDate' &&
       filterColumn !== 'lastModifiedDate' &&
-      filterColumn !== 'lastPaymentDate'
+      filterColumn !== 'lastPaymentDate' &&
+      filterColumn !== 'lastAttendanceDate'
     ) {
       if (!type) {
         console.log('Please select filter type');
@@ -397,7 +404,8 @@ export class MemberActivityReport extends Component {
     if (
       filterColumn === 'createdDate' ||
       filterColumn === 'lastModifiedDate' ||
-      filterColumn === 'lastPaymentDate'
+      filterColumn === 'lastPaymentDate' ||
+      filterColumn === 'lastAttendanceDate'
     ) {
       let filterId = Math.random();
       let filterParams = {
@@ -551,7 +559,8 @@ export class MemberActivityReport extends Component {
       type === 'includes' &&
       !event.target.value === 'createdDate' &&
       !event.target.value === 'lastModifiedDate' &&
-      !event.target.value === 'lastPaymentDate'
+      !event.target.value === 'lastPaymentDate' &&
+      !event.target.value === 'lastAttendanceDate'
     ) {
       let includesOptions = [];
       options.forEach(option =>
@@ -564,7 +573,8 @@ export class MemberActivityReport extends Component {
     if (
       event.target.value === 'createdDate' ||
       event.target.value === 'lastModifiedDate' ||
-      event.target.value === 'lastPaymentDate'
+      event.target.value === 'lastPaymentDate' ||
+      event.target.value === 'lastAttendanceDate'
     ) {
       $('#filter-value-container').hide();
       $('#filter-type-container').hide();
@@ -776,6 +786,10 @@ export class MemberActivityReport extends Component {
         belt: member.values['Ranking Belt'],
         additionalProgram1: member.values['Additional Program 1'],
         additionalProgram2: member.values['Additional Program 2'],
+        lastAttendanceDate:
+          member.values['Last Attendance Date'] !== undefined
+            ? moment(member.values['Last Attendance Date']).format('DD-MM-YYYY')
+            : '',
         billingUser: member.values['Billing User'] === 'YES' ? 'YES' : 'NO',
         nonPaying: member.values['Non Paying'] === 'YES' ? 'YES' : '',
         accountCreated: member.user !== undefined ? 'YES' : 'NO',
@@ -1215,7 +1229,7 @@ export class MemberActivityReport extends Component {
       width: '100%',
       pagination: 'local',
       paginationSize: 10,
-      paginationSizeSelector: [10, 20, 50, 100],
+      paginationSizeSelector: [10, 20, 50, 100, 1000],
       tooltipsHeader: true,
       downloadDataFormatter: data => data,
       downloadReady: (fileContents, blob) => blob,
@@ -1250,6 +1264,9 @@ export class MemberActivityReport extends Component {
                     </option>
                     <option key="lastPaymentDate" value="lastPaymentDate">
                       Last Payment Date
+                    </option>
+                    <option key="lastAttendanceDate" value="lastAttendanceDate">
+                      Last Attendance Date
                     </option>
                   </select>
                 </span>

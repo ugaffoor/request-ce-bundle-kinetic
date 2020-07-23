@@ -1308,8 +1308,12 @@ export const MemberEditContainer = compose(
           .first()
           .focus();
       } else {
+        let emailChanged = false;
         memberChanges.forEach(change => {
           change.user = loggedInUserProfile.username;
+          if (change.field === 'Email') {
+            emailChanged = true;
+          }
         });
 
         let changes = memberItem.values['Member Changes'];
@@ -1324,6 +1328,7 @@ export const MemberEditContainer = compose(
         updateMember({
           id: memberItem.id,
           memberItem,
+          emailChanged,
           /*          history: memberItem.history,
           fetchMembers: fetchMembers, */
         });

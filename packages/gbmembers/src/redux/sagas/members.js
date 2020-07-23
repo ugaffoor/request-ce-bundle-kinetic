@@ -284,6 +284,15 @@ export function* updateCurrentMember(action) {
       id: action.payload.id,
       values: action.payload.memberItem.values,
     });
+    if (action.payload.emailChanged) {
+      let user = {
+        email: action.payload.memberItem.values['Email'],
+      };
+      const { userUpdate } = yield call(CoreAPI.updateUser, {
+        username: action.payload.memberItem.values['Member ID'],
+        user: user,
+      });
+    }
     if (
       action.payload.history &&
       action.payload.fromTasks === undefined &&

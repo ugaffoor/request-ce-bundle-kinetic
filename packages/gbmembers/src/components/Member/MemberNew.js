@@ -20,6 +20,7 @@ import {
   handleDynamicChange,
   handleDynamicFormattedChange,
   handleDateChange,
+  getDateValue,
 } from './MemberUtils';
 import { StatusMessagesContainer } from '../StatusMessages';
 import moment from 'moment';
@@ -434,6 +435,7 @@ export const MemberNew = ({
                   formatDate={formatDate}
                   parseDate={parseDate}
                   fieldName="DOB"
+                  value={getDateValue(memberItem.values['DOB'])}
                   memberItem={memberItem}
                   onDayPickerHide={handleDateChange}
                   dayPickerProps={{
@@ -912,8 +914,32 @@ export const MemberNewContainer = compose(
         handleDynamicChange(nextProps.memberItem, 'State', 'state');
         $('#email').val(nextProps.leadItem.values['Email']);
         handleDynamicChange(nextProps.memberItem, 'Email', 'email');
+        $('#additionalEmail').val(
+          nextProps.leadItem.values['Additional Email'],
+        );
+        handleDynamicChange(
+          nextProps.memberItem,
+          'Additional Email',
+          'additionalEmail',
+        );
+        $('#phonenumber').val(nextProps.leadItem.values['Phone Number']);
+        handleDynamicChange(
+          nextProps.memberItem,
+          'Phone Number',
+          'phonenumber',
+        );
+        $('#additionalPhoneNumber').val(
+          nextProps.leadItem.values['Additional Phone Number'],
+        );
+        handleDynamicChange(
+          nextProps.memberItem,
+          'Additional Phone Number',
+          'additionalPhoneNumber',
+        );
         $('#birthday').val(nextProps.leadItem.values['DOB']);
         handleDynamicChange(nextProps.memberItem, 'DOB', 'birthday');
+        $('#program').val(nextProps.leadItem.values['Interest in Program']);
+        handleDynamicChange(nextProps.memberItem, 'Ranking Program', 'program');
         handleDynamicFormattedChange(
           nextProps.leadItem.values['Postcode'],
           nextProps.memberItem,
@@ -921,7 +947,7 @@ export const MemberNewContainer = compose(
           'postcode',
         );
         handleDynamicFormattedChange(
-          nextProps.leadItem.values['Phone'],
+          nextProps.leadItem.values['Phone Number'],
           nextProps.memberItem,
           'Phone Number',
           'phonenumber',

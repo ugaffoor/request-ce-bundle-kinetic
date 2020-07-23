@@ -155,6 +155,7 @@ export function* createAttendance(action) {
           : 0;
       attendanceCount += 1;
       memberItem.values['Attendance Count'] = attendanceCount;
+      memberItem.values['Last Attendance Date'] = moment().format('YYYY-MM-DD');
 
       action.payload.updateMember({
         id: memberItem['id'],

@@ -174,10 +174,10 @@ export const RequestShow = ({ submission, listType, mode, kappSlug }) => (
           <div className="page-content">
             <div className="submission-title">
               <h1>
-                <Icon
+                {/*  <Icon
                   image={getIcon(submission.form)}
                   background="greenGrass"
-                />
+                /> */}
                 {submission.form.name}
               </h1>
               {submission.form.name !== submission.label && (
