@@ -3,35 +3,38 @@ import ReactDOM from 'react-dom';
 import $ from 'jquery';
 import moment from 'moment';
 import 'bootstrap/scss/bootstrap.scss';
-import 'react-tabulator/lib/styles.css'; // default theme
-import 'react-tabulator/css/bootstrap/tabulator_bootstrap.min.css'; // use Theme(s)
-import { ReactTabulator } from 'react-tabulator';
+import ReactTable from 'react-table';
+import 'react-table/react-table.css';
 import Select from 'react-select';
 import Datetime from 'react-datetime';
 import { confirm } from '../helpers/Confirmation';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
+import { KappNavLink as NavLink } from 'common';
 
 var yesterday = Datetime.moment().subtract(1, 'day');
-var valid = function(current) {
-  return current.isAfter(yesterday);
-};
 
 export class ManageBookings extends Component {
   constructor(props) {
     super(props);
     this.getGridData = this.getGridData.bind(this);
-    this.classBookings = this.getGridData(this.props.classBookings);
+    this.rawClassBookings = this.props.classBookings;
+    this.classBookings = this.getGridData(this.rawClassBookings);
     this.deleteBooking = this.props.deleteBooking.bind(this);
     this.updateBooking = this.props.updateBooking.bind(this);
     this.addBooking = this.props.addBooking.bind(this);
+    this.renderStatusCell = this.renderStatusCell.bind(this);
+    this.valid = this.valid.bind(this);
+    this.classInfo = this.classInfo.bind(this);
     this.space = this.props.space;
-
+    this.classSchedules = this.props.classSchedules;
     this.columns = [
-      { title: 'Class Date', field: 'classDate', headerFilter: 'input' },
-      { title: 'Class Time', field: 'classTime', headerFilter: 'input' },
-      { title: 'Program', field: 'program', headerFilter: 'input' },
-      { title: 'Name', field: 'name', headerFilter: 'input' },
-      { title: 'Status', field: 'status', headerFilter: 'input' },
+      { Header: 'Class Date', accessor: 'classDate' },
+      { Header: 'Class Time', accessor: 'classTime' },
+      { Header: 'Program', accessor: 'program', width: 400 },
+    ];
+    this.bookingColumns = [
+      { Header: 'Name', accessor: 'name', Cell: this.renderNameCell },
+      { Header: 'Status', accessor: 'status', Cell: this.renderStatusCell },
     ];
     this.state = {
       classDate: undefined,
@@ -40,36 +43,119 @@ export class ManageBookings extends Component {
       memberGUID: undefined,
       selectedID: undefined,
       selectedStatus: undefined,
+      expandedRows: [],
+      allowedPrograms: '',
     };
   }
-
+  valid(current) {
+    if (current.isBefore(yesterday)) return false;
+    var idx = this.classSchedules.findIndex(
+      element => moment(element.start).day() === moment(current).day(),
+    );
+    return idx === -1 ? false : true;
+  }
+  getProgramBackgroundColor(program) {
+    if (program === 'GB1') {
+      return '#4472c4';
+    } else if (program === 'GB2') {
+      return '#7030a0';
+    } else if (program === 'GB3') {
+      return 'black';
+    } else if (program === 'Tiny Champions') {
+      return '#bdd7ee';
+    } else if (program === 'Little Champions 1') {
+      return '#ffc001';
+    } else if (program === 'Little Champions 2') {
+      return '#ed7d32';
+    } else if (program === 'Juniors') {
+      return '#a9d18d';
+    } else if (program === 'Teens') {
+      return '#70ad46';
+    } else if (program === 'Advanced Kids') {
+      return '#48d1cc';
+    } else {
+      return 'white';
+    }
+  }
+  getClassBackgroundColor(classInfo, classSchedules) {
+    var schedule = classSchedules.find(schedule => {
+      return (
+        schedule.program === classInfo.program &&
+        moment(schedule.start).day() === moment(classInfo.classDate).day() &&
+        moment(schedule.start).format('LT') === classInfo.classTime
+      );
+    });
+    return schedule !== undefined && schedule.colour !== undefined
+      ? schedule.colour
+      : this.getProgramBackgroundColor(classInfo.program);
+  }
+  getClassColor(classInfo, classSchedules) {
+    var schedule = classSchedules.find(
+      schedule =>
+        schedule.program === classInfo.program &&
+        moment(schedule.start).day() === moment(classInfo.classDate).day() &&
+        moment(schedule.start).format('LT') === classInfo.classTime,
+    );
+    return schedule !== undefined && schedule.textColour !== undefined
+      ? schedule.textColour
+      : 'white';
+  }
+  classInfo(state, rowInfo, column) {
+    if (rowInfo === undefined) {
+      return {};
+    }
+    return {
+      style: {
+        background: this.getClassBackgroundColor(
+          rowInfo.original,
+          this.classSchedules,
+        ),
+        color: this.getClassColor(rowInfo.original, this.classSchedules),
+      },
+    };
+  }
   componentWillReceiveProps(nextProps) {
     if (
       nextProps.addedBooking.id !== undefined &&
       (this.state.addedBooking === undefined ||
         this.state.addedBooking.id !== nextProps.addedBooking.id)
     ) {
-      this.classBookings.push({
-        id: nextProps.addedBooking.id,
-        status: nextProps.addedBooking.status,
-        program: nextProps.addedBooking.program,
-        classDate: moment(nextProps.addedBooking.classDate).format('ll'),
-        classTime: moment(
+      this.rawClassBookings = this.rawClassBookings.push(
+        nextProps.addedBooking,
+      );
+      this.classBookings = this.getGridData(this.rawClassBookings);
+
+      var idx = this.classBookings.findIndex(element => {
+        if (
+          element.sortVal + '-' + element.program ===
           nextProps.addedBooking.classDate +
-            ' ' +
-            nextProps.addedBooking.classTime,
-        ).format('LT'),
-        name: nextProps.addedBooking.name,
-        memberGUID: nextProps.addedBooking.memberGUID,
+            '-' +
+            nextProps.addedBooking.classTime +
+            '-' +
+            nextProps.addedBooking.program
+        )
+          return true;
+        return false;
       });
-      this.setState({
-        addedBooking: nextProps.addedBooking,
-      });
+      if (this.state.expandedRows[idx] === undefined) {
+        var rows = this.state.expandedRows;
+        rows[idx] = true;
+        this.setState({
+          expandedRows: rows,
+        });
+      } else {
+        var rows = this.state.expandedRows;
+        rows[idx] = true;
+        this.setState({
+          expandedRows: rows,
+        });
+      }
     } else if (
       this.state.addedBooking === undefined &&
       nextProps.classBookings.length !== this.classBookings.length
     ) {
-      this.classBookings = this.getGridData(nextProps.classBookings);
+      this.rawClassBookings = nextProps.classBookings;
+      this.classBookings = this.getGridData(this.rawClassBookings);
     }
   }
   componentWillUnmount() {}
@@ -79,7 +165,10 @@ export class ManageBookings extends Component {
   getAllMembers() {
     let membersVals = [];
     this.props.allMembers.forEach(member => {
-      if (member.values['Status'] !== 'Inactive') {
+      if (
+        member.values['Status'] !== 'Inactive' &&
+        this.state.allowedPrograms.includes(member.values['Ranking Program'])
+      ) {
         membersVals.push({
           label: member.values['Last Name'] + ' ' + member.values['First Name'],
           value: member.id,
@@ -88,14 +177,13 @@ export class ManageBookings extends Component {
     });
     return membersVals;
   }
-  getGridData(bookings) {
-    if (!bookings || bookings.length < 0) {
-      return [];
-    }
-    let bookingsData = [];
 
-    bookings.forEach(booking => {
-      bookingsData.push({
+  addClassBooking(bookingsDataMap, booking) {
+    var key =
+      booking.classDate + '-' + booking.classTime + '-' + booking.program;
+    var bookingsArray = [];
+    if (bookingsDataMap.get(key) === undefined) {
+      bookingsArray[0] = {
         id: booking['id'],
         status: booking.status,
         program: booking.program,
@@ -105,35 +193,217 @@ export class ManageBookings extends Component {
         ),
         name: booking.memberName,
         memberGUID: booking.memberGUID,
+      };
+      bookingsDataMap.set(key, {
+        sortVal: booking.classDate + '-' + booking.classTime,
+        program: booking.program,
+        classDate: moment(booking.classDate).format('ll'),
+        classTime: moment(booking.classDate + ' ' + booking.classTime).format(
+          'LT',
+        ),
+        bookings: bookingsArray,
       });
+    } else {
+      bookingsArray = bookingsDataMap.get(key).bookings;
+      bookingsArray[bookingsArray.length] = {
+        id: booking['id'],
+        status: booking.status,
+        program: booking.program,
+        classDate: moment(booking.classDate).format('ll'),
+        classTime: moment(booking.classDate + ' ' + booking.classTime).format(
+          'LT',
+        ),
+        name: booking.memberName,
+        memberGUID: booking.memberGUID,
+      };
+      bookingsDataMap.set(key, {
+        sortVal: booking.classDate + '-' + booking.classTime,
+        program: booking.program,
+        classDate: moment(booking.classDate).format('ll'),
+        classTime: moment(booking.classDate + ' ' + booking.classTime).format(
+          'LT',
+        ),
+        bookings: bookingsArray,
+      });
+    }
+  }
+  getGridData(bookings) {
+    if (!bookings || bookings.length < 0) {
+      return [];
+    }
+
+    let bookingsDataMap = new Map();
+    bookings.forEach(booking => {
+      this.addClassBooking(bookingsDataMap, booking);
+    });
+    let bookingsData = [];
+    bookingsDataMap.forEach((value, key, map) => {
+      bookingsData.push({
+        sortVal: value.sortVal,
+        program: value.program,
+        classDate: value.classDate,
+        classTime: value.classTime,
+        bookings: value.bookings,
+      });
+    });
+    bookingsData = bookingsData.sort(function(a, b) {
+      return a['sortVal'] > b['sortVal']
+        ? 1
+        : b['sortVal'] > a['sortVal']
+        ? -1
+        : 0;
     });
 
     return bookingsData;
   }
-  rowClick = (e, row) => {
-    console.log('Row Clicked');
-    //row.getTable().deselectRow();
-    //row.getTable().selectRow(row.getIndex());
-    //$(row.getElement()).attr("row-selected", true);
-    this.setState({
-      selectedID: row.getData().id,
-      selectedStatus: row.getData().status,
-      selectedName: row.getData().name,
-      selectedClassDate: row.getData().classDate,
-      selectedClassTime: row.getData().classTime,
-    });
-  };
+  renderNameCell(cellInfo) {
+    return (
+      <NavLink
+        to={`/Member/${cellInfo.original.memberGUID}`}
+        className="nameValue"
+      >
+        {cellInfo.original.name}
+      </NavLink>
+    );
+  }
+  renderStatusCell(cellInfo) {
+    return (
+      <span className="statusCell">
+        <p className="statusValue">{cellInfo.original.status}</p>
+        {cellInfo.original.status === 'Booked' && (
+          <button
+            type="button"
+            id="cancelBooking"
+            className="btn btn-primary"
+            onClick={async e => {
+              if (
+                await confirm(
+                  <span>
+                    <span>Are your sure you want to CANCEL this booking?</span>
+                    <table>
+                      <tbody>
+                        <tr>
+                          <td>Member:</td>
+                          <td>{cellInfo.original.name}</td>
+                        </tr>
+                        <tr>
+                          <td>Date:</td>
+                          <td>{cellInfo.original.classDate}</td>
+                        </tr>
+                        <tr>
+                          <td>Time:</td>
+                          <td>{cellInfo.original.classTime}</td>
+                        </tr>
+                        <tr>
+                          <td>Program:</td>
+                          <td>{cellInfo.original.program}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </span>,
+                )
+              ) {
+                let values = {};
+                values['Status'] = 'Cancelled';
+                this.updateBooking({
+                  id: cellInfo.original.id,
+                  values: values,
+                });
+                for (var i = 0; i < this.classBookings.length; i++) {
+                  var idx = this.classBookings[i].bookings.findIndex(
+                    element => {
+                      if (element.id === cellInfo.original.id) return true;
+                      return false;
+                    },
+                  );
+                  if (idx !== -1) {
+                    this.classBookings[i].bookings[idx].status = 'Cancelled';
+                    this.setState({
+                      selectedID: cellInfo.original.id,
+                    });
+                    break;
+                  }
+                }
+              } else {
+              }
+            }}
+          >
+            Cancel Booking
+          </button>
+        )}
+        {cellInfo.original.status === 'Cancelled' && (
+          <button
+            type="button"
+            id="deleteBooking"
+            className="btn btn-primary"
+            onClick={async e => {
+              if (
+                await confirm(
+                  <span>
+                    <span>Are your sure you want to DELETE this booking?</span>
+                    <table>
+                      <tbody>
+                        <tr>
+                          <td>Member:</td>
+                          <td>{cellInfo.original.name}</td>
+                        </tr>
+                        <tr>
+                          <td>Date:</td>
+                          <td>{cellInfo.original.classDate}</td>
+                        </tr>
+                        <tr>
+                          <td>Time:</td>
+                          <td>{cellInfo.original.classTime}</td>
+                        </tr>
+                        <tr>
+                          <td>Program:</td>
+                          <td>{cellInfo.original.program}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </span>,
+                )
+              ) {
+                this.deleteBooking({
+                  id: cellInfo.original.id,
+                });
+                for (var i = 0; i < this.classBookings.length; i++) {
+                  var idx = this.classBookings[i].bookings.findIndex(
+                    element => {
+                      if (element.id === cellInfo.original.id) return true;
+                      return false;
+                    },
+                  );
+                  if (idx !== -1) {
+                    this.classBookings[i].bookings = this.classBookings[
+                      i
+                    ].bookings.filter(element => {
+                      if (element.id === cellInfo.original.id) return false;
+                      return true;
+                    });
+                    this.rawClassBookings = this.rawClassBookings.filter(
+                      element => {
+                        if (element.id === cellInfo.original.id) return false;
+                        return true;
+                      },
+                    );
+                    this.setState({
+                      selectedID: cellInfo.original.id,
+                    });
+                    break;
+                  }
+                }
+              } else {
+              }
+            }}
+          >
+            Delete Booking
+          </button>
+        )}
+      </span>
+    );
+  }
   render() {
-    const options = {
-      height: 450,
-      width: '100%',
-      pagination: 'local',
-      paginationSize: 10,
-      paginationSizeSelector: [10, 20, 50, 100],
-      tooltipsHeader: true,
-      layout: 'fitColumns',
-      selectable: true,
-    };
     return (
       <span className="bookingsContent">
         <div className="header">
@@ -147,27 +417,54 @@ export class ManageBookings extends Component {
                 <Datetime
                   className=""
                   dateFormat="DD/MM/YYYY"
-                  isValidDate={valid}
-                  timeConstraints={{
-                    minutes: {
-                      step: parseInt(
-                        getAttributeValue(
-                          this.space,
-                          'Calendar Time Slots',
-                          '15',
-                        ),
-                      ),
-                    },
-                  }}
+                  isValidDate={this.valid}
+                  timeFormat={false}
                   onBlur={dt => {
                     if (dt !== '') {
                       this.setState({
                         classDate: dt.format('YYYY-MM-DD'),
-                        classTime: dt.format('HH:mm'),
                       });
                     }
                   }}
                 />
+              </div>
+              <div className="time">
+                <label htmlFor="classTime">TIME</label>
+                <select
+                  name="classTime"
+                  id="classTime"
+                  onChange={e => {
+                    this.setState({
+                      classTime: e.target.value,
+                    });
+                  }}
+                >
+                  <option value="" />
+                  {[
+                    ...new Set(
+                      Array.from(
+                        this.classSchedules.filter(
+                          schedule =>
+                            moment(schedule.start).day() ===
+                            moment(this.state.classDate).day(),
+                        ),
+                        schedule => moment(schedule.start).format('HH:mm'),
+                      ),
+                    ),
+                  ]
+                    .sort(function(a, b) {
+                      return a > b ? 1 : b > a ? -1 : 0;
+                    })
+                    .map(time => (
+                      <option key={time} value={time}>
+                        {moment()
+                          .hour(time.split(':')[0])
+                          .minute(time.split(':')[1])
+                          .format('LT')}
+                      </option>
+                    ))}
+                </select>
+                <div className="droparrow" />
               </div>
               <div className="class">
                 <label htmlFor="programClass">CLASS</label>
@@ -175,19 +472,42 @@ export class ManageBookings extends Component {
                   name="programClass"
                   id="programClass"
                   onChange={e => {
+                    var schedule = this.classSchedules.filter(
+                      schedule =>
+                        moment(schedule.start).day() ===
+                          moment(this.state.classDate).day() &&
+                        moment(schedule.start).format('HH:mm') ===
+                          this.state.classTime &&
+                        schedule.allowedPrograms.includes(e.target.value),
+                    );
                     this.setState({
                       program: e.target.value,
+                      allowedPrograms:
+                        schedule.size !== 0
+                          ? schedule.get(0).allowedPrograms
+                          : '',
                     });
                   }}
                 >
                   <option value="" />
-                  {this.props.programs
-                    .concat(this.props.additionalPrograms)
-                    .map(program => (
-                      <option key={program.program} value={program.program}>
-                        {program.program}
-                      </option>
-                    ))}
+                  {[
+                    ...new Set(
+                      Array.from(
+                        this.classSchedules.filter(
+                          schedule =>
+                            moment(schedule.start).day() ===
+                              moment(this.state.classDate).day() &&
+                            moment(schedule.start).format('HH:mm') ===
+                              this.state.classTime,
+                        ),
+                        schedule => schedule.program,
+                      ),
+                    ),
+                  ].map(program => (
+                    <option key={program} value={program}>
+                      {program}
+                    </option>
+                  ))}
                 </select>
                 <div className="droparrow" />
               </div>
@@ -236,15 +556,23 @@ export class ManageBookings extends Component {
                   $('.noUserAccount').addClass('hide');
                   $('.bookingAlreadyExists').addClass('hide');
                   for (let i = 0; i < this.classBookings.length; i++) {
-                    var booking = this.classBookings[i];
-                    if (
-                      booking.memberGUID === id &&
-                      booking.status === 'Booked'
-                    ) {
-                      bookingExists = true;
-                      existingBooking = booking;
-                      break;
+                    var bookingGroup = this.classBookings[i];
+                    var bookings = bookingGroup.bookings;
+                    for (let k = 0; k < bookings.length; k++) {
+                      if (
+                        bookings[k].memberGUID === id &&
+                        bookings[k].status === 'Booked' &&
+                        bookings[k].classDate ===
+                          moment(this.state.classDate).format('ll') &&
+                        bookings[k].classTime ===
+                          moment(this.state.classTime, 'HH:mm').format('LT')
+                      ) {
+                        bookingExists = true;
+                        existingBooking = bookings[k];
+                        break;
+                      }
                     }
+                    if (bookingExists) break;
                   }
 
                   for (let i = 0; i < this.props.allMembers.length; i++) {
@@ -287,110 +615,61 @@ export class ManageBookings extends Component {
                 Account has not been created.
               </span>
               <span className="bookingAlreadyExists hide">
-                A booking for this Member has already been made.
+                A booking for this Member at Date[
+                {moment(this.state.classDate).format('ll')}] and Time[
+                {moment(this.state.classTime, 'HH:mm').format('LT')}] has
+                already been made.
               </span>
             </div>
           </div>
         </div>
         <div className="tableSection">
           <div className="row tableData">
-            <ReactTabulator
+            <ReactTable
               columns={this.columns}
               data={this.classBookings}
-              options={options}
+              defaultPageSize={
+                this.classBookings.length > 0 ? this.classBookings.length : 2
+              }
+              pageSize={
+                this.classBookings.length > 0 ? this.classBookings.length : 2
+              }
+              showPagination={false}
+              expanded={this.state.expandedRows}
+              getTrProps={this.classInfo}
+              onExpandedChange={(newExpanded, index) => {
+                this.setState(oldState => {
+                  const itemIndex = index[0];
+                  const isExpanded = oldState.expandedRows[itemIndex];
+                  const expandedList = [...this.state.expandedRows];
+                  expandedList[itemIndex] = !isExpanded;
+                  return {
+                    expandedRows: expandedList,
+                  };
+                });
+              }}
               ref={ref => (this.classBookingGridref = ref)}
-              rowClick={this.rowClick}
-              layout="fitColumns"
-              initialSort={[
-                { column: 'classDate', dir: 'asc' }, //sort by this first
-              ]}
+              SubComponent={row => {
+                return (
+                  <ReactTable
+                    data={row.original.bookings}
+                    columns={this.bookingColumns}
+                    TheadComponent={() => null}
+                    defaultPageSize={
+                      row.original.bookings.length > 0
+                        ? row.original.bookings.length
+                        : 2
+                    }
+                    pageSize={
+                      row.original.bookings.length > 0
+                        ? row.original.bookings.length
+                        : 2
+                    }
+                    showPagination={false}
+                  />
+                );
+              }}
             />
-          </div>
-          <div className="actionSection">
-            <div className="selectedBooking">
-              <p>Selected Booking</p>
-              <table>
-                <tbody>
-                  <tr>
-                    <td>Name:</td>
-                    <td>{this.state.selectedName}</td>
-                  </tr>
-                  <tr>
-                    <td>State:</td>
-                    <td>{this.state.selectedStatus}</td>
-                  </tr>
-                  <tr>
-                    <td>Class Date:</td>
-                    <td>{this.state.selectedClassDate}</td>
-                  </tr>
-                  <tr>
-                    <td>Class Time:</td>
-                    <td>{this.state.selectedClassTime}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <button
-              type="button"
-              id="cancelBooking"
-              className="btn btn-primary"
-              disabled={!(this.state.selectedStatus === 'Booked')}
-              onClick={async e => {
-                if (
-                  await confirm(
-                    'Are your sure you want to CANCEL this booking?',
-                  )
-                ) {
-                  let values = {};
-                  values['Status'] = 'Cancelled';
-                  this.updateBooking({
-                    id: this.state.selectedID,
-                    values: values,
-                  });
-                  var idx = this.classBookings.findIndex(
-                    element => element.id === this.state.selectedID,
-                  );
-                  this.classBookings[idx].status = 'Cancelled';
-                  this.setState({
-                    selectedStatus: 'Cancelled',
-                  });
-                } else {
-                }
-              }}
-            >
-              Cancel Booking
-            </button>
-            <button
-              type="button"
-              id="deleteBooking"
-              className="btn btn-primary"
-              disabled={!(this.state.selectedID !== undefined)}
-              onClick={async e => {
-                if (
-                  await confirm(
-                    'Are your sure you want to DELETE this booking?',
-                  )
-                ) {
-                  this.deleteBooking({
-                    id: this.state.selectedID,
-                  });
-                  var idx = this.classBookings.findIndex(
-                    element => element.id === this.state.selectedID,
-                  );
-                  this.classBookings.splice(idx, 1);
-                  this.setState({
-                    selectedID: undefined,
-                    selectedStatus: undefined,
-                    selectedName: undefined,
-                    selectedClassDate: undefined,
-                    selectedClassTime: undefined,
-                  });
-                } else {
-                }
-              }}
-            >
-              Delete Booking
-            </button>
           </div>
         </div>
       </span>

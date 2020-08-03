@@ -70,7 +70,17 @@ export class ClassesCalendar extends Component {
       moment(date).format('HH:mm')
     );
   }
-  applyDates = (start, end, title, program, maxStudents, colour, event) => {
+  applyDates = (
+    start,
+    end,
+    title,
+    program,
+    maxStudents,
+    colour,
+    textColour,
+    allowedPrograms,
+    event,
+  ) => {
     if (event === undefined) {
       var id = uuidv4();
 
@@ -82,6 +92,8 @@ export class ClassesCalendar extends Component {
       values['Start'] = this.formatCalendarDate(start);
       values['End'] = this.formatCalendarDate(end);
       values['Colour'] = colour;
+      values['Text Colour'] = textColour;
+      values['Allowed Programs'] = allowedPrograms;
 
       this.setState({
         events: [
@@ -94,6 +106,8 @@ export class ClassesCalendar extends Component {
             maxStudents,
             program,
             colour,
+            textColour,
+            allowedPrograms,
           },
         ],
         showClassDialog: false,
@@ -110,6 +124,8 @@ export class ClassesCalendar extends Component {
         events[idx].program = program;
         events[idx].maxStudents = maxStudents;
         events[idx].colour = colour;
+        events[idx].textColour = textColour;
+        events[idx].allowedPrograms = allowedPrograms;
         return { events };
       });
       this.setState({
@@ -123,6 +139,8 @@ export class ClassesCalendar extends Component {
       values['Start'] = this.formatCalendarDate(start);
       values['End'] = this.formatCalendarDate(end);
       values['Colour'] = colour;
+      values['Text Colour'] = textColour;
+      values['Allowed Programs'] = allowedPrograms;
 
       this.editClass({
         id: event.classID,
@@ -146,11 +164,19 @@ export class ClassesCalendar extends Component {
     });
   };
 
-  customEventPropGetter = ({ program, start, end, colour, isSelected }) => {
+  customEventPropGetter = ({
+    program,
+    start,
+    end,
+    colour,
+    textColour,
+    isSelected,
+  }) => {
     if (colour !== undefined) {
       return {
         style: {
           backgroundColor: colour,
+          color: textColour,
         },
       };
     }
@@ -224,6 +250,8 @@ export class ClassesCalendar extends Component {
             programs={this.programs}
             additionalPrograms={this.additionalPrograms}
             colour={this.colour}
+            textColour={this.textColour}
+            allowedPrograms={this.allowedPrograms}
             cancelDialog={this.cancelDialog}
             applyDates={this.applyDates}
             deleteEvent={this.deleteEvent}

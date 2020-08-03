@@ -198,6 +198,7 @@ export const SettingsView = ({
             id="classBookings"
             className={'btn btn-primary'}
             onClick={e => {
+              fetchClassSchedules();
               fetchClassBookings();
               setShowClassBookings(showClassBookings ? false : true);
             }}
@@ -206,9 +207,11 @@ export const SettingsView = ({
           </button>
         </div>
       )}
-      {fetchingClassBookings && showClassBookings ? (
+      {fetchingClassBookings && fetchingClassSchedules && showClassBookings ? (
         <p>Loading Class Bookings ....</p>
-      ) : !fetchingClassBookings && showClassBookings ? (
+      ) : !fetchingClassBookings &&
+        !fetchingClassSchedules &&
+        showClassBookings ? (
         <ManageBookings
           classBookings={classBookings}
           allMembers={allMembers}
@@ -219,6 +222,7 @@ export const SettingsView = ({
           addedBooking={addedBooking}
           deleteBooking={deleteBooking}
           space={space}
+          classSchedules={classSchedules}
         ></ManageBookings>
       ) : (
         <div />

@@ -20,6 +20,15 @@
           margin-top: 7px;
         }
       }
+      .time {
+        display: flex;
+        width: 150px;
+        margin-top: 6px;
+        label {
+          width: 40px;
+          margin-top: 7px;
+        }
+      }
       .class {
         display: flex;
         width: 200px;
@@ -57,9 +66,20 @@
   .tableSection {
     display: flex;
     .tableData {
-      height: 520px;
+      height: 100%;
       margin: 10px;
-      width: 80%;
+      a.nameValue {
+        margin: 20px;
+      }
+      .statusCell {
+        display: flex;
+        p.statusValue {
+          margin: 5px;
+        }
+        button {
+          margin-left: 50%;
+        }
+      }
       .filter-value {
         display: none;
         width: 134px;
@@ -85,11 +105,64 @@
         border-style: solid;
         border-width: 1px;
       }
+      .rt-expander:after {
+        border-top: 7px solid white;
+      }
     }
     .actionSection {
       width: 20%;
       margin-top: 40px;
       background-color: #eee;
+    }
+  }
+  .formatterCell {
+    .bookings {
+      .count {
+        width: 80%;
+        float: left;
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
+      .rt-expander {
+        display: inline-block;
+        position: relative;
+        margin: 0;
+        color: transparent;
+        float: left;
+        margin-right: 2px;
+      }
+      .rt-expander.opened:after {
+        -webkit-transform: translate(-50%, -50%) rotate(0);
+        transform: translate(-50%, -50%) rotate(0);
+
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 0;
+        top: 50%;
+        left: 50%;
+        border-left: 5.04px solid transparent;
+        border-right: 5.04px solid transparent;
+        border-top: 7px solid rgba(0, 0, 0, 0.8);
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        cursor: pointer;
+      }
+      .rt-expander.closed:after {
+        -webkit-transform: translate(-50%, -50%) rotate(-90deg);
+        transform: translate(-50%, -50%) rotate(-90deg);
+
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 0;
+        top: 50%;
+        left: 50%;
+        border-left: 5.04px solid transparent;
+        border-right: 5.04px solid transparent;
+        border-top: 7px solid rgba(0, 0, 0, 0.8);
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        cursor: pointer;
+      }
     }
   }
 }

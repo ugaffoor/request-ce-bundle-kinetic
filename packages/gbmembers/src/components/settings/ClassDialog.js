@@ -7,10 +7,9 @@ import { compose } from 'recompose';
 import moment from 'moment';
 import reactCSS from 'reactcss';
 import { SketchPicker } from 'react-color';
+import Select from 'react-select';
 
-const mapStateToProps = state => ({
-  programs: state.member.app.programs,
-});
+const mapStateToProps = state => ({});
 const mapDispatchToProps = {
   promoteMember: memberActions.promoteMember,
   updateMember: memberActions.updateMember,
@@ -35,6 +34,8 @@ export class ClassDialog extends Component {
       title: undefined,
       program: undefined,
       color: undefined,
+      textColor: undefined,
+      allowedPrograms: undefined,
     });
   };
 
@@ -50,6 +51,8 @@ export class ClassDialog extends Component {
       this.state.program,
       this.state.maxStudents,
       this.state.color.hex,
+      this.state.textColor.hex,
+      this.state.allowedPrograms,
       this.state.event,
     );
     this.setState({
@@ -58,6 +61,8 @@ export class ClassDialog extends Component {
       program: undefined,
       maxStudents: undefined,
       color: undefined,
+      textColor: undefined,
+      allowedPrograms: undefined,
     });
   };
 
@@ -109,11 +114,29 @@ export class ClassDialog extends Component {
     this.setState({ color: color });
   };
 
+  handleTextColorClick = () => {
+    this.setState({
+      displayTextColorPicker: !this.state.displayTextColorPicker,
+    });
+  };
+
+  handleTextColorClose = () => {
+    this.setState({ displayTextColorPicker: false });
+  };
+
+  handleTextColorChange = color => {
+    this.setState({ textColor: color });
+  };
+  handleAllowedProgramsChange = allowedPrograms => {
+    this.setState({ allowedPrograms });
+    //console.log(`Option selected:`, selectedOption);
+  };
   constructor(props) {
     super(props);
     this.cancelDialog = this.props.cancelDialog.bind(this);
     this.applyDates = this.props.applyDates;
     this.deleteEvent = this.props.deleteEvent;
+    this.programs = this.props.programs;
     if (this.props.event !== undefined) {
       this.state = {
         event: this.props.event,
@@ -123,6 +146,8 @@ export class ClassDialog extends Component {
         program: this.props.event.program,
         maxStudents: this.props.event.maxStudents,
         color: { hex: this.props.event.colour },
+        textColor: { hex: this.props.event.textColour },
+        allowedPrograms: this.props.event.allowedPrograms,
         displayColorPicker: false,
       };
     } else {
@@ -134,8 +159,26 @@ export class ClassDialog extends Component {
         maxStudents: undefined,
         color: { hex: '#6F6E6E' },
         displayColorPicker: false,
+        textColor: { hex: 'white' },
+        displayTextColorPicker: false,
+        allowedPrograms: [],
       };
     }
+  }
+  getProgramOptions(programs) {
+    if (programs === undefined) {
+      return [];
+    }
+    let options = [];
+
+    programs.forEach(program => {
+      options.push({
+        value: program.program,
+        label: program.program,
+      });
+    });
+
+    return options;
   }
   componentWillReceiveProps(nextProps) {}
   componentWillMount() {}
@@ -148,6 +191,12 @@ export class ClassDialog extends Component {
           height: '14px',
           borderRadius: '2px',
           backgroundColor: this.state.color.hex,
+        },
+        textColor: {
+          width: '36px',
+          height: '14px',
+          borderRadius: '2px',
+          backgroundColor: this.state.textColor.hex,
         },
         swatch: {
           padding: '5px',
@@ -254,6 +303,44 @@ export class ClassDialog extends Component {
                   </div>
                 ) : null}
               </div>
+              <div className="textColorChoice">
+                <label htmlFor="textColorValue">Text Colour</label>
+                <div
+                  id="textColorValue"
+                  style={styles.swatch}
+                  onClick={this.handleTextColorClick}
+                >
+                  <div style={styles.textColor} />
+                </div>
+                {this.state.displayTextColorPicker ? (
+                  <div style={styles.popover}>
+                    <div
+                      style={styles.cover}
+                      onClick={this.handleTextColorClose}
+                    />
+                    <SketchPicker
+                      color={this.state.textColor}
+                      onChange={this.handleTextColorChange}
+                    />
+                  </div>
+                ) : null}
+              </div>
+              <Select
+                defaultValue={
+                  this.state.allowedPrograms === '{}' ||
+                  this.state.allowedPrograms === ''
+                    ? ''
+                    : typeof this.state.allowedPrograms === 'string'
+                    ? JSON.parse(this.state.allowedPrograms)
+                    : this.state.allowedPrograms
+                }
+                onChange={this.handleAllowedProgramsChange}
+                options={this.getProgramOptions(this.programs)}
+                closeMenuOnSelect={false}
+                hideSelectedOptions={false}
+                controlShouldRenderValue={true}
+                isMulti={true}
+              />
               {this.state.event !== undefined && (
                 <button
                   type="button"

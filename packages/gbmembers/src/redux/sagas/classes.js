@@ -54,6 +54,9 @@ export function* fetchClassSchedules(action) {
           program: classSchedulesSubmissions[i].values['Program'],
           maxStudents: classSchedulesSubmissions[i].values['Max Students'],
           colour: classSchedulesSubmissions[i].values['Colour'],
+          textColour: classSchedulesSubmissions[i].values['Text Colour'],
+          allowedPrograms:
+            classSchedulesSubmissions[i].values['Allowed Programs'],
         },
       );
     }
@@ -239,7 +242,7 @@ export function* addBooking(action) {
         program: action.payload.values['Program'],
         classDate: action.payload.values['Class Date'],
         classTime: action.payload.values['Class Time'],
-        name: action.payload.values['Member Name'],
+        memberName: action.payload.values['Member Name'],
         memberGUID: action.payload.values['Member GUID'],
       }),
     );
