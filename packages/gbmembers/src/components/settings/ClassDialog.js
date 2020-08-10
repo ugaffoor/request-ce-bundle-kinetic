@@ -53,6 +53,8 @@ export class ClassDialog extends Component {
       this.state.color.hex,
       this.state.textColor.hex,
       this.state.allowedPrograms,
+      this.state.cancellationCutoff,
+      this.state.coaches,
       this.state.event,
     );
     this.setState({
@@ -63,6 +65,8 @@ export class ClassDialog extends Component {
       color: undefined,
       textColor: undefined,
       allowedPrograms: undefined,
+      cancellationCutoff: undefined,
+      coaches: undefined,
     });
   };
 
@@ -148,6 +152,8 @@ export class ClassDialog extends Component {
         color: { hex: this.props.event.colour },
         textColor: { hex: this.props.event.textColour },
         allowedPrograms: this.props.event.allowedPrograms,
+        coaches: this.props.event.coaches,
+        cancellationCutoff: this.props.event.cancellationCutoff,
         displayColorPicker: false,
       };
     } else {
@@ -162,6 +168,8 @@ export class ClassDialog extends Component {
         textColor: { hex: 'white' },
         displayTextColorPicker: false,
         allowedPrograms: [],
+        coaches: undefined,
+        cancellationCutoff: undefined,
       };
     }
   }
@@ -284,6 +292,20 @@ export class ClassDialog extends Component {
                   }}
                 />
               </div>
+              <div className="cancellationCutoffDiv form-group">
+                <label htmlFor="cancellationCutoff">
+                  Cancellation Cutoff (hours)
+                </label>
+                <input
+                  type="number"
+                  name="cancellationCutoff"
+                  id="cancellationCutoff"
+                  defaultValue={this.state.cancellationCutoff}
+                  onChange={e => {
+                    this.setState({ cancellationCutoff: e.target.value });
+                  }}
+                />
+              </div>
               <div className="colorChoice">
                 <label htmlFor="colorValue">Colour</label>
                 <div
@@ -325,22 +347,38 @@ export class ClassDialog extends Component {
                   </div>
                 ) : null}
               </div>
-              <Select
-                defaultValue={
-                  this.state.allowedPrograms === '{}' ||
-                  this.state.allowedPrograms === ''
-                    ? ''
-                    : typeof this.state.allowedPrograms === 'string'
-                    ? JSON.parse(this.state.allowedPrograms)
-                    : this.state.allowedPrograms
-                }
-                onChange={this.handleAllowedProgramsChange}
-                options={this.getProgramOptions(this.programs)}
-                closeMenuOnSelect={false}
-                hideSelectedOptions={false}
-                controlShouldRenderValue={true}
-                isMulti={true}
-              />
+              <div className="titleDiv form-group">
+                <label htmlFor="title">Coaches</label>
+                <input
+                  type="text"
+                  name="coaches"
+                  id="coaches"
+                  defaultValue={this.state.coaches}
+                  onChange={e => {
+                    this.setState({ coaches: e.target.value });
+                  }}
+                />
+              </div>
+              <div className="allowedPrograms">
+                <label htmlFor="allowedPrograms">Allowed Programs</label>
+                <Select
+                  name="allowedPrograms"
+                  defaultValue={
+                    this.state.allowedPrograms === '{}' ||
+                    this.state.allowedPrograms === ''
+                      ? ''
+                      : typeof this.state.allowedPrograms === 'string'
+                      ? JSON.parse(this.state.allowedPrograms)
+                      : this.state.allowedPrograms
+                  }
+                  onChange={this.handleAllowedProgramsChange}
+                  options={this.getProgramOptions(this.programs)}
+                  closeMenuOnSelect={false}
+                  hideSelectedOptions={false}
+                  controlShouldRenderValue={true}
+                  isMulti={true}
+                />
+              </div>
               {this.state.event !== undefined && (
                 <button
                   type="button"

@@ -28,12 +28,23 @@ export class ManageBookings extends Component {
     this.space = this.props.space;
     this.classSchedules = this.props.classSchedules;
     this.columns = [
-      { Header: 'Class Date', accessor: 'classDate' },
+      { Header: 'Class Date', accessor: 'classDate', width: 150 },
       { Header: 'Class Time', accessor: 'classTime' },
       { Header: 'Program', accessor: 'program', width: 400 },
     ];
     this.bookingColumns = [
-      { Header: 'Name', accessor: 'name', Cell: this.renderNameCell },
+      {
+        Header: 'Name',
+        accessor: 'name',
+        Cell: this.renderNameCell,
+        Footer: info => {
+          return (
+            <span>
+              <strong>Total: {info.data.length}</strong>
+            </span>
+          );
+        },
+      },
       { Header: 'Status', accessor: 'status', Cell: this.renderStatusCell },
     ];
     this.state = {
@@ -44,7 +55,9 @@ export class ManageBookings extends Component {
       selectedID: undefined,
       selectedStatus: undefined,
       expandedRows: [],
+      expandSubRows: undefined,
       allowedPrograms: '',
+      filterMemberGUID: undefined,
     };
   }
   valid(current) {
@@ -81,7 +94,8 @@ export class ManageBookings extends Component {
     var schedule = classSchedules.find(schedule => {
       return (
         schedule.program === classInfo.program &&
-        moment(schedule.start).day() === moment(classInfo.classDate).day() &&
+        moment(schedule.start).day() ===
+          moment(classInfo.classDate, 'ddd Do MMM').day() &&
         moment(schedule.start).format('LT') === classInfo.classTime
       );
     });
@@ -93,7 +107,8 @@ export class ManageBookings extends Component {
     var schedule = classSchedules.find(
       schedule =>
         schedule.program === classInfo.program &&
-        moment(schedule.start).day() === moment(classInfo.classDate).day() &&
+        moment(schedule.start).day() ===
+          moment(classInfo.classDate, 'ddd Do MMM').day() &&
         moment(schedule.start).format('LT') === classInfo.classTime,
     );
     return schedule !== undefined && schedule.textColour !== undefined
@@ -162,13 +177,33 @@ export class ManageBookings extends Component {
   changeStatus(event, id) {
     console.log(('changed to ': event.target.value));
   }
-  getAllMembers() {
+  getProgramMembers() {
     let membersVals = [];
     this.props.allMembers.forEach(member => {
       if (
         member.values['Status'] !== 'Inactive' &&
-        this.state.allowedPrograms.includes(member.values['Ranking Program'])
+        (this.state.allowedPrograms === undefined ||
+          (this.state.allowedPrograms !== undefined &&
+            this.state.allowedPrograms.includes(
+              member.values['Ranking Program'],
+            )))
       ) {
+        membersVals.push({
+          label: member.values['Last Name'] + ' ' + member.values['First Name'],
+          value: member.id,
+        });
+      }
+    });
+    return membersVals;
+  }
+  getAllMembers() {
+    let membersVals = [];
+    membersVals[0] = {
+      label: 'CLEAR',
+      value: 'CLEAR',
+    };
+    this.props.allMembers.forEach(member => {
+      if (member.values['Status'] !== 'Inactive') {
         membersVals.push({
           label: member.values['Last Name'] + ' ' + member.values['First Name'],
           value: member.id,
@@ -187,7 +222,7 @@ export class ManageBookings extends Component {
         id: booking['id'],
         status: booking.status,
         program: booking.program,
-        classDate: moment(booking.classDate).format('ll'),
+        classDate: moment(booking.classDate).format('ddd Do MMM'),
         classTime: moment(booking.classDate + ' ' + booking.classTime).format(
           'LT',
         ),
@@ -197,7 +232,7 @@ export class ManageBookings extends Component {
       bookingsDataMap.set(key, {
         sortVal: booking.classDate + '-' + booking.classTime,
         program: booking.program,
-        classDate: moment(booking.classDate).format('ll'),
+        classDate: moment(booking.classDate).format('ddd Do MMM'),
         classTime: moment(booking.classDate + ' ' + booking.classTime).format(
           'LT',
         ),
@@ -209,7 +244,7 @@ export class ManageBookings extends Component {
         id: booking['id'],
         status: booking.status,
         program: booking.program,
-        classDate: moment(booking.classDate).format('ll'),
+        classDate: moment(booking.classDate).format('ddd Do MMM'),
         classTime: moment(booking.classDate + ' ' + booking.classTime).format(
           'LT',
         ),
@@ -219,7 +254,7 @@ export class ManageBookings extends Component {
       bookingsDataMap.set(key, {
         sortVal: booking.classDate + '-' + booking.classTime,
         program: booking.program,
-        classDate: moment(booking.classDate).format('ll'),
+        classDate: moment(booking.classDate).format('ddd Do MMM'),
         classTime: moment(booking.classDate + ' ' + booking.classTime).format(
           'LT',
         ),
@@ -227,14 +262,21 @@ export class ManageBookings extends Component {
       });
     }
   }
-  getGridData(bookings) {
+  getGridData(bookings, memberGUID) {
     if (!bookings || bookings.length < 0) {
       return [];
     }
 
     let bookingsDataMap = new Map();
     bookings.forEach(booking => {
-      this.addClassBooking(bookingsDataMap, booking);
+      if (memberGUID !== undefined && booking.memberGUID === memberGUID) {
+        this.addClassBooking(bookingsDataMap, booking);
+      } else if (
+        memberGUID === undefined ||
+        (memberGUID !== undefined && memberGUID === '')
+      ) {
+        this.addClassBooking(bookingsDataMap, booking);
+      }
     });
     let bookingsData = [];
     bookingsDataMap.forEach((value, key, map) => {
@@ -472,20 +514,24 @@ export class ManageBookings extends Component {
                   name="programClass"
                   id="programClass"
                   onChange={e => {
-                    var schedule = this.classSchedules.filter(
-                      schedule =>
+                    var schedule = this.classSchedules.filter(schedule => {
+                      return (
                         moment(schedule.start).day() ===
                           moment(this.state.classDate).day() &&
                         moment(schedule.start).format('HH:mm') ===
                           this.state.classTime &&
-                        schedule.allowedPrograms.includes(e.target.value),
-                    );
+                        ((schedule.allowedPrograms !== undefined &&
+                          schedule.allowedPrograms.includes(e.target.value)) ||
+                          schedule.program === e.target.value)
+                      );
+                    });
                     this.setState({
                       program: e.target.value,
                       allowedPrograms:
                         schedule.size !== 0
                           ? schedule.get(0).allowedPrograms
                           : '',
+                      maxStudents: schedule.get(0).maxStudents,
                     });
                   }}
                 >
@@ -514,7 +560,7 @@ export class ManageBookings extends Component {
               <div className="membersSelect">
                 <Select
                   closeMenuOnSelect={true}
-                  options={this.getAllMembers()}
+                  options={this.getProgramMembers()}
                   placeholder="Select Member"
                   onChange={e => {
                     let id = e.value;
@@ -529,6 +575,7 @@ export class ManageBookings extends Component {
                             member.values['First Name'] +
                             ' ' +
                             member.values['Last Name'],
+                          maxWeeklyClasses: member.values['Max Weekly Classes'],
                         });
                         break;
                       }
@@ -551,45 +598,109 @@ export class ManageBookings extends Component {
                   let id = this.state.memberGUID;
                   let bookingExists = false;
                   let userAccountExists = true;
+                  let maxWeeklyClassesBooked = false;
+                  let maxClassCountReached = false;
                   var existingBooking;
 
                   $('.noUserAccount').addClass('hide');
                   $('.bookingAlreadyExists').addClass('hide');
-                  for (let i = 0; i < this.classBookings.length; i++) {
-                    var bookingGroup = this.classBookings[i];
-                    var bookings = bookingGroup.bookings;
-                    for (let k = 0; k < bookings.length; k++) {
-                      if (
-                        bookings[k].memberGUID === id &&
-                        bookings[k].status === 'Booked' &&
-                        bookings[k].classDate ===
-                          moment(this.state.classDate).format('ll') &&
-                        bookings[k].classTime ===
-                          moment(this.state.classTime, 'HH:mm').format('LT')
-                      ) {
-                        bookingExists = true;
-                        existingBooking = bookings[k];
-                        break;
-                      }
-                    }
-                    if (bookingExists) break;
-                  }
+                  $('.maxWeeklyClasses').addClass('hide');
+                  $('.classMaxReached').addClass('hide');
 
-                  for (let i = 0; i < this.props.allMembers.length; i++) {
-                    if (this.props.allMembers[i].id === id) {
-                      var member = this.props.allMembers[i];
-                      if (member.user === undefined) {
-                        userAccountExists = false;
-                        break;
+                  var currentClassBookings = this.classBookings.filter(
+                    booking =>
+                      booking.sortVal ===
+                      this.state.classDate + '-' + this.state.classTime,
+                  );
+                  var bookedStudents =
+                    currentClassBookings.length > 0
+                      ? currentClassBookings[0].bookings.filter(
+                          booking => booking.status === 'Booked',
+                        )
+                      : [];
+                  if (
+                    this.state.maxStudents !== undefined &&
+                    this.state.maxStudents !== '' &&
+                    bookedStudents.length >= parseInt(this.state.maxStudents)
+                  ) {
+                    maxClassCountReached = true;
+                  }
+                  if (!maxClassCountReached) {
+                    for (let i = 0; i < this.classBookings.length; i++) {
+                      var bookingGroup = this.classBookings[i];
+                      var bookings = bookingGroup.bookings;
+                      for (let k = 0; k < bookings.length; k++) {
+                        if (
+                          bookings[k].memberGUID === id &&
+                          bookings[k].status === 'Booked' &&
+                          bookings[k].classDate ===
+                            moment(this.state.classDate).format('ddd Do MMM') &&
+                          bookings[k].classTime ===
+                            moment(this.state.classTime, 'HH:mm').format('LT')
+                        ) {
+                          bookingExists = true;
+                          existingBooking = bookings[k];
+                          break;
+                        }
+                      }
+                      if (bookingExists) break;
+                    }
+
+                    for (let i = 0; i < this.props.allMembers.length; i++) {
+                      if (this.props.allMembers[i].id === id) {
+                        var member = this.props.allMembers[i];
+                        if (member.user === undefined) {
+                          userAccountExists = false;
+                          break;
+                        }
                       }
                     }
+
+                    if (
+                      !bookingExists &&
+                      this.state.maxWeeklyClasses !== undefined &&
+                      this.state.maxWeeklyClasses !== ''
+                    ) {
+                      var max = parseInt(this.state.maxWeeklyClasses);
+                      var thisWeek = moment(
+                        this.state.classDate,
+                        'YYYY-MM-DD',
+                      ).week();
+                      var weekBookings = this.rawClassBookings.filter(
+                        booking => {
+                          return (
+                            thisWeek === moment(booking.classDate).week() &&
+                            booking.status === 'Booked' &&
+                            booking.memberID === this.state.memberID
+                          );
+                        },
+                      );
+                      if (weekBookings.size >= max) {
+                        maxWeeklyClassesBooked = true;
+                        this.setState({
+                          maxWeekStart: moment(
+                            this.state.classDate,
+                            'YYYY-MM-DD',
+                          ).weekday(0),
+                          maxWeekEnd: moment(
+                            this.state.classDate,
+                            'YYYY-MM-DD',
+                          ).weekday(6),
+                        });
+                      }
+                      console.log('weekBookings:' + weekBookings.length);
+                    }
                   }
-                  if (!userAccountExists) {
-                    $('.noUserAccount').removeClass('hide');
-                  }
-                  if (bookingExists) {
+                  if (maxClassCountReached) {
+                    $('.classMaxReached').removeClass('hide');
+                  } else if (bookingExists) {
                     $('.bookingAlreadyExists').removeClass('hide');
+                  } else if (maxWeeklyClassesBooked) {
+                    $('.maxWeeklyClasses').removeClass('hide');
                   } else {
+                    if (!userAccountExists) {
+                      $('.noUserAccount').removeClass('hide');
+                    }
                     // Add Class Booking
                     let values = {};
                     values['Status'] = 'Booked';
@@ -616,10 +727,48 @@ export class ManageBookings extends Component {
               </span>
               <span className="bookingAlreadyExists hide">
                 A booking for this Member at Date[
-                {moment(this.state.classDate).format('ll')}] and Time[
+                {moment(this.state.classDate).format('ddd Do MMM')}] and Time[
                 {moment(this.state.classTime, 'HH:mm').format('LT')}] has
                 already been made.
               </span>
+              <span className="maxWeeklyClasses hide">
+                This member has reached their Weekly booking count of{' '}
+                {this.state.maxWeeklyClasses} for week [
+                {moment(this.state.maxWeekStart).format('ddd Do MMM')} and
+                {moment(this.state.maxWeekEnd).format('ddd Do MMM')}].
+              </span>
+              <span className="classMaxReached hide">
+                The Max Student count has been reached at{' '}
+                <b>{this.state.maxStudents}</b> for Class {this.state.program}{' '}
+                at {moment(this.state.classTime, 'HH:mm').format('LT')}
+              </span>
+            </div>
+            <div className="line3">
+              <label htmlFor="filterMembers">FILTER BY</label>
+              <div className="membersFilterSelect">
+                <Select
+                  name="filterMembers"
+                  closeMenuOnSelect={true}
+                  options={this.getAllMembers()}
+                  placeholder="Select Member"
+                  onChange={e => {
+                    this.classBookings = this.getGridData(
+                      this.rawClassBookings,
+                      e.value === 'CLEAR' ? undefined : e.value,
+                    );
+                    var rows = [];
+                    if (e.value !== 'CLEAR') {
+                      for (var i = 0; i < this.classBookings.length; i++) {
+                        rows[i] = true;
+                      }
+                    }
+                    this.setState({
+                      filterMemberGUID: e.value,
+                      expandedRows: rows,
+                    });
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>

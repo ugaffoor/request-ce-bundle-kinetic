@@ -329,6 +329,8 @@ export class DatepickerWrapper extends React.Component {
       timepicker,
       datepicker,
       onSelectDate,
+      inline,
+      onGenerate,
     } = this.props;
     return (
       <DateTimePicker
@@ -339,6 +341,8 @@ export class DatepickerWrapper extends React.Component {
         options={this.state.options}
         timepicker={timepicker}
         datepicker={datepicker}
+        inline={inline}
+        onGenerate={onGenerate}
         onSelectDate={onSelectDate}
       />
     );
@@ -360,6 +364,8 @@ bundle.config.widgets = {
     timepicker,
     datepicker,
     onSelectDate,
+    onGenerate,
+    inline,
   }) => {
     ReactDOM.render(
       <DatepickerWrapper
@@ -369,8 +375,10 @@ bundle.config.widgets = {
         minDate={minDate}
         displayDateFormat={displayDateFormat}
         options={options}
+        inline={inline}
         timepicker={timepicker}
         datepicker={datepicker}
+        onGenerate={onGenerate}
         onSelectDate={onSelectDate}
       />,
       element,

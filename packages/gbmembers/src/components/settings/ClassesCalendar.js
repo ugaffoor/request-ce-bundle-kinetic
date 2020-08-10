@@ -79,6 +79,8 @@ export class ClassesCalendar extends Component {
     colour,
     textColour,
     allowedPrograms,
+    cancellationCutoff,
+    coaches,
     event,
   ) => {
     if (event === undefined) {
@@ -94,6 +96,8 @@ export class ClassesCalendar extends Component {
       values['Colour'] = colour;
       values['Text Colour'] = textColour;
       values['Allowed Programs'] = allowedPrograms;
+      values['Coaches'] = coaches;
+      values['Cancellation Cutoff'] = cancellationCutoff;
 
       this.setState({
         events: [
@@ -108,6 +112,8 @@ export class ClassesCalendar extends Component {
             colour,
             textColour,
             allowedPrograms,
+            coaches,
+            cancellationCutoff,
           },
         ],
         showClassDialog: false,
@@ -126,6 +132,8 @@ export class ClassesCalendar extends Component {
         events[idx].colour = colour;
         events[idx].textColour = textColour;
         events[idx].allowedPrograms = allowedPrograms;
+        events[idx].coaches = coaches;
+        events[idx].cancellationCutoff = cancellationCutoff;
         return { events };
       });
       this.setState({
@@ -141,6 +149,8 @@ export class ClassesCalendar extends Component {
       values['Colour'] = colour;
       values['Text Colour'] = textColour;
       values['Allowed Programs'] = allowedPrograms;
+      values['Coaches'] = coaches;
+      values['Cancellation Cutoff'] = cancellationCutoff;
 
       this.editClass({
         id: event.classID,
@@ -252,6 +262,8 @@ export class ClassesCalendar extends Component {
             colour={this.colour}
             textColour={this.textColour}
             allowedPrograms={this.allowedPrograms}
+            coaches={this.coaches}
+            cancellationCutoff={this.cancellationCutoff}
             cancelDialog={this.cancelDialog}
             applyDates={this.applyDates}
             deleteEvent={this.deleteEvent}

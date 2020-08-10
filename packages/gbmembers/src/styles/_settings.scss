@@ -51,9 +51,22 @@
         display: none;
       }
       .noUserAccount,
-      .bookingAlreadyExists {
+      .bookingAlreadyExists,
+      .maxWeeklyClasses,
+      .classMaxReached {
         color: red;
         margin-left: 50px;
+        width: 100%;
+      }
+    }
+    .line3 {
+      display: flex;
+      label {
+        margin-top: 13px;
+        margin-right: 4px;
+      }
+      .membersFilterSelect {
+        width: 400px;
       }
     }
   }

@@ -689,6 +689,21 @@ export const MemberNew = ({
                 />
               </div>
             </span>
+            <span className="line">
+              <div className="field">
+                <label htmlFor="maxWeeklyClasses">Max Weekly Classes</label>
+                <input
+                  type="number"
+                  name="maxWeeklyClasses"
+                  id="maxWeeklyClasses"
+                  ref={input => (this.input = input)}
+                  defaultValue={memberItem.values['Max Weekly Classes']}
+                  onChange={e =>
+                    handleChange(memberItem, 'Max Weekly Classes', e)
+                  }
+                />
+              </div>
+            </span>
           </div>
           <div className="section3">
             <h1>Other Information</h1>

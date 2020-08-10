@@ -57,6 +57,9 @@ export function* fetchClassSchedules(action) {
           textColour: classSchedulesSubmissions[i].values['Text Colour'],
           allowedPrograms:
             classSchedulesSubmissions[i].values['Allowed Programs'],
+          cancellationCutoff:
+            classSchedulesSubmissions[i].values['Cancellation Cutoff'],
+          coaches: classSchedulesSubmissions[i].values['Coaches'],
         },
       );
     }
