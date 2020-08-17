@@ -183,6 +183,8 @@ export class ManageBookings extends Component {
       if (
         member.values['Status'] !== 'Inactive' &&
         (this.state.allowedPrograms === undefined ||
+          this.state.allowedPrograms === '[]' ||
+          this.state.allowedPrograms === '' ||
           (this.state.allowedPrograms !== undefined &&
             this.state.allowedPrograms.includes(
               member.values['Ranking Program'],

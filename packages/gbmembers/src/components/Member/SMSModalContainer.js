@@ -16,6 +16,7 @@ import { actions as messagingActions } from '../../redux/modules/messaging';
 import memberAvatar from '../../images/member_avatar.png';
 import { actions as errorActions } from '../../redux/modules/errors';
 import moment from 'moment';
+import { actions as dataStoreActions } from '../../redux/modules/settingsDatastore';
 
 const mapStateToProps = state => ({
   memberItem: state.member.members.currentMember,
@@ -24,6 +25,9 @@ const mapStateToProps = state => ({
   currentLeadLoading: state.member.leads.currentLeadLoading,
   smsAccountCredit: state.member.messaging.smsAccountCredit,
   smsAccountCreditLoading: state.member.messaging.smsAccountCreditLoading,
+  smsTemplateCategories: state.member.datastore.smsTemplateCategories,
+  smsTemplates: state.member.datastore.smsTemplates,
+  smsTemplatesLoading: state.member.datastore.smsTemplatesLoading,
 });
 const mapDispatchToProps = {
   fetchCurrentMember: actions.fetchCurrentMember,
@@ -37,6 +41,7 @@ const mapDispatchToProps = {
   createLeadActivities: messagingActions.createLeadActivities,
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
+  fetchSMSTemplates: dataStoreActions.fetchSMSTemplates,
 };
 
 const util = require('util');
@@ -51,6 +56,7 @@ export class SMSModal extends Component {
     this.getMessages = this.getMessages.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.sendSms = this.sendSms.bind(this);
+    this.selectSMSTemplate = this.selectSMSTemplate.bind(this);
 
     let numberOptions = [
       {
@@ -194,7 +200,7 @@ export class SMSModal extends Component {
     smsResult.forEach((element, index) => {
       if (element['Direction'] === 'Outbound') {
         var dt = moment(element['Date'], 'DD-MM-YYYY HH:mm');
-        dt = dt.add(moment().utcOffset() * 60, 'seconds');
+        //dt = dt.add(moment().utcOffset() * 60, 'seconds');
         element['Date'] = dt.format('DD-MM-YYYY HH:mm');
         sms_msgs.push(
           <div className="outgoing_msg" key={index}>
@@ -206,7 +212,7 @@ export class SMSModal extends Component {
         );
       } else if (element['Direction'] === 'Inbound') {
         dt = moment(element['Date'], 'DD-MM-YYYY HH:mm');
-        dt = dt.add(moment().utcOffset() * 60, 'seconds');
+        //dt = dt.add(moment().utcOffset() * 60, 'seconds');
         element['Date'] = dt.format('DD-MM-YYYY HH:mm');
         sms_msgs.push(
           <div className="incoming_msg" key={index}>
@@ -225,6 +231,34 @@ export class SMSModal extends Component {
       }
     });
     return sms_msgs;
+  }
+
+  getSMSTemplates(smsTemplates) {
+    let templates = [];
+    smsTemplates.forEach(template => {
+      templates.push({
+        label:
+          template.values['Category'] !== undefined &&
+          template.values['Category'] !== null
+            ? template.values['Category'] +
+              '->' +
+              template.values['Template Name']
+            : template.values['Template Name'],
+        value: template.id,
+      });
+    });
+    return templates;
+  }
+  selectSMSTemplate(e) {
+    let templateId = e.value;
+    if (!templateId) {
+      console.log('Please select a template');
+      return;
+    }
+    let template = this.props.smsTemplates.find(
+      template => template['id'] === templateId,
+    );
+    this.setState({ smsText: template.values['SMS Content'] });
   }
 
   render() {
@@ -280,6 +314,21 @@ export class SMSModal extends Component {
                       ? 'Loading...'
                       : this.props.smsAccountCredit}
                   </span>
+                </div>
+              </div>
+              <div className="row">
+                <div className="col-md-12">
+                  <Select
+                    closeMenuOnSelect={true}
+                    options={this.getSMSTemplates(this.props.smsTemplates)}
+                    className="sms-templates-container"
+                    classNamePrefix="hide-columns"
+                    placeholder="Select SMS Template"
+                    onChange={e => {
+                      this.selectSMSTemplate(e);
+                    }}
+                    style={{ width: '300px' }}
+                  />
                 </div>
               </div>
               <div className="row">
@@ -423,6 +472,7 @@ const enhance = compose(
       this.props.getAccountCredit({
         setAccountCredit: this.props.setAccountCredit,
       });
+      this.props.fetchSMSTemplates();
     },
   }),
 );

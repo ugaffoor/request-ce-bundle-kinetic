@@ -206,6 +206,21 @@
           width: 6rem;
         }
       }
+      .attendanceIcon {
+        padding-top: 10px;
+        padding-left: 20px;
+        float: left;
+        .statsbar {
+          cursor: pointer;
+          .icon-svg {
+            height: 1.5rem;
+            width: 1.5rem;
+            path {
+              fill: #991b1e;
+            }
+          }
+        }
+      }
     }
   }
 }

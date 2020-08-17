@@ -55,6 +55,7 @@ import { Utils } from 'common';
 import { getProgramSVG, getBeltSVG } from './MemberUtils';
 import ReactToPrint from 'react-to-print';
 import css from 'css';
+import attentionRequired from '../../images/flag.svg?raw';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -508,6 +509,7 @@ export const MemberView = ({
   memberItem,
   allMembers,
   saveMember,
+  saveRemoveMemberNote,
   isDirty,
   setIsDirty,
   currentMemberLoading,
@@ -541,6 +543,7 @@ export const MemberView = ({
   createMemberUserAccount,
   creatingUserAccount,
   setCreatingUserAccount,
+  updateAttentionRequired,
 }) =>
   initialLoad ? (
     <div className="loading">
@@ -723,6 +726,18 @@ export const MemberView = ({
                       </span>
                     )}
                   </span>
+                  <div
+                    type="button"
+                    className="attentionRequired"
+                    onClick={e => {
+                      updateAttentionRequired();
+                    }}
+                  >
+                    <SVGInline
+                      svg={attentionRequired}
+                      className={'attention icon'}
+                    />
+                  </div>
                 </span>
                 <div className="emergency">
                   <div className="memberBarcode">
@@ -957,7 +972,10 @@ export const MemberView = ({
             </div>
           </div>
           <div>
-            <MemberViewNotes memberItem={memberItem} />
+            <MemberViewNotes
+              saveRemoveMemberNote={saveRemoveMemberNote}
+              memberItem={memberItem}
+            />
           </div>
           <div>
             <MemberEmails
@@ -1048,6 +1066,28 @@ export const MemberViewContainer = compose(
       for (let i = 0; i < allMembers.length; i++) {
         if (allMembers[i].id === memberItem.id) {
           allMembers[i].values['Notes History'] = JSON.stringify(notesHistory);
+          break;
+        }
+      }
+
+      $('#memberNote').val('');
+      setIsDirty(false);
+    },
+    saveRemoveMemberNote: ({
+      memberItem,
+      updateMember,
+      setIsDirty,
+      profile,
+      allMembers,
+    }) => newHistory => {
+      memberItem.values['Notes History'] = newHistory;
+      updateMember({
+        id: memberItem.id,
+        memberItem,
+      });
+      for (let i = 0; i < allMembers.length; i++) {
+        if (allMembers[i].id === memberItem.id) {
+          allMembers[i].values['Notes History'] = JSON.stringify(newHistory);
           break;
         }
       }
@@ -1147,6 +1187,7 @@ export const MemberViewContainer = compose(
     updateIsNewReplyReceived: ({
       memberItem,
       updateMember,
+      allMembers,
       fetchMembers,
       addNotification,
       setSystemError,
@@ -1155,10 +1196,42 @@ export const MemberViewContainer = compose(
       updateMember({
         id: memberItem.id,
         memberItem,
+        addNotification,
+        fetchMembers,
+        setSystemError,
+      });
+      for (let i = 0; i < allMembers.length; i++) {
+        if (allMembers[i].id === memberItem.id) {
+          allMembers[i].values['Is New Reply Received'] = false;
+          break;
+        }
+      }
+    },
+    updateAttentionRequired: ({
+      memberItem,
+      updateMember,
+      allMembers,
+      fetchMember,
+      fetchMembers,
+      addNotification,
+      setSystemError,
+      setIsDirty,
+    }) => () => {
+      memberItem.values['Is New Reply Received'] = true;
+      updateMember({
+        id: memberItem.id,
+        memberItem,
+        fetchMember,
         fetchMembers,
         addNotification,
         setSystemError,
       });
+      for (let i = 0; i < allMembers.length; i++) {
+        if (allMembers[i].id === memberItem.id) {
+          allMembers[i].values['Is New Reply Received'] = true;
+          break;
+        }
+      }
     },
     createUserAccount: ({
       memberItem,

@@ -129,6 +129,17 @@
     background-color: $darkgray;
     border-color: $darkgray;
   }
+  .deleteNote {
+    .icon-svg {
+      height: 1rem;
+      width: 1rem;
+      cursor: pointer;
+    }
+  }
+  .icon-svg {
+    height: 1.5rem;
+    width: 1.5rem;
+  }
 
   h3 {
     font-size: 18px;
@@ -420,6 +431,17 @@
           .value {
             float: left;
           }
+        }
+        .attentionRequired {
+          clear: left;
+          float: left;
+          border-radius: 5px;
+          border-style: none;
+          margin-right: 4px;
+          padding-left: 4px;
+        }
+        .attentionRequired:hover {
+          background-color: #d0cdcd;
         }
       }
       .emergency {

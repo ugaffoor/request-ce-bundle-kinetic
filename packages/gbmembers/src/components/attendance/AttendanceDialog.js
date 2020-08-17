@@ -90,7 +90,7 @@ export class AttendanceDialog extends Component {
     data.forEach((value, key) => {
       total += value['Count'];
     });
-    return (total / data.length).toFixed(2);
+    return total !== 0 ? (total / data.length).toFixed(2) : 0;
   }
 
   getData(attendances, periodParam, dateRange) {

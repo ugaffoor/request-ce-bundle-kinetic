@@ -46,7 +46,7 @@ export class GradingStatus extends Component {
           this.setShowPromotionDialog(this, true);
         }}
       >
-        <div className={this.state.statusIndicator}>
+        <div className={this.state.statusIndicator} title="Grading History">
           <div className="bar">
             <div className="percent" style={this.state.percentageStyle}></div>
           </div>

@@ -72,6 +72,21 @@ ins {
   min-width: 0;
 }
 
+.sms-templates-container {
+  width: 300px;
+  .hide-columns__control {
+    border-radius: 5px !important;
+    border-color: #ced4da !important;
+  }
+}
+.new_campaign {
+  .sms-templates-container {
+    .hide-columns__control {
+      left: 138px;
+      top: 2px;
+    }
+  }
+}
 .card--timeline a {
   color: #0056b3;
 }

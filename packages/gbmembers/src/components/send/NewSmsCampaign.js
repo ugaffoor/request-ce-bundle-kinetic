@@ -21,6 +21,7 @@ import { matchesMemberFilter } from '../../utils/utils';
 import { actions as messagingActions } from '../../redux/modules/messaging';
 import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
 import PropTypes from 'prop-types';
+import { actions as dataStoreActions } from '../../redux/modules/settingsDatastore';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -31,6 +32,9 @@ const mapStateToProps = state => ({
   space: state.member.app.space,
   smsAccountCredit: state.member.messaging.smsAccountCredit,
   smsAccountCreditLoading: state.member.messaging.smsAccountCreditLoading,
+  smsTemplateCategories: state.member.datastore.smsTemplateCategories,
+  smsTemplates: state.member.datastore.smsTemplates,
+  smsTemplatesLoading: state.member.datastore.smsTemplatesLoading,
 });
 const mapDispatchToProps = {
   createCampaign: actions.createSmsCampaign,
@@ -41,6 +45,7 @@ const mapDispatchToProps = {
   fetchMembers: memberActions.fetchMembers,
   getAccountCredit: messagingActions.getAccountCredit,
   setAccountCredit: messagingActions.setAccountCredit,
+  fetchSMSTemplates: dataStoreActions.fetchSMSTemplates,
 };
 
 const util = require('util');
@@ -54,7 +59,7 @@ export class NewSmsCampaign extends Component {
 
     this.createCampaign = this.createCampaign.bind(this);
     this.getSelectOptions = this.getSelectOptions.bind(this);
-
+    this.selectSMSTemplate = this.selectSMSTemplate.bind(this);
     this.state = {
       content: '',
       options: this.getSelectOptions(
@@ -84,6 +89,7 @@ export class NewSmsCampaign extends Component {
     this.props.getAccountCredit({
       setAccountCredit: this.props.setAccountCredit,
     });
+    this.props.fetchSMSTemplates();
   }
 
   getSelectOptions(memberLists, allMembers) {
@@ -283,26 +289,56 @@ export class NewSmsCampaign extends Component {
   }
 
   handleSmsTextChange(event) {
+    this.determineCrediteRequired(event.target.value);
+  }
+
+  determineCrediteRequired(text) {
     let smsCreditsRequired =
-      this.state.uniquePhoneNumbersCount * this.getSmsCount(event.target.value);
+      this.state.uniquePhoneNumbersCount * this.getSmsCount(text);
     let disableCreateCampaign =
       smsCreditsRequired > this.props.smsAccountCredit ||
       this.state.uniquePhoneNumbersCount <= 0 ||
-      event.target.value.length <= 0 ||
-      event.target.value.length > 765
+      text.length <= 0 ||
+      text.length > 765
         ? true
         : false;
     this.setState({
-      content: event.target.value,
+      content: text,
       smsCreditsRequired,
       disableCreateCampaign,
     });
   }
-
   showManageNumbersModal = val => {
     this.setState({ showManageNumbersModal: val });
   };
 
+  getSMSTemplates(smsTemplates) {
+    let templates = [];
+    smsTemplates.forEach(template => {
+      templates.push({
+        label:
+          template.values['Category'] !== undefined &&
+          template.values['Category'] !== null
+            ? template.values['Category'] +
+              '->' +
+              template.values['Template Name']
+            : template.values['Template Name'],
+        value: template.id,
+      });
+    });
+    return templates;
+  }
+  selectSMSTemplate(e) {
+    let templateId = e.value;
+    if (!templateId) {
+      console.log('Please select a template');
+      return;
+    }
+    let template = this.props.smsTemplates.find(
+      template => template['id'] === templateId,
+    );
+    this.determineCrediteRequired(template.values['SMS Content']);
+  }
   render() {
     return (
       <div className="new_campaign" style={{ marginTop: '2%' }}>
@@ -369,6 +405,21 @@ export class NewSmsCampaign extends Component {
                 : this.props.smsAccountCredit}
             </span>
           </div>
+          <div className="row">
+            <div className="col-md-12">
+              <Select
+                closeMenuOnSelect={true}
+                options={this.getSMSTemplates(this.props.smsTemplates)}
+                className="sms-templates-container"
+                classNamePrefix="hide-columns"
+                placeholder="Select SMS Template"
+                onChange={e => {
+                  this.selectSMSTemplate(e);
+                }}
+                style={{ width: '300px' }}
+              />
+            </div>
+          </div>
         </div>
         <div className="row">
           <div className="col-md-10" style={{ height: '1000px' }}>
@@ -417,6 +468,10 @@ export const NewSmsCampaignView = ({
   smsAccountCredit,
   getAccountCredit,
   setAccountCredit,
+  fetchSMSTemplates,
+  smsTemplateCategories,
+  smsTemplates,
+  smsTemplatesLoading,
 }) =>
   newCampaignLoading ? (
     <div />
@@ -436,6 +491,10 @@ export const NewSmsCampaignView = ({
         smsAccountCredit={smsAccountCredit}
         getAccountCredit={getAccountCredit}
         setAccountCredit={setAccountCredit}
+        fetchSMSTemplates={fetchSMSTemplates}
+        smsTemplateCategories={smsTemplateCategories}
+        smsTemplates={smsTemplates}
+        smsTemplatesLoading={smsTemplatesLoading}
       />
     </div>
   );

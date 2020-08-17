@@ -7,6 +7,8 @@ export const types = {
   SET_CALL_SCRIPTS: namespace('datastore', 'SET_CALL_SCRIPTS'),
   FETCH_EMAIL_TEMPLATES: namespace('datastore', 'FETCH_EMAIL_TEMPLATES'),
   SET_EMAIL_TEMPLATES: namespace('datastore', 'SET_EMAIL_TEMPLATES'),
+  FETCH_SMS_TEMPLATES: namespace('datastore', 'FETCH_SMS_TEMPLATES'),
+  SET_SMS_TEMPLATES: namespace('datastore', 'SET_SMS_TEMPLATES'),
 };
 
 export const actions = {
@@ -14,6 +16,8 @@ export const actions = {
   setCallScripts: withPayload(types.SET_CALL_SCRIPTS),
   fetchEmailTemplates: withPayload(types.FETCH_EMAIL_TEMPLATES),
   setEmailTemplates: withPayload(types.SET_EMAIL_TEMPLATES),
+  fetchSMSTemplates: withPayload(types.FETCH_SMS_TEMPLATES),
+  setSMSTemplates: withPayload(types.SET_SMS_TEMPLATES),
 };
 
 export const State = Record({
@@ -22,6 +26,8 @@ export const State = Record({
   emailTemplateCategories: [],
   emailTemplates: [],
   emailTemplatesLoading: true,
+  smsTemplates: [],
+  smsTemplatesLoading: true,
 });
 
 export const reducer = (state = State(), { type, payload }) => {
@@ -73,6 +79,49 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('emailTemplatesLoading', false)
         .set('emailTemplateCategories', categoryArray)
         .set('emailTemplates', templates);
+    }
+    case types.FETCH_SMS_TEMPLATES:
+      return state.set('smsTemplatesLoading', true);
+    case types.SET_SMS_TEMPLATES: {
+      var templates = payload;
+      var categories = new Map();
+
+      templates = templates.sort(function(a, b) {
+        categories.set(
+          a.values['Category'] === undefined || a.values['Category'] === null
+            ? ''
+            : a.values['Category'],
+          a.values['Category'] === undefined || a.values['Category'] === null
+            ? ''
+            : a.values['Category'],
+        );
+        if (
+          a.values['Category'] === undefined ||
+          a.values['Category'] === null
+        ) {
+          return -1;
+        }
+        if (
+          b.values['Category'] === undefined ||
+          b.values['Category'] === null
+        ) {
+          return 1;
+        }
+        return a.values['Category'] > b['Category']
+          ? 1
+          : b['Category'] > a['Category']
+          ? -1
+          : 0;
+      });
+
+      var categoryArray = [];
+      categories.forEach(value => {
+        categoryArray.push(value);
+      });
+      return state
+        .set('smsTemplatesLoading', false)
+        .set('smsTemplateCategories', categoryArray)
+        .set('smsTemplates', templates);
     }
     default:
       return state;

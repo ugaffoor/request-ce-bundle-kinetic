@@ -1191,7 +1191,7 @@ export function setMemberPromotionValues(member, belts) {
     promotionSort = 2;
   } else if (attendanceVal >= 1 && daysVal >= 1) {
     statusIndicator = 'ready';
-    statusText = 'READY';
+    statusText = 'READY TO CHECK';
     promotionSort = 0;
   } /*  if (
     attendanceVal >= 0.8 &&

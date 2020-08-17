@@ -3,6 +3,7 @@ import { compose, withState, lifecycle } from 'recompose';
 import $ from 'jquery';
 import { connect } from 'react-redux';
 import { GradingStatus } from './GradingStatus';
+import { AttendanceIcon } from './AttendanceIcon';
 import { withHandlers } from 'recompose';
 import { getProgramSVG, getBeltSVG } from '../Member/MemberUtils';
 
@@ -11,13 +12,12 @@ const mapStateToProps = state => ({
   programs: state.member.app.programs,
   belts: state.member.app.belts,
 });
-
 const mapDispatchToProps = {};
 
 export class GradingDetail extends Component {
   constructor(props) {
     super(props);
-
+    this.setShowAttendanceDialog = this.setShowAttendanceDialog.bind(this);
     let className = 'All Programs';
     let beltName = 'All Belts';
     let loadingMemberGrading = true;
@@ -29,6 +29,7 @@ export class GradingDetail extends Component {
       loadingMemberGrading,
       isDirty,
       programsGroup,
+      showAttendanceDialog: false,
     };
   }
   setIsDirty = dirty => {
@@ -42,6 +43,11 @@ export class GradingDetail extends Component {
   }
   handleBeltChange(e) {
     this.setState({ beltName: e.target.value });
+  }
+  setShowAttendanceDialog(show) {
+    this.setState({
+      showAttendanceDialog: show,
+    });
   }
   render() {
     return (
@@ -178,6 +184,7 @@ export class GradingDetail extends Component {
                         <span className="belt">
                           {getBeltSVG(member.values['Ranking Belt'])}
                         </span>
+                        <AttendanceIcon memberItem={member} />
                       </span>
                     </div>
                   );

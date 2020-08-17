@@ -7,6 +7,7 @@ import { namespace, withPayload } from '../../utils';
 export const types = {
   FETCH_MEMBERS: namespace('members', 'FETCH_MEMBERS'),
   SET_MEMBERS: namespace('members', 'SET_MEMBERS'),
+  UPDATE_ALL_MEMBERS: namespace('members', 'UPDATE_ALL_MEMBERS'),
   SET_MEMBER_FILTER: namespace('members', 'SET_MEMBER_FILTER'),
   GET_MEMBER_FILTER: namespace('members', 'GET_MEMBER_FILTER'),
   FETCH_CURRENT_MEMBER: namespace('members', 'FETCH_CURRENT_MEMBER'),
@@ -75,6 +76,7 @@ export const types = {
 export const actions = {
   fetchMembers: withPayload(types.FETCH_MEMBERS),
   setMembers: withPayload(types.SET_MEMBERS),
+  updateAllMembers: withPayload(types.UPDATE_ALL_MEMBERS),
   setMemberFilter: withPayload(types.SET_MEMBER_FILTER),
   getMemberFilter: withPayload(types.GET_MEMBER_FILTER),
   fetchCurrentMember: withPayload(types.FETCH_CURRENT_MEMBER),
@@ -190,6 +192,11 @@ export const reducer = (state = State(), { type, payload }) => {
       }
 
       return state.set('membersLoading', false).set('allMembers', members);
+    }
+    case types.UPDATE_ALL_MEMBERS: {
+      return state
+        .set('membersLoading', false)
+        .set('allMembers', payload.members);
     }
     case types.SET_MEMBER_FILTER: {
       return state.set('currentFilter', payload);
