@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { compose, lifecycle, withHandlers, withProps } from 'recompose';
-import { actions } from '../../redux/modules/members';
+import { actions } from '../../redux/modules/leads';
 import $ from 'jquery';
 import moment from 'moment';
 import 'bootstrap/scss/bootstrap.scss';
@@ -9,57 +9,58 @@ import ReactTable from 'react-table';
 import { actions as appActions } from '../../redux/modules/memberApp';
 import uuid from 'uuid';
 import { StatusMessagesContainer } from '../StatusMessages';
+import { matchesLeadFilter } from '../../utils/utils';
 <script src="../helpers/jquery.multiselect.js" />;
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
-  allMembers: state.member.members.allMembers,
+  allLeads: state.member.leads.allLeads,
   programs: state.member.app.programs,
   additionalPrograms: state.member.app.additionalPrograms,
   membershipTypes: state.member.app.membershipTypes,
-  memberLists: state.member.app.memberLists,
+  leadLists: state.member.app.leadLists,
   belts: state.member.app.belts,
-  memberStatusValues: state.member.app.memberStatusValues,
+  leadStatusValues: state.member.app.leadStatusValues,
 });
 
 const mapDispatchToProps = {
-  fetchMembers: actions.fetchMembers,
-  addMembersList: appActions.addMembersList,
+  fetchLeads: actions.fetchLeads,
+  addLeadsList: appActions.addLeadsList,
 };
 
 export const ListNewView = ({
-  allMembers,
+  allLeads,
   programs,
   additionalPrograms,
   membershipTypes,
   belts,
-  memberLists,
+  leadLists,
   addNewList,
-  memberStatusValues,
+  leadStatusValues,
 }) => (
   <div>
     <StatusMessagesContainer />
     <ListNewHome
-      allMembers={allMembers}
+      allLeads={allLeads}
       programs={programs}
       additionalPrograms={additionalPrograms}
       membershipTypes={membershipTypes}
       belts={belts}
-      memberLists={memberLists}
+      leadLists={leadLists}
       addNewList={addNewList}
-      memberStatusValues={memberStatusValues}
+      leadStatusValues={leadStatusValues}
     />
   </div>
 );
 
-export const ListNewContainer = compose(
+export const LeadListNewContainer = compose(
   connect(mapStateToProps, mapDispatchToProps),
   withProps(() => {
     return {};
   }),
   withHandlers({
-    addNewList: ({ addMembersList, history }) => newList => {
-      addMembersList({
+    addNewList: ({ addLeadsList, history }) => newList => {
+      addLeadsList({
         newList,
         history: history,
       });
@@ -90,31 +91,11 @@ export class ListNewHome extends Component {
         .multiselect({
           texts: { placeholder: 'Select Status' },
         });
-
     this.refs.programsDiv &&
       $(this.refs.programsDiv)
         .find('select')
         .multiselect({
           texts: { placeholder: 'Select Program' },
-        });
-
-    this.refs.beltsDiv &&
-      $(this.refs.beltsDiv)
-        .find('select')
-        .multiselect({
-          texts: { placeholder: 'Select Belt' },
-        });
-    this.refs.additionalProgram1Div &&
-      $(this.refs.additionalProgram1Div)
-        .find('select')
-        .multiselect({
-          texts: { placeholder: 'Select Additional Program 1' },
-        });
-    this.refs.additionalProgram2Div &&
-      $(this.refs.additionalProgram2Div)
-        .find('select')
-        .multiselect({
-          texts: { placeholder: 'Select Additional Program 2' },
         });
   }
 
@@ -137,26 +118,28 @@ export class ListNewHome extends Component {
 
   getColumns = () => {
     return [
-      { accessor: 'Member ID', Header: 'Member Id' },
+      { accessor: 'First Name', Header: 'First Name' },
+      { accessor: 'Last Name', Header: 'Last Name' },
+      { accessor: 'Status', Header: 'Status' },
       { accessor: 'Gender', Header: 'Gender' },
-      { accessor: 'Member Type', Header: 'Member Type' },
-      { accessor: 'Ranking Program', Header: 'Program' },
-      { accessor: 'Ranking Belt', Header: 'Belt' },
-      { accessor: 'Additional Program 1', Header: 'Additional Program 1' },
-      { accessor: 'Additional Program 2', Header: 'Additional Program 2' },
+      { accessor: 'Interesting in Program', Header: 'Program' },
+      { accessor: 'Source Reference 1', Header: 'Source 1' },
+      { accessor: 'Source Reference 2', Header: 'Source 2' },
+      { accessor: 'Source Reference 3', Header: 'Source 3' },
+      { accessor: 'Source Reference 4', Header: 'Source 4' },
     ];
   };
 
-  getData(members) {
-    if (!members) {
+  getData(leads) {
+    if (!leads) {
       return [];
     }
 
     let data = [];
-    members.forEach(member => {
+    leads.forEach(lead => {
       data.push({
-        _id: member['id'],
-        ...member.values,
+        _id: lead['id'],
+        ...lead.values,
       });
     });
 
@@ -165,18 +148,14 @@ export class ListNewHome extends Component {
 
   applyFilters() {
     let filters = [];
-    let startDate = null,
-      endDate = null;
 
-    if ($('#joiningDateStart').val() && $('#joiningDateEnd').val()) {
+    if ($('#createdDateStart').val() && $('#createdDateEnd').val()) {
       filters.push({
-        joiningDateFilter: {
-          startDate: $('#joiningDateStart').val(),
-          endDate: $('#joiningDateEnd').val(),
+        createdDateFilter: {
+          startDate: $('#createdDateStart').val(),
+          endDate: $('#createdDateEnd').val(),
         },
       });
-      startDate = moment($('#joiningDateStart').val(), 'YYYY-MM-DD');
-      endDate = moment($('#joiningDateEnd').val(), 'YYYY-MM-DD');
     }
 
     if ($('#status').val() && $('#status').val().length > 0) {
@@ -199,129 +178,65 @@ export class ListNewHome extends Component {
       filters.push({ programFilter: { programs: $('#program').val() } });
     }
 
-    if ($('#belt').val() && $('#belt').val().length > 0) {
-      filters.push({ beltFilter: { belts: $('#belt').val() } });
-    }
-
-    if (
-      $('#additionalProgram1').val() &&
-      $('#additionalProgram1').val().length > 0
-    ) {
+    if ($('#sourceReference1').val()) {
       filters.push({
-        additionalProgram1Filter: { programs: $('#additionalProgram1').val() },
+        sourceReference1Filter: {
+          sourceReference1: $('#sourceReference1').val(),
+        },
       });
     }
 
-    if (
-      $('#additionalProgram2').val() &&
-      $('#additionalProgram2').val().length > 0
-    ) {
+    if ($('#sourceReference2').val()) {
       filters.push({
-        additionalProgram2Filter: { programs: $('#additionalProgram2').val() },
+        sourceReference2Filter: {
+          sourceReference2: $('#sourceReference2').val(),
+        },
       });
     }
 
-    if ($('#memberType').val()) {
+    if ($('#sourceReference3').val()) {
       filters.push({
-        memberTypeFilter: { memberType: $('#memberType').val() },
+        sourceReference3Filter: {
+          sourceReference3: $('#sourceReference3').val(),
+        },
       });
     }
 
-    if ($('input[name=billingMember]:checked').val()) {
-      filters.push({ billingMemberFilter: true });
+    if ($('#sourceReference4').val()) {
+      filters.push({
+        sourceReference4Filter: {
+          sourceReference4: $('#sourceReference4').val(),
+        },
+      });
     }
 
-    let members = this.props.allMembers.filter(function(member) {
-      let match = true;
-      for (var i = 0; i < filters.length; i++) {
-        let keys = Object.keys(filters[i]);
-        if (keys[0] === 'joiningDateFilter') {
-          if (
-            !moment(member.values['Date Joined'], 'YYYY-MM-DD').isBetween(
-              startDate,
-              endDate,
-            )
-          ) {
-            match = false;
-          }
-        } else if (keys[0] === 'genderFilter') {
-          if (member.values['Gender'] !== filters[i][keys[0]].gender) {
-            match = false;
-          }
-        } else if (keys[0] === 'ageFilter') {
-          let years = moment().diff(member.values['DOB'], 'years');
-          if (
-            !(
-              years >= filters[i][keys[0]].fromAge &&
-              years <= filters[i][keys[0]].toAge
-            )
-          ) {
-            match = false;
-          }
-        } else if (keys[0] === 'statusFilter') {
-          if (
-            $.inArray(member.values['Status'], filters[i][keys[0]].status) < 0
-          ) {
-            match = false;
-          }
-        } else if (keys[0] === 'programFilter') {
-          if (
-            $.inArray(
-              member.values['Ranking Program'],
-              filters[i][keys[0]].programs,
-            ) < 0
-          ) {
-            match = false;
-          }
-        } else if (keys[0] === 'beltFilter') {
-          if (
-            $.inArray(
-              member.values['Ranking Belt'],
-              filters[i][keys[0]].belts,
-            ) < 0
-          ) {
-            match = false;
-          }
-        } else if (keys[0] === 'additionalProgram1Filter') {
-          if (
-            $.inArray(
-              member.values['Additional Program 1'],
-              filters[i][keys[0]].programs,
-            ) < 0
-          ) {
-            match = false;
-          }
-        } else if (keys[0] === 'additionalProgram2Filter') {
-          if (
-            $.inArray(
-              member.values['Additional Program 2'],
-              filters[i][keys[0]].programs,
-            ) < 0
-          ) {
-            match = false;
-          }
-        } else if (keys[0] === 'memberTypeFilter') {
-          if (member.values['Member Type'] !== filters[i][keys[0]].memberType) {
-            match = false;
-          }
-        } else if (keys[0] === 'billingMemberFilter') {
-          if (!member.values['Billing Customer Id']) {
-            match = false;
-          }
-        }
-      }
-      return match;
-    });
+    let leads = matchesLeadFilter(this.props.allLeads, filters);
 
     this.setState({
-      data: this.getData(members),
+      data: this.getData(leads),
       filters: filters,
     });
   }
+  getReferenceMap(leads, sourceField) {
+    let sourceMap = new Map();
 
+    leads.forEach(lead => {
+      if (
+        lead.values[sourceField] !== undefined &&
+        lead.values[sourceField] !== ''
+      ) {
+        sourceMap.set(lead.values[sourceField], lead.values[sourceField]);
+      }
+    });
+    let data = [];
+    sourceMap.forEach((value, key, map) => {
+      data.push(value);
+    });
+    return data;
+  }
   render() {
     return (
-      <div className="container-fluid memberLists">
+      <div className="container-fluid leadLists">
         <div className="row">
           <div
             className="col-md-4"
@@ -363,7 +278,7 @@ export class ListNewHome extends Component {
                       >
                         {[
                           ...new Set(
-                            this.props.memberStatusValues.map(
+                            this.props.leadStatusValues.map(
                               (status, index) => status,
                             ),
                           ),
@@ -384,22 +299,22 @@ export class ListNewHome extends Component {
                     className="scheduler-border"
                     style={{ position: 'relative' }}
                   >
-                    <legend className="scheduler-border">Joining Date</legend>
+                    <legend className="scheduler-border">Created Date</legend>
                     <div className="form-group form-inline">
-                      <label htmlFor="joiningDateStart">Start Date&nbsp;</label>
+                      <label htmlFor="createdDateStart">From Date&nbsp;</label>
                       <input
-                        id="joiningDateStart"
-                        name="joiningDateStart"
+                        id="createdDateStart"
+                        name="createdDateStart"
                         type="date"
                         ref={input => (this.input = input)}
                         className="form-control form-control-sm"
                       />
                     </div>
                     <div className="form-group form-inline">
-                      <label htmlFor="joiningDateEnd">End Date&nbsp;</label>
+                      <label htmlFor="createdDateEnd">To Date&nbsp;</label>
                       <input
-                        id="joiningDateEnd"
-                        name="joiningDateEnd"
+                        id="createdDateEnd"
+                        name="createdDateEnd"
                         type="date"
                         ref={input => (this.input = input)}
                         className="form-control form-control-sm"
@@ -479,10 +394,10 @@ export class ListNewHome extends Component {
                     style={{ position: 'relative' }}
                   >
                     <legend className="scheduler-border">
-                      Ranking Program
+                      Interest in Program
                     </legend>
                     <div className="form-group form-inline" ref="programsDiv">
-                      <label htmlFor="program">Ranking Program&nbsp;</label>
+                      <label htmlFor="program">Interest in Program&nbsp;</label>
                       <select
                         className="form-control"
                         multiple
@@ -507,129 +422,92 @@ export class ListNewHome extends Component {
                     className="scheduler-border"
                     style={{ position: 'relative' }}
                   >
-                    <legend className="scheduler-border">Ranking Belt</legend>
-                    <div className="form-group form-inline" ref="beltsDiv">
-                      <label htmlFor="belt">Ranking Belt&nbsp;</label>
-                      <select
-                        className="form-control"
-                        multiple
-                        id="belt"
-                        ref={input => (this.input = input)}
-                        style={{ height: 'auto' }}
-                      >
-                        {[
-                          ...new Set(this.props.belts.map(belt => belt.belt)),
-                        ].map(belt => (
-                          <option key={belt} value={belt}>
-                            {belt}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="droparrow" />
-                    </div>
-                  </fieldset>
-                </div>
-              </div>
-              <div className="row">
-                <div className="col">
-                  <fieldset
-                    className="scheduler-border"
-                    style={{ position: 'relative' }}
-                  >
                     <legend className="scheduler-border">
-                      Additional Programs
+                      Source References
                     </legend>
-                    <div
-                      className="form-group form-inline"
-                      ref="additionalProgram1Div"
-                    >
-                      <label htmlFor="additionalProgram1">
-                        Additional Program 1&nbsp;
-                      </label>
-                      <select
-                        className="form-control"
-                        multiple
-                        id="additionalProgram1"
-                        ref={input => (this.input = input)}
-                        style={{ height: 'auto' }}
-                      >
-                        {this.props.additionalPrograms.map(program => (
-                          <option key={program.program} value={program.program}>
-                            {program.program}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="droparrow" />
-                    </div>
-                    <div
-                      className="form-group form-inline"
-                      ref="additionalProgram2Div"
-                    >
-                      <label htmlFor="additionalProgram2">
-                        Additional Program 2&nbsp;
-                      </label>
-                      <select
-                        className="form-control"
-                        multiple
-                        id="additionalProgram2"
-                        ref={input => (this.input = input)}
-                        style={{ height: 'auto' }}
-                      >
-                        {this.props.additionalPrograms.map(program => (
-                          <option key={program.program} value={program.program}>
-                            {program.program}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="droparrow" />
-                    </div>
-                  </fieldset>
-                </div>
-              </div>
-              <div className="row">
-                <div className="col">
-                  <fieldset
-                    className="scheduler-border"
-                    style={{ position: 'relative' }}
-                  >
-                    <legend className="scheduler-border">Member Type</legend>
                     <div className="form-group form-inline">
-                      <label htmlFor="memberType">Member Type&nbsp;</label>
+                      <label htmlFor="sourceReference1">
+                        Source Reference 1&nbsp;
+                      </label>
                       <select
                         className="form-control"
-                        id="memberType"
+                        id="sourceReference1"
                         ref={input => (this.input = input)}
                       >
                         <option value="" />
-                        {this.props.membershipTypes.map(type => (
-                          <option key={type.type} value={type.type}>
-                            {type.type}
+                        {this.getReferenceMap(
+                          this.props.allLeads,
+                          'Source Reference 1',
+                        ).map(value => (
+                          <option key={value} value={value}>
+                            {value}
                           </option>
                         ))}
                       </select>
                       <div className="droparrow" />
                     </div>
-                  </fieldset>
-                </div>
-              </div>
-              <div className="row">
-                <div className="col">
-                  <fieldset
-                    className="scheduler-border"
-                    style={{ position: 'relative' }}
-                  >
-                    <legend className="scheduler-border">Billing Member</legend>
-                    <div className="form-check">
-                      <label className="form-check-label">
-                        <input
-                          type="checkbox"
-                          id="billingMember"
-                          name="billingMember"
-                          className="form-check-input"
-                          value="true"
-                        />{' '}
-                        Billing Member
+                    <div className="form-group form-inline">
+                      <label htmlFor="sourceReference2">
+                        Source Reference 2&nbsp;
                       </label>
+                      <select
+                        className="form-control"
+                        id="sourceReference2"
+                        ref={input => (this.input = input)}
+                      >
+                        <option value="" />
+                        {this.getReferenceMap(
+                          this.props.allLeads,
+                          'Source Reference 2',
+                        ).map(value => (
+                          <option key={value} value={value}>
+                            {value}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="droparrow" />
+                    </div>
+                    <div className="form-group form-inline">
+                      <label htmlFor="sourceReference3">
+                        Source Reference 3&nbsp;
+                      </label>
+                      <select
+                        className="form-control"
+                        id="sourceReference3"
+                        ref={input => (this.input = input)}
+                      >
+                        <option value="" />
+                        {this.getReferenceMap(
+                          this.props.allLeads,
+                          'Source Reference 3',
+                        ).map(value => (
+                          <option key={value} value={value}>
+                            {value}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="droparrow" />
+                    </div>
+                    <div className="form-group form-inline">
+                      <label htmlFor="sourceReference4">
+                        Source Reference 4&nbsp;
+                      </label>
+                      <select
+                        className="form-control"
+                        id="sourceReference4"
+                        ref={input => (this.input = input)}
+                      >
+                        <option value="" />
+                        {this.getReferenceMap(
+                          this.props.allLeads,
+                          'Source Reference 4',
+                        ).map(value => (
+                          <option key={value} value={value}>
+                            {value}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="droparrow" />
                     </div>
                   </fieldset>
                 </div>

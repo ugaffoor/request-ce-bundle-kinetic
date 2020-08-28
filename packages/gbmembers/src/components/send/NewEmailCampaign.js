@@ -17,7 +17,7 @@ import { actions as leadsActions } from '../../redux/modules/leads';
 import { actions as membersActions } from '../../redux/modules/members';
 import { actions as campaignActions } from '../../redux/modules/campaigns';
 import { actions as dataStoreActions } from '../../redux/modules/settingsDatastore';
-import { matchesMemberFilter } from '../../utils/utils';
+import { matchesMemberFilter, matchesLeadFilter } from '../../utils/utils';
 import Select from 'react-select';
 import EmailEditor from 'react-email-editor';
 import {
@@ -37,8 +37,10 @@ const mapStateToProps = state => ({
   campaignItem: state.member.campaigns.newEmailCampaign,
   newCampaignLoading: state.member.campaigns.newEmailCampaignLoading,
   memberLists: state.member.app.memberLists,
+  leadLists: state.member.app.leadLists,
   snippets: state.member.app.snippets,
   allMembers: state.member.members.allMembers,
+  allLeads: state.member.leads.allLeads,
   space: state.member.app.space,
   leadItem: state.member.leads.currentLead,
   memberItem: state.member.members.currentMember,
@@ -72,7 +74,7 @@ export class NewEmailCampaign extends Component {
     campaignSpace = this.props.space.slug;
     this.handleChange = this.handleChange.bind(this);
     this.handleRecipientChange = this.handleRecipientChange.bind(this);
-
+    this.handleLeadRecipientChange = this.handleLeadRecipientChange.bind(this);
     this.preview = this.preview.bind(this);
     this.back = this.back.bind(this);
     this.handleSubjectChange = this.handleSubjectChange.bind(this);
@@ -93,17 +95,36 @@ export class NewEmailCampaign extends Component {
         this.props.allMembers,
       ),
       selectedOption: [],
+      leadOptions: this.getSelectLeadOptions(
+        this.props.leadLists,
+        this.props.allLeads,
+      ),
+      selectedLeadOption: [],
       isMenuOpen: false,
     };
     editorThis = this;
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.allMembers.length !== this.props.allMembers.length) {
+    if (
+      nextProps.allMembers !== undefined &&
+      nextProps.allMembers.length !== this.props.allMembers.length
+    ) {
       this.setState({
         options: this.getSelectOptions(
           nextProps.memberLists,
           nextProps.allMembers,
+        ),
+      });
+    }
+    if (
+      nextProps.allLeads !== undefined &&
+      nextProps.allLeads.length !== this.props.allLeads.length
+    ) {
+      this.setState({
+        leadOptions: this.getSelectLeadOptions(
+          nextProps.leadLists,
+          nextProps.allLeads,
         ),
       });
     }
@@ -244,7 +265,7 @@ export class NewEmailCampaign extends Component {
     allMembers.forEach(member => {
       if (member.values['Status'] === 'Active') {
         activeMembers.push(member['id']);
-      } else {
+      } else if (member.values['Status'] === 'Inactive') {
         inactiveMembers.push(member['id']);
       }
     });
@@ -277,14 +298,40 @@ export class NewEmailCampaign extends Component {
 
     return options;
   }
+  getSelectLeadOptions(leadLists, allLeads) {
+    //If submissionId is present then submissionId is the recipient.
+    //So no need to populate or display recipient list dropdown.
+    if (this.props.submissionId || leadLists === undefined) {
+      return [];
+    }
+    let options = [];
+
+    leadLists.forEach(list => {
+      options.push({
+        value: list.name,
+        label: list.name,
+        leads: matchesLeadFilter(allLeads, list.filters).map(
+          lead => lead['id'],
+        ),
+      });
+    });
+
+    return options;
+  }
 
   handleRecipientChange = selectedOption => {
     this.setState({ selectedOption });
-    //console.log(`Option selected:`, selectedOption);
+  };
+  handleLeadRecipientChange = selectedLeadOption => {
+    this.setState({ selectedLeadOption });
   };
 
   createCampaign() {
-    if (!this.props.submissionId && this.state.selectedOption.length <= 0) {
+    if (
+      !this.props.submissionId &&
+      this.state.selectedOption.length <= 0 &&
+      this.state.selectedLeadOption.length <= 0
+    ) {
       console.log('Recipients, subject and body is required');
       return;
     }
@@ -300,6 +347,9 @@ export class NewEmailCampaign extends Component {
     } else {
       this.state.selectedOption.forEach(option => {
         recipientIds.push(...option.members);
+      });
+      this.state.selectedLeadOption.forEach(option => {
+        recipientIds.push(...option.leads);
       });
     }
     // Extract Embedded images from the Body
@@ -423,7 +473,8 @@ export class NewEmailCampaign extends Component {
           }}
         >
           <div className="col-md-4" style={{ textAlign: 'right' }}>
-            You are currently sending this email to
+            You are currently sending this email to{' '}
+            {this.props.submissionType === 'member' ? 'Members' : 'Leads'}
           </div>
           <div className="col-md-4">
             {this.props.submissionId ? (
@@ -448,11 +499,23 @@ export class NewEmailCampaign extends Component {
                     : ''
                 }
               />
-            ) : (
+            ) : this.props.submissionType === 'member' ? (
               <Select
                 value={this.state.selectedOption}
                 onChange={this.handleRecipientChange}
                 options={this.state.options}
+                placeholder="Select Member List"
+                closeMenuOnSelect={false}
+                hideSelectedOptions={false}
+                controlShouldRenderValue={true}
+                isMulti={true}
+              />
+            ) : (
+              <Select
+                value={this.state.selectedLeadOption}
+                onChange={this.handleLeadRecipientChange}
+                options={this.state.leadOptions}
+                placeholder="Select Lead List"
                 closeMenuOnSelect={false}
                 hideSelectedOptions={false}
                 controlShouldRenderValue={true}
@@ -647,6 +710,7 @@ export const NewEmailCampaignView = ({
   newCampaignLoading,
   saveCampaign,
   memberLists,
+  leadLists,
   snippets,
   isDirty,
   setIsDirty,
@@ -658,6 +722,7 @@ export const NewEmailCampaignView = ({
   setShowPreview,
   updateCampaign,
   allMembers,
+  allLeads,
   submissionId,
   submissionType,
   leadItem,
@@ -677,6 +742,7 @@ export const NewEmailCampaignView = ({
         campaignItem={campaignItem}
         saveCampaign={saveCampaign}
         memberLists={memberLists}
+        leadLists={leadLists}
         snippets={snippets}
         isDirty={isDirty}
         setIsDirty={setIsDirty}
@@ -688,6 +754,7 @@ export const NewEmailCampaignView = ({
         setShowPreview={setShowPreview}
         updateCampaign={updateCampaign}
         allMembers={allMembers}
+        allLeads={allLeads}
         submissionId={submissionId}
         submissionType={submissionType}
         leadItem={leadItem}
@@ -743,12 +810,20 @@ export const EmailCampaignContainer = compose(
         history: this.props.history,
         fetchEmailCampaigns: null,
       });
-      if (this.props.submissionType && this.props.submissionType === 'lead') {
+      if (
+        this.props.submissionType &&
+        this.props.submissionType === 'lead' &&
+        this.props.submissionId !== undefined
+      ) {
         this.props.fetchLead({
           id: this.props.submissionId,
         });
       }
-      if (this.props.submissionType && this.props.submissionType === 'member') {
+      if (
+        this.props.submissionType &&
+        this.props.submissionType === 'member' &&
+        this.props.submissionId !== undefined
+      ) {
         this.props.fetchMember({
           id: this.props.submissionId,
         });

@@ -27,6 +27,7 @@ const mapStateToProps = state => ({
   individualSMS: state.member.messaging.individualSMS,
   individualSMSLoading: state.member.messaging.individualSMSLoading,
   allLeads: state.member.leads.allLeads,
+  leadsLoading: state.member.leads.leadsLoading,
 });
 const mapDispatchToProps = {
   fetchEmailCampaigns: actions.fetchEmailCampaigns,
@@ -359,7 +360,7 @@ export class SmsCampaignsList extends Component {
             <div />
           ) : (
             <NavLink
-              to={`/Member/${props.original.recipients_col1['memberId']}`}
+              to={`/${props.original.recipients_col1['type']}/${props.original.recipients_col1['memberId']}`}
               className=""
             >
               {props.original.recipients_col1['name']}
@@ -375,7 +376,7 @@ export class SmsCampaignsList extends Component {
             <div />
           ) : (
             <NavLink
-              to={`/Member/${props.original.recipients_col2['memberId']}`}
+              to={`/${props.original.recipients_col2['type']}/${props.original.recipients_col2['memberId']}`}
               className=""
             >
               {props.original.recipients_col2['name']}
@@ -391,7 +392,7 @@ export class SmsCampaignsList extends Component {
             <div />
           ) : (
             <NavLink
-              to={`/Member/${props.original.recipients_col3['memberId']}`}
+              to={`/${props.original.recipients_col3['type']}/${props.original.recipients_col3['memberId']}`}
               className=""
             >
               {props.original.recipients_col3['name']}
@@ -407,7 +408,7 @@ export class SmsCampaignsList extends Component {
             <div />
           ) : (
             <NavLink
-              to={`/Member/${props.original.recipients_col4['memberId']}`}
+              to={`/${props.original.recipients_col4['type']}/${props.original.recipients_col4['memberId']}`}
               className=""
             >
               {props.original.recipients_col4['name']}
@@ -423,7 +424,7 @@ export class SmsCampaignsList extends Component {
             <div />
           ) : (
             <NavLink
-              to={`/Member/${props.original.recipients_col5['memberId']}`}
+              to={`/${props.original.recipients_col5['type']}/${props.original.recipients_col5['memberId']}`}
               className=""
             >
               {props.original.recipients_col5['name']}
@@ -457,6 +458,16 @@ export class SmsCampaignsList extends Component {
                   member.values['First Name'] +
                   ' ' +
                   member.values['Last Name'];
+                value['type'] = 'Member';
+                return;
+              }
+            });
+            this.props.allLeads.forEach(lead => {
+              if (value['memberId'] === lead.id) {
+                value['memberId'] = lead.id;
+                value['name'] =
+                  lead.values['First Name'] + ' ' + lead.values['Last Name'];
+                value['type'] = 'LeadDetail';
                 return;
               }
             });
@@ -469,6 +480,16 @@ export class SmsCampaignsList extends Component {
                   member.values['First Name'] +
                   ' ' +
                   member.values['Last Name'];
+                value['type'] = 'Member';
+                return;
+              }
+            });
+            this.props.allLeads.forEach(lead => {
+              if (value['memberId'] === lead.id) {
+                value['memberId'] = lead.id;
+                value['name'] =
+                  lead.values['First Name'] + ' ' + lead.values['Last Name'];
+                value['type'] = 'LeadDetail';
                 return;
               }
             });
@@ -481,6 +502,16 @@ export class SmsCampaignsList extends Component {
                   member.values['First Name'] +
                   ' ' +
                   member.values['Last Name'];
+                value['type'] = 'Member';
+                return;
+              }
+            });
+            this.props.allLeads.forEach(lead => {
+              if (value['memberId'] === lead.id) {
+                value['memberId'] = lead.id;
+                value['name'] =
+                  lead.values['First Name'] + ' ' + lead.values['Last Name'];
+                value['type'] = 'LeadDetail';
                 return;
               }
             });
@@ -493,6 +524,16 @@ export class SmsCampaignsList extends Component {
                   member.values['First Name'] +
                   ' ' +
                   member.values['Last Name'];
+                value['type'] = 'Member';
+                return;
+              }
+            });
+            this.props.allLeads.forEach(lead => {
+              if (value['memberId'] === lead.id) {
+                value['memberId'] = lead.id;
+                value['name'] =
+                  lead.values['First Name'] + ' ' + lead.values['Last Name'];
+                value['type'] = 'LeadDetail';
                 return;
               }
             });
@@ -505,6 +546,16 @@ export class SmsCampaignsList extends Component {
                   member.values['First Name'] +
                   ' ' +
                   member.values['Last Name'];
+                value['type'] = 'Member';
+                return;
+              }
+            });
+            this.props.allLeads.forEach(lead => {
+              if (value['memberId'] === lead.id) {
+                value['memberId'] = lead.id;
+                value['name'] =
+                  lead.values['First Name'] + ' ' + lead.values['Last Name'];
+                value['type'] = 'LeadDetail';
                 return;
               }
             });
@@ -565,6 +616,15 @@ export class SmsCampaignsList extends Component {
         }
       });
     });
+    this.props.allLeads.forEach(lead => {
+      JSON.parse(row['recipients']).forEach(recipient => {
+        if (recipient === lead['id']) {
+          //members.push(member.values['Member ID']);
+          members += lead['id'] + ', ';
+        }
+      });
+    });
+
     let recipients_col1 = this.getRecipients(members, 1);
     let recipients_col2 = this.getRecipients(members, 2);
     let recipients_col3 = this.getRecipients(members, 3);
@@ -762,18 +822,55 @@ export class IndividualSmsList extends Component {
 export class CreateCampaign extends Component {
   render() {
     return (
-      <div className="">
-        <div className="row">
-          <div className="col-md-2">
-            <NavLink to={`/NewEmailCampaign`} className="btn btn-primary">
-              Email Send
-            </NavLink>
+      <div className="options">
+        <div className="memberOptions">
+          <h4 className="title">Members</h4>
+          <div className="row">
+            <div className="col-md-2">
+              <NavLink
+                to={`/NewEmailCampaign/member`}
+                className="btn btn-primary"
+              >
+                Email Send
+              </NavLink>
+            </div>
+            <div className="col-md-1">OR</div>
+            <div className="col-md-2">
+              <NavLink
+                to={`/NewSmsCampaign/member`}
+                className="btn btn-primary"
+              >
+                SMS Send
+              </NavLink>
+            </div>
           </div>
-          <div className="col-md-1">OR</div>
-          <div className="col-md-2">
-            <NavLink to={`/NewSmsCampaign`} className="btn btn-primary">
-              SMS Send
-            </NavLink>
+        </div>
+        <div className="leadOptions">
+          <h4 className="title">Leads</h4>
+          <div className="row">
+            <div className="col-md-2">
+              <NavLink
+                to={`/NewEmailCampaign/lead`}
+                disabled={
+                  this.props.allLeads.length === 0 && !this.props.leadsLoading
+                }
+                className="btn btn-primary"
+              >
+                Email Send
+              </NavLink>
+            </div>
+            <div className="col-md-1">OR</div>
+            <div className="col-md-2">
+              <NavLink
+                to={`/NewSmsCampaign/lead`}
+                disabled={
+                  this.props.allLeads.length === 0 && !this.props.leadsLoading
+                }
+                className="btn btn-primary"
+              >
+                SMS Send
+              </NavLink>
+            </div>
           </div>
         </div>
       </div>
@@ -790,6 +887,7 @@ export const CampaignView = ({
   smsCampaignLoading,
   allMembers,
   allLeads,
+  leadsLoading,
   individualSMS,
   individualSMSLoading,
   getIndividualSMS,
@@ -802,7 +900,7 @@ export const CampaignView = ({
       <StatusMessagesContainer />
       <div className="">
         <div className="leadContents">
-          <CreateCampaign />
+          <CreateCampaign allLeads={allLeads} leadsLoading={leadsLoading} />
         </div>
         <div className="taskContents">
           <EmailCampaignsList
@@ -817,6 +915,7 @@ export const CampaignView = ({
             fetchSmsCampaigns={fetchSmsCampaigns}
             setSmsCampaigns={setSmsCampaigns}
             allMembers={allMembers}
+            allLeads={allLeads}
           />
         </div>
         <div className="taskContents">

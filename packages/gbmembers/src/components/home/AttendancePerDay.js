@@ -16,6 +16,7 @@ import ReactTable from 'react-table';
 import { KappNavLink as NavLink } from 'common';
 import crossIcon from '../../images/cross.svg?raw';
 import SVGInline from 'react-svg-inline';
+import { actions as classActions } from '../../redux/modules/classes';
 
 const chartLabels = {
   this_week: 'This Week',
@@ -40,11 +41,44 @@ export class AttendancePerDay extends Component {
     let toDate = this.props.toDate;
     let attendances = this.props.attendancesByDate;
     let data = this.getData(attendances, this.props.allMembers);
-    this.membersOnClick = this.membersOnClick.bind(this);
+    this.attendanceOnClick = this.attendanceOnClick.bind(this);
     this.renderAttendancesCustomizedLabel = this.renderAttendancesCustomizedLabel.bind(
       this,
     );
+    this.classInfo = this.classInfo.bind(this);
     this._getMemberColumns = this.getMemberColumns();
+    this.classColumns = [
+      { Header: 'Class Time', accessor: 'classTime' },
+      {
+        Header: 'Program',
+        accessor: 'program',
+        width: 400,
+        Cell: props => {
+          return (
+            <span>
+              {props.original['program']}
+              {props.original['title'] !== ''
+                ? '-' + props.original['title']
+                : ''}
+            </span>
+          );
+        },
+      },
+    ];
+    this.membersColumns = [
+      {
+        Header: 'Name',
+        accessor: 'memberID',
+        Cell: this.renderNameCell,
+        Footer: info => {
+          return (
+            <span>
+              <strong>Total: {info.data.length}</strong>
+            </span>
+          );
+        },
+      },
+    ];
 
     this.state = {
       data: data,
@@ -52,10 +86,16 @@ export class AttendancePerDay extends Component {
       fromDate: fromDate,
       toDate: toDate,
       chartLabel: 'This Week',
-      showMembers: false,
+      showAttendances: false,
+      attendanceClasses: [],
+      expandedRows: [],
+      classSchedules: [],
     };
   }
   componentWillReceiveProps(nextProps) {
+    if (nextProps.classSchedules) {
+      this.classSchedules = nextProps.classSchedules;
+    }
     if (nextProps.attendancesByDate) {
       this.setState({
         data: this.getData(nextProps.attendancesByDate, this.props.allMembers),
@@ -85,8 +125,72 @@ export class AttendancePerDay extends Component {
       fromDate: this.state.fromDate,
       toDate: this.state.toDate,
     });
+    this.props.fetchClassSchedules();
   }
-
+  getProgramBackgroundColor(program) {
+    if (program === 'GB1') {
+      return '#4472c4';
+    } else if (program === 'GB2') {
+      return '#7030a0';
+    } else if (program === 'GB3') {
+      return 'black';
+    } else if (program === 'Tiny Champions') {
+      return '#bdd7ee';
+    } else if (program === 'Little Champions 1') {
+      return '#ffc001';
+    } else if (program === 'Little Champions 2') {
+      return '#ed7d32';
+    } else if (program === 'Juniors') {
+      return '#a9d18d';
+    } else if (program === 'Teens') {
+      return '#70ad46';
+    } else if (program === 'Advanced Kids') {
+      return '#48d1cc';
+    } else if (program === 'Kids Competition Team') {
+      return '#D0021B';
+    } else {
+      return 'white';
+    }
+  }
+  getClassBackgroundColor(classInfo, classSchedules) {
+    var schedule = classSchedules.find(schedule => {
+      return (
+        schedule.program === classInfo.program &&
+        moment(schedule.start).day() ===
+          moment(classInfo.classDate, 'YYYY-MM-DD').day() &&
+        moment(schedule.start).format('HH:mm') === classInfo.classTime
+      );
+    });
+    return schedule !== undefined && schedule.colour !== undefined
+      ? schedule.colour
+      : this.getProgramBackgroundColor(classInfo.program);
+  }
+  getClassColor(classInfo, classSchedules) {
+    var schedule = classSchedules.find(
+      schedule =>
+        schedule.program === classInfo.program &&
+        moment(schedule.start).day() ===
+          moment(classInfo.classDate, 'ddd Do MMM').day() &&
+        moment(schedule.start).format('LT') === classInfo.classTime,
+    );
+    return schedule !== undefined && schedule.textColour !== undefined
+      ? schedule.textColour
+      : 'white';
+  }
+  classInfo(state, rowInfo, column) {
+    if (rowInfo === undefined) {
+      return {};
+    }
+    return {
+      style: {
+        background: this.getClassBackgroundColor(
+          rowInfo.original,
+          this.classSchedules,
+        ),
+        color: this.getClassColor(rowInfo.original, this.classSchedules),
+      },
+    };
+  }
   getData(attendances, allMembers) {
     if (!attendances || attendances.size <= 0) {
       return [];
@@ -109,6 +213,22 @@ export class AttendancePerDay extends Component {
         default:
           type = 'Kids';
       }
+      var dayAttendances =
+        attendanceByType.get(attendance.values['Class Date']) === undefined
+          ? []
+          : attendanceByType.get(attendance.values['Class Date'])[
+              'attendances'
+            ];
+      dayAttendances.push({
+        attendanceStatus: attendance.values['Attendance Status'],
+        class: attendance.values['Class'],
+        classDate: attendance.values['Class Date'],
+        classTime: attendance.values['Class Time'],
+        memberGUID: attendance.values['Member GUID'],
+        memberID: attendance.values['Member ID'],
+        program: attendance.values['Ranking Program'],
+        belt: attendance.values['Ranking Belt'],
+      });
       var members =
         attendanceByType.get(attendance.values['Class Date']) === undefined
           ? []
@@ -147,6 +267,7 @@ export class AttendancePerDay extends Component {
         adults: adultCount,
         kids: kidCount,
         members: members,
+        attendances: dayAttendances,
       });
     });
 
@@ -157,6 +278,7 @@ export class AttendancePerDay extends Component {
         adults: attendanceInfo.adults,
         kids: attendanceInfo.kids,
         members: attendanceInfo.members,
+        attendances: attendanceInfo.attendances,
       });
     });
 
@@ -192,12 +314,27 @@ export class AttendancePerDay extends Component {
   toolTipLabelFormatter(label) {
     return 'Date: ' + label;
   }
-  membersOnClick(e) {
-    console.log(e.members.length);
+  attendanceOnClick(e) {
+    console.log(e.attendances.length);
     this.setState({
-      members: e.members,
-      showMembers: true,
+      attendances: e.attendances,
+      showAttendances: true,
+      attendanceClasses: this.getAttendanceTableData(
+        e.attendances,
+        this.props.allMembers,
+        this.props.classSchedules,
+      ),
     });
+  }
+  renderNameCell(cellInfo) {
+    return (
+      <NavLink
+        to={`/Member/${cellInfo.original.memberGUID}`}
+        className="nameValue"
+      >
+        {cellInfo.original.name}
+      </NavLink>
+    );
   }
   getMembers(members, col) {
     var members_col = [];
@@ -210,27 +347,89 @@ export class AttendancePerDay extends Component {
       };
       //}
     }
-
     return members_col;
   }
-
-  getMemberTableData(members) {
-    let members_col1 = this.getMembers(members, 1);
-    let members_col2 = this.getMembers(members, 2);
-    let members_col3 = this.getMembers(members, 3);
-    let members_col4 = this.getMembers(members, 4);
-
-    return [
-      {
-        members: {
-          members_col1: members_col1,
-          members_col2: members_col2,
-          members_col3: members_col3,
-          members_col4: members_col4,
-        },
-      },
-    ];
+  getProgramTitle(classSchedules, attendance) {
+    let classSchedule = classSchedules.find(schedule => {
+      return (
+        moment(schedule.start).day() ===
+          moment(attendance.classDate, 'YYYY-MM-DD').day() &&
+        moment(schedule.start).format('HH:mm') === attendance.classTime &&
+        schedule.program === attendance.class
+      );
+    });
+    return classSchedule !== undefined ? classSchedule.title : '';
   }
+  getAttendanceTableData(attendances, allMembers, classSchedules) {
+    if (!attendances || attendances.length < 0) {
+      return [];
+    }
+
+    let classesDataMap = new Map();
+    attendances.forEach(attendance => {
+      var key = attendance.classTime + '-' + attendance.program;
+      var membersArr = [];
+      var member = allMembers.find(
+        member => member.values['Member ID'] === attendance.memberID,
+      );
+      if (classesDataMap.get(key) === undefined) {
+        membersArr[0] = {
+          memberGUID: attendance.memberGUID,
+          memberID: attendance.memberID,
+          name:
+            member !== undefined
+              ? member.values['First Name'] + ' ' + member.values['Last Name']
+              : attendance.memberID,
+        };
+        classesDataMap.set(key, {
+          sortVal: key,
+          classDate: attendance.classDate,
+          classTime: attendance.classTime,
+          program: attendance.program,
+          title: this.getProgramTitle(classSchedules, attendance),
+          members: membersArr,
+        });
+      } else {
+        membersArr = classesDataMap.get(key).members;
+        membersArr[membersArr.length] = {
+          memberGUID: attendance.memberGUID,
+          memberID: attendance.memberID,
+          name:
+            member !== undefined
+              ? member.values['First Name'] + ' ' + member.values['Last Name']
+              : attendance.memberID,
+        };
+        classesDataMap.set(key, {
+          sortVal: key,
+          classDate: attendance.classDate,
+          classTime: attendance.classTime,
+          program: attendance.program,
+          title: this.getProgramTitle(classSchedules, attendance),
+          members: membersArr,
+        });
+      }
+    });
+    let classesData = [];
+    classesDataMap.forEach((value, key, map) => {
+      classesData.push({
+        classDate: value.classDate,
+        classTime: value.classTime,
+        program: value.program,
+        title: value.title,
+        members: value.members,
+      });
+    });
+    classesData = classesData.sort(function(a, b) {
+      return a['sortVal'] > b['sortVal']
+        ? 1
+        : b['sortVal'] > a['sortVal']
+        ? -1
+        : 0;
+    });
+
+    return classesData;
+  }
+
   getMemberColumns = () => {
     return [
       {
@@ -307,45 +506,6 @@ export class AttendancePerDay extends Component {
       },
     ];
   };
-  getMemberTableColumns(row) {
-    return [
-      {
-        accessor: 'members',
-        Header: 'Members',
-        headerClassName: 'members_col',
-        className: 'members_col',
-        style: { whiteSpace: 'unset' },
-        maxWidth: '100%',
-        Cell: props => {
-          let members_col1 = props.value.members_col1;
-          let members_col2 = props.value.members_col2;
-          let members_col3 = props.value.members_col3;
-          let members_col4 = props.value.members_col4;
-
-          let members = [];
-          for (var i = 0; i < members_col1.length; i++) {
-            members[members.length] = {
-              members_col1: members_col1[i],
-              members_col2:
-                members_col2.length > i ? members_col2[i] : undefined,
-              members_col3:
-                members_col3.length > i ? members_col3[i] : undefined,
-              members_col4:
-                members_col4.length > i ? members_col4[i] : undefined,
-            };
-          }
-          return (
-            <ReactTable
-              columns={this._getMemberColumns}
-              pageSize={members_col1.length > 20 ? 20 : members_col1.length}
-              showPagination={members_col1.length > 20 ? true : false}
-              data={members}
-            />
-          );
-        },
-      },
-    ];
-  }
   render() {
     const { data } = this.state;
     return this.props.fetchingAttendancesByDate ? (
@@ -359,27 +519,71 @@ export class AttendancePerDay extends Component {
             <span className="label">Attendances</span>
           </span>
         </div>
-        {this.state.showMembers && (
+        {this.state.showAttendances && (
           <div className="memberChartDetails">
             <span
               className="closeMembers"
               onClick={e =>
                 this.setState({
-                  showMembers: false,
+                  showAttendances: false,
+                  expandedRows: [],
                 })
               }
             >
               <SVGInline svg={crossIcon} className="icon" />
             </span>
             <ReactTable
-              columns={this.getMemberTableColumns()}
-              data={this.getMemberTableData(this.state.members)}
-              defaultPageSize={1}
+              columns={this.classColumns}
+              data={this.state.attendanceClasses}
+              defaultPageSize={
+                this.state.attendanceClasses.length > 0
+                  ? this.state.attendanceClasses.length
+                  : 2
+              }
+              pageSize={
+                this.state.attendanceClasses.length > 0
+                  ? this.state.attendanceClasses.length
+                  : 2
+              }
               showPagination={false}
+              expanded={this.state.expandedRows}
+              getTrProps={this.classInfo}
+              onExpandedChange={(newExpanded, index) => {
+                this.setState(oldState => {
+                  const itemIndex = index[0];
+                  const isExpanded = oldState.expandedRows[itemIndex];
+                  const expandedList = [...this.state.expandedRows];
+                  expandedList[itemIndex] = !isExpanded;
+                  return {
+                    expandedRows: expandedList,
+                  };
+                });
+              }}
+              ref={ref => (this.attendancesGridref = ref)}
+              SubComponent={row => {
+                return (
+                  <ReactTable
+                    data={row.original.members}
+                    columns={this.membersColumns}
+                    TheadComponent={() => null}
+                    defaultPageSize={
+                      row.original.members.length > 0
+                        ? row.original.members.length
+                        : 2
+                    }
+                    pageSize={
+                      row.original.members.length > 0
+                        ? row.original.members.length
+                        : 2
+                    }
+                    showPagination={false}
+                  />
+                );
+              }}
             />
           </div>
         )}
-        {!this.state.showMembers && (
+        {!this.state.showAttendances && (
           <div className="attendancesByDate">
             <ResponsiveContainer minHeight={370}>
               <BarChart
@@ -400,7 +604,7 @@ export class AttendancePerDay extends Component {
                   dataKey="adults"
                   fill="#0070c0"
                   style={{ cursor: 'pointer' }}
-                  onClick={this.membersOnClick}
+                  onClick={this.attendanceOnClick}
                 >
                   <LabelList
                     dataKey="adults"
@@ -411,7 +615,7 @@ export class AttendancePerDay extends Component {
                   dataKey="kids"
                   fill="#92d050"
                   style={{ cursor: 'pointer' }}
-                  onClick={this.membersOnClick}
+                  onClick={this.attendanceOnClick}
                 >
                   <LabelList
                     dataKey="kids"

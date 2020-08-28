@@ -36,7 +36,7 @@ export class EmailsReceived extends Component {
         Cell: row => (
           <NavLink
             className="replyIcon"
-            to={`/NewEmailCampaign/${row.original['User ID']}/${row.original['User Type']}/activity/${row.original['Activity ID']}`}
+            to={`/NewEmailCampaign/${row.original['User Type']}/${row.original['User ID']}/activity/${row.original['Activity ID']}`}
           >
             <img src={mail} alt="Email" />
           </NavLink>

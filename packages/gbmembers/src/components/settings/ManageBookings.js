@@ -18,7 +18,11 @@ export class ManageBookings extends Component {
     super(props);
     this.getGridData = this.getGridData.bind(this);
     this.rawClassBookings = this.props.classBookings;
-    this.classBookings = this.getGridData(this.rawClassBookings);
+    this.classSchedules = this.props.classSchedules;
+    this.classBookings = this.getGridData(
+      this.rawClassBookings,
+      this.classSchedules,
+    );
     this.deleteBooking = this.props.deleteBooking.bind(this);
     this.updateBooking = this.props.updateBooking.bind(this);
     this.addBooking = this.props.addBooking.bind(this);
@@ -26,11 +30,21 @@ export class ManageBookings extends Component {
     this.valid = this.valid.bind(this);
     this.classInfo = this.classInfo.bind(this);
     this.space = this.props.space;
-    this.classSchedules = this.props.classSchedules;
     this.columns = [
       { Header: 'Class Date', accessor: 'classDate', width: 150 },
       { Header: 'Class Time', accessor: 'classTime' },
-      { Header: 'Program', accessor: 'program', width: 400 },
+      {
+        Header: 'Program',
+        accessor: 'program',
+        width: 400,
+        Cell: props => {
+          return (
+            <span>
+              {props.original['program']}-{props.original['title']}
+            </span>
+          );
+        },
+      },
     ];
     this.bookingColumns = [
       {
@@ -138,7 +152,10 @@ export class ManageBookings extends Component {
       this.rawClassBookings = this.rawClassBookings.push(
         nextProps.addedBooking,
       );
-      this.classBookings = this.getGridData(this.rawClassBookings);
+      this.classBookings = this.getGridData(
+        this.rawClassBookings,
+        this.classSchedules,
+      );
 
       var idx = this.classBookings.findIndex(element => {
         if (
@@ -170,7 +187,10 @@ export class ManageBookings extends Component {
       nextProps.classBookings.length !== this.classBookings.length
     ) {
       this.rawClassBookings = nextProps.classBookings;
-      this.classBookings = this.getGridData(this.rawClassBookings);
+      this.classBookings = this.getGridData(
+        this.rawClassBookings,
+        this.classSchedules,
+      );
     }
   }
   componentWillUnmount() {}
@@ -224,6 +244,7 @@ export class ManageBookings extends Component {
         id: booking['id'],
         status: booking.status,
         program: booking.program,
+        title: booking.title,
         classDate: moment(booking.classDate).format('ddd Do MMM'),
         classTime: moment(booking.classDate + ' ' + booking.classTime).format(
           'LT',
@@ -264,7 +285,7 @@ export class ManageBookings extends Component {
       });
     }
   }
-  getGridData(bookings, memberGUID) {
+  getGridData(bookings, classSchedules, memberGUID) {
     if (!bookings || bookings.length < 0) {
       return [];
     }
@@ -282,9 +303,18 @@ export class ManageBookings extends Component {
     });
     let bookingsData = [];
     bookingsDataMap.forEach((value, key, map) => {
+      let classSchedule = classSchedules.find(schedule => {
+        return (
+          moment(schedule.start).day() ===
+            moment(value.classDate, 'ddd Do MMM').day() &&
+          moment(schedule.start).format('LT') === value.classTime &&
+          schedule.program === value.program
+        );
+      });
       bookingsData.push({
         sortVal: value.sortVal,
         program: value.program,
+        title: classSchedule !== undefined ? classSchedule.title : undefined,
         classDate: value.classDate,
         classTime: value.classTime,
         bookings: value.bookings,
@@ -548,12 +578,15 @@ export class ManageBookings extends Component {
                             moment(schedule.start).format('HH:mm') ===
                               this.state.classTime,
                         ),
-                        schedule => schedule.program,
+                        schedule => schedule.program + '::' + schedule.title,
                       ),
                     ),
                   ].map(program => (
-                    <option key={program} value={program}>
-                      {program}
+                    <option
+                      key={program.split('::')[0]}
+                      value={program.split('::')[0]}
+                    >
+                      {program.split('::')[0] + ' - ' + program.split('::')[1]}
                     </option>
                   ))}
                 </select>
@@ -756,6 +789,7 @@ export class ManageBookings extends Component {
                   onChange={e => {
                     this.classBookings = this.getGridData(
                       this.rawClassBookings,
+                      this.classSchedules,
                       e.value === 'CLEAR' ? undefined : e.value,
                     );
                     var rows = [];

@@ -269,5 +269,84 @@ export const matchesMemberFilter = (allMembers, filters) => {
     return match;
   });
   return members;
-  ß;
+};
+export const matchesLeadFilter = (allLeads, filters) => {
+  let leads = allLeads.filter(lead => {
+    let match = true;
+    let startDate = null,
+      endDate = null;
+
+    for (var i = 0; i < filters.length; i++) {
+      let keys = Object.keys(filters[i]);
+      if (keys[0] === 'createdDateFilter') {
+        startDate = moment(filters[i][keys[0]].startDate, 'YYYY-MM-DD');
+        endDate = moment(filters[i][keys[0]].endDate, 'YYYY-MM-DD');
+        if (
+          !moment(lead.values['Date Created'], 'YYYY-MM-DD').isBetween(
+            startDate,
+            endDate,
+          )
+        ) {
+          match = false;
+        }
+      } else if (keys[0] === 'genderFilter') {
+        if (lead.values['Gender'] !== filters[i][keys[0]].gender) {
+          match = false;
+        }
+      } else if (keys[0] === 'ageFilter') {
+        let years = moment().diff(lead.values['DOB'], 'years');
+        if (
+          !(
+            years >= filters[i][keys[0]].fromAge &&
+            years <= filters[i][keys[0]].toAge
+          )
+        ) {
+          match = false;
+        }
+      } else if (keys[0] === 'statusFilter') {
+        if ($.inArray(lead.values['Status'], filters[i][keys[0]].status) < 0) {
+          match = false;
+        }
+      } else if (keys[0] === 'programFilter') {
+        if (
+          $.inArray(
+            lead.values['Interest in Program'],
+            filters[i][keys[0]].programs,
+          ) < 0
+        ) {
+          match = false;
+        }
+      } else if (keys[0] === 'sourceReference1Filter') {
+        if (
+          lead.values['Source Reference 1'] !==
+          filters[i][keys[0]].sourceReference1
+        ) {
+          match = false;
+        }
+      } else if (keys[0] === 'sourceReference2Filter') {
+        if (
+          lead.values['Source Reference 2'] !==
+          filters[i][keys[0]].sourceReference2
+        ) {
+          match = false;
+        }
+      } else if (keys[0] === 'sourceReference3Filter') {
+        if (
+          lead.values['Source Reference 3'] !==
+          filters[i][keys[0]].sourceReference3
+        ) {
+          match = false;
+        }
+      } else if (keys[0] === 'sourceReference4Filter') {
+        if (
+          lead.values['Source Reference 4'] !==
+          filters[i][keys[0]].sourceReference4
+        ) {
+          match = false;
+        }
+      }
+    }
+    return match;
+  });
+  return leads;
 };

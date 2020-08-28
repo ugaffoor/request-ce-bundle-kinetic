@@ -15,18 +15,16 @@ import 'bootstrap/scss/bootstrap.scss';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as errorActions } from '../../redux/modules/errors';
 import { Utils } from 'common';
-import { ScheduledPaymentsBillingChart } from './ScheduledPaymentsBilling';
-import { ProcessedPaymentsBillingChart } from './ProcessedPaymentsBilling';
 import { DemographicChart } from './Demographic';
 import { ProgramsChart } from './Programs';
 import { Statistics } from './Statistics';
-import { KidsChart } from './Kids';
 import { LeadsOriginChart } from './LeadsOrigin';
 import { AttendancePerDay } from './AttendancePerDay';
 import { Finances } from './Finances';
 import { actions as leadsActions } from '../../redux/modules/leads';
 import { actions as attendanceActions } from '../../redux/modules/attendance';
 import { actions as monthlyStatisticsActions } from '../../redux/modules/monthlyStatistics';
+import { actions as classActions } from '../../redux/modules/classes';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -46,6 +44,8 @@ const mapStateToProps = state => ({
   leadsByDateLoading: state.member.leads.leadsByDateLoading,
   fetchingAttendancesByDate: state.member.attendance.fetchingAttendancesByDate,
   attendancesByDate: state.member.attendance.attendancesByDate,
+  classSchedules: state.member.classes.classSchedules,
+  fetchingClassSchedules: state.member.classes.fetchingClassSchedules,
   monthlyStatistics: state.member.monthlyStatistics.monthlyStatistics,
   monthlyStatisticsLoading:
     state.member.monthlyStatistics.monthlyStatisticsLoading,
@@ -57,6 +57,7 @@ const mapDispatchToProps = {
   fetchBillingPayments: actions.fetchBillingPayments,
   fetchLeadsByDate: leadsActions.fetchLeadsByDate,
   fetchAttendancesByDate: attendanceActions.fetchAttendancesByDate,
+  fetchClassSchedules: classActions.fetchClassSchedules,
   setBillingPayments: actions.setBillingPayments,
   fetchProcessedAndScheduledPayments:
     actions.fetchProcessedAndScheduledPayments,
@@ -85,6 +86,9 @@ export const HomeView = ({
   attendancesByDate,
   fetchAttendancesByDate,
   fetchingAttendancesByDate,
+  fetchClassSchedules,
+  classSchedules,
+  fetchingClassSchedules,
   monthlyStatistics,
   fetchMonthlyStatistics,
   fetchingMonthlyStatistics,
@@ -168,6 +172,9 @@ export const HomeView = ({
             attendancesByDate={attendancesByDate}
             fetchAttendancesByDate={fetchAttendancesByDate}
             fetchingAttendancesByDate={fetchingAttendancesByDate}
+            fetchClassSchedules={fetchClassSchedules}
+            classSchedules={classSchedules}
+            fetchingClassSchedules={fetchingClassSchedules}
             allMembers={allMembers}
           />
         </div>

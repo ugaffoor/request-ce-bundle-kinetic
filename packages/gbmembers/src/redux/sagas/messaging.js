@@ -3,6 +3,7 @@ import { CoreAPI } from 'react-kinetic-core';
 import { types, actions } from '../modules/messaging';
 import { actions as errorActions, NOTICE_TYPES } from '../modules/errors';
 import axios from 'axios';
+import moment from 'moment';
 
 export const SUBMISSION_INCLUDES =
   'details,values,attributes,form,children,children.details,children.form,children.values,form.attributes';
@@ -147,8 +148,31 @@ export function* sendBulkSms(action) {
               myThis: action.payload.myThis,
             });
           }
+          action.payload.fetchMembers();
         }
-        action.payload.fetchMembers();
+        if (action.payload.target === 'Lead') {
+          for (let i = 0; i < args.toNumbers.length; i++) {
+            if (!deliveredToMemberIds.includes(args.toNumbers[i]['id'])) {
+              continue;
+            }
+            let leadActivities = { values: {} };
+            leadActivities.values['Lead ID'] = args.toNumbers[i]['id'];
+            leadActivities.values['Type'] = 'SMS';
+            leadActivities.values['Direction'] = 'Outbound';
+            leadActivities.values['Content'] = {
+              To: args.toNumbers[i]['number'],
+              Content: action.payload.campaignItem.values['SMS Content'],
+              'Sent Date': moment()
+                .utc()
+                .format('DD-MM-YYYY hh:mm'),
+            };
+
+            action.payload.createLeadActivities({
+              leadActivities,
+              myThis: action.payload.myThis,
+            });
+          }
+        }
       }
     })
     .catch(error => {
@@ -235,12 +259,24 @@ export function* getIndividualSMS(action) {
       .eq('values[Type]', 'SMS')
       .eq('values[Direction]', 'Outbound')
       .include(['details', 'values'])
+      .startDate(
+        moment()
+          .subtract(120, 'days')
+          .toDate(),
+      )
+      .endDate(moment().toDate())
       .limit(25)
       .build();
     const LEAD_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
       .eq('values[Type]', 'SMS')
       .eq('values[Direction]', 'Outbound')
       .include(['details', 'values'])
+      .startDate(
+        moment()
+          .subtract(120, 'days')
+          .toDate(),
+      )
+      .endDate(moment().toDate())
       .limit(25)
       .build();
     const [memberActivities, leadActivities] = yield all([

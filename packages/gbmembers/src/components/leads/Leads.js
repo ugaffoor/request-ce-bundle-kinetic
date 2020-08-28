@@ -35,6 +35,7 @@ import MomentLocaleUtils, {
   formatDate,
   parseDate,
 } from 'react-day-picker/moment';
+import { matchesLeadFilter } from '../../utils/utils';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -42,6 +43,7 @@ const mapStateToProps = state => ({
   allLeads: state.member.leads.allLeads,
   allMembers: state.member.members.allMembers,
   profile: state.member.kinops.profile,
+  leadLists: state.member.app.leadLists,
 });
 
 const mapDispatchToProps = {
@@ -89,6 +91,7 @@ export class TasksDetail extends Component {
       'Todays Tasks',
     );
     this._memberTasksColumns = this.getMemberTasksColumns();
+    this.leadLists = this.props.leadLists;
 
     this.state = {
       allLeads,
@@ -97,6 +100,7 @@ export class TasksDetail extends Component {
       memberTasksData,
       leadSearchValue,
       attentionRequiredOnly,
+      filters: [],
     };
   }
 
@@ -153,7 +157,13 @@ export class TasksDetail extends Component {
       memberTasksData: memberTasksData,
     });
   }
+  onShowTasksSelectLeadsListChange(event) {
+    var list = this.leadLists.find(item => item.name === event.target.value);
 
+    this.setState({
+      filters: list !== undefined ? list.filters : [],
+    });
+  }
   sort(array, key) {
     var len = array.length;
     if (len < 2) {
@@ -603,6 +613,8 @@ export class TasksDetail extends Component {
     let tasks = this.state.tasks;
     let memberTasks = this.state.memberTasksData;
     let allLeads = this.state.allLeads;
+    let filters = this.state.filters;
+
     if (this.state.attentionRequiredOnly) {
       tasks = tasks.filter(row => {
         return row.attentionRequired === 'true' ? true : false;
@@ -612,6 +624,21 @@ export class TasksDetail extends Component {
       });
       allLeads = allLeads.filter(row => {
         return row.attentionRequired === 'true' ? true : false;
+      });
+    }
+
+    if (filters.length > 0) {
+      let filteredLeads = matchesLeadFilter(this.props.allLeads, filters);
+
+      tasks = tasks.filter(row => {
+        return filteredLeads.findIndex(lead => row._id === lead.id) !== -1
+          ? true
+          : false;
+      });
+      allLeads = allLeads.filter(row => {
+        return filteredLeads.findIndex(lead => row._id === lead.id) !== -1
+          ? true
+          : false;
       });
     }
 
@@ -648,55 +675,95 @@ export class TasksDetail extends Component {
     }
     return (
       <div>
-        <div className="row headerPanel">
-          <div className="col">
-            <div className="form-group">
-              <label htmlFor="allTasks">Show Tasks</label>
-              <select
-                id="allTasks"
-                className="form-control showTasks"
-                value={this.state.showTasksSelectValue}
-                onChange={e => this.onShowTasksSelectChange(e)}
-              >
-                <option value="Todays Tasks">Todays Tasks</option>
-                <option value="This Weeks Tasks">This Weeks Tasks</option>
-                <option value="This Months Tasks">This Months Tasks</option>
-                <option value="All Tasks">All Tasks</option>
-              </select>
+        <div className="headerPanel">
+          <div className="row">
+            <div className="col">
+              <div className="form-group">
+                <label htmlFor="allTasks">Show Tasks</label>
+                <select
+                  id="allTasks"
+                  className="form-control showTasks"
+                  value={this.state.showTasksSelectValue}
+                  onChange={e => this.onShowTasksSelectChange(e)}
+                >
+                  <option value="Todays Tasks">Todays Tasks</option>
+                  <option value="This Weeks Tasks">This Weeks Tasks</option>
+                  <option value="This Months Tasks">This Months Tasks</option>
+                  <option value="All Tasks">All Tasks</option>
+                </select>
+              </div>
             </div>
-            <div className="form-group">
-              <input
-                type="text"
-                className="form-control leadSearch"
-                id="leadSearch"
-                value={this.state.leadSearchValue}
-                placeholder="Lead Search"
-                onChange={e => {
-                  this.setState({ leadSearchValue: e.target.value });
-                }}
-              />
-              <button
-                id="attentionRequiredOnly"
-                type="button"
-                className={
-                  this.state.attentionRequiredOnly
-                    ? 'attentionRequiredOnly Active'
-                    : 'attentionRequiredOnly'
-                }
-                onClick={e => {
-                  this.setState({
-                    attentionRequiredOnly: this.state.attentionRequiredOnly
-                      ? false
-                      : true,
-                  });
-                }}
-              >
-                <SVGInline
-                  svg={attentionRequired}
-                  className={'attention icon'}
+            <div className="col">
+              <div className="form-group">
+                <label htmlFor="leadLists">Lead List Filters</label>
+                <select
+                  id="leadLists"
+                  className="form-control showTasks"
+                  onChange={e => this.onShowTasksSelectLeadsListChange(e)}
+                >
+                  <option value=""></option>
+                  {this.leadLists.map(item => (
+                    <option key={item.name} value={item.name}>
+                      {item.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="col">
+              <div className="form-group">
+                <NavLink
+                  to={`/leadLists`}
+                  className="btn btn-primary leadListButton"
+                >
+                  Lead Lists
+                </NavLink>
+              </div>
+            </div>
+          </div>
+          <div className="row">
+            <div className="col">
+              <div className="form-group">
+                <input
+                  type="text"
+                  className="form-control leadSearch"
+                  id="leadSearch"
+                  value={this.state.leadSearchValue}
+                  placeholder="Lead Search"
+                  onChange={e => {
+                    this.setState({ leadSearchValue: e.target.value });
+                  }}
                 />
-                Show Attention Required
-              </button>
+              </div>
+            </div>
+            <div className="col">
+              <div className="form-group">
+                <button
+                  id="attentionRequiredOnly"
+                  type="button"
+                  className={
+                    this.state.attentionRequiredOnly
+                      ? 'attentionRequiredOnly Active'
+                      : 'attentionRequiredOnly'
+                  }
+                  onClick={e => {
+                    this.setState({
+                      attentionRequiredOnly: this.state.attentionRequiredOnly
+                        ? false
+                        : true,
+                    });
+                  }}
+                >
+                  <SVGInline
+                    svg={attentionRequired}
+                    className={'attention icon'}
+                  />
+                  Show Attention Required
+                </button>
+              </div>
+            </div>
+            <div className="col">
+              <div className="form-group"></div>
             </div>
           </div>
         </div>
@@ -1826,6 +1893,7 @@ export const LeadsView = ({
   fetchLeads,
   allMembers,
   profile,
+  leadLists,
 }) => (
   <div className="container-fluid leads">
     <StatusMessagesContainer />
@@ -1835,6 +1903,7 @@ export const LeadsView = ({
           allLeads={allLeads}
           saveLead={saveLead}
           allMembers={allMembers}
+          leadLists={leadLists}
         />
       </div>
     </div>

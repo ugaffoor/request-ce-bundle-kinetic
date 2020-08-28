@@ -11,6 +11,9 @@ export const types = {
   ADD_MEMBERS_LIST: namespace('app', 'ADD_MEMBERS_LIST'),
   UPDATE_MEMBERS_LIST: namespace('app', 'UPDATE_MEMBERS_LIST'),
   REMOVE_MEMBERS_LIST: namespace('app', 'REMOVE_MEMBERS_LIST'),
+  ADD_LEADS_LIST: namespace('app', 'ADD_LEADS_LIST'),
+  UPDATE_LEADS_LIST: namespace('app', 'UPDATE_LEADS_LIST'),
+  REMOVE_LEADS_LIST: namespace('app', 'REMOVE_LEADS_LIST'),
   ADD_DDR_TEMPLATE: namespace('app', 'ADD_DDR_TEMPLATE'),
   REMOVE_DDR_TEMPLATE: namespace('app', 'REMOVE_DDR_TEMPLATE'),
   UPDATE_REPORT_PREFERENCES: namespace('app', 'UPDATE_REPORT_PREFERENCES'),
@@ -24,6 +27,9 @@ export const actions = {
   addMembersList: withPayload(types.ADD_MEMBERS_LIST),
   updateMembersList: withPayload(types.UPDATE_MEMBERS_LIST),
   removeMembersList: withPayload(types.REMOVE_MEMBERS_LIST),
+  addLeadsList: withPayload(types.ADD_LEADS_LIST),
+  updateLeadsList: withPayload(types.UPDATE_LEADS_LIST),
+  removeLeadsList: withPayload(types.REMOVE_LEADS_LIST),
   addDDRTemplate: withPayload(types.ADD_DDR_TEMPLATE),
   removeDDRTemplate: withPayload(types.REMOVE_DDR_TEMPLATE),
   updateReportPreferences: withPayload(types.UPDATE_REPORT_PREFERENCES),
@@ -65,6 +71,7 @@ export const State = Record({
   lastFilterPath: null,
   lastFilterName: null,
   memberLists: List(),
+  leadLists: List(),
   kapp: {},
   reportPreferences: List(),
 });
@@ -85,6 +92,21 @@ export const reducer = (state = State(), { type, payload }) => {
       }
       var memberLists = payload.profile.profileAttributes['Member Lists']
         ? List(payload.profile.profileAttributes['Member Lists'])
+        : List();
+
+      if (payload.profile.profileAttributes['Lead Lists']) {
+        for (
+          var i = 0;
+          i < payload.profile.profileAttributes['Lead Lists'].length;
+          i++
+        ) {
+          payload.profile.profileAttributes['Lead Lists'][i] = JSON.parse(
+            payload.profile.profileAttributes['Lead Lists'][i],
+          );
+        }
+      }
+      var leadLists = payload.profile.profileAttributes['Lead Lists']
+        ? List(payload.profile.profileAttributes['Lead Lists'])
         : List();
 
       var reportPreferencesArr =
@@ -127,6 +149,7 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('space', payload.space)
         .set('spaceSlug', payload.space.slug)
         .set('memberLists', memberLists)
+        .set('leadLists', leadLists)
         .set('kapp', payload.kapp)
         .set('reportPreferences', reportPreferences)
         .set('loading', false);
@@ -145,6 +168,21 @@ export const reducer = (state = State(), { type, payload }) => {
     case types.REMOVE_MEMBERS_LIST:
       return state.update('memberLists', memberLists =>
         memberLists.filter(list => list.name !== payload),
+      );
+    case types.ADD_LEADS_LIST:
+      return state.update('leadLists', leadLists =>
+        leadLists.push(payload.newList),
+      );
+    case types.UPDATE_LEADS_LIST:
+      return state.update('leadLists', leadLists =>
+        leadLists.set(
+          leadLists.findIndex(m => m['id'] === payload.updatedList['id']),
+          payload.updatedList,
+        ),
+      );
+    case types.REMOVE_LEADS_LIST:
+      return state.update('leadLists', leadLists =>
+        leadLists.filter(list => list.name !== payload),
       );
     case types.ADD_DDR_TEMPLATE:
       return state.update('ddrTemplates', ddrTemplates =>

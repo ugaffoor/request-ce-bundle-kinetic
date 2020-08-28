@@ -607,7 +607,7 @@ export const MemberView = ({
                 <div className="iconItem">
                   <SVGInline svg={emailIcon} className="icon" />
                   <span className="value">
-                    <NavLink to={`/NewEmailCampaign/${memberItem.id}/member`}>
+                    <NavLink to={`/NewEmailCampaign/member/${memberItem.id}`}>
                       {memberItem.values['Email']}
                     </NavLink>
                   </span>
@@ -668,7 +668,7 @@ export const MemberView = ({
                 </div>
                 <span className="buttons">
                   <NavLink
-                    to={`/NewEmailCampaign/${memberItem.id}/member`}
+                    to={`/NewEmailCampaign/member/${memberItem.id}`}
                     className="btn btn-primary"
                   >
                     Send Email

@@ -42,6 +42,7 @@ import attentionRequired from '../../images/flag.svg?raw';
 import SVGInline from 'react-svg-inline';
 import binIcon from '../../images/bin.svg?raw';
 import { confirm } from '../helpers/Confirmation';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const mapStateToProps = state => ({
   profile: state.app.profile,
@@ -670,7 +671,7 @@ export class LeadDetail extends Component {
               </li>
               <li>
                 <NavLink
-                  to={`/NewEmailCampaign/${this.props.leadItem['id']}/lead`}
+                  to={`/NewEmailCampaign/lead/${this.props.leadItem['id']}`}
                   className="btn btn-primary"
                 >
                   Send Email
@@ -897,7 +898,7 @@ export const LeadDetailContainer = compose(
             ' - ' +
             convertContactType(newHistory.contactMethod),
           description: newHistory['note'],
-          location: 'Gym',
+          location: getAttributeValue(space, 'School Address'),
           attendeeEmail: leadItem.values['Email'],
           timeZone:
             profile.timezone !== null && profile.timezone !== ''

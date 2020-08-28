@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { compose, lifecycle, withHandlers, withProps } from 'recompose';
-import { actions } from '../../redux/modules/members';
+import { actions } from '../../redux/modules/leads';
 import $ from 'jquery';
 import 'bootstrap/scss/bootstrap.scss';
 import ReactTable from 'react-table';
@@ -10,48 +10,48 @@ import { KappNavLink as NavLink } from 'common';
 import { Confirm } from 'react-confirm-bootstrap';
 import { StatusMessagesContainer } from '../StatusMessages';
 import moment from 'moment';
-import { matchesMemberFilter } from '../../utils/utils';
+import { matchesLeadFilter } from '../../utils/utils';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
-  allMembers: state.member.members.allMembers,
-  memberLists: state.member.app.memberLists,
+  allLeads: state.member.leads.allLeads,
+  leadLists: state.member.app.leadLists,
 });
 
 const mapDispatchToProps = {
-  fetchMembers: actions.fetchMembers,
-  addMembersList: appActions.addMembersList,
-  removeMembersList: appActions.removeMembersList,
+  fetchLeads: actions.fetchLeads,
+  addLeadsList: appActions.addLeadsList,
+  removeLeadsList: appActions.removeLeadsList,
 };
 
 export const ListView = ({
-  allMembers,
-  memberLists,
+  allLeads,
+  leadLists,
   addNewList,
-  deleteMembersList,
+  deleteLeadsList,
 }) => (
   <div>
     <StatusMessagesContainer />
     <ListHome
-      allMembers={allMembers}
-      memberLists={memberLists}
+      allLeads={allLeads}
+      leadLists={leadLists}
       addNewList={addNewList}
-      deleteMembersList={deleteMembersList}
+      deleteLeadsList={deleteLeadsList}
     />
   </div>
 );
 
-export const ListContainer = compose(
+export const LeadListContainer = compose(
   connect(mapStateToProps, mapDispatchToProps),
   withProps(() => {
     return {};
   }),
   withHandlers({
-    addNewList: ({ addMembersList }) => newList => {
-      addMembersList({ newList });
+    addNewList: ({ addLeadsList }) => newList => {
+      addLeadsList({ newList });
     },
-    deleteMembersList: ({ removeMembersList }) => listName => {
-      removeMembersList(listName);
+    deleteLeadsList: ({ removeLeadsList }) => listName => {
+      removeLeadsList(listName);
     },
   }),
   lifecycle({
@@ -64,47 +64,41 @@ export const ListContainer = compose(
 export class ListHome extends Component {
   constructor(props) {
     super(props);
-    this.showMembers = this.showMembers.bind(this);
+    this.showLeads = this.showLeads.bind(this);
     this._listColumns = this.getListColumns();
-    let listData = this.getListData(
-      this.props.allMembers,
-      this.props.memberLists,
-    );
-    this.allMembers = this.props.allMembers;
+    let listData = this.getListData(this.props.allLeads, this.props.leadLists);
+    this.allLeads = this.props.allLeads;
 
     this.state = {
       listData: listData,
-      listMembersData: [],
+      listLeadsData: [],
       selected: null,
       selectedList: null,
     };
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.memberLists) {
+    if (nextProps.leadLists) {
       this.setState({
-        listData: this.getListData(
-          this.props.allMembers,
-          nextProps.memberLists,
-        ),
+        listData: this.getListData(this.props.allLeads, nextProps.leadLists),
       });
     }
   }
 
   getListColumns = () => {
-    return [{ accessor: 'name', Header: 'Member List Name' }];
+    return [{ accessor: 'name', Header: 'Lead List Name' }];
   };
 
-  getListData(allMembers, memberLists) {
-    if (!memberLists) {
+  getListData(allLeads, leadLists) {
+    if (!leadLists) {
       return [];
     }
 
     let data = [];
-    memberLists.forEach(list => {
+    leadLists.forEach(list => {
       data.push({
         name: list.name,
-        members: allMembers,
+        leads: allLeads,
         filters: list.filters,
       });
     });
@@ -112,11 +106,11 @@ export class ListHome extends Component {
     return data;
   }
 
-  getListMembersData(filters) {
-    let members = matchesMemberFilter(this.props.allMembers, filters);
+  getlistLeadsData(filters) {
+    let leads = matchesLeadFilter(this.props.allLeads, filters);
 
     let data = [];
-    members.forEach(member => {
+    leads.forEach(member => {
       data.push({
         _id: member['id'],
         ...member.values,
@@ -126,11 +120,11 @@ export class ListHome extends Component {
     return data;
   }
 
-  showMembers(state, rowInfo, column) {
+  showLeads(state, rowInfo, column) {
     return {
       onClick: (e, handleOriginal) => {
         this.setState({
-          listMembersData: this.getListMembersData(rowInfo.original.filters),
+          listLeadsData: this.getlistLeadsData(rowInfo.original.filters),
           selected: rowInfo.index,
           selectedList: rowInfo.original.name,
         });
@@ -154,18 +148,18 @@ export class ListHome extends Component {
   }
 
   removeList(name) {
-    this.props.deleteMembersList(name);
+    this.props.deleteLeadsList(name);
     this.setState({
       selected: null,
       selectedList: null,
-      listMembersData: [],
+      listLeadsData: [],
     });
   }
 
   render() {
     let selectedList = this.state.selectedList;
     return (
-      <div className="container-fluid memberLists">
+      <div className="container-fluid leadLists">
         <div className="row">
           <div
             className="col-md-3"
@@ -181,19 +175,19 @@ export class ListHome extends Component {
               defaultPageSize={this.state.listData.length}
               pageSize={this.state.listData.length}
               showPagination={false}
-              getTrProps={this.showMembers}
+              getTrProps={this.showLeads}
             />
           </div>
           <div className="col-md-9">
             <div className="row">
               <div className="col">
                 <div className="form-group">
-                  <NavLink to={`/NewList`} className="btn btn-primary">
-                    Create New Member List
+                  <NavLink to={`/NewLeadList`} className="btn btn-primary">
+                    Create New Lead List
                   </NavLink>
                   {this.state.selectedList && (
                     <NavLink
-                      to={`/ListEdit/${selectedList}`}
+                      to={`/LeadListEdit/${selectedList}`}
                       className="btn btn-primary"
                     >
                       Edit Selected List
@@ -223,12 +217,12 @@ export class ListHome extends Component {
                 <ReactTable
                   columns={[
                     {
-                      accessor: 'Member ID',
-                      Header: 'Member Id',
+                      accessor: 'First Name',
+                      Header: 'Name',
                       Cell: props => {
                         return (
                           <NavLink
-                            to={`/Member/${props.original._id}`}
+                            to={`/LeadDetail/${props.original._id}`}
                             className=""
                           >
                             {props.original['First Name']}{' '}
@@ -239,26 +233,21 @@ export class ListHome extends Component {
                       Footer: (
                         <span>
                           <strong>Total: </strong>
-                          {this.state.listMembersData.length}
+                          {this.state.listLeadsData.length}
                         </span>
                       ),
                     },
+                    { accessor: 'Status', Header: 'Status' },
                     { accessor: 'Gender', Header: 'Gender' },
-                    { accessor: 'Member Type', Header: 'Member Type' },
-                    { accessor: 'Ranking Program', Header: 'Program' },
-                    { accessor: 'Ranking Belt', Header: 'Belt' },
-                    {
-                      accessor: 'Additional Program 1',
-                      Header: 'Additional Program 1',
-                    },
-                    {
-                      accessor: 'Additional Program 2',
-                      Header: 'Additional Program 2',
-                    },
+                    { accessor: 'Interesting in Program', Header: 'Program' },
+                    { accessor: 'Source Reference 1', Header: 'Source 1' },
+                    { accessor: 'Source Reference 2', Header: 'Source 2' },
+                    { accessor: 'Source Reference 3', Header: 'Source 3' },
+                    { accessor: 'Source Reference 4', Header: 'Source 4' },
                   ]}
-                  data={this.state.listMembersData}
-                  defaultPageSize={this.state.listMembersData.length}
-                  pageSize={this.state.listMembersData.length}
+                  data={this.state.listLeadsData}
+                  defaultPageSize={this.state.listLeadsData.length}
+                  pageSize={this.state.listLeadsData.length}
                   showPagination={false}
                 />
               </div>

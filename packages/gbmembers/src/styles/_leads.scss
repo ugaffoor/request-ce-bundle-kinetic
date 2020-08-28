@@ -50,6 +50,9 @@
       .col {
         margin-top: 8px;
       }
+      .leadListButton {
+        margin-top: 40px;
+      }
     }
     .form-group {
       label {
@@ -57,9 +60,6 @@
       }
       .showTasks {
         width: 100%;
-        @media (min-width: 544px) {
-          width: 50%;
-        }
       }
     }
   }
@@ -67,7 +67,7 @@
     background-color: #f7f7f7;
     flex: 0 0 100%;
     max-width: 100%;
-    padding: 10px;
+    padding-left: 10px;
     @media (min-width: 544px) {
     }
     .row {
@@ -460,7 +460,6 @@ div.react-grid-Row div.react-grid-Cell:nth-of-type(5){
 }
 input#leadSearch {
   float: left;
-  width: 50%;
 }
 button#attentionRequiredOnly {
   cursor: pointer;

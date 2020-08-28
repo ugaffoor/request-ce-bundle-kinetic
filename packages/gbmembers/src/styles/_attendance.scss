@@ -26,6 +26,9 @@
   .ReactTable {
     overflow: auto;
     height: 100%;
+    .rt-expander:after {
+      border-top: 7px solid white;
+    }
   }
   .rt-th.members_col.rt-resizable-header.-cursor-pointer {
     border-radius: 0;

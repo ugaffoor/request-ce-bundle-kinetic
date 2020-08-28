@@ -1709,19 +1709,20 @@ export function* promoteMember(action) {
       Belt: action.payload.memberItem.values['Ranking Belt'],
       PromotionDate: action.payload.memberItem.values['Last Promotion'],
       Notes: action.payload.notes,
+      Submitter: action.payload.submitter,
     };
 
     action.payload.createMemberActivities({
       memberActivities,
       id: action.payload.memberItem['id'],
       myThis: action.payload.myThis,
-      fetchMember: action.payload.fetchMember,
+      //      fetchMember: action.payload.fetchMember,
     });
     action.payload.updateMember({
       id: action.payload.memberItem['id'],
       memberItem: action.payload.memberItem,
     });
-    memberActivities.values['Content']['Submitter'] = action.payload.submitter;
+    //    memberActivities.values['Content']['Submitter'] = action.payload.submitter;
     action.payload.memberItem.promotionContent.splice(
       0,
       0,

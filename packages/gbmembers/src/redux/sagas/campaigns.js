@@ -177,6 +177,7 @@ export function* createSmsCampaign(action) {
       phoneNumbers: action.payload.phoneNumbers,
       target: action.payload.target,
       createMemberActivities: action.payload.createMemberActivities,
+      createLeadActivities: action.payload.createLeadActivities,
       fetchMembers: action.payload.fetchMembers,
     });
     yield put(
