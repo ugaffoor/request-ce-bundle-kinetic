@@ -7,6 +7,12 @@ import { actions as memberActions } from '../../redux/modules/members';
 import $ from 'jquery';
 import 'bootstrap/scss/bootstrap.scss';
 import { KappNavLink as NavLink } from 'common';
+import phone from '../../images/phone.png';
+import mail from '../../images/mail.png';
+import in_person from '../../images/in_person.png';
+import intro_class from '../../images/intro_class.png';
+import free_class from '../../images/free_class.png';
+import attended_class from '../../images/user-check.png';
 import { getJson } from '../Member/MemberUtils';
 import download from '../../images/download.png';
 import sort1 from '../../images/sort1.png';
@@ -217,11 +223,13 @@ export class TasksDetail extends Component {
             ) ||
             moment(lead.values['Reminder Date'], date_format).isSame(today, 'd')
           ) {
+            var latestHistory = getLatestHistory(lead.values['History']);
             leads.push({
               _id: lead['id'],
               date: lead.values['Reminder Date'],
               name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
-              note: getLatestHistory(lead.values['History']).note,
+              contactMethod: latestHistory.contactMethod,
+              note: latestHistory.note,
               attentionRequired: lead.values['Is New Reply Received'],
             });
           }
@@ -247,11 +255,13 @@ export class TasksDetail extends Component {
               '[]',
             )
           ) {
+            var latestHistory = getLatestHistory(lead.values['History']);
             leads.push({
               _id: lead['id'],
               date: lead.values['Reminder Date'],
               name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
-              note: getLatestHistory(lead.values['History']).note,
+              contactMethod: latestHistory.contactMethod,
+              note: latestHistory.note,
               attentionRequired: lead.values['Is New Reply Received'],
             });
           }
@@ -277,11 +287,13 @@ export class TasksDetail extends Component {
               '[]',
             )
           ) {
+            var latestHistory = getLatestHistory(lead.values['History']);
             leads.push({
               _id: lead['id'],
               date: lead.values['Reminder Date'],
               name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
-              note: getLatestHistory(lead.values['History']).note,
+              contactMethod: latestHistory.contactMethod,
+              note: latestHistory.note,
               attentionRequired: lead.values['Is New Reply Received'],
             });
           }
@@ -290,11 +302,13 @@ export class TasksDetail extends Component {
     } else if (duration === 'All Tasks') {
       allLeads.forEach(lead => {
         if (lead.values['Reminder Date'] !== undefined) {
+          var latestHistory = getLatestHistory(lead.values['History']);
           leads[leads.length] = {
             _id: lead['id'],
             date: lead.values['Reminder Date'],
             name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
-            note: getLatestHistory(lead.values['History']).note,
+            contactMethod: latestHistory.contactMethod,
+            note: latestHistory.note,
             attentionRequired: lead.values['Is New Reply Received'],
           };
         }
@@ -302,6 +316,65 @@ export class TasksDetail extends Component {
     }
 
     return leads;
+  }
+  formatContactMethodCell(row) {
+    if (row.original.contactMethod === 'phone') {
+      return (
+        <span className="notesCell phone">
+          <img src={phone} alt="Phone Call" title="Phone Call" />
+          {moment(row.original.date, 'YYYY-MM-DD HH:mm').format(
+            'DD/MM/YYYY LT',
+          )}
+        </span>
+      );
+    } else if (row.original.contactMethod === 'email') {
+      return (
+        <span className="notesCell email">
+          <img src={mail} alt="Email" title="Phone Call" />
+          {moment(row.original.date, 'YYYY-MM-DD HH:mm').format(
+            'DD/MM/YYYY LT',
+          )}
+        </span>
+      );
+    } else if (row.original.contactMethod === 'in_person') {
+      return (
+        <span className="notesCell in-person">
+          <img src={in_person} alt="In Person" title="Phone Call" />
+          {moment(row.original.date, 'YYYY-MM-DD HH:mm').format(
+            'DD/MM/YYYY LT',
+          )}
+        </span>
+      );
+    } else if (row.original.contactMethod === 'intro_class') {
+      return (
+        <span className="notesCell intro_class">
+          <img src={intro_class} alt="Intro Class" title="Phone Call" />
+          {moment(row.original.date, 'YYYY-MM-DD HH:mm').format(
+            'DD/MM/YYYY LT',
+          )}
+        </span>
+      );
+    } else if (row.original.contactMethod === 'free_class') {
+      return (
+        <span className="notesCell free_class">
+          <img src={free_class} alt="Free Class" title="Phone Call" />
+          {moment(row.original.date, 'YYYY-MM-DD HH:mm').format(
+            'DD/MM/YYYY LT',
+          )}
+        </span>
+      );
+    } else if (row.original.contactMethod === 'attended_class') {
+      return (
+        <span className="notesCell attended_class">
+          <img src={attended_class} alt="Attended Class" title="Phone Call" />
+          {moment(row.original.date, 'YYYY-MM-DD HH:mm').format(
+            'DD/MM/YYYY LT',
+          )}
+        </span>
+      );
+    } else {
+      return <span className="notesCell"></span>;
+    }
   }
 
   getLeadColumns = () => {
@@ -337,6 +410,11 @@ export class TasksDetail extends Component {
         ),
       },
       { accessor: 'name', width: 150 },
+      {
+        accessor: 'contactMethod',
+        width: 200,
+        Cell: row => this.formatContactMethodCell(row),
+      },
       { accessor: 'note', width: 300 },
       {
         accessor: '$followup',

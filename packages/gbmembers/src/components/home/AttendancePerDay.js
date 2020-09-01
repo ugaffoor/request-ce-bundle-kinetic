@@ -349,7 +349,7 @@ export class AttendancePerDay extends Component {
     }
     return members_col;
   }
-  getProgramTitle(classSchedules, attendance) {
+  getClassSchedule(classSchedules, attendance) {
     let classSchedule = classSchedules.find(schedule => {
       return (
         moment(schedule.start).day() ===
@@ -358,7 +358,7 @@ export class AttendancePerDay extends Component {
         schedule.program === attendance.class
       );
     });
-    return classSchedule !== undefined ? classSchedule.title : '';
+    return classSchedule !== undefined ? classSchedule : undefined;
   }
   getAttendanceTableData(attendances, allMembers, classSchedules) {
     if (!attendances || attendances.length < 0) {
@@ -367,7 +367,13 @@ export class AttendancePerDay extends Component {
 
     let classesDataMap = new Map();
     attendances.forEach(attendance => {
-      var key = attendance.classTime + '-' + attendance.program;
+      var classSchedule = this.getClassSchedule(classSchedules, attendance);
+      var key =
+        attendance.classTime +
+        '-' +
+        (classSchedule !== undefined
+          ? classSchedule.program
+          : attendance.program);
       var membersArr = [];
       var member = allMembers.find(
         member => member.values['Member ID'] === attendance.memberID,
@@ -385,8 +391,11 @@ export class AttendancePerDay extends Component {
           sortVal: key,
           classDate: attendance.classDate,
           classTime: attendance.classTime,
-          program: attendance.program,
-          title: this.getProgramTitle(classSchedules, attendance),
+          program:
+            classSchedule !== undefined
+              ? classSchedule.program
+              : attendance.program,
+          title: classSchedule !== undefined ? classSchedule.title : '',
           members: membersArr,
         });
       } else {
@@ -403,8 +412,11 @@ export class AttendancePerDay extends Component {
           sortVal: key,
           classDate: attendance.classDate,
           classTime: attendance.classTime,
-          program: attendance.program,
-          title: this.getProgramTitle(classSchedules, attendance),
+          program:
+            classSchedule !== undefined
+              ? classSchedule.program
+              : attendance.program,
+          title: classSchedule !== undefined ? classSchedule.title : '',
           members: membersArr,
         });
       }
