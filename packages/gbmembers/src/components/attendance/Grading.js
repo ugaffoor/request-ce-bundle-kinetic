@@ -3,7 +3,7 @@ import { compose, withState, lifecycle } from 'recompose';
 import $ from 'jquery';
 import { connect } from 'react-redux';
 import { GradingStatus } from './GradingStatus';
-import { AttendanceIcon } from './AttendanceIcon';
+import { PromotionReviewIcon } from './PromotionReviewIcon';
 import { withHandlers } from 'recompose';
 import { getProgramSVG, getBeltSVG } from '../Member/MemberUtils';
 
@@ -17,7 +17,9 @@ const mapDispatchToProps = {};
 export class GradingDetail extends Component {
   constructor(props) {
     super(props);
-    this.setShowAttendanceDialog = this.setShowAttendanceDialog.bind(this);
+    this.setShowPromotionReviewDialog = this.setShowPromotionReviewDialog.bind(
+      this,
+    );
     let className = 'All Programs';
     let beltName = 'All Belts';
     let loadingMemberGrading = true;
@@ -29,7 +31,7 @@ export class GradingDetail extends Component {
       loadingMemberGrading,
       isDirty,
       programsGroup,
-      showAttendanceDialog: false,
+      showPromotionReviewDialog: false,
     };
   }
   setIsDirty = dirty => {
@@ -44,9 +46,9 @@ export class GradingDetail extends Component {
   handleBeltChange(e) {
     this.setState({ beltName: e.target.value });
   }
-  setShowAttendanceDialog(show) {
+  setShowPromotionReviewDialog(show) {
     this.setState({
-      showAttendanceDialog: show,
+      showPromotionReviewDialog: show,
     });
   }
   render() {
@@ -184,7 +186,12 @@ export class GradingDetail extends Component {
                         <span className="belt">
                           {getBeltSVG(member.values['Ranking Belt'])}
                         </span>
-                        <AttendanceIcon memberItem={member} />
+                        <PromotionReviewIcon
+                          memberItem={member}
+                          belts={this.props.belts}
+                          setIsDirty={this.setIsDirty}
+                          allMembers={this.props.allMembers}
+                        />
                       </span>
                     </div>
                   );
