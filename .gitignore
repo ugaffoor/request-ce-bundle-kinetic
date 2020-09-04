@@ -27,3 +27,5 @@ config.json
 # ides
 .idea
 *.ttf
+packages/tech-bar/src/assets/images/tech-bar-hero.jpg
+packages/tech-bar/src/assets/images/tech-bar-hero.jpg

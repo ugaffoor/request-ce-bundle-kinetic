@@ -4,13 +4,11 @@ export const CatalogSearch = props => (
   <form onSubmit={props.submitHandler(props)} className="search-box__form">
     <input
       type="text"
-      placeholder="Search services..."
+      placeholder="How can we help you?"
       value={props.searchTerm}
       autoFocus
       onChange={event => props.catalogSearchInput(event.target.value)}
     />
-    <button type="submit">
-      <span className="fa fa-search" />
-    </button>
+    <span className="fa fa-search" />
   </form>
 );

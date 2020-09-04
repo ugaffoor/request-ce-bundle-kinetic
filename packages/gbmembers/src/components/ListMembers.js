@@ -109,6 +109,7 @@ export class ListMembers extends React.Component {
             {
               Header: 'Name',
               id: 'id',
+              placeholder: 'Search',
               accessor: d => d.id,
               Cell: this.renderCell,
               Footer: (

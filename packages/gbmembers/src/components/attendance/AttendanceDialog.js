@@ -36,10 +36,8 @@ export class AttendanceDialog extends Component {
   };
   constructor(props) {
     super(props);
-    let fromDate = moment()
-      .subtract(1, 'month')
-      .format('YYYY-MM-YY');
-    let toDate = moment().format('YYYY-MM-YY');
+    let fromDate = moment().subtract('30', 'days');
+    let toDate = moment();
     let period = 'weekly';
     let dateRange = 'last_30_days';
     const data = this.getData(this.props.attendances, period, dateRange);
@@ -48,8 +46,8 @@ export class AttendanceDialog extends Component {
     this.toolTipLabelFormatter = this.toolTipLabelFormatter.bind(this);
     let average = 0;
     this.state = {
-      fromDate,
-      toDate,
+      fromDate: fromDate.format('YYYY-MM-DD'),
+      toDate: toDate.format('YYYY-MM-DD'),
       data,
       average,
       period,
@@ -92,7 +90,7 @@ export class AttendanceDialog extends Component {
     data.forEach((value, key) => {
       total += value['Count'];
     });
-    return (total / data.length).toFixed(2);
+    return total !== 0 ? (total / data.length).toFixed(2) : 0;
   }
 
   getData(attendances, periodParam, dateRange) {

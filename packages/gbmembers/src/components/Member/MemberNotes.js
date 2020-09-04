@@ -211,7 +211,6 @@ export class MemberNotesHome extends Component {
                     to={`/MemberFollowUp/${this.props.memberItem['id']}`}
                     className="btn btn-primary followup_button followup_image"
                     style={{
-                      backgroundColor: '#991B1E',
                       height: '45px',
                       width: '100px',
                       textAlign: 'center',
@@ -247,7 +246,7 @@ export class MemberNotesHome extends Component {
               </li>
               <li>
                 <NavLink
-                  to={`/NewEmailCampaign/${this.props.memberItem['id']}/member`}
+                  to={`/NewEmailCampaign/member/${this.props.memberItem['id']}`}
                   className="btn btn-primary"
                 >
                   Send Email
@@ -371,10 +370,7 @@ export const MemberNotesView = ({
   );
 
 export const MemberNotesContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withProps(() => {
     return {};
   }),
@@ -441,7 +437,9 @@ export const MemberNotesContainer = compose(
       }
     },
     componentDidMount() {
-      $('.content')[0].scrollIntoView(true);
+      $('.content')
+        .parent('div')[0]
+        .scrollIntoView(true);
     },
     componentWillUnmount() {},
   }),

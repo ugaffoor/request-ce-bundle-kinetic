@@ -16,10 +16,10 @@ import { Home } from './components/home/Home';
 import { Notifications } from './components/notifications/Notifications';
 import { ViewProfile } from './components/profile/ViewProfile';
 import { TeamContainer } from './components/teams/TeamContainer';
-import { TeamForm } from './components/teams/TeamForm';
 import { TeamsContainer } from './components/teams/TeamsContainer';
 import { IsolatedForm } from './components/shared/IsolatedForm';
 import { FormList } from './components/default_kapp/FormList';
+import { I18n } from '../../app/src/I18nProvider';
 import './assets/styles/master.scss';
 
 export const AppComponent = props => {
@@ -48,7 +48,7 @@ export const AppComponent = props => {
       </Switch>
     ),
     main: (
-      <Fragment>
+      <I18n>
         <Notifications />
         <main className="package-layout package-layout--space">
           <Switch>
@@ -60,9 +60,7 @@ export const AppComponent = props => {
             <Route path="/profile/:username" exact component={ViewProfile} />
             <Route path="/settings" component={Settings} />
             <Route path="/teams" exact component={TeamsContainer} />
-            <Route path="/teams/new" exact component={TeamForm} />
             <Route path="/teams/:slug" exact component={TeamContainer} />
-            <Route path="/teams/:slug/edit" exact component={TeamForm} />
             <Route path="/kapps/:kappSlug" exact component={FormList} />
             <Route
               path="/kapps/:kappSlug/forms/:formSlug"
@@ -83,9 +81,7 @@ export const AppComponent = props => {
               path="/datastore/forms/:slug/submissions/:id"
               render={({ match }) => (
                 <Redirect
-                  to={`/settings/datastore/${match.params.slug}/${
-                    match.params.id
-                  }`}
+                  to={`/settings/datastore/${match.params.slug}/${match.params.id}`}
                 />
               )}
             />
@@ -98,13 +94,8 @@ export const AppComponent = props => {
             <Route path="/reset-password" render={() => <Redirect to="/" />} />
             <Route component={ErrorNotFound} />
           </Switch>
-          <img
-            src={props.companyLogoURL}
-            alt="Company Logo"
-            className="companyLogo"
-          />
         </main>
-      </Fragment>
+      </I18n>
     ),
   });
 };
@@ -121,7 +112,6 @@ export const mapStateToProps = state => ({
   isGuest: selectors.selectIsGuest(state),
   pathname: state.router.location.pathname,
   settingsBackPath: state.space.spaceApp.settingsBackPath || '/',
-  companyLogoURL: Utils.getAttributeValue(state.app.space, 'Company Logo', ''),
 });
 const mapDispatchToProps = {
   fetchSettings: actions.fetchAppSettings,
@@ -129,10 +119,7 @@ const mapDispatchToProps = {
 };
 
 export const App = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withHandlers({
     openSettings: props => () => props.setSettingsBackPath(props.pathname),
   }),

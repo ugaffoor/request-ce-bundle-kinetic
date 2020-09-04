@@ -15,6 +15,8 @@ import { actions as leadsActions } from '../../redux/modules/leads';
 import { actions as messagingActions } from '../../redux/modules/messaging';
 import memberAvatar from '../../images/member_avatar.png';
 import { actions as errorActions } from '../../redux/modules/errors';
+import moment from 'moment';
+import { actions as dataStoreActions } from '../../redux/modules/settingsDatastore';
 
 const mapStateToProps = state => ({
   memberItem: state.member.members.currentMember,
@@ -23,6 +25,9 @@ const mapStateToProps = state => ({
   currentLeadLoading: state.member.leads.currentLeadLoading,
   smsAccountCredit: state.member.messaging.smsAccountCredit,
   smsAccountCreditLoading: state.member.messaging.smsAccountCreditLoading,
+  smsTemplateCategories: state.member.datastore.smsTemplateCategories,
+  smsTemplates: state.member.datastore.smsTemplates,
+  smsTemplatesLoading: state.member.datastore.smsTemplatesLoading,
 });
 const mapDispatchToProps = {
   fetchCurrentMember: actions.fetchCurrentMember,
@@ -36,6 +41,7 @@ const mapDispatchToProps = {
   createLeadActivities: messagingActions.createLeadActivities,
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
+  fetchSMSTemplates: dataStoreActions.fetchSMSTemplates,
 };
 
 const util = require('util');
@@ -50,6 +56,7 @@ export class SMSModal extends Component {
     this.getMessages = this.getMessages.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.sendSms = this.sendSms.bind(this);
+    this.selectSMSTemplate = this.selectSMSTemplate.bind(this);
 
     let numberOptions = [
       {
@@ -122,32 +129,91 @@ export class SMSModal extends Component {
     if (!submission.smsContent) {
       return null;
     }
-    let messageHistory = [];
+    let sms = [];
     if (typeof submission.smsContent !== 'object') {
-      messageHistory = JSON.parse(submission.smsContent);
+      sms = JSON.parse(submission.smsContent);
     } else {
-      messageHistory = submission.smsContent;
+      sms = submission.smsContent;
     }
 
-    messageHistory.forEach((msg, index) => {
-      let content = JSON.parse(msg.values.Content);
+    let smsValues = [];
+    sms.forEach(value => {
+      let content = JSON.parse(value.values['Content']);
+      var dt =
+        value.values['Direction'] === 'Outbound'
+          ? content['Sent Date']
+          : content['Received Date'];
 
-      if (msg.values.Direction === 'Outbound') {
-        var dt = moment(content['Sent Date'], 'DD-MM-YYYY HH:mm');
-        dt = dt.add(moment().utcOffset() * 60, 'seconds');
-        content['Sent Date'] = dt.format('DD-MM-YYYY HH:mm');
+      dt = moment(dt, 'DD-MM-YYYY HH:mm');
+      dt = dt.add(moment().utcOffset() * 60, 'seconds');
+
+      smsValues[smsValues.length] = {
+        Direction: value.values['Direction'],
+        Date: dt.format('DD-MM-YYYY HH:mm'),
+        Content: content['Content'],
+      };
+    });
+    smsValues.sort(function(sms1, sms2) {
+      if (
+        moment(sms1['Date'], 'DD-MM-YYYY HH:mm').isAfter(
+          moment(sms2['Date'], 'DD-MM-YYYY HH:mm'),
+        )
+      ) {
+        return -1;
+      } else if (
+        moment(sms1['Date'], 'DD-MM-YYYY HH:mm').isBefore(
+          moment(sms2['Date'], 'DD-MM-YYYY HH:mm'),
+        )
+      ) {
+        return 1;
+      }
+      if (sms1['Content'][0] === '[' && sms2['Content'][0] === '[') {
+        var page1 = sms1['Content'].substring(1, sms1['Content'].indexOf('/'));
+        var page2 = sms2['Content'].substring(1, sms2['Content'].indexOf('/'));
+        if (parseInt(page1) > parseInt(page2)) {
+          return 1;
+        } else if (parseInt(page1) < parseInt(page2)) {
+          return -1;
+        }
+      }
+      return 0;
+    });
+
+    var smsResult = [];
+
+    smsValues.forEach(element => {
+      var idx = smsResult.findIndex(el => el['Date'] === element['Date']);
+      if (idx === -1) {
+        if (element['Content'][0] === '[')
+          element['Content'] = element['Content'].split(']')[1].trim();
+        smsResult.push(element);
+      } else {
+        smsResult[idx]['Content'] =
+          smsResult[idx]['Content'] +
+          (element['Content'][0] === '['
+            ? element['Content'].split(']')[1]
+            : element['Content']
+          ).trim();
+      }
+    });
+
+    smsResult.forEach((element, index) => {
+      if (element['Direction'] === 'Outbound') {
+        var dt = moment(element['Date'], 'DD-MM-YYYY HH:mm');
+        //dt = dt.add(moment().utcOffset() * 60, 'seconds');
+        element['Date'] = dt.format('DD-MM-YYYY HH:mm');
         sms_msgs.push(
           <div className="outgoing_msg" key={index}>
             <div className="sent_msg">
-              <p>{content['Content']}</p>
-              <span className="time_date">{content['Sent Date']}</span>{' '}
+              <p>{element['Content']}</p>
+              <span className="time_date">{element['Date']}</span>{' '}
             </div>
           </div>,
         );
-      } else if (msg.values.Direction === 'Inbound') {
-        var dt = moment(content['Received Date'], 'DD-MM-YYYY HH:mm');
-        dt = dt.add(moment().utcOffset() * 60, 'seconds');
-        content['Received Date'] = dt.format('DD-MM-YYYY HH:mm');
+      } else if (element['Direction'] === 'Inbound') {
+        dt = moment(element['Date'], 'DD-MM-YYYY HH:mm');
+        //dt = dt.add(moment().utcOffset() * 60, 'seconds');
+        element['Date'] = dt.format('DD-MM-YYYY HH:mm');
         sms_msgs.push(
           <div className="incoming_msg" key={index}>
             <div className="incoming_msg_img">
@@ -156,8 +222,8 @@ export class SMSModal extends Component {
             </div>
             <div className="received_msg">
               <div className="received_withd_msg">
-                <p>{content['Content']}</p>
-                <span className="time_date">{content['Received Date']}</span>
+                <p>{element['Content']}</p>
+                <span className="time_date">{element['Date']}</span>
               </div>
             </div>
           </div>,
@@ -165,6 +231,34 @@ export class SMSModal extends Component {
       }
     });
     return sms_msgs;
+  }
+
+  getSMSTemplates(smsTemplates) {
+    let templates = [];
+    smsTemplates.forEach(template => {
+      templates.push({
+        label:
+          template.values['Category'] !== undefined &&
+          template.values['Category'] !== null
+            ? template.values['Category'] +
+              '->' +
+              template.values['Template Name']
+            : template.values['Template Name'],
+        value: template.id,
+      });
+    });
+    return templates;
+  }
+  selectSMSTemplate(e) {
+    let templateId = e.value;
+    if (!templateId) {
+      console.log('Please select a template');
+      return;
+    }
+    let template = this.props.smsTemplates.find(
+      template => template['id'] === templateId,
+    );
+    this.setState({ smsText: template.values['SMS Content'] });
   }
 
   render() {
@@ -224,6 +318,21 @@ export class SMSModal extends Component {
               </div>
               <div className="row">
                 <div className="col-md-12">
+                  <Select
+                    closeMenuOnSelect={true}
+                    options={this.getSMSTemplates(this.props.smsTemplates)}
+                    className="sms-templates-container"
+                    classNamePrefix="hide-columns"
+                    placeholder="Select SMS Template"
+                    onChange={e => {
+                      this.selectSMSTemplate(e);
+                    }}
+                    style={{ width: '300px' }}
+                  />
+                </div>
+              </div>
+              <div className="row">
+                <div className="col-md-12">
                   <label htmlFor="sms_text">SMS Text</label>
                   <div className="input-group">
                     <textarea
@@ -239,7 +348,7 @@ export class SMSModal extends Component {
                     <button
                       className="input-group-addon btn btn-primary"
                       onClick={e => this.sendSms()}
-                      style={{ backgroundColor: '#05728f' }}
+                      style={{ backgroundColor: '#4d5059' }}
                     >
                       Send
                     </button>
@@ -254,7 +363,7 @@ export class SMSModal extends Component {
                   <button
                     type="button"
                     className="btn btn-primary"
-                    style={{ backgroundColor: '#05728f' }}
+                    style={{ backgroundColor: '#4d5059' }}
                     onClick={e =>
                       this.props.setShowMessageHistory(
                         this.props.showMessageHistory ? false : true,
@@ -363,6 +472,7 @@ const enhance = compose(
       this.props.getAccountCredit({
         setAccountCredit: this.props.setAccountCredit,
       });
+      this.props.fetchSMSTemplates();
     },
   }),
 );

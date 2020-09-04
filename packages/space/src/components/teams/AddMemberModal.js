@@ -4,7 +4,8 @@ import { Modal, ModalFooter } from 'reactstrap';
 import { List, Set } from 'immutable';
 import { compose, lifecycle, withHandlers, withState } from 'recompose';
 import Autocomplete from 'react-autocomplete';
-import { Avatar } from '../shared/Avatar';
+import { Avatar } from 'common';
+import { I18n } from '../../../../app/src/I18nProvider';
 
 import {
   actions,
@@ -36,66 +37,75 @@ const AddMemberModalComponent = ({
     <div className="modal-header">
       <h4 className="modal-title">
         <button onClick={handleToggle} type="button" className="btn btn-link">
-          Close
+          <I18n>Close</I18n>
         </button>
-        <span>Add {team.name} Team Members</span>
+        <span>
+          <I18n>Add</I18n> <I18n>{team.name}</I18n> <I18n>Team Members</I18n>
+        </span>
       </h4>
     </div>
     <div className="modal-body">
       <div className="modal-form">
         <form>
-          <Autocomplete
-            inputProps={{
-              id: 'user-autocomplete',
-              className: 'form-control input-sm typeahead tt-input',
-              placeholder:
-                'Search for a user to add by Name, Username, or Email',
-            }}
-            wrapperStyle={{ marginBottom: '1rem' }}
-            getItemValue={item => item.username}
-            items={getAvailableUsers(users, currentMembers, addedMembers)}
-            shouldItemRender={(user, value) =>
-              user.username.toLowerCase().includes(value.toLowerCase())
-            }
-            renderItem={(item, isHighlighted) => (
-              <div
-                className="tt-suggestion tt-selectable"
-                style={{ background: isHighlighted ? 'lightgray' : 'white' }}
-              >
-                {item.displayName}
-              </div>
+          <I18n
+            render={translate => (
+              <Autocomplete
+                inputProps={{
+                  id: 'user-autocomplete',
+                  className: 'form-control input-sm typeahead tt-input',
+                  placeholder: translate(
+                    'Search for a user to add by Name, Username, or Email',
+                  ),
+                }}
+                wrapperStyle={{ marginBottom: '1rem' }}
+                getItemValue={item => item.username}
+                items={getAvailableUsers(users, currentMembers, addedMembers)}
+                shouldItemRender={(user, value) =>
+                  user.username.toLowerCase().includes(value.toLowerCase())
+                }
+                renderItem={(item, isHighlighted) => (
+                  <div
+                    className="tt-suggestion tt-selectable"
+                    style={{
+                      background: isHighlighted ? 'lightgray' : 'white',
+                    }}
+                  >
+                    {item.displayName}
+                  </div>
+                )}
+                menuStyle={{
+                  borderRadius: '3px',
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  padding: '2px 0',
+                  marginBottom: '1rem',
+                  fontSize: '90%',
+                  position: 'inherit',
+                  overflow: 'auto',
+                  maxHeight: '50%',
+                }}
+                value={typeAheadValue}
+                onChange={e => handleFieldChange(e.target.value)}
+                onSelect={(username, fullUser) => {
+                  handleAddMemberTemp(fullUser);
+                  handleFieldChange('');
+                }}
+              />
             )}
-            menuStyle={{
-              borderRadius: '3px',
-              background: 'rgba(255, 255, 255, 0.9)',
-              padding: '2px 0',
-              marginBottom: '1rem',
-              fontSize: '90%',
-              position: 'inherit',
-              overflow: 'auto',
-              maxHeight: '50%',
-            }}
-            value={typeAheadValue}
-            onChange={e => handleFieldChange(e.target.value)}
-            onSelect={(username, fullUser) => {
-              handleAddMemberTemp(fullUser);
-              handleFieldChange('');
-            }}
           />
         </form>
 
         {addedMembers.length > 0 && (
           <table className="table">
             <tbody>
-              {addedMembers.map(memeber => (
-                <tr key={memeber.username}>
-                  <td>
-                    <Avatar size={30} user={memeber} />
+              {addedMembers.map(member => (
+                <tr key={member.username}>
+                  <td scope="row">
+                    <Avatar size={30} username={member.username} />
                   </td>
-                  <td>{memeber.displayName || memeber.username}</td>
+                  <td>{member.displayName || member.username}</td>
                   <td>
                     <button
-                      onClick={() => handleRemoveMemberTemp(memeber)}
+                      onClick={() => handleRemoveMemberTemp(member)}
                       className="btn btn-danger pull-right"
                     >
                       <span className="fa fa-times fa-fw" />
@@ -116,7 +126,7 @@ const AddMemberModalComponent = ({
         disabled={addedMembers.length === 0}
         onClick={handleSubmit}
       >
-        Add Members
+        <I18n>Add Members</I18n>
       </button>
     </ModalFooter>
   </Modal>
@@ -136,10 +146,7 @@ export const mapDispatchToProps = {
 };
 
 export const AddMemberModal = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
     /*
      * Do this so that navigating away from the parent page (causing an unmount)

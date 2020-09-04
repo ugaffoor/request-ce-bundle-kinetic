@@ -57,8 +57,8 @@ export const selectHasSharedTaskEngine = state =>
       ) ||
       Utils.getAttributeValue(state.app.space, 'Shared Workflow Engine', '')
         .downcase === 'true'
-      ? true
-      : false;
+    ? true
+    : false;
 
 export const selectIsMoreDiscussions = state =>
   state.space.spaceApp.discussions.size ===
@@ -66,13 +66,12 @@ export const selectIsMoreDiscussions = state =>
 
 export const selectGroupedDiscussions = state =>
   state.space.spaceApp.discussions
-    .sort(
-      (s1, s2) =>
-        moment(s1.messages_updated_at).isBefore(s2.messages_updated_at)
-          ? 1
-          : moment(s1.messages_updated_at).isAfter(s2.messages_updated_at)
-            ? -1
-            : 0,
+    .sort((s1, s2) =>
+      moment(s1.messages_updated_at).isBefore(s2.messages_updated_at)
+        ? 1
+        : moment(s1.messages_updated_at).isAfter(s2.messages_updated_at)
+        ? -1
+        : 0,
     )
     .groupBy(discussion => moment(discussion.messages_updated_at).fromNow());
 
@@ -92,7 +91,6 @@ export const State = Record({
   userAttributeDefinitions: {},
   userProfileAttributeDefinitions: {},
   settingsBackPath: null,
-  snippets: List(),
 });
 
 export const reducer = (state = State(), { type, payload }) => {
@@ -107,7 +105,6 @@ export const reducer = (state = State(), { type, payload }) => {
           'userProfileAttributeDefinitions',
           payload.userProfileAttributeDefinitions,
         )
-        .set('snippets', List(payload.snippets))
         .set('appLoading', false);
     case types.SET_SIDEBAR_OPEN:
       return state.set('sidebarOpen', payload);

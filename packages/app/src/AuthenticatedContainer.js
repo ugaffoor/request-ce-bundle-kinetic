@@ -4,8 +4,9 @@ import { compose, withState, withHandlers, lifecycle } from 'recompose';
 import { Route, Switch } from 'react-router-dom';
 import { push } from 'connected-react-router';
 import { bundle } from 'react-kinetic-core';
+import { I18n } from './I18nProvider';
 
-import logoImage from './assets/images/gb-logo.png';
+import logoImage from './assets/images/gb-logo.jpg';
 import logoName from './assets/images/login-name.png';
 
 import { ResetTokenForm } from './components/authentication/ResetTokenForm';
@@ -15,19 +16,13 @@ import { CreateAccountForm } from './components/authentication/CreateAccountForm
 import { UnauthenticatedForm } from './components/authentication/UnauthenticatedForm';
 
 export const LoginScreen = props => (
-  <div className="login-container">
-    <div className="login-wrapper">
-      {props.children}
-      <div
-        className="login-image-container"
-        style={{ backgroundImage: `url(${logoImage})` }}
-      >
-        <div className="kinops-text">
-          <img src={logoName} alt="Gracie Barra - School Management" />
-          <h3>Welcome to Gracie Barra</h3>
-          <p>Managing your school better.</p>
-        </div>
-      </div>
+  <div className="login-section">
+    <div
+      className="login-image-container"
+      style={{ backgroundImage: `url(${logoImage})` }}
+    ></div>
+    <div className="login-container">
+      <div className="login-wrapper">{props.children}</div>
     </div>
   </div>
 );
@@ -172,10 +167,7 @@ const mapStateToProps = state => ({
 });
 
 export const AuthenticatedContainer = compose(
-  connect(
-    mapStateToProps,
-    { push },
-  ),
+  connect(mapStateToProps, { push }),
   withState('display', 'setDisplay', 'none'),
   withState('error', 'setError', ''),
   withState('email', 'setEmail', ''),

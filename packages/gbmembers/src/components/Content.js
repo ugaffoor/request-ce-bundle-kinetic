@@ -17,6 +17,9 @@ import { ModalFormContainer } from '../lib/react-kinops-components/src/component
 import { ListNewContainer } from './lists/ListNew';
 import { ListContainer } from './lists/MemberList';
 import { ListEditContainer } from './lists/ListEdit';
+import { LeadListNewContainer } from './lists/LeadListNew';
+import { LeadListContainer } from './lists/LeadList';
+import { LeadListEditContainer } from './lists/LeadListEdit';
 import { MemberNotesContainer } from './Member/MemberNotes';
 import { MemberFollowUpContainer } from './Member/MemberFollowUp';
 import { CampaignContainer } from './send/Send';
@@ -46,15 +49,18 @@ export const Content = () => (
     <Route path="/NewList" component={ListNewContainer} />
     <Route path="/memberLists" component={ListContainer} />
     <Route path="/ListEdit/:name" component={ListEditContainer} />
+    <Route path="/NewLeadList" component={LeadListNewContainer} />
+    <Route path="/leadLists" component={LeadListContainer} />
+    <Route path="/LeadListEdit/:name" component={LeadListEditContainer} />
     <Route path="/MemberNotesDetail/:id" component={MemberNotesContainer} />
     <Route path="/MemberFollowUp/:id" component={MemberFollowUpContainer} />
     <Route path="/Send" component={CampaignContainer} />
     <Route
-      path="/NewEmailCampaign/:submissionId?/:submissionType?/:replyType?/:campaignId?"
+      path="/NewEmailCampaign/:submissionType?/:submissionId?/:replyType?/:campaignId?"
       component={EmailCampaignContainer}
     />
     <Route
-      path="/NewSmsCampaign/:submissionId?/:submissionType?"
+      path="/NewSmsCampaign/:submissionType?/:submissionId?"
       component={SmsCampaignContainer}
     />
     <Route path="/ddrTemplates" component={DDRTemplatesContainer} />

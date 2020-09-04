@@ -24,6 +24,9 @@ import { RequestListContainer } from './components/request_list/RequestListConta
 import { RequestShowContainer } from './components/request/RequestShowContainer';
 import { Settings } from './components/settings/Settings';
 import { displayableFormPredicate } from './utils';
+import { selectCurrentKapp } from 'common';
+import { Catalog } from './components/home/Catalog';
+import { actions } from './redux/modules/submissions';
 
 import './assets/styles/master.scss';
 
@@ -38,13 +41,11 @@ const mapStateToProps = (state, props) => {
       ...state.services.forms.errors,
     ],
     systemError: state.services.systemError,
+    spaceAdmin: state.app.profile.spaceAdmin,
     pathname: state.router.location.pathname,
     settingsBackPath: state.space.spaceApp.settingsBackPath || '/',
-    companyLogoURL: Utils.getAttributeValue(
-      state.app.space,
-      'Company Logo',
-      '',
-    ),
+    kapp: selectCurrentKapp(state),
+    submissions: state.services.submissions.data,
   };
 };
 
@@ -52,6 +53,7 @@ const mapDispatchToProps = {
   fetchCategories: categoriesActions.fetchCategories,
   fetchForms: formsActions.fetchForms,
   fetchSubmissionCounts: submissionCountActions.fetchSubmissionCounts,
+  fetchSubmissions: actions.fetchSubmissions,
 };
 
 export const AppComponent = props => {
@@ -70,9 +72,14 @@ export const AppComponent = props => {
         <Route
           render={() => (
             <Sidebar
+              spaceAdmin={props.spaceAdmin}
               counts={props.submissionCounts}
               homePageMode={props.homePageMode}
               homePageItems={props.homePageItems}
+              kapp={props.kapp}
+              fetchSubmissions={props.fetchSubmissions}
+              submissions={props.submissions}
+              forms={props.forms}
             />
           )}
         />
@@ -148,21 +155,13 @@ export const AppComponent = props => {
           path="/requests/:type?/request/:submissionId/:mode"
           component={RequestShowContainer}
         />
-        <img
-          src={props.companyLogoURL}
-          alt="Company Logo"
-          className="companyLogo"
-        />
       </main>
     ),
   });
 };
 
 const enhance = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withProps(props => {
     return props.categories.isEmpty()
       ? {
@@ -190,5 +189,9 @@ const enhance = compose(
 
 export const App = enhance(AppComponent);
 
-App.shouldSuppressSidebar = (pathname, kappSlug) =>
-  matchPath(pathname, { path: `/kapps/${kappSlug}`, exact: true });
+App.shouldSuppressSidebar = (pathname, kappSlug) => {
+  if (window.matchMedia('(max-width: 767px)').matches) {
+    return matchPath(pathname, { path: `/kapps/${kappSlug}`, exact: false });
+  }
+  return undefined;
+};

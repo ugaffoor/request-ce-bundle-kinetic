@@ -220,7 +220,10 @@ export class PromotionDialog extends Component {
                 {this.state.durationPeriod} DAYS
               </span>
               <div className="action">
-                <span>{this.state.statusText} TO GRADE</span>
+                <span>
+                  {this.state.statusText}
+                  {this.state.statusIndicator !== 'ready' ? 'TO GRADE' : ''}
+                </span>
                 <button
                   type="button"
                   className="promote btn btn-primary"

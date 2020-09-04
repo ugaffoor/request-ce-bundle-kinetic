@@ -654,7 +654,6 @@ export class ListNewHome extends Component {
                     type="button"
                     id="createList"
                     className="btn btn-primary"
-                    style={{ borderRadius: '0' }}
                     onClick={e => this.createList()}
                   >
                     Create List

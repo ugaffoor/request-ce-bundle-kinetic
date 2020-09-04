@@ -1,11 +1,20 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  *   Profile ~ kinops
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+.userCompanyName {
+  .userName {
+    font-size: 18px;
+    font-weight: bold;
+  }
+  .schoolName {
+    font-size: 16px;
+    margin-top: 6px;
+  }
+}
 .profile-menu {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
   color: $blue-lake;
-  width: 250px;
   a {
     color: $blue-lake;
     text-decoration: none;

@@ -22,6 +22,7 @@ import mail from '../../images/mail.png';
 import in_person from '../../images/in_person.png';
 import intro_class from '../../images/intro_class.png';
 import free_class from '../../images/free_class.png';
+import attended_class from '../../images/user-check.png';
 import moment from 'moment';
 import { getJson } from '../Member/MemberUtils';
 import ReactTable from 'react-table';
@@ -36,6 +37,12 @@ import { SetStatusModalContainer } from './SetStatusModalContainer';
 import { EmailsReceived } from '../Member/EmailsReceived';
 import { Requests } from '../Member/Requests';
 import { actions as errorActions } from '../../redux/modules/errors';
+import { LeadSMS } from './LeadSMS';
+import attentionRequired from '../../images/flag.svg?raw';
+import SVGInline from 'react-svg-inline';
+import binIcon from '../../images/bin.svg?raw';
+import { confirm } from '../helpers/Confirmation';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const mapStateToProps = state => ({
   profile: state.app.profile,
@@ -56,6 +63,32 @@ const mapDispatchToProps = {
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
 };
+
+function convertContactType(type) {
+  var label = type;
+  switch (type) {
+    case 'phone':
+      label = 'Phone Call';
+      break;
+    case 'email':
+      label = 'Email';
+      break;
+    case 'in_person':
+      label = 'In Person';
+      break;
+    case 'intro_class':
+      label = 'Intro Class';
+      break;
+    case 'free_class':
+      label = 'Free Class';
+      break;
+    case 'attended_class':
+      label = 'Attended Class';
+      break;
+    default:
+  }
+  return label;
+}
 
 const Datetime = require('react-datetime');
 function getLatestHistory(history) {
@@ -84,7 +117,8 @@ const util = require('util');
 export class LeadDetail extends Component {
   constructor(props) {
     super(props);
-    this.saveLead = this.props.saveLead;
+    this.saveLeadNote = this.props.saveLeadNote;
+    this.saveRemoveLeadNote = this.props.saveRemoveLeadNote;
     this.saveStatus = this.props.saveStatus;
 
     let profile = this.props.profile;
@@ -94,6 +128,7 @@ export class LeadDetail extends Component {
     let contactDate = moment().format(contact_date_format);
     let latestHistory = getLatestHistory(this.props.leadItem.values['History']);
     this.handleDateChange = this.handleDateChange.bind(this);
+    this.formatDeleteCell = this.formatDeleteCell.bind(this);
 
     let data = this.getData(this.props.leadItem);
     let columns = this.getColumns();
@@ -107,6 +142,7 @@ export class LeadDetail extends Component {
       latestHistory,
       data,
       columns,
+      leadItem: this.props.leadItem,
     };
   }
 
@@ -119,25 +155,7 @@ export class LeadDetail extends Component {
   }
 
   handleContactMethodChange(method) {
-    var label = '';
-    switch (method) {
-      case 'phone':
-        label = 'Phone Call';
-        break;
-      case 'email':
-        label = 'Email';
-        break;
-      case 'in_person':
-        label = 'In Person';
-        break;
-      case 'intro_class':
-        label = 'Intro Class';
-        break;
-      case 'free_class':
-        label = 'Free Class';
-        break;
-      default:
-    }
+    var label = convertContactType(method);
     this.setState({
       contactMethod: method,
       contactLabel: label,
@@ -168,11 +186,13 @@ export class LeadDetail extends Component {
     }
     let newHistory = {
       submitter: this.state.profile.username,
+      //    createdDate: moment().format("YYYY-MM-DD HH:mm"),
       note: this.state.note,
       contactMethod: this.state.contactMethod,
       contactDate: this.state.contactDate,
     };
-    this.saveLead(newHistory);
+    this.saveLeadNote(newHistory);
+    this.setState({ note: '' });
   }
 
   getColumns() {
@@ -196,6 +216,11 @@ export class LeadDetail extends Component {
       accessor: 'submitter',
       width: 200,
       Cell: row => this.formatSubmitterCell(row),
+    });
+    columns.push({
+      accessor: 'submitter',
+      width: 50,
+      Cell: this.formatDeleteCell,
     });
 
     return columns;
@@ -263,6 +288,13 @@ export class LeadDetail extends Component {
           Free Class
         </span>
       );
+    } else if (row.original.contactMethod === 'attended_class') {
+      return (
+        <span className="notesCell attended_class">
+          <img src={attended_class} alt="Attended Class" />
+          Attended Class
+        </span>
+      );
     } else {
       return <span className="notesCell"></span>;
     }
@@ -281,6 +313,63 @@ export class LeadDetail extends Component {
     }
 
     return row.original.submitter;
+  }
+  formatDeleteCell(cellInfo) {
+    return (
+      <span
+        className="deleteNote"
+        onClick={async e => {
+          console.log(
+            e.currentTarget.getAttribute('noteDate') +
+              ' ' +
+              e.currentTarget.getAttribute('noteType'),
+          );
+          if (
+            await confirm(
+              <span>
+                <span>Are your sure you want to DELETE this Note?</span>
+                <table>
+                  <tbody>
+                    <tr>
+                      <td>Date:</td>
+                      <td>
+                        {moment(
+                          cellInfo.original.contactDate,
+                          'YYYY-MM-DD HH:mm',
+                        ).format('lll')}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Time:</td>
+                      <td>
+                        {convertContactType(cellInfo.original.contactMethod)}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Note:</td>
+                      <td>{cellInfo.original.note}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </span>,
+            )
+          ) {
+            let history = getJson(this.state.leadItem.values['History']);
+            history = history.filter(element => {
+              return !(
+                element.contactDate === cellInfo.original.contactDate &&
+                element.contactMethod === cellInfo.original.contactMethod &&
+                element.note === cellInfo.original.note
+              );
+            });
+            console.log(history);
+            this.saveRemoveLeadNote(history);
+          }
+        }}
+      >
+        <SVGInline svg={binIcon} className="icon" />
+      </span>
+    );
   }
 
   render() {
@@ -319,7 +408,7 @@ export class LeadDetail extends Component {
                       this.props.leadItem.values['Parent or Guardian'] !==
                         null) &&
                     this.props.leadItem.values['ParentMember'] !== undefined &&
-                      this.props.leadItem.values['ParentMember'] !== null ? (
+                    this.props.leadItem.values['ParentMember'] !== null ? (
                       <span>
                         <NavLink
                           to={`/Member/${this.props.leadItem.values['ParentMember']}`}
@@ -337,7 +426,7 @@ export class LeadDetail extends Component {
                       this.props.leadItem.values['Parent or Guardian'] !==
                         null) &&
                     this.props.leadItem.values['ParentLead'] !== undefined &&
-                      this.props.leadItem.values['ParentLead'] !== null ? (
+                    this.props.leadItem.values['ParentLead'] !== null ? (
                       <span>
                         <NavLink
                           to={`/LeadDetail/${this.props.leadItem.values['ParentLead']}`}
@@ -396,6 +485,18 @@ export class LeadDetail extends Component {
               </div>
               <div className="col-md-6 text-center followup">
                 <span className="float-md-right">
+                  <div
+                    type="button"
+                    className="attentionRequired"
+                    onClick={e => {
+                      this.props.updateAttentionRequired();
+                    }}
+                  >
+                    <SVGInline
+                      svg={attentionRequired}
+                      className={'attention icon'}
+                    />
+                  </div>
                   <NavLink to={`/LeadEdit/${this.props.leadItem['id']}`}>
                     <img
                       src={lead_dtls}
@@ -416,7 +517,7 @@ export class LeadDetail extends Component {
                     to={`/FollowUp/${this.props.leadItem['id']}`}
                     className="btn btn-primary followup_button followup_image"
                     style={{
-                      backgroundColor: '#991B1E',
+                      backgroundColor: '#4d5059',
                       height: '45px',
                       width: '100px',
                       textAlign: 'center',
@@ -534,6 +635,26 @@ export class LeadDetail extends Component {
                   />
                 </a>
               </li>
+              <li className="nav-item icon">
+                <a
+                  className="nav-link"
+                  title="Attended Class"
+                  data-toggle="tab"
+                  href="#method"
+                  id="attended_tab"
+                  role="tab"
+                  aria-controls="contact_method"
+                  onClick={() =>
+                    this.handleContactMethodChange('attended_class')
+                  }
+                >
+                  <img
+                    src={attended_class}
+                    alt="Attended Class"
+                    style={{ border: 'none' }}
+                  />
+                </a>
+              </li>
             </ul>
             <ul
               className="nav nav-tabs card-header-tabs pull-left contact-method-select"
@@ -550,7 +671,7 @@ export class LeadDetail extends Component {
               </li>
               <li>
                 <NavLink
-                  to={`/NewEmailCampaign/${this.props.leadItem['id']}/lead`}
+                  to={`/NewEmailCampaign/lead/${this.props.leadItem['id']}`}
                   className="btn btn-primary"
                 >
                   Send Email
@@ -624,7 +745,7 @@ export class LeadDetail extends Component {
           </div>
         </div>
         <div className="row">
-          <div className="col-md-12 text-center">
+          <div className="col-md-12 text-center notesTable">
             <ReactTable
               data={this.state.data}
               columns={this.state.columns}
@@ -654,7 +775,10 @@ export class LeadDetail extends Component {
           <EmailsReceived submission={this.props.leadItem} />
         </div>
         <div>
-          <Requests submission={this.props.leadItem} />
+          <LeadSMS leadItem={this.props.leadItem} />
+        </div>
+        <div>
+          <Requests requestContent={this.props.leadItem.requestContent} />
         </div>
       </div>
     );
@@ -664,7 +788,8 @@ export class LeadDetail extends Component {
 export const LeadDetailView = ({
   profile,
   leadItem,
-  saveLead,
+  saveLeadNote,
+  saveRemoveLeadNote,
   saveStatus,
   fetchCampaign,
   campaignItem,
@@ -678,6 +803,7 @@ export const LeadDetailView = ({
   showSetStatusModal,
   isSmsEnabled,
   leadStatusValues,
+  updateAttentionRequired,
   space,
 }) =>
   currentLeadLoading ? (
@@ -686,7 +812,8 @@ export const LeadDetailView = ({
     <LeadDetail
       profile={profile}
       leadItem={leadItem}
-      saveLead={saveLead}
+      saveLeadNote={saveLeadNote}
+      saveRemoveLeadNote={saveRemoveLeadNote}
       saveStatus={saveStatus}
       fetchCampaign={fetchCampaign}
       campaignItem={campaignItem}
@@ -700,6 +827,7 @@ export const LeadDetailView = ({
       isSmsEnabled={isSmsEnabled}
       leadStatusValues={leadStatusValues}
       space={space}
+      updateAttentionRequired={updateAttentionRequired}
     />
   );
 
@@ -713,7 +841,7 @@ export const LeadDetailContainer = compose(
   withState('showSMSModal', 'setShowSMSModal', false),
   withState('showSetStatusModal', 'setShowSetStatusModal', false),
   withHandlers({
-    saveLead: ({
+    saveRemoveLeadNote: ({
       profile,
       leadItem,
       updateLead,
@@ -721,6 +849,29 @@ export const LeadDetailContainer = compose(
       addNotification,
       setSystemError,
       space,
+      setIsDirty,
+    }) => newHistory => {
+      leadItem.values['History'] = newHistory;
+
+      updateLead({
+        id: leadItem['id'],
+        leadItem: leadItem,
+        //        fetchLead: fetchLead,
+        myThis: this,
+        addNotification,
+        setSystemError,
+      });
+      setIsDirty(false);
+    },
+    saveLeadNote: ({
+      profile,
+      leadItem,
+      updateLead,
+      fetchLead,
+      addNotification,
+      setSystemError,
+      space,
+      setIsDirty,
     }) => newHistory => {
       let history = getJson(leadItem.values['History']);
       history.push(newHistory);
@@ -745,12 +896,12 @@ export const LeadDetailContainer = compose(
             ' ' +
             leadItem.values['Last Name'] +
             ' - ' +
-            newHistory.contactMethod,
+            convertContactType(newHistory.contactMethod),
           description: newHistory['note'],
-          location: 'Gym',
+          location: getAttributeValue(space, 'School Address'),
           attendeeEmail: leadItem.values['Email'],
           timeZone:
-            profile.timezone !== null
+            profile.timezone !== null && profile.timezone !== ''
               ? profile.timezone
               : space.defaultTimezone,
         };
@@ -768,12 +919,13 @@ export const LeadDetailContainer = compose(
       updateLead({
         id: leadItem['id'],
         leadItem: leadItem,
-        fetchLead: fetchLead,
+        //  fetchLead: fetchLead,
         myThis: this,
         addNotification,
         setSystemError,
         calendarEvent,
       });
+      setIsDirty(false);
     },
     updateIsNewReplyReceived: ({
       leadItem,
@@ -783,6 +935,22 @@ export const LeadDetailContainer = compose(
       setSystemError,
     }) => () => {
       leadItem.values['Is New Reply Received'] = false;
+      updateLead({
+        id: leadItem.id,
+        leadItem,
+        //fetchLeads,
+        addNotification,
+        setSystemError,
+      });
+    },
+    updateAttentionRequired: ({
+      leadItem,
+      updateLead,
+      fetchLeads,
+      addNotification,
+      setSystemError,
+    }) => () => {
+      leadItem.values['Is New Reply Received'] = true;
       updateLead({
         id: leadItem.id,
         leadItem,
@@ -823,7 +991,9 @@ export const LeadDetailContainer = compose(
       }
     },
     componentDidMount() {
-      $('.content')[0].scrollIntoView(true);
+      $('.content')
+        .parent('div')[0]
+        .scrollIntoView(true);
     },
     componentWillUnmount() {},
   }),

@@ -113,8 +113,9 @@ export const types = {
     'datastore',
     'DEBOUNCE_PERCENT_COMPLETE',
   ),
-  SET_IMPORT_FAILED_CALL: namespace('datastore', 'SET_IMPORT_FAILED_CALL'),
+  SET_IMPORT_FAILED_CALLS: namespace('datastore', 'SET_IMPORT_FAILED_CALLS'),
   SET_IMPORT_COMPLETE: namespace('datastore', 'SET_IMPORT_COMPLETE'),
+  RESET_IMPORT_FAILED_CALL: namespace('datastore', 'RESET_IMPORT_FAILED_CALL'),
 };
 
 export const actions = {
@@ -179,8 +180,9 @@ export const actions = {
   executeImport: withPayload(types.EXECUTE_IMPORT),
   setImportPercentComplete: withPayload(types.SET_IMPORT_PERCENT_COMPLETE),
   debouncePercentComplete: withPayload(types.DEBOUNCE_PERCENT_COMPLETE),
-  setImportFailedCall: withPayload(types.SET_IMPORT_FAILED_CALL),
+  setImportFailedCalls: withPayload(types.SET_IMPORT_FAILED_CALLS),
   setImportComplete: noPayload(types.SET_IMPORT_COMPLETE),
+  resetImportFailedCall: noPayload(types.RESET_IMPORT_FAILED_CALL),
 };
 
 const parseConfigJson = json => {
@@ -294,18 +296,14 @@ export const selectBridgeNameByModel = model => {
     const activeMapping = model.mappings
       ? model.mappings.find(m => m.name === activeMappingName)
       : '';
-    return activeMapping
-      ? activeMapping.bridgeName || activeMapping.bridgeSlug
-      : '';
+    return activeMapping ? activeMapping.bridgeName : '';
   } else {
     return '';
   }
 };
 export const selectUpdatedFormActiveBridge = state =>
   state.space.settingsDatastore.currentFormChanges.bridgeModelMapping
-    .bridgeName ||
-  state.space.settingsDatastore.currentFormChanges.bridgeModelMapping
-    .bridgeSlug;
+    .bridgeName;
 export const selectCurrentForm = state =>
   state.space.settingsDatastore.currentForm;
 export const selectCurrentFormChanges = state =>
@@ -372,7 +370,7 @@ export const reducer = (state = State(), { type, payload }) => {
           return DatastoreForm({ ...form, canManage, isHidden });
         }),
       );
-      const bridges = payload.bridges.map(b => b.name || b.slug);
+      const bridges = payload.bridges.map(b => b.name);
       return state
         .set('loading', false)
         .set('errors', [])
@@ -403,8 +401,7 @@ export const reducer = (state = State(), { type, payload }) => {
         canManage,
         columns,
         defaultSearchIndex,
-        bridgeName:
-          bridgeModelMapping.bridgeName || bridgeModelMapping.bridgeSlug,
+        bridgeName: bridgeModelMapping.bridgeName,
         bridgeModel,
         bridgeModelMapping,
       });
@@ -581,13 +578,21 @@ export const reducer = (state = State(), { type, payload }) => {
       return state.set('importProcessing', true).set('importComplete', false);
     case types.SET_IMPORT_PERCENT_COMPLETE:
       return state.set('importPercentComplete', payload);
-    case types.SET_IMPORT_FAILED_CALL:
-      return state.update('importFailedCalls', acc => acc.push(payload));
+    case types.SET_IMPORT_FAILED_CALLS:
+      return state.update('importFailedCalls', acc => {
+        if (Array.isArray(payload)) {
+          return acc.concat(payload);
+        } else {
+          return acc.push(payload);
+        }
+      });
     case types.SET_IMPORT_COMPLETE:
       return state
         .set('importProcessing', false)
         .set('importPercentComplete', 0)
         .set('importComplete', true);
+    case types.RESET_IMPORT_FAILED_CALL:
+      return state.set('importFailedCalls', List());
     default:
       return state;
   }

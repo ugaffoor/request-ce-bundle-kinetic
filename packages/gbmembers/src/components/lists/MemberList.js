@@ -92,7 +92,7 @@ export class ListHome extends Component {
   }
 
   getListColumns = () => {
-    return [{ accessor: 'name', Header: 'List Name' }];
+    return [{ accessor: 'name', Header: 'Member List Name' }];
   };
 
   getListData(allMembers, memberLists) {
@@ -141,8 +141,14 @@ export class ListHome extends Component {
       },
       style: {
         cursor: 'pointer',
-        background: rowInfo.index === this.state.selected ? '#991B1E' : 'white',
-        color: rowInfo.index === this.state.selected ? 'white' : 'black',
+        background:
+          rowInfo !== undefined && rowInfo.index === this.state.selected
+            ? '#991B1E'
+            : 'white',
+        color:
+          rowInfo !== undefined && rowInfo.index === this.state.selected
+            ? 'white'
+            : 'black',
       },
     };
   }
@@ -182,18 +188,13 @@ export class ListHome extends Component {
             <div className="row">
               <div className="col">
                 <div className="form-group">
-                  <NavLink
-                    to={`/NewList`}
-                    className="btn btn-primary"
-                    style={{ borderRadius: '0', margin: '10px' }}
-                  >
-                    Create New List
+                  <NavLink to={`/NewList`} className="btn btn-primary">
+                    Create New Member List
                   </NavLink>
                   {this.state.selectedList && (
                     <NavLink
                       to={`/ListEdit/${selectedList}`}
                       className="btn btn-primary"
-                      style={{ borderRadius: '0', margin: '10px' }}
                     >
                       Edit Selected List
                     </NavLink>
@@ -224,6 +225,17 @@ export class ListHome extends Component {
                     {
                       accessor: 'Member ID',
                       Header: 'Member Id',
+                      Cell: props => {
+                        return (
+                          <NavLink
+                            to={`/Member/${props.original._id}`}
+                            className=""
+                          >
+                            {props.original['First Name']}{' '}
+                            {props.original['Last Name']}
+                          </NavLink>
+                        );
+                      },
                       Footer: (
                         <span>
                           <strong>Total: </strong>

@@ -6,7 +6,7 @@ import moment from 'moment';
 export class Requests extends Component {
   constructor(props) {
     super(props);
-    const data = this.getData(this.props.submission);
+    const data = this.props.requestContent;
     this._columns = this.getColumns();
 
     this.state = {
@@ -15,9 +15,9 @@ export class Requests extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.submission) {
+    if (nextProps.requestContent) {
       this.setState({
-        data: this.getData(nextProps.submission),
+        data: this.getData(nextProps.requestContent),
       });
     }
   }
@@ -39,8 +39,8 @@ export class Requests extends Component {
     ];
   }
 
-  getData(submission) {
-    let requests = submission.requestContent;
+  getData(requestContent) {
+    let requests = requestContent;
     if (!requests || requests.length === 0) {
       return [];
     } else if (typeof requests !== 'object') {

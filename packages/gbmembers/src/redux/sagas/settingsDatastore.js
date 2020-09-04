@@ -48,8 +48,28 @@ export function* fetchEmailTemplates(action) {
   }
 }
 
+export function* fetchSMSTemplates(action) {
+  try {
+    const search = new CoreAPI.SubmissionSearch()
+      .includes(['details', 'values'])
+      .limit(1000)
+      .build();
+
+    const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
+      datastore: true,
+      form: 'sms-templates',
+      search,
+    });
+    yield put(actions.setSMSTemplates(submissions));
+  } catch (error) {
+    console.log('Error in fetchSMSTemplates: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
+
 export function* watchSettingsDatastore() {
   console.log('watchSettingsDatastore');
   yield takeEvery(types.FETCH_CALL_SCRIPTS, fetchCallScripts);
   yield takeEvery(types.FETCH_EMAIL_TEMPLATES, fetchEmailTemplates);
+  yield takeEvery(types.FETCH_SMS_TEMPLATES, fetchSMSTemplates);
 }

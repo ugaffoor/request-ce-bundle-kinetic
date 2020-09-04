@@ -8,11 +8,12 @@ import {
   withProps,
 } from 'recompose';
 import { actions } from '../../redux/modules/members';
+import addressIcon from '../../images/Address.svg?raw';
 import phoneIcon from '../../images/phone.svg?raw';
-import emailIcon from '../../images/envelop.svg?raw';
-import dobIcon from '../../images/reddit.svg?raw';
-import aidIcon from '../../images/aid-kit.svg?raw';
-import printerIcon from '../../images/printer.svg?raw';
+import emailIcon from '../../images/E-mail.svg?raw';
+import dobIcon from '../../images/Birthday.svg?raw';
+import aidIcon from '../../images/Emergency.svg?raw';
+import printerIcon from '../../images/Print.svg?raw';
 import statsBarIcon from '../../images/stats-bars.svg?raw';
 import SVGInline from 'react-svg-inline';
 import html2canvas from 'html2canvas';
@@ -32,6 +33,7 @@ import { CallScriptModalContainer } from './CallScriptModalContainer';
 import { SMSModalContainer } from './SMSModalContainer';
 import { EmailsReceived } from './EmailsReceived';
 import { MemberEmails } from './MemberEmails';
+import { MemberSMS } from './MemberSMS';
 import { MemberViewNotes } from './MemberViewNotes';
 import { GradingStatus } from '../attendance/GradingStatus';
 import { AttendanceDialogContainer } from '../attendance/AttendanceDialog';
@@ -50,6 +52,10 @@ import {
   Legend,
 } from 'recharts';
 import { Utils } from 'common';
+import { getProgramSVG, getBeltSVG } from './MemberUtils';
+import ReactToPrint from 'react-to-print';
+import css from 'css';
+import attentionRequired from '../../images/flag.svg?raw';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -75,6 +81,7 @@ const mapDispatchToProps = {
   setCurrentMember: actions.setCurrentMember,
   fetchCampaign: campaignActions.fetchEmailCampaign,
   syncBillingCustomer: actions.syncBillingCustomer,
+  clearBillingCustomer: actions.clearBillingCustomer,
   setBillingInfo: actions.setBillingInfo,
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
@@ -82,7 +89,43 @@ const mapDispatchToProps = {
   setNewCustomers: actions.setNewCustomers,
   fetchMembers: actions.fetchMembers,
   fetchMemberAttendances: attendanceActions.fetchMemberAttendances,
+  createMemberUserAccount: actions.createMemberUserAccount,
 };
+
+function getClassNames(node) {
+  return [
+    node.className,
+    ...Array.from(node.children).map(getClassNames),
+  ].flat();
+}
+
+function extractCSS(node) {
+  // Collect class names for a DOM subtree
+  // Works for styled-components and CSS modules (anything based on CSS classes)
+  const classNames = getClassNames(node)
+    .map(name => {
+      return name instanceof String ? name.split(' ') : [];
+    })
+    .flat()
+    .map(name => `.${name}`);
+
+  // Gets embedded CSS for the entire page
+  const cssStyles = Array.from(document.head.getElementsByTagName('style'))
+    .map(style => style.innerHTML)
+    .join('');
+
+  // Filters CSS for our classes
+  const parsedCSS = css.parse(cssStyles);
+  parsedCSS.stylesheet.rules = parsedCSS.stylesheet.rules
+    .filter(rule => rule.type === 'rule')
+    .filter(rule =>
+      rule.selectors.some(selector =>
+        classNames.some(name => name === selector),
+      ),
+    );
+
+  return css.stringify(parsedCSS);
+}
 
 export class NewCustomers extends Component {
   handleClick = () => this.setState({ isShowingModal: true });
@@ -399,10 +442,74 @@ export class AttendanceChart extends Component {
   }
 }
 
+class AttendanceCardToPrint extends React.Component {
+  render() {
+    return this.props.memberItem.values['Ranking Program'] === undefined ? (
+      <div />
+    ) : (
+      <div className="attendanceCard">
+        <div
+          id="attendanceCard_p1"
+          className={
+            'card1 ' +
+            this.props.memberItem.values['Ranking Program'].replace(/ /g, '_')
+          }
+        >
+          <div className="photoDiv">
+            {this.props.memberItem.values['Photo'] === undefined &&
+            this.props.memberItem.values['First Name'] !== undefined ? (
+              <span className="noPhotoDiv">
+                <span className="name">
+                  {this.props.memberItem.values['First Name'][0]}
+                  {this.props.memberItem.values['Last Name'][0]}
+                </span>
+              </span>
+            ) : (
+              <img
+                src={this.props.memberItem.values['Photo']}
+                alt="Member Photograph"
+                className="photoImg"
+              />
+            )}
+          </div>
+          <div className="attendanceBarcode">
+            <Barcode
+              value={this.props.memberItem.id.split('-')[4].substring(6, 12)}
+              width={1.3}
+              height={30}
+              displayValue={false}
+              type={'CODE128'}
+            />
+          </div>
+          <div
+            className={
+              'attendanceName ' +
+              this.props.memberItem.values['Ranking Program'].replace(/ /g, '_')
+            }
+          >
+            <p>
+              {this.props.memberItem.values['First Name']}{' '}
+              {this.props.memberItem.values['Last Name']}
+            </p>
+          </div>
+        </div>
+        <div
+          id="attendanceCard_p2"
+          className={
+            'card2 ' +
+            this.props.memberItem.values['Ranking Program'].replace(/ /g, '_')
+          }
+        ></div>
+      </div>
+    );
+  }
+}
+
 export const MemberView = ({
   memberItem,
   allMembers,
   saveMember,
+  saveRemoveMemberNote,
   isDirty,
   setIsDirty,
   currentMemberLoading,
@@ -410,6 +517,7 @@ export const MemberView = ({
   campaignItem,
   campaignLoading,
   syncBilling,
+  clearBillingInfo,
   newCustomers,
   getNewCustomers,
   showNewCustomers,
@@ -431,13 +539,18 @@ export const MemberView = ({
   fetchMemberAttendances,
   showAttendanceDialog,
   setShowAttendanceDialog,
+  createUserAccount,
+  createMemberUserAccount,
+  creatingUserAccount,
+  setCreatingUserAccount,
+  updateAttentionRequired,
 }) =>
   initialLoad ? (
     <div className="loading">
       <ReactSpinner />
     </div>
   ) : (
-    <div className="memberDetails">
+    <span>
       {currentMemberLoading ? (
         <div className="loading">
           <ReactSpinner />
@@ -445,342 +558,465 @@ export const MemberView = ({
       ) : (
         <div />
       )}
-      <StatusMessagesContainer />
-      <div className="general">
-        <div className="userDetails">
-          {memberItem.values['Photo'] === undefined &&
-          memberItem.values['First Name'] !== undefined ? (
-            <span className="noPhoto">
-              {memberItem.values['First Name'][0]}
-              {memberItem.values['Last Name'][0]}
-            </span>
-          ) : (
-            <img
-              src={memberItem.values['Photo']}
-              alt="Member Photograph"
-              className="photo"
-            />
-          )}
-          <span className="details1">
-            <h1>
-              {memberItem.values['First Name']} {memberItem.values['Last Name']}
-            </h1>
-            <h1>
-              &nbsp;(
-              {memberItem.values['Member Type']}
-              )&nbsp;
-            </h1>
-            <h1>
-              {memberItem.values['Status'] === 'Active'
-                ? 'ACTIVE'
-                : memberItem.values['Status']}
-            </h1>
-            <span className="buttons">
-              <NavLink
-                to={`/NewEmailCampaign/${memberItem.id}/member`}
-                className="btn btn-primary"
-              >
-                Send Email
-              </NavLink>
-              <a
-                onClick={e => setShowSMSModal(true)}
-                className="btn btn-primary"
-                style={{ marginLeft: '10px', color: 'white' }}
-                disabled={!isSmsEnabled}
-              >
-                Send SMS
-              </a>
-              {showSMSModal && (
-                <SMSModalContainer
-                  submission={memberItem}
-                  target="Member"
-                  setShowSMSModal={setShowSMSModal}
-                />
-              )}
-              {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
-                <div />
+      <div className="memberDetails">
+        <StatusMessagesContainer />
+        <div className="memberHeader">
+          <div className="name">
+            {memberItem.values['First Name']} {memberItem.values['Last Name']}
+            &nbsp;({memberItem.values['Member Type']})
+          </div>
+          <div className="rankingImages">
+            <div className="program">
+              {getProgramSVG(memberItem.values['Ranking Program'])}
+            </div>
+            <div className="belt">
+              {getBeltSVG(memberItem.values['Ranking Belt'])}
+            </div>
+          </div>
+        </div>
+        <div className="viewContent">
+          <div className="general">
+            <div className="userDetails">
+              {memberItem.values['Photo'] === undefined &&
+              memberItem.values['First Name'] !== undefined ? (
+                <span className="noPhoto">
+                  {memberItem.values['First Name'][0]}
+                  {memberItem.values['Last Name'][0]}
+                </span>
               ) : (
-                <NavLink
-                  to={`/Edit/${memberItem.id}`}
-                  className="btn btn-primary"
-                >
-                  Edit
-                </NavLink>
-              )}
-            </span>
-            <p className="address">
-              {memberItem.values['Address']}, {memberItem.values['Suburb']},{' '}
-              {memberItem.values['State']} {memberItem.values['Postcode']}
-            </p>
-          </span>
-          <span className="details2">
-            <div className="iconItem">
-              <SVGInline svg={emailIcon} className="icon" />
-              <span className="value">
-                <NavLink to={`/NewEmailCampaign/${memberItem.id}/member`}>
-                  {memberItem.values['Email']}
-                </NavLink>
-              </span>
-            </div>
-            <div className="iconItem">
-              <SVGInline svg={phoneIcon} className="icon" />
-              <span className="value">
-                <a href={'tel:' + memberItem.values['Phone Number']}>
-                  <NumberFormat
-                    value={memberItem.values['Phone Number']}
-                    displayType={'text'}
-                    format="####-###-###"
+                <div className="viewPhotoDiv">
+                  <img
+                    src={memberItem.values['Photo']}
+                    alt="Member Photograph"
+                    className="photo"
                   />
-                </a>
+                </div>
+              )}
+              <span className="details1">
+                <div className="iconItem">
+                  <SVGInline svg={addressIcon} className="icon" />
+                  <span className="value">
+                    <p className="address">
+                      {memberItem.values['Address']},{' '}
+                      {memberItem.values['Suburb']},{' '}
+                      {memberItem.values['State']}{' '}
+                      {memberItem.values['Postcode']}
+                    </p>
+                  </span>
+                </div>
+                <div className="iconItem">
+                  <SVGInline svg={emailIcon} className="icon" />
+                  <span className="value">
+                    <NavLink to={`/NewEmailCampaign/member/${memberItem.id}`}>
+                      {memberItem.values['Email']}
+                    </NavLink>
+                  </span>
+                </div>
+                <div className="iconItem">
+                  <SVGInline svg={phoneIcon} className="icon" />
+                  <span className="value">
+                    <a href={'tel:' + memberItem.values['Phone Number']}>
+                      <NumberFormat
+                        value={memberItem.values['Phone Number']}
+                        displayType={'text'}
+                        format="####-###-###"
+                      />
+                    </a>
+                  </span>
+                </div>
+                <div className="iconItem">
+                  <SVGInline svg={dobIcon} className="icon" />
+                  <span className="value">
+                    {new Date(memberItem.values['DOB']).toLocaleDateString()}
+                  </span>
+                </div>
+                <div className="iconItem">
+                  <SVGInline svg={aidIcon} className="icon" />
+                  <span className="value">
+                    {memberItem.values['Emergency Contact Name']} (
+                    {memberItem.values['Emergency Contact Relationship']}){' '}
+                    <NumberFormat
+                      className="emergencyNumber"
+                      value={memberItem.values['Emergency Contact Phone']}
+                      displayType={'text'}
+                      format="####-###-###"
+                    />
+                  </span>
+                  <span className="value">
+                    <span className="medicalValue">
+                      {memberItem.values['Medical Allergies']}
+                    </span>
+                  </span>
+                </div>
+              </span>
+              <span className="details2">
+                <div className="status">
+                  <p>
+                    {memberItem.values['Status'] === 'Active'
+                      ? 'ACTIVE'
+                      : memberItem.values['Status']}
+                  </p>
+                  <div
+                    className={
+                      memberItem.values['Status'] === 'Active'
+                        ? 'green'
+                        : memberItem.values['Status'] === 'Inactive'
+                        ? 'red'
+                        : 'blue'
+                    }
+                  ></div>
+                </div>
+                <span className="buttons">
+                  <NavLink
+                    to={`/NewEmailCampaign/member/${memberItem.id}`}
+                    className="btn btn-primary"
+                  >
+                    Send Email
+                  </NavLink>
+                  <a
+                    onClick={e => setShowSMSModal(true)}
+                    className="btn btn-primary"
+                    style={{ marginLeft: '10px', color: 'white' }}
+                    disabled={!isSmsEnabled}
+                  >
+                    Send SMS
+                  </a>
+                  {showSMSModal && (
+                    <SMSModalContainer
+                      submission={memberItem}
+                      target="Member"
+                      setShowSMSModal={setShowSMSModal}
+                    />
+                  )}
+                  {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
+                    <div />
+                  ) : (
+                    <NavLink
+                      to={`/Edit/${memberItem.id}`}
+                      className="btn btn-primary"
+                    >
+                      Edit
+                    </NavLink>
+                  )}
+                  <span>
+                    {memberItem.values['Status'] === 'Inactive' ||
+                    memberItem.values['Status'] === 'Frozen' ? (
+                      <div />
+                    ) : (
+                      <span>
+                        {memberItem.user === undefined ? (
+                          <button
+                            className="btn btn-primary"
+                            style={{ 'text-transform': 'unset' }}
+                            onClick={e => createUserAccount()}
+                          >
+                            {creatingUserAccount
+                              ? 'Creating...'
+                              : 'Create Account as ' +
+                                memberItem.values['Member ID']}
+                          </button>
+                        ) : (
+                          <div className="username">
+                            <div className="label">Username:</div>{' '}
+                            <div className="value">
+                              {memberItem.user.username}
+                            </div>
+                          </div>
+                        )}
+                      </span>
+                    )}
+                  </span>
+                  <div
+                    type="button"
+                    className="attentionRequired"
+                    onClick={e => {
+                      updateAttentionRequired();
+                    }}
+                  >
+                    <SVGInline
+                      svg={attentionRequired}
+                      className={'attention icon'}
+                    />
+                  </div>
+                </span>
+                <div className="emergency">
+                  <div className="memberBarcode">
+                    <Barcode
+                      value={memberItem.id.split('-')[4].substring(6, 12)}
+                      width={1.3}
+                      height={30}
+                      displayValue={false}
+                    />
+                  </div>
+                  <ReactToPrint
+                    trigger={() => (
+                      <SVGInline
+                        svg={printerIcon}
+                        className="icon barcodePrint"
+                      />
+                    )}
+                    content={() => this.componentRef}
+                  />
+                </div>
               </span>
             </div>
-            <div className="iconItem">
-              <SVGInline svg={dobIcon} className="icon" />
-              <span className="value">
-                {new Date(memberItem.values['DOB']).toLocaleDateString()}
-              </span>
-            </div>
-          </span>
-        </div>
-      </div>
-      <div className="emergency">
-        <div className="iconItem">
-          <SVGInline svg={aidIcon} className="icon" />
-          <span className="value">
-            {memberItem.values['Emergency Contact Name']} (
-            {memberItem.values['Emergency Contact Relationship']}){' '}
-            <NumberFormat
-              className="emergencyNumber"
-              value={memberItem.values['Emergency Contact Phone']}
-              displayType={'text'}
-              format="####-###-###"
-            />
-          </span>
-        </div>
-        <div className="memberBarcode">
-          <Barcode
-            value={memberItem.id.split('-')[4].substring(6, 12)}
-            width={1.3}
-            height={30}
-            displayValue={false}
-            type={'CODE128'}
-          />
-        </div>
-        <SVGInline
-          svg={printerIcon}
-          className="icon barcodePrint"
-          onClick={e => printBarcode()}
-        />
-      </div>
-      <div
-        className={
-          memberItem.values['Lead Submission ID'] === undefined
-            ? 'hide'
-            : 'leadInfo'
-        }
-      >
-        <NavLink
-          to={`/LeadDetail/${memberItem.values['Lead Submission ID']}`}
-          className="value"
-        >
-          Converted Lead
-        </NavLink>
-      </div>
-      <div className="userDetails2">
-        <div className="ranking">
-          <h4>Rank</h4>
-          <div className="program">
-            <p>{memberItem.values['Ranking Program']}</p>
-            <span placeholder="View Attendance">
-              <SVGInline
-                svg={statsBarIcon}
-                className="icon statsbar"
-                onClick={e => setShowAttendanceDialog(true)}
-              />
-            </span>
-            {showAttendanceDialog && (
-              <AttendanceDialogContainer
-                setShowAttendanceDialog={setShowAttendanceDialog}
-                memberItem={memberItem}
-              />
-            )}
-          </div>
-          {memberItem.values['Last Promotion'] === undefined ? (
-            <div className="nolastPromotion"> No Last promotion date set</div>
-          ) : (
-            <div className="beltProgress">
-              <p>
-                <b>{memberItem.values['Ranking Belt']}</b> SINCE{' '}
-                <b>
-                  {new Date(
-                    memberItem.values['Last Promotion'],
-                  ).toLocaleDateString()}
-                </b>
-              </p>
-              <GradingStatus
-                setIsDirty={setIsDirty}
-                memberItem={memberItem}
-                belts={belts}
-                allMembers={allMembers}
-              />
-              <div></div>
-            </div>
-          )}
-        </div>
-        <div className="billing">
-          <h4>Billing</h4>
-          <div
-            className={
-              memberItem.values['Billing Customer Id'] !== undefined &&
-              memberItem.values['Billing Customer Id'] !== ''
-                ? 'billingInfo show'
-                : 'hide'
-            }
-          >
-            <p>
-              Recurring{' '}
-              <PaymentPeriod
-                period={memberItem.values['Billing Payment Period']}
-              />
-              &nbsp; plan with{' '}
-              <PaymentType type={memberItem.values['Billing Payment Type']} />
-            </p>
-            {!Utils.isMemberOf(profile, 'Billing') ? (
-              <div />
-            ) : (
-              <NavLink
-                to={`/Billing/${memberItem.id}`}
-                className="btn btn-primary"
-              >
-                Billing
-              </NavLink>
-            )}
           </div>
           <div
             className={
-              memberItem.values['Billing Customer Id'] === undefined ||
-              memberItem.values['Billing Customer Id'] === ''
-                ? 'billingInfo show'
-                : 'hide'
+              memberItem.values['Lead Submission ID'] === undefined
+                ? 'hide'
+                : 'leadInfo'
             }
           >
-            <BillingParentInfo
-              memberId={memberItem.values['Billing Parent Member']}
-              allMembers={allMembers}
-            />
-          </div>
-          <div
-            style={{
-              display: Utils.isMemberOf(profile, 'Billing') ? 'block' : 'none',
-            }}
-          >
-            <br />
-            <button
-              type="button"
-              className={'btn btn-primary'}
-              onClick={e => syncBilling()}
+            <NavLink
+              to={`/LeadDetail/${memberItem.values['Lead Submission ID']}`}
+              className="value"
             >
-              Sync Billing Info
-            </button>
-            <input
-              type="text"
-              name="customerBillingId"
-              id="customerBillingId"
+              Converted Lead
+            </NavLink>
+          </div>
+          <div style={{ display: 'none' }}>
+            <AttendanceCardToPrint
+              ref={el => (this.componentRef = el)}
+              memberItem={memberItem}
             />
-            <label htmlFor="customerBillingId">Billing Id</label>
+          </div>
+          <div className="userDetails2">
+            <div className="ranking">
+              <h4>Rank</h4>
+              <div className="program">
+                <p>{memberItem.values['Ranking Program']}</p>
+                <span placeholder="View Attendance">
+                  <SVGInline
+                    svg={statsBarIcon}
+                    className="icon statsbar"
+                    onClick={e => setShowAttendanceDialog(true)}
+                  />
+                </span>
+                {showAttendanceDialog && (
+                  <AttendanceDialogContainer
+                    setShowAttendanceDialog={setShowAttendanceDialog}
+                    memberItem={memberItem}
+                  />
+                )}
+              </div>
+              {memberItem.values['Last Promotion'] === undefined ? (
+                <div className="nolastPromotion">
+                  {' '}
+                  No Last promotion date set
+                </div>
+              ) : (
+                <div className="beltProgress">
+                  <p>
+                    <b>{memberItem.values['Ranking Belt']}</b> SINCE{' '}
+                    <b>
+                      {new Date(
+                        memberItem.values['Last Promotion'],
+                      ).toLocaleDateString()}
+                    </b>
+                  </p>
+                  <GradingStatus
+                    setIsDirty={setIsDirty}
+                    memberItem={memberItem}
+                    belts={belts}
+                    allMembers={allMembers}
+                  />
+                  <div></div>
+                </div>
+              )}
+            </div>
+            <div className="billing">
+              <h4>Billing</h4>
+              <div
+                className={
+                  memberItem.values['Billing Customer Id'] !== undefined &&
+                  memberItem.values['Billing Customer Id'] !== '' &&
+                  memberItem.values['Billing Customer Id'] !== null
+                    ? 'billingInfo show'
+                    : 'hide'
+                }
+              >
+                <p>
+                  Recurring{' '}
+                  <PaymentPeriod
+                    period={memberItem.values['Billing Payment Period']}
+                  />
+                  &nbsp; plan with{' '}
+                  <PaymentType
+                    type={memberItem.values['Billing Payment Type']}
+                  />
+                </p>
+                {!Utils.isMemberOf(profile, 'Billing') ? (
+                  <div />
+                ) : (
+                  <NavLink
+                    to={`/Billing/${memberItem.id}`}
+                    className="btn btn-primary"
+                  >
+                    Billing
+                  </NavLink>
+                )}
+              </div>
+              <div
+                className={
+                  memberItem.values['Billing Customer Id'] === undefined ||
+                  memberItem.values['Billing Customer Id'] === '' ||
+                  memberItem.values['Billing Customer Id'] === null
+                    ? 'billingInfo show'
+                    : 'hide'
+                }
+              >
+                <BillingParentInfo
+                  memberId={memberItem.values['Billing Parent Member']}
+                  allMembers={allMembers}
+                />
+              </div>
+              <div
+                style={{
+                  display: Utils.isMemberOf(profile, 'Billing')
+                    ? 'block'
+                    : 'none',
+                }}
+              >
+                <br />
+                <button
+                  type="button"
+                  className={'btn btn-primary'}
+                  onClick={e => syncBilling()}
+                >
+                  Sync Billing Info
+                </button>
+                <input
+                  type="text"
+                  name="customerBillingId"
+                  id="customerBillingId"
+                />
+                <label htmlFor="customerBillingId">Billing Id</label>
+              </div>
+              <div
+                style={{
+                  display: Utils.isMemberOf(profile, 'Billing')
+                    ? 'block'
+                    : 'none',
+                }}
+              >
+                <br />
+                <button
+                  type="button"
+                  className={'btn btn-primary'}
+                  onClick={e => clearBillingInfo()}
+                >
+                  CLEAR Billing Info
+                </button>
+              </div>
+              <div>
+                <br />
+                <button
+                  type="button"
+                  className={'btn btn-primary'}
+                  onClick={e => setShowCallScriptModal(true)}
+                >
+                  View Call Scripts
+                </button>
+                {showCallScriptModal && (
+                  <CallScriptModalContainer
+                    scriptTarget="Members"
+                    setShowCallScriptModal={setShowCallScriptModal}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="row">
+            <div className="notesLabel">
+              <label
+                htmlFor="notes"
+                style={{ fontSize: '24px', fontWeight: '700' }}
+              >
+                Notes
+              </label>
+            </div>
+          </div>
+          <div className="row">
+            <div className="col-sm-9 notes">
+              <div className="form-group">
+                <textarea
+                  rows="6"
+                  style={{ width: '100%' }}
+                  id="memberNote"
+                  className="form-control"
+                  ref={input => (this.input = input)}
+                  placeholder="Start Typing for notes"
+                  onChange={e => setIsDirty(true)}
+                />
+              </div>
+            </div>
+            <div className="col-sm-2 notesButton">
+              <button
+                type="button"
+                className={
+                  isDirty
+                    ? 'btn btn-primary dirty notesButton'
+                    : 'btn btn-primary notDirty notesButton'
+                }
+                onClick={e => saveMember()}
+              >
+                Save Notes
+              </button>
+              <NavLink
+                to={`/MemberFollowUp/${memberItem.id}`}
+                className="btn btn-primary float-left followup_button followup_image notesButton"
+              >
+                Set Follow Up
+              </NavLink>
+            </div>
           </div>
           <div>
-            <br />
-            <button
-              type="button"
-              className={'btn btn-primary'}
-              onClick={e => setShowCallScriptModal(true)}
-            >
-              View Call Scripts
-            </button>
-            {showCallScriptModal && (
-              <CallScriptModalContainer
-                scriptTarget="Members"
-                setShowCallScriptModal={setShowCallScriptModal}
-              />
-            )}
-          </div>
-        </div>
-      </div>
-      <div className="row">
-        <div className="notesLabel">
-          <label
-            htmlFor="notes"
-            style={{ fontSize: '24px', fontWeight: '700' }}
-          >
-            Notes
-          </label>
-        </div>
-      </div>
-      <div className="row">
-        <div className="col-sm-10 notes">
-          <div className="form-group">
-            <textarea
-              rows="6"
-              style={{ width: '100%' }}
-              id="memberNote"
-              className="form-control"
-              ref={input => (this.input = input)}
-              placeholder="Start Typing for notes"
-              onChange={e => setIsDirty(true)}
+            <MemberViewNotes
+              saveRemoveMemberNote={saveRemoveMemberNote}
+              memberItem={memberItem}
             />
           </div>
+          <div>
+            <MemberEmails
+              memberItem={memberItem}
+              fetchCampaign={fetchCampaign}
+              campaignItem={campaignItem}
+              campaignLoading={campaignLoading}
+              space={space}
+            />
+          </div>
+          <div>
+            <EmailsReceived submission={memberItem} />
+          </div>
+          <div>
+            <MemberSMS memberItem={memberItem} />
+          </div>
+          <div>
+            <Requests
+              requestContent={
+                memberItem.leadRequestContent === undefined
+                  ? memberItem.requestContent
+                  : memberItem.leadRequestContent.concat(
+                      memberItem.requestContent,
+                    )
+              }
+            />
+          </div>
+          {/*      <div>
+          <AttendanceChart
+            id={memberItem.id}
+            attendances={attendances}
+            fetchMemberAttendances={fetchMemberAttendances}
+          />
         </div>
-        <div className="col-sm-2 notesButton">
-          <button
-            type="button"
-            className={
-              isDirty
-                ? 'btn btn-primary dirty notesButton'
-                : 'btn btn-primary notDirty notesButton'
-            }
-            onClick={e => saveMember()}
-          >
-            Save Notes
-          </button>
-          <NavLink
-            to={`/MemberFollowUp/${memberItem.id}`}
-            className="btn btn-primary float-left followup_button followup_image notesButton"
-          >
-            Set Follow Up
-          </NavLink>
+        <div>
+          <MemberAttendanceContainer id={memberItem.id} />
+        </div>
+  */}
         </div>
       </div>
-      <div>
-        <MemberViewNotes memberItem={memberItem} />
-      </div>
-      <div>
-        <MemberEmails
-          memberItem={memberItem}
-          fetchCampaign={fetchCampaign}
-          campaignItem={campaignItem}
-          campaignLoading={campaignLoading}
-          space={space}
-        />
-      </div>
-      <div>
-        <EmailsReceived submission={memberItem} />
-      </div>
-      <div>
-        <Requests submission={memberItem} />
-      </div>
-      {/*      <div>
-        <AttendanceChart
-          id={memberItem.id}
-          attendances={attendances}
-          fetchMemberAttendances={fetchMemberAttendances}
-        />
-      </div>
-      <div>
-        <MemberAttendanceContainer id={memberItem.id} />
-      </div>
-*/}
-    </div>
+    </span>
   );
 
 export const MemberViewContainer = compose(
@@ -796,8 +1032,15 @@ export const MemberViewContainer = compose(
   withState('showSMSModal', 'setShowSMSModal', false),
   withState('attendClasses', 'setAttendClasses', 0),
   withState('durationPeriod', 'setDurationPeriod', 0),
+  withState('creatingUserAccount', 'setCreatingUserAccount', false),
   withHandlers({
-    saveMember: ({ memberItem, updateMember, setIsDirty, profile }) => () => {
+    saveMember: ({
+      memberItem,
+      updateMember,
+      setIsDirty,
+      profile,
+      allMembers,
+    }) => () => {
       let note = $('#memberNote').val();
       if (!note) {
         return;
@@ -820,6 +1063,35 @@ export const MemberViewContainer = compose(
         id: memberItem.id,
         memberItem,
       });
+      for (let i = 0; i < allMembers.length; i++) {
+        if (allMembers[i].id === memberItem.id) {
+          allMembers[i].values['Notes History'] = JSON.stringify(notesHistory);
+          break;
+        }
+      }
+
+      $('#memberNote').val('');
+      setIsDirty(false);
+    },
+    saveRemoveMemberNote: ({
+      memberItem,
+      updateMember,
+      setIsDirty,
+      profile,
+      allMembers,
+    }) => newHistory => {
+      memberItem.values['Notes History'] = newHistory;
+      updateMember({
+        id: memberItem.id,
+        memberItem,
+      });
+      for (let i = 0; i < allMembers.length; i++) {
+        if (allMembers[i].id === memberItem.id) {
+          allMembers[i].values['Notes History'] = JSON.stringify(newHistory);
+          break;
+        }
+      }
+
       $('#memberNote').val('');
       setIsDirty(false);
     },
@@ -833,6 +1105,7 @@ export const MemberViewContainer = compose(
       fetchMembers,
       addNotification,
       setSystemError,
+      setIsDirty,
     }) => billingId => {
       let billingRef = null;
       if (billingId) {
@@ -856,6 +1129,47 @@ export const MemberViewContainer = compose(
         addNotification: addNotification,
         setSystemError: setSystemError,
       });
+      setTimeout(function() {
+        setIsDirty(false);
+      }, 3000);
+    },
+    clearBillingInfo: ({
+      memberItem,
+      updateMember,
+      setIsDirty,
+      profile,
+      allMembers,
+    }) => () => {
+      let customerId = memberItem.values['Billing Customer Id'];
+      // Update memberItem values from billingInfo
+      memberItem.values['Billing Customer Reference'] = null;
+      memberItem.values['Billing Customer Id'] = null;
+      memberItem.values['Billing User'] = null;
+      memberItem.values['Billing Payment Type'] = null;
+      memberItem.values['Billing Payment Period'] = null;
+      memberItem.values['Payment Schedule'] = null;
+      memberItem.values['Membership Cost'] = null;
+
+      let changes = memberItem.values['Billing Changes'];
+      if (!changes) {
+        changes = [];
+      } else if (typeof changes !== 'object') {
+        changes = JSON.parse(changes);
+      }
+      changes.push({
+        date: moment().format(contact_date_format),
+        user: profile.username,
+        action: 'Clear Billing Customer',
+        from: customerId,
+        to: '',
+      });
+      memberItem.values['Billing Changes'] = changes;
+
+      updateMember({
+        id: memberItem.id,
+        memberItem,
+      });
+      setIsDirty(false);
     },
     getNewCustomers: ({
       fetchNewCustomers,
@@ -873,6 +1187,7 @@ export const MemberViewContainer = compose(
     updateIsNewReplyReceived: ({
       memberItem,
       updateMember,
+      allMembers,
       fetchMembers,
       addNotification,
       setSystemError,
@@ -881,9 +1196,59 @@ export const MemberViewContainer = compose(
       updateMember({
         id: memberItem.id,
         memberItem,
+        addNotification,
+        fetchMembers,
+        setSystemError,
+      });
+      for (let i = 0; i < allMembers.length; i++) {
+        if (allMembers[i].id === memberItem.id) {
+          allMembers[i].values['Is New Reply Received'] = false;
+          break;
+        }
+      }
+    },
+    updateAttentionRequired: ({
+      memberItem,
+      updateMember,
+      allMembers,
+      fetchMember,
+      fetchMembers,
+      addNotification,
+      setSystemError,
+      setIsDirty,
+    }) => () => {
+      memberItem.values['Is New Reply Received'] = true;
+      updateMember({
+        id: memberItem.id,
+        memberItem,
+        fetchMember,
         fetchMembers,
         addNotification,
         setSystemError,
+      });
+      for (let i = 0; i < allMembers.length; i++) {
+        if (allMembers[i].id === memberItem.id) {
+          allMembers[i].values['Is New Reply Received'] = true;
+          break;
+        }
+      }
+    },
+    createUserAccount: ({
+      memberItem,
+      updateMember,
+      createMemberUserAccount,
+      addNotification,
+      setSystemError,
+      setCreatingUserAccount,
+    }) => () => {
+      setCreatingUserAccount(true);
+
+      createMemberUserAccount({
+        memberItem,
+        updateMember,
+        addNotification,
+        setSystemError,
+        setCreatingUserAccount,
       });
     },
     printBarcode: () => () => {
@@ -960,7 +1325,9 @@ export const MemberViewContainer = compose(
 */
     },
     componentDidMount() {
-      $('.content')[0].scrollIntoView(true);
+      $('.content')
+        .parent('div')[0]
+        .scrollIntoView(true);
     },
     componentWillUnmount() {},
   }),

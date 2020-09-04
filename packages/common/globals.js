@@ -14,6 +14,9 @@ import underscore from 'underscore';
 import 'bootstrap-select/dist/css/bootstrap-select.css';
 import './lib/kd-typeahead/kd-typeahead.css';
 import 'font-awesome/css/font-awesome.css';
+import 'mdn-polyfills/Element.prototype.matches';
+import 'mdn-polyfills/Element.prototype.closest';
+import 'mdn-polyfills/Node.prototype.remove';
 
 window.$ = jquery;
 window.jQuery = jquery;
@@ -23,10 +26,11 @@ window._ = underscore;
 window.Bloodhound = require('typeahead.js');
 
 require('datatables.net');
-require('datatables.net-responsive' );
+require('datatables.net-responsive');
 require('datatables.net-dt/css/jquery.dataTables.css');
 require('datatables.net-responsive-bs/css/responsive.bootstrap.css');
 
 require('bootstrap-select/dist/js/bootstrap-select');
 require('./lib/kd-typeahead/kd-typeahead');
 require('./lib/kd-dataviewer/kd-dataviewer');
+require('./lib/bundle/helpers');

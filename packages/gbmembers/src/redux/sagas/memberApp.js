@@ -8,6 +8,7 @@ import {
 } from 'redux-saga/effects';
 import { OrderedMap, fromJS } from 'immutable';
 import { CoreAPI } from 'react-kinetic-core';
+import moment from 'moment';
 
 import { getAttributeValue } from '../../utils';
 
@@ -25,6 +26,7 @@ const KAPP_UPDATE_INCLUDES = 'attributes';
 
 export const selectProfile = ({ app }) => app.profile;
 export const selectMemberLists = ({ member }) => member.app.memberLists;
+export const selectLeadLists = ({ member }) => member.app.leadLists;
 export const selectDDRTemplates = ({ member }) => member.app.ddrTemplates;
 export const selectKapp = ({ app }) => app.kapps;
 export const selectReportPreferences = ({ member }) =>
@@ -245,6 +247,8 @@ export function* fetchMemberAppSettingsTask() {
       additionalProgramsSubmissions[i].values['Program'],
       {
         program: additionalProgramsSubmissions[i].values['Program'],
+        exludeFromGrading:
+          additionalProgramsSubmissions[i].values['Exclude from Grading'],
       },
     );
   }
@@ -392,9 +396,13 @@ export function* updateMembersListTask(payload) {
     memberListsArr[i] = JSON.stringify(memberListsArr[i]);
   }
 
-  profile.profileAttributes['Member Lists'] = memberListsArr;
+  let profileCopy = {}; //_.cloneDeep(profile);
+  profileCopy = {
+    profileAttributes: profile.profileAttributes,
+  };
+  profileCopy.profileAttributes['Member Lists'] = memberListsArr;
   const { serverError } = yield call(CoreAPI.updateProfile, {
-    profile,
+    profile: profileCopy,
     include: PROFILE_UPDATE_INCLUDES,
   });
 
@@ -402,6 +410,31 @@ export function* updateMembersListTask(payload) {
     // TODO: What should we do on success?
     if (payload.payload.history) {
       payload.payload.history.push('/kapps/gbmembers/memberLists');
+    }
+  }
+}
+export function* updateLeadsListTask(payload) {
+  const leadLists = yield select(selectLeadLists);
+  const profile = yield select(selectProfile);
+  var leadListsArr = leadLists.toJS();
+  for (var i = 0; i < leadListsArr.length; i++) {
+    leadListsArr[i] = JSON.stringify(leadListsArr[i]);
+  }
+
+  let profileCopy = {}; //_.cloneDeep(profile);
+  profileCopy = {
+    profileAttributes: profile.profileAttributes,
+  };
+  profileCopy.profileAttributes['Lead Lists'] = leadListsArr;
+  const { serverError } = yield call(CoreAPI.updateProfile, {
+    profile: profileCopy,
+    include: PROFILE_UPDATE_INCLUDES,
+  });
+
+  if (!serverError) {
+    // TODO: What should we do on success?
+    if (payload.payload.history) {
+      payload.payload.history.push('/kapps/gbmembers/leadLists');
     }
   }
 }
@@ -422,7 +455,10 @@ export function* updateReportPreferences(action) {
     reportPreferencesArr[i] = JSON.stringify(reportPreferencesArr[i]);
   }
 
-  let profileCopy = _.cloneDeep(profile);
+  let profileCopy = {}; //_.cloneDeep(profile);
+  profileCopy = {
+    profileAttributes: profile.profileAttributes,
+  };
   profileCopy.profileAttributes['Report Preferences'] = reportPreferencesArr;
   const { serverError } = yield call(CoreAPI.updateProfile, {
     profile: profileCopy,
@@ -454,6 +490,10 @@ export function* watchApp() {
       types.REMOVE_MEMBERS_LIST,
     ],
     updateMembersListTask,
+  );
+  yield takeLatest(
+    [types.ADD_LEADS_LIST, types.UPDATE_LEADS_LIST, types.REMOVE_LEADS_LIST],
+    updateLeadsListTask,
   );
   yield takeLatest(
     [types.ADD_DDR_TEMPLATE, types.REMOVE_DDR_TEMPLATE],

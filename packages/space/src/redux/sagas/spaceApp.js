@@ -5,16 +5,8 @@ import { List } from 'immutable';
 import { commonActions, toastActions } from 'common';
 import { actions, types } from '../modules/spaceApp';
 import { actions as errorActions } from '../modules/errors';
-import { OrderedMap } from 'immutable';
-import { DiscussionAPI } from 'discussions';
 
-export const SNIPPETS_SEARCH = new CoreAPI.SubmissionSearch(true)
-  .eq('values[Status]', 'Active')
-  .eq('values[Type]', 'Snippet')
-  .index('values[Status],values[Type]')
-  .include('details,values')
-  .limit(1000)
-  .build();
+import { DiscussionAPI } from 'discussions';
 
 export function* fetchAppSettingsSaga() {
   const [{ users, usersServerError }, { space, spaceServerError }] = yield all([
@@ -23,23 +15,6 @@ export function* fetchAppSettingsSaga() {
       include: 'userAttributeDefinitions,userProfileAttributeDefinitions',
     }),
   ]);
-
-  const snippetsSubs = yield all({
-    submissions: call(CoreAPI.searchSubmissions, {
-      datastore: true,
-      form: 'notification-data',
-      search: SNIPPETS_SEARCH,
-    }),
-  });
-  var snippetsMap = OrderedMap();
-  var snippetsSubmissions = snippetsSubs.submissions.submissions;
-  for (let i = 0; i < snippetsSubmissions.length; i++) {
-    snippetsMap = snippetsMap.set(snippetsSubmissions[i].values['Name'], {
-      name: snippetsSubmissions[i].values['Name'],
-      value: snippetsSubmissions[i].values['HTML Content'],
-    });
-  }
-  var snippets = snippetsMap.toList();
 
   if (usersServerError || spaceServerError) {
     yield put(
@@ -63,7 +38,6 @@ export function* fetchAppSettingsSaga() {
           },
           {},
         ),
-        snippets,
       }),
     );
   }

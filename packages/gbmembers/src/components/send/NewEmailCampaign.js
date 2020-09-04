@@ -10,29 +10,41 @@ import {
 import { actions } from '../../redux/modules/campaigns';
 import $ from 'jquery';
 import 'react-datetime/css/react-datetime.css';
-import ReactQuill, { Quill } from 'react-quill';
-import ImageResize from 'quill-image-resize-module-react';
 import moment from 'moment';
 import { email_sent_date_format } from '../leads/LeadsUtils';
 import { AttachmentForm } from './AttachmentForm';
-import '../../styles/quill.snow.scss';
 import { actions as leadsActions } from '../../redux/modules/leads';
 import { actions as membersActions } from '../../redux/modules/members';
 import { actions as campaignActions } from '../../redux/modules/campaigns';
 import { actions as dataStoreActions } from '../../redux/modules/settingsDatastore';
-import { matchesMemberFilter } from '../../utils/utils';
+import { matchesMemberFilter, matchesLeadFilter } from '../../utils/utils';
 import Select from 'react-select';
+import EmailEditor from 'react-email-editor';
+import {
+  BrowserView,
+  MobileView,
+  TabletView,
+  isBrowser,
+  isMobile,
+  isTablet,
+} from 'react-device-detect';
+import './tinymce.min.js';
+import { TinyMCEComponent, createEditorStore } from 'mb-react-tinymce';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   campaignItem: state.member.campaigns.newEmailCampaign,
   newCampaignLoading: state.member.campaigns.newEmailCampaignLoading,
   memberLists: state.member.app.memberLists,
+  leadLists: state.member.app.leadLists,
   snippets: state.member.app.snippets,
   allMembers: state.member.members.allMembers,
+  allLeads: state.member.leads.allLeads,
   space: state.member.app.space,
   leadItem: state.member.leads.currentLead,
   memberItem: state.member.members.currentMember,
+  emailTemplateCategories: state.member.datastore.emailTemplateCategories,
   emailTemplates: state.member.datastore.emailTemplates,
   emailTemplatesLoading: state.member.datastore.emailTemplatesLoading,
 });
@@ -48,29 +60,12 @@ const mapDispatchToProps = {
 
 const util = require('util');
 
-var Block = Quill.import('blots/block');
-Block.tagName = 'DIV';
-Quill.register(Block, true);
-
-var Size = Quill.import('attributors/style/size');
-Size.whitelist = ['10px', '18px', '32px', '64px'];
-Quill.register(Size, true);
-
-var Link = Quill.import('formats/link');
-var builtInFunc = Link.sanitize;
 var campaignSpace = null;
-Link.sanitize = function modifyLinkInput(linkValueInput) {
-  console.log('linkValueInput:' + linkValueInput);
-  if (linkValueInput.indexOf('${') !== -1) return linkValueInput;
-  var val = btoa(linkValueInput).replace('/', 'XXX');
-  return builtInFunc.call(
-    this,
-    'https://gbbilling.com.au:8443/billingservice/goToUrl/' +
-      campaignSpace +
-      '/__campaign_id__/__member_id__/' +
-      val,
-  ); // retain the built-in logic
-};
+
+var emailEditorRef = null;
+var editorThis = null;
+const BLANK_TEMPLATE =
+  '{"counters":{"u_column":1,"u_row":1,"u_content_text":1},"body":{"rows":[{"cells":[1],"columns":[{"contents":[{"type":"text","values":{"containerPadding":"10px","_meta":{"htmlID":"u_content_text_1","htmlClassNames":"u_content_text"},"selectable":true,"draggable":true,"deletable":true,"color":"#000000","textAlign":"left","lineHeight":"140%","linkStyle":{"inherit":true,"linkColor":"#0000ee","linkHoverColor":"#0000ee","linkUnderline":true,"linkHoverUnderline":true},"text":"<p style=\\"font-size: 14px; line-height: 140%;\\"><span style=\\"font-size: 14px; line-height: 19.6px;\\">##CONTENT##</span></p>"}}],"values":{"backgroundColor":"","padding":"0px","border":{},"_meta":{"htmlID":"u_column_1","htmlClassNames":"u_column"}}}],"values":{"columns":false,"backgroundColor":"","columnsBackgroundColor":"","backgroundImage":{"url":"","fullWidth":true,"repeat":false,"center":true,"cover":false},"padding":"0px","hideDesktop":false,"hideMobile":false,"noStackMobile":false,"_meta":{"htmlID":"u_row_1","htmlClassNames":"u_row"},"selectable":true,"draggable":true,"deletable":true}}],"values":{"backgroundColor":"#e7e7e7","backgroundImage":{"url":"","fullWidth":true,"repeat":false,"center":true,"cover":false},"contentWidth":"500px","fontFamily":{"label":"Arial","value":"arial,helvetica,sans-serif"},"linkStyle":{"body":true,"linkColor":"#0000ee","linkHoverColor":"#0000ee","linkUnderline":true,"linkHoverUnderline":true},"_meta":{"htmlID":"u_body","htmlClassNames":"u_body"}}}}';
 
 export class NewEmailCampaign extends Component {
   constructor(props) {
@@ -79,68 +74,42 @@ export class NewEmailCampaign extends Component {
     campaignSpace = this.props.space.slug;
     this.handleChange = this.handleChange.bind(this);
     this.handleRecipientChange = this.handleRecipientChange.bind(this);
-
+    this.handleLeadRecipientChange = this.handleLeadRecipientChange.bind(this);
     this.preview = this.preview.bind(this);
     this.back = this.back.bind(this);
     this.handleSubjectChange = this.handleSubjectChange.bind(this);
     this.createCampaign = this.createCampaign.bind(this);
     this.getSelectOptions = this.getSelectOptions.bind(this);
-    this.insertEmailTemplate = this.insertEmailTemplate.bind(this);
-    this.renderTemplatesList = this.renderTemplatesList.bind(this);
-    this.quillRef = null;
-    this.reactQuillRef = null;
-    this.attachQuillRefs = this.attachQuillRefs.bind(this);
+
     if (this.props.submissionId != null) {
       this.currentMember = this.props.allMembers.find(
         member => member['id'] === this.props.submissionId,
       );
     }
+
     this.state = {
-      text: '', // You can also pass a Quill Delta here
+      text: '',
       subject: '',
       options: this.getSelectOptions(
         this.props.memberLists,
         this.props.allMembers,
       ),
       selectedOption: [],
+      leadOptions: this.getSelectLeadOptions(
+        this.props.leadLists,
+        this.props.allLeads,
+      ),
+      selectedLeadOption: [],
+      isMenuOpen: false,
     };
-
-    this.modules = {
-      toolbar: {
-        container: [
-          ['bold', 'italic', 'underline', 'strike'], // toggled buttons
-          ['blockquote', 'code-block'],
-
-          [{ size: ['10px', '18px', '32px', '64px'] }],
-          [{ list: 'ordered' }, { list: 'bullet' }],
-          [{ indent: '-1' }, { indent: '+1' }], // outdent/indent
-
-          [{ align: [] }],
-          [{ header: [1, 2, 3, 4, 5, 6, false] }],
-          [{ color: [] }, { background: [] }], // dropdown with defaults from theme
-          [{ font: [] }],
-          ['link'],
-          ['image'],
-          ['clean'],
-          ['firstname'],
-          ['lastname'],
-          ['emailfooter'],
-          [{ templates: [] }],
-        ],
-        handlers: {
-          firstname: this.insertFirstName,
-          lastname: this.insertLastName,
-          emailfooter: this.insertEmailFooter.bind(this),
-        },
-      },
-      imageResize: {
-        parchment: Quill.import('parchment'),
-      },
-    };
+    editorThis = this;
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.allMembers.length !== this.props.allMembers.length) {
+    if (
+      nextProps.allMembers !== undefined &&
+      nextProps.allMembers.length !== this.props.allMembers.length
+    ) {
       this.setState({
         options: this.getSelectOptions(
           nextProps.memberLists,
@@ -148,13 +117,18 @@ export class NewEmailCampaign extends Component {
         ),
       });
     }
-
-    if (nextProps.emailTemplates.length !== this.props.emailTemplates.length) {
-      this.renderTemplatesList(
-        nextProps.emailTemplates,
-        nextProps.emailTemplatesLoading,
-      );
+    if (
+      nextProps.allLeads !== undefined &&
+      nextProps.allLeads.length !== this.props.allLeads.length
+    ) {
+      this.setState({
+        leadOptions: this.getSelectLeadOptions(
+          nextProps.leadLists,
+          nextProps.allLeads,
+        ),
+      });
     }
+
     let subject = '';
     let text = '';
     if (
@@ -195,112 +169,89 @@ export class NewEmailCampaign extends Component {
     }
   }
 
-  componentDidMount() {
-    this.attachQuillRefs();
-    this.renderTemplatesList(
-      this.props.emailTemplates,
-      this.props.emailTemplatesLoading,
-    );
+  componentWillMount() {
+    if (isMobile || isTablet) {
+      this.editorStore = createEditorStore();
+    }
   }
 
-  componentDidUpdate() {
-    this.attachQuillRefs();
+  componentDidUpdate() {}
+
+  escapeJSON(str) {
+    return str.replace(/(["])/g, '\\$1');
   }
 
-  formats = [
-    'header',
-    'bold',
-    'italic',
-    'underline',
-    'strike',
-    'blockquote',
-    'list',
-    'bullet',
-    'indent',
-    'link',
-    'image',
-    'color',
-    'width',
-    'height',
-    'align',
-    'text-align',
-    'size',
-  ];
-
-  attachQuillRefs() {
-    // Ensure React-Quill reference is available:
-    if (
-      this.reactQuillRef &&
-      typeof this.reactQuillRef.getEditor !== 'function'
-    )
-      return;
-    // Skip if Quill reference is defined:
-    if (this.quillRef != null) return;
-
-    const quillRef = this.reactQuillRef ? this.reactQuillRef.getEditor() : null;
-    if (quillRef != null) this.quillRef = quillRef;
+  getEmailTemplates(emailTemplates) {
+    let templates = [];
+    emailTemplates.forEach(template => {
+      templates.push({
+        label:
+          template.values['Category'] !== undefined &&
+          template.values['Category'] !== null
+            ? template.values['Category'] +
+              '->' +
+              template.values['Template Name']
+            : template.values['Template Name'],
+        value: template.id,
+      });
+    });
+    return templates;
   }
-  insertFirstName() {
-    const cursorPosition = this.quill.getSelection().index;
-    this.quill.insertText(cursorPosition, "member('First Name')");
-    this.quill.setSelection(cursorPosition + "member('First Name')".length + 1);
-  }
-  insertLastName() {
-    const cursorPosition = this.quill.getSelection().index;
-    this.quill.insertText(cursorPosition, "member('Last Name')");
-    this.quill.setSelection(cursorPosition + "member('Last Name')".length + 1);
-  }
-  insertEmailFooter() {
-    const cursorPosition = this.reactQuillRef.editor.getSelection().index;
-    let footer = this.props.snippets.find(function(el) {
-      if (el.name === 'Email Footer') return el;
-    }).value;
-    this.reactQuillRef.editor.pasteHTML(cursorPosition, footer);
-    this.reactQuillRef.editor.setSelection(cursorPosition + footer.length + 1);
-  }
-  insertEmailTemplate() {
-    let templateId = $('.ql-templates-list').val();
+  selectEmailTemplate(e) {
+    let templateId = e.value;
     if (!templateId) {
       console.log('Please select a template');
       return;
     }
-    let content = this.props.emailTemplates.find(
+    let template = this.props.emailTemplates.find(
       template => template['id'] === templateId,
-    ).values['Email Content'];
-    var range = this.quillRef.getSelection();
-    let position = range ? range.index : 0;
-    this.quillRef.pasteHTML(position, content);
-  }
+    );
 
-  renderTemplatesList(emailTemplates, emailTemplatesLoading) {
-    let templates = [];
-    let selectHtml = "<select class='ql-templates-list' >";
-    if (emailTemplatesLoading) {
-      selectHtml += "<option value=''>Loading templates...</option>";
-    } else {
-      selectHtml += "<option value=''>- Select Template -</option>";
-      emailTemplates.forEach(template => {
-        templates.push({
-          value: template['id'],
-          label: template.values['Template Name'],
-          template: template,
-        });
-        selectHtml +=
-          "<option value='" +
-          template['id'] +
-          "'>" +
-          template.values['Template Name'] +
-          '</option>';
+    if (
+      template.values['Email JSON'] !== '' &&
+      template.values['Email JSON'] !== undefined &&
+      template.values['Email JSON'] !== null
+    ) {
+      emailEditorRef.loadDesign(JSON.parse(template.values['Email JSON']));
+      emailEditorRef.exportHtml(function(data) {
+        var html = data.html; // design html
+
+        // Save the json, or html here
+        editorThis.setState({ text: html });
+      });
+    } else if (template.values['Email Content'] !== '') {
+      var templateStr = BLANK_TEMPLATE.replace(
+        '##CONTENT##',
+        editorThis.escapeJSON(template.values['Email Content']),
+      );
+      emailEditorRef.loadDesign(JSON.parse(templateStr));
+      emailEditorRef.exportHtml(function(data) {
+        var html = data.html; // design html
+
+        // Save the json, or html here
+        editorThis.setState({ text: html });
       });
     }
-
-    selectHtml += '</select>';
-    document.querySelectorAll(
-      '.ql-templates.ql-picker',
-    )[0].innerHTML = selectHtml;
-    $('.ql-templates-list').change(this.insertEmailTemplate);
   }
+  selectEmailTemplateMobile(e) {
+    let templateId = e.value;
+    if (!templateId) {
+      console.log('Please select a template');
+      return;
+    }
+    let template = this.props.emailTemplates.find(
+      template => template['id'] === templateId,
+    );
 
+    if (template.values['Email Content'] !== '') {
+      var templateStr = BLANK_TEMPLATE.replace(
+        '##CONTENT##',
+        editorThis.escapeJSON(template.values['Email Content']),
+      );
+      // Save the json, or html here
+      editorThis.setState({ text: template.values['Email Content'] });
+    }
+  }
   getSelectOptions(memberLists, allMembers) {
     //If submissionId is present then submissionId is the recipient.
     //So no need to populate or display recipient list dropdown.
@@ -314,7 +265,7 @@ export class NewEmailCampaign extends Component {
     allMembers.forEach(member => {
       if (member.values['Status'] === 'Active') {
         activeMembers.push(member['id']);
-      } else {
+      } else if (member.values['Status'] === 'Inactive') {
         inactiveMembers.push(member['id']);
       }
     });
@@ -347,14 +298,40 @@ export class NewEmailCampaign extends Component {
 
     return options;
   }
+  getSelectLeadOptions(leadLists, allLeads) {
+    //If submissionId is present then submissionId is the recipient.
+    //So no need to populate or display recipient list dropdown.
+    if (this.props.submissionId || leadLists === undefined) {
+      return [];
+    }
+    let options = [];
+
+    leadLists.forEach(list => {
+      options.push({
+        value: list.name,
+        label: list.name,
+        leads: matchesLeadFilter(allLeads, list.filters).map(
+          lead => lead['id'],
+        ),
+      });
+    });
+
+    return options;
+  }
 
   handleRecipientChange = selectedOption => {
     this.setState({ selectedOption });
-    //console.log(`Option selected:`, selectedOption);
+  };
+  handleLeadRecipientChange = selectedLeadOption => {
+    this.setState({ selectedLeadOption });
   };
 
   createCampaign() {
-    if (!this.props.submissionId && this.state.selectedOption.length <= 0) {
+    if (
+      !this.props.submissionId &&
+      this.state.selectedOption.length <= 0 &&
+      this.state.selectedLeadOption.length <= 0
+    ) {
       console.log('Recipients, subject and body is required');
       return;
     }
@@ -371,30 +348,35 @@ export class NewEmailCampaign extends Component {
       this.state.selectedOption.forEach(option => {
         recipientIds.push(...option.members);
       });
+      this.state.selectedLeadOption.forEach(option => {
+        recipientIds.push(...option.leads);
+      });
     }
     // Extract Embedded images from the Body
     let embeddedImages = [];
     let body = '';
-
-    if (this.state.text.indexOf('<img src="data:') !== -1) {
-      let pos = 0;
+    if (this.state.text.indexOf('<a href="') !== -1) {
       let idx = 0;
       let endIdx = 0;
-      while (this.state.text.indexOf('<img src="data:', endIdx) !== -1) {
-        idx = this.state.text.indexOf('<img src="data:', endIdx);
-        endIdx = this.state.text.indexOf('>', idx);
-        let now = new Date().getTime() + '_' + pos;
-        let encodedImg =
-          'EMBEDDED_IMAGE_' +
-          now +
-          ':' +
-          this.state.text.substring(idx, endIdx);
-        embeddedImages.push(encodedImg);
-        body = body + this.state.text.substring(pos, idx);
-        body = body + 'EMBEDDED_IMAGE_' + now;
-        pos = endIdx + 1;
+      var contentHTML = this.state.text;
+      /*
+      while (contentHTML.indexOf('<a href="', endIdx) !== -1) {
+        idx = contentHTML.indexOf('<a href="', endIdx);
+        endIdx = contentHTML.indexOf('"', idx + '<a href="'.length);
+        var url = contentHTML.substring(idx + '<a href="'.length, endIdx);
+        var encodeVal = btoa(url).replace('/', 'XXX');
+
+        var newUrl =
+            'https://gbbilling.com.au:8443/billingservice/goToUrl/' +
+            campaignSpace +
+            '/__campaign_id__/__member_id__/' +
+            encodeVal,
+          contentHTML = contentHTML.replace(url, newUrl);
+
       }
-      body = body + this.state.text.substring(endIdx + 1);
+*/
+
+      body = contentHTML;
     } else {
       body = this.state.text;
     }
@@ -430,6 +412,11 @@ export class NewEmailCampaign extends Component {
   }
 
   preview() {
+    if (isMobile || isTablet) {
+      this.setState({
+        text: $('.emailEditor .mce-content-body').html(),
+      });
+    }
     if (
       $('.attachment-form')
         .find('button[data-element-name="Submit Button"]')
@@ -456,6 +443,23 @@ export class NewEmailCampaign extends Component {
   handleSubjectChange(event) {
     this.setState({ subject: event.target.value });
   }
+  onLoadEmailTemplate() {
+    setTimeout(function() {
+      emailEditorRef.addEventListener('design:updated', function(updates) {
+        // Design is updated by the user
+        emailEditorRef.exportHtml(function(data) {
+          var json = data.design; // design json
+          var html = data.html; // design html
+
+          // Save the json, or html here
+          editorThis.setState({ text: html });
+        });
+      });
+    }, 1000);
+  }
+  handleTinyEditorChange = (content, editor) => {
+    console.log('Content was updated:', content);
+  };
 
   render() {
     return (
@@ -469,7 +473,8 @@ export class NewEmailCampaign extends Component {
           }}
         >
           <div className="col-md-4" style={{ textAlign: 'right' }}>
-            You are currently sending this email to
+            You are currently sending this email to{' '}
+            {this.props.submissionType === 'member' ? 'Members' : 'Leads'}
           </div>
           <div className="col-md-4">
             {this.props.submissionId ? (
@@ -494,11 +499,23 @@ export class NewEmailCampaign extends Component {
                     : ''
                 }
               />
-            ) : (
+            ) : this.props.submissionType === 'member' ? (
               <Select
                 value={this.state.selectedOption}
                 onChange={this.handleRecipientChange}
                 options={this.state.options}
+                placeholder="Select Member List"
+                closeMenuOnSelect={false}
+                hideSelectedOptions={false}
+                controlShouldRenderValue={true}
+                isMulti={true}
+              />
+            ) : (
+              <Select
+                value={this.state.selectedLeadOption}
+                onChange={this.handleLeadRecipientChange}
+                options={this.state.leadOptions}
+                placeholder="Select Lead List"
                 closeMenuOnSelect={false}
                 hideSelectedOptions={false}
                 controlShouldRenderValue={true}
@@ -509,7 +526,7 @@ export class NewEmailCampaign extends Component {
           <div className="col-md-3">&nbsp;</div>
         </div>
         <div className="row">
-          <div className="col-md-10" style={{ height: '1000px' }}>
+          <div className="col-md-10 details">
             <span className="line">
               <div>
                 <label htmlFor="subject" required>
@@ -527,34 +544,123 @@ export class NewEmailCampaign extends Component {
                 />
               </div>
             </span>
-            <span className="line">
-              <div>
+            <span className="line options">
+              <span className="attachmentForm">
                 <AttachmentForm campaignItem={this.props.campaignItem} />
+              </span>
+              <span
+                className="line templateMenu"
+                style={{
+                  display: this.props.showEditor ? 'inline-block' : 'none',
+                }}
+              >
+                <Select
+                  closeMenuOnSelect={true}
+                  options={this.getEmailTemplates(this.props.emailTemplates)}
+                  className="hide-columns-container"
+                  classNamePrefix="hide-columns"
+                  placeholder="Select Email Template"
+                  onChange={e => {
+                    if (isBrowser) {
+                      this.selectEmailTemplate(e);
+                    }
+                    if (isMobile || isTablet) {
+                      this.selectEmailTemplateMobile(e);
+                    }
+                  }}
+                  style={{ width: '300px' }}
+                />
+              </span>
+            </span>
+            <span className="line copyTags">
+              <div className="copyItem">
+                <div className="copySample">member('ID')</div>
+                <CopyToClipboard
+                  text={"member('ID')"}
+                  onCopy={console.log("member('ID') copied to Clipboard")}
+                >
+                  <i className="fa fa-clipboard" aria-hidden="true"></i>
+                </CopyToClipboard>
+              </div>
+              <div className="copyItem">
+                <div className="copySample">member('First Name')</div>
+                <CopyToClipboard
+                  text={"member('First Name')"}
+                  onCopy={console.log(
+                    "member('First Name') copied to Clipboard",
+                  )}
+                >
+                  <i className="fa fa-clipboard" aria-hidden="true"></i>
+                </CopyToClipboard>
+              </div>
+              <div className="copyItem">
+                <div className="copySample"> member('Last Name')</div>
+                <CopyToClipboard
+                  text={"member('Last Name')"}
+                  onCopy={console.log(
+                    "member('Last Name') copied to Clipboard",
+                  )}
+                >
+                  <i className="fa fa-clipboard" aria-hidden="true"></i>
+                </CopyToClipboard>
+              </div>
+              <div className="copyItem">
+                <div className="copySample"> Email Footer (HTML only)</div>
+                <CopyToClipboard
+                  text={
+                    this.props.snippets.find(function(el) {
+                      if (el.name === 'Email Footer') return el;
+                    }).value
+                  }
+                  onCopy={console.log(
+                    'Email Footer copied to Clipboard, only paste into a HTML block',
+                  )}
+                >
+                  <i className="fa fa-clipboard" aria-hidden="true"></i>
+                </CopyToClipboard>
               </div>
             </span>
-            {this.props.showEditor && (
-              <ReactQuill
-                ref={el => {
-                  this.reactQuillRef = el;
-                }}
-                value={this.state.text}
-                onChange={this.handleChange}
-                theme="snow"
-                modules={this.modules}
-                formats={this.formats}
-                debug={true}
-              />
-            )}
-            {this.props.showPreview && (
-              <div
-                id="previewDiv"
-                ref="previewDiv"
-                className="ql-editor"
-                style={{ border: '1px solid #ccc' }}
-              >
-                <span dangerouslySetInnerHTML={{ __html: this.state.text }} />
-              </div>
-            )}
+            <span
+              className="line emailEditor"
+              style={{ display: this.props.showEditor ? 'block' : 'none' }}
+            >
+              <BrowserView>
+                <EmailEditor
+                  ref={editor => (emailEditorRef = editor)}
+                  onLoad={this.onLoadEmailTemplate}
+                />
+              </BrowserView>
+              <MobileView>
+                <TinyMCEComponent
+                  value={this.state.text}
+                  isActive={true}
+                  editorStore={this.editorStore}
+                  init={{
+                    menubar: false,
+                  }}
+                />
+              </MobileView>
+              <TabletView>
+                <TinyMCEComponent
+                  value={this.state.text}
+                  isActive={true}
+                  editorStore={this.editorStore}
+                  init={{
+                    menubar: false,
+                  }}
+                />
+              </TabletView>
+            </span>
+            <div
+              id="previewDiv"
+              ref="previewDiv"
+              style={{
+                display: this.props.showPreview ? 'block' : 'none',
+                border: '1px solid #ccc',
+              }}
+            >
+              <span dangerouslySetInnerHTML={{ __html: this.state.text }} />
+            </div>
           </div>
           <div className="col-md buttons" style={{ verticalAlign: 'middle' }}>
             {this.props.showEditor && (
@@ -604,6 +710,7 @@ export const NewEmailCampaignView = ({
   newCampaignLoading,
   saveCampaign,
   memberLists,
+  leadLists,
   snippets,
   isDirty,
   setIsDirty,
@@ -615,11 +722,13 @@ export const NewEmailCampaignView = ({
   setShowPreview,
   updateCampaign,
   allMembers,
+  allLeads,
   submissionId,
   submissionType,
   leadItem,
   memberItem,
   space,
+  emailTemplateCategories,
   emailTemplates,
   emailTemplatesLoading,
   replyType,
@@ -633,6 +742,7 @@ export const NewEmailCampaignView = ({
         campaignItem={campaignItem}
         saveCampaign={saveCampaign}
         memberLists={memberLists}
+        leadLists={leadLists}
         snippets={snippets}
         isDirty={isDirty}
         setIsDirty={setIsDirty}
@@ -644,11 +754,13 @@ export const NewEmailCampaignView = ({
         setShowPreview={setShowPreview}
         updateCampaign={updateCampaign}
         allMembers={allMembers}
+        allLeads={allLeads}
         submissionId={submissionId}
         submissionType={submissionType}
         leadItem={leadItem}
         memberItem={memberItem}
         space={space}
+        emailTemplateCategories={emailTemplateCategories}
         emailTemplates={emailTemplates}
         emailTemplatesLoading={emailTemplatesLoading}
         replyType={replyType}
@@ -698,12 +810,20 @@ export const EmailCampaignContainer = compose(
         history: this.props.history,
         fetchEmailCampaigns: null,
       });
-      if (this.props.submissionType && this.props.submissionType === 'lead') {
+      if (
+        this.props.submissionType &&
+        this.props.submissionType === 'lead' &&
+        this.props.submissionId !== undefined
+      ) {
         this.props.fetchLead({
           id: this.props.submissionId,
         });
       }
-      if (this.props.submissionType && this.props.submissionType === 'member') {
+      if (
+        this.props.submissionType &&
+        this.props.submissionType === 'member' &&
+        this.props.submissionId !== undefined
+      ) {
         this.props.fetchMember({
           id: this.props.submissionId,
         });
@@ -720,7 +840,9 @@ export const EmailCampaignContainer = compose(
       }
     },
     componentDidMount() {
-      $('.content')[0].scrollIntoView(true);
+      $('.content')
+        .parent('div')[0]
+        .scrollIntoView(true);
     },
     componentWillUnmount() {},
   }),

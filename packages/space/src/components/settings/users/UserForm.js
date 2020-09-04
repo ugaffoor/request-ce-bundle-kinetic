@@ -4,12 +4,14 @@ import { compose, lifecycle, withHandlers, withState } from 'recompose';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { fromJS, List } from 'immutable';
-import { modalFormActions, PageTitle } from 'common';
+import { modalFormActions, PageTitle, Utils } from 'common';
 
 import { actions as usersActions } from '../../../redux/modules/settingsUsers';
 import { actions as teamsActions } from '../../../redux/modules/teamList';
-import { ProfileCard } from '../../shared/ProfileCard';
+import { actions as profileActions } from '../../../redux/modules/profiles';
+import { ProfileCard } from 'common';
 import { UsersDropdown } from './DropDown';
+import { I18n } from '../../../../../app/src/I18nProvider';
 
 export const UserFormComponent = ({
   mode,
@@ -20,6 +22,9 @@ export const UserFormComponent = ({
   error,
   roles,
   teams,
+  spaceAdmin,
+  locales,
+  timezones,
   fieldValues,
   handleFieldChange,
   handleOptionChange,
@@ -29,229 +34,368 @@ export const UserFormComponent = ({
   handleSubmit,
   handleDelete,
   userProfileAttributes,
+  editingPassword,
+  handleTogglePassword,
 }) => (
   <div className="page-container page-container--panels page-container--space-profile-edit">
     <PageTitle parts={['Users', 'Settings']} />
-    {!loading &&
-      (!userLoading || !mode) && (
-        <Fragment>
-          <div className="page-panel page-panel--three-fifths page-panel--scrollable page-panel--space-profile-edit">
-            <div className="page-title">
-              <div className="page-title__wrapper">
-                <h3>
-                  <Link to="/">home</Link> /{` `}
-                  <Link to="/settings">settings</Link> /{` `}
-                  <Link to={`/settings/users/`}>users</Link> /{` `}
-                </h3>
-                {mode === 'edit' ? (
-                  <h1>Edit: {user.displayName || user.username}</h1>
-                ) : (
-                  <h1>Create User</h1>
-                )}
-              </div>
-            </div>
-            <div>
-              <h2 className="section__title">General</h2>
-              <form onSubmit={handleSubmit}>
-                <div className="user-admin">
-                  <label htmlFor="spaceAdmin">
-                    <input
-                      type="checkbox"
-                      id="spaceAdmin"
-                      name="spaceAdmin"
-                      onChange={handleCheckboxChange}
-                      checked={fieldValues.spaceAdmin}
-                    />Space Admin
-                  </label>
-                  <label htmlFor="enabled">
-                    <input
-                      type="checkbox"
-                      id="enabled"
-                      name="enabled"
-                      onChange={handleCheckboxChange}
-                      checked={fieldValues.enabled}
-                    />Enabled
-                  </label>
-                </div>
-                {mode !== 'edit' && (
-                  <div className="form-group required">
-                    <label htmlFor="username">Username</label>
-                    <input
-                      type="text"
-                      id="username"
-                      name="username"
-                      onChange={handleFieldChange}
-                      value={fieldValues.username}
-                    />
-                  </div>
-                )}
-                <div className="form-group required">
-                  <label htmlFor="displayName">Display Name</label>
-                  <input
-                    type="text"
-                    id="displayName"
-                    name="displayName"
-                    onChange={handleFieldChange}
-                    value={fieldValues.displayName}
-                  />
-                </div>
-                <div className="form-group required">
-                  <label htmlFor="email">Email</label>
-                  <input
-                    type="text"
-                    id="email"
-                    name="email"
-                    onChange={handleFieldChange}
-                    value={fieldValues.email}
-                  />
-                </div>
-                <div>
-                  <h2 className="section__title">Profile Attributes</h2>
-                  <div className="user-attributes-wrapper">
-                    <div className="form-group">
-                      <label htmlFor="firstName">First Name</label>
-                      <input
-                        id="firstName"
-                        name="firstName"
-                        className="form-control"
-                        onChange={handleFieldChange}
-                        value={fieldValues.firstName}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="lastName">Last Name</label>
-                      <input
-                        id="lastName"
-                        name="lastName"
-                        className="form-control"
-                        onChange={handleFieldChange}
-                        value={fieldValues.lastName}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="phoneNumber">Phone Number</label>
-                      <input
-                        id="phoneNumber"
-                        name="phoneNumber"
-                        className="form-control"
-                        onChange={handleFieldChange}
-                        value={fieldValues.phoneNumber}
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <h2 className="section__title">User Attributes</h2>
-                  <div className="user-attributes-wrapper">
-                    <div className="form-group">
-                      <label htmlFor="department">Department</label>
-                      <input
-                        id="department"
-                        name="department"
-                        className="form-control"
-                        onChange={handleFieldChange}
-                        value={fieldValues.department}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="manager">Manager</label>
-                      <UsersDropdown
-                        users={users}
-                        initialValue={managerLookup(users, fieldValues.manager)}
-                        onSelect={user =>
-                          handleOptionChange('manager', user.username)
-                        }
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="organization">Organization</label>
-                      <input
-                        id="organization"
-                        name="organization"
-                        className="form-control"
-                        onChange={handleFieldChange}
-                        value={fieldValues.organization}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="site">Site</label>
-                      <input
-                        id="site"
-                        name="site"
-                        className="form-control"
-                        onChange={handleFieldChange}
-                        value={fieldValues.site}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <h2 className="section__title">Roles</h2>
-                    {roles &&
-                      roles.map(role => (
-                        <label key={role.slug} htmlFor={role.name}>
-                          <input
-                            type="checkbox"
-                            id={role.name}
-                            onChange={handleRolesChange}
-                            checked={fieldValues.userRoles.includes(role.name)}
-                            value={role.name}
-                          />
-                          {role.name.replace(/^Role::(.*?)/, '$1')}
-                        </label>
-                      ))}
-                  </div>
-                  <div>
-                    <h2 className="section__title">Teams</h2>
-                    {teams &&
-                      teams.map(team => (
-                        <label key={team.slug} htmlFor={team.name}>
-                          <input
-                            type="checkbox"
-                            id={team.name}
-                            onChange={handleTeamsChange}
-                            checked={fieldValues.userTeams.includes(team.name)}
-                            value={team.name}
-                          />
-                          {team.name}
-                        </label>
-                      ))}
-                  </div>
-                </div>
-                <div className="form__footer">
-                  {mode === 'edit' && (
-                    <button className="btn btn-link" onClick={handleDelete}>
-                      Delete User
-                    </button>
-                  )}
-                  <div className="form__footer__right">
-                    <button
-                      disabled={!fieldValuesValid(fieldValues)}
-                      className="btn btn-primary"
-                    >
-                      {mode === 'edit' ? 'Save User' : 'Create User'}
-                    </button>
-                    <Link to={`/settings/users`}>Cancel</Link>
-                  </div>
-                </div>
-              </form>
+    {!loading && (!userLoading || !mode) && (
+      <Fragment>
+        <div className="page-panel page-panel--three-fifths page-panel--scrollable page-panel--space-profile-edit">
+          <div className="page-title">
+            <div className="page-title__wrapper">
+              <h3>
+                <Link to="/">
+                  <I18n>home</I18n>
+                </Link>{' '}
+                /{` `}
+                <Link to="/settings">
+                  <I18n>settings</I18n>
+                </Link>{' '}
+                /{` `}
+                <Link to={`/settings/users/`}>
+                  <I18n>users</I18n>
+                </Link>{' '}
+                /{` `}
+              </h3>
+              {mode === 'edit' ? (
+                <h1>
+                  <I18n>Edit</I18n>: {user.displayName || user.username}
+                </h1>
+              ) : (
+                <h1>
+                  <I18n>New User</I18n>
+                </h1>
+              )}
             </div>
           </div>
-          {mode === 'edit' && (
-            <div className="page-panel page-panel--two-fifths page-panel--sidebar page-panel--space-profile-edit-sidebar ">
-              <ProfileCard
-                user={buildProfile(fieldValues, user)}
-                button={
-                  <Link to={`/profile/${user.username}`}>
-                    <button className="btn btn-primary btn-sm">
-                      View Profile
+          <div>
+            <h2 className="section__title">
+              <I18n>General</I18n>
+            </h2>
+            <form onSubmit={handleSubmit}>
+              <div className="user-admin">
+                {/*
+                <label htmlFor="spaceAdmin">
+                  <input
+                    type="checkbox"
+                    id="spaceAdmin"
+                    name="spaceAdmin"
+                    onChange={handleCheckboxChange}
+                    checked={fieldValues.spaceAdmin}
+                  />
+                  <I18n>Space Admin</I18n>
+                </label>
+              */}
+                <label htmlFor="enabled">
+                  <input
+                    type="checkbox"
+                    id="enabled"
+                    name="enabled"
+                    onChange={handleCheckboxChange}
+                    checked={fieldValues.enabled}
+                  />
+                  <I18n>Enabled</I18n>
+                </label>
+              </div>
+              {mode !== 'edit' && (
+                <div className="form-group required">
+                  <label htmlFor="username">
+                    <I18n>Username</I18n>
+                  </label>
+                  <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    onChange={handleFieldChange}
+                    value={fieldValues.username}
+                  />
+                </div>
+              )}
+              <div className="form-group required">
+                <label htmlFor="displayName">
+                  <I18n>Display Name</I18n>
+                </label>
+                <input
+                  type="text"
+                  id="displayName"
+                  name="displayName"
+                  onChange={handleFieldChange}
+                  value={fieldValues.displayName}
+                />
+              </div>
+              <div className="form-group required">
+                <label htmlFor="email">
+                  <I18n>Email</I18n>
+                </label>
+                <input
+                  type="text"
+                  id="email"
+                  name="email"
+                  onChange={handleFieldChange}
+                  value={fieldValues.email}
+                />
+              </div>
+              {locales && (
+                <div className="form-group required">
+                  <label htmlFor="preferredLocale">Preferred Locale</label>
+                  <select
+                    type="text"
+                    id="preferredLocale"
+                    name="preferredLocale"
+                    className="form-control"
+                    onChange={handleFieldChange}
+                    value={fieldValues.preferredLocale}
+                  >
+                    <option value="">None Selected</option>
+                    {locales.map(locale => (
+                      <option
+                        value={locale.code}
+                        key={`${locale.code}+${locale.name}`}
+                      >
+                        {locale.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {timezones && (
+                <div className="form-group required">
+                  <label htmlFor="timezone">Timezone</label>
+                  <select
+                    type="text"
+                    id="timezone"
+                    name="timezone"
+                    className="form-control"
+                    onChange={handleFieldChange}
+                    value={fieldValues.timezone}
+                  >
+                    <option value="">None Selected</option>
+                    {timezones.map(timezone => (
+                      <option value={timezone.id} key={timezone.id}>
+                        {timezone.name} ({timezone.id})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {editingPassword ? (
+                <div>
+                  <hr />
+                  <div className="profile-input-container row">
+                    <div className="form-group col">
+                      <label htmlFor="newPassword" className="required">
+                        <I18n>New Password</I18n>
+                      </label>
+                      <input
+                        type="password"
+                        id="newPassword"
+                        name="newPassword"
+                        onChange={handleFieldChange}
+                        value={fieldValues.newPassword}
+                      />
+                    </div>
+                    <div className="form-group col">
+                      <label htmlFor="confirmPassword" className="required">
+                        <I18n>Password Confirmation</I18n>
+                      </label>
+                      <input
+                        type="password"
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        onChange={handleFieldChange}
+                        value={fieldValues.confirmPassword}
+                      />
+                    </div>
+                  </div>
+                  {fieldValues.newPassword !== fieldValues.confirmPassword && (
+                    <p className="form-alert">
+                      <I18n>Passwords Must Match</I18n>
+                    </p>
+                  )}
+                  <div>
+                    <button
+                      onClick={handleTogglePassword}
+                      className="btn btn-secondary btn-sm"
+                    >
+                      <I18n>Cancel Password Change</I18n>
                     </button>
+                  </div>
+                  <hr />
+                </div>
+              ) : (
+                <button
+                  onClick={handleTogglePassword}
+                  className="change-password btn btn-secondary btn-sm"
+                >
+                  <I18n>Change Password</I18n>
+                </button>
+              )}
+              <div>
+                <h2 className="section__title">
+                  <I18n>Profile Attributes</I18n>
+                </h2>
+                <div className="user-attributes-wrapper">
+                  <div className="form-group">
+                    <label htmlFor="firstName">
+                      <I18n>First Name</I18n>
+                    </label>
+                    <input
+                      id="firstName"
+                      name="firstName"
+                      className="form-control"
+                      onChange={handleFieldChange}
+                      value={fieldValues.firstName}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="lastName">
+                      <I18n>Last Name</I18n>
+                    </label>
+                    <input
+                      id="lastName"
+                      name="lastName"
+                      className="form-control"
+                      onChange={handleFieldChange}
+                      value={fieldValues.lastName}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="phoneNumber">
+                      <I18n>Phone Number</I18n>
+                    </label>
+                    <input
+                      id="phoneNumber"
+                      name="phoneNumber"
+                      className="form-control"
+                      onChange={handleFieldChange}
+                      value={fieldValues.phoneNumber}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h2 className="section__title">
+                  <I18n>User Attributes</I18n>
+                </h2>
+                <div className="user-attributes-wrapper">
+                  <div className="form-group">
+                    <label htmlFor="department">
+                      <I18n>Department</I18n>
+                    </label>
+                    <input
+                      id="department"
+                      name="department"
+                      className="form-control"
+                      onChange={handleFieldChange}
+                      value={fieldValues.department}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="manager">
+                      <I18n>Manager</I18n>
+                    </label>
+                    <UsersDropdown
+                      users={users}
+                      initialValue={managerLookup(users, fieldValues.manager)}
+                      onSelect={user =>
+                        handleOptionChange('manager', user.username)
+                      }
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="organization">
+                      <I18n>Organization</I18n>
+                    </label>
+                    <input
+                      id="organization"
+                      name="organization"
+                      className="form-control"
+                      onChange={handleFieldChange}
+                      value={fieldValues.organization}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="site">
+                      <I18n>Site</I18n>
+                    </label>
+                    <input
+                      id="site"
+                      name="site"
+                      className="form-control"
+                      onChange={handleFieldChange}
+                      value={fieldValues.site}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <h2 className="section__title">
+                    <I18n>Roles</I18n>
+                  </h2>
+                  {roles &&
+                    roles.map(role => (
+                      <label key={role.slug} htmlFor={role.name}>
+                        <input
+                          type="checkbox"
+                          id={role.name}
+                          onChange={handleRolesChange}
+                          checked={fieldValues.userRoles.includes(role.name)}
+                          value={role.name}
+                        />
+                        <I18n>{role.name.replace(/^Role::(.*?)/, '$1')}</I18n>
+                      </label>
+                    ))}
+                </div>
+                <div>
+                  <h2 className="section__title">
+                    <I18n>Teams</I18n>
+                  </h2>
+                  {teams &&
+                    teams.map(team => (
+                      <label key={team.slug} htmlFor={team.name}>
+                        <input
+                          type="checkbox"
+                          id={team.name}
+                          onChange={handleTeamsChange}
+                          checked={fieldValues.userTeams.includes(team.name)}
+                          value={team.name}
+                        />
+                        <I18n>{team.name}</I18n>
+                      </label>
+                    ))}
+                </div>
+              </div>
+              <div className="form__footer">
+                {mode === 'edit' && (
+                  <button
+                    className="btn btn-link text-danger"
+                    onClick={handleDelete}
+                  >
+                    <I18n>Delete User</I18n>
+                  </button>
+                )}
+                <div className="form__footer__right">
+                  <Link to={`/settings/users`} className="btn btn-link mb-0">
+                    <I18n>Cancel</I18n>
                   </Link>
-                }
-              />
-            </div>
-          )}
-        </Fragment>
-      )}
+                  <button
+                    disabled={!fieldValuesValid(fieldValues)}
+                    className="btn btn-primary"
+                  >
+                    <I18n>{mode === 'edit' ? 'Save User' : 'Create User'}</I18n>
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        {mode === 'edit' && (
+          <div className="page-panel page-panel--two-fifths page-panel--sidebar page-panel--space-profile-edit-sidebar ">
+            <ProfileCard user={buildProfile(fieldValues, user)} />
+          </div>
+        )}
+      </Fragment>
+    )}
   </div>
 );
 
@@ -261,7 +405,10 @@ const managerLookup = (users, managerUsername) => {
 };
 
 const fieldValuesValid = fieldValues =>
-  fieldValues.displayName && fieldValues.email && fieldValues.username;
+  fieldValues.displayName &&
+  fieldValues.email &&
+  fieldValues.username &&
+  fieldValues.newPassword === fieldValues.confirmPassword;
 
 const getProfileAttribute = (user, attr) =>
   user.profileAttributes && user.profileAttributes[attr]
@@ -285,6 +432,8 @@ const buildProfile = (fieldValues, profile) => {
     ...profile,
     displayName: fieldValues.displayName,
     email: fieldValues.email,
+    preferredLocale: fieldValues.preferredLocale,
+    timezone: fieldValues.timezone,
     profileAttributes: profileAttributes,
   };
 };
@@ -293,6 +442,10 @@ const translateProfileToFieldValues = user => ({
   username: user.username || '',
   displayName: user.displayName || '',
   email: user.email || '',
+  preferredLocale: user.preferredLocale || '',
+  timezone: user.timezone || '',
+  newPassword: '',
+  confirmPassword: '',
   phoneNumber: getProfileAttribute(user, 'Phone Number'),
   firstName: getProfileAttribute(user, 'First Name'),
   lastName: getProfileAttribute(user, 'Last Name'),
@@ -319,6 +472,9 @@ const translateFieldValuesToProfile = (fieldValues, user) => {
     username: user ? user.username : fieldValues.username,
     displayName: fieldValues.displayName,
     email: fieldValues.email,
+    preferredLocale:
+      fieldValues.preferredLocale === '' ? null : fieldValues.preferredLocale,
+    timezone: fieldValues.timezone === '' ? null : fieldValues.timezone,
     spaceAdmin: fieldValues.spaceAdmin,
     enabled: fieldValues.enabled,
     profileAttributesMap: {
@@ -345,6 +501,9 @@ const translateFieldValuesToProfile = (fieldValues, user) => {
       })),
     ],
   };
+  if (fieldValues.newPassword !== '') {
+    result.password = fieldValues.newPassword;
+  }
   return result;
 };
 
@@ -355,6 +514,7 @@ const mapStateToProps = (state, props) => ({
   user: state.space.settingsUsers.user,
   users: state.space.settingsUsers.users,
   error: state.space.settingsUsers.error,
+  editingPassword: state.space.profiles.isChangePasswordVisible,
   spaceAttributes:
     state.app.space &&
     state.app.space.attributes.reduce((memo, item) => {
@@ -363,6 +523,8 @@ const mapStateToProps = (state, props) => ({
     }, {}),
   roles: state.space.teamList.roles,
   teams: state.space.teamList.data,
+  locales: state.app.config.locales,
+  timezones: state.app.config.timezones,
 });
 
 const mapDispatchToProps = {
@@ -373,14 +535,12 @@ const mapDispatchToProps = {
   createUser: usersActions.createUser,
   deleteUser: usersActions.deleteUser,
   openForm: modalFormActions.openForm,
+  toggleChangePassword: profileActions.setChangePasswordVisible,
   push,
 };
 
 export const UserForm = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withState(
     'fieldValues',
     'setFieldValues',
@@ -393,6 +553,14 @@ export const UserForm = compose(
     },
     handleFieldChange: props => ({ target: { name, value } }) => {
       name && props.setFieldValues({ ...props.fieldValues, [name]: value });
+    },
+    handleTogglePassword: props => event => {
+      props.toggleChangePassword(!props.editingPassword);
+      props.setFieldValues({
+        ...props.fieldValues,
+        newPassword: '',
+        confirmPassword: '',
+      });
     },
     handleOptionChange: props => (name, value) => {
       name && props.setFieldValues({ ...props.fieldValues, [name]: value });
@@ -434,6 +602,7 @@ export const UserForm = compose(
         props.updateUser(
           translateFieldValuesToProfile(props.fieldValues, props.user),
         );
+        props.toggleChangePassword(false);
       } else {
         props.createUser(translateFieldValuesToProfile(props.fieldValues));
         props.push(`/settings/users`);

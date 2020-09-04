@@ -5,8 +5,9 @@ import { Link } from 'react-router-dom';
 import { fromJS } from 'immutable';
 import { modalFormActions, PageTitle } from 'common';
 import { actions } from '../../../redux/modules/profiles';
-import { ProfileCard } from '../../shared/ProfileCard';
+import { ProfileCard } from 'common';
 import { TeamCard } from '../../shared/TeamCard';
+import { I18n } from '../../../../../app/src/I18nProvider';
 
 export const EditProfileComponent = ({
   loading,
@@ -14,14 +15,22 @@ export const EditProfileComponent = ({
   error,
   editingPassword,
   fieldValues,
-  location,
-  locationEnabled,
+  department,
+  departmentEnabled,
+  organization,
+  organizationEnabled,
+  site,
+  siteEnabled,
+  defaultKappDisplayEnabled,
   manager,
   managerEnabled,
   handleChangeManagerClick,
   handleFieldChange,
   handleSubmit,
   handleTogglePassword,
+  kapps,
+  locales,
+  timezones,
 }) => (
   <div className="page-container page-container--panels page-container--space-profile-edit">
     <PageTitle parts={['Edit Profile']} />
@@ -31,17 +40,27 @@ export const EditProfileComponent = ({
           <div className="page-title">
             <div className="page-title__wrapper">
               <h3>
-                <Link to="/">home</Link> / <Link to="/settings">settings</Link>{' '}
+                <Link to="/">
+                  <I18n>home</I18n>
+                </Link>{' '}
+                /{' '}
+                <Link to="/settings">
+                  <I18n>settings</I18n>
+                </Link>{' '}
                 /{' '}
               </h3>
-              <h1>Edit Profile</h1>
+              <h1>
+                <I18n>Edit Profile</I18n>
+              </h1>
             </div>
           </div>
           <section>
             <h2 className="section__title">General</h2>
             <form onSubmit={handleSubmit}>
               <div className="form-group required">
-                <label htmlFor="displayName">Display Name</label>
+                <label htmlFor="displayName">
+                  <I18n>Display Name</I18n>
+                </label>
                 <input
                   type="text"
                   id="displayName"
@@ -50,9 +69,11 @@ export const EditProfileComponent = ({
                   value={fieldValues.displayName}
                 />
               </div>
-              <div className="profile-input-container">
-                <div className="form-group required">
-                  <label htmlFor="email">Email</label>
+              <div className="profile-input-container row">
+                <div className="form-group required col-md-6">
+                  <label htmlFor="email">
+                    <I18n>Email</I18n>
+                  </label>
                   <input
                     type="text"
                     id="email"
@@ -61,8 +82,10 @@ export const EditProfileComponent = ({
                     value={fieldValues.email}
                   />
                 </div>
-                <div className="form-group">
-                  <label htmlFor="phoneNumber">Phone number</label>
+                <div className="form-group col-md-6">
+                  <label htmlFor="phoneNumber">
+                    <I18n>Phone Number</I18n>
+                  </label>
                   <input
                     type="text"
                     id="phoneNumber"
@@ -71,13 +94,84 @@ export const EditProfileComponent = ({
                     value={fieldValues.phoneNumber}
                   />
                 </div>
+                {locales && (
+                  <div className="form-group col-md-6">
+                    <label htmlFor="preferredLocale">Preferred Locale</label>
+                    <select
+                      type="text"
+                      id="preferredLocale"
+                      name="preferredLocale"
+                      className="form-control"
+                      onChange={handleFieldChange}
+                      value={fieldValues.preferredLocale}
+                    >
+                      <option value="">None Selected</option>
+                      {locales.map(locale => (
+                        <option
+                          value={locale.code}
+                          key={`${locale.code}+${locale.name}`}
+                        >
+                          {locale.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                {timezones && (
+                  <div className="form-group col-md-6">
+                    <label htmlFor="timezone">Timezone</label>
+                    <select
+                      type="text"
+                      id="timezone"
+                      name="timezone"
+                      className="form-control"
+                      onChange={handleFieldChange}
+                      value={fieldValues.timezone}
+                    >
+                      <option value="">None Selected</option>
+                      {timezones.map(timezone => (
+                        <option value={timezone.id} key={timezone.id}>
+                          {timezone.name} ({timezone.id})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                {defaultKappDisplayEnabled && (
+                  <div className="form-group col-md-6">
+                    <label htmlFor="phoneNumber">
+                      <I18n>Default Kapp Display</I18n>
+                    </label>
+                    <I18n
+                      render={translate => (
+                        <select
+                          className="form-control"
+                          type="kapp"
+                          id="defaultKappDisplay"
+                          name="defaultKappDisplay"
+                          onChange={handleFieldChange}
+                          value={fieldValues.defaultKappDisplay}
+                        >
+                          <option value="">{translate('Home')}</option>
+                          {kapps.map(k => (
+                            <option key={k.slug} value={k.slug}>
+                              {translate(k.name)}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    />
+                  </div>
+                )}
               </div>
               {editingPassword ? (
                 <div>
                   <hr />
-                  <div className="profile-input-container">
-                    <div className="form-group required two-columns first-column">
-                      <label htmlFor="newPassword">New Password</label>
+                  <div className="profile-input-container row">
+                    <div className="form-group col">
+                      <label htmlFor="newPassword" className="required">
+                        <I18n>New Password</I18n>
+                      </label>
                       <input
                         type="password"
                         id="newPassword"
@@ -86,9 +180,9 @@ export const EditProfileComponent = ({
                         value={fieldValues.newPassword}
                       />
                     </div>
-                    <div className="form-group required two-columns second-column">
-                      <label htmlFor="confirmPassword">
-                        Password Confirmation
+                    <div className="form-group col">
+                      <label htmlFor="confirmPassword" className="required">
+                        <I18n>Password Confirmation</I18n>
                       </label>
                       <input
                         type="password"
@@ -100,23 +194,26 @@ export const EditProfileComponent = ({
                     </div>
                   </div>
                   {fieldValues.newPassword !== fieldValues.confirmPassword && (
-                    <p className="form-alert">Passwords Must Match</p>
+                    <p className="form-alert">
+                      <I18n>Passwords Must Match</I18n>
+                    </p>
                   )}
                   <div>
                     <button
                       onClick={handleTogglePassword}
                       className="btn btn-secondary btn-sm"
                     >
-                      Cancel Password Change
+                      <I18n>Cancel Password Change</I18n>
                     </button>
                   </div>
+                  <hr />
                 </div>
               ) : (
                 <button
                   onClick={handleTogglePassword}
                   className="change-password btn btn-secondary btn-sm"
                 >
-                  Change Password
+                  <I18n>Change Password</I18n>
                 </button>
               )}
               <div className="form__footer">
@@ -124,37 +221,83 @@ export const EditProfileComponent = ({
                   <button
                     disabled={!fieldValuesValid(fieldValues)}
                     className="btn btn-primary"
+                    // TODO: Disable until a change is made. Save Changes
                   >
-                    Save
+                    <I18n>Save Changes</I18n>
                   </button>
                 </div>
               </div>
             </form>
           </section>
-          {(managerEnabled || locationEnabled) && (
+          {(managerEnabled ||
+            siteEnabled ||
+            departmentEnabled ||
+            organizationEnabled) && (
             <section>
               <h2 className="section__title">User Attributes</h2>
               <div className="user-attributes-wrapper">
-                <table className="user-attributes table">
+                <table className="table table--user-attributes">
                   <tbody>
                     {managerEnabled && (
                       <tr>
-                        <td className="name">Manager</td>
+                        <td scope="row" className="name">
+                          <I18n>Manager</I18n>
+                        </td>
                         <td>
-                          {manager || <i>No Manager</i>}
+                          {manager || (
+                            <em>
+                              <I18n>No Manager</I18n>
+                            </em>
+                          )}
                           <button
                             className="btn btn-link btn-sm"
                             onClick={handleChangeManagerClick}
                           >
-                            Change Manager
+                            <I18n>Change Manager</I18n>
                           </button>
                         </td>
                       </tr>
                     )}
-                    {locationEnabled && (
+                    {departmentEnabled && (
                       <tr>
-                        <td className="name">Location</td>
-                        <td>{location || <i>No Location</i>}</td>
+                        <td scope="row" className="name">
+                          <I18n>Department</I18n>
+                        </td>
+                        <td>
+                          {department || (
+                            <em>
+                              <I18n>No Department</I18n>
+                            </em>
+                          )}
+                        </td>
+                      </tr>
+                    )}
+                    {organizationEnabled && (
+                      <tr>
+                        <td scope="row" className="name">
+                          <I18n>Organization</I18n>
+                        </td>
+                        <td>
+                          {organization || (
+                            <em>
+                              <I18n>No Organization</I18n>
+                            </em>
+                          )}
+                        </td>
+                      </tr>
+                    )}
+                    {siteEnabled && (
+                      <tr>
+                        <td scope="row" className="name">
+                          <I18n>Site</I18n>
+                        </td>
+                        <td>
+                          {site || (
+                            <em>
+                              <I18n>No Site</I18n>
+                            </em>
+                          )}
+                        </td>
                       </tr>
                     )}
                   </tbody>
@@ -184,11 +327,7 @@ export const EditProfileComponent = ({
         <div className="page-panel page-panel--two-fifths page-panel--sidebar page-panel--space-profile-edit-sidebar">
           <ProfileCard
             user={buildProfile(fieldValues, profile)}
-            button={
-              <Link to={`/profile/${profile.username}`}>
-                <button className="btn btn-primary btn-sm">View Profile</button>
-              </Link>
-            }
+            hideProfileLink
           />
         </div>
       </Fragment>
@@ -197,11 +336,13 @@ export const EditProfileComponent = ({
 );
 
 const UserTeams = ({ teams }) => (
-  <div className="cards__wrapper">
+  <div className="cards__wrapper cards__wrapper--team">
     {Object.keys(teams).length > 0 ? (
       teams.map(item => <TeamCard key={item.team.name} team={item.team} />)
     ) : (
-      <p>No teams assigned</p>
+      <p>
+        <I18n>No teams assigned</I18n>
+      </p>
     )}
   </div>
 );
@@ -211,11 +352,13 @@ const UserRoles = ({ roles }) => (
     {Object.keys(roles).length > 0 ? (
       roles.map(item => (
         <span className="profile-role" key={item.team.name}>
-          {item.team.name.replace(/^Role::(.*?)/, '$1')}
+          <I18n>{item.team.name.replace(/^Role::(.*?)/, '$1')}</I18n>
         </span>
       ))
     ) : (
-      <p>No roles assigned</p>
+      <p>
+        <I18n>No roles assigned</I18n>
+      </p>
     )}
   </div>
 );
@@ -230,6 +373,11 @@ const getProfilePhone = profile =>
     ? profile.profileAttributes['Phone Number'].join(', ')
     : '';
 
+const getDefaultKappDisplay = profile =>
+  profile.profileAttributes && profile.profileAttributes['Default Kapp Display']
+    ? profile.profileAttributes['Default Kapp Display'][0]
+    : '';
+
 const buildProfile = (fieldValues, profile) => {
   const profileAttributes =
     profile && profile.profileAttributes
@@ -238,10 +386,13 @@ const buildProfile = (fieldValues, profile) => {
   if (fieldValues.phoneNumber !== '') {
     profileAttributes['Phone Number'] = [fieldValues.phoneNumber];
   }
+  profileAttributes['Default Kapp Display'] = [fieldValues.defaultKappDisplay];
   return {
     ...profile,
     displayName: fieldValues.displayName,
     email: fieldValues.email,
+    preferredLocale: fieldValues.preferredLocale,
+    timezone: fieldValues.timezone,
     profileAttributes: profileAttributes,
   };
 };
@@ -249,9 +400,12 @@ const buildProfile = (fieldValues, profile) => {
 const translateProfileToFieldValues = profile => ({
   displayName: profile.displayName || '',
   email: profile.email || '',
+  preferredLocale: profile.preferredLocale || '',
+  timezone: profile.timezone || '',
   newPassword: '',
   confirmPassword: '',
   phoneNumber: getProfilePhone(profile) || '',
+  defaultKappDisplay: getDefaultKappDisplay(profile) || '',
 });
 
 const translateFieldValuesToProfile = (fieldValues, profile) => {
@@ -259,6 +413,11 @@ const translateFieldValuesToProfile = (fieldValues, profile) => {
   const result = {
     displayName: updatedProfile.displayName,
     email: updatedProfile.email,
+    preferredLocale:
+      updatedProfile.preferredLocale === ''
+        ? null
+        : updatedProfile.preferredLocale,
+    timezone: updatedProfile.timezone === '' ? null : updatedProfile.timezone,
     profileAttributes: updatedProfile.profileAttributes,
   };
   if (fieldValues.newPassword !== '') {
@@ -282,21 +441,40 @@ const mapStateToProps = state => ({
   profile: state.space.profiles.profile,
   error: state.space.profiles.error,
   editingPassword: state.space.profiles.isChangePasswordVisible,
-  location:
+  department:
     state.space.profiles.profile &&
-    state.space.profiles.profile.profileAttributes['Location'],
-  locationEnabled:
-    state.space.spaceApp.userProfileAttributeDefinitions['Location'],
+    state.space.profiles.profile.attributes['Department'],
+  departmentEnabled:
+    state.space.spaceApp.userAttributeDefinitions['Department'],
   manager:
     state.space.profiles.profile &&
     state.space.profiles.profile.attributes['Manager'],
   managerEnabled: state.space.spaceApp.userAttributeDefinitions['Manager'],
+  organization:
+    state.space.profiles.profile &&
+    state.space.profiles.profile.attributes['Organization'],
+  organizationEnabled:
+    state.space.spaceApp.userAttributeDefinitions['Organization'],
+  site:
+    state.space.profiles.profile &&
+    state.space.profiles.profile.attributes['Site'],
+  siteEnabled: state.space.spaceApp.userAttributeDefinitions['Site'],
+  defaultKappDisplay:
+    state.space.profiles.profile &&
+    state.space.profiles.profile.profileAttributes['Default Kapp Display'],
+  defaultKappDisplayEnabled:
+    state.space.spaceApp.userProfileAttributeDefinitions[
+      'Default Kapp Display'
+    ],
   spaceAttributes:
     state.app.space &&
     state.app.space.attributes.reduce((memo, item) => {
       memo[item.name] = item.value;
       return memo;
     }, {}),
+  kapps: state.app.kapps,
+  locales: state.app.config.locales,
+  timezones: state.app.config.timezones,
 });
 
 const mapDispatchToProps = {
@@ -307,10 +485,7 @@ const mapDispatchToProps = {
 };
 
 export const Profile = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withState('fieldValues', 'setFieldValues', translateProfileToFieldValues({})),
   withHandlers({
     handleChangeManagerClick: openChangeManagerForm,

@@ -5,9 +5,14 @@ import { compose, lifecycle, withHandlers, withProps } from 'recompose';
 import { actions } from '../../redux/modules/leads';
 import { actions as memberActions } from '../../redux/modules/members';
 import $ from 'jquery';
-import moment from 'moment';
 import 'bootstrap/scss/bootstrap.scss';
 import { KappNavLink as NavLink } from 'common';
+import phone from '../../images/phone.png';
+import mail from '../../images/mail.png';
+import in_person from '../../images/in_person.png';
+import intro_class from '../../images/intro_class.png';
+import free_class from '../../images/free_class.png';
+import attended_class from '../../images/user-check.png';
 import { getJson } from '../Member/MemberUtils';
 import download from '../../images/download.png';
 import sort1 from '../../images/sort1.png';
@@ -29,12 +34,22 @@ import {
   Pie,
   Cell,
 } from 'recharts';
+import moment from 'moment';
+import DayPickerInput from 'react-day-picker/DayPickerInput';
+import 'react-day-picker/lib/style.css';
+import MomentLocaleUtils, {
+  formatDate,
+  parseDate,
+} from 'react-day-picker/moment';
+import { matchesLeadFilter } from '../../utils/utils';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   leadItem: state.member.leads.currentLead,
   allLeads: state.member.leads.allLeads,
   allMembers: state.member.members.allMembers,
+  profile: state.member.kinops.profile,
+  leadLists: state.member.app.leadLists,
 });
 
 const mapDispatchToProps = {
@@ -82,6 +97,7 @@ export class TasksDetail extends Component {
       'Todays Tasks',
     );
     this._memberTasksColumns = this.getMemberTasksColumns();
+    this.leadLists = this.props.leadLists;
 
     this.state = {
       allLeads,
@@ -90,6 +106,7 @@ export class TasksDetail extends Component {
       memberTasksData,
       leadSearchValue,
       attentionRequiredOnly,
+      filters: [],
     };
   }
 
@@ -111,12 +128,14 @@ export class TasksDetail extends Component {
     });
     let attentionRequiredOnly = false;
     // Determine if there are any Leads that requireAttention
-    nextProps.allLeads.forEach(lead => {
+    /*    nextProps.allLeads.forEach(lead => {
       if (lead.values['Is New Reply Received'] === 'true') {
         attentionRequiredOnly = true;
       }
     });
+*/
     // Determine if there are any Leads that requireAttention
+    /*
     nextProps.allMembers.forEach(member => {
       if (member.values['Is New Reply Received'] === 'true') {
         attentionRequiredOnly = true;
@@ -125,6 +144,7 @@ export class TasksDetail extends Component {
     this.setState({
       attentionRequiredOnly: attentionRequiredOnly,
     });
+*/
   }
 
   onShowTasksSelectChange(event) {
@@ -143,7 +163,13 @@ export class TasksDetail extends Component {
       memberTasksData: memberTasksData,
     });
   }
+  onShowTasksSelectLeadsListChange(event) {
+    var list = this.leadLists.find(item => item.name === event.target.value);
 
+    this.setState({
+      filters: list !== undefined ? list.filters : [],
+    });
+  }
   sort(array, key) {
     var len = array.length;
     if (len < 2) {
@@ -197,11 +223,13 @@ export class TasksDetail extends Component {
             ) ||
             moment(lead.values['Reminder Date'], date_format).isSame(today, 'd')
           ) {
+            var latestHistory = getLatestHistory(lead.values['History']);
             leads.push({
               _id: lead['id'],
               date: lead.values['Reminder Date'],
               name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
-              note: getLatestHistory(lead.values['History']).note,
+              contactMethod: latestHistory.contactMethod,
+              note: latestHistory.note,
               attentionRequired: lead.values['Is New Reply Received'],
             });
           }
@@ -227,11 +255,13 @@ export class TasksDetail extends Component {
               '[]',
             )
           ) {
+            var latestHistory = getLatestHistory(lead.values['History']);
             leads.push({
               _id: lead['id'],
               date: lead.values['Reminder Date'],
               name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
-              note: getLatestHistory(lead.values['History']).note,
+              contactMethod: latestHistory.contactMethod,
+              note: latestHistory.note,
               attentionRequired: lead.values['Is New Reply Received'],
             });
           }
@@ -257,11 +287,13 @@ export class TasksDetail extends Component {
               '[]',
             )
           ) {
+            var latestHistory = getLatestHistory(lead.values['History']);
             leads.push({
               _id: lead['id'],
               date: lead.values['Reminder Date'],
               name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
-              note: getLatestHistory(lead.values['History']).note,
+              contactMethod: latestHistory.contactMethod,
+              note: latestHistory.note,
               attentionRequired: lead.values['Is New Reply Received'],
             });
           }
@@ -270,11 +302,13 @@ export class TasksDetail extends Component {
     } else if (duration === 'All Tasks') {
       allLeads.forEach(lead => {
         if (lead.values['Reminder Date'] !== undefined) {
+          var latestHistory = getLatestHistory(lead.values['History']);
           leads[leads.length] = {
             _id: lead['id'],
             date: lead.values['Reminder Date'],
             name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
-            note: getLatestHistory(lead.values['History']).note,
+            contactMethod: latestHistory.contactMethod,
+            note: latestHistory.note,
             attentionRequired: lead.values['Is New Reply Received'],
           };
         }
@@ -282,6 +316,65 @@ export class TasksDetail extends Component {
     }
 
     return leads;
+  }
+  formatContactMethodCell(row) {
+    if (row.original.contactMethod === 'phone') {
+      return (
+        <span className="notesCell phone">
+          <img src={phone} alt="Phone Call" title="Phone Call" />
+          {moment(row.original.date, 'YYYY-MM-DD HH:mm').format(
+            'DD/MM/YYYY LT',
+          )}
+        </span>
+      );
+    } else if (row.original.contactMethod === 'email') {
+      return (
+        <span className="notesCell email">
+          <img src={mail} alt="Email" title="Phone Call" />
+          {moment(row.original.date, 'YYYY-MM-DD HH:mm').format(
+            'DD/MM/YYYY LT',
+          )}
+        </span>
+      );
+    } else if (row.original.contactMethod === 'in_person') {
+      return (
+        <span className="notesCell in-person">
+          <img src={in_person} alt="In Person" title="Phone Call" />
+          {moment(row.original.date, 'YYYY-MM-DD HH:mm').format(
+            'DD/MM/YYYY LT',
+          )}
+        </span>
+      );
+    } else if (row.original.contactMethod === 'intro_class') {
+      return (
+        <span className="notesCell intro_class">
+          <img src={intro_class} alt="Intro Class" title="Phone Call" />
+          {moment(row.original.date, 'YYYY-MM-DD HH:mm').format(
+            'DD/MM/YYYY LT',
+          )}
+        </span>
+      );
+    } else if (row.original.contactMethod === 'free_class') {
+      return (
+        <span className="notesCell free_class">
+          <img src={free_class} alt="Free Class" title="Phone Call" />
+          {moment(row.original.date, 'YYYY-MM-DD HH:mm').format(
+            'DD/MM/YYYY LT',
+          )}
+        </span>
+      );
+    } else if (row.original.contactMethod === 'attended_class') {
+      return (
+        <span className="notesCell attended_class">
+          <img src={attended_class} alt="Attended Class" title="Phone Call" />
+          {moment(row.original.date, 'YYYY-MM-DD HH:mm').format(
+            'DD/MM/YYYY LT',
+          )}
+        </span>
+      );
+    } else {
+      return <span className="notesCell"></span>;
+    }
   }
 
   getLeadColumns = () => {
@@ -317,6 +410,11 @@ export class TasksDetail extends Component {
         ),
       },
       { accessor: 'name', width: 150 },
+      {
+        accessor: 'contactMethod',
+        width: 200,
+        Cell: row => this.formatContactMethodCell(row),
+      },
       { accessor: 'note', width: 300 },
       {
         accessor: '$followup',
@@ -325,12 +423,6 @@ export class TasksDetail extends Component {
           <NavLink
             to={`/LeadDetail/${row.original['_id']}`}
             className="btn btn-primary"
-            style={{
-              borderRadius: '0',
-              backgroundColor: '#991B1E',
-              height: '30px',
-              width: '90px',
-            }}
           >
             Follow Up
           </NavLink>
@@ -343,12 +435,6 @@ export class TasksDetail extends Component {
           <NavLink
             to={`/FollowUp/${row.original['_id']}`}
             className="btn btn-primary"
-            style={{
-              borderRadius: '0',
-              backgroundColor: '#991B1E',
-              height: '30px',
-              width: '90px',
-            }}
           >
             Skip
           </NavLink>
@@ -546,12 +632,6 @@ export class TasksDetail extends Component {
           <NavLink
             to={`/MemberNotesDetail/${row.original['_id']}`}
             className="btn btn-primary"
-            style={{
-              borderRadius: '0',
-              backgroundColor: '#991B1E',
-              height: '30px',
-              width: '90px',
-            }}
           >
             Follow Up
           </NavLink>
@@ -564,12 +644,6 @@ export class TasksDetail extends Component {
           <NavLink
             to={`/MemberFollowUp/${row.original['_id']}`}
             className="btn btn-primary"
-            style={{
-              borderRadius: '0',
-              backgroundColor: '#991B1E',
-              height: '30px',
-              width: '90px',
-            }}
           >
             Skip
           </NavLink>
@@ -601,14 +675,14 @@ export class TasksDetail extends Component {
     if (!date) {
       return undefined;
     }
-    return moment(date).date();
+    return moment(date, 'YYYY-MM-DD').date();
   }
 
   getMonth(date) {
     if (!date) {
       return undefined;
     }
-    return moment(date)
+    return moment(date, 'YYYY-MM-DD')
       .format('MMM')
       .toUpperCase();
   }
@@ -617,6 +691,8 @@ export class TasksDetail extends Component {
     let tasks = this.state.tasks;
     let memberTasks = this.state.memberTasksData;
     let allLeads = this.state.allLeads;
+    let filters = this.state.filters;
+
     if (this.state.attentionRequiredOnly) {
       tasks = tasks.filter(row => {
         return row.attentionRequired === 'true' ? true : false;
@@ -626,6 +702,21 @@ export class TasksDetail extends Component {
       });
       allLeads = allLeads.filter(row => {
         return row.attentionRequired === 'true' ? true : false;
+      });
+    }
+
+    if (filters.length > 0) {
+      let filteredLeads = matchesLeadFilter(this.props.allLeads, filters);
+
+      tasks = tasks.filter(row => {
+        return filteredLeads.findIndex(lead => row._id === lead.id) !== -1
+          ? true
+          : false;
+      });
+      allLeads = allLeads.filter(row => {
+        return filteredLeads.findIndex(lead => row._id === lead.id) !== -1
+          ? true
+          : false;
       });
     }
 
@@ -662,57 +753,95 @@ export class TasksDetail extends Component {
     }
     return (
       <div>
-        <div className="row headerPanel">
-          <div className="col">
-            <div className="form-group">
-              <label htmlFor="allTasks">Show Tasks</label>
-              <select
-                id="allTasks"
-                className="form-control"
-                style={{ width: '50%' }}
-                value={this.state.showTasksSelectValue}
-                onChange={e => this.onShowTasksSelectChange(e)}
-              >
-                <option value="Todays Tasks">Todays Tasks</option>
-                <option value="This Weeks Tasks">This Weeks Tasks</option>
-                <option value="This Months Tasks">This Months Tasks</option>
-                <option value="All Tasks">All Tasks</option>
-              </select>
+        <div className="headerPanel">
+          <div className="row">
+            <div className="col">
+              <div className="form-group">
+                <label htmlFor="allTasks">Show Tasks</label>
+                <select
+                  id="allTasks"
+                  className="form-control showTasks"
+                  value={this.state.showTasksSelectValue}
+                  onChange={e => this.onShowTasksSelectChange(e)}
+                >
+                  <option value="Todays Tasks">Todays Tasks</option>
+                  <option value="This Weeks Tasks">This Weeks Tasks</option>
+                  <option value="This Months Tasks">This Months Tasks</option>
+                  <option value="All Tasks">All Tasks</option>
+                </select>
+              </div>
             </div>
-            <div className="form-group">
-              <input
-                type="text"
-                className="form-control"
-                style={{ width: '50%' }}
-                id="leadSearch"
-                value={this.state.leadSearchValue}
-                placeholder="Lead Search"
-                onChange={e => {
-                  this.setState({ leadSearchValue: e.target.value });
-                }}
-              />
-              <button
-                id="attentionRequiredOnly"
-                type="button"
-                className={
-                  this.state.attentionRequiredOnly
-                    ? 'attentionRequiredOnly Active'
-                    : 'attentionRequiredOnly'
-                }
-                onClick={e => {
-                  this.setState({
-                    attentionRequiredOnly: this.state.attentionRequiredOnly
-                      ? false
-                      : true,
-                  });
-                }}
-              >
-                <SVGInline
-                  svg={attentionRequired}
-                  className={'attention icon'}
+            <div className="col">
+              <div className="form-group">
+                <label htmlFor="leadLists">Lead List Filters</label>
+                <select
+                  id="leadLists"
+                  className="form-control showTasks"
+                  onChange={e => this.onShowTasksSelectLeadsListChange(e)}
+                >
+                  <option value=""></option>
+                  {this.leadLists.map(item => (
+                    <option key={item.name} value={item.name}>
+                      {item.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="col">
+              <div className="form-group">
+                <NavLink
+                  to={`/leadLists`}
+                  className="btn btn-primary leadListButton"
+                >
+                  Lead Lists
+                </NavLink>
+              </div>
+            </div>
+          </div>
+          <div className="row">
+            <div className="col">
+              <div className="form-group">
+                <input
+                  type="text"
+                  className="form-control leadSearch"
+                  id="leadSearch"
+                  value={this.state.leadSearchValue}
+                  placeholder="Lead Search"
+                  onChange={e => {
+                    this.setState({ leadSearchValue: e.target.value });
+                  }}
                 />
-                Show Attention Required
-              </button>
+              </div>
+            </div>
+            <div className="col">
+              <div className="form-group">
+                <button
+                  id="attentionRequiredOnly"
+                  type="button"
+                  className={
+                    this.state.attentionRequiredOnly
+                      ? 'attentionRequiredOnly Active'
+                      : 'attentionRequiredOnly'
+                  }
+                  onClick={e => {
+                    this.setState({
+                      attentionRequiredOnly: this.state.attentionRequiredOnly
+                        ? false
+                        : true,
+                    });
+                  }}
+                >
+                  <SVGInline
+                    svg={attentionRequired}
+                    className={'attention icon'}
+                  />
+                  Show Attention Required
+                </button>
+              </div>
+            </div>
+            <div className="col">
+              <div className="form-group"></div>
             </div>
           </div>
         </div>
@@ -1060,13 +1189,19 @@ export class LeadsCreatedChart extends Component {
           objFound['Leads Created'] = objFound['Leads Created'] + 1;
         } else {
           data.push({
+            date: createdDate,
             'Date Created': createdDate.format('DD-MM-YYYY'),
             'Leads Created': 1,
           });
         }
       }
     });
-    return data;
+    return data.sort(this.compare);
+  }
+  compare(a, b) {
+    if (moment(a['date']).isAfter(b['date'])) return 1;
+    if (moment(a['date']).isBefore(b['date'])) return -1;
+    return 0;
   }
 
   yAxisTickFormatter(leadsCount) {
@@ -1174,7 +1309,7 @@ const renderCustomizedLabel = ({
       textAnchor={x > cx ? 'start' : 'end'}
       dominantBaseline="central"
     >
-      {`${(percent * 100).toFixed(0)}%`}
+      {`${name} ${(percent * 100).toFixed(0)}%`}
     </text>
   );
 };
@@ -1350,6 +1485,29 @@ export class LeadsConversionChart extends Component {
     });
   }
 
+  handleDateChange() {
+    var value = $('#' + this.id)
+      .children('.DayPickerInput')
+      .find('input')
+      .val();
+    console.log('Date value:' + value.trim());
+    var dateValue =
+      value.trim() === '' ? '' : moment(value, 'L').format('YYYY-MM-DD');
+    if (value.trim() !== '' && dateValue === 'Invalid Date') return;
+    if (value.trim() === '') dateValue = '';
+
+    if (this.fieldName === 'fromDate') {
+      this.leadsThis.setState({
+        fromDate: moment(dateValue).format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      });
+    }
+    if (this.fieldName === 'toDate') {
+      this.leadsThis.setState({
+        toDate: moment(dateValue).format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      });
+    }
+  }
+
   handleInputChange(event) {
     this.setState({
       [event.target.name]: event.target.value,
@@ -1501,29 +1659,55 @@ export class LeadsConversionChart extends Component {
                     <label htmlFor="fromDate" className="control-label">
                       From Date
                     </label>
-                    <input
-                      type="date"
-                      name="fromDate"
-                      id="fromDate"
-                      className="form-control input-sm"
-                      required
-                      defaultValue={this.state.fromDate}
-                      onChange={e => this.handleInputChange(e)}
-                    />
+                    <span id="fromDate" className="form-control input-sm">
+                      <DayPickerInput
+                        name="fromDate"
+                        id="fromDate"
+                        placeholder={moment(new Date())
+                          .localeData()
+                          .longDateFormat('L')
+                          .toLowerCase()}
+                        formatDate={formatDate}
+                        parseDate={parseDate}
+                        onDayPickerHide={this.handleDateChange}
+                        leadsThis={this}
+                        fieldName="fromDate"
+                        dayPickerProps={{
+                          locale:
+                            this.props.profile.preferredLocale == null
+                              ? 'en-au'
+                              : this.props.profile.preferredLocale.toLowerCase(),
+                          localeUtils: MomentLocaleUtils,
+                        }}
+                      />
+                    </span>
                   </div>
                   <div className="form-group col-xs-2 mr-1">
                     <label htmlFor="toDate" className="control-label">
                       To Date
                     </label>
-                    <input
-                      type="date"
-                      name="toDate"
-                      id="toDate"
-                      className="form-control input-sm"
-                      required
-                      defaultValue={this.state.toDate}
-                      onChange={e => this.handleInputChange(e)}
-                    />
+                    <span id="toDate" className="form-control input-sm">
+                      <DayPickerInput
+                        name="toDate"
+                        id="toDate"
+                        placeholder={moment(new Date())
+                          .localeData()
+                          .longDateFormat('L')
+                          .toLowerCase()}
+                        formatDate={formatDate}
+                        parseDate={parseDate}
+                        onDayPickerHide={this.handleDateChange}
+                        leadsThis={this}
+                        fieldName="toDate"
+                        dayPickerProps={{
+                          locale:
+                            this.props.profile.preferredLocale == null
+                              ? 'en-au'
+                              : this.props.profile.preferredLocale.toLowerCase(),
+                          localeUtils: MomentLocaleUtils,
+                        }}
+                      />
+                    </span>
                   </div>
                   <div className="form-group col-xs-2">
                     <label className="control-label">&nbsp;</label>
@@ -1781,7 +1965,14 @@ export class SourceReferenceChart extends Component {
   }
 }
 
-export const LeadsView = ({ allLeads, saveLead, fetchLeads, allMembers }) => (
+export const LeadsView = ({
+  allLeads,
+  saveLead,
+  fetchLeads,
+  allMembers,
+  profile,
+  leadLists,
+}) => (
   <div className="container-fluid leads">
     <StatusMessagesContainer />
     <div className="row">
@@ -1790,6 +1981,7 @@ export const LeadsView = ({ allLeads, saveLead, fetchLeads, allMembers }) => (
           allLeads={allLeads}
           saveLead={saveLead}
           allMembers={allMembers}
+          leadLists={leadLists}
         />
       </div>
     </div>
@@ -1797,7 +1989,11 @@ export const LeadsView = ({ allLeads, saveLead, fetchLeads, allMembers }) => (
       <LeadsCreatedChart allLeads={allLeads} />
     </div>
     <div>
-      <LeadsConversionChart allLeads={allLeads} allMembers={allMembers} />
+      <LeadsConversionChart
+        allLeads={allLeads}
+        allMembers={allMembers}
+        profile={profile}
+      />
     </div>
     <div>
       <SourceReference3Chart allLeads={allLeads} />
@@ -1835,7 +2031,9 @@ export const LeadsContainer = compose(
     },
     componentWillReceiveProps(nextProps) {},
     componentDidMount() {
-      $('.content')[0].scrollIntoView(true);
+      $('.content')
+        .parent('div')[0]
+        .scrollIntoView(true);
     },
     componentWillUnmount() {
       clearInterval(this.state.timer);

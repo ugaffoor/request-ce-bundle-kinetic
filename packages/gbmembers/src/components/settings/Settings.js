@@ -8,6 +8,7 @@ import {
   withProps,
 } from 'recompose';
 import { actions } from '../../redux/modules/members';
+import { actions as classActions } from '../../redux/modules/classes';
 import $ from 'jquery';
 import ReactToPrint from 'react-to-print';
 import Barcode from 'react-barcode';
@@ -15,7 +16,9 @@ import 'bootstrap/scss/bootstrap.scss';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as errorActions } from '../../redux/modules/errors';
 import { Utils } from 'common';
-import DateTimePicker from 'react-xdsoft-datetimepicker';
+import moment from 'moment';
+import { ClassesCalendar } from './ClassesCalendar';
+import { ManageBookings } from './ManageBookings';
 
 const mapStateToProps = state => ({
   memberItem: state.member.members.currentMember,
@@ -23,63 +26,87 @@ const mapStateToProps = state => ({
   billingCompany: state.member.app.billingCompany,
   billingCustomersLoading: state.member.members.billingCustomersLoading,
   profile: state.member.app.profile,
+  belts: state.member.app.belts,
+  billingPayments: state.member.members.billingPayments,
+  billingPaymentsLoading: state.member.members.billingPaymentsLoading,
+  classSchedules: state.member.classes.classSchedules,
+  fetchingClassSchedules: state.member.classes.fetchingClassSchedules,
+  classBookings: state.member.classes.currentClassBookings,
+  addedBooking: state.member.classes.addedBooking,
+  fetchingClassBookings: state.member.classes.fetchingCurrentClassBookings,
+  programs: state.member.app.programs,
+  additionalPrograms: state.member.app.additionalPrograms,
+  space: state.member.app.space,
 });
 
 const mapDispatchToProps = {
   fetchCurrentMember: actions.fetchCurrentMember,
   fetchMembers: actions.fetchMembers,
+  fetchClassSchedules: classActions.fetchClassSchedules,
+  fetchClassBookings: classActions.fetchCurrentClassBookings,
+  updateBooking: classActions.updateBooking,
+  addBooking: classActions.addBooking,
+  deleteBooking: classActions.deleteBooking,
+  newClass: classActions.newClass,
+  editClass: classActions.editClass,
+  deleteClass: classActions.deleteClass,
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
   fetchBillingCustomers: actions.fetchBillingCustomers,
   setBillingCustomers: actions.setBillingCustomers,
   createBillingMembers: actions.createBillingMembers,
+  fetchBillingPayments: actions.fetchBillingPayments,
+  createBillingStatistics: actions.createBillingStatistics,
+  createStatistic: actions.createStatistic,
 };
 
 class ComponentToPrint extends React.Component {
   render() {
     return (
       <div id="memberBarcodes">
-        {this.props.allMembers.map((member, index) =>
-          index !== 0 && index % 65 === 0 ? (
-            <div className="barCode pageBreak" key={index}>
-              <Barcode
-                value={member.id.split('-')[4].substring(6, 12)}
-                width={1.3}
-                height={36}
-                text={
-                  member.values['Last Name'].substring(0, 1) +
-                  ' ' +
-                  member.values['Last Name']
-                }
-                type={'CODE128'}
-                font={'monospace'}
-                textAlign={'center'}
-                textPosition={'bottom'}
-                textMargin={2}
-                fontSize={8}
-              />
-            </div>
-          ) : (
-            <span className="barCode" key={index}>
-              <Barcode
-                value={member.id.split('-')[4].substring(6, 12)}
-                width={1.3}
-                height={36}
-                text={
-                  member.values['Last Name'].substring(0, 1) +
-                  ' ' +
-                  member.values['Last Name']
-                }
-                type={'CODE128'}
-                font={'monospace'}
-                textAlign={'center'}
-                textPosition={'bottom'}
-                textMargin={2}
-                fontSize={8}
-              />
-            </span>
-          ),
-        )}
+        {this.props.allMembers
+          .filter(member => member.values['Status'] !== 'Inactive')
+          .map((member, index) =>
+            index !== 0 && index % 65 === 0 ? (
+              <div className="barCode pageBreak" key={index}>
+                <Barcode
+                  value={member.id.split('-')[4].substring(6, 12)}
+                  width={1.3}
+                  height={36}
+                  text={
+                    member.values['First Name'].substring(0, 3) +
+                    ' ' +
+                    member.values['Last Name']
+                  }
+                  type={'CODE128'}
+                  font={'monospace'}
+                  textAlign={'center'}
+                  textPosition={'bottom'}
+                  textMargin={2}
+                  fontSize={8}
+                />
+              </div>
+            ) : (
+              <span className="barCode" key={index}>
+                <Barcode
+                  value={member.id.split('-')[4].substring(6, 12)}
+                  width={1.3}
+                  height={36}
+                  text={
+                    member.values['First Name'].substring(0, 3) +
+                    ' ' +
+                    member.values['Last Name']
+                  }
+                  type={'CODE128'}
+                  font={'monospace'}
+                  textAlign={'center'}
+                  textPosition={'bottom'}
+                  textMargin={2}
+                  fontSize={8}
+                />
+              </span>
+            ),
+          )}
       </div>
     );
   }
@@ -88,7 +115,6 @@ class ComponentToPrint extends React.Component {
 export const SettingsView = ({
   memberItem,
   allMembers,
-  billingPayments,
   billingCompany,
   fetchBillingCustomers,
   setBillingCustomers,
@@ -99,10 +125,108 @@ export const SettingsView = ({
   printingBarcodes,
   setPrintingBarcodes,
   profile,
+  belts,
+  billingPayments,
+  billingPaymentsLoading,
+  fetchBillingPayments,
+  createBillingStatistics,
+  createStatistic,
+  addNotification,
+  setSystemError,
+  showClassCalendar,
+  setShowClassCalendar,
+  showClassBookings,
+  setShowClassBookings,
+  classSchedules,
+  fetchClassSchedules,
+  fetchingClassSchedules,
+  classBookings,
+  fetchClassBookings,
+  fetchingClassBookings,
+  newClass,
+  editClass,
+  deleteClass,
+  programs,
+  additionalPrograms,
+  updateBooking,
+  addBooking,
+  addedBooking,
+  deleteBooking,
+  space,
 }) => (
   <div className="settings">
     <StatusMessagesContainer />
     <div className="buttons column" style={{ marginLeft: '10px' }}>
+      {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
+        <div />
+      ) : (
+        <div className="col-xs-3">
+          <button
+            type="button"
+            id="classCalendar"
+            className={'btn btn-primary'}
+            onClick={e => {
+              fetchClassSchedules();
+              setShowClassCalendar(showClassCalendar ? false : true);
+            }}
+          >
+            {showClassCalendar ? 'Hide Class Calendar' : 'Show Class Calendar'}
+          </button>
+        </div>
+      )}
+      {fetchingClassSchedules && showClassCalendar ? (
+        <p>Loading Calendar ....</p>
+      ) : !fetchingClassSchedules && showClassCalendar ? (
+        <ClassesCalendar
+          classSchedules={classSchedules}
+          programs={programs}
+          additionalPrograms={additionalPrograms}
+          newClass={newClass}
+          editClass={editClass}
+          deleteClass={deleteClass}
+          space={space}
+        ></ClassesCalendar>
+      ) : (
+        <div />
+      )}
+      {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
+        <div />
+      ) : (
+        <div className="col-xs-3">
+          <button
+            type="button"
+            id="classBookings"
+            className={'btn btn-primary'}
+            onClick={e => {
+              fetchClassSchedules();
+              fetchClassBookings();
+              setShowClassBookings(showClassBookings ? false : true);
+            }}
+          >
+            {showClassBookings ? 'Hide Class Bookings' : 'Show Class Bookings'}
+          </button>
+        </div>
+      )}
+      {fetchingClassBookings && fetchingClassSchedules && showClassBookings ? (
+        <p>Loading Class Bookings ....</p>
+      ) : !fetchingClassBookings &&
+        !fetchingClassSchedules &&
+        showClassBookings ? (
+        <ManageBookings
+          classBookings={classBookings}
+          allMembers={allMembers}
+          programs={programs}
+          additionalPrograms={additionalPrograms}
+          updateBooking={updateBooking}
+          addBooking={addBooking}
+          addedBooking={addedBooking}
+          deleteBooking={deleteBooking}
+          space={space}
+          classSchedules={classSchedules}
+        ></ManageBookings>
+      ) : (
+        <div />
+      )}
       {!Utils.isMemberOf(profile, 'Billing') ? (
         <div />
       ) : (
@@ -111,7 +235,6 @@ export const SettingsView = ({
             type="button"
             id="loadBillingCustomers"
             className={'btn btn-primary'}
-            style={{ borderRadius: '0', marginRight: '5px' }}
             onClick={e =>
               fetchBillingCustomers({
                 setBillingCustomers,
@@ -137,7 +260,6 @@ export const SettingsView = ({
           type="button"
           id="printMemberbarcodes"
           className={'btn btn-primary'}
-          style={{ borderRadius: '0', marginRight: '5px' }}
           onClick={e =>
             printMemberBarcodes({
               allMembers,
@@ -163,7 +285,63 @@ export const SettingsView = ({
           />
         </div>
       )}
+      {profile.username !== 'unus.gaffoor@kineticdata.com' ? (
+        <div />
+      ) : (
+        <div className="col-xs-3">
+          <button
+            type="button"
+            id="loadBillingPayments"
+            className={'btn btn-primary'}
+            onClick={e => {
+              let startDate, endDate;
+              startDate = moment()
+                .subtract(12, 'months')
+                .startOf('month')
+                .format('YYYY-MM-DD');
+              endDate = moment()
+                .subtract(1, 'months')
+                .endOf('month')
+                .format('YYYY-MM-DD');
+
+              fetchBillingPayments({
+                paymentType: 'SUCCESSFUL',
+                paymentMethod: 'ALL',
+                paymentSource: 'ALL',
+                dateField: 'PAYMENT',
+                dateFrom: startDate,
+                dateTo: endDate,
+                createBillingStatistics: createBillingStatistics,
+                createStatistic: createStatistic,
+                internalPaymentType: 'client_successful',
+                addNotification: addNotification,
+                setSystemError: setSystemError,
+              });
+            }}
+          >
+            Import Billing History(1 year)
+          </button>
+        </div>
+      )}
+      <div className="col-xs-3">
+        {billingPaymentsLoading ? (
+          <p>Importing billing payments ....</p>
+        ) : (
+          <span />
+        )}
+      </div>
     </div>
+    {/*
+    <div>
+      {belts.map(
+        belt =>
+              <span>
+                <p>{belt.belt}</p>
+                {getBeltSVG(belt.belt)}
+            </span>
+      )}
+    </div>
+  */}
   </div>
 );
 
@@ -173,42 +351,12 @@ export const SettingsContainer = compose(
     return {};
   }),
   withState('printingBarcodes', 'setPrintingBarcodes', false),
+  withState('showClassCalendar', 'setShowClassCalendar', false),
+  withState('showClassBookings', 'setShowClassBookings', false),
   withHandlers({
     printMemberBarcodes: ({ allMembers, setPrintingBarcodes }) => () => {
       console.log('Printing:' + allMembers.length);
       setPrintingBarcodes(true);
-      /*
-      setTimeout(function() {
-        const opt = {
-          scale: 1,
-        };
-        var iframe = null;
-        if ($('#printf').length > 0) {
-          iframe = $('#printf')[0];
-        } else {
-          iframe = document.createElement('iframe');
-        }
-        iframe.name = 'printf';
-        iframe.id = 'printf';
-        //           iframe.height = '1100px';
-        //           iframe.width = '2000px';
-        document.body.appendChild(iframe);
-
-        var newWin = window.frames['printf'];
-        newWin.document.write(
-          '<style> ' +
-            '#memberBarcodes{margin-top: 50px;margin-left:10px;display: flow-root;width: 800px;} ' +
-            '.pageBreak{page-break-before: always;background-color: red;} ' +
-            '.barCode {position: relative;width: 160px; flex: 30 0 auto;} ' +
-            '.barCode svg{width:160px;} ' +
-            '</style><body onload="window.print()">' +
-            $('#memberBarcodesSection').html() +
-            '</body>',
-        );
-        newWin.document.close();
-        setPrintingBarcodes(false);
-      }, 1000);
-*/
     },
   }),
   lifecycle({
@@ -216,7 +364,9 @@ export const SettingsContainer = compose(
       //      this.setState({ printingBarcodes: false });
     },
     componentWillReceiveProps(nextProps) {
-      $('.content')[0].scrollIntoView(true);
+      $('.content')
+        .parent('div')[0]
+        .scrollIntoView(true);
     },
     componentWillUnmount() {},
   }),

@@ -1,7 +1,7 @@
 import { Map } from 'immutable';
 import { all, takeEvery, call, put } from 'redux-saga/effects';
 import { actions, types } from '../modules/settingsServices';
-import { actions as kinopsActions } from 'app/src/redux/modules/app';
+import { actions as kinopsActions } from 'app/src/redux/modules/loading';
 
 import { CoreAPI } from 'react-kinetic-core';
 

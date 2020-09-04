@@ -13,17 +13,31 @@ import { PhotoForm } from '../PhotoForm';
 import $ from 'jquery';
 import { Confirm } from 'react-confirm-bootstrap';
 import NumberFormat from 'react-number-format';
-import { handleChange, handleFormattedChange } from './MemberUtils';
+import {
+  handleChange,
+  handleFormattedChange,
+  handleDateChange,
+  getDateValue,
+} from './MemberUtils';
 import moment from 'moment';
 import { contact_date_format } from '../leads/LeadsUtils';
 import ReactTable from 'react-table';
 import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { SetStatusModalContainer } from './SetStatusModalContainer';
+import DayPickerInput from 'react-day-picker/DayPickerInput';
+import 'react-day-picker/lib/style.css';
+import enAU from 'moment/locale/en-au';
+
+import MomentLocaleUtils, {
+  formatDate,
+  parseDate,
+} from 'react-day-picker/moment';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   memberItem: state.member.members.currentMember,
+  allMembers: state.member.members.allMembers,
   programs: state.member.app.programs,
   additionalPrograms: state.member.app.additionalPrograms,
   belts: state.member.app.belts,
@@ -142,7 +156,9 @@ class MemberAudit extends Component {
 export const MemberEdit = ({
   memberItem,
   saveMember,
+  allMembers,
   updateMember,
+  fetchMembers,
   deleteMemberCall,
   deleteMember,
   isDirty,
@@ -159,6 +175,8 @@ export const MemberEdit = ({
   memberStatusValues,
   setShowSetStatusModal,
   showSetStatusModal,
+  setEditUserName,
+  editUserName,
 }) =>
   currentMemberLoading ? (
     <div />
@@ -192,26 +210,49 @@ export const MemberEdit = ({
                 />
               )}
             </span>
-            <p>{memberItem.values['Member ID']}</p>
-            {/*
-              <input
-                type="text"
-                name="username"
-                id="username"
-                required
-                ref={input => (this.input = input)}
-                defaultValue={memberItem.values['Member ID']}
-                onChange={e =>
-                  handleChange(
-                    memberItem,
-                    'Member ID',
-                    e,
-                    setIsDirty,
-                    memberChanges,
-                  )
-                }
-              />
-            */}
+            <span className="userNameInfo">
+              {!editUserName && (
+                <span>
+                  <p className="userName">{memberItem.values['Member ID']}</p>
+                  <a
+                    onClick={e => setEditUserName(true)}
+                    className="btn btn-primary editUserName"
+                    style={{ marginLeft: '10px', color: 'white' }}
+                  >
+                    Edit Username
+                  </a>
+                </span>
+              )}
+              {editUserName && (
+                <span>
+                  <label htmlFor="username">User Name</label>
+                  <input
+                    type="text"
+                    name="username"
+                    id="username"
+                    className="userNameField"
+                    required
+                    ref={input => (this.input = input)}
+                    defaultValue={memberItem.values['Member ID']}
+                    onChange={e =>
+                      handleChange(
+                        memberItem,
+                        'Member ID',
+                        e,
+                        setIsDirty,
+                        memberChanges,
+                      )
+                    }
+                  />
+                  <div id="duplicateUserInfo" className="hide">
+                    <p>
+                      Username must be unique for a Member. Another user already
+                      exists.
+                    </p>
+                  </div>
+                </span>
+              )}
+            </span>
             <hr />
             <span className="line">
               <div>
@@ -304,33 +345,133 @@ export const MemberEdit = ({
               </span>
             </span>
             {/*
-          <span className="line">
-            <div>
-              <label htmlFor="billingId">
-                Billing Customer Id
-              </label>
-              <input type="text" name="billingId" id="billingId" size="30" ref={(input) => this.input = input} defaultValue={memberItem.values['Billing Customer Id']} onChange={(e) => handleChange(memberItem,'Billing Customer Id', e, setIsDirty)}/>
-            </div>
-            <div>
-              <label htmlFor="billingRef">
-                Billing Reference
-              </label>
-              <input type="text" name="billingRef" id="billingRef" size="30" ref={(input) => this.input = input} defaultValue={memberItem.values['Billing Customer Reference']} onChange={(e) => handleChange(memberItem,'Billing Customer Reference', e, setIsDirty)}/>
-            </div>
-            <div>
-              <label htmlFor="billingPaymentType">
-                Billing Payment Type
-              </label>
-              <input type="text" name="billingPaymentType" id="billingPaymentType" size="5" ref={(input) => this.input = input} defaultValue={memberItem.values['Billing Payment Type']} onChange={(e) => handleChange(memberItem,'Billing Payment Type', e, setIsDirty)}/>
-            </div>
-            <div>
-              <label htmlFor="billingPaymentPeriod">
-                Billing Payment Period
-              </label>
-              <input type="text" name="billingPaymentPeriod" id="billingPaymentPeriod" size="5" ref={(input) => this.input = input} defaultValue={memberItem.values['Billing Payment Period']} onChange={(e) => handleChange(memberItem,'Billing Payment Period', e, setIsDirty)}/>
-            </div>
-          </span>
-          */}
+              <span className="line">
+                <div>
+                  <label htmlFor="billingId">Billing Customer Id</label>
+                  <input
+                    type="text"
+                    name="billingId"
+                    id="billingId"
+                    size="30"
+                    ref={input => (this.input = input)}
+                    defaultValue={memberItem.values['Billing Customer Id']}
+                    onChange={e =>
+                      handleChange(
+                        memberItem,
+                        'Billing Customer Id',
+                        e,
+                        setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+                <div>
+                  <label htmlFor="billingRef">Billing Reference</label>
+                  <input
+                    type="text"
+                    name="billingRef"
+                    id="billingRef"
+                    size="30"
+                    ref={input => (this.input = input)}
+                    defaultValue={
+                      memberItem.values['Billing Customer Reference']
+                    }
+                    onChange={e =>
+                      handleChange(
+                        memberItem,
+                        'Billing Customer Reference',
+                        e,
+                        setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+                <div>
+                  <label htmlFor="billingPaymentType">
+                    Billing Payment Type
+                  </label>
+                  <input
+                    type="text"
+                    name="billingPaymentType"
+                    id="billingPaymentType"
+                    size="5"
+                    ref={input => (this.input = input)}
+                    defaultValue={memberItem.values['Billing Payment Type']}
+                    onChange={e =>
+                      handleChange(
+                        memberItem,
+                        'Billing Payment Type',
+                        e,
+                        setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+                <div>
+                  <label htmlFor="billingPaymentPeriod">
+                    Billing Payment Period
+                  </label>
+                  <input
+                    type="text"
+                    name="billingPaymentPeriod"
+                    id="billingPaymentPeriod"
+                    size="5"
+                    ref={input => (this.input = input)}
+                    defaultValue={memberItem.values['Billing Payment Period']}
+                    onChange={e =>
+                      handleChange(
+                        memberItem,
+                        'Billing Payment Period',
+                        e,
+                        setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+                <div>
+                  <label htmlFor="emailsReceivedCount">
+                    emailsReceivedCount
+                  </label>
+                  <input
+                    type="text"
+                    name="emailsReceivedCount"
+                    id="emailsReceivedCount"
+                    size="5"
+                    ref={input => (this.input = input)}
+                    defaultValue={memberItem.values['Emails Received Count']}
+                    onChange={e =>
+                      handleChange(
+                        memberItem,
+                        'Emails Received Count',
+                        e,
+                        setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+                <div>
+                  <label htmlFor="leadSubmissionID">
+                    Lead Submission ID
+                  </label>
+                  <input
+                    type="text"
+                    name="leadSubmissionID"
+                    id="leadSubmissionID"
+                    size="5"
+                    ref={input => (this.input = input)}
+                    defaultValue={memberItem.values['Lead Submission ID']}
+                    onChange={e =>
+                      handleChange(
+                        memberItem,
+                        'Lead Submission ID',
+                        e,
+                        setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+              </span>
+            */}
             <span className="line">
               <div>
                 <label
@@ -469,15 +610,22 @@ export const MemberEdit = ({
                   required
                   ref={input => (this.input = input)}
                   defaultValue={memberItem.values['Email']}
-                  onChange={e =>
+                  onChange={e => {
+                    if (e.target.value !== null)
+                      e.target.value = e.target.value.trim();
+                    memberItem.values['Email'] =
+                      memberItem.values['Email'] === undefined ||
+                      memberItem.values['Email'] === null
+                        ? ''
+                        : memberItem.values['Email'].trim();
                     handleChange(
                       memberItem,
                       'Email',
                       e,
                       setIsDirty,
                       memberChanges,
-                    )
-                  }
+                    );
+                  }}
                 />
               </div>
               <div className="emailDiv ml-1">
@@ -489,15 +637,16 @@ export const MemberEdit = ({
                   size="40"
                   ref={input => (this.input = input)}
                   defaultValue={memberItem.values['Additional Email']}
-                  onChange={e =>
+                  onChange={e => {
+                    e.target.value = e.target.value.trim();
                     handleChange(
                       memberItem,
                       'Additional Email',
                       e,
                       setIsDirty,
                       memberChanges,
-                    )
-                  }
+                    );
+                  }}
                 />
               </div>
             </span>
@@ -556,6 +705,7 @@ export const MemberEdit = ({
               <div>
                 <label
                   htmlFor="datejoined"
+                  id="datejoined"
                   required={
                     memberItem.values['Date Joined'] === undefined
                       ? true
@@ -564,49 +714,64 @@ export const MemberEdit = ({
                 >
                   Date Joined
                 </label>
-                <input
-                  type="date"
+                <DayPickerInput
                   name="datejoined"
                   id="datejoined"
+                  placeholder={moment(new Date())
+                    .localeData()
+                    .longDateFormat('L')
+                    .toLowerCase()}
+                  formatDate={formatDate}
+                  parseDate={parseDate}
+                  value={getDateValue(memberItem.values['Date Joined'])}
+                  fieldName="Date Joined"
+                  memberItem={memberItem}
+                  setIsDirty={setIsDirty}
+                  memberChanges={memberChanges}
+                  onDayPickerHide={handleDateChange}
                   required
-                  ref={input => (this.input = input)}
-                  defaultValue={memberItem.values['Date Joined']}
-                  onChange={e =>
-                    handleChange(
-                      memberItem,
-                      'Date Joined',
-                      e,
-                      setIsDirty,
-                      memberChanges,
-                    )
-                  }
+                  dayPickerProps={{
+                    locale:
+                      profile.preferredLocale == null
+                        ? 'en-au'
+                        : profile.preferredLocale.toLowerCase(),
+                    localeUtils: MomentLocaleUtils,
+                  }}
                 />
               </div>
               <div>
                 <label
                   htmlFor="birthday"
+                  id="birthday"
                   required={
                     memberItem.values['DOB'] === undefined ? true : false
                   }
                 >
                   Birthday
                 </label>
-                <input
-                  type="date"
+                <DayPickerInput
                   name="birthday"
                   id="birthday"
+                  placeholder={moment(new Date())
+                    .localeData()
+                    .longDateFormat('L')
+                    .toLowerCase()}
+                  formatDate={formatDate}
+                  parseDate={parseDate}
+                  value={getDateValue(memberItem.values['DOB'])}
+                  fieldName="DOB"
+                  memberItem={memberItem}
+                  setIsDirty={setIsDirty}
+                  memberChanges={memberChanges}
+                  onDayPickerHide={handleDateChange}
                   required
-                  ref={input => (this.input = input)}
-                  defaultValue={memberItem.values['DOB']}
-                  onChange={e =>
-                    handleChange(
-                      memberItem,
-                      'DOB',
-                      e,
-                      setIsDirty,
-                      memberChanges,
-                    )
-                  }
+                  dayPickerProps={{
+                    locale:
+                      profile.preferredLocale == null
+                        ? 'en-au'
+                        : profile.preferredLocale.toLowerCase(),
+                    localeUtils: MomentLocaleUtils,
+                  }}
                 />
               </div>
             </span>
@@ -658,6 +823,7 @@ export const MemberEdit = ({
                   size="40"
                   name="emergencyname"
                   id="emergencyname"
+                  required
                   ref={input => (this.input = input)}
                   defaultValue={memberItem.values['Emergency Contact Name']}
                   onChange={e =>
@@ -688,6 +854,7 @@ export const MemberEdit = ({
                   size="40"
                   name="relationship"
                   id="relationship"
+                  required
                   ref={input => (this.input = input)}
                   defaultValue={
                     memberItem.values['Emergency Contact Relationship']
@@ -719,6 +886,7 @@ export const MemberEdit = ({
                 <NumberFormat
                   format="####-###-###"
                   mask="_"
+                  required
                   ref={input => (this.input = input)}
                   value={memberItem.values['Emergency Contact Phone']}
                   onValueChange={(values, e) =>
@@ -841,26 +1009,35 @@ export const MemberEdit = ({
               </div>
             </span>
             <span className="line">
-              <div>
-                <label htmlFor="lastPromotion">Last Promotion</label>
-                <input
-                  type="date"
+              <div className="field">
+                <label id="lastPromotion" htmlFor="lastPromotion">
+                  Last Promotion
+                </label>
+                <DayPickerInput
                   name="lastPromotion"
                   id="lastPromotion"
-                  ref={input => (this.input = input)}
-                  defaultValue={memberItem.values['Last Promotion']}
-                  onChange={e =>
-                    handleChange(
-                      memberItem,
-                      'Last Promotion',
-                      e,
-                      setIsDirty,
-                      memberChanges,
-                    )
-                  }
+                  placeholder={moment(new Date())
+                    .localeData()
+                    .longDateFormat('L')
+                    .toLowerCase()}
+                  formatDate={formatDate}
+                  parseDate={parseDate}
+                  value={getDateValue(memberItem.values['Last Promotion'])}
+                  fieldName="Last Promotion"
+                  memberItem={memberItem}
+                  setIsDirty={setIsDirty}
+                  memberChanges={memberChanges}
+                  onDayPickerHide={handleDateChange}
+                  dayPickerProps={{
+                    locale:
+                      profile.preferredLocale == null
+                        ? 'en-au'
+                        : profile.preferredLocale.toLowerCase(),
+                    localeUtils: MomentLocaleUtils,
+                  }}
                 />
               </div>
-              <div>
+              <div className="field">
                 <label htmlFor="attendanceCount">Attendance Count</label>
                 <input
                   type="number"
@@ -880,10 +1057,63 @@ export const MemberEdit = ({
                 />
               </div>{' '}
             </span>
+            <span className="line">
+              <div className="field">
+                <label htmlFor="maxWeeklyClasses">Max Weekly Classes</label>
+                <input
+                  type="number"
+                  name="maxWeeklyClasses"
+                  id="maxWeeklyClasses"
+                  ref={input => (this.input = input)}
+                  defaultValue={memberItem.values['Max Weekly Classes']}
+                  onChange={e =>
+                    handleChange(
+                      memberItem,
+                      'Max Weekly Classes',
+                      e,
+                      setIsDirty,
+                      memberChanges,
+                    )
+                  }
+                />
+              </div>
+            </span>
           </div>
           <div className="section3">
             <h1>Other Information</h1>
             <hr />
+            <span className="line">
+              <div>
+                <label htmlFor="nopaying" style={{ minWidth: '100px' }}>
+                  Non Paying
+                </label>
+                <input
+                  type="checkbox"
+                  name="nonpaying"
+                  id="nonpaying"
+                  style={{ clear: 'none', margin: '4px' }}
+                  ref={input => (this.input = input)}
+                  value="YES"
+                  checked={
+                    memberItem.values['Non Paying'] === 'YES' ? true : false
+                  }
+                  onChange={e => {
+                    if (memberItem.values['Non Paying'] === 'YES') {
+                      e.target.value = '';
+                    } else {
+                      e.target.value = 'YES';
+                    }
+                    handleChange(
+                      memberItem,
+                      'Non Paying',
+                      e,
+                      setIsDirty,
+                      memberChanges,
+                    );
+                  }}
+                />
+              </div>
+            </span>
             <span className="line">
               <div>
                 <label htmlFor="additionalprogram1">Additional Program 1</label>
@@ -938,12 +1168,39 @@ export const MemberEdit = ({
                 <div className="droparrow" />
               </div>{' '}
             </span>
+            <span className="line">
+              <div>
+                <label htmlFor="covid19">Covid19 Waiver Agreement</label>
+                <select
+                  name="covid19"
+                  id="covid19"
+                  ref={input => (this.input = input)}
+                  defaultValue={memberItem.values['Covid19 Waiver']}
+                  onChange={e =>
+                    handleChange(
+                      memberItem,
+                      'Covid19 Waiver',
+                      e,
+                      setIsDirty,
+                      memberChanges,
+                    )
+                  }
+                >
+                  <option value="" />
+                  <option value="Agreed">Agreed</option>
+                  <option value="NOT Agreed">NOT Agreed</option>
+                </select>
+                <div className="droparrow" />
+              </div>
+            </span>
           </div>
           <div className="section4">
             <span className="line">
               <span className="leftButtons">
                 <Confirm
-                  onConfirm={e => deleteMemberCall(memberItem, deleteMember)}
+                  onConfirm={e =>
+                    deleteMemberCall(memberItem, deleteMember, fetchMembers)
+                  }
                   body="Are you sure you want to delete this member?"
                   confirmText="Confirm Delete"
                   title="Deleting Member"
@@ -989,7 +1246,9 @@ export const MemberEdit = ({
                       ? 'btn btn-primary dirty'
                       : 'btn btn-primary notDirty'
                   }
-                  onClick={e => saveMember(memberItem, updateMember, isDirty)}
+                  onClick={e =>
+                    saveMember(memberItem, updateMember, isDirty, allMembers)
+                  }
                 >
                   Save
                 </button>
@@ -1016,12 +1275,13 @@ export const MemberEditContainer = compose(
   withState('memberChanges', 'setMemberChanges', []),
   withState('showMemberAudit', 'setShowMemberAudit', false),
   withState('showSetStatusModal', 'setShowSetStatusModal', false),
+  withState('editUserName', 'setEditUserName', false),
   withHandlers({
-    deleteMemberCall: ({ memberItem, deleteMember }) => () => {
+    deleteMemberCall: ({ memberItem, deleteMember, fetchMembers }) => () => {
       deleteMember({
         memberItem,
         history: memberItem.history,
-        fetchMembers: memberItem.fetchMembers,
+        fetchMembers: fetchMembers,
       });
       console.log('delete member:' + memberItem.username);
     },
@@ -1029,14 +1289,35 @@ export const MemberEditContainer = compose(
       memberItem,
       updateMember,
       isDirty,
+      allMembers,
       memberChanges,
       loggedInUserProfile,
       fetchMembers,
+      setIsDirty,
     }) => () => {
       if (!isDirty) {
         return;
       }
-      if ($('label[required]').length > 0) {
+      $('#duplicateUserInfo')
+        .removeClass('show')
+        .addClass('hide');
+      var duplicateUser = false;
+      for (var i = 0; i < allMembers.length; i++) {
+        if (
+          allMembers[i].values['Member ID'] ===
+            memberItem.values['Member ID'] &&
+          allMembers[i].id !== memberItem.id
+        ) {
+          duplicateUser = true;
+        }
+      }
+
+      if (duplicateUser) {
+        $('#duplicateUserInfo')
+          .removeClass('hide')
+          .addClass('show');
+      }
+      if ($('label[required]').length > 0 || duplicateUser) {
         $('label[required]')
           .siblings('input[required]')
           .css('border-color', 'red');
@@ -1048,8 +1329,12 @@ export const MemberEditContainer = compose(
           .first()
           .focus();
       } else {
+        let emailChanged = false;
         memberChanges.forEach(change => {
           change.user = loggedInUserProfile.username;
+          if (change.field === 'Email') {
+            emailChanged = true;
+          }
         });
 
         let changes = memberItem.values['Member Changes'];
@@ -1064,9 +1349,17 @@ export const MemberEditContainer = compose(
         updateMember({
           id: memberItem.id,
           memberItem,
-          history: memberItem.history,
-          fetchMembers: fetchMembers,
+          emailChanged,
+          /*          history: memberItem.history,
+          fetchMembers: fetchMembers, */
         });
+        for (let i = 0; i < allMembers.length; i++) {
+          if (allMembers[i].id === memberItem.id) {
+            allMembers[i].values = memberItem.values;
+            break;
+          }
+        }
+        setIsDirty(false);
       }
     },
   }),
@@ -1096,7 +1389,9 @@ export const MemberEditContainer = compose(
       }
     },
     componentDidMount() {
-      $('.content')[0].scrollIntoView(true);
+      $('.content')
+        .parent('div')[0]
+        .scrollIntoView(true);
       this.props.setMemberChanges([]);
     },
     componentWillUnmount() {},

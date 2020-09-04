@@ -17,15 +17,13 @@ const mapDispatchToProps = {
 };
 
 export const AppContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
     componentWillMount() {
       this.props.loadApp();
       this.props.loadAppSettings();
       this.props.fetchAlerts();
     },
+    componentDidMount() {},
   }),
 )(App);

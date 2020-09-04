@@ -12,9 +12,11 @@ import { reducer as auth } from './modules/auth';
 import formsReducer from './modules/forms';
 import { reducer as teams } from './modules/teams';
 import { reducer as datastore } from './modules/settingsDatastore';
+import { reducer as monthlyStatistics } from './modules/monthlyStatistics';
 import { reducer as messaging } from './modules/messaging';
 import { reducer as reporting } from './modules/reporting';
 import { reducer as attendance } from './modules/attendance';
+import { reducer as classes } from './modules/classes';
 
 export default {
   errors: errorsReducer,
@@ -31,7 +33,9 @@ export default {
   forms: formsReducer,
   teams,
   datastore,
+  monthlyStatistics,
   messaging,
   reporting,
   attendance,
+  classes,
 };

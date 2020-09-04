@@ -1,4 +1,4 @@
-import React, { Fragment, Component } from 'react';
+import React, { Fragment } from 'react';
 import { connect } from 'react-redux';
 import { compose, withHandlers, withState, lifecycle } from 'recompose';
 import { Link } from 'react-router-dom';
@@ -7,17 +7,7 @@ import { push } from 'connected-react-router';
 import { toastActions, PageTitle } from 'common';
 import { actions } from '../../../redux/modules/settingsNotifications';
 import { NotificationMenu } from './NotificationMenu';
-import ReactQuill, { Quill } from 'react-quill';
-import ImageResize from 'quill-image-resize-module-react';
-
-Quill.register('modules/imageResize', ImageResize);
-var Block = Quill.import('blots/block');
-Block.tagName = 'DIV';
-Quill.register(Block, true);
-
-var Size = Quill.import('attributors/style/size');
-Size.whitelist = ['10px', '18px', '32px', '64px'];
-Quill.register(Size, true);
+import { I18n } from '../../../../../app/src/I18nProvider';
 
 const fields = {
   Name: {
@@ -31,7 +21,7 @@ const fields = {
     visible: values => values.get('Type') === 'Template',
   },
   'HTML Content': {
-    required: values => values.get('Type') === 'Template',
+    required: true,
   },
   'Text Content': {
     required: values => values.get('Type') === 'Template',
@@ -56,134 +46,6 @@ const isValid = values =>
   !Object.entries(fields).some(
     ([name, _]) => isRequired(name, values) && !values.get(name),
   );
-function imageHandler() {
-  var range = quillRef.getSelection();
-  var value = prompt('What is the image URL');
-  if (value) {
-    quillRef.insertEmbed(range.index, 'image', value, Quill.sources.USER);
-  }
-}
-
-export class HTMLContent extends Component {
-  constructor(props) {
-    super(props);
-    this.setDirty = this.props.setDirty;
-    this.values = null;
-    this.setValues = this.props.setValues;
-    this.setValues.bind(this);
-    this.setCursorPosition = this.props.setCursorPosition;
-    this.setCursorPosition.bind(this);
-    this.setSelection = this.props.setSelection;
-    this.setSelection.bind(this);
-    this.setQuillRef = this.props.setQuillRef;
-    this.setQuillRef.bind(this);
-    this.reactQuillRef = null;
-    this.attachQuillRefs = this.attachQuillRefs.bind(this);
-  }
-  componentDidMount() {
-    this.attachQuillRefs(this);
-  }
-  componentWillReceiveProps(nextProps) {
-    if (this.values === null) {
-      console.log('HTMLContent componentWillReceiveProps');
-      this.values = nextProps.values;
-    }
-  }
-  modules = {
-    toolbar: {
-      container: [
-        ['bold', 'italic', 'underline', 'strike'], // toggled buttons
-        ['blockquote', 'code-block'],
-
-        [{ size: ['10px', '18px', '32px', '64px'] }],
-        [{ list: 'ordered' }, { list: 'bullet' }],
-        [{ indent: '-1' }, { indent: '+1' }], // outdent/indent
-
-        [{ align: [] }],
-        [{ header: [1, 2, 3, 4, 5, 6, false] }],
-        [{ color: [] }, { background: [] }], // dropdown with defaults from theme
-        [{ font: [] }],
-        ['link'],
-        ['image'],
-        ['clean'],
-      ],
-      handlers: {
-        image: imageHandler,
-      },
-    },
-    imageResize: {
-      parchment: Quill.import('parchment'),
-    },
-  };
-  formats = [
-    'header',
-    'bold',
-    'italic',
-    'underline',
-    'strike',
-    'blockquote',
-    'list',
-    'bullet',
-    'indent',
-    'link',
-    'image',
-    'color',
-    'width',
-    'height',
-    'table',
-    'td',
-    'tr',
-    'width',
-    'height',
-    'align',
-    'text-align',
-    'size',
-  ];
-  attachQuillRefs = props => variable => {
-    const quillRef = this.reactQuillRef ? this.reactQuillRef.getEditor() : null;
-    if (quillRef != null) this.quillRef = quillRef;
-  };
-  handleHTMLChange(event) {
-    console.log('in handleHTMLChange');
-    if (this.values !== null) {
-      this.setValues(this.values.set('HTML Content', event));
-      console.log('in handleHTMLChange');
-    }
-  }
-
-  handleHTMLBlur(event) {
-    console.log('in handleHTMLBlur');
-    const name = 'HTML Content';
-    const start = event.index;
-    const end = event.index + event.length;
-    this.setCursorPosition({ name, start, end });
-    this.setSelection(this.values.get(name).substring(start, end));
-
-    //          this.setDirty(true);
-    //        this.setValues(this.values.set("HTML Content", this.reactQuillRef.editingArea.innerHTML));
-  }
-  render() {
-    return (
-      <ReactQuill
-        ref={el => {
-          this.reactQuillRef = el;
-          if (el !== null) this.setQuillRef(el.getEditor());
-        }}
-        value={this.props.values.get('HTML Content')}
-        onChange={this.handleHTMLChange}
-        modules={this.modules}
-        formats={this.formats}
-        onBlur={this.handleHTMLBlur}
-        setDirty={this.setDirty}
-        values={this.values}
-        setValues={this.setValues}
-        setCursorPosition={this.setCursorPosition}
-        setSelection={this.setSelection}
-        reactQuillRef={this.reactQuillRef}
-      />
-    );
-  }
-}
 
 const NotificationComponent = ({
   loading,
@@ -191,22 +53,14 @@ const NotificationComponent = ({
   type,
   title,
   dirty,
-  setDirty,
   values,
-  setValues,
   selection,
   handleFieldChange,
   handleFieldBlur,
-  handleHTMLChange,
-  handleHTMLBlur,
   handleSubmit,
   handleVariableSelection,
-  quillRef,
-  setCursorPosition,
-  setSelection,
-  setQuillRef,
 }) => (
-  <div className="page-container page-container--notifications">
+  <div className="page-container page-container--panels page-container--notifications">
     <PageTitle
       parts={[
         submission ? submission.label : `New ${title}`,
@@ -214,19 +68,27 @@ const NotificationComponent = ({
         'Settings',
       ]}
     />
-    <div className="page-panel page-panel--scrollable">
+    <div className="page-panel page-panel--two-thirds page-panel--scrollable">
       <div className="page-title">
         <div className="page-title__wrapper">
           <h3>
-            <Link to="/">home</Link> /{` `}
-            <Link to="/settings">settings</Link> /{` `}
+            <Link to="/">
+              <I18n>home</I18n>
+            </Link>{' '}
+            /{` `}
+            <Link to="/settings">
+              <I18n>settings</I18n>
+            </Link>{' '}
+            /{` `}
             <Link to={`/settings/notifications/${type}`}>
-              notification {type}
+              <I18n>notification {type}</I18n>
             </Link>
             {` `}/
           </h3>
           {!loading && (
-            <h1>{submission ? submission.label : `New ${title}`}</h1>
+            <h1>
+              {submission ? submission.label : <I18n>{`New ${title}`}</I18n>}
+            </h1>
           )}
         </div>
       </div>
@@ -236,12 +98,11 @@ const NotificationComponent = ({
             <NotificationMenu
               selection={selection}
               onSelect={handleVariableSelection}
-              quillRef={quillRef}
             />
           </Fragment>
           <div className="form-group required">
             <label className="field-label" htmlFor="name">
-              Name
+              <I18n>Name</I18n>
             </label>
             <input
               type="text"
@@ -254,7 +115,9 @@ const NotificationComponent = ({
           </div>
 
           <div className="radio required">
-            <label className="field-label">Status</label>
+            <label className="field-label">
+              <I18n>Status</I18n>
+            </label>
             <label>
               <input
                 type="radio"
@@ -281,7 +144,7 @@ const NotificationComponent = ({
           {isVisible('Subject', values) && (
             <div className="form-group required">
               <label className="field-label" htmlFor="subject">
-                Subject
+                <I18n>Subject</I18n>
               </label>
               <textarea
                 id="subject"
@@ -295,16 +158,15 @@ const NotificationComponent = ({
           )}
           <div className="form-group required">
             <label className="field-label" htmlFor="htmlContent">
-              HTML Content
+              <I18n>HTML Content</I18n>
             </label>
-            <HTMLContent
-              values={values}
-              quillRef={quillRef}
-              setDirty={setDirty}
-              setValues={setValues}
-              setCursorPosition={setCursorPosition}
-              setSelection={setSelection}
-              setQuillRef={setQuillRef}
+            <textarea
+              id="htmlContent"
+              name="HTML Content"
+              rows="8"
+              onChange={handleFieldChange}
+              onBlur={handleFieldBlur}
+              value={values.get('HTML Content')}
             />
           </div>
           <div
@@ -313,7 +175,7 @@ const NotificationComponent = ({
             }`}
           >
             <label className="field-label" htmlFor="textContent">
-              Text Content
+              <I18n>Text Content</I18n>
             </label>
             <textarea
               id="textContent"
@@ -325,18 +187,52 @@ const NotificationComponent = ({
             />
           </div>
           <div className="form__footer">
-            <div className="form_footer__right">
+            <div className="form__footer__right">
+              <Link to="/settings/notifications" className="btn btn-link mb-0">
+                <I18n>Cancel</I18n>
+              </Link>
               <button
                 type="submit"
                 className="btn btn-primary"
-                disabled={!isValid(values)}
+                disabled={!dirty || !isValid(values)}
               >
-                Save
+                {submission ? (
+                  <I18n>Save Changes</I18n>
+                ) : (
+                  <I18n>{`Create ${title}`}</I18n>
+                )}
               </button>
             </div>
           </div>
         </form>
       )}
+    </div>
+    <div className="page-panel page-panel--one-thirds page-panel--transparent page-panel--sidebar page-panel--settings-sidebar">
+      <h3>
+        <I18n>Dynamic Replacements</I18n>
+      </h3>
+      <p>
+        <I18n>
+          Use the dropdown to insert dynamic elements within the subject and
+          body of your templates. Just put your cursor into one of those fields
+          where you want the element to appear and choose an option from the
+          dropdown list.
+        </I18n>
+      </p>
+      <p>
+        <I18n>
+          Selecting a Kapp and Form will populate the dropdown menu with
+          available options.
+        </I18n>
+      </p>
+      <p>
+        <I18n>
+          Caution: Email templates can be used by any process. Since not all
+          Kapps have the same attributes and not all forms have the same
+          attributes or fields, relying on attributes or fields that may not
+          exist will yield unexpected results. Test your email templates!
+        </I18n>
+      </p>
     </div>
   </div>
 );
@@ -378,28 +274,16 @@ export const handleFieldBlur = props => event => {
 export const handleVariableSelection = props => variable => {
   if (props.cursorPosition) {
     const { name, start, end } = props.cursorPosition;
-    if (name === 'HTML Content') {
-      console.log('quillRef:' + quillRef);
-      quillRef.editor.insertText(start, variable);
-      var text = quillRef.getContents();
-      props.setValues(props.values.set(name, text));
-    } else {
-      const value = props.values.get(name);
-      const newValue = Seq(value || [])
-        .take(start)
-        .concat(Seq(variable))
-        .concat(Seq(value || []).skip(end))
-        .join('');
-      props.setValues(props.values.set(name, newValue));
-    }
+    const value = props.values.get(name);
+    const newValue = Seq(value || [])
+      .take(start)
+      .concat(Seq(variable))
+      .concat(Seq(value || []).skip(end))
+      .join('');
+    props.setValues(props.values.set(name, newValue));
   }
 };
 
-var quillRef = null;
-
-const setQuillRef = props => ref => {
-  quillRef = ref;
-};
 export const mapStateToProps = (state, props) => ({
   submission: state.space.settingsNotifications.notification,
   type: props.match.params.type,
@@ -430,7 +314,6 @@ export const Notification = compose(
     handleFieldChange,
     handleFieldBlur,
     handleVariableSelection,
-    setQuillRef,
   }),
   lifecycle({
     componentWillMount() {

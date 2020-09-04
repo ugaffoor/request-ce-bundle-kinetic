@@ -11,10 +11,22 @@ import { actions } from '../../redux/modules/leads';
 import { KappNavLink as NavLink } from 'common';
 import $ from 'jquery';
 import NumberFormat from 'react-number-format';
-import { handleChange, handleFormattedChange } from './LeadsUtils';
+import {
+  handleChange,
+  handleFormattedChange,
+  handleDateChange,
+  getDateValue,
+} from './LeadsUtils';
 import { Confirm } from 'react-confirm-bootstrap';
 import { StatusMessagesContainer } from '../StatusMessages';
 import Select from 'react-select';
+import moment from 'moment';
+import DayPickerInput from 'react-day-picker/DayPickerInput';
+import 'react-day-picker/lib/style.css';
+import MomentLocaleUtils, {
+  formatDate,
+  parseDate,
+} from 'react-day-picker/moment';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -23,6 +35,7 @@ const mapStateToProps = state => ({
   currentLeadLoading: state.member.leads.currentLeadLoading,
   members: state.member.members.allMembers,
   leads: state.member.leads.allLeads,
+  profile: state.member.kinops.profile,
 });
 const mapDispatchToProps = {
   fetchLead: actions.fetchCurrentLead,
@@ -87,6 +100,102 @@ export class LeadEdit extends Component {
             <div className="section1">
               <h3>Edit Lead</h3>
               <hr />
+              {/*
+                <span>
+                <div>
+                  <label htmlFor="emailsReceivedCount">
+                    emailsReceivedCount
+                  </label>
+                  <input
+                    type="text"
+                    name="emailsReceivedCount"
+                    id="emailsReceivedCount"
+                    size="5"
+                    ref={input => (this.input = input)}
+                    defaultValue={
+                      this.props.leadItem.values['Emails Received Count']
+                    }
+                    onChange={e =>
+                      handleChange(
+                        this.props.leadItem,
+                        'Emails Received Count',
+                        e,
+                        this.setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+                <div>
+                  <label htmlFor="status">
+                    Status
+                  </label>
+                  <input
+                    type="text"
+                    name="status"
+                    id="status"
+                    size="5"
+                    ref={input => (this.input = input)}
+                    defaultValue={
+                      this.props.leadItem.values['Status']
+                    }
+                    onChange={e =>
+                      handleChange(
+                        this.props.leadItem,
+                        'Status',
+                        e,
+                        this.setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+                <div>
+                  <label htmlFor="leadState">
+                    Lead State
+                  </label>
+                  <input
+                    type="text"
+                    name="leadState"
+                    id="leadState"
+                    size="5"
+                    ref={input => (this.input = input)}
+                    defaultValue={
+                      this.props.leadItem.values['Lead State']
+                    }
+                    onChange={e =>
+                      handleChange(
+                        this.props.leadItem,
+                        'Lead State',
+                        e,
+                        this.setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+                <div>
+                  <label htmlFor="convertedMemberID">
+                    Converted Member ID
+                  </label>
+                  <input
+                    type="text"
+                    name="convertedMemberID"
+                    id="convertedMemberID"
+                    size="5"
+                    ref={input => (this.input = input)}
+                    defaultValue={
+                      this.props.leadItem.values['Converted Member ID']
+                    }
+                    onChange={e =>
+                      handleChange(
+                        this.props.leadItem,
+                        'Converted Member ID',
+                        e,
+                        this.setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+                </span>
+            */}
               <span className="line">
                 <div>
                   <label
@@ -115,19 +224,23 @@ export class LeadEdit extends Component {
                     }
                   >
                     <option value="" />
+                    <option value="Brochure">Brochure</option>
                     <option value="Facebook">Facebook</option>
-                    <option value="Twitter">Twitter</option>
-                    <option value="Google+">Google+</option>
-                    <option value="Linkedin">Linkedin</option>
+                    <option value="Facebook Ad">Facebook Ad</option>
                     <option value="Family">Family</option>
-                    <option value="Friend">Friend</option>
+                    <option value="Google+">Google+</option>
+                    <option value="Google Ad">Google Ad</option>
+                    <option value="Instagram">Instagram</option>
+                    <option value="Instagram Ad">Instagram Ad</option>
+                    <option value="Leaflet">Leaflet</option>
+                    <option value="Linkedin">Linkedin</option>
                     <option value="Magazine">Magazine</option>
                     <option value="Newspaper">Newspaper</option>
-                    <option value="Television">Television</option>
-                    <option value="Brochure">Brochure</option>
-                    <option value="Leaflet">Leaflet</option>
-                    <option value="Poster">Poster</option>
                     <option value="Phone Call">Phone Call</option>
+                    <option value="Poster">Poster</option>
+                    <option value="Signage">Signage</option>
+                    <option value="Television">Television</option>
+                    <option value="Twitter">Twitter</option>
                     <option value="Website">Website</option>
                     <option value="Word of Mouth">Word of Mouth</option>
                     <option value="Walk-In">Walk-In</option>
@@ -140,6 +253,7 @@ export class LeadEdit extends Component {
                   style={{ width: 'auto', margin: '15px 3px !important' }}
                 >
                   <label
+                    id="date"
                     htmlFor="date"
                     required={
                       this.props.leadItem.values['Date'] === undefined
@@ -149,22 +263,28 @@ export class LeadEdit extends Component {
                   >
                     On
                   </label>
-                  <input
-                    type="date"
+                  <DayPickerInput
                     name="date"
                     id="date"
-                    style={{ marginLeft: '10px' }}
+                    placeholder={moment(new Date())
+                      .localeData()
+                      .longDateFormat('L')
+                      .toLowerCase()}
+                    formatDate={formatDate}
+                    parseDate={parseDate}
+                    value={getDateValue(this.props.leadItem.values['Date'])}
+                    fieldName="Date"
                     required
-                    ref={input => (this.input = input)}
-                    value={this.props.leadItem.values['Date']}
-                    onChange={e =>
-                      handleChange(
-                        this.props.leadItem,
-                        'Date',
-                        e,
-                        this.setIsDirty,
-                      )
-                    }
+                    leadItem={this.props.leadItem}
+                    onDayPickerHide={handleDateChange}
+                    setIsDirty={this.setIsDirty}
+                    dayPickerProps={{
+                      locale:
+                        this.props.profile.preferredLocale == null
+                          ? 'en-au'
+                          : this.props.profile.preferredLocale.toLowerCase(),
+                      localeUtils: MomentLocaleUtils,
+                    }}
                   />
                 </div>
               </span>
@@ -645,21 +765,30 @@ export class LeadEdit extends Component {
               </div>
               <span className="line">
                 <div>
-                  <label htmlFor="birthday">Birthday</label>
-                  <input
-                    type="date"
+                  <label id="birthday" htmlFor="birthday">
+                    Birthday
+                  </label>
+                  <DayPickerInput
                     name="birthday"
                     id="birthday"
-                    ref={input => (this.input = input)}
-                    value={this.props.leadItem.values['DOB']}
-                    onChange={e =>
-                      handleChange(
-                        this.props.leadItem,
-                        'DOB',
-                        e,
-                        this.setIsDirty,
-                      )
-                    }
+                    placeholder={moment(new Date())
+                      .localeData()
+                      .longDateFormat('L')
+                      .toLowerCase()}
+                    formatDate={formatDate}
+                    parseDate={parseDate}
+                    value={getDateValue(this.props.leadItem.values['DOB'])}
+                    fieldName="DOB"
+                    leadItem={this.props.leadItem}
+                    onDayPickerHide={handleDateChange}
+                    setIsDirty={this.setIsDirty}
+                    dayPickerProps={{
+                      locale:
+                        this.props.profile.preferredLocale == null
+                          ? 'en-au'
+                          : this.props.profile.preferredLocale.toLowerCase(),
+                      localeUtils: MomentLocaleUtils,
+                    }}
                   />
                 </div>
               </span>
@@ -759,6 +888,73 @@ export class LeadEdit extends Component {
                   <div className="droparrow" />
                 </div>
               </span>
+              <span className="line">
+                <div>
+                  <label htmlFor="sourceReference2">Source Reference 4</label>
+                  <input
+                    type="text"
+                    name="sourceReference4"
+                    id="sourceReference4"
+                    size="20"
+                    ref={input => (this.input = input)}
+                    defaultValue={
+                      this.props.leadItem.values['Source Reference 4']
+                    }
+                    onChange={e =>
+                      handleChange(
+                        this.props.leadItem,
+                        'Source Reference 4',
+                        e,
+                        this.setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+                <div>
+                  <label htmlFor="sourceReference2">Source Reference 5</label>
+                  <input
+                    type="text"
+                    name="sourceReference5"
+                    id="sourceReference5"
+                    size="20"
+                    ref={input => (this.input = input)}
+                    defaultValue={
+                      this.props.leadItem.values['Source Reference 5']
+                    }
+                    onChange={e =>
+                      handleChange(
+                        this.props.leadItem,
+                        'Source Reference 5',
+                        e,
+                        this.setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+              </span>
+              <span className="line">
+                <div>
+                  <label htmlFor="moreInformation">More Information</label>
+                  <textarea
+                    type="text"
+                    name="moreInformation"
+                    id="moreInformation"
+                    cols="60"
+                    ref={input => (this.input = input)}
+                    defaultValue={
+                      this.props.leadItem.values['More Information']
+                    }
+                    onChange={e =>
+                      handleChange(
+                        this.props.leadItem,
+                        'More Information',
+                        e,
+                        this.setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+              </span>
             </div>
             <div className="section4">
               <span className="line">
@@ -819,6 +1015,7 @@ export const LeadEditView = ({
   currentLeadLoading,
   isDirty,
   setIsDirty,
+  profile,
 }) =>
   currentLeadLoading ? (
     <div />
@@ -832,6 +1029,7 @@ export const LeadEditView = ({
       removeLead={removeLead}
       isDirty={isDirty}
       setIsDirty={setIsDirty}
+      profile={profile}
     />
   );
 
@@ -917,7 +1115,9 @@ export const LeadEditContainer = compose(
       });
     },
     componentDidMount() {
-      $('.content')[0].scrollIntoView(true);
+      $('.content')
+        .parent('div')[0]
+        .scrollIntoView(true);
     },
     componentWillUnmount() {},
   }),

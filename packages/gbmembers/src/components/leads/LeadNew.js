@@ -16,11 +16,19 @@ import {
   handleFormattedChange,
   getReminderDate,
   contact_date_format,
+  handleDateChange,
+  getDateValue,
 } from './LeadsUtils';
-import moment from 'moment';
 import 'react-datetime/css/react-datetime.css';
 import { StatusMessagesContainer } from '../StatusMessages';
 import Select from 'react-select';
+import moment from 'moment';
+import DayPickerInput from 'react-day-picker/DayPickerInput';
+import 'react-day-picker/lib/style.css';
+import MomentLocaleUtils, {
+  formatDate,
+  parseDate,
+} from 'react-day-picker/moment';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -29,6 +37,7 @@ const mapStateToProps = state => ({
   newLeadLoading: state.member.leads.newLeadLoading,
   members: state.member.members.allMembers,
   leads: state.member.leads.allLeads,
+  profile: state.member.kinops.profile,
 });
 const mapDispatchToProps = {
   createLead: leadsActions.createLead,
@@ -183,19 +192,23 @@ export class LeadNew extends Component {
                     }
                   >
                     <option value="" />
+                    <option value="Brochure">Brochure</option>
                     <option value="Facebook">Facebook</option>
-                    <option value="Twitter">Twitter</option>
-                    <option value="Google+">Google+</option>
-                    <option value="Linkedin">Linkedin</option>
+                    <option value="Facebook Ad">Facebook Ad</option>
                     <option value="Family">Family</option>
-                    <option value="Friend">Friend</option>
+                    <option value="Google+">Google+</option>
+                    <option value="Google Ad">Google Ad</option>
+                    <option value="Instagram">Instagram</option>
+                    <option value="Instagram Ad">Instagram Ad</option>
+                    <option value="Leaflet">Leaflet</option>
+                    <option value="Linkedin">Linkedin</option>
                     <option value="Magazine">Magazine</option>
                     <option value="Newspaper">Newspaper</option>
-                    <option value="Television">Television</option>
-                    <option value="Brochure">Brochure</option>
-                    <option value="Leaflet">Leaflet</option>
-                    <option value="Poster">Poster</option>
                     <option value="Phone Call">Phone Call</option>
+                    <option value="Poster">Poster</option>
+                    <option value="Signage">Signage</option>
+                    <option value="Television">Television</option>
+                    <option value="Twitter">Twitter</option>
                     <option value="Website">Website</option>
                     <option value="Word of Mouth">Word of Mouth</option>
                     <option value="Walk-In">Walk-In</option>
@@ -208,6 +221,7 @@ export class LeadNew extends Component {
                   style={{ width: 'auto', margin: '15px 3px !important' }}
                 >
                   <label
+                    id="date"
                     htmlFor="date"
                     required={
                       this.props.leadItem.values['Date'] === undefined
@@ -217,15 +231,27 @@ export class LeadNew extends Component {
                   >
                     On
                   </label>
-                  <input
-                    type="date"
+                  <DayPickerInput
                     name="date"
                     id="date"
-                    style={{ marginLeft: '10px' }}
+                    placeholder={moment(new Date())
+                      .localeData()
+                      .longDateFormat('L')
+                      .toLowerCase()}
+                    formatDate={formatDate}
+                    parseDate={parseDate}
+                    value={getDateValue(this.props.leadItem.values['Date'])}
+                    fieldName="Date"
                     required
-                    ref={input => (this.input = input)}
-                    defaultValue={this.props.leadItem.values['Date']}
-                    onChange={e => handleChange(this.props.leadItem, 'Date', e)}
+                    leadItem={this.props.leadItem}
+                    onDayPickerHide={handleDateChange}
+                    dayPickerProps={{
+                      locale:
+                        this.props.profile.preferredLocale == null
+                          ? 'en-au'
+                          : this.props.profile.preferredLocale.toLowerCase(),
+                      localeUtils: MomentLocaleUtils,
+                    }}
                   />
                 </div>
               </span>
@@ -558,14 +584,29 @@ export class LeadNew extends Component {
               </div>
               <span className="line">
                 <div>
-                  <label htmlFor="birthday">Birthday</label>
-                  <input
-                    type="date"
+                  <label id="birthday" htmlFor="birthday">
+                    Birthday
+                  </label>
+                  <DayPickerInput
                     name="birthday"
                     id="birthday"
-                    ref={input => (this.input = input)}
-                    defaultValue={this.props.leadItem.values['DOB']}
-                    onChange={e => handleChange(this.props.leadItem, 'DOB', e)}
+                    placeholder={moment(new Date())
+                      .localeData()
+                      .longDateFormat('L')
+                      .toLowerCase()}
+                    formatDate={formatDate}
+                    parseDate={parseDate}
+                    value={getDateValue(this.props.leadItem.values['DOB'])}
+                    fieldName="DOB"
+                    leadItem={this.props.leadItem}
+                    onDayPickerHide={handleDateChange}
+                    dayPickerProps={{
+                      locale:
+                        this.props.profile.preferredLocale == null
+                          ? 'en-au'
+                          : this.props.profile.preferredLocale.toLowerCase(),
+                      localeUtils: MomentLocaleUtils,
+                    }}
                   />
                 </div>
               </span>
@@ -607,7 +648,6 @@ export class LeadNew extends Component {
                     id="reminderDateString"
                     name="reminderDateString"
                     required
-                    defaultValue={this.props.leadItem.values['Reminder Date']}
                     onChange={e => this.handleChange('reminderDateString', e)}
                   >
                     <option value="" />
@@ -620,16 +660,32 @@ export class LeadNew extends Component {
                 </div>
                 {this.state.reminderDateString === 'Custom' && (
                   <div className="float-left">
-                    <label htmlFor="reminderDate">&nbsp;</label>
-                    <input
-                      type="date"
+                    <label id="reminderDate" htmlFor="reminderDate">
+                      &nbsp;
+                    </label>
+                    <DayPickerInput
                       name="reminderDate"
                       id="reminderDate"
-                      className="float-left"
-                      required
-                      ref={input => (this.input = input)}
-                      defaultValue={this.state.reminderDate}
-                      onChange={e => this.handleChange('reminderDate', e)}
+                      placeholder={moment(new Date())
+                        .localeData()
+                        .longDateFormat('L')
+                        .toLowerCase()}
+                      formatDate={formatDate}
+                      parseDate={parseDate}
+                      value={getDateValue(
+                        this.props.leadItem.values['Reminder Date'],
+                      )}
+                      fieldName="Reminder Date"
+                      leadThis={this}
+                      leadItem={this.props.leadItem}
+                      onDayPickerHide={handleDateChange}
+                      dayPickerProps={{
+                        locale:
+                          this.props.profile.preferredLocale == null
+                            ? 'en-au'
+                            : this.props.profile.preferredLocale.toLowerCase(),
+                        localeUtils: MomentLocaleUtils,
+                      }}
                     />
                   </div>
                 )}
@@ -716,6 +772,40 @@ export class LeadNew extends Component {
                 </div>
               </span>
               <span className="line">
+                <div>
+                  <label htmlFor="sourceReference2">Source Reference 4</label>
+                  <input
+                    type="text"
+                    name="sourceReference4"
+                    id="sourceReference4"
+                    size="20"
+                    ref={input => (this.input = input)}
+                    defaultValue={
+                      this.props.leadItem.values['Source Reference 4']
+                    }
+                    onChange={e =>
+                      handleChange(this.props.leadItem, 'Source Reference 4', e)
+                    }
+                  />
+                </div>
+                <div>
+                  <label htmlFor="sourceReference2">Source Reference 5</label>
+                  <input
+                    type="text"
+                    name="sourceReference5"
+                    id="sourceReference5"
+                    size="20"
+                    ref={input => (this.input = input)}
+                    defaultValue={
+                      this.props.leadItem.values['Source Reference 5']
+                    }
+                    onChange={e =>
+                      handleChange(this.props.leadItem, 'Source Reference 5', e)
+                    }
+                  />
+                </div>
+              </span>
+              <span className="line">
                 <div style={{ width: '60%' }}>
                   <label htmlFor="note" required>
                     Contact Note
@@ -759,6 +849,7 @@ export const LeadNewView = ({
   leadItem,
   members,
   leads,
+  profile,
   fetchLeads,
   saveLead,
   isDirty,
@@ -772,6 +863,7 @@ export const LeadNewView = ({
     <LeadNew
       leadItem={leadItem}
       leads={leads}
+      profile={profile}
       members={members}
       saveLead={saveLead}
       programs={programs}
@@ -871,7 +963,9 @@ export const LeadNewContainer = compose(
       });
     },
     componentDidMount() {
-      $('.content')[0].scrollIntoView(true);
+      $('.content')
+        .parent('div')[0]
+        .scrollIntoView(true);
     },
     componentWillUnmount() {},
   }),

@@ -76,7 +76,7 @@
     margin-top: 1rem;
     margin-bottom: 5rem;
   }
-  table.table-datastore {
+  table.table--settings {
     font-size: 0.875rem;
 
     tbody {
@@ -152,6 +152,11 @@
 }
 
 .embedded-core-form #email_editor {
+  iframe {
+    border-color: #cccccc !important;
+    border-style: solid !important;
+    border-width: 1px !important;
+  }
   .ql-id::before {
     content: 'ID';
   }

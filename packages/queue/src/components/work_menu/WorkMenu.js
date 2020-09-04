@@ -4,6 +4,7 @@ import { compose, withHandlers, withProps, withState } from 'recompose';
 import { actions } from '../../redux/modules/workMenu';
 import { Modal, ModalBody, ModalFooter } from 'reactstrap';
 import { CoreForm } from 'react-kinetic-core';
+import { I18n } from '../../../../app/src/I18nProvider';
 
 const globals = import('common/globals');
 
@@ -18,7 +19,7 @@ export const WorkMenu = ({
   handleSaveClick,
 }) =>
   queueItem && (
-    <Modal isOpen toggle={handleCloseClick} size="lg">
+    <Modal isOpen toggle={handleCloseClick} size="lg" backdrop="static">
       <div className="modal-header">
         <h4 className="modal-title">
           <button
@@ -26,34 +27,44 @@ export const WorkMenu = ({
             className="btn btn-link"
             onClick={handleCloseClick}
           >
-            Close
+            <I18n>Close</I18n>
           </button>
-          <span>{mode} It</span>
+          <span>
+            <I18n>{`${mode} It`}</I18n>
+          </span>
           <span />
         </h4>
       </div>
       <ModalBody>
-        <CoreForm
-          globals={globals}
-          submission={queueItem.id}
-          review={queueItem.coreState !== 'Draft'}
-          onLoaded={handleLoaded}
-          onUpdated={handleUpdated}
-          onCompleted={handleCompleted}
-        />
+        <I18n
+          context={`kapps.${queueItem.form.kapp.slug}.forms.${queueItem.form.slug}`}
+        >
+          <CoreForm
+            globals={globals}
+            submission={queueItem.id}
+            review={queueItem.coreState !== 'Draft'}
+            onLoaded={handleLoaded}
+            onUpdated={handleUpdated}
+            onCompleted={handleCompleted}
+          />
+        </I18n>
       </ModalBody>
-      {mode === 'Work' &&
-        !complete && (
-          <ModalFooter>
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={handleSaveClick}
+      {mode === 'Work' && !complete && (
+        <ModalFooter>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={handleSaveClick}
+          >
+            <I18n>Save</I18n>{' '}
+            <I18n
+              context={`kapps.${queueItem.form.kapp.slug}.forms.${queueItem.form.slug}`}
             >
-              Save {queueItem.form.name}
-            </button>
-          </ModalFooter>
-        )}
+              {queueItem.form.name}
+            </I18n>
+          </button>
+        </ModalFooter>
+      )}
     </Modal>
   );
 
@@ -66,10 +77,7 @@ export const mapDispatchToProps = {
 };
 
 export const WorkMenuContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withState('complete', 'setComplete', false),
   withProps(({ queueItem }) => ({
     mode: queueItem && queueItem.coreState === 'Draft' ? 'Work' : 'Review',

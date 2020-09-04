@@ -25,16 +25,18 @@ export const Sidebar = ({
   profile,
 }) => (
   <div className="sidebar">
-    {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
-      <div />
-    ) : (
-      <NavLink to={`/NewMember`} className="btn btn-primary">
-        Create New Member
+    <div className="buttons">
+      {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
+        <div />
+      ) : (
+        <NavLink to={`/NewMember`} className="btn btn-primary">
+          New Member
+        </NavLink>
+      )}
+      <NavLink to={`/memberLists`} className="btn btn-primary">
+        Member Lists
       </NavLink>
-    )}
-    <NavLink to={`/memberLists`} className="btn btn-primary">
-      Member Lists
-    </NavLink>
+    </div>
     <select
       value={filterValue}
       className="membersFilters"

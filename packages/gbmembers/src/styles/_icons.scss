@@ -8,11 +8,19 @@
   width: 1rem;
   path,
   .primary-fill {
-    fill: $gray;
+    fill: $darkgray;
   }
   .primary-stroke {
-    stroke: $gray;
+    stroke: $darkgray;
     fill: none;
+  }
+}
+.svg-gb-icon-svg {
+  path {
+    fill: white;
+  }
+  .cls-1 {
+    fill: $darkgray;
   }
 }
 

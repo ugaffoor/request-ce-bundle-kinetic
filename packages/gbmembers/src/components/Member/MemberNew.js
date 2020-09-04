@@ -19,8 +19,17 @@ import {
   handleFormattedChange,
   handleDynamicChange,
   handleDynamicFormattedChange,
+  handleDateChange,
+  getDateValue,
 } from './MemberUtils';
 import { StatusMessagesContainer } from '../StatusMessages';
+import moment from 'moment';
+import DayPickerInput from 'react-day-picker/DayPickerInput';
+import 'react-day-picker/lib/style.css';
+import MomentLocaleUtils, {
+  formatDate,
+  parseDate,
+} from 'react-day-picker/moment';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -32,6 +41,7 @@ const mapStateToProps = state => ({
   newMemberLoading: state.member.members.newMemberLoading,
   allMembers: state.member.members.allMembers,
   leadItem: state.member.leads.currentLead,
+  profile: state.member.kinops.profile,
 });
 const mapDispatchToProps = {
   createMember: actions.createMember,
@@ -66,6 +76,7 @@ export const MemberNew = ({
   belts,
   membershipTypes,
   newMemberLoading,
+  profile,
 }) =>
   newMemberLoading ? (
     <div />
@@ -287,7 +298,7 @@ export const MemberNew = ({
                 <label
                   htmlFor="email"
                   required={
-                    memberItem.values['Email'] === null ||
+                    memberItem.values['Email'] === undefined ||
                     memberItem.values['Email'] === ''
                       ? true
                       : false
@@ -303,7 +314,10 @@ export const MemberNew = ({
                   required
                   ref={input => (this.input = input)}
                   defaultValue={memberItem.values['Email']}
-                  onChange={e => handleChange(memberItem, 'Email', e)}
+                  onChange={e => {
+                    e.target.value = e.target.value.trim();
+                    handleChange(memberItem, 'Email', e);
+                  }}
                 />
               </div>
               <div className="emailDiv ml-1">
@@ -315,9 +329,10 @@ export const MemberNew = ({
                   size="40"
                   ref={input => (this.input = input)}
                   defaultValue={memberItem.values['Additional Email']}
-                  onChange={e =>
-                    handleChange(memberItem, 'Additional Email', e)
-                  }
+                  onChange={e => {
+                    e.target.value = e.target.value.trim();
+                    handleChange(memberItem, 'Additional Email', e);
+                  }}
                 />
               </div>
             </span>
@@ -367,6 +382,7 @@ export const MemberNew = ({
             <span className="line">
               <div>
                 <label
+                  id="datejoined"
                   htmlFor="datejoined"
                   required={
                     memberItem.values['Date Joined'] === undefined ||
@@ -377,18 +393,31 @@ export const MemberNew = ({
                 >
                   Date Joined
                 </label>
-                <input
-                  type="date"
+                <DayPickerInput
                   name="datejoined"
                   id="datejoined"
+                  placeholder={moment(new Date())
+                    .localeData()
+                    .longDateFormat('L')
+                    .toLowerCase()}
+                  formatDate={formatDate}
+                  parseDate={parseDate}
+                  fieldName="Date Joined"
+                  memberItem={memberItem}
                   required
-                  ref={input => (this.input = input)}
-                  defaultValue={memberItem.values['Date Joined']}
-                  onChange={e => handleChange(memberItem, 'Date Joined', e)}
+                  onDayPickerHide={handleDateChange}
+                  dayPickerProps={{
+                    locale:
+                      profile.preferredLocale == null
+                        ? 'en-au'
+                        : profile.preferredLocale.toLowerCase(),
+                    localeUtils: MomentLocaleUtils,
+                  }}
                 />
               </div>
               <div>
                 <label
+                  id="birthday"
                   htmlFor="birthday"
                   required={
                     memberItem.values['DOB'] === undefined ||
@@ -399,14 +428,26 @@ export const MemberNew = ({
                 >
                   Birthday
                 </label>
-                <input
-                  type="date"
+                <DayPickerInput
                   name="birthday"
                   id="birthday"
-                  required
-                  ref={input => (this.input = input)}
-                  defaultValue={memberItem.values['DOB']}
-                  onChange={e => handleChange(memberItem, 'DOB', e)}
+                  placeholder={moment(new Date())
+                    .localeData()
+                    .longDateFormat('L')
+                    .toLowerCase()}
+                  formatDate={formatDate}
+                  parseDate={parseDate}
+                  fieldName="DOB"
+                  value={getDateValue(memberItem.values['DOB'])}
+                  memberItem={memberItem}
+                  onDayPickerHide={handleDateChange}
+                  dayPickerProps={{
+                    locale:
+                      profile.preferredLocale == null
+                        ? 'en-au'
+                        : profile.preferredLocale.toLowerCase(),
+                    localeUtils: MomentLocaleUtils,
+                  }}
                 />
               </div>
             </span>
@@ -611,15 +652,29 @@ export const MemberNew = ({
               </div>
             </span>
             <span className="line">
-              <div>
-                <label htmlFor="lastPromotion">Last Promotion</label>
-                <input
-                  type="date"
+              <div className="field">
+                <label id="lastPromotion" htmlFor="lastPromotion">
+                  Last Promotion
+                </label>
+                <DayPickerInput
                   name="lastPromotion"
                   id="lastPromotion"
-                  ref={input => (this.input = input)}
-                  defaultValue={memberItem.values['Last Promotion']}
-                  onChange={e => handleChange(memberItem, 'Last Promotion', e)}
+                  placeholder={moment(new Date())
+                    .localeData()
+                    .longDateFormat('L')
+                    .toLowerCase()}
+                  formatDate={formatDate}
+                  parseDate={parseDate}
+                  fieldName="Last Promotion"
+                  memberItem={memberItem}
+                  onDayPickerHide={handleDateChange}
+                  dayPickerProps={{
+                    locale:
+                      profile.preferredLocale == null
+                        ? 'en-au'
+                        : profile.preferredLocale.toLowerCase(),
+                    localeUtils: MomentLocaleUtils,
+                  }}
                 />
               </div>
               <div>
@@ -637,10 +692,44 @@ export const MemberNew = ({
                 />
               </div>
             </span>
+            <span className="line">
+              <div className="field">
+                <label htmlFor="maxWeeklyClasses">Max Weekly Classes</label>
+                <input
+                  type="number"
+                  name="maxWeeklyClasses"
+                  id="maxWeeklyClasses"
+                  ref={input => (this.input = input)}
+                  defaultValue={memberItem.values['Max Weekly Classes']}
+                  onChange={e =>
+                    handleChange(memberItem, 'Max Weekly Classes', e)
+                  }
+                />
+              </div>
+            </span>
           </div>
           <div className="section3">
             <h1>Other Information</h1>
             <hr />
+            <span className="line">
+              <div>
+                <label htmlFor="nopaying" style={{ minWidth: '100px' }}>
+                  Non Paying
+                </label>
+                <input
+                  type="checkbox"
+                  name="nonpaying"
+                  id="nonpaying"
+                  style={{ clear: 'none', margin: '4px' }}
+                  ref={input => (this.input = input)}
+                  value="YES"
+                  checked={
+                    memberItem.values['Non Paying'] === 'YES' ? true : false
+                  }
+                  onChange={e => handleChange(memberItem, 'Non Paying', e)}
+                />
+              </div>
+            </span>
             <span className="line">
               <div>
                 <label htmlFor="additionalprogram1">Additional Program 1</label>
@@ -843,8 +932,32 @@ export const MemberNewContainer = compose(
         handleDynamicChange(nextProps.memberItem, 'State', 'state');
         $('#email').val(nextProps.leadItem.values['Email']);
         handleDynamicChange(nextProps.memberItem, 'Email', 'email');
+        $('#additionalEmail').val(
+          nextProps.leadItem.values['Additional Email'],
+        );
+        handleDynamicChange(
+          nextProps.memberItem,
+          'Additional Email',
+          'additionalEmail',
+        );
+        $('#phonenumber').val(nextProps.leadItem.values['Phone Number']);
+        handleDynamicChange(
+          nextProps.memberItem,
+          'Phone Number',
+          'phonenumber',
+        );
+        $('#additionalPhoneNumber').val(
+          nextProps.leadItem.values['Additional Phone Number'],
+        );
+        handleDynamicChange(
+          nextProps.memberItem,
+          'Additional Phone Number',
+          'additionalPhoneNumber',
+        );
         $('#birthday').val(nextProps.leadItem.values['DOB']);
         handleDynamicChange(nextProps.memberItem, 'DOB', 'birthday');
+        $('#program').val(nextProps.leadItem.values['Interest in Program']);
+        handleDynamicChange(nextProps.memberItem, 'Ranking Program', 'program');
         handleDynamicFormattedChange(
           nextProps.leadItem.values['Postcode'],
           nextProps.memberItem,
@@ -852,7 +965,7 @@ export const MemberNewContainer = compose(
           'postcode',
         );
         handleDynamicFormattedChange(
-          nextProps.leadItem.values['Phone'],
+          nextProps.leadItem.values['Phone Number'],
           nextProps.memberItem,
           'Phone Number',
           'phonenumber',

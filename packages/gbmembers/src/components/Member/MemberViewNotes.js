@@ -2,14 +2,21 @@ import React, { Component } from 'react';
 import ReactTable from 'react-table';
 import moment from 'moment';
 import { contact_date_format } from '../leads/LeadsUtils';
+import binIcon from '../../images/bin.svg?raw';
+import { confirm } from '../helpers/Confirmation';
+import { getJson } from '../Member/MemberUtils';
+import SVGInline from 'react-svg-inline';
 
 export class MemberViewNotes extends Component {
   constructor(props) {
     super(props);
+    this.formatDeleteCell = this.formatDeleteCell.bind(this);
+
     const data = this.getData(this.props.memberItem);
     this._columns = this.getColumns();
     this.state = {
       data,
+      memberIten: this.props.memberItem,
     };
   }
 
@@ -17,6 +24,7 @@ export class MemberViewNotes extends Component {
     if (nextProps.memberItem) {
       this.setState({
         data: this.getData(nextProps.memberItem),
+        memberItem: nextProps.memberItem,
       });
     }
   }
@@ -41,6 +49,12 @@ export class MemberViewNotes extends Component {
         accessor: 'submitter',
         Header: 'Submitter',
         style: { whiteSpace: 'unset' },
+      },
+      {
+        accessor: 'submitter',
+        Header: 'Submitter',
+        width: 50,
+        Cell: this.formatDeleteCell,
       },
     ];
   }
@@ -71,7 +85,59 @@ export class MemberViewNotes extends Component {
       return 0;
     });
   }
-
+  formatDeleteCell(cellInfo) {
+    return (
+      <span
+        className="deleteNote"
+        onClick={async e => {
+          console.log(
+            e.currentTarget.getAttribute('noteDate') +
+              ' ' +
+              e.currentTarget.getAttribute('noteType'),
+          );
+          if (
+            await confirm(
+              <span>
+                <span>Are your sure you want to DELETE this Note?</span>
+                <table>
+                  <tbody>
+                    <tr>
+                      <td>Date:</td>
+                      <td>
+                        {moment(
+                          cellInfo.original.contactDate,
+                          'YYYY-MM-DD HH:mm',
+                        ).format('lll')}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Note:</td>
+                      <td>{cellInfo.original.note}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </span>,
+            )
+          ) {
+            let history = getJson(
+              this.state.memberItem.values['Notes History'],
+            );
+            history = history.filter(element => {
+              return !(
+                element.contactDate === cellInfo.original.contactDate &&
+                element.contactMethod === cellInfo.original.contactMethod &&
+                element.note === cellInfo.original.note
+              );
+            });
+            console.log(history);
+            this.props.saveRemoveMemberNote(history);
+          }
+        }}
+      >
+        <SVGInline svg={binIcon} className="icon" />
+      </span>
+    );
+  }
   render() {
     return (
       <div className="row">

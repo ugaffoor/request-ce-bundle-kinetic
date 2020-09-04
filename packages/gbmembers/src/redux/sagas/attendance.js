@@ -9,6 +9,44 @@ export const SUBMISSION_INCLUDES = 'details,values';
 export const getMembersApp = state => state.member.members;
 const util = require('util');
 
+function excludeFromAttendanceCount(additionalPrograms, className) {
+  // Determine if program should exclude from Member Attendance
+  var program = additionalPrograms.find(element => {
+    return element['program'] === className;
+  });
+  return program !== undefined &&
+    program['program'] === className &&
+    (program['exludeFromGrading'] === undefined ||
+      program['exludeFromGrading'].indexOf('Exclude from Grading') !== -1)
+    ? true
+    : false;
+}
+
+export function* fetchAttendancesByDate(action) {
+  try {
+    let dtFrom = moment(action.payload.fromDate);
+    let dtTo = moment(action.payload.toDate);
+
+    const search = new CoreAPI.SubmissionSearch(true)
+      .gteq('values[Class Date]', dtFrom.format('YYYY-MM-DD'))
+      .lteq('values[Class Date]', dtTo.format('YYYY-MM-DD'))
+      .index('values[Class Date]')
+      .includes(['details', 'values'])
+      .limit(1000)
+      .build();
+
+    const { submissions } = yield call(CoreAPI.searchSubmissions, {
+      form: 'member-attendance',
+      datastore: true,
+      search,
+    });
+
+    yield put(actions.setAttendancesByDate(submissions));
+  } catch (error) {
+    console.log('Error in fetchClassAttendances: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
 export function* fetchClassAttendances(action) {
   try {
     let dt = moment(action.payload.classDate);
@@ -29,10 +67,7 @@ export function* fetchClassAttendances(action) {
     submissions.forEach(attendance => {
       let memberItem = undefined;
       for (let i = 0; i < membersApp.allMembers.length; i++) {
-        if (
-          membersApp.allMembers[i].values['Member ID'] ===
-          attendance.values['Member ID']
-        ) {
+        if (membersApp.allMembers[i].id === attendance.values['Member GUID']) {
           memberItem = membersApp.allMembers[i];
           break;
         }
@@ -84,8 +119,7 @@ export function* createAttendance(action) {
     let memberItem = undefined;
     for (let i = 0; i < action.payload.allMembers.length; i++) {
       if (
-        action.payload.allMembers[i].values['Member ID'] ===
-        submission.values['Member ID']
+        action.payload.allMembers[i].id === submission.values['Member GUID']
       ) {
         memberItem = action.payload.allMembers[i];
         break;
@@ -98,11 +132,21 @@ export function* createAttendance(action) {
     // Only Increment attendanceCount if the first classs of the day
     let checkin = action.payload.classAttendances.find(
       checkin =>
-        checkin.values['Member ID'] === submission.values['Member ID'] &&
+        checkin.values['Member GUID'] === submission.values['Member GUID'] &&
         moment(checkin.values['Class Date']).format('MM/DD/YYYY') ===
-          moment(action.payload.classDate).format('MM/DD/YYYY'),
+          moment(action.payload.classDate).format('MM/DD/YYYY') &&
+        !excludeFromAttendanceCount(
+          action.payload.additionalPrograms,
+          checkin.values['Class'],
+        ),
     );
-    if (checkin === undefined) {
+    if (
+      checkin === undefined &&
+      !excludeFromAttendanceCount(
+        action.payload.additionalPrograms,
+        action.payload.values['Class'],
+      )
+    ) {
       let attendanceCount =
         memberItem.values['Attendance Count'] !== undefined
           ? parseFloat(
@@ -111,6 +155,7 @@ export function* createAttendance(action) {
           : 0;
       attendanceCount += 1;
       memberItem.values['Attendance Count'] = attendanceCount;
+      memberItem.values['Last Attendance Date'] = moment().format('YYYY-MM-DD');
 
       action.payload.updateMember({
         id: memberItem['id'],
@@ -148,8 +193,8 @@ export function* deleteAttendance(action) {
       let memberItem = undefined;
       for (let i = 0; i < action.payload.allMembers.length; i++) {
         if (
-          action.payload.allMembers[i].values['Member ID'] ===
-          action.payload.attendance.values['Member ID']
+          action.payload.allMembers[i].id ===
+          action.payload.attendance.values['Member GUID']
         ) {
           memberItem = action.payload.allMembers[i];
           break;
@@ -159,12 +204,22 @@ export function* deleteAttendance(action) {
       // Only Decrement attendanceCount if no classes for the day
       let checkin = attendances.find(
         checkin =>
-          checkin.values['Member ID'] ===
-            action.payload.attendance.values['Member ID'] &&
+          checkin.values['Member GUID'] ===
+            action.payload.attendance.values['Member GUID'] &&
           moment(checkin.values['Class Date']).format('MM/DD/YYYY') ===
-            moment(action.payload.classDate).format('MM/DD/YYYY'),
+            moment(action.payload.classDate).format('MM/DD/YYYY') &&
+          !excludeFromAttendanceCount(
+            action.payload.additionalPrograms,
+            checkin.values['Class'],
+          ),
       );
-      if (checkin === undefined) {
+      if (
+        checkin === undefined &&
+        !excludeFromAttendanceCount(
+          action.payload.additionalPrograms,
+          action.payload.attendance.values['Class'],
+        )
+      ) {
         let attendanceCount =
           memberItem.values['Attendance Count'] !== undefined
             ? parseFloat(
@@ -194,4 +249,5 @@ export function* watchAttendance() {
   yield takeEvery(types.DELETE_ATTENDANCE, deleteAttendance);
   yield takeEvery(types.FETCH_CLASS_ATTENDANCES, fetchClassAttendances);
   yield takeEvery(types.FETCH_MEMBER_ATTENDANCES, fetchMemberAttendances);
+  yield takeEvery(types.FETCH_ATTENDANCES_BY_DATE, fetchAttendancesByDate);
 }

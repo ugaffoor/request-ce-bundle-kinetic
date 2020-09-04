@@ -3,3 +3,20 @@
  *     -Used for development
  *     -Move css into appropriate sass files when ready
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+// Used for scrollbars in IE11
+// .modal-open .main-container {
+//   -ms-overflow-y: visible !important;
+// }
+@font-face {
+  font-family: 'AdiHaus DIN Regular';
+  src: url('../fonts/AdihausDIN-Regular.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'AdiHaus DIN Medium';
+  src: url('../fonts/AdihausDIN-Medium.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'AdiHaus DIN BoldItalic';
+  src: url('../fonts/AdihausDIN-BoldItalic.ttf') format('truetype');
+}

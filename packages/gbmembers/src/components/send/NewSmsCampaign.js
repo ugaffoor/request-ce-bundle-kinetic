@@ -17,20 +17,27 @@ import moment from 'moment';
 import { email_sent_date_format } from '../leads/LeadsUtils';
 import Select, { components } from 'react-select';
 import { actions as memberActions } from '../../redux/modules/members';
-import { matchesMemberFilter } from '../../utils/utils';
+import { matchesMemberFilter, matchesLeadFilter } from '../../utils/utils';
 import { actions as messagingActions } from '../../redux/modules/messaging';
 import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
 import PropTypes from 'prop-types';
+import { actions as dataStoreActions } from '../../redux/modules/settingsDatastore';
+import { actions as leadsActions } from '../../redux/modules/leads';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   campaignItem: state.member.campaigns.newSmsCampaign,
   newCampaignLoading: state.member.campaigns.newSmsCampaignLoading,
   memberLists: state.member.app.memberLists,
+  leadLists: state.member.app.leadLists,
   allMembers: state.member.members.allMembers,
+  allLeads: state.member.leads.allLeads,
   space: state.member.app.space,
   smsAccountCredit: state.member.messaging.smsAccountCredit,
   smsAccountCreditLoading: state.member.messaging.smsAccountCreditLoading,
+  smsTemplateCategories: state.member.datastore.smsTemplateCategories,
+  smsTemplates: state.member.datastore.smsTemplates,
+  smsTemplatesLoading: state.member.datastore.smsTemplatesLoading,
 });
 const mapDispatchToProps = {
   createCampaign: actions.createSmsCampaign,
@@ -38,9 +45,11 @@ const mapDispatchToProps = {
   updateCampaign: actions.updateSmsCampaign,
   sendSms: messagingActions.sendBulkSms,
   createMemberActivities: messagingActions.createMemberActivities,
+  createLeadActivities: messagingActions.createLeadActivities,
   fetchMembers: memberActions.fetchMembers,
   getAccountCredit: messagingActions.getAccountCredit,
   setAccountCredit: messagingActions.setAccountCredit,
+  fetchSMSTemplates: dataStoreActions.fetchSMSTemplates,
 };
 
 const util = require('util');
@@ -51,10 +60,11 @@ export class NewSmsCampaign extends Component {
 
     this.handleSmsTextChange = this.handleSmsTextChange.bind(this);
     this.handleRecipientChange = this.handleRecipientChange.bind(this);
+    this.handleLeadRecipientChange = this.handleLeadRecipientChange.bind(this);
 
     this.createCampaign = this.createCampaign.bind(this);
     this.getSelectOptions = this.getSelectOptions.bind(this);
-
+    this.selectSMSTemplate = this.selectSMSTemplate.bind(this);
     this.state = {
       content: '',
       options: this.getSelectOptions(
@@ -62,6 +72,11 @@ export class NewSmsCampaign extends Component {
         this.props.allMembers,
       ),
       selectedOption: [],
+      leadOptions: this.getSelectLeadOptions(
+        this.props.leadLists,
+        this.props.allLeads,
+      ),
+      selectedLeadOption: [],
       smsCreditsRequired: 0,
       uniquePhoneNumbersCount: 0,
       disableCreateCampaign: true,
@@ -70,11 +85,25 @@ export class NewSmsCampaign extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.allMembers.length !== this.props.allMembers.length) {
+    if (
+      nextProps.allMembers !== undefined &&
+      nextProps.allMembers.length !== this.props.allMembers.length
+    ) {
       this.setState({
         options: this.getSelectOptions(
           nextProps.memberLists,
           nextProps.allMembers,
+        ),
+      });
+    }
+    if (
+      nextProps.allLeads !== undefined &&
+      nextProps.allLeads.length !== this.props.allLeads.length
+    ) {
+      this.setState({
+        leadOptions: this.getSelectLeadOptions(
+          nextProps.leadLists,
+          nextProps.allLeads,
         ),
       });
     }
@@ -84,6 +113,7 @@ export class NewSmsCampaign extends Component {
     this.props.getAccountCredit({
       setAccountCredit: this.props.setAccountCredit,
     });
+    this.props.fetchSMSTemplates();
   }
 
   getSelectOptions(memberLists, allMembers) {
@@ -104,7 +134,7 @@ export class NewSmsCampaign extends Component {
       if (member.values['Status'] === 'Active') {
         activeMemberIds.push(member['id']);
         activeMemberPhoneNumbers.push(numbersMap);
-      } else {
+      } else if (member.values['Status'] === 'Inactive') {
         inactiveMemberIds.push(member['id']);
         inactiveMemberPhoneNumbers.push(numbersMap);
       }
@@ -114,7 +144,7 @@ export class NewSmsCampaign extends Component {
       options.push({
         value: '__active_members__',
         label: 'Active Members',
-        memberIds: activeMemberIds,
+        ids: activeMemberIds,
         phoneNumbers: activeMemberPhoneNumbers,
       });
     }
@@ -123,7 +153,7 @@ export class NewSmsCampaign extends Component {
       options.push({
         value: '__inactive_members__',
         label: 'Inactive Members',
-        memberIds: inactiveMemberIds,
+        ids: inactiveMemberIds,
         phoneNumbers: inactiveMemberPhoneNumbers,
       });
     }
@@ -133,7 +163,7 @@ export class NewSmsCampaign extends Component {
       options.push({
         value: list.name,
         label: list.name,
-        memberIds: matchesFilter.map(member => member['id']),
+        ids: matchesFilter.map(member => member['id']),
         phoneNumbers: matchesFilter.map(member => {
           let numbersMap = {};
           numbersMap['id'] = member['id'];
@@ -143,6 +173,40 @@ export class NewSmsCampaign extends Component {
               member.values['Additional Phone Number'];
           }
           return numbersMap;
+        }),
+      });
+    });
+
+    return options;
+  }
+
+  getSelectLeadOptions(leadLists, allLeads) {
+    let options = [];
+
+    allLeads.forEach(lead => {
+      let leadsMap = {};
+      leadsMap['id'] = lead['id'];
+      leadsMap['number'] = lead.values['Phone Number'];
+      if (lead.values['Additional Phone Number']) {
+        leadsMap['additionalNumber'] = lead.values['Additional Phone Number'];
+      }
+    });
+
+    leadLists.forEach(list => {
+      let matchesFilter = matchesLeadFilter(allLeads, list.filters);
+      options.push({
+        value: list.name,
+        label: list.name,
+        ids: matchesFilter.map(lead => lead['id']),
+        phoneNumbers: matchesFilter.map(lead => {
+          let leadsMap = {};
+          leadsMap['id'] = lead['id'];
+          leadsMap['number'] = lead.values['Phone Number'];
+          if (lead.values['Additional Phone Number']) {
+            leadsMap['additionalNumber'] =
+              lead.values['Additional Phone Number'];
+          }
+          return leadsMap;
         }),
       });
     });
@@ -194,9 +258,57 @@ export class NewSmsCampaign extends Component {
     });
   };
 
+  handleLeadRecipientChange = selectedLeadOption => {
+    let difference = this.state.selectedLeadOption.filter(
+      x => !selectedLeadOption.includes(x),
+    );
+    difference.forEach(option => {
+      option.phoneNumbers.forEach(phoneNumber => {
+        phoneNumber.primaryDeleted = false;
+        if (phoneNumber.additionalNumber) {
+          phoneNumber.secondaryDeleted = false;
+        }
+      });
+    });
+
+    this.setState({ selectedLeadOption });
+    let phoneNumbers = [];
+    selectedLeadOption.forEach(option => {
+      option.phoneNumbers.forEach(phoneNumber => {
+        if (!phoneNumber.primaryDeleted) {
+          phoneNumbers.push(phoneNumber.number);
+        }
+        if (phoneNumber.additionalNumber && !phoneNumber.secondaryDeleted) {
+          phoneNumbers.push(phoneNumber.additionalNumber);
+        }
+      });
+    });
+
+    let uniquePhoneNumbers = new Set(phoneNumbers);
+    let creditsRequired =
+      uniquePhoneNumbers.size * this.getSmsCount(this.state.content);
+    let disableCreateCampaign =
+      creditsRequired > this.props.smsAccountCredit ||
+      uniquePhoneNumbers.size <= 0 ||
+      this.state.content.length <= 0 ||
+      this.state.content.length > 765
+        ? true
+        : false;
+
+    this.setState({
+      smsCreditsRequired: creditsRequired,
+      uniquePhoneNumbersCount: uniquePhoneNumbers.size,
+      disableCreateCampaign,
+    });
+  };
+
   updateCreditsRequired = () => {
     let phoneNumbers = [];
-    this.state.selectedOption.forEach(option => {
+    let options =
+      this.props.submissionType === 'member'
+        ? this.state.selectedOption
+        : this.state.selectedLeadOption;
+    options.forEach(option => {
       option.phoneNumbers.forEach(phoneNumber => {
         if (!phoneNumber.primaryDeleted) {
           phoneNumbers.push(phoneNumber.number);
@@ -234,7 +346,8 @@ export class NewSmsCampaign extends Component {
 
   createCampaign() {
     if (
-      this.state.selectedOption.length <= 0 ||
+      (this.state.selectedOption.length <= 0 ||
+        this.state.selectedLeadOption.length <= 0) &&
       this.state.content.length <= 0
     ) {
       console.log('Recipients and sms content is required');
@@ -253,9 +366,15 @@ export class NewSmsCampaign extends Component {
       return;
     }
 
-    let memberIds = [];
+    let ids = [];
     let phoneNumbers = [];
-    this.state.selectedOption.forEach(option => {
+
+    let options =
+      this.props.submissionType === 'member'
+        ? this.state.selectedOption
+        : this.state.selectedLeadOption;
+
+    options.forEach(option => {
       option.phoneNumbers.forEach(phoneNumber => {
         let obj = { id: phoneNumber.id };
         if (!phoneNumber.primaryDeleted) {
@@ -266,43 +385,74 @@ export class NewSmsCampaign extends Component {
         }
         phoneNumbers.push(obj);
       });
-      memberIds.push(...option.memberIds);
+      ids.push(...option.ids);
     });
 
-    if (memberIds.length <= 0) {
+    if (ids.length <= 0) {
       console.log('Selected member list contains no members');
       return;
     }
 
     this.props.saveCampaign(
-      memberIds,
+      ids,
       phoneNumbers,
       this.state.content,
       this.props.space,
+      this.props.submissionType,
     );
   }
 
   handleSmsTextChange(event) {
+    this.determineCreditRequired(event.target.value);
+  }
+
+  determineCreditRequired(text) {
     let smsCreditsRequired =
-      this.state.uniquePhoneNumbersCount * this.getSmsCount(event.target.value);
+      this.state.uniquePhoneNumbersCount * this.getSmsCount(text);
     let disableCreateCampaign =
       smsCreditsRequired > this.props.smsAccountCredit ||
       this.state.uniquePhoneNumbersCount <= 0 ||
-      event.target.value.length <= 0 ||
-      event.target.value.length > 765
+      text.length <= 0 ||
+      text.length > 765
         ? true
         : false;
     this.setState({
-      content: event.target.value,
+      content: text,
       smsCreditsRequired,
       disableCreateCampaign,
     });
   }
-
   showManageNumbersModal = val => {
     this.setState({ showManageNumbersModal: val });
   };
 
+  getSMSTemplates(smsTemplates) {
+    let templates = [];
+    smsTemplates.forEach(template => {
+      templates.push({
+        label:
+          template.values['Category'] !== undefined &&
+          template.values['Category'] !== null
+            ? template.values['Category'] +
+              '->' +
+              template.values['Template Name']
+            : template.values['Template Name'],
+        value: template.id,
+      });
+    });
+    return templates;
+  }
+  selectSMSTemplate(e) {
+    let templateId = e.value;
+    if (!templateId) {
+      console.log('Please select a template');
+      return;
+    }
+    let template = this.props.smsTemplates.find(
+      template => template['id'] === templateId,
+    );
+    this.determineCreditRequired(template.values['SMS Content']);
+  }
   render() {
     return (
       <div className="new_campaign" style={{ marginTop: '2%' }}>
@@ -315,35 +465,69 @@ export class NewSmsCampaign extends Component {
           }}
         >
           <label htmlFor="memberList" className="col-form-label mt-0 ml-1">
-            You are currently sending this sms to
+            You are currently sending this sms to{' '}
+            {this.props.submissionType === 'member' ? 'Members' : 'Leads'}
           </label>
           <div className="col-sm-5">
-            <Select
-              value={this.state.selectedOption}
-              onChange={this.handleRecipientChange}
-              options={this.state.options}
-              closeMenuOnSelect={false}
-              hideSelectedOptions={false}
-              controlShouldRenderValue={true}
-              isMulti={true}
-            />
-          </div>
-          <div className="col-sm-4">
-            <button
-              onClick={e => this.showManageNumbersModal(true)}
-              disabled={this.state.selectedOption.length > 0 ? false : true}
-            >
-              Manage Numbers
-            </button>
-            {this.state.showManageNumbersModal && (
-              <ManageNumbersModal
-                allMembers={this.props.allMembers}
-                options={this.state.selectedOption}
-                showManageNumbersModal={this.showManageNumbersModal}
-                updateCreditsRequired={this.updateCreditsRequired}
+            {this.props.submissionType === 'member' ? (
+              <Select
+                value={this.state.selectedOption}
+                onChange={this.handleRecipientChange}
+                options={this.state.options}
+                closeMenuOnSelect={false}
+                hideSelectedOptions={false}
+                controlShouldRenderValue={true}
+                isMulti={true}
+              />
+            ) : (
+              <Select
+                value={this.state.selectedLeadOption}
+                onChange={this.handleLeadRecipientChange}
+                options={this.state.leadOptions}
+                closeMenuOnSelect={false}
+                hideSelectedOptions={false}
+                controlShouldRenderValue={true}
+                isMulti={true}
               />
             )}
           </div>
+          {this.props.submissionType === 'member' ? (
+            <div className="col-sm-3">
+              <button
+                onClick={e => this.showManageNumbersModal(true)}
+                disabled={this.state.selectedOption.length > 0 ? false : true}
+              >
+                Manage Numbers
+              </button>
+              {this.state.showManageNumbersModal && (
+                <ManageNumbersModal
+                  users={this.props.allMembers}
+                  options={this.state.selectedOption}
+                  showManageNumbersModal={this.showManageNumbersModal}
+                  updateCreditsRequired={this.updateCreditsRequired}
+                />
+              )}
+            </div>
+          ) : (
+            <div className="col-sm-3">
+              <button
+                onClick={e => this.showManageNumbersModal(true)}
+                disabled={
+                  this.state.selectedLeadOption.length > 0 ? false : true
+                }
+              >
+                Manage Numbers
+              </button>
+              {this.state.showManageNumbersModal && (
+                <ManageNumbersModal
+                  users={this.props.allLeads}
+                  options={this.state.selectedLeadOption}
+                  showManageNumbersModal={this.showManageNumbersModal}
+                  updateCreditsRequired={this.updateCreditsRequired}
+                />
+              )}
+            </div>
+          )}
         </div>
         <div
           className="row form-group mt-0 pb-1"
@@ -368,6 +552,21 @@ export class NewSmsCampaign extends Component {
                 ? 'Loading...'
                 : this.props.smsAccountCredit}
             </span>
+          </div>
+          <div className="row">
+            <div className="col-md-12">
+              <Select
+                closeMenuOnSelect={true}
+                options={this.getSMSTemplates(this.props.smsTemplates)}
+                className="sms-templates-container"
+                classNamePrefix="hide-columns"
+                placeholder="Select SMS Template"
+                onChange={e => {
+                  this.selectSMSTemplate(e);
+                }}
+                style={{ width: '300px' }}
+              />
+            </div>
           </div>
         </div>
         <div className="row">
@@ -407,16 +606,23 @@ export const NewSmsCampaignView = ({
   newCampaignLoading,
   saveCampaign,
   memberLists,
+  leadLists,
   isDirty,
   setIsDirty,
   updateCampaign,
   allMembers,
+  allLeads,
   leadItem,
   space,
+  submissionType,
   smsAccountCreditLoading,
   smsAccountCredit,
   getAccountCredit,
   setAccountCredit,
+  fetchSMSTemplates,
+  smsTemplateCategories,
+  smsTemplates,
+  smsTemplatesLoading,
 }) =>
   newCampaignLoading ? (
     <div />
@@ -426,22 +632,34 @@ export const NewSmsCampaignView = ({
         campaignItem={campaignItem}
         saveCampaign={saveCampaign}
         memberLists={memberLists}
+        leadLists={leadLists}
         isDirty={isDirty}
         setIsDirty={setIsDirty}
         updateCampaign={updateCampaign}
         allMembers={allMembers}
+        allLeads={allLeads}
         leadItem={leadItem}
         space={space}
+        submissionType={submissionType}
         smsAccountCreditLoading={smsAccountCreditLoading}
         smsAccountCredit={smsAccountCredit}
         getAccountCredit={getAccountCredit}
         setAccountCredit={setAccountCredit}
+        fetchSMSTemplates={fetchSMSTemplates}
+        smsTemplateCategories={smsTemplateCategories}
+        smsTemplates={smsTemplates}
+        smsTemplatesLoading={smsTemplatesLoading}
       />
     </div>
   );
 
 export const SmsCampaignContainer = compose(
   connect(mapStateToProps, mapDispatchToProps),
+  withProps(({ match }) => {
+    return {
+      submissionType: match.params.submissionType,
+    };
+  }),
   withState('isDirty', 'setIsDirty', false),
   withHandlers({
     saveCampaign: ({
@@ -449,11 +667,12 @@ export const SmsCampaignContainer = compose(
       createCampaign,
       sendSms,
       createMemberActivities,
+      createLeadActivities,
       fetchMembers,
-    }) => (memberIds, phoneNumbers, content, space) => {
+    }) => (ids, phoneNumbers, content, space, submissionType) => {
       campaignItem.values['From Number'] =
         space.attributes['School Telephone'][0];
-      campaignItem.values['Recipients'] = memberIds;
+      campaignItem.values['Recipients'] = ids;
       campaignItem.values['SMS Content'] = content;
       campaignItem.values['Sent Date'] = moment().format(
         email_sent_date_format,
@@ -461,11 +680,12 @@ export const SmsCampaignContainer = compose(
       createCampaign({
         campaignItem,
         phoneNumbers,
-        target: 'Member',
+        target: submissionType === 'member' ? 'Member' : 'Lead',
         history: campaignItem.history,
         sendSms,
         createMemberActivities,
         fetchMembers,
+        createLeadActivities,
       });
     },
   }),
@@ -487,7 +707,9 @@ export const SmsCampaignContainer = compose(
       }
     },
     componentDidMount() {
-      $('.content')[0].scrollIntoView(true);
+      $('.content')
+        .parent('div')[0]
+        .scrollIntoView(true);
     },
     componentWillUnmount() {},
   }),
@@ -502,10 +724,10 @@ class ManageNumbersModal extends Component {
 
   constructor(props) {
     super(props);
-    this.memberLists = this.props.options;
+    this.options = this.props.options;
     let checkedItems = new Map();
     this.numbers = [];
-    this.memberLists.forEach(list => {
+    this.options.forEach(list => {
       list.phoneNumbers.forEach(phoneNumber => {
         if (phoneNumber.additionalNumber) {
           phoneNumber['listName'] = list['label'];
@@ -533,13 +755,13 @@ class ManageNumbersModal extends Component {
     this.setState({ isShowingModal: this.props.isShowingModal });
   }
 
-  handleCheckboxChange = (e, memberId, listName, numberType, number) => {
+  handleCheckboxChange = (e, userId, listName, numberType, number) => {
     const item = e.target.name;
     const isChecked = e.target.checked;
 
-    let obj = this.memberLists
+    let obj = this.options
       .find(list => list.label === listName)
-      ['phoneNumbers'].find(phone => phone.id === memberId);
+      ['phoneNumbers'].find(phone => phone.id === userId);
     if (numberType === 'primary') {
       if (!isChecked && obj.secondaryDeleted) {
         console.log('At least one number must be checked');
@@ -569,7 +791,7 @@ class ManageNumbersModal extends Component {
                 className="jumbotron"
                 style={{ textAlign: 'center', padding: 0, marginBottom: 0 }}
               >
-                <h5 style={{ margin: '0' }}>Manage Phone Numebers</h5>
+                <h5 style={{ margin: '0' }}>Manage Phone Numbers</h5>
               </div>
               <div className="mt-1">
                 <button
@@ -582,7 +804,7 @@ class ManageNumbersModal extends Component {
                 <table className="table table-striped table-hover mt-4">
                   <thead>
                     <tr>
-                      <th>Member Id</th>
+                      <th>Name</th>
                       <th>Primary Number</th>
                       <th>Secondary Number</th>
                     </tr>
@@ -595,9 +817,15 @@ class ManageNumbersModal extends Component {
                             <label key={phoneNumber.id}>
                               <span>
                                 {
-                                  this.props.allMembers.filter(
-                                    member => member['id'] === phoneNumber.id,
-                                  )[0].values['Member ID']
+                                  this.props.users.filter(
+                                    user => user['id'] === phoneNumber.id,
+                                  )[0].values['First Name']
+                                }
+                                &nbsp;
+                                {
+                                  this.props.users.filter(
+                                    user => user['id'] === phoneNumber.id,
+                                  )[0].values['Last Name']
                                 }
                               </span>
                             </label>
@@ -617,7 +845,7 @@ class ManageNumbersModal extends Component {
                                     phoneNumber.number,
                                 )}
                                 onChange={this.handleCheckboxChange}
-                                memberId={phoneNumber.id}
+                                userId={phoneNumber.id}
                                 listName={phoneNumber.listName}
                                 number={phoneNumber.number}
                                 numberType="primary"
@@ -639,7 +867,7 @@ class ManageNumbersModal extends Component {
                                     phoneNumber.additionalNumber,
                                 )}
                                 onChange={this.handleCheckboxChange}
-                                memberId={phoneNumber.id}
+                                userId={phoneNumber.id}
                                 listName={phoneNumber.listName}
                                 number={phoneNumber.additionalNumber}
                                 numberType="secondary"
@@ -665,7 +893,7 @@ const Checkbox = ({
   name,
   checked,
   onChange,
-  memberId,
+  userId,
   listName,
   numberType,
   number,
@@ -674,7 +902,7 @@ const Checkbox = ({
     type={type}
     name={name}
     checked={checked}
-    onChange={e => onChange(e, memberId, listName, numberType, number)}
+    onChange={e => onChange(e, userId, listName, numberType, number)}
     className="ml-2"
   />
 );

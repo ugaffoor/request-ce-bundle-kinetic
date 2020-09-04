@@ -7,10 +7,12 @@ import wallyHappyImage from 'common/src/assets/images/wally-happy.svg';
 import papaparse from 'papaparse';
 import { fromJS } from 'immutable';
 import { PageTitle } from 'common';
+import downloadjs from 'downloadjs';
 
 import { actions } from '../../../redux/modules/settingsUsers';
 
 import { UsersListItem } from './UsersListItem';
+import { I18n } from '../../../../../app/src/I18nProvider';
 
 const IsJsonString = str => {
   try {
@@ -24,14 +26,24 @@ const IsJsonString = str => {
 const WallyEmptyMessage = ({ filter }) => {
   return (
     <div className="empty-state empty-state--wally">
-      <h5>No Users Found</h5>
+      <h5>
+        <I18n>No Users Found</I18n>
+      </h5>
       <img src={wallyHappyImage} alt="Happy Wally" />
-      <h6>Click Create User to add a new user</h6>
+      <h6>
+        <I18n>Click Create User to add a new user</I18n>
+      </h6>
     </div>
   );
 };
 
-const UsersListComponent = ({ users, loading, match, handleChange, data }) => {
+const UsersListComponent = ({
+  users,
+  loading,
+  match,
+  handleChange,
+  handleDownload,
+}) => {
   return (
     <div className="page-container page-container--settings-users">
       <PageTitle parts={['Users', 'Settings']} />
@@ -39,10 +51,18 @@ const UsersListComponent = ({ users, loading, match, handleChange, data }) => {
         <div className="page-title">
           <div className="page-title__wrapper">
             <h3>
-              <Link to="/">home</Link> /{` `}
-              <Link to="/settings">settings</Link> /{` `}
+              <Link to="/">
+                <I18n>home</I18n>
+              </Link>{' '}
+              /{` `}
+              <Link to="/settings">
+                <I18n>settings</I18n>
+              </Link>{' '}
+              /{` `}
             </h3>
-            <h1>Users</h1>
+            <h1>
+              <I18n>Users</I18n>
+            </h1>
           </div>
           <div className="page-title__actions">
             <input
@@ -58,32 +78,40 @@ const UsersListComponent = ({ users, loading, match, handleChange, data }) => {
             <label
               htmlFor="file-input"
               className="btn btn-info"
-              style={{ marginBottom: '0px', marginRight: '.5rem' }}
+              style={{ marginBottom: '0px' }}
             >
-              Import Users
+              <I18n>Import Users</I18n>
             </label>
-            <a className="btn btn-secondary" href={data} download="users.csv">
-              Export Users
-            </a>
-            <Link to={`${match.path}/new`} className="btn btn-primary ml-3">
-              Create User
+            <button className="btn btn-secondary" onClick={handleDownload}>
+              <I18n>Export Users</I18n>
+            </button>
+            <Link to={`${match.path}/new`} className="btn btn-primary">
+              <I18n>New User</I18n>
             </Link>
           </div>
         </div>
 
         <div>
           {loading ? (
-            <h3>Loading</h3>
+            <h3>
+              <I18n>Loading</I18n>
+            </h3>
           ) : users.length > 0 ? (
             <div className="space-admin-wrapper">
-              <table className="table">
-                <thead className="d-none d-md-table-header-group">
+              <table className="table table--settings table-sm">
+                <thead className="d-none d-md-table-header-group sortable">
                   <tr className="header">
-                    <th />
-                    <th>Username</th>
-                    <th>Display Name</th>
-                    <th>Email</th>
-                    <th />
+                    <th className="sort-disabled" />
+                    <th scope="col">
+                      <I18n>Username</I18n>
+                    </th>
+                    <th scope="col">
+                      <I18n>Display Name</I18n>
+                    </th>
+                    <th scope="col">
+                      <I18n>Email</I18n>
+                    </th>
+                    <th className="sort-disabled" />
                   </tr>
                 </thead>
                 <tbody>
@@ -121,7 +149,6 @@ const createCSV = users => {
       return acc;
     }, []),
   );
-  csv = 'data:text/csv;charset=utf-8,' + csv;
   return encodeURI(csv);
 };
 
@@ -144,17 +171,14 @@ const handleChange = props => () => {
               .map(user => {
                 return user
                   .update('allowedIps', val => (val ? val : ''))
-                  .update(
-                    'attributesMap',
-                    val => (IsJsonString(val) ? fromJS(JSON.parse(val)) : {}),
+                  .update('attributesMap', val =>
+                    IsJsonString(val) ? fromJS(JSON.parse(val)) : {},
                   )
-                  .update(
-                    'profileAttributesMap',
-                    val => (IsJsonString(val) ? fromJS(JSON.parse(val)) : {}),
+                  .update('profileAttributesMap', val =>
+                    IsJsonString(val) ? fromJS(JSON.parse(val)) : {},
                   )
-                  .update(
-                    'memberships',
-                    val => (IsJsonString(val) ? fromJS(JSON.parse(val)) : {}),
+                  .update('memberships', val =>
+                    IsJsonString(val) ? fromJS(JSON.parse(val)) : {},
                   );
               })
               .toSet();
@@ -189,6 +213,10 @@ const handleChange = props => () => {
   }
 };
 
+export const handleDownload = props => () => {
+  downloadjs(props.data, 'user.csv', 'text/csv');
+};
+
 export const mapStateToProps = state => ({
   loading: state.space.settingsUsers.loading,
   users: state.space.settingsUsers.users,
@@ -202,12 +230,9 @@ export const mapDispatchToProps = {
 };
 
 export const UsersList = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withState('data', 'setData', ''),
-  withHandlers({ handleChange }),
+  withHandlers({ handleChange, handleDownload }),
   lifecycle({
     componentWillMount() {
       this.props.fetchUsers();

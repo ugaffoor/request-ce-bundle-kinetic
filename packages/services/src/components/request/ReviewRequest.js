@@ -8,6 +8,9 @@ import {
 } from 'reactstrap';
 import { CoreForm } from 'react-kinetic-core';
 import classNames from 'classnames';
+import ReactToPrint from 'react-to-print';
+import printerIcon from '../../../../gbmembers/src/images/Print.svg?raw';
+import SVGInline from 'react-svg-inline';
 
 const globals = import('common/globals');
 
@@ -126,11 +129,18 @@ export const ReviewRequestComponent = ({
             hidden: !formLoaded,
           })}
         >
+          <ReactToPrint
+            trigger={() => (
+              <SVGInline svg={printerIcon} className="icon barcodePrint" />
+            )}
+            content={() => this.componentRef}
+          />
           <CoreForm
             loaded={handleLoaded}
             submission={submission.id}
             review={reviewPage}
             globals={globals}
+            ref={el => (this.componentRef = el)}
           />
         </div>
         <div
@@ -148,12 +158,21 @@ export const ReviewRequestComponent = ({
       )}
     </div>
   ) : (
-    <CoreForm
-      loaded={handleLoaded}
-      submission={submission.id}
-      review
-      globals={globals}
-    />
+    <span>
+      <ReactToPrint
+        trigger={() => (
+          <SVGInline svg={printerIcon} className="icon barcodePrint" />
+        )}
+        content={() => this.componentRef}
+      />
+      <CoreForm
+        loaded={handleLoaded}
+        submission={submission.id}
+        review
+        globals={globals}
+        ref={el => (this.componentRef = el)}
+      />
+    </span>
   );
 };
 

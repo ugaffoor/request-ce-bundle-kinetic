@@ -7,6 +7,7 @@ import { namespace, withPayload } from '../../utils';
 export const types = {
   FETCH_MEMBERS: namespace('members', 'FETCH_MEMBERS'),
   SET_MEMBERS: namespace('members', 'SET_MEMBERS'),
+  UPDATE_ALL_MEMBERS: namespace('members', 'UPDATE_ALL_MEMBERS'),
   SET_MEMBER_FILTER: namespace('members', 'SET_MEMBER_FILTER'),
   GET_MEMBER_FILTER: namespace('members', 'GET_MEMBER_FILTER'),
   FETCH_CURRENT_MEMBER: namespace('members', 'FETCH_CURRENT_MEMBER'),
@@ -56,6 +57,8 @@ export const types = {
   FETCH_BILLING_CUSTOMERS: namespace('members', 'FETCH_BILLING_CUSTOMERS'),
   CREATE_BILLING_MEMBERS: namespace('members', 'CREATE_BILLING_MEMBERS'),
   SET_BILLING_CUSTOMERS: namespace('members', 'SET_BILLING_CUSTOMERS'),
+  CREATE_BILLING_STATISTICS: namespace('members', 'CREATE_BILLING_STATISTICS'),
+  CREATE_STATISTIC: namespace('members', 'CREATE_STATISTIC'),
   FETCH_INACTIVE_CUSTOMERS_COUNT: namespace(
     'members',
     'FETCH_INACTIVE_CUSTOMERS_COUNT',
@@ -66,11 +69,14 @@ export const types = {
   ),
   PROMOTE_MEMBER: namespace('members', 'PROMOTE_MEMBER'),
   MEMBER_PROMOTED: namespace('members', 'MEMBER_PROMOTED'),
+  CREATE_MEMBER_ACCOUNT: namespace('members', 'CREATE_MEMBER_ACCOUNT'),
+  USER_ACCOUNT_CREATED: namespace('members', 'USER_ACCOUNT_CREATED'),
 };
 
 export const actions = {
   fetchMembers: withPayload(types.FETCH_MEMBERS),
   setMembers: withPayload(types.SET_MEMBERS),
+  updateAllMembers: withPayload(types.UPDATE_ALL_MEMBERS),
   setMemberFilter: withPayload(types.SET_MEMBER_FILTER),
   getMemberFilter: withPayload(types.GET_MEMBER_FILTER),
   fetchCurrentMember: withPayload(types.FETCH_CURRENT_MEMBER),
@@ -117,12 +123,16 @@ export const actions = {
   fetchBillingCustomers: withPayload(types.FETCH_BILLING_CUSTOMERS),
   createBillingMembers: withPayload(types.CREATE_BILLING_MEMBERS),
   setBillingCustomers: withPayload(types.SET_BILLING_CUSTOMERS),
+  createBillingStatistics: withPayload(types.CREATE_BILLING_STATISTICS),
+  createStatistic: withPayload(types.CREATE_STATISTIC),
   fetchInactiveCustomersCount: withPayload(
     types.FETCH_INACTIVE_CUSTOMERS_COUNT,
   ),
   setInactiveCustomersCount: withPayload(types.SET_INACTIVE_CUSTOMERS_COUNT),
   promoteMember: withPayload(types.PROMOTE_MEMBER),
   memberPromoted: withPayload(types.MEMBER_PROMOTED),
+  createMemberUserAccount: withPayload(types.CREATE_MEMBER_ACCOUNT),
+  userAccountCreated: withPayload(types.USER_ACCOUNT_CREATED),
 };
 
 export const State = Record({
@@ -139,7 +149,7 @@ export const State = Record({
   billingInfo: {},
   paymentHistory: [],
   billingPayments: [],
-  billingPaymentsLoading: true,
+  billingPaymentsLoading: false,
   paymentHistoryLoading: true,
   processedAndScheduledPayments: {},
   processedAndScheduledPaymentsLoading: true,
@@ -173,35 +183,20 @@ export const reducer = (state = State(), { type, payload }) => {
     case types.SET_MEMBERS: {
       // Apply currentFilter
       var members = [];
-      /*      if (state.get('currentFilter') === 'Active Members') {
-        for (var i = 0; i < payload.length; i++) {
-          if (payload[i].values['Status'] !== 'Inactive' &&
-            payload[i].values['Status'] !== 'Suspended')
-            members[members.length] = payload[i];
-        }
-      }
-      if (state.get('currentFilter') === 'Inactive Members') {
-        for (var j = 0; j < payload.length; j++) {
-          if (
-            payload[j].values['Status'] === undefined ||
-            payload[j].values['Status'] === 'Inactive' ||
-            payload[j].values['Status'] === 'Suspended'
-          )
-            members[members.length] = payload[j];
-        }
-      }
-      if (state.get('currentFilter') === 'All Members') {
-        for (var k = 0; k < payload.length; k++) {
-          members[members.length] = payload[k];
-        }
-      }
-*/
       for (var k = 0; k < payload.members.length; k++) {
         setMemberPromotionValues(payload.members[k], payload.belts);
+        payload.members[k].user = payload.users.find(
+          user => user.username === payload.members[k].values['Member ID'],
+        );
         members[members.length] = payload.members[k];
       }
 
       return state.set('membersLoading', false).set('allMembers', members);
+    }
+    case types.UPDATE_ALL_MEMBERS: {
+      return state
+        .set('membersLoading', false)
+        .set('allMembers', payload.members);
     }
     case types.SET_MEMBER_FILTER: {
       return state.set('currentFilter', payload);
@@ -236,7 +231,7 @@ export const reducer = (state = State(), { type, payload }) => {
           payload.member.values['Billing Postcode'] =
             payload.member.values['Postcode'];
       }
-
+      payload.member.user = payload.user;
       setMemberPromotionValues(payload.member, payload.belts);
 
       return state

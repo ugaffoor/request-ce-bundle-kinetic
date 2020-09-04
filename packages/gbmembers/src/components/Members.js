@@ -15,7 +15,16 @@ export class Members extends React.Component {
     };
     this.toggleSidebarOpen = props.toggleSidebarOpen;
   }
+  addFilterPlaceholder = () => {
+    const filters = document.querySelectorAll('div.rt-th > input');
+    for (let filter of filters) {
+      filter.placeholder = 'Search..';
+    }
+  };
 
+  componentDidMount() {
+    this.addFilterPlaceholder();
+  }
   getData(allMembers, currentFilter) {
     let members = allMembers.filter(member => {
       let match = false;
@@ -104,12 +113,10 @@ export class Members extends React.Component {
               : true;
           }}
           getTdProps={(state, rowInfo, column, instance) => {
-            console.log('rowInfo:' + rowInfo);
             return {};
           }}
           columns={[
             {
-              Header: 'Name',
               id: 'id',
               accessor: d => d.id,
               Cell: this.renderCell,

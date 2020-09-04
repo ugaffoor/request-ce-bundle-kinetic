@@ -1,5 +1,5 @@
 import { connect } from 'react-redux';
-import { compose, withHandlers, withState } from 'recompose';
+import { compose, withHandlers, withState, lifecycle } from 'recompose';
 
 import { Profile } from './Profile';
 import { modalFormActions } from 'common';
@@ -44,10 +44,7 @@ const mapDispatchToProps = {
 };
 
 export const ProfileContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withState('isOpen', 'setIsOpen', false),
   withHandlers({
     openHelpForm: props => () => {

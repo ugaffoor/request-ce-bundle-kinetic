@@ -89,6 +89,13 @@
         color: $blue-lake;
       }
     }
+    .empty-state {
+      padding: 0.25rem 1.5rem;
+      font-size: 0.875rem;
+      font-style: italic;
+      color: rgba($black, 0.75);
+      margin-bottom: 0.75rem;
+    }
     &--content-wrapper {
       overflow: auto;
     }

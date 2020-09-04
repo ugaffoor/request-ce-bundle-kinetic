@@ -5,6 +5,8 @@ import { namespace, withPayload } from '../../utils';
 export const types = {
   FETCH_LEADS: namespace('leads', 'FETCH_LEADS'),
   SET_LEADS: namespace('leads', 'SET_LEADS'),
+  FETCH_LEADS_BY_DATE: namespace('leads', 'FETCH_LEADS_BY_DATE'),
+  SET_LEADS_BY_DATE: namespace('leads', 'SET_LEADS_BY_DATE'),
   FETCH_CURRENT_LEAD: namespace('leads', 'FETCH_CURRENT_LEAD'),
   SET_CURRENT_LEAD: namespace('leads', 'SET_CURRENT_LEAD'),
   SET_LEAD_STATUS: namespace('leads', 'SET_LEAD_STATUS'),
@@ -18,6 +20,8 @@ export const types = {
 export const actions = {
   fetchLeads: withPayload(types.FETCH_LEADS),
   setLeads: withPayload(types.SET_LEADS),
+  fetchLeadsByDate: withPayload(types.FETCH_LEADS_BY_DATE),
+  setLeadsByDate: withPayload(types.SET_LEADS_BY_DATE),
   fetchCurrentLead: withPayload(types.FETCH_CURRENT_LEAD),
   setCurrentLead: withPayload(types.SET_CURRENT_LEAD),
   setLeadStatus: withPayload(types.SET_LEAD_STATUS),
@@ -30,23 +34,30 @@ export const actions = {
 
 export const State = Record({
   allLeads: [],
+  leadsByDate: [],
   currentLead: {},
   newLead: {},
   currentLeadLoading: true,
   newLeadLoading: true,
   leadsLoading: true,
+  leadsByDateLoading: true,
 });
 
 export const reducer = (state = State(), { type, payload }) => {
   switch (type) {
     case types.FETCH_LEADS:
       return state.set('leadsLoading', true);
+    case types.FETCH_LEADS_BY_DATE:
+      return state.set('leadsByDateLoading', true);
     case types.FETCH_CURRENT_LEAD:
       return state.set('currentLeadLoading', true);
     case types.FETCH_NEW_LEAD:
       return state.set('newLeadLoading', true);
     case types.SET_LEADS: {
       return state.set('leadsLoading', false).set('allLeads', payload);
+    }
+    case types.SET_LEADS_BY_DATE: {
+      return state.set('leadsByDateLoading', false).set('leadsByDate', payload);
     }
     case types.SET_CURRENT_LEAD: {
       return state.set('currentLeadLoading', false).set('currentLead', payload);

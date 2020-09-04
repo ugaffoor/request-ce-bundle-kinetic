@@ -10,8 +10,288 @@
     width: '90vw';
     margin-top: '12px';
   }
-  .chart3 {
-    width: '90vw';
-    margin-top: '12px';
+  .chart5 {
+    .recharts-pie {
+      text {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+.dashboard {
+  height: 3100px;
+  @media (min-width: 321px) {
+    height: 3400px;
+  }
+  @media (min-width: 544px) {
+    height: 3000px;
+  }
+  @media (min-width: 768px) {
+    height: 2000px;
+  }
+  .page-header {
+    text-align: left;
+    .dateSettings {
+      button {
+        text-transform: capitalize;
+        width: 110px;
+        height: 40px;
+        display: inline-block;
+        background-color: $gray2;
+      }
+      button[active='true'] {
+        background-color: gray;
+      }
+      .btn-primary:hover {
+        background-color: $darkgray !important;
+      }
+    }
+  }
+  .stat_customDatesContainer {
+    margin-left: 30%;
+  }
+  .charts {
+    clear: left;
+    .chart2Column {
+      .col1,
+      .col2 {
+        margin: 0.5%;
+        width: 100%;
+        float: left;
+        background-color: $darkgray;
+        border-radius: 8px;
+        @media (min-width: 768px) {
+          width: 48%;
+        }
+        .recharts-responsive-container {
+          width: 96% !important;
+          margin-left: 2%;
+          margin-bottom: 10px;
+          background-color: white;
+        }
+      }
+      .page-header {
+        text-transform: uppercase;
+        color: white;
+        margin-left: 2%;
+        margin-top: 5px;
+        margin-bottom: 5px;
+        font-size: 18px;
+        .header {
+          display: flex;
+        }
+        select#dateRange {
+          width: 22%;
+          margin-left: 10px;
+          line-height: 1rem;
+          height: auto;
+        }
+      }
+      .leadConversion {
+        width: 100%;
+      }
+      .dateRange {
+        background-color: white;
+        width: 96% !important;
+        margin-left: 2%;
+        margin-bottom: 10px;
+        margin-top: -10px;
+      }
+      .customDatesContainer {
+        position: absolute;
+        background-color: #bdbdbd;
+        width: 600px;
+        margin-left: 20px;
+        z-index: 10;
+      }
+      .attendancesLoading {
+        height: 397px;
+        p {
+          color: white;
+          margin: 20px;
+        }
+      }
+      .attendancesByDate {
+        .xAxis {
+          font-size: 12px;
+        }
+      }
+    }
+    .chart1Column {
+      clear: left;
+      .col {
+        margin: 0.5%;
+        width: 97%;
+        float: left;
+        background-color: $darkgray;
+        border-radius: 8px;
+        .recharts-responsive-container {
+          width: 96% !important;
+          margin-left: 2%;
+          margin-bottom: 10px;
+          background-color: white;
+        }
+      }
+      .recharts-tooltip-item-name,
+      .recharts-tooltip-item-separator {
+        display: none;
+      }
+      .recharts-default-tooltip {
+        height: 150px;
+        border-radius: 8px;
+        background-color: $darkgray !important;
+        padding: 0px 6px 0px 6px !important;
+        .recharts-tooltip-label {
+          color: white;
+        }
+        .recharts-tooltip-item-list {
+          background-color: white;
+          height: 114px;
+          .tooltipDetail {
+            .tooltipLabel {
+              float: left;
+              clear: left;
+              text-transform: uppercase;
+              margin-left: 2px;
+              width: 150px;
+              color: $darkgray;
+              font-size: 14px;
+            }
+            .tooltipValue {
+              float: left;
+              margin-left: 2px;
+              width: 50px;
+              color: $darkgray;
+              font-size: 14px;
+            }
+          }
+        }
+      }
+    }
+    .page-header {
+      text-transform: uppercase;
+      color: white;
+      margin-left: 2%;
+      margin-top: 5px;
+      margin-bottom: 5px;
+      font-size: 18px;
+      text-align: left;
+    }
+  }
+
+  .statItem:nth-child(3) {
+    clear: left;
+    @media (min-width: 768px) {
+      clear: unset;
+    }
+  }
+  .statItem {
+    width: 100%;
+    @media (min-width: 544px) {
+      clear: unset;
+      width: 48%;
+    }
+    @media (min-width: 768px) {
+      clear: unset;
+      width: 24%;
+    }
+  }
+  .leadStatistics {
+    margin: 0.5%;
+    max-width: 1183px;
+    .statisticsHeader {
+      color: #4d5059;
+      text-transform: uppercase;
+      font-family: AdiHaus DIN Medium;
+      font-size: 18px;
+    }
+    .statItems {
+      display: block;
+      .statItem {
+        background-color: #4d5059;
+        margin: 0.5%;
+        border-radius: 8px;
+        float: left;
+        .info {
+          display: flex;
+          .label {
+            width: 40%;
+            color: white;
+            margin: 4px;
+            margin-left: 8px;
+          }
+          .value {
+            width: 60%;
+            text-align: center;
+            font-size: 70px;
+            line-height: 65px;
+            font-family: AdiHaus DIN Medium;
+            color: white;
+          }
+        }
+        .value {
+          color: white;
+        }
+        .barDiv {
+          display: flex;
+          .bar {
+            height: 14px;
+            margin: 5px;
+            width: 90%;
+            background-color: white;
+            position: relative;
+            .percent {
+              background-color: #2ac940;
+              height: 100%;
+              position: absolute;
+            }
+            .percent50 {
+              background-color: #fa9917;
+              height: 100%;
+              position: absolute;
+            }
+          }
+          .value {
+            width: 50px;
+            color: white;
+          }
+        }
+      }
+    }
+  }
+  .memberStatistics {
+    margin: 0.5%;
+    max-width: 1153px;
+    clear: left;
+    .statItems {
+      display: block;
+      .statItem {
+        background-color: $gray2;
+        margin: 0.5%;
+        border-radius: 8px;
+        float: left;
+        .info {
+          display: flex;
+          .label {
+            width: 40%;
+            color: #4d5059;
+            margin: 4px;
+            margin-left: 8px;
+          }
+          .value {
+            width: 60%;
+            text-align: center;
+            font-size: 70px;
+            line-height: 65px;
+            font-family: AdiHaus DIN Medium;
+            color: #4d5059;
+          }
+        }
+        .value {
+          color: #4d5059;
+        }
+      }
+    }
   }
 }

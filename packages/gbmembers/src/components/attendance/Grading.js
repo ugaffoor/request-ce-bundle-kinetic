@@ -3,20 +3,23 @@ import { compose, withState, lifecycle } from 'recompose';
 import $ from 'jquery';
 import { connect } from 'react-redux';
 import { GradingStatus } from './GradingStatus';
+import { PromotionReviewIcon } from './PromotionReviewIcon';
 import { withHandlers } from 'recompose';
+import { getProgramSVG, getBeltSVG } from '../Member/MemberUtils';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
   programs: state.member.app.programs,
   belts: state.member.app.belts,
 });
-
 const mapDispatchToProps = {};
 
 export class GradingDetail extends Component {
   constructor(props) {
     super(props);
-
+    this.setShowPromotionReviewDialog = this.setShowPromotionReviewDialog.bind(
+      this,
+    );
     let className = 'All Programs';
     let beltName = 'All Belts';
     let loadingMemberGrading = true;
@@ -28,6 +31,7 @@ export class GradingDetail extends Component {
       loadingMemberGrading,
       isDirty,
       programsGroup,
+      showPromotionReviewDialog: false,
     };
   }
   setIsDirty = dirty => {
@@ -42,12 +46,17 @@ export class GradingDetail extends Component {
   handleBeltChange(e) {
     this.setState({ beltName: e.target.value });
   }
+  setShowPromotionReviewDialog(show) {
+    this.setState({
+      showPromotionReviewDialog: show,
+    });
+  }
   render() {
     return (
       <div className="gradingSection">
         <div className="classSection">
           <span className="line">
-            <div>
+            <div className="grading">
               <label htmlFor="program">Program</label>
               <select
                 name="program"
@@ -65,7 +74,7 @@ export class GradingDetail extends Component {
               </select>
               <div className="droparrow" />
             </div>
-            <div>
+            <div className="program">
               <label htmlFor="program">Belt</label>
               <select
                 name="belt"
@@ -91,6 +100,11 @@ export class GradingDetail extends Component {
         <div className="membersGradingSection">
           <div className="memberGrading">
             {this.props.allMembers
+              .filter(
+                member =>
+                  member.values['Status'] !== 'Inactive' &&
+                  member.values['Status'] !== 'Frozen',
+              )
               .sort(function(a, b) {
                 if (a.programOrder < b.programOrder) {
                   return -1;
@@ -170,8 +184,14 @@ export class GradingDetail extends Component {
                           {member.daysElapsed}/{member.durationPeriod} DAYS
                         </span>
                         <span className="belt">
-                          {member.values['Ranking Belt']}
+                          {getBeltSVG(member.values['Ranking Belt'])}
                         </span>
+                        <PromotionReviewIcon
+                          memberItem={member}
+                          belts={this.props.belts}
+                          setIsDirty={this.setIsDirty}
+                          allMembers={this.props.allMembers}
+                        />
                       </span>
                     </div>
                   );
@@ -195,9 +215,11 @@ export const GradingContainer = compose(
   withHandlers({}),
   lifecycle({
     componentWillMount() {},
-    componentWillReceiveProps(nextProps) {
-      $('.content')[0].scrollIntoView(true);
+    componentWillReceiveProps(nextProps) {},
+    componentDidMount() {
+      $('.content')
+        .parent('div')[0]
+        .scrollIntoView(true);
     },
-    componentWillUnmount() {},
   }),
 )(GradingView);

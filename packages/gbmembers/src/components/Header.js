@@ -4,19 +4,21 @@ import { KappNavLink as NavLink } from 'common';
 import SVGInline from 'react-svg-inline';
 
 import { CompanyLogoContainer } from './CompanyLogo';
-import homeIcon from '../images/home3.svg?raw';
-import attendanceIcon from '../images/flag.svg?raw';
-import leadsIcon from '../images/smile.svg?raw';
-import sendIcon from '../images/envelop.svg?raw';
-import gradingIcon from '../images/star-full.svg?raw';
-import settingsIcon from '../images/settings-icon.svg?raw';
+import homeIcon from '../images/Dashboard.svg?raw';
+import attendanceIcon from '../images/Attendance.svg?raw';
+import leadsIcon from '../images/Leads.svg?raw';
+import sendIcon from '../images/Send.svg?raw';
+import gradingIcon from '../images/Grading.svg?raw';
+import settingsIcon from '../images/Settings.svg?raw';
+import reportsIcon from '../images/Reports.svg?raw';
+import gbwearIcon from '../images/GBWear.svg?raw';
+
 import { Utils } from 'common';
 
 export const Header = ({ loading, profile }) => (
   <Navbar color="faded" light className="fixed-top">
-    <CompanyLogoContainer />
     <Nav className="nav-header apps">
-      <NavItem>
+      <NavItem className="homeNavItem">
         <NavLink
           to="/Home"
           className="nav-link icon-wrapper"
@@ -24,10 +26,10 @@ export const Header = ({ loading, profile }) => (
           activeClassName="active"
         >
           <SVGInline svg={homeIcon} className="icon" />
-          <span className="appName">Dashboard</span>
+          <span className="appName">DASHBOARD</span>
         </NavLink>
       </NavItem>
-      <NavItem>
+      <NavItem className="attendanceNavItem">
         <NavLink
           to="/Attendance"
           className="nav-link icon-wrapper"
@@ -35,10 +37,10 @@ export const Header = ({ loading, profile }) => (
           activeClassName="active"
         >
           <SVGInline svg={attendanceIcon} className="icon" />
-          <span className="appName">Attendance</span>
+          <span className="appName">ATTENDANCE</span>
         </NavLink>
       </NavItem>
-      <NavItem>
+      <NavItem className="leadsNavItem">
         <NavLink
           to="/Leads"
           className="nav-link icon-wrapper"
@@ -46,10 +48,10 @@ export const Header = ({ loading, profile }) => (
           activeClassName="active"
         >
           <SVGInline svg={leadsIcon} className="icon" />
-          <span className="appName">Leads / Tasks</span>
+          <span className="appName">LEADS</span>
         </NavLink>
       </NavItem>
-      <NavItem>
+      <NavItem className="sendNavItem">
         <NavLink
           to="/Send"
           className="nav-link icon-wrapper"
@@ -57,10 +59,10 @@ export const Header = ({ loading, profile }) => (
           activeClassName="active"
         >
           <SVGInline svg={sendIcon} className="icon" />
-          <span className="appName">Send</span>
+          <span className="appName">SEND</span>
         </NavLink>
       </NavItem>
-      <NavItem>
+      <NavItem className="gradingNavItem">
         <NavLink
           to="/Grading"
           className="nav-link icon-wrapper"
@@ -68,7 +70,7 @@ export const Header = ({ loading, profile }) => (
           activeClassName="active"
         >
           <SVGInline svg={gradingIcon} className="icon" />
-          <span className="appName">Grading</span>
+          <span className="appName">GRADING</span>
         </NavLink>
       </NavItem>
       {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
@@ -82,7 +84,7 @@ export const Header = ({ loading, profile }) => (
             activeClassName="active"
           >
             <SVGInline svg={settingsIcon} className="icon" />
-            <span className="appName">Settings</span>
+            <span className="appName">SETTINGS</span>
           </NavLink>
         </NavItem>
       )}
@@ -96,8 +98,23 @@ export const Header = ({ loading, profile }) => (
             strict
             activeClassName="active"
           >
-            <SVGInline svg={settingsIcon} className="icon" />
-            <span className="appName">Reports</span>
+            <SVGInline svg={reportsIcon} className="icon" />
+            <span className="appName">REPORTS</span>
+          </NavLink>
+        </NavItem>
+      )}
+      {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
+        <div />
+      ) : (
+        <NavItem className="gbwearNavItem">
+          <NavLink
+            to="/GBWear"
+            className="nav-link icon-wrapper"
+            strict
+            activeClassName="active"
+          >
+            <SVGInline svg={gbwearIcon} className="icon" />
+            <span className="appName">GB Wear</span>
           </NavLink>
         </NavItem>
       )}

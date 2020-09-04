@@ -17,10 +17,7 @@ export const mapDispatchToProps = {
 };
 
 const enhance = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
     componentWillMount() {
       this.props.fetchSubmission(this.props.match.params.submissionId);
@@ -29,6 +26,17 @@ const enhance = compose(
     componentWillUnmount() {
       this.props.clearSubmission();
       this.props.stopPoller();
+    },
+    componentWillReceiveProps(nextProps) {
+      if (
+        nextProps.match.params.submissionId !==
+        this.props.match.params.submissionId
+      ) {
+        this.props.clearSubmission();
+        this.props.stopPoller();
+        this.props.fetchSubmission(nextProps.match.params.submissionId);
+        this.props.startPoller(nextProps.match.params.submissionId);
+      }
     },
   }),
 );

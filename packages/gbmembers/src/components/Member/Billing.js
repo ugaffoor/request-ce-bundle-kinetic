@@ -985,6 +985,10 @@ export class BillingInfo extends Component {
                       <td>{this.props.memberItem.values['DDR Status']}</td>
                     </tr>
                     <tr>
+                      <td>FFA ID:</td>
+                      <td>{this.props.billingInfo.ffaid}</td>
+                    </tr>
+                    <tr>
                       <td>Billing Reference ID:</td>
                       <td>{this.props.billingInfo.customerBillingId}</td>
                     </tr>
@@ -1626,7 +1630,7 @@ export const BillingContainer = compose(
       console.log('### paymentId = ' + paymentId);
       let args = {};
       args.transactionId = paymentId;
-      args.refundAmount = paymentAmount * 100;
+      args.refundAmount = paymentAmount;
       args.memberItem = memberItem;
       args.updateMember = updateMember;
       args.fetchCurrentMember = fetchCurrentMember;

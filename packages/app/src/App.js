@@ -11,10 +11,9 @@ import Sidebar from 'react-sidebar';
 import { Utils, ToastsContainer, ModalFormContainer } from 'common';
 import { LoginModal } from './components/authentication/LoginModal';
 import { HeaderContainer } from './components/HeaderContainer';
-import { actions as loadActions } from './redux/modules/loading';
+import { actions as loadingActions } from './redux/modules/loading';
 import { actions as alertsActions } from './redux/modules/alerts';
 import { actions as layoutActions } from './redux/modules/layout';
-import { App as RegistrationsApp } from 'registrations/src/App';
 import { App as ServicesApp } from 'services/src/App';
 import { App as QueueApp } from 'queue/src/App';
 import { App as SpaceApp } from 'space/src/App';
@@ -26,31 +25,48 @@ export const AppComponent = props =>
       <ToastsContainer />
       <LoginModal />
       <ModalFormContainer />
-      <HeaderContainer hasSidebar toggleSidebarOpen={props.toggleSidebarOpen} />
-      <props.AppProvider
-        render={({ main, sidebar }) =>
-          sidebar ? (
-            <Sidebar
-              sidebar={sidebar}
-              shadow={false}
-              open={props.sidebarOpen && props.layoutSize === 'small'}
-              docked={props.sidebarOpen && props.layoutSize !== 'small'}
-              onSetOpen={props.setSidebarOpen}
-              rootClassName="sidebar-layout-wrapper"
-              sidebarClassName={`sidebar-container ${
-                true ? 'drawer' : 'overlay'
-              }`}
-              contentClassName={`main-container ${
-                props.sidebarOpen ? 'open' : 'closed'
-              }`}
-            >
+      {!props.headerHidden ? (
+        <Fragment>
+          <HeaderContainer
+            hasSidebar={!props.sidebarHidden}
+            toggleSidebarOpen={props.toggleSidebarOpen}
+          />
+          <props.AppProvider
+            render={({ main, sidebar, header }) =>
+              !props.sidebarHidden && sidebar ? (
+                <Sidebar
+                  sidebar={sidebar}
+                  shadow={false}
+                  open={props.sidebarOpen && props.layoutSize === 'small'}
+                  docked={props.sidebarOpen && props.layoutSize !== 'small'}
+                  onSetOpen={props.setSidebarOpen}
+                  rootClassName="sidebar-layout-wrapper"
+                  sidebarClassName={`sidebar-container ${
+                    true ? 'drawer' : 'overlay'
+                  }`}
+                  contentClassName={`main-container ${
+                    props.sidebarOpen ? 'open' : 'closed'
+                  }`}
+                >
+                  {main}
+                </Sidebar>
+              ) : (
+                <div className="main-container main-container--no-sidebar">
+                  {main}
+                </div>
+              )
+            }
+          />
+        </Fragment>
+      ) : (
+        <props.AppProvider
+          render={({ main }) => (
+            <div className="main-container main-container--no-header">
               {main}
-            </Sidebar>
-          ) : (
-            main
-          )
-        }
-      />
+            </div>
+          )}
+        />
+      )}
     </Fragment>
   );
 
@@ -62,9 +78,10 @@ export const mapStateToProps = state => ({
   layoutSize: state.app.layout.size,
   kappSlug: state.app.config.kappSlug,
   pathname: state.router.location.pathname,
+  locale: state.app.config.locale,
 });
 export const mapDispatchToProps = {
-  loadApp: loadActions.loadApp,
+  loadApp: loadingActions.loadApp,
   fetchAlerts: alertsActions.fetchAlerts,
   setSidebarOpen: layoutActions.setSidebarOpen,
   setSuppressedSidebarOpen: layoutActions.setSuppressedSidebarOpen,
@@ -75,8 +92,6 @@ const getAppProvider = kapp => {
     ? Utils.getAttributeValue(kapp, 'Bundle Package', kapp.slug)
     : SpaceApp;
   switch (bundlePackage) {
-    case 'registrations':
-      return RegistrationsApp;
     case 'services':
       return ServicesApp;
     case 'queue':
@@ -100,21 +115,31 @@ export const App = compose(
     const sidebarOpen = shouldSuppressSidebar
       ? props.suppressedSidebarOpen
       : props.sidebarOpen;
+    const headerHidden =
+      AppProvider.shouldHideHeader &&
+      AppProvider.shouldHideHeader(props.pathname, props.kappSlug);
+    const sidebarHidden =
+      AppProvider.shouldHideSidebar &&
+      AppProvider.shouldHideSidebar(props.pathname, props.kappSlug);
     return {
       AppProvider,
       shouldSuppressSidebar,
       sidebarOpen,
+      headerHidden,
+      sidebarHidden,
     };
   }),
   withHandlers({
-    toggleSidebarOpen: props => () =>
-      props.shouldSuppressSidebar
+    toggleSidebarOpen: props => () => {
+      console.log('sidebar');
+      return props.shouldSuppressSidebar
         ? props.setSuppressedSidebarOpen(!props.sidebarOpen)
-        : props.setSidebarOpen(!props.sidebarOpen),
+        : props.setSidebarOpen(!props.sidebarOpen);
+    },
   }),
   lifecycle({
     componentDidMount() {
-      this.props.loadApp();
+      this.props.loadApp(true);
       this.props.fetchAlerts();
     },
   }),

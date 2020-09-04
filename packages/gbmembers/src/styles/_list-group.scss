@@ -11,8 +11,12 @@
   }
 }
 
-.memberLists {
+.memberLists,
+.leadLists {
   .rt-noData {
     top: 65px !important;
+  }
+  .btn-primary {
+    margin-left: 10px;
   }
 }

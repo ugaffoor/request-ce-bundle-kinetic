@@ -1,8 +1,9 @@
-import { select, call, put, takeEvery } from 'redux-saga/effects';
+import { select, call, all, put, takeEvery } from 'redux-saga/effects';
 import { CoreAPI } from 'react-kinetic-core';
 import { types, actions } from '../modules/messaging';
 import { actions as errorActions, NOTICE_TYPES } from '../modules/errors';
 import axios from 'axios';
+import moment from 'moment';
 
 export const SUBMISSION_INCLUDES =
   'details,values,attributes,form,children,children.details,children.form,children.values,form.attributes';
@@ -106,11 +107,12 @@ export function* sendBulkSms(action) {
     space: appSettings.spaceSlug,
     toNumbers: action.payload.phoneNumbers,
     text: action.payload.campaignItem.values['SMS Content'],
-    target: action.payload.target
+    target: action.payload.target,
   };
   axios
     .post(
-      appSettings.kapp.attributes['Kinetic Messaging Server URL'] + sendBulkSmsUrl,
+      appSettings.kapp.attributes['Kinetic Messaging Server URL'] +
+        sendBulkSmsUrl,
       args,
     )
     .then(result => {
@@ -125,7 +127,7 @@ export function* sendBulkSms(action) {
         console.log(result.data.data);
         let deliveredToMemberIds = result.data.data['deliveredToIds'];
         if (action.payload.target === 'Member') {
-          for (let i = 0; i < args.toNumbers.length; i++)  {
+          for (let i = 0; i < args.toNumbers.length; i++) {
             if (!deliveredToMemberIds.includes(args.toNumbers[i]['id'])) {
               continue;
             }
@@ -146,8 +148,31 @@ export function* sendBulkSms(action) {
               myThis: action.payload.myThis,
             });
           }
+          action.payload.fetchMembers();
         }
-        action.payload.fetchMembers();
+        if (action.payload.target === 'Lead') {
+          for (let i = 0; i < args.toNumbers.length; i++) {
+            if (!deliveredToMemberIds.includes(args.toNumbers[i]['id'])) {
+              continue;
+            }
+            let leadActivities = { values: {} };
+            leadActivities.values['Lead ID'] = args.toNumbers[i]['id'];
+            leadActivities.values['Type'] = 'SMS';
+            leadActivities.values['Direction'] = 'Outbound';
+            leadActivities.values['Content'] = {
+              To: args.toNumbers[i]['number'],
+              Content: action.payload.campaignItem.values['SMS Content'],
+              'Sent Date': moment()
+                .utc()
+                .format('DD-MM-YYYY hh:mm'),
+            };
+
+            action.payload.createLeadActivities({
+              leadActivities,
+              myThis: action.payload.myThis,
+            });
+          }
+        }
       }
     })
     .catch(error => {
@@ -228,10 +253,92 @@ export function* createLeadActivities(action) {
   }
 }
 
+export function* getIndividualSMS(action) {
+  try {
+    const MEMBER_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
+      .eq('values[Type]', 'SMS')
+      .eq('values[Direction]', 'Outbound')
+      .include(['details', 'values'])
+      .startDate(
+        moment()
+          .subtract(120, 'days')
+          .toDate(),
+      )
+      .endDate(moment().toDate())
+      .limit(25)
+      .build();
+    const LEAD_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
+      .eq('values[Type]', 'SMS')
+      .eq('values[Direction]', 'Outbound')
+      .include(['details', 'values'])
+      .startDate(
+        moment()
+          .subtract(120, 'days')
+          .toDate(),
+      )
+      .endDate(moment().toDate())
+      .limit(25)
+      .build();
+    const [memberActivities, leadActivities] = yield all([
+      call(CoreAPI.searchSubmissions, {
+        form: 'member-activities',
+        kapp: 'gbmembers',
+        search: MEMBER_ACTIVITIES_SEARCH,
+      }),
+      call(CoreAPI.searchSubmissions, {
+        form: 'lead-activities',
+        kapp: 'gbmembers',
+        search: LEAD_ACTIVITIES_SEARCH,
+      }),
+    ]);
+
+    let individualSMS = [];
+    for (let i = 0; i < memberActivities.submissions.length; i++) {
+      let contents = JSON.parse(
+        memberActivities.submissions[i].values['Content'],
+      );
+      individualSMS[individualSMS.length] = {
+        id: memberActivities.submissions[i].values['Member ID'],
+        Type: 'Member',
+        To: contents['To'],
+        Date: contents['Sent Date'],
+        Content: contents['Content'],
+      };
+    }
+    for (let i = 0; i < leadActivities.submissions.length; i++) {
+      let contents = JSON.parse(
+        leadActivities.submissions[i].values['Content'],
+      );
+      individualSMS[individualSMS.length] = {
+        id: leadActivities.submissions[i].values['Lead ID'],
+        Type: 'Lead',
+        To: contents['To'],
+        Date: contents['Sent Date'],
+        Content: contents['Content'],
+      };
+    }
+    individualSMS = individualSMS.sort((a, b) => {
+      if (a['Date'] < b['Date']) {
+        return -1;
+      }
+      if (a['Date'] > b['Date']) {
+        return 1;
+      }
+      return 0;
+    });
+
+    yield put(action.payload.setIndividualSMS(individualSMS));
+  } catch (error) {
+    console.log('Error in fetchMemberPromotions: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
+
 export function* watchMessaging() {
   yield takeEvery(types.SEND_SMS, sendSms);
   yield takeEvery(types.SEND_BULK_SMS, sendBulkSms);
   yield takeEvery(types.GET_ACCOUNT_CREDIT, getAccountCredit);
   yield takeEvery(types.CREATE_MEMBER_ACTIVITIES, createMemberActivities);
   yield takeEvery(types.CREATE_LEAD_ACTIVITIES, createLeadActivities);
+  yield takeEvery(types.GET_INDIVIDUAL_SMS, getIndividualSMS);
 }

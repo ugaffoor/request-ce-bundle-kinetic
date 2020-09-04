@@ -1,14 +1,243 @@
+.userNameInfo {
+  display: flex;
+  .userName {
+    margin: 0;
+    float: left;
+  }
+}
+.emailSentSubject {
+  cursor: pointer;
+}
+.smsTable {
+  .nowrap {
+    white-space: normal !important;
+  }
+}
+.card1,
+.card2 {
+  background-size: cover;
+  background-repeat: no-repeat;
+  width: 240mm;
+  height: 330mm;
+  float: left;
+  clear: left;
+}
+@media print {
+  html,
+  body {
+    height: initial !important;
+    overflow: initial !important;
+    -webkit-print-color-adjust: exact;
+    float: none;
+  }
+  .attendanceCard {
+    .card1 {
+      margin-top: 0mm;
+    }
+    .card2 {
+      margin-top: 10mm;
+      height: 324mm !important;
+    }
+    .card1,
+    .card2 {
+      width: 240mm;
+      height: 330mm;
+      /*      width: 148mm;
+      height: 209mm;*/
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+  }
+}
+@page {
+  size: a5;
+  margin: 0;
+}
+.card1.GB1 {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/GB1-P1.png);
+}
+.card1.GB2 {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/GB2-P1.png);
+}
+.card1.GB3 {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/GB3-P1.png);
+}
+.card1.Tiny_Champions {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Tiny_Champions-P1.png);
+}
+.card1.Little_Champions_1 {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Little_Champions_1-P1.png);
+}
+.card1.Little_Champions_2 {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Little_Champions_2-P1.png);
+}
+.card1.Juniors {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Juniors-P1.png);
+}
+.card1.Teens {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Teens-P1.png);
+}
+.card1.Advanced_Kids {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Advanced_Kids-P1.png);
+}
+.card1.Kids_Competition_Team {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Kids_Competition_Team-P1.png);
+}
+
+.card2.GB1 {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/GB1-P2.png);
+}
+.card2.GB2 {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/GB2-P2.png);
+}
+.card2.GB3 {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/GB3-P2.png);
+}
+.card2.Tiny_Champions {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Tiny_Champions-P2.png);
+}
+.card2.Little_Champions_1 {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Little_Champions_1-P2.png);
+}
+.card2.Little_Champions_2 {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Little_Champions_2-P2.png);
+}
+.card2.Juniors {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Juniors-P2.png);
+}
+.card2.Teens {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Teens-P2.png);
+}
+.card2.Advanced_Kids {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Advanced_Kids-P2.png);
+}
+.card2.Kids_Competition_Team {
+  background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Kids_Competition_Team-P2.png);
+}
+
 .replyIcon {
   cursor: pointer;
 }
 .memberDetails {
-  margin-top: -1px;
+  margin: -20px;
   background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  .btn-primary:not(:disabled):not(.disabled):active,
+  .btn-primary:not(:disabled):not(.disabled).active,
+  .show > .btn-primary.dropdown-toggle {
+    background-color: $darkgray;
+    border-color: $darkgray;
+  }
+  .deleteNote {
+    .icon-svg {
+      height: 1rem;
+      width: 1rem;
+      cursor: pointer;
+    }
+  }
+  .icon-svg {
+    height: 1.5rem;
+    width: 1.5rem;
+  }
+
+  h3 {
+    font-size: 18px;
+    text-transform: uppercase;
+  }
   .loading {
     position: absolute;
     width: 100%;
     height: 100%;
     background-color: #e3e5e8;
+  }
+  .row {
+    .col-sm-10 {
+      max-width: 100%;
+      flex: 0 0 100%;
+      padding-left: 0;
+    }
+    .col-sm-9.notes {
+      flex: 0 0 100%;
+      max-width: 100%;
+      @media (min-width: 544px) {
+        flex: 0 0 70%;
+        max-width: 70%;
+      }
+      @media (min-width: 1065px) {
+        flex: 0 0 75%;
+        max-width: 75%;
+      }
+      @media (min-width: 1220px) {
+        flex: 0 0 83%;
+        max-width: 83%;
+      }
+    }
+
+    .col-sm-2.notesButton {
+      flex: 0 0 100%;
+      max-width: 90%;
+      @media (min-width: 544px) {
+        flex: 0 0 30%;
+        max-width: 30%;
+      }
+      @media (min-width: 1065px) {
+        flex: 0 0 20%;
+        max-width: 20%;
+      }
+      @media (min-width: 1220px) {
+        flex: 0 0 16.66667%;
+        max-width: 16.66667%;
+      }
+    }
+  }
+  .memberHeader {
+    height: 64px;
+    .name {
+      height: 64px;
+      float: left;
+      background-color: $darkgray;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+      font-size: 25px;
+      color: white;
+      padding: 12px;
+    }
+    .viewContent {
+      background-color: white;
+      border-bottom-left-radius: 10px;
+      border-bottom-right-radius: 10px;
+    }
+    .rankingImages {
+      float: right;
+      margin-top: 15px;
+      padding-right: 4px;
+      background-color: #f8f8f8;
+      .program {
+        float: left;
+        .icon-svg {
+          height: 3rem;
+          width: 4.5rem;
+          path {
+            fill: $darkgray;
+          }
+        }
+      }
+      .belt {
+        float: left;
+        .icon-svg {
+          height: 3rem;
+          width: 8.5rem;
+          margin-left: 10px;
+          path {
+            fill: $darkgray;
+          }
+        }
+      }
+    }
+  }
+  .general {
+    clear: left;
   }
   .row {
     margin-left: 20px;
@@ -40,49 +269,56 @@
   .iconItem {
     text-align: center;
     width: auto;
-    display: block;
+    display: flex;
     float: left;
+    clear: left;
     margin-right: 20px;
+    padding: 4px;
     .value {
       margin-left: 10px;
-      font-size: 1.5em;
+      font-size: 18px;
     }
     a {
-      color: white;
+      color: $darkgray;
     }
   }
   .btn-primary {
-    background-color: $button;
     border: none;
     margin: 0 5px;
     line-height: 1.75rem;
+    text-transform: capitalize;
+    font-size: 15px;
     &:hover {
       color: $white;
       background-color: darken($button, 25%);
     }
   }
   .icon-svg {
-    height: 2rem;
-    width: 2rem;
+    height: 1.5rem;
+    width: 1.5rem;
     path {
-      fill: white;
+      fill: $darkgray;
     }
   }
-  .photo {
+  .viewPhotoDiv {
     width: 200px;
     margin-left: 20px;
-    position: absolute;
     margin-top: 20px;
     height: 180px;
+    float: left;
+    .photo {
+      width: 100%;
+      height: 100%;
+    }
   }
   .noPhoto {
     width: 200px;
-    margin-left: 59px;
-    position: absolute;
+    margin-left: 20px;
     margin-top: 20px;
     height: 180px;
     line-height: 150px;
     font-size: 80px;
+    float: left;
   }
   .leadInfo {
     margin-top: 9px;
@@ -97,14 +333,12 @@
       height: auto;
       position: relative;
       display: inline-block;
-      width: 100%;
-      color: white;
+      color: $darkgray;
       padding-left: 20px;
-      padding-top: 230px;
-      @media (min-width: 544px) {
-        padding-left: 240px;
-        padding-top: 20px;
-      }
+      padding-top: 20px;
+      font-size: 18px;
+      float: left;
+      max-width: 50%;
       h1 {
         margin-top: 0;
         width: auto;
@@ -113,9 +347,7 @@
       }
       p {
         float: left;
-        margin: 4px 10px 0px 10px;
-        font-variant-caps: all-small-caps;
-        font-size: 1.5em;
+        margin: 0;
       }
       .buttons {
         float: right;
@@ -130,14 +362,98 @@
     .details2 {
       height: auto;
       position: relative;
-      display: inline-block;
-      width: 100%;
-      color: white;
+      color: #4d5059;
       padding-left: 20px;
       padding-top: 20px;
-      @media (min-width: 544px) {
-        padding-left: 240px;
-        padding-top: 20px;
+      float: left;
+      clear: left;
+      @media (min-width: 1157px) {
+        padding-left: auto;
+        padding-right: 20px;
+        float: right;
+        clear: none;
+      }
+      .status {
+        color: gray;
+        float: right;
+        p {
+          width: auto;
+          float: left;
+          margin: 0;
+          margin-right: 2px;
+        }
+        .green {
+          height: 25px;
+          width: 25px;
+          background-color: green;
+          border-radius: 16px;
+          float: left;
+        }
+        .red {
+          height: 25px;
+          width: 25px;
+          background-color: red;
+          border-radius: 16px;
+          float: left;
+        }
+        .blue {
+          height: 25px;
+          width: 25px;
+          background-color: blue;
+          border-radius: 16px;
+          float: left;
+        }
+      }
+      .buttons {
+        float: right;
+        clear: right;
+        .btn-primary {
+          border: none;
+          margin: 0 10px;
+          margin-bottom: 2px;
+          line-height: 1.75rem;
+          clear: right;
+          float: right;
+          min-width: 100px;
+          text-transform: capitalize;
+          font-size: 15px;
+        }
+        .username {
+          clear: right;
+          float: right;
+          background-color: #d0cdcd;
+          border-radius: 5px;
+          padding: 2px;
+          margin-right: 10px;
+          .label {
+            float: left;
+          }
+          .value {
+            float: left;
+          }
+        }
+        .attentionRequired {
+          clear: left;
+          float: left;
+          border-radius: 5px;
+          border-style: none;
+          margin-right: 4px;
+          padding-left: 4px;
+        }
+        .attentionRequired:hover {
+          background-color: #d0cdcd;
+        }
+      }
+      .emergency {
+        margin-left: 0px;
+        clear: both;
+        float: right;
+        .icon.barcodePrint {
+          float: left;
+        }
+        .memberBarcode {
+          float: left;
+        }
       }
     }
   }
@@ -148,7 +464,7 @@
     }
     .icon-svg {
       path {
-        fill: $button;
+        fill: $darkgray;
       }
     }
     .emergencyNumber {
@@ -170,15 +486,20 @@
     }
   }
   .userDetails2 {
-    display: flex;
+    display: block;
+    @media (min-width: 544px) {
+      display: flex;
+    }
     clear: left;
+    width: 100%;
     h4 {
       margin-top: 10px;
     }
     .ranking {
       width: 100%;
       margin: 20px;
-      border-top: 1px solid $gray3;
+      margin-right: 0;
+      border-top: 1px solid $darkgray;
       .program {
         padding: 10px;
         p {
@@ -197,8 +518,9 @@
     }
     .billing {
       width: 100%;
-      border-top: 1px solid $gray3;
+      border-top: 1px solid $darkgray;
       margin: 20px;
+      margin-left: 0;
       .billingPlan {
         padding: 10px;
         background-color: #f7f7f7;
@@ -253,7 +575,7 @@
     .section2 div {
       width: 50%;
     }
-    .section3 div {
+    .section3 .field {
       width: 50%;
     }
     .section4 {
@@ -304,6 +626,9 @@
       }
     }
   }
+  .DayPickerInput input {
+    float: none !important;
+  }
   .general {
     max-width: 700px;
   }
@@ -313,14 +638,14 @@
     float: left;
   }
   .btn-primary {
-    background-color: $button;
     border: none;
     margin: 0 5px;
     line-height: 1.75rem;
     margin-bottom: 0.75rem;
+    font-size: 15px;
     &:hover {
       color: $white;
-      background-color: darken($button, 25%);
+      background-color: darken($darkgray, 25%);
     }
   }
   input#male {
@@ -380,10 +705,9 @@
     }
   }
   #saveButton.notDirty {
-    background-color: #9e6567;
+    background-color: #dbd7d7;
   }
   #saveButton.dirty {
-    background-color: #991b1e;
   }
   #duplicateUserInfo.hide {
     display: none;
@@ -410,14 +734,14 @@
     height: 75%;
   }
   .btn-primary {
-    background-color: $button;
+    background-color: $darkgray;
     border: none;
     margin: 0 5px;
     line-height: 1.75rem;
     margin-bottom: 0.75rem;
     &:hover {
       color: $white;
-      background-color: darken($button, 25%);
+      background-color: darken($darkgray, 25%);
     }
   }
   h1 {
@@ -430,6 +754,7 @@
 
 .memberBillingDetails {
   background-color: white;
+  height: 2000px;
   #registeriFrame {
     height: 1800px;
     border: 0;
@@ -504,14 +829,14 @@
     float: left;
   }
   .btn-primary {
-    background-color: $button;
+    background-color: $darkgray;
     border: none;
     margin: 0 5px;
     line-height: 1.75rem;
     margin-bottom: 0.75rem;
     &:hover {
       color: $white;
-      background-color: darken($button, 25%);
+      background-color: darken($darkgray, 25%);
     }
   }
   #saveButton.notDirty {
@@ -548,6 +873,25 @@
     button {
       margin-top: 10px;
     }
+    .btn-danger {
+      background-color: $darkgray;
+      border-color: $darkgray;
+    }
+    .btn-danger:focus {
+      box-shadow: 0 0 0 0.2rem $gray2;
+    }
+    .btn-danger:not(:disabled):not(.disabled):active,
+    .btn-danger:not(:disabled):not(.disabled).active,
+    .show > .btn-danger.dropdown-toggle {
+      color: #fff;
+      background-color: $gray2;
+      border-color: $gray2;
+    }
+    .btn-danger:not(:disabled):not(.disabled):active:focus,
+    .btn-danger:not(:disabled):not(.disabled).active:focus,
+    .show > .btn-danger.dropdown-toggle:focus {
+      box-shadow: 0 0 0 0.2rem $gray2;
+    }
   }
 }
 
@@ -564,14 +908,14 @@
     height: 75%;
   }
   .btn-primary {
-    background-color: $button;
+    background-color: $darkgray;
     border: none;
     margin: 0 5px;
     line-height: 1.75rem;
     margin-bottom: 0.75rem;
     &:hover {
       color: $white;
-      background-color: darken($button, 25%);
+      background-color: darken($darkgray, 25%);
     }
   }
   h1 {
@@ -584,4 +928,127 @@
 
 iframe#printf {
   display: none;
+}
+
+.attendanceCard {
+  .Little_Champions_1 .photoDiv,
+  .Little_Champions_2 .photoDiv,
+  .Tiny_Champions .photoDiv,
+  .Juniors .photoDiv,
+  .Teens .photoDiv {
+    height: 205px;
+    width: 169px;
+    margin-left: 655px;
+    margin-top: 22px;
+    .noPhotoDiv {
+      width: 120px;
+      height: 120px;
+      padding: 20px;
+      margin-left: 150px;
+      margin-bottom: 23px;
+    }
+  }
+  .GB1 .photoDiv {
+    .noPhotoDiv {
+      width: 120px;
+      height: 120px;
+      padding: 20px;
+      margin-left: 120px;
+      margin-bottom: 23px;
+    }
+  }
+  .GB2 .photoDiv,
+  .GB3 .photoDiv {
+    height: 198px;
+    width: 178px;
+    margin-left: 662px;
+    margin-top: 26px;
+    .noPhotoDiv {
+      width: 120px;
+      height: 120px;
+      padding: 20px;
+      margin-left: 150px;
+      margin-bottom: 23px;
+    }
+  }
+  .photoDiv {
+    height: 162px;
+    width: 174px;
+    margin-left: 182mm;
+    margin-top: 12.5mm;
+    line-height: 95px;
+    background-color: transparent;
+    float: left;
+    .noPhotoDiv {
+      width: 120px;
+      height: 120px;
+      padding: 20px;
+      margin-left: 120px;
+      margin-bottom: 23px;
+      margin-top: 38px;
+      font-size: 54px;
+      transform-origin: 0 0;
+      transform: rotate(90deg);
+      -webkit-transform: rotate(90deg);
+      -moz-transform: rotate(90deg);
+      -ms-transform: rotate(90deg);
+      -o-transform: rotate(90deg);
+      filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
+      position: absolute;
+      background-color: #f1f1f0;
+    }
+    .photoImg {
+      margin-left: 0px;
+      margin-top: 5px;
+      height: 100%;
+      width: 100%;
+      transform: rotate(90deg);
+      -webkit-transform: rotate(90deg);
+      -moz-transform: rotate(90deg);
+      -ms-transform: rotate(90deg);
+      -o-transform: rotate(90deg);
+      filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
+      float: left;
+    }
+  }
+  .attendanceBarcode {
+    margin-top: 74mm;
+    margin-left: 194mm;
+    transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
+    width: 100px;
+    svg {
+      width: 207px;
+      height: 84px;
+    }
+  }
+  .attendanceName.Advanced_Kids {
+    margin-top: 40mm;
+    margin-left: 127mm;
+  }
+  .attendanceName.Little_Champions_1,
+  .attendanceName.Little_Champions_2,
+  .attendanceName.Tiny_Champions,
+  .attendanceName.Juniors,
+  .attendanceName.Teens {
+    margin-top: 39mm;
+    margin-left: 126mm;
+  }
+  .attendanceName {
+    margin-top: 45mm;
+    margin-left: 120mm;
+    transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
+    p {
+      font-size: 26px;
+    }
+  }
 }
