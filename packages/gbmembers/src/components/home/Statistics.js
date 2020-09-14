@@ -3,6 +3,10 @@ import ReactSpinner from 'react16-spinjs';
 import moment from 'moment';
 import { getJson } from '../Member/MemberUtils';
 import $ from 'jquery';
+import ReactTable from 'react-table';
+import { KappNavLink as NavLink } from 'common';
+import crossIcon from '../../images/cross.svg?raw';
+import SVGInline from 'react-svg-inline';
 
 export class Statistics extends Component {
   handleClose = () => {
@@ -16,6 +20,9 @@ export class Statistics extends Component {
   };
   constructor(props) {
     super(props);
+    this._getLeadRowTableColumns = this.getLeadRowTableColumns();
+    this._getMemberRowTableColumns = this.getMemberRowTableColumns();
+
     this.setIsAssigning = this.props.setIsAssigning;
     this.datesChanged = this.props.datesChanged;
     this.setFromDate = this.props.setFromDate;
@@ -38,6 +45,14 @@ export class Statistics extends Component {
       memberData,
       fromDate,
       toDate,
+      showNewLeads: false,
+      showScheduledLeads: false,
+      showIntroLeads: false,
+      showConvertedLeads: false,
+      showCancellationsMembers: false,
+      showPendingCancellationsMembers: false,
+      showFrozenMembers: false,
+      showPendingFrozenMembers: false,
     };
   }
 
@@ -66,22 +81,22 @@ export class Statistics extends Component {
   getData(leads, fromDate, toDate) {
     if (!leads || leads.length <= 0) {
       return {
-        leadsTotal: 0,
-        introsTotal: 0,
-        attendedTotal: 0,
-        convertedTotal: 0,
+        leadsTotal: [],
+        introsTotal: [],
+        attendedTotal: [],
+        convertedTotal: [],
       };
     }
 
-    let leadsTotal = 0;
-    let introsTotal = 0;
-    let attendedTotal = 0;
-    let convertedTotal = 0;
+    let leadsTotal = [];
+    let introsTotal = [];
+    let attendedTotal = [];
+    let convertedTotal = [];
     leads.forEach(lead => {
       if (moment(lead['createdAt']).isBetween(fromDate, toDate)) {
-        leadsTotal++;
-      }
-      if (moment(lead['updatedAt']).isBetween(fromDate, toDate)) {
+        leadsTotal[leadsTotal.length] = lead;
+        //      }
+        //      if (moment(lead['updatedAt']).isBetween(fromDate, toDate)) {
         var history =
           lead.values['History'] !== undefined
             ? getJson(lead.values['History'])
@@ -94,7 +109,7 @@ export class Statistics extends Component {
             ) &&
             history[i]['contactMethod'] === 'intro_class'
           ) {
-            introsTotal++;
+            introsTotal[introsTotal.length] = lead;
           }
         }
         for (i = 0; i < history.length; i++) {
@@ -105,14 +120,14 @@ export class Statistics extends Component {
             ) &&
             history[i]['contactMethod'] === 'attended_class'
           ) {
-            attendedTotal++;
+            attendedTotal[attendedTotal.length] = lead;
           }
         }
         if (
           moment(lead['updatedAt']).isBetween(fromDate, toDate) &&
           lead.values['Lead State'] === 'Converted'
         ) {
-          convertedTotal++;
+          convertedTotal[convertedTotal.length] = lead;
         }
       }
     });
@@ -127,17 +142,17 @@ export class Statistics extends Component {
   getMemberData(members, fromDate, toDate) {
     if (!members || members.length <= 0) {
       return {
-        cancellations: 0,
-        pendingCancellations: 0,
-        frozen: 0,
-        pendingFrozen: 0,
+        cancellations: [],
+        pendingCancellations: [],
+        frozen: [],
+        pendingFrozen: [],
       };
     }
 
-    let cancellations = 0;
-    let pendingCancellations = 0;
-    let frozen = 0;
-    let pendingFrozen = 0;
+    let cancellations = [];
+    let pendingCancellations = [];
+    let frozen = [];
+    let pendingFrozen = [];
     members.forEach(member => {
       var history =
         member.values['Status History'] !== undefined
@@ -152,24 +167,24 @@ export class Statistics extends Component {
           )
         ) {
           if (history[history.length - 1]['status'] === 'Inactive') {
-            cancellations++;
+            cancellations[cancellations.length] = member;
           }
           if (
             history[history.length - 1]['status'] === 'Pending Cancellation'
           ) {
-            pendingCancellations++;
+            pendingCancellations[pendingCancellations.length] = member;
           }
           if (
             history[history.length - 1]['status'] === 'Frozen' ||
             history[history.length - 1]['status'] === 'Suspended'
           ) {
-            frozen++;
+            frozen[frozen.length] = member;
           }
           if (
             history[history.length - 1]['status'] === 'Pending Freeze' ||
             history[history.length - 1]['status'] === 'Pending Suspension'
           ) {
-            pendingFrozen++;
+            pendingFrozen[pendingFrozen.length] = member;
           }
         }
       }
@@ -198,8 +213,8 @@ export class Statistics extends Component {
         isShowCustom: false,
         leadData: this.getData(
           this.state.leads,
-          this.state.fromDate,
-          this.state.toDate,
+          this.state.fromDate.hour(0).minute(0),
+          this.state.toDate.hour(23).minute(59),
         ),
         memberData: this.getMemberData(
           this.state.allMembers,
@@ -322,7 +337,301 @@ export class Statistics extends Component {
       });
     }
   }
+  getLeads(leads, col) {
+    var leads_col = [];
 
+    for (var i = col - 1; i < leads.length; i = i + 4) {
+      //if (i % (col-1) === 0){
+      leads_col[leads_col.length] = {
+        leadId: leads[i].id,
+        name:
+          leads[i].values['First Name'] + ' ' + leads[i].values['Last Name'],
+      };
+      //}
+    }
+
+    return leads_col;
+  }
+
+  getLeadTableData(leads) {
+    let leads_col1 = this.getLeads(leads, 1);
+    let leads_col2 = this.getLeads(leads, 2);
+    let leads_col3 = this.getLeads(leads, 3);
+    let leads_col4 = this.getLeads(leads, 4);
+
+    return [
+      {
+        leads: {
+          leads_col1: leads_col1,
+          leads_col2: leads_col2,
+          leads_col3: leads_col3,
+          leads_col4: leads_col4,
+        },
+      },
+    ];
+  }
+  getLeadRowTableColumns = () => {
+    return [
+      {
+        accessor: 'leads',
+        Header: '',
+        headerClassName: 'leads_col',
+        className: 'leads_col',
+        Cell: props => {
+          return props.original.leads_col1 === undefined ? (
+            <div />
+          ) : (
+            <NavLink
+              to={`/LeadDetail/${props.original.leads_col1['leadId']}`}
+              className=""
+            >
+              {props.original.leads_col1['name']}
+            </NavLink>
+          );
+        },
+      },
+      {
+        accessor: 'leads',
+        Header: '',
+        headerClassName: 'leads_col',
+        className: 'leads_col',
+        Cell: props => {
+          return props.original.leads_col2 === undefined ? (
+            <div />
+          ) : (
+            <NavLink
+              to={`/LeadDetail/${props.original.leads_col2['leadId']}`}
+              className=""
+            >
+              {props.original.leads_col2['name']}
+            </NavLink>
+          );
+        },
+      },
+      {
+        accessor: 'leads',
+        Header: '',
+        headerClassName: 'leads_col',
+        className: 'leads_col',
+        Cell: props => {
+          return props.original.leads_col3 === undefined ? (
+            <div />
+          ) : (
+            <NavLink
+              to={`/LeadDetail/${props.original.leads_col3['leadId']}`}
+              className=""
+            >
+              {props.original.leads_col3['name']}
+            </NavLink>
+          );
+        },
+      },
+      {
+        accessor: 'leads',
+        Header: '',
+        headerClassName: 'leads_col',
+        className: 'leads_col',
+        Cell: props => {
+          return props.original.leads_col4 === undefined ? (
+            <div />
+          ) : (
+            <NavLink
+              to={`/LeadDetail/${props.original.leads_col4['leadId']}`}
+              className=""
+            >
+              {props.original.leads_col4['name']}
+            </NavLink>
+          );
+        },
+      },
+    ];
+  };
+  getLeadTableColumns(row) {
+    return [
+      {
+        accessor: 'leads',
+        Header: 'Leads',
+        headerClassName: 'leads_col',
+        className: 'leads_col',
+        style: { whiteSpace: 'unset' },
+        maxWidth: '100%',
+        Cell: props => {
+          let leads_col1 = props.value.leads_col1;
+          let leads_col2 = props.value.leads_col2;
+          let leads_col3 = props.value.leads_col3;
+          let leads_col4 = props.value.leads_col4;
+
+          let leads = [];
+          for (var i = 0; i < leads_col1.length; i++) {
+            leads[leads.length] = {
+              leads_col1: leads_col1[i],
+              leads_col2: leads_col2.length > i ? leads_col2[i] : undefined,
+              leads_col3: leads_col3.length > i ? leads_col3[i] : undefined,
+              leads_col4: leads_col4.length > i ? leads_col4[i] : undefined,
+            };
+          }
+          return (
+            <ReactTable
+              columns={this._getLeadRowTableColumns}
+              pageSize={leads_col1.length > 20 ? 20 : leads_col1.length}
+              showPagination={leads_col1.length > 20 ? true : false}
+              data={leads}
+            />
+          );
+        },
+      },
+    ];
+  }
+  getMembers(members, col) {
+    var members_col = [];
+
+    for (var i = col - 1; i < members.length; i = i + 4) {
+      //if (i % (col-1) === 0){
+      members_col[members_col.length] = {
+        memberId: members[i].id,
+        name:
+          members[i].values['First Name'] +
+          ' ' +
+          members[i].values['Last Name'],
+      };
+      //}
+    }
+
+    return members_col;
+  }
+
+  getMemberTableData(members) {
+    let members_col1 = this.getMembers(members, 1);
+    let members_col2 = this.getMembers(members, 2);
+    let members_col3 = this.getMembers(members, 3);
+    let members_col4 = this.getMembers(members, 4);
+
+    return [
+      {
+        members: {
+          members_col1: members_col1,
+          members_col2: members_col2,
+          members_col3: members_col3,
+          members_col4: members_col4,
+        },
+      },
+    ];
+  }
+  getMemberRowTableColumns = () => {
+    return [
+      {
+        accessor: 'members',
+        Header: '',
+        headerClassName: 'members_col',
+        className: 'members_col',
+        Cell: props => {
+          return props.original.members_col1 === undefined ? (
+            <div />
+          ) : (
+            <NavLink
+              to={`/Member/${props.original.members_col1['memberId']}`}
+              className=""
+            >
+              {props.original.members_col1['name']}
+            </NavLink>
+          );
+        },
+      },
+      {
+        accessor: 'members',
+        Header: '',
+        headerClassName: 'members_col',
+        className: 'members_col',
+        Cell: props => {
+          return props.original.members_col2 === undefined ? (
+            <div />
+          ) : (
+            <NavLink
+              to={`/Member/${props.original.members_col2['memberId']}`}
+              className=""
+            >
+              {props.original.members_col2['name']}
+            </NavLink>
+          );
+        },
+      },
+      {
+        accessor: 'members',
+        Header: '',
+        headerClassName: 'members_col',
+        className: 'members_col',
+        Cell: props => {
+          return props.original.members_col3 === undefined ? (
+            <div />
+          ) : (
+            <NavLink
+              to={`/Member/${props.original.members_col3['memberId']}`}
+              className=""
+            >
+              {props.original.members_col3['name']}
+            </NavLink>
+          );
+        },
+      },
+      {
+        accessor: 'members',
+        Header: '',
+        headerClassName: 'members_col',
+        className: 'members_col',
+        Cell: props => {
+          return props.original.members_col4 === undefined ? (
+            <div />
+          ) : (
+            <NavLink
+              to={`/Member/${props.original.members_col4['memberId']}`}
+              className=""
+            >
+              {props.original.members_col4['name']}
+            </NavLink>
+          );
+        },
+      },
+    ];
+  };
+  getMemberTableColumns(row) {
+    return [
+      {
+        accessor: 'members',
+        Header: 'Members',
+        headerClassName: 'members_col',
+        className: 'members_col',
+        style: { whiteSpace: 'unset' },
+        maxWidth: '100%',
+        Cell: props => {
+          let members_col1 = props.value.members_col1;
+          let members_col2 = props.value.members_col2;
+          let members_col3 = props.value.members_col3;
+          let members_col4 = props.value.members_col4;
+
+          let members = [];
+          for (var i = 0; i < members_col1.length; i++) {
+            members[members.length] = {
+              members_col1: members_col1[i],
+              members_col2:
+                members_col2.length > i ? members_col2[i] : undefined,
+              members_col3:
+                members_col3.length > i ? members_col3[i] : undefined,
+              members_col4:
+                members_col4.length > i ? members_col4[i] : undefined,
+            };
+          }
+          return (
+            <ReactTable
+              columns={this._getMemberRowTableColumns}
+              pageSize={members_col1.length > 20 ? 20 : members_col1.length}
+              showPagination={members_col1.length > 20 ? true : false}
+              data={members}
+            />
+          );
+        },
+      },
+    ];
+  }
   render() {
     return this.props.leadsByDateLoading ? (
       <div style={{ margin: '10px' }}>
@@ -460,7 +769,23 @@ export class Statistics extends Component {
             <div className="statItem">
               <div className="info">
                 <div className="label">Leads</div>
-                <div className="value">{this.state.leadData.leadsTotal}</div>
+                <div
+                  className="value"
+                  onClick={e =>
+                    this.setState({
+                      showNewLeads: true,
+                      showScheduledLeads: false,
+                      showIntroLeads: false,
+                      showConvertedLeads: false,
+                      showCancellationsMembers: false,
+                      showPendingCancellationsMembers: false,
+                      showFrozenMembers: false,
+                      showPendingFrozenMembers: false,
+                    })
+                  }
+                >
+                  {this.state.leadData.leadsTotal.length}
+                </div>
               </div>
               <div className="barDiv">
                 <div className="bar">
@@ -473,28 +798,64 @@ export class Statistics extends Component {
                 </div>
                 <div className="value">100%</div>
               </div>
+              {this.state.showNewLeads && (
+                <div className="leads">
+                  <span
+                    className="closeLeads"
+                    onClick={e =>
+                      this.setState({
+                        showNewLeads: false,
+                      })
+                    }
+                  >
+                    <SVGInline svg={crossIcon} className="icon" />
+                  </span>
+                  <ReactTable
+                    columns={this.getLeadTableColumns()}
+                    data={this.getLeadTableData(this.state.leadData.leadsTotal)}
+                    defaultPageSize={1}
+                    showPagination={false}
+                  />
+                </div>
+              )}
             </div>
             <div className="statItem">
               <div className="info">
                 <div className="label">Intro Scheduled</div>
-                <div className="value">{this.state.leadData.introsTotal}</div>
+                <div
+                  className="value"
+                  onClick={e =>
+                    this.setState({
+                      showScheduledLeads: true,
+                      showNewLeads: false,
+                      showIntroLeads: false,
+                      showConvertedLeads: false,
+                      showCancellationsMembers: false,
+                      showPendingCancellationsMembers: false,
+                      showFrozenMembers: false,
+                      showPendingFrozenMembers: false,
+                    })
+                  }
+                >
+                  {this.state.leadData.introsTotal.length}
+                </div>
               </div>
               <div className="barDiv">
                 <div className="bar">
                   <div
                     className={
-                      this.state.leadData.introsTotal /
-                        this.state.leadData.leadsTotal <
+                      this.state.leadData.introsTotal.length /
+                        this.state.leadData.leadsTotal.length <
                       0.5
                         ? 'percent50'
                         : 'percent'
                     }
                     style={{
                       width:
-                        (this.state.leadData.leadsTotal !== 0
+                        (this.state.leadData.leadsTotal.length !== 0
                           ? (
-                              (this.state.leadData.introsTotal /
-                                this.state.leadData.leadsTotal) *
+                              (this.state.leadData.introsTotal.length /
+                                this.state.leadData.leadsTotal.length) *
                               100
                             ).toFixed(2)
                           : 0) + '%',
@@ -502,38 +863,76 @@ export class Statistics extends Component {
                   ></div>
                 </div>
                 <div className="value">
-                  {this.state.leadData.leadsTotal !== 0
+                  {this.state.leadData.leadsTotal.length !== 0
                     ? (
-                        (this.state.leadData.introsTotal /
-                          this.state.leadData.leadsTotal) *
+                        (this.state.leadData.introsTotal.length /
+                          this.state.leadData.leadsTotal.length) *
                         100
                       ).toFixed(2)
                     : 0}
                   %
                 </div>
               </div>
+              {this.state.showScheduledLeads && (
+                <div className="leads">
+                  <span
+                    className="closeLeads"
+                    onClick={e =>
+                      this.setState({
+                        showScheduledLeads: false,
+                      })
+                    }
+                  >
+                    <SVGInline svg={crossIcon} className="icon" />
+                  </span>
+                  <ReactTable
+                    columns={this.getLeadTableColumns()}
+                    data={this.getLeadTableData(
+                      this.state.leadData.introsTotal,
+                    )}
+                    defaultPageSize={1}
+                    showPagination={false}
+                  />
+                </div>
+              )}
             </div>
             <div className="statItem">
               <div className="info">
                 <div className="label">Actual Intros</div>
-                <div className="value">{this.state.leadData.attendedTotal}</div>
+                <div
+                  className="value"
+                  onClick={e =>
+                    this.setState({
+                      showIntroLeads: true,
+                      showNewLeads: false,
+                      showScheduledLeads: false,
+                      showConvertedLeads: false,
+                      showCancellationsMembers: false,
+                      showPendingCancellationsMembers: false,
+                      showFrozenMembers: false,
+                      showPendingFrozenMembers: false,
+                    })
+                  }
+                >
+                  {this.state.leadData.attendedTotal.length}
+                </div>
               </div>
               <div className="barDiv">
                 <div className="bar">
                   <div
                     className={
-                      this.state.leadData.attendedTotal /
-                        this.state.leadData.leadsTotal <
+                      this.state.leadData.attendedTotal.length /
+                        this.state.leadData.leadsTotal.length <
                       0.5
                         ? 'percent50'
                         : 'percent'
                     }
                     style={{
                       width:
-                        (this.state.leadData.leadsTotal !== 0
+                        (this.state.leadData.leadsTotal.length !== 0
                           ? (
-                              (this.state.leadData.attendedTotal /
-                                this.state.leadData.leadsTotal) *
+                              (this.state.leadData.attendedTotal.length /
+                                this.state.leadData.leadsTotal.length) *
                               100
                             ).toFixed(2)
                           : 0) + '%',
@@ -541,40 +940,76 @@ export class Statistics extends Component {
                   ></div>
                 </div>
                 <div className="value">
-                  {this.state.leadData.leadsTotal !== 0
+                  {this.state.leadData.leadsTotal.length !== 0
                     ? (
-                        (this.state.leadData.attendedTotal /
-                          this.state.leadData.leadsTotal) *
+                        (this.state.leadData.attendedTotal.length /
+                          this.state.leadData.leadsTotal.length) *
                         100
                       ).toFixed(2)
                     : 0}
                   %
                 </div>
               </div>
+              {this.state.showIntroLeads && (
+                <div className="leads">
+                  <span
+                    className="closeLeads"
+                    onClick={e =>
+                      this.setState({
+                        showIntroLeads: false,
+                      })
+                    }
+                  >
+                    <SVGInline svg={crossIcon} className="icon" />
+                  </span>
+                  <ReactTable
+                    columns={this.getLeadTableColumns()}
+                    data={this.getLeadTableData(
+                      this.state.leadData.attendedTotal,
+                    )}
+                    defaultPageSize={1}
+                    showPagination={false}
+                  />
+                </div>
+              )}
             </div>
             <div className="statItem">
               <div className="info">
                 <div className="label">New Students</div>
-                <div className="value">
-                  {this.state.leadData.convertedTotal}
+                <div
+                  className="value"
+                  onClick={e =>
+                    this.setState({
+                      showConvertedLeads: true,
+                      showNewLeads: false,
+                      showScheduledLeads: false,
+                      showIntroLeads: false,
+                      showCancellationsMembers: false,
+                      showPendingCancellationsMembers: false,
+                      showFrozenMembers: false,
+                      showPendingFrozenMembers: false,
+                    })
+                  }
+                >
+                  {this.state.leadData.convertedTotal.length}
                 </div>
               </div>
               <div className="barDiv">
                 <div className="bar">
                   <div
                     className={
-                      this.state.leadData.convertedTotal /
-                        this.state.leadData.leadsTotal <
+                      this.state.leadData.convertedTotal.length /
+                        this.state.leadData.leadsTotal.length <
                       0.5
                         ? 'percent50'
                         : 'percent'
                     }
                     style={{
                       width:
-                        (this.state.leadData.leadsTotal !== 0
+                        (this.state.leadData.leadsTotal.length !== 0
                           ? (
-                              (this.state.leadData.convertedTotal /
-                                this.state.leadData.leadsTotal) *
+                              (this.state.leadData.convertedTotal.length /
+                                this.state.leadData.leadsTotal.length) *
                               100
                             ).toFixed(2)
                           : 0) + '%',
@@ -582,16 +1017,38 @@ export class Statistics extends Component {
                   ></div>
                 </div>
                 <div className="value">
-                  {this.state.leadData.leadsTotal !== 0
+                  {this.state.leadData.leadsTotal.length !== 0
                     ? (
-                        (this.state.leadData.convertedTotal /
-                          this.state.leadData.leadsTotal) *
+                        (this.state.leadData.convertedTotal.length /
+                          this.state.leadData.leadsTotal.length) *
                         100
                       ).toFixed(2)
                     : 0}
                   %
                 </div>
               </div>
+              {this.state.showConvertedLeads && (
+                <div className="leads">
+                  <span
+                    className="closeLeads"
+                    onClick={e =>
+                      this.setState({
+                        showConvertedLeads: false,
+                      })
+                    }
+                  >
+                    <SVGInline svg={crossIcon} className="icon" />
+                  </span>
+                  <ReactTable
+                    columns={this.getLeadTableColumns()}
+                    data={this.getLeadTableData(
+                      this.state.leadData.convertedTotal,
+                    )}
+                    defaultPageSize={1}
+                    showPagination={false}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -600,32 +1057,176 @@ export class Statistics extends Component {
             <div className="statItem">
               <div className="info">
                 <div className="label">Cancellations</div>
-                <div className="value">
-                  {this.state.memberData.cancellations}
+                <div
+                  className="value"
+                  onClick={e =>
+                    this.setState({
+                      showNewLeads: false,
+                      showScheduledLeads: false,
+                      showIntroLeads: false,
+                      showConvertedLeads: false,
+                      showCancellationsMembers: true,
+                      showPendingCancellationsMembers: false,
+                      showFrozenMembers: false,
+                      showPendingFrozenMembers: false,
+                    })
+                  }
+                >
+                  {this.state.memberData.cancellations.length}
                 </div>
               </div>
+              {this.state.showCancellationsMembers && (
+                <div className="members">
+                  <span
+                    className="closeMembers"
+                    onClick={e =>
+                      this.setState({
+                        showCancellationsMembers: false,
+                      })
+                    }
+                  >
+                    <SVGInline svg={crossIcon} className="icon" />
+                  </span>
+                  <ReactTable
+                    columns={this.getMemberTableColumns()}
+                    data={this.getMemberTableData(
+                      this.state.memberData.cancellations,
+                    )}
+                    defaultPageSize={1}
+                    showPagination={false}
+                  />
+                </div>
+              )}
             </div>
             <div className="statItem">
               <div className="info">
                 <div className="label">Pending cancellations</div>
-                <div className="value">
-                  {this.state.memberData.pendingCancellations}
+                <div
+                  className="value"
+                  onClick={e =>
+                    this.setState({
+                      showNewLeads: false,
+                      showScheduledLeads: false,
+                      showIntroLeads: false,
+                      showConvertedLeads: false,
+                      showCancellationsMembers: false,
+                      showPendingCancellationsMembers: true,
+                      showFrozenMembers: false,
+                      showPendingFrozenMembers: false,
+                    })
+                  }
+                >
+                  {this.state.memberData.pendingCancellations.length}
                 </div>
               </div>
+              {this.state.showPendingCancellationsMembers && (
+                <div className="members">
+                  <span
+                    className="closeMembers"
+                    onClick={e =>
+                      this.setState({
+                        showPendingCancellationsMembers: false,
+                      })
+                    }
+                  >
+                    <SVGInline svg={crossIcon} className="icon" />
+                  </span>
+                  <ReactTable
+                    columns={this.getMemberTableColumns()}
+                    data={this.getMemberTableData(
+                      this.state.memberData.pendingCancellations,
+                    )}
+                    defaultPageSize={1}
+                    showPagination={false}
+                  />
+                </div>
+              )}
             </div>
             <div className="statItem">
               <div className="info">
                 <div className="label">Frozen</div>
-                <div className="value">{this.state.memberData.frozen}</div>
+                <div
+                  className="value"
+                  onClick={e =>
+                    this.setState({
+                      showNewLeads: false,
+                      showScheduledLeads: false,
+                      showIntroLeads: false,
+                      showConvertedLeads: false,
+                      showCancellationsMembers: false,
+                      showPendingCancellationsMembers: false,
+                      showFrozenMembers: true,
+                      showPendingFrozenMembers: false,
+                    })
+                  }
+                >
+                  {this.state.memberData.frozen.length}
+                </div>
               </div>
+              {this.state.showFrozenMembers && (
+                <div className="members">
+                  <span
+                    className="closeMembers"
+                    onClick={e =>
+                      this.setState({
+                        showFrozenMembers: false,
+                      })
+                    }
+                  >
+                    <SVGInline svg={crossIcon} className="icon" />
+                  </span>
+                  <ReactTable
+                    columns={this.getMemberTableColumns()}
+                    data={this.getMemberTableData(this.state.memberData.frozen)}
+                    defaultPageSize={1}
+                    showPagination={false}
+                  />
+                </div>
+              )}
             </div>
             <div className="statItem">
               <div className="info">
                 <div className="label">Pending frozen</div>
-                <div className="value">
-                  {this.state.memberData.pendingFrozen}
+                <div
+                  className="value"
+                  onClick={e =>
+                    this.setState({
+                      showNewLeads: false,
+                      showScheduledLeads: false,
+                      showIntroLeads: false,
+                      showConvertedLeads: false,
+                      showCancellationsMembers: false,
+                      showPendingCancellationsMembers: false,
+                      showFrozenMembers: false,
+                      showPendingFrozenMembers: true,
+                    })
+                  }
+                >
+                  {this.state.memberData.pendingFrozen.length}
                 </div>
               </div>
+              {this.state.showPendingFrozenMembers && (
+                <div className="members">
+                  <span
+                    className="closeMembers"
+                    onClick={e =>
+                      this.setState({
+                        showPendingFrozenMembers: false,
+                      })
+                    }
+                  >
+                    <SVGInline svg={crossIcon} className="icon" />
+                  </span>
+                  <ReactTable
+                    columns={this.getMemberTableColumns()}
+                    data={this.getMemberTableData(
+                      this.state.memberData.pendingFrozen,
+                    )}
+                    defaultPageSize={1}
+                    showPagination={false}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>

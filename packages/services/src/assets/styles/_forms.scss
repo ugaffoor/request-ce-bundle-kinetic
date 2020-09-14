@@ -42,8 +42,9 @@
       @include setBgColorAndHover($blue-slate);
     }
     button[data-element-type='button'][data-button-type='save'] {
-      color: $black;
-      @include setBgColorAndHover($white);
+      color: white;
+      background-color: #4d5059;
+      @include setBgColorAndHover(#4d5059);
       border: 1px solid $black-50;
       font-size: 0.75rem;
       padding-left: 2rem;

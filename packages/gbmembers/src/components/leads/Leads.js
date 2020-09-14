@@ -228,8 +228,9 @@ export class TasksDetail extends Component {
               _id: lead['id'],
               date: lead.values['Reminder Date'],
               name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
-              contactMethod: latestHistory.contactMethod,
-              note: latestHistory.note,
+              contactMethod:
+                latestHistory !== undefined ? latestHistory.contactMethod : '',
+              note: latestHistory !== undefined ? latestHistory.note : '',
               attentionRequired: lead.values['Is New Reply Received'],
             });
           }
@@ -260,8 +261,9 @@ export class TasksDetail extends Component {
               _id: lead['id'],
               date: lead.values['Reminder Date'],
               name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
-              contactMethod: latestHistory.contactMethod,
-              note: latestHistory.note,
+              contactMethod:
+                latestHistory !== undefined ? latestHistory.contactMethod : '',
+              note: latestHistory !== undefined ? latestHistory.note : '',
               attentionRequired: lead.values['Is New Reply Received'],
             });
           }
@@ -292,8 +294,9 @@ export class TasksDetail extends Component {
               _id: lead['id'],
               date: lead.values['Reminder Date'],
               name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
-              contactMethod: latestHistory.contactMethod,
-              note: latestHistory.note,
+              contactMethod:
+                latestHistory !== undefined ? latestHistory.contactMethod : '',
+              note: latestHistory !== undefined ? latestHistory.note : '',
               attentionRequired: lead.values['Is New Reply Received'],
             });
           }
@@ -307,8 +310,9 @@ export class TasksDetail extends Component {
             _id: lead['id'],
             date: lead.values['Reminder Date'],
             name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
-            contactMethod: latestHistory.contactMethod,
-            note: latestHistory.note,
+            contactMethod:
+              latestHistory !== undefined ? latestHistory.contactMethod : '',
+            note: latestHistory !== undefined ? latestHistory.note : '',
             attentionRequired: lead.values['Is New Reply Received'],
           };
         }

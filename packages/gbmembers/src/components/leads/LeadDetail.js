@@ -385,7 +385,9 @@ export class LeadDetail extends Component {
         <StatusMessagesContainer />
         <div className="card">
           <div className="card-header card-subtitle mb-2 text-muted">
-            {this.state.latestHistory.note}
+            {this.state.latestHistory !== undefined
+              ? this.state.latestHistory.note
+              : ''}
           </div>
           <div className="card-body" style={{ padding: '20px' }}>
             <div className="row">

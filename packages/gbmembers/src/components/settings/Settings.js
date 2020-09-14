@@ -19,6 +19,7 @@ import { Utils } from 'common';
 import moment from 'moment';
 import { ClassesCalendar } from './ClassesCalendar';
 import { ManageBookings } from './ManageBookings';
+import { confirm } from '../helpers/Confirmation';
 
 const mapStateToProps = state => ({
   memberItem: state.member.members.currentMember,
@@ -235,14 +236,24 @@ export const SettingsView = ({
             type="button"
             id="loadBillingCustomers"
             className={'btn btn-primary'}
-            onClick={e =>
-              fetchBillingCustomers({
-                setBillingCustomers,
-                createBillingMembers,
-                fetchMembers,
-                allMembers,
-              })
-            }
+            onClick={async e => {
+              if (
+                await confirm(
+                  <span>
+                    <span>
+                      Are your sure you want to Import the Billing Member?
+                    </span>
+                  </span>,
+                )
+              ) {
+                fetchBillingCustomers({
+                  setBillingCustomers,
+                  createBillingMembers,
+                  fetchMembers,
+                  allMembers,
+                });
+              }
+            }}
           >
             Import Billing Members
           </button>

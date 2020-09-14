@@ -24,16 +24,18 @@ export function* fetchSubmissionsSaga({ payload: { coreState } }) {
     .or()
     .eq(`values[${constants.REQUESTED_FOR_FIELD}]`, username)
     .eq('submittedBy', username)
+    .eq('createdBy', username)
     .end();
   // Add some of the optional parameters to the search
-  if (coreState) searchBuilder.coreState(coreState);
+  //  if (coreState) searchBuilder.coreState(coreState);
   if (pageToken) searchBuilder.pageToken(pageToken);
   const search = searchBuilder.build();
 
-  const { submissions, nextPageToken, serverError } = yield call(
-    CoreAPI.searchSubmissions,
-    { search, kapp: kappSlug },
-  );
+  const {
+    submissions,
+    nextPageToken,
+    serverError,
+  } = yield call(CoreAPI.searchSubmissions, { search, kapp: kappSlug });
 
   if (serverError) {
     yield put(systemErrorActions.setSystemError(serverError));

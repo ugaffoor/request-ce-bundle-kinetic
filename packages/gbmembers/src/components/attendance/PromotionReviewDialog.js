@@ -77,6 +77,7 @@ export class PromotionReviewDialog extends Component {
       lastPromotionDate !== ''
         ? moment(lastPromotionDate, 'YYYY-MM-DD')
         : moment().subtract(1, 'years');
+    lastPromotionDate = lastPromotionDate.day(1);
     this.totalClasses = 0;
     this.nogiClasses = 0;
 
@@ -109,6 +110,16 @@ export class PromotionReviewDialog extends Component {
     let data = [];
     attendanceMap.forEach((value, key, map) => {
       if (value.length >= 2) this.weeksAttended++;
+
+      value = value.sort(function(a, b) {
+        return a.values['Class Date'] + a.values['Class Time'] >
+          b.values['Class Date'] + b.values['Class Time']
+          ? 1
+          : b.values['Class Date'] + b.values['Class Time'] >
+            a.values['Class Date'] + a.values['Class Time']
+          ? -1
+          : 0;
+      });
       data.push({ week: key, attendances: value });
     });
     data = data.sort(function(a, b) {
