@@ -41,7 +41,7 @@ export const actions = {
 
 export const State = Record({
   classSchedules: List(),
-  fetchingClassSchedules: true,
+  fetchingClassSchedules: false,
   classBookings: List(),
   fetchingClassBookings: false,
   currentClassBookings: List(),

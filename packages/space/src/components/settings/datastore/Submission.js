@@ -292,7 +292,7 @@ function onLoadEmailTemplate() {
         '##CONTENT##',
         escapeJSON($("[name='Email Content']").val()),
       );
-      //      emailEditorRef.loadDesign(JSON.parse(template));
+      emailEditorRef.loadDesign(JSON.parse(template));
     }
   }, 1000);
 }

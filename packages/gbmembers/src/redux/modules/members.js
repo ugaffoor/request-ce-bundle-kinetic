@@ -163,6 +163,7 @@ export const State = Record({
   variationCustomers: [],
   variationCustomersLoading: true,
   billingCustomersLoading: false,
+  billingCustomers: [],
   inactiveCustomersCount: [],
   inactiveCustomersLoading: true,
   promotingMember: false,
@@ -315,7 +316,9 @@ export const reducer = (state = State(), { type, payload }) => {
       return state.set('billingCustomersLoading', true);
     }
     case types.SET_BILLING_CUSTOMERS: {
-      return state.set('billingCustomersLoading', false);
+      return state
+        .set('billingCustomersLoading', false)
+        .set('billingCustomers', payload);
     }
     case types.FETCH_INACTIVE_CUSTOMERS_COUNT: {
       return state.set('inactiveCustomersLoading', true);

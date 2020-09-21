@@ -1152,6 +1152,42 @@ export function getJson(input) {
   }
 }
 
+export function memberStatusInDates(member, fromDate, toDate) {
+  var history =
+    member.values['Status History'] !== undefined
+      ? getJson(member.values['Status History'])
+      : {};
+
+  if (history.length > 0) {
+    for (var i = history.length - 1; i >= 0; i--) {
+      if (moment(new Date(history[i]['date'])).isBetween(fromDate, toDate)) {
+        if (history[i]['status'] === 'Active') {
+          return 'Active';
+        } else if (history[i]['status'] === 'Inactive') {
+          return 'Inactive';
+        } else if (history[i]['status'] === 'Pending Cancellation') {
+          return 'Pending Cancellation';
+        } else if (
+          history[i]['status'] === 'Frozen' ||
+          history[i]['status'] === 'Suspended'
+        ) {
+          return 'Frozen';
+        } else if (
+          history[i]['status'] === 'Pending Freeze' ||
+          history[i]['status'] === 'Pending Suspension'
+        ) {
+          return 'Pending Freeze';
+        }
+      }
+    }
+    return member.values['Status'] === 'Inactive'
+      ? ''
+      : member.values['Status'];
+  } else {
+    return member.values['Status'];
+  }
+}
+
 export function setMemberPromotionValues(member, belts) {
   let statusIndicator = 'notready';
   let statusText = 'NOT READY';

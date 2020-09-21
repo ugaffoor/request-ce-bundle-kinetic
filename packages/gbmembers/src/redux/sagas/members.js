@@ -1458,15 +1458,21 @@ export function* fetchBillingCustomers(action) {
               '#### loadBillingCustomers INACTIVE # data = ' +
                 JSON.stringify(resultInactive.data.data),
             );
-            action.payload.createBillingMembers({
-              customers: resultActive.data.data.concat(
-                resultInactive.data.data,
-              ),
-              setBillingCustomers: action.payload.setBillingCustomers,
-              fetchMembers: action.payload.fetchMembers,
-              appSettings: appSettings,
-              allMembers: action.payload.allMembers,
-            });
+            if (action.payload.createBillingMembers !== undefined) {
+              action.payload.createBillingMembers({
+                customers: resultActive.data.data.concat(
+                  resultInactive.data.data,
+                ),
+                setBillingCustomers: action.payload.setBillingCustomers,
+                fetchMembers: action.payload.fetchMembers,
+                appSettings: appSettings,
+                allMembers: action.payload.allMembers,
+              });
+            } else if (action.payload.setBillingCustomers) {
+              action.payload.setBillingCustomers(
+                resultActive.data.data.concat(resultInactive.data.data),
+              );
+            }
           }
         })
         .catch(error => {

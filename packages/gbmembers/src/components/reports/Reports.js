@@ -10,10 +10,12 @@ import 'react-tabulator/lib/styles.css'; // default theme
 import 'react-tabulator/css/bootstrap/tabulator_bootstrap.min.css'; // use Theme(s)
 import { actions as appActions } from '../../redux/modules/memberApp';
 import { MemberActivityReport } from './MemberActivity';
+import { MemberFinancialStats } from './MemberFinancialStats';
 import { LeadsActivityReport } from './LeadActivity';
 import { PDDailyReport } from './PDDaily';
 import { InactiveCustomersChart } from './PaysmartInactiveCustomers';
 import { VariationCustomers } from './PaysmartVariations';
+import { PaysmartMemberDescrepencies } from './PaysmartMemberDescrepencies';
 import { FailedPayments } from './PaysmartFailedPayments';
 import { actions } from '../../redux/modules/members';
 import moment from 'moment';
@@ -42,6 +44,9 @@ const mapStateToProps = state => ({
   variationCustomersLoading: state.member.members.variationCustomersLoading,
   paymentHistory: state.member.members.paymentHistory,
   paymentHistoryLoading: state.member.members.paymentHistoryLoading,
+  space: state.member.app.space,
+  billingCustomersLoading: state.member.members.billingCustomersLoading,
+  billingCustomers: state.member.members.billingCustomers,
 });
 
 const mapDispatchToProps = {
@@ -56,6 +61,8 @@ const mapDispatchToProps = {
   setVariationCustomers: actions.setVariationCustomers,
   fetchPaymentHistory: actions.fetchPaymentHistory,
   setPaymentHistory: actions.setPaymentHistory,
+  fetchBillingCustomers: actions.fetchBillingCustomers,
+  setBillingCustomers: actions.setBillingCustomers,
 };
 
 export const ReportsView = ({
@@ -72,6 +79,8 @@ export const ReportsView = ({
   leadsByDateLoading,
   showMemberActivityReport,
   setShowMemberActivityReport,
+  showMemberFinancialStats,
+  setShowMemberFinancialStats,
   showLeadActivityReport,
   setShowLeadActivityReport,
   showPDDailyReport,
@@ -94,13 +103,20 @@ export const ReportsView = ({
   getVariationCustomers,
   showVariationsReport,
   setShowVariationsReport,
+  showDescrepenciesReport,
+  setShowDescrepenciesReport,
   paymentHistory,
   paymentHistoryLoading,
   showFailedPaymentsReport,
   setShowFailedPaymentsReport,
   getFailedPayments,
+  space,
+  billingCustomersLoading,
+  billingCustomers,
+  fetchBillingCustomers,
+  setBillingCustomers,
 }) => (
-  <div className="dashboard">
+  <div className="reports">
     <StatusMessagesContainer />
     <div style={{ margin: '10px' }}>
       <div className="row">
@@ -132,6 +148,32 @@ export const ReportsView = ({
         </div>
       )}
     </div>
+    {profile.username !== 'unus.gaffoor@kineticdata.com' ? (
+      <div />
+    ) : (
+      <div style={{ margin: '10px' }}>
+        <div className="row">
+          <button
+            type="button"
+            className="btn btn-primary report-btn-default"
+            onClick={e =>
+              setShowMemberFinancialStats(
+                showMemberFinancialStats ? false : true,
+              )
+            }
+          >
+            {showMemberFinancialStats
+              ? 'Hide Member Financial Statistics'
+              : 'Show Member Financial Statistics'}
+          </button>
+        </div>
+        {!showMemberFinancialStats ? null : (
+          <div className="row">
+            <MemberFinancialStats members={members} space={space} />
+          </div>
+        )}
+      </div>
+    )}
     <div style={{ margin: '20px 0px 0px 10px' }} id="leads-report">
       <div className="row">
         <button
@@ -243,6 +285,41 @@ export const ReportsView = ({
     {!Utils.isMemberOf(profile, 'Billing') ? (
       <div />
     ) : (
+      <div style={{ margin: '20px 0px 0px 10px' }} id="descrepencies-report">
+        <div className="row">
+          <button
+            type="button"
+            className="btn btn-primary report-btn-default"
+            onClick={e => {
+              setShowDescrepenciesReport(
+                showDescrepenciesReport ? false : true,
+              );
+              document.getElementById('descrepencies-report').scrollIntoView();
+            }}
+          >
+            {showDescrepenciesReport
+              ? 'Hide PaySmart Descrepencies Report'
+              : 'Show PaySmart Descrepencies Report'}
+          </button>
+        </div>
+        {!showDescrepenciesReport ? null : (
+          <div className="row">
+            <div>
+              <PaysmartMemberDescrepencies
+                members={members}
+                billingCustomersLoading={billingCustomersLoading}
+                billingCustomers={billingCustomers}
+                fetchBillingCustomers={fetchBillingCustomers}
+                setBillingCustomers={setBillingCustomers}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    )}
+    {!Utils.isMemberOf(profile, 'Billing') ? (
+      <div />
+    ) : (
       <div style={{ margin: '20px 0px 0px 10px' }} id="failed-report">
         <div className="row">
           <button
@@ -279,10 +356,12 @@ export const ReportsView = ({
 export const ReportsContainer = compose(
   connect(mapStateToProps, mapDispatchToProps),
   withState('showMemberActivityReport', 'setShowMemberActivityReport', false),
+  withState('showMemberFinancialStats', 'setShowMemberFinancialStats', false),
   withState('showLeadActivityReport', 'setShowLeadActivityReport', false),
   withState('showPDDailyReport', 'setShowPDDailyReport', false),
   withState('showInactiveChart', 'setShowInactiveChart', false),
   withState('showVariationsReport', 'setShowVariationsReport', false),
+  withState('showDescrepenciesReport', 'setShowDescrepenciesReport', false),
   withState('showFailedPaymentsReport', 'setShowFailedPaymentsReport', false),
   withHandlers({
     fetchLeads: ({ fetchLeads }) => () => {

@@ -28,7 +28,7 @@ export const actions = {
 
 export const State = Record({
   classAttendances: List(),
-  fetchingClassAttendances: true,
+  fetchingClassAttendances: false,
   memberAttendances: List(),
   fetchingMemberAttendances: true,
   newAttendance: {},

@@ -2,7 +2,71 @@
   width: 100%;
   margin-top: 12px;
 }
-
+.dashboard {
+  .page-header {
+    margin-top: 20px;
+  }
+}
+.memberFinanceStatistics {
+  margin: 0.5%;
+  max-width: 1153px;
+  clear: left;
+  .statItems {
+    display: block;
+    .statItem {
+      background-color: $gray2;
+      margin: 0.5%;
+      border-radius: 8px;
+      float: left;
+      height: 100px;
+      .info {
+        display: flex;
+        min-width: 180px;
+        height: 60px;
+        .label {
+          width: 40%;
+          color: #4d5059;
+          margin: 4px;
+          margin-left: 8px;
+        }
+        .value {
+          width: 60%;
+          text-align: center;
+          font-size: 36px;
+          line-height: 47px;
+          font-family: AdiHaus DIN Medium;
+          color: #4d5059;
+          cursor: pointer;
+        }
+      }
+      .dollarValue {
+        text-align: center;
+        font-size: 24px;
+      }
+      .value {
+        color: #4d5059;
+      }
+      .members {
+        position: absolute;
+        width: 600px;
+        top: 300px;
+        z-index: 100;
+        background-color: white;
+        left: calc(25%);
+        .closeMembers {
+          position: absolute;
+          z-index: 100;
+          margin-left: 8px;
+          margin-top: 2px;
+          cursor: pointer;
+        }
+        .closeMembers path {
+          fill: white !important;
+        }
+      }
+    }
+  }
+}
 .reportContent {
   width: 100%;
   .header {

@@ -6,13 +6,23 @@ import { GradingStatus } from './GradingStatus';
 import { PromotionReviewIcon } from './PromotionReviewIcon';
 import { withHandlers } from 'recompose';
 import { getProgramSVG, getBeltSVG } from '../Member/MemberUtils';
+import { actions as classActions } from '../../redux/modules/classes';
+import moment from 'moment';
+import { actions as attendanceActions } from '../../redux/modules/attendance';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
   programs: state.member.app.programs,
   belts: state.member.app.belts,
+  classSchedules: state.member.classes.classSchedules,
+  fetchingClassSchedules: state.member.classes.fetchingClassSchedules,
+  fetchingClassAttendances: state.member.attendance.fetchingClassAttendances,
+  classAttendances: state.member.attendance.classAttendances,
 });
-const mapDispatchToProps = {};
+const mapDispatchToProps = {
+  fetchClassSchedules: classActions.fetchClassSchedules,
+  fetchClassAttendances: attendanceActions.fetchClassAttendances,
+};
 
 export class GradingDetail extends Component {
   constructor(props) {
@@ -32,6 +42,8 @@ export class GradingDetail extends Component {
       isDirty,
       programsGroup,
       showPromotionReviewDialog: false,
+      classAttendances: undefined,
+      classSchedule: undefined,
     };
   }
   setIsDirty = dirty => {
@@ -50,6 +62,46 @@ export class GradingDetail extends Component {
     this.setState({
       showPromotionReviewDialog: show,
     });
+  }
+  componentWillReceiveProps(nextProps) {
+    if (
+      nextProps.classSchedules.size > 0 &&
+      this.state.classSchedule === undefined
+    ) {
+      let schedules = nextProps.classSchedules.filter(
+        schedule => moment(schedule.start).day() === moment().day(),
+      );
+      console.log(schedules);
+      let latest = undefined;
+      schedules.forEach(schedule => {
+        if (latest === undefined && moment(schedule.start).isBefore(moment())) {
+          latest = schedule;
+        } else if (
+          latest !== undefined &&
+          moment(schedule.start).isAfter(moment(latest.start)) &&
+          moment(schedule.start).isBefore(moment())
+        ) {
+          latest = schedule;
+        }
+      });
+      this.setState({
+        classSchedule: latest,
+      });
+      if (latest !== undefined) {
+        this.props.fetchClassAttendances({
+          classDate: latest.start,
+          className: latest.program,
+        });
+      }
+    }
+    if (
+      nextProps.classAttendances.length >= 0 &&
+      this.state.classAttendances === undefined
+    ) {
+      this.setState({
+        classAttendances: nextProps.classAttendances,
+      });
+    }
   }
   render() {
     return (
@@ -95,16 +147,62 @@ export class GradingDetail extends Component {
               </select>
               <div className="droparrow" />
             </div>
+            <div className="checkinFilter">
+              <label htmlFor="checkins">Show Latest Checkins</label>
+              <div class="checkboxFilter">
+                <input
+                  id="checkins"
+                  type="checkbox"
+                  value="1"
+                  onChange={e => {
+                    if (this.state.classSchedule === undefined) {
+                      this.props.fetchClassSchedules();
+                    }
+                    if (
+                      this.state.classSchedule !== undefined &&
+                      this.state.classAttendances !== undefined
+                    ) {
+                      this.setState({
+                        classAttendances: undefined,
+                      });
+                    }
+                    if (
+                      this.state.classSchedule !== undefined &&
+                      this.state.classAttendances === undefined
+                    ) {
+                      this.props.fetchClassAttendances({
+                        classDate: this.state.classSchedule.start,
+                        className: this.state.classSchedule.program,
+                      });
+                    }
+                  }}
+                />
+                <label for="checkins"></label>
+              </div>
+              {this.props.fetchingClassSchedules ||
+              this.props.fetchingClassAttendances ? (
+                <div className="loading">Loading Class Attendances....</div>
+              ) : (
+                <div />
+              )}
+            </div>
           </span>
         </div>
         <div className="membersGradingSection">
           <div className="memberGrading">
             {this.props.allMembers
-              .filter(
-                member =>
+              .filter(member => {
+                if (this.state.classAttendances !== undefined) {
+                  let attendee = this.state.classAttendances.find(
+                    att => att.values['Member GUID'] === member.id,
+                  );
+                  return attendee !== undefined ? true : false;
+                }
+                return (
                   member.values['Status'] !== 'Inactive' &&
-                  member.values['Status'] !== 'Frozen',
-              )
+                  member.values['Status'] !== 'Frozen'
+                );
+              })
               .sort(function(a, b) {
                 if (a.programOrder < b.programOrder) {
                   return -1;
@@ -206,8 +304,28 @@ export class GradingDetail extends Component {
   }
 }
 
-export const GradingView = ({ allMembers, programs, belts }) => (
-  <GradingDetail allMembers={allMembers} programs={programs} belts={belts} />
+export const GradingView = ({
+  allMembers,
+  programs,
+  belts,
+  fetchingClassSchedules,
+  fetchClassSchedules,
+  classSchedules,
+  fetchClassAttendances,
+  fetchingClassAttendances,
+  classAttendances,
+}) => (
+  <GradingDetail
+    allMembers={allMembers}
+    programs={programs}
+    belts={belts}
+    fetchingClassSchedules={fetchingClassSchedules}
+    fetchClassSchedules={fetchClassSchedules}
+    classSchedules={classSchedules}
+    fetchClassAttendances={fetchClassAttendances}
+    fetchingClassAttendances={fetchingClassAttendances}
+    classAttendances={classAttendances}
+  />
 );
 
 export const GradingContainer = compose(
