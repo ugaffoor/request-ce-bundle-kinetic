@@ -61,23 +61,32 @@ const mapDispatchToProps = {
 
 function getLatestHistory(history) {
   //console.log("# history = " + util.inspect(history));
-  let sortedHistory = getJson(history)
-    .slice()
-    .sort(function(a, b) {
-      if (
-        moment(a['contactDate'], contact_date_format).isBefore(
-          moment(b['contactDate'], contact_date_format),
-        )
+  let histJson = getJson(history);
+  if (
+    histJson.length > 0 &&
+    typeof histJson[0] === 'string' &&
+    histJson[0].indexOf('. User Comment:') !== -1
+  ) {
+    histJson[0] = histJson[0].replaceAll('[{', '{').replaceAll('}]', '}');
+    histJson[0] = getJson(histJson[0].replace(/\n/g, ' '));
+  }
+  let sortedHistory = histJson;
+  //  let sortedHistory = getJson(history)
+  sortedHistory.slice().sort(function(a, b) {
+    if (
+      moment(a['contactDate'], contact_date_format).isBefore(
+        moment(b['contactDate'], contact_date_format),
       )
-        return 1;
-      if (
-        moment(a['contactDate'], contact_date_format).isAfter(
-          moment(b['contactDate'], contact_date_format),
-        )
+    )
+      return 1;
+    if (
+      moment(a['contactDate'], contact_date_format).isAfter(
+        moment(b['contactDate'], contact_date_format),
       )
-        return -1;
-      return 0;
-    });
+    )
+      return -1;
+    return 0;
+  });
 
   return sortedHistory[0];
 }

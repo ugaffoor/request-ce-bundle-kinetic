@@ -8,6 +8,7 @@ import {
   withProps,
 } from 'recompose';
 import { actions } from '../../redux/modules/members';
+import { actions as leadActions } from '../../redux/modules/leads';
 import { KappNavLink as NavLink } from 'common';
 import { PhotoForm } from '../PhotoForm';
 import $ from 'jquery';
@@ -53,6 +54,7 @@ const mapDispatchToProps = {
   deleteMember: actions.deleteMember,
   fetchCurrentMember: actions.fetchCurrentMember,
   fetchMembers: actions.fetchMembers,
+  updateLead: leadActions.updateLead,
 };
 
 export function getJson(input) {
@@ -158,6 +160,7 @@ export const MemberEdit = ({
   saveMember,
   allMembers,
   updateMember,
+  updateLead,
   fetchMembers,
   deleteMemberCall,
   deleteMember,
@@ -464,6 +467,27 @@ export const MemberEdit = ({
                       handleChange(
                         memberItem,
                         'Lead Submission ID',
+                        e,
+                        setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+                <div>
+                  <label htmlFor="statusHistory">
+                    Status History
+                  </label>
+                  <input
+                    type="text"
+                    name="statusHistory"
+                    id="statusHistory"
+                    size="50"
+                    ref={input => (this.input = input)}
+                    defaultValue={memberItem.values['Status History']}
+                    onChange={e =>
+                      handleChange(
+                        memberItem,
+                        'Status History',
                         e,
                         setIsDirty,
                       )
@@ -1199,7 +1223,12 @@ export const MemberEdit = ({
               <span className="leftButtons">
                 <Confirm
                   onConfirm={e =>
-                    deleteMemberCall(memberItem, deleteMember, fetchMembers)
+                    deleteMemberCall(
+                      memberItem,
+                      deleteMember,
+                      fetchMembers,
+                      updateLead,
+                    )
                   }
                   body="Are you sure you want to delete this member?"
                   confirmText="Confirm Delete"
@@ -1277,13 +1306,33 @@ export const MemberEditContainer = compose(
   withState('showSetStatusModal', 'setShowSetStatusModal', false),
   withState('editUserName', 'setEditUserName', false),
   withHandlers({
-    deleteMemberCall: ({ memberItem, deleteMember, fetchMembers }) => () => {
+    deleteMemberCall: ({
+      memberItem,
+      deleteMember,
+      fetchMembers,
+      updateLead,
+    }) => () => {
+      let convertedLead = memberItem.values['Lead Submission ID'];
       deleteMember({
         memberItem,
         history: memberItem.history,
         fetchMembers: fetchMembers,
       });
       console.log('delete member:' + memberItem.username);
+      let values = {};
+      values['Converted Member ID'] = null;
+      values['Status'] = 'Open';
+      values['Lead State'] = 'Open';
+
+      let leadItem = {
+        values: values,
+      };
+      if (convertedLead !== undefined && convertedLead !== null) {
+        updateLead({
+          id: convertedLead,
+          leadItem: leadItem,
+        });
+      }
     },
     saveMember: ({
       memberItem,

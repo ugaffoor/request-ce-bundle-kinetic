@@ -227,7 +227,18 @@ export class LeadDetail extends Component {
   }
 
   getData(leadItem) {
-    let histories = getJson(leadItem.values['History']).map(history => {
+    //    let histJson=getJson(leadItem.values['History']!==undefined ? leadItem.values['History'].replace(/\n/g, " ") : "");
+    let histJson = getJson(leadItem.values['History']);
+    if (
+      histJson.length > 0 &&
+      typeof histJson[0] === 'string' &&
+      histJson[0].indexOf('. User Comment:') !== -1
+    ) {
+      //      histJson[0]=histJson[0].replace("User Comment:", "\",\"User Comment\":\"").replaceAll("[{","{").replaceAll("}]","}");
+      histJson[0] = histJson[0].replaceAll('[{', '{').replaceAll('}]', '}');
+      histJson[0] = getJson(histJson[0].replace(/\n/g, ' '));
+    }
+    let histories = histJson.map(history => {
       return {
         ...history,
       };

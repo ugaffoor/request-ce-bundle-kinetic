@@ -15,7 +15,10 @@ import { LeadsActivityReport } from './LeadActivity';
 import { PDDailyReport } from './PDDaily';
 import { InactiveCustomersChart } from './PaysmartInactiveCustomers';
 import { VariationCustomers } from './PaysmartVariations';
+import { MemberBirthdays } from './MemberBirthdays';
+import { MemberLastAttendance } from './MemberLastAttendance';
 import { PaysmartMemberDescrepencies } from './PaysmartMemberDescrepencies';
+import { InactiveMembersNoHistory } from './InactiveMembersNoHistory';
 import { FailedPayments } from './PaysmartFailedPayments';
 import { actions } from '../../redux/modules/members';
 import moment from 'moment';
@@ -81,6 +84,10 @@ export const ReportsView = ({
   setShowMemberActivityReport,
   showMemberFinancialStats,
   setShowMemberFinancialStats,
+  showBirthdaysReport,
+  setBirthdaysReport,
+  showLastAttendance,
+  setShowLastAttendance,
   showLeadActivityReport,
   setShowLeadActivityReport,
   showPDDailyReport,
@@ -88,6 +95,8 @@ export const ReportsView = ({
   updatePreferences,
   showInactiveChart,
   setShowInactiveChart,
+  setShowInactiveMembers,
+  showInactiveMembers,
   reportPreferences,
   memberStatusValues,
   leadStatusValues,
@@ -148,6 +157,46 @@ export const ReportsView = ({
         </div>
       )}
     </div>
+    <div style={{ margin: '20px 0px 0px 10px' }} id="birthdays-report">
+      <div className="row">
+        <button
+          type="button"
+          className="btn btn-primary report-btn-default"
+          onClick={e => {
+            setBirthdaysReport(showBirthdaysReport ? false : true);
+          }}
+        >
+          {showBirthdaysReport ? 'Hide Birthdays Due' : 'Show Birthdays Due'}
+        </button>
+      </div>
+      {!showBirthdaysReport ? null : (
+        <div className="row">
+          <div className="birthdaysReport">
+            <MemberBirthdays allMembers={members} />
+          </div>
+        </div>
+      )}
+    </div>
+    <div style={{ margin: '20px 0px 0px 10px' }} id="attendance-report">
+      <div className="row">
+        <button
+          type="button"
+          className="btn btn-primary report-btn-default"
+          onClick={e => {
+            setShowLastAttendance(showLastAttendance ? false : true);
+          }}
+        >
+          {showLastAttendance ? 'Hide Last Attendance' : 'Show Last Attendance'}
+        </button>
+      </div>
+      {!showLastAttendance ? null : (
+        <div className="row">
+          <div className="attendanceReport">
+            <MemberLastAttendance allMembers={members} />
+          </div>
+        </div>
+      )}
+    </div>
     {profile.username !== 'unus.gaffoor@kineticdata.com' ? (
       <div />
     ) : (
@@ -170,6 +219,30 @@ export const ReportsView = ({
         {!showMemberFinancialStats ? null : (
           <div className="row">
             <MemberFinancialStats members={members} space={space} />
+          </div>
+        )}
+      </div>
+    )}
+    {profile.username !== 'unus.gaffoor@kineticdata.com' ? (
+      <div />
+    ) : (
+      <div style={{ margin: '10px' }}>
+        <div className="row">
+          <button
+            type="button"
+            className="btn btn-primary report-btn-default"
+            onClick={e =>
+              setShowInactiveMembers(showInactiveMembers ? false : true)
+            }
+          >
+            {showInactiveMembers
+              ? 'Hide Inactive Member with No History'
+              : 'Show Inactive Member with No History'}
+          </button>
+        </div>
+        {!showInactiveMembers ? null : (
+          <div className="row">
+            <InactiveMembersNoHistory members={members} space={space} />
           </div>
         )}
       </div>
@@ -356,7 +429,10 @@ export const ReportsView = ({
 export const ReportsContainer = compose(
   connect(mapStateToProps, mapDispatchToProps),
   withState('showMemberActivityReport', 'setShowMemberActivityReport', false),
+  withState('showBirthdaysReport', 'setBirthdaysReport', false),
+  withState('showLastAttendance', 'setShowLastAttendance', false),
   withState('showMemberFinancialStats', 'setShowMemberFinancialStats', false),
+  withState('showInactiveMembers', 'setShowInactiveMembers', false),
   withState('showLeadActivityReport', 'setShowLeadActivityReport', false),
   withState('showPDDailyReport', 'setShowPDDailyReport', false),
   withState('showInactiveChart', 'setShowInactiveChart', false),

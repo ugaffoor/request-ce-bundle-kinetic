@@ -149,7 +149,7 @@ export class GradingDetail extends Component {
             </div>
             <div className="checkinFilter">
               <label htmlFor="checkins">Show Latest Checkins</label>
-              <div class="checkboxFilter">
+              <div className="checkboxFilter">
                 <input
                   id="checkins"
                   type="checkbox"

@@ -205,9 +205,31 @@
       text-transform: uppercase;
       font-family: AdiHaus DIN Medium;
       font-size: 18px;
+      float: left;
+    }
+    .lctView {
+      float: left;
+      margin-left: 40px;
+      label {
+        float: left;
+      }
+      .checkboxFilter {
+        clear: none;
+        float: left;
+        margin-left: 10px;
+      }
+    }
+    .help {
+      margin-left: 10px;
+      cursor: pointer;
+    }
+    .lctModeHelp {
+      display: none;
+      float: left;
     }
     .statItems {
       display: block;
+      clear: left;
       .statItem {
         background-color: #4d5059;
         margin: 0.5%;
@@ -239,13 +261,14 @@
           .bar {
             height: 14px;
             margin: 5px;
-            width: 90%;
+            width: 75%;
             background-color: white;
             position: relative;
             .percent {
               background-color: #2ac940;
               height: 100%;
               position: absolute;
+              max-width: 100%;
             }
             .percent50 {
               background-color: #fa9917;

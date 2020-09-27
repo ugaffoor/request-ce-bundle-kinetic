@@ -1,12 +1,13 @@
 import React, { Component } from 'react';
 import ReactSpinner from 'react16-spinjs';
 import moment from 'moment';
-import { getJson } from '../Member/MemberUtils';
+import { getJson, memberStatusInDates } from '../Member/MemberUtils';
 import $ from 'jquery';
 import ReactTable from 'react-table';
 import { KappNavLink as NavLink } from 'common';
 import crossIcon from '../../images/cross.svg?raw';
 import SVGInline from 'react-svg-inline';
+import helpIcon from '../../images/help.svg?raw';
 
 export class Statistics extends Component {
   handleClose = () => {
@@ -32,7 +33,7 @@ export class Statistics extends Component {
     let toDate = this.props.toDate;
 
     let leads = this.props.leadsByDate;
-    let leadData = this.getData(leads, fromDate, toDate);
+    let leadData = this.getData(leads, fromDate, toDate, false);
     let memberData = this.getMemberData(
       this.props.allMembers,
       fromDate,
@@ -45,6 +46,7 @@ export class Statistics extends Component {
       memberData,
       fromDate,
       toDate,
+      LCTViewSwitch: false,
       showNewLeads: false,
       showScheduledLeads: false,
       showIntroLeads: false,
@@ -58,7 +60,12 @@ export class Statistics extends Component {
 
   componentWillReceiveProps(nextProps) {
     let leads = nextProps.leadsByDate;
-    let leadData = this.getData(leads, this.state.fromDate, this.state.toDate);
+    let leadData = this.getData(
+      leads,
+      this.state.fromDate,
+      this.state.toDate,
+      this.state.LCTViewSwitch,
+    );
     let memberData = this.getMemberData(
       nextProps.allMembers,
       this.state.fromDate,
@@ -78,7 +85,7 @@ export class Statistics extends Component {
     }*/
   }
 
-  getData(leads, fromDate, toDate) {
+  getData(leads, fromDate, toDate, LCTViewSwitch) {
     if (!leads || leads.length <= 0) {
       return {
         leadsTotal: [],
@@ -92,11 +99,52 @@ export class Statistics extends Component {
     let introsTotal = [];
     let attendedTotal = [];
     let convertedTotal = [];
-    leads.forEach(lead => {
-      if (moment(lead['createdAt']).isBetween(fromDate, toDate)) {
-        leadsTotal[leadsTotal.length] = lead;
-        //      }
-        //      if (moment(lead['updatedAt']).isBetween(fromDate, toDate)) {
+    if (LCTViewSwitch) {
+      leads.forEach(lead => {
+        if (moment(lead['createdAt']).isBetween(fromDate, toDate)) {
+          leadsTotal[leadsTotal.length] = lead;
+          //      }
+          //      if (moment(lead['updatedAt']).isBetween(fromDate, toDate)) {
+          var history =
+            lead.values['History'] !== undefined
+              ? getJson(lead.values['History'])
+              : {};
+          for (var i = 0; i < history.length; i++) {
+            if (
+              moment(history[i]['contactDate'], 'YYYY-MM-DD HH:mm').isBetween(
+                fromDate,
+                toDate,
+              ) &&
+              history[i]['contactMethod'] === 'intro_class'
+            ) {
+              introsTotal[introsTotal.length] = lead;
+            }
+          }
+          for (i = 0; i < history.length; i++) {
+            if (
+              moment(history[i]['contactDate'], 'YYYY-MM-DD HH:mm').isBetween(
+                fromDate,
+                toDate,
+              ) &&
+              history[i]['contactMethod'] === 'attended_class'
+            ) {
+              attendedTotal[attendedTotal.length] = lead;
+            }
+          }
+          if (
+            moment(lead['updatedAt']).isBetween(fromDate, toDate) &&
+            lead.values['Lead State'] === 'Converted'
+          ) {
+            convertedTotal[convertedTotal.length] = lead;
+          }
+        }
+      });
+    } else {
+      leads.forEach(lead => {
+        if (moment(lead['createdAt']).isBetween(fromDate, toDate)) {
+          leadsTotal[leadsTotal.length] = lead;
+        }
+        //        if (moment(lead['updatedAt']).isBetween(fromDate, toDate)) {
         var history =
           lead.values['History'] !== undefined
             ? getJson(lead.values['History'])
@@ -129,8 +177,9 @@ export class Statistics extends Component {
         ) {
           convertedTotal[convertedTotal.length] = lead;
         }
-      }
-    });
+        //        }
+      });
+    }
 
     return {
       leadsTotal: leadsTotal,
@@ -154,39 +203,22 @@ export class Statistics extends Component {
     let frozen = [];
     let pendingFrozen = [];
     members.forEach(member => {
-      var history =
-        member.values['Status History'] !== undefined
-          ? getJson(member.values['Status History'])
-          : {};
+      let memberStatus = memberStatusInDates(member, fromDate, toDate);
 
-      if (history.length > 0) {
-        if (
-          moment(new Date(history[history.length - 1]['date'])).isBetween(
-            fromDate,
-            toDate,
-          )
-        ) {
-          if (history[history.length - 1]['status'] === 'Inactive') {
-            cancellations[cancellations.length] = member;
-          }
-          if (
-            history[history.length - 1]['status'] === 'Pending Cancellation'
-          ) {
-            pendingCancellations[pendingCancellations.length] = member;
-          }
-          if (
-            history[history.length - 1]['status'] === 'Frozen' ||
-            history[history.length - 1]['status'] === 'Suspended'
-          ) {
-            frozen[frozen.length] = member;
-          }
-          if (
-            history[history.length - 1]['status'] === 'Pending Freeze' ||
-            history[history.length - 1]['status'] === 'Pending Suspension'
-          ) {
-            pendingFrozen[pendingFrozen.length] = member;
-          }
-        }
+      if (memberStatus === 'Inactive') {
+        cancellations[cancellations.length] = member;
+      }
+      if (memberStatus === 'Pending Cancellation') {
+        pendingCancellations[pendingCancellations.length] = member;
+      }
+      if (memberStatus === 'Frozen' || memberStatus === 'Suspended') {
+        frozen[frozen.length] = member;
+      }
+      if (
+        memberStatus === 'Pending Freeze' ||
+        memberStatus === 'Pending Suspension'
+      ) {
+        pendingFrozen[pendingFrozen.length] = member;
       }
     });
 
@@ -215,6 +247,7 @@ export class Statistics extends Component {
           this.state.leads,
           this.state.fromDate.hour(0).minute(0),
           this.state.toDate.hour(23).minute(59),
+          this.state.LCTViewSwitch,
         ),
         memberData: this.getMemberData(
           this.state.allMembers,
@@ -238,7 +271,12 @@ export class Statistics extends Component {
       let toDate = moment()
         .hour(23)
         .minute(59);
-      let data = this.getData(this.state.leads, fromDate, toDate);
+      let data = this.getData(
+        this.state.leads,
+        fromDate,
+        toDate,
+        this.state.LCTViewSwitch,
+      );
       let memberData = this.getMemberData(
         this.state.allMembers,
         fromDate,
@@ -262,7 +300,12 @@ export class Statistics extends Component {
       let toDate = moment()
         .hour(23)
         .minute(59);
-      let data = this.getData(this.state.leads, fromDate, toDate);
+      let data = this.getData(
+        this.state.leads,
+        fromDate,
+        toDate,
+        this.state.LCTViewSwitch,
+      );
       let memberData = this.getMemberData(
         this.state.allMembers,
         fromDate,
@@ -286,7 +329,12 @@ export class Statistics extends Component {
       let toDate = moment()
         .hour(23)
         .minute(59);
-      let data = this.getData(this.state.leads, fromDate, toDate);
+      let data = this.getData(
+        this.state.leads,
+        fromDate,
+        toDate,
+        this.state.LCTViewSwitch,
+      );
       let memberData = this.getMemberData(
         this.state.allMembers,
         fromDate,
@@ -310,7 +358,12 @@ export class Statistics extends Component {
       let toDate = moment()
         .hour(23)
         .minute(59);
-      let data = this.getData(this.state.leads, fromDate, toDate);
+      let data = this.getData(
+        this.state.leads,
+        fromDate,
+        toDate,
+        this.state.LCTViewSwitch,
+      );
       let memberData = this.getMemberData(
         this.state.allMembers,
         fromDate,
@@ -765,6 +818,48 @@ export class Statistics extends Component {
         </div>
         <div className="leadStatistics">
           <div className="statisticsHeader">Lead Conversion Tracker</div>
+          <div className="lctView">
+            <label htmlFor="lctMode">Switch LCT</label>
+            <div className="checkboxFilter">
+              <input
+                id="lctMode"
+                type="checkbox"
+                value="1"
+                onChange={e => {
+                  this.setState({
+                    LCTViewSwitch: !this.state.LCTViewSwitch,
+                    leadData: this.getData(
+                      this.state.leads,
+                      this.state.fromDate.hour(0).minute(0),
+                      this.state.toDate.hour(23).minute(59),
+                      !this.state.LCTViewSwitch,
+                    ),
+                  });
+                }}
+              />
+              <label for="lctMode"></label>
+            </div>
+            {}
+          </div>
+          <SVGInline
+            svg={helpIcon}
+            className="icon help"
+            onClick={e => {
+              $('.lctModeHelp').toggle('');
+            }}
+          />
+          <span className="lctModeHelp">
+            <ul>
+              <li>
+                No - Displays all Leads created in the period, and all Lead
+                events created in the period for any Lead.
+              </li>
+              <li>
+                Yes - Displays all Leads created in the period, but only Lead
+                events created in the period for Leads created in the period.
+              </li>
+            </ul>
+          </span>
           <div className="statItems">
             <div className="statItem">
               <div className="info">

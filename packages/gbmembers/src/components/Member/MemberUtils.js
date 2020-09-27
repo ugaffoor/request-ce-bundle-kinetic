@@ -1184,7 +1184,10 @@ export function memberStatusInDates(member, fromDate, toDate) {
       ? ''
       : member.values['Status'];
   } else {
-    return member.values['Status'];
+    return member.values['Status'] === 'Inactive' &&
+      !moment(member.updatedAt).isBetween(fromDate, toDate)
+      ? ''
+      : member.values['Status'];
   }
 }
 

@@ -74,13 +74,24 @@ export class SetStatusModal extends Component {
               </button>
               <table className="statusHistory">
                 <tbody>
-                  {this.statusHistory.map(history => (
-                    <tr>
-                      <td>{history.status}</td>
-                      <td>{moment(history.date).format('L LT')}</td>
-                      <td>{history.submitter}</td>
-                    </tr>
-                  ))}
+                  {this.statusHistory
+                    .sort(function(a, b) {
+                      let aDt = moment(a.date);
+                      let bDt = moment(b.date);
+                      if (aDt.isBefore(bDt)) {
+                        return 1;
+                      } else if (aDt.isAfter(bDt)) {
+                        return -1;
+                      }
+                      return 0;
+                    })
+                    .map(history => (
+                      <tr>
+                        <td>{history.status}</td>
+                        <td>{moment(history.date).format('L LT')}</td>
+                        <td>{history.submitter}</td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>
@@ -91,10 +102,5 @@ export class SetStatusModal extends Component {
   }
 }
 
-const enhance = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
-);
+const enhance = compose(connect(mapStateToProps, mapDispatchToProps));
 export const SetStatusModalContainer = enhance(SetStatusModal);
