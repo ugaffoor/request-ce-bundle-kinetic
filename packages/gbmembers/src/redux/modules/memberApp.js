@@ -52,6 +52,7 @@ export const State = Record({
   billingCompany: '',
   isSmsEnabled: false,
   leadStatusValues: '',
+  leadSourceValues: '',
   memberStatusValues: '',
   ddrTemplates: List(),
   allTeams: List(),
@@ -129,6 +130,7 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('billingCompany', payload.billingCompany)
         .set('isSmsEnabled', payload.isSmsEnabled === 'true' ? true : false)
         .set('leadStatusValues', payload.leadStatusValues.split(','))
+        .set('leadSourceValues', payload.leadSourceValues.split(','))
         .set('memberStatusValues', payload.memberStatusValues.split(','))
         .set('billingCompany', payload.billingCompany)
         .set(

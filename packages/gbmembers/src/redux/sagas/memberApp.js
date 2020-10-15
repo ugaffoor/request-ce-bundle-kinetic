@@ -309,6 +309,12 @@ export function* fetchMemberAppSettingsTask() {
       kapp,
       space,
     )[0],
+    leadSourceValues: getAttributeValue(
+      'Lead Source Values',
+      '',
+      kapp,
+      space,
+    )[0],
     memberStatusValues: getAttributeValue(
       'Member Status Values',
       '',

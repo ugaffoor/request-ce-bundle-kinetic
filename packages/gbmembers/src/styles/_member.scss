@@ -754,7 +754,6 @@
 
 .memberBillingDetails {
   background-color: white;
-  height: 2000px;
   #registeriFrame {
     height: 1800px;
     border: 0;
@@ -787,6 +786,7 @@
     .section1,
     .section2 {
       width: 100%;
+      float: unset;
     }
     .section1 button.active {
       background-color: #97de2a;

@@ -4,7 +4,7 @@ import ReactTable from 'react-table';
 export class VariationCustomers extends Component {
   constructor(props) {
     super(props);
-    let data = this.getData(this.props.variationCustomers);
+    let data = this.getData(this.props.variationCustomers, this.props.members);
     let columns = this.getColumns();
     this.state = {
       data,
@@ -15,7 +15,7 @@ export class VariationCustomers extends Component {
   componentWillReceiveProps(nextProps) {
     if (nextProps.variationCustomers) {
       this.setState({
-        data: this.getData(nextProps.variationCustomers),
+        data: this.getData(nextProps.variationCustomers, this.props.members),
       });
     }
   }
@@ -24,29 +24,47 @@ export class VariationCustomers extends Component {
     this.props.getVariationCustomers();
   }
 
-  getData(variationCustomers) {
+  getData(variationCustomers, members) {
     if (!variationCustomers || variationCustomers.length <= 0) {
       return [];
     }
 
-    const data = variationCustomers.map(variationCustomer => {
-      return {
-        _id: variationCustomer.customerId,
-        firstName: variationCustomer.firstName,
-        lastName: variationCustomer.lastName,
-        customerId: variationCustomer.customerId,
-        variationAmount: variationCustomer.variationAmount,
-        startDate: variationCustomer.startDate,
-        resumeDate: variationCustomer.resumeDate,
-      };
-    });
+    const data = variationCustomers
+      .filter(customer => {
+        return (
+          members.findIndex(
+            member =>
+              (member.values['Status'] === 'Active' ||
+                member.values['Status'] === 'Pending Freeze' ||
+                member.values['Status'] === 'Pending Cancellation') &&
+              member.values['Billing Customer Id'] === customer.customerId,
+          ) !== -1
+        );
+      })
+      .map(variationCustomer => {
+        let member =
+          members[
+            members.findIndex(
+              member =>
+                member.values['Billing Customer Id'] ===
+                variationCustomer.customerId,
+            )
+          ];
+        return {
+          _id: variationCustomer.customerId,
+          name: member.values['First Name'] + ' ' + member.values['Last Name'],
+          customerId: variationCustomer.customerId,
+          variationAmount: variationCustomer.variationAmount,
+          startDate: variationCustomer.startDate,
+          resumeDate: variationCustomer.resumeDate,
+        };
+      });
     return data;
   }
 
   getColumns(data) {
     const columns = [
-      { accessor: 'firstName', Header: 'First Name' },
-      { accessor: 'lastName', Header: 'Last Name' },
+      { accessor: 'name', Header: 'Name' },
       { accessor: 'customerId', Header: 'Customer Id' },
       {
         accessor: 'variationAmount',
@@ -54,7 +72,13 @@ export class VariationCustomers extends Component {
         Cell: props => '$' + props.value,
       },
       { accessor: 'startDate', Header: 'Start Date' },
-      { accessor: 'resumeDate', Header: 'Resume Date' },
+      {
+        accessor: 'resumeDate',
+        Header: 'Resume Date',
+        Cell: props => {
+          return props.value === '03-01-0001' ? 'UFN' : props.value;
+        },
+      },
     ];
     return columns;
   }

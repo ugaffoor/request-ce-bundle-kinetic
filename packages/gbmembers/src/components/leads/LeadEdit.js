@@ -36,6 +36,7 @@ const mapStateToProps = state => ({
   members: state.member.members.allMembers,
   leads: state.member.leads.allLeads,
   profile: state.member.kinops.profile,
+  leadSourceValues: state.member.app.leadSourceValues,
 });
 const mapDispatchToProps = {
   fetchLead: actions.fetchCurrentLead,
@@ -224,27 +225,9 @@ export class LeadEdit extends Component {
                     }
                   >
                     <option value="" />
-                    <option value="Brochure">Brochure</option>
-                    <option value="Facebook">Facebook</option>
-                    <option value="Facebook Ad">Facebook Ad</option>
-                    <option value="Family">Family</option>
-                    <option value="Google+">Google+</option>
-                    <option value="Google Ad">Google Ad</option>
-                    <option value="Instagram">Instagram</option>
-                    <option value="Instagram Ad">Instagram Ad</option>
-                    <option value="Leaflet">Leaflet</option>
-                    <option value="Linkedin">Linkedin</option>
-                    <option value="Magazine">Magazine</option>
-                    <option value="Newspaper">Newspaper</option>
-                    <option value="Phone Call">Phone Call</option>
-                    <option value="Poster">Poster</option>
-                    <option value="Signage">Signage</option>
-                    <option value="Television">Television</option>
-                    <option value="Twitter">Twitter</option>
-                    <option value="Website">Website</option>
-                    <option value="Word of Mouth">Word of Mouth</option>
-                    <option value="Walk-In">Walk-In</option>
-                    <option value="Other Advertising">Other Advertising</option>
+                    {this.props.leadSourceValues.map((value, index) => {
+                      return <option value={value}>{value}</option>;
+                    })}
                   </select>
                   <div className="droparrow" />
                 </div>
@@ -1009,6 +992,7 @@ export const LeadEditView = ({
   saveLead,
   members,
   leads,
+  leadSourceValues,
   fetchLeads,
   removeLead,
   programs,
@@ -1023,6 +1007,7 @@ export const LeadEditView = ({
     <LeadEdit
       leadItem={leadItem}
       leads={leads}
+      leadSourceValues={leadSourceValues}
       members={members}
       saveLead={saveLead}
       programs={programs}

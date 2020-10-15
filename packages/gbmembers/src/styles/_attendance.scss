@@ -696,6 +696,9 @@
   .memberInfo {
     padding-left: 6px;
     float: left;
+    .waiverIncomplete {
+      color: red;
+    }
     .grading {
       float: left;
       clear: left;

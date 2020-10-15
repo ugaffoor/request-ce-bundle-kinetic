@@ -772,6 +772,23 @@ export const MemberNew = ({
                 <div className="droparrow" />
               </div>
             </span>
+            <span className="line">
+              <div>
+                <label htmlFor="covid19">Covid19 Waiver Agreement</label>
+                <select
+                  name="covid19"
+                  id="covid19"
+                  ref={input => (this.input = input)}
+                  defaultValue={memberItem.values['Covid19 Waiver']}
+                  onChange={e => handleChange(memberItem, 'Covid19 Waiver', e)}
+                >
+                  <option value="" />
+                  <option value="Agreed">Agreed</option>
+                  <option value="NOT Agreed">NOT Agreed</option>
+                </select>
+                <div className="droparrow" />
+              </div>
+            </span>
           </div>
           <div className="section4">
             <span className="line">
@@ -970,6 +987,8 @@ export const MemberNewContainer = compose(
           'Phone Number',
           'phonenumber',
         );
+        $('#covid19').val(nextProps.leadItem.values['GB Waiver']);
+        handleDynamicChange(nextProps.memberItem, 'Covid19 Waiver', 'covid19');
       }
     },
     componentWillUnmount() {},

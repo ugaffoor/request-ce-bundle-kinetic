@@ -591,6 +591,20 @@ export class AttendanceDetail extends Component {
                       Checkin Member
                     </button>
                   </div>
+                  {this.state.memberItem.values['Covid19 Waiver'] === null ||
+                  this.state.memberItem.values['Covid19 Waiver'] ===
+                    undefined ||
+                  this.state.memberItem.values['Covid19 Waiver'] === '' ? (
+                    <div className="waiverIncomplete">Waiver Required</div>
+                  ) : (
+                    <div />
+                  )}
+                  {this.state.memberItem.values['Covid19 Waiver'] ===
+                  'NOT Agreed' ? (
+                    <div className="waiverIncomplete">Waiver NOT Agreed</div>
+                  ) : (
+                    <div />
+                  )}
                 </div>
               )}
               <GradingStatus

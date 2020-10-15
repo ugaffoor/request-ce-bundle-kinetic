@@ -153,6 +153,7 @@ export class LeadsActivityReport extends Component {
     this.filterValueOptions = {
       gender: ['Male', 'Female'],
       status: this.props.leadStatusValues,
+      source: this.props.leadSourceValues,
     };
     this.filterIds = {};
 

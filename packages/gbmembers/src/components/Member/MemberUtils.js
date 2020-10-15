@@ -1187,7 +1187,21 @@ export function memberStatusInDates(member, fromDate, toDate) {
     return member.values['Status'] === 'Inactive' &&
       !moment(member.updatedAt).isBetween(fromDate, toDate)
       ? ''
+      : moment(member.createdAt).isAfter(toDate)
+      ? ''
       : member.values['Status'];
+  }
+}
+export function memberPreviousStatus(member) {
+  var history =
+    member.values['Status History'] !== undefined
+      ? getJson(member.values['Status History'])
+      : {};
+
+  if (history.length > 0) {
+    return history[history.length - 1]['status'];
+  } else {
+    return '';
   }
 }
 

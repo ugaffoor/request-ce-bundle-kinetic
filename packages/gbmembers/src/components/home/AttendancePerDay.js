@@ -349,13 +349,22 @@ export class AttendancePerDay extends Component {
     }
     return members_col;
   }
+  matchesSchedule(schedule, attendanceProgram) {
+    if (schedule.allowedPrograms === undefined) return false;
+    let programs = JSON.parse(schedule.allowedPrograms);
+    let idx = programs.findIndex(
+      element => element.value === attendanceProgram,
+    );
+    if (idx !== -1) return true;
+    else return false;
+  }
   getClassSchedule(classSchedules, attendance) {
     let classSchedule = classSchedules.find(schedule => {
       return (
         moment(schedule.start).day() ===
           moment(attendance.classDate, 'YYYY-MM-DD').day() &&
         moment(schedule.start).format('HH:mm') === attendance.classTime &&
-        schedule.program === attendance.class
+        this.matchesSchedule(schedule, attendance.program)
       );
     });
     return classSchedule !== undefined ? classSchedule : undefined;

@@ -18,7 +18,11 @@ import download from '../../images/download.png';
 import sort1 from '../../images/sort1.png';
 import sort2 from '../../images/sort2.png';
 import attentionRequired from '../../images/flag.svg?raw';
-import { contact_date_format, reminder_date_format } from './LeadsUtils';
+import {
+  contact_date_format,
+  reminder_date_format,
+  gmt_format,
+} from './LeadsUtils';
 import ReactTable from 'react-table';
 import { StatusMessagesContainer } from '../StatusMessages';
 import {
@@ -67,24 +71,32 @@ function getLatestHistory(history) {
     typeof histJson[0] === 'string' &&
     histJson[0].indexOf('. User Comment:') !== -1
   ) {
-    histJson[0] = histJson[0].replaceAll('[{', '{').replaceAll('}]', '}');
+    histJson[0] = histJson[0].replace('[{', '{').replace('}]', '}');
     histJson[0] = getJson(histJson[0].replace(/\n/g, ' '));
   }
   let sortedHistory = histJson;
   //  let sortedHistory = getJson(history)
-  sortedHistory.slice().sort(function(a, b) {
+  sortedHistory.sort(function(a, b) {
     if (
-      moment(a['contactDate'], contact_date_format).isBefore(
-        moment(b['contactDate'], contact_date_format),
+      moment(a['contactDate'], [
+        'YYYY-MM-DD HH:mm',
+        'YYYY-MM-DDTHH:mm:ss',
+      ]).isBefore(
+        moment(b['contactDate'], ['YYYY-MM-DD HH:mm', 'YYYY-MM-DDTHH:mm:ss']),
       )
-    )
+    ) {
       return 1;
+    }
     if (
-      moment(a['contactDate'], contact_date_format).isAfter(
-        moment(b['contactDate'], contact_date_format),
+      moment(a['contactDate'], [
+        'YYYY-MM-DD HH:mm',
+        'YYYY-MM-DDTHH:mm:ss',
+      ]).isAfter(
+        moment(b['contactDate'], ['YYYY-MM-DD HH:mm', 'YYYY-MM-DDTHH:mm:ss']),
       )
-    )
+    ) {
       return -1;
+    }
     return 0;
   });
 

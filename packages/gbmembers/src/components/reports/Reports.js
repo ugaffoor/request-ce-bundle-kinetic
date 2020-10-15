@@ -37,6 +37,7 @@ const mapStateToProps = state => ({
   reportPreferences: state.member.app.reportPreferences,
   memberStatusValues: state.member.app.memberStatusValues,
   leadStatusValues: state.member.app.leadStatusValues,
+  leadSourceValues: state.member.app.leadSourceValues,
   programs: state.member.app.programs,
   additionalPrograms: state.member.app.additionalPrograms,
   belts: state.member.app.belts,
@@ -45,6 +46,8 @@ const mapStateToProps = state => ({
   inactiveCustomersLoading: state.member.members.inactiveCustomersLoading,
   variationCustomers: state.member.members.variationCustomers,
   variationCustomersLoading: state.member.members.variationCustomersLoading,
+  customerRefunds: state.member.members.customerRefunds,
+  customerRefundsLoading: state.member.members.customerRefundsLoading,
   paymentHistory: state.member.members.paymentHistory,
   paymentHistoryLoading: state.member.members.paymentHistoryLoading,
   space: state.member.app.space,
@@ -62,6 +65,8 @@ const mapDispatchToProps = {
   setInactiveCustomersCount: actions.setInactiveCustomersCount,
   fetchVariationCustomers: actions.fetchVariationCustomers,
   setVariationCustomers: actions.setVariationCustomers,
+  fetchCustomerRefunds: actions.fetchCustomerRefunds,
+  setCustomerRefunds: actions.setCustomerRefunds,
   fetchPaymentHistory: actions.fetchPaymentHistory,
   setPaymentHistory: actions.setPaymentHistory,
   fetchBillingCustomers: actions.fetchBillingCustomers,
@@ -100,6 +105,7 @@ export const ReportsView = ({
   reportPreferences,
   memberStatusValues,
   leadStatusValues,
+  leadSourceValues,
   programs,
   additionalPrograms,
   belts,
@@ -110,6 +116,9 @@ export const ReportsView = ({
   variationCustomers,
   variationCustomersLoading,
   getVariationCustomers,
+  customerRefunds,
+  customerRefundsLoading,
+  getCustomerRefunds,
   showVariationsReport,
   setShowVariationsReport,
   showDescrepenciesReport,
@@ -119,11 +128,17 @@ export const ReportsView = ({
   showFailedPaymentsReport,
   setShowFailedPaymentsReport,
   getFailedPayments,
+  fetchPaymentHistory,
+  setPaymentHistory,
   space,
   billingCustomersLoading,
   billingCustomers,
   fetchBillingCustomers,
   setBillingCustomers,
+  fetchVariationCustomers,
+  setVariationCustomers,
+  fetchCustomerRefunds,
+  setCustomerRefunds,
 }) => (
   <div className="reports">
     <StatusMessagesContainer />
@@ -197,7 +212,7 @@ export const ReportsView = ({
         </div>
       )}
     </div>
-    {profile.username !== 'unus.gaffoor@kineticdata.com' ? (
+    {!Utils.isMemberOf(profile, 'Billing') ? (
       <div />
     ) : (
       <div style={{ margin: '10px' }}>
@@ -218,7 +233,26 @@ export const ReportsView = ({
         </div>
         {!showMemberFinancialStats ? null : (
           <div className="row">
-            <MemberFinancialStats members={members} space={space} />
+            <MemberFinancialStats
+              members={members}
+              billingCustomersLoading={billingCustomersLoading}
+              billingCustomers={billingCustomers}
+              fetchBillingCustomers={fetchBillingCustomers}
+              setBillingCustomers={setBillingCustomers}
+              variationCustomers={variationCustomers}
+              variationCustomersLoading={variationCustomersLoading}
+              fetchVariationCustomers={fetchVariationCustomers}
+              setVariationCustomers={setVariationCustomers}
+              customerRefunds={customerRefunds}
+              customerRefundsLoading={customerRefundsLoading}
+              fetchCustomerRefunds={fetchCustomerRefunds}
+              setCustomerRefunds={setCustomerRefunds}
+              fetchPaymentHistory={fetchPaymentHistory}
+              setPaymentHistory={setPaymentHistory}
+              paymentHistory={paymentHistory}
+              paymentHistoryLoading={paymentHistoryLoading}
+              space={space}
+            />
           </div>
         )}
       </div>
@@ -271,6 +305,7 @@ export const ReportsView = ({
             reportPreferences={reportPreferences}
             updatePreferences={updatePreferences}
             leadStatusValues={leadStatusValues}
+            leadSourceValues={leadSourceValues}
           />
         </div>
       )}
@@ -346,6 +381,7 @@ export const ReportsView = ({
           <div className="row">
             <div>
               <VariationCustomers
+                members={members}
                 getVariationCustomers={getVariationCustomers}
                 variationCustomers={variationCustomers}
                 variationCustomersLoading={variationCustomersLoading}

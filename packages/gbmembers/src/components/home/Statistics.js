@@ -33,7 +33,13 @@ export class Statistics extends Component {
     let toDate = this.props.toDate;
 
     let leads = this.props.leadsByDate;
-    let leadData = this.getData(leads, fromDate, toDate, false);
+    let leadData = this.getData(
+      leads,
+      this.props.allMembers,
+      fromDate,
+      toDate,
+      false,
+    );
     let memberData = this.getMemberData(
       this.props.allMembers,
       fromDate,
@@ -62,6 +68,7 @@ export class Statistics extends Component {
     let leads = nextProps.leadsByDate;
     let leadData = this.getData(
       leads,
+      this.state.allMembers,
       this.state.fromDate,
       this.state.toDate,
       this.state.LCTViewSwitch,
@@ -85,7 +92,7 @@ export class Statistics extends Component {
     }*/
   }
 
-  getData(leads, fromDate, toDate, LCTViewSwitch) {
+  getData(leads, allMembers, fromDate, toDate, LCTViewSwitch) {
     if (!leads || leads.length <= 0) {
       return {
         leadsTotal: [],
@@ -131,11 +138,19 @@ export class Statistics extends Component {
               attendedTotal[attendedTotal.length] = lead;
             }
           }
-          if (
-            moment(lead['updatedAt']).isBetween(fromDate, toDate) &&
-            lead.values['Lead State'] === 'Converted'
-          ) {
-            convertedTotal[convertedTotal.length] = lead;
+          if (lead.values['Lead State'] === 'Converted') {
+            let memberIdx = allMembers.findIndex(
+              member => member.values['Lead Submission ID'] === lead.id,
+            );
+            if (
+              memberIdx !== -1 &&
+              moment(allMembers[memberIdx]['createdAt']).isBetween(
+                fromDate,
+                toDate,
+              )
+            ) {
+              convertedTotal[convertedTotal.length] = lead;
+            }
           }
         }
       });
@@ -171,13 +186,20 @@ export class Statistics extends Component {
             attendedTotal[attendedTotal.length] = lead;
           }
         }
-        if (
-          moment(lead['updatedAt']).isBetween(fromDate, toDate) &&
-          lead.values['Lead State'] === 'Converted'
-        ) {
-          convertedTotal[convertedTotal.length] = lead;
+        if (lead.values['Lead State'] === 'Converted') {
+          let memberIdx = allMembers.findIndex(
+            member => member.values['Lead Submission ID'] === lead.id,
+          );
+          if (
+            memberIdx !== -1 &&
+            moment(allMembers[memberIdx]['createdAt']).isBetween(
+              fromDate,
+              toDate,
+            )
+          ) {
+            convertedTotal[convertedTotal.length] = lead;
+          }
         }
-        //        }
       });
     }
 
@@ -245,6 +267,7 @@ export class Statistics extends Component {
         isShowCustom: false,
         leadData: this.getData(
           this.state.leads,
+          this.state.allMembers,
           this.state.fromDate.hour(0).minute(0),
           this.state.toDate.hour(23).minute(59),
           this.state.LCTViewSwitch,
@@ -273,6 +296,7 @@ export class Statistics extends Component {
         .minute(59);
       let data = this.getData(
         this.state.leads,
+        this.state.allMembers,
         fromDate,
         toDate,
         this.state.LCTViewSwitch,
@@ -302,6 +326,7 @@ export class Statistics extends Component {
         .minute(59);
       let data = this.getData(
         this.state.leads,
+        this.state.allMembers,
         fromDate,
         toDate,
         this.state.LCTViewSwitch,
@@ -331,6 +356,7 @@ export class Statistics extends Component {
         .minute(59);
       let data = this.getData(
         this.state.leads,
+        this.state.allMembers,
         fromDate,
         toDate,
         this.state.LCTViewSwitch,
@@ -360,6 +386,7 @@ export class Statistics extends Component {
         .minute(59);
       let data = this.getData(
         this.state.leads,
+        this.state.allMembers,
         fromDate,
         toDate,
         this.state.LCTViewSwitch,
@@ -499,11 +526,17 @@ export class Statistics extends Component {
       },
     ];
   };
+  getLeadTableHeaderName() {
+    if (this.state.showNewLeads) return 'Leads';
+    if (this.state.showScheduledLeads) return 'Into Scheduled';
+    if (this.state.showIntroLeads) return 'Actual Intros';
+    if (this.state.showConvertedLeads) return 'New Students';
+  }
   getLeadTableColumns(row) {
     return [
       {
         accessor: 'leads',
-        Header: 'Leads',
+        Header: this.getLeadTableHeaderName(),
         headerClassName: 'leads_col',
         className: 'leads_col',
         style: { whiteSpace: 'unset' },
@@ -646,11 +679,18 @@ export class Statistics extends Component {
       },
     ];
   };
+  getMemberTableHeaderName() {
+    if (this.state.showCancellationsMembers) return 'Cancellations';
+    if (this.state.showPendingCancellationsMembers)
+      return 'Pending Cancellations';
+    if (this.state.showFrozenMembers) return 'Frozen';
+    if (this.state.showPendingFrozenMembers) return 'Pending Frozen';
+  }
   getMemberTableColumns(row) {
     return [
       {
         accessor: 'members',
-        Header: 'Members',
+        Header: this.getMemberTableHeaderName(),
         headerClassName: 'members_col',
         className: 'members_col',
         style: { whiteSpace: 'unset' },
@@ -830,6 +870,7 @@ export class Statistics extends Component {
                     LCTViewSwitch: !this.state.LCTViewSwitch,
                     leadData: this.getData(
                       this.state.leads,
+                      this.state.allMembers,
                       this.state.fromDate.hour(0).minute(0),
                       this.state.toDate.hour(23).minute(59),
                       !this.state.LCTViewSwitch,

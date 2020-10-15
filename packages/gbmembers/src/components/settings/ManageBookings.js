@@ -113,7 +113,9 @@ export class ManageBookings extends Component {
         moment(schedule.start).format('LT') === classInfo.classTime
       );
     });
-    return schedule !== undefined && schedule.colour !== undefined
+    return schedule !== undefined &&
+      schedule.colour !== undefined &&
+      schedule.colour !== null
       ? schedule.colour
       : this.getProgramBackgroundColor(classInfo.program);
   }
@@ -125,7 +127,9 @@ export class ManageBookings extends Component {
           moment(classInfo.classDate, 'ddd Do MMM').day() &&
         moment(schedule.start).format('LT') === classInfo.classTime,
     );
-    return schedule !== undefined && schedule.textColour !== undefined
+    return schedule !== undefined &&
+      schedule.textColour !== undefined &&
+      schedule.textColour !== null
       ? schedule.textColour
       : 'white';
   }
@@ -203,6 +207,7 @@ export class ManageBookings extends Component {
       if (
         member.values['Status'] !== 'Inactive' &&
         (this.state.allowedPrograms === undefined ||
+          this.state.allowedPrograms === null ||
           this.state.allowedPrograms === '[]' ||
           this.state.allowedPrograms === '' ||
           (this.state.allowedPrograms !== undefined &&
@@ -350,6 +355,7 @@ export class ManageBookings extends Component {
             id="cancelBooking"
             className="btn btn-primary"
             onClick={async e => {
+              var cancelButton = $(e.target);
               if (
                 await confirm(
                   <span>
@@ -377,28 +383,34 @@ export class ManageBookings extends Component {
                   </span>,
                 )
               ) {
+                cancelButton.prop('disabled', true);
                 let values = {};
                 values['Status'] = 'Cancelled';
                 this.updateBooking({
                   id: cellInfo.original.id,
                   values: values,
                 });
-                for (var i = 0; i < this.classBookings.length; i++) {
-                  var idx = this.classBookings[i].bookings.findIndex(
-                    element => {
-                      if (element.id === cellInfo.original.id) return true;
-                      return false;
-                    },
-                  );
-                  if (idx !== -1) {
-                    this.classBookings[i].bookings[idx].status = 'Cancelled';
-                    this.setState({
-                      selectedID: cellInfo.original.id,
-                    });
-                    break;
+                var bookingThis = this;
+                setTimeout(function() {
+                  for (var i = 0; i < bookingThis.classBookings.length; i++) {
+                    var idx = bookingThis.classBookings[i].bookings.findIndex(
+                      element => {
+                        if (element.id === cellInfo.original.id) return true;
+                        return false;
+                      },
+                    );
+                    if (idx !== -1) {
+                      bookingThis.classBookings[i].bookings[idx].status =
+                        'Cancelled';
+                      bookingThis.setState({
+                        selectedID: cellInfo.original.id,
+                      });
+                      break;
+                    }
                   }
-                }
+                }, 5000);
               } else {
+                $(e.target).prop('disabled', false);
               }
             }}
           >
@@ -553,6 +565,7 @@ export class ManageBookings extends Component {
                         moment(schedule.start).format('HH:mm') ===
                           this.state.classTime &&
                         ((schedule.allowedPrograms !== undefined &&
+                          schedule.allowedPrograms !== null &&
                           schedule.allowedPrograms.includes(e.target.value)) ||
                           schedule.program === e.target.value)
                       );

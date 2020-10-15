@@ -14,6 +14,7 @@ import emailIcon from '../../images/E-mail.svg?raw';
 import dobIcon from '../../images/Birthday.svg?raw';
 import aidIcon from '../../images/Emergency.svg?raw';
 import printerIcon from '../../images/Print.svg?raw';
+import waiverIcon from '../../images/clipboard.svg?raw';
 import statsBarIcon from '../../images/stats-bars.svg?raw';
 import SVGInline from 'react-svg-inline';
 import html2canvas from 'html2canvas';
@@ -646,6 +647,16 @@ export const MemberView = ({
                     <span className="medicalValue">
                       {memberItem.values['Medical Allergies']}
                     </span>
+                  </span>
+                </div>
+                <div className="iconItem">
+                  <SVGInline svg={waiverIcon} className="icon" />
+                  <span className="value">
+                    {memberItem.values['Covid19 Waiver'] === null ||
+                    memberItem.values['Covid19 Waiver'] === undefined ||
+                    memberItem.values['Covid19 Waiver'] === ''
+                      ? 'Incomplete'
+                      : memberItem.values['Covid19 Waiver']}
                   </span>
                 </div>
               </span>

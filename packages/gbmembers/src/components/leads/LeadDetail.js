@@ -235,7 +235,7 @@ export class LeadDetail extends Component {
       histJson[0].indexOf('. User Comment:') !== -1
     ) {
       //      histJson[0]=histJson[0].replace("User Comment:", "\",\"User Comment\":\"").replaceAll("[{","{").replaceAll("}]","}");
-      histJson[0] = histJson[0].replaceAll('[{', '{').replaceAll('}]', '}');
+      histJson[0] = histJson[0].replace('[{', '{').replace('}]', '}');
       histJson[0] = getJson(histJson[0].replace(/\n/g, ' '));
     }
     let histories = histJson.map(history => {
@@ -904,7 +904,6 @@ export const LeadDetailContainer = compose(
       ) {
         calendarEvent = {
           summary:
-            'New lead - ' +
             leadItem.values['First Name'] +
             ' ' +
             leadItem.values['Last Name'] +

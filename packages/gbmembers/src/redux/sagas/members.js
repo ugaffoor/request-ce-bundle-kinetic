@@ -33,6 +33,7 @@ const getNewCustomersUrl = '/newCustomers';
 const ddrStatusUrl = '/getDDRStatus';
 const actionRequestsUrl = '/getActionRequests';
 const getVariationsUrl = '/getVariations';
+const getRefundsUrl = '/getRefunds';
 const getCustomersUrl = '/getCustomers';
 const getInactiveCustomersCountUrl = '/getInactiveCustomersCount';
 
@@ -1401,13 +1402,42 @@ export function* fetchVariationCustomers(action) {
         console.log(
           'fetchVariationCustomers Error: ' + result.data.errorMessage,
         );
-        action.payload.addNotification(
-          NOTICE_TYPES.ERROR,
-          result.data.errorMessage,
-          'Get Variation Customers',
-        );
+        if (action.payload.addNotification) {
+          action.payload.addNotification(
+            NOTICE_TYPES.ERROR,
+            result.data.errorMessage,
+            'Get Variation Customers',
+          );
+        }
       } else {
         action.payload.setVariationCustomers(result.data.data);
+      }
+    })
+    .catch(error => {
+      console.log(util.inspect(error));
+      action.payload.setSystemError(error);
+    });
+}
+
+export function* fetchCustomerRefunds(action) {
+  const appSettings = yield select(getAppSettings);
+  let args = {};
+  args.space = appSettings.spaceSlug;
+  args.billingService = appSettings.billingCompany;
+  axios
+    .post(appSettings.kineticBillingServerUrl + getRefundsUrl, args)
+    .then(result => {
+      if (result.data.error && result.data.error > 0) {
+        console.log('fetchCustomerRefunds Error: ' + result.data.errorMessage);
+        if (action.payload.addNotification) {
+          action.payload.addNotification(
+            NOTICE_TYPES.ERROR,
+            result.data.errorMessage,
+            'Get Customer Refunds',
+          );
+        }
+      } else {
+        action.payload.setCustomerRefunds(result.data.data);
       }
     })
     .catch(error => {
@@ -1800,6 +1830,7 @@ export function* watchMembers() {
   yield takeEvery(types.FETCH_DDR_STATUS, fetchDdrStatus);
   yield takeEvery(types.FETCH_ACTION_REQUESTS, fetchActionRequests);
   yield takeEvery(types.FETCH_VARIATION_CUSTOMERS, fetchVariationCustomers);
+  yield takeEvery(types.FETCH_CUSTOMER_REFUNDS, fetchCustomerRefunds);
   yield takeEvery(types.FETCH_BILLING_CUSTOMERS, fetchBillingCustomers);
   yield takeEvery(types.CREATE_BILLING_MEMBERS, createBillingMembers);
   yield takeEvery(types.CREATE_BILLING_STATISTICS, createBillingStatistics);

@@ -7,6 +7,16 @@
     margin-top: 20px;
   }
 }
+.financialStats {
+  margin-top: 20px;
+  .radioGroup {
+    text-align: center;
+    label.radio {
+      margin: 10px;
+      cursor: pointer;
+    }
+  }
+}
 .memberFinanceStatistics {
   margin: 0.5%;
   max-width: 1153px;
@@ -40,16 +50,17 @@
         }
       }
       .dollarValue {
-        text-align: center;
+        text-align: right;
         font-size: 24px;
+        padding-right: 4px;
       }
       .value {
         color: #4d5059;
       }
       .members {
         position: absolute;
-        width: 600px;
-        top: 300px;
+        width: 800px;
+        top: 400px;
         z-index: 100;
         background-color: white;
         left: calc(25%);
