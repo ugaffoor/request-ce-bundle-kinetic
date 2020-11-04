@@ -251,6 +251,8 @@ export class TasksDetail extends Component {
               name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
               contactMethod:
                 latestHistory !== undefined ? latestHistory.contactMethod : '',
+              contactDate:
+                latestHistory !== undefined ? latestHistory.contactDate : '',
               note: latestHistory !== undefined ? latestHistory.note : '',
               attentionRequired: lead.values['Is New Reply Received'],
             });
@@ -284,6 +286,8 @@ export class TasksDetail extends Component {
               name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
               contactMethod:
                 latestHistory !== undefined ? latestHistory.contactMethod : '',
+              contactDate:
+                latestHistory !== undefined ? latestHistory.contactDate : '',
               note: latestHistory !== undefined ? latestHistory.note : '',
               attentionRequired: lead.values['Is New Reply Received'],
             });
@@ -317,6 +321,8 @@ export class TasksDetail extends Component {
               name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
               contactMethod:
                 latestHistory !== undefined ? latestHistory.contactMethod : '',
+              contactDate:
+                latestHistory !== undefined ? latestHistory.contactDate : '',
               note: latestHistory !== undefined ? latestHistory.note : '',
               attentionRequired: lead.values['Is New Reply Received'],
             });
@@ -333,6 +339,8 @@ export class TasksDetail extends Component {
             name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
             contactMethod:
               latestHistory !== undefined ? latestHistory.contactMethod : '',
+            contactDate:
+              latestHistory !== undefined ? latestHistory.contactDate : '',
             note: latestHistory !== undefined ? latestHistory.note : '',
             attentionRequired: lead.values['Is New Reply Received'],
           };
@@ -347,7 +355,7 @@ export class TasksDetail extends Component {
       return (
         <span className="notesCell phone">
           <img src={phone} alt="Phone Call" title="Phone Call" />
-          {moment(row.original.date, 'YYYY-MM-DD HH:mm').format(
+          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format(
             'DD/MM/YYYY LT',
           )}
         </span>
@@ -356,7 +364,7 @@ export class TasksDetail extends Component {
       return (
         <span className="notesCell email">
           <img src={mail} alt="Email" title="Phone Call" />
-          {moment(row.original.date, 'YYYY-MM-DD HH:mm').format(
+          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format(
             'DD/MM/YYYY LT',
           )}
         </span>
@@ -365,7 +373,7 @@ export class TasksDetail extends Component {
       return (
         <span className="notesCell in-person">
           <img src={in_person} alt="In Person" title="Phone Call" />
-          {moment(row.original.date, 'YYYY-MM-DD HH:mm').format(
+          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format(
             'DD/MM/YYYY LT',
           )}
         </span>
@@ -374,7 +382,7 @@ export class TasksDetail extends Component {
       return (
         <span className="notesCell intro_class">
           <img src={intro_class} alt="Intro Class" title="Phone Call" />
-          {moment(row.original.date, 'YYYY-MM-DD HH:mm').format(
+          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format(
             'DD/MM/YYYY LT',
           )}
         </span>
@@ -383,7 +391,7 @@ export class TasksDetail extends Component {
       return (
         <span className="notesCell free_class">
           <img src={free_class} alt="Free Class" title="Phone Call" />
-          {moment(row.original.date, 'YYYY-MM-DD HH:mm').format(
+          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format(
             'DD/MM/YYYY LT',
           )}
         </span>
@@ -392,7 +400,7 @@ export class TasksDetail extends Component {
       return (
         <span className="notesCell attended_class">
           <img src={attended_class} alt="Attended Class" title="Phone Call" />
-          {moment(row.original.date, 'YYYY-MM-DD HH:mm').format(
+          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format(
             'DD/MM/YYYY LT',
           )}
         </span>

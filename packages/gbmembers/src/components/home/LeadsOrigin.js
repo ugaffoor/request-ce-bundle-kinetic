@@ -118,7 +118,12 @@ export class LeadsOriginChart extends Component {
         createdDate.isSameOrAfter(fromDate) &&
         createdDate.isSameOrBefore(toDate)
       ) {
-        let objFound = leadsByType.get(lead.values['Source']);
+        let source = lead.values['Source Reference 4'];
+        source =
+          source === undefined || source === null || source === ''
+            ? 'Unknown'
+            : source;
+        let objFound = leadsByType.get(source);
         if (objFound) {
           objFound['value'] = objFound['value'] + 1;
           objFound['leads'][objFound['leads'].length] = {
@@ -126,10 +131,10 @@ export class LeadsOriginChart extends Component {
             name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
           };
         } else {
-          leadsByType.set(lead.values['Source'], {
-            name: lead.values['Source'],
+          leadsByType.set(source, {
+            name: source,
             value: 1,
-            key: lead.values['Source'],
+            key: source,
             leads: [
               {
                 id: lead.id,

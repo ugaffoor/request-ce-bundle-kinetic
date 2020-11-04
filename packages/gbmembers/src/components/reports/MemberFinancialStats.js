@@ -53,6 +53,7 @@ export class MemberFinancialStats extends Component {
       viewPeriod: 'this_period',
       showTotalActiveMembers: false,
       showActiveMembers: false,
+      showActiveCashMembers: false,
       showAccountHolders: false,
       showCancellationsMembers: false,
       showPendingCancellationsMembers: false,
@@ -205,6 +206,10 @@ export class MemberFinancialStats extends Component {
     );
 
     if (cost === 0) return 0;
+
+    if (member.values['Billing Payment Type'] === 'Cash') {
+      return 0;
+    }
     // Determine Billing period for biller, such as Weekly or Fortnightly
     // Reduce to a weekly cost
     // Determine times billing happens in selected period.
@@ -262,6 +267,89 @@ export class MemberFinancialStats extends Component {
     return days * dailyCost + varCost;
   }
 
+  getMemberCashCost(member, fromDate, toDate) {
+    if (member.values['Billing Payment Type'] !== 'Cash') {
+      return 0;
+    }
+    // Determine Billing period for biller, such as Weekly or Fortnightly
+    // Reduce to a weekly cost
+    // Determine times billing happens in selected period.
+    // Multiply weekly by times in period
+
+    return parseFloat(member.values['Membership Cost']);
+  }
+
+  getMemberWeeklyCost(
+    member,
+    billingCustomers,
+    variationCustomers,
+    fromDate,
+    toDate,
+  ) {
+    if (member.values['Billing Payment Type'] === 'Cash') {
+      var startTerm = moment(
+        member.values['Billing Cash Term Start Date'],
+        'YYYY-MM-DD',
+      );
+      var endTerm = moment(
+        member.values['Billing Cash Term End Date'],
+        'YYYY-MM-DD',
+      );
+      var totalAmount = parseFloat(member.values['Membership Cost']);
+      var weeks = endTerm.diff(startTerm, 'weeks');
+
+      return totalAmount / weeks;
+    }
+
+    let billingIdx = billingCustomers.findIndex(
+      element => element.customerId === member.values['Billing Customer Id'],
+    );
+    if (billingIdx !== -1) {
+      let billing = billingCustomers[billingIdx];
+      let varCost = 0;
+
+      let variationIdx = variationCustomers.findIndex(
+        element => element.customerId === member.values['Billing Customer Id'],
+      );
+      if (variationIdx !== -1) {
+        let variation = variationCustomers[variationIdx];
+        let varStart = moment(variation.startDate, 'DD-MM-YYYY');
+        let varEnd =
+          variation.resumeDate === '03-01-0001'
+            ? moment('01-01-2500', 'DD-MM-YYYY')
+            : moment(variation.resumeDate, 'DD-MM-YYYY');
+        if (varStart.isSameOrAfter(fromDate) && varEnd.isSameOrBefore(toDate)) {
+          let varAmount = variation.variationAmount - billing.billingAmount;
+          let varStartDate = varStart.isAfter(fromDate) ? varStart : fromDate;
+          let varEndDate = varEnd.isBefore(toDate) ? varEnd : toDate;
+          let paymentPeriod = billing.billingPeriod;
+          let varWeeklyCost = 0;
+          if (paymentPeriod === 'Weekly') {
+            varWeeklyCost = varAmount;
+          } else if (paymentPeriod === 'Fortnightly') {
+            varWeeklyCost = varAmount / 2;
+          } else if (paymentPeriod === 'Monthly') {
+            varWeeklyCost = (varAmount * 12) / 52;
+          }
+
+          varCost = varWeeklyCost;
+        }
+      }
+
+      let paymentPeriod = billing.billingPeriod;
+      let weeklyCost = 0;
+      if (paymentPeriod === 'Weekly') {
+        weeklyCost = billing.billingAmount;
+      } else if (paymentPeriod === 'Fortnightly') {
+        weeklyCost = billing.billingAmount / 2;
+      } else if (paymentPeriod === 'Monthly') {
+        weeklyCost = (billing.billingAmount * 12) / 52;
+      }
+      return weeklyCost + varCost;
+    }
+
+    return 0;
+  }
   getMemberData(
     members,
     billingCustomers,
@@ -276,6 +364,7 @@ export class MemberFinancialStats extends Component {
         accountHolders: { members: [], value: 0 },
         totalActiveMembers: { members: [], value: 0 },
         activeMembers: { members: [], value: 0 },
+        activeCashMembers: { members: [], value: 0 },
         cancellations: { members: [], value: 0 },
         pendingCancellations: { members: [], value: 0 },
         frozen: { members: [], value: 0 },
@@ -292,8 +381,11 @@ export class MemberFinancialStats extends Component {
     let accountHoldersValue = 0;
     let totalActiveMembers = [];
     let totalActiveMembersValue = 0;
+    let aps = 0;
     let activeMembers = [];
     let activeMembersValue = 0;
+    let activeCashMembers = [];
+    let activeCashMembersValue = 0;
     let cancellations = [];
     let cancellationsValue = 0;
     let pendingCancellations = [];
@@ -335,7 +427,10 @@ export class MemberFinancialStats extends Component {
             fromDate,
             toDate,
           );
-        } else if (moment(member.createdAt).isBetween(fromDate, toDate)) {
+        } else if (
+          member.values['Billing Payment Type'] !== 'Cash' &&
+          moment(member.createdAt).isBetween(fromDate, toDate)
+        ) {
           newMembers[newMembers.length] = member;
           newMembersValue += this.getMemberCost(
             member,
@@ -345,20 +440,36 @@ export class MemberFinancialStats extends Component {
             toDate,
           );
         } else {
-          activeMembers[activeMembers.length] = member;
-          if (
-            (member.values['Non Paying'] === null ||
-              member.values['Non Paying'] === undefined) &&
-            member.values['Non Paying'] !== 'YES'
-          ) {
-            activeMembersValue += this.getMemberCost(
-              member,
-              billingCustomers,
-              variationCustomers,
-              fromDate,
-              toDate,
-            );
-            //console.log("Active: "+member.values["First Name"]+" "+member.values["Last Name"]+" - "+member.values['Membership Cost']);
+          if (member.values['Billing Payment Type'] === 'Cash') {
+            if (
+              moment(member.values['Billing Cash Term Start Date']).isBetween(
+                fromDate,
+                toDate,
+              )
+            ) {
+              activeCashMembers[activeCashMembers.length] = member;
+              activeCashMembersValue += this.getMemberCashCost(
+                member,
+                fromDate,
+                toDate,
+              );
+            }
+          } else {
+            activeMembers[activeMembers.length] = member;
+            if (
+              (member.values['Non Paying'] === null ||
+                member.values['Non Paying'] === undefined) &&
+              member.values['Non Paying'] !== 'YES'
+            ) {
+              activeMembersValue += this.getMemberCost(
+                member,
+                billingCustomers,
+                variationCustomers,
+                fromDate,
+                toDate,
+              );
+              //console.log("Active: "+member.values["First Name"]+" "+member.values["Last Name"]+" - "+member.values['Membership Cost']);
+            }
           }
         }
       }
@@ -461,6 +572,13 @@ export class MemberFinancialStats extends Component {
             fromDate,
             toDate,
           );
+        aps += this.getMemberWeeklyCost(
+          member,
+          billingCustomers,
+          variationCustomers,
+          fromDate,
+          toDate,
+        );
       }
 
       let varIdx = variationCustomers.findIndex(
@@ -511,6 +629,10 @@ export class MemberFinancialStats extends Component {
         value: totalActiveMembersValue,
       },
       activeMembers: { members: activeMembers, value: activeMembersValue },
+      activeCashMembers: {
+        members: activeCashMembers,
+        value: activeCashMembersValue,
+      },
       cancellations: { members: cancellations, value: cancellationsValue },
       pendingCancellations: {
         members: pendingCancellations,
@@ -523,6 +645,7 @@ export class MemberFinancialStats extends Component {
       newMembers: { members: newMembers, value: newMembersValue },
       variations: { members: variations, value: variationsValue },
       failed: { members: failed, value: failedValue },
+      aps: aps / totalActiveMembers.length,
     };
   }
 
@@ -1027,6 +1150,7 @@ export class MemberFinancialStats extends Component {
   getMemberTableHeaderName() {
     if (this.state.showTotalActiveMembers) return 'Total Active';
     if (this.state.showActiveMembers) return 'Active';
+    if (this.state.showActiveCashMembers) return 'Active Cash';
     if (this.state.showAccountHolders) return 'Active Account Holders';
     if (this.state.showCancellationsMembers) return 'Cancellations';
     if (this.state.showPendingCancellationsMembers)
@@ -1338,6 +1462,7 @@ export class MemberFinancialStats extends Component {
                       showAccountHolders: true,
                       showTotalActiveMembers: false,
                       showActiveMembers: false,
+                      showActiveCashMembers: false,
                       showCancellationsMembers: false,
                       showPendingCancellationsMembers: false,
                       showFrozenMembers: false,
@@ -1392,6 +1517,7 @@ export class MemberFinancialStats extends Component {
                     this.setState({
                       showTotalActiveMembers: true,
                       showActiveMembers: false,
+                      showActiveCashMembers: false,
                       showAccountHolders: false,
                       showCancellationsMembers: false,
                       showPendingCancellationsMembers: false,
@@ -1440,6 +1566,18 @@ export class MemberFinancialStats extends Component {
             </div>
             <div className="statItem">
               <div className="info">
+                <div className="label">Average Price per Student(weekly)</div>
+                <div className="value"></div>
+              </div>
+              <div className="dollarValue">
+                {new Intl.NumberFormat(this.locale, {
+                  style: 'currency',
+                  currency: this.currency,
+                }).format(this.state.memberData.aps)}
+              </div>
+            </div>
+            <div className="statItem">
+              <div className="info">
                 <div className="label">Active</div>
                 <div
                   className="value"
@@ -1447,6 +1585,7 @@ export class MemberFinancialStats extends Component {
                     this.setState({
                       showActiveMembers: true,
                       showTotalActiveMembers: false,
+                      showActiveCashMembers: false,
                       showAccountHolders: false,
                       showCancellationsMembers: false,
                       showPendingCancellationsMembers: false,
@@ -1493,6 +1632,67 @@ export class MemberFinancialStats extends Component {
                 </div>
               )}
             </div>
+            {getAttributeValue(this.props.space, 'Allow Cash Payments') !==
+            'true' ? (
+              <div />
+            ) : (
+              <div className="statItem">
+                <div className="info">
+                  <div className="label">Active Cash</div>
+                  <div
+                    className="value"
+                    onClick={e =>
+                      this.setState({
+                        showActiveMembers: false,
+                        showTotalActiveMembers: false,
+                        showActiveCashMembers: true,
+                        showAccountHolders: false,
+                        showCancellationsMembers: false,
+                        showPendingCancellationsMembers: false,
+                        showFrozenMembers: false,
+                        showUnFrozenMembers: false,
+                        showRestoredMembers: false,
+                        showPendingFrozenMembers: false,
+                        showNewMembers: false,
+                        showVariations: false,
+                        showFailed: false,
+                      })
+                    }
+                  >
+                    {this.state.memberData.activeCashMembers.members.length}
+                  </div>
+                </div>
+                <div className="dollarValue">
+                  {new Intl.NumberFormat(this.locale, {
+                    style: 'currency',
+                    currency: this.currency,
+                  }).format(this.state.memberData.activeCashMembers.value)}
+                </div>
+                {this.state.showActiveCashMembers && (
+                  <div className="members">
+                    <span
+                      className="closeMembers"
+                      onClick={e =>
+                        this.setState({
+                          showActiveCashMembers: false,
+                        })
+                      }
+                    >
+                      <SVGInline svg={crossIcon} className="icon" />
+                    </span>
+                    <ReactTable
+                      columns={this.getMemberTableColumns()}
+                      data={this.getMemberTableData(
+                        this.state.memberData.activeCashMembers.members,
+                        this.state.billingCustomers,
+                      )}
+                      defaultPageSize={1}
+                      showPagination={false}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
             <div className="statItem">
               <div className="info">
                 <div className="label">Cancellations</div>
@@ -1503,6 +1703,7 @@ export class MemberFinancialStats extends Component {
                       showCancellationsMembers: true,
                       showAccountHolders: false,
                       showTotalActiveMembers: false,
+                      showActiveCashMembers: false,
                       showActiveMembers: false,
                       showPendingCancellationsMembers: false,
                       showFrozenMembers: false,
@@ -1558,6 +1759,7 @@ export class MemberFinancialStats extends Component {
                       showAccountHolders: false,
                       showActiveMembers: false,
                       showTotalActiveMembers: false,
+                      showActiveCashMembers: false,
                       showCancellationsMembers: false,
                       showPendingCancellationsMembers: true,
                       showFrozenMembers: false,
@@ -1613,6 +1815,7 @@ export class MemberFinancialStats extends Component {
                       showAccountHolders: false,
                       showActiveMembers: false,
                       showTotalActiveMembers: false,
+                      showActiveCashMembers: false,
                       showCancellationsMembers: false,
                       showPendingCancellationsMembers: false,
                       showFrozenMembers: true,
@@ -1668,6 +1871,7 @@ export class MemberFinancialStats extends Component {
                       showAccountHolders: false,
                       showActiveMembers: false,
                       showTotalActiveMembers: false,
+                      showActiveCashMembers: false,
                       showCancellationsMembers: false,
                       showPendingCancellationsMembers: false,
                       showFrozenMembers: false,
@@ -1721,6 +1925,7 @@ export class MemberFinancialStats extends Component {
                       showAccountHolders: false,
                       showActiveMembers: false,
                       showTotalActiveMembers: false,
+                      showActiveCashMembers: false,
                       showCancellationsMembers: false,
                       showPendingCancellationsMembers: false,
                       showFrozenMembers: false,
@@ -1774,6 +1979,7 @@ export class MemberFinancialStats extends Component {
                       showAccountHolders: false,
                       showActiveMembers: false,
                       showTotalActiveMembers: false,
+                      showActiveCashMembers: false,
                       showCancellationsMembers: false,
                       showPendingCancellationsMembers: false,
                       showFrozenMembers: false,
@@ -1829,6 +2035,7 @@ export class MemberFinancialStats extends Component {
                       showAccountHolders: false,
                       showActiveMembers: false,
                       showTotalActiveMembers: false,
+                      showActiveCashMembers: false,
                       showCancellationsMembers: false,
                       showPendingCancellationsMembers: false,
                       showFrozenMembers: false,
@@ -1884,6 +2091,7 @@ export class MemberFinancialStats extends Component {
                       showAccountHolders: false,
                       showTotalActiveMembers: false,
                       showActiveMembers: false,
+                      showActiveCashMembers: false,
                       showCancellationsMembers: false,
                       showPendingCancellationsMembers: false,
                       showFrozenMembers: false,
@@ -1938,6 +2146,7 @@ export class MemberFinancialStats extends Component {
                       showAccountHolders: false,
                       showTotalActiveMembers: false,
                       showActiveMembers: false,
+                      showActiveCashMembers: false,
                       showCancellationsMembers: false,
                       showPendingCancellationsMembers: false,
                       showFrozenMembers: false,

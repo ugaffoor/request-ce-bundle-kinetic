@@ -11,6 +11,8 @@ import Select, { components } from 'react-select';
 import createClass from 'create-react-class';
 import { Confirm } from 'react-confirm-bootstrap';
 import { Creatable } from 'react-select';
+import { getJson, getCurrency } from '../Member/MemberUtils';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const util = require('util');
 
@@ -24,6 +26,13 @@ export class MemberActivityReport extends Component {
     this.getGridData = this.getGridData.bind(this);
     this.activityData = this.getGridData(this.props.members);
     this.handleCellClick = this.handleCellClick.bind(this);
+
+    let currency = getAttributeValue(this.props.space, 'Currency');
+    if (currency === undefined) {
+      this.currencySymbol = '$';
+    } else {
+      this.currencySymbol = getCurrency()['symbol'];
+    }
 
     this.columns = [
       { title: 'Last Modified Date', field: 'lastModifiedDate' },
@@ -46,9 +55,35 @@ export class MemberActivityReport extends Component {
       { title: 'Non Paying', field: 'nonPaying' },
       { title: 'Account Created', field: 'accountCreated' },
       { title: 'Covid19 Waiver', field: 'covid19Waiver' },
-      { title: 'Cost', field: 'cost', bottomCalc: 'sum' },
-      { title: 'Average', field: 'average', bottomCalc: this.averageCostCalc },
+      {
+        title: 'Cost',
+        field: 'cost',
+        bottomCalc: 'sum',
+        bottomCalcFormatter: 'money',
+        bottomCalcFormatterParams: { symbol: this.currencySymbol },
+        formatter: 'money',
+        formatterParams: { symbol: this.currencySymbol },
+      },
+      {
+        title: 'Fee',
+        field: 'fee',
+        bottomCalc: 'sum',
+        bottomCalcFormatter: 'money',
+        bottomCalcFormatterParams: { symbol: this.currencySymbol },
+        formatter: 'money',
+        formatterParams: { symbol: this.currencySymbol },
+      },
+      {
+        title: 'Average',
+        field: 'average',
+        formatter: 'money',
+        formatterParams: { symbol: this.currencySymbol },
+        bottomCalc: this.averageCostCalc,
+        bottomCalcFormatter: 'money',
+        bottomCalcFormatterParams: { symbol: this.currencySymbol },
+      },
       { title: 'Payment Period', field: 'paymentPeriod' },
+      { title: 'Payment Type', field: 'paymentType' },
       { title: 'Family Members', field: 'familyMembers' },
       {
         title: 'Notes',
@@ -100,8 +135,10 @@ export class MemberActivityReport extends Component {
       { label: 'Account Created', value: 'accountCreated' },
       { label: 'Covid19 Waiver', value: 'covid19Waiver' },
       { label: 'Cost', value: 'cost', key: 'cost' },
+      { label: 'Fee', value: 'fee', key: 'fee' },
       { label: 'Average', value: 'average', key: 'cost' },
       { label: 'Payment Period', value: 'paymentPeriod' },
+      { label: 'Payment Type', value: 'paymentType' },
       { label: 'Family Members', value: 'familyMembers' },
     ];
     this.notesColumns = [
@@ -161,8 +198,10 @@ export class MemberActivityReport extends Component {
           { label: 'Non Paying', value: 'nonPaying' },
           { label: 'Last Payment Date', value: 'lastPaymentDate' },
           { label: 'Cost', value: 'cost' },
+          { label: 'Fee', value: 'fee' },
           { label: 'Average', value: 'average' },
           { label: 'Payment Period', value: 'paymentPeriod' },
+          { label: 'Payment Type', value: 'paymentType' },
           { label: 'Family Members', value: 'familyMembers' },
         ],
       },
@@ -202,8 +241,10 @@ export class MemberActivityReport extends Component {
       { label: 'Covid19 Waiver', value: 'covid19Waiver' },
       { label: 'Notes', value: 'history' },
       { label: 'Cost', value: 'cost', key: 'cost' },
+      { label: 'Fee', value: 'fee', key: 'fee' },
       { label: 'Average', value: 'average', key: 'cost' },
       { label: 'Payment Period', value: 'paymentPeriod' },
+      { label: 'Payment Type', value: 'paymentType' },
       { label: 'Family Members', value: 'familyMembers' },
       { label: 'Emails Sent', value: 'emailsSent' },
       { label: 'Emails Received', value: 'emailsReceived' },
@@ -756,6 +797,50 @@ export class MemberActivityReport extends Component {
     );
   };
 
+  getMemberFee(members, member) {
+    if (
+      member.values['Non Paying'] !== null &&
+      member.values['Non Paying'] !== undefined &&
+      member.values['Non Paying'] === 'YES'
+    )
+      return '0';
+    if (
+      member.values['Family Fee Details'] !== null &&
+      member.values['Family Fee Details'] !== undefined
+    ) {
+      let json = getJson(member.values['Family Fee Details']);
+      for (var i = 0; i < json.length; i++) {
+        if (json[i]['id'] === member.id) {
+          return json[i]['fee'];
+        }
+      }
+    }
+
+    if (
+      member.values['Billing Parent Member'] !== null &&
+      member.values['Billing Parent Member'] !== undefined
+    ) {
+      let parent = members.findIndex(mem => {
+        return mem.id === member.values['Billing Parent Member'];
+      });
+      if (parent !== -1) {
+        let json = getJson(members[parent].values['Family Fee Details']);
+        for (var i = 0; i < json.length; i++) {
+          if (json[i]['id'] === member.id) {
+            return json[i]['fee'];
+          }
+        }
+      }
+    }
+
+    if (
+      member.values['Membership Cost'] !== null &&
+      member.values['Membership Cost'] !== undefined
+    )
+      return member.values['Membership Cost'];
+    return '0';
+  }
+
   getGridData(members) {
     if (!members || members.length < 0) {
       return [];
@@ -772,7 +857,7 @@ export class MemberActivityReport extends Component {
         lastModifiedDate: moment(member['updatedAt']).format(
           'DD-MM-YYYY HH:mm',
         ),
-        name: member.values['First Name'] + ' ' + member.values['Last Name'],
+        name: member.values['Last Name'] + ' ' + member.values['First Name'],
         gender: member.values['Gender'],
         status: member.values['Status'],
         email: member.values['Email'],
@@ -798,9 +883,11 @@ export class MemberActivityReport extends Component {
           member.values['Billing User'] === 'YES'
             ? member.values['Membership Cost']
             : '',
+        fee: this.getMemberFee(members, member),
         average:
           member.values['Billing User'] === 'YES' &&
-          member.values['Billing Family Members']
+          member.values['Billing Family Members'] &&
+          member.values['Billing Family Members'] !== '[]'
             ? (
                 member.values['Membership Cost'] /
                 JSON.parse(member.values['Billing Family Members']).length
@@ -809,6 +896,10 @@ export class MemberActivityReport extends Component {
         paymentPeriod:
           member.values['Billing User'] === 'YES'
             ? member.values['Billing Payment Period']
+            : '',
+        paymentType:
+          member.values['Billing User'] === 'YES'
+            ? member.values['Billing Payment Type']
             : '',
         familyMembers:
           member.values['Billing User'] === 'YES' &&

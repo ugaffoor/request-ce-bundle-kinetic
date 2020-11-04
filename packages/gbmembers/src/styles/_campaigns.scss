@@ -45,6 +45,9 @@
     .attachment-form form {
       padding: 0;
     }
+    .attachmentForm {
+      margin-left: 20px;
+    }
     .templateMenu {
       margin-top: 0;
       margin-left: 0;
@@ -57,7 +60,6 @@
       }
       @media (min-width: 544px) {
         margin-top: 17px;
-        margin-left: 40px;
       }
       label {
         float: left;

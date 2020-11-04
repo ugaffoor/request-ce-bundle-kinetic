@@ -325,7 +325,7 @@ export class DemographicChart extends Component {
       ageGroup: '18-29',
       Male: getPercent(m_age_18_29.count, totalMembers),
       Female: getPercent(f_age_18_29.count, totalMembers),
-      members: f_age_18_29.members,
+      members: m_age_18_29.members.concat(f_age_18_29.members),
     });
     demographicData.push({
       ageGroup: '30-35',

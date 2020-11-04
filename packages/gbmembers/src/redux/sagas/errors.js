@@ -1,11 +1,13 @@
 import { delay } from 'redux-saga';
 import { put, takeEvery } from 'redux-saga/effects';
-import { actions, types } from '../modules/errors';
+import { actions, types, NOTICE_TYPES } from '../modules/errors';
 
 export function* addNotificationTask(action) {
   window.console.log('DELAY', action);
   yield delay(3000);
-  yield put(actions.removeNotification(action.payload.id));
+  if (action.payload.type !== NOTICE_TYPES.ERROR) {
+    yield put(actions.removeNotification(action.payload.id));
+  }
   yield put(actions.addRecentNotification(action.payload));
 }
 

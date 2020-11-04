@@ -168,6 +168,7 @@ export const ReportsView = ({
             additionalPrograms={additionalPrograms}
             belts={belts}
             membershipTypes={membershipTypes}
+            space={space}
           />
         </div>
       )}

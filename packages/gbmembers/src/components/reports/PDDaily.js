@@ -7,12 +7,8 @@ import { getJson } from '../Member/MemberUtils';
 export class PDDailyReport extends Component {
   constructor(props) {
     super(props);
-    let startOfWeek = moment()
-      .startOf('week')
-      .add(1, 'days');
-    let endOfWeek = moment()
-      .endOf('week')
-      .add(1, 'days');
+    let startOfWeek = moment().startOf('week');
+    let endOfWeek = moment().endOf('week');
     let leads = this.props.leadsByDate;
     let data = this.getData(leads, startOfWeek, endOfWeek);
     let columns = this.getColumns();

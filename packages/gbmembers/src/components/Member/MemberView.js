@@ -57,6 +57,7 @@ import { getProgramSVG, getBeltSVG } from './MemberUtils';
 import ReactToPrint from 'react-to-print';
 import css from 'css';
 import attentionRequired from '../../images/flag.svg?raw';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -91,6 +92,7 @@ const mapDispatchToProps = {
   fetchMembers: actions.fetchMembers,
   fetchMemberAttendances: attendanceActions.fetchMemberAttendances,
   createMemberUserAccount: actions.createMemberUserAccount,
+  getAttributeValue: getAttributeValue,
 };
 
 function getClassNames(node) {
@@ -545,6 +547,8 @@ export const MemberView = ({
   creatingUserAccount,
   setCreatingUserAccount,
   updateAttentionRequired,
+  locale,
+  currency,
 }) =>
   initialLoad ? (
     <div className="loading">
@@ -840,6 +844,33 @@ export const MemberView = ({
               <h4>Billing</h4>
               <div
                 className={
+                  memberItem.values['Billing Payment Type'] === 'Cash'
+                    ? 'billingInfo show'
+                    : 'hide'
+                }
+              >
+                <p>
+                  Cash paid for period{' '}
+                  {new Date(
+                    memberItem.values['Billing Cash Term Start Date'],
+                  ).toLocaleDateString()}{' '}
+                  to{' '}
+                  {new Date(
+                    memberItem.values['Billing Cash Term End Date'],
+                  ).toLocaleDateString()}
+                </p>
+                <p>
+                  Payment:{' '}
+                  {new Intl.NumberFormat(locale, {
+                    style: 'currency',
+                    currency: currency,
+                  }).format(memberItem.values['Membership Cost'])}
+                </p>
+              </div>
+
+              <div
+                className={
+                  memberItem.values['Billing Payment Type'] !== 'Cash' &&
                   memberItem.values['Billing Customer Id'] !== undefined &&
                   memberItem.values['Billing Customer Id'] !== '' &&
                   memberItem.values['Billing Customer Id'] !== null
@@ -1032,9 +1063,7 @@ export const MemberView = ({
 
 export const MemberViewContainer = compose(
   connect(mapStateToProps, mapDispatchToProps),
-  withProps(({ memberItem }) => {
-    return {};
-  }),
+  withProps(({ memberItem }) => {}),
   withState('isAssigning', 'setIsAssigning', false),
   withState('isDirty', 'setIsDirty', false),
   withState('showNewCustomers', 'setShowNewCustomers', false),
@@ -1296,6 +1325,16 @@ export const MemberViewContainer = compose(
       this.props.memberItem.values = [];
       this.props.memberItem.id = 'xx-xx-xx-xx-xx';
       this.props.fetchCurrentMember({ id: this.props.match.params.id });
+
+      let currency = getAttributeValue(this.props.space, 'Currency');
+      if (currency === undefined) currency = 'USD';
+
+      let locale = this.props.space.defaultLocale.split('-')[0];
+
+      this.setState({
+        currency: currency,
+        locale: locale,
+      });
     },
     componentWillReceiveProps(nextProps) {
       //$('#mainContent').offset({ top: 98});

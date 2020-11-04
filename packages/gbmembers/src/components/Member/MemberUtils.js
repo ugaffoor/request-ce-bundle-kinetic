@@ -193,6 +193,40 @@ import Black_Belt_4_StripesIcon from '../../images/Black_Belt_4_Stripes.svg?raw'
 import Black_Belt_5_StripesIcon from '../../images/Black_Belt_5_Stripes.svg?raw';
 import Black_Belt_6_StripesIcon from '../../images/Black_Belt_6_Stripes.svg?raw';
 
+var currencies = {
+  USD: {
+    symbol: '$',
+    name: 'US Dollar',
+    symbol_native: '$',
+    decimal_digits: 2,
+    rounding: 0,
+    code: 'USD',
+    name_plural: 'US dollars',
+  },
+  EUR: {
+    symbol: '€',
+    name: 'Euro',
+    symbol_native: '€',
+    decimal_digits: 2,
+    rounding: 0,
+    code: 'EUR',
+    name_plural: 'euros',
+  },
+  GBP: {
+    symbol: '£',
+    name: 'British Pound Sterling',
+    symbol_native: '£',
+    decimal_digits: 2,
+    rounding: 0,
+    code: 'GBP',
+    name_plural: 'British pounds sterling',
+  },
+};
+
+export function getCurrency(currency) {
+  return currencies[currency];
+}
+
 export function getProgramSVG(program) {
   switch (program) {
     case 'GB1':

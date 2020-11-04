@@ -15,6 +15,7 @@ import { actions as loadingActions } from './redux/modules/loading';
 import { actions as alertsActions } from './redux/modules/alerts';
 import { actions as layoutActions } from './redux/modules/layout';
 import { App as ServicesApp } from 'services/src/App';
+import { App as RegistrationsApp } from 'registrations/src/App';
 import { App as QueueApp } from 'queue/src/App';
 import { App as SpaceApp } from 'space/src/App';
 import { AppContainer as MemberApp } from 'gbmembers/src/components/AppContainer';
@@ -94,6 +95,8 @@ const getAppProvider = kapp => {
   switch (bundlePackage) {
     case 'services':
       return ServicesApp;
+    case 'registrations':
+      return RegistrationsApp;
     case 'queue':
       return QueueApp;
     case 'gbmembers':

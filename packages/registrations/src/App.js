@@ -8,6 +8,7 @@ import {
   Loading,
   Utils,
 } from 'common';
+import { actions as registrationsActions } from './redux/modules/registrations';
 import { actions as registrationCountActions } from './redux/modules/registrationCounts';
 import { CatalogContainer } from './components/home/CatalogContainer';
 import { CatalogSearchResultsContainer } from './components/search_results/CatalogSearchResultsContainer';
@@ -26,11 +27,6 @@ const mapStateToProps = (state, props) => {
     systemError: state.registrations.systemError,
     pathname: state.router.location.pathname,
     settingsBackPath: state.space.spaceApp.settingsBackPath || '/',
-    companyLogoURL: Utils.getAttributeValue(
-      state.app.space,
-      'Company Logo',
-      '',
-    ),
   };
 };
 
@@ -97,11 +93,6 @@ export const AppComponent = props => {
           exact
           path="/requests/:type?/request/:submissionId/:mode"
           component={RequestShowContainer}
-        />
-        <img
-          src={props.companyLogoURL}
-          alt="Company Logo"
-          className="companyLogo"
         />
       </main>
     ),

@@ -24,10 +24,15 @@ export class MemberBirthdays extends Component {
       return [];
     }
     let year = moment().year();
-    let now = moment();
-    let toWeek = moment().add(week, 'weeks');
+    let now = moment().subtract(1, 'days');
+    let toWeek = moment()
+      .add(week, 'weeks')
+      .add(1, 'days');
     let members = allMembers.filter(member => {
       let dob = moment(member.values['DOB']).year(year);
+      if (week === 0) {
+        return dob.get('date') === moment().get('date') ? true : false;
+      }
       return dob.isBetween(now, toWeek) ? true : false;
     });
     const data = members
@@ -46,6 +51,7 @@ export class MemberBirthdays extends Component {
           name: member.values['First Name'] + ' ' + member.values['Last Name'],
           memberID: member.id,
           dob: member.values['DOB'],
+          status: member.values['Status'],
         };
       });
     return data;
@@ -81,6 +87,10 @@ export class MemberBirthdays extends Component {
           return moment().year() - moment(props.original.dob).year();
         },
       },
+      {
+        accessor: 'status',
+        Header: 'Status',
+      },
     ];
     return columns;
   }
@@ -114,6 +124,7 @@ export class MemberBirthdays extends Component {
               });
             }}
           >
+            <option value="0">Today</option>
             <option value="1">1 Week</option>
             <option value="2">2 Week</option>
             <option value="3">3 Week</option>

@@ -208,6 +208,13 @@ export class NewEmailCampaign extends Component {
     );
 
     if (
+      template.values['Subject'] !== '' &&
+      template.values['Subject'] !== undefined &&
+      template.values['Subject'] !== null
+    ) {
+      editorThis.setState({ subject: template.values['Subject'] });
+    }
+    if (
       template.values['Email JSON'] !== '' &&
       template.values['Email JSON'] !== undefined &&
       template.values['Email JSON'] !== null
@@ -242,7 +249,13 @@ export class NewEmailCampaign extends Component {
     let template = this.props.emailTemplates.find(
       template => template['id'] === templateId,
     );
-
+    if (
+      template.values['Subject'] !== '' &&
+      template.values['Subject'] !== undefined &&
+      template.values['Subject'] !== null
+    ) {
+      editorThis.setState({ subject: template.values['Subject'] });
+    }
     if (template.values['Email Content'] !== '') {
       var templateStr = BLANK_TEMPLATE.replace(
         '##CONTENT##',
@@ -527,27 +540,7 @@ export class NewEmailCampaign extends Component {
         </div>
         <div className="row">
           <div className="col-md-10 details">
-            <span className="line">
-              <div>
-                <label htmlFor="subject" required>
-                  Subject
-                </label>
-                <input
-                  type="text"
-                  name="subject"
-                  id="subject"
-                  style={{ width: '100%' }}
-                  required
-                  value={this.state.subject}
-                  onChange={e => this.handleSubjectChange(e)}
-                  readOnly={this.props.showPreview}
-                />
-              </div>
-            </span>
             <span className="line options">
-              <span className="attachmentForm">
-                <AttachmentForm campaignItem={this.props.campaignItem} />
-              </span>
               <span
                 className="line templateMenu"
                 style={{
@@ -571,6 +564,26 @@ export class NewEmailCampaign extends Component {
                   style={{ width: '300px' }}
                 />
               </span>
+              <span className="attachmentForm">
+                <AttachmentForm campaignItem={this.props.campaignItem} />
+              </span>
+            </span>
+            <span className="line">
+              <div>
+                <label htmlFor="subject" required>
+                  Subject
+                </label>
+                <input
+                  type="text"
+                  name="subject"
+                  id="subject"
+                  style={{ width: '100%' }}
+                  required
+                  value={this.state.subject}
+                  onChange={e => this.handleSubjectChange(e)}
+                  readOnly={this.props.showPreview}
+                />
+              </div>
             </span>
             <span className="line copyTags">
               <div className="copyItem">
