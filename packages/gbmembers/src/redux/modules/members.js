@@ -29,6 +29,8 @@ export const types = {
   EDIT_PAYMENT_AMOUNT: namespace('members', 'EDIT_PAYMENT_AMOUNT'),
   FETCH_PAYMENT_HISTORY: namespace('members', 'FETCH_PAYMENT_HISTORY'),
   SET_PAYMENT_HISTORY: namespace('members', 'SET_PAYMENT_HISTORY'),
+  FETCH_OVERDUES: namespace('members', 'FETCH_OVERDUES'),
+  SET_OVERDUES: namespace('members', 'SET_OVERDUES'),
   CLEAR_PAYMENT_SCHEDULE: namespace('members', 'CLEAR_PAYMENT_SCHEDULE'),
   CREATE_PAYMENT_SCHEDULE: namespace('members', 'CREATE_PAYMENT_SCHEDULE'),
   FETCH_BILLING_PAYMENTS: namespace('members', 'FETCH_BILLING_PAYMENTS'),
@@ -99,6 +101,8 @@ export const actions = {
   editPaymentAmount: withPayload(types.EDIT_PAYMENT_AMOUNT),
   fetchPaymentHistory: withPayload(types.FETCH_PAYMENT_HISTORY),
   setPaymentHistory: withPayload(types.SET_PAYMENT_HISTORY),
+  fetchOverdues: withPayload(types.FETCH_OVERDUES),
+  setOverdues: withPayload(types.SET_OVERDUES),
   clearPaymentSchedule: withPayload(types.CLEAR_PAYMENT_SCHEDULE),
   createPaymentSchedule: withPayload(types.CREATE_PAYMENT_SCHEDULE),
   fetchBillingPayments: withPayload(types.FETCH_BILLING_PAYMENTS),
@@ -152,9 +156,11 @@ export const State = Record({
   currentFilter: 'Active Members',
   billingInfo: {},
   paymentHistory: [],
+  overdues: [],
   billingPayments: [],
   billingPaymentsLoading: false,
   paymentHistoryLoading: true,
+  overduesLoading: true,
   processedAndScheduledPayments: {},
   processedAndScheduledPaymentsLoading: true,
   familyMembers: [],
@@ -264,6 +270,9 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('paymentHistoryLoading', false)
         .set('paymentHistory', payload);
     }
+    case types.SET_OVERDUES: {
+      return state.set('overduesLoading', false).set('overdues', payload);
+    }
     case types.SET_BILLING_PAYMENTS: {
       return state
         .set('billingPaymentsLoading', false)
@@ -280,6 +289,9 @@ export const reducer = (state = State(), { type, payload }) => {
     }
     case types.FETCH_PAYMENT_HISTORY: {
       return state.set('paymentHistoryLoading', true);
+    }
+    case types.FETCH_OVERDUES: {
+      return state.set('overduesLoading', true);
     }
     case types.FETCH_PROCESSED_SCHEDULED_PAYMENTS: {
       return state.set('processedAndScheduledPaymentsLoading', true);

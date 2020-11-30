@@ -13,6 +13,7 @@ import in_person from '../../images/in_person.png';
 import intro_class from '../../images/intro_class.png';
 import free_class from '../../images/free_class.png';
 import attended_class from '../../images/user-check.png';
+import noshow_class from '../../images/no-show.png';
 import { getJson } from '../Member/MemberUtils';
 import download from '../../images/download.png';
 import sort1 from '../../images/sort1.png';
@@ -400,6 +401,15 @@ export class TasksDetail extends Component {
       return (
         <span className="notesCell attended_class">
           <img src={attended_class} alt="Attended Class" title="Phone Call" />
+          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format(
+            'DD/MM/YYYY LT',
+          )}
+        </span>
+      );
+    } else if (row.original.contactMethod === 'noshow_class') {
+      return (
+        <span className="notesCell noshow_class">
+          <img src={noshow_class} alt="Class No Show" title="Class No Show" />
           {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format(
             'DD/MM/YYYY LT',
           )}

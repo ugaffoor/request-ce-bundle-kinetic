@@ -72,6 +72,15 @@ export class PDDailyReport extends Component {
     taught.set('friday', 0);
     taught.set('saturday', 0);
     taught.set('sunday', 0);
+    let noshow = new Map();
+    noshow.set('label', 'Intros No Show');
+    noshow.set('monday', 0);
+    noshow.set('tuesday', 0);
+    noshow.set('wednesday', 0);
+    noshow.set('thursday', 0);
+    noshow.set('friday', 0);
+    noshow.set('saturday', 0);
+    noshow.set('sunday', 0);
     let enrollment = new Map();
     enrollment.set('label', 'Enrollment');
     enrollment.set('monday', 0);
@@ -191,6 +200,35 @@ export class PDDailyReport extends Component {
             }
           }
         }
+        for (i = 0; i < history.length; i++) {
+          if (history[i]['contactMethod'] === 'noshow_class') {
+            switch (moment(history[i]['contactDate']).day()) {
+              case 1:
+                noshow.set('monday', taught.get('monday') + 1);
+                break;
+              case 2:
+                noshow.set('tuesday', taught.get('tuesday') + 1);
+                break;
+              case 3:
+                noshow.set('wednesday', taught.get('wednesday') + 1);
+                break;
+              case 4:
+                noshow.set('thursday', taught.get('thursday') + 1);
+                break;
+              case 5:
+                noshow.set('friday', taught.get('friday') + 1);
+                break;
+              case 6:
+                noshow.set('saturday', taught.get('saturday') + 1);
+                break;
+              case 0:
+                noshow.set('sunday', taught.get('sunday') + 1);
+                break;
+              default:
+                console.log('Something is wrong');
+            }
+          }
+        }
         if (
           moment(lead['updatedAt']).isBetween(startOfWeek, endOfWeek) &&
           lead.values['Lead State'] === 'Converted'
@@ -279,6 +317,25 @@ export class PDDailyReport extends Component {
         taught.get('friday') +
         taught.get('saturday') +
         taught.get('sunday'),
+    });
+
+    leadsData.push({
+      label: noshow.get('label'),
+      monday: noshow.get('monday'),
+      tuesday: noshow.get('tuesday'),
+      wednesday: noshow.get('wednesday'),
+      thursday: noshow.get('thursday'),
+      friday: noshow.get('friday'),
+      saturday: noshow.get('saturday'),
+      sunday: noshow.get('sunday'),
+      total:
+        noshow.get('monday') +
+        noshow.get('tuesday') +
+        noshow.get('wednesday') +
+        noshow.get('thursday') +
+        noshow.get('friday') +
+        noshow.get('saturday') +
+        noshow.get('sunday'),
     });
 
     leadsData.push({

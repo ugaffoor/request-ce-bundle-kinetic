@@ -22,6 +22,7 @@ export const getNewMember = state => state.newMember;
 
 const getBillingInfoUrl = '/billingInfo';
 const getPaymentsUrl = '/payments';
+const getOverduesUrl = '/overdues';
 const getScheduledPaymentsUrl = '/scheduledPayments';
 const ChangeScheduledAmountUrl = '/scheduledAmountChange';
 const createScheduleUrl = '/createSchedule';
@@ -735,6 +736,34 @@ export function* fetchPaymentHistory(action) {
         );
       } else {
         action.payload.setPaymentHistory(result.data.data);
+      }
+    })
+    .catch(error => {
+      console.log(error.response);
+      //action.payload.setSystemError(error);
+    });
+  yield put(actions.setDummy());
+}
+
+export function* fetchOverdues(action) {
+  const appSettings = yield select(getAppSettings);
+  var args = {
+    space: appSettings.spaceSlug,
+    billingService: appSettings.billingCompany,
+  };
+  console.log('action:' + action.payload);
+  axios
+    .post(appSettings.kineticBillingServerUrl + getOverduesUrl, args)
+    .then(result => {
+      if (result.data.error && result.data.error > 0) {
+        console.log(result.data.errorMessage);
+        action.payload.addNotification(
+          NOTICE_TYPES.ERROR,
+          result.data.errorMessage,
+          'Get Overdues',
+        );
+      } else {
+        action.payload.setOverdues(result.data.data);
       }
     })
     .catch(error => {
@@ -1814,6 +1843,7 @@ export function* watchMembers() {
   yield takeEvery(types.EDIT_PAYMENT_AMOUNT, editPaymentAmount);
   yield takeEvery(types.FETCH_MEMBER_PROMOTIONS, fetchMemberPromotions);
   yield takeEvery(types.FETCH_PAYMENT_HISTORY, fetchPaymentHistory);
+  yield takeEvery(types.FETCH_OVERDUES, fetchOverdues);
   yield takeEvery(types.CLEAR_PAYMENT_SCHEDULE, clearPaymentSchedule);
   yield takeEvery(types.CREATE_PAYMENT_SCHEDULE, createPaymentSchedule);
   yield takeEvery(types.FETCH_BILLING_PAYMENTS, fetchBillingPayments);

@@ -23,6 +23,7 @@ import in_person from '../../images/in_person.png';
 import intro_class from '../../images/intro_class.png';
 import free_class from '../../images/free_class.png';
 import attended_class from '../../images/user-check.png';
+import noshow_class from '../../images/no-show.png';
 import moment from 'moment';
 import { getJson } from '../Member/MemberUtils';
 import ReactTable from 'react-table';
@@ -84,6 +85,9 @@ function convertContactType(type) {
       break;
     case 'attended_class':
       label = 'Attended Class';
+      break;
+    case 'noshow_class':
+      label = 'Class No Show';
       break;
     default:
   }
@@ -304,6 +308,13 @@ export class LeadDetail extends Component {
         <span className="notesCell attended_class">
           <img src={attended_class} alt="Attended Class" />
           Attended Class
+        </span>
+      );
+    } else if (row.original.contactMethod === 'noshow_class') {
+      return (
+        <span className="notesCell noshow_class">
+          <img src={noshow_class} alt="Class No Show" />
+          Class No Show
         </span>
       );
     } else {
@@ -664,6 +675,24 @@ export class LeadDetail extends Component {
                   <img
                     src={attended_class}
                     alt="Attended Class"
+                    style={{ border: 'none' }}
+                  />
+                </a>
+              </li>
+              <li className="nav-item icon">
+                <a
+                  className="nav-link"
+                  title="Class No Show"
+                  data-toggle="tab"
+                  href="#method"
+                  id="attended_tab"
+                  role="tab"
+                  aria-controls="contact_method"
+                  onClick={() => this.handleContactMethodChange('noshow_class')}
+                >
+                  <img
+                    src={noshow_class}
+                    alt="Class No Show"
                     style={{ border: 'none' }}
                   />
                 </a>

@@ -262,6 +262,9 @@ export class PromotionDialog extends Component {
                     size="4"
                     disabled={this.props.promotingMember}
                     defaultValue="0"
+                    onChange={e => {
+                      if (e.target.value.trim() === '') e.target.value = '0';
+                    }}
                     name="classCarry"
                     id="classCarry"
                   />

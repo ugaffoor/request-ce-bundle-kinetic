@@ -20,6 +20,7 @@ import { MemberLastAttendance } from './MemberLastAttendance';
 import { PaysmartMemberDescrepencies } from './PaysmartMemberDescrepencies';
 import { InactiveMembersNoHistory } from './InactiveMembersNoHistory';
 import { FailedPayments } from './PaysmartFailedPayments';
+import { PaysmartOverdues } from './PaysmartOverdues';
 import { actions } from '../../redux/modules/members';
 import moment from 'moment';
 import { Utils } from 'common';
@@ -50,6 +51,8 @@ const mapStateToProps = state => ({
   customerRefundsLoading: state.member.members.customerRefundsLoading,
   paymentHistory: state.member.members.paymentHistory,
   paymentHistoryLoading: state.member.members.paymentHistoryLoading,
+  overdues: state.member.members.overdues,
+  overduesLoading: state.member.members.overduesLoading,
   space: state.member.app.space,
   billingCustomersLoading: state.member.members.billingCustomersLoading,
   billingCustomers: state.member.members.billingCustomers,
@@ -69,6 +72,8 @@ const mapDispatchToProps = {
   setCustomerRefunds: actions.setCustomerRefunds,
   fetchPaymentHistory: actions.fetchPaymentHistory,
   setPaymentHistory: actions.setPaymentHistory,
+  fetchOverdues: actions.fetchOverdues,
+  setOverdues: actions.setOverdues,
   fetchBillingCustomers: actions.fetchBillingCustomers,
   setBillingCustomers: actions.setBillingCustomers,
 };
@@ -125,11 +130,18 @@ export const ReportsView = ({
   setShowDescrepenciesReport,
   paymentHistory,
   paymentHistoryLoading,
+  overdues,
+  overduesLoading,
   showFailedPaymentsReport,
   setShowFailedPaymentsReport,
   getFailedPayments,
+  showOverduesReport,
+  setShowOverduesReport,
+  getOverdues,
   fetchPaymentHistory,
   setPaymentHistory,
+  fetchOverdues,
+  setOverdues,
   space,
   billingCustomersLoading,
   billingCustomers,
@@ -460,6 +472,37 @@ export const ReportsView = ({
         )}
       </div>
     )}
+    {!Utils.isMemberOf(profile, 'Billing') ? (
+      <div />
+    ) : (
+      <div style={{ margin: '20px 0px 0px 10px' }} id="failed-report">
+        <div className="row">
+          <button
+            type="button"
+            className="btn btn-primary report-btn-default"
+            onClick={e => {
+              setShowOverduesReport(showOverduesReport ? false : true);
+              document.getElementById('failed-report').scrollIntoView();
+            }}
+          >
+            {showOverduesReport
+              ? 'Hide Overdue Payments Report'
+              : 'Show Overdue Payments Report'}
+          </button>
+        </div>
+        {!showOverduesReport ? null : (
+          <div className="row">
+            <div>
+              <PaysmartOverdues
+                getOverdues={getOverdues}
+                overdues={overdues}
+                overduesLoading={overduesLoading}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    )}
   </div>
 );
 
@@ -476,6 +519,7 @@ export const ReportsContainer = compose(
   withState('showVariationsReport', 'setShowVariationsReport', false),
   withState('showDescrepenciesReport', 'setShowDescrepenciesReport', false),
   withState('showFailedPaymentsReport', 'setShowFailedPaymentsReport', false),
+  withState('showOverduesReport', 'setShowOverduesReport', false),
   withHandlers({
     fetchLeads: ({ fetchLeads }) => () => {
       fetchLeads({});
@@ -576,6 +620,18 @@ export const ReportsContainer = compose(
         dateTo: moment().format('YYYY-MM-DD'),
         setPaymentHistory: setPaymentHistory,
         internalPaymentType: 'client_failed',
+        addNotification: addNotification,
+        setSystemError: setSystemError,
+      });
+    },
+    getOverdues: ({
+      fetchOverdues,
+      setOverdues,
+      addNotification,
+      setSystemError,
+    }) => () => {
+      fetchOverdues({
+        setOverdues: setOverdues,
         addNotification: addNotification,
         setSystemError: setSystemError,
       });

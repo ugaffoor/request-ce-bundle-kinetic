@@ -347,7 +347,7 @@ export const MemberEdit = ({
                 <PhotoForm memberItem={memberItem} setIsDirty={setIsDirty} />
               </span>
             </span>
-            {/*
+            {
               <span className="line">
                 <div>
                   <label htmlFor="billingId">Billing Customer Id</label>
@@ -453,9 +453,7 @@ export const MemberEdit = ({
                   />
                 </div>
                 <div>
-                  <label htmlFor="leadSubmissionID">
-                    Lead Submission ID
-                  </label>
+                  <label htmlFor="leadSubmissionID">Lead Submission ID</label>
                   <input
                     type="text"
                     name="leadSubmissionID"
@@ -474,9 +472,7 @@ export const MemberEdit = ({
                   />
                 </div>
                 <div>
-                  <label htmlFor="statusHistory">
-                    Status History
-                  </label>
+                  <label htmlFor="statusHistory">Status History</label>
                   <input
                     type="text"
                     name="statusHistory"
@@ -485,17 +481,12 @@ export const MemberEdit = ({
                     ref={input => (this.input = input)}
                     defaultValue={memberItem.values['Status History']}
                     onChange={e =>
-                      handleChange(
-                        memberItem,
-                        'Status History',
-                        e,
-                        setIsDirty,
-                      )
+                      handleChange(memberItem, 'Status History', e, setIsDirty)
                     }
                   />
                 </div>
               </span>
-            */}
+            }
             <span className="line">
               <div>
                 <label
@@ -636,12 +627,12 @@ export const MemberEdit = ({
                   defaultValue={memberItem.values['Email']}
                   onChange={e => {
                     if (e.target.value !== null)
-                      e.target.value = e.target.value.trim();
+                      e.target.value = e.target.value.trim().toLowerCase();
                     memberItem.values['Email'] =
                       memberItem.values['Email'] === undefined ||
                       memberItem.values['Email'] === null
                         ? ''
-                        : memberItem.values['Email'].trim();
+                        : memberItem.values['Email'].trim().toLowerCase();
                     handleChange(
                       memberItem,
                       'Email',
@@ -662,7 +653,15 @@ export const MemberEdit = ({
                   ref={input => (this.input = input)}
                   defaultValue={memberItem.values['Additional Email']}
                   onChange={e => {
-                    e.target.value = e.target.value.trim();
+                    if (e.target.value !== null)
+                      e.target.value = e.target.value.trim().toLowerCase();
+                    memberItem.values['Additional Email'] =
+                      memberItem.values['Additional Email'] === undefined ||
+                      memberItem.values['Additional Email'] === null
+                        ? ''
+                        : memberItem.values['Additional Email']
+                            .trim()
+                            .toLowerCase();
                     handleChange(
                       memberItem,
                       'Additional Email',

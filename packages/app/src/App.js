@@ -12,7 +12,7 @@ import { Utils, ToastsContainer, ModalFormContainer } from 'common';
 import { LoginModal } from './components/authentication/LoginModal';
 import { HeaderContainer } from './components/HeaderContainer';
 import { actions as loadingActions } from './redux/modules/loading';
-import { actions as alertsActions } from './redux/modules/alerts';
+import { actions as journeyeventsActions } from './redux/modules/journeyevents';
 import { actions as layoutActions } from './redux/modules/layout';
 import { App as ServicesApp } from 'services/src/App';
 import { App as RegistrationsApp } from 'registrations/src/App';
@@ -83,7 +83,7 @@ export const mapStateToProps = state => ({
 });
 export const mapDispatchToProps = {
   loadApp: loadingActions.loadApp,
-  fetchAlerts: alertsActions.fetchAlerts,
+  fetchJourneyEvents: journeyeventsActions.fetchJourneyEvents,
   setSidebarOpen: layoutActions.setSidebarOpen,
   setSuppressedSidebarOpen: layoutActions.setSuppressedSidebarOpen,
 };
@@ -143,7 +143,7 @@ export const App = compose(
   lifecycle({
     componentDidMount() {
       this.props.loadApp(true);
-      this.props.fetchAlerts();
+      this.props.fetchJourneyEvents();
     },
   }),
 )(AppComponent);

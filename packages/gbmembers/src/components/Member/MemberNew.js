@@ -315,7 +315,7 @@ export const MemberNew = ({
                   ref={input => (this.input = input)}
                   defaultValue={memberItem.values['Email']}
                   onChange={e => {
-                    e.target.value = e.target.value.trim();
+                    e.target.value = e.target.value.trim().toLowerCase();
                     handleChange(memberItem, 'Email', e);
                   }}
                 />
@@ -330,7 +330,7 @@ export const MemberNew = ({
                   ref={input => (this.input = input)}
                   defaultValue={memberItem.values['Additional Email']}
                   onChange={e => {
-                    e.target.value = e.target.value.trim();
+                    e.target.value = e.target.value.trim().toLowerCase();
                     handleChange(memberItem, 'Additional Email', e);
                   }}
                 />

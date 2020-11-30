@@ -364,9 +364,19 @@ export class AttendancePerDay extends Component {
         moment(schedule.start).day() ===
           moment(attendance.classDate, 'YYYY-MM-DD').day() &&
         moment(schedule.start).format('HH:mm') === attendance.classTime &&
-        this.matchesSchedule(schedule, attendance.program)
+        schedule.program === attendance.class
       );
     });
+    if (classSchedule === undefined) {
+      classSchedule = classSchedules.find(schedule => {
+        return (
+          moment(schedule.start).day() ===
+            moment(attendance.classDate, 'YYYY-MM-DD').day() &&
+          moment(schedule.start).format('HH:mm') === attendance.classTime &&
+          this.matchesSchedule(schedule, attendance.class)
+        );
+      });
+    }
     return classSchedule !== undefined ? classSchedule : undefined;
   }
   getAttendanceTableData(attendances, allMembers, classSchedules) {
@@ -385,7 +395,7 @@ export class AttendancePerDay extends Component {
           : attendance.program);
       var membersArr = [];
       var member = allMembers.find(
-        member => member.values['Member ID'] === attendance.memberID,
+        member => member.id === attendance.memberGUID,
       );
       if (classesDataMap.get(key) === undefined) {
         membersArr[0] = {
@@ -433,6 +443,7 @@ export class AttendancePerDay extends Component {
     let classesData = [];
     classesDataMap.forEach((value, key, map) => {
       classesData.push({
+        sortVal: key,
         classDate: value.classDate,
         classTime: value.classTime,
         program: value.program,

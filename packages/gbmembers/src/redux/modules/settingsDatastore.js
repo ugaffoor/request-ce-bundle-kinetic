@@ -6,18 +6,39 @@ export const types = {
   FETCH_CALL_SCRIPTS: namespace('datastore', 'FETCH_CALL_SCRIPTS'),
   SET_CALL_SCRIPTS: namespace('datastore', 'SET_CALL_SCRIPTS'),
   FETCH_EMAIL_TEMPLATES: namespace('datastore', 'FETCH_EMAIL_TEMPLATES'),
+  FETCH_EMAIL_TEMPLATE: namespace('datastore', 'FETCH_EMAIL_TEMPLATE'),
+  FETCH_EMAIL_TEMPLATE_BYNAME: namespace(
+    'datastore',
+    'FETCH_EMAIL_TEMPLATE_BYNAME',
+  ),
   SET_EMAIL_TEMPLATES: namespace('datastore', 'SET_EMAIL_TEMPLATES'),
+  SET_EMAIL_TEMPLATE: namespace('datastore', 'SET_EMAIL_TEMPLATE'),
   FETCH_SMS_TEMPLATES: namespace('datastore', 'FETCH_SMS_TEMPLATES'),
   SET_SMS_TEMPLATES: namespace('datastore', 'SET_SMS_TEMPLATES'),
+  FETCH_JOURNEY_EVENT: namespace('datastore', 'FETCH_JOURNEY_EVENT'),
+  SET_JOURNEY_EVENT: namespace('datastore', 'SET_JOURNEY_EVENT'),
+  RESET_JOURNEY_EVENT: namespace('datastore', 'RESET_JOURNEY_EVENT'),
+  SET_JOURNEY_EVENT_ERROR: namespace('datastore', 'SET_JOURNEY_EVENT_ERROR'),
+  UPDATE_JOURNEY_EVENT: namespace('datastore', 'UPDATE_JOURNEY_EVENT'),
+  DELETE_JOURNEY_EVENT: namespace('datastore', 'DELETE_JOURNEY_EVENT'),
 };
 
 export const actions = {
   fetchCallScripts: withPayload(types.FETCH_CALL_SCRIPTS),
   setCallScripts: withPayload(types.SET_CALL_SCRIPTS),
   fetchEmailTemplates: withPayload(types.FETCH_EMAIL_TEMPLATES),
+  fetchEmailTemplate: withPayload(types.FETCH_EMAIL_TEMPLATE),
+  fetchEmailTemplateByName: withPayload(types.FETCH_EMAIL_TEMPLATE_BYNAME),
   setEmailTemplates: withPayload(types.SET_EMAIL_TEMPLATES),
+  setEmailTemplate: withPayload(types.SET_EMAIL_TEMPLATE),
   fetchSMSTemplates: withPayload(types.FETCH_SMS_TEMPLATES),
   setSMSTemplates: withPayload(types.SET_SMS_TEMPLATES),
+  fetchJourneyEvent: withPayload(types.FETCH_JOURNEY_EVENT),
+  setJourneyEvent: withPayload(types.SET_JOURNEY_EVENT),
+  resetJourneyEvent: withPayload(types.RESET_JOURNEY_EVENT),
+  setJourneyEventError: withPayload(types.SET_JOURNEY_EVENT_ERROR),
+  updateJourneyEvent: withPayload(types.UPDATE_JOURNEY_EVENT),
+  deleteJourneyEvent: withPayload(types.DELETE_JOURNEY_EVENT),
 };
 
 export const State = Record({
@@ -26,8 +47,13 @@ export const State = Record({
   emailTemplateCategories: [],
   emailTemplates: [],
   emailTemplatesLoading: true,
+  emailTemplate: {},
+  emailTemplateLoading: true,
   smsTemplates: [],
   smsTemplatesLoading: true,
+  journeyEventLoading: true,
+  journeyEvent: null,
+  error: null,
 });
 
 export const reducer = (state = State(), { type, payload }) => {
@@ -36,6 +62,15 @@ export const reducer = (state = State(), { type, payload }) => {
       return state.set('callScriptsLoading', true);
     case types.SET_CALL_SCRIPTS: {
       return state.set('callScriptsLoading', false).set('callScripts', payload);
+    }
+    case types.FETCH_EMAIL_TEMPLATE:
+      return state.set('emailTemplateLoading', true);
+    case types.FETCH_EMAIL_TEMPLATE_BYNAME:
+      return state.set('emailTemplateLoading', true);
+    case types.SET_EMAIL_TEMPLATE: {
+      return state
+        .set('emailTemplateLoading', false)
+        .set('emailTemplate', payload[0].values);
     }
     case types.FETCH_EMAIL_TEMPLATES:
       return state.set('emailTemplatesLoading', true);
@@ -123,6 +158,17 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('smsTemplateCategories', categoryArray)
         .set('smsTemplates', templates);
     }
+    case types.FETCH_JOURNEY_EVENT:
+      return state.set('journeyEventLoading', true).set('journeyEvent', null);
+    case types.SET_JOURNEY_EVENT:
+      return state
+        .set('journeyEventLoading', false)
+        .set('error', null)
+        .set('journeyEvent', payload);
+    case types.RESET_JOURNEY_EVENT:
+      return state.set('journeyEventLoading', true);
+    case types.SET_JOURNEY_EVENT_ERROR:
+      return state.set('journeyEventLoading', false).set('error', payload);
     default:
       return state;
   }

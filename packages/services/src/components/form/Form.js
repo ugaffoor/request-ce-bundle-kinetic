@@ -324,6 +324,7 @@ export class DatepickerWrapper extends React.Component {
       parentID,
       value,
       value_format,
+      defaultValue,
       displayDateFormat,
       minDate,
       timepicker,
@@ -336,6 +337,7 @@ export class DatepickerWrapper extends React.Component {
       <DateTimePicker
         value={value}
         value_format={value_format}
+        defaultValue={defaultValue}
         displayDateFormat={displayDateFormat}
         minDate={minDate}
         options={this.state.options}
@@ -358,6 +360,7 @@ bundle.config.widgets = {
     parentID,
     value,
     value_format,
+    defaultValue,
     displayDateFormat,
     minDate,
     options,
@@ -372,6 +375,7 @@ bundle.config.widgets = {
         parentID={parentID}
         value={value}
         value_format={value_format}
+        defaultValue={defaultValue}
         minDate={minDate}
         displayDateFormat={displayDateFormat}
         options={options}

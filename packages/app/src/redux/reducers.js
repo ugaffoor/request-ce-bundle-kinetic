@@ -1,4 +1,5 @@
 import { reducer as alerts } from './modules/alerts';
+import { reducer as journeyevents } from './modules/journeyevents';
 import { reducer as auth } from './modules/auth';
 import { reducer as config } from './modules/config';
 import { reducer as kapps } from './modules/kapps';
@@ -9,6 +10,7 @@ import { reducer as space } from './modules/space';
 
 export default {
   alerts,
+  journeyevents,
   auth,
   config,
   layout,

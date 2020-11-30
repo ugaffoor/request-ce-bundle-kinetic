@@ -507,14 +507,23 @@ export class LeadEdit extends Component {
                     required
                     ref={input => (this.input = input)}
                     value={this.props.leadItem.values['Email']}
-                    onChange={e =>
+                    onChange={e => {
+                      if (e.target.value !== null)
+                        e.target.value = e.target.value.trim().toLowerCase();
+                      this.props.leadItem.values['Email'] =
+                        this.props.leadItem.values['Email'] === undefined ||
+                        this.props.leadItem.values['Email'] === null
+                          ? ''
+                          : this.props.leadItem.values['Email']
+                              .trim()
+                              .toLowerCase();
                       handleChange(
                         this.props.leadItem,
                         'Email',
                         e,
                         this.setIsDirty,
-                      )
-                    }
+                      );
+                    }}
                   />
                 </div>
                 <div className="emailDiv ml-1">
@@ -526,14 +535,24 @@ export class LeadEdit extends Component {
                     size="40"
                     ref={input => (this.input = input)}
                     value={this.props.leadItem.values['Additional Email']}
-                    onChange={e =>
+                    onChange={e => {
+                      if (e.target.value !== null)
+                        e.target.value = e.target.value.trim().toLowerCase();
+                      this.props.leadItem.values['Additional Email'] =
+                        this.props.leadItem.values['Additional Email'] ===
+                          undefined ||
+                        this.props.leadItem.values['Additional Email'] === null
+                          ? ''
+                          : this.props.leadItem.values['Additional Email']
+                              .trim()
+                              .toLowerCase();
                       handleChange(
                         this.props.leadItem,
                         'Additional Email',
                         e,
                         this.setIsDirty,
-                      )
-                    }
+                      );
+                    }}
                   />
                 </div>
               </span>

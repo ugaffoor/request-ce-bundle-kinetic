@@ -2,6 +2,9 @@
   .ReactTable {
     .notesCell {
       float: left;
+      img {
+        padding-right: 4px;
+      }
     }
   }
 }
@@ -270,7 +273,7 @@
     }
   }
   .nav-tabs .nav-item.label {
-    margin-top: 5px;
+    margin-top: 16px;
     margin-right: 5px;
   }
   .nav-tabs {
@@ -278,6 +281,10 @@
   }
   .card-header {
     border-bottom: none;
+  }
+  .nav-link {
+    margin: 0;
+    padding: 10px;
   }
   .nav-item .nav-link img {
     width: 24px;
@@ -319,6 +326,9 @@
     float: left;
     border: none;
     margin-right: 10px;
+    img {
+      padding-right: 4px;
+    }
   }
   .rt-td.notes {
     text-align: left;

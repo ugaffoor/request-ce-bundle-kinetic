@@ -29,6 +29,9 @@ import { DDRTemplatesContainer } from './DDRTemplates';
 import { SettingsContainer } from './settings/Settings';
 import { FormContainer } from './form/FormContainer';
 import { ReportsContainer } from './reports/Reports';
+import { EmailEventContainer } from './journey/EmailEvent';
+import { SMSEventContainer } from './journey/SMSEvent';
+import { CallEventContainer } from './journey/CallEvent';
 
 export const Content = () => (
   <div className="content" id="mainContent">
@@ -73,5 +76,17 @@ export const Content = () => (
     />
     <ModalFormContainer />
     <Route path="/Reports" component={ReportsContainer} />
+    <Route
+      path="/EmailEvent/:recordType?/:eventId?"
+      component={EmailEventContainer}
+    />
+    <Route
+      path="/SMSEvent/:recordType?/:eventId?"
+      component={SMSEventContainer}
+    />
+    <Route
+      path="/CallEvent/:recordType?/:eventId?"
+      component={CallEventContainer}
+    />
   </div>
 );

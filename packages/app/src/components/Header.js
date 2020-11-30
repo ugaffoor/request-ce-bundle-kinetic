@@ -11,7 +11,7 @@ import {
 } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import { KappLink, Utils } from 'common';
-import { AlertsContainer } from './AlertsContainer';
+import { JourneyEventsContainer } from './JourneyEventsContainer';
 import { ProfileContainer } from './ProfileContainer';
 import { I18n } from '../I18nProvider';
 import SVGInline from 'react-svg-inline';
@@ -132,7 +132,7 @@ export const Header = ({
             ))}
           </DropdownMenu>
         </Dropdown>
-        {!isGuest && <AlertsContainer />}
+        {!isGuest && <JourneyEventsContainer />}
         <ProfileContainer space={space} />
       </div>
     </Nav>

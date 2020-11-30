@@ -91,7 +91,8 @@ export function* sendSms(action) {
           'SMS queued successfully',
           'Send SMS',
         );
-        action.payload.smsInputElm.val('');
+        if (action.payload.smsInputElm !== undefined)
+          action.payload.smsInputElm.val('');
       }
     })
     .catch(error => {

@@ -46,6 +46,9 @@
   &.alerts-menu:after {
     left: 93%;
   }
+  &.events-menu:after {
+    left: 93%;
+  }
   &.profile-menu:after {
     left: 88%;
   }
@@ -68,7 +71,7 @@
   }
 
   .badge {
-    background-color: $orange-kinops;
+    background-color: #e1251b;
     border-radius: 50%;
     font-size: 0.625rem;
     height: 1.25rem;

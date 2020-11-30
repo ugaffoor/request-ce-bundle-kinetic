@@ -138,6 +138,17 @@ export class Statistics extends Component {
               attendedTotal[attendedTotal.length] = lead;
             }
           }
+          for (i = 0; i < history.length; i++) {
+            if (
+              moment(history[i]['contactDate'], 'YYYY-MM-DD HH:mm').isBetween(
+                fromDate,
+                toDate,
+              ) &&
+              history[i]['contactMethod'] === 'noshow_class'
+            ) {
+              attendedTotal[attendedTotal.length] = lead;
+            }
+          }
           if (lead.values['Lead State'] === 'Converted') {
             let memberIdx = allMembers.findIndex(
               member => member.values['Lead Submission ID'] === lead.id,
@@ -182,6 +193,17 @@ export class Statistics extends Component {
               toDate,
             ) &&
             history[i]['contactMethod'] === 'attended_class'
+          ) {
+            attendedTotal[attendedTotal.length] = lead;
+          }
+        }
+        for (i = 0; i < history.length; i++) {
+          if (
+            moment(history[i]['contactDate'], 'YYYY-MM-DD HH:mm').isBetween(
+              fromDate,
+              toDate,
+            ) &&
+            history[i]['contactMethod'] === 'noshow_class'
           ) {
             attendedTotal[attendedTotal.length] = lead;
           }
@@ -878,7 +900,7 @@ export class Statistics extends Component {
                   });
                 }}
               />
-              <label for="lctMode"></label>
+              <label htmlFor="lctMode"></label>
             </div>
             {}
           </div>
