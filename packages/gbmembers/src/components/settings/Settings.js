@@ -19,6 +19,7 @@ import { Utils } from 'common';
 import moment from 'moment';
 import { ClassesCalendar } from './ClassesCalendar';
 import { ManageBookings } from './ManageBookings';
+import { RecurringBookings as ManageRecurringBookings } from './RecurringBookings';
 import { confirm } from '../helpers/Confirmation';
 
 const mapStateToProps = state => ({
@@ -35,6 +36,9 @@ const mapStateToProps = state => ({
   classBookings: state.member.classes.currentClassBookings,
   addedBooking: state.member.classes.addedBooking,
   fetchingClassBookings: state.member.classes.fetchingCurrentClassBookings,
+  recurringBookings: state.member.classes.recurringBookings,
+  addedRecurring: state.member.classes.addedRecurring,
+  fetchingRecurringBookings: state.member.classes.fetchingRecurringBookings,
   programs: state.member.app.programs,
   additionalPrograms: state.member.app.additionalPrograms,
   space: state.member.app.space,
@@ -45,9 +49,13 @@ const mapDispatchToProps = {
   fetchMembers: actions.fetchMembers,
   fetchClassSchedules: classActions.fetchClassSchedules,
   fetchClassBookings: classActions.fetchCurrentClassBookings,
+  fetchRecurringBookings: classActions.fetchRecurringBookings,
   updateBooking: classActions.updateBooking,
   addBooking: classActions.addBooking,
   deleteBooking: classActions.deleteBooking,
+  updateRecurring: classActions.updateRecurring,
+  addRecurring: classActions.addRecurring,
+  deleteRecurring: classActions.deleteRecurring,
   newClass: classActions.newClass,
   editClass: classActions.editClass,
   deleteClass: classActions.deleteClass,
@@ -138,12 +146,17 @@ export const SettingsView = ({
   setShowClassCalendar,
   showClassBookings,
   setShowClassBookings,
+  showRecurringBookings,
+  setShowRecurringBookings,
   classSchedules,
   fetchClassSchedules,
   fetchingClassSchedules,
   classBookings,
   fetchClassBookings,
   fetchingClassBookings,
+  recurringBookings,
+  fetchRecurringBookings,
+  fetchingRecurringBookings,
   newClass,
   editClass,
   deleteClass,
@@ -153,6 +166,10 @@ export const SettingsView = ({
   addBooking,
   addedBooking,
   deleteBooking,
+  updateRecurring,
+  addRecurring,
+  addedRecurring,
+  deleteRecurring,
   space,
 }) => (
   <div className="settings">
@@ -167,7 +184,7 @@ export const SettingsView = ({
             id="classCalendar"
             className={'btn btn-primary'}
             onClick={e => {
-              fetchClassSchedules();
+              if (classSchedules.size === 0) fetchClassSchedules();
               setShowClassCalendar(showClassCalendar ? false : true);
             }}
           >
@@ -196,10 +213,51 @@ export const SettingsView = ({
         <div className="col-xs-3">
           <button
             type="button"
+            id="recurringBookings"
+            className={'btn btn-primary'}
+            onClick={e => {
+              if (classSchedules.size === 0) fetchClassSchedules();
+              fetchRecurringBookings({ allMembers });
+              setShowRecurringBookings(showRecurringBookings ? false : true);
+            }}
+          >
+            {showRecurringBookings
+              ? 'Hide Recurring Bookings'
+              : 'Show Recurring Bookings'}
+          </button>
+        </div>
+      )}
+      {(fetchingRecurringBookings || fetchingClassSchedules) &&
+      showRecurringBookings ? (
+        <p>Loading Recurring Bookings ....</p>
+      ) : !fetchingRecurringBookings &&
+        !fetchingClassSchedules &&
+        showRecurringBookings ? (
+        <ManageRecurringBookings
+          recurringBookings={recurringBookings}
+          allMembers={allMembers}
+          programs={programs}
+          additionalPrograms={additionalPrograms}
+          updateRecurring={updateRecurring}
+          addRecurring={addRecurring}
+          addedRecurring={addedRecurring}
+          deleteRecurring={deleteRecurring}
+          space={space}
+          classSchedules={classSchedules}
+        ></ManageRecurringBookings>
+      ) : (
+        <div />
+      )}
+      {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
+        <div />
+      ) : (
+        <div className="col-xs-3">
+          <button
+            type="button"
             id="classBookings"
             className={'btn btn-primary'}
             onClick={e => {
-              fetchClassSchedules();
+              if (classSchedules.size === 0) fetchClassSchedules();
               fetchClassBookings();
               setShowClassBookings(showClassBookings ? false : true);
             }}
@@ -208,7 +266,8 @@ export const SettingsView = ({
           </button>
         </div>
       )}
-      {fetchingClassBookings && fetchingClassSchedules && showClassBookings ? (
+      {(fetchingClassBookings || fetchingClassSchedules) &&
+      showClassBookings ? (
         <p>Loading Class Bookings ....</p>
       ) : !fetchingClassBookings &&
         !fetchingClassSchedules &&
@@ -364,6 +423,7 @@ export const SettingsContainer = compose(
   withState('printingBarcodes', 'setPrintingBarcodes', false),
   withState('showClassCalendar', 'setShowClassCalendar', false),
   withState('showClassBookings', 'setShowClassBookings', false),
+  withState('showRecurringBookings', 'setShowRecurringBookings', false),
   withHandlers({
     printMemberBarcodes: ({ allMembers, setPrintingBarcodes }) => () => {
       console.log('Printing:' + allMembers.length);

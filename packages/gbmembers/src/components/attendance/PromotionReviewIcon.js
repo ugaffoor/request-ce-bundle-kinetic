@@ -14,7 +14,6 @@ export class PromotionReviewIcon extends Component {
 
     this.state = {
       showPromotionReviewDialog: false,
-      member: this.props.memberItem,
     };
   }
   componentWillReceiveProps(nextProps) {}
@@ -37,7 +36,7 @@ export class PromotionReviewIcon extends Component {
         {this.state.showPromotionReviewDialog && (
           <PromotionReviewDialogContainer
             setShowPromotionReviewDialog={this.setShowPromotionReviewDialog}
-            memberItem={this.state.member}
+            memberItem={this.props.memberItem}
             belts={this.props.belts}
             allMembers={this.props.allMembers}
             setIsDirty={this.props.setIsDirty}

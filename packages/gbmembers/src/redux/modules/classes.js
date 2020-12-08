@@ -1,5 +1,6 @@
 import { Record, List } from 'immutable';
 import { namespace, withPayload } from '../../utils';
+import moment from 'moment';
 
 export const types = {
   NEW_CLASS: namespace('classes', 'NEW_CLASS'),
@@ -21,6 +22,12 @@ export const types = {
     'classes',
     'SET_CURRENT_CLASS_BOOKINGS',
   ),
+  FETCH_RECURRING_BOOKINGS: namespace('classes', 'FETCH_RECURRING_BOOKINGS'),
+  SET_RECURRING_BOOKINGS: namespace('classes', 'SET_RECURRING_BOOKINGS'),
+  ADD_RECURRING: namespace('classes', 'ADD_RECURRING'),
+  UPDATE_RECURRING: namespace('classes', 'UPDATE_RECURRING'),
+  DELETE_RECURRING: namespace('classes', 'DELETE_RECURRING'),
+  SET_ADD_RECURRING: namespace('classes', 'SET_ADD_RECURRING'),
 };
 
 export const actions = {
@@ -37,6 +44,12 @@ export const actions = {
   setAddedBooking: withPayload(types.SET_ADD_BOOKING),
   fetchCurrentClassBookings: withPayload(types.FETCH_CURRENT_CLASS_BOOKINGS),
   setCurrentClassBookings: withPayload(types.SET_CURRENT_CLASS_BOOKINGS),
+  fetchRecurringBookings: withPayload(types.FETCH_RECURRING_BOOKINGS),
+  setRecurringBookings: withPayload(types.SET_RECURRING_BOOKINGS),
+  addRecurring: withPayload(types.ADD_RECURRING),
+  updateRecurring: withPayload(types.UPDATE_RECURRING),
+  deleteRecurring: withPayload(types.DELETE_RECURRING),
+  setAddedRecurring: withPayload(types.SET_ADD_RECURRING),
 };
 
 export const State = Record({
@@ -47,6 +60,9 @@ export const State = Record({
   currentClassBookings: List(),
   fetchingCurrentClassBookings: false,
   addedBooking: {},
+  recurringBookings: List(),
+  fetchingRecurringBookings: false,
+  addedRecurring: {},
 });
 
 export const reducer = (state = State(), { type, payload }) => {
@@ -77,13 +93,49 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('classBookings', payload.classBookings);
     }
     case types.SET_CURRENT_CLASS_BOOKINGS: {
+      var now = moment();
+      var classBookings = payload.currentClassBookings.filter(element => {
+        if (
+          element['classDate'] === now.format('YYYY-MM-DD') &&
+          moment(
+            element['classDate'] + ' ' + element['classTime'],
+            'YYYY-MM-DD HH:mm',
+          ).isBefore(now)
+        ) {
+          return false;
+        }
+        return true;
+      });
+
       return state
         .set('fetchingCurrentClassBookings', false)
-        .set('currentClassBookings', payload.currentClassBookings)
+        .set('currentClassBookings', classBookings)
         .set('addedBooking', {});
     }
     case types.SET_ADD_BOOKING: {
       return state.set('addedBooking', payload);
+    }
+    case types.FETCH_RECURRING_BOOKINGS:
+      return state.set('fetchingRecurringBookings', true);
+    case types.SET_RECURRING_BOOKINGS: {
+      payload.recurringBookings.forEach(booking => {
+        var memberRec = payload.allMembers.find(
+          member => member.id === booking.memberGUID,
+        );
+        booking['photo'] = memberRec.values['Photo'];
+        booking['firstName'] = memberRec.values['First Name'];
+        booking['lastName'] = memberRec.values['Last Name'];
+        booking['rankingProgram'] = memberRec.values['Ranking Program'];
+        booking['rankingBelt'] = memberRec.values['Ranking Belt'];
+        console.log(booking.firstName);
+      });
+      return state
+        .set('fetchingRecurringBookings', false)
+        .set('recurringBookings', payload.recurringBookings)
+        .set('addedRecurring', {});
+    }
+    case types.SET_ADD_RECURRING: {
+      return state.set('addedRecurring', payload);
     }
     default:
       return state;

@@ -13,25 +13,26 @@ import { KappNavLink as NavLink } from 'common';
 
 var yesterday = Datetime.moment().subtract(1, 'day');
 
-export class ManageBookings extends Component {
+export class RecurringBookings extends Component {
   constructor(props) {
     super(props);
     this.getGridData = this.getGridData.bind(this);
-    this.rawClassBookings = this.props.classBookings;
+    this.rawRecurringBookings = this.props.recurringBookings;
     this.classSchedules = this.props.classSchedules;
-    this.classBookings = this.getGridData(
-      this.rawClassBookings,
+    this.recurringBookings = this.getGridData(
+      this.rawRecurringBookings,
       this.classSchedules,
     );
-    this.deleteBooking = this.props.deleteBooking.bind(this);
-    this.updateBooking = this.props.updateBooking.bind(this);
-    this.addBooking = this.props.addBooking.bind(this);
+    this.deleteRecurring = this.props.deleteRecurring.bind(this);
+    this.updateRecurring = this.props.updateRecurring.bind(this);
+    this.addRecurring = this.props.addRecurring.bind(this);
     this.renderStatusCell = this.renderStatusCell.bind(this);
     this.valid = this.valid.bind(this);
     this.classInfo = this.classInfo.bind(this);
+    this.getDayInt = this.getDayInt.bind(this);
     this.space = this.props.space;
     this.columns = [
-      { Header: 'Class Date', accessor: 'classDate', width: 150 },
+      { Header: 'Class Day', accessor: 'classDay', width: 150 },
       { Header: 'Class Time', accessor: 'classTime' },
       {
         Header: 'Program',
@@ -62,7 +63,7 @@ export class ManageBookings extends Component {
       { Header: 'Status', accessor: 'status', Cell: this.renderStatusCell },
     ];
     this.state = {
-      classDate: undefined,
+      classDay: undefined,
       classTime: undefined,
       program: undefined,
       memberGUID: undefined,
@@ -104,12 +105,26 @@ export class ManageBookings extends Component {
       return 'black';
     }
   }
+  getWeekday(day) {
+    if (day === 1) return 'Monday';
+    else if (day === 2) return 'Tuesday';
+    else if (day === 3) return 'Wednesday';
+    else if (day === 4) return 'Thursday';
+    else if (day === 5) return 'Friday';
+    else if (day === 6) return 'Saturday';
+    else if (day === 7 || day === 0) return 'Sunday';
+
+    return '';
+  }
+  getDayInt(day) {
+    return day === 7 ? 0 : day;
+  }
+
   getClassBackgroundColor(classInfo, classSchedules) {
     var schedule = classSchedules.find(schedule => {
       return (
         schedule.program === classInfo.program &&
-        moment(schedule.start).day() ===
-          moment(classInfo.classDate, 'ddd Do MMM').day() &&
+        moment(schedule.start).day() === classInfo.classDayInt &&
         moment(schedule.start).format('LT') === classInfo.classTime
       );
     });
@@ -123,8 +138,7 @@ export class ManageBookings extends Component {
     var schedule = classSchedules.find(
       schedule =>
         schedule.program === classInfo.program &&
-        moment(schedule.start).day() ===
-          moment(classInfo.classDate, 'ddd Do MMM').day() &&
+        moment(schedule.start).day() === classInfo.classDayInt &&
         moment(schedule.start).format('LT') === classInfo.classTime,
     );
     return schedule !== undefined &&
@@ -149,26 +163,26 @@ export class ManageBookings extends Component {
   }
   componentWillReceiveProps(nextProps) {
     if (
-      nextProps.addedBooking.id !== undefined &&
-      (this.state.addedBooking === undefined ||
-        this.state.addedBooking.id !== nextProps.addedBooking.id)
+      nextProps.addedRecurring.id !== undefined &&
+      (this.state.addedRecurring === undefined ||
+        this.state.addedRecurring.id !== nextProps.addedRecurring.id)
     ) {
-      this.rawClassBookings = this.rawClassBookings.push(
-        nextProps.addedBooking,
+      this.rawRecurringBookings = this.rawRecurringBookings.push(
+        nextProps.addedRecurring,
       );
-      this.classBookings = this.getGridData(
-        this.rawClassBookings,
+      this.recurringBookings = this.getGridData(
+        this.rawRecurringBookings,
         this.classSchedules,
       );
 
-      var idx = this.classBookings.findIndex(element => {
+      var idx = this.recurringBookings.findIndex(element => {
         if (
           element.sortVal + '-' + element.program ===
-          nextProps.addedBooking.classDate +
+          nextProps.addedRecurring.classDay +
             '-' +
-            nextProps.addedBooking.classTime +
+            nextProps.addedRecurring.classTime +
             '-' +
-            nextProps.addedBooking.program
+            nextProps.addedRecurring.program
         )
           return true;
         return false;
@@ -187,15 +201,15 @@ export class ManageBookings extends Component {
         });
       }
       this.setState({
-        addedBooking: nextProps.addedBooking,
+        addedRecurring: nextProps.addedRecurring,
       });
     } else if (
-      this.state.addedBooking === undefined &&
-      nextProps.classBookings.length !== this.classBookings.length
+      this.state.addedRecurring === undefined &&
+      nextProps.recurringBookings.length !== this.recurringBookings.length
     ) {
-      this.rawClassBookings = nextProps.classBookings;
-      this.classBookings = this.getGridData(
-        this.rawClassBookings,
+      this.rawRecurringBookings = nextProps.recurringBookings;
+      this.recurringBookings = this.getGridData(
+        this.rawRecurringBookings,
         this.classSchedules,
       );
     }
@@ -243,30 +257,37 @@ export class ManageBookings extends Component {
     return membersVals;
   }
 
-  addClassBooking(bookingsDataMap, booking) {
+  addRecurringBooking(bookingsDataMap, booking) {
     var key =
-      booking.classDate + '-' + booking.classTime + '-' + booking.program;
+      booking.classDay +
+      '-' +
+      booking.classTime +
+      '-' +
+      booking.program +
+      '-' +
+      booking.title;
     var bookingsArray = [];
     if (bookingsDataMap.get(key) === undefined) {
       bookingsArray[0] = {
         id: booking['id'],
-        status: booking.status,
+        status: 'Active',
         program: booking.program,
         title: booking.title,
-        classDate: moment(booking.classDate).format('ddd Do MMM'),
-        classTime: moment(booking.classDate + ' ' + booking.classTime).format(
-          'LT',
-        ),
+        classDay: booking.classDay,
+        classTime: moment(
+          moment().format('YYYY-MM-DD') + ' ' + booking.classTime,
+        ).format('LT'),
         name: booking.memberName,
         memberGUID: booking.memberGUID,
       };
       bookingsDataMap.set(key, {
-        sortVal: booking.classDate + '-' + booking.classTime,
+        sortVal: booking.classDay + '-' + booking.classTime,
         program: booking.program,
-        classDate: moment(booking.classDate).format('ddd Do MMM'),
-        classTime: moment(booking.classDate + ' ' + booking.classTime).format(
-          'LT',
-        ),
+        title: booking.title,
+        classDay: booking.classDay,
+        classTime: moment(
+          moment().format('YYYY-MM-DD') + ' ' + booking.classTime,
+        ).format('LT'),
         bookings: bookingsArray,
       });
     } else {
@@ -275,20 +296,22 @@ export class ManageBookings extends Component {
         id: booking['id'],
         status: booking.status,
         program: booking.program,
-        classDate: moment(booking.classDate).format('ddd Do MMM'),
-        classTime: moment(booking.classDate + ' ' + booking.classTime).format(
-          'LT',
-        ),
+        title: booking.title,
+        classDay: booking.classDay,
+        classTime: moment(
+          moment().format('YYYY-MM-DD') + ' ' + booking.classTime,
+        ).format('LT'),
         name: booking.memberName,
         memberGUID: booking.memberGUID,
       };
       bookingsDataMap.set(key, {
-        sortVal: booking.classDate + '-' + booking.classTime,
+        sortVal: booking.classDay + '-' + booking.classTime,
         program: booking.program,
-        classDate: moment(booking.classDate).format('ddd Do MMM'),
-        classTime: moment(booking.classDate + ' ' + booking.classTime).format(
-          'LT',
-        ),
+        title: booking.title,
+        classDay: booking.classDay,
+        classTime: moment(
+          moment().format('YYYY-MM-DD') + ' ' + booking.classTime,
+        ).format('LT'),
         bookings: bookingsArray,
       });
     }
@@ -301,29 +324,22 @@ export class ManageBookings extends Component {
     let bookingsDataMap = new Map();
     bookings.forEach(booking => {
       if (memberGUID !== undefined && booking.memberGUID === memberGUID) {
-        this.addClassBooking(bookingsDataMap, booking);
+        this.addRecurringBooking(bookingsDataMap, booking);
       } else if (
         memberGUID === undefined ||
         (memberGUID !== undefined && memberGUID === '')
       ) {
-        this.addClassBooking(bookingsDataMap, booking);
+        this.addRecurringBooking(bookingsDataMap, booking);
       }
     });
     let bookingsData = [];
     bookingsDataMap.forEach((value, key, map) => {
-      let classSchedule = classSchedules.find(schedule => {
-        return (
-          moment(schedule.start).day() ===
-            moment(value.classDate, 'ddd Do MMM').day() &&
-          moment(schedule.start).format('LT') === value.classTime &&
-          schedule.program === value.program
-        );
-      });
       bookingsData.push({
         sortVal: value.sortVal,
         program: value.program,
-        title: classSchedule !== undefined ? classSchedule.title : undefined,
-        classDate: value.classDate,
+        title: value.title,
+        classDayInt: this.getDayInt(parseInt(value.classDay)),
+        classDay: this.getWeekday(parseInt(value.classDay)),
         classTime: value.classTime,
         bookings: value.bookings,
       });
@@ -352,17 +368,18 @@ export class ManageBookings extends Component {
     return (
       <span className="statusCell">
         <p className="statusValue">{cellInfo.original.status}</p>
-        {cellInfo.original.status === 'Booked' && (
+        {cellInfo.original.status === 'Active' && (
           <button
             type="button"
-            id="cancelBooking"
+            id="deleteRecurring"
             className="btn btn-primary"
             onClick={async e => {
-              var cancelButton = $(e.target);
               if (
                 await confirm(
                   <span>
-                    <span>Are your sure you want to CANCEL this booking?</span>
+                    <span>
+                      Are your sure you want to DELETE this Recurring booking?
+                    </span>
                     <table>
                       <tbody>
                         <tr>
@@ -370,8 +387,8 @@ export class ManageBookings extends Component {
                           <td>{cellInfo.original.name}</td>
                         </tr>
                         <tr>
-                          <td>Date:</td>
-                          <td>{cellInfo.original.classDate}</td>
+                          <td>Day:</td>
+                          <td>{this.getWeekday(cellInfo.original.classDay)}</td>
                         </tr>
                         <tr>
                           <td>Time:</td>
@@ -381,97 +398,33 @@ export class ManageBookings extends Component {
                           <td>Program:</td>
                           <td>{cellInfo.original.program}</td>
                         </tr>
-                      </tbody>
-                    </table>
-                  </span>,
-                )
-              ) {
-                cancelButton.prop('disabled', true);
-                cancelButton.html('Cancelling Booking');
-                let values = {};
-                values['Status'] = 'Cancelled';
-                this.updateBooking({
-                  id: cellInfo.original.id,
-                  values: values,
-                });
-                var bookingThis = this;
-                setTimeout(function() {
-                  for (var i = 0; i < bookingThis.classBookings.length; i++) {
-                    var idx = bookingThis.classBookings[i].bookings.findIndex(
-                      element => {
-                        if (element.id === cellInfo.original.id) return true;
-                        return false;
-                      },
-                    );
-                    if (idx !== -1) {
-                      bookingThis.classBookings[i].bookings[idx].status =
-                        'Cancelled';
-                      bookingThis.setState({
-                        selectedID: cellInfo.original.id,
-                      });
-                      break;
-                    }
-                  }
-                }, 5000);
-              } else {
-                $(e.target).prop('disabled', false);
-              }
-            }}
-          >
-            Cancel Booking
-          </button>
-        )}
-        {cellInfo.original.status === 'Cancelled' && (
-          <button
-            type="button"
-            id="deleteBooking"
-            className="btn btn-primary"
-            onClick={async e => {
-              if (
-                await confirm(
-                  <span>
-                    <span>Are your sure you want to DELETE this booking?</span>
-                    <table>
-                      <tbody>
                         <tr>
-                          <td>Member:</td>
-                          <td>{cellInfo.original.name}</td>
-                        </tr>
-                        <tr>
-                          <td>Date:</td>
-                          <td>{cellInfo.original.classDate}</td>
-                        </tr>
-                        <tr>
-                          <td>Time:</td>
-                          <td>{cellInfo.original.classTime}</td>
-                        </tr>
-                        <tr>
-                          <td>Program:</td>
-                          <td>{cellInfo.original.program}</td>
+                          <td>Title:</td>
+                          <td>{cellInfo.original.title}</td>
                         </tr>
                       </tbody>
                     </table>
                   </span>,
                 )
               ) {
-                this.deleteBooking({
+                this.deleteRecurring({
                   id: cellInfo.original.id,
                 });
-                for (var i = 0; i < this.classBookings.length; i++) {
-                  var idx = this.classBookings[i].bookings.findIndex(
+                for (var i = 0; i < this.recurringBookings.length; i++) {
+                  var idx = this.recurringBookings[i].bookings.findIndex(
                     element => {
                       if (element.id === cellInfo.original.id) return true;
                       return false;
                     },
                   );
                   if (idx !== -1) {
-                    this.classBookings[i].bookings = this.classBookings[
+                    this.recurringBookings[i].bookings = this.recurringBookings[
                       i
                     ].bookings.filter(element => {
                       if (element.id === cellInfo.original.id) return false;
                       return true;
                     });
-                    this.rawClassBookings = this.rawClassBookings.filter(
+                    this.rawRecurringBookings = this.rawRecurringBookings.filter(
                       element => {
                         if (element.id === cellInfo.original.id) return false;
                         return true;
@@ -479,6 +432,7 @@ export class ManageBookings extends Component {
                     );
                     this.setState({
                       selectedID: cellInfo.original.id,
+                      addedRecurring: {},
                     });
                     break;
                   }
@@ -487,7 +441,7 @@ export class ManageBookings extends Component {
               }
             }}
           >
-            Delete Booking
+            Delete Recurring
           </button>
         )}
       </span>
@@ -497,26 +451,47 @@ export class ManageBookings extends Component {
     return (
       <span className="bookingsContent">
         <div className="header">
-          <h6>Member Class Bookings</h6>
+          <h6>Member Recurring Bookings</h6>
         </div>
         <div className="table-controls">
           <div className="newBookingSection">
             <span className="line1">
-              <div className="sessionDate">
-                <label htmlFor="sessionDate">DATE</label>
-                <Datetime
-                  className=""
-                  dateFormat="DD/MM/YYYY"
-                  isValidDate={this.valid}
-                  timeFormat={false}
-                  onBlur={dt => {
-                    if (dt !== '') {
-                      this.setState({
-                        classDate: dt.format('YYYY-MM-DD'),
-                      });
-                    }
+              <div className="day">
+                <label htmlFor="classDay">DAY</label>
+                <select
+                  name="classDay"
+                  id="classDay"
+                  onChange={e => {
+                    this.setState({
+                      classDay: e.target.value,
+                      classDayInt: this.getDayInt(parseInt(e.target.value)),
+                    });
                   }}
-                />
+                >
+                  <option value="" />
+                  <option key="1" value="1">
+                    Monday
+                  </option>
+                  <option key="2" value="2">
+                    Tuesday
+                  </option>
+                  <option key="3" value="3">
+                    Wednesday
+                  </option>
+                  <option key="4" value="4">
+                    Thursday
+                  </option>
+                  <option key="5" value="5">
+                    Friday
+                  </option>
+                  <option key="6" value="6">
+                    Saturday
+                  </option>
+                  <option key="7" value="7">
+                    Sunday
+                  </option>
+                </select>
+                <div className="droparrow" />
               </div>
               <div className="time">
                 <label htmlFor="classTime">TIME</label>
@@ -536,7 +511,7 @@ export class ManageBookings extends Component {
                         this.classSchedules.filter(
                           schedule =>
                             moment(schedule.start).day() ===
-                            moment(this.state.classDate).day(),
+                            this.state.classDayInt,
                         ),
                         schedule => moment(schedule.start).format('HH:mm'),
                       ),
@@ -565,7 +540,7 @@ export class ManageBookings extends Component {
                     var schedule = this.classSchedules.filter(schedule => {
                       return (
                         moment(schedule.start).day() ===
-                          moment(this.state.classDate).day() &&
+                          this.state.classDayInt &&
                         moment(schedule.start).format('HH:mm') ===
                           this.state.classTime &&
                         ((schedule.allowedPrograms !== undefined &&
@@ -576,6 +551,7 @@ export class ManageBookings extends Component {
                     });
                     this.setState({
                       program: e.target.value,
+                      title: schedule.size !== 0 ? schedule.get(0).title : '',
                       allowedPrograms:
                         schedule.size !== 0
                           ? schedule.get(0).allowedPrograms
@@ -591,7 +567,7 @@ export class ManageBookings extends Component {
                         this.classSchedules.filter(
                           schedule =>
                             moment(schedule.start).day() ===
-                              moment(this.state.classDate).day() &&
+                              this.state.classDayInt &&
                             moment(schedule.start).format('HH:mm') ===
                               this.state.classTime,
                         ),
@@ -627,7 +603,8 @@ export class ManageBookings extends Component {
                             member.values['First Name'] +
                             ' ' +
                             member.values['Last Name'],
-                          maxWeeklyClasses: member.values['Max Weekly Classes'],
+                          recurringMaxWeeklyClasses:
+                            member.values['Max Weekly Classes'],
                         });
                         break;
                       }
@@ -638,9 +615,9 @@ export class ManageBookings extends Component {
               </div>
               <button
                 type="button"
-                id="addClassBooking"
+                id="addRecurringBooking"
                 disabled={
-                  this.state.classDate === undefined ||
+                  this.state.classDay === undefined ||
                   this.state.classTime === undefined ||
                   this.state.program === undefined ||
                   this.state.memberGUID === undefined
@@ -650,24 +627,24 @@ export class ManageBookings extends Component {
                   let id = this.state.memberGUID;
                   let bookingExists = false;
                   let userAccountExists = true;
-                  let maxWeeklyClassesBooked = false;
+                  let recurringMaxWeeklyClassesBooked = false;
                   let maxClassCountReached = false;
                   var existingBooking;
 
-                  $('.noUserAccount').addClass('hide');
-                  $('.bookingAlreadyExists').addClass('hide');
-                  $('.maxWeeklyClasses').addClass('hide');
-                  $('.classMaxReached').addClass('hide');
+                  $('.noRecurringUserAccount').addClass('hide');
+                  $('.recurringBookingAlreadyExists').addClass('hide');
+                  $('.recurringMaxWeeklyClasses').addClass('hide');
+                  $('.recurringClassMaxReached').addClass('hide');
 
-                  var currentClassBookings = this.classBookings.filter(
+                  var currentRecurringBookings = this.recurringBookings.filter(
                     booking =>
                       booking.sortVal ===
-                      this.state.classDate + '-' + this.state.classTime,
+                      this.state.classDay + '-' + this.state.classTime,
                   );
                   var bookedStudents =
-                    currentClassBookings.length > 0
-                      ? currentClassBookings[0].bookings.filter(
-                          booking => booking.status === 'Booked',
+                    currentRecurringBookings.length > 0
+                      ? currentRecurringBookings[0].bookings.filter(
+                          booking => booking.status === 'Active',
                         )
                       : [];
                   if (
@@ -678,15 +655,15 @@ export class ManageBookings extends Component {
                     maxClassCountReached = true;
                   }
                   if (!maxClassCountReached) {
-                    for (let i = 0; i < this.classBookings.length; i++) {
-                      var bookingGroup = this.classBookings[i];
+                    for (let i = 0; i < this.recurringBookings.length; i++) {
+                      var bookingGroup = this.recurringBookings[i];
                       var bookings = bookingGroup.bookings;
                       for (let k = 0; k < bookings.length; k++) {
                         if (
                           bookings[k].memberGUID === id &&
-                          bookings[k].status === 'Booked' &&
-                          bookings[k].classDate ===
-                            moment(this.state.classDate).format('ddd Do MMM') &&
+                          bookings[k].status === 'Active' &&
+                          bookings[k].classDay ===
+                            parseInt(this.state.classDay) &&
                           bookings[k].classTime ===
                             moment(this.state.classTime, 'HH:mm').format('LT')
                         ) {
@@ -707,89 +684,53 @@ export class ManageBookings extends Component {
                         }
                       }
                     }
-
-                    if (
-                      !bookingExists &&
-                      this.state.maxWeeklyClasses !== undefined &&
-                      this.state.maxWeeklyClasses !== ''
-                    ) {
-                      var max = parseInt(this.state.maxWeeklyClasses);
-                      var thisWeek = moment(
-                        this.state.classDate,
-                        'YYYY-MM-DD',
-                      ).week();
-                      var weekBookings = this.rawClassBookings.filter(
-                        booking => {
-                          return (
-                            thisWeek === moment(booking.classDate).week() &&
-                            booking.status === 'Booked' &&
-                            booking.memberID === this.state.memberID
-                          );
-                        },
-                      );
-                      if (weekBookings.size >= max) {
-                        maxWeeklyClassesBooked = true;
-                        this.setState({
-                          maxWeekStart: moment(
-                            this.state.classDate,
-                            'YYYY-MM-DD',
-                          ).weekday(0),
-                          maxWeekEnd: moment(
-                            this.state.classDate,
-                            'YYYY-MM-DD',
-                          ).weekday(6),
-                        });
-                      }
-                      console.log('weekBookings:' + weekBookings.length);
-                    }
                   }
-                  if (maxClassCountReached) {
-                    $('.classMaxReached').removeClass('hide');
-                  } else if (bookingExists) {
-                    $('.bookingAlreadyExists').removeClass('hide');
-                  } else if (maxWeeklyClassesBooked) {
-                    $('.maxWeeklyClasses').removeClass('hide');
+                  if (bookingExists) {
+                    $('.recurringBookingAlreadyExists').removeClass('hide');
+                  } else if (recurringMaxWeeklyClassesBooked) {
+                    $('.recurringMaxWeeklyClasses').removeClass('hide');
                   } else {
                     if (!userAccountExists) {
-                      $('.noUserAccount').removeClass('hide');
+                      $('.noRecurringUserAccount').removeClass('hide');
                     }
                     // Add Class Booking
                     let values = {};
-                    values['Status'] = 'Booked';
+                    values['Status'] = 'Active';
                     values['Program'] = this.state.program;
-                    values['Class Date'] = this.state.classDate;
+                    values['Title'] = this.state.title;
+                    values['Class Day'] = this.state.classDay;
                     values['Class Time'] = this.state.classTime;
                     values['Member ID'] = this.state.memberID;
                     values['Member GUID'] = this.state.memberGUID;
                     values['Member Name'] = this.state.memberName;
 
-                    this.props.addBooking({
+                    this.props.addRecurring({
                       values,
                     });
                   }
                 }}
               >
-                Add Booking
+                Add Recurring Booking
               </button>
             </span>
             <div className="line2">
-              <span className="noUserAccount hide">
+              <span className="noRecurringUserAccount hide">
                 Please not this Member will not receive emails, since and User
                 Account has not been created.
               </span>
-              <span className="bookingAlreadyExists hide">
-                A booking for this Member at Date[
-                {moment(this.state.classDate).format('ddd Do MMM')}] and Time[
+              <span className="recurringBookingAlreadyExists hide">
+                A Recurring booking for this Member at Date[
+                {this.getWeekday(parseInt(this.state.classDay))}] and Time[
                 {moment(this.state.classTime, 'HH:mm').format('LT')}] has
                 already been made.
               </span>
-              <span className="maxWeeklyClasses hide">
+              <span className="recurringMaxWeeklyClasses hide">
                 This member has reached their Weekly booking count of{' '}
-                {this.state.maxWeeklyClasses} for week [
+                {this.state.recurringMaxWeeklyClasses} for week [
                 {moment(this.state.maxWeekStart).format('ddd Do MMM')} and
                 {moment(this.state.maxWeekEnd).format('ddd Do MMM')}].
               </span>
-              <span className="classMaxReached hide">
+              <span className="recurringClassMaxReached hide">
                 The Max Student count has been reached at{' '}
                 <b>{this.state.maxStudents}</b> for Class {this.state.program}{' '}
                 at {moment(this.state.classTime, 'HH:mm').format('LT')}
@@ -804,14 +745,14 @@ export class ManageBookings extends Component {
                   options={this.getAllMembers()}
                   placeholder="Select Member"
                   onChange={e => {
-                    this.classBookings = this.getGridData(
-                      this.rawClassBookings,
+                    this.recurringBookings = this.getGridData(
+                      this.rawRecurringBookings,
                       this.classSchedules,
                       e.value === 'CLEAR' ? undefined : e.value,
                     );
                     var rows = [];
                     if (e.value !== 'CLEAR') {
-                      for (var i = 0; i < this.classBookings.length; i++) {
+                      for (var i = 0; i < this.recurringBookings.length; i++) {
                         rows[i] = true;
                       }
                     }
@@ -829,12 +770,16 @@ export class ManageBookings extends Component {
           <div className="row tableData">
             <ReactTable
               columns={this.columns}
-              data={this.classBookings}
+              data={this.recurringBookings}
               defaultPageSize={
-                this.classBookings.length > 0 ? this.classBookings.length : 2
+                this.recurringBookings.length > 0
+                  ? this.recurringBookings.length
+                  : 2
               }
               pageSize={
-                this.classBookings.length > 0 ? this.classBookings.length : 2
+                this.recurringBookings.length > 0
+                  ? this.recurringBookings.length
+                  : 2
               }
               showPagination={false}
               expanded={this.state.expandedRows}
@@ -850,7 +795,7 @@ export class ManageBookings extends Component {
                   };
                 });
               }}
-              ref={ref => (this.classBookingGridref = ref)}
+              ref={ref => (this.recurringBookingsBookingGridref = ref)}
               SubComponent={row => {
                 return (
                   <ReactTable

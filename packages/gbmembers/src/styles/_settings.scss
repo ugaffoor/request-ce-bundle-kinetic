@@ -29,9 +29,19 @@
           margin-top: 7px;
         }
       }
-      .class {
+      .class,
+      .day {
         display: flex;
         width: 400px;
+        margin-top: 6px;
+        label {
+          width: 40px;
+          margin-top: 7px;
+        }
+      }
+      .day {
+        display: flex;
+        width: 200px;
         margin-top: 6px;
         label {
           width: 40px;
@@ -43,6 +53,10 @@
       }
       #addClassBooking {
         width: 120px;
+        height: 30px;
+      }
+      #addRecurringBooking {
+        width: 220px;
         height: 30px;
       }
     }

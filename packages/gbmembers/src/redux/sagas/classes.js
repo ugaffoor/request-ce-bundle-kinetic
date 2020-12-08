@@ -268,12 +268,118 @@ export function* deleteBooking(action) {
     yield put(errorActions.setSystemError(error));
   }
 }
+
+export function* fetchRecurringBookings(action) {
+  try {
+    var allMembers = action.payload.allMembers;
+    const search = new CoreAPI.SubmissionSearch(true)
+      .includes(['details', 'values'])
+      .index('values[Status]')
+      .eq('values[Status]', 'Active')
+      .limit(1000)
+      .build();
+
+    const { submissions } = yield call(CoreAPI.searchSubmissions, {
+      form: 'class-recurring-booking',
+      datastore: true,
+      search,
+    });
+    var recurringBookingsMap = OrderedMap();
+    var recurringBookingsSubmissions = submissions;
+    for (var i = 0; i < recurringBookingsSubmissions.length; i++) {
+      recurringBookingsMap = recurringBookingsMap.set(
+        recurringBookingsSubmissions[i].id,
+        {
+          id: recurringBookingsSubmissions[i].id,
+          status: recurringBookingsSubmissions[i].values['Status'],
+          program: recurringBookingsSubmissions[i].values['Program'],
+          title: recurringBookingsSubmissions[i].values['Title'],
+          classDay: parseInt(
+            recurringBookingsSubmissions[i].values['Class Day'],
+          ),
+          classTime: recurringBookingsSubmissions[i].values['Class Time'],
+          memberID: recurringBookingsSubmissions[i].values['Member ID'],
+          memberGUID: recurringBookingsSubmissions[i].values['Member GUID'],
+          memberName: recurringBookingsSubmissions[i].values['Member Name'],
+        },
+      );
+    }
+    var recurringBookings = recurringBookingsMap.toList();
+
+    yield put(
+      actions.setRecurringBookings({
+        recurringBookings: recurringBookings,
+        allMembers: allMembers,
+      }),
+    );
+  } catch (error) {
+    console.log('Error in fetchRecurringBookings: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
+
+export function* updateRecurring(action) {
+  try {
+    const { submission } = yield call(CoreAPI.updateSubmission, {
+      id: action.payload.id,
+      values: action.payload.values,
+      datastore: true,
+    });
+
+    console.log('updateRecurring');
+  } catch (error) {
+    console.log('Error in updateRecurring: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
+export function* addRecurring(action) {
+  try {
+    const { submission } = yield call(CoreAPI.createSubmission, {
+      datastore: true,
+      formSlug: 'class-recurring-booking',
+      values: action.payload.values,
+      completed: true,
+    });
+
+    console.log('addRecurring');
+    yield put(
+      actions.setAddedRecurring({
+        id: submission.id,
+        status: action.payload.values['Status'],
+        program: action.payload.values['Program'],
+        title: action.payload.values['Title'],
+        classDay: action.payload.values['Class Day'],
+        classTime: action.payload.values['Class Time'],
+        memberName: action.payload.values['Member Name'],
+        memberGUID: action.payload.values['Member GUID'],
+      }),
+    );
+  } catch (error) {
+    console.log('Error in addRecurring: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
+export function* deleteRecurring(action) {
+  try {
+    console.log('deleteRecurring: ');
+    const { errors, serverError } = yield call(CoreAPI.deleteSubmission, {
+      id: action.payload.id,
+      datastore: true,
+    });
+
+    console.log('deleteRecurring');
+  } catch (error) {
+    console.log('Error in deleteRecurring: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
 export function* watchClasses() {
   yield takeEvery(
     types.FETCH_CURRENT_CLASS_BOOKINGS,
     fetchCurrentClassBookings,
   );
   yield takeEvery(types.FETCH_CLASS_BOOKINGS, fetchClassBookings);
+  yield takeEvery(types.FETCH_RECURRING_BOOKINGS, fetchRecurringBookings);
   yield takeEvery(types.FETCH_CLASS_SCHEDULES, fetchClassSchedules);
   yield takeEvery(types.NEW_CLASS, newClass);
   yield takeEvery(types.EDIT_CLASS, editClass);
@@ -281,4 +387,7 @@ export function* watchClasses() {
   yield takeEvery(types.UPDATE_BOOKING, updateBooking);
   yield takeEvery(types.ADD_BOOKING, addBooking);
   yield takeEvery(types.DELETE_BOOKING, deleteBooking);
+  yield takeEvery(types.UPDATE_RECURRING, updateRecurring);
+  yield takeEvery(types.ADD_RECURRING, addRecurring);
+  yield takeEvery(types.DELETE_RECURRING, deleteRecurring);
 }
