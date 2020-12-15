@@ -30,6 +30,7 @@ import ReactTable from 'react-table';
 import 'react-datetime/css/react-datetime.css';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as campaignActions } from '../../redux/modules/campaigns';
+import { actions as settingsActions } from '../../redux/modules/settingsDatastore';
 import ReactSpinner from 'react16-spinjs';
 import { Confirm } from 'react-confirm-bootstrap';
 import { CallScriptModalContainer } from '../Member/CallScriptModalContainer';
@@ -55,6 +56,7 @@ const mapStateToProps = state => ({
   space: state.member.app.space,
   isSmsEnabled: state.member.app.isSmsEnabled,
   leadStatusValues: state.member.app.leadStatusValues,
+  journeyTriggers: state.member.app.triggers,
 });
 const mapDispatchToProps = {
   fetchLead: actions.fetchCurrentLead,
@@ -63,6 +65,7 @@ const mapDispatchToProps = {
   fetchLeads: actions.fetchLeads,
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
+  createJourneyEvent: settingsActions.createJourneyEvent,
 };
 
 function convertContactType(type) {
@@ -847,6 +850,8 @@ export const LeadDetailView = ({
   leadStatusValues,
   updateAttentionRequired,
   space,
+  journeyTriggers,
+  createJourneyEvent,
 }) =>
   currentLeadLoading ? (
     <div />
@@ -869,6 +874,8 @@ export const LeadDetailView = ({
       isSmsEnabled={isSmsEnabled}
       leadStatusValues={leadStatusValues}
       space={space}
+      journeyTriggers={journeyTriggers}
+      createJourneyEvent={createJourneyEvent}
       updateAttentionRequired={updateAttentionRequired}
     />
   );
@@ -913,6 +920,8 @@ export const LeadDetailContainer = compose(
       addNotification,
       setSystemError,
       space,
+      journeyTriggers,
+      createJourneyEvent,
       setIsDirty,
     }) => newHistory => {
       let history = getJson(leadItem.values['History']);
@@ -955,6 +964,30 @@ export const LeadDetailContainer = compose(
         let rfcEndDateTime = endDateTime.utc().format('YYYY-MM-DDTHH:mm:ssZ');
         calendarEvent.startDateTime = rfcStartDateTime;
         calendarEvent.endDateTime = rfcEndDateTime;
+
+        var leadIdx = journeyTriggers.findIndex(
+          element =>
+            element['values']['Record Type'] === 'Lead' &&
+            element['values']['Lead Condition'] === 'Intro Class Scheduled',
+        );
+        if (newHistory.contactMethod === 'intro_class' && leadIdx !== -1) {
+          console.log('Creating Journey Event');
+          var trigger = journeyTriggers.get(leadIdx);
+          var values = {};
+          values['Status'] = 'New';
+          values['Trigger ID'] = trigger['id'];
+          values['Record Type'] = trigger['values']['Record Type'];
+          values['Record ID'] = leadItem['id'];
+          values['Record Name'] =
+            leadItem['values']['First Name'] +
+            ' ' +
+            leadItem['values']['Last Name'];
+          values['Action'] = trigger['values']['Action'];
+          values['Contact Type'] = trigger['values']['Contact Type'];
+          values['Template Name'] = trigger['values']['Template Name'];
+
+          createJourneyEvent({ values });
+        }
       }
 
       updateLead({

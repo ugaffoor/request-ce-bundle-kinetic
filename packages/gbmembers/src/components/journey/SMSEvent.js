@@ -34,6 +34,7 @@ const mapStateToProps = state => ({
   events: state.app.journeyevents.data,
   smsAccountCredit: state.member.messaging.smsAccountCredit,
   smsAccountCreditLoading: state.member.messaging.smsAccountCreditLoading,
+  profile: state.member.kinops.profile,
 });
 const mapDispatchToProps = {
   sendSms: messagingActions.sendSms,
@@ -154,6 +155,7 @@ export class SMSEvent extends Component {
           ? this.props.leadItem
           : this.props.memberItem,
         this.props.space,
+        this.props.profile,
       ),
     };
   }
@@ -347,14 +349,16 @@ export class SMSEvent extends Component {
         </div>
         <div className="row">
           <div className="col-md-10 details">
-            <div
-              id="previewDiv"
-              ref="previewDiv"
-              style={{
-                border: '1px solid #ccc',
-              }}
-            >
-              <span dangerouslySetInnerHTML={{ __html: this.state.smsText }} />
+            <div id="editDiv" ref="editDiv">
+              <textarea
+                name="editSMS"
+                value={this.state.smsText}
+                onChange={e =>
+                  this.setState({
+                    smsText: e.target.value,
+                  })
+                }
+              />
             </div>
           </div>
         </div>
@@ -378,6 +382,7 @@ export const SMSEventView = ({
   deleteJourneyEvent,
   smsAccountCredit,
   smsAccountCreditLoading,
+  profile,
 }) =>
   journeyEventLoading ||
   journeyEvent === undefined ||
@@ -404,6 +409,7 @@ export const SMSEventView = ({
           deleteJourneyEvent={deleteJourneyEvent}
           smsAccountCredit={smsAccountCredit}
           smsAccountCreditLoading={smsAccountCreditLoading}
+          profile={profile}
         />
       ) : (
         <EventResult

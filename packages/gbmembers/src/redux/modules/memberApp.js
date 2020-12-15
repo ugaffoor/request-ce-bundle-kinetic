@@ -62,6 +62,7 @@ export const State = Record({
   membershipTypes: List(),
   membershipFees: List(),
   snippets: List(),
+  triggers: List(),
   myTeams: List(),
   myTeammates: List(),
   myFilters: List(),
@@ -148,6 +149,7 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('membershipTypes', List(payload.membershipTypes))
         .set('membershipFees', List(payload.membershipFees))
         .set('snippets', List(payload.snippets))
+        .set('triggers', List(payload.triggers))
         .set('space', payload.space)
         .set('spaceSlug', payload.space.slug)
         .set('memberLists', memberLists)

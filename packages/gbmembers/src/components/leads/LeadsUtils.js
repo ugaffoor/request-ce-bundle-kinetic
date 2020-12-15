@@ -10,7 +10,7 @@ export const email_received_date_format = 'DD-MM-YYYY HH:mm';
 export function escapeRegExp(str) {
   return str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1');
 }
-export function substituteFields(text, person, space) {
+export function substituteFields(text, person, space, profile) {
   if (text === undefined) return '';
 
   text = text.replace(/member\('First Name'\)/g, person.values['First Name']);
@@ -46,7 +46,7 @@ export function substituteFields(text, person, space) {
       matches.forEach(function(value, index) {
         text = text.replace(
           new RegExp(escapeRegExp(value), 'g'),
-          introDate.format('DD/MM/YYYY LT'),
+          introDate.format('Do MMM YYYY h:mA'),
         );
       });
     }
@@ -89,6 +89,25 @@ export function substituteFields(text, person, space) {
         );
       });
     }
+  }
+
+  matches = text.match(/\$\{submitterName\}/g);
+  if (matches !== null) {
+    matches.forEach(function(value, index) {
+      text = text.replace(
+        new RegExp(escapeRegExp(value), 'g'),
+        profile.displayName,
+      );
+    });
+  }
+  matches = text.match(/\$\{date\}/g);
+  if (matches !== null) {
+    matches.forEach(function(value, index) {
+      text = text.replace(
+        new RegExp(escapeRegExp(value), 'g'),
+        moment().format('Do MMM YYYY'),
+      );
+    });
   }
 
   return text;

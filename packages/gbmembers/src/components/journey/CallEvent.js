@@ -155,6 +155,7 @@ export class CallEvent extends Component {
           ? this.props.leadItem
           : this.props.memberItem,
         this.props.space,
+        this.props.profile,
       ),
     };
   }

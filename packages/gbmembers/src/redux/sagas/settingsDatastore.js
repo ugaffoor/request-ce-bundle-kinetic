@@ -193,6 +193,37 @@ export function* fetchJourneyEvent(action) {
       : actions.setJourneyEvent(journeyEvent),
   );
 }
+export function* createJourneyEvent(action) {
+  try {
+    const search = new CoreAPI.SubmissionSearch(true)
+      .includes(['details', 'values'])
+      .index('values[Record ID],values[Trigger ID]')
+      .eq('values[Record ID]', action.payload.values['Record ID'])
+      .eq('values[Trigger ID]', action.payload.values['Trigger ID'])
+      .build();
+
+    const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
+      datastore: true,
+      form: 'journey-event',
+      search,
+    });
+    if (submissions.length > 0) {
+      const { errors, serverError } = yield call(CoreAPI.deleteSubmission, {
+        id: submissions[0]['id'],
+        datastore: true,
+      });
+    }
+    const { submission } = yield call(CoreAPI.createSubmission, {
+      formSlug: 'journey-event',
+      values: action.payload.values,
+      datastore: true,
+    });
+    console.log('create Journey Event');
+  } catch (error) {
+    console.log('Error in createJourneyEvent: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
 export function* updateJourneyEvent(action) {
   try {
     const { submission } = yield call(CoreAPI.updateSubmission, {
@@ -201,9 +232,9 @@ export function* updateJourneyEvent(action) {
       datastore: true,
     });
 
-    console.log('updateBooking');
+    console.log('updateJourneyEvent');
   } catch (error) {
-    console.log('Error in updateBooking: ' + util.inspect(error));
+    console.log('Error in updateJourneyEvent: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));
   }
 }
@@ -229,6 +260,7 @@ export function* watchSettingsDatastore() {
   yield takeEvery(types.FETCH_EMAIL_TEMPLATE_BYNAME, fetchEmailTemplateByName);
   yield takeEvery(types.FETCH_SMS_TEMPLATES, fetchSMSTemplates);
   yield takeEvery(types.FETCH_JOURNEY_EVENT, fetchJourneyEvent);
+  yield takeEvery(types.CREATE_JOURNEY_EVENT, createJourneyEvent);
   yield takeEvery(types.UPDATE_JOURNEY_EVENT, updateJourneyEvent);
   yield takeEvery(types.DELETE_JOURNEY_EVENT, deleteJourneyEvent);
 }

@@ -20,6 +20,17 @@ import { confirm } from '../helpers/Confirmation';
 import { actions as eventsActions } from '../../../../app/src/redux/modules/journeyevents';
 import { KappNavLink as NavLink } from 'common';
 import { substituteFields } from '../leads/LeadsUtils';
+import EmailEditor from 'react-email-editor';
+import {
+  BrowserView,
+  MobileView,
+  TabletView,
+  isBrowser,
+  isMobile,
+  isTablet,
+} from 'react-device-detect';
+import '../send/tinymce.min.js';
+import { TinyMCEComponent, createEditorStore } from 'mb-react-tinymce';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -32,6 +43,7 @@ const mapStateToProps = state => ({
   membersLoading: state.member.members.membersLoading,
   leadsLoading: state.member.leads.leadsLoading,
   events: state.app.journeyevents.data,
+  profile: state.member.kinops.profile,
 });
 const mapDispatchToProps = {
   createCampaign: actions.createEmailCampaign,
@@ -44,6 +56,8 @@ const mapDispatchToProps = {
 };
 
 const util = require('util');
+var emailEditorRef = null;
+var editorThis = null;
 
 class EventResult extends Component {
   render() {
@@ -130,6 +144,7 @@ export class EmailEvent extends Component {
     super(props);
 
     this.createCampaign = this.createCampaign.bind(this);
+    this.onLoadEmail = this.onLoadEmail.bind(this);
 
     this.state = {
       subject: this.props.emailTemplate['Subject'],
@@ -139,13 +154,20 @@ export class EmailEvent extends Component {
           ? this.props.leadItem
           : this.props.memberItem,
         this.props.space,
+        this.props.profile,
       ),
+      showEditor: false,
     };
+    editorThis = this;
   }
 
   componentWillReceiveProps(nextProps) {}
 
-  componentWillMount() {}
+  componentWillMount() {
+    if (isMobile || isTablet) {
+      this.editorStore = createEditorStore();
+    }
+  }
 
   componentDidUpdate() {}
 
@@ -153,17 +175,53 @@ export class EmailEvent extends Component {
     return str.replace(/(["])/g, '\\$1');
   }
 
+  onLoadEmail() {
+    setTimeout(
+      function(editorThis) {
+        if (emailEditorRef === null) return;
+
+        emailEditorRef.loadDesign(
+          JSON.parse(editorThis.props.emailTemplate['Email JSON']),
+        );
+        emailEditorRef.exportHtml(function(data) {
+          var html = data.html; // design html
+
+          // Save the json, or html here
+          editorThis.setState({ text: html });
+        });
+
+        emailEditorRef.addEventListener('design:updated', function(updates) {
+          // Design is updated by the user
+          emailEditorRef.exportHtml(function(data) {
+            var json = data.design; // design json
+            var html = data.html; // design html
+
+            // Save the json, or html here
+            editorThis.setState({ text: html });
+          });
+        });
+      },
+      1000,
+      editorThis,
+    );
+  }
+
   createCampaign() {
+    var content = this.state.text;
+    if (isMobile || isTablet) {
+      content = $('.emailEditor .mce-content-body').html();
+    }
+
     let recipientIds = [this.props.recordId];
     // Extract Embedded images from the Body
     let embeddedImages = [];
     let body = '';
-    if (this.state.text.indexOf('<a href="') !== -1) {
-      var contentHTML = this.state.text;
+    if (content.indexOf('<a href="') !== -1) {
+      var contentHTML = content;
 
       body = contentHTML;
     } else {
-      body = this.state.text;
+      body = content;
     }
 
     body = body.replace(
@@ -357,17 +415,60 @@ export class EmailEvent extends Component {
                 />
               </div>
             </span>
-            <div
-              id="previewDiv"
-              ref="previewDiv"
-              style={{
-                border: '1px solid #ccc',
-              }}
-            >
-              <span dangerouslySetInnerHTML={{ __html: this.state.text }} />
-            </div>
+            {this.state.showEditor ? (
+              <span className="line emailEditor">
+                <BrowserView>
+                  <EmailEditor
+                    ref={editor => (emailEditorRef = editor)}
+                    onLoad={this.onLoadEmail}
+                  />
+                </BrowserView>
+                <MobileView>
+                  <TinyMCEComponent
+                    value={this.state.text}
+                    isActive={true}
+                    editorStore={this.editorStore}
+                    init={{
+                      menubar: false,
+                    }}
+                  />
+                </MobileView>
+                <TabletView>
+                  <TinyMCEComponent
+                    value={this.state.text}
+                    isActive={true}
+                    editorStore={this.editorStore}
+                    init={{
+                      menubar: false,
+                    }}
+                  />
+                </TabletView>
+              </span>
+            ) : (
+              <div id="previewDiv" ref="previewDiv">
+                <span dangerouslySetInnerHTML={{ __html: this.state.text }} />
+              </div>
+            )}
           </div>
         </div>
+        {this.state.showEditor ? (
+          <div />
+        ) : (
+          <div className="row">
+            <button
+              type="button"
+              id="editButton"
+              className="btn btn-primary edit"
+              onClick={e => {
+                this.setState({
+                  showEditor: true,
+                });
+              }}
+            >
+              Edit
+            </button>
+          </div>
+        )}
       </div>
     );
   }
@@ -386,6 +487,7 @@ export const EmailEventView = ({
   events,
   setJourneyEvents,
   deleteJourneyEvent,
+  profile,
 }) =>
   journeyEventLoading ||
   journeyEvent === undefined ||
@@ -410,6 +512,7 @@ export const EmailEventView = ({
           events={events}
           setJourneyEvents={setJourneyEvents}
           deleteJourneyEvent={deleteJourneyEvent}
+          profile={profile}
         />
       ) : (
         <EventResult

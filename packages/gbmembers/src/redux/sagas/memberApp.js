@@ -69,6 +69,12 @@ export const SNIPPETS_SEARCH = new CoreAPI.SubmissionSearch(true)
   .include('details,values')
   .limit(1000)
   .build();
+export const JOURNEY_TRIGGERS_SEARCH = new CoreAPI.SubmissionSearch(true)
+  .eq('values[Status]', 'Active')
+  .index('values[Status]')
+  .include('details,values')
+  .limit(1000)
+  .build();
 
 // TODO decide on error handling for these calls.
 export function* fetchMemberAppSettingsTask() {
@@ -281,6 +287,15 @@ export function* fetchMemberAppSettingsTask() {
   var snippets = snippetsMap.toList();
   console.log('debug 5');
 
+  const triggersSubs = yield all({
+    submissions: call(CoreAPI.searchSubmissions, {
+      datastore: true,
+      form: 'journey-triggers',
+      search: JOURNEY_TRIGGERS_SEARCH,
+    }),
+  });
+  var triggers = triggersSubs.submissions.submissions;
+
   const appSettings = {
     kineticBillingServerUrl: getAttributeValue(
       'Kinetic Billing Server URL',
@@ -330,6 +345,7 @@ export function* fetchMemberAppSettingsTask() {
     membershipFees,
     additionalPrograms,
     snippets,
+    triggers,
     kapp,
   };
   console.log('debug 7');

@@ -19,6 +19,7 @@ export const types = {
   SET_JOURNEY_EVENT: namespace('datastore', 'SET_JOURNEY_EVENT'),
   RESET_JOURNEY_EVENT: namespace('datastore', 'RESET_JOURNEY_EVENT'),
   SET_JOURNEY_EVENT_ERROR: namespace('datastore', 'SET_JOURNEY_EVENT_ERROR'),
+  CREATE_JOURNEY_EVENT: namespace('datastore', 'CREATE_JOURNEY_EVENT'),
   UPDATE_JOURNEY_EVENT: namespace('datastore', 'UPDATE_JOURNEY_EVENT'),
   DELETE_JOURNEY_EVENT: namespace('datastore', 'DELETE_JOURNEY_EVENT'),
 };
@@ -37,6 +38,7 @@ export const actions = {
   setJourneyEvent: withPayload(types.SET_JOURNEY_EVENT),
   resetJourneyEvent: withPayload(types.RESET_JOURNEY_EVENT),
   setJourneyEventError: withPayload(types.SET_JOURNEY_EVENT_ERROR),
+  createJourneyEvent: withPayload(types.CREATE_JOURNEY_EVENT),
   updateJourneyEvent: withPayload(types.UPDATE_JOURNEY_EVENT),
   deleteJourneyEvent: withPayload(types.DELETE_JOURNEY_EVENT),
 };
