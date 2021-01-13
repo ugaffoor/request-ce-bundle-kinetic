@@ -6,6 +6,7 @@ import phone from '../assets/images/phone.png';
 import mail from '../assets/images/mail.png';
 import sms from '../assets/images/sms.png';
 import moment from 'moment';
+import $ from 'jquery';
 
 export const JourneyEvents = ({
   journeyevents,
@@ -13,6 +14,9 @@ export const JourneyEvents = ({
   isSpaceAdmin,
   isOpen,
   toggle,
+  viewBy,
+  setViewBy,
+  selectViewBy,
 }) => (
   <Dropdown isOpen={isOpen} toggle={toggle}>
     <DropdownToggle nav role="button">
@@ -38,9 +42,61 @@ export const JourneyEvents = ({
           </a>
         </div>
       </div>
+      <div className="viewByButtons">
+        <button
+          type="button"
+          active="true"
+          className="btn btn-primary report-btn-default"
+          onClick={e => {
+            $('.viewByButtons button[active=true]').attr('active', 'false');
+            $(e.target).attr('active', 'true');
+            setViewBy('all');
+          }}
+        >
+          All
+        </button>
+        <button
+          type="button"
+          active="false"
+          className="btn btn-primary"
+          onClick={e => {
+            $('.viewByButtons button[active=true]').attr('active', 'false');
+            $(e.target).attr('active', 'true');
+            setViewBy('leads');
+          }}
+        >
+          Leads
+        </button>
+        <button
+          type="button"
+          active="false"
+          className="btn btn-primary"
+          onClick={e => {
+            $('.viewByButtons button[active=true]').attr('active', 'false');
+            $(e.target).attr('active', 'true');
+            setViewBy('members');
+          }}
+        >
+          Members
+        </button>
+      </div>
       <ul className="events-list">
         {journeyevents
           .filter(journeyevent => journeyevent.values['Status'] === 'New')
+          .filter(journeyevent => {
+            if (
+              viewBy === 'leads' &&
+              journeyevent.values['Record Type'] === 'Lead'
+            )
+              return true;
+            if (
+              viewBy === 'members' &&
+              journeyevent.values['Record Type'] === 'Member'
+            )
+              return true;
+            if (viewBy === 'all') return true;
+            return false;
+          })
           .map(journeyevent => (
             <li key={journeyevent.id} className="event-item">
               <Link

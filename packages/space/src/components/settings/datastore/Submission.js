@@ -61,6 +61,7 @@ class ImageFormat extends BaseImageFormat {
 }
 
 Quill.register(ImageFormat, true);
+Quill.register('modules/imageResize', ImageResize);
 var emailEditorRef = null;
 const DatastoreSubmissionComponent = ({
   form,
@@ -453,6 +454,11 @@ export class ScriptEditor extends Component {
           ['clean'],
         ],
       },
+      imageResize: {
+        parchment: Quill.import('parchment'),
+        format: ['width', 'height'],
+        displaySize: true,
+      },
     };
   }
 
@@ -556,6 +562,7 @@ export class QuillEmailEditor extends Component {
       imageResize: {
         parchment: Quill.import('parchment'),
         format: ['width', 'height'],
+        displaySize: true,
       },
     };
   }

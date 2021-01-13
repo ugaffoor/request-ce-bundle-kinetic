@@ -6,6 +6,9 @@ import binIcon from '../../images/bin.svg?raw';
 import { confirm } from '../helpers/Confirmation';
 import { getJson } from '../Member/MemberUtils';
 import SVGInline from 'react-svg-inline';
+import phone from '../../images/phone.png';
+import mail from '../../images/mail.png';
+import sms from '../../images/sms.png';
 
 export class MemberViewNotes extends Component {
   constructor(props) {
@@ -40,6 +43,11 @@ export class MemberViewNotes extends Component {
         style: { whiteSpace: 'unset' },
       },
       {
+        accessor: 'contactMethod',
+        width: 150,
+        Cell: row => this.formatContactMethodCell(row),
+      },
+      {
         accessor: 'contactDate',
         Header: 'Created Date',
         Cell: row =>
@@ -52,7 +60,7 @@ export class MemberViewNotes extends Component {
       },
       {
         accessor: 'submitter',
-        Header: 'Submitter',
+        Header: '',
         width: 50,
         Cell: this.formatDeleteCell,
       },
@@ -85,6 +93,33 @@ export class MemberViewNotes extends Component {
       return 0;
     });
   }
+  formatContactMethodCell(row) {
+    if (row.original.contactMethod === 'phone') {
+      return (
+        <span className="notesCell phone">
+          <img src={phone} alt="Phone Call" />
+          Phone Call
+        </span>
+      );
+    } else if (row.original.contactMethod === 'email') {
+      return (
+        <span className="notesCell email">
+          <img src={mail} alt="Email" />
+          Email
+        </span>
+      );
+    } else if (row.original.contactMethod === 'sms') {
+      return (
+        <span className="notesCell sms">
+          <img src={sms} alt="SMS" />
+          SMS
+        </span>
+      );
+    } else {
+      return <span className="notesCell"></span>;
+    }
+  }
+
   formatDeleteCell(cellInfo) {
     return (
       <span
@@ -141,7 +176,7 @@ export class MemberViewNotes extends Component {
   render() {
     return (
       <div className="row">
-        <div className="col-sm-10">
+        <div className="col-sm-10 notesTable">
           <span style={{ width: '100%' }}>
             <h3>All Notes</h3>
             <ReactTable

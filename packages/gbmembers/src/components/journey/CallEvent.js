@@ -23,6 +23,8 @@ import { actions as errorActions } from '../../redux/modules/errors';
 import { contact_date_format } from '../leads/LeadsUtils';
 import { KappNavLink as NavLink } from 'common';
 import { substituteFields } from '../leads/LeadsUtils';
+import { getHistoryInfo } from './JourneyUtils';
+import { HistoryInfo } from './HistoryInfo';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -62,7 +64,11 @@ class EventResult extends Component {
   render() {
     return (
       <div className="smsEvent">
-        {this.props.smsSent ? <h2>Call Recorded</h2> : <h2>Event Deleted</h2>}
+        {this.props.callRecorded ? (
+          <h2>Call Recorded</h2>
+        ) : (
+          <h2>Event Deleted</h2>
+        )}
         <div className="info">
           <span>
             <h1>
@@ -263,6 +269,7 @@ export class CallEvent extends Component {
                       </span>
                     </td>
                   </tr>
+                  <HistoryInfo history={this.props.history} />
                 </tbody>
               </table>
             </span>
@@ -437,6 +444,7 @@ export const CallEventView = ({
           profile={profile}
           allMembers={allMembers}
           allLeads={allLeads}
+          history={getHistoryInfo(journeyEvent)}
         />
       ) : (
         <EventResult

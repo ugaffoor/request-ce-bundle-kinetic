@@ -19,6 +19,7 @@ import lead_dtls from '../../images/lead_details.png';
 import convert_to_member from '../../images/convert_to_member.png';
 import phone from '../../images/phone.png';
 import mail from '../../images/mail.png';
+import sms from '../../images/sms.png';
 import in_person from '../../images/in_person.png';
 import intro_class from '../../images/intro_class.png';
 import free_class from '../../images/free_class.png';
@@ -77,6 +78,9 @@ function convertContactType(type) {
     case 'email':
       label = 'Email';
       break;
+    case 'sms':
+      label = 'SMS';
+      break;
     case 'in_person':
       label = 'In Person';
       break;
@@ -131,7 +135,7 @@ export class LeadDetail extends Component {
     let profile = this.props.profile;
     let contactMethod = 'phone';
     let contactLabel = 'Phone Call';
-    let note = undefined;
+    let note = '';
     let contactDate = moment().format(contact_date_format);
     let latestHistory = getLatestHistory(this.props.leadItem.values['History']);
     this.handleDateChange = this.handleDateChange.bind(this);
@@ -283,6 +287,13 @@ export class LeadDetail extends Component {
         <span className="notesCell email">
           <img src={mail} alt="Email" />
           Email
+        </span>
+      );
+    } else if (row.original.contactMethod === 'sms') {
+      return (
+        <span className="notesCell sms">
+          <img src={sms} alt="SMS" />
+          SMS
         </span>
       );
     } else if (row.original.contactMethod === 'in_person') {
@@ -611,6 +622,20 @@ export class LeadDetail extends Component {
               <li className="nav-item icon">
                 <a
                   className="nav-link"
+                  title="SMS Contact"
+                  data-toggle="tab"
+                  href="#method"
+                  id="sms_tab"
+                  role="tab"
+                  aria-controls="contact_method"
+                  onClick={() => this.handleContactMethodChange('sms')}
+                >
+                  <img src={sms} alt="SMS" style={{ border: 'none' }} />
+                </a>
+              </li>
+              <li className="nav-item icon">
+                <a
+                  className="nav-link"
                   title="In Person Contact"
                   data-toggle="tab"
                   href="#method"
@@ -779,7 +804,42 @@ export class LeadDetail extends Component {
                       type="button"
                       id="saveNote"
                       className="btn btn-primary btn-block saveNote"
-                      onClick={e => this.saveNote()}
+                      disabled={this.state.note === ''}
+                      onClick={async e => {
+                        if (this.state.contactMethod === 'intro_class') {
+                          if (
+                            await confirm(
+                              <span>
+                                <span>
+                                  Are your sure you want to schedule this Intro?
+                                  Note, the note will be visible to the Lead.
+                                </span>
+                                <table>
+                                  <tbody>
+                                    <tr>
+                                      <td>Intro Date:</td>
+                                      <td>
+                                        {moment(
+                                          this.state.contactDate,
+                                          'YYYY-MM-DD HH:mm',
+                                        ).format('lll')}
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td>Note:</td>
+                                      <td>{this.state.note}</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                              </span>,
+                            )
+                          ) {
+                            this.saveNote();
+                          }
+                        } else {
+                          this.saveNote();
+                        }
+                      }}
                     >
                       Save Notes
                     </button>
@@ -968,7 +1028,8 @@ export const LeadDetailContainer = compose(
         var leadIdx = journeyTriggers.findIndex(
           element =>
             element['values']['Record Type'] === 'Lead' &&
-            element['values']['Lead Condition'] === 'Intro Class Scheduled',
+            element['values']['Lead Condition'] === 'Intro Class Scheduled' &&
+            element['values']['Lead Condition Duration'] === '0',
         );
         if (newHistory.contactMethod === 'intro_class' && leadIdx !== -1) {
           console.log('Creating Journey Event');
@@ -989,7 +1050,32 @@ export const LeadDetailContainer = compose(
           createJourneyEvent({ values });
         }
       }
+      if (newHistory.contactMethod === 'noshow_class') {
+        var leadIdx = journeyTriggers.findIndex(
+          element =>
+            element['values']['Record Type'] === 'Lead' &&
+            element['values']['Lead Condition'] === 'Intro No Show' &&
+            element['values']['Lead Condition Duration'] === '0',
+        );
+        if (newHistory.contactMethod === 'noshow_class' && leadIdx !== -1) {
+          console.log('Creating Journey Event');
+          var trigger = journeyTriggers.get(leadIdx);
+          var values = {};
+          values['Status'] = 'New';
+          values['Trigger ID'] = trigger['id'];
+          values['Record Type'] = trigger['values']['Record Type'];
+          values['Record ID'] = leadItem['id'];
+          values['Record Name'] =
+            leadItem['values']['First Name'] +
+            ' ' +
+            leadItem['values']['Last Name'];
+          values['Action'] = trigger['values']['Action'];
+          values['Contact Type'] = trigger['values']['Contact Type'];
+          values['Template Name'] = trigger['values']['Template Name'];
 
+          createJourneyEvent({ values });
+        }
+      }
       updateLead({
         id: leadItem['id'],
         leadItem: leadItem,

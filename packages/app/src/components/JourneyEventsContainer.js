@@ -1,5 +1,5 @@
 import { connect } from 'react-redux';
-import { compose, withHandlers, withState } from 'recompose';
+import { compose, lifecycle, withHandlers, withState } from 'recompose';
 import { List } from 'immutable';
 import moment from 'moment';
 import { JourneyEvents } from './JourneyEvents';
@@ -30,10 +30,25 @@ const mapDispatchToProps = {
   fetchJourneyEvents: actions.fetchJourneyEvents,
 };
 
+function tick(mythis) {
+  console.log('Ticking ...' + mythis);
+  mythis.props.fetchJourneyEvents();
+}
+
 export const JourneyEventsContainer = compose(
   connect(mapStateToProps, mapDispatchToProps),
   withState('isOpen', 'setIsOpen', false),
+  withState('viewBy', 'setViewBy', 'all'),
   withHandlers({
     toggle: props => () => props.setIsOpen(open => !open),
+  }),
+  lifecycle({
+    componentWillMount() {
+      let timer = setInterval(tick, 60 * 1000 * 10, this); // refresh every 10 minutes
+      this.setState({ timer: timer });
+    },
+    componentWillUnmount() {
+      clearInterval(this.state.timer);
+    },
   }),
 )(JourneyEvents);

@@ -13,6 +13,7 @@ import 'react-datetime/css/react-datetime.css';
 import moment from 'moment';
 import { email_sent_date_format } from '../leads/LeadsUtils';
 import { actions as leadsActions } from '../../redux/modules/leads';
+import { actions as membersActions } from '../../redux/modules/members';
 import { actions as dataStoreActions } from '../../redux/modules/settingsDatastore';
 import '../send/tinymce.min.js';
 import mail from '../../../../app/src/assets/images/mail.png';
@@ -20,6 +21,8 @@ import { confirm } from '../helpers/Confirmation';
 import { actions as eventsActions } from '../../../../app/src/redux/modules/journeyevents';
 import { KappNavLink as NavLink } from 'common';
 import { substituteFields } from '../leads/LeadsUtils';
+import { getHistoryInfo } from './JourneyUtils';
+import { HistoryInfo } from './HistoryInfo';
 import EmailEditor from 'react-email-editor';
 import {
   BrowserView,
@@ -31,6 +34,7 @@ import {
 } from 'react-device-detect';
 import '../send/tinymce.min.js';
 import { TinyMCEComponent, createEditorStore } from 'mb-react-tinymce';
+import { contact_date_format } from '../leads/LeadsUtils';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -52,6 +56,8 @@ const mapDispatchToProps = {
   deleteJourneyEvent: dataStoreActions.deleteJourneyEvent,
   resetJourneyEvent: dataStoreActions.resetJourneyEvent,
   fetchLeads: leadsActions.fetchLeads,
+  updateMember: membersActions.updateMember,
+  updateLead: leadsActions.updateLead,
   setJourneyEvents: eventsActions.setJourneyEvents,
 };
 
@@ -251,8 +257,6 @@ export class EmailEvent extends Component {
       body,
       embeddedImages,
       this.props.space,
-      this.props.journeyEvent,
-      this.props.events,
     );
   }
 
@@ -335,6 +339,7 @@ export class EmailEvent extends Component {
                       </span>
                     </td>
                   </tr>
+                  <HistoryInfo history={this.props.history} />
                 </tbody>
               </table>
             </span>
@@ -513,6 +518,7 @@ export const EmailEventView = ({
           setJourneyEvents={setJourneyEvents}
           deleteJourneyEvent={deleteJourneyEvent}
           profile={profile}
+          history={getHistoryInfo(journeyEvent)}
         />
       ) : (
         <EventResult
@@ -544,15 +550,12 @@ export const EmailEventContainer = compose(
       setEmailSent,
       updateJourneyEvent,
       setJourneyEvents,
-    }) => (
-      subject,
-      recipients,
-      body,
-      embeddedImages,
-      space,
+      updateMember,
+      updateLead,
+      profile,
       journeyEvent,
       events,
-    ) => {
+    }) => (subject, recipients, body, embeddedImages, space) => {
       var campaignItem = {
         values: {},
       };
@@ -566,17 +569,59 @@ export const EmailEventContainer = compose(
       );
 
       var journeyEventUpdate = {
-        id: journeyEvent.id,
+        id: journeyEvent.submission.id,
         values: {},
       };
       journeyEventUpdate.values['Status'] = 'Completed';
       createCampaign({ campaignItem });
       updateJourneyEvent(journeyEventUpdate);
       events.forEach((item, i) => {
-        if (item.id === journeyEvent.id) {
+        if (item.id === journeyEvent.submission.id) {
           item.values['Status'] = 'Completed';
         }
       });
+
+      if (journeyEvent.submission.values['Record Type'] === 'Member') {
+        var notesHistory = journeyEvent.memberItem.values['Notes History'];
+        if (!notesHistory) {
+          notesHistory = [];
+        } else if (typeof notesHistory !== 'object') {
+          notesHistory = JSON.parse(notesHistory);
+        }
+
+        notesHistory.push({
+          contactMethod: 'email',
+          note:
+            'Journey Event:' + journeyEvent.submission.values['Template Name'],
+          contactDate: moment().format(contact_date_format),
+          submitter: profile.displayName,
+        });
+        journeyEvent.memberItem.values['Notes History'] = notesHistory;
+        updateMember({
+          id: journeyEvent.memberItem['id'],
+          memberItem: journeyEvent.memberItem,
+        });
+      } else if (journeyEvent.submission.values['Record Type'] === 'Lead') {
+        var notesHistory = journeyEvent.leadItem.values['History'];
+        if (!notesHistory) {
+          notesHistory = [];
+        } else if (typeof notesHistory !== 'object') {
+          notesHistory = JSON.parse(notesHistory);
+        }
+
+        notesHistory.push({
+          contactMethod: 'email',
+          note:
+            'Journey Event:' + journeyEvent.submission.values['Template Name'],
+          contactDate: moment().format(contact_date_format),
+          submitter: profile.displayName,
+        });
+        journeyEvent.leadItem.values['History'] = notesHistory;
+        updateLead({
+          id: journeyEvent.leadItem['id'],
+          leadItem: journeyEvent.leadItem,
+        });
+      }
       setJourneyEvents(events);
       setEmailSent(true);
     },
@@ -598,10 +643,7 @@ export const EmailEventContainer = compose(
     },
     componentWillReceiveProps(nextProps) {
       if (!nextProps.leadsLoading && !nextProps.membersLoading) {
-        if (
-          nextProps.currentEventId !== null &&
-          nextProps.currentEventId !== nextProps.eventId
-        ) {
+        if (nextProps.currentEventId !== nextProps.eventId) {
           this.props.setCurrentEventId(nextProps.eventId);
           this.props.fetchJourneyEvent({
             id: nextProps.eventId,

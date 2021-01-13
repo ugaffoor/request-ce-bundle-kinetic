@@ -1,3 +1,17 @@
+.lastContactInfo {
+  .lastContact {
+    margin-left: 4px;
+    margin-right: 4px;
+  }
+  img {
+    width: 24px;
+    height: 24px;
+    margin-right: 4px;
+  }
+}
+#showAll {
+  margin: 0;
+}
 .emailEvent,
 .smsEvent {
   .info {
@@ -76,6 +90,22 @@
         @include ms-respond(font-size, -2);
         padding: 0.5rem;
       }
+    }
+  }
+  .viewByButtons {
+    button {
+      text-transform: capitalize;
+      width: 110px;
+      height: 25px;
+      margin: 4px;
+      display: inline-block;
+      background-color: $gray2;
+    }
+    button[active='true'] {
+      background-color: gray;
+    }
+    .btn-primary:hover {
+      background-color: $darkgray !important;
     }
   }
   .events-list {

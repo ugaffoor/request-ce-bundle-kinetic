@@ -240,15 +240,16 @@ export function* updateJourneyEvent(action) {
 }
 export function* deleteJourneyEvent(action) {
   try {
-    console.log('deleteClass: ');
-    const { errors, serverError } = yield call(CoreAPI.deleteSubmission, {
+    var values = { Status: 'Delete' };
+    const { submission } = yield call(CoreAPI.updateSubmission, {
       id: action.payload.id,
+      values: values,
       datastore: true,
     });
 
-    console.log('deleteJourneyEvent');
+    console.log('updateJourneyEvent');
   } catch (error) {
-    console.log('Error in deleteJourneyEvent: ' + util.inspect(error));
+    console.log('Error in updateJourneyEvent: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));
   }
 }

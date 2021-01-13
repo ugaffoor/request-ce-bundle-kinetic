@@ -32,10 +32,6 @@ const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
   billingPayments: state.member.members.billingPayments,
   billingPaymentsLoading: state.member.members.billingPaymentsLoading,
-  processedAndScheduledPayments:
-    state.member.members.processedAndScheduledPayments,
-  processedAndScheduledPaymentsLoading:
-    state.member.members.processedAndScheduledPaymentsLoading,
   billingCompany: state.member.app.billingCompany,
   programs: state.member.app.programs,
   profile: state.member.app.profile,
@@ -59,9 +55,6 @@ const mapDispatchToProps = {
   fetchAttendancesByDate: attendanceActions.fetchAttendancesByDate,
   fetchClassSchedules: classActions.fetchClassSchedules,
   setBillingPayments: actions.setBillingPayments,
-  fetchProcessedAndScheduledPayments:
-    actions.fetchProcessedAndScheduledPayments,
-  setProcessedAndScheduledPayments: actions.setProcessedAndScheduledPayments,
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
   fetchMonthlyStatistics: monthlyStatisticsActions.fetchMonthlyStatistics,
@@ -73,10 +66,6 @@ export const HomeView = ({
   billingPayments,
   getBillingPayments,
   billingPaymentsLoading,
-  getProcessedAndScheduledPayments,
-  processedAndScheduledPayments,
-  processedAndScheduledPaymentsLoading,
-  reloadCharts,
   billingCompany,
   programs,
   profile,
@@ -101,53 +90,6 @@ export const HomeView = ({
 }) => (
   <div className="dashboard">
     <StatusMessagesContainer />
-    {/*    <div className="buttons row" style={{ marginLeft: '10px' }}>
-      <div className="col-xs-3">
-        <button
-          type="button"
-          id="reloadCharts"
-          className={'btn btn-primary'}
-          style={{ borderRadius: '0', marginRight: '5px' }}
-          onClick={e =>
-            reloadCharts(
-              profile,
-              getBillingPayments,
-              getProcessedAndScheduledPayments,
-            )
-          }
-        >
-          Reload Dashboard
-        </button>
-      </div>
-    </div>
-*/}
-    {/*
-    <div className="chart1">
-      {!Utils.isMemberOf(profile, 'Billing') ? (
-        <div />
-      ) : (
-        <ProcessedPaymentsBillingChart
-          billingPayments={billingPayments}
-          getBillingPayments={getBillingPayments}
-          billingPaymentsLoading={billingPaymentsLoading}
-        />
-      )}
-    </div>
-    */}
-    {/*billingCompany !== 'PaySmart' &&
-      (!Utils.isMemberOf(profile, 'Billing') ? (
-        <div />
-      ) : (
-        <div className="chart2">
-          <ScheduledPaymentsBillingChart
-            processedAndScheduledPayments={processedAndScheduledPayments}
-            getProcessedAndScheduledPayments={getProcessedAndScheduledPayments}
-            processedAndScheduledPaymentsLoading={
-              processedAndScheduledPaymentsLoading
-            }
-          />
-        </div>
-      ))*/}
     <Statistics
       setIsAssigning={setIsAssigning}
       setFromDate={setFromDate}
@@ -259,54 +201,10 @@ export const HomeContainer = compose(
         setSystemError: setSystemError,
       });
     },
-    getProcessedAndScheduledPayments: ({
-      fetchProcessedAndScheduledPayments,
-      setProcessedAndScheduledPayments,
-      billingCompany,
-      addNotification,
-      setSystemError,
-    }) => () => {
-      if (billingCompany === 'PaySmart') {
-        return;
-      }
-      let startDate = moment
-        .utc()
-        .startOf('month')
-        .format('YYYY-MM-DD');
-      let endDate = moment
-        .utc()
-        .endOf('month')
-        .format('YYYY-MM-DD');
-
-      fetchProcessedAndScheduledPayments({
-        paymentType: 'SUCCESSFUL',
-        paymentMethod: 'ALL',
-        paymentSource: 'ALL',
-        dateField: 'PAYMENT',
-        dateFrom: startDate,
-        dateTo: endDate,
-        setProcessedAndScheduledPayments: setProcessedAndScheduledPayments,
-        addNotification: addNotification,
-        setSystemError: setSystemError,
-      });
-    },
     datesChanged: () => (setFromDate, setToDate, fromDate, toDate) => {
       console.log('datesChanged');
       setFromDate(fromDate);
       setToDate(toDate);
-    },
-    reloadCharts: () => (
-      profile,
-      getBillingPayments,
-      getProcessedAndScheduledPayments,
-    ) => {
-      if (Utils.isMemberOf(profile, 'Billing')) {
-        getBillingPayments('current_month');
-        getProcessedAndScheduledPayments();
-      }
-      {
-        console.log('Not a billing user');
-      }
     },
   }),
   lifecycle({
@@ -317,12 +215,6 @@ export const HomeContainer = compose(
           this.props.billingPayments.length <= 0
         ) {
           this.props.getBillingPayments('current_month');
-        }
-        if (
-          !this.props.processedAndScheduledPayments ||
-          $.isEmptyObject(this.props.processedAndScheduledPayments)
-        ) {
-          this.props.getProcessedAndScheduledPayments();
         }
       }
       this.props.fetchLeadsByDate();

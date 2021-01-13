@@ -89,12 +89,18 @@ export function* fetchMembers(action) {
 export function* fetchCurrentMember(action) {
   try {
     const appSettings = yield select(getAppSettings);
+    const MEMBER_FILES_SEARCH = new CoreAPI.SubmissionSearch(true)
+      .index('values[Member ID]')
+      .eq('values[Member ID]', action.payload.id)
+      .include(['details', 'values'])
+      .limit(100)
+      .build();
     const MEMBER_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
       .eq('values[Member ID]', action.payload.id)
       .include(['details', 'values'])
       .limit(100)
       .build();
-    const [submission, memberActivities] = yield all([
+    const [submission, memberActivities, memberFilesSubmissions] = yield all([
       call(CoreAPI.fetchSubmission, {
         id: action.payload.id,
         include: SUBMISSION_INCLUDES,
@@ -103,6 +109,11 @@ export function* fetchCurrentMember(action) {
         form: 'member-activities',
         kapp: 'gbmembers',
         search: MEMBER_ACTIVITIES_SEARCH,
+      }),
+      call(CoreAPI.searchSubmissions, {
+        form: 'member-files',
+        search: MEMBER_FILES_SEARCH,
+        datastore: true,
       }),
     ]);
     const [user] = yield all([
@@ -194,12 +205,16 @@ export function* fetchCurrentMember(action) {
         promotionContent[promotionContent.length] = content;
       }
     }
-
+    let memberFiles = [];
+    for (let i = 0; i < memberFilesSubmissions.submissions.length; i++) {
+      memberFiles[memberFiles.length] = memberFilesSubmissions.submissions[i];
+    }
     submission.submission.emailsReceived = emailReceivedContent;
     submission.submission.emailsSent = emailSentContent;
     submission.submission.smsContent = smsContent;
     submission.submission.requestContent = requestContent;
     submission.submission.promotionContent = promotionContent;
+    submission.submission.memberFiles = memberFiles;
     if (action.payload.setInitialLoad) {
       console.log('members.js setInitialLoad 111');
     }
@@ -387,6 +402,25 @@ export function* deleteMember(action) {
     );
   } catch (error) {
     console.log('Error in deleteMember: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
+
+export function* deleteMemberFile(action) {
+  try {
+    const { submission } = yield call(CoreAPI.deleteSubmission, {
+      id: action.payload.id,
+      datastore: true,
+    });
+
+    yield put(
+      errorActions.addSuccess(
+        'Member File deleted successfully',
+        'Delete Member File',
+      ),
+    );
+  } catch (error) {
+    console.log('Error in deleteMemberFile: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));
   }
 }
@@ -1834,6 +1868,7 @@ export function* watchMembers() {
   yield takeEvery(types.UPDATE_MEMBER, updateCurrentMember);
   yield takeEvery(types.CREATE_MEMBER, createMember);
   yield takeEvery(types.DELETE_MEMBER, deleteMember);
+  yield takeEvery(types.DELETE_MEMBER_FILE, deleteMemberFile);
   yield takeEvery(types.FETCH_NEW_MEMBER, fetchNewMember);
   yield takeEvery(types.FETCH_BILLING_INFO, fetchBillingInfo);
   yield takeEvery(

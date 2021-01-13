@@ -12,6 +12,7 @@ import $ from 'jquery';
 import 'react-datetime/css/react-datetime.css';
 import moment from 'moment';
 import { actions as leadsActions } from '../../redux/modules/leads';
+import { actions as membersActions } from '../../redux/modules/members';
 import { actions as dataStoreActions } from '../../redux/modules/settingsDatastore';
 import { actions as messagingActions } from '../../redux/modules/messaging';
 import '../send/tinymce.min.js';
@@ -21,6 +22,9 @@ import { actions as eventsActions } from '../../../../app/src/redux/modules/jour
 import { actions as errorActions } from '../../redux/modules/errors';
 import { KappNavLink as NavLink } from 'common';
 import { substituteFields } from '../leads/LeadsUtils';
+import { contact_date_format } from '../leads/LeadsUtils';
+import { getHistoryInfo } from './JourneyUtils';
+import { HistoryInfo } from './HistoryInfo';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -48,7 +52,7 @@ const mapDispatchToProps = {
   setAccountCredit: messagingActions.setAccountCredit,
   createMemberActivities: messagingActions.createMemberActivities,
   createLeadActivities: messagingActions.createLeadActivities,
-  updateMember: actions.updateMember,
+  updateMember: membersActions.updateMember,
   updateLead: leadsActions.updateLead,
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
@@ -267,6 +271,7 @@ export class SMSEvent extends Component {
                       </span>
                     </td>
                   </tr>
+                  <HistoryInfo history={this.props.history} />
                 </tbody>
               </table>
             </span>
@@ -410,6 +415,7 @@ export const SMSEventView = ({
           smsAccountCredit={smsAccountCredit}
           smsAccountCreditLoading={smsAccountCreditLoading}
           profile={profile}
+          history={getHistoryInfo(journeyEvent)}
         />
       ) : (
         <EventResult
@@ -452,6 +458,7 @@ export const SMSEventContainer = compose(
       setJourneyEvents,
       setSmsSent,
       journeyEvent,
+      profile,
       events,
     }) => sms => {
       if (!sms) {
@@ -465,10 +472,27 @@ export const SMSEventContainer = compose(
           isNaN(journeyEvent.memberItem.values['SMS Sent Count'])
             ? 0
             : parseInt(journeyEvent.memberItem.values['SMS Sent Count'])) + 1;
+
+        var notesHistory = journeyEvent.memberItem.values['Notes History'];
+        if (!notesHistory) {
+          notesHistory = [];
+        } else if (typeof notesHistory !== 'object') {
+          notesHistory = JSON.parse(notesHistory);
+        }
+
+        notesHistory.push({
+          contactMethod: 'sms',
+          note:
+            'Journey Event:' + journeyEvent.submission.values['Template Name'],
+          contactDate: moment().format(contact_date_format),
+          submitter: profile.displayName,
+        });
+        journeyEvent.memberItem.values['Notes History'] = notesHistory;
         sendSms({
           sms: sms,
           target: journeyEvent.submission.values['Record Type'],
           id: journeyEvent.memberItem['id'],
+          memberItem: journeyEvent.memberItem,
           updateMember,
           createMemberActivities: createMemberActivities,
           addNotification: addNotification,
@@ -481,10 +505,27 @@ export const SMSEventContainer = compose(
           isNaN(journeyEvent.leadItem.values['SMS Sent Count'])
             ? 0
             : parseInt(journeyEvent.leadItem.values['SMS Sent Count'])) + 1;
+
+        var notesHistory = journeyEvent.leadItem.values['History'];
+        if (!notesHistory) {
+          notesHistory = [];
+        } else if (typeof notesHistory !== 'object') {
+          notesHistory = JSON.parse(notesHistory);
+        }
+
+        notesHistory.push({
+          contactMethod: 'sms',
+          note:
+            'Journey Event:' + journeyEvent.submission.values['Template Name'],
+          contactDate: moment().format(contact_date_format),
+          submitter: profile.displayName,
+        });
+        journeyEvent.leadItem.values['History'] = notesHistory;
         sendSms({
           sms: sms,
-          target: journeyEvent.submission.values['Record Type'],
+          target: 'Leads',
           id: journeyEvent.leadItem['id'],
+          leadItem: journeyEvent.leadItem,
           updateLead,
           createLeadActivities: createLeadActivities,
           addNotification: addNotification,

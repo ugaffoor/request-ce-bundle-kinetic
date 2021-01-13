@@ -36,6 +36,7 @@ import { EmailsReceived } from './EmailsReceived';
 import { MemberEmails } from './MemberEmails';
 import { MemberSMS } from './MemberSMS';
 import { MemberViewNotes } from './MemberViewNotes';
+import { MemberFiles } from './MemberFiles';
 import { GradingStatus } from '../attendance/GradingStatus';
 import { AttendanceDialogContainer } from '../attendance/AttendanceDialog';
 import { Requests } from './Requests';
@@ -80,6 +81,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = {
   fetchCurrentMember: actions.fetchCurrentMember,
   updateMember: actions.updateMember,
+  deleteMemberFile: actions.deleteMemberFile,
   setCurrentMember: actions.setCurrentMember,
   fetchCampaign: campaignActions.fetchEmailCampaign,
   syncBillingCustomer: actions.syncBillingCustomer,
@@ -548,6 +550,7 @@ export const MemberView = ({
   setCreatingUserAccount,
   updateAttentionRequired,
   locale,
+  deleteMemberFile,
   currency,
 }) =>
   initialLoad ? (
@@ -1017,6 +1020,13 @@ export const MemberView = ({
             <MemberViewNotes
               saveRemoveMemberNote={saveRemoveMemberNote}
               memberItem={memberItem}
+            />
+          </div>
+          <div>
+            <MemberFiles
+              memberItem={memberItem}
+              space={space}
+              deleteMemberFile={deleteMemberFile}
             />
           </div>
           <div>
