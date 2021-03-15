@@ -16,8 +16,8 @@ function excludeFromAttendanceCount(additionalPrograms, className) {
   });
   return program !== undefined &&
     program['program'] === className &&
-    (program['exludeFromGrading'] === undefined ||
-      program['exludeFromGrading'].indexOf('Exclude from Grading') !== -1)
+    program['exludeFromGrading'] !== undefined &&
+      program['exludeFromGrading'].indexOf('Exclude from Grading') !== -1
     ? true
     : false;
 }

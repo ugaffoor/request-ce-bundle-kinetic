@@ -432,4 +432,20 @@ bundle.config.widgets = {
       element,
     );
   },
+  selectMultiMenu: ({ element, value, onChange, options }) => {
+    ReactDOM.render(
+      <Select
+        onChange={onChange}
+        options={options}
+        closeMenuOnSelect={false}
+        hideSelectedOptions={true}
+        controlShouldRenderValue={true}
+        isMulti={true}
+        isClearable
+        isSearchable
+        value={value}
+      />,
+      element,
+    );
+  },
 };

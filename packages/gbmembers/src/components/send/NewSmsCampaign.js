@@ -925,6 +925,6 @@ const inlineStyle = {
   height: '80%',
   top: '10%',
   transform: 'matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)',
-  left: '10%',
+  left: '20%',
   overflowY: 'scroll',
 };

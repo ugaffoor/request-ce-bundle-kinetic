@@ -119,7 +119,7 @@ export class MemberFiles extends Component {
           if (
             await confirm(
               <span>
-                <span>Are your sure you want to DELETE this File?</span>
+                <span>Are you sure you want to DELETE this File?</span>
                 <table>
                   <tbody>
                     <tr>

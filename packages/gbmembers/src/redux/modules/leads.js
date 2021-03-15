@@ -11,6 +11,7 @@ export const types = {
   SET_CURRENT_LEAD: namespace('leads', 'SET_CURRENT_LEAD'),
   SET_LEAD_STATUS: namespace('leads', 'SET_LEAD_STATUS'),
   UPDATE_LEAD: namespace('leads', 'UPDATE_LEAD'),
+  LEAD_SAVED: namespace('leads', 'LEAD_SAVED'),
   CREATE_LEAD: namespace('leads', 'CREATE_LEAD'),
   DELETE_LEAD: namespace('leads', 'DELETE_LEAD'),
   FETCH_NEW_LEAD: namespace('leads', 'FETCH_NEW_LEAD'),
@@ -26,6 +27,7 @@ export const actions = {
   setCurrentLead: withPayload(types.SET_CURRENT_LEAD),
   setLeadStatus: withPayload(types.SET_LEAD_STATUS),
   updateLead: withPayload(types.UPDATE_LEAD),
+  leadSaved: withPayload(types.LEAD_SAVED),
   createLead: withPayload(types.CREATE_LEAD),
   deleteLead: withPayload(types.DELETE_LEAD),
   fetchNewLead: withPayload(types.FETCH_NEW_LEAD),
@@ -64,6 +66,16 @@ export const reducer = (state = State(), { type, payload }) => {
     }
     case types.SET_NEW_LEAD: {
       return state.set('newLeadLoading', false).set('newLead', payload);
+    }
+    case types.LEAD_SAVED: {
+      var allLeads = payload.allLeads;
+      for (var i = 0; i < allLeads.length; i++) {
+        if (allLeads[i]['id'] === payload.leadItem.id) {
+          allLeads[i] = payload.leadItem;
+        }
+      }
+
+      return state.set('allLeads', allLeads);
     }
     default:
       return state;

@@ -32,6 +32,7 @@ import { ReportsContainer } from './reports/Reports';
 import { EmailEventContainer } from './journey/EmailEvent';
 import { SMSEventContainer } from './journey/SMSEvent';
 import { CallEventContainer } from './journey/CallEvent';
+import { ProShopContainer } from './ProShop/ProShop';
 
 export const Content = () => (
   <div className="content" id="mainContent">
@@ -87,6 +88,10 @@ export const Content = () => (
     <Route
       path="/CallEvent/:recordType?/:eventId?"
       component={CallEventContainer}
+    />
+    <Route
+      path="/ProShop/:recordType?/:eventId?"
+      component={ProShopContainer}
     />
   </div>
 );

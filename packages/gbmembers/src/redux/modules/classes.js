@@ -122,12 +122,21 @@ export const reducer = (state = State(), { type, payload }) => {
         var memberRec = payload.allMembers.find(
           member => member.id === booking.memberGUID,
         );
-        booking['photo'] = memberRec.values['Photo'];
-        booking['firstName'] = memberRec.values['First Name'];
-        booking['lastName'] = memberRec.values['Last Name'];
-        booking['rankingProgram'] = memberRec.values['Ranking Program'];
-        booking['rankingBelt'] = memberRec.values['Ranking Belt'];
-        console.log(booking.firstName);
+        if (memberRec !== undefined) {
+          booking['photo'] = memberRec.values['Photo'];
+          booking['firstName'] = memberRec.values['First Name'];
+          booking['lastName'] = memberRec.values['Last Name'];
+          booking['rankingProgram'] = memberRec.values['Ranking Program'];
+          booking['rankingBelt'] = memberRec.values['Ranking Belt'];
+          console.log(booking.firstName + ' ' + booking.lastName);
+        } else {
+          console.log(
+            'NOT Matched to Member:' +
+              booking.firstName +
+              ' ' +
+              booking.lastName,
+          );
+        }
       });
       return state
         .set('fetchingRecurringBookings', false)

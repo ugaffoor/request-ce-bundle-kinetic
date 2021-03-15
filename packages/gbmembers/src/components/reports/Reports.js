@@ -39,6 +39,7 @@ const mapStateToProps = state => ({
   memberStatusValues: state.member.app.memberStatusValues,
   leadStatusValues: state.member.app.leadStatusValues,
   leadSourceValues: state.member.app.leadSourceValues,
+  triggers: state.member.app.triggers,
   programs: state.member.app.programs,
   additionalPrograms: state.member.app.additionalPrograms,
   belts: state.member.app.belts,
@@ -151,6 +152,7 @@ export const ReportsView = ({
   setVariationCustomers,
   fetchCustomerRefunds,
   setCustomerRefunds,
+  triggers,
 }) => (
   <div className="reports">
     <StatusMessagesContainer />
@@ -181,6 +183,7 @@ export const ReportsView = ({
             belts={belts}
             membershipTypes={membershipTypes}
             space={space}
+            triggers={triggers}
           />
         </div>
       )}
@@ -319,6 +322,7 @@ export const ReportsView = ({
             updatePreferences={updatePreferences}
             leadStatusValues={leadStatusValues}
             leadSourceValues={leadSourceValues}
+            triggers={triggers}
           />
         </div>
       )}

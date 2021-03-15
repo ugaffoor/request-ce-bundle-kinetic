@@ -195,6 +195,29 @@ export class LeadEdit extends Component {
                     }
                   />
                 </div>
+                <div>
+                  <label htmlFor="history">
+                    History
+                  </label>
+                  <input
+                    type="text"
+                    name="history"
+                    id="history"
+                    size="5"
+                    ref={input => (this.input = input)}
+                    defaultValue={
+                      this.props.leadItem.values['History']
+                    }
+                    onChange={e =>
+                      handleChange(
+                        this.props.leadItem,
+                        'History',
+                        e,
+                        this.setIsDirty,
+                      )
+                    }
+                  />
+                </div>
                 </span>
             */}
               <span className="line">

@@ -546,8 +546,8 @@ export class AttendanceDialog extends Component {
 const enhance = compose(connect(mapStateToProps, mapDispatchToProps));
 const inlineStyle = {
   width: '800px',
-  top: '10%',
-  left: '10%',
+  top: '30%',
+  left: '20%',
 };
 
 export const AttendanceDialogContainer = enhance(AttendanceDialog);

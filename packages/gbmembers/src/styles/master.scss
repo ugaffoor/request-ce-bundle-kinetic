@@ -2,7 +2,7 @@
 @import 'mixins';
 @import 'base';
 @import '~modularscale-sass/stylesheets/modularscale';
-
+@import 'react-credit-cards/lib/styles.scss';
 @import 'list-group';
 @import 'sidebar';
 @import 'icons';
@@ -39,5 +39,6 @@
 @import 'settings';
 @import 'calendar';
 @import 'tinymce';
+@import 'proshop';
 // Temporary
 @import 'temp';

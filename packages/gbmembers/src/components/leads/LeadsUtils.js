@@ -34,7 +34,7 @@ export function substituteFields(text, person, space, profile) {
     let introDate = undefined;
     let history = person.values['History'];
     if (history !== undefined) {
-      history = JSON.parse(history);
+      history = getJson(history);
       for (let i = history.length - 1; i > 0; i--) {
         if (history[i]['contactMethod'] === 'intro_class') {
           introDate = moment(history[i]['contactDate'], 'YYYY-MM-DD HH:mm');
@@ -57,7 +57,7 @@ export function substituteFields(text, person, space, profile) {
     let introTime = undefined;
     let history = person.values['History'];
     if (history !== undefined) {
-      history = JSON.parse(history);
+      history = getJson(history);
       for (let i = history.length - 1; i > 0; i--) {
         if (history[i]['contactMethod'] === 'intro_class') {
           introTime = moment(history[i]['contactDate'], 'YYYY-MM-DD HH:mm');

@@ -13,11 +13,15 @@ import { Confirm } from 'react-confirm-bootstrap';
 import { Creatable } from 'react-select';
 import { getJson, getCurrency } from '../Member/MemberUtils';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
+import { MemberEvents } from './MemberEvents';
+export const contact_date_format = 'YYYY-MM-DD HH:mm';
 
 const util = require('util');
 
 const member_activities_url =
   'app/api/v1/kapps/gbmembers/forms/member-activities/submissions?include=details,values';
+const journey_events_url =
+  'app/api/v1/datastore/forms/journey-event/submissions?include=details,values&index=values[Record ID]&limit=1000';
 const no_data_placeholder = 'No records found';
 
 export class MemberActivityReport extends Component {
@@ -26,6 +30,7 @@ export class MemberActivityReport extends Component {
     this.getGridData = this.getGridData.bind(this);
     this.activityData = this.getGridData(this.props.members);
     this.handleCellClick = this.handleCellClick.bind(this);
+    this.handleEventsCellClick = this.handleEventsCellClick.bind(this);
 
     let currency = getAttributeValue(this.props.space, 'Currency');
     if (currency === undefined) {
@@ -89,6 +94,11 @@ export class MemberActivityReport extends Component {
         title: 'Notes',
         field: 'history',
         formatter: reactFormatter(<this.ExpandNotesCellButton />),
+      },
+      {
+        title: 'Events',
+        field: 'events',
+        formatter: reactFormatter(<this.ExpandEventsCellButton />),
       },
       {
         title: 'Emails Sent',
@@ -162,6 +172,13 @@ export class MemberActivityReport extends Component {
       { title: 'Content', field: 'Content' },
       { title: 'Received Date', field: 'Received Date' },
     ];
+    this.eventsColumns = [
+      { title: 'Status', field: 'Status' },
+      { title: 'Date', field: 'Date' },
+      { title: 'Contact Type', field: 'Contact Type' },
+      { title: 'Condition', field: 'Condition' },
+      { title: 'Note', field: 'Note' },
+    ];
 
     this.columnsToHide = [
       {
@@ -184,6 +201,7 @@ export class MemberActivityReport extends Component {
           { label: 'Additional Program 1', value: 'additionalProgram1' },
           { label: 'Additional Program 2', value: 'additionalProgram2' },
           { label: 'Notes', value: 'history' },
+          { label: 'Events', value: 'events' },
           { label: 'Emails Sent', value: 'emailsSent' },
           { label: 'Emails Received', value: 'emailsReceived' },
           { label: 'SMS Sent', value: 'smsSent' },
@@ -754,7 +772,9 @@ export class MemberActivityReport extends Component {
     if (props.cell.getValue() === undefined) {
       return <span />;
     }
-    var notes = JSON.parse(props.cell.getValue());
+    var notes = JSON.parse(
+      props.cell.getValue().replace(/(?:\r\n|\r|\n)/g, '<br>'),
+    );
     notes.sort(function(a, b) {
       if (a['contactDate'] > b['contactDate']) {
         return -1;
@@ -776,7 +796,18 @@ export class MemberActivityReport extends Component {
       </span>
     );
   };
-
+  ExpandEventsCellButton = (props: any) => {
+    return (
+      <span className="events">
+        <div
+          className="rt-expander closed"
+          onClick={() => this.handleEventsCellClick(this, props.cell)}
+        >
+          •
+        </div>
+      </span>
+    );
+  };
   ExpandCellButton = (props: any) => {
     const cellData = props.cell._cell.row.data;
     const value = props.cell.getValue();
@@ -907,6 +938,7 @@ export class MemberActivityReport extends Component {
             ? JSON.parse(member.values['Billing Family Members']).length
             : '',
         history: member.values['Notes History'],
+        events: member.values['Notes History'],
         emailsSent: isNaN(member.values['Emails Sent Count'])
           ? 0
           : parseInt(member.values['Emails Sent Count']),
@@ -1129,7 +1161,9 @@ export class MemberActivityReport extends Component {
       var tableEl = document.createElement('div');
       $(holderEl).addClass('report-sub-table');
       holderEl.appendChild(tableEl);
-      var history = JSON.parse(row.getData()['history']);
+      var history = JSON.parse(
+        row.getData()['history'].replace(/(?:\r\n|\r|\n)/g, '<br>'),
+      );
       history.sort(function(a, b) {
         if (a['contactDate'] > b['contactDate']) {
           return -1;
@@ -1161,7 +1195,85 @@ export class MemberActivityReport extends Component {
       //that.setState({isGridLoading: false});
     }
   };
+  handleEventsCellClick = (that, cell) => {
+    var field = cell.getColumn().getField();
+    var cellElement = cell.getElement();
+    var row = cell.getRow();
+    var btnElement = $(cellElement).find('.rt-expander.opened');
+    if (btnElement.length > 0) {
+      $(btnElement)
+        .removeClass('opened')
+        .addClass('closed');
+      $(btnElement).text('Show');
+      $(row.getElement())
+        .find('.report-sub-table')
+        .remove();
+      $(cellElement).css('background-color', 'white');
+    } else {
+      //that.setState({isGridLoading: true});
+      $(row.getElement())
+        .find('.report-sub-table')
+        .remove();
+      var cells = row.getCells();
+      for (var i = 0; i < cells.length; i++) {
+        var otherField = cells[i].getColumn().getField();
+        if (otherField !== field && otherField !== 'history') {
+          $(cells[i].getElement()).css('background-color', 'white');
+          $(cells[i].getElement())
+            .find('.hide-sub-grid')
+            .text('Show');
+          $(cells[i].getElement())
+            .find('.hide-sub-grid')
+            .removeClass('hide-sub-grid')
+            .addClass('show-sub-grid');
+        } else if (otherField !== field && otherField === 'history') {
+          $(cells[i].getElement()).css('background-color', 'white');
+          $(cells[i].getElement())
+            .find('.opened')
+            .removeClass('opened')
+            .addClass('closed');
+        }
+      }
+      $(cellElement).css('background-color', '#ced7e5');
+      //$(cellElement).css("background-color", "#9dbae8");
+      //$(cellElement).css("background-color", "#c0c6d6");
+      var holderEl = document.createElement('div');
+      var tableEl = document.createElement('div');
+      $(holderEl).addClass('report-sub-table');
+      holderEl.appendChild(tableEl);
+      var memberId = row.getData()['id'];
 
+      var url = journey_events_url + '&q=values[Record ID]="' + memberId + '"';
+      var fetchEvents = this.fetchDatastoreData(
+        memberId,
+        url,
+        this.props.members[
+          this.props.members.findIndex(member => member.id === memberId)
+        ],
+        this.props.triggers,
+      );
+      fetchEvents.then(events => {
+        ReactDOM.render(
+          <MemberEvents
+            events={events}
+            memberItem={
+              this.props.members[
+                this.props.members.findIndex(member => member.id === memberId)
+              ]
+            }
+          />,
+          tableEl,
+        );
+      });
+
+      row.getElement().appendChild(holderEl);
+      btnElement = $(cellElement).find('.rt-expander.closed');
+      $(btnElement)
+        .removeClass('closed')
+        .addClass('opened');
+      $(btnElement).text('Hide');
+    }
+  };
   fetchData = (memberId, url) => {
     return fetch(url)
       .then(res => res.json())
@@ -1171,6 +1283,114 @@ export class MemberActivityReport extends Component {
             JSON.parse(submission.values.Content),
           );
           return data ? data : [];
+        },
+        error => {
+          console.log('error: ' + util.inspect(error));
+          return [];
+        },
+      );
+  };
+  lastConditionValue = (histJson, note) => {
+    return 'Note';
+  };
+
+  fetchDatastoreData = (memberId, url, memberItem, triggers) => {
+    return fetch(url)
+      .then(res => res.json())
+      .then(
+        result => {
+          var events = result.submissions ? result.submissions : [];
+          var memberTriggers = triggers.filter(
+            trigger => trigger.values['Record Type'] === 'Member',
+          );
+
+          var histJson = getJson(memberItem.values['Notes History']);
+          if (
+            histJson.length > 0 &&
+            typeof histJson[0] === 'string' &&
+            histJson[0].indexOf('. User Comment:') !== -1
+          ) {
+            histJson[0] = histJson[0].replace('[{', '{').replace('}]', '}');
+            histJson[0] = getJson(histJson[0].replace(/\n/g, ' '));
+          }
+          var data = [];
+
+          events.forEach((event, i) => {
+            data[data.length] = {
+              Date: moment(event['createdAt']).format(contact_date_format),
+              Status: event.values['Status'],
+              'Contact Type': event.values['Contact Type'],
+              Note: event.values['Template Name'],
+              Condition: triggers.get(
+                triggers.findIndex(
+                  trigger => trigger.id === event.values['Trigger ID'],
+                ),
+              ).values['Member Condition'],
+              Duration: memberTriggers.get(
+                memberTriggers.findIndex(
+                  trigger => trigger.id === event.values['Trigger ID'],
+                ),
+              ).values['Member Condition Duration'],
+            };
+          });
+          memberTriggers.forEach((trigger, i) => {
+            if (
+              events.findIndex(
+                event => event.values['Trigger ID'] === trigger.id,
+              ) === -1
+            ) {
+              data[data.length] = {
+                Date: moment(memberItem['createdAt'])
+                  .add(trigger.values['Member Condition Duration'], 'days')
+                  .format(contact_date_format),
+                Status: 'Defined',
+                'Contact Type': trigger.values['Contact Type'],
+                Note: 'Defined',
+                Condition: trigger.values['Member Condition'],
+                Duration: trigger.values['Member Condition Duration'],
+              };
+            }
+          });
+
+          histJson.slice().forEach((note, i) => {
+            if (note['note'].indexOf('Journey Event:') === -1) {
+              data[data.length] = {
+                Date: moment(note['contactDate']).format(contact_date_format),
+                Status: 'Manual',
+                'Contact Type': note['contactMethod'],
+                Note: note['note'],
+                Condition: this.lastConditionValue(histJson, note),
+              };
+            }
+          });
+
+          let sortedData = data.sort(function(a, b) {
+            if (
+              moment(a['Date'], contact_date_format).isBefore(
+                moment(b['Date'], contact_date_format),
+              )
+            )
+              return -1;
+            if (
+              moment(a['Date'], contact_date_format).isAfter(
+                moment(b['Date'], contact_date_format),
+              )
+            )
+              return 1;
+            return 0;
+          });
+
+          var dataMap = new Map();
+          sortedData.forEach((item, i) => {
+            var events = dataMap.get(item['Condition']);
+            if (events === undefined) {
+              events = [];
+            }
+            events[events.length] = item;
+            dataMap.set(item['Condition'], events);
+          });
+
+          return dataMap;
         },
         error => {
           console.log('error: ' + util.inspect(error));

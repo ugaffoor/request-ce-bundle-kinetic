@@ -46,10 +46,12 @@ import SVGInline from 'react-svg-inline';
 import binIcon from '../../images/bin.svg?raw';
 import { confirm } from '../helpers/Confirmation';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
+import { LeadOrders } from './LeadOrders';
 
 const mapStateToProps = state => ({
   profile: state.app.profile,
   pathname: state.router.location.pathname,
+  allLeads: state.member.leads.allLeads,
   leadItem: state.member.leads.currentLead,
   campaignItem: state.member.campaigns.emailCampaignItem,
   campaignLoading: state.member.campaigns.emailCampaignLoading,
@@ -58,6 +60,7 @@ const mapStateToProps = state => ({
   isSmsEnabled: state.member.app.isSmsEnabled,
   leadStatusValues: state.member.app.leadStatusValues,
   journeyTriggers: state.member.app.triggers,
+  snippets: state.member.app.snippets,
 });
 const mapDispatchToProps = {
   fetchLead: actions.fetchCurrentLead,
@@ -885,6 +888,13 @@ export class LeadDetail extends Component {
         <div>
           <Requests requestContent={this.props.leadItem.requestContent} />
         </div>
+        <div>
+          <LeadOrders
+            leadItem={this.props.leadItem}
+            space={this.props.space}
+            snippets={this.props.snippets}
+          />
+        </div>
       </div>
     );
   }
@@ -910,6 +920,7 @@ export const LeadDetailView = ({
   leadStatusValues,
   updateAttentionRequired,
   space,
+  snippets,
   journeyTriggers,
   createJourneyEvent,
 }) =>
@@ -934,6 +945,7 @@ export const LeadDetailView = ({
       isSmsEnabled={isSmsEnabled}
       leadStatusValues={leadStatusValues}
       space={space}
+      snippets={snippets}
       journeyTriggers={journeyTriggers}
       createJourneyEvent={createJourneyEvent}
       updateAttentionRequired={updateAttentionRequired}
@@ -953,6 +965,7 @@ export const LeadDetailContainer = compose(
     saveRemoveLeadNote: ({
       profile,
       leadItem,
+      allLeads,
       updateLead,
       fetchLead,
       addNotification,
@@ -965,6 +978,7 @@ export const LeadDetailContainer = compose(
       updateLead({
         id: leadItem['id'],
         leadItem: leadItem,
+        allLeads: allLeads,
         //        fetchLead: fetchLead,
         myThis: this,
         addNotification,
@@ -975,6 +989,7 @@ export const LeadDetailContainer = compose(
     saveLeadNote: ({
       profile,
       leadItem,
+      allLeads,
       updateLead,
       fetchLead,
       addNotification,
@@ -1079,6 +1094,7 @@ export const LeadDetailContainer = compose(
       updateLead({
         id: leadItem['id'],
         leadItem: leadItem,
+        allLeads: allLeads,
         //  fetchLead: fetchLead,
         myThis: this,
         addNotification,
@@ -1089,6 +1105,7 @@ export const LeadDetailContainer = compose(
     },
     updateIsNewReplyReceived: ({
       leadItem,
+      allLeads,
       updateLead,
       fetchLeads,
       addNotification,
@@ -1098,6 +1115,7 @@ export const LeadDetailContainer = compose(
       updateLead({
         id: leadItem.id,
         leadItem,
+        allLeads,
         //fetchLeads,
         addNotification,
         setSystemError,
@@ -1105,6 +1123,7 @@ export const LeadDetailContainer = compose(
     },
     updateAttentionRequired: ({
       leadItem,
+      allLeads,
       updateLead,
       fetchLeads,
       addNotification,
@@ -1114,15 +1133,17 @@ export const LeadDetailContainer = compose(
       updateLead({
         id: leadItem.id,
         leadItem,
+        allLeads,
         //fetchLeads,
         addNotification,
         setSystemError,
       });
     },
-    saveStatus: ({ leadItem, updateLead }) => () => {
+    saveStatus: ({ leadItem, allLeads, updateLead }) => () => {
       updateLead({
         id: leadItem.id,
         leadItem,
+        allLeads,
       });
     },
   }),

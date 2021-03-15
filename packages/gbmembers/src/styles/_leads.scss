@@ -14,6 +14,30 @@
     }
   }
 }
+.posOrders {
+  .productLine {
+    display: flex;
+  }
+  .quantity {
+    width: 40px;
+  }
+  .name {
+    margin-right: 40px;
+    width: 500px;
+  }
+  .price {
+    width: 100px;
+  }
+  .stockItems {
+    .stockItem {
+      display: flex;
+      .name {
+        margin-left: 40px;
+      }
+    }
+  }
+}
+
 .leads {
   #tasksListGrid {
     .react-grid-Header {

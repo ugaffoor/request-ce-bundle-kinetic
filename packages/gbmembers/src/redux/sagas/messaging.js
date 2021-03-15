@@ -47,9 +47,7 @@ export function* sendSms(action) {
           memberActivities.values['Content'] = {
             To: action.payload.sms.to,
             Content: action.payload.sms.text,
-            'Sent Date': moment()
-              .utc()
-              .format('DD-MM-YYYY hh:mm'),
+            'Sent Date': moment().format('DD-MM-YYYY HH:mm'),
           };
           action.payload.createMemberActivities({
             memberActivities,
@@ -70,9 +68,7 @@ export function* sendSms(action) {
           leadActivities.values['Content'] = {
             To: action.payload.sms.to,
             Content: action.payload.sms.text,
-            'Sent Date': moment()
-              .utc()
-              .format('DD-MM-YYYY hh:mm'),
+            'Sent Date': moment().format('DD-MM-YYYY HH:mm'),
           };
           action.payload.createLeadActivities({
             leadActivities,
@@ -139,9 +135,7 @@ export function* sendBulkSms(action) {
             memberActivities.values['Content'] = {
               To: args.toNumbers[i]['number'],
               Content: action.payload.campaignItem.values['SMS Content'],
-              'Sent Date': moment()
-                .utc()
-                .format('DD-MM-YYYY hh:mm'),
+              'Sent Date': moment().format('DD-MM-YYYY HH:mm'),
             };
 
             action.payload.createMemberActivities({
@@ -163,9 +157,7 @@ export function* sendBulkSms(action) {
             leadActivities.values['Content'] = {
               To: args.toNumbers[i]['number'],
               Content: action.payload.campaignItem.values['SMS Content'],
-              'Sent Date': moment()
-                .utc()
-                .format('DD-MM-YYYY hh:mm'),
+              'Sent Date': moment().format('DD-MM-YYYY HH:mm'),
             };
 
             action.payload.createLeadActivities({

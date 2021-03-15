@@ -69,7 +69,13 @@ export function* fetchCurrentLead(action) {
       .include(['details', 'values'])
       .limit(1000)
       .build();
-    const [submission, leadActivities] = yield all([
+    const MEMBER_POS_SEARCH = new CoreAPI.SubmissionSearch(true)
+      .index('values[Person ID]')
+      .eq('values[Person ID]', action.payload.id)
+      .include(['details', 'values'])
+      .limit(100)
+      .build();
+    const [submission, leadActivities, posOrderSubmissions] = yield all([
       call(CoreAPI.fetchSubmission, {
         id: action.payload.id,
         include: SUBMISSION_INCLUDES,
@@ -78,6 +84,11 @@ export function* fetchCurrentLead(action) {
         form: 'lead-activities',
         kapp: 'gbmembers',
         search: LEAD_ACTIVITIES_SEARCH,
+      }),
+      call(CoreAPI.searchSubmissions, {
+        form: 'pos-order',
+        search: MEMBER_POS_SEARCH,
+        datastore: true,
       }),
     ]);
 
@@ -122,10 +133,15 @@ export function* fetchCurrentLead(action) {
         );
       }
     }
+    let posOrders = [];
+    for (let i = 0; i < posOrderSubmissions.submissions.length; i++) {
+      posOrders[posOrders.length] = posOrderSubmissions.submissions[i].values;
+    }
     submission.submission.emailsReceived = emailReceivedContent;
     submission.submission.emailsSent = emailSentContent;
     submission.submission.smsContent = smsContent;
     submission.submission.requestContent = requestContent;
+    submission.submission.posOrders = posOrders;
     yield put(actions.setCurrentLead(submission.submission));
   } catch (error) {
     console.log('Error in fetchCurrentLead: ' + util.inspect(error));
@@ -166,7 +182,12 @@ export function* updateCurrentLead(action) {
     yield put(
       errorActions.addSuccess('Lead updated successfully', 'Update Lead'),
     );
-
+    yield put(
+      actions.leadSaved({
+        allLeads: action.payload.allLeads,
+        leadItem: action.payload.leadItem,
+      }),
+    );
     if (!action.payload.calendarEvent) {
       return;
     }

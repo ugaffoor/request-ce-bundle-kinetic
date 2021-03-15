@@ -406,8 +406,8 @@ export class ClassDialog extends Component {
 const enhance = compose(connect(mapStateToProps, mapDispatchToProps));
 const inlineStyle = {
   width: '500px',
-  top: '10%',
-  left: '10%',
+  top: '30%',
+  left: '20%',
 };
 
 export const ClassDialogContainer = enhance(ClassDialog);

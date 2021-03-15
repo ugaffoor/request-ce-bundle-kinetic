@@ -50,8 +50,8 @@
   }
 }
 @page {
-  size: a5;
-  margin: 0;
+  size: a5 landscape;
+  //margin: 0;
 }
 .card1.GB1 {
   background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/GB1-P1.png);
@@ -199,6 +199,29 @@
     }
     .deleteFile {
       cursor: pointer;
+    }
+    .posOrders {
+      .productLine {
+        display: flex;
+      }
+      .quantity {
+        width: 40px;
+      }
+      .name {
+        margin-right: 40px;
+        width: 500px;
+      }
+      .price {
+        width: 100px;
+      }
+      .stockItems {
+        .stockItem {
+          display: flex;
+          .name {
+            margin-left: 40px;
+          }
+        }
+      }
     }
   }
   .memberHeader {

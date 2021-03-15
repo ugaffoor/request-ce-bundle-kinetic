@@ -60,6 +60,8 @@ export function handleNameChange(memberItem, event) {
     (lastName !== undefined ? lastName.toLowerCase() : '')
   )
     .replace(/ /g, '')
+    .replace(/'/g, '')
+    .replace(/`/g, '')
     .substring(0, 30);
 
   $('#username').val(memberItem.values['Member ID']);

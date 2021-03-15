@@ -493,7 +493,9 @@ export const CallEventContainer = compose(
         if (!notesHistory) {
           notesHistory = [];
         } else if (typeof notesHistory !== 'object') {
-          notesHistory = JSON.parse(notesHistory);
+          notesHistory = JSON.parse(
+            notesHistory.replace(/(?:\r\n|\r|\n)/g, ' '),
+          );
         }
 
         notesHistory.push({
@@ -519,7 +521,9 @@ export const CallEventContainer = compose(
         if (!notesHistory) {
           notesHistory = [];
         } else if (typeof notesHistory !== 'object') {
-          notesHistory = JSON.parse(notesHistory);
+          notesHistory = JSON.parse(
+            notesHistory.replace(/(?:\r\n|\r|\n)/g, ' '),
+          );
         }
 
         notesHistory.push({

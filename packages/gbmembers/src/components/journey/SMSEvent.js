@@ -151,16 +151,16 @@ export class SMSEvent extends Component {
     super(props);
 
     this.sendSms = this.sendSms.bind(this);
-
+    var smsText = substituteFields(
+      this.props.smsTemplate['SMS Content'],
+      this.props.leadItem !== undefined
+        ? this.props.leadItem
+        : this.props.memberItem,
+      this.props.space,
+      this.props.profile,
+    );
     this.state = {
-      smsText: substituteFields(
-        this.props.smsTemplate['SMS Content'],
-        this.props.leadItem !== undefined
-          ? this.props.leadItem
-          : this.props.memberItem,
-        this.props.space,
-        this.props.profile,
-      ),
+      smsText: smsText,
     };
   }
 
@@ -477,7 +477,9 @@ export const SMSEventContainer = compose(
         if (!notesHistory) {
           notesHistory = [];
         } else if (typeof notesHistory !== 'object') {
-          notesHistory = JSON.parse(notesHistory);
+          notesHistory = JSON.parse(
+            notesHistory.replace(/(?:\r\n|\r|\n)/g, ' '),
+          );
         }
 
         notesHistory.push({
@@ -510,7 +512,9 @@ export const SMSEventContainer = compose(
         if (!notesHistory) {
           notesHistory = [];
         } else if (typeof notesHistory !== 'object') {
-          notesHistory = JSON.parse(notesHistory);
+          notesHistory = JSON.parse(
+            notesHistory.replace(/(?:\r\n|\r|\n)/g, ' '),
+          );
         }
 
         notesHistory.push({

@@ -139,13 +139,15 @@ export class SMSModal extends Component {
     let smsValues = [];
     sms.forEach(value => {
       let content = JSON.parse(value.values['Content']);
-      var dt =
+      /*      var dt =
         value.values['Direction'] === 'Outbound'
           ? content['Sent Date']
           : content['Received Date'];
 
       dt = moment(dt, 'DD-MM-YYYY HH:mm');
       dt = dt.add(moment().utcOffset() * 60, 'seconds');
+*/
+      var dt = moment(value['createdAt']);
 
       smsValues[smsValues.length] = {
         Direction: value.values['Direction'],
@@ -485,6 +487,6 @@ const inlineStyle = {
   height: '80%',
   top: '10%',
   transform: 'matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)',
-  left: '10%',
+  left: '20%',
   overflowY: 'scroll',
 };

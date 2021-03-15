@@ -11,7 +11,7 @@ import sendIcon from '../images/Send.svg?raw';
 import gradingIcon from '../images/Grading.svg?raw';
 import settingsIcon from '../images/Settings.svg?raw';
 import reportsIcon from '../images/Reports.svg?raw';
-import gbwearIcon from '../images/GBWear.svg?raw';
+import proShopIcon from '../images/proShop.svg?raw';
 
 import { Utils } from 'common';
 
@@ -106,15 +106,15 @@ export const Header = ({ loading, profile }) => (
       {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
         <div />
       ) : (
-        <NavItem className="gbwearNavItem">
+        <NavItem className="proShopNavItem">
           <NavLink
-            to="/GBWear"
+            to="/ProShop"
             className="nav-link icon-wrapper"
             strict
             activeClassName="active"
           >
-            <SVGInline svg={gbwearIcon} className="icon" />
-            <span className="appName">GB Wear</span>
+            <SVGInline svg={proShopIcon} className="icon" />
+            <span className="appName">PRO SHOP</span>
           </NavLink>
         </NavItem>
       )}

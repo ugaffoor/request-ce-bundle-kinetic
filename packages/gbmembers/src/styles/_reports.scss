@@ -1,3 +1,83 @@
+.eventModeHelp {
+  display: none;
+  .infoRow {
+    display: flex;
+    flex-direction: row;
+    margin: 2px;
+    .info {
+      margin-left: 4px;
+    }
+    .color {
+      width: 20px;
+      height: 20px;
+    }
+    .color.Manual {
+      background-color: #f3f35f;
+    }
+    .color.Completed {
+      background-color: #b8d6b8;
+    }
+    .color.Delete {
+      background-color: #ea6969;
+    }
+    .color.New {
+      background-color: #0000ff82;
+    }
+    .color.Website {
+      background-color: #e7f2ec;
+    }
+  }
+  .color.Defined {
+    background-color: white;
+  }
+}
+
+.eventsBar {
+  .title {
+    padding: 2px;
+  }
+  .section {
+    display: flex;
+    border-style: solid;
+    border-width: 1px;
+    padding: 4px;
+    border-color: #bfb7b7;
+    background-color: #f7f4f4;
+    .eventItem.Manual {
+      background-color: #f3f35f;
+    }
+    .eventItem.Completed {
+      background-color: #b8d6b8;
+    }
+    .eventItem.Delete {
+      background-color: #ea6969;
+    }
+    .eventItem.New {
+      background-color: #0000ff82;
+    }
+    .eventItem.Website {
+      background-color: #e7f2ec;
+    }
+    .eventItem.Defined {
+      background-color: white;
+    }
+    .eventItem {
+      margin: 2px;
+      padding: 2px;
+      height: 100%;
+      .eventCell {
+        img {
+          width: 24px;
+          height: 24px;
+        }
+        .days {
+          text-align: center;
+        }
+      }
+    }
+  }
+}
+
 .inactiveChart {
   width: 100%;
   margin-top: 12px;
@@ -280,7 +360,8 @@ btn:disabled {
 }
 
 .formatterCell {
-  .firstNote {
+  .firstNote,
+  .events {
     .note {
       width: 80%;
       float: left;

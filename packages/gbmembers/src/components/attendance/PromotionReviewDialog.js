@@ -266,8 +266,8 @@ export class PromotionReviewDialog extends Component {
 const enhance = compose(connect(mapStateToProps, mapDispatchToProps));
 const inlineStyle = {
   width: '700px',
-  top: '10%',
-  left: '10%',
+  top: '30%',
+  left: '20%',
 };
 
 export const PromotionReviewDialogContainer = enhance(PromotionReviewDialog);

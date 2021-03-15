@@ -105,6 +105,7 @@ export class Statistics extends Component {
     let leadsTotal = [];
     let introsTotal = [];
     let attendedTotal = [];
+    let noshowTotal = [];
     let convertedTotal = [];
     if (LCTViewSwitch) {
       leads.forEach(lead => {
@@ -146,7 +147,7 @@ export class Statistics extends Component {
               ) &&
               history[i]['contactMethod'] === 'noshow_class'
             ) {
-              attendedTotal[attendedTotal.length] = lead;
+              noshowTotal[noshowTotal.length] = lead;
             }
           }
           if (lead.values['Lead State'] === 'Converted') {
@@ -205,7 +206,7 @@ export class Statistics extends Component {
             ) &&
             history[i]['contactMethod'] === 'noshow_class'
           ) {
-            attendedTotal[attendedTotal.length] = lead;
+            noshowTotal[noshowTotal.length] = lead;
           }
         }
         if (lead.values['Lead State'] === 'Converted') {

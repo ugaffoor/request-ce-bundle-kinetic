@@ -51,7 +51,7 @@
   }
   .reportsNavItem,
   .settingsNavItem,
-  .gbwearNavItem {
+  .proShopNavItem {
     display: none;
     @media (min-width: 600px) {
       display: flex;
@@ -265,17 +265,17 @@ ul.nav-header.apps.nav {
     stroke: #f00 !important;
   }
 }
-.gbwearNavItem svg {
+.proShopNavItem svg {
   .cls-1 {
     fill: white;
   }
 }
-.gbwearNavItem .nav-link.active {
+.proShopNavItem .nav-link.active {
   path {
-    fill: white !important;
+    stroke: black !important;
   }
   .cls-1 {
-    fill: #e1251b;
+    fill: #fa9917 !important;
   }
   path.cls-2 {
     fill: black !important;

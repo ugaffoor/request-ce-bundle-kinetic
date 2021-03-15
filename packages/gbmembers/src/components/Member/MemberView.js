@@ -37,6 +37,7 @@ import { MemberEmails } from './MemberEmails';
 import { MemberSMS } from './MemberSMS';
 import { MemberViewNotes } from './MemberViewNotes';
 import { MemberFiles } from './MemberFiles';
+import { MemberOrders } from './MemberOrders';
 import { GradingStatus } from '../attendance/GradingStatus';
 import { AttendanceDialogContainer } from '../attendance/AttendanceDialog';
 import { Requests } from './Requests';
@@ -71,6 +72,7 @@ const mapStateToProps = state => ({
   newCustomers: state.member.members.newCustomers,
   newCustomersLoading: state.member.members.newCustomersLoading,
   space: state.member.app.space,
+  snippets: state.member.app.snippets,
   profile: state.member.app.profile,
   isSmsEnabled: state.member.app.isSmsEnabled,
   belts: state.member.app.belts,
@@ -529,6 +531,7 @@ export const MemberView = ({
   setShowNewCustomers,
   newCustomersLoading,
   space,
+  snippets,
   profile,
   setShowCallScriptModal,
   showCallScriptModal,
@@ -1055,17 +1058,13 @@ export const MemberView = ({
               }
             />
           </div>
-          {/*      <div>
-          <AttendanceChart
-            id={memberItem.id}
-            attendances={attendances}
-            fetchMemberAttendances={fetchMemberAttendances}
-          />
-        </div>
-        <div>
-          <MemberAttendanceContainer id={memberItem.id} />
-        </div>
-  */}
+          <div>
+            <MemberOrders
+              memberItem={memberItem}
+              space={space}
+              snippets={snippets}
+            />
+          </div>
         </div>
       </div>
     </span>

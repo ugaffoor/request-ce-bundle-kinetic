@@ -89,6 +89,12 @@ export function* fetchMembers(action) {
 export function* fetchCurrentMember(action) {
   try {
     const appSettings = yield select(getAppSettings);
+    const MEMBER_POS_SEARCH = new CoreAPI.SubmissionSearch(true)
+      .index('values[Person ID]')
+      .eq('values[Person ID]', action.payload.id)
+      .include(['details', 'values'])
+      .limit(100)
+      .build();
     const MEMBER_FILES_SEARCH = new CoreAPI.SubmissionSearch(true)
       .index('values[Member ID]')
       .eq('values[Member ID]', action.payload.id)
@@ -100,7 +106,12 @@ export function* fetchCurrentMember(action) {
       .include(['details', 'values'])
       .limit(100)
       .build();
-    const [submission, memberActivities, memberFilesSubmissions] = yield all([
+    const [
+      submission,
+      memberActivities,
+      memberFilesSubmissions,
+      posOrderSubmissions,
+    ] = yield all([
       call(CoreAPI.fetchSubmission, {
         id: action.payload.id,
         include: SUBMISSION_INCLUDES,
@@ -113,6 +124,11 @@ export function* fetchCurrentMember(action) {
       call(CoreAPI.searchSubmissions, {
         form: 'member-files',
         search: MEMBER_FILES_SEARCH,
+        datastore: true,
+      }),
+      call(CoreAPI.searchSubmissions, {
+        form: 'pos-order',
+        search: MEMBER_POS_SEARCH,
         datastore: true,
       }),
     ]);
@@ -209,12 +225,17 @@ export function* fetchCurrentMember(action) {
     for (let i = 0; i < memberFilesSubmissions.submissions.length; i++) {
       memberFiles[memberFiles.length] = memberFilesSubmissions.submissions[i];
     }
+    let posOrders = [];
+    for (let i = 0; i < posOrderSubmissions.submissions.length; i++) {
+      posOrders[posOrders.length] = posOrderSubmissions.submissions[i].values;
+    }
     submission.submission.emailsReceived = emailReceivedContent;
     submission.submission.emailsSent = emailSentContent;
     submission.submission.smsContent = smsContent;
     submission.submission.requestContent = requestContent;
     submission.submission.promotionContent = promotionContent;
     submission.submission.memberFiles = memberFiles;
+    submission.submission.posOrders = posOrders;
     if (action.payload.setInitialLoad) {
       console.log('members.js setInitialLoad 111');
     }
@@ -605,6 +626,22 @@ export function* syncBillingCustomer(action) {
             submitter: appSettings.profile.displayName,
             date: moment().toString(),
             status: 'Frozen',
+          };
+          history.push(newHistory);
+          action.payload.memberItem.values['Status History'] = history;
+        }
+        if (
+          result.data.data.statusDescription === 'Active' &&
+          action.payload.memberItem.values['Status'] !== 'Active'
+        ) {
+          action.payload.memberItem.values['Status'] = 'Active';
+          let history = getJson(
+            action.payload.memberItem.values['Status History'],
+          );
+          let newHistory = {
+            submitter: appSettings.profile.displayName,
+            date: moment().toString(),
+            status: 'Active',
           };
           history.push(newHistory);
           action.payload.memberItem.values['Status History'] = history;

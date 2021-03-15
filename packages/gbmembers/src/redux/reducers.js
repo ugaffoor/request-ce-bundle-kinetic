@@ -17,6 +17,7 @@ import { reducer as messaging } from './modules/messaging';
 import { reducer as reporting } from './modules/reporting';
 import { reducer as attendance } from './modules/attendance';
 import { reducer as classes } from './modules/classes';
+import { reducer as pos } from './modules/pos';
 
 export default {
   errors: errorsReducer,
@@ -38,4 +39,5 @@ export default {
   reporting,
   attendance,
   classes,
+  pos,
 };
