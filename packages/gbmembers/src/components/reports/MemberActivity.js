@@ -14,9 +14,17 @@ import { Creatable } from 'react-select';
 import { getJson, getCurrency } from '../Member/MemberUtils';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { MemberEvents } from './MemberEvents';
+import DayPickerInput from 'react-day-picker/DayPickerInput';
+import 'react-day-picker/lib/style.css';
+import MomentLocaleUtils, {
+  formatDate,
+  parseDate,
+} from 'react-day-picker/moment';
+
 export const contact_date_format = 'YYYY-MM-DD HH:mm';
 
 const util = require('util');
+var compThis = undefined;
 
 const member_activities_url =
   'app/api/v1/kapps/gbmembers/forms/member-activities/submissions?include=details,values';
@@ -27,6 +35,8 @@ const no_data_placeholder = 'No records found';
 export class MemberActivityReport extends Component {
   constructor(props) {
     super(props);
+    compThis = this;
+
     this.getGridData = this.getGridData.bind(this);
     this.activityData = this.getGridData(this.props.members);
     this.handleCellClick = this.handleCellClick.bind(this);
@@ -308,6 +318,8 @@ export class MemberActivityReport extends Component {
       key: Math.random(),
       includesOptions: [],
       includesValue: [],
+      filterStartDate: undefined,
+      filterEndDate: undefined,
     };
   }
 
@@ -454,7 +466,10 @@ export class MemberActivityReport extends Component {
         return;
       }
     } else {
-      if (!$('#filter-start-date').val() || !$('#filter-end-date').val()) {
+      if (
+        this.state.filterStartDate === undefined ||
+        this.state.filterEndDate === undefined
+      ) {
         console.log('Please provide start and end date');
         return;
       }
@@ -469,15 +484,15 @@ export class MemberActivityReport extends Component {
       let filterId = Math.random();
       let filterParams = {
         field: filterColumn,
-        startDate: $('#filter-start-date').val(),
-        endDate: $('#filter-end-date').val(),
+        startDate: this.state.filterStartDate.format('YYYY-MM-DD'),
+        endDate: this.state.filterEndDate.format('YYYY-MM-DD'),
       };
       this.filterIds[filterId] = filterParams;
       let filterVal =
         '[ startDate:' +
-        $('#filter-start-date').val() +
+        this.state.filterStartDate.format('YYYY-MM-DD') +
         ', endDate:' +
-        $('#filter-end-date').val() +
+        this.state.filterEndDate.format('YYYY-MM-DD') +
         ']';
       this.setState(
         {
@@ -597,8 +612,8 @@ export class MemberActivityReport extends Component {
   };
 
   dateRangeFilter = (data, params) => {
-    let startDate = moment(params.startDate, 'YYYY-MM-DD');
-    let endDate = moment(params.endDate, 'YYYY-MM-DD');
+    let startDate = params.startDate;
+    let endDate = params.endDate;
     let dateVal = moment(data[params.field], 'DD-MM-YYYY HH:mm');
     return (
       dateVal.isSameOrAfter(startDate, 'day') &&
@@ -772,9 +787,11 @@ export class MemberActivityReport extends Component {
     if (props.cell.getValue() === undefined) {
       return <span />;
     }
-    var notes = JSON.parse(
-      props.cell.getValue().replace(/(?:\r\n|\r|\n)/g, '<br>'),
-    );
+    var notes = getJson(props.cell.getValue());
+    notes.forEach((item, i) => {
+      item['note'] = item['note'].replace(/(?:\r\n|\r|\n)/g, '<br>');
+    });
+
     notes.sort(function(a, b) {
       if (a['contactDate'] > b['contactDate']) {
         return -1;
@@ -1161,9 +1178,11 @@ export class MemberActivityReport extends Component {
       var tableEl = document.createElement('div');
       $(holderEl).addClass('report-sub-table');
       holderEl.appendChild(tableEl);
-      var history = JSON.parse(
-        row.getData()['history'].replace(/(?:\r\n|\r|\n)/g, '<br>'),
-      );
+      var history = getJson(row.getData()['history']);
+      history.forEach((item, i) => {
+        item['note'] = item['note'].replace(/(?:\r\n|\r|\n)/g, '<br>');
+      });
+
       history.sort(function(a, b) {
         if (a['contactDate'] > b['contactDate']) {
           return -1;
@@ -1632,16 +1651,70 @@ export class MemberActivityReport extends Component {
                   style={{ display: 'none' }}
                 >
                   <label>Start: </label>
-                  <input
-                    type="date"
+                  <DayPickerInput
                     name="filter-start-date"
                     id="filter-start-date"
+                    disabled={this.props.promotingMember}
+                    placeholder={moment(new Date())
+                      .localeData()
+                      .longDateFormat('L')
+                      .toLowerCase()}
+                    formatDate={formatDate}
+                    parseDate={parseDate}
+                    value={
+                      this.state.filterStartDate !== undefined
+                        ? moment(this.state.filterStartDate).toDate()
+                        : ''
+                    }
+                    onDayChange={function(
+                      selectedDay,
+                      modifiers,
+                      dayPickerInput,
+                    ) {
+                      compThis.setState({
+                        filterStartDate: moment(selectedDay),
+                      });
+                    }}
+                    dayPickerProps={{
+                      locale:
+                        this.props.profile.preferredLocale == null
+                          ? 'en-au'
+                          : this.props.profile.preferredLocale.toLowerCase(),
+                      localeUtils: MomentLocaleUtils,
+                    }}
                   />
                   <label>End: </label>
-                  <input
-                    type="date"
+                  <DayPickerInput
                     name="filter-end-date"
                     id="filter-end-date"
+                    disabled={this.props.promotingMember}
+                    placeholder={moment(new Date())
+                      .localeData()
+                      .longDateFormat('L')
+                      .toLowerCase()}
+                    formatDate={formatDate}
+                    parseDate={parseDate}
+                    value={
+                      this.state.filterEndDate !== undefined
+                        ? moment(this.state.filterEndDate).toDate()
+                        : ''
+                    }
+                    onDayChange={function(
+                      selectedDay,
+                      modifiers,
+                      dayPickerInput,
+                    ) {
+                      compThis.setState({
+                        filterEndDate: moment(selectedDay),
+                      });
+                    }}
+                    dayPickerProps={{
+                      locale:
+                        this.props.profile.preferredLocale == null
+                          ? 'en-au'
+                          : this.props.profile.preferredLocale.toLowerCase(),
+                      localeUtils: MomentLocaleUtils,
+                    }}
                   />
                 </span>
                 <button id="filter-add" onClick={e => this.addFilter(e)}>

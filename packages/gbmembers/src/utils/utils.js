@@ -281,12 +281,7 @@ export const matchesLeadFilter = (allLeads, filters) => {
       if (keys[0] === 'createdDateFilter') {
         startDate = moment(filters[i][keys[0]].startDate, 'YYYY-MM-DD');
         endDate = moment(filters[i][keys[0]].endDate, 'YYYY-MM-DD');
-        if (
-          !moment(lead.values['Date Created'], 'YYYY-MM-DD').isBetween(
-            startDate,
-            endDate,
-          )
-        ) {
+        if (!moment(lead.createdAt).isBetween(startDate, endDate)) {
           match = false;
         }
       } else if (keys[0] === 'genderFilter') {

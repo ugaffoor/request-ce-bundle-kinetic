@@ -814,7 +814,7 @@ export class LeadDetail extends Component {
                             await confirm(
                               <span>
                                 <span>
-                                  Are your sure you want to schedule this Intro?
+                                  Are you sure you want to schedule this Intro?
                                   Note, the note will be visible to the Lead.
                                 </span>
                                 <table>

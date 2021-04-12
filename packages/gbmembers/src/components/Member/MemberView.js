@@ -1111,6 +1111,7 @@ export const MemberViewContainer = compose(
       updateMember({
         id: memberItem.id,
         memberItem,
+        allMembers,
       });
       for (let i = 0; i < allMembers.length; i++) {
         if (allMembers[i].id === memberItem.id) {
@@ -1133,19 +1134,21 @@ export const MemberViewContainer = compose(
       updateMember({
         id: memberItem.id,
         memberItem,
+        allMembers,
       });
-      for (let i = 0; i < allMembers.length; i++) {
+      /*      for (let i = 0; i < allMembers.length; i++) {
         if (allMembers[i].id === memberItem.id) {
           allMembers[i].values['Notes History'] = JSON.stringify(newHistory);
           break;
         }
-      }
+      }*/
 
       $('#memberNote').val('');
       setIsDirty(false);
     },
     syncBilling: ({
       memberItem,
+      allMembers,
       updateMember,
       setCurrentMember,
       syncBillingCustomer,
@@ -1169,6 +1172,7 @@ export const MemberViewContainer = compose(
       syncBillingCustomer({
         billingRef: billingRef,
         memberItem: memberItem,
+        allMembers: allMembers,
         myThis: this,
         updateMember: updateMember,
         setCurrentMember: setCurrentMember,
@@ -1217,6 +1221,7 @@ export const MemberViewContainer = compose(
       updateMember({
         id: memberItem.id,
         memberItem,
+        allMembers,
       });
       setIsDirty(false);
     },
@@ -1245,6 +1250,7 @@ export const MemberViewContainer = compose(
       updateMember({
         id: memberItem.id,
         memberItem,
+        allMembers,
         addNotification,
         fetchMembers,
         setSystemError,
@@ -1270,6 +1276,7 @@ export const MemberViewContainer = compose(
       updateMember({
         id: memberItem.id,
         memberItem,
+        allMembers,
         fetchMember,
         fetchMembers,
         addNotification,

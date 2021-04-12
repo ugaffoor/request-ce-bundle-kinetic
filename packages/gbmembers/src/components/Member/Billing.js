@@ -50,6 +50,7 @@ import { RecentNotificationsContainer } from '../notifications/RecentNotificatio
 import { FormContainer } from '../form/FormContainer';
 import { Link } from 'react-router-dom';
 import { Utils } from 'common';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 <script src="../helpers/jquery.multiselect.js" />;
 
@@ -76,6 +77,7 @@ const mapStateToProps = state => ({
   ddrTemplates: state.member.app.ddrTemplates,
   actionRequests: state.member.members.actionRequests,
   actionRequestsLoading: state.member.members.actionRequestsLoading,
+  space: state.app.space,
 });
 
 const mapDispatchToProps = {
@@ -980,14 +982,20 @@ export class BillingInfo extends Component {
                       <th width="30%">Item</th>
                       <th width="70%">Value</th>
                     </tr>
-                    <tr>
-                      <td>DDR Status:</td>
-                      <td>{this.props.memberItem.values['DDR Status']}</td>
-                    </tr>
-                    <tr>
-                      <td>FFA ID:</td>
-                      <td>{this.props.billingInfo.ffaid}</td>
-                    </tr>
+                    {getAttributeValue(this.props.space, 'Billing Company') ===
+                      'PaySmart' && (
+                      <tr>
+                        <td>DDR Status:</td>
+                        <td>{this.props.memberItem.values['DDR Status']}</td>
+                      </tr>
+                    )}
+                    {getAttributeValue(this.props.space, 'Billing Company') ===
+                      'PaySmart' && (
+                      <tr>
+                        <td>FFA ID:</td>
+                        <td>{this.props.billingInfo.ffaid}</td>
+                      </tr>
+                    )}
                     <tr>
                       <td>Billing Reference ID:</td>
                       <td>{this.props.billingInfo.customerBillingId}</td>
@@ -1047,7 +1055,11 @@ export class BillingInfo extends Component {
                         <td>Payment Period:</td>
                         <td>
                           <PaymentPeriod
-                            period={this.props.billingInfo.paymentPeriod}
+                            period={
+                              this.props.memberItem.values[
+                                'Billing Payment Period'
+                              ]
+                            }
                           />
                         </td>
                       </tr>
@@ -1079,20 +1091,12 @@ export class BillingInfo extends Component {
                     )}
                     <tr>
                       <td>Successful Payments:</td>
-                      <td>{this.props.billingInfo.totalPaymentsSuccessful}</td>
-                    </tr>
-                    <tr>
-                      <td>Successful Payments:</td>
                       <td>
-                        {this.props.billingInfo.totalPaymentsSuccessful}-
-                        {this.props.billingInfo.totalPaymentsSuccessfulAmount}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Failed Payments:</td>
-                      <td>
-                        {this.props.billingInfo.totalPaymentsFailed}-
-                        {this.props.billingInfo.totalPaymentsFailedAmount}
+                        {'$' +
+                          Number(
+                            this.props.billingInfo
+                              .totalPaymentsSuccessfulAmount,
+                          )}
                       </td>
                     </tr>
                   </tbody>
@@ -1205,6 +1209,7 @@ export const Billing = ({
   actionRequestsLoading,
   getActionRequests,
   profile,
+  space,
 }) =>
   currentMemberLoading ? (
     <div />
@@ -1245,6 +1250,7 @@ export const Billing = ({
                 actionRequestsLoading={actionRequestsLoading}
                 getActionRequests={getActionRequests}
                 profile={profile}
+                space={space}
               />
             )}
           {(memberItem.values['Billing Customer Id'] === null ||

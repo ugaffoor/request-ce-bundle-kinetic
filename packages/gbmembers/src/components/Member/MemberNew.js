@@ -30,6 +30,7 @@ import MomentLocaleUtils, {
   formatDate,
   parseDate,
 } from 'react-day-picker/moment';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -42,6 +43,7 @@ const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
   leadItem: state.member.leads.currentLead,
   profile: state.member.kinops.profile,
+  space: state.member.app.space,
 });
 const mapDispatchToProps = {
   createMember: actions.createMember,
@@ -79,6 +81,7 @@ export const MemberNew = ({
   membershipTypes,
   newMemberLoading,
   profile,
+  space,
 }) =>
   newMemberLoading ? (
     <div />
@@ -260,13 +263,11 @@ export const MemberNew = ({
                   onChange={e => handleChange(memberItem, 'State', e)}
                 >
                   <option value="" />
-                  <option value="ACT">ACT</option>
-                  <option value="NSW">NSW</option>
-                  <option value="NT">NT</option>
-                  <option value="QLD">QLD</option>
-                  <option value="TAS">TAS</option>
-                  <option value="VIC">VIC</option>
-                  <option value="WA">WA</option>
+                  {getAttributeValue(space, 'School States', '')
+                    .split(',')
+                    .map(state => {
+                      return <option value={state}>{state}</option>;
+                    })}
                 </select>
                 <div className="droparrow" />
               </div>
@@ -558,6 +559,8 @@ export const MemberNew = ({
                   Phone
                 </label>
                 <NumberFormat
+                  id="emergencyphone"
+                  name="emergencyphone"
                   format="####-###-###"
                   mask="_"
                   required
@@ -988,6 +991,36 @@ export const MemberNewContainer = compose(
           nextProps.memberItem,
           'Phone Number',
           'phonenumber',
+        );
+        $('#emergencyname').val(
+          nextProps.leadItem.values['Emergency Contact Name'],
+        );
+        handleDynamicChange(
+          nextProps.memberItem,
+          'Emergency Contact Name',
+          'emergencyname',
+        );
+        $('#relationship').val(
+          nextProps.leadItem.values['Emergency Contact Relationship'],
+        );
+        handleDynamicChange(
+          nextProps.memberItem,
+          'Emergency Contact Relationship',
+          'relationship',
+        );
+        $('#emergencyphone').val(
+          nextProps.leadItem.values['Emergency Contact Phone'],
+        );
+        handleDynamicChange(
+          nextProps.memberItem,
+          'Emergency Contact Phone',
+          'emergencyphone',
+        );
+        $('#alergies').val(nextProps.leadItem.values['Medical Allergies']);
+        handleDynamicChange(
+          nextProps.memberItem,
+          'Medical Allergies',
+          'alergies',
         );
         $('#covid19').val(nextProps.leadItem.values['GB Waiver']);
         handleDynamicChange(nextProps.memberItem, 'Covid19 Waiver', 'covid19');

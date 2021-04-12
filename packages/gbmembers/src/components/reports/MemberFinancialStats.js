@@ -12,6 +12,14 @@ import { KappNavLink as NavLink } from 'common';
 import crossIcon from '../../images/cross.svg?raw';
 import SVGInline from 'react-svg-inline';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
+import DayPickerInput from 'react-day-picker/DayPickerInput';
+import 'react-day-picker/lib/style.css';
+import MomentLocaleUtils, {
+  formatDate,
+  parseDate,
+} from 'react-day-picker/moment';
+
+var compThis = undefined;
 
 export class MemberFinancialStats extends Component {
   handleClose = () => {
@@ -25,6 +33,8 @@ export class MemberFinancialStats extends Component {
   };
   constructor(props) {
     super(props);
+    compThis = this;
+
     this.currency = getAttributeValue(this.props.space, 'Currency');
     if (this.currency === undefined) this.currency = 'USD';
 
@@ -1397,28 +1407,64 @@ export class MemberFinancialStats extends Component {
                       <label htmlFor="fromDate" className="control-label">
                         From Date
                       </label>
-                      <input
-                        type="date"
+                      <DayPickerInput
                         name="fromDate"
                         id="fromDate"
-                        className="form-control input-sm"
-                        required
-                        defaultValue={this.state.fromDate}
-                        onChange={e => this.handleInputChange(e)}
+                        placeholder={moment(new Date())
+                          .localeData()
+                          .longDateFormat('L')
+                          .toLowerCase()}
+                        formatDate={formatDate}
+                        parseDate={parseDate}
+                        value={this.state.fromDate.toDate()}
+                        onDayChange={function(
+                          selectedDay,
+                          modifiers,
+                          dayPickerInput,
+                        ) {
+                          compThis.setState({
+                            fromDate: moment(selectedDay),
+                          });
+                        }}
+                        dayPickerProps={{
+                          locale:
+                            this.props.profile.preferredLocale == null
+                              ? 'en-au'
+                              : this.props.profile.preferredLocale.toLowerCase(),
+                          localeUtils: MomentLocaleUtils,
+                        }}
                       />
                     </div>
                     <div className="form-group col-xs-2 mr-1">
                       <label htmlFor="toDate" className="control-label">
                         To Date
                       </label>
-                      <input
-                        type="date"
+                      <DayPickerInput
                         name="toDate"
                         id="toDate"
-                        className="form-control input-sm"
-                        required
-                        defaultValue={this.state.toDate}
-                        onChange={e => this.handleInputChange(e)}
+                        placeholder={moment(new Date())
+                          .localeData()
+                          .longDateFormat('L')
+                          .toLowerCase()}
+                        formatDate={formatDate}
+                        parseDate={parseDate}
+                        value={this.state.toDate.toDate()}
+                        onDayChange={function(
+                          selectedDay,
+                          modifiers,
+                          dayPickerInput,
+                        ) {
+                          compThis.setState({
+                            toDate: moment(selectedDay),
+                          });
+                        }}
+                        dayPickerProps={{
+                          locale:
+                            this.props.profile.preferredLocale == null
+                              ? 'en-au'
+                              : this.props.profile.preferredLocale.toLowerCase(),
+                          localeUtils: MomentLocaleUtils,
+                        }}
                       />
                     </div>
                     <div className="form-group col-xs-2">

@@ -14,9 +14,17 @@ import { Confirm } from 'react-confirm-bootstrap';
 import { Creatable } from 'react-select';
 import { getJson } from '../Member/MemberUtils';
 import { LeadEvents } from './LeadEvents';
+import DayPickerInput from 'react-day-picker/DayPickerInput';
+import 'react-day-picker/lib/style.css';
+import MomentLocaleUtils, {
+  formatDate,
+  parseDate,
+} from 'react-day-picker/moment';
+
 export const contact_date_format = 'YYYY-MM-DD HH:mm';
 
 const util = require('util');
+var compThis = undefined;
 
 const lead_activities_url =
   'app/api/v1/kapps/gbmembers/forms/lead-activities/submissions?include=details,values';
@@ -27,6 +35,8 @@ const no_data_placeholder = 'No records found';
 export class LeadsActivityReport extends Component {
   constructor(props) {
     super(props);
+    compThis = this;
+
     this.getGridData = this.getGridData.bind(this);
     this.activityData = this.getGridData(this.props.leads);
     this.handleCellClick = this.handleCellClick.bind(this);
@@ -412,8 +422,8 @@ export class LeadsActivityReport extends Component {
       }
     } else {
       if (
-        !$('#filter-start-date-leads').val() ||
-        !$('#filter-end-date-leads').val()
+        this.state.filterStartDate === undefined ||
+        this.state.filterEndDate === undefined
       ) {
         console.log('Please provide start and end date');
         return;
@@ -470,15 +480,15 @@ export class LeadsActivityReport extends Component {
       let filterId = Math.random();
       let filterParams = {
         field: filterColumn,
-        startDate: $('#filter-start-date-leads').val(),
-        endDate: $('#filter-end-date-leads').val(),
+        startDate: this.state.filterStartDate.format('YYYY-MM-DD'),
+        endDate: this.state.filterEndDate.format('YYYY-MM-DD'),
       };
       this.filterIds[filterId] = filterParams;
       let filterVal =
         '[ startDate:' +
-        $('#filter-start-date-leads').val() +
+        this.state.filterStartDate.format('YYYY-MM-DD') +
         ', endDate:' +
-        $('#filter-end-date-leads').val() +
+        this.state.filterEndDate.format('YYYY-MM-DD') +
         ']';
       this.setState(
         {
@@ -755,9 +765,10 @@ export class LeadsActivityReport extends Component {
   };
 
   ExpandNotesCellButton = (props: any) => {
-    var notes = JSON.parse(
-      props.cell.getValue().replace(/(?:\r\n|\r|\n)/g, '<br>'),
-    );
+    var notes = getJson(props.cell.getValue());
+    notes.forEach((item, i) => {
+      item['note'] = item['note'].replace(/(?:\r\n|\r|\n)/g, '<br>');
+    });
 
     notes.sort(function(a, b) {
       if (a['contactDate'] > b['contactDate']) {
@@ -1068,9 +1079,10 @@ export class LeadsActivityReport extends Component {
       var tableEl = document.createElement('div');
       $(holderEl).addClass('report-sub-table');
       holderEl.appendChild(tableEl);
-      var history = JSON.parse(
-        row.getData()['history'].replace(/(?:\r\n|\r|\n)/g, '<br>'),
-      );
+      var history = getJson(row.getData()['history']);
+      history.forEach((item, i) => {
+        item['note'] = item['note'].replace(/(?:\r\n|\r|\n)/g, '<br>');
+      });
       history.sort(function(a, b) {
         if (a['contactDate'] > b['contactDate']) {
           return -1;
@@ -1596,16 +1608,70 @@ export class LeadsActivityReport extends Component {
                   style={{ display: 'none' }}
                 >
                   <label>Start: </label>
-                  <input
-                    type="date"
-                    name="filter-start-date-leads"
-                    id="filter-start-date-leads"
+                  <DayPickerInput
+                    name="filter-start-date"
+                    id="filter-start-date"
+                    disabled={this.props.promotingMember}
+                    placeholder={moment(new Date())
+                      .localeData()
+                      .longDateFormat('L')
+                      .toLowerCase()}
+                    formatDate={formatDate}
+                    parseDate={parseDate}
+                    value={
+                      this.state.filterStartDate !== undefined
+                        ? moment(this.state.filterStartDate).toDate()
+                        : ''
+                    }
+                    onDayChange={function(
+                      selectedDay,
+                      modifiers,
+                      dayPickerInput,
+                    ) {
+                      compThis.setState({
+                        filterStartDate: moment(selectedDay),
+                      });
+                    }}
+                    dayPickerProps={{
+                      locale:
+                        this.props.profile.preferredLocale == null
+                          ? 'en-au'
+                          : this.props.profile.preferredLocale.toLowerCase(),
+                      localeUtils: MomentLocaleUtils,
+                    }}
                   />
                   <label>End: </label>
-                  <input
-                    type="date"
-                    name="filter-end-date-leads"
-                    id="filter-end-date-leads"
+                  <DayPickerInput
+                    name="filter-end-date"
+                    id="filter-end-date"
+                    disabled={this.props.promotingMember}
+                    placeholder={moment(new Date())
+                      .localeData()
+                      .longDateFormat('L')
+                      .toLowerCase()}
+                    formatDate={formatDate}
+                    parseDate={parseDate}
+                    value={
+                      this.state.filterEndDate !== undefined
+                        ? moment(this.state.filterEndDate).toDate()
+                        : ''
+                    }
+                    onDayChange={function(
+                      selectedDay,
+                      modifiers,
+                      dayPickerInput,
+                    ) {
+                      compThis.setState({
+                        filterEndDate: moment(selectedDay),
+                      });
+                    }}
+                    dayPickerProps={{
+                      locale:
+                        this.props.profile.preferredLocale == null
+                          ? 'en-au'
+                          : this.props.profile.preferredLocale.toLowerCase(),
+                      localeUtils: MomentLocaleUtils,
+                    }}
                   />
                 </span>
                 <button id="filter-add-leads" onClick={e => this.addFilter(e)}>

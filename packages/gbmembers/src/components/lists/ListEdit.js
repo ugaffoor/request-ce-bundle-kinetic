@@ -9,6 +9,13 @@ import ReactTable from 'react-table';
 import { actions as appActions } from '../../redux/modules/memberApp';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { matchesMemberFilter } from '../../utils/utils';
+import DayPickerInput from 'react-day-picker/DayPickerInput';
+import 'react-day-picker/lib/style.css';
+import MomentLocaleUtils, {
+  formatDate,
+  parseDate,
+} from 'react-day-picker/moment';
+
 <script src="../helpers/jquery.multiselect.js" />;
 
 const mapStateToProps = state => ({
@@ -20,12 +27,14 @@ const mapStateToProps = state => ({
   memberLists: state.member.app.memberLists,
   belts: state.member.app.belts,
   memberStatusValues: state.member.app.memberStatusValues,
+  profile: state.member.app.profile,
 });
 
 const mapDispatchToProps = {
   fetchMembers: actions.fetchMembers,
   updateMembersList: appActions.updateMembersList,
 };
+var compThis = undefined;
 
 export const ListEditView = ({
   allMembers,
@@ -37,6 +46,7 @@ export const ListEditView = ({
   updateList,
   match,
   memberStatusValues,
+  profile,
 }) => (
   <div>
     <StatusMessagesContainer />
@@ -50,15 +60,13 @@ export const ListEditView = ({
       updateList={updateList}
       match={match}
       memberStatusValues={memberStatusValues}
+      profile={profile}
     />
   </div>
 );
 
 export const ListEditContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withProps(() => {
     return {};
   }),
@@ -80,6 +88,8 @@ export const ListEditContainer = compose(
 export class ListEditHome extends Component {
   constructor(props) {
     super(props);
+    compThis = this;
+
     this._columns = this.getColumns();
     let data = [];
     let listToBeUpdated = null;
@@ -104,6 +114,8 @@ export class ListEditHome extends Component {
     this.state = {
       data,
       listToBeUpdated,
+      joiningDateStart: undefined,
+      joiningDateEnd: undefined,
     };
   }
 
@@ -216,15 +228,18 @@ export class ListEditHome extends Component {
     let startDate = null,
       endDate = null;
 
-    if ($('#joiningDateStart').val() && $('#joiningDateEnd').val()) {
+    if (
+      this.state.joiningDateStart !== undefined &&
+      this.state.joiningDateEnd !== undefined
+    ) {
       filters.push({
         joiningDateFilter: {
-          startDate: $('#joiningDateStart').val(),
-          endDate: $('#joiningDateEnd').val(),
+          startDate: this.state.joiningDateStart,
+          endDate: this.state.joiningDateEnd,
         },
       });
-      startDate = moment($('#joiningDateStart').val(), 'YYYY-MM-DD');
-      endDate = moment($('#joiningDateEnd').val(), 'YYYY-MM-DD');
+      startDate = moment(this.state.joiningDateStart, 'YYYY-MM-DD');
+      endDate = moment(this.state.joiningDateEnd, 'YYYY-MM-DD');
     }
 
     if ($('#status').val() && $('#status').val().length > 0) {
@@ -295,8 +310,10 @@ export class ListEditHome extends Component {
     listToBeUpdated.filters.forEach(filter => {
       let key = Object.keys(filter)[0];
       if (key === 'joiningDateFilter') {
-        $('#joiningDateStart').val(filter[key].startDate);
-        $('#joiningDateEnd').val(filter[key].endDate);
+        compThis.setState({
+          joiningDateStart: filter[key].endDate,
+          joiningDateEnd: filter[key].startDate,
+        });
       } else if (key === 'genderFilter') {
         $('input[name=gender][value=' + filter[key].gender + ']').attr(
           'checked',
@@ -395,22 +412,80 @@ export class ListEditHome extends Component {
                     <legend className="scheduler-border">Joining Date</legend>
                     <div className="form-group form-inline">
                       <label htmlFor="joiningDateStart">Start Date&nbsp;</label>
-                      <input
-                        id="joiningDateStart"
+                      <DayPickerInput
                         name="joiningDateStart"
-                        type="date"
-                        ref={input => (this.input = input)}
-                        className="form-control form-control-sm"
+                        id="joiningDateStart"
+                        placeholder={moment(new Date())
+                          .localeData()
+                          .longDateFormat('L')
+                          .toLowerCase()}
+                        formatDate={formatDate}
+                        parseDate={parseDate}
+                        value={
+                          this.state.joiningDateStart !== undefined
+                            ? moment(
+                                this.state.joiningDateStart,
+                                'YYYY-MM-DD',
+                              ).toDate()
+                            : ''
+                        }
+                        onDayChange={function(
+                          selectedDay,
+                          modifiers,
+                          dayPickerInput,
+                        ) {
+                          compThis.setState({
+                            joiningDateStart: moment(selectedDay).format(
+                              'YYYY-MM-DD',
+                            ),
+                          });
+                        }}
+                        dayPickerProps={{
+                          locale:
+                            this.props.profile.preferredLocale == null
+                              ? 'en-au'
+                              : this.props.profile.preferredLocale.toLowerCase(),
+                          localeUtils: MomentLocaleUtils,
+                        }}
                       />
                     </div>
                     <div className="form-group form-inline">
                       <label htmlFor="joiningDateEnd">End Date&nbsp;</label>
-                      <input
-                        id="joiningDateEnd"
+                      <DayPickerInput
                         name="joiningDateEnd"
-                        type="date"
-                        ref={input => (this.input = input)}
-                        className="form-control form-control-sm"
+                        id="joiningDateEnd"
+                        placeholder={moment(new Date())
+                          .localeData()
+                          .longDateFormat('L')
+                          .toLowerCase()}
+                        formatDate={formatDate}
+                        parseDate={parseDate}
+                        value={
+                          this.state.joiningDateEnd !== undefined
+                            ? moment(
+                                this.state.joiningDateEnd,
+                                'YYYY-MM-DD',
+                              ).toDate()
+                            : ''
+                        }
+                        onDayChange={function(
+                          selectedDay,
+                          modifiers,
+                          dayPickerInput,
+                        ) {
+                          compThis.setState({
+                            joiningDateEnd: moment(selectedDay).format(
+                              'YYYY-MM-DD',
+                            ),
+                          });
+                        }}
+                        dayPickerProps={{
+                          locale:
+                            this.props.profile.preferredLocale == null
+                              ? 'en-au'
+                              : this.props.profile.preferredLocale.toLowerCase(),
+                          localeUtils: MomentLocaleUtils,
+                        }}
                       />
                     </div>
                   </fieldset>

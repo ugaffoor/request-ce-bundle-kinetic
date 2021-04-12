@@ -934,6 +934,7 @@ export class TasksDetail extends Component {
         <div className="leadContents">
           <LeadsDetail
             allLeads={allLeads}
+            fullLeads={this.props.allLeads}
             leadSearchValue={this.state.leadSearchValue}
           />
         </div>
@@ -953,6 +954,7 @@ export class LeadsDetail extends Component {
     let leadSearchValue = this.props.leadSearchValue;
     this.state = {
       leads,
+      fullLeads: this.props.fullLeads,
       nameSortOrder,
       lastContactSortOrder,
       leadSearchValue,
@@ -963,6 +965,7 @@ export class LeadsDetail extends Component {
     if (nextProps.allLeads !== undefined && nextProps.allLeads !== null) {
       this.setState({
         leads: this.getData(nextProps.allLeads),
+        fullLeads: this.props.fullLeads,
       });
     }
   }
@@ -1095,7 +1098,7 @@ export class LeadsDetail extends Component {
     let fileDownload = require('js-file-download');
     let csvData =
       'First Name, Last Name, Gender, Address, Suburb, State, Postcode, Email, Phone, DOB, Source, Status, Date\n';
-    this.props.allLeads.forEach(lead => {
+    this.state.fullLeads.forEach(lead => {
       csvData = csvData.concat(
         '"' +
           lead.values['First Name'] +

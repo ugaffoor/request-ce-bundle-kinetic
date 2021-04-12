@@ -16,14 +16,22 @@ import {
 } from 'recharts';
 import { compose } from 'recompose';
 import $ from 'jquery';
+import DayPickerInput from 'react-day-picker/DayPickerInput';
+import 'react-day-picker/lib/style.css';
+import MomentLocaleUtils, {
+  formatDate,
+  parseDate,
+} from 'react-day-picker/moment';
 
 const mapStateToProps = state => ({
   attendances: state.member.attendance.memberAttendances,
   attendancesLoading: state.member.attendance.fetchingMemberAttendances,
+  profile: state.member.app.profile,
 });
 const mapDispatchToProps = {
   fetchMemberAttendances: attendanceActions.fetchMemberAttendances,
 };
+var compThis = undefined;
 
 export class AttendanceDialog extends Component {
   handleClick = () => {
@@ -36,6 +44,8 @@ export class AttendanceDialog extends Component {
   };
   constructor(props) {
     super(props);
+    compThis = this;
+
     let fromDate = moment().subtract('30', 'days');
     let toDate = moment();
     let period = 'weekly';
@@ -388,34 +398,82 @@ export class AttendanceDialog extends Component {
                             <label htmlFor="fromDate" className="control-label">
                               From Date
                             </label>
-                            <input
-                              type="date"
+                            <DayPickerInput
                               name="fromDate"
                               id="fromDate"
-                              className="form-control input-sm"
-                              required
-                              defaultValue={this.state.fromDate}
+                              placeholder={moment(new Date())
+                                .localeData()
+                                .longDateFormat('L')
+                                .toLowerCase()}
+                              formatDate={formatDate}
+                              parseDate={parseDate}
+                              value={moment(
+                                this.state.fromDate,
+                                'YYYY-MM-DD',
+                              ).toDate()}
+                              onDayChange={function(
+                                selectedDay,
+                                modifiers,
+                                dayPickerInput,
+                              ) {
+                                compThis.setState({
+                                  fromDate: moment(selectedDay).format(
+                                    'YYYY-MM-DD',
+                                  ),
+                                });
+                              }}
+                              dayPickerProps={{
+                                locale:
+                                  this.props.profile.preferredLocale == null
+                                    ? 'en-au'
+                                    : this.props.profile.preferredLocale.toLowerCase(),
+                                localeUtils: MomentLocaleUtils,
+                              }}
                             />
                           </div>
                           <div className="form-group">
                             <label htmlFor="toDate" className="control-label">
                               To Date
                             </label>
-                            <input
-                              type="date"
+                            <DayPickerInput
                               name="toDate"
                               id="toDate"
-                              className="form-control input-sm"
-                              required
-                              defaultValue={this.state.toDate}
+                              placeholder={moment(new Date())
+                                .localeData()
+                                .longDateFormat('L')
+                                .toLowerCase()}
+                              formatDate={formatDate}
+                              parseDate={parseDate}
+                              value={moment(
+                                this.state.toDate,
+                                'YYYY-MM-DD',
+                              ).toDate()}
+                              onDayChange={function(
+                                selectedDay,
+                                modifiers,
+                                dayPickerInput,
+                              ) {
+                                compThis.setState({
+                                  toDate: moment(selectedDay).format(
+                                    'YYYY-MM-DD',
+                                  ),
+                                });
+                              }}
+                              dayPickerProps={{
+                                locale:
+                                  this.props.profile.preferredLocale == null
+                                    ? 'en-au'
+                                    : this.props.profile.preferredLocale.toLowerCase(),
+                                localeUtils: MomentLocaleUtils,
+                              }}
                             />
                           </div>
                           <button
                             className="btn btn-primary customButton"
                             onClick={e =>
                               this.applyCustomDates(
-                                $('#fromDate').val(),
-                                $('#toDate').val(),
+                                this.state.fromDate,
+                                this.state.toDate,
                               )
                             }
                           >

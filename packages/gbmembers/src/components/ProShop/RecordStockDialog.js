@@ -145,6 +145,7 @@ export class RecordStockDialog extends Component {
                 this.props.products
                   .filter(product => {
                     if (
+                      product.values['Status'] === 'Active' &&
                       product.values['Product Type'] === 'Apparel' &&
                       product.values['SKU'] !== null &&
                       ((this.state.productCodeValue !== '' &&
@@ -338,9 +339,7 @@ export class RecordStockDialog extends Component {
                                   disabled={
                                     this.state['sizeSelected' + product.id] ===
                                       undefined ||
-                                    this.state['qty' + product.id] ===
-                                      undefined ||
-                                    this.state['qty' + product.id] === 0
+                                    this.state['qty' + product.id] === undefined
                                   }
                                 >
                                   Update Stock

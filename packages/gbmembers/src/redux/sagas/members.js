@@ -348,6 +348,12 @@ export function* updateCurrentMember(action) {
         id: action.payload.id,
         myThis: action.payload.myThis,
       });
+    yield put(
+      actions.memberSaved({
+        allMembers: action.payload.allMembers,
+        memberItem: action.payload.memberItem,
+      }),
+    );
 
     console.log(
       'updateCurrentMember:' + action.payload.memberItem.values['Member ID'],
@@ -664,6 +670,7 @@ export function* syncBillingCustomer(action) {
         action.payload.updateMember({
           id: action.payload.memberItem.id,
           memberItem: action.payload.memberItem,
+          allMembers: action.payload.allMembers,
           myThis: action.payload.myThis,
         });
         action.payload.addNotification(

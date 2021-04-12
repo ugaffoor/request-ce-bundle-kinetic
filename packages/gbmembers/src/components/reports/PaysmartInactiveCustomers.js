@@ -10,10 +10,21 @@ import {
   Legend,
 } from 'recharts';
 import ReactSpinner from 'react16-spinjs';
+import DayPickerInput from 'react-day-picker/DayPickerInput';
+import 'react-day-picker/lib/style.css';
+import MomentLocaleUtils, {
+  formatDate,
+  parseDate,
+} from 'react-day-picker/moment';
+import moment from 'moment';
+
+var compThis = undefined;
 
 export class InactiveCustomersChart extends Component {
   constructor(props) {
     super(props);
+    compThis = this;
+
     let data = this.getData(this.props.inactiveCustomersCount);
     this.showChart = this.showChart.bind(this);
     this.handleInputChange = this.handleInputChange.bind(this);
@@ -145,28 +156,68 @@ export class InactiveCustomersChart extends Component {
                     <label htmlFor="fromDate" className="control-label">
                       From Date
                     </label>
-                    <input
-                      type="date"
+                    <DayPickerInput
                       name="fromDate"
                       id="fromDate"
                       className="form-control input-sm"
-                      required
-                      defaultValue={this.state.fromDate}
-                      onChange={e => this.handleInputChange(e)}
+                      disabled={this.props.promotingMember}
+                      placeholder={moment(new Date())
+                        .localeData()
+                        .longDateFormat('L')
+                        .toLowerCase()}
+                      formatDate={formatDate}
+                      parseDate={parseDate}
+                      value={this.state.fromDate}
+                      onDayChange={function(
+                        selectedDay,
+                        modifiers,
+                        dayPickerInput,
+                      ) {
+                        compThis.setState({
+                          fromDate: moment(selectedDay).format('YYYY-MM-DD'),
+                        });
+                      }}
+                      dayPickerProps={{
+                        locale:
+                          this.props.profile.preferredLocale == null
+                            ? 'en-au'
+                            : this.props.profile.preferredLocale.toLowerCase(),
+                        localeUtils: MomentLocaleUtils,
+                      }}
                     />
                   </div>
                   <div className="form-group col-xs-2 mr-1">
                     <label htmlFor="toDate" className="control-label">
                       To Date
                     </label>
-                    <input
-                      type="date"
+                    <DayPickerInput
                       name="toDate"
                       id="toDate"
                       className="form-control input-sm"
-                      required
-                      defaultValue={this.state.toDate}
-                      onChange={e => this.handleInputChange(e)}
+                      disabled={this.props.promotingMember}
+                      placeholder={moment(new Date())
+                        .localeData()
+                        .longDateFormat('L')
+                        .toLowerCase()}
+                      formatDate={formatDate}
+                      parseDate={parseDate}
+                      value={this.state.toDate}
+                      onDayChange={function(
+                        selectedDay,
+                        modifiers,
+                        dayPickerInput,
+                      ) {
+                        compThis.setState({
+                          toDate: moment(selectedDay).format('YYYY-MM-DD'),
+                        });
+                      }}
+                      dayPickerProps={{
+                        locale:
+                          this.props.profile.preferredLocale == null
+                            ? 'en-au'
+                            : this.props.profile.preferredLocale.toLowerCase(),
+                        localeUtils: MomentLocaleUtils,
+                      }}
                     />
                   </div>
                   <div className="form-group col-xs-2">

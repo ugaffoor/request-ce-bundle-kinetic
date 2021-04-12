@@ -184,7 +184,11 @@ export class SMSModal extends Component {
     var smsResult = [];
 
     smsValues.forEach(element => {
-      var idx = smsResult.findIndex(el => el['Date'] === element['Date']);
+      var idx = smsResult.findIndex(
+        el =>
+          el['Date'] === element['Date'] &&
+          el['Direction'] === element['Direction'],
+      );
       if (idx === -1) {
         if (element['Content'][0] === '[')
           element['Content'] = element['Content'].split(']')[1].trim();

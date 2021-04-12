@@ -10,6 +10,13 @@ import { actions as appActions } from '../../redux/modules/memberApp';
 import uuid from 'uuid';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { matchesLeadFilter } from '../../utils/utils';
+import DayPickerInput from 'react-day-picker/DayPickerInput';
+import 'react-day-picker/lib/style.css';
+import MomentLocaleUtils, {
+  formatDate,
+  parseDate,
+} from 'react-day-picker/moment';
+
 <script src="../helpers/jquery.multiselect.js" />;
 
 const mapStateToProps = state => ({
@@ -21,12 +28,14 @@ const mapStateToProps = state => ({
   leadLists: state.member.app.leadLists,
   belts: state.member.app.belts,
   leadStatusValues: state.member.app.leadStatusValues,
+  profile: state.member.app.profile,
 });
 
 const mapDispatchToProps = {
   fetchLeads: actions.fetchLeads,
   addLeadsList: appActions.addLeadsList,
 };
+var compThis = undefined;
 
 export const ListNewView = ({
   allLeads,
@@ -37,6 +46,7 @@ export const ListNewView = ({
   leadLists,
   addNewList,
   leadStatusValues,
+  profile,
 }) => (
   <div>
     <StatusMessagesContainer />
@@ -49,6 +59,7 @@ export const ListNewView = ({
       leadLists={leadLists}
       addNewList={addNewList}
       leadStatusValues={leadStatusValues}
+      profile={profile}
     />
   </div>
 );
@@ -76,9 +87,13 @@ export const LeadListNewContainer = compose(
 export class ListNewHome extends Component {
   constructor(props) {
     super(props);
+    compThis = this;
+
     this._columns = this.getColumns();
     this.state = {
       data: [],
+      createdDateStart: undefined,
+      createdDateEnd: undefined,
     };
   }
 
@@ -149,11 +164,14 @@ export class ListNewHome extends Component {
   applyFilters() {
     let filters = [];
 
-    if ($('#createdDateStart').val() && $('#createdDateEnd').val()) {
+    if (
+      this.state.createdDateStart !== undefined &&
+      this.state.createdDateEnd !== undefined
+    ) {
       filters.push({
         createdDateFilter: {
-          startDate: $('#createdDateStart').val(),
-          endDate: $('#createdDateEnd').val(),
+          startDate: this.state.createdDateStart,
+          endDate: this.state.createdDateEnd,
         },
       });
     }
@@ -302,22 +320,80 @@ export class ListNewHome extends Component {
                     <legend className="scheduler-border">Created Date</legend>
                     <div className="form-group form-inline">
                       <label htmlFor="createdDateStart">From Date&nbsp;</label>
-                      <input
-                        id="createdDateStart"
+                      <DayPickerInput
                         name="createdDateStart"
-                        type="date"
-                        ref={input => (this.input = input)}
-                        className="form-control form-control-sm"
+                        id="createdDateStart"
+                        placeholder={moment(new Date())
+                          .localeData()
+                          .longDateFormat('L')
+                          .toLowerCase()}
+                        formatDate={formatDate}
+                        parseDate={parseDate}
+                        value={
+                          this.state.createdDateStart !== undefined
+                            ? moment(
+                                this.state.createdDateStart,
+                                'YYYY-MM-DD',
+                              ).toDate()
+                            : ''
+                        }
+                        onDayChange={function(
+                          selectedDay,
+                          modifiers,
+                          dayPickerInput,
+                        ) {
+                          compThis.setState({
+                            createdDateStart: moment(selectedDay).format(
+                              'YYYY-MM-DD',
+                            ),
+                          });
+                        }}
+                        dayPickerProps={{
+                          locale:
+                            this.props.profile.preferredLocale == null
+                              ? 'en-au'
+                              : this.props.profile.preferredLocale.toLowerCase(),
+                          localeUtils: MomentLocaleUtils,
+                        }}
                       />
                     </div>
                     <div className="form-group form-inline">
                       <label htmlFor="createdDateEnd">To Date&nbsp;</label>
-                      <input
-                        id="createdDateEnd"
+                      <DayPickerInput
                         name="createdDateEnd"
-                        type="date"
-                        ref={input => (this.input = input)}
-                        className="form-control form-control-sm"
+                        id="createdDateEnd"
+                        placeholder={moment(new Date())
+                          .localeData()
+                          .longDateFormat('L')
+                          .toLowerCase()}
+                        formatDate={formatDate}
+                        parseDate={parseDate}
+                        value={
+                          this.state.createdDateEnd !== undefined
+                            ? moment(
+                                this.state.createdDateEnd,
+                                'YYYY-MM-DD',
+                              ).toDate()
+                            : ''
+                        }
+                        onDayChange={function(
+                          selectedDay,
+                          modifiers,
+                          dayPickerInput,
+                        ) {
+                          compThis.setState({
+                            createdDateEnd: moment(selectedDay).format(
+                              'YYYY-MM-DD',
+                            ),
+                          });
+                        }}
+                        dayPickerProps={{
+                          locale:
+                            this.props.profile.preferredLocale == null
+                              ? 'en-au'
+                              : this.props.profile.preferredLocale.toLowerCase(),
+                          localeUtils: MomentLocaleUtils,
+                        }}
                       />
                     </div>
                   </fieldset>

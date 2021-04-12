@@ -27,6 +27,7 @@ import MomentLocaleUtils, {
   formatDate,
   parseDate,
 } from 'react-day-picker/moment';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -37,6 +38,7 @@ const mapStateToProps = state => ({
   leads: state.member.leads.allLeads,
   profile: state.member.kinops.profile,
   leadSourceValues: state.member.app.leadSourceValues,
+  space: state.app.space,
 });
 const mapDispatchToProps = {
   fetchLead: actions.fetchCurrentLead,
@@ -471,13 +473,11 @@ export class LeadEdit extends Component {
                     }
                   >
                     <option value="" />
-                    <option value="ACT">ACT</option>
-                    <option value="NSW">NSW</option>
-                    <option value="NT">NT</option>
-                    <option value="QLD">QLD</option>
-                    <option value="TAS">TAS</option>
-                    <option value="VIC">VIC</option>
-                    <option value="WA">WA</option>
+                    {getAttributeValue(this.props.space, 'School States', '')
+                      .split(',')
+                      .map(state => {
+                        return <option value={state}>{state}</option>;
+                      })}
                   </select>
                   <div className="droparrow" />
                 </div>
@@ -788,6 +788,99 @@ export class LeadEdit extends Component {
                   )}
                 </span>
               </div>
+              <div className="line">
+                <h1>Emergency Contact Information</h1>
+                <hr />
+                <span className="line">
+                  <div>
+                    <label htmlFor="emergencyname">Name</label>
+                    <input
+                      type="text"
+                      size="40"
+                      name="emergencyname"
+                      id="emergencyname"
+                      ref={input => (this.input = input)}
+                      defaultValue={
+                        this.props.leadItem.values['Emergency Contact Name']
+                      }
+                      onChange={e =>
+                        handleChange(
+                          this.props.leadItem,
+                          'Emergency Contact Name',
+                          e,
+                          this.setIsDirty,
+                        )
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="relationship">Relationship</label>
+                    <input
+                      type="text"
+                      size="40"
+                      name="relationship"
+                      id="relationship"
+                      ref={input => (this.input = input)}
+                      defaultValue={
+                        this.props.leadItem.values[
+                          'Emergency Contact Relationship'
+                        ]
+                      }
+                      onChange={e =>
+                        handleChange(
+                          this.props.leadItem,
+                          'Emergency Contact Relationship',
+                          e,
+                          this.setIsDirty,
+                        )
+                      }
+                    />
+                  </div>
+                </span>
+                <span className="line">
+                  <div>
+                    <label htmlFor="emergencyphone">Phone</label>
+                    <NumberFormat
+                      format="####-###-###"
+                      mask="_"
+                      ref={input => (this.input = input)}
+                      value={
+                        this.props.leadItem.values['Emergency Contact Phone']
+                      }
+                      onValueChange={(values, e) =>
+                        handleFormattedChange(
+                          values,
+                          this.props.leadItem,
+                          'Emergency Contact Phone',
+                          e,
+                          this.setIsDirty,
+                        )
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="alergies">Medical / Allergies</label>
+                    <input
+                      type="text"
+                      size="40"
+                      name="alergies"
+                      id="alergies"
+                      ref={input => (this.input = input)}
+                      defaultValue={
+                        this.props.leadItem.values['Medical Allergies']
+                      }
+                      onChange={e =>
+                        handleChange(
+                          this.props.leadItem,
+                          'Medical Allergies',
+                          e,
+                          this.setIsDirty,
+                        )
+                      }
+                    />
+                  </div>
+                </span>
+              </div>
               <span className="line">
                 <div>
                   <label id="birthday" htmlFor="birthday">
@@ -1042,6 +1135,7 @@ export const LeadEditView = ({
   isDirty,
   setIsDirty,
   profile,
+  space,
 }) =>
   currentLeadLoading ? (
     <div />
@@ -1057,6 +1151,7 @@ export const LeadEditView = ({
       isDirty={isDirty}
       setIsDirty={setIsDirty}
       profile={profile}
+      space={space}
     />
   );
 

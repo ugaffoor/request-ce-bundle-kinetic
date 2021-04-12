@@ -184,6 +184,7 @@ export const ReportsView = ({
             membershipTypes={membershipTypes}
             space={space}
             triggers={triggers}
+            profile={profile}
           />
         </div>
       )}
@@ -268,6 +269,7 @@ export const ReportsView = ({
               paymentHistory={paymentHistory}
               paymentHistoryLoading={paymentHistoryLoading}
               space={space}
+              profile={profile}
             />
           </div>
         )}
@@ -323,6 +325,7 @@ export const ReportsView = ({
             leadStatusValues={leadStatusValues}
             leadSourceValues={leadSourceValues}
             triggers={triggers}
+            profile={profile}
           />
         </div>
       )}
@@ -352,30 +355,35 @@ export const ReportsView = ({
         </div>
       )}
     </div>
-    <div style={{ margin: '20px 0px 0px 10px' }} id="inactive-report">
-      <div className="row">
-        <button
-          type="button"
-          className="btn btn-primary report-btn-default"
-          onClick={e => {
-            setShowInactiveChart(showInactiveChart ? false : true);
-          }}
-        >
-          {showInactiveChart ? 'Hide Inactive Chart' : 'Show Inactive Chart'}
-        </button>
-      </div>
-      {!showInactiveChart ? null : (
+    {!Utils.isMemberOf(profile, 'Billing') ? (
+      <div />
+    ) : (
+      <div style={{ margin: '20px 0px 0px 10px' }} id="inactive-report">
         <div className="row">
-          <div className="inactiveChart">
-            <InactiveCustomersChart
-              inactiveCustomersCount={inactiveCustomersCount}
-              getInactiveCustomersCount={getInactiveCustomersCount}
-              inactiveCustomersLoading={inactiveCustomersLoading}
-            />
-          </div>
+          <button
+            type="button"
+            className="btn btn-primary report-btn-default"
+            onClick={e => {
+              setShowInactiveChart(showInactiveChart ? false : true);
+            }}
+          >
+            {showInactiveChart ? 'Hide Inactive Chart' : 'Show Inactive Chart'}
+          </button>
         </div>
-      )}
-    </div>
+        {!showInactiveChart ? null : (
+          <div className="row">
+            <div className="inactiveChart">
+              <InactiveCustomersChart
+                inactiveCustomersCount={inactiveCustomersCount}
+                getInactiveCustomersCount={getInactiveCustomersCount}
+                inactiveCustomersLoading={inactiveCustomersLoading}
+                profile={profile}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    )}
     {!Utils.isMemberOf(profile, 'Billing') ? (
       <div />
     ) : (

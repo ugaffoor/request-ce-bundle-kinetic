@@ -101,6 +101,7 @@ export const HomeView = ({
       fetchLeadsByDate={fetchLeadsByDate}
       leadsByDateLoading={leadsByDateLoading}
       allMembers={allMembers}
+      profile={profile}
     />
     <div className="charts">
       <div className="chart2Column">

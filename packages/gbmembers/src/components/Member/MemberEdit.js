@@ -29,6 +29,7 @@ import { SetStatusModalContainer } from './SetStatusModalContainer';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
 import 'react-day-picker/lib/style.css';
 import enAU from 'moment/locale/en-au';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 import MomentLocaleUtils, {
   formatDate,
@@ -47,6 +48,7 @@ const mapStateToProps = state => ({
   profile: state.member.kinops.profile,
   loggedInUserProfile: state.member.app.profile,
   memberStatusValues: state.member.app.memberStatusValues,
+  space: state.member.app.space,
 });
 
 const mapDispatchToProps = {
@@ -180,6 +182,7 @@ export const MemberEdit = ({
   showSetStatusModal,
   setEditUserName,
   editUserName,
+  space,
 }) =>
   currentMemberLoading ? (
     <div />
@@ -571,13 +574,11 @@ export const MemberEdit = ({
                   }
                 >
                   <option value="" />
-                  <option value="ACT">ACT</option>
-                  <option value="NSW">NSW</option>
-                  <option value="NT">NT</option>
-                  <option value="QLD">QLD</option>
-                  <option value="TAS">TAS</option>
-                  <option value="VIC">VIC</option>
-                  <option value="WA">WA</option>
+                  {getAttributeValue(space, 'School States', '')
+                    .split(',')
+                    .map(state => {
+                      return <option value={state}>{state}</option>;
+                    })}
                 </select>
                 <div className="droparrow" />
               </div>

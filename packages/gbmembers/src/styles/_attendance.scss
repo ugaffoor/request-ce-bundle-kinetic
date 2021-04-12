@@ -226,9 +226,10 @@
           margin-top: 4px;
           margin-left: 100px;
           .form-group {
-            width: 35%;
+            width: auto;
             float: left;
             margin-bottom: 0px;
+            margin-right: 10px;
             #fromDate {
               width: 170px;
             }
@@ -424,6 +425,8 @@
     border-bottom: solid;
     border-color: #ece6e6;
     .dateDiv {
+      float: left;
+      margin: 10px;
       width: 122px;
       margin-right: 40px;
       input {
@@ -431,23 +434,27 @@
       }
     }
     .classesDiv {
+      float: left;
+      margin: 10px;
       width: 106px;
       #classCarry {
         width: 100px;
       }
     }
     .programDiv {
+      float: left;
+      margin: 10px;
     }
     .beltDiv {
+      float: left;
+      margin: 10px;
     }
     .notesDiv {
+      float: left;
+      margin: 10px;
       textarea {
         width: 800px;
       }
-    }
-    div {
-      float: left;
-      margin: 10px;
     }
     .apply {
       background-color: #991b1e;

@@ -8,6 +8,14 @@ import { KappNavLink as NavLink } from 'common';
 import crossIcon from '../../images/cross.svg?raw';
 import SVGInline from 'react-svg-inline';
 import helpIcon from '../../images/help.svg?raw';
+import DayPickerInput from 'react-day-picker/DayPickerInput';
+import 'react-day-picker/lib/style.css';
+import MomentLocaleUtils, {
+  formatDate,
+  parseDate,
+} from 'react-day-picker/moment';
+
+var compThis = undefined;
 
 export class Statistics extends Component {
   handleClose = () => {
@@ -19,8 +27,10 @@ export class Statistics extends Component {
       dateRange: this.state.lastDateRange,
     });
   };
+
   constructor(props) {
     super(props);
+    compThis = this;
     this._getLeadRowTableColumns = this.getLeadRowTableColumns();
     this._getMemberRowTableColumns = this.getMemberRowTableColumns();
 
@@ -161,7 +171,7 @@ export class Statistics extends Component {
                 toDate,
               )
             ) {
-              convertedTotal[convertedTotal.length] = lead;
+              convertedTotal[convertedTotal.length] = allMembers[memberIdx];
             }
           }
         }
@@ -220,7 +230,7 @@ export class Statistics extends Component {
               toDate,
             )
           ) {
-            convertedTotal[convertedTotal.length] = lead;
+            convertedTotal[convertedTotal.length] = allMembers[memberIdx];
           }
         }
       });
@@ -553,7 +563,6 @@ export class Statistics extends Component {
     if (this.state.showNewLeads) return 'Leads';
     if (this.state.showScheduledLeads) return 'Into Scheduled';
     if (this.state.showIntroLeads) return 'Actual Intros';
-    if (this.state.showConvertedLeads) return 'New Students';
   }
   getLeadTableColumns(row) {
     return [
@@ -708,6 +717,7 @@ export class Statistics extends Component {
       return 'Pending Cancellations';
     if (this.state.showFrozenMembers) return 'Frozen';
     if (this.state.showPendingFrozenMembers) return 'Pending Frozen';
+    if (this.state.showConvertedLeads) return 'New Students';
   }
   getMemberTableColumns(row) {
     return [
@@ -820,39 +830,84 @@ export class Statistics extends Component {
               className="stat_customDatesContainer"
               onClose={this.handleClose}
             >
-              <div className="attendanceByDateDiv" onClose={this.handleClose}>
+              <div className="" onClose={this.handleClose}>
                 <div className="col-md-8">
                   <div className="row">
-                    <div className="form-group col-xs-2 mr-1">
-                      <label htmlFor="fromDate" className="control-label">
+                    <div className="col-xs-2 mr-1">
+                      <label
+                        htmlFor="fromDate"
+                        id="fromDate"
+                        className="control-label"
+                      >
                         From Date
                       </label>
-                      <input
-                        type="date"
+                      <DayPickerInput
                         name="fromDate"
                         id="fromDate"
-                        className="form-control input-sm"
-                        required
-                        defaultValue={this.state.fromDate}
-                        onChange={e => this.handleInputChange(e)}
+                        placeholder={moment(new Date())
+                          .localeData()
+                          .longDateFormat('L')
+                          .toLowerCase()}
+                        formatDate={formatDate}
+                        parseDate={parseDate}
+                        value={this.state.fromDate.toDate()}
+                        onDayChange={function(
+                          selectedDay,
+                          modifiers,
+                          dayPickerInput,
+                        ) {
+                          compThis.setState({
+                            fromDate: moment(selectedDay),
+                          });
+                        }}
+                        dayPickerProps={{
+                          locale:
+                            this.props.profile.preferredLocale == null
+                              ? 'en-au'
+                              : this.props.profile.preferredLocale.toLowerCase(),
+                          localeUtils: MomentLocaleUtils,
+                        }}
                       />
                     </div>
-                    <div className="form-group col-xs-2 mr-1">
-                      <label htmlFor="toDate" className="control-label">
+                    <div className="col-xs-2 mr-1">
+                      <label
+                        htmlFor="toDate"
+                        id="fromDate"
+                        className="control-label"
+                      >
                         To Date
                       </label>
-                      <input
-                        type="date"
+                      <DayPickerInput
                         name="toDate"
                         id="toDate"
-                        className="form-control input-sm"
-                        required
-                        defaultValue={this.state.toDate}
-                        onChange={e => this.handleInputChange(e)}
+                        placeholder={moment(new Date())
+                          .localeData()
+                          .longDateFormat('L')
+                          .toLowerCase()}
+                        formatDate={formatDate}
+                        parseDate={parseDate}
+                        value={this.state.toDate.toDate()}
+                        onDayChange={function(
+                          selectedDay,
+                          modifiers,
+                          dayPickerInput,
+                        ) {
+                          compThis.setState({
+                            toDate: moment(selectedDay),
+                          });
+                        }}
+                        dayPickerProps={{
+                          locale:
+                            this.props.profile.preferredLocale == null
+                              ? 'en-au'
+                              : this.props.profile.preferredLocale.toLowerCase(),
+                          localeUtils: MomentLocaleUtils,
+                        }}
                       />
                     </div>
-                    <div className="form-group col-xs-2">
-                      <label className="control-label">&nbsp;</label>
+                  </div>
+                  <div className="row">
+                    <div className="col-xs-2 mr-1">
                       <button
                         className="btn btn-primary form-control input-sm"
                         onClick={e => this.handleClose()}
@@ -860,8 +915,7 @@ export class Statistics extends Component {
                         Cancel
                       </button>
                     </div>
-                    <div className="form-group col-xs-2">
-                      <label className="control-label">&nbsp;</label>
+                    <div className="col-xs-2 mr-1">
                       <button
                         className="btn btn-primary form-control input-sm"
                         onClick={e => this.handleSubmit()}
@@ -1199,8 +1253,8 @@ export class Statistics extends Component {
                     <SVGInline svg={crossIcon} className="icon" />
                   </span>
                   <ReactTable
-                    columns={this.getLeadTableColumns()}
-                    data={this.getLeadTableData(
+                    columns={this.getMemberTableColumns()}
+                    data={this.getMemberTableData(
                       this.state.leadData.convertedTotal,
                     )}
                     defaultPageSize={1}

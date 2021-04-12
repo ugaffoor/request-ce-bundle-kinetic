@@ -8,6 +8,12 @@ import moment from 'moment';
 import $ from 'jquery';
 import { setMemberPromotionValues } from '../../components/Member/MemberUtils';
 import { compose } from 'recompose';
+import DayPickerInput from 'react-day-picker/DayPickerInput';
+import 'react-day-picker/lib/style.css';
+import MomentLocaleUtils, {
+  formatDate,
+  parseDate,
+} from 'react-day-picker/moment';
 
 const mapStateToProps = state => ({
   programs: state.member.app.programs,
@@ -23,7 +29,7 @@ const mapDispatchToProps = {
   updateMember: memberActions.updateMember,
   createMemberActivities: messagingActions.createMemberActivities,
 };
-
+var compThis = undefined;
 const util = require('util');
 export class PromotionDialog extends Component {
   handleClick = () => {
@@ -40,7 +46,7 @@ export class PromotionDialog extends Component {
   };
   applyPromote = () => {
     console.log('applyPromote');
-    this.props.memberItem.values['Last Promotion'] = $('#promotionDate').val();
+    this.props.memberItem.values['Last Promotion'] = this.state.promotionDate;
     this.props.memberItem.values['Attendance Count'] = $('#classCarry').val();
     this.props.memberItem.values['Ranking Program'] = $(
       '#promoteProgram',
@@ -84,7 +90,6 @@ export class PromotionDialog extends Component {
   };
   promotionComplete = () => {
     console.log('promotionComplete');
-    $('#promotionDate').val(moment());
     $('#classCarry').val(this.props.memberItem.values['Attendance Count']);
     $('#promoteProgram').val(this.props.memberItem.values['Ranking Program']);
     $('#promoteBelt').val(this.props.memberItem.values['Ranking Belt']);
@@ -102,6 +107,7 @@ export class PromotionDialog extends Component {
     };
 
     this.setState({
+      promotionDate: moment(),
       attendClasses: attendClasses,
       durationPeriod: durationPeriod,
       daysElapsed: daysElapsed,
@@ -120,6 +126,7 @@ export class PromotionDialog extends Component {
   };
   constructor(props) {
     super(props);
+    compThis = this;
 
     this.setShowAttendanceDialog = this.setShowAttendanceDialog.bind(this);
     if (props.memberItem.promotionContent === undefined)
@@ -140,6 +147,7 @@ export class PromotionDialog extends Component {
     let showPromote = false;
     let showAttendanceDialog = false;
     this.state = {
+      promotionDate: moment(),
       showPromote,
       daysElapsed,
       attendClasses,
@@ -246,13 +254,36 @@ export class PromotionDialog extends Component {
               <div className="promoteNow">
                 <div className="dateDiv">
                   <label htmlFor="promotionDate">Promotion date</label>
-                  <input
-                    type="date"
+                  <DayPickerInput
                     name="promotionDate"
                     id="promotionDate"
                     disabled={this.props.promotingMember}
-                    defaultValue={moment().format('YYYY-MM-DD')}
-                    onChange={e => {}}
+                    placeholder={moment(new Date())
+                      .localeData()
+                      .longDateFormat('L')
+                      .toLowerCase()}
+                    formatDate={formatDate}
+                    parseDate={parseDate}
+                    value={moment(
+                      this.state.promotionDate,
+                      'YYYY-MM-DD',
+                    ).toDate()}
+                    onDayChange={function(
+                      selectedDay,
+                      modifiers,
+                      dayPickerInput,
+                    ) {
+                      compThis.setState({
+                        promotionDate: moment(selectedDay).format('YYYY-MM-DD'),
+                      });
+                    }}
+                    dayPickerProps={{
+                      locale:
+                        this.props.profile.preferredLocale == null
+                          ? 'en-au'
+                          : this.props.profile.preferredLocale.toLowerCase(),
+                      localeUtils: MomentLocaleUtils,
+                    }}
                   />
                 </div>
                 <div className="classesDiv">

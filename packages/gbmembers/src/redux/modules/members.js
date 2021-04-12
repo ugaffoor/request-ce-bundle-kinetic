@@ -15,6 +15,7 @@ export const types = {
   SET_MEMBER_PROMOTIONS: namespace('members', 'SET_MEMBER_PROMOTIONS'),
   SET_CURRENT_MEMBER: namespace('members', 'SET_CURRENT_MEMBER'),
   UPDATE_MEMBER: namespace('members', 'UPDATE_MEMBER'),
+  MEMBER_SAVED: namespace('members', 'MEMBER_SAVED'),
   CREATE_MEMBER: namespace('members', 'CREATE_MEMBER'),
   DELETE_MEMBER: namespace('members', 'DELETE_MEMBER'),
   DELETE_MEMBER_FILE: namespace('members', 'DELETE_MEMBER_FILE'),
@@ -89,6 +90,7 @@ export const actions = {
   fetchMemberPromotions: withPayload(types.FETCH_MEMBER_PROMOTIONS),
   setMemberPromotions: withPayload(types.SET_MEMBER_PROMOTIONS),
   updateMember: withPayload(types.UPDATE_MEMBER),
+  memberSaved: withPayload(types.MEMBER_SAVED),
   createMember: withPayload(types.CREATE_MEMBER),
   deleteMember: withPayload(types.DELETE_MEMBER),
   deleteMemberFile: withPayload(types.DELETE_MEMBER_FILE),
@@ -361,6 +363,16 @@ export const reducer = (state = State(), { type, payload }) => {
     }
     case types.MEMBER_PROMOTED: {
       return state.set('promotingMember', false);
+    }
+    case types.MEMBER_SAVED: {
+      var allMembers = payload.allMembers;
+      for (var i = 0; i < allMembers.length; i++) {
+        if (allMembers[i]['id'] === payload.memberItem.id) {
+          allMembers[i] = payload.memberItem;
+        }
+      }
+
+      return state.set('allMembers', allMembers);
     }
     default:
       return state;
