@@ -21,6 +21,7 @@ import {
   handleDynamicFormattedChange,
   handleDateChange,
   getDateValue,
+  getLocalePreference,
 } from './MemberUtils';
 import { StatusMessagesContainer } from '../StatusMessages';
 import moment from 'moment';
@@ -285,7 +286,11 @@ export const MemberNew = ({
                 </label>
                 <NumberFormat
                   id="postcode"
-                  format="####"
+                  format={
+                    getAttributeValue(space, 'Postcode Format') !== undefined
+                      ? getAttributeValue(space, 'Postcode Format')
+                      : '####'
+                  }
                   mask="_"
                   required
                   ref={input => (this.input = input)}
@@ -353,7 +358,11 @@ export const MemberNew = ({
                 </label>
                 <NumberFormat
                   id="phonenumber"
-                  format="####-###-###"
+                  format={
+                    getAttributeValue(space, 'PhoneNumber Format') !== undefined
+                      ? getAttributeValue(space, 'PhoneNumber Format')
+                      : '####-###-###'
+                  }
                   mask="_"
                   required
                   ref={input => (this.input = input)}
@@ -367,7 +376,11 @@ export const MemberNew = ({
                 <label htmlFor="additionalPhone">Additional Phone</label>
                 <NumberFormat
                   id="additionalPhoneNumber"
-                  format="####-###-###"
+                  format={
+                    getAttributeValue(space, 'PhoneNumber Format') !== undefined
+                      ? getAttributeValue(space, 'PhoneNumber Format')
+                      : '####-###-###'
+                  }
                   mask="_"
                   ref={input => (this.input = input)}
                   value={memberItem.values['Additional Phone Number']}
@@ -400,6 +413,7 @@ export const MemberNew = ({
                   name="datejoined"
                   id="datejoined"
                   placeholder={moment(new Date())
+                    .locale(getLocalePreference(space, profile))
                     .localeData()
                     .longDateFormat('L')
                     .toLowerCase()}
@@ -410,10 +424,7 @@ export const MemberNew = ({
                   required
                   onDayPickerHide={handleDateChange}
                   dayPickerProps={{
-                    locale:
-                      profile.preferredLocale == null
-                        ? 'en-au'
-                        : profile.preferredLocale.toLowerCase(),
+                    locale: getLocalePreference(space, profile),
                     localeUtils: MomentLocaleUtils,
                   }}
                 />
@@ -435,6 +446,7 @@ export const MemberNew = ({
                   name="birthday"
                   id="birthday"
                   placeholder={moment(new Date())
+                    .locale(getLocalePreference(space, profile))
                     .localeData()
                     .longDateFormat('L')
                     .toLowerCase()}
@@ -445,10 +457,7 @@ export const MemberNew = ({
                   memberItem={memberItem}
                   onDayPickerHide={handleDateChange}
                   dayPickerProps={{
-                    locale:
-                      profile.preferredLocale == null
-                        ? 'en-au'
-                        : profile.preferredLocale.toLowerCase(),
+                    locale: getLocalePreference(space, profile),
                     localeUtils: MomentLocaleUtils,
                   }}
                 />
@@ -561,7 +570,11 @@ export const MemberNew = ({
                 <NumberFormat
                   id="emergencyphone"
                   name="emergencyphone"
-                  format="####-###-###"
+                  format={
+                    getAttributeValue(space, 'PhoneNumber Format') !== undefined
+                      ? getAttributeValue(space, 'PhoneNumber Format')
+                      : '####-###-###'
+                  }
                   mask="_"
                   required
                   ref={input => (this.input = input)}
@@ -665,6 +678,7 @@ export const MemberNew = ({
                   name="lastPromotion"
                   id="lastPromotion"
                   placeholder={moment(new Date())
+                    .locale(getLocalePreference(space, profile))
                     .localeData()
                     .longDateFormat('L')
                     .toLowerCase()}
@@ -674,10 +688,7 @@ export const MemberNew = ({
                   memberItem={memberItem}
                   onDayPickerHide={handleDateChange}
                   dayPickerProps={{
-                    locale:
-                      profile.preferredLocale == null
-                        ? 'en-au'
-                        : profile.preferredLocale.toLowerCase(),
+                    locale: getLocalePreference(space, profile),
                     localeUtils: MomentLocaleUtils,
                   }}
                 />

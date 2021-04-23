@@ -630,7 +630,12 @@ export const MemberView = ({
                       <NumberFormat
                         value={memberItem.values['Phone Number']}
                         displayType={'text'}
-                        format="####-###-###"
+                        format={
+                          getAttributeValue(space, 'PhoneNumber Format') !==
+                          undefined
+                            ? getAttributeValue(space, 'PhoneNumber Format')
+                            : '####-###-###'
+                        }
                       />
                     </a>
                   </span>
@@ -818,6 +823,8 @@ export const MemberView = ({
                   <AttendanceDialogContainer
                     setShowAttendanceDialog={setShowAttendanceDialog}
                     memberItem={memberItem}
+                    space={space}
+                    profile={profile}
                   />
                 )}
               </div>

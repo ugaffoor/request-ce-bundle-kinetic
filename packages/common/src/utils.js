@@ -33,12 +33,15 @@ export function combineSagas(allSagas) {
  * @param attrName
  * @param defaultValue
  */
-export const getAttributeValue = ({ attributes }, attrName, defaultValue) =>
-  (isarray(attributes)
-    ? attributes.filter(a => a.name === attrName).map(a => a.values[0])[0]
-    : attributes && attributes[attrName] && attributes[attrName][0]) ||
-  defaultValue;
-
+export const getAttributeValue = ({ attributes }, attrName, defaultValue) => {
+  //  console.log("getAttributeValue");
+  return (
+    (isarray(attributes)
+      ? attributes.filter(a => a.name === attrName).map(a => a.values[0])[0]
+      : attributes && attributes[attrName] && attributes[attrName][0]) ||
+    defaultValue
+  );
+};
 export const getAttributeValues = ({ attributes }, attrName, defaultValue) => {
   const valuesArray = isarray(attributes)
     ? attributes.filter(a => a.name === attrName).map(a => a.values)[0]

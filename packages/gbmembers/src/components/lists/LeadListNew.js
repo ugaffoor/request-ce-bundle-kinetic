@@ -16,6 +16,7 @@ import MomentLocaleUtils, {
   formatDate,
   parseDate,
 } from 'react-day-picker/moment';
+import { getLocalePreference } from '../Member/MemberUtils';
 
 <script src="../helpers/jquery.multiselect.js" />;
 
@@ -29,6 +30,7 @@ const mapStateToProps = state => ({
   belts: state.member.app.belts,
   leadStatusValues: state.member.app.leadStatusValues,
   profile: state.member.app.profile,
+  space: state.member.app.space,
 });
 
 const mapDispatchToProps = {
@@ -47,6 +49,7 @@ export const ListNewView = ({
   addNewList,
   leadStatusValues,
   profile,
+  space,
 }) => (
   <div>
     <StatusMessagesContainer />
@@ -60,6 +63,7 @@ export const ListNewView = ({
       addNewList={addNewList}
       leadStatusValues={leadStatusValues}
       profile={profile}
+      space={space}
     />
   </div>
 );
@@ -324,6 +328,12 @@ export class ListNewHome extends Component {
                         name="createdDateStart"
                         id="createdDateStart"
                         placeholder={moment(new Date())
+                          .locale(
+                            getLocalePreference(
+                              this.props.space,
+                              this.props.profile,
+                            ),
+                          )
                           .localeData()
                           .longDateFormat('L')
                           .toLowerCase()}
@@ -349,10 +359,10 @@ export class ListNewHome extends Component {
                           });
                         }}
                         dayPickerProps={{
-                          locale:
-                            this.props.profile.preferredLocale == null
-                              ? 'en-au'
-                              : this.props.profile.preferredLocale.toLowerCase(),
+                          locale: getLocalePreference(
+                            this.props.space,
+                            this.props.profile,
+                          ),
                           localeUtils: MomentLocaleUtils,
                         }}
                       />
@@ -363,6 +373,12 @@ export class ListNewHome extends Component {
                         name="createdDateEnd"
                         id="createdDateEnd"
                         placeholder={moment(new Date())
+                          .locale(
+                            getLocalePreference(
+                              this.props.space,
+                              this.props.profile,
+                            ),
+                          )
                           .localeData()
                           .longDateFormat('L')
                           .toLowerCase()}
@@ -388,10 +404,10 @@ export class ListNewHome extends Component {
                           });
                         }}
                         dayPickerProps={{
-                          locale:
-                            this.props.profile.preferredLocale == null
-                              ? 'en-au'
-                              : this.props.profile.preferredLocale.toLowerCase(),
+                          locale: getLocalePreference(
+                            this.props.space,
+                            this.props.profile,
+                          ),
                           localeUtils: MomentLocaleUtils,
                         }}
                       />

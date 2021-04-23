@@ -22,6 +22,7 @@ import MomentLocaleUtils, {
   formatDate,
   parseDate,
 } from 'react-day-picker/moment';
+import { getLocalePreference } from '../Member/MemberUtils';
 
 const mapStateToProps = state => ({
   attendances: state.member.attendance.memberAttendances,
@@ -402,6 +403,12 @@ export class AttendanceDialog extends Component {
                               name="fromDate"
                               id="fromDate"
                               placeholder={moment(new Date())
+                                .locale(
+                                  getLocalePreference(
+                                    this.props.space,
+                                    this.props.profile,
+                                  ),
+                                )
                                 .localeData()
                                 .longDateFormat('L')
                                 .toLowerCase()}
@@ -423,10 +430,10 @@ export class AttendanceDialog extends Component {
                                 });
                               }}
                               dayPickerProps={{
-                                locale:
-                                  this.props.profile.preferredLocale == null
-                                    ? 'en-au'
-                                    : this.props.profile.preferredLocale.toLowerCase(),
+                                locale: getLocalePreference(
+                                  this.props.space,
+                                  this.props.profile,
+                                ),
                                 localeUtils: MomentLocaleUtils,
                               }}
                             />
@@ -439,6 +446,12 @@ export class AttendanceDialog extends Component {
                               name="toDate"
                               id="toDate"
                               placeholder={moment(new Date())
+                                .locale(
+                                  getLocalePreference(
+                                    this.props.space,
+                                    this.props.profile,
+                                  ),
+                                )
                                 .localeData()
                                 .longDateFormat('L')
                                 .toLowerCase()}
@@ -460,10 +473,10 @@ export class AttendanceDialog extends Component {
                                 });
                               }}
                               dayPickerProps={{
-                                locale:
-                                  this.props.profile.preferredLocale == null
-                                    ? 'en-au'
-                                    : this.props.profile.preferredLocale.toLowerCase(),
+                                locale: getLocalePreference(
+                                  this.props.space,
+                                  this.props.profile,
+                                ),
                                 localeUtils: MomentLocaleUtils,
                               }}
                             />

@@ -20,6 +20,7 @@ import MomentLocaleUtils, {
   formatDate,
   parseDate,
 } from 'react-day-picker/moment';
+import { getLocalePreference } from '../Member/MemberUtils';
 
 export const contact_date_format = 'YYYY-MM-DD HH:mm';
 
@@ -160,6 +161,10 @@ export class MemberActivityReport extends Component {
       { label: 'Payment Period', value: 'paymentPeriod' },
       { label: 'Payment Type', value: 'paymentType' },
       { label: 'Family Members', value: 'familyMembers' },
+      { label: 'Emails Sent', value: 'emailsSent' },
+      { label: 'Emails Received', value: 'emailsReceived' },
+      { label: 'SMS Sent', value: 'smsSent' },
+      { label: 'SMS Received', value: 'smsReceived' },
     ];
     this.notesColumns = [
       { title: 'Submitter', field: 'submitter' },
@@ -1656,6 +1661,12 @@ export class MemberActivityReport extends Component {
                     id="filter-start-date"
                     disabled={this.props.promotingMember}
                     placeholder={moment(new Date())
+                      .locale(
+                        getLocalePreference(
+                          this.props.space,
+                          this.props.profile,
+                        ),
+                      )
                       .localeData()
                       .longDateFormat('L')
                       .toLowerCase()}
@@ -1676,10 +1687,10 @@ export class MemberActivityReport extends Component {
                       });
                     }}
                     dayPickerProps={{
-                      locale:
-                        this.props.profile.preferredLocale == null
-                          ? 'en-au'
-                          : this.props.profile.preferredLocale.toLowerCase(),
+                      locale: getLocalePreference(
+                        this.props.space,
+                        this.props.profile,
+                      ),
                       localeUtils: MomentLocaleUtils,
                     }}
                   />
@@ -1689,6 +1700,12 @@ export class MemberActivityReport extends Component {
                     id="filter-end-date"
                     disabled={this.props.promotingMember}
                     placeholder={moment(new Date())
+                      .locale(
+                        getLocalePreference(
+                          this.props.space,
+                          this.props.profile,
+                        ),
+                      )
                       .localeData()
                       .longDateFormat('L')
                       .toLowerCase()}
@@ -1709,10 +1726,10 @@ export class MemberActivityReport extends Component {
                       });
                     }}
                     dayPickerProps={{
-                      locale:
-                        this.props.profile.preferredLocale == null
-                          ? 'en-au'
-                          : this.props.profile.preferredLocale.toLowerCase(),
+                      locale: getLocalePreference(
+                        this.props.space,
+                        this.props.profile,
+                      ),
                       localeUtils: MomentLocaleUtils,
                     }}
                   />

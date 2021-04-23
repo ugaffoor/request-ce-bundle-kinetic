@@ -16,7 +16,11 @@ import SVGInline from 'react-svg-inline';
 import Select from 'react-select';
 import { withHandlers } from 'recompose';
 import { GradingStatus } from './GradingStatus';
-import { getProgramSVG, getBeltSVG } from '../Member/MemberUtils';
+import {
+  getProgramSVG,
+  getBeltSVG,
+  getLocalePreference,
+} from '../Member/MemberUtils';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const mapStateToProps = state => ({
@@ -28,6 +32,7 @@ const mapStateToProps = state => ({
   classBookings: state.member.classes.classBookings,
   fetchingClassBookings: state.member.classes.fetchingClassBookings,
   belts: state.member.app.belts,
+  profile: state.member.kinops.profile,
   space: state.member.app.space,
 });
 
@@ -347,7 +352,12 @@ export class AttendanceDetail extends Component {
                   minute: 0,
                   second: 0,
                 })}
-                dateFormat="DD/MM/YYYY"
+                dateFormat={moment(new Date())
+                  .locale(
+                    getLocalePreference(this.props.space, this.props.profile),
+                  )
+                  .localeData()
+                  .longDateFormat('L')}
                 timeConstraints={{
                   minutes: {
                     step: parseInt(
@@ -727,6 +737,7 @@ export const AttendanceView = ({
   updateBooking,
   updateMember,
   space,
+  profile,
 }) => (
   <AttendanceDetail
     allMembers={allMembers}
@@ -746,6 +757,7 @@ export const AttendanceView = ({
     updateBooking={updateBooking}
     updateMember={updateMember}
     space={space}
+    profile={profile}
   />
 );
 

@@ -16,6 +16,7 @@ import {
   handleFormattedChange,
   handleDateChange,
   getDateValue,
+  getLocalePreference,
 } from './LeadsUtils';
 import { Confirm } from 'react-confirm-bootstrap';
 import { StatusMessagesContainer } from '../StatusMessages';
@@ -275,6 +276,12 @@ export class LeadEdit extends Component {
                     name="date"
                     id="date"
                     placeholder={moment(new Date())
+                      .locale(
+                        getLocalePreference(
+                          this.props.space,
+                          this.props.profile,
+                        ),
+                      )
                       .localeData()
                       .longDateFormat('L')
                       .toLowerCase()}
@@ -287,10 +294,10 @@ export class LeadEdit extends Component {
                     onDayPickerHide={handleDateChange}
                     setIsDirty={this.setIsDirty}
                     dayPickerProps={{
-                      locale:
-                        this.props.profile.preferredLocale == null
-                          ? 'en-au'
-                          : this.props.profile.preferredLocale.toLowerCase(),
+                      locale: getLocalePreference(
+                        this.props.space,
+                        this.props.profile,
+                      ),
                       localeUtils: MomentLocaleUtils,
                     }}
                   />
@@ -493,7 +500,12 @@ export class LeadEdit extends Component {
                     Postcode
                   </label>
                   <NumberFormat
-                    format="####"
+                    format={
+                      getAttributeValue(this.props.space, 'Postcode Format') !==
+                      undefined
+                        ? getAttributeValue(this.props.space, 'Postcode Format')
+                        : '####'
+                    }
                     mask="_"
                     required
                     ref={input => (this.input = input)}
@@ -592,7 +604,17 @@ export class LeadEdit extends Component {
                     Phone
                   </label>
                   <NumberFormat
-                    format="####-###-###"
+                    format={
+                      getAttributeValue(
+                        this.props.space,
+                        'PhoneNumber Format',
+                      ) !== undefined
+                        ? getAttributeValue(
+                            this.props.space,
+                            'PhoneNumber Format',
+                          )
+                        : '####-###-###'
+                    }
                     mask="_"
                     required
                     ref={input => (this.input = input)}
@@ -611,7 +633,17 @@ export class LeadEdit extends Component {
                 <div>
                   <label htmlFor="additionalPhone">Additional Phone</label>
                   <NumberFormat
-                    format="####-###-###"
+                    format={
+                      getAttributeValue(
+                        this.props.space,
+                        'PhoneNumber Format',
+                      ) !== undefined
+                        ? getAttributeValue(
+                            this.props.space,
+                            'PhoneNumber Format',
+                          )
+                        : '####-###-###'
+                    }
                     mask="_"
                     ref={input => (this.input = input)}
                     value={
@@ -890,6 +922,12 @@ export class LeadEdit extends Component {
                     name="birthday"
                     id="birthday"
                     placeholder={moment(new Date())
+                      .locale(
+                        getLocalePreference(
+                          this.props.space,
+                          this.props.profile,
+                        ),
+                      )
                       .localeData()
                       .longDateFormat('L')
                       .toLowerCase()}
@@ -901,10 +939,10 @@ export class LeadEdit extends Component {
                     onDayPickerHide={handleDateChange}
                     setIsDirty={this.setIsDirty}
                     dayPickerProps={{
-                      locale:
-                        this.props.profile.preferredLocale == null
-                          ? 'en-au'
-                          : this.props.profile.preferredLocale.toLowerCase(),
+                      locale: getLocalePreference(
+                        this.props.space,
+                        this.props.profile,
+                      ),
                       localeUtils: MomentLocaleUtils,
                     }}
                   />

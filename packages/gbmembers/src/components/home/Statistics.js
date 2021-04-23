@@ -1,7 +1,11 @@
 import React, { Component } from 'react';
 import ReactSpinner from 'react16-spinjs';
 import moment from 'moment';
-import { getJson, memberStatusInDates } from '../Member/MemberUtils';
+import {
+  getJson,
+  memberStatusInDates,
+  getLocalePreference,
+} from '../Member/MemberUtils';
 import $ from 'jquery';
 import ReactTable from 'react-table';
 import { KappNavLink as NavLink } from 'common';
@@ -845,6 +849,12 @@ export class Statistics extends Component {
                         name="fromDate"
                         id="fromDate"
                         placeholder={moment(new Date())
+                          .locale(
+                            getLocalePreference(
+                              this.props.space,
+                              this.props.profile,
+                            ),
+                          )
                           .localeData()
                           .longDateFormat('L')
                           .toLowerCase()}
@@ -861,10 +871,10 @@ export class Statistics extends Component {
                           });
                         }}
                         dayPickerProps={{
-                          locale:
-                            this.props.profile.preferredLocale == null
-                              ? 'en-au'
-                              : this.props.profile.preferredLocale.toLowerCase(),
+                          locale: getLocalePreference(
+                            this.props.space,
+                            this.props.profile,
+                          ),
                           localeUtils: MomentLocaleUtils,
                         }}
                       />
@@ -881,6 +891,12 @@ export class Statistics extends Component {
                         name="toDate"
                         id="toDate"
                         placeholder={moment(new Date())
+                          .locale(
+                            getLocalePreference(
+                              this.props.space,
+                              this.props.profile,
+                            ),
+                          )
                           .localeData()
                           .longDateFormat('L')
                           .toLowerCase()}
@@ -897,10 +913,10 @@ export class Statistics extends Component {
                           });
                         }}
                         dayPickerProps={{
-                          locale:
-                            this.props.profile.preferredLocale == null
-                              ? 'en-au'
-                              : this.props.profile.preferredLocale.toLowerCase(),
+                          locale: getLocalePreference(
+                            this.props.space,
+                            this.props.profile,
+                          ),
                           localeUtils: MomentLocaleUtils,
                         }}
                       />

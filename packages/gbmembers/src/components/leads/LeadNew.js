@@ -18,6 +18,7 @@ import {
   contact_date_format,
   handleDateChange,
   getDateValue,
+  getLocalePreference,
 } from './LeadsUtils';
 import 'react-datetime/css/react-datetime.css';
 import { StatusMessagesContainer } from '../StatusMessages';
@@ -220,6 +221,12 @@ export class LeadNew extends Component {
                     name="date"
                     id="date"
                     placeholder={moment(new Date())
+                      .locale(
+                        getLocalePreference(
+                          this.props.space,
+                          this.props.profile,
+                        ),
+                      )
                       .localeData()
                       .longDateFormat('L')
                       .toLowerCase()}
@@ -231,10 +238,10 @@ export class LeadNew extends Component {
                     leadItem={this.props.leadItem}
                     onDayPickerHide={handleDateChange}
                     dayPickerProps={{
-                      locale:
-                        this.props.profile.preferredLocale == null
-                          ? 'en-au'
-                          : this.props.profile.preferredLocale.toLowerCase(),
+                      locale: getLocalePreference(
+                        this.props.space,
+                        this.props.profile,
+                      ),
                       localeUtils: MomentLocaleUtils,
                     }}
                   />
@@ -368,7 +375,12 @@ export class LeadNew extends Component {
                 <div>
                   <label htmlFor="postcode">Postcode</label>
                   <NumberFormat
-                    format="####"
+                    format={
+                      getAttributeValue(this.props.space, 'Postcode Format') !==
+                      undefined
+                        ? getAttributeValue(this.props.space, 'Postcode Format')
+                        : '####'
+                    }
                     mask="_"
                     ref={input => (this.input = input)}
                     value={this.props.leadItem.values['Postcode']}
@@ -429,7 +441,17 @@ export class LeadNew extends Component {
                 <div>
                   <label htmlFor="phone">Phone</label>
                   <NumberFormat
-                    format="####-###-###"
+                    format={
+                      getAttributeValue(
+                        this.props.space,
+                        'PhoneNumber Format',
+                      ) !== undefined
+                        ? getAttributeValue(
+                            this.props.space,
+                            'PhoneNumber Format',
+                          )
+                        : '####-###-###'
+                    }
                     mask="_"
                     ref={input => (this.input = input)}
                     value={this.props.leadItem.values['Phone Number']}
@@ -446,7 +468,17 @@ export class LeadNew extends Component {
                 <div>
                   <label htmlFor="additionalPhone">Additional Phone</label>
                   <NumberFormat
-                    format="####-###-###"
+                    format={
+                      getAttributeValue(
+                        this.props.space,
+                        'PhoneNumber Format',
+                      ) !== undefined
+                        ? getAttributeValue(
+                            this.props.space,
+                            'PhoneNumber Format',
+                          )
+                        : '####-###-###'
+                    }
                     mask="_"
                     ref={input => (this.input = input)}
                     value={
@@ -663,6 +695,12 @@ export class LeadNew extends Component {
                     name="birthday"
                     id="birthday"
                     placeholder={moment(new Date())
+                      .locale(
+                        getLocalePreference(
+                          this.props.space,
+                          this.props.profile,
+                        ),
+                      )
                       .localeData()
                       .longDateFormat('L')
                       .toLowerCase()}
@@ -673,10 +711,10 @@ export class LeadNew extends Component {
                     leadItem={this.props.leadItem}
                     onDayPickerHide={handleDateChange}
                     dayPickerProps={{
-                      locale:
-                        this.props.profile.preferredLocale == null
-                          ? 'en-au'
-                          : this.props.profile.preferredLocale.toLowerCase(),
+                      locale: getLocalePreference(
+                        this.props.space,
+                        this.props.profile,
+                      ),
                       localeUtils: MomentLocaleUtils,
                     }}
                   />
@@ -739,6 +777,12 @@ export class LeadNew extends Component {
                       name="reminderDate"
                       id="reminderDate"
                       placeholder={moment(new Date())
+                        .locale(
+                          getLocalePreference(
+                            this.props.space,
+                            this.props.profile,
+                          ),
+                        )
                         .localeData()
                         .longDateFormat('L')
                         .toLowerCase()}
@@ -752,10 +796,10 @@ export class LeadNew extends Component {
                       leadItem={this.props.leadItem}
                       onDayPickerHide={handleDateChange}
                       dayPickerProps={{
-                        locale:
-                          this.props.profile.preferredLocale == null
-                            ? 'en-au'
-                            : this.props.profile.preferredLocale.toLowerCase(),
+                        locale: getLocalePreference(
+                          this.props.space,
+                          this.props.profile,
+                        ),
                         localeUtils: MomentLocaleUtils,
                       }}
                     />

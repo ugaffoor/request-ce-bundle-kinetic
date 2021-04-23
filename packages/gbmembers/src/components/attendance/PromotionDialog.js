@@ -14,12 +14,14 @@ import MomentLocaleUtils, {
   formatDate,
   parseDate,
 } from 'react-day-picker/moment';
+import { getLocalePreference } from '../Member/MemberUtils';
 
 const mapStateToProps = state => ({
   programs: state.member.app.programs,
   belts: state.member.app.belts,
   promotingMember: state.member.members.promotingMember,
   profile: state.member.app.profile,
+  space: state.member.app.space,
   memberPromotions: state.member.members.memberPromotions,
   memberPromotionsLoading: state.member.members.memberPromotionsLoading,
 });
@@ -259,6 +261,12 @@ export class PromotionDialog extends Component {
                     id="promotionDate"
                     disabled={this.props.promotingMember}
                     placeholder={moment(new Date())
+                      .locale(
+                        getLocalePreference(
+                          this.props.space,
+                          this.props.profile,
+                        ),
+                      )
                       .localeData()
                       .longDateFormat('L')
                       .toLowerCase()}
@@ -278,10 +286,10 @@ export class PromotionDialog extends Component {
                       });
                     }}
                     dayPickerProps={{
-                      locale:
-                        this.props.profile.preferredLocale == null
-                          ? 'en-au'
-                          : this.props.profile.preferredLocale.toLowerCase(),
+                      locale: getLocalePreference(
+                        this.props.space,
+                        this.props.profile,
+                      ),
                       localeUtils: MomentLocaleUtils,
                     }}
                   />

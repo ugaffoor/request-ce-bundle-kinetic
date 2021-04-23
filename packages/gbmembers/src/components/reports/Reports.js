@@ -326,6 +326,7 @@ export const ReportsView = ({
             leadSourceValues={leadSourceValues}
             triggers={triggers}
             profile={profile}
+            space={space}
           />
         </div>
       )}
@@ -355,7 +356,8 @@ export const ReportsView = ({
         </div>
       )}
     </div>
-    {!Utils.isMemberOf(profile, 'Billing') ? (
+    {Utils.getAttributeValue(space, 'Billing Company') !== 'PaySmart' ||
+    !Utils.isMemberOf(profile, 'Billing') ? (
       <div />
     ) : (
       <div style={{ margin: '20px 0px 0px 10px' }} id="inactive-report">
@@ -384,7 +386,8 @@ export const ReportsView = ({
         )}
       </div>
     )}
-    {!Utils.isMemberOf(profile, 'Billing') ? (
+    {Utils.getAttributeValue(space, 'Billing Company') !== 'PaySmart' ||
+    !Utils.isMemberOf(profile, 'Billing') ? (
       <div />
     ) : (
       <div style={{ margin: '20px 0px 0px 10px' }} id="variations-report">
@@ -416,7 +419,8 @@ export const ReportsView = ({
         )}
       </div>
     )}
-    {!Utils.isMemberOf(profile, 'Billing') ? (
+    {Utils.getAttributeValue(space, 'Billing Company') !== 'PaySmart' ||
+    !Utils.isMemberOf(profile, 'Billing') ? (
       <div />
     ) : (
       <div style={{ margin: '20px 0px 0px 10px' }} id="descrepencies-report">
@@ -451,7 +455,8 @@ export const ReportsView = ({
         )}
       </div>
     )}
-    {!Utils.isMemberOf(profile, 'Billing') ? (
+    {Utils.getAttributeValue(space, 'Billing Company') !== 'PaySmart' ||
+    !Utils.isMemberOf(profile, 'Billing') ? (
       <div />
     ) : (
       <div style={{ margin: '20px 0px 0px 10px' }} id="failed-report">
@@ -484,7 +489,8 @@ export const ReportsView = ({
         )}
       </div>
     )}
-    {!Utils.isMemberOf(profile, 'Billing') ? (
+    {Utils.getAttributeValue(space, 'Billing Company') !== 'PaySmart' ||
+    !Utils.isMemberOf(profile, 'Billing') ? (
       <div />
     ) : (
       <div style={{ margin: '20px 0px 0px 10px' }} id="failed-report">

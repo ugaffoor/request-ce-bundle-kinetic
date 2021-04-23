@@ -12,11 +12,13 @@ import MomentLocaleUtils, {
   formatDate,
   parseDate,
 } from 'react-day-picker/moment';
+import { getLocalePreference } from '../Member/MemberUtils';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   leadItem: state.member.leads.currentLead,
   profile: state.member.kinops.profile,
+  space: state.member.app.space,
   currentLeadLoading: state.member.leads.currentLeadLoading,
 });
 const mapDispatchToProps = {
@@ -138,6 +140,12 @@ export class FollowUpDate extends Component {
                       name="reminderDate"
                       id="reminderDate"
                       placeholder={moment(new Date())
+                        .locale(
+                          getLocalePreference(
+                            this.props.space,
+                            this.props.profile,
+                          ),
+                        )
                         .localeData()
                         .longDateFormat('L')
                         .toLowerCase()}
@@ -146,10 +154,10 @@ export class FollowUpDate extends Component {
                       onDayPickerHide={this.handleDateChange}
                       followUpThis={this}
                       dayPickerProps={{
-                        locale:
-                          this.props.profile.preferredLocale == null
-                            ? 'en-au'
-                            : this.props.profile.preferredLocale.toLowerCase(),
+                        locale: getLocalePreference(
+                          this.props.space,
+                          this.props.profile,
+                        ),
                         localeUtils: MomentLocaleUtils,
                       }}
                     />
@@ -181,11 +189,17 @@ export const FollowUpView = ({
   saveLead,
   currentLeadLoading,
   profile,
+  space,
 }) =>
   currentLeadLoading ? (
     <div />
   ) : (
-    <FollowUpDate leadItem={leadItem} saveLead={saveLead} profile={profile} />
+    <FollowUpDate
+      leadItem={leadItem}
+      saveLead={saveLead}
+      profile={profile}
+      space={space}
+    />
   );
 
 export const FollowUpContainer = compose(

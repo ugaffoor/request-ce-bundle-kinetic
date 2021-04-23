@@ -7,6 +7,13 @@ export const gmt_format = 'YYYY-MM-DDTHH:mm:ss'; // Must manually add Z to resul
 export const email_sent_date_format = 'DD-MM-YYYY HH:mm';
 export const email_received_date_format = 'DD-MM-YYYY HH:mm';
 
+export function getLocalePreference(space, profile) {
+  if (profile.preferredLocale !== null)
+    return profile.preferredLocale.toLowerCase();
+  if (space.defaultLocale !== null) return space.defaultLocale.toLowerCase();
+
+  return 'en-au';
+}
 export function escapeRegExp(str) {
   return str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1');
 }

@@ -230,7 +230,7 @@ export class GradingDetail extends Component {
                   this.state.programsGroup = [];
                 }
                 if (
-                  member.values['Last Promotion'] &&
+                  /*member.values['Last Promotion'] &&*/
                   (this.state.className === 'All Programs' ||
                     this.state.className ===
                       member.values['Ranking Program']) &&
@@ -266,9 +266,11 @@ export class GradingDetail extends Component {
                           {member.values['Last Name']}
                         </h4>
                         <span className="lastPromotion">
-                          {new Date(
-                            member.values['Last Promotion'],
-                          ).toLocaleDateString()}
+                          {member.values['Last Promotion']
+                            ? new Date(
+                                member.values['Last Promotion'],
+                              ).toLocaleDateString()
+                            : 'Not Set'}
                         </span>
                         <GradingStatus
                           memberItem={member}

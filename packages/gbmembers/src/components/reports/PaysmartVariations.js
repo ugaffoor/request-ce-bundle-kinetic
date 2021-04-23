@@ -35,6 +35,7 @@ export class VariationCustomers extends Component {
           members.findIndex(
             member =>
               (member.values['Status'] === 'Active' ||
+                member.values['Status'] === 'Frozen' ||
                 member.values['Status'] === 'Pending Freeze' ||
                 member.values['Status'] === 'Pending Cancellation') &&
               member.values['Billing Customer Id'] === customer.customerId,

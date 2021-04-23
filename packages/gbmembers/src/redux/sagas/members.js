@@ -581,6 +581,8 @@ export function* syncBillingCustomer(action) {
           result.data.data.customerReference;
         action.payload.memberItem.values['Billing Customer Id'] =
           result.data.data.customerBillingId;
+        action.payload.memberItem.values['Billing Safe Id'] =
+          result.data.data.safeId;
         action.payload.memberItem.values['Billing User'] = 'YES';
         action.payload.memberItem.values['Billing Payment Type'] =
           result.data.data.paymentMethod;

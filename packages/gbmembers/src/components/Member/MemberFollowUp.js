@@ -12,12 +12,14 @@ import MomentLocaleUtils, {
   formatDate,
   parseDate,
 } from 'react-day-picker/moment';
+import { getLocalePreference } from '../Member/MemberUtils';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   memberItem: state.member.members.currentMember,
   currentMemberLoading: state.member.members.currentMemberLoading,
   profile: state.member.kinops.profile,
+  space: state.member.app.space,
 });
 const mapDispatchToProps = {
   updateMember: actions.updateMember,
@@ -136,6 +138,12 @@ export class FollowUpDate extends Component {
                       name="reminderDate"
                       id="reminderDate"
                       placeholder={moment(new Date())
+                        .locale(
+                          getLocalePreference(
+                            this.props.space,
+                            this.props.profile,
+                          ),
+                        )
                         .localeData()
                         .longDateFormat('L')
                         .toLowerCase()}
@@ -144,10 +152,10 @@ export class FollowUpDate extends Component {
                       onDayPickerHide={this.handleDateChange}
                       followUpThis={this}
                       dayPickerProps={{
-                        locale:
-                          this.props.profile.preferredLocale == null
-                            ? 'en-au'
-                            : this.props.profile.preferredLocale.toLowerCase(),
+                        locale: getLocalePreference(
+                          this.props.space,
+                          this.props.profile,
+                        ),
                         localeUtils: MomentLocaleUtils,
                       }}
                     />
@@ -177,6 +185,7 @@ export class FollowUpDate extends Component {
 export const FollowUpView = ({
   memberItem,
   profile,
+  space,
   saveMember,
   currentMemberLoading,
 }) =>
@@ -187,6 +196,7 @@ export const FollowUpView = ({
       memberItem={memberItem}
       saveMember={saveMember}
       profile={profile}
+      space={space}
     />
   );
 

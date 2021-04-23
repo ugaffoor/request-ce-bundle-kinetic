@@ -20,6 +20,7 @@ import MomentLocaleUtils, {
   formatDate,
   parseDate,
 } from 'react-day-picker/moment';
+import { getLocalePreference } from '../Member/MemberUtils';
 
 export const contact_date_format = 'YYYY-MM-DD HH:mm';
 
@@ -104,6 +105,10 @@ export class LeadsActivityReport extends Component {
       { label: 'Address', value: 'address' },
       { label: 'Suburb', value: 'suburb' },
       { label: 'State', value: 'state' },
+      { label: 'Emails Sent', value: 'emailsSent' },
+      { label: 'Emails Received', value: 'emailsReceived' },
+      { label: 'SMS Sent', value: 'smsSent' },
+      { label: 'SMS Received', value: 'smsReceived' },
     ];
     this.notesColumns = [
       { title: 'Contact Method', field: 'contactMethod' },
@@ -1613,6 +1618,12 @@ export class LeadsActivityReport extends Component {
                     id="filter-start-date"
                     disabled={this.props.promotingMember}
                     placeholder={moment(new Date())
+                      .locale(
+                        getLocalePreference(
+                          this.props.space,
+                          this.props.profile,
+                        ),
+                      )
                       .localeData()
                       .longDateFormat('L')
                       .toLowerCase()}
@@ -1633,10 +1644,10 @@ export class LeadsActivityReport extends Component {
                       });
                     }}
                     dayPickerProps={{
-                      locale:
-                        this.props.profile.preferredLocale == null
-                          ? 'en-au'
-                          : this.props.profile.preferredLocale.toLowerCase(),
+                      locale: getLocalePreference(
+                        this.props.space,
+                        this.props.profile,
+                      ),
                       localeUtils: MomentLocaleUtils,
                     }}
                   />
@@ -1646,6 +1657,12 @@ export class LeadsActivityReport extends Component {
                     id="filter-end-date"
                     disabled={this.props.promotingMember}
                     placeholder={moment(new Date())
+                      .locale(
+                        getLocalePreference(
+                          this.props.space,
+                          this.props.profile,
+                        ),
+                      )
                       .localeData()
                       .longDateFormat('L')
                       .toLowerCase()}
@@ -1666,10 +1683,10 @@ export class LeadsActivityReport extends Component {
                       });
                     }}
                     dayPickerProps={{
-                      locale:
-                        this.props.profile.preferredLocale == null
-                          ? 'en-au'
-                          : this.props.profile.preferredLocale.toLowerCase(),
+                      locale: getLocalePreference(
+                        this.props.space,
+                        this.props.profile,
+                      ),
                       localeUtils: MomentLocaleUtils,
                     }}
                   />

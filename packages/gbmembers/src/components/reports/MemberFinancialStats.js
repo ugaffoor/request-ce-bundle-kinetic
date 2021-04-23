@@ -18,6 +18,7 @@ import MomentLocaleUtils, {
   formatDate,
   parseDate,
 } from 'react-day-picker/moment';
+import { getLocalePreference } from '../Member/MemberUtils';
 
 var compThis = undefined;
 
@@ -1411,6 +1412,12 @@ export class MemberFinancialStats extends Component {
                         name="fromDate"
                         id="fromDate"
                         placeholder={moment(new Date())
+                          .locale(
+                            getLocalePreference(
+                              this.props.space,
+                              this.props.profile,
+                            ),
+                          )
                           .localeData()
                           .longDateFormat('L')
                           .toLowerCase()}
@@ -1427,10 +1434,10 @@ export class MemberFinancialStats extends Component {
                           });
                         }}
                         dayPickerProps={{
-                          locale:
-                            this.props.profile.preferredLocale == null
-                              ? 'en-au'
-                              : this.props.profile.preferredLocale.toLowerCase(),
+                          locale: getLocalePreference(
+                            this.props.space,
+                            this.props.profile,
+                          ),
                           localeUtils: MomentLocaleUtils,
                         }}
                       />
@@ -1443,6 +1450,12 @@ export class MemberFinancialStats extends Component {
                         name="toDate"
                         id="toDate"
                         placeholder={moment(new Date())
+                          .locale(
+                            getLocalePreference(
+                              this.props.space,
+                              this.props.profile,
+                            ),
+                          )
                           .localeData()
                           .longDateFormat('L')
                           .toLowerCase()}
@@ -1459,10 +1472,10 @@ export class MemberFinancialStats extends Component {
                           });
                         }}
                         dayPickerProps={{
-                          locale:
-                            this.props.profile.preferredLocale == null
-                              ? 'en-au'
-                              : this.props.profile.preferredLocale.toLowerCase(),
+                          locale: getLocalePreference(
+                            this.props.space,
+                            this.props.profile,
+                          ),
                           localeUtils: MomentLocaleUtils,
                         }}
                       />

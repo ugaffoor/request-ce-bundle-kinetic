@@ -945,6 +945,13 @@ export function getBeltSVG(belt) {
       return <div />;
   }
 }
+export function getLocalePreference(space, profile) {
+  if (profile.preferredLocale !== null)
+    return profile.preferredLocale.toLowerCase();
+  if (space.defaultLocale !== null) return space.defaultLocale.toLowerCase();
+
+  return 'en-au';
+}
 export function getDateValue(dateValue) {
   return dateValue === undefined || dateValue === ''
     ? ''
@@ -960,7 +967,9 @@ export function handleDateChange() {
     .find('input');
   console.log('Date value:' + value.trim());
   var dateValue =
-    value.trim() === '' ? '' : moment(value, 'L').format('YYYY-MM-DD');
+    value.trim() === ''
+      ? ''
+      : moment(value, 'L', this.dayPickerProps.locale).format('YYYY-MM-DD');
   if (value.trim() !== '' && dateValue === 'Invalid Date') return;
   if (value.trim() === '') dateValue = '';
   if (this.setIsDirty !== undefined) this.setIsDirty(true);

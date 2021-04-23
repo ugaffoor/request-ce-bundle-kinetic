@@ -19,6 +19,7 @@ import {
   handleFormattedChange,
   handleDateChange,
   getDateValue,
+  getLocalePreference,
 } from './MemberUtils';
 import moment from 'moment';
 import { contact_date_format } from '../leads/LeadsUtils';
@@ -592,7 +593,11 @@ export const MemberEdit = ({
                   Postcode
                 </label>
                 <NumberFormat
-                  format="####"
+                  format={
+                    getAttributeValue(space, 'Postcode Format') !== undefined
+                      ? getAttributeValue(space, 'Postcode Format')
+                      : '####'
+                  }
                   mask="_"
                   required
                   ref={input => (this.input = input)}
@@ -687,7 +692,11 @@ export const MemberEdit = ({
                   Phone
                 </label>
                 <NumberFormat
-                  format="####-###-###"
+                  format={
+                    getAttributeValue(space, 'PhoneNumber Format') !== undefined
+                      ? getAttributeValue(space, 'PhoneNumber Format')
+                      : '####-###-###'
+                  }
                   mask="_"
                   required
                   ref={input => (this.input = input)}
@@ -707,7 +716,11 @@ export const MemberEdit = ({
               <div>
                 <label htmlFor="additionalPhone">Additional Phone</label>
                 <NumberFormat
-                  format="####-###-###"
+                  format={
+                    getAttributeValue(space, 'PhoneNumber Format') !== undefined
+                      ? getAttributeValue(space, 'PhoneNumber Format')
+                      : '####-###-###'
+                  }
                   mask="_"
                   required
                   ref={input => (this.input = input)}
@@ -742,6 +755,7 @@ export const MemberEdit = ({
                   name="datejoined"
                   id="datejoined"
                   placeholder={moment(new Date())
+                    .locale(getLocalePreference(space, profile))
                     .localeData()
                     .longDateFormat('L')
                     .toLowerCase()}
@@ -755,10 +769,7 @@ export const MemberEdit = ({
                   onDayPickerHide={handleDateChange}
                   required
                   dayPickerProps={{
-                    locale:
-                      profile.preferredLocale == null
-                        ? 'en-au'
-                        : profile.preferredLocale.toLowerCase(),
+                    locale: getLocalePreference(space, profile),
                     localeUtils: MomentLocaleUtils,
                   }}
                 />
@@ -777,6 +788,7 @@ export const MemberEdit = ({
                   name="birthday"
                   id="birthday"
                   placeholder={moment(new Date())
+                    .locale(getLocalePreference(space, profile))
                     .localeData()
                     .longDateFormat('L')
                     .toLowerCase()}
@@ -790,10 +802,7 @@ export const MemberEdit = ({
                   onDayPickerHide={handleDateChange}
                   required
                   dayPickerProps={{
-                    locale:
-                      profile.preferredLocale == null
-                        ? 'en-au'
-                        : profile.preferredLocale.toLowerCase(),
+                    locale: getLocalePreference(space, profile),
                     localeUtils: MomentLocaleUtils,
                   }}
                 />
@@ -1041,6 +1050,7 @@ export const MemberEdit = ({
                   name="lastPromotion"
                   id="lastPromotion"
                   placeholder={moment(new Date())
+                    .locale(getLocalePreference(space, profile))
                     .localeData()
                     .longDateFormat('L')
                     .toLowerCase()}
@@ -1053,10 +1063,7 @@ export const MemberEdit = ({
                   memberChanges={memberChanges}
                   onDayPickerHide={handleDateChange}
                   dayPickerProps={{
-                    locale:
-                      profile.preferredLocale == null
-                        ? 'en-au'
-                        : profile.preferredLocale.toLowerCase(),
+                    locale: getLocalePreference(space, profile),
                     localeUtils: MomentLocaleUtils,
                   }}
                 />

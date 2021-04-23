@@ -137,7 +137,10 @@ export class MemberOrders extends Component {
                   transaction_id: order['Transaction ID'],
                   space: this.props.space,
                   snippets: this.props.snippets,
-                  datetime: moment(order['Date time processed']),
+                  datetime: moment(
+                    order['Date time processed'],
+                    'YYYY-MM-DDTHH:MM:SSZ',
+                  ),
                   name: order['Person Name'],
                 });
               }}

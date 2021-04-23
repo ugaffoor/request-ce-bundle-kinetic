@@ -35,6 +35,7 @@ const mapStateToProps = state => ({
   billingCompany: state.member.app.billingCompany,
   programs: state.member.app.programs,
   profile: state.member.app.profile,
+  space: state.member.app.space,
   leadsByDate: state.member.leads.leadsByDate,
   leadsLoading: state.member.leads.leadsLoading,
   leadsByDateLoading: state.member.leads.leadsByDateLoading,
@@ -87,6 +88,7 @@ export const HomeView = ({
   fromDate,
   toDate,
   setIsAssigning,
+  space,
 }) => (
   <div className="dashboard">
     <StatusMessagesContainer />
@@ -102,6 +104,7 @@ export const HomeView = ({
       leadsByDateLoading={leadsByDateLoading}
       allMembers={allMembers}
       profile={profile}
+      space={space}
     />
     <div className="charts">
       <div className="chart2Column">

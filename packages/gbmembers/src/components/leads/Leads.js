@@ -23,6 +23,7 @@ import {
   contact_date_format,
   reminder_date_format,
   gmt_format,
+  getLocalePreference,
 } from './LeadsUtils';
 import ReactTable from 'react-table';
 import { StatusMessagesContainer } from '../StatusMessages';
@@ -54,6 +55,7 @@ const mapStateToProps = state => ({
   allLeads: state.member.leads.allLeads,
   allMembers: state.member.members.allMembers,
   profile: state.member.kinops.profile,
+  space: state.member.app.space,
   leadLists: state.member.app.leadLists,
 });
 
@@ -1710,6 +1712,12 @@ export class LeadsConversionChart extends Component {
                         name="fromDate"
                         id="fromDate"
                         placeholder={moment(new Date())
+                          .locale(
+                            getLocalePreference(
+                              this.props.space,
+                              this.props.profile,
+                            ),
+                          )
                           .localeData()
                           .longDateFormat('L')
                           .toLowerCase()}
@@ -1719,10 +1727,10 @@ export class LeadsConversionChart extends Component {
                         leadsThis={this}
                         fieldName="fromDate"
                         dayPickerProps={{
-                          locale:
-                            this.props.profile.preferredLocale == null
-                              ? 'en-au'
-                              : this.props.profile.preferredLocale.toLowerCase(),
+                          locale: getLocalePreference(
+                            this.props.space,
+                            this.props.profile,
+                          ),
                           localeUtils: MomentLocaleUtils,
                         }}
                       />
@@ -1737,6 +1745,12 @@ export class LeadsConversionChart extends Component {
                         name="toDate"
                         id="toDate"
                         placeholder={moment(new Date())
+                          .locale(
+                            getLocalePreference(
+                              this.props.space,
+                              this.props.profile,
+                            ),
+                          )
                           .localeData()
                           .longDateFormat('L')
                           .toLowerCase()}
@@ -1746,10 +1760,10 @@ export class LeadsConversionChart extends Component {
                         leadsThis={this}
                         fieldName="toDate"
                         dayPickerProps={{
-                          locale:
-                            this.props.profile.preferredLocale == null
-                              ? 'en-au'
-                              : this.props.profile.preferredLocale.toLowerCase(),
+                          locale: getLocalePreference(
+                            this.props.space,
+                            this.props.profile,
+                          ),
                           localeUtils: MomentLocaleUtils,
                         }}
                       />
@@ -2017,6 +2031,7 @@ export const LeadsView = ({
   fetchLeads,
   allMembers,
   profile,
+  space,
   leadLists,
 }) => (
   <div className="container-fluid leads">
@@ -2039,6 +2054,7 @@ export const LeadsView = ({
         allLeads={allLeads}
         allMembers={allMembers}
         profile={profile}
+        space={space}
       />
     </div>
     <div>
