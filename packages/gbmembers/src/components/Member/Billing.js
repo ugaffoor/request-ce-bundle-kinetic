@@ -663,7 +663,7 @@ export class PaymentHistory extends Component {
         accessor: 'debitDate',
         Header: 'Debit Date',
         Cell: props =>
-          moment(props.value, ezidebit_date_format).format('YYYY-MM-DD'),
+          moment(props.value, ezidebit_date_format).format('Do MMM YYYY'),
       },
       {
         accessor: '$refundPayment',
@@ -1604,6 +1604,7 @@ export const BillingContainer = compose(
     },
     getPaymentHistory: ({
       memberItem,
+      space,
       fetchPaymentHistory,
       setPaymentHistory,
       addNotification,

@@ -88,6 +88,11 @@ export class NewEmailCampaign extends Component {
     }
 
     this.state = {
+      schoolEmail: this.props.space.attributes['School Email'][0],
+      aliasEmail: undefined,
+      aliasEmailOptions: this.getEmailAlias(
+        this.props.space.attributes['School Email Alias'],
+      ),
       text: '',
       subject: '',
       options: this.getSelectOptions(
@@ -265,6 +270,13 @@ export class NewEmailCampaign extends Component {
       editorThis.setState({ text: template.values['Email Content'] });
     }
   }
+  getEmailAlias(fromAlias) {
+    let options = [];
+    options.push({ value: '', label: '' });
+    if (fromAlias !== undefined)
+      fromAlias.forEach(item => options.push({ value: item, label: item }));
+    return options;
+  }
   getSelectOptions(memberLists, allMembers) {
     //If submissionId is present then submissionId is the recipient.
     //So no need to populate or display recipient list dropdown.
@@ -416,6 +428,8 @@ export class NewEmailCampaign extends Component {
     }
 
     this.props.saveCampaign(
+      this.state.schoolEmail,
+      this.state.aliasEmail,
       this.state.subject,
       recipientIds,
       body,
@@ -477,6 +491,25 @@ export class NewEmailCampaign extends Component {
   render() {
     return (
       <div className="new_campaign" style={{ marginTop: '2%' }}>
+        <div className="row">
+          {this.state.aliasEmailOptions.length !== 0 && (
+            <div className="col-md-4">
+              <Select
+                options={this.state.aliasEmailOptions}
+                placeholder="Select Alias"
+                closeMenuOnSelect={true}
+                hideSelectedOptions={false}
+                controlShouldRenderValue={true}
+                isMulti={false}
+                onChange={e => {
+                  this.setState({
+                    aliasEmail: e.value === '' ? undefined : e.value,
+                  });
+                }}
+              />
+            </div>
+          )}
+        </div>
         <div
           className="row"
           style={{
@@ -798,13 +831,16 @@ export const EmailCampaignContainer = compose(
   withState('showPreview', 'setShowPreview', false),
   withHandlers({
     saveCampaign: ({ campaignItem, createCampaign }) => (
+      schoolEmail,
+      aliasEmail,
       subject,
       recipients,
       body,
       embeddedImages,
       space,
     ) => {
-      campaignItem.values['From'] = space.attributes['School Email'][0];
+      campaignItem.values['From'] =
+        aliasEmail === undefined ? schoolEmail : aliasEmail;
       campaignItem.values['Recipients'] = recipients;
       campaignItem.values['Subject'] = subject;
       campaignItem.values['Body'] = body;

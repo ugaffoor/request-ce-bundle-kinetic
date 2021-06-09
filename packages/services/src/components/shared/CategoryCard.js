@@ -8,7 +8,11 @@ import oceaniaIcon from '../../assets/images/Oceania.svg?raw';
 import registrationIcon from '../../assets/images/Registration.svg?raw';
 
 function getCategoryIcon(slug) {
-  if (slug === 'billing-registration' || slug === 'payline-billing')
+  if (
+    slug === 'billing-registration' ||
+    slug === 'payline-billing' ||
+    slug === 'bombara-billing'
+  )
     return billingIcon;
   if (slug === 'class-bookings') return bookingIcon;
   if (slug === 'incidents') return incidentIcon;

@@ -581,8 +581,8 @@ export function* syncBillingCustomer(action) {
           result.data.data.customerReference;
         action.payload.memberItem.values['Billing Customer Id'] =
           result.data.data.customerBillingId;
-        action.payload.memberItem.values['Billing Safe Id'] =
-          result.data.data.safeId;
+        //        action.payload.memberItem.values['Billing Safe Id'] =
+        //          result.data.data.safeId;
         action.payload.memberItem.values['Billing User'] = 'YES';
         action.payload.memberItem.values['Billing Payment Type'] =
           result.data.data.paymentMethod;
@@ -1607,10 +1607,22 @@ export function* fetchBillingCustomers(action) {
                 appSettings: appSettings,
                 allMembers: action.payload.allMembers,
               });
+            } else if (action.payload.syncBillingMembers !== undefined) {
+              action.payload.syncBillingMembers({
+                customers: resultActive.data.data.concat(
+                  resultInactive.data.data,
+                ),
+                setBillingCustomers: action.payload.setBillingCustomers,
+                fetchMembers: action.payload.fetchMembers,
+                appSettings: appSettings,
+                allMembers: action.payload.allMembers,
+              });
             } else if (action.payload.setBillingCustomers) {
-              action.payload.setBillingCustomers(
-                resultActive.data.data.concat(resultInactive.data.data),
-              );
+              action.payload.setBillingCustomers({
+                billingCustomers: resultActive.data.data.concat(
+                  resultInactive.data.data,
+                ),
+              });
             }
           }
         })
@@ -1804,13 +1816,109 @@ export function* createBillingMembers(action) {
   }
 
   if (action.payload.setBillingCustomers) {
-    action.payload.setBillingCustomers();
+    action.payload.setBillingCustomers({
+      createBillingMembers: true,
+    });
     if (newMemberAdded) {
       action.payload.fetchMembers();
     }
   }
 }
 
+export function* syncBillingMembers(action) {
+  let newMemberAdded = false;
+  for (let i = 0; i < action.payload.customers.length; i++) {
+    let customer = action.payload.customers[i];
+    const MEMBER_SEARCH = new CoreAPI.SubmissionSearch(true)
+      .eq('values[Billing Customer Id]', customer.customerId)
+      .include('details,values')
+      .build();
+
+    const { submissions } = yield call(CoreAPI.searchSubmissions, {
+      form: 'member',
+      kapp: 'gbmembers',
+      search: MEMBER_SEARCH,
+    });
+    var memberItem = {
+      values: {},
+    };
+    if (
+      (!submissions || submissions.length <= 0) &&
+      customer.status === 'Inactive'
+    ) {
+      //Ignore
+      console.log('Not synching Inactive member');
+    } else if (submissions && submissions.length === 1) {
+      memberItem.values = submissions[0].values;
+      if (memberItem.values['Non Paying'] === 'YES') {
+        console.log(
+          'Non Paying :' +
+            memberItem.values['First Name'] +
+            ' ' +
+            memberItem.values['Last Name'],
+        );
+        //Ignore
+      } else {
+        let changeMade = false;
+        if (
+          memberItem.values['Billing Payment Type'] !== customer.paymentMethod
+        ) {
+          memberItem.values['Billing Payment Type'] = customer.paymentMethod;
+          changeMade = true;
+        }
+        if (
+          memberItem.values['Billing Payment Period'] !== customer.billingPeriod
+        ) {
+          memberItem.values['Billing Payment Period'] = customer.billingPeriod;
+          changeMade = true;
+        }
+        if (
+          parseInt(memberItem.values['Membership Cost']) !==
+          customer.billingAmount
+        ) {
+          memberItem.values['Payment Schedule'] = {
+            period: customer.billingPeriod,
+            amount: customer.billingAmount,
+          };
+          memberItem.values['Membership Cost'] = customer.billingAmount;
+          changeMade = true;
+        }
+        if (changeMade) {
+          memberItem.id = submissions[0].id;
+          console.log(
+            'Name:' +
+              customer.firstName +
+              ' ' +
+              customer.lastName +
+              ' - PaySmartID:' +
+              customer.customerId +
+              ' - Status:' +
+              customer.status +
+              (!submissions || submissions.length <= 0
+                ? 'NEW'
+                : submissions[0].values['Status']),
+          );
+
+          yield put(
+            actions.updateMember({
+              id: memberItem.id,
+              memberItem: memberItem,
+            }),
+          );
+        }
+      }
+    }
+  }
+
+  if (action.payload.setBillingCustomers) {
+    action.payload.setBillingCustomers({
+      syncBillingMembers: true,
+    });
+    if (newMemberAdded) {
+      action.payload.fetchMembers();
+    }
+  }
+}
 export function* fetchInactiveCustomersCount(action) {
   const appSettings = yield select(getAppSettings);
   let args = {};
@@ -1944,6 +2052,7 @@ export function* watchMembers() {
   yield takeEvery(types.FETCH_CUSTOMER_REFUNDS, fetchCustomerRefunds);
   yield takeEvery(types.FETCH_BILLING_CUSTOMERS, fetchBillingCustomers);
   yield takeEvery(types.CREATE_BILLING_MEMBERS, createBillingMembers);
+  yield takeEvery(types.SYNC_BILLING_MEMBERS, syncBillingMembers);
   yield takeEvery(types.CREATE_BILLING_STATISTICS, createBillingStatistics);
   yield takeEvery(types.CREATE_STATISTIC, createStatistic);
   yield takeEvery(

@@ -62,6 +62,7 @@ export const types = {
   SET_CUSTOMER_REFUNDS: namespace('members', 'SET_CUSTOMER_REFUNDS'),
   FETCH_BILLING_CUSTOMERS: namespace('members', 'FETCH_BILLING_CUSTOMERS'),
   CREATE_BILLING_MEMBERS: namespace('members', 'CREATE_BILLING_MEMBERS'),
+  SYNC_BILLING_MEMBERS: namespace('members', 'SYNC_BILLING_MEMBERS'),
   SET_BILLING_CUSTOMERS: namespace('members', 'SET_BILLING_CUSTOMERS'),
   CREATE_BILLING_STATISTICS: namespace('members', 'CREATE_BILLING_STATISTICS'),
   CREATE_STATISTIC: namespace('members', 'CREATE_STATISTIC'),
@@ -134,6 +135,7 @@ export const actions = {
   setCustomerRefunds: withPayload(types.SET_CUSTOMER_REFUNDS),
   fetchBillingCustomers: withPayload(types.FETCH_BILLING_CUSTOMERS),
   createBillingMembers: withPayload(types.CREATE_BILLING_MEMBERS),
+  syncBillingMembers: withPayload(types.SYNC_BILLING_MEMBERS),
   setBillingCustomers: withPayload(types.SET_BILLING_CUSTOMERS),
   createBillingStatistics: withPayload(types.CREATE_BILLING_STATISTICS),
   createStatistic: withPayload(types.CREATE_STATISTIC),
@@ -179,6 +181,8 @@ export const State = Record({
   customerRefunds: [],
   customerRefundsLoading: true,
   billingCustomersLoading: false,
+  importingBilling: false,
+  synchingBilling: false,
   billingCustomers: [],
   inactiveCustomersCount: [],
   inactiveCustomersLoading: true,
@@ -343,12 +347,32 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('customerRefunds', payload);
     }
     case types.FETCH_BILLING_CUSTOMERS: {
-      return state.set('billingCustomersLoading', true);
+      let importingBilling = false;
+      let synchingBilling = false;
+
+      if (payload.createBillingMembers !== undefined) {
+        importingBilling = true;
+      }
+      if (payload.syncBillingMembers !== undefined) {
+        synchingBilling = true;
+      }
+      return state
+        .set('billingCustomersLoading', true)
+        .set('importingBilling', importingBilling)
+        .set('synchingBilling', synchingBilling);
     }
     case types.SET_BILLING_CUSTOMERS: {
       return state
         .set('billingCustomersLoading', false)
-        .set('billingCustomers', payload);
+        .set('billingCustomers', payload.billingCustomers)
+        .set(
+          'importingBilling',
+          payload.createBillingMembers !== undefined ? false : undefined,
+        )
+        .set(
+          'synchingBilling',
+          payload.syncBillingMembers !== undefined ? false : undefined,
+        );
     }
     case types.FETCH_INACTIVE_CUSTOMERS_COUNT: {
       return state.set('inactiveCustomersLoading', true);

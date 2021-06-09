@@ -28,13 +28,24 @@ export class MemberBirthdays extends Component {
     let toWeek = moment()
       .add(week, 'weeks')
       .add(1, 'days');
-    let members = allMembers.filter(member => {
-      let dob = moment(member.values['DOB']).year(year);
-      if (week === 0) {
-        return dob.get('date') === moment().get('date') ? true : false;
-      }
-      return dob.isBetween(now, toWeek) ? true : false;
-    });
+    let members = allMembers
+      .filter(member => {
+        return member.values['Status'] === 'Active' ||
+          member.values['Status'] === 'Pending Freeze' ||
+          member.values['Status'] === 'Pending Cancellation'
+          ? true
+          : false;
+      })
+      .filter(member => {
+        let dob = moment(member.values['DOB']).year(year);
+        if (week === 0) {
+          return dob.get('date') === moment().get('date') &&
+            dob.month() === moment().month()
+            ? true
+            : false;
+        }
+        return dob.isBetween(now, toWeek) ? true : false;
+      });
     const data = members
       .sort((a, b) => {
         let aDt = moment(a.values['DOB']).year(year);

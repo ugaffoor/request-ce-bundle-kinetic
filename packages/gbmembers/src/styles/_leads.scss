@@ -520,6 +520,17 @@ button#attentionRequiredOnly.Active {
     display: none;
   }
   #notesDiv {
+  }
+  .setStatus,
+  .phone,
+  .email,
+  .sms,
+  .person,
+  .intro_class,
+  .free_class,
+  .sendEmail,
+  .sendSMS,
+  .viewScript {
     display: none;
   }
 }

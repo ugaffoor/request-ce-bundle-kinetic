@@ -138,6 +138,11 @@ export class LeadDetail extends Component {
     let profile = this.props.profile;
     let contactMethod = 'phone';
     let contactLabel = 'Phone Call';
+
+    if (this.props.leadItem.values['Lead State'] === 'Converted') {
+      contactMethod = 'attended_class';
+      contactLabel = 'Attended Class';
+    }
     let note = '';
     let contactDate = moment().format(contact_date_format);
     let latestHistory = getLatestHistory(this.props.leadItem.values['History']);
@@ -504,7 +509,7 @@ export class LeadDetail extends Component {
                     {this.props.leadItem.values['Phone Number']}
                   </div>
                 </span>
-                <span>
+                <span className="setStatus">
                   <a
                     onClick={e => this.props.setShowSetStatusModal(true)}
                     className="btn btn-primary"
@@ -589,7 +594,7 @@ export class LeadDetail extends Component {
               role="tablist"
             >
               <li className="nav-item label">Method:</li>
-              <li className="nav-item icon">
+              <li className="nav-item icon phone">
                 <a
                   className="nav-link active"
                   title="Phone Contact"
@@ -608,7 +613,7 @@ export class LeadDetail extends Component {
                   />
                 </a>
               </li>
-              <li className="nav-item icon">
+              <li className="nav-item icon email">
                 <a
                   className="nav-link"
                   title="Email Contact"
@@ -622,7 +627,7 @@ export class LeadDetail extends Component {
                   <img src={mail} alt="Email" style={{ border: 'none' }} />
                 </a>
               </li>
-              <li className="nav-item icon">
+              <li className="nav-item icon sms">
                 <a
                   className="nav-link"
                   title="SMS Contact"
@@ -636,7 +641,7 @@ export class LeadDetail extends Component {
                   <img src={sms} alt="SMS" style={{ border: 'none' }} />
                 </a>
               </li>
-              <li className="nav-item icon">
+              <li className="nav-item icon person">
                 <a
                   className="nav-link"
                   title="In Person Contact"
@@ -654,7 +659,7 @@ export class LeadDetail extends Component {
                   />
                 </a>
               </li>
-              <li className="nav-item icon">
+              <li className="nav-item icon intro_class">
                 <a
                   className="nav-link"
                   title="Introductory Class"
@@ -672,7 +677,7 @@ export class LeadDetail extends Component {
                   />
                 </a>
               </li>
-              <li className="nav-item icon">
+              <li className="nav-item icon free_class">
                 <a
                   className="nav-link"
                   title="Free Class"
@@ -690,7 +695,7 @@ export class LeadDetail extends Component {
                   />
                 </a>
               </li>
-              <li className="nav-item icon">
+              <li className="nav-item icon attended_class">
                 <a
                   className="nav-link"
                   title="Attended Class"
@@ -698,6 +703,11 @@ export class LeadDetail extends Component {
                   href="#method"
                   id="attended_tab"
                   role="tab"
+                  aria-selected={
+                    this.props.leadItem.values['Lead State'] === 'Converted'
+                      ? 'true'
+                      : ''
+                  }
                   aria-controls="contact_method"
                   onClick={() =>
                     this.handleContactMethodChange('attended_class')
@@ -710,7 +720,7 @@ export class LeadDetail extends Component {
                   />
                 </a>
               </li>
-              <li className="nav-item icon">
+              <li className="nav-item icon noshow_class">
                 <a
                   className="nav-link"
                   title="Class No Show"
@@ -742,7 +752,7 @@ export class LeadDetail extends Component {
                   defaultValue={moment()}
                 />
               </li>
-              <li>
+              <li className="sendEmail">
                 <NavLink
                   to={`/NewEmailCampaign/lead/${this.props.leadItem['id']}`}
                   className="btn btn-primary"
@@ -750,7 +760,7 @@ export class LeadDetail extends Component {
                   Send Email
                 </NavLink>
               </li>
-              <li>
+              <li className="sendSMS">
                 <a
                   onClick={e => this.props.setShowSMSModal(true)}
                   className="btn btn-primary"
@@ -767,7 +777,7 @@ export class LeadDetail extends Component {
                   />
                 )}
               </li>
-              <li>
+              <li className="viewScript">
                 <a
                   onClick={e => this.props.setShowCallScriptModal(true)}
                   className="btn btn-primary"

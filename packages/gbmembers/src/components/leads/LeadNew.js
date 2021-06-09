@@ -31,6 +31,7 @@ import MomentLocaleUtils, {
   parseDate,
 } from 'react-day-picker/moment';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
+import { I18n } from '../../../../app/src/I18nProvider';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -373,7 +374,9 @@ export class LeadNew extends Component {
                   <div className="droparrow" />
                 </div>
                 <div>
-                  <label htmlFor="postcode">Postcode</label>
+                  <label htmlFor="postcode">
+                    <I18n>Postcode</I18n>
+                  </label>
                   <NumberFormat
                     format={
                       getAttributeValue(this.props.space, 'Postcode Format') !==

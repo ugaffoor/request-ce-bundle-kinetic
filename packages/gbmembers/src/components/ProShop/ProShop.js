@@ -131,7 +131,7 @@ class PayNow extends Component {
       issuer: '',
       maxLength: 16,
       status: '',
-      erros: '',
+      errors: '',
       acceptedCards: getAttributeValue(this.props.space, 'POS Accepted Cards'),
     };
   }
@@ -2121,6 +2121,7 @@ export const ProShopContainer = compose(
                 posProducts[prodIdx].stock[stockIdx].values['Quantity'],
               ) - 1;
           });
+        } else if (product['productType'] === 'Service') {
         } else {
           decrementPOSStock({
             productID: product['productID'],

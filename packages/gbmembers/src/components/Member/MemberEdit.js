@@ -31,6 +31,7 @@ import DayPickerInput from 'react-day-picker/DayPickerInput';
 import 'react-day-picker/lib/style.css';
 import enAU from 'moment/locale/en-au';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
+import { I18n } from '../../../../app/src/I18nProvider';
 
 import MomentLocaleUtils, {
   formatDate,
@@ -590,7 +591,7 @@ export const MemberEdit = ({
                     memberItem.values['Postcode'] === undefined ? true : false
                   }
                 >
-                  Postcode
+                  <I18n>Postcode</I18n>
                 </label>
                 <NumberFormat
                   format={

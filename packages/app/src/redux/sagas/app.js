@@ -39,6 +39,9 @@ export function* fetchAppTask({ payload }) {
       .delete('space')
       .toJS();
 
+    if (me.preferredLocale === null) {
+      me.preferredLocale = space.defaultLocale;
+    }
     yield all([
       put(configActions.setVersion(version)),
       put(kappActions.setKapps(kapps)),

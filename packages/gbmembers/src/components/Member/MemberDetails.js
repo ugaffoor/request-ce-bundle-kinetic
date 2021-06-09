@@ -7,6 +7,7 @@ import { KappNavLink as NavLink } from 'common';
 import { PhotoForm } from '../PhotoForm';
 import $ from 'jquery';
 import { StatusMessagesContainer } from '../StatusMessages';
+import { I18n } from '../../../../app/src/I18nProvider';
 
 export function handleChange(memberItem, key, event) {
   if (memberItem[key]) {
@@ -235,7 +236,7 @@ export class MemberDetails extends React.Component {
                         : false
                     }
                   >
-                    Postcode
+                    <I18n>Postcode</I18n>
                   </label>
                   <input
                     type="text"

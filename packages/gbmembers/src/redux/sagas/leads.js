@@ -203,7 +203,11 @@ export function* updateCurrentLead(action) {
       timeZone: action.payload.calendarEvent.timeZone,
     };
     axios
-      .post('https://gbbilling.com.au:8443/mail-handler' + createEventUrl, args)
+      .post(
+        appSettings.kapp.attributes['Kinetic Email Server URL'] +
+          createEventUrl,
+        args,
+      )
       .then(result => {
         if (result.data.error && result.data.error > 0) {
           console.log(result.data.errorMessage);

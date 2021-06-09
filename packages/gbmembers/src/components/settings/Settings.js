@@ -27,6 +27,8 @@ const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
   billingCompany: state.member.app.billingCompany,
   billingCustomersLoading: state.member.members.billingCustomersLoading,
+  importingBilling: state.member.members.importingBilling,
+  synchingBilling: state.member.members.synchingBilling,
   profile: state.member.app.profile,
   belts: state.member.app.belts,
   billingPayments: state.member.members.billingPayments,
@@ -64,6 +66,7 @@ const mapDispatchToProps = {
   fetchBillingCustomers: actions.fetchBillingCustomers,
   setBillingCustomers: actions.setBillingCustomers,
   createBillingMembers: actions.createBillingMembers,
+  syncBillingMembers: actions.syncBillingMembers,
   fetchBillingPayments: actions.fetchBillingPayments,
   createBillingStatistics: actions.createBillingStatistics,
   createStatistic: actions.createStatistic,
@@ -128,7 +131,10 @@ export const SettingsView = ({
   fetchBillingCustomers,
   setBillingCustomers,
   createBillingMembers,
+  syncBillingMembers,
   billingCustomersLoading,
+  importingBilling,
+  synchingBilling,
   fetchMembers,
   printMemberBarcodes,
   printingBarcodes,
@@ -319,8 +325,46 @@ export const SettingsView = ({
         </div>
       )}
       <div className="col-xs-3">
-        {billingCustomersLoading ? (
+        {billingCustomersLoading && importingBilling ? (
           <p>Importing billing customers ....</p>
+        ) : (
+          <span />
+        )}
+      </div>
+      {!Utils.isMemberOf(profile, 'Billing') ? (
+        <div />
+      ) : (
+        <div className="col-xs-3">
+          <button
+            type="button"
+            id="syncBillingCustomers"
+            className={'btn btn-primary'}
+            onClick={async e => {
+              if (
+                await confirm(
+                  <span>
+                    <span>
+                      Are your sure you want to Sync the Billing Members?
+                    </span>
+                  </span>,
+                )
+              ) {
+                fetchBillingCustomers({
+                  setBillingCustomers,
+                  syncBillingMembers,
+                  fetchMembers,
+                  allMembers,
+                });
+              }
+            }}
+          >
+            Sync Billing Members
+          </button>
+        </div>
+      )}
+      <div className="col-xs-3">
+        {billingCustomersLoading && synchingBilling ? (
+          <p>Synching billing customers ....</p>
         ) : (
           <span />
         )}
