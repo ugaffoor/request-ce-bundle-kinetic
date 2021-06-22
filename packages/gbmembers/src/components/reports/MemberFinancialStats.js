@@ -106,6 +106,7 @@ export class MemberFinancialStats extends Component {
   componentWillMount() {
     this.props.fetchBillingCustomers({
       setBillingCustomers: this.props.setBillingCustomers,
+      allMembers: this.props.members,
     });
     this.props.fetchVariationCustomers({
       setVariationCustomers: this.props.setVariationCustomers,
@@ -187,7 +188,9 @@ export class MemberFinancialStats extends Component {
       let varDays = varEndDate.diff(varStartDate, 'days') + 1;
       let paymentPeriod = billing.billingPeriod;
       let varDailyCost = 0;
-      if (paymentPeriod === 'Weekly') {
+      if (paymentPeriod === 'Daily') {
+        varDailyCost = varAmount;
+      } else if (paymentPeriod === 'Weekly') {
         varDailyCost = varAmount / 7;
       } else if (paymentPeriod === 'Fortnightly') {
         varDailyCost = varAmount / 2 / 7;
@@ -249,7 +252,9 @@ export class MemberFinancialStats extends Component {
         let varDays = varEndDate.diff(varStartDate, 'days') + 1;
         let paymentPeriod = billing.billingPeriod;
         let varDailyCost = 0;
-        if (paymentPeriod === 'Weekly') {
+        if (paymentPeriod === 'Daily') {
+          varDailyCost = varAmount;
+        } else if (paymentPeriod === 'Weekly') {
           varDailyCost = varAmount / 7;
         } else if (paymentPeriod === 'Fortnightly') {
           varDailyCost = varAmount / 2 / 7;
@@ -263,7 +268,9 @@ export class MemberFinancialStats extends Component {
     let paymentPeriod = billing.billingPeriod;
     cost = billing.billingAmount;
     let dailyCost = 0;
-    if (paymentPeriod === 'Weekly') {
+    if (paymentPeriod === 'Daily') {
+      dailyCost = cost;
+    } else if (paymentPeriod === 'Weekly') {
       dailyCost = cost / 7;
     } else if (paymentPeriod === 'Fortnightly') {
       dailyCost = cost / 2 / 7;
@@ -418,6 +425,14 @@ export class MemberFinancialStats extends Component {
     members.forEach(member => {
       let memberStatus = memberStatusInDates(member, fromDate, toDate);
       let previousMemberStatus = memberPreviousStatus(member);
+      console.log(
+        'getMemberData Status:' +
+          member.values['Member ID'] +
+          ' ' +
+          member.values['Status'] +
+          ' ' +
+          memberStatus,
+      );
 
       if (memberStatus === 'Active') {
         if (previousMemberStatus === 'Frozen') {

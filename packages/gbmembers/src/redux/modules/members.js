@@ -362,6 +362,8 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('synchingBilling', synchingBilling);
     }
     case types.SET_BILLING_CUSTOMERS: {
+      console.log('SET_BILLING_CUSTOMERS 11');
+
       return state
         .set('billingCustomersLoading', false)
         .set('billingCustomers', payload.billingCustomers)

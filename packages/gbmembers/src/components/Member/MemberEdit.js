@@ -352,7 +352,7 @@ export const MemberEdit = ({
                 <PhotoForm memberItem={memberItem} setIsDirty={setIsDirty} />
               </span>
             </span>
-            {/*
+            {
               <span className="line">
                 <div>
                   <label htmlFor="billingId">Billing Customer Id</label>
@@ -437,6 +437,20 @@ export const MemberEdit = ({
                   />
                 </div>
                 <div>
+                  <label htmlFor="billingPayment">Payment</label>
+                  <input
+                    type="text"
+                    name="billingPayment"
+                    id="billingPayment"
+                    size="5"
+                    ref={input => (this.input = input)}
+                    defaultValue={memberItem.values['Payment']}
+                    onChange={e =>
+                      handleChange(memberItem, 'Payment', e, setIsDirty)
+                    }
+                  />
+                </div>
+                <div>
                   <label htmlFor="emailsReceivedCount">
                     emailsReceivedCount
                   </label>
@@ -491,7 +505,7 @@ export const MemberEdit = ({
                   />
                 </div>
               </span>
-            */}
+            }
             <span className="line">
               <div>
                 <label

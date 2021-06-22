@@ -253,6 +253,31 @@ export function* fetchCurrentMember(action) {
       belts: appSettings.belts,
       user: user.user,
     };
+    if (action.payload.billingService === 'Bambora') {
+      yield put(
+        actions.setBillingInfo({
+          statusCode: submission.submission.values['Status'],
+          statusDescription: submission.submission.values['Status'],
+          addressLine1: submission.submission.values['Address'],
+          addressPostCode: submission.submission.values['Postcode'],
+          addressState: submission.submission.values['State'],
+          addressSuburb: submission.submission.values['Suburb'],
+          customerFirstName: submission.submission.values['First Name'],
+          customerName: submission.submission.values['Last Name'],
+          email: submission.submission.values['Email'],
+          customerBillingId:
+            submission.submission.values['Billing Customer Id'],
+          mobilePhone: submission.submission.values['Phone Number'],
+          nextBillingDate: submission.submission.values['Next Billing Date'],
+          paymentMethod: submission.submission.values['Payment Method'],
+          paymentPeriod: submission.submission.values['Billing Period'],
+          customerReference:
+            submission.submission.values['Billing Customer Id'],
+          paymentAmountInCents:
+            parseFloat(submission.submission.values['Payment'], 2) * 100,
+        }),
+      );
+    }
     yield put(actions.setCurrentMember(memberInfo));
     /*
 
@@ -1372,7 +1397,9 @@ export function* refundTransaction(action) {
   args.space = appSettings.spaceSlug;
   args.billingService = appSettings.billingCompany;
   args.customerId =
-    action.payload.memberItem.values['Billing Customer Reference'];
+    appSettings.billingCompany === 'Bambora'
+      ? action.payload.memberItem.values['Member ID']
+      : action.payload.memberItem.values['Billing Customer Reference'];
   args.transactionId = action.payload.transactionId;
   args.bankReceiptId = action.payload.bankReceiptId;
   args.refundAmount = action.payload.refundAmount;
@@ -1561,80 +1588,104 @@ export function* fetchBillingCustomers(action) {
   args.space = appSettings.spaceSlug;
   args.billingService = appSettings.billingCompany;
   args.active = true;
-  axios
-    .post(appSettings.kineticBillingServerUrl + getCustomersUrl, args)
-    .then(resultActive => {
-      if (resultActive.data.error && resultActive.data.error > 0) {
-        console.log(
-          'loadBillingCustomers Error: ' + resultActive.data.errorMessage,
-        );
-        action.payload.addNotification(
-          NOTICE_TYPES.ERROR,
-          resultActive.data.errorMessage,
-          'Get Billing Customers',
-        );
-      } else {
-        console.log(
-          '#### loadBillingCustomers ACTIVE # data = ' +
-            JSON.stringify(resultActive.data.data),
-        );
+  if (appSettings.billingCompany === 'Bambora') {
+    let billingCustomers = [];
+    action.payload.allMembers.forEach((member, i) => {
+      if (member.values['Billing User'] === 'YES') {
+        console.log('fetchBillingCustomers 22:' + member.values['Status']);
+        billingCustomers[billingCustomers.length] = {
+          customerId: member.values['Billing Customer Id'],
+          status: member.values['Status'],
+          firstName: member.values['First Name'],
+          lastName: member.values['Last Name'],
+          billingAmount: member.values['Payment'],
+          contractStartDate: member.values['Billing Start Date'],
+          billingPeriod: member.values['Billing Period'],
+          paymentMethod: member.values['Payment Method'],
+        };
       }
-      args.active = false;
-      axios
-        .post(appSettings.kineticBillingServerUrl + getCustomersUrl, args)
-        .then(resultInactive => {
-          if (resultInactive.data.error && resultInactive.data.error > 0) {
-            console.log(
-              'loadBillingCustomers Error: ' + resultInactive.data.errorMessage,
-            );
-            action.payload.addNotification(
-              NOTICE_TYPES.ERROR,
-              resultInactive.data.errorMessage,
-              'Get Billing Customers',
-            );
-          } else {
-            console.log(
-              '#### loadBillingCustomers INACTIVE # data = ' +
-                JSON.stringify(resultInactive.data.data),
-            );
-            if (action.payload.createBillingMembers !== undefined) {
-              action.payload.createBillingMembers({
-                customers: resultActive.data.data.concat(
-                  resultInactive.data.data,
-                ),
-                setBillingCustomers: action.payload.setBillingCustomers,
-                fetchMembers: action.payload.fetchMembers,
-                appSettings: appSettings,
-                allMembers: action.payload.allMembers,
-              });
-            } else if (action.payload.syncBillingMembers !== undefined) {
-              action.payload.syncBillingMembers({
-                customers: resultActive.data.data.concat(
-                  resultInactive.data.data,
-                ),
-                setBillingCustomers: action.payload.setBillingCustomers,
-                fetchMembers: action.payload.fetchMembers,
-                appSettings: appSettings,
-                allMembers: action.payload.allMembers,
-              });
-            } else if (action.payload.setBillingCustomers) {
-              action.payload.setBillingCustomers({
-                billingCustomers: resultActive.data.data.concat(
-                  resultInactive.data.data,
-                ),
-              });
-            }
-          }
-        })
-        .catch(error => {
-          console.log(util.inspect(error));
-          action.payload.setSystemError(error);
-        });
-    })
-    .catch(error => {
-      console.log(util.inspect(error));
-      action.payload.setSystemError(error);
     });
+
+    action.payload.setBillingCustomers({
+      billingCustomers: billingCustomers,
+    });
+  } else {
+    axios
+      .post(appSettings.kineticBillingServerUrl + getCustomersUrl, args)
+      .then(resultActive => {
+        if (resultActive.data.error && resultActive.data.error > 0) {
+          console.log(
+            'loadBillingCustomers Error: ' + resultActive.data.errorMessage,
+          );
+          action.payload.addNotification(
+            NOTICE_TYPES.ERROR,
+            resultActive.data.errorMessage,
+            'Get Billing Customers',
+          );
+        } else {
+          console.log(
+            '#### loadBillingCustomers ACTIVE # data = ' +
+              JSON.stringify(resultActive.data.data),
+          );
+        }
+        args.active = false;
+        axios
+          .post(appSettings.kineticBillingServerUrl + getCustomersUrl, args)
+          .then(resultInactive => {
+            if (resultInactive.data.error && resultInactive.data.error > 0) {
+              console.log(
+                'loadBillingCustomers Error: ' +
+                  resultInactive.data.errorMessage,
+              );
+              action.payload.addNotification(
+                NOTICE_TYPES.ERROR,
+                resultInactive.data.errorMessage,
+                'Get Billing Customers',
+              );
+            } else {
+              console.log(
+                '#### loadBillingCustomers INACTIVE # data = ' +
+                  JSON.stringify(resultInactive.data.data),
+              );
+              if (action.payload.createBillingMembers !== undefined) {
+                action.payload.createBillingMembers({
+                  customers: resultActive.data.data.concat(
+                    resultInactive.data.data,
+                  ),
+                  setBillingCustomers: action.payload.setBillingCustomers,
+                  fetchMembers: action.payload.fetchMembers,
+                  appSettings: appSettings,
+                  allMembers: action.payload.allMembers,
+                });
+              } else if (action.payload.syncBillingMembers !== undefined) {
+                action.payload.syncBillingMembers({
+                  customers: resultActive.data.data.concat(
+                    resultInactive.data.data,
+                  ),
+                  setBillingCustomers: action.payload.setBillingCustomers,
+                  fetchMembers: action.payload.fetchMembers,
+                  appSettings: appSettings,
+                  allMembers: action.payload.allMembers,
+                });
+              } else if (action.payload.setBillingCustomers) {
+                action.payload.setBillingCustomers({
+                  billingCustomers: resultActive.data.data.concat(
+                    resultInactive.data.data,
+                  ),
+                });
+              }
+            }
+          })
+          .catch(error => {
+            console.log(util.inspect(error));
+            action.payload.setSystemError(error);
+          });
+      })
+      .catch(error => {
+        console.log(util.inspect(error));
+        action.payload.setSystemError(error);
+      });
+  }
 }
 
 export function* createBillingMembers(action) {

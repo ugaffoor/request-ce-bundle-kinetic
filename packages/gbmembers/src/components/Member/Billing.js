@@ -670,7 +670,8 @@ export class PaymentHistory extends Component {
         Cell: row =>
           !this.isPaymentRefunded(row.original['_id'], paymentsRefunded) &&
           (row.original.paymentStatus === 'S' ||
-            row.original.paymentStatus === 'Settled') ? (
+            row.original.paymentStatus === 'Settled' ||
+            row.original.paymentStatus === 'Approved') ? (
             <button
               type="button"
               className="btn btn-primary"
@@ -1002,10 +1003,21 @@ export class BillingInfo extends Component {
                     </tr>
                     <tr>
                       <td>Billing Status:</td>
-                      <td>
-                        {this.props.billingInfo.statusCode}-
-                        {this.props.billingInfo.statusDescription}
-                      </td>
+                      {getAttributeValue(
+                        this.props.space,
+                        'Billing Company',
+                      ) === 'PaySmart' && (
+                        <td>
+                          {this.props.billingInfo.statusCode}-
+                          {this.props.billingInfo.statusDescription}
+                        </td>
+                      )}
+                      {getAttributeValue(
+                        this.props.space,
+                        'Billing Company',
+                      ) !== 'PaySmart' && (
+                        <td>{this.props.billingInfo.statusCode}</td>
+                      )}
                     </tr>
                     <tr>
                       <td>Name:</td>
@@ -1089,16 +1101,19 @@ export class BillingInfo extends Component {
                         </td>
                       </tr>
                     )}
-                    <tr>
-                      <td>Successful Payments:</td>
-                      <td>
-                        {'$' +
-                          Number(
-                            this.props.billingInfo
-                              .totalPaymentsSuccessfulAmount,
-                          )}
-                      </td>
-                    </tr>
+                    {getAttributeValue(this.props.space, 'Billing Company') ===
+                      'PaySmart' && (
+                      <tr>
+                        <td>Successful Payments:</td>
+                        <td>
+                          {'$' +
+                            Number(
+                              this.props.billingInfo
+                                .totalPaymentsSuccessfulAmount,
+                            )}
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
                 <hr />
@@ -1611,13 +1626,19 @@ export const BillingContainer = compose(
       setSystemError,
     }) => () => {
       fetchPaymentHistory({
-        billingRef: memberItem.values['Billing Customer Id'],
+        billingRef:
+          getAttributeValue(space, 'Billing Company') === 'Bambora'
+            ? memberItem.values['Member ID']
+            : memberItem.values['Billing Customer Id'],
         paymentType: 'ALL',
         paymentMethod: 'ALL',
         paymentSource: 'ALL',
         dateField: 'PAYMENT',
         //dateFrom: '',
-        dateTo: moment.utc().format('YYYY-MM-DD'),
+        dateTo: moment
+          .utc()
+          .add(1, 'days')
+          .format('YYYY-MM-DD'),
         history: memberItem.myThis.props.history,
         setPaymentHistory: memberItem.myThis.props.setPaymentHistory,
         internalPaymentType: 'customer',
@@ -1677,20 +1698,29 @@ export const BillingContainer = compose(
       if (member === undefined) {
         this.props.history.push('/Member/' + this.props.match.params['id']);
       } else {
-        if (member.values['Billing Customer Id']) {
-          this.props.fetchBillingInfo({
-            billingRef: member.values['Billing Customer Id'],
-            history: this.props.history,
-            myThis: this,
-            setBillingInfo: this.props.setBillingInfo,
-            addNotification: this.props.addNotification,
-            setSystemError: this.props.setSystemError,
-          });
+        if (
+          getAttributeValue(this.props.space, 'Billing Company') === 'Bambora'
+        ) {
+        } else {
+          if (member.values['Billing Customer Id']) {
+            this.props.fetchBillingInfo({
+              billingRef: member.values['Billing Customer Id'],
+              history: this.props.history,
+              myThis: this,
+              setBillingInfo: this.props.setBillingInfo,
+              addNotification: this.props.addNotification,
+              setSystemError: this.props.setSystemError,
+            });
+          }
         }
         this.props.fetchCurrentMember({
           id: this.props.match.params['id'],
           myThis: this,
           forBilling: true,
+          billingService: getAttributeValue(
+            this.props.space,
+            'Billing Company',
+          ),
         });
       }
 
@@ -1730,17 +1760,26 @@ export const BillingContainer = compose(
         if (member === undefined) {
           this.props.history.push('/Member/' + this.props.match.params['id']);
         } else {
-          this.props.fetchBillingInfo({
-            billingRef: member.values['Billing Customer Id'],
-            history: this.props.history,
-            myThis: this,
-            setBillingInfo: this.props.setBillingInfo,
-            addNotification: this.props.addNotification,
-            setSystemError: this.props.setSystemError,
-          });
+          if (
+            getAttributeValue(this.props.space, 'Billing Company') === 'Bambora'
+          ) {
+          } else {
+            this.props.fetchBillingInfo({
+              billingRef: member.values['Billing Customer Id'],
+              history: this.props.history,
+              myThis: this,
+              setBillingInfo: this.props.setBillingInfo,
+              addNotification: this.props.addNotification,
+              setSystemError: this.props.setSystemError,
+            });
+          }
           this.props.fetchCurrentMember({
             id: this.props.match.params['id'],
             myThis: this,
+            billingService: getAttributeValue(
+              this.props.space,
+              'Billing Company',
+            ),
           });
         }
       }

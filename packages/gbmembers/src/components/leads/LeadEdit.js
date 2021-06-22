@@ -105,113 +105,125 @@ export class LeadEdit extends Component {
             <div className="section1">
               <h3>Edit Lead</h3>
               <hr />
-              {
+              {/*
                 <span>
-                  <div>
-                    <label htmlFor="emailsReceivedCount">
-                      emailsReceivedCount
-                    </label>
-                    <input
-                      type="text"
-                      name="emailsReceivedCount"
-                      id="emailsReceivedCount"
-                      size="5"
-                      ref={input => (this.input = input)}
-                      defaultValue={
-                        this.props.leadItem.values['Emails Received Count']
-                      }
-                      onChange={e =>
-                        handleChange(
-                          this.props.leadItem,
-                          'Emails Received Count',
-                          e,
-                          this.setIsDirty,
-                        )
-                      }
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="status">Status</label>
-                    <input
-                      type="text"
-                      name="status"
-                      id="status"
-                      size="5"
-                      ref={input => (this.input = input)}
-                      defaultValue={this.props.leadItem.values['Status']}
-                      onChange={e =>
-                        handleChange(
-                          this.props.leadItem,
-                          'Status',
-                          e,
-                          this.setIsDirty,
-                        )
-                      }
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="leadState">Lead State</label>
-                    <input
-                      type="text"
-                      name="leadState"
-                      id="leadState"
-                      size="5"
-                      ref={input => (this.input = input)}
-                      defaultValue={this.props.leadItem.values['Lead State']}
-                      onChange={e =>
-                        handleChange(
-                          this.props.leadItem,
-                          'Lead State',
-                          e,
-                          this.setIsDirty,
-                        )
-                      }
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="convertedMemberID">
-                      Converted Member ID
-                    </label>
-                    <input
-                      type="text"
-                      name="convertedMemberID"
-                      id="convertedMemberID"
-                      size="5"
-                      ref={input => (this.input = input)}
-                      defaultValue={
-                        this.props.leadItem.values['Converted Member ID']
-                      }
-                      onChange={e =>
-                        handleChange(
-                          this.props.leadItem,
-                          'Converted Member ID',
-                          e,
-                          this.setIsDirty,
-                        )
-                      }
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="history">History</label>
-                    <input
-                      type="text"
-                      name="history"
-                      id="history"
-                      size="5"
-                      ref={input => (this.input = input)}
-                      defaultValue={this.props.leadItem.values['History']}
-                      onChange={e =>
-                        handleChange(
-                          this.props.leadItem,
-                          'History',
-                          e,
-                          this.setIsDirty,
-                        )
-                      }
-                    />
-                  </div>
+                <div>
+                  <label htmlFor="emailsReceivedCount">
+                    emailsReceivedCount
+                  </label>
+                  <input
+                    type="text"
+                    name="emailsReceivedCount"
+                    id="emailsReceivedCount"
+                    size="5"
+                    ref={input => (this.input = input)}
+                    defaultValue={
+                      this.props.leadItem.values['Emails Received Count']
+                    }
+                    onChange={e =>
+                      handleChange(
+                        this.props.leadItem,
+                        'Emails Received Count',
+                        e,
+                        this.setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+                <div>
+                  <label htmlFor="status">
+                    Status
+                  </label>
+                  <input
+                    type="text"
+                    name="status"
+                    id="status"
+                    size="5"
+                    ref={input => (this.input = input)}
+                    defaultValue={
+                      this.props.leadItem.values['Status']
+                    }
+                    onChange={e =>
+                      handleChange(
+                        this.props.leadItem,
+                        'Status',
+                        e,
+                        this.setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+                <div>
+                  <label htmlFor="leadState">
+                    Lead State
+                  </label>
+                  <input
+                    type="text"
+                    name="leadState"
+                    id="leadState"
+                    size="5"
+                    ref={input => (this.input = input)}
+                    defaultValue={
+                      this.props.leadItem.values['Lead State']
+                    }
+                    onChange={e =>
+                      handleChange(
+                        this.props.leadItem,
+                        'Lead State',
+                        e,
+                        this.setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+                <div>
+                  <label htmlFor="convertedMemberID">
+                    Converted Member ID
+                  </label>
+                  <input
+                    type="text"
+                    name="convertedMemberID"
+                    id="convertedMemberID"
+                    size="5"
+                    ref={input => (this.input = input)}
+                    defaultValue={
+                      this.props.leadItem.values['Converted Member ID']
+                    }
+                    onChange={e =>
+                      handleChange(
+                        this.props.leadItem,
+                        'Converted Member ID',
+                        e,
+                        this.setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+                <div>
+                  <label htmlFor="history">
+                    History
+                  </label>
+                  <input
+                    type="text"
+                    name="history"
+                    id="history"
+                    size="5"
+                    ref={input => (this.input = input)}
+                    defaultValue={
+                      this.props.leadItem.values['History']
+                    }
+                    onChange={e =>
+                      handleChange(
+                        this.props.leadItem,
+                        'History',
+                        e,
+                        this.setIsDirty,
+                      )
+                    }
+                  />
+                </div>
                 </span>
-              }
+            */}
               <span className="line">
                 <div>
                   <label
