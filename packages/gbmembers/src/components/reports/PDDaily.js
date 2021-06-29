@@ -7,6 +7,12 @@ import { getJson } from '../Member/MemberUtils';
 export class PDDailyReport extends Component {
   constructor(props) {
     super(props);
+    moment.locale(
+      this.props.profile.preferredLocale === null
+        ? this.props.space.defaultLocale
+        : this.props.profile.preferredLocale,
+    );
+
     let startOfWeek = moment().startOf('week');
     let endOfWeek = moment().endOf('week');
     let leads = this.props.leadsByDate;
@@ -424,8 +430,8 @@ export class PDDailyReport extends Component {
               Previous Week
             </button>
             <h6>
-              {this.state.startOfWeek.format('DD-MM-YYYY')} to{' '}
-              {this.state.endOfWeek.format('DD-MM-YYYY')}
+              {this.state.startOfWeek.format('L')} to{' '}
+              {this.state.endOfWeek.format('L')}
             </h6>
             <button
               type="button"

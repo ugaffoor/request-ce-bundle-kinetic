@@ -18,6 +18,8 @@ const mapStateToProps = state => ({
   fetchingClassSchedules: state.member.classes.fetchingClassSchedules,
   fetchingClassAttendances: state.member.attendance.fetchingClassAttendances,
   classAttendances: state.member.attendance.classAttendances,
+  profile: state.member.app.profile,
+  space: state.member.app.space,
 });
 const mapDispatchToProps = {
   fetchClassSchedules: classActions.fetchClassSchedules,
@@ -267,9 +269,10 @@ export class GradingDetail extends Component {
                         </h4>
                         <span className="lastPromotion">
                           {member.values['Last Promotion']
-                            ? new Date(
+                            ? moment(
                                 member.values['Last Promotion'],
-                              ).toLocaleDateString()
+                                'YYYY-MM-DD',
+                              ).format('L')
                             : 'Not Set'}
                         </span>
                         <GradingStatus
@@ -334,7 +337,13 @@ export const GradingContainer = compose(
   connect(mapStateToProps, mapDispatchToProps),
   withHandlers({}),
   lifecycle({
-    componentWillMount() {},
+    componentWillMount() {
+      moment.locale(
+        this.props.profile.preferredLocale === null
+          ? this.props.space.defaultLocale
+          : this.props.profile.preferredLocale,
+      );
+    },
     componentWillReceiveProps(nextProps) {},
     componentDidMount() {
       $('.content')

@@ -14,6 +14,8 @@ import SVGInline from 'react-svg-inline';
 const mapStateToProps = state => ({
   attendances: state.member.attendance.memberAttendances,
   attendancesLoading: state.member.attendance.fetchingMemberAttendances,
+  profile: state.member.app.profile,
+  space: state.member.app.space,
 });
 const mapDispatchToProps = {
   fetchMemberAttendances: attendanceActions.fetchMemberAttendances,
@@ -57,6 +59,12 @@ export class PromotionReviewDialog extends Component {
   };
   constructor(props) {
     super(props);
+    moment.locale(
+      this.props.profile.preferredLocale === null
+        ? this.props.space.defaultLocale
+        : this.props.profile.preferredLocale,
+    );
+
     this.getData = this.getData.bind(this);
     let fromDate =
       this.props.memberItem.values['Last Promotion'] !== ''
@@ -161,9 +169,10 @@ export class PromotionReviewDialog extends Component {
                   {this.props.memberItem.values['Last Name']}
                 </h4>
                 <span className="lastPromotion" title="Last Promotion Date">
-                  {new Date(
+                  {moment(
                     this.props.memberItem.values['Last Promotion'],
-                  ).toLocaleDateString()}
+                    'YYYY-MM-DD',
+                  ).format('L')}
                 </span>
                 <GradingStatus
                   memberItem={this.props.memberItem}

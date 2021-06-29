@@ -153,6 +153,11 @@ class EventResult extends Component {
 export class CallEvent extends Component {
   constructor(props) {
     super(props);
+    moment.locale(
+      this.props.profile.preferredLocale === null
+        ? this.props.space.defaultLocale
+        : this.props.profile.preferredLocale,
+    );
 
     this.state = {
       callText: substituteFields(

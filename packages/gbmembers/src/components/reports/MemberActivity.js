@@ -21,6 +21,7 @@ import MomentLocaleUtils, {
   parseDate,
 } from 'react-day-picker/moment';
 import { getLocalePreference } from '../Member/MemberUtils';
+import { I18n } from '../../../../app/src/I18nProvider';
 
 export const contact_date_format = 'YYYY-MM-DD HH:mm';
 
@@ -58,7 +59,7 @@ export class MemberActivityReport extends Component {
       { title: 'Email', field: 'email', tooltip: true },
       { title: 'Phone', field: 'phone', tooltip: true },
       { title: 'Address', field: 'address', tooltip: true },
-      { title: 'Suburb', field: 'suburb', tooltip: true },
+      { title: K.translate('Suburb'), field: 'suburb', tooltip: true },
       { title: 'State', field: 'state' },
       { title: 'Age (Years)', field: 'age' },
       { title: 'Member Type', field: 'memberType' },
@@ -142,7 +143,7 @@ export class MemberActivityReport extends Component {
     ];
     this.hiddenColumns = [
       { label: 'Address', value: 'address' },
-      { label: 'Suburb', value: 'suburb' },
+      { label: K.translate('Suburb'), value: 'suburb' },
       { label: 'State', value: 'state' },
       { label: 'Age (Years)', value: 'age' },
       { label: 'Member Type', value: 'memberType' },
@@ -205,7 +206,7 @@ export class MemberActivityReport extends Component {
           { label: 'Email', value: 'email' },
           { label: 'Phone', value: 'phone' },
           { label: 'Address', value: 'address' },
-          { label: 'Suburb', value: 'suburb' },
+          { label: K.translate('Suburb'), value: 'suburb' },
           { label: 'State', value: 'state' },
           { label: 'Age (Years)', value: 'age' },
           { label: 'Member Type', value: 'memberType' },
@@ -260,7 +261,7 @@ export class MemberActivityReport extends Component {
       { label: 'Email', value: 'email' },
       { label: 'Phone', value: 'phone' },
       { label: 'Address', value: 'address' },
-      { label: 'Suburb', value: 'suburb' },
+      { label: K.translate('Suburb'), value: 'suburb' },
       { label: 'State', value: 'state' },
       { label: 'Age (Years)', value: 'age' },
       { label: 'Member Type', value: 'memberType' },

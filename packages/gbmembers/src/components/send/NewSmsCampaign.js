@@ -669,7 +669,24 @@ export const SmsCampaignContainer = compose(
       createMemberActivities,
       createLeadActivities,
       fetchMembers,
+      escapeRegExp,
     }) => (ids, phoneNumbers, content, space, submissionType) => {
+      var matches = content.match(/\$\{.*?\('(.*?)'\)\}/g);
+      if (matches !== null) {
+        matches.forEach(function(value, index) {
+          console.log(value);
+          if (value.indexOf('spaceAttributes') !== -1) {
+            content = content.replace(
+              new RegExp(
+                value.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1'),
+                'g',
+              ),
+              space.attributes[value.split("'")[1]][0],
+            );
+          }
+        });
+      }
+
       campaignItem.values['From Number'] =
         space.attributes['School Telephone'][0];
       campaignItem.values['Recipients'] = ids;

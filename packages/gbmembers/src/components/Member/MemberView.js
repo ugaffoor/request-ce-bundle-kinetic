@@ -643,7 +643,7 @@ export const MemberView = ({
                 <div className="iconItem">
                   <SVGInline svg={dobIcon} className="icon" />
                   <span className="value">
-                    {new Date(memberItem.values['DOB']).toLocaleDateString()}
+                    {moment(memberItem.values['DOB'], 'YYYY-MM-DD').format('L')}
                   </span>
                 </div>
                 <div className="iconItem">
@@ -838,9 +838,10 @@ export const MemberView = ({
                   <p>
                     <b>{memberItem.values['Ranking Belt']}</b> SINCE{' '}
                     <b>
-                      {new Date(
+                      {moment(
                         memberItem.values['Last Promotion'],
-                      ).toLocaleDateString()}
+                        'YYYY-MM-DD',
+                      ).format('L')}
                     </b>
                   </p>
                   <GradingStatus
@@ -864,13 +865,13 @@ export const MemberView = ({
               >
                 <p>
                   Cash paid for period{' '}
-                  {new Date(
+                  {moment(
                     memberItem.values['Billing Cash Term Start Date'],
-                  ).toLocaleDateString()}{' '}
+                  ).format('L')}{' '}
                   to{' '}
-                  {new Date(
+                  {moment(
                     memberItem.values['Billing Cash Term End Date'],
-                  ).toLocaleDateString()}
+                  ).format('L')}
                 </p>
                 <p>
                   Payment:{' '}
@@ -1029,6 +1030,8 @@ export const MemberView = ({
           <div>
             <MemberViewNotes
               saveRemoveMemberNote={saveRemoveMemberNote}
+              space={space}
+              profile={profile}
               memberItem={memberItem}
             />
           </div>
@@ -1036,6 +1039,7 @@ export const MemberView = ({
             <MemberFiles
               memberItem={memberItem}
               space={space}
+              profile={profile}
               deleteMemberFile={deleteMemberFile}
             />
           </div>
@@ -1046,13 +1050,22 @@ export const MemberView = ({
               campaignItem={campaignItem}
               campaignLoading={campaignLoading}
               space={space}
+              profile={profile}
             />
           </div>
           <div>
-            <EmailsReceived submission={memberItem} />
+            <EmailsReceived
+              submission={memberItem}
+              space={space}
+              profile={profile}
+            />
           </div>
           <div>
-            <MemberSMS memberItem={memberItem} />
+            <MemberSMS
+              memberItem={memberItem}
+              space={space}
+              profile={profile}
+            />
           </div>
           <div>
             <Requests
@@ -1063,12 +1076,15 @@ export const MemberView = ({
                       memberItem.requestContent,
                     )
               }
+              space={space}
+              profile={profile}
             />
           </div>
           <div>
             <MemberOrders
               memberItem={memberItem}
               space={space}
+              profile={profile}
               snippets={snippets}
             />
           </div>

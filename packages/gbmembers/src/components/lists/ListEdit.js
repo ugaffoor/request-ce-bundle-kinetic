@@ -28,6 +28,7 @@ const mapStateToProps = state => ({
   belts: state.member.app.belts,
   memberStatusValues: state.member.app.memberStatusValues,
   profile: state.member.app.profile,
+  space: state.member.app.space,
 });
 
 const mapDispatchToProps = {
@@ -47,6 +48,7 @@ export const ListEditView = ({
   match,
   memberStatusValues,
   profile,
+  space,
 }) => (
   <div>
     <StatusMessagesContainer />
@@ -61,6 +63,7 @@ export const ListEditView = ({
       match={match}
       memberStatusValues={memberStatusValues}
       profile={profile}
+      space={space}
     />
   </div>
 );
@@ -89,6 +92,11 @@ export class ListEditHome extends Component {
   constructor(props) {
     super(props);
     compThis = this;
+    moment.locale(
+      this.props.profile.preferredLocale === null
+        ? this.props.space.defaultLocale
+        : this.props.profile.preferredLocale,
+    );
 
     this._columns = this.getColumns();
     let data = [];

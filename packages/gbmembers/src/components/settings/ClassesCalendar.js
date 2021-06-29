@@ -9,6 +9,12 @@ import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const DragAndDropCalendar = withDragAndDrop(Calendar);
 
+moment.locale('en', {
+  week: {
+    dow: 1,
+    doy: 1,
+  },
+});
 const localizer = momentLocalizer(moment); // or globalizeLocalizer
 
 function EventWeek({ event }) {
@@ -29,6 +35,8 @@ export class ClassesCalendar extends Component {
     this.editClass = this.props.editClass.bind(this);
     this.deleteClass = this.props.deleteClass.bind(this);
     this.newClass = this.props.newClass.bind(this);
+    this.deleteEvent = this.deleteEvent.bind(this);
+    this.applyDates = this.applyDates.bind(this);
     this.programs = this.props.programs;
     this.additionalPrograms = this.props.additionalPrograms;
     this.space = this.props.space;

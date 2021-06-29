@@ -294,7 +294,7 @@ class PayNow extends Component {
         console.log(error);
       });
   }
-  processPaylinePayment(
+  processBamboraPayment(
     posServiceURL,
     spaceSlug,
     posSystem,
@@ -371,8 +371,8 @@ class PayNow extends Component {
     var posSystem = getAttributeValue(this.props.space, 'POS System');
     var posServiceURL = getAttributeValue(this.props.space, 'POS Service URL');
     var schoolName = getAttributeValue(this.props.space, 'School Name');
-    if (posSystem === 'Payline') {
-      this.processPaylinePayment(
+    if (posSystem === 'Bambora') {
+      this.processBamboraPayment(
         posServiceURL,
         this.props.spaceSlug,
         posSystem,

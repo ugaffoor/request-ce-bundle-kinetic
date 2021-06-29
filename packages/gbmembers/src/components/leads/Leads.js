@@ -24,6 +24,7 @@ import {
   reminder_date_format,
   gmt_format,
   getLocalePreference,
+  formatDateValue,
 } from './LeadsUtils';
 import ReactTable from 'react-table';
 import { StatusMessagesContainer } from '../StatusMessages';
@@ -358,63 +359,49 @@ export class TasksDetail extends Component {
       return (
         <span className="notesCell phone">
           <img src={phone} alt="Phone Call" title="Phone Call" />
-          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format(
-            'DD/MM/YYYY LT',
-          )}
+          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format('L LT')}
         </span>
       );
     } else if (row.original.contactMethod === 'email') {
       return (
         <span className="notesCell email">
           <img src={mail} alt="Email" title="Phone Call" />
-          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format(
-            'DD/MM/YYYY LT',
-          )}
+          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format('L LT')}
         </span>
       );
     } else if (row.original.contactMethod === 'in_person') {
       return (
         <span className="notesCell in-person">
           <img src={in_person} alt="In Person" title="Phone Call" />
-          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format(
-            'DD/MM/YYYY LT',
-          )}
+          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format('L LT')}
         </span>
       );
     } else if (row.original.contactMethod === 'intro_class') {
       return (
         <span className="notesCell intro_class">
           <img src={intro_class} alt="Intro Class" title="Phone Call" />
-          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format(
-            'DD/MM/YYYY LT',
-          )}
+          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format('L LT')}
         </span>
       );
     } else if (row.original.contactMethod === 'free_class') {
       return (
         <span className="notesCell free_class">
           <img src={free_class} alt="Free Class" title="Phone Call" />
-          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format(
-            'DD/MM/YYYY LT',
-          )}
+          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format('L LT')}
         </span>
       );
     } else if (row.original.contactMethod === 'attended_class') {
       return (
         <span className="notesCell attended_class">
           <img src={attended_class} alt="Attended Class" title="Phone Call" />
-          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format(
-            'DD/MM/YYYY LT',
-          )}
+          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format('L LT')}
         </span>
       );
     } else if (row.original.contactMethod === 'noshow_class') {
       return (
         <span className="notesCell noshow_class">
           <img src={noshow_class} alt="Class No Show" title="Class No Show" />
-          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format(
-            'DD/MM/YYYY LT',
-          )}
+          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format('L LT')}
         </span>
       );
     } else {
@@ -706,9 +693,7 @@ export class TasksDetail extends Component {
         leads.push({
           _id: lead['id'],
           name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
-          lastContact: moment(lead.values['Last Contact']).format(
-            'DD/MM/YYYY LT',
-          ),
+          lastContact: moment(lead.values['Last Contact']).format('L LT'),
           attentionRequired: lead.values['Is New Reply Received'],
         });
       }
@@ -1231,14 +1216,14 @@ export class LeadsCreatedChart extends Component {
         createdDate.isSameOrBefore(toDate)
       ) {
         let objFound = data.find(
-          obj => obj['Date Created'] === createdDate.format('DD-MM-YYYY'),
+          obj => obj['Date Created'] === createdDate.format('L'),
         );
         if (objFound) {
           objFound['Leads Created'] = objFound['Leads Created'] + 1;
         } else {
           data.push({
             date: createdDate,
-            'Date Created': createdDate.format('DD-MM-YYYY'),
+            'Date Created': createdDate.format('L'),
             'Leads Created': 1,
           });
         }
@@ -1539,8 +1524,7 @@ export class LeadsConversionChart extends Component {
       .find('input')
       .val();
     console.log('Date value:' + value.trim());
-    var dateValue =
-      value.trim() === '' ? '' : moment(value, 'L').format('YYYY-MM-DD');
+    var dateValue = value.trim() === '' ? '' : formatDateValue(value);
     if (value.trim() !== '' && dateValue === 'Invalid Date') return;
     if (value.trim() === '') dateValue = '';
 
@@ -1932,7 +1916,7 @@ export class SourceReferenceChart extends Component {
         createdDate.isSameOrBefore(toDate)
       ) {
         let objFound = data.find(
-          obj => obj['date'] === createdDate.format('DD-MM-YYYY'),
+          obj => obj['date'] === createdDate.format('L'),
         );
         if (
           !objFound &&
@@ -1940,7 +1924,7 @@ export class SourceReferenceChart extends Component {
             lead.values['Source Reference 2'] ||
             lead.values['Source Reference 3'])
         ) {
-          objFound = { date: createdDate.format('DD-MM-YYYY') };
+          objFound = { date: createdDate.format('L') };
           data.push(objFound);
         }
         if (lead.values['Source Reference 1']) {
@@ -2086,6 +2070,12 @@ export const LeadsContainer = compose(
   }),
   lifecycle({
     componentWillMount() {
+      moment.locale(
+        this.props.profile.preferredLocale === null
+          ? this.props.space.defaultLocale
+          : this.props.profile.preferredLocale,
+      );
+
       this.props.fetchLeads();
       this.props.fetchMembers();
       let timer = setInterval(tick, 60 * 1000 * 2, this); // refresh every 2 minutes

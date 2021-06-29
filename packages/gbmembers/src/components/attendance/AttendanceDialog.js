@@ -28,6 +28,7 @@ const mapStateToProps = state => ({
   attendances: state.member.attendance.memberAttendances,
   attendancesLoading: state.member.attendance.fetchingMemberAttendances,
   profile: state.member.app.profile,
+  space: state.member.app.space,
 });
 const mapDispatchToProps = {
   fetchMemberAttendances: attendanceActions.fetchMemberAttendances,
@@ -78,6 +79,12 @@ export class AttendanceDialog extends Component {
     });
   }
   componentWillMount() {
+    moment.locale(
+      this.props.profile.preferredLocale === null
+        ? this.props.space.defaultLocale
+        : this.props.profile.preferredLocale,
+    );
+
     this.props.fetchMemberAttendances({
       id: this.props.memberItem.id,
       fromDate: this.state.fromDate,

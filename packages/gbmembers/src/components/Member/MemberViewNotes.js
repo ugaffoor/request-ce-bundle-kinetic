@@ -50,8 +50,7 @@ export class MemberViewNotes extends Component {
       {
         accessor: 'contactDate',
         Header: 'Created Date',
-        Cell: row =>
-          moment(row.original.contactDate).format('DD-MM-YYYY h:mm A'),
+        Cell: row => moment(row.original.contactDate).format('L h:mm A'),
       },
       {
         accessor: 'submitter',

@@ -812,7 +812,13 @@ export const AttendanceContainer = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {},
+    componentWillMount() {
+      moment.locale(
+        this.props.profile.preferredLocale === null
+          ? this.props.space.defaultLocale
+          : this.props.profile.preferredLocale,
+      );
+    },
     componentWillReceiveProps(nextProps) {
       $('.content')
         .parent('div')[0]

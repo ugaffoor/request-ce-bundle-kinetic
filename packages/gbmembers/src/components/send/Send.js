@@ -16,6 +16,8 @@ import ReactSpinner from 'react16-spinjs';
 import 'react-datetime/css/react-datetime.css';
 import ReactTable from 'react-table';
 import { StatusMessagesContainer } from '../StatusMessages';
+import { email_received_date_format } from '../leads/LeadsUtils';
+import moment from 'moment';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -28,6 +30,8 @@ const mapStateToProps = state => ({
   individualSMSLoading: state.member.messaging.individualSMSLoading,
   allLeads: state.member.leads.allLeads,
   leadsLoading: state.member.leads.leadsLoading,
+  profile: state.app.profile,
+  space: state.member.app.space,
 });
 const mapDispatchToProps = {
   fetchEmailCampaigns: actions.fetchEmailCampaigns,
@@ -42,6 +46,7 @@ const mapDispatchToProps = {
 export class EmailCampaignsList extends Component {
   constructor(props) {
     super(props);
+
     let emailCampaigns = this.getData(this.props.emailCampaigns);
     this._columns = this.getColumns();
     this.getNestedTableData = this.getNestedTableData.bind(this);
@@ -111,7 +116,10 @@ export class EmailCampaignsList extends Component {
       return {
         _id: campaign['id'],
         subject: campaign.values['Subject'],
-        sentDate: campaign.values['Sent Date'],
+        sentDate: moment(
+          campaign.values['Sent Date'],
+          email_received_date_format,
+        ).format('L h:mm A'),
         recipients: campaign.values['Recipients'],
         body: campaign.values['Body'],
         opened: campaign.values['Opened By Members'],
@@ -344,7 +352,10 @@ export class SmsCampaignsList extends Component {
       return {
         _id: campaign['id'],
         content: campaign.values['SMS Content'],
-        sentDate: campaign.values['Sent Date'],
+        sentDate: moment(
+          campaign.values['Sent Date'],
+          email_received_date_format,
+        ).format('L h:mm A'),
         recipients: campaign.values['Recipients'],
       };
     });
@@ -769,7 +780,9 @@ export class IndividualSmsList extends Component {
     const data = individualSms.map(sms => {
       return {
         content: sms['Content'],
-        sentDate: sms['Date'],
+        sentDate: moment(sms['Date'], email_received_date_format).format(
+          'L h:mm A',
+        ),
         to: sms['id'] + ',' + sms['To'] + ',' + sms['Type'],
       };
     });
@@ -941,6 +954,12 @@ export const CampaignContainer = compose(
   withHandlers({}),
   lifecycle({
     componentWillMount() {
+      moment.locale(
+        this.props.profile.preferredLocale === null
+          ? this.props.space.defaultLocale
+          : this.props.profile.preferredLocale,
+      );
+
       if (this.props.allLeads.length === 0) {
         this.props.fetchLeads();
       }

@@ -182,7 +182,7 @@ export function* fetchPOSCheckout(action) {
     });
     if (submissions.length === 0) {
       checkout['User Name'] = action.payload.username;
-      checkout['Checkout Items'] = '{}';
+      checkout['Checkout Items'] = {};
 
       const { submission } = yield call(CoreAPI.createSubmission, {
         formSlug: 'pos-checkout',

@@ -28,6 +28,7 @@ const mapStateToProps = state => ({
   belts: state.member.app.belts,
   memberStatusValues: state.member.app.memberStatusValues,
   profile: state.member.app.profile,
+  space: state.member.app.space,
 });
 
 const mapDispatchToProps = {
@@ -46,6 +47,7 @@ export const ListNewView = ({
   addNewList,
   memberStatusValues,
   profile,
+  space,
 }) => (
   <div>
     <StatusMessagesContainer />
@@ -59,6 +61,7 @@ export const ListNewView = ({
       addNewList={addNewList}
       memberStatusValues={memberStatusValues}
       profile={profile}
+      space={space}
     />
   </div>
 );
@@ -77,7 +80,13 @@ export const ListNewContainer = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {},
+    componentWillMount() {
+      moment.locale(
+        this.props.profile.preferredLocale === null
+          ? this.props.space.defaultLocale
+          : this.props.profile.preferredLocale,
+      );
+    },
     componentWillReceiveProps(nextProps) {},
     componentWillUnmount() {},
   }),

@@ -835,6 +835,12 @@ class BillingAudit extends Component {
 export class BillingInfo extends Component {
   constructor(props) {
     super(props);
+    moment.locale(
+      this.props.profile.preferredLocale === null
+        ? this.props.space.defaultLocale
+        : this.props.profile.preferredLocale,
+    );
+
     this.src =
       this.props.billingWidgetUrl +
       '&er=' +
@@ -1080,12 +1086,10 @@ export class BillingInfo extends Component {
                       <tr>
                         <td>Next Billing Date:</td>
                         <td>
-                          {new Date(
-                            moment(
-                              this.props.billingInfo.nextBillingDate,
-                              'DD-MM-YYYY',
-                            ),
-                          ).toLocaleDateString()}
+                          {moment(
+                            this.props.billingInfo.nextBillingDate,
+                            'DD-MM-YYYY',
+                          ).format('L')}
                         </td>
                       </tr>
                     )}

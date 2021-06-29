@@ -149,6 +149,11 @@ class EventResult extends Component {
 export class SMSEvent extends Component {
   constructor(props) {
     super(props);
+    moment.locale(
+      this.props.profile.preferredLocale === null
+        ? this.props.space.defaultLocale
+        : this.props.profile.preferredLocale,
+    );
 
     this.sendSms = this.sendSms.bind(this);
     var smsText = substituteFields(

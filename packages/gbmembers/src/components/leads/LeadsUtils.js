@@ -125,6 +125,14 @@ export function getDateValue(dateValue) {
     ? ''
     : moment(dateValue, 'YYYY-MM-DD').toDate();
 }
+export function formatDateValue(value) {
+  var dateValue = moment(value, 'L').format('YYYY-MM-DD');
+
+  if (dateValue === 'Invalid date') {
+    dateValue = moment(value).format('YYYY-MM-DD');
+  }
+  return dateValue;
+}
 export function handleDateChange() {
   var value = $('#' + this.id)
     .siblings('.DayPickerInput')
@@ -134,14 +142,13 @@ export function handleDateChange() {
     .siblings('.DayPickerInput')
     .find('input');
   console.log('Date value:' + value.trim());
-  var dateValue =
-    value.trim() === '' ? '' : moment(value, 'L').format('YYYY-MM-DD');
+  var dateValue = value.trim() === '' ? '' : formatDateValue(value);
   if (value.trim() !== '' && dateValue === 'Invalid Date') return;
   if (value.trim() === '') dateValue = '';
 
   if (this.fieldName === 'Reminder Date') {
     this.leadThis.setState({
-      reminderDate: moment(value, 'L').format('YYYY-MM-DD'),
+      reminderDate: formatDateValue(value),
     });
   } else {
     this.leadItem.values[this.fieldName] = dateValue;

@@ -24,6 +24,7 @@ import { PaysmartOverdues } from './PaysmartOverdues';
 import { actions } from '../../redux/modules/members';
 import moment from 'moment';
 import { Utils } from 'common';
+import { CoreForm } from 'react-kinetic-core';
 
 const mapStateToProps = state => ({
   reports: state.member.reporting.activityReport,
@@ -156,6 +157,7 @@ export const ReportsView = ({
 }) => (
   <div className="reports">
     <StatusMessagesContainer />
+
     <div style={{ margin: '10px' }}>
       <div className="row">
         <button
@@ -352,6 +354,8 @@ export const ReportsView = ({
             fetchLeadsByDate={fetchLeadsByDate}
             leadsByDate={leadsByDate}
             leadsByDateLoading={leadsByDateLoading}
+            profile={profile}
+            space={space}
           />
         </div>
       )}
@@ -521,6 +525,7 @@ export const ReportsView = ({
         )}
       </div>
     )}
+    <CoreForm kapp="gbmembers" form="dummy-form" />
   </div>
 );
 
@@ -660,6 +665,13 @@ export const ReportsContainer = compose(
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);
+    },
+    componentWillMount() {
+      moment.locale(
+        this.props.profile.preferredLocale === null
+          ? this.props.space.defaultLocale
+          : this.props.profile.preferredLocale,
+      );
     },
     componentWillUnmount() {},
   }),

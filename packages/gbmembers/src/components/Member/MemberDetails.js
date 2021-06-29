@@ -184,7 +184,7 @@ export class MemberDetails extends React.Component {
                         : false
                     }
                   >
-                    Suburb
+                    <I18n>Suburb</I18n>
                   </label>
                   <input
                     type="text"

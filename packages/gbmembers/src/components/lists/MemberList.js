@@ -9,7 +9,6 @@ import { actions as appActions } from '../../redux/modules/memberApp';
 import { KappNavLink as NavLink } from 'common';
 import { Confirm } from 'react-confirm-bootstrap';
 import { StatusMessagesContainer } from '../StatusMessages';
-import moment from 'moment';
 import { matchesMemberFilter } from '../../utils/utils';
 
 const mapStateToProps = state => ({

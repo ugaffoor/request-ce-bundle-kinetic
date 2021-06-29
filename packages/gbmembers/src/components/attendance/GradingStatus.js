@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import moment from 'moment';
 import { PromotionDialogContainer } from './PromotionDialog';
 
 export class GradingStatus extends Component {

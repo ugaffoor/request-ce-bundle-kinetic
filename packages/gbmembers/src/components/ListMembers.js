@@ -5,7 +5,6 @@ import 'react-table/react-table.css';
 import { KappNavLink as NavLink } from 'common';
 import SVGInline from 'react-svg-inline';
 import attentionRequired from '../images/flag.svg?raw';
-import moment from 'moment';
 import $ from 'jquery';
 import { matchesMemberFilter } from '../utils/utils';
 

@@ -92,6 +92,11 @@ export class ListNewHome extends Component {
   constructor(props) {
     super(props);
     compThis = this;
+    moment.locale(
+      this.props.profile.preferredLocale === null
+        ? this.props.space.defaultLocale
+        : this.props.profile.preferredLocale,
+    );
 
     this._columns = this.getColumns();
     this.state = {

@@ -35,6 +35,11 @@ export class MemberFinancialStats extends Component {
   constructor(props) {
     super(props);
     compThis = this;
+    moment.locale(
+      this.props.profile.preferredLocale === null
+        ? this.props.space.defaultLocale
+        : this.props.profile.preferredLocale,
+    );
 
     this.currency = getAttributeValue(this.props.space, 'Currency');
     if (this.currency === undefined) this.currency = 'USD';
@@ -213,8 +218,9 @@ export class MemberFinancialStats extends Component {
     toDate,
   ) {
     let cost = parseFloat(
-      member.values['Payment Schedule'] !== undefined &&
-        member.values['Payment Schedule'] !== null
+      member.values['Billing User'] !== null &&
+        member.values['Billing User'] !== undefined &&
+        member.values['Billing User'] === 'YES'
         ? this.getScheduledPayment(member, billingCustomers)
         : 0,
     );
@@ -343,7 +349,7 @@ export class MemberFinancialStats extends Component {
           let paymentPeriod = billing.billingPeriod;
           let varWeeklyCost = 0;
           if (paymentPeriod === 'Weekly') {
-            varWeeklyCost = varAmount;
+            varWeeklyCost = varAmount * 1;
           } else if (paymentPeriod === 'Fortnightly') {
             varWeeklyCost = varAmount / 2;
           } else if (paymentPeriod === 'Monthly') {
@@ -356,8 +362,10 @@ export class MemberFinancialStats extends Component {
 
       let paymentPeriod = billing.billingPeriod;
       let weeklyCost = 0;
-      if (paymentPeriod === 'Weekly') {
-        weeklyCost = billing.billingAmount;
+      if (paymentPeriod === 'Daily') {
+        weeklyCost = billing.billingAmount * 7;
+      } else if (paymentPeriod === 'Weekly') {
+        weeklyCost = billing.billingAmount * 1;
       } else if (paymentPeriod === 'Fortnightly') {
         weeklyCost = billing.billingAmount / 2;
       } else if (paymentPeriod === 'Monthly') {
@@ -1519,8 +1527,7 @@ export class MemberFinancialStats extends Component {
             </div>
           )}
           <span className="label">
-            {this.state.fromDate.format('DD-MM-YYYY')} to{' '}
-            {this.state.toDate.format('DD-MM-YYYY')}
+            {this.state.fromDate.format('L')} to {this.state.toDate.format('L')}
           </span>
         </div>
 
@@ -2155,61 +2162,64 @@ export class MemberFinancialStats extends Component {
                 </div>
               )}
             </div>
-            <div className="statItem">
-              <div className="info">
-                <div className="label">Variations</div>
-                <div
-                  className="value"
-                  onClick={e =>
-                    this.setState({
-                      showAccountHolders: false,
-                      showTotalActiveMembers: false,
-                      showActiveMembers: false,
-                      showActiveCashMembers: false,
-                      showCancellationsMembers: false,
-                      showPendingCancellationsMembers: false,
-                      showFrozenMembers: false,
-                      showPendingFrozenMembers: false,
-                      showNewMembers: false,
-                      showVariations: true,
-                      showFailed: false,
-                    })
-                  }
-                >
-                  {this.state.memberData.variations.members.length}
-                </div>
-              </div>
-              <div className="dollarValue">
-                {new Intl.NumberFormat(this.locale, {
-                  style: 'currency',
-                  currency: this.currency,
-                }).format(this.state.memberData.variations.value)}
-              </div>
-              {this.state.showVariations && (
-                <div className="members">
-                  <span
-                    className="closeMembers"
+            {getAttributeValue(this.props.space, 'Billing Company') ===
+              'PaySmart' && (
+              <div className="statItem">
+                <div className="info">
+                  <div className="label">Variations</div>
+                  <div
+                    className="value"
                     onClick={e =>
                       this.setState({
-                        showVariations: false,
+                        showAccountHolders: false,
+                        showTotalActiveMembers: false,
+                        showActiveMembers: false,
+                        showActiveCashMembers: false,
+                        showCancellationsMembers: false,
+                        showPendingCancellationsMembers: false,
+                        showFrozenMembers: false,
+                        showPendingFrozenMembers: false,
+                        showNewMembers: false,
+                        showVariations: true,
+                        showFailed: false,
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
-                  </span>
-                  <ReactTable
-                    columns={this.getMemberTableColumns()}
-                    data={this.getMemberTableData(
-                      this.state.memberData.variations.members,
-                      this.state.billingCustomers,
-                      this.state.variationCustomers,
-                    )}
-                    defaultPageSize={1}
-                    showPagination={false}
-                  />
+                    {this.state.memberData.variations.members.length}
+                  </div>
                 </div>
-              )}
-            </div>
+                <div className="dollarValue">
+                  {new Intl.NumberFormat(this.locale, {
+                    style: 'currency',
+                    currency: this.currency,
+                  }).format(this.state.memberData.variations.value)}
+                </div>
+                {this.state.showVariations && (
+                  <div className="members">
+                    <span
+                      className="closeMembers"
+                      onClick={e =>
+                        this.setState({
+                          showVariations: false,
+                        })
+                      }
+                    >
+                      <SVGInline svg={crossIcon} className="icon" />
+                    </span>
+                    <ReactTable
+                      columns={this.getMemberTableColumns()}
+                      data={this.getMemberTableData(
+                        this.state.memberData.variations.members,
+                        this.state.billingCustomers,
+                        this.state.variationCustomers,
+                      )}
+                      defaultPageSize={1}
+                      showPagination={false}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
             <div className="statItem">
               <div className="info">
                 <div className="label">Failed Payments</div>

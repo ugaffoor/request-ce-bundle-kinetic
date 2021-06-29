@@ -29,7 +29,7 @@ export class Requests extends Component {
       {
         accessor: 'Date',
         Header: 'Submitted Date',
-        Cell: props => moment(props.value).format(email_received_date_format),
+        Cell: props => moment(props.value).format('L HH:mm'),
       },
       { accessor: 'Form', Header: 'Form Name' },
       {

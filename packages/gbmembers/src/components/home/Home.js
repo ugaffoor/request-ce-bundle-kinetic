@@ -159,7 +159,7 @@ export const HomeView = ({
 
 export const HomeContainer = compose(
   connect(mapStateToProps, mapDispatchToProps),
-  withProps(({ memberItem }) => {
+  withProps(({ memberItem, space, profile }) => {
     return {};
   }),
   withState('isAssigning', 'setIsAssigning', false),

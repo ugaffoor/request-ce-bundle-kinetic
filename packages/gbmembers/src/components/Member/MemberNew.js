@@ -237,7 +237,7 @@ export const MemberNew = ({
                         : false
                     }
                   >
-                    Suburb
+                    <I18n>Suburb</I18n>
                   </label>
                   <input
                     type="text"
@@ -919,6 +919,12 @@ export const MemberNewContainer = compose(
   }),
   lifecycle({
     componentWillMount() {
+      moment.locale(
+        this.props.profile.preferredLocale === null
+          ? this.props.space.defaultLocale
+          : this.props.profile.preferredLocale,
+      );
+
       this.props.fetchNewMember({
         myThis: this,
         history: this.props.history,

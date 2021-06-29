@@ -35,6 +35,12 @@ export class Statistics extends Component {
   constructor(props) {
     super(props);
     compThis = this;
+    moment.locale(
+      this.props.profile.preferredLocale === null
+        ? this.props.space.defaultLocale
+        : this.props.profile.preferredLocale,
+    );
+
     this._getLeadRowTableColumns = this.getLeadRowTableColumns();
     this._getMemberRowTableColumns = this.getMemberRowTableColumns();
 
@@ -43,8 +49,8 @@ export class Statistics extends Component {
     this.setFromDate = this.props.setFromDate;
     this.setToDate = this.props.setToDate;
 
-    let fromDate = this.props.fromDate;
-    let toDate = this.props.toDate;
+    let fromDate = moment().subtract(7, 'days');
+    let toDate = moment();
 
     let leads = this.props.leadsByDate;
     let leadData = this.getData(
@@ -945,8 +951,7 @@ export class Statistics extends Component {
             </div>
           )}
           <span className="label">
-            {this.state.fromDate.format('DD-MM-YYYY')} to{' '}
-            {this.state.toDate.format('DD-MM-YYYY')}
+            {this.state.fromDate.format('L')} to {this.state.toDate.format('L')}
           </span>
         </div>
         <div className="leadStatistics">

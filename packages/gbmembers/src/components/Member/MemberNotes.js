@@ -29,6 +29,7 @@ const mapStateToProps = state => ({
   campaignLoading: state.member.campaigns.emailCampaignLoading,
   currentMemberLoading: state.member.members.currentMemberLoading,
   space: state.member.app.space,
+  profile: state.member.kinops.profile,
 });
 const mapDispatchToProps = {
   updateMember: actions.updateMember,
@@ -223,7 +224,7 @@ export class MemberNotesHome extends Component {
                       ? moment(
                           this.props.memberItem.values['Reminder Date'],
                           'YYYY-MM-DD',
-                        ).format('DD MMM YYYY')
+                        ).format('L')
                       : ''}
                   </NavLink>
                 </span>
@@ -415,6 +416,12 @@ export const MemberNotesContainer = compose(
   }),
   lifecycle({
     componentWillMount() {
+      moment.locale(
+        this.props.profile.preferredLocale === null
+          ? this.props.space.defaultLocale
+          : this.props.profile.preferredLocale,
+      );
+
       this.props.fetchCurrentMember({
         id: this.props.match.params['id'],
         myThis: this,

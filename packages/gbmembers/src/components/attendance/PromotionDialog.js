@@ -129,6 +129,11 @@ export class PromotionDialog extends Component {
   constructor(props) {
     super(props);
     compThis = this;
+    moment.locale(
+      this.props.profile.preferredLocale === null
+        ? this.props.space.defaultLocale
+        : this.props.profile.preferredLocale,
+    );
 
     this.setShowAttendanceDialog = this.setShowAttendanceDialog.bind(this);
     if (props.memberItem.promotionContent === undefined)
@@ -385,9 +390,9 @@ export class PromotionDialog extends Component {
                       <label>
                         DATE{' '}
                         <span>
-                          {new Date(
-                            promotion.PromotionDate,
-                          ).toLocaleDateString()}
+                          {moment(promotion.PromotionDate, 'YYYY-MM-DD').format(
+                            'L',
+                          )}
                         </span>
                       </label>
                     </div>

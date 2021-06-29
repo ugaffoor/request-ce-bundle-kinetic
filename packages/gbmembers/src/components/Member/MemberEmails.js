@@ -6,6 +6,12 @@ import { email_sent_date_format } from '../leads/LeadsUtils';
 export class MemberEmails extends Component {
   constructor(props) {
     super(props);
+    moment.locale(
+      this.props.profile.preferredLocale === null
+        ? this.props.space.defaultLocale
+        : this.props.profile.preferredLocale,
+    );
+
     const data = this.getData(this.props.memberItem);
     this._columns = this.getColumns();
     this.getCampaign = this.getCampaign.bind(this);
@@ -65,7 +71,7 @@ export class MemberEmails extends Component {
       emails = JSON.parse(emails);
     }
 
-    return emails.sort(function(email1, email2) {
+    emails = emails.sort(function(email1, email2) {
       if (
         moment(email1['Sent Date'], email_sent_date_format).isAfter(
           moment(email2['Sent Date'], email_sent_date_format),
@@ -81,6 +87,14 @@ export class MemberEmails extends Component {
       }
       return 0;
     });
+
+    emails.forEach(email => {
+      email['Sent Date'] = moment(
+        email['Sent Date'],
+        email_sent_date_format,
+      ).format('L HH:mm');
+    });
+    return emails;
   }
 
   getCampaign(campaignId) {

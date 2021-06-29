@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import moment from 'moment';
 import { PromotionReviewDialogContainer } from './PromotionReviewDialog';
 import reviewIcon from '../../images/review.svg?raw';
 import SVGInline from 'react-svg-inline';

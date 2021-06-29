@@ -3,7 +3,11 @@ import { connect } from 'react-redux';
 import { compose, lifecycle, withHandlers, withProps } from 'recompose';
 import { actions } from '../../redux/modules/members';
 import $ from 'jquery';
-import { getReminderDate, gmt_format } from '../leads/LeadsUtils';
+import {
+  getReminderDate,
+  gmt_format,
+  formatDateValue,
+} from '../leads/LeadsUtils';
 import { StatusMessagesContainer } from '../StatusMessages';
 import moment from 'moment';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
@@ -47,8 +51,7 @@ export class FollowUpDate extends Component {
       .find('input')
       .val();
     console.log('Date value:' + value.trim());
-    var dateValue =
-      value.trim() === '' ? '' : moment(value, 'L').format('YYYY-MM-DD');
+    var dateValue = value.trim() === '' ? '' : formatDateValue(value);
     if (value.trim() !== '' && dateValue === 'Invalid Date') return;
     if (value.trim() === '') dateValue = '';
 
@@ -230,6 +233,12 @@ export const MemberFollowUpContainer = compose(
   }),
   lifecycle({
     componentWillMount() {
+      moment.locale(
+        this.props.profile.preferredLocale === null
+          ? this.props.space.defaultLocale
+          : this.props.profile.preferredLocale,
+      );
+
       this.props.fetchCurrentMember({
         id: this.props.match.params['id'],
         myThis: this,

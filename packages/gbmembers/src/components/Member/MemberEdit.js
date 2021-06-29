@@ -213,6 +213,7 @@ export const MemberEdit = ({
                   target="Members"
                   setShowSetStatusModal={setShowSetStatusModal}
                   profile={profile}
+                  space={space}
                   memberStatusValues={memberStatusValues}
                   setIsDirty={setIsDirty}
                 />
@@ -352,160 +353,210 @@ export const MemberEdit = ({
                 <PhotoForm memberItem={memberItem} setIsDirty={setIsDirty} />
               </span>
             </span>
-            {
-              <span className="line">
-                <div>
-                  <label htmlFor="billingId">Billing Customer Id</label>
-                  <input
-                    type="text"
-                    name="billingId"
-                    id="billingId"
-                    size="30"
-                    ref={input => (this.input = input)}
-                    defaultValue={memberItem.values['Billing Customer Id']}
-                    onChange={e =>
-                      handleChange(
-                        memberItem,
-                        'Billing Customer Id',
-                        e,
-                        setIsDirty,
-                      )
-                    }
-                  />
-                </div>
-                <div>
-                  <label htmlFor="billingRef">Billing Reference</label>
-                  <input
-                    type="text"
-                    name="billingRef"
-                    id="billingRef"
-                    size="30"
-                    ref={input => (this.input = input)}
-                    defaultValue={
-                      memberItem.values['Billing Customer Reference']
-                    }
-                    onChange={e =>
-                      handleChange(
-                        memberItem,
-                        'Billing Customer Reference',
-                        e,
-                        setIsDirty,
-                      )
-                    }
-                  />
-                </div>
-                <div>
-                  <label htmlFor="billingPaymentType">
-                    Billing Payment Type
-                  </label>
-                  <input
-                    type="text"
-                    name="billingPaymentType"
-                    id="billingPaymentType"
-                    size="5"
-                    ref={input => (this.input = input)}
-                    defaultValue={memberItem.values['Billing Payment Type']}
-                    onChange={e =>
-                      handleChange(
-                        memberItem,
-                        'Billing Payment Type',
-                        e,
-                        setIsDirty,
-                      )
-                    }
-                  />
-                </div>
-                <div>
-                  <label htmlFor="billingPaymentPeriod">
-                    Billing Payment Period
-                  </label>
-                  <input
-                    type="text"
-                    name="billingPaymentPeriod"
-                    id="billingPaymentPeriod"
-                    size="5"
-                    ref={input => (this.input = input)}
-                    defaultValue={memberItem.values['Billing Payment Period']}
-                    onChange={e =>
-                      handleChange(
-                        memberItem,
-                        'Billing Payment Period',
-                        e,
-                        setIsDirty,
-                      )
-                    }
-                  />
-                </div>
-                <div>
-                  <label htmlFor="billingPayment">Payment</label>
-                  <input
-                    type="text"
-                    name="billingPayment"
-                    id="billingPayment"
-                    size="5"
-                    ref={input => (this.input = input)}
-                    defaultValue={memberItem.values['Payment']}
-                    onChange={e =>
-                      handleChange(memberItem, 'Payment', e, setIsDirty)
-                    }
-                  />
-                </div>
-                <div>
-                  <label htmlFor="emailsReceivedCount">
-                    emailsReceivedCount
-                  </label>
-                  <input
-                    type="text"
-                    name="emailsReceivedCount"
-                    id="emailsReceivedCount"
-                    size="5"
-                    ref={input => (this.input = input)}
-                    defaultValue={memberItem.values['Emails Received Count']}
-                    onChange={e =>
-                      handleChange(
-                        memberItem,
-                        'Emails Received Count',
-                        e,
-                        setIsDirty,
-                      )
-                    }
-                  />
-                </div>
-                <div>
-                  <label htmlFor="leadSubmissionID">Lead Submission ID</label>
-                  <input
-                    type="text"
-                    name="leadSubmissionID"
-                    id="leadSubmissionID"
-                    size="5"
-                    ref={input => (this.input = input)}
-                    defaultValue={memberItem.values['Lead Submission ID']}
-                    onChange={e =>
-                      handleChange(
-                        memberItem,
-                        'Lead Submission ID',
-                        e,
-                        setIsDirty,
-                      )
-                    }
-                  />
-                </div>
-                <div>
-                  <label htmlFor="statusHistory">Status History</label>
-                  <input
-                    type="text"
-                    name="statusHistory"
-                    id="statusHistory"
-                    size="50"
-                    ref={input => (this.input = input)}
-                    defaultValue={memberItem.values['Status History']}
-                    onChange={e =>
-                      handleChange(memberItem, 'Status History', e, setIsDirty)
-                    }
-                  />
-                </div>
+            {/*
+              <div className="admin">
+                <span className="line">
+                  <div>
+                    <label htmlFor="ccExpiryMonth">Credit Card Expiry Month</label>
+                    <input
+                      type="text"
+                      name="ccExpiryMonth"
+                      id="ccExpiryMonth"
+                      size="30"
+                      ref={input => (this.input = input)}
+                      defaultValue={memberItem.values['Credit Card Expiry Month']}
+                      onChange={e =>
+                        handleChange(
+                          memberItem,
+                          'Credit Card Expiry Month',
+                          e,
+                          setIsDirty,
+                        )
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="ccExpiryYear">Credit Card Expiry Year</label>
+                    <input
+                      type="text"
+                      name="ccExpiryYear"
+                      id="ccExpiryYear"
+                      size="30"
+                      ref={input => (this.input = input)}
+                      defaultValue={
+                        memberItem.values['Credit Card Expiry Year']
+                      }
+                      onChange={e =>
+                        handleChange(
+                          memberItem,
+                          'Credit Card Expiry Year',
+                          e,
+                          setIsDirty,
+                        )
+                      }
+                    />
+                  </div>
               </span>
-            }
+                <span className="line">
+                  <div>
+                    <label htmlFor="billingId">Billing Customer Id</label>
+                    <input
+                      type="text"
+                      name="billingId"
+                      id="billingId"
+                      size="30"
+                      ref={input => (this.input = input)}
+                      defaultValue={memberItem.values['Billing Customer Id']}
+                      onChange={e =>
+                        handleChange(
+                          memberItem,
+                          'Billing Customer Id',
+                          e,
+                          setIsDirty,
+                        )
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="billingRef">Billing Reference</label>
+                    <input
+                      type="text"
+                      name="billingRef"
+                      id="billingRef"
+                      size="30"
+                      ref={input => (this.input = input)}
+                      defaultValue={
+                        memberItem.values['Billing Customer Reference']
+                      }
+                      onChange={e =>
+                        handleChange(
+                          memberItem,
+                          'Billing Customer Reference',
+                          e,
+                          setIsDirty,
+                        )
+                      }
+                    />
+                  </div>
+              </span>
+              <span className="line">
+                  <div>
+                    <label htmlFor="billingPaymentType">
+                      Billing Payment Type
+                    </label>
+                    <input
+                      type="text"
+                      name="billingPaymentType"
+                      id="billingPaymentType"
+                      size="30"
+                      ref={input => (this.input = input)}
+                      defaultValue={memberItem.values['Billing Payment Type']}
+                      onChange={e =>
+                        handleChange(
+                          memberItem,
+                          'Billing Payment Type',
+                          e,
+                          setIsDirty,
+                        )
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="billingPaymentPeriod">
+                      Billing Payment Period
+                    </label>
+                    <input
+                      type="text"
+                      name="billingPaymentPeriod"
+                      id="billingPaymentPeriod"
+                      size="30"
+                      ref={input => (this.input = input)}
+                      defaultValue={memberItem.values['Billing Payment Period']}
+                      onChange={e =>
+                        handleChange(
+                          memberItem,
+                          'Billing Payment Period',
+                          e,
+                          setIsDirty,
+                        )
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="billingPayment">Payment</label>
+                    <input
+                      type="text"
+                      name="billingPayment"
+                      id="billingPayment"
+                      size="30"
+                      ref={input => (this.input = input)}
+                      defaultValue={memberItem.values['Payment']}
+                      onChange={e =>
+                        handleChange(memberItem, 'Payment', e, setIsDirty)
+                      }
+                    />
+                  </div>
+              </span>
+              <span className="line">
+                  <div>
+                    <label htmlFor="emailsReceivedCount">
+                      emailsReceivedCount
+                    </label>
+                    <input
+                      type="text"
+                      name="emailsReceivedCount"
+                      id="emailsReceivedCount"
+                      size="30"
+                      ref={input => (this.input = input)}
+                      defaultValue={memberItem.values['Emails Received Count']}
+                      onChange={e =>
+                        handleChange(
+                          memberItem,
+                          'Emails Received Count',
+                          e,
+                          setIsDirty,
+                        )
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="leadSubmissionID">Lead Submission ID</label>
+                    <input
+                      type="text"
+                      name="leadSubmissionID"
+                      id="leadSubmissionID"
+                      size="30"
+                      ref={input => (this.input = input)}
+                      defaultValue={memberItem.values['Lead Submission ID']}
+                      onChange={e =>
+                        handleChange(
+                          memberItem,
+                          'Lead Submission ID',
+                          e,
+                          setIsDirty,
+                        )
+                      }
+                    />
+                  </div>
+              </span>
+              <span className="line">
+                  <div>
+                    <label htmlFor="statusHistory">Status History</label>
+                    <input
+                      type="text"
+                      name="statusHistory"
+                      id="statusHistory"
+                      size="50"
+                      ref={input => (this.input = input)}
+                      defaultValue={memberItem.values['Status History']}
+                      onChange={e =>
+                        handleChange(memberItem, 'Status History', e, setIsDirty)
+                      }
+                    />
+                  </div>
+              </span>
+            </div>
+            */}
             <span className="line">
               <div>
                 <label
@@ -544,7 +595,7 @@ export const MemberEdit = ({
                     memberItem.values['Suburb'] === undefined ? true : false
                   }
                 >
-                  Suburb
+                  <I18n>Suburb</I18n>
                 </label>
                 <input
                   type="text"
@@ -1442,7 +1493,13 @@ export const MemberEditContainer = compose(
         fetchMembers: this.props.fetchMembers,
       });
     },
-    componentDidUpdate() {},
+    componentDidUpdate() {
+      moment.locale(
+        this.props.profile.preferredLocale === null
+          ? this.props.space.defaultLocale
+          : this.props.profile.preferredLocale,
+      );
+    },
     componentWillMount() {
       this.props.fetchCurrentMember({
         id: this.props.match.params.id,

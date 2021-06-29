@@ -10,8 +10,6 @@ import { Header } from './Header';
 import { Utils } from 'common';
 
 import * as selectors from '../redux/selectors';
-import moment from 'moment';
-import enAU from 'moment/locale/en-au';
 import { actions } from '../redux/modules/journeyevents';
 
 export const mapStateToProps = state => ({
@@ -59,7 +57,6 @@ export const HeaderContainer = compose(
   }),
   lifecycle({
     constructor() {
-      moment.locale('en-au', enAU);
       this.props.fetchCurrentMember({
         id: this.props.match.params.id,
         history: this.props.history,

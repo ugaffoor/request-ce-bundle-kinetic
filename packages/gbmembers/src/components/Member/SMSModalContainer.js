@@ -28,6 +28,7 @@ const mapStateToProps = state => ({
   smsTemplateCategories: state.member.datastore.smsTemplateCategories,
   smsTemplates: state.member.datastore.smsTemplates,
   smsTemplatesLoading: state.member.datastore.smsTemplatesLoading,
+  space: state.member.app.space,
 });
 const mapDispatchToProps = {
   fetchCurrentMember: actions.fetchCurrentMember,
@@ -106,12 +107,43 @@ export class SMSModal extends Component {
         ',' +
         this.state.selectedOption[1].value;
     }
+    var content = this.state.smsText;
+
+    content = content.replace(
+      /member\('First Name'\)/g,
+      this.props.target === 'Member'
+        ? this.props.memberItem.values['First Name']
+        : this.props.leadItem.values['First Name'],
+    );
+    content = content.replace(
+      /member\('Last Name'\)/g,
+      this.props.target === 'Member'
+        ? this.props.memberItem.values['Last Name']
+        : this.props.leadItem.values['Last Name'],
+    );
+
+    var matches = content.match(/\$\{.*?\('(.*?)'\)\}/g);
+    var self = this;
+    if (matches !== null) {
+      matches.forEach(function(value, index) {
+        console.log(value);
+        if (value.indexOf('spaceAttributes') !== -1) {
+          content = content.replace(
+            new RegExp(
+              value.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1'),
+              'g',
+            ),
+            self.props.space.attributes[value.split("'")[1]][0],
+          );
+        }
+      });
+    }
 
     this.props.sendSmsMessage({
       type: 'outbound',
       status: 'sent',
       to: to,
-      text: this.state.smsText,
+      text: content,
       datetime: moment().format('DD-MM-YYYY hh:mm A'),
     });
   }

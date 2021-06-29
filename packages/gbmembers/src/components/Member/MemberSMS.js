@@ -21,7 +21,13 @@ export class MemberSMS extends Component {
     }
   }
 
-  componentWillMount() {}
+  componentWillMount() {
+    moment.locale(
+      this.props.profile.preferredLocale === null
+        ? this.props.space.defaultLocale
+        : this.props.profile.preferredLocale,
+    );
+  }
 
   getColumns() {
     return [
@@ -69,7 +75,7 @@ export class MemberSMS extends Component {
 
       smsValues[smsValues.length] = {
         Direction: value.values['Direction'],
-        Date: dt.format('DD-MM-YYYY HH:mm'),
+        Date: dt.format('L HH:mm'),
         Content: content['Content'],
       };
     });

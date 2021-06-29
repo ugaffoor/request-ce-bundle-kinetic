@@ -148,6 +148,11 @@ class EventResult extends Component {
 export class EmailEvent extends Component {
   constructor(props) {
     super(props);
+    moment.locale(
+      this.props.profile.preferredLocale === null
+        ? this.props.space.defaultLocale
+        : this.props.profile.preferredLocale,
+    );
 
     this.createCampaign = this.createCampaign.bind(this);
     this.onLoadEmail = this.onLoadEmail.bind(this);

@@ -52,6 +52,12 @@ const mapDispatchToProps = {
 export class LeadEdit extends Component {
   constructor(props) {
     super(props);
+    moment.locale(
+      this.props.profile.preferredLocale === null
+        ? this.props.space.defaultLocale
+        : this.props.profile.preferredLocale,
+    );
+
     this.saveLead = this.props.saveLead;
     this.removeLead = this.props.removeLead;
     this.setIsDirty = this.props.setIsDirty;
@@ -435,7 +441,7 @@ export class LeadEdit extends Component {
                         : false
                     }
                   >
-                    Suburb
+                    <I18n>Suburb</I18n>
                   </label>
                   <input
                     type="text"

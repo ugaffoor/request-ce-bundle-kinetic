@@ -190,7 +190,7 @@ export const SettingsView = ({
             id="classCalendar"
             className={'btn btn-primary'}
             onClick={e => {
-              if (classSchedules.size === 0) fetchClassSchedules();
+              fetchClassSchedules();
               setShowClassCalendar(showClassCalendar ? false : true);
             }}
           >
@@ -222,7 +222,7 @@ export const SettingsView = ({
             id="recurringBookings"
             className={'btn btn-primary'}
             onClick={e => {
-              if (classSchedules.size === 0) fetchClassSchedules();
+              fetchClassSchedules();
               fetchRecurringBookings({ allMembers });
               setShowRecurringBookings(showRecurringBookings ? false : true);
             }}

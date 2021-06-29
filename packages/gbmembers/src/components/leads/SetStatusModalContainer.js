@@ -33,6 +33,12 @@ export class SetStatusModal extends Component {
   };
   constructor(props) {
     super(props);
+    moment.locale(
+      this.props.profile.preferredLocale === null
+        ? this.props.space.defaultLocale
+        : this.props.profile.preferredLocale,
+    );
+
     this.statusValues = props.leadStatusValues;
     this.statusHistory = getJson(props.submission.values['Status History']);
     this.state = {};

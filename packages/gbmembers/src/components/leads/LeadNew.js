@@ -54,6 +54,12 @@ const Datetime = require('react-datetime');
 export class LeadNew extends Component {
   constructor(props) {
     super(props);
+    moment.locale(
+      this.props.profile.preferredLocale === null
+        ? this.props.space.defaultLocale
+        : this.props.profile.preferredLocale,
+    );
+
     this.saveLead = this.props.saveLead;
     this.setIsDirty = this.props.setIsDirty;
     this.handleContactDateChange = this.handleContactDateChange.bind(this);
@@ -191,7 +197,6 @@ export class LeadNew extends Component {
                     style={{ marginLeft: '10px' }}
                     required
                     ref={input => (this.input = input)}
-                    defaultValue={this.props.leadItem.values['Source']}
                     onChange={e =>
                       handleChange(this.props.leadItem, 'Source', e)
                     }
@@ -233,7 +238,6 @@ export class LeadNew extends Component {
                       .toLowerCase()}
                     formatDate={formatDate}
                     parseDate={parseDate}
-                    value={getDateValue(this.props.leadItem.values['Date'])}
                     fieldName="Date"
                     required
                     leadItem={this.props.leadItem}
@@ -266,7 +270,6 @@ export class LeadNew extends Component {
                     id="firstName"
                     required
                     ref={input => (this.input = input)}
-                    defaultValue={this.props.leadItem.values['First Name']}
                     onChange={e =>
                       handleChange(this.props.leadItem, 'First Name', e)
                     }
@@ -289,7 +292,6 @@ export class LeadNew extends Component {
                     id="lastNames"
                     required
                     ref={input => (this.input = input)}
-                    defaultValue={this.props.leadItem.values['Last Name']}
                     onChange={e =>
                       handleChange(this.props.leadItem, 'Last Name', e)
                     }
@@ -311,7 +313,6 @@ export class LeadNew extends Component {
                     id="gender"
                     required
                     ref={input => (this.input = input)}
-                    defaultValue={this.props.leadItem.values['Gender']}
                     onChange={e =>
                       handleChange(this.props.leadItem, 'Gender', e)
                     }
@@ -332,7 +333,6 @@ export class LeadNew extends Component {
                     id="address"
                     size="80"
                     ref={input => (this.input = input)}
-                    defaultValue={this.props.leadItem.values['Address']}
                     onChange={e =>
                       handleChange(this.props.leadItem, 'Address', e)
                     }
@@ -341,13 +341,14 @@ export class LeadNew extends Component {
               </span>
               <span className="line">
                 <div>
-                  <label htmlFor="suburb">Suburb</label>
+                  <label htmlFor="suburb">
+                    <I18n>Suburb</I18n>
+                  </label>
                   <input
                     type="text"
                     name="suburb"
                     id="suburb"
                     ref={input => (this.input = input)}
-                    defaultValue={this.props.leadItem.values['Suburb']}
                     onChange={e =>
                       handleChange(this.props.leadItem, 'Suburb', e)
                     }
@@ -359,7 +360,6 @@ export class LeadNew extends Component {
                     name="state"
                     id="state"
                     ref={input => (this.input = input)}
-                    defaultValue={this.props.leadItem.values['State']}
                     onChange={e =>
                       handleChange(this.props.leadItem, 'State', e)
                     }
@@ -386,7 +386,6 @@ export class LeadNew extends Component {
                     }
                     mask="_"
                     ref={input => (this.input = input)}
-                    value={this.props.leadItem.values['Postcode']}
                     onValueChange={(values, e) =>
                       handleFormattedChange(
                         values,
@@ -417,7 +416,6 @@ export class LeadNew extends Component {
                     size="40"
                     required
                     ref={input => (this.input = input)}
-                    defaultValue={this.props.leadItem.values['Email']}
                     onChange={e =>
                       handleChange(this.props.leadItem, 'Email', e)
                     }
@@ -431,9 +429,6 @@ export class LeadNew extends Component {
                     id="additionalEmail"
                     size="40"
                     ref={input => (this.input = input)}
-                    defaultValue={
-                      this.props.leadItem.values['Additional Email']
-                    }
                     onChange={e =>
                       handleChange(this.props.leadItem, 'Additional Email', e)
                     }
@@ -457,7 +452,6 @@ export class LeadNew extends Component {
                     }
                     mask="_"
                     ref={input => (this.input = input)}
-                    value={this.props.leadItem.values['Phone Number']}
                     onValueChange={(values, e) =>
                       handleFormattedChange(
                         values,
@@ -484,9 +478,6 @@ export class LeadNew extends Component {
                     }
                     mask="_"
                     ref={input => (this.input = input)}
-                    value={
-                      this.props.leadItem.values['Additional Phone Number']
-                    }
                     onValueChange={(values, e) =>
                       handleFormattedChange(
                         values,
@@ -585,9 +576,6 @@ export class LeadNew extends Component {
                         name="ParentGuardian"
                         id="ParentGuardian"
                         ref={input => (this.input = input)}
-                        defaultValue={
-                          this.props.leadItem.values['Parent or Guardian']
-                        }
                         onChange={e =>
                           handleChange(
                             this.props.leadItem,
@@ -612,9 +600,6 @@ export class LeadNew extends Component {
                       name="emergencyname"
                       id="emergencyname"
                       ref={input => (this.input = input)}
-                      defaultValue={
-                        this.props.leadItem.values['Emergency Contact Name']
-                      }
                       onChange={e =>
                         handleChange(
                           this.props.leadItem,
@@ -632,11 +617,6 @@ export class LeadNew extends Component {
                       name="relationship"
                       id="relationship"
                       ref={input => (this.input = input)}
-                      defaultValue={
-                        this.props.leadItem.values[
-                          'Emergency Contact Relationship'
-                        ]
-                      }
                       onChange={e =>
                         handleChange(
                           this.props.leadItem,
@@ -654,9 +634,6 @@ export class LeadNew extends Component {
                       format="####-###-###"
                       mask="_"
                       ref={input => (this.input = input)}
-                      value={
-                        this.props.leadItem.values['Emergency Contact Phone']
-                      }
                       onValueChange={(values, e) =>
                         handleFormattedChange(
                           values,
@@ -675,9 +652,6 @@ export class LeadNew extends Component {
                       name="alergies"
                       id="alergies"
                       ref={input => (this.input = input)}
-                      defaultValue={
-                        this.props.leadItem.values['Medical Allergies']
-                      }
                       onChange={e =>
                         handleChange(
                           this.props.leadItem,
@@ -709,7 +683,6 @@ export class LeadNew extends Component {
                       .toLowerCase()}
                     formatDate={formatDate}
                     parseDate={parseDate}
-                    value={getDateValue(this.props.leadItem.values['DOB'])}
                     fieldName="DOB"
                     leadItem={this.props.leadItem}
                     onDayPickerHide={handleDateChange}
@@ -733,7 +706,6 @@ export class LeadNew extends Component {
                     id="contactMethod"
                     required
                     ref={input => (this.input = input)}
-                    defaultValue={this.state.contactMethod}
                     onChange={e => this.handleChange('contactMethod', e)}
                   >
                     <option value="" />
@@ -791,9 +763,6 @@ export class LeadNew extends Component {
                         .toLowerCase()}
                       formatDate={formatDate}
                       parseDate={parseDate}
-                      value={getDateValue(
-                        this.props.leadItem.values['Reminder Date'],
-                      )}
                       fieldName="Reminder Date"
                       leadThis={this}
                       leadItem={this.props.leadItem}
@@ -816,9 +785,6 @@ export class LeadNew extends Component {
                     name="program"
                     id="program"
                     ref={input => (this.input = input)}
-                    defaultValue={
-                      this.props.leadItem.values['Interest in Program']
-                    }
                     onChange={e =>
                       handleChange(
                         this.props.leadItem,
@@ -846,9 +812,6 @@ export class LeadNew extends Component {
                     id="sourceReference1"
                     size="20"
                     ref={input => (this.input = input)}
-                    defaultValue={
-                      this.props.leadItem.values['Source Reference 1']
-                    }
                     onChange={e =>
                       handleChange(this.props.leadItem, 'Source Reference 1', e)
                     }
@@ -862,9 +825,6 @@ export class LeadNew extends Component {
                     id="sourceReference2"
                     size="20"
                     ref={input => (this.input = input)}
-                    defaultValue={
-                      this.props.leadItem.values['Source Reference 2']
-                    }
                     onChange={e =>
                       handleChange(this.props.leadItem, 'Source Reference 2', e)
                     }
@@ -876,9 +836,6 @@ export class LeadNew extends Component {
                     name="sourceReference3"
                     id="sourceReference3"
                     ref={input => (this.input = input)}
-                    defaultValue={
-                      this.props.leadItem.values['Source Reference 3']
-                    }
                     onChange={e =>
                       handleChange(this.props.leadItem, 'Source Reference 3', e)
                     }
@@ -899,9 +856,6 @@ export class LeadNew extends Component {
                     id="sourceReference4"
                     size="20"
                     ref={input => (this.input = input)}
-                    defaultValue={
-                      this.props.leadItem.values['Source Reference 4']
-                    }
                     onChange={e =>
                       handleChange(this.props.leadItem, 'Source Reference 4', e)
                     }
@@ -915,9 +869,6 @@ export class LeadNew extends Component {
                     id="sourceReference5"
                     size="20"
                     ref={input => (this.input = input)}
-                    defaultValue={
-                      this.props.leadItem.values['Source Reference 5']
-                    }
                     onChange={e =>
                       handleChange(this.props.leadItem, 'Source Reference 5', e)
                     }
@@ -934,7 +885,6 @@ export class LeadNew extends Component {
                     id="note"
                     style={{ width: '100%' }}
                     required
-                    defaultValue={this.state.note}
                     onChange={e => this.handleChange('note', e)}
                   />
                 </div>
@@ -1037,7 +987,7 @@ export const LeadNewContainer = compose(
         }
         leadItem.values['Lead State'] = 'Open';
         leadItem.values['Status'] = 'Open';
-        leadItem.values['Date Created'] = moment().format('DD-MM-YYYY');
+        leadItem.values['Date Created'] = moment().format('L');
         //console.log("### saving lead # " + util.inspect(leadItem.values));
         createLead({
           leadItem,

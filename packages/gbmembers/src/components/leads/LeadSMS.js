@@ -67,7 +67,7 @@ export class LeadSMS extends Component {
       var dt = moment(value['createdAt']);
       smsValues[smsValues.length] = {
         Direction: value.values['Direction'],
-        Date: dt.format('DD-MM-YYYY HH:mm'),
+        Date: dt.format('L HH:mm'),
         Content: content['Content'],
       };
     });

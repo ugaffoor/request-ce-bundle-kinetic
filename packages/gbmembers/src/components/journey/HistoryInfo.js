@@ -15,6 +15,12 @@ import noshow_class from '../../images/no-show.png';
 export class HistoryInfo extends Component {
   constructor(props) {
     super(props);
+    moment.locale(
+      this.props.profile.preferredLocale === null
+        ? this.props.space.defaultLocale
+        : this.props.profile.preferredLocale,
+    );
+
     this.history = [];
     this.history[this.history.length] =
       this.props.history.length > 0

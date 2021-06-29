@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import moment from 'moment';
 import { AttendanceDialogContainer } from './AttendanceDialog';
 import statsBarIcon from '../../images/stats-bars.svg?raw';
 import SVGInline from 'react-svg-inline';

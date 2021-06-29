@@ -8,6 +8,12 @@ import { KappNavLink as NavLink } from 'common';
 export class EmailsReceived extends Component {
   constructor(props) {
     super(props);
+    moment.locale(
+      this.props.profile.preferredLocale === null
+        ? this.props.space.defaultLocale
+        : this.props.profile.preferredLocale,
+    );
+
     const data = this.getData(this.props.submission);
     this._columns = this.getColumns();
 

@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { compose, lifecycle, withHandlers, withProps } from 'recompose';
 import { actions } from '../../redux/modules/leads';
 import $ from 'jquery';
-import { getReminderDate, gmt_format } from './LeadsUtils';
+import { formatDateValue, getReminderDate, gmt_format } from './LeadsUtils';
 import { StatusMessagesContainer } from '../StatusMessages';
 import moment from 'moment';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
@@ -30,6 +30,12 @@ const mapDispatchToProps = {
 export class FollowUpDate extends Component {
   constructor(props) {
     super(props);
+    moment.locale(
+      this.props.profile.preferredLocale === null
+        ? this.props.space.defaultLocale
+        : this.props.profile.preferredLocale,
+    );
+
     this.saveLead = this.props.saveLead;
     let reminderDate = moment().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
     let reminderDateString = 'Tomorrow';
@@ -48,8 +54,7 @@ export class FollowUpDate extends Component {
       .find('input')
       .val();
     console.log('Date value:' + value.trim());
-    var dateValue =
-      value.trim() === '' ? '' : moment(value, 'L').format('YYYY-MM-DD');
+    var dateValue = value.trim() === '' ? '' : formatDateValue(value);
     if (value.trim() !== '' && dateValue === 'Invalid Date') return;
     if (value.trim() === '') dateValue = '';
 

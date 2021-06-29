@@ -134,6 +134,11 @@ export class LeadDetail extends Component {
     this.saveLeadNote = this.props.saveLeadNote;
     this.saveRemoveLeadNote = this.props.saveRemoveLeadNote;
     this.saveStatus = this.props.saveStatus;
+    moment.locale(
+      this.props.profile.preferredLocale === null
+        ? this.props.space.defaultLocale
+        : this.props.profile.preferredLocale,
+    );
 
     let profile = this.props.profile;
     let contactMethod = 'phone';
@@ -229,7 +234,7 @@ export class LeadDetail extends Component {
     columns.push({
       accessor: 'contactDate',
       width: 250,
-      Cell: row => moment(row.original.contactDate).format('DD-MM-YYYY h:mm A'),
+      Cell: row => moment(row.original.contactDate).format('L h:mm A'),
     });
     columns.push({
       accessor: 'submitter',
@@ -576,7 +581,7 @@ export class LeadDetail extends Component {
                       ? moment(
                           this.props.leadItem.values['Reminder Date'],
                           'YYYY-MM-DD',
-                        ).format('DD MMM YYYY')
+                        ).format('L')
                       : ''}
                   </NavLink>
                 </span>
@@ -747,7 +752,7 @@ export class LeadDetail extends Component {
               <li className="nav-item date">
                 <Datetime
                   className="float-right"
-                  dateFormat="DD/MM/YYYY"
+                  dateFormat="L"
                   onChange={this.handleDateChange}
                   defaultValue={moment()}
                 />
@@ -887,21 +892,35 @@ export class LeadDetail extends Component {
             campaignItem={this.props.campaignItem}
             campaignLoading={this.props.campaignLoading}
             space={this.props.space}
+            profile={this.props.profile}
           />
         </div>
         <div>
-          <EmailsReceived submission={this.props.leadItem} />
+          <EmailsReceived
+            submission={this.props.leadItem}
+            space={this.props.space}
+            profile={this.props.profile}
+          />
         </div>
         <div>
-          <LeadSMS leadItem={this.props.leadItem} />
+          <LeadSMS
+            leadItem={this.props.leadItem}
+            space={this.props.space}
+            profile={this.props.profile}
+          />
         </div>
         <div>
-          <Requests requestContent={this.props.leadItem.requestContent} />
+          <Requests
+            requestContent={this.props.leadItem.requestContent}
+            space={this.props.space}
+            profile={this.props.profile}
+          />
         </div>
         <div>
           <LeadOrders
             leadItem={this.props.leadItem}
             space={this.props.space}
+            profile={this.props.profile}
             snippets={this.props.snippets}
           />
         </div>
