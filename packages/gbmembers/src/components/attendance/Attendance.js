@@ -55,7 +55,7 @@ export class AttendanceDetail extends Component {
     let className = this.props.programs.get(0).program;
     let classDate = moment()
       .set({ hour: moment().get('hour'), minute: 0, second: 0 })
-      .format('MM/DD/YYYY hh:mm A');
+      .format('L hh:mm A');
     let classTime = moment()
       .set({ hour: moment().get('hour'), minute: 0, second: 0 })
       .format('HH:mm');
@@ -132,8 +132,8 @@ export class AttendanceDetail extends Component {
       memberItem: undefined,
     });
     if (
-      moment(classDate).format('MM/DD/YYYY hh:mm A') !==
-        moment(this.state.classDate).format('MM/DD/YYYY hh:mm A') ||
+      moment(classDate).format('L hh:mm A') !==
+        moment(this.state.classDate).format('L hh:mm A') ||
       this.state.className !== className
     ) {
       this.props.fetchClassBookings({
@@ -371,11 +371,11 @@ export class AttendanceDetail extends Component {
                 }}
                 onBlur={dt => {
                   this.doShowAttendance(
-                    dt.format('MM/DD/YYYY hh:mm A'),
+                    dt.format('L hh:mm A'),
                     this.state.className,
                   );
                   this.setState({
-                    classDate: dt.format('MM/DD/YYYY hh:mm A'),
+                    classDate: dt.format('L hh:mm A'),
                     classTime: dt.format('HH:mm'),
                   });
                 }}
@@ -556,9 +556,7 @@ export class AttendanceDetail extends Component {
                 </h4>
                 <h4>
                   For class <b>{this.state.className}</b> at{' '}
-                  <b>
-                    {moment(this.state.classDate).format('DD/MM/YYYY hh:mm A')}
-                  </b>
+                  <b>{moment(this.state.classDate).format('L hh:mm A')}</b>
                 </h4>
               </div>
               {this.state.memberAlreadyCheckedIn || this.state.noProgramSet ? (
@@ -598,7 +596,7 @@ export class AttendanceDetail extends Component {
                       className="btn btn-primary btn-block"
                       onClick={e => this.checkInMember()}
                     >
-                      Checkin Member
+                      Check-in Member
                     </button>
                   </div>
                   {this.state.memberItem.values['Covid19 Waiver'] === null ||

@@ -459,6 +459,9 @@ class AttendanceCardToPrint extends React.Component {
           id="attendanceCard_p1"
           className={
             'card1 ' +
+            (getAttributeValue(this.props.space, 'Card Region') === undefined
+              ? ''
+              : getAttributeValue(this.props.space, 'Card Region')) +
             this.props.memberItem.values['Ranking Program'].replace(/ /g, '_')
           }
         >
@@ -504,6 +507,9 @@ class AttendanceCardToPrint extends React.Component {
           id="attendanceCard_p2"
           className={
             'card2 ' +
+            (getAttributeValue(this.props.space, 'Card Region') === undefined
+              ? ''
+              : getAttributeValue(this.props.space, 'Card Region')) +
             this.props.memberItem.values['Ranking Program'].replace(/ /g, '_')
           }
         ></div>
@@ -801,10 +807,11 @@ export const MemberView = ({
               Converted Lead
             </NavLink>
           </div>
-          <div style={{ display: 'none' }}>
+          <div style={{ display: 'block' }}>
             <AttendanceCardToPrint
               ref={el => (this.componentRef = el)}
               memberItem={memberItem}
+              space={space}
             />
           </div>
           <div className="userDetails2">

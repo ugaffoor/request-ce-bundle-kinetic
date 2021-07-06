@@ -115,6 +115,68 @@
   background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Kids_Competition_Team-P2.png);
 }
 
+.card1.USGB1 {
+  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB1-P1.png);
+}
+.card1.USGB2 {
+  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB2-P1.png);
+}
+.card1.USGB3 {
+  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB3-P1.png);
+}
+.card1.USTiny_Champions {
+  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USTiny_Champions-P1.png);
+}
+.card1.USLittle_Champions_1 {
+  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USLittle_Champions_1-P1.png);
+}
+.card1.USLittle_Champions_2 {
+  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USLittle_Champions_2-P1.png);
+}
+.card1.USJuniors {
+  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USJuniors-P1.png);
+}
+.card1.USTeens {
+  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USTeens-P1.png);
+}
+.card1.USAdvanced_Kids {
+  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USAdvanced_Kids-P1.png);
+}
+.card1.USKids_Competition_Team {
+  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USKids_Competition_Team-P1.png);
+}
+
+.card2.USGB1 {
+  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB1-P2.png);
+}
+.card2.USGB2 {
+  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB2-P2.png);
+}
+.card2.USGB3 {
+  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB3-P2.png);
+}
+.card2.USTiny_Champions {
+  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USTiny_Champions-P2.png);
+}
+.card2.USLittle_Champions_1 {
+  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USLittle_Champions_1-P2.png);
+}
+.card2.USLittle_Champions_2 {
+  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USLittle_Champions_2-P2.png);
+}
+.card2.USJuniors {
+  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USJuniors-P2.png);
+}
+.card2.USTeens {
+  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USTeens-P2.png);
+}
+.card2.USAdvanced_Kids {
+  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USAdvanced_Kids-P2.png);
+}
+.card2.USKids_Competition_Team {
+  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USKids_Competition_Team-P2.png);
+}
+
 .replyIcon {
   cursor: pointer;
 }
@@ -640,6 +702,8 @@
     label {
       float: left;
       min-width: 180px;
+      margin-bottom: 0;
+      margin-top: 2px;
     }
     label[required]::before {
       content: '*';

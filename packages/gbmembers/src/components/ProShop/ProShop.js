@@ -45,6 +45,7 @@ import NumberFormat from 'react-number-format';
 import uuid from 'uuid';
 import moment from 'moment';
 import { ReceiptToPrint } from './ReceiptToPrint';
+import Helmet from 'react-helmet';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -85,6 +86,15 @@ class PayNow extends Component {
     super(props);
     posThis = this;
     this.processPayment = this.processPayment.bind(this);
+
+    if (getAttributeValue(this.props.space, 'POS System') !== 'Bambora') {
+      this.loadBamboraCheckout = this.loadBamboraCheckout.bind(this);
+
+      this.customCheckout = undefined;
+      this.isCardNumberComplete = false;
+      this.isCVVComplete = false;
+      this.isExpiryComplete = false;
+    }
     var subtotal = 0;
     var discount = 0;
     var total = 0;
@@ -133,9 +143,30 @@ class PayNow extends Component {
       status: '',
       errors: '',
       acceptedCards: getAttributeValue(this.props.space, 'POS Accepted Cards'),
+      myExternalLib: null,
     };
+
+    this.handleScriptInject = this.handleScriptInject.bind(this);
   }
-  componentWillReceiveProps(nextProps) {}
+  handleScriptInject({ scriptTags }) {
+    if (scriptTags) {
+      const scriptTag = scriptTags[0];
+      scriptTag.onload = () => {
+        // I don't really like referencing window.
+        console.log(`myExternalLib loaded!`, window.myExternalLib);
+        this.setState({
+          myExternalLib: window.myExternalLib,
+        });
+        this.loadBamboraCheckout();
+      };
+    }
+  }
+  componentWillReceiveProps(nextProps) {
+    /*    if (this.checkout===undefined && nextProps.allLeads.length > 0 && !nextProps.leadsLoading){
+        this.checkout = new InlineCheckout(uuid());
+
+    } */
+  }
   componentWillMount() {
     if (this.props.allLeads.length === 0) {
       this.props.fetchLeads();
@@ -309,9 +340,7 @@ class PayNow extends Component {
       customerId: 'dummy',
       payment: this.state.total,
       orderId: uuid,
-      ccnumber: this.state.number,
-      expiry: this.state.expiry,
-      cvc: this.state.cvc,
+      cardToken: this.state.cardToken,
       firstName: this.state.firstName,
       lastName: this.state.lastName,
       description: schoolName + ' sale',
@@ -391,132 +420,388 @@ class PayNow extends Component {
       );
     }
   }
+  loadBamboraCheckout() {
+    console.log('Loading Bambora Checkout');
+
+    this.customCheckout = window.customcheckout();
+    var customCheckoutController = {
+      payThis: this,
+      init: function() {
+        console.log('checkout.init()');
+        let formElem = $(
+          "<form id='checkout-form' class='form-inline  text-center'></form>",
+        );
+        formElem.append(
+          "<div class='form-group col-xs-6 has-feedback' id='card-number-bootstrap'><div id='card-number' class='form-control'></div><label class='help-block' for='card-number' id='card-number-error'></label></div>",
+        );
+        formElem.append(
+          "<div class='form-group col-xs-2 has-feedback' id='card-cvv-bootstrap'><div id='card-cvv' class='form-control'></div><label class='help-block' for='card-cvv' id='card-cvv-error'></label></div>",
+        );
+        formElem.append(
+          "<div class='form-group col-xs-2 has-feedback' id='card-expiry-bootstrap'><div id='card-expiry' class='form-control'></div><label class='help-block' for='card-expiry' id='card-expiry-error'></label></div>",
+        );
+        formElem.append(
+          "<div class='col-xs-2 text-center'><button id='pay-button' type='submit' class='verifyBtn btn-primary disabled' disabled='true'>Verify</button></div>",
+        );
+        $('.card-container .row').append(formElem);
+        customCheckoutController.createInputs();
+        customCheckoutController.addListeners();
+      },
+      createInputs: function() {
+        console.log('checkout.createInputs()');
+        var options = {};
+        var payThis = customCheckoutController.payThis;
+        // Create and mount the inputs
+        options.placeholder = 'Card number';
+        payThis.customCheckout
+          .create('card-number', options)
+          .mount('#card-number');
+
+        options.placeholder = 'CVV';
+        payThis.customCheckout.create('cvv', options).mount('#card-cvv');
+
+        options.placeholder = 'MM / YY';
+        payThis.customCheckout.create('expiry', options).mount('#card-expiry');
+      },
+      addListeners: function() {
+        var self = this;
+        var payThis = customCheckoutController.payThis;
+
+        // listen for submit button
+        if (document.getElementById('checkout-form') !== null) {
+          document
+            .getElementById('checkout-form')
+            .addEventListener('submit', self.onSubmit.bind(self));
+        }
+
+        payThis.customCheckout.on('brand', function(event) {
+          console.log('brand: ' + JSON.stringify(event));
+
+          var cardLogo = 'none';
+          if (event.brand && event.brand !== 'unknown') {
+            var filePath =
+              'https://cdn.na.bambora.com/downloads/images/cards/' +
+              event.brand +
+              '.svg';
+            cardLogo = 'url(' + filePath + ')';
+          }
+          document.getElementById(
+            'card-number',
+          ).style.backgroundImage = cardLogo;
+        });
+
+        payThis.customCheckout.on('blur', function(event) {
+          console.log('blur: ' + JSON.stringify(event));
+        });
+
+        payThis.customCheckout.on('focus', function(event) {
+          console.log('focus: ' + JSON.stringify(event));
+        });
+
+        payThis.customCheckout.on('empty', function(event) {
+          console.log('empty: ' + JSON.stringify(event));
+
+          if (event.empty) {
+            if (event.field === 'card-number') {
+              payThis.isCardNumberComplete = false;
+            } else if (event.field === 'cvv') {
+              payThis.isCVVComplete = false;
+            } else if (event.field === 'expiry') {
+              payThis.isExpiryComplete = false;
+            }
+            self.setPayButton(false);
+          }
+        });
+
+        payThis.customCheckout.on('complete', function(event) {
+          console.log('complete: ' + JSON.stringify(event));
+
+          if (event.field === 'card-number') {
+            payThis.isCardNumberComplete = true;
+            self.hideErrorForId('card-number');
+          } else if (event.field === 'cvv') {
+            payThis.isCVVComplete = true;
+            self.hideErrorForId('card-cvv');
+          } else if (event.field === 'expiry') {
+            payThis.isExpiryComplete = true;
+            self.hideErrorForId('card-expiry');
+          }
+
+          self.setPayButton(
+            payThis.isCardNumberComplete &&
+              payThis.isCVVComplete &&
+              payThis.isExpiryComplete,
+          );
+        });
+
+        payThis.customCheckout.on('error', function(event) {
+          console.log('error: ' + JSON.stringify(event));
+
+          if (event.field === 'card-number') {
+            payThis.isCardNumberComplete = false;
+            self.showErrorForId('card-number', event.message);
+          } else if (event.field === 'cvv') {
+            payThis.isCVVComplete = false;
+            self.showErrorForId('card-cvv', event.message);
+          } else if (event.field === 'expiry') {
+            payThis.isExpiryComplete = false;
+            self.showErrorForId('card-expiry', event.message);
+          }
+          self.setPayButton(false);
+        });
+      },
+      onSubmit: function(event) {
+        var self = this;
+        var payThis = customCheckoutController.payThis;
+
+        console.log('checkout.onSubmit()');
+
+        event.preventDefault();
+        self.setPayButton(false);
+        self.toggleProcessingScreen();
+
+        var callback = function(result) {
+          console.log('token result : ' + JSON.stringify(result));
+          debugger;
+          if (result.error) {
+            self.processTokenError(result.error);
+            payThis.setState({
+              cardToken: '',
+              cvc: '',
+              expiry: '',
+              number: '',
+              name: '',
+            });
+          } else {
+            self.processTokenSuccess(result.token);
+
+            payThis.setState({
+              cardToken: result['token'],
+              cvc: 'XXX',
+              expiry: result['expiryMonth'] + '/' + result['expiryYear'],
+              number: result['last4'],
+              name: payThis.state.name,
+            });
+          }
+        };
+
+        console.log('checkout.createToken()');
+        payThis.customCheckout.createToken(callback);
+      },
+      hideErrorForId: function(id) {
+        console.log('hideErrorForId: ' + id);
+
+        var element = document.getElementById(id);
+
+        if (element !== null) {
+          var errorElement = document.getElementById(id + '-error');
+          if (errorElement !== null) {
+            errorElement.innerHTML = '';
+          }
+
+          var bootStrapParent = document.getElementById(id + '-bootstrap');
+          if (bootStrapParent !== null) {
+            bootStrapParent.className = 'form-group has-feedback has-success';
+          }
+        } else {
+          console.log('showErrorForId: Could not find ' + id);
+        }
+      },
+      showErrorForId: function(id, message) {
+        console.log('showErrorForId: ' + id + ' ' + message);
+
+        var element = document.getElementById(id);
+
+        if (element !== null) {
+          var errorElement = document.getElementById(id + '-error');
+          if (errorElement !== null) {
+            errorElement.innerHTML = message;
+          }
+
+          var bootStrapParent = document.getElementById(id + '-bootstrap');
+          if (bootStrapParent !== null) {
+            bootStrapParent.className = 'form-group has-feedback has-error ';
+          }
+        } else {
+          console.log('showErrorForId: Could not find ' + id);
+        }
+      },
+      setPayButton: function(enabled) {
+        console.log('checkout.setPayButton() disabled: ' + !enabled);
+
+        var payButton = document.getElementById('pay-button');
+        if (enabled) {
+          payButton.disabled = false;
+          payButton.className = 'btn btn-primary';
+        } else {
+          payButton.disabled = true;
+          payButton.className = 'btn btn-primary disabled';
+        }
+      },
+      toggleProcessingScreen: function() {
+        var processingScreen = document.getElementById('processing-screen');
+        if (processingScreen) {
+          processingScreen.classList.toggle('visible');
+        }
+      },
+      showErrorFeedback: function(message) {
+        var xMark = '\u2718';
+        this.feedback = document.getElementById('feedback');
+        this.feedback.innerHTML = xMark + ' ' + message;
+        this.feedback.classList.add('error');
+      },
+      showSuccessFeedback: function(message) {
+        var checkMark = '\u2714';
+        this.feedback = document.getElementById('feedback');
+        this.feedback.innerHTML = checkMark + ' ' + message;
+        this.feedback.classList.add('success');
+      },
+      processTokenError: function(error) {
+        error = JSON.stringify(error, undefined, 2);
+        console.log('processTokenError: ' + error);
+
+        this.showErrorFeedback(
+          'Error creating token: </br>' + JSON.stringify(error, null, 4),
+        );
+        this.setPayButton(true);
+        this.toggleProcessingScreen();
+      },
+      processTokenSuccess: function(token) {
+        console.log('processTokenSuccess: ' + token);
+        var payThis = customCheckoutController.payThis;
+
+        this.showSuccessFeedback('Success! Created token: ' + token);
+        this.setPayButton(true);
+        this.toggleProcessingScreen();
+
+        payThis.setState({
+          status: '',
+        });
+      },
+    };
+    customCheckoutController.init();
+  }
   render() {
     return (
       <div>
-        {this.props.allLeads.length === 0 && this.props.leadsLoading ? (
-          <div />
-        ) : (
-          <div className="paynow">
-            <span className="topRow">
-              <div className="ckeckoutIcon">
-                <img src={checkoutIcon} alt="Checkout" />
-              </div>
-              <div className="name">Checkout</div>
-              <div
-                className="continueShopping"
-                onClick={e => {
-                  this.props.setShowCheckout(false);
-                }}
-              >
-                <img src={checkoutLeftArrowIcon} alt="Continue Shopping" />
-                <span className="keepShopping">Keep Shopping</span>
-              </div>
-            </span>
-            {!this.state.processingComplete ||
-            (this.state.status !== '1' && this.state.status !== '') ? (
-              <span className="capturePayment">
-                <span className="person">
-                  <div className="radioGroup">
-                    <label htmlFor="memberType" className="radio">
-                      <input
-                        id="memberType"
-                        name="MemberLead"
-                        type="radio"
-                        value="Member"
-                        checked={this.state.personType === 'Member'}
-                        onChange={e => {
-                          this.setState({ personType: 'Member' });
-                        }}
-                      />
-                      Member
-                    </label>
-                    <label htmlFor="leadType" className="radio">
-                      <input
-                        id="leadType"
-                        name="MemberLead"
-                        type="radio"
-                        value="Lead"
-                        checked={this.state.personType === 'Lead'}
-                        onChange={e => {
-                          this.setState({ personType: 'Lead' });
-                        }}
-                      />
-                      Lead
-                    </label>
+        <div className="paynow">
+          <span className="topRow">
+            <div className="ckeckoutIcon">
+              <img src={checkoutIcon} alt="Checkout" />
+            </div>
+            <div className="name">Checkout</div>
+            <div
+              className="continueShopping"
+              onClick={e => {
+                this.props.setShowCheckout(false);
+              }}
+            >
+              <img src={checkoutLeftArrowIcon} alt="Continue Shopping" />
+              <span className="keepShopping">Keep Shopping</span>
+            </div>
+          </span>
+          {!this.state.processingComplete ||
+          (this.state.status !== '1' && this.state.status !== '') ? (
+            <span className="capturePayment">
+              <span className="person">
+                <div className="radioGroup">
+                  <label htmlFor="memberType" className="radio">
+                    <input
+                      id="memberType"
+                      name="MemberLead"
+                      type="radio"
+                      value="Member"
+                      checked={this.state.personType === 'Member'}
+                      onChange={e => {
+                        this.setState({ personType: 'Member' });
+                      }}
+                    />
+                    Member
+                  </label>
+                  <label htmlFor="leadType" className="radio">
+                    <input
+                      id="leadType"
+                      name="MemberLead"
+                      type="radio"
+                      value="Lead"
+                      checked={this.state.personType === 'Lead'}
+                      onChange={e => {
+                        this.setState({ personType: 'Lead' });
+                      }}
+                    />
+                    Lead
+                  </label>
+                </div>
+                {this.state.personType === 'Member' ? (
+                  <Select
+                    closeMenuOnSelect={true}
+                    options={this.getAllMembers()}
+                    className="hide-columns-container"
+                    classNamePrefix="hide-columns"
+                    placeholder="Select Member"
+                    onChange={e => {
+                      var firstName = '';
+                      var lastName = '';
+                      for (let i = 0; i < this.props.allMembers.length; i++) {
+                        if (this.props.allMembers[i].id === e.value) {
+                          firstName = this.props.allMembers[i].values[
+                            'First Name'
+                          ];
+                          lastName = this.props.allMembers[i].values[
+                            'Last Name'
+                          ];
+                        }
+                      }
+                      this.setState({
+                        personID: e.value,
+                        firstName: firstName,
+                        lastName: lastName,
+                        name: firstName + ' ' + lastName,
+                      });
+                    }}
+                    style={{ width: '300px' }}
+                  />
+                ) : (
+                  <Select
+                    closeMenuOnSelect={true}
+                    options={this.getAllLeads()}
+                    className="hide-columns-container"
+                    classNamePrefix="hide-columns"
+                    placeholder="Select Lead"
+                    onChange={e => {
+                      var firstName = '';
+                      var lastName = '';
+                      for (let i = 0; i < this.props.allLeads.length; i++) {
+                        if (this.props.allLeads[i].id === e.value) {
+                          firstName = this.props.allLeads[i].values[
+                            'First Name'
+                          ];
+                          lastName = this.props.allLeads[i].values['Last Name'];
+                        }
+                      }
+                      this.setState({
+                        personID: e.value,
+                        firstName: firstName,
+                        lastName: lastName,
+                        name: firstName + ' ' + lastName,
+                      });
+                    }}
+                    style={{ width: '300px' }}
+                  />
+                )}
+              </span>
+              <span className="totalRow">
+                <span className="total">
+                  <div className="label">TOTAL</div>
+                  <div className="value">
+                    {new Intl.NumberFormat(this.props.locale, {
+                      style: 'currency',
+                      currency: this.props.currency,
+                    }).format(this.state.total)}
                   </div>
-                  {this.state.personType === 'Member' ? (
-                    <Select
-                      closeMenuOnSelect={true}
-                      options={this.getAllMembers()}
-                      className="hide-columns-container"
-                      classNamePrefix="hide-columns"
-                      placeholder="Select Member"
-                      onChange={e => {
-                        var firstName = '';
-                        var lastName = '';
-                        for (let i = 0; i < this.props.allMembers.length; i++) {
-                          if (this.props.allMembers[i].id === e.value) {
-                            firstName = this.props.allMembers[i].values[
-                              'First Name'
-                            ];
-                            lastName = this.props.allMembers[i].values[
-                              'Last Name'
-                            ];
-                          }
-                        }
-                        this.setState({
-                          personID: e.value,
-                          firstName: firstName,
-                          lastName: lastName,
-                          name: firstName + ' ' + lastName,
-                        });
-                      }}
-                      style={{ width: '300px' }}
-                    />
-                  ) : (
-                    <Select
-                      closeMenuOnSelect={true}
-                      options={this.getAllLeads()}
-                      className="hide-columns-container"
-                      classNamePrefix="hide-columns"
-                      placeholder="Select Lead"
-                      onChange={e => {
-                        var firstName = '';
-                        var lastName = '';
-                        for (let i = 0; i < this.props.allLeads.length; i++) {
-                          if (this.props.allLeads[i].id === e.value) {
-                            firstName = this.props.allLeads[i].values[
-                              'First Name'
-                            ];
-                            lastName = this.props.allLeads[i].values[
-                              'Last Name'
-                            ];
-                          }
-                        }
-                        this.setState({
-                          personID: e.value,
-                          firstName: firstName,
-                          lastName: lastName,
-                          name: firstName + ' ' + lastName,
-                        });
-                      }}
-                      style={{ width: '300px' }}
-                    />
-                  )}
                 </span>
-                <span className="totalRow">
-                  <span className="total">
-                    <div className="label">TOTAL</div>
-                    <div className="value">
-                      {new Intl.NumberFormat(this.props.locale, {
-                        style: 'currency',
-                        currency: this.props.currency,
-                      }).format(this.state.total)}
-                    </div>
-                  </span>
-                </span>
-                {/*            <span className="pickup">
+              </span>
+              {/*            <span className="pickup">
               <div className="label">PICK UP</div>
               <div className="radioGroup">
                 <label htmlFor="pickedUp" className="radio">
@@ -545,168 +830,219 @@ class PayNow extends Component {
                 </label>
               </div>
             </span> */}
-                <span className="paymentType">
-                  <div className="label">Payment Type</div>
-                  <div className="radioGroup">
-                    <label htmlFor="creditCard" className="radio">
-                      <input
-                        id="creditCard"
-                        name="cardpayment"
-                        type="radio"
-                        value="Credit Card"
-                        onChange={e => {
-                          this.setState({ payment: 'creditcard' });
-                        }}
-                      />
-                      Credit Card
-                    </label>
-                    <label htmlFor="cash" className="radio">
-                      <input
-                        id="cash"
-                        name="cardpayment"
-                        type="radio"
-                        value="Cash"
-                        onChange={e => {
-                          this.setState({ payment: 'cash' });
-                        }}
-                      />
-                      Cash
-                    </label>
-                  </div>
-                </span>
-                {this.state.payment === 'creditcard' ? (
-                  <span className="creditCard">
-                    <Cards
-                      cvc={this.state.cvc}
-                      expiry={this.state.expiry}
-                      focused={this.state.focus}
-                      name={this.state.name}
-                      number={this.state.number}
-                      acceptedCards={this.state.acceptedCards}
-                      callback={params => {
-                        posThis.setState({
-                          issuer: params.issuer,
-                          maxLength: params.maxLength,
-                        });
+              <span className="paymentType">
+                <div className="label">Payment Type</div>
+                <div className="radioGroup">
+                  <label htmlFor="creditCard" className="radio">
+                    <input
+                      id="creditCard"
+                      name="cardpayment"
+                      type="radio"
+                      value="Credit Card"
+                      onChange={e => {
+                        this.setState({ payment: 'creditcard' });
+                      }}
+                      onClick={async e => {
+                        if (
+                          getAttributeValue(this.props.space, 'POS System') ===
+                          'Bambora'
+                        ) {
+                        }
                       }}
                     />
-                    <form className="cardDetails">
-                      <input
-                        type="tel"
-                        name="number"
-                        maxlength={this.state.maxLength}
-                        placeholder="Card Number"
-                        onChange={this.handleInputChange}
-                        onFocus={this.handleInputFocus}
-                      />
-                      <input
-                        type="text"
-                        name="name"
-                        placeholder="Name"
-                        defaultValue={this.state.name}
-                        onChange={this.handleInputChange}
-                        onFocus={this.handleInputFocus}
-                      />
-                      <input
-                        type="text"
-                        name="expiry"
-                        placeholder="Valid Thru"
-                        maxlength="5"
-                        onChange={this.handleInputChange}
-                        onFocus={this.handleInputFocus}
-                      />
-                      <input
-                        type="text"
-                        name="cvc"
-                        placeholder="CVC"
-                        maxlength="4"
-                        onChange={this.handleInputChange}
-                        onFocus={this.handleInputFocus}
-                      />
-                    </form>
-                  </span>
-                ) : (
-                  <div />
-                )}
-                {this.state.status !== '1' && this.state.status !== '' && (
-                  <span className="error">
-                    <span className="statusCode">
-                      <label>Status:</label>
-                      <value>{this.state.status}</value>
-                    </span>
-                    <span className="statusMessage">
-                      <label>Status Message:</label>
-                      <value>{this.state.status_message}</value>
-                    </span>
-                    {this.state.errors !== '' && (
-                      <span className="errors">
-                        <label>Errors:</label>
-                        <value>{this.state.errors}</value>
-                      </span>
-                    )}
-                  </span>
-                )}
+                    Credit Card
+                  </label>
+                  <label htmlFor="cash" className="radio">
+                    <input
+                      id="cash"
+                      name="cardpayment"
+                      type="radio"
+                      value="Cash"
+                      onChange={e => {
+                        this.setState({ payment: 'cash' });
+                      }}
+                    />
+                    Cash
+                  </label>
+                </div>
               </span>
-            ) : (
-              <span className="receipt">
-                <ReceiptToPrint
-                  locale={this.props.locale}
-                  currency={this.props.currency}
-                  posCheckout={this.props.posCheckout}
-                  total={this.props.total}
-                  subtotal={this.props.subtotal}
-                  discount={this.props.discount}
-                  number={this.state.number}
-                  auth_code={this.state.auth_code}
-                  transaction_id={this.state.transaction_id}
-                  space={this.props.space}
-                  snippets={this.props.snippets}
-                  datetime={this.state.datetime}
-                  name={this.state.name}
-                  ref={el => (this.componentRef = el)}
-                />
-                <span className="printReceipt">
-                  <ReactToPrint
-                    trigger={() => (
-                      <SVGInline
-                        svg={printerIcon}
-                        className="icon barcodePrint"
-                      />
-                    )}
-                    content={() => this.componentRef}
-                    pageStyle="@page {size: a4 portrait;margin: 0;}"
-                  />
-                </span>
-              </span>
-            )}
-            <span className="bottomRow">
-              {(!this.state.processingComplete ||
-                (this.state.status !== '1' && this.state.status !== '')) && (
-                <div
-                  className="paynowButton"
-                  disabled={this.disablePayNow() && !this.state.processing}
-                  onClick={e => {
-                    if (this.disablePayNow() && !this.state.processing) return;
-                    this.setState({
-                      processing: true,
-                    });
-                    if (this.state.payment === 'creditcard') {
-                      this.processPayment();
-                    } else {
-                      setTimeout(function() {
-                        posThis.setState({
-                          processing: false,
-                          processingComplete: true,
-                          status: '1',
-                          errors: '',
-                          auth_code: '',
-                          transaction_id: 'cash',
-                          datetime: moment(),
-                        });
-                        posThis.completeCheckout();
-                      }, 2000);
+              {this.state.payment === 'creditcard' &&
+              getAttributeValue(this.props.space, 'POS System') ===
+                'Bambora' ? (
+                <span className="creditCard" id="bamboraCheckout">
+                  {/* Load the myExternalLib.js library. */}
+                  <Helmet
+                    script={[
+                      {
+                        src:
+                          'https://libs.na.bambora.com/customcheckout/1/customcheckout.js',
+                      },
+                    ]}
+                    // Helmet doesn't support `onload` in script objects so we have to hack in our own
+                    onChangeClientState={(newState, addedTags) =>
+                      this.handleScriptInject(addedTags)
                     }
-                    /*
+                  />
+                  <div>
+                    {this.state.myExternalLib !== null ? (
+                      <span>
+                        <meta
+                          name="viewport"
+                          content="width=device-width, initial-scale=1"
+                        />
+                        <div class="card-container">
+                          <div class="row"></div>
+                        </div>
+                        <div class="row">
+                          <div class="col-lg-12 text-center">
+                            <div id="feedback"></div>
+                          </div>
+                        </div>
+                      </span>
+                    ) : (
+                      'loading...'
+                    )}
+                  </div>
+                </span>
+              ) : (
+                <div />
+              )}
+
+              {this.state.payment === 'creditcard' &&
+              getAttributeValue(this.props.space, 'POS System') !==
+                'Bambora' ? (
+                <span className="creditCard">
+                  <Cards
+                    cvc={this.state.cvc}
+                    expiry={this.state.expiry}
+                    focused={this.state.focus}
+                    name={this.state.name}
+                    number={this.state.number}
+                    acceptedCards={this.state.acceptedCards}
+                    callback={params => {
+                      posThis.setState({
+                        issuer: params.issuer,
+                        maxLength: params.maxLength,
+                      });
+                    }}
+                  />
+                  <form className="cardDetails">
+                    <input
+                      type="tel"
+                      name="number"
+                      maxlength={this.state.maxLength}
+                      placeholder="Card Number"
+                      onChange={this.handleInputChange}
+                      onFocus={this.handleInputFocus}
+                    />
+                    <input
+                      type="text"
+                      name="name"
+                      placeholder="Name"
+                      defaultValue={this.state.name}
+                      onChange={this.handleInputChange}
+                      onFocus={this.handleInputFocus}
+                    />
+                    <input
+                      type="text"
+                      name="expiry"
+                      placeholder="Valid Thru"
+                      maxlength="5"
+                      onChange={this.handleInputChange}
+                      onFocus={this.handleInputFocus}
+                    />
+                    <input
+                      type="text"
+                      name="cvc"
+                      placeholder="CVC"
+                      maxlength="4"
+                      onChange={this.handleInputChange}
+                      onFocus={this.handleInputFocus}
+                    />
+                  </form>
+                </span>
+              ) : (
+                <div />
+              )}
+              {this.state.status !== '1' && this.state.status !== '' && (
+                <span className="error">
+                  <span className="statusCode">
+                    <label>Status:</label>
+                    <value>{this.state.status}</value>
+                  </span>
+                  <span className="statusMessage">
+                    <label>Status Message:</label>
+                    <value>{this.state.status_message}</value>
+                  </span>
+                  {this.state.errors !== '' && (
+                    <span className="errors">
+                      <label>Errors:</label>
+                      <value>{this.state.errors}</value>
+                    </span>
+                  )}
+                </span>
+              )}
+            </span>
+          ) : (
+            <span className="receipt">
+              <ReceiptToPrint
+                locale={this.props.locale}
+                currency={this.props.currency}
+                posCheckout={this.props.posCheckout}
+                total={this.props.total}
+                subtotal={this.props.subtotal}
+                discount={this.props.discount}
+                number={this.state.number}
+                auth_code={this.state.auth_code}
+                transaction_id={this.state.transaction_id}
+                space={this.props.space}
+                snippets={this.props.snippets}
+                datetime={this.state.datetime}
+                name={this.state.name}
+                ref={el => (this.componentRef = el)}
+              />
+              <span className="printReceipt">
+                <ReactToPrint
+                  trigger={() => (
+                    <SVGInline
+                      svg={printerIcon}
+                      className="icon barcodePrint"
+                    />
+                  )}
+                  content={() => this.componentRef}
+                  pageStyle="@page {size: a4 portrait;margin: 0;}"
+                />
+              </span>
+            </span>
+          )}
+          <span className="bottomRow">
+            {(!this.state.processingComplete ||
+              (this.state.status !== '1' && this.state.status !== '')) && (
+              <div
+                className="paynowButton"
+                disabled={this.disablePayNow() && !this.state.processing}
+                onClick={e => {
+                  if (this.disablePayNow() && !this.state.processing) return;
+                  this.setState({
+                    processing: true,
+                  });
+                  if (this.state.payment === 'creditcard') {
+                    this.processPayment();
+                  } else {
+                    setTimeout(function() {
+                      posThis.setState({
+                        processing: false,
+                        processingComplete: true,
+                        status: '1',
+                        errors: '',
+                        auth_code: '',
+                        transaction_id: 'cash',
+                        datetime: moment(),
+                      });
+                      posThis.completeCheckout();
+                    }, 2000);
+                  }
+                  /*
                 setTimeout(function(){
                   posThis.setState({
                     processing: false,
@@ -723,28 +1059,27 @@ class PayNow extends Component {
                   }
                 },5000);
 */
-                  }}
-                >
-                  {this.state.processing ? (
-                    <ScaleLoader
-                      className="processing"
-                      height="35"
-                      width="16"
-                      radius="2"
-                      margin="4"
-                      color="white"
-                    />
-                  ) : (
-                    <span>
-                      <span className="label">Pay Now</span>
-                      <img src={checkoutRightArrowIcon} alt="Pay Now" />
-                    </span>
-                  )}
-                </div>
-              )}
-            </span>
-          </div>
-        )}
+                }}
+              >
+                {this.state.processing ? (
+                  <ScaleLoader
+                    className="processing"
+                    height="35"
+                    width="16"
+                    radius="2"
+                    margin="4"
+                    color="white"
+                  />
+                ) : (
+                  <span>
+                    <span className="label">Pay Now</span>
+                    <img src={checkoutRightArrowIcon} alt="Pay Now" />
+                  </span>
+                )}
+              </div>
+            )}
+          </span>
+        </div>
       </div>
     );
   }

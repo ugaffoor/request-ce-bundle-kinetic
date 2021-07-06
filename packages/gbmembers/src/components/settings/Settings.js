@@ -293,7 +293,8 @@ export const SettingsView = ({
       ) : (
         <div />
       )}
-      {!Utils.isMemberOf(profile, 'Billing') ? (
+      {!Utils.isMemberOf(profile, 'Billing') ||
+      Utils.getAttributeValue(space, 'Billing Company') !== 'PaySmart' ? (
         <div />
       ) : (
         <div className="col-xs-3">
@@ -331,7 +332,8 @@ export const SettingsView = ({
           <span />
         )}
       </div>
-      {!Utils.isMemberOf(profile, 'Billing') ? (
+      {!Utils.isMemberOf(profile, 'Billing') ||
+      Utils.getAttributeValue(space, 'Billing Company') !== 'PaySmart' ? (
         <div />
       ) : (
         <div className="col-xs-3">

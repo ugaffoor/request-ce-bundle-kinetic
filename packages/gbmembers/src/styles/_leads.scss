@@ -80,6 +80,9 @@
       border-style: solid;
       border-radius: 0px;
       margin: 10px;
+      .addNewLead {
+        margin: 20px;
+      }
       .col {
         margin-top: 8px;
       }
@@ -389,6 +392,9 @@
     width: 100%;
     @media (min-width: 630px) {
       width: 45%;
+    }
+    text {
+      font-size: 12px;
     }
   }
   .arrow {

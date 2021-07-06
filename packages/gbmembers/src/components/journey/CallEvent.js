@@ -274,7 +274,11 @@ export class CallEvent extends Component {
                       </span>
                     </td>
                   </tr>
-                  <HistoryInfo history={this.props.history} />
+                  <HistoryInfo
+                    history={this.props.history}
+                    space={this.props.space}
+                    profile={this.props.profile}
+                  />
                 </tbody>
               </table>
             </span>

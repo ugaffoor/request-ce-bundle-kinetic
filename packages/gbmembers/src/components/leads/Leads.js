@@ -785,6 +785,11 @@ export class TasksDetail extends Component {
       <div>
         <div className="headerPanel">
           <div className="row">
+            <NavLink to={`/NewLead`} className="btn btn-primary addNewLead">
+              Add New Lead
+            </NavLink>
+          </div>
+          <div className="row">
             <div className="col">
               <div className="form-group">
                 <label htmlFor="allTasks">Show Tasks</label>
@@ -794,9 +799,9 @@ export class TasksDetail extends Component {
                   value={this.state.showTasksSelectValue}
                   onChange={e => this.onShowTasksSelectChange(e)}
                 >
-                  <option value="Todays Tasks">Todays Tasks</option>
-                  <option value="This Weeks Tasks">This Weeks Tasks</option>
-                  <option value="This Months Tasks">This Months Tasks</option>
+                  <option value="Todays Tasks">Today's Tasks</option>
+                  <option value="This Weeks Tasks">This Week's Tasks</option>
+                  <option value="This Months Tasks">This Month's Tasks</option>
                   <option value="All Tasks">All Tasks</option>
                 </select>
               </div>
@@ -1160,9 +1165,6 @@ export class LeadsDetail extends Component {
                 onClick={e => this.sortGrid('lastContact')}
               />
             </a>
-            <NavLink to={`/NewLead`} className="btn btn-primary addNewLead">
-              Add New Lead
-            </NavLink>
           </div>
         </div>
         <div id="leadsListGrid1" className="row" style={{ marginTop: '20px' }}>
@@ -1331,9 +1333,15 @@ const renderCustomizedLabel = ({
   tooltipPayload,
 }) => {
   const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  let x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
+  if (x === cx) {
+    x = x + 40;
+    cx = cx + 40;
+  } else {
+    x > cx ? (x = x - 29) : (x = x + 30);
+  }
   return (
     <text
       x={x}
@@ -1615,6 +1623,7 @@ export class LeadsConversionChart extends Component {
                     labelLine={false}
                     label={renderCustomizedLabel}
                     outerRadius={120}
+                    midAngle={400}
                     fill="#8884d8"
                   >
                     {data.map((entry, index) => (
@@ -1640,13 +1649,13 @@ export class LeadsConversionChart extends Component {
             <div className="circle">
               <span className="info">
                 <span className="leadsCount">
-                  {this.state.totalLeads} LEAD/S
+                  {this.state.totalLeads} LEAD(S)
                 </span>
                 <br />
                 <span className="convertedTo">CONVERTED TO</span>
                 <br />
                 <span style={{ color: 'black', fontWeight: 'bold' }}>
-                  {this.state.leadsConverted} STUDENT/S
+                  {this.state.leadsConverted} STUDENT(S)
                 </span>
                 <br />
                 <span className="students">

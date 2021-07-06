@@ -7,6 +7,8 @@ export const mapStateToProps = (state, props) => ({
   submission: state.services.submission.data,
   listType: props.match.params.type,
   mode: props.match.params.mode,
+  profile: state.member.kinops.profile,
+  space: state.member.app.space,
 });
 
 export const mapDispatchToProps = {
