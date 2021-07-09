@@ -87,6 +87,17 @@ class PayNow extends Component {
     posThis = this;
     this.processPayment = this.processPayment.bind(this);
 
+    axios
+      .get('https://api.ipify.org/')
+      .then(ip => {
+        this.setState({
+          publicIP: ip.data,
+        });
+      })
+      .catch(error => {
+        console.log(error.response);
+      });
+
     if (getAttributeValue(this.props.space, 'POS System') !== 'Bambora') {
       this.loadBamboraCheckout = this.loadBamboraCheckout.bind(this);
 
@@ -144,6 +155,7 @@ class PayNow extends Component {
       errors: '',
       acceptedCards: getAttributeValue(this.props.space, 'POS Accepted Cards'),
       myExternalLib: null,
+      country: getAttributeValue(this.props.space, 'School Country Code'),
     };
 
     this.handleScriptInject = this.handleScriptInject.bind(this);
@@ -343,6 +355,14 @@ class PayNow extends Component {
       cardToken: this.state.cardToken,
       firstName: this.state.firstName,
       lastName: this.state.lastName,
+      sourceIP: this.state.publicIP,
+      address: this.state.address,
+      city: this.state.city,
+      province: this.state.province,
+      postCode: this.state.postCode,
+      country: this.state.country === undefined ? 'US' : this.state.country,
+      phoneNumber: this.state.phoneNumber,
+      email: this.state.email,
       description: schoolName + ' sale',
     });
 
@@ -742,6 +762,12 @@ class PayNow extends Component {
                     onChange={e => {
                       var firstName = '';
                       var lastName = '';
+                      var address = '';
+                      var city = '';
+                      var province = '';
+                      var postCode = '';
+                      var phoneNumber = '';
+                      var email = '';
                       for (let i = 0; i < this.props.allMembers.length; i++) {
                         if (this.props.allMembers[i].id === e.value) {
                           firstName = this.props.allMembers[i].values[
@@ -750,6 +776,16 @@ class PayNow extends Component {
                           lastName = this.props.allMembers[i].values[
                             'Last Name'
                           ];
+                          address = this.props.allMembers[i].values['Address'];
+                          city = this.props.allMembers[i].values['Suburb'];
+                          province = this.props.allMembers[i].values['State'];
+                          postCode = this.props.allMembers[i].values[
+                            'Postcode'
+                          ];
+                          phoneNumber = this.props.allMembers[i].values[
+                            'Phone Number'
+                          ];
+                          email = this.props.allMembers[i].values['Email'];
                         }
                       }
                       this.setState({
@@ -757,6 +793,12 @@ class PayNow extends Component {
                         firstName: firstName,
                         lastName: lastName,
                         name: firstName + ' ' + lastName,
+                        address: address,
+                        city: city,
+                        province: province,
+                        postCode: postCode,
+                        phoneNumber: phoneNumber,
+                        email: email,
                       });
                     }}
                     style={{ width: '300px' }}
@@ -771,12 +813,28 @@ class PayNow extends Component {
                     onChange={e => {
                       var firstName = '';
                       var lastName = '';
+                      var address = '';
+                      var city = '';
+                      var province = '';
+                      var postCode = '';
+                      var phoneNumber = '';
+                      var email = '';
                       for (let i = 0; i < this.props.allLeads.length; i++) {
                         if (this.props.allLeads[i].id === e.value) {
                           firstName = this.props.allLeads[i].values[
                             'First Name'
                           ];
                           lastName = this.props.allLeads[i].values['Last Name'];
+                          address = this.props.allMembers[i].values['Address'];
+                          city = this.props.allMembers[i].values['Suburb'];
+                          province = this.props.allMembers[i].values['State'];
+                          postCode = this.props.allMembers[i].values[
+                            'Postcode'
+                          ];
+                          phoneNumber = this.props.allMembers[i].values[
+                            'Phone Number'
+                          ];
+                          email = this.props.allMembers[i].values['Email'];
                         }
                       }
                       this.setState({
@@ -784,6 +842,12 @@ class PayNow extends Component {
                         firstName: firstName,
                         lastName: lastName,
                         name: firstName + ' ' + lastName,
+                        address: address,
+                        city: city,
+                        province: province,
+                        postCode: postCode,
+                        phoneNumber: phoneNumber,
+                        email: email,
                       });
                     }}
                     style={{ width: '300px' }}

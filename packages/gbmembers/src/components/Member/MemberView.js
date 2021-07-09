@@ -60,6 +60,7 @@ import ReactToPrint from 'react-to-print';
 import css from 'css';
 import attentionRequired from '../../images/flag.svg?raw';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
+import styled from 'styled-components';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -449,19 +450,29 @@ export class AttendanceChart extends Component {
   }
 }
 
+const PageBreakWrapper = styled.div`
+  && {
+    page-break-after: always;
+  }
+`;
+
 class AttendanceCardToPrint extends React.Component {
   render() {
     return this.props.memberItem.values['Ranking Program'] === undefined ? (
       <div />
     ) : (
-      <div className="attendanceCard">
+      <div
+        className={
+          'attendanceCard ' +
+          (getAttributeValue(this.props.space, 'Card Region') === undefined
+            ? ''
+            : getAttributeValue(this.props.space, 'Card Region'))
+        }
+      >
         <div
           id="attendanceCard_p1"
           className={
             'card1 ' +
-            (getAttributeValue(this.props.space, 'Card Region') === undefined
-              ? ''
-              : getAttributeValue(this.props.space, 'Card Region')) +
             this.props.memberItem.values['Ranking Program'].replace(/ /g, '_')
           }
         >
@@ -482,7 +493,12 @@ class AttendanceCardToPrint extends React.Component {
               />
             )}
           </div>
-          <div className="attendanceBarcode">
+          <div
+            className={
+              'attendanceBarcode ' +
+              this.props.memberItem.values['Ranking Program'].replace(/ /g, '_')
+            }
+          >
             <Barcode
               value={this.props.memberItem.id.split('-')[4].substring(6, 12)}
               width={1.3}
@@ -503,13 +519,11 @@ class AttendanceCardToPrint extends React.Component {
             </p>
           </div>
         </div>
+        <PageBreakWrapper>&nbsp;</PageBreakWrapper>
         <div
           id="attendanceCard_p2"
           className={
             'card2 ' +
-            (getAttributeValue(this.props.space, 'Card Region') === undefined
-              ? ''
-              : getAttributeValue(this.props.space, 'Card Region')) +
             this.props.memberItem.values['Ranking Program'].replace(/ /g, '_')
           }
         ></div>
@@ -739,7 +753,7 @@ export const MemberView = ({
                         {memberItem.user === undefined ? (
                           <button
                             className="btn btn-primary"
-                            style={{ 'text-transform': 'unset' }}
+                            style={{ textTransform: 'unset' }}
                             onClick={e => createUserAccount()}
                           >
                             {creatingUserAccount
@@ -807,7 +821,7 @@ export const MemberView = ({
               Converted Lead
             </NavLink>
           </div>
-          <div style={{ display: 'block' }}>
+          <div style={{ display: 'none' }}>
             <AttendanceCardToPrint
               ref={el => (this.componentRef = el)}
               memberItem={memberItem}

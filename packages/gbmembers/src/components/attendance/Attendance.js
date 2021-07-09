@@ -137,13 +137,15 @@ export class AttendanceDetail extends Component {
       this.state.className !== className
     ) {
       this.props.fetchClassBookings({
-        classDate: moment(classDate).format('YYYY-MM-DD'),
-        classTime: moment(classDate).format('HH:mm'),
+        classDate: moment(classDate, 'L hh:mm A').format('YYYY-MM-DD'),
+        classTime: moment(classDate, 'L hh:mm A').format('HH:mm'),
         program: className,
         status: 'Booked',
         allMembers: this.props.allMembers,
       });
-      this.props.fetchClassAttendances({ classDate: classDate });
+      this.props.fetchClassAttendances({
+        classDate: moment(classDate, 'L hh:mm A').format('YYYY-MM-DD'),
+      });
     }
     $('#programClass').blur(); // Need to avoid scanning setting a value wierdly
     console.log('showAttendance:' + this.state.className);
@@ -793,8 +795,8 @@ export const AttendanceContainer = compose(
       values['Ranking Program'] = memberItem.values['Ranking Program'];
       values['Ranking Belt'] = memberItem.values['Ranking Belt'];
       values['Class'] = className;
-      let dt = moment(classDate);
-      values['Class Date'] = dt.format('YYYY-MM-DD');
+      let dt = moment(classDate, 'L hh:mm A');
+      values['Class Date'] = moment(dt).format('YYYY-MM-DD');
       values['Class Time'] = dt.format('HH:mm');
       values['Attendance Status'] = attendanceStatus;
 

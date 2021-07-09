@@ -48,10 +48,27 @@
       background-repeat: no-repeat;
     }
   }
+  .attendanceCard.US {
+    .card1 {
+    }
+    .card2 {
+      margin-top: 10mm;
+      height: 324mm !important;
+    }
+    .card1,
+    .card2 {
+      width: 185mm;
+      height: 262mm;
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+  }
 }
 @page {
   size: a5 landscape;
-  //margin: 0;
+  .attendanceCard.US {
+    size: letter landscape;
+  }
 }
 .card1.GB1 {
   background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/GB1-P1.png);
@@ -115,68 +132,69 @@
   background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Kids_Competition_Team-P2.png);
 }
 
-.card1.USGB1 {
-  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB1-P1.png);
-}
-.card1.USGB2 {
-  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB2-P1.png);
-}
-.card1.USGB3 {
-  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB3-P1.png);
-}
-.card1.USTiny_Champions {
-  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USTiny_Champions-P1.png);
-}
-.card1.USLittle_Champions_1 {
-  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USLittle_Champions_1-P1.png);
-}
-.card1.USLittle_Champions_2 {
-  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USLittle_Champions_2-P1.png);
-}
-.card1.USJuniors {
-  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USJuniors-P1.png);
-}
-.card1.USTeens {
-  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USTeens-P1.png);
-}
-.card1.USAdvanced_Kids {
-  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USAdvanced_Kids-P1.png);
-}
-.card1.USKids_Competition_Team {
-  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USKids_Competition_Team-P1.png);
-}
+.US {
+  .card1.GB1 {
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB1-P1.png);
+  }
+  .card1.GB2 {
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB2-P1.png);
+  }
+  .card1.GB3 {
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB3-P1.png);
+  }
+  .card1.Tiny_Champions {
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USTiny_Champions-P1.png);
+  }
+  .card1.Little_Champions_1 {
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USLittle_Champions_1-P1.png);
+  }
+  .card1.Little_Champions_2 {
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USLittle_Champions_2-P1.png);
+  }
+  .card1.Juniors {
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USJuniors-P1.png);
+  }
+  .card1.Teens {
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USTeens-P1.png);
+  }
+  .card1.Advanced_Kids {
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USAdvanced_Kids-P1.png);
+  }
+  .card1.Kids_Competition_Team {
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USKids_Competition_Team-P1.png);
+  }
 
-.card2.USGB1 {
-  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB1-P2.png);
+  .card2.GB1 {
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB1-P2.png);
+  }
+  .card2.GB2 {
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB2-P2.png);
+  }
+  .card2.GB3 {
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB3-P2.png);
+  }
+  .card2.Tiny_Champions {
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USTiny_Champions-P2.png);
+  }
+  .card2.Little_Champions_1 {
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USLittle_Champions_1-P2.png);
+  }
+  .card2.Little_Champions_2 {
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USLittle_Champions_2-P2.png);
+  }
+  .card2.Juniors {
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USJuniors-P2.png);
+  }
+  .card2.Teens {
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USTeens-P2.png);
+  }
+  .card2.Advanced_Kids {
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USAdvanced_Kids-P2.png);
+  }
+  .card2.Kids_Competition_Team {
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USKids_Competition_Team-P2.png);
+  }
 }
-.card2.USGB2 {
-  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB2-P2.png);
-}
-.card2.USGB3 {
-  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB3-P2.png);
-}
-.card2.USTiny_Champions {
-  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USTiny_Champions-P2.png);
-}
-.card2.USLittle_Champions_1 {
-  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USLittle_Champions_1-P2.png);
-}
-.card2.USLittle_Champions_2 {
-  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USLittle_Champions_2-P2.png);
-}
-.card2.USJuniors {
-  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USJuniors-P2.png);
-}
-.card2.USTeens {
-  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USTeens-P2.png);
-}
-.card2.USAdvanced_Kids {
-  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USAdvanced_Kids-P2.png);
-}
-.card2.USKids_Competition_Team {
-  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USKids_Competition_Team-P2.png);
-}
-
 .replyIcon {
   cursor: pointer;
 }
@@ -1149,6 +1167,144 @@ iframe#printf {
     filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
     p {
       font-size: 26px;
+    }
+  }
+}
+
+.attendanceCard.US {
+  .card1,
+  .card2 {
+    width: 185mm;
+    height: 262mm;
+  }
+
+  .Little_Champions_1 .photoDiv,
+  .Little_Champions_2 .photoDiv,
+  .Tiny_Champions .photoDiv,
+  .Juniors .photoDiv,
+  .Teens .photoDiv {
+    height: 205px;
+    width: 169px;
+    margin-left: 462px;
+    margin-top: 44px;
+    .noPhotoDiv {
+      width: 120px;
+      height: 120px;
+      padding: 20px;
+      margin-left: 150px;
+      margin-bottom: 23px;
+    }
+  }
+  .Advanced_Kids .photoDiv {
+    height: 119px;
+    width: 122px;
+    margin-left: 491px;
+    margin-top: 77px;
+    .noPhotoDiv {
+      width: 120px;
+      height: 120px;
+      padding: 20px;
+      margin-left: 150px;
+      margin-bottom: 23px;
+    }
+  }
+  .GB1 .photoDiv,
+  .GB2 .photoDiv,
+  .GB3 .photoDiv {
+    .noPhotoDiv {
+      width: 120px;
+      height: 120px;
+      padding: 20px;
+      margin-left: 120px;
+      margin-bottom: 23px;
+    }
+  }
+  .photoDiv {
+    height: 162px;
+    width: 174px;
+    margin-left: 130mm;
+    margin-top: 11.5mm;
+    line-height: 95px;
+    background-color: transparent;
+    float: left;
+    .noPhotoDiv {
+      width: 120px;
+      height: 120px;
+      padding: 20px;
+      margin-left: 120px;
+      margin-bottom: 23px;
+      margin-top: 38px;
+      font-size: 54px;
+      transform-origin: 0 0;
+      transform: rotate(90deg);
+      -webkit-transform: rotate(90deg);
+      -moz-transform: rotate(90deg);
+      -ms-transform: rotate(90deg);
+      -o-transform: rotate(90deg);
+      filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
+      position: absolute;
+      background-color: #f1f1f0;
+    }
+    .photoImg {
+      margin-left: 0px;
+      margin-top: 5px;
+      height: 100%;
+      width: 100%;
+      transform: rotate(90deg);
+      -webkit-transform: rotate(90deg);
+      -moz-transform: rotate(90deg);
+      -ms-transform: rotate(90deg);
+      -o-transform: rotate(90deg);
+      filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
+      float: left;
+    }
+  }
+  .attendanceBarcode.Advanced_Kids {
+    margin-top: 75mm;
+    margin-left: 162mm;
+  }
+  .attendanceBarcode {
+    margin-top: 67mm;
+    margin-left: 161mm;
+    transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
+    width: 100px;
+    svg {
+      width: 207px;
+      height: 84px;
+    }
+  }
+  .attendanceName.Advanced_Kids {
+    margin-top: 18mm;
+    margin-left: 103mm;
+  }
+  .attendanceName.Little_Champions_1,
+  .attendanceName.Little_Champions_2,
+  .attendanceName.Tiny_Champions,
+  .attendanceName.Juniors,
+  .attendanceName.Teens {
+    margin-top: 22mm;
+    margin-left: 103mm;
+  }
+  .attendanceName.GB2,
+  .attendanceName.GB3 {
+    margin-left: 101mm;
+  }
+  .attendanceName {
+    margin-top: 23mm;
+    margin-left: 102mm;
+    transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
+    p {
+      font-size: 22px;
     }
   }
 }

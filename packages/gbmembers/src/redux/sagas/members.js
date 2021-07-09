@@ -1399,7 +1399,7 @@ export function* refundTransaction(action) {
   args.customerId =
     appSettings.billingCompany === 'Bambora'
       ? action.payload.memberItem.values['Member ID']
-      : action.payload.memberItem.values['Billing Customer Reference'];
+      : action.payload.memberItem.values['Billing Customer Id'];
   args.transactionId = action.payload.transactionId;
   args.bankReceiptId = action.payload.bankReceiptId;
   args.refundAmount = action.payload.refundAmount;

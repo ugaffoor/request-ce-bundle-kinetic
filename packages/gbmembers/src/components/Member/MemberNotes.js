@@ -334,10 +334,15 @@ export class MemberNotesHome extends Component {
             campaignItem={this.props.campaignItem}
             campaignLoading={this.props.campaignLoading}
             space={this.props.space}
+            profile={this.props.profile}
           />
         </div>
         <div>
-          <EmailsReceived submission={this.props.memberItem} />
+          <EmailsReceived
+            submission={this.props.memberItem}
+            space={this.props.space}
+            profile={this.props.profile}
+          />
         </div>
       </div>
     );
@@ -354,6 +359,7 @@ export const MemberNotesView = ({
   space,
   setShowSMSModal,
   showSMSModal,
+  profile,
 }) =>
   currentMemberLoading ? (
     <div />
@@ -367,6 +373,7 @@ export const MemberNotesView = ({
       space={space}
       setShowSMSModal={setShowSMSModal}
       showSMSModal={showSMSModal}
+      profile={profile}
     />
   );
 

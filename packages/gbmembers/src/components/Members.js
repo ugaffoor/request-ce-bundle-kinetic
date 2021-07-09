@@ -126,13 +126,16 @@ export class Members extends React.Component {
                   {data.length}
                 </span>
               ),
-              filterMethod: (filter, row) =>
-                row._original['First Name']
-                  .toLowerCase()
-                  .includes(filter.value.toLowerCase()) ||
-                row._original['Last Name']
-                  .toLowerCase()
-                  .includes(filter.value.toLowerCase()),
+              filterMethod: (filter, row) => {
+                return (
+                  row._original['First Name']
+                    .toLowerCase()
+                    .includes(filter.value.toLowerCase()) ||
+                  row._original['Last Name']
+                    .toLowerCase()
+                    .includes(filter.value.toLowerCase())
+                );
+              },
             },
           ]}
           defaultPageSize={1000}
