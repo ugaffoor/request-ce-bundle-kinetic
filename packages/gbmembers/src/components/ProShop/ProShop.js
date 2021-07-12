@@ -46,6 +46,7 @@ import uuid from 'uuid';
 import moment from 'moment';
 import { ReceiptToPrint } from './ReceiptToPrint';
 import Helmet from 'react-helmet';
+import { ApiError, Client, Environment } from 'square';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -81,6 +82,26 @@ const mapDispatchToProps = {
 };
 var posThis = undefined;
 
+// Create wrapper async function
+const getLocations = async locationsApi => {
+  // The try/catch statement needs to be called from within an asynchronous function
+  try {
+    // Call listLocations method to get all locations in this Square account
+    let listLocationsResponse = await locationsApi.listLocations();
+
+    // Get first location from list
+    let firstLocation = listLocationsResponse.result.locations[0];
+
+    console.log('Here is your first location: ', firstLocation);
+  } catch (error) {
+    if (error instanceof ApiError) {
+      console.log('There was an error in your request: ', error.errors);
+    } else {
+      console.log('Unexpected Error: ', error);
+    }
+  }
+};
+
 class PayNow extends Component {
   constructor(props) {
     super(props);
@@ -98,6 +119,17 @@ class PayNow extends Component {
         console.log(error.response);
       });
 
+    let client = new Client({
+      environment: Environment.Sandbox,
+      accessToken:
+        'EAAAEFr_sZt2rFjJ4e9Cym7lSwjtjuurVjUjzukIvdDafbMtQgtMSAa8AEu0uoG2',
+      customUrl: 'http://connect.squareupsandbox.com',
+    });
+
+    // Get an instance of the Square API you want call
+    let { locationsApi } = client;
+
+    getLocations(locationsApi);
     if (getAttributeValue(this.props.space, 'POS System') !== 'Bambora') {
       this.loadBamboraCheckout = this.loadBamboraCheckout.bind(this);
 
