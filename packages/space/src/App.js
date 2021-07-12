@@ -124,7 +124,7 @@ export const App = compose(
     openSettings: props => () => props.setSettingsBackPath(props.pathname),
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchSettings();
     },
   }),

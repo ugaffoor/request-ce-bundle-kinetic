@@ -16,11 +16,11 @@ export class FailedPayments extends Component {
     };
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.props.getFailedPayments();
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.paymentHistory) {
       this.paymentHistory = nextProps.paymentHistory;
       this.setState({

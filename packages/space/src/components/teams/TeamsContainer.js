@@ -35,12 +35,9 @@ const openRequestNewTeam = ({
   });
 
 export const TeamsContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchTeams();
     },
   }),

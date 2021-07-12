@@ -18,7 +18,7 @@ export class ListMembers extends React.Component {
     this.toggleSidebarOpen = props.toggleSidebarOpen;
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     this.setState({
       data: this.getData(
         nextProps.allMembers,

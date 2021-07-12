@@ -373,7 +373,7 @@ export const SpaceSettings = compose(
     updateSettings,
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchSettings();
     },
   }),

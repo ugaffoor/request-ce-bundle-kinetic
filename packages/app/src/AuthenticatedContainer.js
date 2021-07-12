@@ -186,7 +186,7 @@ export const AuthenticatedContainer = compose(
   }),
 
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       if (bundle.identity() !== 'anonymous') {
         this.props.setAttempting(false);
         this.props.setAuthenticated(true);

@@ -100,7 +100,7 @@ export class LeadEdit extends Component {
     return membersVals;
   }
 
-  componentWillReceiveProps(nextProps) {}
+  UNSAFE_componentWillReceiveProps(nextProps) {}
 
   render() {
     return (
@@ -1244,7 +1244,7 @@ export const LeadEditContainer = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchLeads();
       this.props.fetchLead({
         id: this.props.match.params['id'],
@@ -1252,7 +1252,7 @@ export const LeadEditContainer = compose(
         history: this.props.history,
       });
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.pathname !== nextProps.pathname) {
         this.props.fetchLead({
           id: this.props.match.params['id'],

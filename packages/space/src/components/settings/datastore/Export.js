@@ -138,7 +138,7 @@ export const Export = compose(
     handleDownload,
   }),
   lifecycle({
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.submissions.length !== nextProps.submissions.length) {
         nextProps.setExportStatus('CONVERT');
         const csv = createCSV(nextProps.submissions, nextProps.form);

@@ -566,7 +566,7 @@ export const Searchbar = compose(
     handleRemoveIndexPartInput,
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       if (this.props.searchParams.index) {
         this.props.setPlaceholderText(
           `Searching by ${this.props.searchParams.index.name}...`,

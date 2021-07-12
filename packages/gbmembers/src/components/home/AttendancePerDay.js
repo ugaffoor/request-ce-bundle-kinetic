@@ -92,7 +92,7 @@ export class AttendancePerDay extends Component {
       classSchedules: [],
     };
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.classSchedules) {
       this.classSchedules = nextProps.classSchedules;
     }
@@ -120,7 +120,7 @@ export class AttendancePerDay extends Component {
       });
     }
   }
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.props.fetchAttendancesByDate({
       fromDate: this.state.fromDate,
       toDate: this.state.toDate,

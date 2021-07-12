@@ -82,8 +82,8 @@ export const ListEditContainer = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {},
-    componentWillReceiveProps(nextProps) {},
+    UNSAFE_componentWillMount() {},
+    UNSAFE_componentWillReceiveProps(nextProps) {},
     componentWillUnmount() {},
   }),
 )(ListEditView);
@@ -127,7 +127,7 @@ export class ListEditHome extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     //console.log("next props = " + util.inspect(nextProps));
     if (nextProps.allMembers) {
       let data = [];

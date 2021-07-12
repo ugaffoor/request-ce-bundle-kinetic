@@ -16,7 +16,7 @@ export class TimeAgo extends Component {
     this.interval = setInterval(this.tick, TIME_AGO_INTERVAL);
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (this.props.timestamp !== nextProps.timestamp) {
       this.setState(this.getState(nextProps));
     }

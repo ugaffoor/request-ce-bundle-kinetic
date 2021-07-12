@@ -89,8 +89,8 @@ export const mapCatgories = ({ rawCategories, setCategories }) => () => {
     return a.attributes['Sort Order'][0] > b.attributes['Sort Order'][0]
       ? 1
       : b.attributes['Sort Order'][0] > a.attributes['Sort Order'][0]
-        ? -1
-        : 0;
+      ? -1
+      : 0;
   });
   const mapped = {};
   for (let i = 0; i < rawCategories.length; i++) {
@@ -599,10 +599,7 @@ const mapDispatchToProps = {
 };
 
 export const CategoriesSettings = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withState('categories', 'setCategories', []),
   withState('inputs', 'setInputs', {}),
   withState('subcategory', 'setSubcategory', {}),
@@ -617,10 +614,10 @@ export const CategoriesSettings = compose(
     editCategory,
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchCategories(this.props.kappSlug);
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       nextProps.rawCategories !== this.props.rawCategories &&
         this.props.mapCatgories(nextProps.rawCategories);
     },

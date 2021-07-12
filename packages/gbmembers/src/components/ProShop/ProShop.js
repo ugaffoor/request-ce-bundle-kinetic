@@ -205,13 +205,13 @@ class PayNow extends Component {
       };
     }
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     /*    if (this.checkout===undefined && nextProps.allLeads.length > 0 && !nextProps.leadsLoading){
         this.checkout = new InlineCheckout(uuid());
 
     } */
   }
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     if (this.props.allLeads.length === 0) {
       this.props.fetchLeads();
     }
@@ -1237,7 +1237,7 @@ class Checkout extends Component {
       showPayNow: show,
     });
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     var subtotal = 0;
     var discount = 0;
     var total = 0;
@@ -1271,7 +1271,7 @@ class Checkout extends Component {
       total: total,
     });
   }
-  componentWillMount() {}
+  UNSAFE_componentWillMount() {}
   render() {
     return (
       <div className="checkout">
@@ -2000,7 +2000,7 @@ export class ProShop extends Component {
       editProductsSwitch: false,
     });
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (
       nextProps.posCheckout['Checkout Items'] !== undefined &&
       nextProps.posCheckout['Checkout Items'].length !== this.state.productCount
@@ -2708,13 +2708,13 @@ export const ProShopContainer = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchPOSCategories();
       this.props.fetchPOSProducts();
       this.props.fetchPOSDiscounts();
       this.props.fetchPOSCheckout({ username: this.props.profile.username });
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);

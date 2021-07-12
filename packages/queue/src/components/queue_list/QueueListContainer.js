@@ -157,10 +157,10 @@ export const QueueListContainer = compose(
       setOffset(offset + limit),
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.loadFilter(this.props.filter, this.props.filterValidations);
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (!is(this.props.filter, nextProps.filter)) {
         this.loadFilter(nextProps.filter, nextProps.filterValidations);
       }

@@ -69,7 +69,7 @@ export const SidebarContainer = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchMembers();
     },
   }),

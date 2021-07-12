@@ -234,10 +234,10 @@ export const UsersList = compose(
   withState('data', 'setData', ''),
   withHandlers({ handleChange, handleDownload }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchUsers();
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.users !== nextProps.users) {
         nextProps.setData(createCSV(nextProps.users));
       }

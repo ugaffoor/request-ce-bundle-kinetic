@@ -38,7 +38,7 @@ export class InactiveCustomersChart extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.inactiveCustomersCount) {
       this.setState({
         data: this.getData(nextProps.inactiveCustomersCount),
@@ -46,7 +46,7 @@ export class InactiveCustomersChart extends Component {
     }
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.props.getInactiveCustomersCount();
   }
 

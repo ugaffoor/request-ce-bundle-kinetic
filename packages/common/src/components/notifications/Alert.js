@@ -26,7 +26,7 @@ const AlertComponent = ({ color, style, message, closable, handleClose }) => (
 
 export const Alert = compose(
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       // If handleClose prop is not a function, throw error
       if (typeof this.props.handleClose !== 'function') {
         throw new Error(

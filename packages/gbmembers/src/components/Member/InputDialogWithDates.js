@@ -25,7 +25,7 @@ class InputDialogWithDates extends Component {
       drawerWidth: '0px',
     };
   }
-  componentWillMount() {}
+  UNSAFE_componentWillMount() {}
 
   componentDidMount() {
     this.setState({

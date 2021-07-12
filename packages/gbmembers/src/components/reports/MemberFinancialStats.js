@@ -83,7 +83,7 @@ export class MemberFinancialStats extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (
       !nextProps.billingCustomersLoading &&
       !nextProps.variationCustomersLoading /* && !nextProps.customerRefundsLoading */ &&
@@ -108,7 +108,7 @@ export class MemberFinancialStats extends Component {
     }
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.props.fetchBillingCustomers({
       setBillingCustomers: this.props.setBillingCustomers,
       allMembers: this.props.members,

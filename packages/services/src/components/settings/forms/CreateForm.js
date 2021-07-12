@@ -9,9 +9,11 @@ import { actions as servicesActions } from '../../../redux/modules/settingsServi
 export const teamOptions = teams => {
   let optionElements = '<option></option>';
   let options;
-  options = teams.filter(team => !team.name.includes('Role')).map(team => {
-    return { value: team.name, label: team.name };
-  });
+  options = teams
+    .filter(team => !team.name.includes('Role'))
+    .map(team => {
+      return { value: team.name, label: team.name };
+    });
   optionElements = options.map(option => {
     return (
       <option key={option.value} value={option.value}>
@@ -235,15 +237,12 @@ export const mapDispatchToProps = {
 };
 
 export const CreateForm = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withState('inputs', 'setInputs', { Type: 'Service', Status: 'Active' }),
   withState('slugEntered', 'setSlugEntered', false),
   withHandlers({ teamOptions, validateForm }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchServicesSettings();
       this.props.fetchServicesSettingsTeams();
     },

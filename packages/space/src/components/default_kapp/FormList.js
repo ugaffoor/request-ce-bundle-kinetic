@@ -75,10 +75,10 @@ const mapDispatchToProps = {
 export const FormList = compose(
   connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
-    componentWillMount(props) {
+    UNSAFE_componentWillMount(props) {
       this.props.fetchForms(this.props.kappSlug);
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.kappSlug !== nextProps.kappSlug) {
         this.props.fetchForms(nextProps.kappSlug);
       }

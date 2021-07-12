@@ -184,7 +184,7 @@ export const mapDispatchToProps = {
 export const RobotsList = compose(
   connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchRobots();
       this.props.fetchNextExecutions();
     },

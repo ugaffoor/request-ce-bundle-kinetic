@@ -812,14 +812,14 @@ export const AttendanceContainer = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       moment.locale(
         this.props.profile.preferredLocale === null
           ? this.props.space.defaultLocale
           : this.props.profile.preferredLocale,
       );
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);

@@ -37,7 +37,7 @@ export class ProcessedPaymentsBillingChart extends Component {
     //this.getBillingPayments('current_month');
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     //console.log(" billing chart data = " + util.inspect(nextProps));
     if (nextProps.billingPaymentsLoading) {
       this.billingPaymentsLoading = nextProps.billingPaymentsLoading;
@@ -54,7 +54,7 @@ export class ProcessedPaymentsBillingChart extends Component {
       });
     }
   }
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.props.getBillingPayments('current_month');
   }
   getData(billingPayments) {

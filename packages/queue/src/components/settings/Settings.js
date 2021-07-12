@@ -58,7 +58,7 @@ const mapDispatchToProps = {
 export const Settings = compose(
   connect(null, mapDispatchToProps),
   lifecycle({
-    componentWillMount(prev, next) {
+    UNSAFE_componentWillMount(prev, next) {
       this.props.fetchQueueSettings();
     },
   }),

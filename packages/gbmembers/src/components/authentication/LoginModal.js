@@ -77,10 +77,7 @@ const handleLogin = props => event => {
 };
 
 export const LoginModal = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withState('email', 'setEmail', ''),
   withState('password', 'setPassword', ''),
   withState('error', 'setError', ''),
@@ -105,7 +102,7 @@ export const LoginModal = compose(
     };
   }),
   lifecycle({
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.showing && !nextProps.showing) {
         this.props.setEmail('');
         this.props.setPassword('');

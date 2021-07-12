@@ -54,8 +54,8 @@ export const LeadListContainer = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {},
-    componentWillReceiveProps(nextProps) {},
+    UNSAFE_componentWillMount() {},
+    UNSAFE_componentWillReceiveProps(nextProps) {},
     componentWillUnmount() {},
   }),
 )(ListView);
@@ -76,7 +76,7 @@ export class ListHome extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.leadLists) {
       this.setState({
         listData: this.getListData(this.props.allLeads, nextProps.leadLists),

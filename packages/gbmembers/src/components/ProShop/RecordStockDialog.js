@@ -47,7 +47,7 @@ export class RecordStockDialog extends Component {
   handleError(data) {
     console.log('Scanned Error:' + data);
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.posStockSaving !== this.state.posStockSaving) {
       this.setState({
         posStockSaving: nextProps.posStockSaving,
@@ -72,7 +72,7 @@ export class RecordStockDialog extends Component {
       $('.sizeElement input').prop('checked', false);
     }
   }
-  componentWillMount() {}
+  UNSAFE_componentWillMount() {}
   render() {
     return (
       <div onClick={this.handleClick}>

@@ -43,7 +43,7 @@ export class FollowUpDate extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {}
+  UNSAFE_componentWillReceiveProps(nextProps) {}
 
   handleDateChange() {
     var value = $('#' + this.id)
@@ -232,7 +232,7 @@ export const MemberFollowUpContainer = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       moment.locale(
         this.props.profile.preferredLocale === null
           ? this.props.space.defaultLocale
@@ -245,7 +245,7 @@ export const MemberFollowUpContainer = compose(
         history: this.props.history,
       });
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.pathname !== nextProps.pathname) {
         this.props.fetchCurrentMember({
           id: this.props.match.params['id'],

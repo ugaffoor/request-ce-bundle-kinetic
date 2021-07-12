@@ -242,7 +242,7 @@ export const RobotExecutionsList = compose(
       props.fetchRobotExecutions(props.match.params.robotId),
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchRobotExecutions(this.props.match.params.robotId);
     },
   }),

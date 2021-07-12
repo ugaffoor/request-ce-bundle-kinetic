@@ -172,9 +172,9 @@ export class EmailEvent extends Component {
     editorThis = this;
   }
 
-  componentWillReceiveProps(nextProps) {}
+  UNSAFE_componentWillReceiveProps(nextProps) {}
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     if (isMobile || isTablet) {
       this.editorStore = createEditorStore();
     }
@@ -640,7 +640,7 @@ export const EmailEventContainer = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.resetJourneyEvent();
       if (this.props.allLeads.length === 0) {
         this.props.fetchLeads();
@@ -654,7 +654,7 @@ export const EmailEventContainer = compose(
         this.props.setCurrentEventId(this.props.eventId);
       }
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (!nextProps.leadsLoading && !nextProps.membersLoading) {
         if (nextProps.currentEventId !== nextProps.eventId) {
           this.props.setCurrentEventId(nextProps.eventId);

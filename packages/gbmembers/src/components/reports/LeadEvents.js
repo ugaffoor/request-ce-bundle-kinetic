@@ -22,12 +22,12 @@ export class EventItem extends Component {
       event: this.props.event,
     };
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     this.setState({
       event: nextProps.event,
     });
   }
-  componentWillMount() {}
+  UNSAFE_componentWillMount() {}
   render() {
     return (
       <div
@@ -86,13 +86,13 @@ export class EventsBar extends Component {
       type: this.props.type,
     };
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     this.setState({
       events: nextProps.events,
       type: nextProps.type,
     });
   }
-  componentWillMount() {}
+  UNSAFE_componentWillMount() {}
   render() {
     return (
       <div className="eventsBar">
@@ -123,13 +123,13 @@ export class LeadEvents extends Component {
       events: this.props.events,
     };
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     let events = nextProps.events;
     this.setState({
       events,
     });
   }
-  componentWillMount() {}
+  UNSAFE_componentWillMount() {}
   render() {
     return (
       <div className="Events">

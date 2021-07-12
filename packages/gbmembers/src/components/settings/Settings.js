@@ -477,10 +477,10 @@ export const SettingsContainer = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       //      this.setState({ printingBarcodes: false });
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);

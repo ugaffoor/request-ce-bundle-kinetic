@@ -29,7 +29,7 @@ export class MemberFiles extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.memberItem) {
       this.setState({
         data: this.getData(nextProps.memberItem),
@@ -41,7 +41,7 @@ export class MemberFiles extends Component {
     }
   }
 
-  componentWillMount() {}
+  UNSAFE_componentWillMount() {}
 
   getColumns() {
     return [

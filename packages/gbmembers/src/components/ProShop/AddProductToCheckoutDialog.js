@@ -31,8 +31,8 @@ export class AddProductToCheckoutDialog extends Component {
       packagedProductSizes: [],
     };
   }
-  componentWillReceiveProps(nextProps) {}
-  componentWillMount() {}
+  UNSAFE_componentWillReceiveProps(nextProps) {}
+  UNSAFE_componentWillMount() {}
   getProductQuantity(product, size) {
     var qty = 0;
     product.stock.forEach((stock, i) => {

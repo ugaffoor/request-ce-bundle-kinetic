@@ -19,7 +19,7 @@ export class KidsChart extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.allMembers) {
       this.setState({
         data: this.getData(nextProps.allMembers),

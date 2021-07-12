@@ -432,14 +432,14 @@ export const ServicesSettings = compose(
   withState('approver', 'setApprover', null),
   withHandlers({ setInitialInputs }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchServicesSettings();
       this.props.fetchServicesSettingsTeams();
       this.props.fetchServicesSettingsUsers();
       this.props.fetchServicesSettingsSpace();
       this.props.fetchNotifications();
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       nextProps.servicesSettings.loading === false &&
         nextProps.servicesSettings.servicesSettingsKapp !==
           this.props.servicesSettings.servicesSettingsKapp &&

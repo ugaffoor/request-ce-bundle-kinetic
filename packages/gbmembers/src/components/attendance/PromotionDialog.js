@@ -167,8 +167,8 @@ export class PromotionDialog extends Component {
       showAttendanceDialog,
     };
   }
-  componentWillReceiveProps(nextProps) {}
-  componentWillMount() {
+  UNSAFE_componentWillReceiveProps(nextProps) {}
+  UNSAFE_componentWillMount() {
     if (this.props.memberItem.promotionContent.length === 0) {
       this.props.fetchMemberPromotions({
         id: this.props.memberItem.id,

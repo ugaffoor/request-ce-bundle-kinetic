@@ -591,7 +591,7 @@ export const FormSettings = compose(
     handleColumnChange,
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchFormSettings({
         formSlug: this.props.match.params.id,
         kappSlug: this.props.kappSlug,
@@ -602,7 +602,7 @@ export const FormSettings = compose(
       this.props.fetchQueueSettingsTeams();
       this.props.fetchQueueSettingsSpace();
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       nextProps.loading === false &&
         nextProps.form !== this.props.form &&
         nextProps.setInitialInputs();

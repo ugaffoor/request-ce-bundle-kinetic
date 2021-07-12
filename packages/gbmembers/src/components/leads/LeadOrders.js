@@ -23,7 +23,7 @@ export class LeadOrders extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.leadItem) {
       this.setState({
         data: this.getData(nextProps.leadItem),
@@ -31,7 +31,7 @@ export class LeadOrders extends Component {
     }
   }
 
-  componentWillMount() {}
+  UNSAFE_componentWillMount() {}
 
   getColumns() {
     return [

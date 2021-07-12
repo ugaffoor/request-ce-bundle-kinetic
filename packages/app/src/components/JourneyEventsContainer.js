@@ -43,7 +43,7 @@ export const JourneyEventsContainer = compose(
     toggle: props => () => props.setIsOpen(open => !open),
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       let timer = setInterval(tick, 60 * 1000 * 10, this); // refresh every 10 minutes
       this.setState({ timer: timer });
     },

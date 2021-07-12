@@ -44,9 +44,11 @@ export const Select = ({
   let options;
   if (data) {
     if (type === 'teams') {
-      options = data.filter(team => !team.name.includes('Role')).map(team => {
-        return { value: team.name, label: team.name };
-      });
+      options = data
+        .filter(team => !team.name.includes('Role'))
+        .map(team => {
+          return { value: team.name, label: team.name };
+        });
     } else if (type === 'notifications') {
       options = data.map(notification => {
         return {
@@ -55,9 +57,11 @@ export const Select = ({
         };
       });
     } else {
-      options = data.kapps.find(kapp => kapp.slug === type).forms.map(form => {
-        return { value: form.slug, label: form.name };
-      });
+      options = data.kapps
+        .find(kapp => kapp.slug === type)
+        .forms.map(form => {
+          return { value: form.slug, label: form.name };
+        });
     }
     optionElements = options.map(option => {
       const kappName = type.charAt(0).toUpperCase() + type.slice(1);
@@ -554,10 +558,7 @@ const mapDispatchToProps = {
 };
 
 export const FormSettings = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withState('inputs', 'setInputs', {}),
   withHandlers({
     setInitialInputs,
@@ -565,7 +566,7 @@ export const FormSettings = compose(
     handleColumnChange,
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchFormSettings({
         formSlug: this.props.match.params.id,
         kappSlug: this.props.kappSlug,
@@ -576,7 +577,7 @@ export const FormSettings = compose(
       this.props.fetchServicesSettingsTeams();
       this.props.fetchServicesSettingsSpace();
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       nextProps.loading === false &&
         nextProps.form !== this.props.form &&
         nextProps.setInitialInputs();

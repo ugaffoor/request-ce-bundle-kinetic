@@ -18,7 +18,7 @@ export class GradingStatus extends Component {
       showPromotionDialog,
     };
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     let statusIndicator = nextProps.memberItem.statusIndicator;
     let statusText = nextProps.memberItem.statusText;
 
@@ -33,7 +33,7 @@ export class GradingStatus extends Component {
       showPromotionDialog: showPromotionDialog,
     });
   }
-  componentWillMount() {}
+  UNSAFE_componentWillMount() {}
   setShowPromotionDialog(gradingStatusThis, show) {
     gradingStatusThis.setState({ showPromotionDialog: show });
   }

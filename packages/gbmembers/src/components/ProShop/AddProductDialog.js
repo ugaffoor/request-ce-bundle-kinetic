@@ -30,8 +30,8 @@ export class AddProductDialog extends Component {
       },
     };
   }
-  componentWillReceiveProps(nextProps) {}
-  componentWillMount() {}
+  UNSAFE_componentWillReceiveProps(nextProps) {}
+  UNSAFE_componentWillMount() {}
   render() {
     return (
       <div onClick={this.handleClick}>

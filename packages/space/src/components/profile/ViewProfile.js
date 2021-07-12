@@ -215,10 +215,10 @@ export const mapDispatchToProps = {
 export const ViewProfile = compose(
   connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchProfile(this.props.match.params.username);
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (
         this.props.match.params.username !== nextProps.match.params.username
       ) {

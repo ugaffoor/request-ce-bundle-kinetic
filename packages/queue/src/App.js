@@ -116,11 +116,11 @@ const enhance = compose(
     handleOpenNewItemMenu: ({ openNewItemMenu }) => () => openNewItemMenu(),
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.loadAppSettings();
       this.props.fetchForms();
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.loading && !nextProps.loading) {
         this.props.defaultFilters
           .filter(

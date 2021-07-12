@@ -84,7 +84,7 @@ export class Statistics extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     let leads = nextProps.leadsByDate;
     let leadData = this.getData(
       leads,
@@ -106,7 +106,7 @@ export class Statistics extends Component {
     });
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     /*    if (this.props.leadsByDate.length===0){
       this.props.fetchLeadsByDate();
     }*/

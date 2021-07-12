@@ -27,21 +27,21 @@ export const PaySmartRegistrationForm = ({
   values,
   kappSlug,
   members,
-  setSlectedMemberId
+  setSlectedMemberId,
 }) => (
   <PaySmartForm
-  form={form}
-  category={category}
-  submissionId={submissionId}
-  match={match}
-  handleCreated={handleCreated}
-  handleCompleted={handleCompleted}
-  handleLoaded={handleLoaded}
-  handleDelete={handleDelete}
-  values={values}
-  kappSlug={kappSlug}
-  members={members}
-  setSlectedMemberId={setSlectedMemberId}
+    form={form}
+    category={category}
+    submissionId={submissionId}
+    match={match}
+    handleCreated={handleCreated}
+    handleCompleted={handleCompleted}
+    handleLoaded={handleLoaded}
+    handleDelete={handleDelete}
+    values={values}
+    kappSlug={kappSlug}
+    members={members}
+    setSlectedMemberId={setSlectedMemberId}
   />
 );
 
@@ -51,22 +51,22 @@ class PaySmartForm extends Component {
     this.getOptions = this.getOptions.bind(this);
     this.state = {
       selectedOption: null,
-      options: this.getOptions(this.props.members)
+      options: this.getOptions(this.props.members),
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.members.size !== this.props.members.size) {
       this.setState({
-        options: this.getOptions(nextProps.members)
+        options: this.getOptions(nextProps.members),
       });
     }
   }
 
-  handleChange = (selectedOption) => {
+  handleChange = selectedOption => {
     this.props.setSlectedMemberId(selectedOption ? selectedOption.value : null);
     this.setState({ selectedOption });
-  }
+  };
 
   getOptions(members) {
     let options = [];
@@ -74,7 +74,10 @@ class PaySmartForm extends Component {
       return options;
     } else {
       members.forEach(member => {
-        options.push({value: member.values['Member ID'], label: member.values['First Name'] + " " + member.values['Last Name']})
+        options.push({
+          value: member.values['Member ID'],
+          label: member.values['First Name'] + ' ' + member.values['Last Name'],
+        });
       });
       return options;
     }
@@ -84,90 +87,105 @@ class PaySmartForm extends Component {
     const { selectedOption } = this.state;
     return (
       <div>
-      {!this.props.submissionId && <div className="row">
-      <div className="col-md-12" style={{margin:'10px'}}>
-        <label htmlFor="memberList">Select Member</label>
-        <Select
-        value={selectedOption}
-        onChange={this.handleChange}
-        options={this.state.options}
-        isClearable={true}
-        className="member-dropdown"
-        />
-      </div>
-      </div>}
-      <div className="row">
-      <div className="col-md-12">
-      {(this.props.submissionId || selectedOption) && <Fragment>
-      <PageTitle parts={[this.props.form ? this.props.form.name : '']} />
-      <span className="services-color-bar services-color-bar__blue-slate" />
-      <div className="page-container page-container--services-form">
-        <div className="page-title">
-          <div className="page-title__wrapper">
-            <h3>
-              <Link to="/">services</Link> /{' '}
-              {this.props.match.url.startsWith('/request') && (
-                <Link to="/requests">requests</Link>
-              )}
-              {this.props.match.url.startsWith('/request') && ' / '}
-              {this.props.match.url.startsWith('/request') &&
-                this.props.match.params.type && (
-                  <Link to={`/requests/${this.props.match.params.type || ''}`}>
-                    {this.props.match.params.type}
-                  </Link>
-                )}
-              {this.props.match.url.startsWith('/request') && this.props.match.params.type && ' / '}
-              {this.props.category && <Link to="/categories">categories</Link>}
-              {this.props.category && ' / '}
-              {this.props.category && (
-                <Link to={`/categories/${this.props.category.slug}`}>{this.props.category.name}</Link>
-              )}
-              {this.props.category && ' / '}
-            </h3>
-            {this.props.form && <h1>{this.props.form.name}</h1>}
+        {!this.props.submissionId && (
+          <div className="row">
+            <div className="col-md-12" style={{ margin: '10px' }}>
+              <label htmlFor="memberList">Select Member</label>
+              <Select
+                value={selectedOption}
+                onChange={this.handleChange}
+                options={this.state.options}
+                isClearable={true}
+                className="member-dropdown"
+              />
+            </div>
           </div>
-          {this.props.submissionId && (
-            <button
-              type="button"
-              onClick={this.props.handleDelete}
-              className="btn btn-outline-danger"
-            >
-              Cancel Request
-            </button>
-          )}
-        </div>
-        <div className="form-description">
-          {this.props.form && <p>{this.props.form.description}</p>}
-        </div>
-        <div className="embedded-core-form--wrapper">
-          {this.props.submissionId ? (
-            <CoreForm
-              submission={this.props.submissionId}
-              globals={globals}
-              loaded={this.props.handleLoaded}
-              completed={this.props.handleCompleted}
-            />
-          ) : (
-            <CoreForm
-              kapp={this.props.kappSlug}
-              form={this.props.form.slug}
-              globals={globals}
-              loaded={this.props.handleLoaded}
-              created={this.props.handleCreated}
-              completed={this.props.handleCompleted}
-              values={this.props.values}
-              notFoundComponent={ErrorNotFound}
-              unauthorizedComponent={ErrorUnauthorized}
-              unexpectedErrorComponent={ErrorUnexpected}
-              selectedOption={selectedOption}
-            />
-          )}
+        )}
+        <div className="row">
+          <div className="col-md-12">
+            {(this.props.submissionId || selectedOption) && (
+              <Fragment>
+                <PageTitle
+                  parts={[this.props.form ? this.props.form.name : '']}
+                />
+                <span className="services-color-bar services-color-bar__blue-slate" />
+                <div className="page-container page-container--services-form">
+                  <div className="page-title">
+                    <div className="page-title__wrapper">
+                      <h3>
+                        <Link to="/">services</Link> /{' '}
+                        {this.props.match.url.startsWith('/request') && (
+                          <Link to="/requests">requests</Link>
+                        )}
+                        {this.props.match.url.startsWith('/request') && ' / '}
+                        {this.props.match.url.startsWith('/request') &&
+                          this.props.match.params.type && (
+                            <Link
+                              to={`/requests/${this.props.match.params.type ||
+                                ''}`}
+                            >
+                              {this.props.match.params.type}
+                            </Link>
+                          )}
+                        {this.props.match.url.startsWith('/request') &&
+                          this.props.match.params.type &&
+                          ' / '}
+                        {this.props.category && (
+                          <Link to="/categories">categories</Link>
+                        )}
+                        {this.props.category && ' / '}
+                        {this.props.category && (
+                          <Link to={`/categories/${this.props.category.slug}`}>
+                            {this.props.category.name}
+                          </Link>
+                        )}
+                        {this.props.category && ' / '}
+                      </h3>
+                      {this.props.form && <h1>{this.props.form.name}</h1>}
+                    </div>
+                    {this.props.submissionId && (
+                      <button
+                        type="button"
+                        onClick={this.props.handleDelete}
+                        className="btn btn-outline-danger"
+                      >
+                        Cancel Request
+                      </button>
+                    )}
+                  </div>
+                  <div className="form-description">
+                    {this.props.form && <p>{this.props.form.description}</p>}
+                  </div>
+                  <div className="embedded-core-form--wrapper">
+                    {this.props.submissionId ? (
+                      <CoreForm
+                        submission={this.props.submissionId}
+                        globals={globals}
+                        loaded={this.props.handleLoaded}
+                        completed={this.props.handleCompleted}
+                      />
+                    ) : (
+                      <CoreForm
+                        kapp={this.props.kappSlug}
+                        form={this.props.form.slug}
+                        globals={globals}
+                        loaded={this.props.handleLoaded}
+                        created={this.props.handleCreated}
+                        completed={this.props.handleCompleted}
+                        values={this.props.values}
+                        notFoundComponent={ErrorNotFound}
+                        unauthorizedComponent={ErrorUnauthorized}
+                        unexpectedErrorComponent={ErrorUnexpected}
+                        selectedOption={selectedOption}
+                      />
+                    )}
+                  </div>
+                </div>
+              </Fragment>
+            )}
+          </div>
         </div>
       </div>
-    </Fragment>}
-    </div>
-    </div>
-    </div>
-  );
+    );
   }
 }

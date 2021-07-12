@@ -285,7 +285,7 @@ export const CreateForm = compose(
   withState('slugEntered', 'setSlugEntered', false),
   withHandlers({ teamOptions, validateForm }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.clone &&
         this.props.fetchForm({
           kappSlug: 'queue',

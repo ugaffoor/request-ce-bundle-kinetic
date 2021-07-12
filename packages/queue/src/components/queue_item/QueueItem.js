@@ -48,10 +48,10 @@ export const mapDispatchToProps = {
 export const QueueItemContainer = compose(
   connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchCurrentItem(this.props.id);
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.id !== nextProps.id) {
         this.props.fetchCurrentItem(nextProps.id);
       }

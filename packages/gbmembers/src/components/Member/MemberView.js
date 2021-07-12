@@ -151,14 +151,14 @@ export class NewCustomers extends Component {
       data,
     };
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.newCustomers.length !== this.props.newCustomers.length) {
       this.setState({
         data: this.getData(nextProps.newCustomers),
       });
     }
   }
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.setState({ isShowingModal: this.props.isShowingModal });
   }
   componentDidMount() {
@@ -242,7 +242,7 @@ export class BillingParentInfo extends Component {
     this.allMembers = this.props.allMembers;
     this.member = undefined;
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     //    if (this.member===undefined /*|| this.allMembers.length!==nextProps.allMembers.length){
     if (nextProps.memberId !== undefined) {
       for (var j = 0; j < nextProps.allMembers.length; j++) {
@@ -284,7 +284,7 @@ export class AttendanceChart extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (this.props.id !== nextProps.id) {
       this.props.fetchMemberAttendances({
         id: nextProps.id,
@@ -302,7 +302,7 @@ export class AttendanceChart extends Component {
     });
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.props.fetchMemberAttendances({
       id: this.props.id,
       fromDate: moment()
@@ -1381,7 +1381,7 @@ export const MemberViewContainer = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.memberItem.values = [];
       this.props.memberItem.id = 'xx-xx-xx-xx-xx';
       this.props.fetchCurrentMember({ id: this.props.match.params.id });
@@ -1396,7 +1396,7 @@ export const MemberViewContainer = compose(
         locale: locale,
       });
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       //$('#mainContent').offset({ top: 98});
       if (this.props.pathname !== nextProps.pathname) {
         this.props.fetchCurrentMember({ id: nextProps.match.params.id });

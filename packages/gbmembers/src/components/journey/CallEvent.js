@@ -171,9 +171,9 @@ export class CallEvent extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {}
+  UNSAFE_componentWillReceiveProps(nextProps) {}
 
-  componentWillMount() {}
+  UNSAFE_componentWillMount() {}
 
   componentDidUpdate() {}
 
@@ -570,7 +570,7 @@ export const CallEventContainer = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.resetJourneyEvent();
       if (this.props.allLeads.length === 0) {
         this.props.fetchLeads();
@@ -584,7 +584,7 @@ export const CallEventContainer = compose(
         this.props.setCurrentEventId(this.props.eventId);
       }
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (!nextProps.leadsLoading && !nextProps.membersLoading) {
         if (
           nextProps.currentEventId !== null &&

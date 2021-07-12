@@ -80,10 +80,7 @@ export const mapDispatchToProps = {
 };
 
 const enhance = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withState('submissionId', 'setSubmissionId', getSubmissionId),
   withState('formSlug', 'setFormSlug', props => props.match.params.formSlug),
   withProps(props => ({
@@ -96,12 +93,12 @@ const enhance = compose(
     handleLoaded,
   }),
   lifecycle({
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.formSlug !== nextProps.formSlug) {
         this.props.setFormSlug(nextProps.formSlug);
       }
     },
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchForms();
     },
   }),

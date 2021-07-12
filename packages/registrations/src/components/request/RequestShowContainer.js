@@ -19,7 +19,7 @@ export const mapDispatchToProps = {
 const enhance = compose(
   connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchRegistration(this.props.match.params.submissionId);
       this.props.startPoller(this.props.match.params.submissionId);
     },

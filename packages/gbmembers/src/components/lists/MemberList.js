@@ -54,8 +54,8 @@ export const ListContainer = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {},
-    componentWillReceiveProps(nextProps) {},
+    UNSAFE_componentWillMount() {},
+    UNSAFE_componentWillReceiveProps(nextProps) {},
     componentWillUnmount() {},
   }),
 )(ListView);
@@ -79,7 +79,7 @@ export class ListHome extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.memberLists) {
       this.setState({
         listData: this.getListData(

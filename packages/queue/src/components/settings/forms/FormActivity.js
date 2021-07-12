@@ -283,7 +283,7 @@ const mapDispatchToProps = {
 export const FormActivity = compose(
   connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchFormSubmission({
         id: this.props.match.params.id,
       });

@@ -14,9 +14,9 @@ export class InactiveMembersNoHistory extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {}
+  UNSAFE_componentWillReceiveProps(nextProps) {}
 
-  componentWillMount() {}
+  UNSAFE_componentWillMount() {}
 
   getData(allMembers, week) {
     if (!allMembers || allMembers.length <= 0) {

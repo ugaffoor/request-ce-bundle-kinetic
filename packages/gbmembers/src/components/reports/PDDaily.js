@@ -27,7 +27,7 @@ export class PDDailyReport extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     let leads = nextProps.leadsByDate;
     let data = this.getData(
       leads,
@@ -40,7 +40,7 @@ export class PDDailyReport extends Component {
     });
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     if (this.props.leadsByDate.length === 0) {
       this.props.fetchLeadsByDate();
     }

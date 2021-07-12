@@ -108,10 +108,7 @@ const handleScrolled = ({
 };
 
 export const DiscussionContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withProps(props => ({
     participantsAndInvites: props.discussion
       ? props.discussion.invites
@@ -153,7 +150,7 @@ export const DiscussionContainer = compose(
     handleScrolled,
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.setFormattedMessages(formatMessages(this.props.messages));
       if (this.props.discussionId) {
         this.props.joinDiscussion(this.props.discussionId);
@@ -173,7 +170,7 @@ export const DiscussionContainer = compose(
         this.props.closeAll();
       }
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       // Join a different discussion if the discussion ID has changed.
       if (this.props.discussionId !== nextProps.discussionId) {
         if (this.props.discussionId) {

@@ -918,7 +918,7 @@ export const MemberNewContainer = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       moment.locale(
         this.props.profile.preferredLocale === null
           ? this.props.space.defaultLocale
@@ -934,7 +934,7 @@ export const MemberNewContainer = compose(
         this.props.fetchLead({ id: this.props.match.params['leadId'] });
       }
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.pathname !== nextProps.pathname) {
         this.props.fetchNewMember({
           myThis: this,

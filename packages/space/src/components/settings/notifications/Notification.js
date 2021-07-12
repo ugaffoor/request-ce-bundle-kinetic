@@ -316,10 +316,10 @@ export const Notification = compose(
     handleVariableSelection,
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchNotification(this.props.match.params.id);
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.match.params.id !== nextProps.match.params.id) {
         this.props.fetchNotification(nextProps.match.params.id);
       }

@@ -26,7 +26,7 @@ class InputDialog extends Component {
       drawerWidth: '0px',
     };
   }
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     //this.setState({isShowingModal:this.props.isShowingModal})
   }
 

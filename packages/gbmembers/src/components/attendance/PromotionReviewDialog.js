@@ -136,7 +136,7 @@ export class PromotionReviewDialog extends Component {
     return data;
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     let data = this.getData(
       nextProps.attendances,
       this.props.memberItem.values['Last Promotion'],
@@ -145,7 +145,7 @@ export class PromotionReviewDialog extends Component {
       data: data,
     });
   }
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.props.fetchMemberAttendances({
       id: this.props.memberItem.id,
       fromDate: this.state.fromDate,

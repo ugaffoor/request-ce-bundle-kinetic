@@ -12,7 +12,7 @@ export class VariationCustomers extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.variationCustomers) {
       this.setState({
         data: this.getData(nextProps.variationCustomers),
@@ -20,7 +20,7 @@ export class VariationCustomers extends Component {
     }
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.props.getVariationCustomers();
   }
 

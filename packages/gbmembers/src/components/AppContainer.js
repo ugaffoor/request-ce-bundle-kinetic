@@ -19,7 +19,7 @@ const mapDispatchToProps = {
 export const AppContainer = compose(
   connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.loadApp();
       this.props.loadAppSettings();
       this.props.fetchAlerts();

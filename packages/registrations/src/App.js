@@ -106,7 +106,7 @@ const enhance = compose(
     openSettings: props => () => props.setSettingsBackPath(props.pathname),
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchRegistrationCounts();
     },
   }),

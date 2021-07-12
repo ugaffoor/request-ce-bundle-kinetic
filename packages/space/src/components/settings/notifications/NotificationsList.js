@@ -176,7 +176,7 @@ export const NotificationsList = compose(
     }
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchNotifications();
       this.props.fetchDateFormats();
     },

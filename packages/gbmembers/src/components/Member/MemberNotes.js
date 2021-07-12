@@ -84,7 +84,7 @@ export class MemberNotesHome extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     this.setState({
       latestHistory: getLatestHistory(
         nextProps.memberItem.values['Notes History'],
@@ -422,7 +422,7 @@ export const MemberNotesContainer = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       moment.locale(
         this.props.profile.preferredLocale === null
           ? this.props.space.defaultLocale
@@ -435,7 +435,7 @@ export const MemberNotesContainer = compose(
         history: this.props.history,
       });
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.pathname !== nextProps.pathname) {
         this.props.fetchCurrentMember({
           id: this.props.match.params['id'],

@@ -12,7 +12,7 @@ export class PaysmartMemberDescrepencies extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.billingCustomers) {
       this.setState({
         data: this.getData(this.props.members, nextProps.billingCustomers),
@@ -20,7 +20,7 @@ export class PaysmartMemberDescrepencies extends Component {
     }
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.props.fetchBillingCustomers({
       setBillingCustomers: this.props.setBillingCustomers,
     });

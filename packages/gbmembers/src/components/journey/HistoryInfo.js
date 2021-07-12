@@ -32,8 +32,8 @@ export class HistoryInfo extends Component {
       history: this.history,
     };
   }
-  componentWillReceiveProps(nextProps) {}
-  componentWillMount() {}
+  UNSAFE_componentWillReceiveProps(nextProps) {}
+  UNSAFE_componentWillMount() {}
   setShowPromotionReviewDialog(show) {}
   render() {
     return (

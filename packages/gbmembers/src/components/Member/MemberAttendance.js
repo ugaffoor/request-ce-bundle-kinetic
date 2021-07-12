@@ -26,7 +26,7 @@ export class MemberAttendance extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (this.props.id !== nextProps.id) {
       this.props.fetchMemberAttendances({
         id: nextProps.id,
@@ -41,7 +41,7 @@ export class MemberAttendance extends Component {
     });
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.props.fetchMemberAttendances({
       id: this.props.id,
       fromDate: moment()

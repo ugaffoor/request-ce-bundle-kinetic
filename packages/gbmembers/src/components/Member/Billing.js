@@ -202,7 +202,7 @@ export class ActionRequests extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.actionRequests) {
       this.setState({
         data: this.getData(nextProps.actionRequests),
@@ -296,7 +296,7 @@ export class AddMember extends Component {
     };
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.setState({ isShowingModal: this.props.isShowingModal });
   }
 
@@ -506,7 +506,7 @@ export class FamilyFeeDetails extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.familyMembers) {
       this.setState({
         data: this.getData(nextProps.memberItem),
@@ -605,7 +605,7 @@ export class PaymentHistory extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.paymentHistory) {
       this.paymentHistory = nextProps.paymentHistory;
       this.setState({
@@ -755,7 +755,7 @@ class BillingAudit extends Component {
     };
   }
 
-  componentWillMount() {}
+  UNSAFE_componentWillMount() {}
   componentDidMount() {}
   getColumns() {
     return [
@@ -882,7 +882,7 @@ export class BillingInfo extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     let nextFee = nextProps.memberItem.values['Membership Cost']
       ? Number(nextProps.memberItem.values['Membership Cost'])
       : undefined;
@@ -1691,7 +1691,7 @@ export const BillingContainer = compose(
   lifecycle({
     constructor() {},
     componentDidUpdate() {},
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       var member = undefined;
       for (var j = 0; j < this.props.members.length; j++) {
         if (this.props.members[j]['id'] === this.props.match.params['id']) {
@@ -1751,7 +1751,7 @@ export const BillingContainer = compose(
 */
     },
 
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       //$(".content")[0].scrollIntoView(true);
       if (this.props.pathname !== nextProps.pathname) {
         var member = undefined;

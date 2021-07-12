@@ -610,7 +610,7 @@ export const UserForm = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       if (this.props.mode !== undefined) {
         this.props.fetchUser(this.props.match.params.username);
       }
@@ -619,7 +619,7 @@ export const UserForm = compose(
       }
       this.props.fetchTeams();
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.user !== nextProps.user) {
         let newUser = { ...nextProps.user };
         if (nextProps.mode === 'clone') {

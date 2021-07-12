@@ -144,7 +144,7 @@ export const Export = compose(
     handleDownload,
   }),
   lifecycle({
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (nextProps.exportStatus === 'FETCHING_RECORDS') {
         nextProps.setExportStatus('CONVERT');
         const csv = createCSV(nextProps.submissions, nextProps.form);

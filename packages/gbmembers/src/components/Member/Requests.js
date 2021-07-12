@@ -14,7 +14,7 @@ export class Requests extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.requestContent) {
       this.setState({
         data: this.getData(nextProps.requestContent),
@@ -22,7 +22,7 @@ export class Requests extends Component {
     }
   }
 
-  componentWillMount() {}
+  UNSAFE_componentWillMount() {}
 
   getColumns() {
     return [

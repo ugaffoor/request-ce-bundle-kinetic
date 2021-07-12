@@ -755,7 +755,7 @@ export const FormSubmissions = compose(
     sortTable,
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchFormSettings({
         formSlug: this.props.match.params.id,
         kappSlug: this.props.kappSlug,

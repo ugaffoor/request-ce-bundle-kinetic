@@ -35,7 +35,7 @@ export class DemographicChart extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     //console.log(" billing chart data = " + util.inspect(nextProps));
     if (nextProps.allMembers) {
       this.allMembers = nextProps.allMembers;
@@ -46,7 +46,7 @@ export class DemographicChart extends Component {
       });
     }
   }
-  componentWillMount() {}
+  UNSAFE_componentWillMount() {}
 
   getData(allMembers) {
     if (!allMembers) {

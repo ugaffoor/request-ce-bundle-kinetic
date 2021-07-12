@@ -149,7 +149,7 @@ export const ResetTokenForm = compose(
     handlePasswordReset,
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       console.log(this.props);
     },
   }),

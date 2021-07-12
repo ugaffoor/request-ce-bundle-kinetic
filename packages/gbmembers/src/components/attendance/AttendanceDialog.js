@@ -66,7 +66,7 @@ export class AttendanceDialog extends Component {
       dateRange,
     };
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     let data = this.getData(
       nextProps.attendances,
       this.state.period,
@@ -78,7 +78,7 @@ export class AttendanceDialog extends Component {
       average: average,
     });
   }
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     moment.locale(
       this.props.profile.preferredLocale === null
         ? this.props.space.defaultLocale

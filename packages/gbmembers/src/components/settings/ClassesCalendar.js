@@ -50,8 +50,8 @@ export class ClassesCalendar extends Component {
     };
     this.moveEvent = this.moveEvent.bind(this);
   }
-  componentWillReceiveProps(nextProps) {}
-  componentWillMount() {}
+  UNSAFE_componentWillReceiveProps(nextProps) {}
+  UNSAFE_componentWillMount() {}
   cancelDialog = () => {
     this.setState({ showClassDialog: false });
   };

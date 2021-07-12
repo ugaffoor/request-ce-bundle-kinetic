@@ -111,7 +111,7 @@ const mapDispatchToProps = {
 export const About = compose(
   connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchAbout();
     },
   }),

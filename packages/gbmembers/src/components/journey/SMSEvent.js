@@ -169,9 +169,9 @@ export class SMSEvent extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {}
+  UNSAFE_componentWillReceiveProps(nextProps) {}
 
-  componentWillMount() {}
+  UNSAFE_componentWillMount() {}
 
   componentDidUpdate() {}
 
@@ -563,7 +563,7 @@ export const SMSEventContainer = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.resetJourneyEvent();
       if (this.props.allLeads.length === 0) {
         this.props.fetchLeads();
@@ -580,7 +580,7 @@ export const SMSEventContainer = compose(
         setAccountCredit: this.props.setAccountCredit,
       });
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (!nextProps.leadsLoading && !nextProps.membersLoading) {
         if (
           nextProps.currentEventId !== null &&

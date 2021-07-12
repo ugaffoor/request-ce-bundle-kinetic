@@ -188,8 +188,8 @@ export class ClassDialog extends Component {
 
     return options;
   }
-  componentWillReceiveProps(nextProps) {}
-  componentWillMount() {}
+  UNSAFE_componentWillReceiveProps(nextProps) {}
+  UNSAFE_componentWillMount() {}
 
   render() {
     const styles = reactCSS({

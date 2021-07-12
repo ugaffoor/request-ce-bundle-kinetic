@@ -161,7 +161,7 @@ export class RecurringBookings extends Component {
       },
     };
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (
       nextProps.addedRecurring.id !== undefined &&
       (this.state.addedRecurring === undefined ||

@@ -82,8 +82,8 @@ export const LeadListNewContainer = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {},
-    componentWillReceiveProps(nextProps) {},
+    UNSAFE_componentWillMount() {},
+    UNSAFE_componentWillReceiveProps(nextProps) {},
     componentWillUnmount() {},
   }),
 )(ListNewView);
@@ -106,7 +106,7 @@ export class ListNewHome extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {}
+  UNSAFE_componentWillReceiveProps(nextProps) {}
 
   componentDidMount() {
     this.refs.statusDiv &&

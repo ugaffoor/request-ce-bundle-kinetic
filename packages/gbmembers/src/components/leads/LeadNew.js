@@ -998,7 +998,7 @@ export const LeadNewContainer = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchLeads();
       this.props.fetchNewLead({
         myThis: this,
@@ -1006,7 +1006,7 @@ export const LeadNewContainer = compose(
         fetchLeads: this.props.fetchLeads,
       });
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.pathname !== nextProps.pathname) {
         this.props.fetchNewLead({
           myThis: this,

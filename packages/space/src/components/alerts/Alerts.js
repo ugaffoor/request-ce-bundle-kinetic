@@ -119,7 +119,7 @@ export const mapDispatchToProps = {
 export const Alerts = compose(
   connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchAlerts();
     },
   }),

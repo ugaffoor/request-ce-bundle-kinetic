@@ -110,7 +110,7 @@ export class NewEmailCampaign extends Component {
     editorThis = this;
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (
       nextProps.allMembers !== undefined &&
       nextProps.allMembers.length !== this.props.allMembers.length
@@ -174,7 +174,7 @@ export class NewEmailCampaign extends Component {
     }
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     if (isMobile || isTablet) {
       this.editorStore = createEditorStore();
     }
@@ -853,7 +853,7 @@ export const EmailCampaignContainer = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchNewCampaign({
         myThis: this,
         history: this.props.history,
@@ -879,7 +879,7 @@ export const EmailCampaignContainer = compose(
       }
       this.props.fetchEmailTemplates();
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.pathname !== nextProps.pathname) {
         this.props.fetchNewCampaign({
           myThis: this,

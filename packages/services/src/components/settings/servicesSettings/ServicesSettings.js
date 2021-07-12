@@ -50,9 +50,11 @@ export const Select = ({
   let options;
   if (data) {
     if (type === 'teams') {
-      options = data.filter(team => !team.name.includes('Role')).map(team => {
-        return { value: team.name, label: team.name };
-      });
+      options = data
+        .filter(team => !team.name.includes('Role'))
+        .map(team => {
+          return { value: team.name, label: team.name };
+        });
     } else if (type === 'notifications') {
       options = data.map(notification => {
         return {
@@ -61,9 +63,11 @@ export const Select = ({
         };
       });
     } else {
-      options = data.kapps.find(kapp => kapp.slug === type).forms.map(form => {
-        return { value: form.slug, label: form.name };
-      });
+      options = data.kapps
+        .find(kapp => kapp.slug === type)
+        .forms.map(form => {
+          return { value: form.slug, label: form.name };
+        });
     }
     optionElements = options.map(option => {
       const kappName = type.charAt(0).toUpperCase() + type.slice(1);
@@ -423,22 +427,19 @@ const mapDispatchToProps = {
 };
 
 export const ServicesSettings = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withState('inputs', 'setInputs', {}),
   withState('approver', 'setApprover', null),
   withHandlers({ setInitialInputs }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchServicesSettings();
       this.props.fetchServicesSettingsTeams();
       this.props.fetchServicesSettingsUsers();
       this.props.fetchServicesSettingsSpace();
       this.props.fetchNotifications();
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       nextProps.servicesSettings.loading === false &&
         nextProps.servicesSettings.servicesSettingsKapp !==
           this.props.servicesSettings.servicesSettingsKapp &&

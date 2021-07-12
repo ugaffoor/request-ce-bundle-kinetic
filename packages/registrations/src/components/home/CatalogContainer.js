@@ -19,11 +19,11 @@ const mapDispatchToProps = {
 export const CatalogContainer = compose(
   connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchLeads();
       this.props.fetchRegistrations();
     },
-    componentWillUpdate(nextProps) {
+    UNSAFE_componentWillUpdate(nextProps) {
       if (this.props.coreState !== nextProps.coreState) {
         this.props.fetchLeads();
         this.props.fetchRegistrations();

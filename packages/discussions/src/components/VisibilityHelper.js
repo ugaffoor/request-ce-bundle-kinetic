@@ -53,7 +53,7 @@ export const getVisibilityState = ({ hidden, state }) => {
 };
 
 export class VisibilityHelper extends Component {
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     if (!isSupported || !visibility) {
       return;
     }

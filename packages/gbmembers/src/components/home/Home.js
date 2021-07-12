@@ -212,7 +212,7 @@ export const HomeContainer = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       if (Utils.isMemberOf(this.props.profile, 'Billing')) {
         if (
           !this.props.billingPayments ||
@@ -223,7 +223,7 @@ export const HomeContainer = compose(
       }
       this.props.fetchLeadsByDate();
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);

@@ -33,10 +33,10 @@ const enhance = compose(
     refreshPage: props => () => props.fetchCurrentPage(props.coreState),
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchRegistrations(this.props.coreState);
     },
-    componentWillUpdate(nextProps) {
+    UNSAFE_componentWillUpdate(nextProps) {
       if (this.props.coreState !== nextProps.coreState) {
         this.props.fetchRegistrations(nextProps.coreState);
         this.props.fetchRegistrationCounts();

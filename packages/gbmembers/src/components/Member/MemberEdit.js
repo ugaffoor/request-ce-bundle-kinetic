@@ -90,7 +90,7 @@ class MemberAudit extends Component {
     };
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.setState({ isShowingModal: this.props.isShowingModal });
   }
 
@@ -1500,14 +1500,14 @@ export const MemberEditContainer = compose(
           : this.props.profile.preferredLocale,
       );
     },
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchCurrentMember({
         id: this.props.match.params.id,
         history: this.props.history,
         fetchMembers: this.props.fetchMembers,
       });
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.pathname !== nextProps.pathname) {
         this.props.fetchCurrentMember({
           id: this.props.match.params.id,

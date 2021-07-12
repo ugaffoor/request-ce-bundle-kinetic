@@ -508,10 +508,10 @@ export const Profile = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchProfile();
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.profile !== nextProps.profile) {
         this.props.setFieldValues({
           ...this.props.fieldValues,

@@ -34,9 +34,7 @@ export const FormActivityContainer = ({ loading, submission, space }) =>
               .map(attribute => (
                 <a
                   key={attribute.name}
-                  href={`${attribute.values[0]}/app/runs?sourceId=${
-                    submission.id
-                  }`}
+                  href={`${attribute.values[0]}/app/runs?sourceId=${submission.id}`}
                   target="_blank"
                 >
                   <button className="btn btn-primary pull-right">
@@ -214,12 +212,9 @@ const mapDispatchToProps = {
 };
 
 export const FormActivity = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchFormSubmission({
         id: this.props.match.params.id,
       });

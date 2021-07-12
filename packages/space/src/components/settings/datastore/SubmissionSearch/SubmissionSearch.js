@@ -124,10 +124,10 @@ export const SubmissionSearch = compose(
   connect(mapStateToProps, mapDispatchToProps),
   withState('optionsOpen', 'setOptionsOpen', false),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchForm(this.props.match.params.slug);
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.match.params.slug !== nextProps.match.params.slug) {
         this.props.fetchForm(nextProps.match.params.slug);
         this.props.resetSearch();

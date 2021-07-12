@@ -170,7 +170,7 @@ export class LeadDetail extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     this.setState({
       latestHistory: getLatestHistory(nextProps.leadItem.values['History']),
       data: this.getData(nextProps.leadItem),
@@ -1177,14 +1177,14 @@ export const LeadDetailContainer = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchLead({
         id: this.props.match.params['id'],
         myThis: this,
         history: this.props.history,
       });
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.pathname !== nextProps.pathname) {
         this.props.fetchLead({
           id: this.props.match.params['id'],
@@ -1221,7 +1221,7 @@ class LeadEmails extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.leadItem) {
       this.setState({
         data: this.getData(nextProps.leadItem),
@@ -1229,7 +1229,7 @@ class LeadEmails extends Component {
     }
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.props.fetchCampaign({ setDummy: true });
   }
 

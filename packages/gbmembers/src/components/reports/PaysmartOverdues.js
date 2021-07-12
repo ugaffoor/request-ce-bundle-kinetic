@@ -16,11 +16,11 @@ export class PaysmartOverdues extends Component {
     };
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.props.getOverdues();
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.overdues) {
       this.overdues = nextProps.overdues;
       this.setState({

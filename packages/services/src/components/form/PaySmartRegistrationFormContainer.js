@@ -52,9 +52,7 @@ export const handleCompleted = props => response => {
   }
   if (!response.submission.currentPage) {
     props.push(
-      `/kapps/${props.kappSlug}/requests/request/${
-        response.submission.id
-      }/confirmation`,
+      `/kapps/${props.kappSlug}/requests/request/${response.submission.id}/confirmation`,
     );
   }
   props.fetchCurrentPage();
@@ -63,9 +61,7 @@ export const handleCompleted = props => response => {
 export const handleCreated = props => response => {
   props.push(
     response.submission.coreState === 'Submitted'
-      ? `/kapps/${props.kappSlug}/requests/request/${
-          response.submission.id
-        }/confirmation`
+      ? `/kapps/${props.kappSlug}/requests/request/${response.submission.id}/confirmation`
       : `${props.match.url}/${response.submission.id}`,
   );
 };
@@ -132,10 +128,7 @@ export const mapDispatchToProps = {
 const util = require('util');
 
 const enhance = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withState('submissionId', 'setSubmissionId', getSubmissionId),
   withState('formSlug', 'setFormSlug', props => props.match.params.formSlug),
   withState('selectedMemberId', 'setSlectedMemberId', null),
@@ -144,12 +137,12 @@ const enhance = compose(
   })),
   withHandlers({ handleCompleted, handleCreated, handleLoaded, handleDelete }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       if (this.props.members.size <= 0) {
         this.props.fetchMembers();
       }
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (
         this.props.match.params.formSlug !== nextProps.match.params.formSlug
       ) {

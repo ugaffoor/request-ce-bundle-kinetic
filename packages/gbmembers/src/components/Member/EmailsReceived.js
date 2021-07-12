@@ -22,7 +22,7 @@ export class EmailsReceived extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.submission) {
       this.setState({
         data: this.getData(nextProps.submission),
@@ -30,7 +30,7 @@ export class EmailsReceived extends Component {
     }
   }
 
-  componentWillMount() {}
+  UNSAFE_componentWillMount() {}
 
   getColumns() {
     return [

@@ -77,7 +77,7 @@ export class LeadsOriginChart extends Component {
       toDate: toDate,
     };
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.leadsByDate) {
       this.setState({
         data: this.getData(nextProps.leadsByDate),
@@ -96,7 +96,7 @@ export class LeadsOriginChart extends Component {
       });
     }
   }
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.setState({
       data: this.getData(this.state.leadsByDate),
     });

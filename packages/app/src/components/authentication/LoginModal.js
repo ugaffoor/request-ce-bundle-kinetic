@@ -109,7 +109,7 @@ export const LoginModal = compose(
     };
   }),
   lifecycle({
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.showing && !nextProps.showing) {
         this.props.setEmail('');
         this.props.setPassword('');

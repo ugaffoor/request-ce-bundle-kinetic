@@ -153,7 +153,7 @@ export const AddMemberModal = compose(
      * resets the is modal open value.  This ensures that the modal is not open
      * after navigating away and then hitting the 'back' button.
      */
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchUsers();
     },
     componentWillUnmount() {

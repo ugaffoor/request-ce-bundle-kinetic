@@ -254,7 +254,7 @@ export const Robot = compose(
     handleError,
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchRobot(this.props.match.params.robotId);
     },
   }),

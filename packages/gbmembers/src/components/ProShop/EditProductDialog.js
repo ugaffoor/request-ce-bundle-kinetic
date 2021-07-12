@@ -26,8 +26,8 @@ export class EditProductDialog extends Component {
       loadingForm: true,
     };
   }
-  componentWillReceiveProps(nextProps) {}
-  componentWillMount() {}
+  UNSAFE_componentWillReceiveProps(nextProps) {}
+  UNSAFE_componentWillMount() {}
   render() {
     return (
       <div onClick={this.handleClick}>

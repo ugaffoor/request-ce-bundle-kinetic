@@ -179,7 +179,7 @@ const enhance = compose(
     openSettings: props => () => props.setSettingsBackPath(props.pathname),
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchCategories();
       this.props.fetchForms();
       this.props.fetchSubmissionCounts();

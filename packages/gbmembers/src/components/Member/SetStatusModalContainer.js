@@ -34,8 +34,8 @@ export class SetStatusModal extends Component {
     this.statusHistory = getJson(props.submission.values['Status History']);
     this.state = {};
   }
-  componentWillReceiveProps(nextProps) {}
-  componentWillMount() {
+  UNSAFE_componentWillReceiveProps(nextProps) {}
+  UNSAFE_componentWillMount() {
     this.setState({ isShowingModal: this.props.isShowingModal });
   }
 

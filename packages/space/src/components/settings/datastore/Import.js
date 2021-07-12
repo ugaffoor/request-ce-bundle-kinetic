@@ -350,7 +350,7 @@ export class ImportComponent extends Component {
     }
   };
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (
       nextProps.importComplete &&
       this.props.importComplete !== nextProps.importComplete

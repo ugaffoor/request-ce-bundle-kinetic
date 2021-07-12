@@ -24,14 +24,14 @@ export class Finances extends Component {
       data: data,
     };
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.monthlyStatistics) {
       this.setState({
         data: this.getData(nextProps.monthlyStatistics),
       });
     }
   }
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.props.fetchMonthlyStatistics();
   }
   getMinValue(statistics) {

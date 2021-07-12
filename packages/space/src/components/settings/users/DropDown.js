@@ -71,7 +71,7 @@ export const UsersDropdown = compose(
     handleSelect,
   }),
   lifecycle({
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.initialValue !== nextProps.initialValue) {
         nextProps.setLookup(nextProps.initialValue);
       }

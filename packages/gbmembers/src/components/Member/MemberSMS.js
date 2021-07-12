@@ -13,7 +13,7 @@ export class MemberSMS extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.memberItem) {
       this.setState({
         data: this.getData(nextProps.memberItem),
@@ -21,7 +21,7 @@ export class MemberSMS extends Component {
     }
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     moment.locale(
       this.props.profile.preferredLocale === null
         ? this.props.space.defaultLocale

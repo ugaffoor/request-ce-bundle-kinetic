@@ -84,7 +84,7 @@ export class NewSmsCampaign extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (
       nextProps.allMembers !== undefined &&
       nextProps.allMembers.length !== this.props.allMembers.length
@@ -109,7 +109,7 @@ export class NewSmsCampaign extends Component {
     }
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.props.getAccountCredit({
       setAccountCredit: this.props.setAccountCredit,
     });
@@ -707,14 +707,14 @@ export const SmsCampaignContainer = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchNewCampaign({
         myThis: this,
         history: this.props.history,
         fetchSmsCampaigns: null,
       });
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.pathname !== nextProps.pathname) {
         this.props.fetchNewCampaign({
           myThis: this,
@@ -768,7 +768,7 @@ class ManageNumbersModal extends Component {
     };
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.setState({ isShowingModal: this.props.isShowingModal });
   }
 

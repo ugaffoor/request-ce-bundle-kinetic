@@ -363,7 +363,7 @@ export const QueueSettings = compose(
     updateSettings,
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchSettings();
     },
   }),

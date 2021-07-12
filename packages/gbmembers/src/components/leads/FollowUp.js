@@ -46,7 +46,7 @@ export class FollowUpDate extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {}
+  UNSAFE_componentWillReceiveProps(nextProps) {}
 
   handleDateChange() {
     var value = $('#' + this.id)
@@ -231,14 +231,14 @@ export const FollowUpContainer = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchLead({
         id: this.props.match.params['id'],
         myThis: this,
         history: this.props.history,
       });
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.pathname !== nextProps.pathname) {
         this.props.fetchLead({
           id: this.props.match.params['id'],

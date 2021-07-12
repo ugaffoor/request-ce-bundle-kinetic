@@ -34,7 +34,7 @@ export class ProgramsChart extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.allMembers) {
       this.allMembers = nextProps.allMembers;
       let data = this.getData(nextProps.allMembers, nextProps.programs);

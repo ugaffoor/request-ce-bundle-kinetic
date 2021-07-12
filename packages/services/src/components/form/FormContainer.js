@@ -31,9 +31,7 @@ export const getSubmissionId = props =>
 export const handleCompleted = props => response => {
   if (!response.submission.currentPage) {
     props.push(
-      `/kapps/${props.kappSlug}/requests/request/${
-        response.submission.id
-      }/confirmation`,
+      `/kapps/${props.kappSlug}/requests/request/${response.submission.id}/confirmation`,
     );
   }
   props.fetchCurrentPage();
@@ -42,9 +40,7 @@ export const handleCompleted = props => response => {
 export const handleCreated = props => response => {
   props.push(
     response.submission.coreState === 'Submitted'
-      ? `/kapps/${props.kappSlug}/requests/request/${
-          response.submission.id
-        }/confirmation`
+      ? `/kapps/${props.kappSlug}/requests/request/${response.submission.id}/confirmation`
       : `${props.match.url}/${response.submission.id}`,
   );
 };
@@ -79,10 +75,7 @@ export const mapDispatchToProps = {
 };
 
 const enhance = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withState('submissionId', 'setSubmissionId', getSubmissionId),
   withState('formSlug', 'setFormSlug', props => props.match.params.formSlug),
   withProps(props => ({
@@ -90,7 +83,7 @@ const enhance = compose(
   })),
   withHandlers({ handleCompleted, handleCreated, handleLoaded, handleDelete }),
   lifecycle({
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (
         this.props.match.params.formSlug !== nextProps.match.params.formSlug
       ) {

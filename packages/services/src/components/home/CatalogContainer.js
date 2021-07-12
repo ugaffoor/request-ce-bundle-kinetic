@@ -15,12 +15,9 @@ const mapDispatchToProps = {
 };
 
 export const CatalogContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchSubmissions();
     },
   }),

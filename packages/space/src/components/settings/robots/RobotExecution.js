@@ -78,7 +78,7 @@ export const RobotExecution = compose(
     handleError,
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchRobotExecution(this.props.match.params.executionId);
     },
   }),

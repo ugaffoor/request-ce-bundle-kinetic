@@ -147,7 +147,7 @@ export class ManageBookings extends Component {
       },
     };
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (
       nextProps.addedBooking.id !== undefined &&
       (this.state.addedBooking === undefined ||

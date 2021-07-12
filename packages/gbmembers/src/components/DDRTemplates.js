@@ -45,7 +45,7 @@ export class DDRTemplates extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (this.props.ddrTemplates.size !== nextProps.ddrTemplates.size) {
       this.setState({
         data: this.getData(nextProps.ddrTemplates),
@@ -212,10 +212,7 @@ export const DDRTemplatesView = ({
 );
 
 export const DDRTemplatesContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withProps(({}) => {
     return {};
   }),

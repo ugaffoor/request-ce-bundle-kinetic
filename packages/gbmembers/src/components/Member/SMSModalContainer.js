@@ -81,9 +81,9 @@ export class SMSModal extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {}
+  UNSAFE_componentWillReceiveProps(nextProps) {}
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.setState({ isShowingModal: this.props.isShowingModal });
   }
 
@@ -506,7 +506,7 @@ const enhance = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.getAccountCredit({
         setAccountCredit: this.props.setAccountCredit,
       });

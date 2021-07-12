@@ -212,7 +212,7 @@ export const FormList = compose(
   withState('openDropdown', 'setOpenDropdown', ''),
   withHandlers({ toggleDropdown }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.resetSearch();
     },
   }),

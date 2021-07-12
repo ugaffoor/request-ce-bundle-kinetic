@@ -63,7 +63,7 @@ export const HeaderContainer = compose(
         fetchMembers: this.props.fetchMembers,
       });
     },
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       let timer = setInterval(eventsTick, 10 * 1000 * 60, this); // refresh every 1 hour
       this.setState({ timer: timer });
     },

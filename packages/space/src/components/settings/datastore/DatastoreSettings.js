@@ -1347,7 +1347,7 @@ export const DatastoreSettings = compose(
     generateAttributes,
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchForm(this.props.formSlug);
       window.addEventListener('focus', this.props.windowFocusListener);
     },

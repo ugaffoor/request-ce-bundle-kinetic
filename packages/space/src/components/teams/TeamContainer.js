@@ -108,17 +108,14 @@ const openRequestToLeaveForm = ({
   });
 
 export const TeamContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchTeam(this.props.match.params.slug);
       this.props.fetchTeams();
       this.props.fetchForms(this.props.catalogSlug);
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.match.params.slug !== nextProps.match.params.slug) {
         this.props.fetchTeam(nextProps.match.params.slug);
       }

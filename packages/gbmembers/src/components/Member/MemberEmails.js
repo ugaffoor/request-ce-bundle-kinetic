@@ -24,7 +24,7 @@ export class MemberEmails extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.memberItem) {
       let attachments = '';
 
@@ -46,7 +46,7 @@ export class MemberEmails extends Component {
     }
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.props.fetchCampaign({ setDummy: true });
   }
 

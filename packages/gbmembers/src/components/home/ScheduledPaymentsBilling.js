@@ -34,7 +34,7 @@ export class ScheduledPaymentsBillingChart extends Component {
     //this.getProcessedAndScheduledPayments();
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     //console.log(" billing chart data = " + util.inspect(nextProps));
     if (nextProps.processedAndScheduledPayments) {
       this.processedAndScheduledPayments =
@@ -48,7 +48,7 @@ export class ScheduledPaymentsBillingChart extends Component {
     }
   }
 
-  componentWillMount() {}
+  UNSAFE_componentWillMount() {}
 
   getData(allPayments) {
     if (

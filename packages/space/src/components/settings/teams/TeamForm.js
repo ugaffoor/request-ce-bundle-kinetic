@@ -368,7 +368,7 @@ export const TeamForm = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       if (this.props.editing) {
         this.props.fetchTeam(this.props.match.params.slug);
       } else {
@@ -379,7 +379,7 @@ export const TeamForm = compose(
         });
       }
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.match.params.slug !== nextProps.match.params.slug) {
         this.props.fetchTeam(nextProps.match.params.slug);
       }

@@ -135,7 +135,7 @@ export class TasksDetail extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     this.setState({
       tasks: this.getLeadTasksData(
         nextProps.allLeads,
@@ -953,7 +953,7 @@ export class LeadsDetail extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.allLeads !== undefined && nextProps.allLeads !== null) {
       this.setState({
         leads: this.getData(nextProps.allLeads),
@@ -1194,7 +1194,7 @@ export class LeadsCreatedChart extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.allLeads) {
       this.setState({
         data: this.getData(nextProps.allLeads),
@@ -1392,7 +1392,7 @@ export class LeadsConversionChart extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.allLeads) {
       this.setState({
         data: this.getData(
@@ -1791,7 +1791,7 @@ export class SourceReference3Chart extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.allLeads) {
       this.setState({
         data: this.getData(nextProps.allLeads),
@@ -1902,7 +1902,7 @@ export class SourceReferenceChart extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.allLeads) {
       this.setState({
         data: this.getData(nextProps.allLeads),
@@ -2078,7 +2078,7 @@ export const LeadsContainer = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       moment.locale(
         this.props.profile.preferredLocale === null
           ? this.props.space.defaultLocale
@@ -2090,7 +2090,7 @@ export const LeadsContainer = compose(
       let timer = setInterval(tick, 60 * 1000 * 2, this); // refresh every 2 minutes
       this.setState({ timer: timer });
     },
-    componentWillReceiveProps(nextProps) {},
+    UNSAFE_componentWillReceiveProps(nextProps) {},
     componentDidMount() {
       $('.content')
         .parent('div')[0]

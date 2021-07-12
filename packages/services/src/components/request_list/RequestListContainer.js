@@ -22,10 +22,7 @@ const mapDispatchToProps = {
 };
 
 const enhance = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withProps(props => ({
     coreState:
       props.type === 'Open' ? constants.CORE_STATE_SUBMITTED : props.type,
@@ -36,10 +33,10 @@ const enhance = compose(
     refreshPage: props => () => props.fetchCurrentPage(props.coreState),
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchSubmissions(this.props.coreState);
     },
-    componentWillUpdate(nextProps) {
+    UNSAFE_componentWillUpdate(nextProps) {
       if (this.props.coreState !== nextProps.coreState) {
         this.props.fetchSubmissions(nextProps.coreState);
         this.props.fetchSubmissionCounts();

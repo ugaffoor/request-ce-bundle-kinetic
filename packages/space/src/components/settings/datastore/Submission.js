@@ -393,7 +393,7 @@ export const DatastoreSubmission = compose(
     handleLoaded,
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       if (this.props.match.params.id) {
         this.props.fetchSubmission(this.props.match.params.id);
       }
@@ -401,7 +401,7 @@ export const DatastoreSubmission = compose(
         this.props.loadAppSettings();
       }
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (
         nextProps.match.params.id &&
         this.props.match.params.id !== nextProps.match.params.id

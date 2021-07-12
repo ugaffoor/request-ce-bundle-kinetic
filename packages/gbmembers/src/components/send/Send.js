@@ -57,7 +57,7 @@ export class EmailCampaignsList extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.emailCampaigns) {
       this.setState({
         emailCampaigns: this.getData(nextProps.emailCampaigns),
@@ -313,7 +313,7 @@ export class SmsCampaignsList extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.smsCampaigns) {
       this.setState({
         smsCampaigns: this.getData(nextProps.smsCampaigns),
@@ -321,7 +321,7 @@ export class SmsCampaignsList extends Component {
     }
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.props.fetchSmsCampaigns({
       setSmsCampaigns: this.props.setSmsCampaigns,
     });
@@ -719,7 +719,7 @@ export class IndividualSmsList extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.individualSMS) {
       this.setState({
         individualSMS: this.getData(nextProps.individualSMS),
@@ -727,7 +727,7 @@ export class IndividualSmsList extends Component {
     }
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.props.getIndividualSMS({
       setIndividualSMS: this.props.setIndividualSMS,
     });
@@ -953,7 +953,7 @@ export const CampaignContainer = compose(
   withState('isDirty', 'setIsDirty', false),
   withHandlers({}),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       moment.locale(
         this.props.profile.preferredLocale === null
           ? this.props.space.defaultLocale
@@ -970,7 +970,7 @@ export const CampaignContainer = compose(
         setIndividualSMS: this.props.setIndividualSMS,
       });
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       /*      if (this.props.pathname !== nextProps.pathname) {
         this.props.fetchEmailCampaigns({
           setEmailCampaigns: this.props.setEmailCampaigns,

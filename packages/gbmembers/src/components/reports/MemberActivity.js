@@ -329,7 +329,7 @@ export class MemberActivityReport extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (!this.props.reportPreferences.equals(nextProps.reportPreferences)) {
       let preferences = this.getTablePreferences(nextProps.reportPreferences);
       this.setState({

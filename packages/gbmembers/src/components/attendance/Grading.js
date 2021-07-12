@@ -65,7 +65,7 @@ export class GradingDetail extends Component {
       showPromotionReviewDialog: show,
     });
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (
       nextProps.classSchedules.size > 0 &&
       this.state.classSchedule === undefined
@@ -337,14 +337,14 @@ export const GradingContainer = compose(
   connect(mapStateToProps, mapDispatchToProps),
   withHandlers({}),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       moment.locale(
         this.props.profile.preferredLocale === null
           ? this.props.space.defaultLocale
           : this.props.profile.preferredLocale,
       );
     },
-    componentWillReceiveProps(nextProps) {},
+    UNSAFE_componentWillReceiveProps(nextProps) {},
     componentDidMount() {
       $('.content')
         .parent('div')[0]

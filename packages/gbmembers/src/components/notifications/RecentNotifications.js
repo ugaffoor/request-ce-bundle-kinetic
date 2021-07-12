@@ -21,10 +21,7 @@ export const RecentNotificationsHome = ({ recentNotifications }) => (
 );
 
 export const RecentNotificationsContainer = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
 )(RecentNotificationsHome);
 
 export class RecentNotifications extends Component {
@@ -45,7 +42,7 @@ export class RecentNotifications extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.recentNotifications) {
       this.setState({
         data: this.getData(nextProps.recentNotifications),

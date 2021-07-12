@@ -205,7 +205,7 @@ export const Home = compose(
     },
   }),
   lifecycle({
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       this.props.fetchTeams();
       this.props.discussionsEnabled && this.props.fetchDiscussions();
     },
