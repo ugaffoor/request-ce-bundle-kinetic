@@ -712,6 +712,7 @@ export class LeadNew extends Component {
                     <option value="phone">Phone</option>
                     <option value="email">Email</option>
                     <option value="in_person">In Person</option>
+                    <option value="social_media">Social Media</option>
                   </select>
                   <div className="droparrow" />
                 </div>

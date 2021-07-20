@@ -8,6 +8,7 @@ import { ReceiptToPrint } from '../ProShop/ReceiptToPrint';
 import printerIcon from '../../images/Print.svg?raw';
 import ReactToPrint from 'react-to-print';
 import SVGInline from 'react-svg-inline';
+import { I18n } from '../../../../app/src/I18nProvider';
 
 export class MemberOrders extends Component {
   constructor(props) {
@@ -132,6 +133,7 @@ export class MemberOrders extends Component {
                   posCheckout: checkout,
                   total: order['Total'],
                   subtotal: order['SubTotal'],
+                  salestax: order['Sales Tax'],
                   discount: order['Discount'],
                   auth_code: order['Auth Code'],
                   transaction_id: order['Transaction ID'],
@@ -169,6 +171,7 @@ export class MemberOrders extends Component {
                                 total={this.state.total}
                                 subtotal={this.state.subtotal}
                                 discount={this.state.discount}
+                                salestax={this.state.salestax}
                                 number={this.state.cardNumber}
                                 auth_code={this.state.auth_code}
                                 transaction_id={this.state.transaction_id}
@@ -229,6 +232,56 @@ export class MemberOrders extends Component {
                             )}
                           </div>
                         ))}
+                      <div className="productInfo">
+                        {this.state.discount !== undefined &&
+                          this.state.discount > 0 && (
+                            <div className="productLine">
+                              <div className="quantity"></div>
+                              <div className="name">
+                                <I18n>DISCOUNT</I18n>
+                              </div>
+                              <div className="price">
+                                <span className="price">
+                                  {new Intl.NumberFormat(this.locale, {
+                                    style: 'currency',
+                                    currency: this.currency,
+                                  }).format(this.state.discount)}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        {this.state.salestax !== undefined &&
+                          this.state.salestax > 0 && (
+                            <div className="productLine">
+                              <div className="quantity"></div>
+                              <div className="name">
+                                <I18n>SALES TAX</I18n>
+                              </div>
+                              <div className="price">
+                                <span className="price">
+                                  {new Intl.NumberFormat(this.locale, {
+                                    style: 'currency',
+                                    currency: this.currency,
+                                  }).format(this.state.salestax)}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        <div className="productLine">
+                          <div className="quantity"></div>
+                          <div className="name">
+                            <I18n>TOTAL</I18n>
+                          </div>
+                          <div className="price">
+                            <span className="price">
+                              {new Intl.NumberFormat(this.locale, {
+                                style: 'currency',
+                                currency: this.currency,
+                              }).format(this.state.total)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 );

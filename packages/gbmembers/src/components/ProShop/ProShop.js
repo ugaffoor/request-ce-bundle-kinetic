@@ -18,6 +18,7 @@ import apparelIcon from '../../images/apparel.svg?raw';
 import starIcon from '../../images/star.svg?raw';
 import addIcon from '../../images/add.png?raw';
 import privateClassesIcon from '../../images/Privateclasses.svg?raw';
+import pairingIcon from '../../images/pos_pairing.svg?raw';
 import promoIcon from '../../images/Promo.svg?raw';
 import eventIcon from '../../images/Events.svg?raw';
 import binIcon from '../../images/bin.svg?raw';
@@ -46,7 +47,7 @@ import uuid from 'uuid';
 import moment from 'moment';
 import { ReceiptToPrint } from './ReceiptToPrint';
 import Helmet from 'react-helmet';
-import { ApiError, Client, Environment } from 'square';
+import { I18n } from '../../../../app/src/I18nProvider';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -81,26 +82,7 @@ const mapDispatchToProps = {
   savePOSStock: actions.savePOSStock,
 };
 var posThis = undefined;
-
-// Create wrapper async function
-const getLocations = async locationsApi => {
-  // The try/catch statement needs to be called from within an asynchronous function
-  try {
-    // Call listLocations method to get all locations in this Square account
-    let listLocationsResponse = await locationsApi.listLocations();
-
-    // Get first location from list
-    let firstLocation = listLocationsResponse.result.locations[0];
-
-    console.log('Here is your first location: ', firstLocation);
-  } catch (error) {
-    if (error instanceof ApiError) {
-      console.log('There was an error in your request: ', error.errors);
-    } else {
-      console.log('Unexpected Error: ', error);
-    }
-  }
-};
+var verifyDeviceCount = 0;
 
 class PayNow extends Component {
   constructor(props) {
@@ -119,17 +101,6 @@ class PayNow extends Component {
         console.log(error.response);
       });
 
-    let client = new Client({
-      environment: Environment.Sandbox,
-      accessToken:
-        'EAAAEFr_sZt2rFjJ4e9Cym7lSwjtjuurVjUjzukIvdDafbMtQgtMSAa8AEu0uoG2',
-      customUrl: 'http://connect.squareupsandbox.com',
-    });
-
-    // Get an instance of the Square API you want call
-    let { locationsApi } = client;
-
-    getLocations(locationsApi);
     if (getAttributeValue(this.props.space, 'POS System') !== 'Bambora') {
       this.loadBamboraCheckout = this.loadBamboraCheckout.bind(this);
 
@@ -151,8 +122,26 @@ class PayNow extends Component {
         },
       );
     }
+
     if (
-      this.props.posCheckout['Checkout Items']['discountName'] !== undefined
+      this.props.posCheckout['Checkout Items']['discountName'] !== undefined &&
+      this.props.posCheckout['Checkout Items']['voucher'] === undefined
+    ) {
+      discount = parseFloat(
+        this.props.posCheckout['Checkout Items']['discountValue'],
+      );
+      if (
+        this.props.posCheckout['Checkout Items']['discountType'] ===
+        'Percentage'
+      ) {
+        discount = subtotal * (discount / 100);
+        total = subtotal - discount;
+      } else {
+        total = subtotal - discount;
+      }
+    } else if (
+      this.props.posCheckout['Checkout Items']['discountName'] !== undefined &&
+      this.props.posCheckout['Checkout Items']['voucher'] !== undefined
     ) {
       discount = parseFloat(
         this.props.posCheckout['Checkout Items']['discountValue'],
@@ -167,6 +156,11 @@ class PayNow extends Component {
         total = subtotal - discount;
       }
     }
+    if (this.props.salestax !== 0) {
+      total = parseFloat((total + this.props.salestax).toFixed(2));
+    }
+
+    total = parseFloat(total.toFixed(2));
 
     this.state = {
       total: total,
@@ -188,6 +182,8 @@ class PayNow extends Component {
       acceptedCards: getAttributeValue(this.props.space, 'POS Accepted Cards'),
       myExternalLib: null,
       country: getAttributeValue(this.props.space, 'School Country Code'),
+      deviceStatus: 'UNPAIRED',
+      status_message: undefined,
     };
 
     this.handleScriptInject = this.handleScriptInject.bind(this);
@@ -205,13 +201,13 @@ class PayNow extends Component {
       };
     }
   }
-  UNSAFE_componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps(nextProps) {
     /*    if (this.checkout===undefined && nextProps.allLeads.length > 0 && !nextProps.leadsLoading){
         this.checkout = new InlineCheckout(uuid());
 
     } */
   }
-  UNSAFE_componentWillMount() {
+  componentWillMount() {
     if (this.props.allLeads.length === 0) {
       this.props.fetchLeads();
     }
@@ -282,6 +278,13 @@ class PayNow extends Component {
     }
     return disable;
   }
+  disablePaymentType() {
+    var disable = true;
+    if (this.state.personID !== undefined) {
+      disable = false;
+    }
+    return disable;
+  }
   completeCheckout() {
     this.props.completePOSCheckout(
       this.state.personType,
@@ -295,6 +298,7 @@ class PayNow extends Component {
       this.state.number,
       this.props.subtotal,
       this.props.discount,
+      this.props.salestax,
       this.state.total,
     );
   }
@@ -733,6 +737,154 @@ class PayNow extends Component {
     };
     customCheckoutController.init();
   }
+  createDeviceID() {
+    var url = getAttributeValue(this.props.space, 'POS Service URL');
+    url = url.replace('processPOS', 'createDeviceID');
+    var args = {
+      space: this.props.space.slug,
+      billingService: getAttributeValue(this.props.space, 'POS System'),
+    };
+    axios
+      .post(url, args)
+      .then(result => {
+        var data = result.data.data;
+        if (data.error === 100) {
+          this.setState({
+            deviceStatus: 'ERROR',
+            status_message: result.data.errorMessage,
+          });
+        } else {
+          this.setState({
+            squareDevice: data.id,
+            terminalCode: data.code,
+            deviceStatus: data.status,
+            status_message: undefined,
+          });
+          verifyDeviceCount = 0;
+          this.verifyDevice(this.state.squareDevice);
+        }
+      })
+      .catch(error => {
+        console.log(error.response);
+      });
+  }
+  verifyDevice(deviceID) {
+    var url = getAttributeValue(this.props.space, 'POS Service URL');
+    url = url.replace('processPOS', 'verifyDevice');
+    var args = {
+      space: this.props.space.slug,
+      billingService: getAttributeValue(this.props.space, 'POS System'),
+      deviceId: deviceID,
+      verifyDeviceCount: verifyDeviceCount,
+    };
+    axios
+      .post(url, args)
+      .then(result => {
+        var data = result.data.data;
+        this.setState({
+          squareDevice: data.id,
+          terminalCode: data.code,
+          deviceStatus: data.status,
+        });
+        if ($('.paynow').length > 0 && this.state.deviceStatus !== 'PAIRED') {
+          var myThis = this;
+          verifyDeviceCount = verifyDeviceCount + 1;
+          setTimeout(function() {
+            myThis.verifyDevice(myThis.state.squareDevice);
+          }, 1000);
+        } else if (this.state.deviceStatus === 'PAIRED') {
+          this.processSquareCheckout();
+        }
+      })
+      .catch(error => {
+        console.log(error.response);
+      });
+  }
+  checkTerminalCheckout() {
+    var url = getAttributeValue(this.props.space, 'POS Service URL');
+    url = url.replace('processPOS', 'checkTerminalCheckout');
+    var args = {
+      space: this.props.space.slug,
+      billingService: getAttributeValue(this.props.space, 'POS System'),
+      checkoutId: this.state.squareCheckoutId,
+      checkCount: verifyDeviceCount,
+    };
+    axios
+      .post(url, args)
+      .then(result => {
+        var data = result.data.data;
+        this.setState({
+          squareCheckoutStatus: data.status,
+        });
+        if (
+          $('.paynow').length > 0 &&
+          (this.state.squareCheckoutStatus === 'PENDING' ||
+            this.state.squareCheckoutStatus === 'IN_PROGRESS')
+        ) {
+          var myThis = this;
+          verifyDeviceCount = verifyDeviceCount + 1;
+          setTimeout(function() {
+            myThis.checkTerminalCheckout();
+          }, 1000);
+        }
+        if (
+          $('.paynow').length > 0 &&
+          this.state.squareCheckoutStatus === 'COMPLETED'
+        ) {
+          this.setState({
+            processingComplete: true,
+            currency: this.props.currency,
+            auth_code: '',
+            number: '',
+            transaction_id: data.id,
+            name: this.state.firstName + ' ' + this.state.lastName,
+            datetime: moment(),
+          });
+          this.completeCheckout();
+        }
+      })
+      .catch(error => {
+        console.log(error.response);
+      });
+  }
+  processSquareCheckout() {
+    var url = getAttributeValue(this.props.space, 'POS Service URL');
+    var schoolName = getAttributeValue(this.props.space, 'School Name');
+    url = url.replace('processPOS', 'terminalCheckout');
+    var args = {
+      space: this.props.space.slug,
+      billingService: getAttributeValue(this.props.space, 'POS System'),
+      deviceId: this.state.squareDevice,
+      amount: this.state.total,
+      currency: this.props.currency,
+      note: schoolName + ' sale',
+      referenceId: this.props.posCheckout.id,
+    };
+    axios
+      .post(url, args)
+      .then(result => {
+        var data = result.data.data;
+        if (result.data.error === 100) {
+          this.setState({
+            squareCheckoutStatus: result.data.error,
+            deviceStatus: 'ERROR',
+            status_message: result.data.errorMessage,
+          });
+        } else {
+          this.setState({
+            squareCheckoutId: data.id,
+            squareCheckoutStatus: data.status,
+            deviceStatus: 'CHECKOUT',
+            processingComplete: false,
+          });
+          verifyDeviceCount = 0;
+          this.checkTerminalCheckout();
+        }
+      })
+      .catch(error => {
+        console.log(error.response);
+      });
+  }
   render() {
     return (
       <div>
@@ -897,62 +1049,89 @@ class PayNow extends Component {
                   </div>
                 </span>
               </span>
-              {/*            <span className="pickup">
-              <div className="label">PICK UP</div>
-              <div className="radioGroup">
-                <label htmlFor="pickedUp" className="radio">
-                  <input
-                    id="pickedUp"
-                    name="pickedUp"
-                    type="radio"
-                    value="Mark as picked up"
-                    onChange={e => {
-                      this.setState({ pickUp: 'pickedUp' });
-                    }}
-                  />
-                  Mark as picked up
-                </label>
-                <label htmlFor="pickUpLater" className="radio">
-                  <input
-                    id="pickUpLater"
-                    name="pickedUp"
-                    type="radio"
-                    value="Pick up later"
-                    onChange={e => {
-                      this.setState({ pickUp: 'pickUpLater' });
-                    }}
-                  />
-                  Pick up later
-                </label>
-              </div>
-            </span> */}
               <span className="paymentType">
                 <div className="label">Payment Type</div>
                 <div className="radioGroup">
-                  <label htmlFor="creditCard" className="radio">
-                    <input
-                      id="creditCard"
-                      name="cardpayment"
-                      type="radio"
-                      value="Credit Card"
-                      onChange={e => {
-                        this.setState({ payment: 'creditcard' });
-                      }}
-                      onClick={async e => {
-                        if (
-                          getAttributeValue(this.props.space, 'POS System') ===
-                          'Bambora'
-                        ) {
-                        }
-                      }}
-                    />
-                    Credit Card
-                  </label>
+                  {getAttributeValue(this.props.space, 'POS System') !==
+                    'Square' && (
+                    <label htmlFor="creditCard" className="radio">
+                      <input
+                        id="creditCard"
+                        name="cardpayment"
+                        type="radio"
+                        value="Credit Card"
+                        onChange={e => {
+                          this.setState({ payment: 'creditcard' });
+                        }}
+                        onClick={async e => {
+                          if (
+                            getAttributeValue(
+                              this.props.space,
+                              'POS System',
+                            ) === 'Bambora'
+                          ) {
+                          }
+                        }}
+                      />
+                      Credit Card
+                    </label>
+                  )}
+                  {getAttributeValue(this.props.space, 'POS System') ===
+                    'Square' && (
+                    <label htmlFor="capture" className="radio">
+                      <input
+                        id="capture"
+                        name="cardpayment"
+                        type="radio"
+                        disabled={this.disablePaymentType()}
+                        value="Capture"
+                        onChange={e => {
+                          this.setState({ payment: 'capture' });
+                        }}
+                        onClick={async e => {
+                          var url = getAttributeValue(
+                            this.props.space,
+                            'POS Service URL',
+                          );
+                          url = url.replace('processPOS', 'pairedDevice');
+                          var args = {
+                            space: this.props.space.slug,
+                            billingService: getAttributeValue(
+                              this.props.space,
+                              'POS System',
+                            ),
+                          };
+                          axios
+                            .post(url, args)
+                            .then(result => {
+                              if (result.data.error === 100) {
+                                this.createDeviceID();
+                              } else {
+                                var data = JSON.parse(result.data.data);
+                                this.setState({
+                                  squareDevice: data.id,
+                                  terminalCode: data.code,
+                                  deviceStatus: data.status,
+                                  status_message: undefined,
+                                });
+
+                                this.processSquareCheckout();
+                              }
+                            })
+                            .catch(error => {
+                              console.log(error.response);
+                            });
+                        }}
+                      />
+                      Capture
+                    </label>
+                  )}
                   <label htmlFor="cash" className="radio">
                     <input
                       id="cash"
                       name="cardpayment"
                       type="radio"
+                      disabled={this.disablePaymentType()}
                       value="Cash"
                       onChange={e => {
                         this.setState({ payment: 'cash' });
@@ -962,6 +1141,38 @@ class PayNow extends Component {
                   </label>
                 </div>
               </span>
+              {this.state.payment === 'capture' &&
+              getAttributeValue(this.props.space, 'POS System') === 'Square' ? (
+                <span className="capture">
+                  <SVGInline
+                    svg={pairingIcon}
+                    className={
+                      'posPairing icon ' +
+                      this.state.deviceStatus +
+                      ' S' +
+                      (verifyDeviceCount % 2)
+                    }
+                  />
+                  {/*                    <p>Device ID: {this.state.squareDevice}</p>
+                    <p>Device Status {this.state.deviceStatus}</p> */}
+                  {this.state.deviceStatus === 'UNPAIRED' && (
+                    <p>
+                      Please pair your Square terminal with code{' '}
+                      <span className="pairCode">
+                        {this.state.terminalCode}
+                      </span>
+                    </p>
+                  )}
+                  {this.state.deviceStatus === 'CHECKOUT' && (
+                    <p>Capturing payment from customer, please wait...</p>
+                  )}
+                  {this.state.status_message !== undefined && (
+                    <p>An error has ocurred: {this.state.status_message}</p>
+                  )}
+                </span>
+              ) : (
+                <div />
+              )}
               {this.state.payment === 'creditcard' &&
               getAttributeValue(this.props.space, 'POS System') ===
                 'Bambora' ? (
@@ -1087,6 +1298,7 @@ class PayNow extends Component {
                 posCheckout={this.props.posCheckout}
                 total={this.props.total}
                 subtotal={this.props.subtotal}
+                salestax={this.props.salestax}
                 discount={this.props.discount}
                 number={this.state.number}
                 auth_code={this.state.auth_code}
@@ -1113,32 +1325,33 @@ class PayNow extends Component {
           )}
           <span className="bottomRow">
             {(!this.state.processingComplete ||
-              (this.state.status !== '1' && this.state.status !== '')) && (
-              <div
-                className="paynowButton"
-                disabled={this.disablePayNow() && !this.state.processing}
-                onClick={e => {
-                  if (this.disablePayNow() && !this.state.processing) return;
-                  this.setState({
-                    processing: true,
-                  });
-                  if (this.state.payment === 'creditcard') {
-                    this.processPayment();
-                  } else {
-                    setTimeout(function() {
-                      posThis.setState({
-                        processing: false,
-                        processingComplete: true,
-                        status: '1',
-                        errors: '',
-                        auth_code: '',
-                        transaction_id: 'cash',
-                        datetime: moment(),
+              (this.state.status !== '1' && this.state.status !== '')) &&
+              this.state.payment !== 'capture' && (
+                <div
+                  className="paynowButton"
+                  disabled={this.disablePayNow() && !this.state.processing}
+                  onClick={e => {
+                    if (this.disablePayNow() && !this.state.processing) return;
+                    this.setState({
+                      processing: true,
+                    });
+                    if (this.state.payment === 'creditcard') {
+                      this.processPayment();
+                    } else {
+                      setTimeout(function() {
+                        posThis.setState({
+                          processing: false,
+                          processingComplete: true,
+                          status: '1',
+                          errors: '',
+                          auth_code: '',
+                          transaction_id: 'cash',
+                          datetime: moment(),
+                        });
+                        posThis.completeCheckout();
                       });
-                      posThis.completeCheckout();
-                    }, 2000);
-                  }
-                  /*
+                    }
+                    /*
                 setTimeout(function(){
                   posThis.setState({
                     processing: false,
@@ -1155,25 +1368,25 @@ class PayNow extends Component {
                   }
                 },5000);
 */
-                }}
-              >
-                {this.state.processing ? (
-                  <ScaleLoader
-                    className="processing"
-                    height="35"
-                    width="16"
-                    radius="2"
-                    margin="4"
-                    color="white"
-                  />
-                ) : (
-                  <span>
-                    <span className="label">Pay Now</span>
-                    <img src={checkoutRightArrowIcon} alt="Pay Now" />
-                  </span>
-                )}
-              </div>
-            )}
+                  }}
+                >
+                  {this.state.processing ? (
+                    <ScaleLoader
+                      className="processing"
+                      height="35"
+                      width="16"
+                      radius="2"
+                      margin="4"
+                      color="white"
+                    />
+                  ) : (
+                    <span>
+                      <span className="label">Pay Now</span>
+                      <img src={checkoutRightArrowIcon} alt="Pay Now" />
+                    </span>
+                  )}
+                </div>
+              )}
           </span>
         </div>
       </div>
@@ -1186,7 +1399,15 @@ class Checkout extends Component {
     super(props);
     var subtotal = 0;
     var discount = 0;
+    var salestax = 0;
     var total = 0;
+    posThis = this;
+
+    salestax = parseFloat(
+      getAttributeValue(this.props.space, 'POS Sales Tax') === undefined
+        ? 0
+        : getAttributeValue(this.props.space, 'POS Sales Tax'),
+    );
 
     if (this.props.posCheckout['Checkout Items']['products'] !== undefined) {
       this.props.posCheckout['Checkout Items']['products'].forEach(
@@ -1199,7 +1420,24 @@ class Checkout extends Component {
       );
     }
     if (
-      this.props.posCheckout['Checkout Items']['discountName'] !== undefined
+      this.props.posCheckout['Checkout Items']['discountName'] !== undefined &&
+      this.props.posCheckout['Checkout Items']['voucher'] === undefined
+    ) {
+      discount = parseFloat(
+        this.props.posCheckout['Checkout Items']['discountValue'],
+      );
+      if (
+        this.props.posCheckout['Checkout Items']['discountType'] ===
+        'Percentage'
+      ) {
+        discount = subtotal * (discount / 100);
+        total = subtotal - discount;
+      } else {
+        total = subtotal - discount;
+      }
+    } else if (
+      this.props.posCheckout['Checkout Items']['discountName'] !== undefined &&
+      this.props.posCheckout['Checkout Items']['voucher'] !== undefined
     ) {
       discount = parseFloat(
         this.props.posCheckout['Checkout Items']['discountValue'],
@@ -1214,12 +1452,19 @@ class Checkout extends Component {
         total = subtotal - discount;
       }
     }
+    if (salestax !== 0) {
+      salestax = parseFloat((total * salestax).toFixed(2));
+      total = total + salestax;
+    }
+    total = parseFloat(total.toFixed(2));
+
     this.setShowAddDiscountDialog = this.setShowAddDiscountDialog.bind(this);
     this.setShowPayNow = this.setShowPayNow.bind(this);
 
     this.state = {
       subtotal: subtotal,
       discount: discount,
+      salestax: salestax,
       total: total,
       showAddDiscountDialog: false,
       showPayNow: false,
@@ -1237,10 +1482,18 @@ class Checkout extends Component {
       showPayNow: show,
     });
   }
-  UNSAFE_componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps(nextProps) {
     var subtotal = 0;
     var discount = 0;
+    var salestax = 0;
     var total = 0;
+
+    salestax = parseFloat(
+      getAttributeValue(this.props.space, 'POS Sales Tax') === undefined
+        ? 0
+        : getAttributeValue(this.props.space, 'POS Sales Tax'),
+    );
+
     if (nextProps.posCheckout['Checkout Items']['products'] !== undefined) {
       nextProps.posCheckout['Checkout Items']['products'].forEach(
         (product, i) => {
@@ -1251,7 +1504,25 @@ class Checkout extends Component {
         },
       );
     }
-    if (nextProps.posCheckout['Checkout Items']['discountName'] !== undefined) {
+    if (
+      nextProps.posCheckout['Checkout Items']['discountName'] !== undefined &&
+      nextProps.posCheckout['Checkout Items']['voucher'] === undefined
+    ) {
+      discount = parseFloat(
+        nextProps.posCheckout['Checkout Items']['discountValue'],
+      );
+      if (
+        nextProps.posCheckout['Checkout Items']['discountType'] === 'Percentage'
+      ) {
+        discount = subtotal * (discount / 100);
+        total = subtotal - discount;
+      } else {
+        total = subtotal - discount;
+      }
+    } else if (
+      nextProps.posCheckout['Checkout Items']['discountName'] !== undefined &&
+      nextProps.posCheckout['Checkout Items']['voucher'] !== undefined
+    ) {
       discount = parseFloat(
         nextProps.posCheckout['Checkout Items']['discountValue'],
       );
@@ -1264,14 +1535,20 @@ class Checkout extends Component {
         total = subtotal - discount;
       }
     }
+    if (salestax !== 0) {
+      salestax = parseFloat((total * salestax).toFixed(2));
+      total = total + salestax;
+    }
+    total = parseFloat(total.toFixed(2));
 
     this.setState({
       subtotal: subtotal,
       discount: discount,
+      salestax: salestax,
       total: total,
     });
   }
-  UNSAFE_componentWillMount() {}
+  componentWillMount() {}
   render() {
     return (
       <div className="checkout">
@@ -1293,6 +1570,7 @@ class Checkout extends Component {
             total={this.state.total}
             subtotal={this.state.subtotal}
             discount={this.state.discount}
+            salestax={this.state.salestax}
             updatePOSCheckout={this.props.updatePOSCheckout}
             fetchPOSCheckout={this.props.fetchPOSCheckout}
             completePOSCheckout={this.props.completePOSCheckout}
@@ -1560,7 +1838,9 @@ class Checkout extends Component {
                 )}
             </span>
             <span className="subtotal">
-              <div className="label">SUBTOTAL</div>
+              <div className="label">
+                <I18n>SUBTOTAL</I18n>
+              </div>
               <div className="value">
                 {new Intl.NumberFormat(this.props.locale, {
                   style: 'currency',
@@ -1573,18 +1853,45 @@ class Checkout extends Component {
               <div />
             ) : (
               <div className="discountLine">
-                <div className="label">Discount |</div>
+                <div className="label">
+                  <I18n>Discount</I18n> |
+                </div>
                 <i className="percentageValue">
                   <div className="type">
                     {this.props.posCheckout['Checkout Items']['discountName']}
                   </div>
                 </i>
-                <div className="value">
-                  {new Intl.NumberFormat(this.props.locale, {
-                    style: 'currency',
-                    currency: this.props.currency,
-                  }).format(this.state.discount)}
-                </div>
+                {this.props.posCheckout['Checkout Items']['voucher'] ===
+                'Voucher' ? (
+                  <div className="voucherValue value">
+                    <span className="discountType">
+                      {this.props.posCheckout['Checkout Items'][
+                        'discountType'
+                      ] === 'Percentage'
+                        ? '%'
+                        : '$'}
+                    </span>
+                    <NumberFormat
+                      ref={input => (this.input = input)}
+                      value={
+                        this.props.posCheckout['Checkout Items'][
+                          'discountValue'
+                        ]
+                      }
+                      onValueChange={(values, e) => {
+                        var { formattedValue, value } = values;
+                        posThis.props.updateDiscount(parseFloat(value));
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className="value">
+                    {new Intl.NumberFormat(this.props.locale, {
+                      style: 'currency',
+                      currency: this.props.currency,
+                    }).format(this.state.discount)}
+                  </div>
+                )}
                 <SVGInline
                   svg={binIcon}
                   className="icon delete"
@@ -1617,8 +1924,25 @@ class Checkout extends Component {
                 />
               </div>
             )}
+            {this.state.salestax === 0 ? (
+              <div />
+            ) : (
+              <span className="salestax">
+                <div className="label">
+                  <I18n>SALES TAX</I18n>
+                </div>
+                <div className="value">
+                  {new Intl.NumberFormat(this.props.locale, {
+                    style: 'currency',
+                    currency: this.props.currency,
+                  }).format(this.state.salestax)}
+                </div>
+              </span>
+            )}
             <span className="total">
-              <div className="label">TOTAL</div>
+              <div className="label">
+                <I18n>TOTAL</I18n>
+              </div>
               <div className="value">
                 {new Intl.NumberFormat(this.props.locale, {
                   style: 'currency',
@@ -2000,7 +2324,7 @@ export class ProShop extends Component {
       editProductsSwitch: false,
     });
   }
-  UNSAFE_componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps(nextProps) {
     if (
       nextProps.posCheckout['Checkout Items'] !== undefined &&
       nextProps.posCheckout['Checkout Items'].length !== this.state.productCount
@@ -2033,6 +2357,7 @@ export class ProShop extends Component {
                 posCheckout={this.props.posCheckout}
                 posDiscounts={this.props.posDiscounts}
                 addDiscount={this.props.addDiscount}
+                updateDiscount={this.props.updateDiscount}
                 removeDiscount={this.props.removeDiscount}
                 removeProduct={this.props.removeProduct}
                 updatePOSCheckout={this.props.updatePOSCheckout}
@@ -2415,6 +2740,7 @@ export const ProShopView = ({
   completePOSCheckout,
   removeProduct,
   addDiscount,
+  updateDiscount,
   removeDiscount,
   space,
   kapp,
@@ -2445,6 +2771,7 @@ export const ProShopView = ({
     completePOSCheckout={completePOSCheckout}
     addProduct={addProduct}
     addDiscount={addDiscount}
+    updateDiscount={updateDiscount}
     removeDiscount={removeDiscount}
     removeProduct={removeProduct}
     allMembers={allMembers}
@@ -2485,6 +2812,7 @@ export const ProShopContainer = compose(
       number,
       subtotal,
       discount,
+      salestax,
       total,
     ) => {
       console.log('completePOSCheckout:' + posCheckout);
@@ -2499,6 +2827,7 @@ export const ProShopContainer = compose(
         number: number,
         subtotal: subtotal,
         discount: discount,
+        salestax: salestax,
         total: total,
         datetime: datetime,
         auth_code: auth_code,
@@ -2676,9 +3005,27 @@ export const ProShopContainer = compose(
         );
         posCheckout['Checkout Items']['discountName'] = discount.values['Name'];
         posCheckout['Checkout Items']['discountType'] = discount.values['Type'];
-        posCheckout['Checkout Items']['discountValue'] =
-          discount.values['Value'];
+        if (discount.values['Voucher'] === undefined) {
+          posCheckout['Checkout Items']['discountValue'] =
+            discount.values['Value'];
+        } else {
+          posCheckout['Checkout Items']['discountValue'] = 0;
+          posCheckout['Checkout Items']['voucher'] = 'Voucher';
+        }
       }
+
+      updatePOSCheckout(posCheckout);
+      fetchPOSCheckout({ username: profile.username });
+    },
+    updateDiscount: ({
+      updatePOSCheckout,
+      posCheckout,
+      fetchPOSCheckout,
+      posDiscounts,
+      profile,
+    }) => discountValue => {
+      console.log('update discount to basket:' + posCheckout);
+      posCheckout['Checkout Items']['discountValue'] = discountValue;
 
       updatePOSCheckout(posCheckout);
       fetchPOSCheckout({ username: profile.username });
@@ -2708,13 +3055,13 @@ export const ProShopContainer = compose(
     },
   }),
   lifecycle({
-    UNSAFE_componentWillMount() {
+    componentWillMount() {
       this.props.fetchPOSCategories();
       this.props.fetchPOSProducts();
       this.props.fetchPOSDiscounts();
       this.props.fetchPOSCheckout({ username: this.props.profile.username });
     },
-    UNSAFE_componentWillReceiveProps(nextProps) {
+    componentWillReceiveProps(nextProps) {
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);

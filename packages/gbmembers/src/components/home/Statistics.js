@@ -571,7 +571,7 @@ export class Statistics extends Component {
   };
   getLeadTableHeaderName() {
     if (this.state.showNewLeads) return 'Leads';
-    if (this.state.showScheduledLeads) return 'Into Scheduled';
+    if (this.state.showScheduledLeads) return 'Intro Scheduled';
     if (this.state.showIntroLeads) return 'Actual Intros';
   }
   getLeadTableColumns(row) {

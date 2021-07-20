@@ -277,7 +277,7 @@ export const ReportsView = ({
         )}
       </div>
     )}
-    {profile.username !== 'unus.gaffoor@kineticdata.com' ? (
+    {profile.username !== 'unus@uniqconsulting.com.au' ? (
       <div />
     ) : (
       <div style={{ margin: '10px' }}>

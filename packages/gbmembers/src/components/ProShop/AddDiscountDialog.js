@@ -65,8 +65,13 @@ export class AddDiscountDialog extends Component {
                       >
                         {discount.values['Name']} -{' '}
                         {discount.values['Type'] === 'Percentage'
-                          ? discount.values['Value'] + '%'
-                          : '$' + discount.values['Value']}
+                          ? (discount.values['Value'] !== null
+                              ? discount.values['Value']
+                              : '') + '%'
+                          : '$' +
+                            (discount.values['Value'] !== null
+                              ? discount.values['Value']
+                              : '')}
                       </label>
                     </div>
                   );

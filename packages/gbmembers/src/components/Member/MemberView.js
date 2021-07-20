@@ -151,14 +151,14 @@ export class NewCustomers extends Component {
       data,
     };
   }
-  UNSAFE_componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps(nextProps) {
     if (nextProps.newCustomers.length !== this.props.newCustomers.length) {
       this.setState({
         data: this.getData(nextProps.newCustomers),
       });
     }
   }
-  UNSAFE_componentWillMount() {
+  componentWillMount() {
     this.setState({ isShowingModal: this.props.isShowingModal });
   }
   componentDidMount() {
@@ -242,7 +242,7 @@ export class BillingParentInfo extends Component {
     this.allMembers = this.props.allMembers;
     this.member = undefined;
   }
-  UNSAFE_componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps(nextProps) {
     //    if (this.member===undefined /*|| this.allMembers.length!==nextProps.allMembers.length){
     if (nextProps.memberId !== undefined) {
       for (var j = 0; j < nextProps.allMembers.length; j++) {
@@ -284,7 +284,7 @@ export class AttendanceChart extends Component {
     };
   }
 
-  UNSAFE_componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps(nextProps) {
     if (this.props.id !== nextProps.id) {
       this.props.fetchMemberAttendances({
         id: nextProps.id,
@@ -302,7 +302,7 @@ export class AttendanceChart extends Component {
     });
   }
 
-  UNSAFE_componentWillMount() {
+  componentWillMount() {
     this.props.fetchMemberAttendances({
       id: this.props.id,
       fromDate: moment()
@@ -948,44 +948,50 @@ export const MemberView = ({
                   allMembers={allMembers}
                 />
               </div>
-              <div
-                style={{
-                  display: Utils.isMemberOf(profile, 'Billing')
-                    ? 'block'
-                    : 'none',
-                }}
-              >
-                <br />
-                <button
-                  type="button"
-                  className={'btn btn-primary'}
-                  onClick={e => syncBilling()}
+              {Utils.getAttributeValue(space, 'Billing Company') ===
+                'PaySmart' && (
+                <div
+                  style={{
+                    display: Utils.isMemberOf(profile, 'Billing')
+                      ? 'block'
+                      : 'none',
+                  }}
                 >
-                  Sync Billing Info
-                </button>
-                <input
-                  type="text"
-                  name="customerBillingId"
-                  id="customerBillingId"
-                />
-                <label htmlFor="customerBillingId">Billing Id</label>
-              </div>
-              <div
-                style={{
-                  display: Utils.isMemberOf(profile, 'Billing')
-                    ? 'block'
-                    : 'none',
-                }}
-              >
-                <br />
-                <button
-                  type="button"
-                  className={'btn btn-primary'}
-                  onClick={e => clearBillingInfo()}
+                  <br />
+                  <button
+                    type="button"
+                    className={'btn btn-primary'}
+                    onClick={e => syncBilling()}
+                  >
+                    Sync Billing Info
+                  </button>
+                  <input
+                    type="text"
+                    name="customerBillingId"
+                    id="customerBillingId"
+                  />
+                  <label htmlFor="customerBillingId">Billing Id</label>
+                </div>
+              )}
+              {Utils.getAttributeValue(space, 'Billing Company') ===
+                'PaySmart' && (
+                <div
+                  style={{
+                    display: Utils.isMemberOf(profile, 'Billing')
+                      ? 'block'
+                      : 'none',
+                  }}
                 >
-                  CLEAR Billing Info
-                </button>
-              </div>
+                  <br />
+                  <button
+                    type="button"
+                    className={'btn btn-primary'}
+                    onClick={e => clearBillingInfo()}
+                  >
+                    CLEAR Billing Info
+                  </button>
+                </div>
+              )}
               <div>
                 <br />
                 <button
@@ -1381,7 +1387,7 @@ export const MemberViewContainer = compose(
     },
   }),
   lifecycle({
-    UNSAFE_componentWillMount() {
+    componentWillMount() {
       this.props.memberItem.values = [];
       this.props.memberItem.id = 'xx-xx-xx-xx-xx';
       this.props.fetchCurrentMember({ id: this.props.match.params.id });
@@ -1396,7 +1402,7 @@ export const MemberViewContainer = compose(
         locale: locale,
       });
     },
-    UNSAFE_componentWillReceiveProps(nextProps) {
+    componentWillReceiveProps(nextProps) {
       //$('#mainContent').offset({ top: 98});
       if (this.props.pathname !== nextProps.pathname) {
         this.props.fetchCurrentMember({ id: nextProps.match.params.id });

@@ -1,4 +1,5 @@
 import React from 'react';
+import { I18n } from '../../../../app/src/I18nProvider';
 
 export class ReceiptToPrint extends React.Component {
   constructor(props) {
@@ -31,6 +32,7 @@ export class ReceiptToPrint extends React.Component {
       posCheckout: this.props.posCheckout,
       total: this.props.total,
       subtotal: this.props.subtotal,
+      salestax: this.props.salestax,
       discount: this.props.discount,
       number: '...' + this.props.number.substring(this.props.number.length - 4),
       auth_code: this.props.auth_code,
@@ -166,7 +168,9 @@ export class ReceiptToPrint extends React.Component {
             )}
         </span>
         <span className="subtotal">
-          <span className="label">SUBTOTAL</span>
+          <span className="label">
+            <I18n>SUBTOTAL</I18n>
+          </span>
           <span className="value">
             {new Intl.NumberFormat(this.props.locale, {
               style: 'currency',
@@ -193,8 +197,25 @@ export class ReceiptToPrint extends React.Component {
             </span>
           </span>
         )}
+        {this.state.salestax === 0 || this.state.salestax === undefined ? (
+          <div />
+        ) : (
+          <span className="salestax">
+            <div className="label">
+              <I18n>SALES TAX</I18n>
+            </div>
+            <div className="value">
+              {new Intl.NumberFormat(this.props.locale, {
+                style: 'currency',
+                currency: this.props.currency,
+              }).format(this.state.salestax)}
+            </div>
+          </span>
+        )}
         <span className="total">
-          <span className="label">TOTAL</span>
+          <span className="label">
+            <I18n>TOTAL</I18n>
+          </span>
           <span className="value">
             {new Intl.NumberFormat(this.props.locale, {
               style: 'currency',
