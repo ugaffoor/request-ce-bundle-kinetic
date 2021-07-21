@@ -82,7 +82,13 @@ class ComponentToPrint extends React.Component {
             index !== 0 && index % 65 === 0 ? (
               <div className="barCode pageBreak" key={index}>
                 <Barcode
-                  value={member.id.split('-')[4].substring(6, 12)}
+                  value={
+                    member.values['Alternate Barcode'] === undefined ||
+                    member.values['Alternate Barcode'] === '' ||
+                    member.values['Alternate Barcode'] === null
+                      ? member.id.split('-')[4].substring(6, 12)
+                      : member.values['Alternate Barcode']
+                  }
                   width={1.3}
                   height={36}
                   text={

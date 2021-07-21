@@ -500,7 +500,14 @@ class AttendanceCardToPrint extends React.Component {
             }
           >
             <Barcode
-              value={this.props.memberItem.id.split('-')[4].substring(6, 12)}
+              value={
+                this.props.memberItem.values['Alternate Barcode'] ===
+                  undefined ||
+                this.props.memberItem.values['Alternate Barcode'] === '' ||
+                this.props.memberItem.values['Alternate Barcode'] === null
+                  ? this.props.memberItem.id.split('-')[4].substring(6, 12)
+                  : this.props.memberItem.values['Alternate Barcode']
+              }
               width={1.3}
               height={30}
               displayValue={false}
@@ -788,10 +795,17 @@ export const MemberView = ({
                 <div className="emergency">
                   <div className="memberBarcode">
                     <Barcode
-                      value={memberItem.id.split('-')[4].substring(6, 12)}
+                      value={
+                        memberItem.values['Alternate Barcode'] === undefined ||
+                        memberItem.values['Alternate Barcode'] === '' ||
+                        memberItem.values['Alternate Barcode'] === null
+                          ? memberItem.id.split('-')[4].substring(6, 12)
+                          : memberItem.values['Alternate Barcode']
+                      }
                       width={1.3}
                       height={30}
                       displayValue={false}
+                      type={'CODE128'}
                     />
                   </div>
                   <ReactToPrint

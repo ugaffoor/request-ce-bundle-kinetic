@@ -32,6 +32,7 @@ import 'react-day-picker/lib/style.css';
 import enAU from 'moment/locale/en-au';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { I18n } from '../../../../app/src/I18nProvider';
+import Barcode from 'react-barcode';
 
 import MomentLocaleUtils, {
   formatDate,
@@ -1330,6 +1331,38 @@ export const MemberEdit = ({
                   <option value="NOT Agreed">NOT Agreed</option>
                 </select>
                 <div className="droparrow" />
+              </div>
+            </span>
+            <span className="line">
+              <div className="field">
+                <label htmlFor="alternateBarcode">Alternate Barcode</label>
+                <input
+                  type="text"
+                  name="alternateBarcode"
+                  id="alternateBarcode"
+                  ref={input => (this.input = input)}
+                  defaultValue={memberItem.values['Alternate Barcode']}
+                  onChange={e =>
+                    handleChange(
+                      memberItem,
+                      'Alternate Barcode',
+                      e,
+                      setIsDirty,
+                      memberChanges,
+                    )
+                  }
+                />
+              </div>
+              <div className="memberBarcode">
+                {memberItem.values['Alternate Barcode'] !== undefined &&
+                  memberItem.values['Alternate Barcode'] !== null && (
+                    <Barcode
+                      value={memberItem.values['Alternate Barcode']}
+                      width={1.3}
+                      height={30}
+                      displayValue={false}
+                    />
+                  )}
               </div>
             </span>
           </div>

@@ -33,6 +33,7 @@ import MomentLocaleUtils, {
 } from 'react-day-picker/moment';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { I18n } from '../../../../app/src/I18nProvider';
+import Barcode from 'react-barcode';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -824,6 +825,29 @@ export const MemberNew = ({
                     <option value="NOT Agreed">NOT Agreed</option>
                   </select>
                   <div className="droparrow" />
+                </div>
+              </span>
+              <span className="line">
+                <div className="field">
+                  <label htmlFor="alternateBarcode">Alternate Barcode</label>
+                  <input
+                    type="text"
+                    name="alternateBarcode"
+                    id="alternateBarcode"
+                    ref={input => (this.input = input)}
+                    defaultValue={memberItem.values['Alternate Barcode']}
+                    onChange={e =>
+                      handleChange(memberItem, 'Alternate Barcode', e)
+                    }
+                  />
+                </div>
+                <div className="memberBarcode">
+                  <Barcode
+                    value={memberItem.values['Alternate Barcode']}
+                    width={1.3}
+                    height={30}
+                    displayValue={false}
+                  />
                 </div>
               </span>
             </div>

@@ -93,7 +93,10 @@ export class AttendanceDetail extends Component {
     this.setState({ attendanceStatus: 'Full Class' });
 
     for (let i = 0; i < this.props.allMembers.length; i++) {
-      if (this.props.allMembers[i].id.split('-')[4].substring(6, 12) === data) {
+      if (
+        this.props.allMembers[i].id.split('-')[4].substring(6, 12) === data ||
+        this.props.allMembers[i].values['Alternate Barcode'] === data
+      ) {
         this.setState({ memberItem: this.props.allMembers[i] });
         if (
           this.props.allMembers[i].values['Ranking Program'] === undefined ||
@@ -558,7 +561,11 @@ export class AttendanceDetail extends Component {
                 </h4>
                 <h4>
                   For class <b>{this.state.className}</b> at{' '}
-                  <b>{moment(this.state.classDate).format('L hh:mm A')}</b>
+                  <b>
+                    {moment(this.state.classDate, 'L hh:mm A').format(
+                      'L hh:mm A',
+                    )}
+                  </b>
                 </h4>
               </div>
               {this.state.memberAlreadyCheckedIn || this.state.noProgramSet ? (
