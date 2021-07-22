@@ -19,6 +19,7 @@ export const types = {
   UPDATE_REPORT_PREFERENCES: namespace('app', 'UPDATE_REPORT_PREFERENCES'),
   FETCH_REPORT_PREFERENCES: namespace('app', 'FETCH_REPORT_PREFERENCES'),
   SET_REPORT_PREFERENCES: namespace('app', 'SET_REPORT_PREFERENCES'),
+  SET_SIDEBAR_DISPLAY_TYPE: namespace('app', 'SET_SIDEBAR_DISPLAY_TYPE'),
 };
 
 export const actions = {
@@ -35,6 +36,7 @@ export const actions = {
   updateReportPreferences: withPayload(types.UPDATE_REPORT_PREFERENCES),
   fetchReportPreferences: withPayload(types.FETCH_REPORT_PREFERENCES),
   setReportPreferences: withPayload(types.SET_REPORT_PREFERENCES),
+  setSidebarDisplayType: withPayload(types.SET_SIDEBAR_DISPLAY_TYPE),
 };
 /*
  *
@@ -51,6 +53,7 @@ export const State = Record({
   discussionServerUrl: '',
   billingCompany: '',
   isSmsEnabled: false,
+  sidebarDisplayType: 'members',
   leadStatusValues: '',
   leadSourceValues: '',
   memberStatusValues: '',
@@ -225,6 +228,9 @@ export const reducer = (state = State(), { type, payload }) => {
         ? List(reportPreferencesArr)
         : List();
       return state.set('reportPreferences', reportPreferences);
+    }
+    case types.SET_SIDEBAR_DISPLAY_TYPE: {
+      return state.set('sidebarDisplayType', payload);
     }
     default:
       return state;

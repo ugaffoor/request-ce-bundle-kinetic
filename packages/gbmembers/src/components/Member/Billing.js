@@ -22,7 +22,6 @@ import {
 import ReactTable from 'react-table';
 import 'react-table/react-table.css';
 import checkboxHOC from 'react-table/lib/hoc/selectTable';
-import update from 'immutability-helper';
 import { updateBillingMembers } from '../../redux/sagas/members';
 import {
   getMembershipCost,
@@ -31,26 +30,16 @@ import {
 import moment from 'moment';
 import ReactSpinner from 'react16-spinjs';
 import 'bootstrap/scss/bootstrap.scss';
-import { DropDownEditor } from '../helpers/DropDownEditor';
-import { DropDownFormatter } from '../helpers/DropDownFormatter';
-import * as multi_select from '../helpers/jquery.multiselect.js';
 import '../../styles/react_data_grid.scss';
 import '../helpers/jquery.multiselect.css';
 import { contact_date_format } from '../leads/LeadsUtils';
-import mastercard from '../../images/Mastercard.gif';
-import visa from '../../images/Visa.gif';
-import amex from '../../images/Amex.jpg';
-import jcb from '../../images/JCBCard.jpg';
-import dinersclub from '../../images/DinersClub.jpg';
 import { confirmWithInput } from './Confirm';
 import { confirmWithDates } from './ConfirmWithDates';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as errorActions } from '../../redux/modules/errors';
 import { RecentNotificationsContainer } from '../notifications/RecentNotifications';
-import { FormContainer } from '../form/FormContainer';
-import { Link } from 'react-router-dom';
-import { Utils } from 'common';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
+import { actions as appActions } from '../../redux/modules/memberApp';
 
 <script src="../helpers/jquery.multiselect.js" />;
 
@@ -99,6 +88,7 @@ const mapDispatchToProps = {
   fetchDdrStatus: actions.fetchDdrStatus,
   fetchActionRequests: actions.fetchActionRequests,
   setActionRequests: actions.setActionRequests,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 
 const ezidebit_date_format = 'YYYY-MM-DD HH:mm:ss';
@@ -1787,6 +1777,9 @@ export const BillingContainer = compose(
           });
         }
       }
+    },
+    componentDidMount() {
+      this.props.setSidebarDisplayType('members');
     },
     componentWillUnmount() {},
   }),

@@ -48,6 +48,7 @@ import moment from 'moment';
 import { ReceiptToPrint } from './ReceiptToPrint';
 import Helmet from 'react-helmet';
 import { I18n } from '../../../../app/src/I18nProvider';
+import { actions as appActions } from '../../redux/modules/memberApp';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -80,6 +81,7 @@ const mapDispatchToProps = {
   decrementPOSStock: actions.decrementPOSStock,
   fetchLeads: leadsActions.fetchLeads,
   savePOSStock: actions.savePOSStock,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 var posThis = undefined;
 var verifyDeviceCount = 0;
@@ -3065,6 +3067,9 @@ export const ProShopContainer = compose(
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);
+    },
+    componentDidMount() {
+      this.props.setSidebarDisplayType('members');
     },
     componentWillUnmount() {},
   }),

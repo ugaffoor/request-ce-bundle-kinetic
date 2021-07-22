@@ -44,6 +44,7 @@ import { Requests } from './Requests';
 import { MemberAttendanceContainer } from './MemberAttendance';
 import { actions as campaignActions } from '../../redux/modules/campaigns';
 import { actions as attendanceActions } from '../../redux/modules/attendance';
+import { actions as appActions } from '../../redux/modules/memberApp';
 import {
   ResponsiveContainer,
   LineChart,
@@ -98,6 +99,7 @@ const mapDispatchToProps = {
   fetchMemberAttendances: attendanceActions.fetchMemberAttendances,
   createMemberUserAccount: actions.createMemberUserAccount,
   getAttributeValue: getAttributeValue,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 
 function getClassNames(node) {
@@ -1455,6 +1457,7 @@ export const MemberViewContainer = compose(
 */
     },
     componentDidMount() {
+      this.props.setSidebarDisplayType('members');
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);

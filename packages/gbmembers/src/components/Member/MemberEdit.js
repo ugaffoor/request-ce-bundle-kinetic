@@ -9,6 +9,7 @@ import {
 } from 'recompose';
 import { actions } from '../../redux/modules/members';
 import { actions as leadActions } from '../../redux/modules/leads';
+import { actions as appActions } from '../../redux/modules/memberApp';
 import { KappNavLink as NavLink } from 'common';
 import { PhotoForm } from '../PhotoForm';
 import $ from 'jquery';
@@ -60,6 +61,7 @@ const mapDispatchToProps = {
   fetchCurrentMember: actions.fetchCurrentMember,
   fetchMembers: actions.fetchMembers,
   updateLead: leadActions.updateLead,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 
 export function getJson(input) {
@@ -1594,6 +1596,7 @@ export const MemberEditContainer = compose(
       }
     },
     componentDidMount() {
+      this.props.setSidebarDisplayType('members');
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);

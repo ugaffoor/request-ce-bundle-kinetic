@@ -78,6 +78,7 @@ const mapDispatchToProps = {
   setOverdues: actions.setOverdues,
   fetchBillingCustomers: actions.fetchBillingCustomers,
   setBillingCustomers: actions.setBillingCustomers,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 
 export const ReportsView = ({
@@ -672,6 +673,9 @@ export const ReportsContainer = compose(
           ? this.props.space.defaultLocale
           : this.props.profile.preferredLocale,
       );
+    },
+    componentDidMount() {
+      this.props.setSidebarDisplayType('members');
     },
     componentWillUnmount() {},
   }),

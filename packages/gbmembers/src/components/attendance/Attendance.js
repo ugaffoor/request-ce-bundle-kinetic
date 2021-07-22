@@ -5,6 +5,7 @@ import BarcodeReader from 'react-barcode-reader';
 import { actions as attendanceActions } from '../../redux/modules/attendance';
 import { actions as memberActions } from '../../redux/modules/members';
 import { actions as classActions } from '../../redux/modules/classes';
+import { actions as appActions } from '../../redux/modules/memberApp';
 import { connect } from 'react-redux';
 import moment from 'moment';
 import Datetime from 'react-datetime';
@@ -45,6 +46,7 @@ const mapDispatchToProps = {
   setClassBookings: classActions.setClassBookings,
   updateBooking: classActions.updateBooking,
   updateMember: memberActions.updateMember,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 
 export class AttendanceDetail extends Component {
@@ -830,6 +832,9 @@ export const AttendanceContainer = compose(
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);
+    },
+    componentDidMount() {
+      this.props.setSidebarDisplayType('members');
     },
     componentWillUnmount() {},
   }),

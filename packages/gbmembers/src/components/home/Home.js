@@ -8,6 +8,7 @@ import {
   withProps,
 } from 'recompose';
 import { actions } from '../../redux/modules/members';
+import { actions as appActions } from '../../redux/modules/memberApp';
 import $ from 'jquery';
 import moment from 'moment';
 import PropTypes from 'prop-types';
@@ -59,6 +60,7 @@ const mapDispatchToProps = {
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
   fetchMonthlyStatistics: monthlyStatisticsActions.fetchMonthlyStatistics,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 
 export const HomeView = ({
@@ -224,11 +226,13 @@ export const HomeContainer = compose(
       this.props.fetchLeadsByDate();
     },
     UNSAFE_componentWillReceiveProps(nextProps) {
+      this.props.setSidebarDisplayType('members');
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);
     },
-    componentWillUnmount() {},
+    UNSAFE_componentDidMount() {},
+    UNSAFE_componentWillUnmount() {},
   }),
 )(HomeView);
 

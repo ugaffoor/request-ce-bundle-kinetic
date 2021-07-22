@@ -34,6 +34,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = {
   fetchMembers: actions.fetchMembers,
   updateMembersList: appActions.updateMembersList,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 var compThis = undefined;
 
@@ -151,6 +152,7 @@ export class ListEditHome extends Component {
   }
 
   componentDidMount() {
+    this.props.setSidebarDisplayType('members');
     this.populateFilters(this.state.listToBeUpdated);
     this.refs.statusDiv &&
       $(this.refs.statusDiv)

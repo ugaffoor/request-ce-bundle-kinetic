@@ -35,6 +35,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = {
   fetchLeads: actions.fetchLeads,
   updateLeadsList: appActions.updateLeadsList,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 var compThis = undefined;
 
@@ -85,6 +86,9 @@ export const LeadListEditContainer = compose(
   lifecycle({
     UNSAFE_componentWillMount() {},
     UNSAFE_componentWillReceiveProps(nextProps) {},
+    componentDidMount() {
+      this.props.setSidebarDisplayType('leads');
+    },
     componentWillUnmount() {},
   }),
 )(ListEditView);

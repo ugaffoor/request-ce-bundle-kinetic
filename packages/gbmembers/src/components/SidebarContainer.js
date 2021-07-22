@@ -16,6 +16,7 @@ import $ from 'jquery';
 const mapStateToProps = state => ({
   documentationUrl: state.member.app.documentationUrl,
   supportUrl: state.member.app.supportUrl,
+  sidebarDisplayType: state.member.app.sidebarDisplayType,
   allMembers: state.member.members.allMembers,
   currentFilter: state.member.members.currentFilter,
   membersLoading: state.member.members.membersLoading,

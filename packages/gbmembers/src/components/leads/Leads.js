@@ -4,6 +4,7 @@ import SVGInline from 'react-svg-inline';
 import { compose, lifecycle, withHandlers, withProps } from 'recompose';
 import { actions } from '../../redux/modules/leads';
 import { actions as memberActions } from '../../redux/modules/members';
+import { actions as appActions } from '../../redux/modules/memberApp';
 import $ from 'jquery';
 import 'bootstrap/scss/bootstrap.scss';
 import { KappNavLink as NavLink } from 'common';
@@ -65,6 +66,7 @@ const mapDispatchToProps = {
   updateLead: actions.updateLead,
   fetchLeads: actions.fetchLeads,
   fetchMembers: memberActions.fetchMembers,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 
 function getLatestHistory(history) {
@@ -2092,6 +2094,7 @@ export const LeadsContainer = compose(
     },
     UNSAFE_componentWillReceiveProps(nextProps) {},
     componentDidMount() {
+      this.props.setSidebarDisplayType('leads');
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);

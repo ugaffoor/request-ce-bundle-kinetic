@@ -23,6 +23,7 @@ import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
 import PropTypes from 'prop-types';
 import { actions as dataStoreActions } from '../../redux/modules/settingsDatastore';
 import { actions as leadsActions } from '../../redux/modules/leads';
+import { actions as appActions } from '../../redux/modules/memberApp';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -50,6 +51,7 @@ const mapDispatchToProps = {
   getAccountCredit: messagingActions.getAccountCredit,
   setAccountCredit: messagingActions.setAccountCredit,
   fetchSMSTemplates: dataStoreActions.fetchSMSTemplates,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 
 const util = require('util');
@@ -724,6 +726,7 @@ export const SmsCampaignContainer = compose(
       }
     },
     componentDidMount() {
+      this.props.setSidebarDisplayType('members');
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);

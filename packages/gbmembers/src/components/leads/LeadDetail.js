@@ -8,6 +8,7 @@ import {
   withProps,
 } from 'recompose';
 import { actions } from '../../redux/modules/leads';
+import { actions as appActions } from '../../redux/modules/memberApp';
 import { KappNavLink as NavLink } from 'common';
 import $ from 'jquery';
 import {
@@ -70,6 +71,7 @@ const mapDispatchToProps = {
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
   createJourneyEvent: settingsActions.createJourneyEvent,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 
 function convertContactType(type) {
@@ -1201,6 +1203,7 @@ export const LeadDetailContainer = compose(
       }
     },
     componentDidMount() {
+      this.props.setSidebarDisplayType('leads');
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);

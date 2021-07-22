@@ -21,6 +21,7 @@ import { EmailsReceived } from './EmailsReceived';
 import { MemberEmails } from './MemberEmails';
 import { actions as campaignActions } from '../../redux/modules/campaigns';
 import { SMSModalContainer } from './SMSModalContainer';
+import { actions as appActions } from '../../redux/modules/memberApp';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -36,6 +37,7 @@ const mapDispatchToProps = {
   fetchCurrentMember: actions.fetchCurrentMember,
   fetchMembers: actions.fetchMembers,
   fetchCampaign: campaignActions.fetchEmailCampaign,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 
 const Datetime = require('react-datetime');
@@ -451,6 +453,7 @@ export const MemberNotesContainer = compose(
       }
     },
     componentDidMount() {
+      this.props.setSidebarDisplayType('members');
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);

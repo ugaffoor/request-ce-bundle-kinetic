@@ -9,6 +9,7 @@ import { getProgramSVG, getBeltSVG } from '../Member/MemberUtils';
 import { actions as classActions } from '../../redux/modules/classes';
 import moment from 'moment';
 import { actions as attendanceActions } from '../../redux/modules/attendance';
+import { actions as appActions } from '../../redux/modules/memberApp';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -24,6 +25,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = {
   fetchClassSchedules: classActions.fetchClassSchedules,
   fetchClassAttendances: attendanceActions.fetchClassAttendances,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 
 export class GradingDetail extends Component {
@@ -346,6 +348,7 @@ export const GradingContainer = compose(
     },
     UNSAFE_componentWillReceiveProps(nextProps) {},
     componentDidMount() {
+      this.props.setSidebarDisplayType('members');
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);

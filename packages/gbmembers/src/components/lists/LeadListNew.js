@@ -36,6 +36,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = {
   fetchLeads: actions.fetchLeads,
   addLeadsList: appActions.addLeadsList,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 var compThis = undefined;
 
@@ -109,6 +110,7 @@ export class ListNewHome extends Component {
   UNSAFE_componentWillReceiveProps(nextProps) {}
 
   componentDidMount() {
+    this.props.setSidebarDisplayType('leads');
     this.refs.statusDiv &&
       $(this.refs.statusDiv)
         .find('select')
