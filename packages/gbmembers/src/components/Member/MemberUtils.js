@@ -194,6 +194,15 @@ import Black_Belt_5_StripesIcon from '../../images/Black_Belt_5_Stripes.svg?raw'
 import Black_Belt_6_StripesIcon from '../../images/Black_Belt_6_Stripes.svg?raw';
 
 var currencies = {
+  AUD: {
+    symbol: '$',
+    name: 'Australian Dollar',
+    symbol_native: '$',
+    decimal_digits: 2,
+    rounding: 0,
+    code: 'AUD',
+    name_plural: 'Australian dollars',
+  },
   USD: {
     symbol: '$',
     name: 'US Dollar',

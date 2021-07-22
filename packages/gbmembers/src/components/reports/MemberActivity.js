@@ -48,7 +48,7 @@ export class MemberActivityReport extends Component {
     if (currency === undefined) {
       this.currencySymbol = '$';
     } else {
-      this.currencySymbol = getCurrency()['symbol'];
+      this.currencySymbol = getCurrency(currency)['symbol'];
     }
 
     this.columns = [

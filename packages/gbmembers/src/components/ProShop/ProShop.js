@@ -1107,7 +1107,7 @@ class PayNow extends Component {
                               if (result.data.error === 100) {
                                 this.createDeviceID();
                               } else {
-                                var data = JSON.parse(result.data.data);
+                                var data = result.data.data;
                                 this.setState({
                                   squareDevice: data.id,
                                   terminalCode: data.code,
