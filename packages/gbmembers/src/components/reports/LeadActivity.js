@@ -208,7 +208,7 @@ export class LeadsActivityReport extends Component {
     };
   }
 
-  UNSAFE_componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps(nextProps) {
     let data = this.getGridData(nextProps.leads);
     this.setState({
       activityData: data,
@@ -222,7 +222,7 @@ export class LeadsActivityReport extends Component {
     }
   }
 
-  UNSAFE_componentWillMount() {
+  componentWillMount() {
     this.props.fetchLeads();
   }
 

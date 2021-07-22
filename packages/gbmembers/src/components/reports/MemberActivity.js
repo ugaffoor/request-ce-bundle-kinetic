@@ -48,7 +48,7 @@ export class MemberActivityReport extends Component {
     if (currency === undefined) {
       this.currencySymbol = '$';
     } else {
-      this.currencySymbol = getCurrency()['symbol'];
+      this.currencySymbol = getCurrency(currency)['symbol'];
     }
 
     this.columns = [
@@ -329,7 +329,7 @@ export class MemberActivityReport extends Component {
     };
   }
 
-  UNSAFE_componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps(nextProps) {
     if (!this.props.reportPreferences.equals(nextProps.reportPreferences)) {
       let preferences = this.getTablePreferences(nextProps.reportPreferences);
       this.setState({

@@ -13,6 +13,7 @@ export const Sidebar = ({
   handleNewPersonalFilter,
   allMembers,
   membersLoading,
+  memberUpdating,
   setMemberFilter,
   currentFilter,
   fetchMembers,
@@ -66,7 +67,8 @@ export const Sidebar = ({
     {filterType === 'filter' && membersLoading ? (
       <div />
     ) : (
-      filterType === 'filter' && (
+      filterType === 'filter' &&
+      (memberUpdating || !memberUpdating) && (
         <Members
           allMembers={allMembers}
           currentFilter={currentFilter}

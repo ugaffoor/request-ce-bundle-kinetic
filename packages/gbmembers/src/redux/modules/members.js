@@ -157,6 +157,7 @@ export const State = Record({
   currentMemberLoading: true,
   newMemberLoading: true,
   membersLoading: true,
+  memberUpdating: true,
   billingInfoLoading: true,
   completeMemberBilling: false,
   currentFilter: 'Active Members',
@@ -390,6 +391,9 @@ export const reducer = (state = State(), { type, payload }) => {
     case types.MEMBER_PROMOTED: {
       return state.set('promotingMember', false);
     }
+    case types.UPDATE_MEMBER: {
+      return state.set('memberUpdating', true);
+    }
     case types.MEMBER_SAVED: {
       var allMembers = payload.allMembers;
       for (var i = 0; i < allMembers.length; i++) {
@@ -398,7 +402,7 @@ export const reducer = (state = State(), { type, payload }) => {
         }
       }
 
-      return state.set('allMembers', allMembers);
+      return state.set('memberUpdating', false).set('allMembers', allMembers);
     }
     default:
       return state;

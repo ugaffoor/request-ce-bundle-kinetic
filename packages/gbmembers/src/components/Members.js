@@ -22,9 +22,15 @@ export class Members extends React.Component {
     }
   };
 
-  componentDidMount() {
+  UNSAFE_componentDidMount() {
     this.addFilterPlaceholder();
   }
+  UNSAFE_componentWillReceiveProps(nextProps) {
+    this.setState({
+      data: this.getData(nextProps.allMembers, this.props.currentFilter),
+    });
+  }
+
   getData(allMembers, currentFilter) {
     let members = allMembers.filter(member => {
       let match = false;

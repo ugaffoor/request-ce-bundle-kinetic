@@ -1548,6 +1548,7 @@ export const MemberEditContainer = compose(
           id: memberItem.id,
           memberItem,
           emailChanged,
+          allMembers,
           /*          history: memberItem.history,
           fetchMembers: fetchMembers, */
         });

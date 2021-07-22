@@ -19,6 +19,7 @@ const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
   currentFilter: state.member.members.currentFilter,
   membersLoading: state.member.members.membersLoading,
+  memberUpdating: state.member.members.memberUpdating,
   // The route prop below is just a way to make sure this component updates when
   // the route changes, otherwise connect implicitly prevents the update.
   route: `${state.router.location.pathname} ${state.router.location.search}`,
