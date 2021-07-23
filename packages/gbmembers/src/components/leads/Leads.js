@@ -787,11 +787,6 @@ export class TasksDetail extends Component {
       <div>
         <div className="headerPanel">
           <div className="row">
-            <NavLink to={`/NewLead`} className="btn btn-primary addNewLead">
-              Add New Lead
-            </NavLink>
-          </div>
-          <div className="row">
             <div className="col">
               <div className="form-group">
                 <label htmlFor="allTasks">Show Tasks</label>
@@ -823,16 +818,6 @@ export class TasksDetail extends Component {
                     </option>
                   ))}
                 </select>
-              </div>
-            </div>
-            <div className="col">
-              <div className="form-group">
-                <NavLink
-                  to={`/leadLists`}
-                  className="btn btn-primary leadListButton"
-                >
-                  Lead Lists
-                </NavLink>
               </div>
             </div>
           </div>
@@ -925,13 +910,13 @@ export class TasksDetail extends Component {
             />
           </div>
         </div>
-        <div className="leadContents">
+        {/*        <div className="leadContents">
           <LeadsDetail
             allLeads={allLeads}
             fullLeads={this.props.allLeads}
             leadSearchValue={this.state.leadSearchValue}
           />
-        </div>
+        </div> */}
       </div>
     );
   }

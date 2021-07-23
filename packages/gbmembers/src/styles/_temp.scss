@@ -162,3 +162,8 @@ body a {
     }
   }
 }
+.sidebarMain {
+  a.cursorPointer:hover {
+    cursor: pointer;
+  }
+}

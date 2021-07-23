@@ -1318,15 +1318,14 @@ export const MemberViewContainer = compose(
         memberItem,
         allMembers,
         addNotification,
-        fetchMembers,
         setSystemError,
       });
-      for (let i = 0; i < allMembers.length; i++) {
+      /*    for (let i = 0; i < allMembers.length; i++) {
         if (allMembers[i].id === memberItem.id) {
-          allMembers[i].values['Is New Reply Received'] = false;
+          allMembers[i].values = memberItem.values;
           break;
         }
-      }
+      } */
     },
     updateAttentionRequired: ({
       memberItem,
@@ -1339,21 +1338,19 @@ export const MemberViewContainer = compose(
       setIsDirty,
     }) => () => {
       memberItem.values['Is New Reply Received'] = true;
+      for (let i = 0; i < allMembers.length; i++) {
+        if (allMembers[i].id === memberItem.id) {
+          allMembers[i].values = memberItem.values;
+          break;
+        }
+      }
       updateMember({
         id: memberItem.id,
         memberItem,
         allMembers,
-        fetchMember,
-        fetchMembers,
         addNotification,
         setSystemError,
       });
-      for (let i = 0; i < allMembers.length; i++) {
-        if (allMembers[i].id === memberItem.id) {
-          allMembers[i].values['Is New Reply Received'] = true;
-          break;
-        }
-      }
     },
     createUserAccount: ({
       memberItem,

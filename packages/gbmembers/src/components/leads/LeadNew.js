@@ -179,7 +179,7 @@ export class LeadNew extends Component {
               <hr />
               <span className="line">
                 <div
-                  className="form-group form-inline"
+                  className="form-group form-inline leadReferral"
                   style={{ width: 'auto' }}
                 >
                   <label

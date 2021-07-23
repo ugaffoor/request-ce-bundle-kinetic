@@ -1,9 +1,11 @@
 import React from 'react';
 import { Members } from './Members';
+import { Leads } from './Leads';
 import { ListMembers } from './ListMembers';
 import { actions } from '../redux/modules/members';
 import { KappNavLink as NavLink } from 'common';
 import { Utils } from 'common';
+import download from '../images/download.png';
 
 export const Sidebar = ({
   documentationUrl,
@@ -13,8 +15,11 @@ export const Sidebar = ({
   handleOpenNewItemMenu,
   handleNewPersonalFilter,
   allMembers,
+  allLeads,
   membersLoading,
+  leadsLoading,
   memberUpdating,
+  leadUpdating,
   setMemberFilter,
   currentFilter,
   fetchMembers,
@@ -25,13 +30,35 @@ export const Sidebar = ({
   handleFilterChange,
   filterValue,
   profile,
+  downloadLeads,
 }) => (
-  <div className="sidebar">
+  <div className={'sidebar ' + sidebarDisplayType}>
     {sidebarDisplayType === 'leads' && (
-      <div className="leadsSideabr">LEADS</div>
+      <div className="leadsSidebar">
+        <div className="buttons">
+          <NavLink to={`/NewLead`} className="btn btn-primary addNewLead">
+            Add New Lead
+          </NavLink>
+          <NavLink to={`/leadLists`} className="btn btn-primary leadListButton">
+            Lead Lists
+          </NavLink>
+        </div>
+        <div className="options">
+          <a className="cursorPointer">
+            <img
+              style={{ border: 'none', margin: '10px' }}
+              src={download}
+              title="Export Leads to CSV"
+              alt="Export Leads to CSV"
+              onClick={e => downloadLeads()}
+            />
+          </a>
+        </div>
+        {(leadUpdating || !leadUpdating) && <Leads allLeads={allLeads} />}
+      </div>
     )}
     {sidebarDisplayType === 'members' && (
-      <div className="membersSideabr">
+      <div className="membersSidebar">
         <div className="buttons">
           {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
             <div />

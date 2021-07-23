@@ -88,6 +88,9 @@ export const ListNewContainer = compose(
           : this.props.profile.preferredLocale,
       );
     },
+    componentDidMount() {
+      this.props.setSidebarDisplayType('members');
+    },
     UNSAFE_componentWillReceiveProps(nextProps) {},
     componentWillUnmount() {},
   }),
@@ -109,7 +112,6 @@ export class ListNewHome extends Component {
   UNSAFE_componentWillReceiveProps(nextProps) {}
 
   componentDidMount() {
-    this.props.setSidebarDisplayType('members');
     this.refs.statusDiv &&
       $(this.refs.statusDiv)
         .find('select')

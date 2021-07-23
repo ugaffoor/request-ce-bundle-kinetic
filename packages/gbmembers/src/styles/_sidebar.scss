@@ -40,10 +40,21 @@
     padding-right: 14px;
   }
 }
-.gbmembers {
-  .sidebar {
-    border-right: 1px solid $gray3;
-    background-color: $darkgray;
+.sidebar.members {
+  border-right: 1px solid $gray3;
+  background-color: $darkgray;
+}
+.sidebar.leads {
+  border-right: 1px solid #bdbdbd;
+  background-color: #bdbdbd;
+  .ReactTable .rt-thead .rt-th,
+  .ReactTable .rt-thead .rt-td {
+    background-color: #bdbdbd;
+    border: unset;
+  }
+  .btn.btn-primary {
+    background-color: #4d5059;
+    color: white;
   }
 }
 .sidebar {

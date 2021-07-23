@@ -1189,9 +1189,9 @@ export const LeadDetailContainer = compose(
     UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.pathname !== nextProps.pathname) {
         this.props.fetchLead({
-          id: this.props.match.params['id'],
+          id: nextProps.match.params['id'],
           myThis: this,
-          history: this.props.history,
+          history: nextProps.history,
         });
       }
 

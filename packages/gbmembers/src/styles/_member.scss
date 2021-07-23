@@ -657,6 +657,10 @@
   background-color: white;
   .userDetails {
     margin: 10px;
+    .leadReferral .droparrow {
+      top: 0px;
+      right: 24px;
+    }
     .memberBarcode {
       margin-top: 16px;
     }
