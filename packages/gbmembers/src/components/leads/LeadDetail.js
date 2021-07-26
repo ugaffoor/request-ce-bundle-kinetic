@@ -1142,7 +1142,7 @@ export const LeadDetailContainer = compose(
       addNotification,
       setSystemError,
     }) => () => {
-      leadItem.values['Is New Reply Received'] = false;
+      leadItem.values['Is New Reply Received'] = 'false';
       updateLead({
         id: leadItem.id,
         leadItem,
@@ -1160,7 +1160,7 @@ export const LeadDetailContainer = compose(
       addNotification,
       setSystemError,
     }) => () => {
-      leadItem.values['Is New Reply Received'] = true;
+      leadItem.values['Is New Reply Received'] = 'true';
       updateLead({
         id: leadItem.id,
         leadItem,

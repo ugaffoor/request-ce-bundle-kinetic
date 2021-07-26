@@ -1,5 +1,6 @@
 import React from 'react';
 import { I18n } from '../../../../app/src/I18nProvider';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 export class ReceiptToPrint extends React.Component {
   constructor(props) {
@@ -202,7 +203,12 @@ export class ReceiptToPrint extends React.Component {
         ) : (
           <span className="salestax">
             <div className="label">
-              <I18n>SALES TAX</I18n>
+              {getAttributeValue(this.props.space, 'POS Sales Tax Label') ===
+              undefined ? (
+                <I18n>SALES TAX</I18n>
+              ) : (
+                getAttributeValue(this.props.space, 'POS Sales Tax Label')
+              )}
             </div>
             <div className="value">
               {new Intl.NumberFormat(this.props.locale, {

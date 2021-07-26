@@ -1931,7 +1931,14 @@ class Checkout extends Component {
             ) : (
               <span className="salestax">
                 <div className="label">
-                  <I18n>SALES TAX</I18n>
+                  {getAttributeValue(
+                    this.props.space,
+                    'POS Sales Tax Label',
+                  ) === undefined ? (
+                    <I18n>SALES TAX</I18n>
+                  ) : (
+                    getAttributeValue(this.props.space, 'POS Sales Tax Label')
+                  )}
                 </div>
                 <div className="value">
                   {new Intl.NumberFormat(this.props.locale, {

@@ -231,7 +231,7 @@ export const HomeContainer = compose(
         .parent('div')[0]
         .scrollIntoView(true);
     },
-    UNSAFE_componentDidMount() {},
+    componentDidMount() {},
     UNSAFE_componentWillUnmount() {},
   }),
 )(HomeView);

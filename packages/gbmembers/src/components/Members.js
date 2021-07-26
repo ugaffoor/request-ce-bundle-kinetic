@@ -18,11 +18,11 @@ export class Members extends React.Component {
   addFilterPlaceholder = () => {
     const filters = document.querySelectorAll('div.rt-th > input');
     for (let filter of filters) {
-      filter.placeholder = 'Search..';
+      filter.placeholder = 'Search [Name,Number,Email]';
     }
   };
 
-  UNSAFE_componentDidMount() {
+  componentDidMount() {
     this.addFilterPlaceholder();
   }
   UNSAFE_componentWillReceiveProps(nextProps) {
@@ -139,7 +139,27 @@ export class Members extends React.Component {
                     .includes(filter.value.toLowerCase()) ||
                   row._original['Last Name']
                     .toLowerCase()
-                    .includes(filter.value.toLowerCase())
+                    .includes(filter.value.toLowerCase()) ||
+                  (row._original['Phone Number'] !== undefined &&
+                    row._original['Phone Number'] !== null &&
+                    row._original['Phone Number']
+                      .toLowerCase()
+                      .includes(filter.value.toLowerCase())) ||
+                  (row._original['Additional Phone Number'] !== undefined &&
+                    row._original['Additional Phone Number'] !== null &&
+                    row._original['Additional Phone Number']
+                      .toLowerCase()
+                      .includes(filter.value.toLowerCase())) ||
+                  (row._original['Email'] !== undefined &&
+                    row._original['Email'] !== null &&
+                    row._original['Email']
+                      .toLowerCase()
+                      .includes(filter.value.toLowerCase())) ||
+                  (row._original['Additional Email'] !== undefined &&
+                    row._original['Additional Email'] !== null &&
+                    row._original['Additional Email']
+                      .toLowerCase()
+                      .includes(filter.value.toLowerCase()))
                 );
               },
             },

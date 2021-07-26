@@ -15,7 +15,7 @@ import MomentLocaleUtils, {
   formatDate,
   parseDate,
 } from 'react-day-picker/moment';
-
+import '../helpers/jquery.multiselect.js';
 <script src="../helpers/jquery.multiselect.js" />;
 
 const mapStateToProps = state => ({
@@ -34,7 +34,6 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = {
   fetchMembers: actions.fetchMembers,
   updateMembersList: appActions.updateMembersList,
-  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 var compThis = undefined;
 
@@ -85,6 +84,7 @@ export const ListEditContainer = compose(
   lifecycle({
     UNSAFE_componentWillMount() {},
     UNSAFE_componentWillReceiveProps(nextProps) {},
+    componentDidMount() {},
     componentWillUnmount() {},
   }),
 )(ListEditView);
@@ -152,7 +152,6 @@ export class ListEditHome extends Component {
   }
 
   componentDidMount() {
-    this.props.setSidebarDisplayType('members');
     this.populateFilters(this.state.listToBeUpdated);
     this.refs.statusDiv &&
       $(this.refs.statusDiv)

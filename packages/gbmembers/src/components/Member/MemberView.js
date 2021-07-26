@@ -1312,7 +1312,7 @@ export const MemberViewContainer = compose(
       addNotification,
       setSystemError,
     }) => () => {
-      memberItem.values['Is New Reply Received'] = false;
+      memberItem.values['Is New Reply Received'] = 'false';
       updateMember({
         id: memberItem.id,
         memberItem,
@@ -1337,7 +1337,7 @@ export const MemberViewContainer = compose(
       setSystemError,
       setIsDirty,
     }) => () => {
-      memberItem.values['Is New Reply Received'] = true;
+      memberItem.values['Is New Reply Received'] = 'true';
       for (let i = 0; i < allMembers.length; i++) {
         if (allMembers[i].id === memberItem.id) {
           allMembers[i].values = memberItem.values;

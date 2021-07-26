@@ -803,7 +803,7 @@ export class TasksDetail extends Component {
                 </select>
               </div>
             </div>
-            <div className="col">
+            <div className="col filters">
               <div className="form-group">
                 <label htmlFor="leadLists">Lead List Filters</label>
                 <select

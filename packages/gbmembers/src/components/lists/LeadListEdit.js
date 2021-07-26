@@ -16,6 +16,7 @@ import MomentLocaleUtils, {
   parseDate,
 } from 'react-day-picker/moment';
 import { getLocalePreference } from '../Member/MemberUtils';
+import '../helpers/jquery.multiselect.js';
 
 <script src="../helpers/jquery.multiselect.js" />;
 
