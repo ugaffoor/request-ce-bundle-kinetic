@@ -1396,10 +1396,7 @@ export function* refundTransaction(action) {
   let args = {};
   args.space = appSettings.spaceSlug;
   args.billingService = appSettings.billingCompany;
-  args.customerId =
-    appSettings.billingCompany === 'Bambora'
-      ? action.payload.memberItem.values['Member ID']
-      : action.payload.memberItem.values['Billing Customer Id'];
+  args.customerId = action.payload.memberItem.values['Billing Customer Id'];
   args.transactionId = action.payload.transactionId;
   args.bankReceiptId = action.payload.bankReceiptId;
   args.refundAmount = action.payload.refundAmount;

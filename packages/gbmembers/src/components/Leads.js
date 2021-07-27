@@ -42,16 +42,20 @@ export class Leads extends React.Component {
   }
 
   compare(lead1, lead2) {
-    if (
-      (lead1['Last Name'] + lead1['First Name']).toLowerCase() <
-      (lead2['Last Name'] + lead2['First Name']).toLowerCase()
-    )
-      return -1;
-    if (
-      (lead1['Last Name'] + lead1['First Name']).toLowerCase() >
-      (lead2['Last Name'] + lead2['First Name']).toLowerCase()
-    )
-      return 1;
+    try {
+      if (
+        (lead1['Last Name'] + lead1['First Name']).toLowerCase() <
+        (lead2['Last Name'] + lead2['First Name']).toLowerCase()
+      )
+        return -1;
+      if (
+        (lead1['Last Name'] + lead1['First Name']).toLowerCase() >
+        (lead2['Last Name'] + lead2['First Name']).toLowerCase()
+      )
+        return 1;
+    } catch (error) {
+      return 0;
+    }
     return 0;
   }
 

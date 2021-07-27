@@ -1620,10 +1620,7 @@ export const BillingContainer = compose(
       setSystemError,
     }) => () => {
       fetchPaymentHistory({
-        billingRef:
-          getAttributeValue(space, 'Billing Company') === 'Bambora'
-            ? memberItem.values['Member ID']
-            : memberItem.values['Billing Customer Id'],
+        billingRef: memberItem.values['Billing Customer Id'],
         paymentType: 'ALL',
         paymentMethod: 'ALL',
         paymentSource: 'ALL',

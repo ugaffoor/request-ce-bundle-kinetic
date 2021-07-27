@@ -63,16 +63,20 @@ export class Members extends React.Component {
   }
 
   compare(member1, member2) {
-    if (
-      (member1['Last Name'] + member1['First Name']).toLowerCase() <
-      (member2['Last Name'] + member2['First Name']).toLowerCase()
-    )
-      return -1;
-    if (
-      (member1['Last Name'] + member1['First Name']).toLowerCase() >
-      (member2['Last Name'] + member2['First Name']).toLowerCase()
-    )
-      return 1;
+    try {
+      if (
+        (member1['Last Name'] + member1['First Name']).toLowerCase() <
+        (member2['Last Name'] + member2['First Name']).toLowerCase()
+      )
+        return -1;
+      if (
+        (member1['Last Name'] + member1['First Name']).toLowerCase() >
+        (member2['Last Name'] + member2['First Name']).toLowerCase()
+      )
+        return 1;
+    } catch (error) {
+      return 0;
+    }
     return 0;
   }
 

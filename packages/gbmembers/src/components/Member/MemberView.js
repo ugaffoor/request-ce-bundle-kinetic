@@ -1401,8 +1401,8 @@ export const MemberViewContainer = compose(
   }),
   lifecycle({
     componentWillMount() {
-      this.props.memberItem.values = [];
-      this.props.memberItem.id = 'xx-xx-xx-xx-xx';
+      //      this.props.memberItem.values = [];
+      //      this.props.memberItem.id = 'xx-xx-xx-xx-xx';
       this.props.fetchCurrentMember({ id: this.props.match.params.id });
 
       let currency = getAttributeValue(this.props.space, 'Currency');
