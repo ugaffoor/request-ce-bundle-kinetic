@@ -16,6 +16,7 @@ import MomentLocaleUtils, {
   parseDate,
 } from 'react-day-picker/moment';
 import '../helpers/jquery.multiselect.js';
+import { KappNavLink as NavLink } from 'common';
 
 <script src="../helpers/jquery.multiselect.js" />;
 
@@ -166,7 +167,17 @@ export class ListNewHome extends Component {
 
   getColumns = () => {
     return [
-      { accessor: 'Member ID', Header: 'Member Id' },
+      {
+        accessor: 'Member ID',
+        Header: 'Member',
+        Cell: props => {
+          return (
+            <NavLink to={`/Member/${props.original._id}`} className="">
+              {props.original['First Name']} {props.original['Last Name']}
+            </NavLink>
+          );
+        },
+      },
       { accessor: 'Gender', Header: 'Gender' },
       { accessor: 'Member Type', Header: 'Member Type' },
       { accessor: 'Ranking Program', Header: 'Program' },

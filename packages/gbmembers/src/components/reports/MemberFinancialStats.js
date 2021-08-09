@@ -80,6 +80,7 @@ export class MemberFinancialStats extends Component {
       showNewMembers: false,
       showVariations: false,
       showFailed: false,
+      historyLoaded: false,
     };
   }
 
@@ -104,15 +105,18 @@ export class MemberFinancialStats extends Component {
         variationCustomers: nextProps.variationCustomers,
         paymentHistory: nextProps.paymentHistory,
         memberData,
+        historyLoaded: true,
       });
     }
   }
 
   UNSAFE_componentWillMount() {
-    this.props.fetchBillingCustomers({
-      setBillingCustomers: this.props.setBillingCustomers,
-      allMembers: this.props.members,
-    });
+    if (!this.props.billingCustomersLoading) {
+      this.props.fetchBillingCustomers({
+        setBillingCustomers: this.props.setBillingCustomers,
+        allMembers: this.props.members,
+      });
+    }
     this.props.fetchVariationCustomers({
       setVariationCustomers: this.props.setVariationCustomers,
       setSystemError: this.props.setSystemError,
@@ -124,20 +128,22 @@ export class MemberFinancialStats extends Component {
       addNotification: this.props.addNotification,
     });
 */
-    this.props.fetchPaymentHistory({
-      paymentType: 'FAILED',
-      paymentMethod: 'ALL',
-      paymentSource: 'ALL',
-      dateField: 'PAYMENT',
-      dateFrom: moment()
-        .subtract(1, 'year')
-        .format('YYYY-MM-DD'),
-      dateTo: moment().format('YYYY-MM-DD'),
-      setPaymentHistory: this.props.setPaymentHistory,
-      internalPaymentType: 'client_failed',
-      addNotification: this.props.addNotification,
-      setSystemError: this.props.setSystemError,
-    });
+    if (!this.state.historyLoaded) {
+      this.props.fetchPaymentHistory({
+        paymentType: 'FAILED',
+        paymentMethod: 'ALL',
+        paymentSource: 'ALL',
+        dateField: 'PAYMENT',
+        dateFrom: moment()
+          .subtract(1, 'year')
+          .format('YYYY-MM-DD'),
+        dateTo: moment().format('YYYY-MM-DD'),
+        setPaymentHistory: this.props.setPaymentHistory,
+        internalPaymentType: 'client_failed',
+        addNotification: this.props.addNotification,
+        setSystemError: this.props.setSystemError,
+      });
+    }
   }
 
   getScheduledPayment(member, billingCustomers) {
@@ -1233,7 +1239,7 @@ export class MemberFinancialStats extends Component {
   render() {
     return this.props.billingCustomersLoading ||
       this.props.variationCustomersLoading ||
-      this.props.paymentHistoryLoading ? (
+      !this.state.historyLoaded ? (
       <div>Loading information ...</div>
     ) : (
       <span className="financialStats">

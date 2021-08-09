@@ -62,6 +62,7 @@ import css from 'css';
 import attentionRequired from '../../images/flag.svg?raw';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import styled from 'styled-components';
+import { confirm } from '../helpers/Confirmation';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -763,7 +764,35 @@ export const MemberView = ({
                           <button
                             className="btn btn-primary"
                             style={{ textTransform: 'unset' }}
-                            onClick={e => createUserAccount()}
+                            onClick={async e => {
+                              console.log(
+                                e.currentTarget.getAttribute('noteDate') +
+                                  ' ' +
+                                  e.currentTarget.getAttribute('noteType'),
+                              );
+                              if (
+                                await confirm(
+                                  <span>
+                                    <span>
+                                      Are your sure you want to CREATE a User
+                                      Account?
+                                    </span>
+                                    <table>
+                                      <tbody>
+                                        <tr>
+                                          <td>User Name:</td>
+                                          <td>
+                                            {memberItem.values['Member ID']}
+                                          </td>
+                                        </tr>
+                                      </tbody>
+                                    </table>
+                                  </span>,
+                                )
+                              ) {
+                                createUserAccount();
+                              }
+                            }}
                           >
                             {creatingUserAccount
                               ? 'Creating...'
@@ -918,10 +947,19 @@ export const MemberView = ({
                   }).format(memberItem.values['Membership Cost'])}
                 </p>
               </div>
-
+              <div
+                className={
+                  memberItem.values['Non Paying'] === 'YES'
+                    ? 'billingInfo show'
+                    : 'hide'
+                }
+              >
+                <p>Non Paying</p>
+              </div>
               <div
                 className={
                   memberItem.values['Billing Payment Type'] !== 'Cash' &&
+                  memberItem.values['Non Paying'] !== 'YES' &&
                   memberItem.values['Billing Customer Id'] !== undefined &&
                   memberItem.values['Billing Customer Id'] !== '' &&
                   memberItem.values['Billing Customer Id'] !== null

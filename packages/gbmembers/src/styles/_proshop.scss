@@ -628,6 +628,9 @@
       .posPairing.ERROR path {
         fill: red;
       }
+      .posPairing.CANCELED path {
+        fill: #a20ac9;
+      }
       .posPairing.CHECKOUT.S0 path {
         fill: #0829de;
       }
@@ -699,6 +702,10 @@
   }
   .checkout,
   .paynow {
+    .delete {
+      margin-left: 10px;
+      cursor: pointer;
+    }
     .topRow {
       display: flex;
       flex-wrap: wrap;
@@ -793,10 +800,6 @@
           .price {
             margin-left: auto;
           }
-          .delete {
-            margin-left: 10px;
-            cursor: pointer;
-          }
         }
       }
     }
@@ -815,7 +818,7 @@
       }
       .value {
         margin-left: auto;
-        margin-right: 12px;
+        margin-right: 3px;
         font-size: 20px;
         font-family: 'AdiHaus DIN Medium';
         color: #2ac940;
@@ -849,6 +852,11 @@
         font-size: 20px;
         font-family: 'AdiHaus DIN Medium';
         color: #4d5059;
+      }
+    }
+    .salestax {
+      .value {
+        margin-right: 2px !important;
       }
     }
     .total {

@@ -227,7 +227,7 @@ export class ListHome extends Component {
                   columns={[
                     {
                       accessor: 'Member ID',
-                      Header: 'Member Id',
+                      Header: 'Member',
                       Cell: props => {
                         return (
                           <NavLink

@@ -11,6 +11,7 @@ import 'react-tabulator/css/bootstrap/tabulator_bootstrap.min.css'; // use Theme
 import { actions as appActions } from '../../redux/modules/memberApp';
 import { MemberActivityReport } from './MemberActivity';
 import { MemberFinancialStats } from './MemberFinancialStats';
+import { MemberFinancialReportContainer } from './MemberFinancialReport';
 import { LeadsActivityReport } from './LeadActivity';
 import { PDDailyReport } from './PDDaily';
 import { InactiveCustomersChart } from './PaysmartInactiveCustomers';
@@ -97,6 +98,8 @@ export const ReportsView = ({
   setShowMemberActivityReport,
   showMemberFinancialStats,
   setShowMemberFinancialStats,
+  showMemberFinancialReport,
+  setShowMemberFinancialReport,
   showBirthdaysReport,
   setBirthdaysReport,
   showLastAttendance,
@@ -274,6 +277,32 @@ export const ReportsView = ({
               space={space}
               profile={profile}
             />
+          </div>
+        )}
+      </div>
+    )}
+    {!Utils.isMemberOf(profile, 'Billing') || true ? (
+      <div />
+    ) : (
+      <div style={{ margin: '10px' }}>
+        <div className="row">
+          <button
+            type="button"
+            className="btn btn-primary report-btn-default"
+            onClick={e =>
+              setShowMemberFinancialReport(
+                showMemberFinancialReport ? false : true,
+              )
+            }
+          >
+            {showMemberFinancialReport
+              ? 'Hide Member Financial Report'
+              : 'Show Member Financial Report'}
+          </button>
+        </div>
+        {!showMemberFinancialReport ? null : (
+          <div className="row">
+            <MemberFinancialReportContainer />
           </div>
         )}
       </div>
@@ -536,6 +565,7 @@ export const ReportsContainer = compose(
   withState('showBirthdaysReport', 'setBirthdaysReport', false),
   withState('showLastAttendance', 'setShowLastAttendance', false),
   withState('showMemberFinancialStats', 'setShowMemberFinancialStats', false),
+  withState('showMemberFinancialReport', 'setShowMemberFinancialReport', false),
   withState('showInactiveMembers', 'setShowInactiveMembers', false),
   withState('showLeadActivityReport', 'setShowLeadActivityReport', false),
   withState('showPDDailyReport', 'setShowPDDailyReport', false),

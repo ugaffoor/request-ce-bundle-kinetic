@@ -844,6 +844,21 @@ class PayNow extends Component {
           });
           this.completeCheckout();
         }
+        if (
+          $('.paynow').length > 0 &&
+          this.state.squareCheckoutStatus === 'CANCELED'
+        ) {
+          this.setState({
+            processingComplete: true,
+            currency: this.props.currency,
+            auth_code: '',
+            number: '',
+            transaction_id: data.id,
+            name: this.state.firstName + ' ' + this.state.lastName,
+            datetime: moment(),
+          });
+          this.completeCheckout();
+        }
       })
       .catch(error => {
         console.log(error.response);
@@ -1167,6 +1182,9 @@ class PayNow extends Component {
                   )}
                   {this.state.deviceStatus === 'CHECKOUT' && (
                     <p>Capturing payment from customer, please wait...</p>
+                  )}
+                  {this.state.deviceStatus === 'CANCELED' && (
+                    <p>Customer cancelled transaction...</p>
                   )}
                   {this.state.status_message !== undefined && (
                     <p>An error has ocurred: {this.state.status_message}</p>
@@ -1946,6 +1964,52 @@ class Checkout extends Component {
                     currency: this.props.currency,
                   }).format(this.state.salestax)}
                 </div>
+                <SVGInline
+                  svg={binIcon}
+                  className="icon delete"
+                  onClick={async e => {
+                    var cancelButton = $(e.target);
+                    if (
+                      await confirm(
+                        <span>
+                          <span>
+                            Are you sure you want to REMOVE the{' '}
+                            {getAttributeValue(
+                              this.props.space,
+                              'POS Sales Tax Label',
+                            ) === undefined ? (
+                              <span>SALES TAX</span>
+                            ) : (
+                              getAttributeValue(
+                                this.props.space,
+                                'POS Sales Tax Label',
+                              )
+                            )}
+                            ?
+                          </span>
+                          <table>
+                            <tbody>
+                              <tr>
+                                <td>
+                                  {$(e.target)
+                                    .parents('.discountLine')
+                                    .children('.type')
+                                    .html()}
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </span>,
+                      )
+                    ) {
+                      var total = this.state.total - this.state.salestax;
+                      this.setState({
+                        salestax: 0,
+                        total: total,
+                      });
+                    }
+                  }}
+                />
               </span>
             )}
             <span className="total">
