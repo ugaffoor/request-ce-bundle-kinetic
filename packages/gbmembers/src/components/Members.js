@@ -40,11 +40,12 @@ export class Members extends React.Component {
           member.values['Status'] !== 'Frozen'
         )
           match = true;
+      } else if (currentFilter === 'Frozen Members') {
+        if (member.values['Status'] === 'Frozen') match = true;
       } else if (currentFilter === 'Inactive Members') {
         if (
           member.values['Status'] === undefined ||
-          member.values['Status'] === 'Inactive' ||
-          member.values['Status'] === 'Frozen'
+          member.values['Status'] === 'Inactive'
         )
           match = true;
       } else if (currentFilter === 'All Members') {
@@ -112,6 +113,9 @@ export class Members extends React.Component {
     return (
       <div>
         <ReactTable
+          ref={r => {
+            this.selectTable = r;
+          }}
           data={data}
           filterable
           showPagination={false}
@@ -125,15 +129,20 @@ export class Members extends React.Component {
           getTdProps={(state, rowInfo, column, instance) => {
             return {};
           }}
+          onFilteredChange={(filtered, column) => {
+            this.setState({ dummy: true });
+          }}
           columns={[
             {
               id: 'id',
               accessor: d => d.id,
               Cell: this.renderCell,
-              Footer: (
+              Header: (
                 <span>
                   <strong>Total: </strong>
-                  {data.length}
+                  {this.selectTable !== undefined
+                    ? this.selectTable.state.sortedData.length
+                    : data.length}
                 </span>
               ),
               filterMethod: (filter, row) => {

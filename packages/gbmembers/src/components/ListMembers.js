@@ -90,6 +90,9 @@ export class ListMembers extends React.Component {
     return (
       <div>
         <ReactTable
+          ref={r => {
+            this.selectTable = r;
+          }}
           data={data}
           filterable
           showPagination={false}
@@ -104,17 +107,21 @@ export class ListMembers extends React.Component {
             console.log('rowInfo:' + rowInfo);
             return {};
           }}
+          onFilteredChange={(filtered, column) => {
+            this.setState({ dummy: true });
+          }}
           columns={[
             {
-              Header: 'Name',
               id: 'id',
               placeholder: 'Search',
               accessor: d => d.id,
               Cell: this.renderCell,
-              Footer: (
+              Header: (
                 <span>
                   <strong>Total: </strong>
-                  {data.length}
+                  {this.selectTable !== undefined
+                    ? this.selectTable.state.sortedData.length
+                    : data.length}
                 </span>
               ),
               filterMethod: (filter, row) =>

@@ -43,6 +43,10 @@
 .sidebar.members {
   border-right: 1px solid $gray3;
   background-color: $darkgray;
+  .icon-svg path,
+  .icon-svg .primary-fill {
+    fill: white;
+  }
 }
 .sidebar.leads {
   border-right: 1px solid #bdbdbd;
@@ -64,6 +68,14 @@
   padding: 1.5rem 0;
   width: 252px;
   height: unset;
+  .options .download-svg.icon-svg {
+    height: 2rem;
+    width: 2rem;
+  }
+  .download.icon {
+    margin-left: 10px;
+    cursor: pointer;
+  }
   .buttons {
     display: flex;
     .btn-primary {

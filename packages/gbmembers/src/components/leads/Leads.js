@@ -829,7 +829,7 @@ export class TasksDetail extends Component {
                   className="form-control leadSearch"
                   id="leadSearch"
                   value={this.state.leadSearchValue}
-                  placeholder="Lead Search"
+                  placeholder="Lead/Member Search"
                   onChange={e => {
                     this.setState({ leadSearchValue: e.target.value });
                   }}

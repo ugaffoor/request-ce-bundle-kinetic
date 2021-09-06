@@ -16,7 +16,10 @@ export class LeadOrders extends Component {
     this._columns = this.getColumns();
     this.currency = getAttributeValue(this.props.space, 'Currency');
     if (this.currency === undefined) this.currency = 'USD';
-    this.locale = this.props.space.defaultLocale.split('-')[0];
+    this.locale =
+      this.props.profile.preferredLocale === null
+        ? this.props.space.defaultLocale
+        : this.props.profile.preferredLocale;
 
     this.state = {
       data,

@@ -5,7 +5,8 @@ import { ListMembers } from './ListMembers';
 import { actions } from '../redux/modules/members';
 import { KappNavLink as NavLink } from 'common';
 import { Utils } from 'common';
-import download from '../images/download.png';
+import download from '../images/download.svg?raw';
+import SVGInline from 'react-svg-inline';
 
 export const Sidebar = ({
   documentationUrl,
@@ -31,6 +32,7 @@ export const Sidebar = ({
   filterValue,
   profile,
   downloadLeads,
+  downloadMembers,
 }) => (
   <div className={'sidebar ' + sidebarDisplayType}>
     {sidebarDisplayType === 'leads' && (
@@ -44,15 +46,13 @@ export const Sidebar = ({
           </NavLink>
         </div>
         <div className="options">
-          <a className="cursorPointer">
-            <img
-              style={{ border: 'none', margin: '10px' }}
-              src={download}
-              title="Export Leads to CSV"
-              alt="Export Leads to CSV"
-              onClick={e => downloadLeads()}
-            />
-          </a>
+          <SVGInline
+            svg={download}
+            className={'download icon'}
+            title="Export Leads to CSV"
+            alt="Export Leads to CSV"
+            onClick={e => downloadLeads()}
+          />
         </div>
         {(leadUpdating || !leadUpdating) && <Leads allLeads={allLeads} />}
       </div>
@@ -71,6 +71,7 @@ export const Sidebar = ({
             Member Lists
           </NavLink>
         </div>
+        <div className="options"></div>
         <select
           value={filterValue}
           className="membersFilters"
@@ -78,6 +79,9 @@ export const Sidebar = ({
         >
           <option type="filter" value="Active Members">
             Active Members
+          </option>
+          <option type="filter" value="Frozen Members">
+            Frozen Members
           </option>
           <option type="filter" value="Inactive Members">
             Inactive Members

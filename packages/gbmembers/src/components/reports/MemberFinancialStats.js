@@ -19,6 +19,7 @@ import MomentLocaleUtils, {
   parseDate,
 } from 'react-day-picker/moment';
 import { getLocalePreference } from '../Member/MemberUtils';
+import { I18n } from '../../../../app/src/I18nProvider';
 
 var compThis = undefined;
 
@@ -35,16 +36,15 @@ export class MemberFinancialStats extends Component {
   constructor(props) {
     super(props);
     compThis = this;
-    moment.locale(
+    this.locale =
       this.props.profile.preferredLocale === null
         ? this.props.space.defaultLocale
-        : this.props.profile.preferredLocale,
-    );
+        : this.props.profile.preferredLocale;
+
+    moment.locale(this.locale);
 
     this.currency = getAttributeValue(this.props.space, 'Currency');
     if (this.currency === undefined) this.currency = 'USD';
-
-    this.locale = this.props.space.defaultLocale.split('-')[0];
 
     this._getMemberRowTableColumns = this.getMemberRowTableColumns();
 
@@ -87,7 +87,8 @@ export class MemberFinancialStats extends Component {
   UNSAFE_componentWillReceiveProps(nextProps) {
     if (
       !nextProps.billingCustomersLoading &&
-      !nextProps.variationCustomersLoading /* && !nextProps.customerRefundsLoading */ &&
+      !nextProps.variationCustomersLoading &&
+      /*      !nextProps.customerRefundsLoading  && */
       !nextProps.paymentHistoryLoading
     ) {
       let memberData = this.getMemberData(
@@ -123,6 +124,8 @@ export class MemberFinancialStats extends Component {
       addNotification: this.props.addNotification,
     });
     /*    this.props.fetchCustomerRefunds({
+      dateFrom: moment().subtract(1,"years").format("YYYY-MM-DD"),
+      dateTo: moment().format("YYYY-MM-DD"),
       setCustomerRefunds: this.props.setCustomerRefunds,
       setSystemError: this.props.setSystemError,
       addNotification: this.props.addNotification,
@@ -1284,7 +1287,7 @@ export class MemberFinancialStats extends Component {
                     : ''
                 }
               />
-              Fortnightly
+              <I18n>Fortnightly</I18n>
             </label>
             <label htmlFor="monthly" className="radio">
               <input

@@ -1207,6 +1207,10 @@ export const LeadDetailContainer = compose(
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);
+
+      if (this.props.allLeads.length === 0) {
+        this.props.fetchLeads();
+      }
     },
     componentWillUnmount() {},
   }),

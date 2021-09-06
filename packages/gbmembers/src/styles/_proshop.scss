@@ -1,3 +1,17 @@
+.purchaseItemsReport {
+  .purchaseItemsByDateDiv {
+    margin-left: auto;
+    .col-md-8 {
+      max-width: unset;
+      .form-group.submit {
+        .btn {
+          margin-left: 10px;
+        }
+      }
+    }
+  }
+}
+
 // Bambora checkout
 #bamboraCheckout {
   .errorDetails {
@@ -247,7 +261,16 @@
   size: a4 portrait;
   margin: 0;
 }*/
-
+.proshopContainer {
+  span.SVGInline.barcodeIcon {
+    height: 30px;
+    margin-top: 6px;
+  }
+  .barcodeIcon-svg {
+    width: 50px;
+    height: 30px;
+  }
+}
 .recordStockDialog {
   a.narcissus_x3xwbs {
     display: none;
@@ -546,6 +569,14 @@
 }
 
 .proshop {
+  .setting {
+    margin-top: 6px;
+    cursor: pointer;
+    .icon-svg {
+      height: 2rem;
+      width: 2rem;
+    }
+  }
   .paynow {
     .person {
       display: flex;
@@ -700,8 +731,14 @@
       }
     }
   }
+  .settings {
+    .details {
+      width: auto !important;
+    }
+  }
   .checkout,
-  .paynow {
+  .paynow,
+  .settings {
     .delete {
       margin-left: 10px;
       cursor: pointer;

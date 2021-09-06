@@ -185,19 +185,27 @@ export class MemberNotesHome extends Component {
             <div className="row">
               <div className="col-md-6 text-center">
                 <span className="float-md-left">
-                  <div
-                    style={{
-                      fontFamily: 'Arial-BoldMT, "Arial Bold", Arial',
-                      fontWeight: '700',
-                      fontStyle: 'normal',
-                      fontSize: '24px',
-                      color: '#333333',
-                    }}
+                  <NavLink
+                    to={`/Member/${this.props.memberItem['id']}`}
+                    className=""
+                    style={{}}
+                    title="Member View"
                   >
-                    {this.props.memberItem.values['First Name']}
-                    &nbsp;
-                    {this.props.memberItem.values['Last Name']}
-                  </div>
+                    <div
+                      style={{
+                        fontFamily: 'Arial-BoldMT, "Arial Bold", Arial',
+                        fontWeight: '700',
+                        fontStyle: 'normal',
+                        fontSize: '24px',
+                        color: '#333333',
+                      }}
+                    >
+                      {this.props.memberItem.values['First Name']}
+                      &nbsp;
+                      {this.props.memberItem.values['Last Name']}
+                    </div>
+                  </NavLink>
+                  <br />
                   <div>
                     <img
                       alt="Phone Number"

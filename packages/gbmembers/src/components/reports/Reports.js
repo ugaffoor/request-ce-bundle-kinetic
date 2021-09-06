@@ -52,8 +52,8 @@ const mapStateToProps = state => ({
   variationCustomersLoading: state.member.members.variationCustomersLoading,
   customerRefunds: state.member.members.customerRefunds,
   customerRefundsLoading: state.member.members.customerRefundsLoading,
-  paymentHistory: state.member.members.paymentHistory,
-  paymentHistoryLoading: state.member.members.paymentHistoryLoading,
+  FAILEDpaymentHistory: state.member.members.FAILEDpaymentHistory,
+  FAILEDpaymentHistoryLoading: state.member.members.FALIEDpaymentHistoryLoading,
   overdues: state.member.members.overdues,
   overduesLoading: state.member.members.overduesLoading,
   space: state.member.app.space,
@@ -134,8 +134,8 @@ export const ReportsView = ({
   setShowVariationsReport,
   showDescrepenciesReport,
   setShowDescrepenciesReport,
-  paymentHistory,
-  paymentHistoryLoading,
+  FAILEDpaymentHistory,
+  FAILEDpaymentHistoryLoading,
   overdues,
   overduesLoading,
   showFailedPaymentsReport,
@@ -158,6 +158,10 @@ export const ReportsView = ({
   fetchCustomerRefunds,
   setCustomerRefunds,
   triggers,
+  onDummyFormLoaded,
+  setDummyFormLoaded,
+  dummyFormLoaded,
+  singleSetDummyFormLoaded,
 }) => (
   <div className="reports">
     <StatusMessagesContainer />
@@ -167,6 +171,7 @@ export const ReportsView = ({
         <button
           type="button"
           className="btn btn-primary report-btn-default"
+          disabled={!dummyFormLoaded}
           onClick={e =>
             setShowMemberActivityReport(showMemberActivityReport ? false : true)
           }
@@ -200,6 +205,7 @@ export const ReportsView = ({
         <button
           type="button"
           className="btn btn-primary report-btn-default"
+          disabled={!dummyFormLoaded}
           onClick={e => {
             setBirthdaysReport(showBirthdaysReport ? false : true);
           }}
@@ -220,6 +226,7 @@ export const ReportsView = ({
         <button
           type="button"
           className="btn btn-primary report-btn-default"
+          disabled={!dummyFormLoaded}
           onClick={e => {
             setShowLastAttendance(showLastAttendance ? false : true);
           }}
@@ -243,6 +250,7 @@ export const ReportsView = ({
           <button
             type="button"
             className="btn btn-primary report-btn-default"
+            disabled={!dummyFormLoaded}
             onClick={e =>
               setShowMemberFinancialStats(
                 showMemberFinancialStats ? false : true,
@@ -272,8 +280,8 @@ export const ReportsView = ({
               setCustomerRefunds={setCustomerRefunds}
               fetchPaymentHistory={fetchPaymentHistory}
               setPaymentHistory={setPaymentHistory}
-              paymentHistory={paymentHistory}
-              paymentHistoryLoading={paymentHistoryLoading}
+              paymentHistory={FAILEDpaymentHistory}
+              FAILEDpaymentHistoryLoading={FAILEDpaymentHistoryLoading}
               space={space}
               profile={profile}
             />
@@ -281,7 +289,7 @@ export const ReportsView = ({
         )}
       </div>
     )}
-    {!Utils.isMemberOf(profile, 'Billing') || true ? (
+    {!Utils.isMemberOf(profile, 'Billing') ? (
       <div />
     ) : (
       <div style={{ margin: '10px' }}>
@@ -289,6 +297,7 @@ export const ReportsView = ({
           <button
             type="button"
             className="btn btn-primary report-btn-default"
+            disabled={!dummyFormLoaded}
             onClick={e =>
               setShowMemberFinancialReport(
                 showMemberFinancialReport ? false : true,
@@ -315,6 +324,7 @@ export const ReportsView = ({
           <button
             type="button"
             className="btn btn-primary report-btn-default"
+            disabled={!dummyFormLoaded}
             onClick={e =>
               setShowInactiveMembers(showInactiveMembers ? false : true)
             }
@@ -336,6 +346,7 @@ export const ReportsView = ({
         <button
           type="button"
           className="btn btn-primary report-btn-default"
+          disabled={!dummyFormLoaded}
           onClick={e => {
             setShowLeadActivityReport(showLeadActivityReport ? false : true);
             document.getElementById('leads-report').scrollIntoView();
@@ -368,6 +379,7 @@ export const ReportsView = ({
         <button
           type="button"
           className="btn btn-primary report-btn-default"
+          disabled={!dummyFormLoaded}
           onClick={e => {
             setShowPDDailyReport(showPDDailyReport ? false : true);
             document.getElementById('pddaily-report').scrollIntoView();
@@ -399,6 +411,7 @@ export const ReportsView = ({
           <button
             type="button"
             className="btn btn-primary report-btn-default"
+            disabled={!dummyFormLoaded}
             onClick={e => {
               setShowInactiveChart(showInactiveChart ? false : true);
             }}
@@ -429,6 +442,7 @@ export const ReportsView = ({
           <button
             type="button"
             className="btn btn-primary report-btn-default"
+            disabled={!dummyFormLoaded}
             onClick={e => {
               setShowVariationsReport(showVariationsReport ? false : true);
               document.getElementById('variations-report').scrollIntoView();
@@ -462,6 +476,7 @@ export const ReportsView = ({
           <button
             type="button"
             className="btn btn-primary report-btn-default"
+            disabled={!dummyFormLoaded}
             onClick={e => {
               setShowDescrepenciesReport(
                 showDescrepenciesReport ? false : true,
@@ -498,6 +513,7 @@ export const ReportsView = ({
           <button
             type="button"
             className="btn btn-primary report-btn-default"
+            disabled={!dummyFormLoaded}
             onClick={e => {
               setShowFailedPaymentsReport(
                 showFailedPaymentsReport ? false : true,
@@ -515,8 +531,8 @@ export const ReportsView = ({
             <div>
               <FailedPayments
                 getFailedPayments={getFailedPayments}
-                paymentHistory={paymentHistory}
-                paymentHistoryLoading={paymentHistoryLoading}
+                paymentHistory={FAILEDpaymentHistory}
+                FAILEDpaymentHistoryLoading={FAILEDpaymentHistoryLoading}
               />
             </div>
           </div>
@@ -532,6 +548,7 @@ export const ReportsView = ({
           <button
             type="button"
             className="btn btn-primary report-btn-default"
+            disabled={!dummyFormLoaded}
             onClick={e => {
               setShowOverduesReport(showOverduesReport ? false : true);
               document.getElementById('failed-report').scrollIntoView();
@@ -555,7 +572,11 @@ export const ReportsView = ({
         )}
       </div>
     )}
-    <CoreForm kapp="gbmembers" form="dummy-form" />
+    <CoreForm
+      kapp="gbmembers"
+      form="dummy-form"
+      loaded={singleSetDummyFormLoaded(dummyFormLoaded, setDummyFormLoaded)}
+    />
   </div>
 );
 
@@ -574,7 +595,15 @@ export const ReportsContainer = compose(
   withState('showDescrepenciesReport', 'setShowDescrepenciesReport', false),
   withState('showFailedPaymentsReport', 'setShowFailedPaymentsReport', false),
   withState('showOverduesReport', 'setShowOverduesReport', false),
+  withState('dummyFormLoaded', 'setDummyFormLoaded', false),
   withHandlers({
+    singleSetDummyFormLoaded: () => (dummyFormLoaded, setDummyFormLoaded) => {
+      if (!dummyFormLoaded) {
+        setTimeout(function() {
+          setDummyFormLoaded(true);
+        }, 2000);
+      }
+    },
     fetchLeads: ({ fetchLeads }) => () => {
       fetchLeads({});
     },

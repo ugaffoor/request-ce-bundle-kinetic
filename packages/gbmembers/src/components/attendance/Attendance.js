@@ -111,6 +111,7 @@ export class AttendanceDetail extends Component {
     }
     for (let i = 0; i < this.props.classAttendances.length; i++) {
       if (
+        this.state.memberItem !== undefined &&
         this.props.classAttendances[i].values['Member ID'] ===
           this.state.memberItem.values['Member ID'] &&
         this.props.classAttendances[i].values['Class Time'] ===
@@ -127,6 +128,9 @@ export class AttendanceDetail extends Component {
     //    if (this.state.memberAlreadyCheckedIn){
     this.props.setClassAttendances(this.props.classAttendances);
     //    }
+    setTimeout(function() {
+      $('#checkinMember').focus();
+    }, 500);
 
     console.log('Scanned ClassName:' + this.state.className);
   }
@@ -343,6 +347,9 @@ export class AttendanceDetail extends Component {
     this.props.setClassAttendances(this.props.classAttendances);
     //    }
     console.log('Scanned:' + id);
+    setTimeout(function() {
+      $('#checkinMember').focus();
+    }, 500);
   }
 
   render() {

@@ -30,7 +30,8 @@
       background-color: #eee;
     }
   }
-  .row.header2 {
+  .row.header2,
+  .row.header7 {
     .column {
       background-color: #eee;
     }
@@ -38,6 +39,9 @@
   .row.header4 .col1,
   .row.header5 .col1 {
     padding-left: 20px;
+  }
+  .row.header6 {
+    color: red;
   }
   .row {
     .column {
@@ -167,12 +171,25 @@
 }
 .financialStats {
   margin-top: 20px;
+  .closeMembers {
+    cursor: pointer;
+  }
   .radioGroup {
     text-align: center;
     label.radio {
       margin: 10px;
       cursor: pointer;
     }
+  }
+  .members {
+    position: absolute;
+    width: 80%;
+    background-color: #fdfbfb;
+    z-index: 100;
+  }
+  .dollarValue.membersLink {
+    cursor: pointer;
+    text-decoration: underline;
   }
 }
 .memberFinanceStatistics {

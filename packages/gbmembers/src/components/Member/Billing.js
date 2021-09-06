@@ -55,8 +55,8 @@ const mapStateToProps = state => ({
   currentMemberLoading: state.member.members.currentMemberLoading,
   allMembers: state.member.members.allMembers,
   membershipFees: state.member.app.membershipFees,
-  paymentHistory: state.member.members.paymentHistory,
-  paymentHistoryLoading: state.member.members.paymentHistoryLoading,
+  paymentHistory: state.member.members.ALLpaymentHistory,
+  paymentHistoryLoading: state.member.members.ALLpaymentHistoryLoading,
   familyMembers: state.member.members.familyMembers,
   removedBillingMembers: state.member.members.removedBillingMembers,
   billingDDRUrl: state.member.app.billingDDRUrl,
@@ -545,13 +545,6 @@ export class FamilyFeeDetails extends Component {
         Cell: props => (props.value ? props.value : 'NA'),
         headerClassName: 'col-align-center',
       },
-      {
-        accessor: 'fee',
-        Header: 'Fee',
-        align: 'center',
-        Cell: props => (props.value ? '$' + props.value : 'NA'),
-        headerClassName: 'col-align-center',
-      },
     ];
     return columns;
   }
@@ -995,7 +988,7 @@ export class BillingInfo extends Component {
                     )}
                     <tr>
                       <td>Billing Reference ID:</td>
-                      <td>{this.props.billingInfo.customerBillingId}</td>
+                      <td>{this.props.billingInfo.customerReference}</td>
                     </tr>
                     <tr>
                       <td>Billing Status:</td>
@@ -1625,7 +1618,10 @@ export const BillingContainer = compose(
         paymentMethod: 'ALL',
         paymentSource: 'ALL',
         dateField: 'PAYMENT',
-        //dateFrom: '',
+        dateFrom: moment
+          .utc()
+          .subtract(3, 'months')
+          .format('YYYY-MM-DD'),
         dateTo: moment
           .utc()
           .add(1, 'days')

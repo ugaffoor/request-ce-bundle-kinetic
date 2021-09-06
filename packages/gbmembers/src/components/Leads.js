@@ -91,6 +91,9 @@ export class Leads extends React.Component {
     return (
       <div>
         <ReactTable
+          ref={r => {
+            this.selectTable = r;
+          }}
           data={data}
           filterable
           showPagination={false}
@@ -101,6 +104,9 @@ export class Leads extends React.Component {
               ? String(row[id]).startsWith(filter.value)
               : true;
           }}
+          onFilteredChange={(filtered, column) => {
+            this.setState({ dummy: true });
+          }}
           getTdProps={(state, rowInfo, column, instance) => {
             return {};
           }}
@@ -109,10 +115,12 @@ export class Leads extends React.Component {
               id: 'id',
               accessor: d => d.id,
               Cell: this.renderCell,
-              Footer: (
+              Header: (
                 <span>
                   <strong>Total: </strong>
-                  {data.length}
+                  {this.selectTable !== undefined
+                    ? this.selectTable.state.sortedData.length
+                    : data.length}
                 </span>
               ),
               filterMethod: (filter, row) => {

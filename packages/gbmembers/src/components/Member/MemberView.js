@@ -32,6 +32,7 @@ import { actions as errorActions } from '../../redux/modules/errors';
 import ReactSpinner from 'react16-spinjs';
 import { CallScriptModalContainer } from './CallScriptModalContainer';
 import { SMSModalContainer } from './SMSModalContainer';
+import { BamboraActivateContainer } from './BamboraActivate';
 import { EmailsReceived } from './EmailsReceived';
 import { MemberEmails } from './MemberEmails';
 import { MemberSMS } from './MemberSMS';
@@ -577,6 +578,8 @@ export const MemberView = ({
   fetchMemberAttendances,
   showAttendanceDialog,
   setShowAttendanceDialog,
+  showBamboraActivate,
+  setShowBamboraActivate,
   createUserAccount,
   createMemberUserAccount,
   creatingUserAccount,
@@ -1046,6 +1049,31 @@ export const MemberView = ({
                   </button>
                 </div>
               )}
+              {Utils.getAttributeValue(space, 'Billing Company') ===
+                'Bambora' &&
+                memberItem.values['Billing User'] === 'YES' &&
+                memberItem.values['Non Paying'] !== 'YES' &&
+                (memberItem.values['Biller Migrated'] === null ||
+                  memberItem.values['Biller Migrated'] === undefined ||
+                  memberItem.values['Biller Migrated'] !== 'YES') && (
+                  <div>
+                    <button
+                      onClick={e => setShowBamboraActivate(true)}
+                      className="btn btn-primary"
+                      style={{ marginTop: '6px', color: 'white' }}
+                    >
+                      Activate Bambora Account
+                    </button>
+                    {showBamboraActivate && (
+                      <BamboraActivateContainer
+                        memberItem={memberItem}
+                        allMembers={allMembers}
+                        target="Member"
+                        setShowBamboraActivate={setShowBamboraActivate}
+                      />
+                    )}
+                  </div>
+                )}
               <div>
                 <br />
                 <button
@@ -1181,6 +1209,7 @@ export const MemberViewContainer = compose(
   withState('isDirty', 'setIsDirty', false),
   withState('showNewCustomers', 'setShowNewCustomers', false),
   withState('showCallScriptModal', 'setShowCallScriptModal', false),
+  withState('showBamboraActivate', 'setShowBamboraActivate', false),
   withState('showAttendanceDialog', 'setShowAttendanceDialog', false),
   withState('showSMSModal', 'setShowSMSModal', false),
   withState('attendClasses', 'setAttendClasses', 0),
@@ -1446,11 +1475,14 @@ export const MemberViewContainer = compose(
       let currency = getAttributeValue(this.props.space, 'Currency');
       if (currency === undefined) currency = 'USD';
 
-      let locale = this.props.space.defaultLocale.split('-')[0];
+      this.locale =
+        this.props.profile.preferredLocale === null
+          ? this.props.space.defaultLocale
+          : this.props.profile.preferredLocale;
 
       this.setState({
         currency: currency,
-        locale: locale,
+        locale: this.locale,
       });
     },
     componentWillReceiveProps(nextProps) {

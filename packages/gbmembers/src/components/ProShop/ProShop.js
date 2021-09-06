@@ -27,6 +27,7 @@ import checkoutLeftArrowIcon from '../../images/checkoutLeftArrow.png?raw';
 import discountIcon from '../../images/discount.png?raw';
 import checkoutRightArrowIcon from '../../images/checkoutRightArrow.png?raw';
 import editIcon from '../../images/pencil.png';
+import settingsIcon from '../../images/Settings.svg?raw';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { AddProductToCheckoutDialogContainer } from './AddProductToCheckoutDialog';
 import { EditProductDialogContainer } from './EditProductDialog';
@@ -49,6 +50,9 @@ import { ReceiptToPrint } from './ReceiptToPrint';
 import Helmet from 'react-helmet';
 import { I18n } from '../../../../app/src/I18nProvider';
 import { actions as appActions } from '../../redux/modules/memberApp';
+import BarcodeReader from 'react-barcode-reader';
+import barcodeIcon from '../../images/barcode.svg?raw';
+import { SettingsContainer } from './Settings';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -58,6 +62,9 @@ const mapStateToProps = state => ({
   posCategoriesLoading: state.member.pos.posCategoriesLoading,
   posProducts: state.member.pos.posProducts,
   posProductsLoading: state.member.pos.posProductsLoading,
+  posStock: state.member.pos.posStock,
+  posBarcodes: state.member.pos.posBarcodes,
+  posBarcodesLoading: state.member.pos.posBarcodesLoading,
   posDiscounts: state.member.pos.posDiscounts,
   posDiscountsLoading: state.member.pos.posDiscountsLoading,
   profile: state.member.app.profile,
@@ -73,6 +80,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = {
   fetchPOSCategories: actions.fetchPOSCategories,
   fetchPOSProducts: actions.fetchPOSProducts,
+  fetchPOSBarcodes: actions.fetchPOSBarcodes,
   fetchPOSDiscounts: actions.fetchPOSDiscounts,
   fetchPOSCheckout: actions.fetchPOSCheckout,
   updatePOSCheckout: actions.updatePOSCheckout,
@@ -2212,13 +2220,25 @@ class ProductDisplay extends Component {
       this,
     );
     this.state = {
-      showAddProductToCheckoutDialog: false,
+      showAddProductToCheckoutDialog: this.props.scanned,
     };
   }
   setShowAddProductToCheckoutDialog(show) {
+    if (!show) {
+      this.props.resetScanned();
+    }
     this.setState({
       showAddProductToCheckoutDialog: show,
     });
+  }
+  UNSAFE_componentWillReceiveProps(nextProps) {
+    console.log('ProductDisplay WillReceiveProps');
+    if (nextProps.showScanned) {
+      this.setShowAddProductToCheckoutDialog(true);
+    }
+  }
+  UNSAFE_componentWillMount() {
+    console.log('ProductDisplay willMount');
   }
   render() {
     return (
@@ -2234,6 +2254,9 @@ class ProductDisplay extends Component {
             locale={this.props.locale}
             currency={this.props.currency}
             addProduct={this.props.addProduct}
+            showScanned={this.props.showScanned}
+            scannedSKU={this.props.scannedSKU}
+            resetScanned={this.props.resetScanned}
           />
         )}
         {this.props.product.values['Product Type'] === 'Package' ? (
@@ -2359,10 +2382,17 @@ class ProductDisplay extends Component {
 export class ProShop extends Component {
   constructor(props) {
     super(props);
+    this.handleScan = this.handleScan.bind(this);
+    this.resetScanned = this.resetScanned.bind(this);
+
     this.currency = getAttributeValue(this.props.space, 'Currency');
     if (this.currency === undefined) this.currency = 'USD';
-    this.locale = this.props.space.defaultLocale.split('-')[0];
+    this.locale =
+      this.props.profile.preferredLocale === null
+        ? this.props.space.defaultLocale
+        : this.props.profile.preferredLocale;
     this.setShowCheckout = this.setShowCheckout.bind(this);
+    this.setShowSettings = this.setShowSettings.bind(this);
     this.setShowAddProductDialog = this.setShowAddProductDialog.bind(this);
     this.setShowRecordStockDialog = this.setShowRecordStockDialog.bind(this);
     this.refreshProducts = this.refreshProducts.bind(this);
@@ -2371,6 +2401,7 @@ export class ProShop extends Component {
       category: 'All',
       productCount: 0,
       showCheckout: false,
+      showSettings: false,
       showAddProductDialog: false,
       showRecordStockDialog: false,
       refresh: false,
@@ -2382,6 +2413,9 @@ export class ProShop extends Component {
     });
   }
   setShowRecordStockDialog(show) {
+    if (!show) {
+      this.resetScanned();
+    }
     this.setState({
       showRecordStockDialog: show,
     });
@@ -2394,7 +2428,20 @@ export class ProShop extends Component {
   setShowCheckout(show) {
     this.setState({
       showCheckout: show,
+      showSettings: false,
       editProductsSwitch: false,
+    });
+  }
+  setShowSettings(show) {
+    this.setState({
+      showSettings: show,
+      showCheckout: false,
+      editProductsSwitch: false,
+    });
+  }
+  resetScanned() {
+    this.setState({
+      scanned: undefined,
     });
   }
   componentWillReceiveProps(nextProps) {
@@ -2410,12 +2457,60 @@ export class ProShop extends Component {
       });
     }
   }
+  handleScan(data) {
+    console.log('data:' + data);
+    this.setState({
+      scanned: undefined,
+      scannedSKU: '',
+      productCodeValue: '',
+    });
 
+    var idx = this.props.posBarcodes.findIndex((item, i) => {
+      return item.values['Barcode'] === data;
+    });
+    if (idx !== -1) {
+      var skuValue = this.props.posBarcodes[idx].values['SKU'];
+      var productSKUValue = '';
+      idx = this.props.posProducts.findIndex((product, i) => {
+        var matched = false;
+        var sizes = product.values['Sizes'];
+        var productSku = product.values['SKU'];
+        sizes.forEach((size, i) => {
+          if (productSku + size === skuValue) {
+            matched = true;
+            productSKUValue = productSku;
+          }
+        });
+        return matched;
+      });
+      if (idx !== -1) {
+        console.log('SKU Found:' + skuValue);
+        this.setState({
+          scanned: true,
+          scannedSKU: skuValue,
+          productCodeValue: productSKUValue,
+        });
+      } else {
+        this.setState({
+          scanned: true,
+          scannedSKU: skuValue,
+          productCodeValue: '',
+        });
+      }
+    } else {
+      this.setState({
+        scanned: true,
+        scannedSKU: data,
+        productCodeValue: '',
+      });
+    }
+  }
   render() {
     return (
       <div className="proshopContainer">
         {this.props.posCategoriesLoading ||
         this.props.posProductsLoading ||
+        this.props.posBarcodesLoading ||
         this.props.posDiscountsLoading ||
         this.props.posCheckoutLoading ? (
           <div>Loading...</div>
@@ -2445,6 +2540,12 @@ export class ProShop extends Component {
                 spaceSlug={this.props.spaceSlug}
                 snippets={this.props.snippets}
               />
+            ) : this.state.showSettings ? (
+              <SettingsContainer
+                setShowSettings={this.setShowSettings}
+                posStock={this.props.posStock}
+                posProducts={this.props.posProducts}
+              />
             ) : (
               <div className="catalog">
                 <div className="topRow">
@@ -2471,6 +2572,11 @@ export class ProShop extends Component {
                           category: '',
                         });
                       }
+                      this.setState({
+                        scanned: undefined,
+                        scannedSKU: undefined,
+                        productCodeValue: undefined,
+                      });
                     }}
                   >
                     <SVGInline svg={apparelIcon} className="icon" />
@@ -2500,6 +2606,11 @@ export class ProShop extends Component {
                           category: '',
                         });
                       }
+                      this.setState({
+                        scanned: undefined,
+                        scannedSKU: undefined,
+                        productCodeValue: undefined,
+                      });
                     }}
                   >
                     <SVGInline svg={starIcon} className="icon" />
@@ -2529,6 +2640,11 @@ export class ProShop extends Component {
                           category: '',
                         });
                       }
+                      this.setState({
+                        scanned: undefined,
+                        scannedSKU: undefined,
+                        productCodeValue: undefined,
+                      });
                     }}
                   >
                     <SVGInline svg={starIcon} className="icon" />
@@ -2545,6 +2661,9 @@ export class ProShop extends Component {
                         onChange={e => {
                           this.setState({
                             editProductsSwitch: !this.state.editProductsSwitch,
+                            scanned: undefined,
+                            scannedSKU: undefined,
+                            productCodeValue: undefined,
                           });
                         }}
                       />
@@ -2552,6 +2671,16 @@ export class ProShop extends Component {
                     </div>
                     {}
                   </div>
+                  {<SVGInline svg={barcodeIcon} className="barcodeIcon" />}
+                  {/*<input
+                    type="text"
+                    className="searchValue"
+                    placeholder="Search by Code..."
+                    onChange={e => {
+                      this.handleScan(e.target.value);
+                    }}
+                  />*/}
+
                   <div
                     className="recordStockButton"
                     onClick={e => {
@@ -2566,6 +2695,7 @@ export class ProShop extends Component {
                         currency={this.props.currency}
                         savePOSStock={this.props.savePOSStock}
                         posStockSaving={this.props.posStockSaving}
+                        posBarcodes={this.props.posBarcodes}
                       />
                     )}
                     <img src={addIcon} alt="Add" />
@@ -2592,6 +2722,15 @@ export class ProShop extends Component {
                         ? 'PRODUCT'
                         : 'SERVICE'}
                     </span>
+                  </div>
+                  <div className="setting">
+                    <SVGInline
+                      svg={settingsIcon}
+                      className="icon"
+                      onClick={e => {
+                        this.setShowSettings(true);
+                      }}
+                    />
                   </div>
                 </div>
                 <div className="secondRow">
@@ -2674,6 +2813,9 @@ export class ProShop extends Component {
                                     : $(e.target)
                                         .parents('.categoryButton')
                                         .attr('value'),
+                                  scanned: undefined,
+                                  scannedSKU: undefined,
+                                  productCodeValue: undefined,
                                 });
                               }}
                             >
@@ -2735,15 +2877,20 @@ export class ProShop extends Component {
                     this.props.posProducts
                       .filter(product => {
                         if (
-                          product.values['Categories'].includes(
-                            this.state.category,
-                          ) &&
-                          product.values['Status'] === 'Active' &&
-                          product.values['Product Type'] ===
-                            this.props.productType &&
-                          (product.values['Product Type'] === 'Apparel'
-                            ? product.stock.length > 0
-                            : true)
+                          (this.state.scanned &&
+                          this.state.productCodeValue === product.values['SKU']
+                            ? true
+                            : false) ||
+                          (this.state.scanned === undefined &&
+                            product.values['Categories'].includes(
+                              this.state.category,
+                            ) &&
+                            product.values['Status'] === 'Active' &&
+                            product.values['Product Type'] ===
+                              this.props.productType &&
+                            (product.values['Product Type'] === 'Apparel'
+                              ? product.stock.length > 0
+                              : true))
                         )
                           return true;
                         return false;
@@ -2772,15 +2919,29 @@ export class ProShop extends Component {
                             locale={this.locale}
                             currency={this.currency}
                             addProduct={this.props.addProduct}
+                            showScanned={
+                              this.state.showRecordStockDialog
+                                ? false
+                                : this.state.scanned
+                            }
+                            scannedSKU={this.state.scannedSKU}
+                            resetScanned={this.resetScanned}
                           />
                         );
                       })}
+                  {this.state.scanned && this.state.productCodeValue === '' && (
+                    <div className="scannedNotFound">
+                      Scanned product with barcode[{this.state.scannedSKU}] does
+                      not exist.
+                    </div>
+                  )}
                 </div>
                 <div
                   className="ckeckoutIcon"
                   onClick={e => {
                     this.setState({
                       showCheckout: true,
+                      showSettings: false,
                     });
                   }}
                 >
@@ -2789,6 +2950,10 @@ export class ProShop extends Component {
                 </div>
               </div>
             )}
+            <BarcodeReader
+              onError={this.handleError}
+              onScan={this.handleScan}
+            />
           </div>
         )}
       </div>
@@ -2804,6 +2969,9 @@ export const ProShopView = ({
   posCategoriesLoading,
   posProducts,
   posProductsLoading,
+  posStock,
+  posBarcodes,
+  posBarcodesLoading,
   posDiscounts,
   posDiscountsLoading,
   posCheckout,
@@ -2834,6 +3002,9 @@ export const ProShopView = ({
     posCategoriesLoading={posCategoriesLoading}
     posProducts={posProducts}
     posProductsLoading={posProductsLoading}
+    posStock={posStock}
+    posBarcodes={posBarcodes}
+    posBarcodesLoading={posBarcodesLoading}
     posDiscounts={posDiscounts}
     posDiscountsLoading={posDiscountsLoading}
     posCheckout={posCheckout}
@@ -3131,6 +3302,7 @@ export const ProShopContainer = compose(
     componentWillMount() {
       this.props.fetchPOSCategories();
       this.props.fetchPOSProducts();
+      this.props.fetchPOSBarcodes();
       this.props.fetchPOSDiscounts();
       this.props.fetchPOSCheckout({ username: this.props.profile.username });
     },
