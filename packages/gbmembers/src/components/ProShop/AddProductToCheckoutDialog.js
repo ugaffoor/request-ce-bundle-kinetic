@@ -20,13 +20,23 @@ export class AddProductToCheckoutDialog extends Component {
   constructor(props) {
     super(props);
     this.enableSizeSelect = this.enableSizeSelect.bind(this);
-
+    var size;
+    var maxQuantity = 0;
+    if (this.props.showScanned) {
+      size = this.props.scannedSKU.replace(
+        this.props.product.values['SKU'],
+        '',
+      );
+      maxQuantity = this.getProductQuantity(this.props.product, size);
+    } else {
+      maxQuantity =
+        this.props.product.values['Product Type'] === 'Apparel' ? 0 : 100;
+    }
     this.state = {
-      maxQuantity:
-        this.props.product.values['Product Type'] === 'Apparel' ? 0 : 100,
+      maxQuantity: maxQuantity,
       quantity: 0,
       style: this.props.product.values['SKU'],
-      size: undefined,
+      size: size,
       packagedProducts: [],
       packagedProductSizes: [],
     };
@@ -175,12 +185,17 @@ export class AddProductToCheckoutDialog extends Component {
                             type="radio"
                             className="var-1"
                             name="option1"
-                            value="XS"
+                            value={size}
                             data-id={this.props.product['id']}
+                            defaultChecked={
+                              this.props.scannedSKU ===
+                              this.props.product.values['SKU'] + size
+                            }
                             data-quantity={this.getProductQuantity(
                               this.props.product,
                               size,
                             )}
+                            data-size={size}
                             data-length="false"
                           />
                           <label

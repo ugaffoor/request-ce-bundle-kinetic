@@ -35,6 +35,7 @@ import {
 import '../send/tinymce.min.js';
 import { TinyMCEComponent, createEditorStore } from 'mb-react-tinymce';
 import { contact_date_format } from '../leads/LeadsUtils';
+import { actions as appActions } from '../../redux/modules/memberApp';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -59,6 +60,7 @@ const mapDispatchToProps = {
   updateMember: membersActions.updateMember,
   updateLead: leadsActions.updateLead,
   setJourneyEvents: eventsActions.setJourneyEvents,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 
 const util = require('util');
@@ -669,6 +671,7 @@ export const EmailEventContainer = compose(
       }
     },
     componentDidMount() {
+      this.props.setSidebarDisplayType('members');
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);

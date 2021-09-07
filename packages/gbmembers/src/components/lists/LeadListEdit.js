@@ -16,6 +16,7 @@ import MomentLocaleUtils, {
   parseDate,
 } from 'react-day-picker/moment';
 import { getLocalePreference } from '../Member/MemberUtils';
+import '../helpers/jquery.multiselect.js';
 
 <script src="../helpers/jquery.multiselect.js" />;
 
@@ -35,6 +36,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = {
   fetchLeads: actions.fetchLeads,
   updateLeadsList: appActions.updateLeadsList,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 var compThis = undefined;
 
@@ -85,6 +87,9 @@ export const LeadListEditContainer = compose(
   lifecycle({
     UNSAFE_componentWillMount() {},
     UNSAFE_componentWillReceiveProps(nextProps) {},
+    componentDidMount() {
+      this.props.setSidebarDisplayType('leads');
+    },
     componentWillUnmount() {},
   }),
 )(ListEditView);

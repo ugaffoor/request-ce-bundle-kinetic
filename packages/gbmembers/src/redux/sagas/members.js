@@ -37,6 +37,7 @@ const getVariationsUrl = '/getVariations';
 const getRefundsUrl = '/getRefunds';
 const getCustomersUrl = '/getCustomers';
 const getInactiveCustomersCountUrl = '/getInactiveCustomersCount';
+const activateBillerUrl = '/activateBiller';
 
 const util = require('util');
 
@@ -54,29 +55,52 @@ export function* fetchMembers(action) {
       ])
       .limit(1000)
       .build();
-    const searchInactive = new CoreAPI.SubmissionSearch()
-      .includes(['details', 'values'])
-      .in('values[Status]', ['Inactive'])
-      .limit(1000)
-      .build();
 
-    const [submissions, submissions2, users] = yield all([
+    const [submissions, users] = yield all([
       call(CoreAPI.searchSubmissions, {
         form: 'member',
         kapp: 'gbmembers',
         search: searchCurrent,
       }),
+      call(CoreAPI.fetchUsers, {
+        include: ['details'],
+      }),
+    ]);
+    let inactiveSubmissions = [];
+    const searchInactive = new CoreAPI.SubmissionSearch()
+      .includes(['details', 'values'])
+      .in('values[Status]', ['Inactive'])
+      .limit(1000)
+      .build();
+    const [submissions2] = yield all([
       call(CoreAPI.searchSubmissions, {
         form: 'member',
         kapp: 'gbmembers',
         search: searchInactive,
       }),
-      call(CoreAPI.fetchUsers, {
-        include: ['details'],
-      }),
     ]);
+    inactiveSubmissions = submissions2.submissions;
+    if (submissions2['nextPageToken']) {
+      const searchInactive2 = new CoreAPI.SubmissionSearch()
+        .includes(['details', 'values'])
+        .in('values[Status]', ['Inactive'])
+        .limit(1000)
+        .pageToken(submissions2['nextPageToken'])
+        .build();
+      const [submissions3] = yield all([
+        call(CoreAPI.searchSubmissions, {
+          form: 'member',
+          kapp: 'gbmembers',
+          search: searchInactive2,
+        }),
+      ]);
+      inactiveSubmissions = inactiveSubmissions.concat(
+        submissions3.submissions,
+      );
+    }
+
     let memberInfo = {
-      members: submissions.submissions.concat(submissions2.submissions),
+      members: submissions.submissions.concat(inactiveSubmissions),
       belts: appSettings.belts,
       users: users.users,
     };
@@ -272,7 +296,7 @@ export function* fetchCurrentMember(action) {
           paymentMethod: submission.submission.values['Payment Method'],
           paymentPeriod: submission.submission.values['Billing Period'],
           customerReference:
-            submission.submission.values['Billing Customer Id'],
+            submission.submission.values['Billing Customer Reference'],
           paymentAmountInCents:
             parseFloat(submission.submission.values['Payment'], 2) * 100,
         }),
@@ -840,7 +864,45 @@ export function* fetchPaymentHistory(action) {
           'Get Payment History',
         );
       } else {
-        action.payload.setPaymentHistory(result.data.data);
+        if (appSettings.billingCompany === 'Bambora') {
+          let paymentsData = result.data.data;
+          args = {};
+          args.space = appSettings.spaceSlug;
+          args.billingService = appSettings.billingCompany;
+          args.dateFrom = action.payload.dateFrom;
+          args.dateTo = action.payload.dateTo;
+          args.customerId = action.payload.billingRef;
+          axios
+            .post(appSettings.kineticBillingServerUrl + getRefundsUrl, args)
+            .then(result => {
+              if (result.data.error && result.data.error > 0) {
+                console.log(
+                  'fetchCustomerRefunds 2 Error: ' + result.data.errorMessage,
+                );
+                if (action.payload.addNotification) {
+                  action.payload.addNotification(
+                    NOTICE_TYPES.ERROR,
+                    result.data.errorMessage,
+                    'Get Customer Refunds',
+                  );
+                }
+              } else {
+                action.payload.setPaymentHistory({
+                  paymentType: action.payload.paymentType,
+                  data: result.data.data.concat(paymentsData),
+                });
+              }
+            })
+            .catch(error => {
+              console.log(util.inspect(error));
+              action.payload.setSystemError(error);
+            });
+        } else {
+          action.payload.setPaymentHistory({
+            paymentType: action.payload.paymentType,
+            data: result.data.data,
+          });
+        }
       }
     })
     .catch(error => {
@@ -1390,16 +1452,57 @@ export function* editPaymentMethod(action) {
       //action.payload.setSystemError(error);
     });
 }
+export function* activateBiller(action) {
+  const appSettings = yield select(getAppSettings);
+  let args = {};
+  args.customerId =
+    action.payload.memberItem.values['Billing Customer Reference'];
+  args.space = appSettings.spaceSlug;
+  args.billingService = appSettings.billingCompany;
+  args.payment = action.payload.payment;
+  args.schedulePeriodType = action.payload.period;
+  args.startDate = action.payload.startDate;
+  args.scheduleDate = action.payload.scheduleDate;
+  axios
+    .post(appSettings.kineticBillingServerUrl + activateBillerUrl, args)
+    .then(result => {
+      //console.log("fetchWebToken # result = " + util.inspect(result));
+      if (result.data.error && result.data.error > 0) {
+        console.log('activateBiller Error: ' + result.data.errorMessage);
+        action.payload.addNotification(
+          NOTICE_TYPES.ERROR,
+          result.data.errorMessage,
+          'Activated Biller Failed',
+        );
+      } else {
+        console.log('#### Response = ' + result.data.data);
+        action.payload.addNotification(
+          NOTICE_TYPES.SUCCESS,
+          'Activating Biller successfully',
+        );
+        action.payload.updateMember({
+          id: action.payload.memberItem['id'],
+          memberItem: action.payload.memberItem,
+        });
+
+        action.payload.billerActivated();
+      }
+    })
+    .catch(error => {
+      console.log(util.inspect(error));
+      action.payload.addNotification(
+        NOTICE_TYPES.ERROR,
+        'Activated Biller Failed',
+      );
+    });
+}
 
 export function* refundTransaction(action) {
   const appSettings = yield select(getAppSettings);
   let args = {};
   args.space = appSettings.spaceSlug;
   args.billingService = appSettings.billingCompany;
-  args.customerId =
-    appSettings.billingCompany === 'Bambora'
-      ? action.payload.memberItem.values['Member ID']
-      : action.payload.memberItem.values['Billing Customer Id'];
+  args.customerId = action.payload.memberItem.values['Billing Customer Id'];
   args.transactionId = action.payload.transactionId;
   args.bankReceiptId = action.payload.bankReceiptId;
   args.refundAmount = action.payload.refundAmount;
@@ -1560,6 +1663,8 @@ export function* fetchCustomerRefunds(action) {
   let args = {};
   args.space = appSettings.spaceSlug;
   args.billingService = appSettings.billingCompany;
+  args.dateFrom = action.payload.dateFrom;
+  args.dateTo = action.payload.dateTo;
   axios
     .post(appSettings.kineticBillingServerUrl + getRefundsUrl, args)
     .then(result => {
@@ -2070,6 +2175,7 @@ export function* watchMembers() {
   console.log('watchMembers');
   yield takeEvery(types.FETCH_MEMBERS, fetchMembers);
   yield takeEvery(types.FETCH_CURRENT_MEMBER, fetchCurrentMember);
+  yield takeEvery(types.ACTIVATE_BILLER, activateBiller);
   yield takeEvery(types.UPDATE_MEMBER, updateCurrentMember);
   yield takeEvery(types.CREATE_MEMBER, createMember);
   yield takeEvery(types.DELETE_MEMBER, deleteMember);

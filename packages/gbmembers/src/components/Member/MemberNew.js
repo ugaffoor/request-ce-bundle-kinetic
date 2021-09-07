@@ -9,6 +9,7 @@ import {
 } from 'recompose';
 import { actions } from '../../redux/modules/members';
 import { actions as leadsActions } from '../../redux/modules/leads';
+import { actions as appActions } from '../../redux/modules/memberApp';
 import { KappNavLink as NavLink } from 'common';
 import { PhotoForm } from '../PhotoForm';
 import $ from 'jquery';
@@ -54,6 +55,7 @@ const mapDispatchToProps = {
   fetchMembers: actions.fetchMembers,
   fetchLead: leadsActions.fetchCurrentLead,
   updateLead: leadsActions.updateLead,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 
 export function handleNameChange(memberItem, event) {
@@ -1088,6 +1090,9 @@ export const MemberNewContainer = compose(
         $('#covid19').val(nextProps.leadItem.values['GB Waiver']);
         handleDynamicChange(nextProps.memberItem, 'Covid19 Waiver', 'covid19');
       }
+    },
+    componentDidMount() {
+      this.props.setSidebarDisplayType('members');
     },
     componentWillUnmount() {},
   }),

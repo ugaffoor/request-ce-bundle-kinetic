@@ -15,6 +15,8 @@ import MomentLocaleUtils, {
   formatDate,
   parseDate,
 } from 'react-day-picker/moment';
+import '../helpers/jquery.multiselect.js';
+import { KappNavLink as NavLink } from 'common';
 
 <script src="../helpers/jquery.multiselect.js" />;
 
@@ -34,6 +36,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = {
   fetchMembers: actions.fetchMembers,
   addMembersList: appActions.addMembersList,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 var compThis = undefined;
 
@@ -86,6 +89,9 @@ export const ListNewContainer = compose(
           ? this.props.space.defaultLocale
           : this.props.profile.preferredLocale,
       );
+    },
+    componentDidMount() {
+      this.props.setSidebarDisplayType('members');
     },
     UNSAFE_componentWillReceiveProps(nextProps) {},
     componentWillUnmount() {},
@@ -161,7 +167,17 @@ export class ListNewHome extends Component {
 
   getColumns = () => {
     return [
-      { accessor: 'Member ID', Header: 'Member Id' },
+      {
+        accessor: 'Member ID',
+        Header: 'Member',
+        Cell: props => {
+          return (
+            <NavLink to={`/Member/${props.original._id}`} className="">
+              {props.original['First Name']} {props.original['Last Name']}
+            </NavLink>
+          );
+        },
+      },
       { accessor: 'Gender', Header: 'Gender' },
       { accessor: 'Member Type', Header: 'Member Type' },
       { accessor: 'Ranking Program', Header: 'Program' },

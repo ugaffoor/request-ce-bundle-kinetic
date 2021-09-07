@@ -8,6 +8,7 @@ import {
   withProps,
 } from 'recompose';
 import { actions } from '../../redux/modules/leads';
+import { actions as appActions } from '../../redux/modules/memberApp';
 import { KappNavLink as NavLink } from 'common';
 import $ from 'jquery';
 import {
@@ -70,6 +71,7 @@ const mapDispatchToProps = {
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
   createJourneyEvent: settingsActions.createJourneyEvent,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 
 function convertContactType(type) {
@@ -1140,7 +1142,7 @@ export const LeadDetailContainer = compose(
       addNotification,
       setSystemError,
     }) => () => {
-      leadItem.values['Is New Reply Received'] = false;
+      leadItem.values['Is New Reply Received'] = 'false';
       updateLead({
         id: leadItem.id,
         leadItem,
@@ -1158,7 +1160,7 @@ export const LeadDetailContainer = compose(
       addNotification,
       setSystemError,
     }) => () => {
-      leadItem.values['Is New Reply Received'] = true;
+      leadItem.values['Is New Reply Received'] = 'true';
       updateLead({
         id: leadItem.id,
         leadItem,
@@ -1187,9 +1189,9 @@ export const LeadDetailContainer = compose(
     UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.pathname !== nextProps.pathname) {
         this.props.fetchLead({
-          id: this.props.match.params['id'],
+          id: nextProps.match.params['id'],
           myThis: this,
-          history: this.props.history,
+          history: nextProps.history,
         });
       }
 
@@ -1201,9 +1203,14 @@ export const LeadDetailContainer = compose(
       }
     },
     componentDidMount() {
+      this.props.setSidebarDisplayType('leads');
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);
+
+      if (this.props.allLeads.length === 0) {
+        this.props.fetchLeads();
+      }
     },
     componentWillUnmount() {},
   }),

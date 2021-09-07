@@ -36,13 +36,77 @@ export class RecordStockDialog extends Component {
       },
       productCodeValue: '',
       productNameValue: '',
+      scanned: false,
       editStockSwitch: false,
       posStockSaving: this.props.posStockSaving,
     };
   }
   handleScan(data) {
-    console.log('Scanned ClassName00:' + data);
-    console.log('Scanned ClassName11:' + this.state.className);
+    this.setState({
+      scanned: false,
+      scannedSKU: '',
+      productCodeValue: '',
+      productNameValue: '',
+    });
+
+    var sizeVal = '';
+    var skuValue = '';
+    var idx = this.props.posBarcodes.findIndex((item, i) => {
+      return item.values['Barcode'] === data;
+    });
+    if (idx === -1) {
+      // If barcode not found as Barcode, look directyl against the SKU
+      skuValue = data;
+    } else {
+      skuValue = this.props.posBarcodes[idx].values['SKU'];
+    }
+    if (skuValue !== '') {
+      idx = this.props.products.findIndex((product, i) => {
+        var matched = false;
+        var sizes = product.values['Sizes'];
+        var productSku = product.values['SKU'];
+        sizes.forEach((size, i) => {
+          if (productSku + size === skuValue) {
+            matched = true;
+            sizeVal = size;
+          }
+        });
+        return matched;
+      });
+      if (idx !== -1) {
+        console.log('SKU Found:' + skuValue);
+        this.setState({
+          scanned: true,
+          productCodeValue: skuValue,
+          ['sizeSelected' + this.props.products[idx]['id']]: sizeVal,
+          productScanned: this.props.products[idx]['id'] + sizeVal,
+          productNameValue: '',
+        });
+      } else {
+        this.setState({
+          scanned: true,
+          scannedSKU: skuValue,
+          productCodeValue: '',
+          productNameValue: '',
+        });
+
+        Object.keys(this.state).map(key => {
+          if (key.indexOf('qty') !== -1) {
+            console.log('key:' + key);
+            this.setState({
+              [key]: 0,
+            });
+          }
+          if (key.indexOf('sizeSelected') !== -1) {
+            console.log('key:' + key);
+            this.setState({
+              [key]: undefined,
+            });
+          }
+          return true;
+        });
+      }
+    }
   }
   handleError(data) {
     console.log('Scanned Error:' + data);
@@ -73,6 +137,10 @@ export class RecordStockDialog extends Component {
     }
   }
   UNSAFE_componentWillMount() {}
+  onChange = e => {
+    this.setState({ [e.target.name]: e.target.value });
+  };
+
   render() {
     return (
       <div onClick={this.handleClick}>
@@ -84,18 +152,16 @@ export class RecordStockDialog extends Component {
           >
             <span className="productStock">
               <div className="filterInfo">
-                {/*                <SVGInline svg={barcodeIcon} className="barcodeIcon" /> */}
-                <input
+                {<SVGInline svg={barcodeIcon} className="barcodeIcon" />}
+                {/*<input
                   type="text"
                   value={this.state.productCodeValue}
                   className="searchValue"
                   placeholder="Search by Code..."
                   onChange={e => {
-                    this.setState({
-                      productCodeValue: e.target.value,
-                    });
+                    this.handleScan(e.target.value);
                   }}
-                />
+                />*/}
                 <input
                   type="text"
                   value={this.state.productNameValue}
@@ -104,6 +170,7 @@ export class RecordStockDialog extends Component {
                   onChange={e => {
                     this.setState({
                       productNameValue: e.target.value,
+                      scanned: false,
                     });
                   }}
                 />
@@ -141,6 +208,11 @@ export class RecordStockDialog extends Component {
                   {}
                 </div>
               </div>
+              {this.state.scanned && this.state.productCodeValue === '' && (
+                <div className="noProductFound">
+                  No product found with SKU and Size: {this.state.scannedSKU}
+                </div>
+              )}
               {this.props.products &&
                 this.props.products
                   .filter(product => {
@@ -149,11 +221,10 @@ export class RecordStockDialog extends Component {
                       product.values['Product Type'] === 'Apparel' &&
                       product.values['SKU'] !== null &&
                       ((this.state.productCodeValue !== '' &&
-                        product.values['SKU']
+                        this.state.productCodeValue
                           .toLowerCase()
-                          .indexOf(
-                            this.state.productCodeValue.toLowerCase(),
-                          ) !== -1) ||
+                          .indexOf(product.values['SKU'].toLowerCase()) !==
+                          -1) ||
                         (this.state.productNameValue !== '' &&
                           product.values['Name']
                             .toLowerCase()
@@ -225,6 +296,10 @@ export class RecordStockDialog extends Component {
                                   value={size}
                                   data-id={product['id']}
                                   data-length="false"
+                                  defaultChecked={
+                                    this.state.productScanned ===
+                                    product['id'] + size
+                                  }
                                 />
                                 <label
                                   htmlFor={'var' + i + '-' + product['id']}
@@ -289,25 +364,16 @@ export class RecordStockDialog extends Component {
                               size={2}
                               mobile
                               value={this.state['qty' + product.id]}
-                              onChange={value => {
+                              onChange={(value, inputValue, input) => {
                                 console.log('onChange:' + value);
                                 // event is a global var that is not know to editor
-                                if (
-                                  event !== undefined &&
-                                  $(event.target)
-                                    .parent()
-                                    .children('input').length > 0
-                                ) {
-                                  var id = $(event.target)
-                                    .parent()
-                                    .children('input')
-                                    .attr('id');
-                                  id = id.substring(id.indexOf('-') + 1);
+                                var id = $(input).attr('id');
+                                id = id.substring(id.indexOf('-') + 1);
+                                console.log('onChange event with id:' + id);
 
-                                  dialogThis.setState({
-                                    ['qty' + id]: parseInt(value),
-                                  });
-                                }
+                                dialogThis.setState({
+                                  ['qty' + id]: parseInt(value),
+                                });
                               }}
                             />
                           </div>

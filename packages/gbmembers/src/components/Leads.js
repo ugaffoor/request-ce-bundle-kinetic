@@ -6,12 +6,12 @@ import { KappNavLink as NavLink } from 'common';
 import SVGInline from 'react-svg-inline';
 import attentionRequired from '../images/flag.svg?raw';
 
-export class Members extends React.Component {
+export class Leads extends React.Component {
   constructor(props) {
     super();
     this.actions = props.actions;
     this.state = {
-      data: this.getData(props.allMembers, props.currentFilter),
+      data: this.getData(props.allLeads),
     };
     this.toggleSidebarOpen = props.toggleSidebarOpen;
   }
@@ -27,52 +27,30 @@ export class Members extends React.Component {
   }
   UNSAFE_componentWillReceiveProps(nextProps) {
     this.setState({
-      data: this.getData(nextProps.allMembers, this.props.currentFilter),
+      data: this.getData(nextProps.allLeads),
     });
   }
 
-  getData(allMembers, currentFilter) {
-    let members = allMembers.filter(member => {
-      let match = false;
-      if (currentFilter === 'Active Members') {
-        if (
-          member.values['Status'] !== 'Inactive' &&
-          member.values['Status'] !== 'Frozen'
-        )
-          match = true;
-      } else if (currentFilter === 'Frozen Members') {
-        if (member.values['Status'] === 'Frozen') match = true;
-      } else if (currentFilter === 'Inactive Members') {
-        if (
-          member.values['Status'] === undefined ||
-          member.values['Status'] === 'Inactive'
-        )
-          match = true;
-      } else if (currentFilter === 'All Members') {
-        match = true;
-      }
-      return match;
-    });
-
-    let data = members.map(member => {
+  getData(allLeads) {
+    let data = allLeads.map(lead => {
       return {
-        id: member.id,
-        ...member.values,
+        id: lead.id,
+        ...lead.values,
       };
     });
     return data.sort(this.compare);
   }
 
-  compare(member1, member2) {
+  compare(lead1, lead2) {
     try {
       if (
-        (member1['Last Name'] + member1['First Name']).toLowerCase() <
-        (member2['Last Name'] + member2['First Name']).toLowerCase()
+        (lead1['Last Name'] + lead1['First Name']).toLowerCase() <
+        (lead2['Last Name'] + lead2['First Name']).toLowerCase()
       )
         return -1;
       if (
-        (member1['Last Name'] + member1['First Name']).toLowerCase() >
-        (member2['Last Name'] + member2['First Name']).toLowerCase()
+        (lead1['Last Name'] + lead1['First Name']).toLowerCase() >
+        (lead2['Last Name'] + lead2['First Name']).toLowerCase()
       )
         return 1;
     } catch (error) {
@@ -84,7 +62,7 @@ export class Members extends React.Component {
   renderCell(cellInfo) {
     return (
       <NavLink
-        to={`/Member/${cellInfo.original.id}`}
+        to={`/LeadDetail/${cellInfo.original.id}`}
         className={
           cellInfo.original['Status'] +
           ' nav-link icon-wrapper' +
@@ -126,11 +104,11 @@ export class Members extends React.Component {
               ? String(row[id]).startsWith(filter.value)
               : true;
           }}
-          getTdProps={(state, rowInfo, column, instance) => {
-            return {};
-          }}
           onFilteredChange={(filtered, column) => {
             this.setState({ dummy: true });
+          }}
+          getTdProps={(state, rowInfo, column, instance) => {
+            return {};
           }}
           columns={[
             {

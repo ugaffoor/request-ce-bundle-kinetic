@@ -69,6 +69,7 @@ export class MemberActivityReport extends Component {
       { title: 'Additional Program 2', field: 'additionalProgram2' },
       { title: 'Last Attendance Date', field: 'lastAttendanceDate' },
       { title: 'Billing User', field: 'billingUser' },
+      { title: 'Biller Migrated', field: 'billerMigrated' },
       { title: 'Non Paying', field: 'nonPaying' },
       { title: 'Account Created', field: 'accountCreated' },
       { title: 'Covid19 Waiver', field: 'covid19Waiver' },
@@ -153,6 +154,7 @@ export class MemberActivityReport extends Component {
       { label: 'Additional Program 2', value: 'additionalProgram2' },
       { label: 'Last Attendance Date', value: 'lastAttendanceDate' },
       { label: 'Billing User', value: 'billingUser' },
+      { label: 'Biller Migrated', value: 'billerMigrated' },
       { label: 'Non Paying', value: 'nonPaying' },
       { label: 'Account Created', value: 'accountCreated' },
       { label: 'Covid19 Waiver', value: 'covid19Waiver' },
@@ -229,6 +231,7 @@ export class MemberActivityReport extends Component {
         label: 'Billing Columns',
         options: [
           { label: 'Billing User', value: 'billingUser' },
+          { label: 'Biller Migrated', value: 'billerMigrated' },
           { label: 'Non Paying', value: 'nonPaying' },
           { label: 'Last Payment Date', value: 'lastPaymentDate' },
           { label: 'Cost', value: 'cost' },
@@ -270,6 +273,7 @@ export class MemberActivityReport extends Component {
       { label: 'Additional Program 1', value: 'additionalProgram1' },
       { label: 'Additional Program 2', value: 'additionalProgram2' },
       { label: 'Billing User', value: 'billingUser' },
+      { label: 'Biller Migrated', value: 'billerMigrated' },
       { label: 'Non Paying', value: 'nonPaying' },
       { label: 'Account Created', value: 'accountCreated' },
       { label: 'Covid19 Waiver', value: 'covid19Waiver' },
@@ -297,7 +301,8 @@ export class MemberActivityReport extends Component {
     this.filterValueOptions = {
       gender: ['Male', 'Female'],
       status: this.props.memberStatusValues,
-      billingUser: ['YES', 'NO'],
+      billingUser: ['YES'],
+      billingMigrated: ['YES'],
       nonPaying: ['YES'],
       accountCreated: ['YES', 'NO'],
       covid19Waiver: ['Agreed', 'NOT Agreed', ''],
@@ -329,7 +334,7 @@ export class MemberActivityReport extends Component {
     };
   }
 
-  UNSAFE_componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps(nextProps) {
     if (!this.props.reportPreferences.equals(nextProps.reportPreferences)) {
       let preferences = this.getTablePreferences(nextProps.reportPreferences);
       this.setState({
@@ -930,6 +935,7 @@ export class MemberActivityReport extends Component {
             ? moment(member.values['Last Attendance Date']).format('DD-MM-YYYY')
             : '',
         billingUser: member.values['Billing User'] === 'YES' ? 'YES' : 'NO',
+        billerMigrated: member.values['Biller Migrated'] === 'YES' ? 'YES' : '',
         nonPaying: member.values['Non Paying'] === 'YES' ? 'YES' : '',
         accountCreated: member.user !== undefined ? 'YES' : 'NO',
         covid19Waiver: member.values['Covid19 Waiver'],
@@ -949,7 +955,7 @@ export class MemberActivityReport extends Component {
             : '',
         paymentPeriod:
           member.values['Billing User'] === 'YES'
-            ? member.values['Billing Payment Period']
+            ? K.translate(member.values['Billing Payment Period'])
             : '',
         paymentType:
           member.values['Billing User'] === 'YES'

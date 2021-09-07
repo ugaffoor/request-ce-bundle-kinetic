@@ -50,7 +50,7 @@
     "react-scripts": "^4.0.3",
     "react-select": "^2.4.4",
     "react-spinners": "^0.10.4",
-    "react-tabulator": "^0.12.7",
+    "react-tabulator": "^0.14.5",
     "react-to-print": "^2.5.1",
     "react-webcam": "^3.1.1",
     "react-xdsoft-datetimepicker": "^0.1.0",
@@ -58,6 +58,7 @@
     "square": "^12.0.0",
     "style-loader": "^2.0.0",
     "styled-components": "^5.3.0",
+    "tabulator-tables": "^4.2.2",
     "to": "^0.2.9",
     "update": "^0.7.4"
   }

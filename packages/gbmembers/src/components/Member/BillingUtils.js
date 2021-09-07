@@ -1,26 +1,63 @@
 import React, { Component } from 'react';
+import { I18n } from '../../../../app/src/I18nProvider';
 
 export class PaymentPeriod extends Component {
   render() {
     switch (this.props.period) {
       case 'M':
-        return <span>Monthly</span>;
+        return (
+          <span>
+            <I18n>Monthly</I18n>
+          </span>
+        );
       case 'W':
-        return <span>Weekly</span>;
+        return (
+          <span>
+            <I18n>Weekly</I18n>
+          </span>
+        );
       case 'F':
-        return <span>Fortnightly</span>;
+        return (
+          <span>
+            <I18n>Fortnightly</I18n>
+          </span>
+        );
       case '4':
-        return <span>4 Weekly</span>;
+        return (
+          <span>
+            <I18n>4 Weekly</I18n>
+          </span>
+        );
       case 'N':
-        return <span>Weekday in a month</span>;
+        return (
+          <span>
+            <I18n>Weekday in a month</I18n>
+          </span>
+        );
       case 'Q':
-        return <span>Quarterly</span>;
+        return (
+          <span>
+            <I18n>Quarterly</I18n>
+          </span>
+        );
       case 'H':
-        return <span>Half Yearly</span>;
+        return (
+          <span>
+            <I18n>Half Yearly</I18n>
+          </span>
+        );
       case 'Y':
-        return <span>Yearly</span>;
+        return (
+          <span>
+            <I18n>Yearly</I18n>
+          </span>
+        );
       default:
-        return <span>{this.props.period}</span>;
+        return (
+          <span>
+            <I18n>{this.props.period}</I18n>
+          </span>
+        );
     }
   }
 }

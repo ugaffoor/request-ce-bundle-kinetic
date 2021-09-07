@@ -22,7 +22,6 @@ import {
 import ReactTable from 'react-table';
 import 'react-table/react-table.css';
 import checkboxHOC from 'react-table/lib/hoc/selectTable';
-import update from 'immutability-helper';
 import { updateBillingMembers } from '../../redux/sagas/members';
 import {
   getMembershipCost,
@@ -31,26 +30,16 @@ import {
 import moment from 'moment';
 import ReactSpinner from 'react16-spinjs';
 import 'bootstrap/scss/bootstrap.scss';
-import { DropDownEditor } from '../helpers/DropDownEditor';
-import { DropDownFormatter } from '../helpers/DropDownFormatter';
-import * as multi_select from '../helpers/jquery.multiselect.js';
 import '../../styles/react_data_grid.scss';
 import '../helpers/jquery.multiselect.css';
 import { contact_date_format } from '../leads/LeadsUtils';
-import mastercard from '../../images/Mastercard.gif';
-import visa from '../../images/Visa.gif';
-import amex from '../../images/Amex.jpg';
-import jcb from '../../images/JCBCard.jpg';
-import dinersclub from '../../images/DinersClub.jpg';
 import { confirmWithInput } from './Confirm';
 import { confirmWithDates } from './ConfirmWithDates';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as errorActions } from '../../redux/modules/errors';
 import { RecentNotificationsContainer } from '../notifications/RecentNotifications';
-import { FormContainer } from '../form/FormContainer';
-import { Link } from 'react-router-dom';
-import { Utils } from 'common';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
+import { actions as appActions } from '../../redux/modules/memberApp';
 
 <script src="../helpers/jquery.multiselect.js" />;
 
@@ -66,8 +55,8 @@ const mapStateToProps = state => ({
   currentMemberLoading: state.member.members.currentMemberLoading,
   allMembers: state.member.members.allMembers,
   membershipFees: state.member.app.membershipFees,
-  paymentHistory: state.member.members.paymentHistory,
-  paymentHistoryLoading: state.member.members.paymentHistoryLoading,
+  paymentHistory: state.member.members.ALLpaymentHistory,
+  paymentHistoryLoading: state.member.members.ALLpaymentHistoryLoading,
   familyMembers: state.member.members.familyMembers,
   removedBillingMembers: state.member.members.removedBillingMembers,
   billingDDRUrl: state.member.app.billingDDRUrl,
@@ -99,6 +88,7 @@ const mapDispatchToProps = {
   fetchDdrStatus: actions.fetchDdrStatus,
   fetchActionRequests: actions.fetchActionRequests,
   setActionRequests: actions.setActionRequests,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 
 const ezidebit_date_format = 'YYYY-MM-DD HH:mm:ss';
@@ -555,13 +545,6 @@ export class FamilyFeeDetails extends Component {
         Cell: props => (props.value ? props.value : 'NA'),
         headerClassName: 'col-align-center',
       },
-      {
-        accessor: 'fee',
-        Header: 'Fee',
-        align: 'center',
-        Cell: props => (props.value ? '$' + props.value : 'NA'),
-        headerClassName: 'col-align-center',
-      },
     ];
     return columns;
   }
@@ -1005,7 +988,7 @@ export class BillingInfo extends Component {
                     )}
                     <tr>
                       <td>Billing Reference ID:</td>
-                      <td>{this.props.billingInfo.customerBillingId}</td>
+                      <td>{this.props.billingInfo.customerReference}</td>
                     </tr>
                     <tr>
                       <td>Billing Status:</td>
@@ -1630,15 +1613,15 @@ export const BillingContainer = compose(
       setSystemError,
     }) => () => {
       fetchPaymentHistory({
-        billingRef:
-          getAttributeValue(space, 'Billing Company') === 'Bambora'
-            ? memberItem.values['Member ID']
-            : memberItem.values['Billing Customer Id'],
+        billingRef: memberItem.values['Billing Customer Id'],
         paymentType: 'ALL',
         paymentMethod: 'ALL',
         paymentSource: 'ALL',
         dateField: 'PAYMENT',
-        //dateFrom: '',
+        dateFrom: moment
+          .utc()
+          .subtract(3, 'months')
+          .format('YYYY-MM-DD'),
         dateTo: moment
           .utc()
           .add(1, 'days')
@@ -1787,6 +1770,9 @@ export const BillingContainer = compose(
           });
         }
       }
+    },
+    componentDidMount() {
+      this.props.setSidebarDisplayType('members');
     },
     componentWillUnmount() {},
   }),

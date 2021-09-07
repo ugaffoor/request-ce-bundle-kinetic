@@ -89,8 +89,49 @@ export function* fetchPOSProducts(action) {
 
     console.log(products);
     yield put(actions.setPOSProducts(products));
+    yield put(actions.setPOSStock(stocksSubmissions.submissions.submissions));
   } catch (error) {
     console.log('Error in fetchPOSProducts: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
+export function* fetchPOSBarcodes(action) {
+  try {
+    let allSubmissions = [];
+
+    const search = new CoreAPI.SubmissionSearch(true)
+      .includes(['values'])
+      .limit(1000)
+      .build();
+
+    const { submissions, nextPageToken } = yield call(
+      CoreAPI.searchSubmissions,
+      {
+        datastore: true,
+        form: 'pos-barcodes',
+        search,
+      },
+    );
+    allSubmissions = allSubmissions.concat(submissions);
+    if (nextPageToken) {
+      const search2 = new CoreAPI.SubmissionSearch(true)
+        .includes(['values'])
+        .limit(1000)
+        .pageToken(nextPageToken)
+        .build();
+
+      const [submissions2] = yield all([
+        call(CoreAPI.searchSubmissions, {
+          datastore: true,
+          form: 'pos-barcodes',
+          search: search2,
+        }),
+      ]);
+      allSubmissions = allSubmissions.concat(submissions2.submissions);
+    }
+    yield put(actions.setPOSBarcodes(allSubmissions));
+  } catch (error) {
+    console.log('Error in fetchPOSBarcodes: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));
   }
 }
@@ -114,14 +155,23 @@ export function* fetchPOSStock(action) {
 }
 export function* fetchPOSItems(action) {
   try {
-    const search = new CoreAPI.SubmissionSearch()
+    const search = new CoreAPI.SubmissionSearch(true)
       .includes(['details', 'values'])
+      .index('submittedAt')
+      .gteq(
+        'submittedAt',
+        action.payload.dateFrom.format('YYYY-MM-DDT00:00:00.000Z'),
+      )
+      .lteq(
+        'submittedAt',
+        action.payload.dateTo.format('YYYY-MM-DDT23:59:59.000Z'),
+      )
       .limit(1000)
       .build();
 
     const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
       datastore: true,
-      form: 'pos-purchase-item',
+      form: 'pos-purchased-item',
       search,
     });
     yield put(actions.setPOSItems(submissions));
@@ -132,8 +182,17 @@ export function* fetchPOSItems(action) {
 }
 export function* fetchPOSOrders(action) {
   try {
-    const search = new CoreAPI.SubmissionSearch()
+    const search = new CoreAPI.SubmissionSearch(true)
       .includes(['details', 'values'])
+      .index('values[Date time processed]')
+      .gteq(
+        'values[Date time processed]',
+        action.payload.dateFrom.format('YYYY-MM-DDT00:00:00Z'),
+      )
+      .lteq(
+        'values[Date time processed]',
+        action.payload.dateTo.format('YYYY-MM-DDT00:00:00Z'),
+      )
       .limit(1000)
       .build();
 
@@ -376,6 +435,7 @@ export function* watchPOS() {
   console.log('watchPOS');
   yield takeEvery(types.FETCH_POS_CATEGORIES, fetchPOSCategories);
   yield takeEvery(types.FETCH_POS_PRODUCTS, fetchPOSProducts);
+  yield takeEvery(types.FETCH_POS_BARCODES, fetchPOSBarcodes);
   yield takeEvery(types.FETCH_POS_STOCK, fetchPOSStock);
   yield takeEvery(types.FETCH_POS_ITEMS, fetchPOSItems);
   yield takeEvery(types.FETCH_POS_ORDERS, fetchPOSOrders);

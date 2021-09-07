@@ -25,6 +25,7 @@ import { substituteFields } from '../leads/LeadsUtils';
 import { contact_date_format } from '../leads/LeadsUtils';
 import { getHistoryInfo } from './JourneyUtils';
 import { HistoryInfo } from './HistoryInfo';
+import { actions as appActions } from '../../redux/modules/memberApp';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -56,6 +57,7 @@ const mapDispatchToProps = {
   updateLead: leadsActions.updateLead,
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 
 const util = require('util');
@@ -601,6 +603,7 @@ export const SMSEventContainer = compose(
       }
     },
     componentDidMount() {
+      this.props.setSidebarDisplayType('members');
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);

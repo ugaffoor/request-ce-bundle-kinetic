@@ -19,6 +19,7 @@ import MomentLocaleUtils, {
   parseDate,
 } from 'react-day-picker/moment';
 import { getLocalePreference } from '../Member/MemberUtils';
+import { I18n } from '../../../../app/src/I18nProvider';
 
 var compThis = undefined;
 
@@ -35,16 +36,15 @@ export class MemberFinancialStats extends Component {
   constructor(props) {
     super(props);
     compThis = this;
-    moment.locale(
+    this.locale =
       this.props.profile.preferredLocale === null
         ? this.props.space.defaultLocale
-        : this.props.profile.preferredLocale,
-    );
+        : this.props.profile.preferredLocale;
+
+    moment.locale(this.locale);
 
     this.currency = getAttributeValue(this.props.space, 'Currency');
     if (this.currency === undefined) this.currency = 'USD';
-
-    this.locale = this.props.space.defaultLocale.split('-')[0];
 
     this._getMemberRowTableColumns = this.getMemberRowTableColumns();
 
@@ -80,13 +80,15 @@ export class MemberFinancialStats extends Component {
       showNewMembers: false,
       showVariations: false,
       showFailed: false,
+      historyLoaded: false,
     };
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
     if (
       !nextProps.billingCustomersLoading &&
-      !nextProps.variationCustomersLoading /* && !nextProps.customerRefundsLoading */ &&
+      !nextProps.variationCustomersLoading &&
+      /*      !nextProps.customerRefundsLoading  && */
       !nextProps.paymentHistoryLoading
     ) {
       let memberData = this.getMemberData(
@@ -104,40 +106,47 @@ export class MemberFinancialStats extends Component {
         variationCustomers: nextProps.variationCustomers,
         paymentHistory: nextProps.paymentHistory,
         memberData,
+        historyLoaded: true,
       });
     }
   }
 
   UNSAFE_componentWillMount() {
-    this.props.fetchBillingCustomers({
-      setBillingCustomers: this.props.setBillingCustomers,
-      allMembers: this.props.members,
-    });
+    if (!this.props.billingCustomersLoading) {
+      this.props.fetchBillingCustomers({
+        setBillingCustomers: this.props.setBillingCustomers,
+        allMembers: this.props.members,
+      });
+    }
     this.props.fetchVariationCustomers({
       setVariationCustomers: this.props.setVariationCustomers,
       setSystemError: this.props.setSystemError,
       addNotification: this.props.addNotification,
     });
     /*    this.props.fetchCustomerRefunds({
+      dateFrom: moment().subtract(1,"years").format("YYYY-MM-DD"),
+      dateTo: moment().format("YYYY-MM-DD"),
       setCustomerRefunds: this.props.setCustomerRefunds,
       setSystemError: this.props.setSystemError,
       addNotification: this.props.addNotification,
     });
 */
-    this.props.fetchPaymentHistory({
-      paymentType: 'FAILED',
-      paymentMethod: 'ALL',
-      paymentSource: 'ALL',
-      dateField: 'PAYMENT',
-      dateFrom: moment()
-        .subtract(1, 'year')
-        .format('YYYY-MM-DD'),
-      dateTo: moment().format('YYYY-MM-DD'),
-      setPaymentHistory: this.props.setPaymentHistory,
-      internalPaymentType: 'client_failed',
-      addNotification: this.props.addNotification,
-      setSystemError: this.props.setSystemError,
-    });
+    if (!this.state.historyLoaded) {
+      this.props.fetchPaymentHistory({
+        paymentType: 'FAILED',
+        paymentMethod: 'ALL',
+        paymentSource: 'ALL',
+        dateField: 'PAYMENT',
+        dateFrom: moment()
+          .subtract(1, 'year')
+          .format('YYYY-MM-DD'),
+        dateTo: moment().format('YYYY-MM-DD'),
+        setPaymentHistory: this.props.setPaymentHistory,
+        internalPaymentType: 'client_failed',
+        addNotification: this.props.addNotification,
+        setSystemError: this.props.setSystemError,
+      });
+    }
   }
 
   getScheduledPayment(member, billingCustomers) {
@@ -1233,7 +1242,7 @@ export class MemberFinancialStats extends Component {
   render() {
     return this.props.billingCustomersLoading ||
       this.props.variationCustomersLoading ||
-      this.props.paymentHistoryLoading ? (
+      !this.state.historyLoaded ? (
       <div>Loading information ...</div>
     ) : (
       <span className="financialStats">
@@ -1278,7 +1287,7 @@ export class MemberFinancialStats extends Component {
                     : ''
                 }
               />
-              Fortnightly
+              <I18n>Fortnightly</I18n>
             </label>
             <label htmlFor="monthly" className="radio">
               <input

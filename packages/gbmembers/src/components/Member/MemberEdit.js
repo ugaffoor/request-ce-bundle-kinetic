@@ -9,6 +9,7 @@ import {
 } from 'recompose';
 import { actions } from '../../redux/modules/members';
 import { actions as leadActions } from '../../redux/modules/leads';
+import { actions as appActions } from '../../redux/modules/memberApp';
 import { KappNavLink as NavLink } from 'common';
 import { PhotoForm } from '../PhotoForm';
 import $ from 'jquery';
@@ -60,6 +61,7 @@ const mapDispatchToProps = {
   fetchCurrentMember: actions.fetchCurrentMember,
   fetchMembers: actions.fetchMembers,
   updateLead: leadActions.updateLead,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 
 export function getJson(input) {
@@ -375,6 +377,46 @@ export const MemberEdit = ({
                   <div className="admin">
                     <span className="line">
                       <div>
+                        <label htmlFor="billingUser">Billing User</label>
+                        <input
+                          type="text"
+                          name="billingUser"
+                          id="billingUser"
+                          size="30"
+                          ref={input => (this.input = input)}
+                          defaultValue={memberItem.values['Billing User']}
+                          onChange={e =>
+                            handleChange(
+                              memberItem,
+                              'Billing User',
+                              e,
+                              setIsDirty,
+                            )
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="migrated">Biller Migrated</label>
+                        <input
+                          type="text"
+                          name="migrated"
+                          id="migrated"
+                          size="30"
+                          ref={input => (this.input = input)}
+                          defaultValue={memberItem.values['Biller Migrated']}
+                          onChange={e =>
+                            handleChange(
+                              memberItem,
+                              'Biller Migrated',
+                              e,
+                              setIsDirty,
+                            )
+                          }
+                        />
+                      </div>
+                    </span>
+                    <span className="line">
+                      <div>
                         <label htmlFor="ccExpiryMonth">
                           Credit Card Expiry Month
                         </label>
@@ -523,6 +565,29 @@ export const MemberEdit = ({
                           defaultValue={memberItem.values['Payment']}
                           onChange={e =>
                             handleChange(memberItem, 'Payment', e, setIsDirty)
+                          }
+                        />
+                      </div>
+                    </span>
+                    <span className="line">
+                      <div>
+                        <label htmlFor="billingStartDate">
+                          Billing Start Date
+                        </label>
+                        <input
+                          type="text"
+                          name="billingStartDate"
+                          id="billingStartDate"
+                          size="30"
+                          ref={input => (this.input = input)}
+                          defaultValue={memberItem.values['Billing Start Date']}
+                          onChange={e =>
+                            handleChange(
+                              memberItem,
+                              'Billing Start Date',
+                              e,
+                              setIsDirty,
+                            )
                           }
                         />
                       </div>
@@ -1548,6 +1613,7 @@ export const MemberEditContainer = compose(
           id: memberItem.id,
           memberItem,
           emailChanged,
+          allMembers,
           /*          history: memberItem.history,
           fetchMembers: fetchMembers, */
         });
@@ -1593,6 +1659,7 @@ export const MemberEditContainer = compose(
       }
     },
     componentDidMount() {
+      this.props.setSidebarDisplayType('members');
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);

@@ -40,6 +40,7 @@ export const State = Record({
   currentLead: {},
   newLead: {},
   currentLeadLoading: true,
+  leadUpdating: true,
   newLeadLoading: true,
   leadsLoading: true,
   leadsByDateLoading: true,
@@ -67,6 +68,9 @@ export const reducer = (state = State(), { type, payload }) => {
     case types.SET_NEW_LEAD: {
       return state.set('newLeadLoading', false).set('newLead', payload);
     }
+    case types.UPDATE_LEAD: {
+      return state.set('leadUpdating', true);
+    }
     case types.LEAD_SAVED: {
       var allLeads = payload.allLeads;
       for (var i = 0; i < allLeads.length; i++) {
@@ -75,7 +79,7 @@ export const reducer = (state = State(), { type, payload }) => {
         }
       }
 
-      return state.set('allLeads', allLeads);
+      return state.set('leadUpdating', false).set('allLeads', allLeads);
     }
     default:
       return state;

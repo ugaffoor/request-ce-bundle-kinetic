@@ -5,6 +5,7 @@ import BarcodeReader from 'react-barcode-reader';
 import { actions as attendanceActions } from '../../redux/modules/attendance';
 import { actions as memberActions } from '../../redux/modules/members';
 import { actions as classActions } from '../../redux/modules/classes';
+import { actions as appActions } from '../../redux/modules/memberApp';
 import { connect } from 'react-redux';
 import moment from 'moment';
 import Datetime from 'react-datetime';
@@ -45,6 +46,7 @@ const mapDispatchToProps = {
   setClassBookings: classActions.setClassBookings,
   updateBooking: classActions.updateBooking,
   updateMember: memberActions.updateMember,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 
 export class AttendanceDetail extends Component {
@@ -109,6 +111,7 @@ export class AttendanceDetail extends Component {
     }
     for (let i = 0; i < this.props.classAttendances.length; i++) {
       if (
+        this.state.memberItem !== undefined &&
         this.props.classAttendances[i].values['Member ID'] ===
           this.state.memberItem.values['Member ID'] &&
         this.props.classAttendances[i].values['Class Time'] ===
@@ -125,6 +128,9 @@ export class AttendanceDetail extends Component {
     //    if (this.state.memberAlreadyCheckedIn){
     this.props.setClassAttendances(this.props.classAttendances);
     //    }
+    setTimeout(function() {
+      $('#checkinMember').focus();
+    }, 500);
 
     console.log('Scanned ClassName:' + this.state.className);
   }
@@ -341,6 +347,9 @@ export class AttendanceDetail extends Component {
     this.props.setClassAttendances(this.props.classAttendances);
     //    }
     console.log('Scanned:' + id);
+    setTimeout(function() {
+      $('#checkinMember').focus();
+    }, 500);
   }
 
   render() {
@@ -830,6 +839,9 @@ export const AttendanceContainer = compose(
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);
+    },
+    componentDidMount() {
+      this.props.setSidebarDisplayType('members');
     },
     componentWillUnmount() {},
   }),

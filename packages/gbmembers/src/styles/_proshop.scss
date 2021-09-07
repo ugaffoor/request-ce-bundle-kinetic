@@ -1,3 +1,17 @@
+.purchaseItemsReport {
+  .purchaseItemsByDateDiv {
+    margin-left: auto;
+    .col-md-8 {
+      max-width: unset;
+      .form-group.submit {
+        .btn {
+          margin-left: 10px;
+        }
+      }
+    }
+  }
+}
+
 // Bambora checkout
 #bamboraCheckout {
   .errorDetails {
@@ -247,7 +261,16 @@
   size: a4 portrait;
   margin: 0;
 }*/
-
+.proshopContainer {
+  span.SVGInline.barcodeIcon {
+    height: 30px;
+    margin-top: 6px;
+  }
+  .barcodeIcon-svg {
+    width: 50px;
+    height: 30px;
+  }
+}
 .recordStockDialog {
   a.narcissus_x3xwbs {
     display: none;
@@ -546,6 +569,14 @@
 }
 
 .proshop {
+  .setting {
+    margin-top: 6px;
+    cursor: pointer;
+    .icon-svg {
+      height: 2rem;
+      width: 2rem;
+    }
+  }
   .paynow {
     .person {
       display: flex;
@@ -628,6 +659,9 @@
       .posPairing.ERROR path {
         fill: red;
       }
+      .posPairing.CANCELED path {
+        fill: #a20ac9;
+      }
       .posPairing.CHECKOUT.S0 path {
         fill: #0829de;
       }
@@ -697,8 +731,18 @@
       }
     }
   }
+  .settings {
+    .details {
+      width: auto !important;
+    }
+  }
   .checkout,
-  .paynow {
+  .paynow,
+  .settings {
+    .delete {
+      margin-left: 10px;
+      cursor: pointer;
+    }
     .topRow {
       display: flex;
       flex-wrap: wrap;
@@ -793,10 +837,6 @@
           .price {
             margin-left: auto;
           }
-          .delete {
-            margin-left: 10px;
-            cursor: pointer;
-          }
         }
       }
     }
@@ -815,7 +855,7 @@
       }
       .value {
         margin-left: auto;
-        margin-right: 12px;
+        margin-right: 3px;
         font-size: 20px;
         font-family: 'AdiHaus DIN Medium';
         color: #2ac940;
@@ -849,6 +889,11 @@
         font-size: 20px;
         font-family: 'AdiHaus DIN Medium';
         color: #4d5059;
+      }
+    }
+    .salestax {
+      .value {
+        margin-right: 2px !important;
       }
     }
     .total {

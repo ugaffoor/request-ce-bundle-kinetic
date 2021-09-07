@@ -21,6 +21,7 @@ const mapDispatchToProps = {
   fetchLeads: actions.fetchLeads,
   addLeadsList: appActions.addLeadsList,
   removeLeadsList: appActions.removeLeadsList,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 
 export const ListView = ({
@@ -56,6 +57,9 @@ export const LeadListContainer = compose(
   lifecycle({
     UNSAFE_componentWillMount() {},
     UNSAFE_componentWillReceiveProps(nextProps) {},
+    componentDidMount() {
+      this.props.setSidebarDisplayType('leads');
+    },
     componentWillUnmount() {},
   }),
 )(ListView);

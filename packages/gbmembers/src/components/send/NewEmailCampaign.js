@@ -31,6 +31,7 @@ import {
 import './tinymce.min.js';
 import { TinyMCEComponent, createEditorStore } from 'mb-react-tinymce';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { actions as appActions } from '../../redux/modules/memberApp';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -56,6 +57,7 @@ const mapDispatchToProps = {
   fetchMember: membersActions.fetchCurrentMember,
   fetchEmailTemplates: dataStoreActions.fetchEmailTemplates,
   fetchEmailCampaign: campaignActions.fetchEmailCampaign,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 
 const util = require('util');
@@ -889,6 +891,7 @@ export const EmailCampaignContainer = compose(
       }
     },
     componentDidMount() {
+      this.props.setSidebarDisplayType('members');
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);

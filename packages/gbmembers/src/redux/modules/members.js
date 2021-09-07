@@ -14,6 +14,8 @@ export const types = {
   FETCH_MEMBER_PROMOTIONS: namespace('members', 'FETCH_MEMBER_PROMOTIONS'),
   SET_MEMBER_PROMOTIONS: namespace('members', 'SET_MEMBER_PROMOTIONS'),
   SET_CURRENT_MEMBER: namespace('members', 'SET_CURRENT_MEMBER'),
+  ACTIVATE_BILLER: namespace('members', 'ACTIVATE_BILLER'),
+  BILLER_ACTIVATED: namespace('members', 'BILLER_ACTIVATED'),
   UPDATE_MEMBER: namespace('members', 'UPDATE_MEMBER'),
   MEMBER_SAVED: namespace('members', 'MEMBER_SAVED'),
   CREATE_MEMBER: namespace('members', 'CREATE_MEMBER'),
@@ -90,8 +92,10 @@ export const actions = {
   setCurrentMember: withPayload(types.SET_CURRENT_MEMBER),
   fetchMemberPromotions: withPayload(types.FETCH_MEMBER_PROMOTIONS),
   setMemberPromotions: withPayload(types.SET_MEMBER_PROMOTIONS),
+  activateBiller: withPayload(types.ACTIVATE_BILLER),
   updateMember: withPayload(types.UPDATE_MEMBER),
   memberSaved: withPayload(types.MEMBER_SAVED),
+  billerActivated: withPayload(types.BILLER_ACTIVATED),
   createMember: withPayload(types.CREATE_MEMBER),
   deleteMember: withPayload(types.DELETE_MEMBER),
   deleteMemberFile: withPayload(types.DELETE_MEMBER_FILE),
@@ -157,15 +161,22 @@ export const State = Record({
   currentMemberLoading: true,
   newMemberLoading: true,
   membersLoading: true,
+  memberUpdating: true,
+  activatingBiller: false,
+  activatingBillerCompleted: false,
   billingInfoLoading: true,
   completeMemberBilling: false,
   currentFilter: 'Active Members',
   billingInfo: {},
-  paymentHistory: [],
+  ALLpaymentHistory: [],
+  FAILEDpaymentHistory: [],
+  SUCCESSFULpaymentHistory: [],
   overdues: [],
   billingPayments: [],
   billingPaymentsLoading: false,
-  paymentHistoryLoading: true,
+  ALLpaymentHistoryLoading: true,
+  FAILEDpaymentHistoryLoading: true,
+  SUCCESSFULpaymentHistoryLoading: true,
   overduesLoading: true,
   processedAndScheduledPayments: {},
   processedAndScheduledPaymentsLoading: true,
@@ -274,9 +285,15 @@ export const reducer = (state = State(), { type, payload }) => {
       return state.set('newMemberLoading', false).set('newMember', payload);
     }
     case types.SET_PAYMENT_HISTORY: {
+      let paymentHistory = payload.data.sort(function(a, b) {
+        if (a.debitDate < b.debitDate) return 1;
+        if (a.debitDate > b.debitDate) return -1;
+        return 0;
+      });
+
       return state
-        .set('paymentHistoryLoading', false)
-        .set('paymentHistory', payload);
+        .set(payload.paymentType + 'paymentHistoryLoading', false)
+        .set(payload.paymentType + 'paymentHistory', paymentHistory);
     }
     case types.SET_OVERDUES: {
       return state.set('overduesLoading', false).set('overdues', payload);
@@ -296,7 +313,7 @@ export const reducer = (state = State(), { type, payload }) => {
       return state.set('memberPromotionsLoading', false);
     }
     case types.FETCH_PAYMENT_HISTORY: {
-      return state.set('paymentHistoryLoading', true);
+      return state.set(payload.paymentType + 'PaymentHistoryLoading', true);
     }
     case types.FETCH_OVERDUES: {
       return state.set('overduesLoading', true);
@@ -390,6 +407,9 @@ export const reducer = (state = State(), { type, payload }) => {
     case types.MEMBER_PROMOTED: {
       return state.set('promotingMember', false);
     }
+    case types.UPDATE_MEMBER: {
+      return state.set('memberUpdating', true);
+    }
     case types.MEMBER_SAVED: {
       var allMembers = payload.allMembers;
       for (var i = 0; i < allMembers.length; i++) {
@@ -398,7 +418,15 @@ export const reducer = (state = State(), { type, payload }) => {
         }
       }
 
-      return state.set('allMembers', allMembers);
+      return state.set('memberUpdating', false).set('allMembers', allMembers);
+    }
+    case types.ACTIVATE_BILLER: {
+      return state.set('activatingBiller', true);
+    }
+    case types.BILLER_ACTIVATED: {
+      return state
+        .set('activatingBiller', false)
+        .set('activatingBillerCompleted', true);
     }
     default:
       return state;

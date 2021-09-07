@@ -15,6 +15,8 @@ import MomentLocaleUtils, {
   formatDate,
   parseDate,
 } from 'react-day-picker/moment';
+import '../helpers/jquery.multiselect.js';
+import { KappNavLink as NavLink } from 'common';
 
 <script src="../helpers/jquery.multiselect.js" />;
 
@@ -84,6 +86,7 @@ export const ListEditContainer = compose(
   lifecycle({
     UNSAFE_componentWillMount() {},
     UNSAFE_componentWillReceiveProps(nextProps) {},
+    componentDidMount() {},
     componentWillUnmount() {},
   }),
 )(ListEditView);
@@ -205,7 +208,17 @@ export class ListEditHome extends Component {
 
   getColumns = () => {
     return [
-      { accessor: 'Member ID', Header: 'Member Id' },
+      {
+        accessor: 'Member ID',
+        Header: 'Member',
+        Cell: props => {
+          return (
+            <NavLink to={`/Member/${props.original._id}`} className="">
+              {props.original['First Name']} {props.original['Last Name']}
+            </NavLink>
+          );
+        },
+      },
       { accessor: 'Gender', Header: 'Gender' },
       { accessor: 'Member Type', Header: 'Member Type' },
       { accessor: 'Ranking Program', Header: 'Program' },

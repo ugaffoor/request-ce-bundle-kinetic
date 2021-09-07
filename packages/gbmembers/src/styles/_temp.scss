@@ -162,3 +162,11 @@ body a {
     }
   }
 }
+.sidebarMain {
+  a.cursorPointer:hover {
+    cursor: pointer;
+  }
+}
+.input-group {
+  z-index: 0;
+}

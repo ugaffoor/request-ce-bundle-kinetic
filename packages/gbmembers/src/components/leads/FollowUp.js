@@ -13,6 +13,7 @@ import MomentLocaleUtils, {
   parseDate,
 } from 'react-day-picker/moment';
 import { getLocalePreference } from '../Member/MemberUtils';
+import { actions as appActions } from '../../redux/modules/memberApp';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -25,6 +26,7 @@ const mapDispatchToProps = {
   fetchLead: actions.fetchCurrentLead,
   updateLead: actions.updateLead,
   fetchLeads: actions.fetchLeads,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 
 export class FollowUpDate extends Component {
@@ -248,6 +250,7 @@ export const FollowUpContainer = compose(
       }
     },
     componentDidMount() {
+      this.props.setSidebarDisplayType('leads');
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);

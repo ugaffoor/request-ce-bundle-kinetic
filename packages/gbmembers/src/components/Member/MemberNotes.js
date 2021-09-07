@@ -21,6 +21,7 @@ import { EmailsReceived } from './EmailsReceived';
 import { MemberEmails } from './MemberEmails';
 import { actions as campaignActions } from '../../redux/modules/campaigns';
 import { SMSModalContainer } from './SMSModalContainer';
+import { actions as appActions } from '../../redux/modules/memberApp';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -36,6 +37,7 @@ const mapDispatchToProps = {
   fetchCurrentMember: actions.fetchCurrentMember,
   fetchMembers: actions.fetchMembers,
   fetchCampaign: campaignActions.fetchEmailCampaign,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 
 const Datetime = require('react-datetime');
@@ -183,19 +185,27 @@ export class MemberNotesHome extends Component {
             <div className="row">
               <div className="col-md-6 text-center">
                 <span className="float-md-left">
-                  <div
-                    style={{
-                      fontFamily: 'Arial-BoldMT, "Arial Bold", Arial',
-                      fontWeight: '700',
-                      fontStyle: 'normal',
-                      fontSize: '24px',
-                      color: '#333333',
-                    }}
+                  <NavLink
+                    to={`/Member/${this.props.memberItem['id']}`}
+                    className=""
+                    style={{}}
+                    title="Member View"
                   >
-                    {this.props.memberItem.values['First Name']}
-                    &nbsp;
-                    {this.props.memberItem.values['Last Name']}
-                  </div>
+                    <div
+                      style={{
+                        fontFamily: 'Arial-BoldMT, "Arial Bold", Arial',
+                        fontWeight: '700',
+                        fontStyle: 'normal',
+                        fontSize: '24px',
+                        color: '#333333',
+                      }}
+                    >
+                      {this.props.memberItem.values['First Name']}
+                      &nbsp;
+                      {this.props.memberItem.values['Last Name']}
+                    </div>
+                  </NavLink>
+                  <br />
                   <div>
                     <img
                       alt="Phone Number"
@@ -451,6 +461,7 @@ export const MemberNotesContainer = compose(
       }
     },
     componentDidMount() {
+      this.props.setSidebarDisplayType('members');
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);

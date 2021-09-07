@@ -7,6 +7,8 @@ export const types = {
   SET_POS_CATEGORIES: namespace('pos', 'SET_POS_CATEGORIES'),
   FETCH_POS_PRODUCTS: namespace('pos', 'FETCH_POS_PRODUCTS'),
   SET_POS_PRODUCTS: namespace('pos', 'SET_POS_PRODUCTS'),
+  FETCH_POS_BARCODES: namespace('pos', 'FETCH_POS_BARCODES'),
+  SET_POS_BARCODES: namespace('pos', 'SET_POS_BARCODES'),
   FETCH_POS_ITEMS: namespace('pos', 'FETCH_POS_ITEMS'),
   SET_POS_ITEMS: namespace('pos', 'SET_POS_ITEMS'),
   FETCH_POS_STOCK: namespace('pos', 'FETCH_POS_STOCK'),
@@ -30,6 +32,8 @@ export const actions = {
   setPOSCategories: withPayload(types.SET_POS_CATEGORIES),
   fetchPOSProducts: withPayload(types.FETCH_POS_PRODUCTS),
   setPOSProducts: withPayload(types.SET_POS_PRODUCTS),
+  fetchPOSBarcodes: withPayload(types.FETCH_POS_BARCODES),
+  setPOSBarcodes: withPayload(types.SET_POS_BARCODES),
   fetchPOSStock: withPayload(types.FETCH_POS_STOCK),
   setPOSStock: withPayload(types.SET_POS_STOCK),
   savePOSStock: withPayload(types.SAVE_POS_STOCK),
@@ -54,6 +58,8 @@ export const State = Record({
   posCategoriesLoading: true,
   posProducts: [],
   posProductsLoading: true,
+  posBarcodes: [],
+  posBarcodesLoading: true,
   posStock: [],
   posStockLoading: true,
   posItems: [],
@@ -81,6 +87,11 @@ export const reducer = (state = State(), { type, payload }) => {
       return state.set('posProductsLoading', true);
     case types.SET_POS_PRODUCTS: {
       return state.set('posProductsLoading', false).set('posProducts', payload);
+    }
+    case types.FETCH_POS_BARCODES:
+      return state.set('posBarcodesLoading', true);
+    case types.SET_POS_BARCODES: {
+      return state.set('posBarcodesLoading', false).set('posBarcodes', payload);
     }
     case types.FETCH_POS_STOCK:
       return state.set('posStockLoading', true);

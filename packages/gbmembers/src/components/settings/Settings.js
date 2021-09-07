@@ -21,6 +21,7 @@ import { ClassesCalendar } from './ClassesCalendar';
 import { ManageBookings } from './ManageBookings';
 import { RecurringBookings as ManageRecurringBookings } from './RecurringBookings';
 import { confirm } from '../helpers/Confirmation';
+import { actions as appActions } from '../../redux/modules/memberApp';
 
 const mapStateToProps = state => ({
   memberItem: state.member.members.currentMember,
@@ -70,6 +71,7 @@ const mapDispatchToProps = {
   fetchBillingPayments: actions.fetchBillingPayments,
   createBillingStatistics: actions.createBillingStatistics,
   createStatistic: actions.createStatistic,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 
 class ComponentToPrint extends React.Component {
@@ -490,6 +492,9 @@ export const SettingsContainer = compose(
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);
+    },
+    componentDidMount() {
+      this.props.setSidebarDisplayType('members');
     },
     componentWillUnmount() {},
   }),

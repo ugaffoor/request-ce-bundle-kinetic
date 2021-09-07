@@ -21,6 +21,7 @@ const mapDispatchToProps = {
   fetchMembers: actions.fetchMembers,
   addMembersList: appActions.addMembersList,
   removeMembersList: appActions.removeMembersList,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 
 export const ListView = ({
@@ -56,6 +57,9 @@ export const ListContainer = compose(
   lifecycle({
     UNSAFE_componentWillMount() {},
     UNSAFE_componentWillReceiveProps(nextProps) {},
+    componentDidMount() {
+      this.props.setSidebarDisplayType('members');
+    },
     componentWillUnmount() {},
   }),
 )(ListView);
@@ -223,7 +227,7 @@ export class ListHome extends Component {
                   columns={[
                     {
                       accessor: 'Member ID',
-                      Header: 'Member Id',
+                      Header: 'Member',
                       Cell: props => {
                         return (
                           <NavLink

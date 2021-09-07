@@ -40,10 +40,25 @@
     padding-right: 14px;
   }
 }
-.gbmembers {
-  .sidebar {
-    border-right: 1px solid $gray3;
-    background-color: $darkgray;
+.sidebar.members {
+  border-right: 1px solid $gray3;
+  background-color: $darkgray;
+  .icon-svg path,
+  .icon-svg .primary-fill {
+    fill: white;
+  }
+}
+.sidebar.leads {
+  border-right: 1px solid #bdbdbd;
+  background-color: #bdbdbd;
+  .ReactTable .rt-thead .rt-th,
+  .ReactTable .rt-thead .rt-td {
+    background-color: #bdbdbd;
+    border: unset;
+  }
+  .btn.btn-primary {
+    background-color: #4d5059;
+    color: white;
   }
 }
 .sidebar {
@@ -53,6 +68,14 @@
   padding: 1.5rem 0;
   width: 252px;
   height: unset;
+  .options .download-svg.icon-svg {
+    height: 2rem;
+    width: 2rem;
+  }
+  .download.icon {
+    margin-left: 10px;
+    cursor: pointer;
+  }
   .buttons {
     display: flex;
     .btn-primary {
@@ -64,6 +87,7 @@
   }
   .ReactTable input {
     border-radius: 0.4rem !important;
+    -webkit-text-fill-color: unset;
   }
   .ReactTable .rt-tbody {
     background-color: white;

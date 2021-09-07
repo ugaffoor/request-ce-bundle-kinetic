@@ -16,9 +16,14 @@ import $ from 'jquery';
 const mapStateToProps = state => ({
   documentationUrl: state.member.app.documentationUrl,
   supportUrl: state.member.app.supportUrl,
+  sidebarDisplayType: state.member.app.sidebarDisplayType,
   allMembers: state.member.members.allMembers,
+  allLeads: state.member.leads.allLeads,
   currentFilter: state.member.members.currentFilter,
   membersLoading: state.member.members.membersLoading,
+  leadsLoading: state.member.leads.leadsLoading,
+  memberUpdating: state.member.members.memberUpdating,
+  leadUpdating: state.member.leads.leadUpdating,
   // The route prop below is just a way to make sure this component updates when
   // the route changes, otherwise connect implicitly prevents the update.
   route: `${state.router.location.pathname} ${state.router.location.search}`,
@@ -29,6 +34,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = {
   fetchMembers: memberActions.fetchMembers,
+  fetchLeads: memberActions.fetchLeads,
   setMemberFilter: memberActions.setMemberFilter,
   getMemberFilter: memberActions.getMemberFilter,
 };
@@ -66,6 +72,43 @@ export const SidebarContainer = compose(
         setFilterType('list');
         setListName($('.membersFilters').val());
       }
+    },
+    downloadLeads: ({ allLeads }) => () => {
+      let fileDownload = require('js-file-download');
+      let csvData =
+        'First Name, Last Name, Gender, Address, Suburb, State, Postcode, Email, Phone, DOB, Source, Status, Date\n';
+      allLeads.forEach(lead => {
+        csvData = csvData.concat(
+          '"' +
+            lead.values['First Name'] +
+            '","' +
+            lead.values['Last Name'] +
+            '","' +
+            lead.values['Gender'] +
+            '","' +
+            lead.values['Address'] +
+            '","' +
+            lead.values['Suburb'] +
+            '","' +
+            lead.values['State'] +
+            '","' +
+            lead.values['Postcode'] +
+            '","' +
+            lead.values['Email'] +
+            '","' +
+            lead.values['Phone Number'] +
+            '","' +
+            lead.values['DOB'] +
+            '","' +
+            lead.values['Source'] +
+            '","' +
+            lead.values['Status'] +
+            '","' +
+            lead.values['Date'] +
+            '"\n',
+        );
+      });
+      fileDownload(csvData, 'leads.csv');
     },
   }),
   lifecycle({

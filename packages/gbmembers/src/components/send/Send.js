@@ -18,6 +18,7 @@ import ReactTable from 'react-table';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { email_received_date_format } from '../leads/LeadsUtils';
 import moment from 'moment';
+import { actions as appActions } from '../../redux/modules/memberApp';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -41,6 +42,7 @@ const mapDispatchToProps = {
   getIndividualSMS: messageActions.getIndividualSMS,
   setIndividualSMS: messageActions.setIndividualSMS,
   fetchLeads: leadActions.fetchLeads,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 
 export class EmailCampaignsList extends Component {
@@ -980,6 +982,7 @@ export const CampaignContainer = compose(
 */
     },
     componentDidMount() {
+      this.props.setSidebarDisplayType('members');
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);

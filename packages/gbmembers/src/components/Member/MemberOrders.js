@@ -17,7 +17,10 @@ export class MemberOrders extends Component {
     this._columns = this.getColumns();
     this.currency = getAttributeValue(this.props.space, 'Currency');
     if (this.currency === undefined) this.currency = 'USD';
-    this.locale = this.props.space.defaultLocale.split('-')[0];
+    this.locale =
+      this.props.profile.preferredLocale === null
+        ? this.props.space.defaultLocale
+        : this.props.profile.preferredLocale;
 
     this.state = {
       data,
@@ -255,7 +258,17 @@ export class MemberOrders extends Component {
                             <div className="productLine">
                               <div className="quantity"></div>
                               <div className="name">
-                                <I18n>SALES TAX</I18n>
+                                {getAttributeValue(
+                                  this.props.space,
+                                  'POS Sales Tax Label',
+                                ) === undefined ? (
+                                  <I18n>SALES TAX</I18n>
+                                ) : (
+                                  getAttributeValue(
+                                    this.props.space,
+                                    'POS Sales Tax Label',
+                                  )
+                                )}
                               </div>
                               <div className="price">
                                 <span className="price">

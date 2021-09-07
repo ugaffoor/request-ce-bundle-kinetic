@@ -32,6 +32,7 @@ import { actions as errorActions } from '../../redux/modules/errors';
 import ReactSpinner from 'react16-spinjs';
 import { CallScriptModalContainer } from './CallScriptModalContainer';
 import { SMSModalContainer } from './SMSModalContainer';
+import { BamboraActivateContainer } from './BamboraActivate';
 import { EmailsReceived } from './EmailsReceived';
 import { MemberEmails } from './MemberEmails';
 import { MemberSMS } from './MemberSMS';
@@ -44,6 +45,7 @@ import { Requests } from './Requests';
 import { MemberAttendanceContainer } from './MemberAttendance';
 import { actions as campaignActions } from '../../redux/modules/campaigns';
 import { actions as attendanceActions } from '../../redux/modules/attendance';
+import { actions as appActions } from '../../redux/modules/memberApp';
 import {
   ResponsiveContainer,
   LineChart,
@@ -61,6 +63,7 @@ import css from 'css';
 import attentionRequired from '../../images/flag.svg?raw';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import styled from 'styled-components';
+import { confirm } from '../helpers/Confirmation';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -98,6 +101,7 @@ const mapDispatchToProps = {
   fetchMemberAttendances: attendanceActions.fetchMemberAttendances,
   createMemberUserAccount: actions.createMemberUserAccount,
   getAttributeValue: getAttributeValue,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 
 function getClassNames(node) {
@@ -574,6 +578,8 @@ export const MemberView = ({
   fetchMemberAttendances,
   showAttendanceDialog,
   setShowAttendanceDialog,
+  showBamboraActivate,
+  setShowBamboraActivate,
   createUserAccount,
   createMemberUserAccount,
   creatingUserAccount,
@@ -761,7 +767,35 @@ export const MemberView = ({
                           <button
                             className="btn btn-primary"
                             style={{ textTransform: 'unset' }}
-                            onClick={e => createUserAccount()}
+                            onClick={async e => {
+                              console.log(
+                                e.currentTarget.getAttribute('noteDate') +
+                                  ' ' +
+                                  e.currentTarget.getAttribute('noteType'),
+                              );
+                              if (
+                                await confirm(
+                                  <span>
+                                    <span>
+                                      Are your sure you want to CREATE a User
+                                      Account?
+                                    </span>
+                                    <table>
+                                      <tbody>
+                                        <tr>
+                                          <td>User Name:</td>
+                                          <td>
+                                            {memberItem.values['Member ID']}
+                                          </td>
+                                        </tr>
+                                      </tbody>
+                                    </table>
+                                  </span>,
+                                )
+                              ) {
+                                createUserAccount();
+                              }
+                            }}
                           >
                             {creatingUserAccount
                               ? 'Creating...'
@@ -916,10 +950,19 @@ export const MemberView = ({
                   }).format(memberItem.values['Membership Cost'])}
                 </p>
               </div>
-
+              <div
+                className={
+                  memberItem.values['Non Paying'] === 'YES'
+                    ? 'billingInfo show'
+                    : 'hide'
+                }
+              >
+                <p>Non Paying</p>
+              </div>
               <div
                 className={
                   memberItem.values['Billing Payment Type'] !== 'Cash' &&
+                  memberItem.values['Non Paying'] !== 'YES' &&
                   memberItem.values['Billing Customer Id'] !== undefined &&
                   memberItem.values['Billing Customer Id'] !== '' &&
                   memberItem.values['Billing Customer Id'] !== null
@@ -1006,6 +1049,31 @@ export const MemberView = ({
                   </button>
                 </div>
               )}
+              {Utils.getAttributeValue(space, 'Billing Company') ===
+                'Bambora' &&
+                memberItem.values['Billing User'] === 'YES' &&
+                memberItem.values['Non Paying'] !== 'YES' &&
+                (memberItem.values['Biller Migrated'] === null ||
+                  memberItem.values['Biller Migrated'] === undefined ||
+                  memberItem.values['Biller Migrated'] !== 'YES') && (
+                  <div>
+                    <button
+                      onClick={e => setShowBamboraActivate(true)}
+                      className="btn btn-primary"
+                      style={{ marginTop: '6px', color: 'white' }}
+                    >
+                      Activate Bambora Account
+                    </button>
+                    {showBamboraActivate && (
+                      <BamboraActivateContainer
+                        memberItem={memberItem}
+                        allMembers={allMembers}
+                        target="Member"
+                        setShowBamboraActivate={setShowBamboraActivate}
+                      />
+                    )}
+                  </div>
+                )}
               <div>
                 <br />
                 <button
@@ -1141,6 +1209,7 @@ export const MemberViewContainer = compose(
   withState('isDirty', 'setIsDirty', false),
   withState('showNewCustomers', 'setShowNewCustomers', false),
   withState('showCallScriptModal', 'setShowCallScriptModal', false),
+  withState('showBamboraActivate', 'setShowBamboraActivate', false),
   withState('showAttendanceDialog', 'setShowAttendanceDialog', false),
   withState('showSMSModal', 'setShowSMSModal', false),
   withState('attendClasses', 'setAttendClasses', 0),
@@ -1310,21 +1379,20 @@ export const MemberViewContainer = compose(
       addNotification,
       setSystemError,
     }) => () => {
-      memberItem.values['Is New Reply Received'] = false;
+      memberItem.values['Is New Reply Received'] = 'false';
       updateMember({
         id: memberItem.id,
         memberItem,
         allMembers,
         addNotification,
-        fetchMembers,
         setSystemError,
       });
-      for (let i = 0; i < allMembers.length; i++) {
+      /*    for (let i = 0; i < allMembers.length; i++) {
         if (allMembers[i].id === memberItem.id) {
-          allMembers[i].values['Is New Reply Received'] = false;
+          allMembers[i].values = memberItem.values;
           break;
         }
-      }
+      } */
     },
     updateAttentionRequired: ({
       memberItem,
@@ -1336,22 +1404,20 @@ export const MemberViewContainer = compose(
       setSystemError,
       setIsDirty,
     }) => () => {
-      memberItem.values['Is New Reply Received'] = true;
+      memberItem.values['Is New Reply Received'] = 'true';
+      for (let i = 0; i < allMembers.length; i++) {
+        if (allMembers[i].id === memberItem.id) {
+          allMembers[i].values = memberItem.values;
+          break;
+        }
+      }
       updateMember({
         id: memberItem.id,
         memberItem,
         allMembers,
-        fetchMember,
-        fetchMembers,
         addNotification,
         setSystemError,
       });
-      for (let i = 0; i < allMembers.length; i++) {
-        if (allMembers[i].id === memberItem.id) {
-          allMembers[i].values['Is New Reply Received'] = true;
-          break;
-        }
-      }
     },
     createUserAccount: ({
       memberItem,
@@ -1402,18 +1468,21 @@ export const MemberViewContainer = compose(
   }),
   lifecycle({
     componentWillMount() {
-      this.props.memberItem.values = [];
-      this.props.memberItem.id = 'xx-xx-xx-xx-xx';
+      //      this.props.memberItem.values = [];
+      //      this.props.memberItem.id = 'xx-xx-xx-xx-xx';
       this.props.fetchCurrentMember({ id: this.props.match.params.id });
 
       let currency = getAttributeValue(this.props.space, 'Currency');
       if (currency === undefined) currency = 'USD';
 
-      let locale = this.props.space.defaultLocale.split('-')[0];
+      this.locale =
+        this.props.profile.preferredLocale === null
+          ? this.props.space.defaultLocale
+          : this.props.profile.preferredLocale;
 
       this.setState({
         currency: currency,
-        locale: locale,
+        locale: this.locale,
       });
     },
     componentWillReceiveProps(nextProps) {
@@ -1455,6 +1524,7 @@ export const MemberViewContainer = compose(
 */
     },
     componentDidMount() {
+      this.props.setSidebarDisplayType('members');
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);

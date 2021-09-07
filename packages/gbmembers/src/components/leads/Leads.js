@@ -4,6 +4,7 @@ import SVGInline from 'react-svg-inline';
 import { compose, lifecycle, withHandlers, withProps } from 'recompose';
 import { actions } from '../../redux/modules/leads';
 import { actions as memberActions } from '../../redux/modules/members';
+import { actions as appActions } from '../../redux/modules/memberApp';
 import $ from 'jquery';
 import 'bootstrap/scss/bootstrap.scss';
 import { KappNavLink as NavLink } from 'common';
@@ -65,6 +66,7 @@ const mapDispatchToProps = {
   updateLead: actions.updateLead,
   fetchLeads: actions.fetchLeads,
   fetchMembers: memberActions.fetchMembers,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 
 function getLatestHistory(history) {
@@ -785,11 +787,6 @@ export class TasksDetail extends Component {
       <div>
         <div className="headerPanel">
           <div className="row">
-            <NavLink to={`/NewLead`} className="btn btn-primary addNewLead">
-              Add New Lead
-            </NavLink>
-          </div>
-          <div className="row">
             <div className="col">
               <div className="form-group">
                 <label htmlFor="allTasks">Show Tasks</label>
@@ -806,7 +803,7 @@ export class TasksDetail extends Component {
                 </select>
               </div>
             </div>
-            <div className="col">
+            <div className="col filters">
               <div className="form-group">
                 <label htmlFor="leadLists">Lead List Filters</label>
                 <select
@@ -823,16 +820,6 @@ export class TasksDetail extends Component {
                 </select>
               </div>
             </div>
-            <div className="col">
-              <div className="form-group">
-                <NavLink
-                  to={`/leadLists`}
-                  className="btn btn-primary leadListButton"
-                >
-                  Lead Lists
-                </NavLink>
-              </div>
-            </div>
           </div>
           <div className="row">
             <div className="col">
@@ -842,7 +829,7 @@ export class TasksDetail extends Component {
                   className="form-control leadSearch"
                   id="leadSearch"
                   value={this.state.leadSearchValue}
-                  placeholder="Lead Search"
+                  placeholder="Lead/Member Search"
                   onChange={e => {
                     this.setState({ leadSearchValue: e.target.value });
                   }}
@@ -923,13 +910,13 @@ export class TasksDetail extends Component {
             />
           </div>
         </div>
-        <div className="leadContents">
+        {/*        <div className="leadContents">
           <LeadsDetail
             allLeads={allLeads}
             fullLeads={this.props.allLeads}
             leadSearchValue={this.state.leadSearchValue}
           />
-        </div>
+        </div> */}
       </div>
     );
   }
@@ -2092,6 +2079,7 @@ export const LeadsContainer = compose(
     },
     UNSAFE_componentWillReceiveProps(nextProps) {},
     componentDidMount() {
+      this.props.setSidebarDisplayType('leads');
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);

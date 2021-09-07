@@ -137,7 +137,7 @@ export const UserFormComponent = ({
                 />
               </div>
               {locales && (
-                <div className="form-group required">
+                <div className="form-group">
                   <label htmlFor="preferredLocale">Preferred Locale</label>
                   <select
                     type="text"
@@ -160,7 +160,7 @@ export const UserFormComponent = ({
                 </div>
               )}
               {timezones && (
-                <div className="form-group required">
+                <div className="form-group">
                   <label htmlFor="timezone">Timezone</label>
                   <select
                     type="text"

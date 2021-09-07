@@ -1,3 +1,21 @@
+.bamboraActivate {
+  display: flex;
+  flex-direction: column;
+  margin: 10px;
+  .field {
+    display: flex;
+    flex-direction: row;
+    margin-top: 2px;
+    label {
+      width: 150px;
+    }
+  }
+  button#activate {
+    width: 100px;
+    margin-top: 20px;
+    margin-left: 150px;
+  }
+}
 .userNameInfo {
   display: flex;
   .userName {
@@ -657,6 +675,10 @@
   background-color: white;
   .userDetails {
     margin: 10px;
+    .leadReferral .droparrow {
+      top: 0px;
+      right: 24px;
+    }
     .memberBarcode {
       margin-top: 16px;
     }

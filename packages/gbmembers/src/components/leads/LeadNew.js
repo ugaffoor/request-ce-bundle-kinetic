@@ -8,6 +8,7 @@ import {
   withProps,
 } from 'recompose';
 import { actions as leadsActions } from '../../redux/modules/leads';
+import { actions as appActions } from '../../redux/modules/memberApp';
 import { KappNavLink as NavLink } from 'common';
 import $ from 'jquery';
 import NumberFormat from 'react-number-format';
@@ -48,6 +49,7 @@ const mapDispatchToProps = {
   createLead: leadsActions.createLead,
   fetchNewLead: leadsActions.fetchNewLead,
   fetchLeads: leadsActions.fetchLeads,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 
 const Datetime = require('react-datetime');
@@ -177,7 +179,7 @@ export class LeadNew extends Component {
               <hr />
               <span className="line">
                 <div
-                  className="form-group form-inline"
+                  className="form-group form-inline leadReferral"
                   style={{ width: 'auto' }}
                 >
                   <label
@@ -1037,6 +1039,7 @@ export const LeadNewContainer = compose(
       });
     },
     componentDidMount() {
+      this.props.setSidebarDisplayType('leads');
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);
