@@ -48,7 +48,8 @@
     -webkit-print-color-adjust: exact;
     float: none;
   }
-  .attendanceCard {
+  .attendanceCard,
+  .visitorCard {
     .card1 {
       margin-top: 0mm;
     }
@@ -65,8 +66,32 @@
       background-size: contain;
       background-repeat: no-repeat;
     }
+    .filler {
+      width: 10mm;
+      height: 10mm;
+    }
   }
-  .attendanceCard.US {
+  .visitorCard {
+    .schoolName {
+      margin-top: 552px;
+      margin-left: 188px;
+    }
+    .memberName {
+      margin-left: 364px;
+    }
+    .photoDiv {
+      margin-left: 118mm;
+      margin-top: 49.5mm;
+      .noPhotoDiv {
+        margin-left: 145px;
+        margin-bottom: 23px;
+      }
+      .photoImg {
+      }
+    }
+  }
+  .attendanceCard.US,
+  .visitorCard.US {
     .card1 {
     }
     .card2 {
@@ -80,13 +105,40 @@
       background-size: contain;
       background-repeat: no-repeat;
     }
+    .filler {
+      width: 10mm;
+      height: 10mm;
+    }
+  }
+  .visitorCard.US {
+    .schoolName {
+      margin-top: 452px;
+      margin-left: 188px;
+    }
+    .memberName {
+      margin-left: 364px;
+    }
+    .photoDiv {
+      margin-left: 118mm;
+      margin-top: 49.5mm;
+      .noPhotoDiv {
+        margin-left: 145px;
+        margin-bottom: 23px;
+      }
+      .photoImg {
+      }
+    }
   }
 }
 @page {
   size: a5 landscape;
-  .attendanceCard.US {
+  .attendanceCard.US,
+  .visitorCard.US {
     size: letter landscape;
   }
+}
+.card1.visitorCard {
+  background-image: url(https://gbfms-files.s3.ap-southeast-2.amazonaws.com/VisitorCard.png);
 }
 .card1.GB1 {
   background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/GB1-P1.png);
@@ -151,6 +203,9 @@
 }
 
 .US {
+  .card1.visitorCard {
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/VisitorCard.png);
+  }
   .card1.GB1 {
     background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB1-P1.png);
   }
@@ -588,6 +643,10 @@
         .memberBarcode {
           float: left;
         }
+        .visitorCard {
+          float: left;
+          margin-right: 9px;
+        }
       }
     }
   }
@@ -614,7 +673,8 @@
     .memberBarcode {
       float: left;
     }
-    .barcodePrint-svg {
+    .barcodePrint-svg,
+    .visitorCardPrint-svg {
       margin-top: 10px;
       cursor: pointer;
     }
@@ -1071,6 +1131,81 @@
 
 iframe#printf {
   display: none;
+}
+.visitorCard {
+  .schoolName {
+    margin-top: 602px;
+    margin-left: 206px;
+    transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
+    p {
+      font-size: 26px;
+    }
+  }
+  .memberName {
+    margin-top: 0px;
+    margin-left: 415px;
+    color: white;
+    transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
+    p {
+      font-size: 36px;
+    }
+  }
+  .photoDiv {
+    height: 162px;
+    width: 174px;
+    margin-left: 159mm;
+    margin-top: 62.5mm;
+    line-height: 95px;
+    background-color: transparent;
+    float: left;
+    .noPhotoDiv {
+      width: 120px;
+      height: 120px;
+      padding: 20px;
+      margin-left: 145px;
+      margin-bottom: 23px;
+      margin-top: 38px;
+      font-size: 54px;
+      transform-origin: 0 0;
+      transform: rotate(90deg);
+      -webkit-transform: rotate(90deg);
+      -moz-transform: rotate(90deg);
+      -ms-transform: rotate(90deg);
+      -o-transform: rotate(90deg);
+      filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
+      position: absolute;
+      background-color: #f1f1f0;
+    }
+    .photoImg {
+      margin-left: 0px;
+      margin-top: 5px;
+      height: 100%;
+      width: 100%;
+      transform: rotate(90deg);
+      -webkit-transform: rotate(90deg);
+      -moz-transform: rotate(90deg);
+      -ms-transform: rotate(90deg);
+      -o-transform: rotate(90deg);
+      filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
+      float: left;
+    }
+  }
+}
+.visitorCard.US {
+  .card1 {
+    width: 185mm;
+    height: 262mm;
+  }
 }
 
 .attendanceCard {

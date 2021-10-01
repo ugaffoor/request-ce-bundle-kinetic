@@ -351,6 +351,8 @@ const enhance = compose(
         scheduleDate: getScheduledDate(startDate, period).format('YYYY-MM-DD'),
         period,
         payment,
+        email: memberItem.values['Email'],
+        address: memberItem.values['Address'],
         addNotification,
         setSystemError,
       });

@@ -1463,6 +1463,8 @@ export function* activateBiller(action) {
   args.schedulePeriodType = action.payload.period;
   args.startDate = action.payload.startDate;
   args.scheduleDate = action.payload.scheduleDate;
+  args.email = action.payload.email;
+  args.address = action.payload.address;
   axios
     .post(appSettings.kineticBillingServerUrl + activateBillerUrl, args)
     .then(result => {

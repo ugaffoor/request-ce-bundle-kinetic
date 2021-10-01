@@ -529,27 +529,51 @@ export class LeadEdit extends Component {
                   >
                     <I18n>Postcode</I18n>
                   </label>
-                  <NumberFormat
-                    format={
-                      getAttributeValue(this.props.space, 'Postcode Format') !==
-                      undefined
-                        ? getAttributeValue(this.props.space, 'Postcode Format')
-                        : '####'
-                    }
-                    mask="_"
-                    required
-                    ref={input => (this.input = input)}
-                    value={this.props.leadItem.values['Postcode']}
-                    onValueChange={(values, e) =>
-                      handleFormattedChange(
-                        values,
-                        this.props.leadItem,
-                        'Postcode',
-                        e,
-                        this.setIsDirty,
-                      )
-                    }
-                  />
+                  {getAttributeValue(
+                    this.props.space,
+                    'School Country Code',
+                  ) === 'GB' ? (
+                    <input
+                      type="text"
+                      name="postcode"
+                      id="postcode"
+                      size="10"
+                      required
+                      ref={input => (this.input = input)}
+                      defaultValue={this.props.leadItem.values['Postcode']}
+                      onChange={e => {
+                        e.target.value = e.target.value;
+                        handleChange(this.props.leadItem, 'Postcode', e);
+                      }}
+                    />
+                  ) : (
+                    <NumberFormat
+                      format={
+                        getAttributeValue(
+                          this.props.space,
+                          'Postcode Format',
+                        ) !== undefined
+                          ? getAttributeValue(
+                              this.props.space,
+                              'Postcode Format',
+                            )
+                          : '####'
+                      }
+                      mask="_"
+                      required
+                      ref={input => (this.input = input)}
+                      value={this.props.leadItem.values['Postcode']}
+                      onValueChange={(values, e) =>
+                        handleFormattedChange(
+                          values,
+                          this.props.leadItem,
+                          'Postcode',
+                          e,
+                          this.setIsDirty,
+                        )
+                      }
+                    />
+                  )}
                 </div>
               </span>
               <span className="line">
@@ -557,7 +581,16 @@ export class LeadEdit extends Component {
                   <label
                     htmlFor="email"
                     required={
-                      this.props.leadItem.values['Email'] === null
+                      getAttributeValue(
+                        this.props.space,
+                        'Lead Email Required',
+                      ) !== undefined &&
+                      getAttributeValue(
+                        this.props.space,
+                        'Lead Email Required',
+                      ) === 'False'
+                        ? false
+                        : this.props.leadItem.values['Email'] === null
                         ? true
                         : false
                     }
@@ -569,7 +602,18 @@ export class LeadEdit extends Component {
                     name="email"
                     id="email"
                     size="40"
-                    required
+                    required={
+                      getAttributeValue(
+                        this.props.space,
+                        'Lead Email Required',
+                      ) !== undefined &&
+                      getAttributeValue(
+                        this.props.space,
+                        'Lead Email Required',
+                      ) === 'False'
+                        ? false
+                        : true
+                    }
                     ref={input => (this.input = input)}
                     value={this.props.leadItem.values['Email']}
                     onChange={e => {
@@ -903,7 +947,17 @@ export class LeadEdit extends Component {
                   <div>
                     <label htmlFor="emergencyphone">Phone</label>
                     <NumberFormat
-                      format="####-###-###"
+                      format={
+                        getAttributeValue(
+                          this.props.space,
+                          'PhoneNumber Format',
+                        ) !== undefined
+                          ? getAttributeValue(
+                              this.props.space,
+                              'PhoneNumber Format',
+                            )
+                          : '####-###-###'
+                      }
                       mask="_"
                       ref={input => (this.input = input)}
                       value={

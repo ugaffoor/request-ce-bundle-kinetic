@@ -26,6 +26,8 @@
     ]
   },
   "dependencies": {
+    "@stripe/react-stripe-js": "^1.4.1",
+    "@stripe/stripe-js": "^1.17.1",
     "component-css-extractor": "^1.0.0",
     "css-loader": "^5.2.6",
     "downloadjs": "^1.4.7",

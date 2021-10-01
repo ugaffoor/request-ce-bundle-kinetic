@@ -591,6 +591,29 @@ export const MemberEdit = ({
                           }
                         />
                       </div>
+                      <div>
+                        <label htmlFor="billingParentMember">
+                          Billing Parent Member
+                        </label>
+                        <input
+                          type="text"
+                          name="billingParentMember"
+                          id="billingParentMember"
+                          size="30"
+                          ref={input => (this.input = input)}
+                          defaultValue={
+                            memberItem.values['Billing Parent Member']
+                          }
+                          onChange={e =>
+                            handleChange(
+                              memberItem,
+                              'Billing Parent Member',
+                              e,
+                              setIsDirty,
+                            )
+                          }
+                        />
+                      </div>
                     </span>
                     <span className="line">
                       <div>
@@ -766,27 +789,42 @@ export const MemberEdit = ({
                 >
                   <I18n>Postcode</I18n>
                 </label>
-                <NumberFormat
-                  format={
-                    getAttributeValue(space, 'Postcode Format') !== undefined
-                      ? getAttributeValue(space, 'Postcode Format')
-                      : '####'
-                  }
-                  mask="_"
-                  required
-                  ref={input => (this.input = input)}
-                  value={memberItem.values['Postcode']}
-                  onValueChange={(values, e) =>
-                    handleFormattedChange(
-                      values,
-                      memberItem,
-                      'Postcode',
-                      e,
-                      setIsDirty,
-                      memberChanges,
-                    )
-                  }
-                />
+                {getAttributeValue(space, 'School Country Code') === 'GB' ? (
+                  <input
+                    type="text"
+                    name="postcode"
+                    id="postcode"
+                    size="10"
+                    required
+                    ref={input => (this.input = input)}
+                    defaultValue={memberItem.values['Postcode']}
+                    onChange={e => {
+                      handleChange(memberItem, 'Postcode', e);
+                    }}
+                  />
+                ) : (
+                  <NumberFormat
+                    format={
+                      getAttributeValue(space, 'Postcode Format') !== undefined
+                        ? getAttributeValue(space, 'Postcode Format')
+                        : '####'
+                    }
+                    mask="_"
+                    required
+                    ref={input => (this.input = input)}
+                    value={memberItem.values['Postcode']}
+                    onValueChange={(values, e) =>
+                      handleFormattedChange(
+                        values,
+                        memberItem,
+                        'Postcode',
+                        e,
+                        setIsDirty,
+                        memberChanges,
+                      )
+                    }
+                  />
+                )}
               </div>
             </span>
             <span className="line">

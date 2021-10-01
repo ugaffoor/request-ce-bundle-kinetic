@@ -25,7 +25,7 @@ const ResetToken = ({
       </h3>
       <div className="form-group">
         <label htmlFor="email">
-          <I18n>Email Address</I18n>
+          <I18n>User Name</I18n>
         </label>
         <p className="form-control-static">{email}</p>
       </div>

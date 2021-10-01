@@ -293,21 +293,37 @@ export const MemberNew = ({
                   >
                     <I18n>Postcode</I18n>
                   </label>
-                  <NumberFormat
-                    id="postcode"
-                    format={
-                      getAttributeValue(space, 'Postcode Format') !== undefined
-                        ? getAttributeValue(space, 'Postcode Format')
-                        : '####'
-                    }
-                    mask="_"
-                    required
-                    ref={input => (this.input = input)}
-                    value={memberItem.values['Postcode']}
-                    onValueChange={(values, e) =>
-                      handleFormattedChange(values, memberItem, 'Postcode', e)
-                    }
-                  />
+                  {getAttributeValue(space, 'School Country Code') === 'GB' ? (
+                    <input
+                      type="text"
+                      name="postcode"
+                      id="postcode"
+                      size="10"
+                      required
+                      ref={input => (this.input = input)}
+                      value={memberItem.values['Postcode']}
+                      onChange={e => {
+                        handleChange(memberItem, 'Postcode', e);
+                      }}
+                    />
+                  ) : (
+                    <NumberFormat
+                      id="postcode"
+                      format={
+                        getAttributeValue(space, 'Postcode Format') !==
+                        undefined
+                          ? getAttributeValue(space, 'Postcode Format')
+                          : '####'
+                      }
+                      mask="_"
+                      required
+                      ref={input => (this.input = input)}
+                      value={memberItem.values['Postcode']}
+                      onValueChange={(values, e) =>
+                        handleFormattedChange(values, memberItem, 'Postcode', e)
+                      }
+                    />
+                  )}
                 </div>
               </span>
               <span className="line">

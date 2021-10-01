@@ -61,7 +61,10 @@ export function* fetchPOSProducts(action) {
     for (var i = 0; i < products.length; i++) {
       if (products[i].stock === undefined) products[i].stock = [];
       for (var x = 0; x < stocks.length; x++) {
-        if (products[i]['id'] === stocks[x].values['Product ID']) {
+        if (
+          products[i]['id'] === stocks[x].values['Product ID'] &&
+          stocks[x].values['Quantity'] > 0
+        ) {
           products[i].stock[products[i].stock.length] = stocks[x];
         }
       }

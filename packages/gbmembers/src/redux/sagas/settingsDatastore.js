@@ -179,8 +179,8 @@ export function* fetchJourneyEvent(action) {
   }
   if (submission.values['Record Type'] === 'Lead') {
     let idx = action.payload.leads.findIndex(function(element) {
-      //      console.log(element['id']+"==="+submission.values['Record ID']);
-      //      console.log(element['id']===submission.values['Record ID']);
+      console.log(element['id'] + '===' + submission.values['Record ID']);
+      console.log(element['id'] === submission.values['Record ID']);
       return element['id'] === submission.values['Record ID'];
     });
     console.log('lead idx:' + idx);

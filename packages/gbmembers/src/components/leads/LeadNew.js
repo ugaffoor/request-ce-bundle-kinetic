@@ -379,24 +379,47 @@ export class LeadNew extends Component {
                   <label htmlFor="postcode">
                     <I18n>Postcode</I18n>
                   </label>
-                  <NumberFormat
-                    format={
-                      getAttributeValue(this.props.space, 'Postcode Format') !==
-                      undefined
-                        ? getAttributeValue(this.props.space, 'Postcode Format')
-                        : '####'
-                    }
-                    mask="_"
-                    ref={input => (this.input = input)}
-                    onValueChange={(values, e) =>
-                      handleFormattedChange(
-                        values,
-                        this.props.leadItem,
-                        'Postcode',
-                        e,
-                      )
-                    }
-                  />
+                  {getAttributeValue(
+                    this.props.space,
+                    'School Country Code',
+                  ) === 'GB' ? (
+                    <input
+                      type="text"
+                      name="postcode"
+                      id="postcode"
+                      size="10"
+                      required
+                      ref={input => (this.input = input)}
+                      defaultValue={this.props.leadItem.values['Postcode']}
+                      onChange={e => {
+                        handleChange(this.props.leadItem, 'Postcode', e);
+                      }}
+                    />
+                  ) : (
+                    <NumberFormat
+                      format={
+                        getAttributeValue(
+                          this.props.space,
+                          'Postcode Format',
+                        ) !== undefined
+                          ? getAttributeValue(
+                              this.props.space,
+                              'Postcode Format',
+                            )
+                          : '####'
+                      }
+                      mask="_"
+                      ref={input => (this.input = input)}
+                      onValueChange={(values, e) =>
+                        handleFormattedChange(
+                          values,
+                          this.props.leadItem,
+                          'Postcode',
+                          e,
+                        )
+                      }
+                    />
+                  )}
                 </div>
               </span>
               <span className="line">
@@ -404,7 +427,16 @@ export class LeadNew extends Component {
                   <label
                     htmlFor="email"
                     required={
-                      this.props.leadItem.values['Email'] === undefined
+                      getAttributeValue(
+                        this.props.space,
+                        'Lead Email Required',
+                      ) !== undefined &&
+                      getAttributeValue(
+                        this.props.space,
+                        'Lead Email Required',
+                      ) === 'False'
+                        ? false
+                        : this.props.leadItem.values['Email'] === undefined
                         ? true
                         : false
                     }
@@ -416,7 +448,18 @@ export class LeadNew extends Component {
                     name="email"
                     id="email"
                     size="40"
-                    required
+                    required={
+                      getAttributeValue(
+                        this.props.space,
+                        'Lead Email Required',
+                      ) !== undefined &&
+                      getAttributeValue(
+                        this.props.space,
+                        'Lead Email Required',
+                      ) === 'False'
+                        ? false
+                        : true
+                    }
                     ref={input => (this.input = input)}
                     onChange={e =>
                       handleChange(this.props.leadItem, 'Email', e)
@@ -633,7 +676,17 @@ export class LeadNew extends Component {
                   <div>
                     <label htmlFor="emergencyphone">Phone</label>
                     <NumberFormat
-                      format="####-###-###"
+                      format={
+                        getAttributeValue(
+                          this.props.space,
+                          'PhoneNumber Format',
+                        ) !== undefined
+                          ? getAttributeValue(
+                              this.props.space,
+                              'PhoneNumber Format',
+                            )
+                          : '####-###-###'
+                      }
                       mask="_"
                       ref={input => (this.input = input)}
                       onValueChange={(values, e) =>

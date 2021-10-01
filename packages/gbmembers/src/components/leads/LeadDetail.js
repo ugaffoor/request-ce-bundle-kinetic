@@ -579,12 +579,14 @@ export class LeadDetail extends Component {
                   >
                     Follow Up
                     <br />
-                    {this.props.leadItem
+                    {this.props.leadItem &&
+                    this.props.leadItem.values['Reminder Date'] !== undefined &&
+                    this.props.leadItem.values['Reminder Date'] !== null
                       ? moment(
                           this.props.leadItem.values['Reminder Date'],
                           'YYYY-MM-DD',
                         ).format('L')
-                      : ''}
+                      : 'None'}
                   </NavLink>
                 </span>
               </div>

@@ -53,6 +53,14 @@ import { actions as appActions } from '../../redux/modules/memberApp';
 import BarcodeReader from 'react-barcode-reader';
 import barcodeIcon from '../../images/barcode.svg?raw';
 import { SettingsContainer } from './Settings';
+import { loadStripe } from '@stripe/stripe-js';
+import {
+  CardElement,
+  Elements,
+  useStripe,
+  useElements,
+  confirmCardPayment,
+} from '@stripe/react-stripe-js';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -94,6 +102,45 @@ const mapDispatchToProps = {
 var posThis = undefined;
 var verifyDeviceCount = 0;
 
+const StripePaymentCapture = () => {
+  const stripe = useStripe();
+  const elements = useElements();
+  return (
+    <CardElement
+      onReady={e => {
+        $('.__PrivateStripeElement iframe').css('width', '400px');
+      }}
+      onChange={e => {
+        console.log('Complete:' + e.complete);
+        if (e.complete) {
+          posThis.setState({
+            processing: false,
+            cvc: 'NA',
+            expiry: 'NA',
+            number: 'NA',
+            stripe: stripe,
+            stripeElements: elements,
+          });
+        }
+      }}
+      options={{
+        hidePostalCode: true,
+        style: {
+          base: {
+            fontSize: '16px',
+            color: '#424770',
+            '::placeholder': {
+              color: '#aab7c4',
+            },
+          },
+          invalid: {
+            color: '#9e2146',
+          },
+        },
+      }}
+    />
+  );
+};
 class PayNow extends Component {
   constructor(props) {
     super(props);
@@ -312,54 +359,33 @@ class PayNow extends Component {
       this.state.total,
     );
   }
-  processDebitSuccesPayment(
+  fetchPaymentIntentClientSecret = async (
     posServiceURL,
     spaceSlug,
     posSystem,
-    schoolName,
-    uuid,
-    posThis,
-  ) {
+    currency,
+    amount,
+  ) => {
+    var clientSecret = 'NOT_FOUND';
     var data = JSON.stringify({
       space: spaceSlug,
       billingService: posSystem,
-      issuer: this.state.issuer,
-      customerId: '',
-      payment: this.state.total,
-      orderId: uuid,
-      ccnumber: this.state.number,
-      expiry: this.state.expiry,
-      cvc: this.state.cvc,
-      firstName: this.state.firstName,
-      lastName: this.state.lastName,
-      description: schoolName + ' sale',
+      type: 'payment',
+      currency: currency,
+      amount: amount,
     });
 
     var config = {
       method: 'post',
-      url: posServiceURL,
+      url: posServiceURL.replace('processPOS', 'fetchPaymentIntent'),
       headers: {
         'Content-Type': 'application/json',
       },
       data: data,
     };
-    axios(config)
+    await axios(config)
       .then(function(response) {
-        var data = JSON.parse(response.data.data);
-        console.log(JSON.stringify(data));
-        posThis.setState({
-          status: data['status'],
-          status_message: data['status_message'],
-          errors: data['errors'],
-          auth_code: data['auth_code'],
-          transaction_id: data['transaction_id'],
-          processingComplete: true,
-          processing: false,
-          datetime: moment(),
-        });
-        if (data['status'] === '1') {
-          posThis.completeCheckout();
-        }
+        clientSecret = response.data.data.clientSecret;
       })
       .catch(err => {
         var error = 'Connection Error';
@@ -381,8 +407,80 @@ class PayNow extends Component {
           datetime: moment(),
         });
         console.log(error);
+        clientSecret = 'ERROR';
       });
-  }
+    return clientSecret;
+  };
+  processStripePayment = async (
+    posServiceURL,
+    spaceSlug,
+    posSystem,
+    schoolName,
+    uuid,
+    posThis,
+  ) => {
+    console.log('processStripePayment');
+    // Fetch the intent client secret from the backend
+    const clientSecret = await this.fetchPaymentIntentClientSecret(
+      posServiceURL,
+      spaceSlug,
+      posSystem,
+      posThis.props.currency,
+      posThis.state.total,
+    );
+
+    if (clientSecret === 'NOT_FOUND') {
+      posThis.setState({
+        status: '10',
+        status_message: 'System Error',
+        errors: 'Client not obtained',
+        auth_code: '',
+        transaction_id: '',
+        processingComplete: true,
+        processing: false,
+        datetime: moment(),
+      });
+      return;
+    }
+
+    const payload = await posThis.state.stripe.confirmCardPayment(
+      clientSecret,
+      {
+        payment_method: {
+          card: posThis.state.stripeElements.getElement(CardElement),
+          billing_details: {
+            name: posThis.state.firstName + ' ' + posThis.state.lastName,
+          },
+        },
+      },
+    );
+
+    if (payload.error) {
+      posThis.setState({
+        status: '10',
+        status_message: payload.error.message,
+        errors: payload.error.message,
+        auth_code: payload.error.code,
+        transaction_id: '',
+        processingComplete: true,
+        processing: false,
+        datetime: moment(),
+      });
+    } else {
+      posThis.setState({
+        status: '1',
+        status_message: payload.paymentIntent.status,
+        errors: '',
+        auth_code: '',
+        transaction_id: payload.paymentIntent.id,
+        processingComplete: true,
+        processing: false,
+        datetime: moment(),
+      });
+
+      posThis.completeCheckout();
+    }
+  };
   processBamboraPayment(
     posServiceURL,
     spaceSlug,
@@ -475,8 +573,8 @@ class PayNow extends Component {
         uuid(),
         this,
       );
-    } else if (posSystem === 'DebitSuccess') {
-      this.processDebitSuccesPayment(
+    } else if (posSystem === 'Stripe') {
+      this.processStripePayment(
         posServiceURL,
         this.props.spaceSlug,
         posSystem,
@@ -1034,16 +1132,14 @@ class PayNow extends Component {
                             'First Name'
                           ];
                           lastName = this.props.allLeads[i].values['Last Name'];
-                          address = this.props.allMembers[i].values['Address'];
-                          city = this.props.allMembers[i].values['Suburb'];
-                          province = this.props.allMembers[i].values['State'];
-                          postCode = this.props.allMembers[i].values[
-                            'Postcode'
-                          ];
-                          phoneNumber = this.props.allMembers[i].values[
+                          address = this.props.allLeads[i].values['Address'];
+                          city = this.props.allLeads[i].values['Suburb'];
+                          province = this.props.allLeads[i].values['State'];
+                          postCode = this.props.allLeads[i].values['Postcode'];
+                          phoneNumber = this.props.allLeads[i].values[
                             'Phone Number'
                           ];
-                          email = this.props.allMembers[i].values['Email'];
+                          email = this.props.allLeads[i].values['Email'];
                         }
                       }
                       this.setState({
@@ -1242,59 +1338,19 @@ class PayNow extends Component {
               ) : (
                 <div />
               )}
-
               {this.state.payment === 'creditcard' &&
-              getAttributeValue(this.props.space, 'POS System') !==
-                'Bambora' ? (
+              getAttributeValue(this.props.space, 'POS System') === 'Stripe' ? (
                 <span className="creditCard">
-                  <Cards
-                    cvc={this.state.cvc}
-                    expiry={this.state.expiry}
-                    focused={this.state.focus}
-                    name={this.state.name}
-                    number={this.state.number}
-                    acceptedCards={this.state.acceptedCards}
-                    callback={params => {
-                      posThis.setState({
-                        issuer: params.issuer,
-                        maxLength: params.maxLength,
-                      });
-                    }}
-                  />
-                  <form className="cardDetails">
-                    <input
-                      type="tel"
-                      name="number"
-                      maxlength={this.state.maxLength}
-                      placeholder="Card Number"
-                      onChange={this.handleInputChange}
-                      onFocus={this.handleInputFocus}
-                    />
-                    <input
-                      type="text"
-                      name="name"
-                      placeholder="Name"
-                      defaultValue={this.state.name}
-                      onChange={this.handleInputChange}
-                      onFocus={this.handleInputFocus}
-                    />
-                    <input
-                      type="text"
-                      name="expiry"
-                      placeholder="Valid Thru"
-                      maxlength="5"
-                      onChange={this.handleInputChange}
-                      onFocus={this.handleInputFocus}
-                    />
-                    <input
-                      type="text"
-                      name="cvc"
-                      placeholder="CVC"
-                      maxlength="4"
-                      onChange={this.handleInputChange}
-                      onFocus={this.handleInputFocus}
-                    />
-                  </form>
+                  <Elements
+                    stripe={loadStripe(
+                      getAttributeValue(
+                        this.props.space,
+                        'POS Stripe Publishable Key',
+                      ),
+                    )}
+                  >
+                    <StripePaymentCapture />
+                  </Elements>
                 </span>
               ) : (
                 <div />
@@ -1401,10 +1457,10 @@ class PayNow extends Component {
                   {this.state.processing ? (
                     <ScaleLoader
                       className="processing"
-                      height="35"
-                      width="16"
-                      radius="2"
-                      margin="4"
+                      height="35px"
+                      width="16px"
+                      radius="2px"
+                      margin="4px"
                       color="white"
                     />
                   ) : (

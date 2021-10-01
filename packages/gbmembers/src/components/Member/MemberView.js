@@ -242,36 +242,80 @@ export class NewCustomers extends Component {
 export class BillingParentInfo extends Component {
   constructor(props) {
     super(props);
-    this.memberId = this.props.memberId;
+    this.parentMemberId = this.props.parentMemberId;
     this.allMembers = this.props.allMembers;
-    this.member = undefined;
+    this.member = this.props.member;
+    this.parentMember = undefined;
   }
   componentWillReceiveProps(nextProps) {
     //    if (this.member===undefined /*|| this.allMembers.length!==nextProps.allMembers.length){
-    if (nextProps.memberId !== undefined) {
+    if (
+      nextProps.parentMemberId !== undefined &&
+      nextProps.parentMemberId !== null
+    ) {
       for (var j = 0; j < nextProps.allMembers.length; j++) {
-        if (nextProps.allMembers[j].id === nextProps.memberId) {
-          this.member = nextProps.allMembers[j];
+        if (nextProps.allMembers[j].id === nextProps.parentMemberId) {
+          this.parentMember = nextProps.allMembers[j];
           break;
         }
       }
     } else {
-      this.member = undefined;
+      this.parentMember = undefined;
     }
   }
   render() {
-    return this.member ? (
-      <p>
-        Family Member of
-        <NavLink
-          to={`/Member/${this.props.memberId}`}
-          className={'nav-link icon-wrapper'}
-          activeClassName="active"
-          style={{ display: 'inline' }}
+    return this.parentMember ? (
+      <div>
+        <p>
+          Family Member of
+          <NavLink
+            to={`/Member/${this.props.parentMemberId}`}
+            className={'nav-link icon-wrapper'}
+            activeClassName="active"
+            style={{ display: 'inline' }}
+          >
+            {this.parentMember.values['First Name']}{' '}
+            {this.parentMember.values['Last Name']}
+          </NavLink>
+        </p>
+        <button
+          className="btn btn-primary"
+          style={{ textTransform: 'unset' }}
+          onClick={async e => {
+            console.log(
+              e.currentTarget.getAttribute('noteDate') +
+                ' ' +
+                e.currentTarget.getAttribute('noteType'),
+            );
+            if (
+              await confirm(
+                <span>
+                  <span>
+                    Are you sure you want to REMOVE{' '}
+                    {this.member.values['First Name']}{' '}
+                    {this.member.values['Last Name']} as a Family member?
+                  </span>
+                  <table>
+                    <tbody>
+                      <tr>
+                        <td>Parent Member:</td>
+                        <td>
+                          {this.parentMember.values['First Name']}{' '}
+                          {this.parentMember.values['Last Name']}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </span>,
+              )
+            ) {
+              this.props.removeFamilyMember();
+            }
+          }}
         >
-          {this.member.values['First Name']} {this.member.values['Last Name']}
-        </NavLink>
-      </p>
+          Remove as Family Member
+        </button>
+      </div>
     ) : null;
   }
 }
@@ -542,10 +586,55 @@ class AttendanceCardToPrint extends React.Component {
     );
   }
 }
+class VisitorCardToPrint extends React.Component {
+  render() {
+    return (
+      <div
+        className={
+          'visitorCard ' +
+          (getAttributeValue(this.props.space, 'Card Region') === undefined
+            ? ''
+            : getAttributeValue(this.props.space, 'Card Region'))
+        }
+      >
+        <div id="visitorCard_p1" className={'card1 visitorCard'}>
+          <div className={'schoolName'}>
+            <p>{getAttributeValue(this.props.space, 'School Name')}</p>
+          </div>
+          <div className={'memberName'}>
+            <p>
+              {this.props.memberItem.values['First Name']}{' '}
+              {this.props.memberItem.values['Last Name']}
+            </p>
+          </div>
+          <div className="photoDiv">
+            {this.props.memberItem.values['Photo'] === undefined &&
+            this.props.memberItem.values['First Name'] !== undefined ? (
+              <span className="noPhotoDiv">
+                <span className="name">
+                  {this.props.memberItem.values['First Name'][0]}
+                  {this.props.memberItem.values['Last Name'][0]}
+                </span>
+              </span>
+            ) : (
+              <img
+                src={this.props.memberItem.values['Photo']}
+                alt="Member Photograph"
+                className="photoImg"
+              />
+            )}
+          </div>
+        </div>
+        <div className={'filler'}></div>
+      </div>
+    );
+  }
+}
 
 export const MemberView = ({
   memberItem,
   allMembers,
+  removeFamilyMember,
   saveMember,
   saveRemoveMemberNote,
   isDirty,
@@ -588,6 +677,7 @@ export const MemberView = ({
   locale,
   deleteMemberFile,
   currency,
+  updateMember,
 }) =>
   initialLoad ? (
     <div className="loading">
@@ -676,7 +766,8 @@ export const MemberView = ({
                 <div className="iconItem">
                   <SVGInline svg={dobIcon} className="icon" />
                   <span className="value">
-                    {moment(memberItem.values['DOB'], 'YYYY-MM-DD').format('L')}
+                    {moment(memberItem.values['DOB'], 'YYYY-MM-DD').format('L')}{' '}
+                    ({moment().diff(memberItem.values['DOB'], 'years')} yrs old)
                   </span>
                 </div>
                 <div className="iconItem">
@@ -688,7 +779,12 @@ export const MemberView = ({
                       className="emergencyNumber"
                       value={memberItem.values['Emergency Contact Phone']}
                       displayType={'text'}
-                      format="####-###-###"
+                      format={
+                        getAttributeValue(space, 'PhoneNumber Format') !==
+                        undefined
+                          ? getAttributeValue(space, 'PhoneNumber Format')
+                          : '####-###-###'
+                      }
                     />
                   </span>
                   <span className="value">
@@ -852,6 +948,20 @@ export const MemberView = ({
                     content={() => this.componentRef}
                   />
                 </div>
+                <div className="emergency">
+                  <div className="visitorCard">
+                    <p>Visitor Card</p>
+                  </div>
+                  <ReactToPrint
+                    trigger={() => (
+                      <SVGInline
+                        svg={printerIcon}
+                        className="icon visitorCardPrint"
+                      />
+                    )}
+                    content={() => this.visitorCardComponentRef}
+                  />
+                </div>
               </span>
             </div>
           </div>
@@ -872,6 +982,13 @@ export const MemberView = ({
           <div style={{ display: 'none' }}>
             <AttendanceCardToPrint
               ref={el => (this.componentRef = el)}
+              memberItem={memberItem}
+              space={space}
+            />
+          </div>
+          <div style={{ display: 'none' }}>
+            <VisitorCardToPrint
+              ref={el => (this.visitorCardComponentRef = el)}
               memberItem={memberItem}
               space={space}
             />
@@ -1001,8 +1118,11 @@ export const MemberView = ({
                 }
               >
                 <BillingParentInfo
-                  memberId={memberItem.values['Billing Parent Member']}
+                  parentMemberId={memberItem.values['Billing Parent Member']}
+                  member={memberItem}
                   allMembers={allMembers}
+                  removeFamilyMember={removeFamilyMember}
+                  setIsDirty={setIsDirty}
                 />
               </div>
               {Utils.getAttributeValue(space, 'Billing Company') ===
@@ -1216,6 +1336,27 @@ export const MemberViewContainer = compose(
   withState('durationPeriod', 'setDurationPeriod', 0),
   withState('creatingUserAccount', 'setCreatingUserAccount', false),
   withHandlers({
+    removeFamilyMember: ({
+      memberItem,
+      setIsDirty,
+      profile,
+      updateMember,
+      allMembers,
+    }) => () => {
+      memberItem.values['Billing Parent Member'] = null;
+      updateMember({
+        id: memberItem.id,
+        memberItem,
+        allMembers,
+      });
+      for (let i = 0; i < allMembers.length; i++) {
+        if (allMembers[i].id === memberItem.id) {
+          allMembers[i].values['Billing Parent Member'] = null;
+          break;
+        }
+      }
+      setIsDirty(false);
+    },
     saveMember: ({
       memberItem,
       updateMember,
