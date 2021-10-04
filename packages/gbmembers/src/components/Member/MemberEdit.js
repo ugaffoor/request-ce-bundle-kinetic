@@ -617,6 +617,27 @@ export const MemberEdit = ({
                     </span>
                     <span className="line">
                       <div>
+                        <label htmlFor="posProfileID">POS Profile ID</label>
+                        <input
+                          type="text"
+                          name="posProfileID"
+                          id="posProfileID"
+                          size="30"
+                          ref={input => (this.input = input)}
+                          defaultValue={memberItem.values['POS Profile ID']}
+                          onChange={e =>
+                            handleChange(
+                              memberItem,
+                              'POS Profile ID',
+                              e,
+                              setIsDirty,
+                            )
+                          }
+                        />
+                      </div>
+                    </span>
+                    <span className="line">
+                      <div>
                         <label htmlFor="emailsReceivedCount">
                           emailsReceivedCount
                         </label>

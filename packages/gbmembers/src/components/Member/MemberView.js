@@ -1097,7 +1097,7 @@ export const MemberView = ({
                     type={memberItem.values['Billing Payment Type']}
                   />
                 </p>
-                {!Utils.isMemberOf(profile, 'Billing') ? (
+                {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
                   <div />
                 ) : (
                   <NavLink

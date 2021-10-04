@@ -1075,6 +1075,7 @@ class PayNow extends Component {
                       var postCode = '';
                       var phoneNumber = '';
                       var email = '';
+                      var posProfileID = undefined;
                       for (let i = 0; i < this.props.allMembers.length; i++) {
                         if (this.props.allMembers[i].id === e.value) {
                           firstName = this.props.allMembers[i].values[
@@ -1093,6 +1094,9 @@ class PayNow extends Component {
                             'Phone Number'
                           ];
                           email = this.props.allMembers[i].values['Email'];
+                          posProfileID = this.props.allMembers[i].values[
+                            'POS Profile ID'
+                          ];
                         }
                       }
                       this.setState({
@@ -1106,6 +1110,7 @@ class PayNow extends Component {
                         postCode: postCode,
                         phoneNumber: phoneNumber,
                         email: email,
+                        posProfileID: posProfileID,
                       });
                     }}
                     style={{ width: '300px' }}
@@ -1126,6 +1131,7 @@ class PayNow extends Component {
                       var postCode = '';
                       var phoneNumber = '';
                       var email = '';
+                      var posProfileID = undefined;
                       for (let i = 0; i < this.props.allLeads.length; i++) {
                         if (this.props.allLeads[i].id === e.value) {
                           firstName = this.props.allLeads[i].values[
@@ -1153,6 +1159,7 @@ class PayNow extends Component {
                         postCode: postCode,
                         phoneNumber: phoneNumber,
                         email: email,
+                        posProfileID: posProfileID,
                       });
                     }}
                     style={{ width: '300px' }}
@@ -1170,98 +1177,106 @@ class PayNow extends Component {
                   </div>
                 </span>
               </span>
-              <span className="paymentType">
-                <div className="label">Payment Type</div>
-                <div className="radioGroup">
-                  {getAttributeValue(this.props.space, 'POS System') !==
-                    'Square' && (
-                    <label htmlFor="creditCard" className="radio">
-                      <input
-                        id="creditCard"
-                        name="cardpayment"
-                        type="radio"
-                        value="Credit Card"
-                        onChange={e => {
-                          this.setState({ payment: 'creditcard' });
-                        }}
-                        onClick={async e => {
-                          if (
-                            getAttributeValue(
+              {this.state.posProfileID !== undefined &&
+              this.state.posProfileID !== null ? (
+                <span className="paymentType">
+                  <div className="label">Saved Card</div>
+                </span>
+              ) : (
+                <span className="paymentType">
+                  <div className="label">Payment Type</div>
+                  <div className="radioGroup">
+                    {getAttributeValue(this.props.space, 'POS System') !==
+                      'Square' && (
+                      <label htmlFor="creditCard" className="radio">
+                        <input
+                          id="creditCard"
+                          name="cardpayment"
+                          type="radio"
+                          disabled={this.disablePaymentType()}
+                          value="Credit Card"
+                          onChange={e => {
+                            this.setState({ payment: 'creditcard' });
+                          }}
+                          onClick={async e => {
+                            if (
+                              getAttributeValue(
+                                this.props.space,
+                                'POS System',
+                              ) === 'Bambora'
+                            ) {
+                            }
+                          }}
+                        />
+                        Credit Card
+                      </label>
+                    )}
+                    {getAttributeValue(this.props.space, 'POS System') ===
+                      'Square' && (
+                      <label htmlFor="capture" className="radio">
+                        <input
+                          id="capture"
+                          name="cardpayment"
+                          type="radio"
+                          disabled={this.disablePaymentType()}
+                          value="Capture"
+                          onChange={e => {
+                            this.setState({ payment: 'capture' });
+                          }}
+                          onClick={async e => {
+                            var url = getAttributeValue(
                               this.props.space,
-                              'POS System',
-                            ) === 'Bambora'
-                          ) {
-                          }
-                        }}
-                      />
-                      Credit Card
-                    </label>
-                  )}
-                  {getAttributeValue(this.props.space, 'POS System') ===
-                    'Square' && (
-                    <label htmlFor="capture" className="radio">
+                              'POS Service URL',
+                            );
+                            url = url.replace('processPOS', 'pairedDevice');
+                            var args = {
+                              space: this.props.space.slug,
+                              billingService: getAttributeValue(
+                                this.props.space,
+                                'POS System',
+                              ),
+                            };
+                            axios
+                              .post(url, args)
+                              .then(result => {
+                                if (result.data.error === 100) {
+                                  this.createDeviceID();
+                                } else {
+                                  var data = result.data.data;
+                                  this.setState({
+                                    squareDevice: data.id,
+                                    terminalCode: data.code,
+                                    deviceStatus: data.status,
+                                    status_message: undefined,
+                                  });
+
+                                  this.processSquareCheckout();
+                                }
+                              })
+                              .catch(error => {
+                                console.log(error.response);
+                              });
+                          }}
+                        />
+                        Capture
+                      </label>
+                    )}
+                    <label htmlFor="cash" className="radio">
                       <input
-                        id="capture"
+                        id="cash"
                         name="cardpayment"
                         type="radio"
                         disabled={this.disablePaymentType()}
-                        value="Capture"
+                        value="Cash"
                         onChange={e => {
-                          this.setState({ payment: 'capture' });
-                        }}
-                        onClick={async e => {
-                          var url = getAttributeValue(
-                            this.props.space,
-                            'POS Service URL',
-                          );
-                          url = url.replace('processPOS', 'pairedDevice');
-                          var args = {
-                            space: this.props.space.slug,
-                            billingService: getAttributeValue(
-                              this.props.space,
-                              'POS System',
-                            ),
-                          };
-                          axios
-                            .post(url, args)
-                            .then(result => {
-                              if (result.data.error === 100) {
-                                this.createDeviceID();
-                              } else {
-                                var data = result.data.data;
-                                this.setState({
-                                  squareDevice: data.id,
-                                  terminalCode: data.code,
-                                  deviceStatus: data.status,
-                                  status_message: undefined,
-                                });
-
-                                this.processSquareCheckout();
-                              }
-                            })
-                            .catch(error => {
-                              console.log(error.response);
-                            });
+                          this.setState({ payment: 'cash' });
                         }}
                       />
-                      Capture
+                      Cash
                     </label>
-                  )}
-                  <label htmlFor="cash" className="radio">
-                    <input
-                      id="cash"
-                      name="cardpayment"
-                      type="radio"
-                      disabled={this.disablePaymentType()}
-                      value="Cash"
-                      onChange={e => {
-                        this.setState({ payment: 'cash' });
-                      }}
-                    />
-                    Cash
-                  </label>
-                </div>
-              </span>
+                  </div>
+                </span>
+              )}
               {this.state.payment === 'capture' &&
               getAttributeValue(this.props.space, 'POS System') === 'Square' ? (
                 <span className="capture">
