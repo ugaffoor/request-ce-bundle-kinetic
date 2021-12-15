@@ -1,6 +1,7 @@
 import React from 'react';
 import { I18n } from '../../../../app/src/I18nProvider';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
+import $ from 'jquery';
 
 export class ReceiptToPrint extends React.Component {
   constructor(props) {
@@ -16,11 +17,25 @@ export class ReceiptToPrint extends React.Component {
       if (matches !== null) {
         matches.forEach(function(value, index) {
           console.log(value);
+          var attrValue = value.split("'")[1];
           if (value.indexOf('spaceAttributes') !== -1) {
-            receiptFooter = receiptFooter.replace(
-              new RegExp(self.escapeRegExp(value), 'g'),
-              self.props.space.attributes[value.split("'")[1]][0],
-            );
+            if (
+              self.props.space.attributes[value.split("'")[1]] !== undefined
+            ) {
+              receiptFooter = receiptFooter.replace(
+                new RegExp(self.escapeRegExp('display_' + attrValue), 'g'),
+                'block',
+              );
+              receiptFooter = receiptFooter.replace(
+                new RegExp(self.escapeRegExp(value), 'g'),
+                self.props.space.attributes[value.split("'")[1]][0],
+              );
+            } else {
+              receiptFooter = receiptFooter.replace(
+                new RegExp(self.escapeRegExp('display_' + attrValue), 'g'),
+                'none',
+              );
+            }
           }
         });
       }
@@ -220,7 +235,12 @@ export class ReceiptToPrint extends React.Component {
         )}
         <span className="total">
           <span className="label">
-            <I18n>TOTAL</I18n>
+            {getAttributeValue(this.props.space, 'POS Sales Total Label') ===
+            undefined ? (
+              <I18n>TOTAL</I18n>
+            ) : (
+              getAttributeValue(this.props.space, 'POS Sales Total Label')
+            )}
           </span>
           <span className="value">
             {new Intl.NumberFormat(this.props.locale, {

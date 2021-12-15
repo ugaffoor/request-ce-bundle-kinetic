@@ -337,7 +337,10 @@ export class TasksDetail extends Component {
       });
     } else if (duration === 'All Tasks') {
       allLeads.forEach(lead => {
-        if (lead.values['Reminder Date'] !== undefined) {
+        if (
+          lead.values['Reminder Date'] !== undefined &&
+          lead.values['Reminder Date'] !== null
+        ) {
           var latestHistory = getLatestHistory(lead.values['History']);
           leads[leads.length] = {
             _id: lead['id'],
@@ -407,7 +410,11 @@ export class TasksDetail extends Component {
         </span>
       );
     } else {
-      return <span className="notesCell"></span>;
+      return (
+        <span className="notesCell">
+          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format('L LT')}
+        </span>
+      );
     }
   }
 
@@ -602,7 +609,8 @@ export class TasksDetail extends Component {
     } else if (duration === 'All Tasks') {
       allMembers.forEach(member => {
         if (
-          member.values['Reminder Date'] ||
+          (member.values['Reminder Date'] !== undefined &&
+            member.values['Reminder Date'] !== null) ||
           member.values['Is New Reply Received'] === 'true'
         ) {
           members[members.length] = {

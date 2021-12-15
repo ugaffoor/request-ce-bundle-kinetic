@@ -29,7 +29,20 @@ export class StockReport extends Component {
         prod => prod['id'] === stock.values['Product ID'],
       );
       if (idx !== -1) {
-        total += Number.parseFloat(this.props.posProducts[idx].values['Price']);
+        total +=
+          Number.parseFloat(stock.values['Quantity']) *
+          Number.parseFloat(this.props.posProducts[idx].values['Price']);
+      }
+    });
+
+    data.forEach((stock, i) => {
+      var idx = this.props.posProducts.findIndex(
+        prod => prod['id'] === stock.productid,
+      );
+      if (idx !== -1) {
+        stock['price'] = Number.parseFloat(
+          this.props.posProducts[idx].values['Price'],
+        );
       }
     });
 
@@ -76,6 +89,7 @@ export class StockReport extends Component {
       })
       .map(stock => {
         return {
+          productid: stock.values['Product ID'],
           name: stock.values['Product Name'],
           sku: stock.values['SKU'],
           size: stock.values['Size'],
@@ -133,6 +147,28 @@ export class StockReport extends Component {
             return -1;
           }
           return 0;
+        },
+      },
+      {
+        accessor: 'price',
+        Header: 'Unit Price',
+        width: 100,
+        Cell: props => {
+          return new Intl.NumberFormat(this.locale, {
+            style: 'currency',
+            currency: this.currency,
+          }).format(props.original.price);
+        },
+      },
+      {
+        accessor: 'price',
+        Header: 'Total',
+        width: 100,
+        Cell: props => {
+          return new Intl.NumberFormat(this.locale, {
+            style: 'currency',
+            currency: this.currency,
+          }).format(props.original.price * props.original.quantity);
         },
       },
     ];

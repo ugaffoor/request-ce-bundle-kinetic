@@ -331,6 +331,11 @@
             cursor: pointer;
           }
         }
+        .info.percentage {
+          .value {
+            font-size: 50px !important;
+          }
+        }
         .value {
           color: #4d5059;
         }

@@ -1259,6 +1259,21 @@ export function memberPreviousStatus(member) {
     return '';
   }
 }
+export function isBillingParent(member) {
+  var billingUser = member.values['Billing User'];
+  if (billingUser === undefined || billingUser !== 'YES') return false;
+
+  var dependants = member.values['Billing Family Members'];
+  if (dependants === undefined || dependants === null) return false;
+  dependants = JSON.parse(dependants);
+  var isPrimary = false;
+  dependants.forEach(id => {
+    if (id !== member.id) {
+      isPrimary = true;
+    }
+  });
+  return isPrimary;
+}
 
 export function setMemberPromotionValues(member, belts) {
   let statusIndicator = 'notready';

@@ -147,12 +147,21 @@ export class Members extends React.Component {
               ),
               filterMethod: (filter, row) => {
                 return (
-                  row._original['First Name']
-                    .toLowerCase()
-                    .includes(filter.value.toLowerCase()) ||
-                  row._original['Last Name']
-                    .toLowerCase()
-                    .includes(filter.value.toLowerCase()) ||
+                  (row._original['First Name'] !== undefined &&
+                    row._original['First Name'] !== null &&
+                    row._original['First Name']
+                      .toLowerCase()
+                      .includes(filter.value.toLowerCase())) ||
+                  (row._original['First Name'] !== undefined &&
+                    row._original['First Name'] !== null &&
+                    row._original['First Name']
+                      .toLowerCase()
+                      .includes(filter.value.toLowerCase())) ||
+                  (row._original['Last Name'] !== undefined &&
+                    row._original['Last Name'] !== null &&
+                    row._original['Last Name']
+                      .toLowerCase()
+                      .includes(filter.value.toLowerCase())) ||
                   (row._original['Phone Number'] !== undefined &&
                     row._original['Phone Number'] !== null &&
                     row._original['Phone Number']

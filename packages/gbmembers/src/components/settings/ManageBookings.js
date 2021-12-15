@@ -662,7 +662,8 @@ export class ManageBookings extends Component {
                   var currentClassBookings = this.classBookings.filter(
                     booking =>
                       booking.sortVal ===
-                      this.state.classDate + '-' + this.state.classTime,
+                        this.state.classDate + '-' + this.state.classTime &&
+                      booking.program === this.state.program,
                   );
                   var bookedStudents =
                     currentClassBookings.length > 0

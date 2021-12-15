@@ -78,7 +78,7 @@ export const Form = ({
         )}
       </div>
       <div className="form-description">
-        {form && <p>{form.description}</p>}
+        {form && <p dangerouslySetInnerHTML={{ __html: form.description }}></p>}
       </div>
       <div className="embedded-core-form--wrapper">
         {submissionId ? (

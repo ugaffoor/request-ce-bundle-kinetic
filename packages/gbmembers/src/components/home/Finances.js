@@ -19,6 +19,7 @@ export class Finances extends Component {
     let data = this.getData(props.monthlyStatistics);
 
     this.CustomizedDot = this.CustomizedDot.bind(this);
+    this.yAxisTickFormatter = this.yAxisTickFormatter.bind(this);
 
     this.state = {
       data: data,
@@ -116,7 +117,10 @@ export class Finances extends Component {
         textAnchor={'start'}
         dominantBaseline="central"
       >
-        {`$${parseInt(value).toLocaleString()}`}
+        {`${new Intl.NumberFormat(this.props.locale, {
+          style: 'currency',
+          currency: this.props.currency,
+        }).format(parseInt(value))}`}
       </text>
     );
   };
@@ -124,7 +128,10 @@ export class Finances extends Component {
     return moment(date).format('MMM');
   }
   yAxisTickFormatter(amount) {
-    return '$' + amount.toLocaleString();
+    return new Intl.NumberFormat(this.props.locale, {
+      style: 'currency',
+      currency: this.props.currency,
+    }).format(amount);
   }
 
   financeToolTipFormatter(value, name, payload) {

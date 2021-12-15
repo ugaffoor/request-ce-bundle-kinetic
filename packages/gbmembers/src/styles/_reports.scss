@@ -169,6 +169,22 @@
     margin-top: 20px;
   }
 }
+.services {
+  margin-top: 20px;
+  .closeMembers {
+    cursor: pointer;
+  }
+  .servicesLink {
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  .members {
+    position: absolute;
+    width: 500px;
+    background-color: #fdfbfb;
+    z-index: 100;
+  }
+}
 .financialStats {
   margin-top: 20px;
   .closeMembers {

@@ -32,6 +32,7 @@ import { actions as errorActions } from '../../redux/modules/errors';
 import ReactSpinner from 'react16-spinjs';
 import { CallScriptModalContainer } from './CallScriptModalContainer';
 import { SMSModalContainer } from './SMSModalContainer';
+import { ChangeStatusModalContainer } from './ChangeStatusModalContainer';
 import { BamboraActivateContainer } from './BamboraActivate';
 import { EmailsReceived } from './EmailsReceived';
 import { MemberEmails } from './MemberEmails';
@@ -41,6 +42,7 @@ import { MemberFiles } from './MemberFiles';
 import { MemberOrders } from './MemberOrders';
 import { GradingStatus } from '../attendance/GradingStatus';
 import { AttendanceDialogContainer } from '../attendance/AttendanceDialog';
+import { SwitchBillingMemberContainer } from './SwitchBillingMemberContainer';
 import { Requests } from './Requests';
 import { MemberAttendanceContainer } from './MemberAttendance';
 import { actions as campaignActions } from '../../redux/modules/campaigns';
@@ -57,7 +59,7 @@ import {
   Legend,
 } from 'recharts';
 import { Utils } from 'common';
-import { getProgramSVG, getBeltSVG } from './MemberUtils';
+import { getProgramSVG, getBeltSVG, isBillingParent } from './MemberUtils';
 import ReactToPrint from 'react-to-print';
 import css from 'css';
 import attentionRequired from '../../images/flag.svg?raw';
@@ -319,6 +321,31 @@ export class BillingParentInfo extends Component {
     ) : null;
   }
 }
+export class SwitchBillingParent extends Component {
+  constructor(props) {
+    super(props);
+    this.allMembers = this.props.allMembers;
+    this.member = this.props.member;
+    this.parentMember = undefined;
+  }
+  componentWillReceiveProps(nextProps) {
+    //    if (this.member===undefined /*|| this.allMembers.length!==nextProps.allMembers.length){
+  }
+  render() {
+    return (
+      <div>
+        <br />
+        <button
+          type="button"
+          className={'btn btn-primary'}
+          onClick={e => this.props.setSwitchBillingMemberDialog(true)}
+        >
+          Switch Billing Member
+        </button>
+      </div>
+    );
+  }
+}
 
 export class AttendanceChart extends Component {
   constructor(props) {
@@ -573,6 +600,45 @@ class AttendanceCardToPrint extends React.Component {
               {this.props.memberItem.values['Last Name']}
             </p>
           </div>
+          {getAttributeValue(this.props.space, 'BarraFIT') === 'TRUE' && (
+            <div
+              className={
+                'ranking ' +
+                this.props.memberItem.values['Ranking Program'].replace(
+                  / /g,
+                  '_',
+                )
+              }
+            >
+              <p></p>
+            </div>
+          )}
+          {getAttributeValue(this.props.space, 'BarraFIT') === 'TRUE' && (
+            <div
+              className={
+                'lastpromotion ' +
+                this.props.memberItem.values['Ranking Program'].replace(
+                  / /g,
+                  '_',
+                )
+              }
+            >
+              <p>{this.props.memberItem.values['Last Promotion']}</p>
+            </div>
+          )}
+          {getAttributeValue(this.props.space, 'BarraFIT') === 'TRUE' && (
+            <div
+              className={
+                'program ' +
+                this.props.memberItem.values['Ranking Program'].replace(
+                  / /g,
+                  '_',
+                )
+              }
+            >
+              <p>{this.props.memberItem.values['Ranking Program']}</p>
+            </div>
+          )}
         </div>
         <PageBreakWrapper>&nbsp;</PageBreakWrapper>
         <div
@@ -635,6 +701,7 @@ export const MemberView = ({
   memberItem,
   allMembers,
   removeFamilyMember,
+  switchBillingMember,
   saveMember,
   saveRemoveMemberNote,
   isDirty,
@@ -657,6 +724,8 @@ export const MemberView = ({
   showCallScriptModal,
   setShowSMSModal,
   showSMSModal,
+  setShowChangeStatusModal,
+  showChangeStatusModal,
   isSmsEnabled,
   printBarcode,
   attendClasses,
@@ -667,6 +736,8 @@ export const MemberView = ({
   fetchMemberAttendances,
   showAttendanceDialog,
   setShowAttendanceDialog,
+  showSwitchBillingMemberDialog,
+  setSwitchBillingMemberDialog,
   showBamboraActivate,
   setShowBamboraActivate,
   createUserAccount,
@@ -674,6 +745,7 @@ export const MemberView = ({
   creatingUserAccount,
   setCreatingUserAccount,
   updateAttentionRequired,
+  updateMemberItem,
   locale,
   deleteMemberFile,
   currency,
@@ -699,14 +771,18 @@ export const MemberView = ({
             {memberItem.values['First Name']} {memberItem.values['Last Name']}
             &nbsp;({memberItem.values['Member Type']})
           </div>
-          <div className="rankingImages">
-            <div className="program">
-              {getProgramSVG(memberItem.values['Ranking Program'])}
+          {getAttributeValue(space, 'BarraFIT') === 'TRUE' ? (
+            <div />
+          ) : (
+            <div className="rankingImages">
+              <div className="program">
+                {getProgramSVG(memberItem.values['Ranking Program'])}
+              </div>
+              <div className="belt">
+                {getBeltSVG(memberItem.values['Ranking Belt'])}
+              </div>
             </div>
-            <div className="belt">
-              {getBeltSVG(memberItem.values['Ranking Belt'])}
-            </div>
-          </div>
+          )}
         </div>
         <div className="viewContent">
           <div className="general">
@@ -803,6 +879,89 @@ export const MemberView = ({
                       : memberItem.values['Covid19 Waiver']}
                   </span>
                 </div>
+                {Utils.getAttributeValue(space, 'Covid Check Required') ===
+                  'TRUE' && (
+                  <div className="iconItem">
+                    <label htmlFor="studentcovidcheck">
+                      Student Covid Check
+                    </label>
+                    <div className="checkboxFilter">
+                      <input
+                        id="studentcovidcheck"
+                        type="checkbox"
+                        checked={
+                          memberItem.values['Student Covid Check'] === 'YES'
+                            ? true
+                            : false
+                        }
+                        onChange={e => {
+                          if (e.target.checked) {
+                            memberItem.values['Student Covid Check'] = 'YES';
+                          } else {
+                            memberItem.values['Student Covid Check'] = '';
+                          }
+                          setIsDirty(true);
+                          updateMemberItem();
+                        }}
+                      />
+                      <label for="studentcovidcheck"></label>
+                    </div>
+                  </div>
+                )}
+                {Utils.getAttributeValue(space, 'Covid Check Required') ===
+                  'TRUE' && (
+                  <div className="iconItem">
+                    <label htmlFor="mothercovidcheck">Mother Covid Check</label>
+                    <div className="checkboxFilter">
+                      <input
+                        id="mothercovidcheck"
+                        type="checkbox"
+                        checked={
+                          memberItem.values['Mother Covid Check'] === 'YES'
+                            ? true
+                            : false
+                        }
+                        onChange={e => {
+                          if (e.target.checked) {
+                            memberItem.values['Mother Covid Check'] = 'YES';
+                          } else {
+                            memberItem.values['Mother Covid Check'] = '';
+                          }
+                          setIsDirty(true);
+                          updateMemberItem();
+                        }}
+                      />
+                      <label for="mothercovidcheck"></label>
+                    </div>
+                  </div>
+                )}
+                {Utils.getAttributeValue(space, 'Covid Check Required') ===
+                  'TRUE' && (
+                  <div className="iconItem">
+                    <label htmlFor="fathercovidcheck">Father Covid Check</label>
+                    <div className="checkboxFilter">
+                      <input
+                        id="fathercovidcheck"
+                        type="checkbox"
+                        checked={
+                          memberItem.values['Father Covid Check'] === 'YES'
+                            ? true
+                            : false
+                        }
+                        onChange={e => {
+                          if (e.target.checked) {
+                            memberItem.values['Father Covid Check'] = 'YES';
+                          } else {
+                            memberItem.values['Father Covid Check'] = '';
+                          }
+                          setIsDirty(true);
+                          updateMemberItem();
+                        }}
+                      />
+                      <label for="fathercovidcheck"></label>
+                    </div>
+                  </div>
+                )}
               </span>
               <span className="details2">
                 <div className="status">
@@ -822,6 +981,31 @@ export const MemberView = ({
                   ></div>
                 </div>
                 <span className="buttons">
+                  {!Utils.isMemberOf(profile, 'Role::Program Managers') ||
+                  Utils.getAttributeValue(space, 'Billing Company') !==
+                    'Bambora' ? (
+                    <div />
+                  ) : (
+                    <span>
+                      <a
+                        onClick={e => setShowChangeStatusModal(true)}
+                        className="btn btn-primary"
+                        style={{ marginLeft: '10px', color: 'white' }}
+                      >
+                        Change Status
+                      </a>
+                      {showChangeStatusModal && (
+                        <ChangeStatusModalContainer
+                          memberItem={memberItem}
+                          allMembers={allMembers}
+                          target="Member"
+                          space={space}
+                          profile={profile}
+                          setShowChangeStatusModal={setShowChangeStatusModal}
+                        />
+                      )}
+                    </span>
+                  )}
                   <NavLink
                     to={`/NewEmailCampaign/member/${memberItem.id}`}
                     className="btn btn-primary"
@@ -840,6 +1024,8 @@ export const MemberView = ({
                     <SMSModalContainer
                       submission={memberItem}
                       target="Member"
+                      space={space}
+                      profile={profile}
                       setShowSMSModal={setShowSMSModal}
                     />
                   )}
@@ -1110,9 +1296,28 @@ export const MemberView = ({
               </div>
               <div
                 className={
-                  memberItem.values['Billing Customer Id'] === undefined ||
-                  memberItem.values['Billing Customer Id'] === '' ||
-                  memberItem.values['Billing Customer Id'] === null
+                  isBillingParent(memberItem) ? 'billingInfo show' : 'hide'
+                }
+              >
+                <SwitchBillingParent
+                  setSwitchBillingMemberDialog={setSwitchBillingMemberDialog}
+                />
+                {showSwitchBillingMemberDialog && (
+                  <SwitchBillingMemberContainer
+                    memberItem={memberItem}
+                    allMembers={allMembers}
+                    setSwitchBillingMemberDialog={setSwitchBillingMemberDialog}
+                    switchBillingMember={switchBillingMember}
+                    setIsDirty={setIsDirty}
+                  />
+                )}
+              </div>
+              <div
+                className={
+                  memberItem.values['Billing Payment Type'] !== 'Cash' &&
+                  (memberItem.values['Billing Customer Id'] === undefined ||
+                    memberItem.values['Billing Customer Id'] === '' ||
+                    memberItem.values['Billing Customer Id'] === null)
                     ? 'billingInfo show'
                     : 'hide'
                 }
@@ -1332,10 +1537,154 @@ export const MemberViewContainer = compose(
   withState('showBamboraActivate', 'setShowBamboraActivate', false),
   withState('showAttendanceDialog', 'setShowAttendanceDialog', false),
   withState('showSMSModal', 'setShowSMSModal', false),
+  withState('showChangeStatusModal', 'setShowChangeStatusModal', false),
   withState('attendClasses', 'setAttendClasses', 0),
   withState('durationPeriod', 'setDurationPeriod', 0),
   withState('creatingUserAccount', 'setCreatingUserAccount', false),
+  withState(
+    'showSwitchBillingMemberDialog',
+    'setSwitchBillingMemberDialog',
+    false,
+  ),
   withHandlers({
+    switchBillingMember: ({
+      memberItem,
+      setIsDirty,
+      updateMember,
+      allMembers,
+      profile,
+    }) => (oldBiller, newBiller) => {
+      var otherFamilyMembers = JSON.parse(
+        oldBiller.values['Billing Family Members'],
+      );
+
+      newBiller.values['Billing Customer Reference'] =
+        oldBiller.values['Billing Customer Reference'];
+      newBiller.values['Billing Customer Id'] =
+        oldBiller.values['Billing Customer Id'];
+      newBiller.values['Billing User'] = oldBiller.values['Billing User'];
+      newBiller.values['Biller Migrated'] = oldBiller.values['Biller Migrated'];
+      newBiller.values['Billing Payment Type'] =
+        oldBiller.values['Billing Payment Type'];
+      newBiller.values['Billing Payment Period'] =
+        oldBiller.values['Billing Payment Period'];
+      newBiller.values['Billing Period'] = oldBiller.values['Billing Period'];
+      newBiller.values['Billing Parent Member'] = newBiller.id;
+      newBiller.values['Billing Family Members'] =
+        oldBiller.values['Billing Family Members'];
+      newBiller.values['Billing Start Date'] =
+        oldBiller.values['Billing Start Date'];
+      newBiller.values['Payment Schedule'] =
+        oldBiller.values['Payment Schedule'];
+      newBiller.values['Family Fee Details'] =
+        oldBiller.values['Family Fee Details'];
+      newBiller.values['Membership Cost'] = oldBiller.values['Membership Cost'];
+      newBiller.values['First Payment'] = oldBiller.values['First Payment'];
+      newBiller.values['Payment'] = oldBiller.values['Payment'];
+      newBiller.values['Admin Fee'] = oldBiller.values['Admin Fee'];
+      newBiller.values['Setup Fee'] = oldBiller.values['Setup Fee'];
+      newBiller.values['Payment Method'] = oldBiller.values['Payment Method'];
+      newBiller.values['Credit Card Expiry Year'] =
+        oldBiller.values['Credit Card Expiry Year'];
+      newBiller.values['Credit Card Expiry Month'] =
+        oldBiller.values['Credit Card Expiry Month'];
+      newBiller.values['Billing Cash Term Start Date'] =
+        oldBiller.values['Billing Cash Term Start Date'];
+      newBiller.values['Billing Cash Term End Date'] =
+        oldBiller.values['Billing Cash Term End Date'];
+
+      let changes = newBiller.values['Billing Changes'];
+      if (!changes) {
+        changes = [];
+      } else if (typeof changes !== 'object') {
+        changes = JSON.parse(changes);
+      }
+      changes.push({
+        date: moment().format(contact_date_format),
+        user: profile.username,
+        action:
+          'Switched Biller Member from ' +
+          oldBiller.values['First Name'] +
+          ' ' +
+          oldBiller.values['Last Name'],
+        from: oldBiller.values['Member ID'],
+        to: newBiller.values['Member ID'],
+      });
+      newBiller.values['Billing Changes'] = changes;
+
+      updateMember({
+        id: newBiller.id,
+        memberItem: newBiller,
+        allMembers,
+      });
+
+      oldBiller.values['Billing Parent Member'] = newBiller.id;
+      oldBiller.values['Billing Customer Reference'] = null;
+      oldBiller.values['Billing Customer Id'] = null;
+      oldBiller.values['Billing User'] = null;
+      oldBiller.values['Biller Migrated'] = null;
+      oldBiller.values['Billing Payment Type'] = null;
+      oldBiller.values['Billing Payment Period'] = null;
+      oldBiller.values['Billing Period'] = null;
+      oldBiller.values['Billing Family Members'] = null;
+      oldBiller.values['Billing Start Date'] = null;
+      oldBiller.values['Payment Schedule'] = null;
+      oldBiller.values['Family Fee Details'] = null;
+      oldBiller.values['Membership Cost'] = null;
+      oldBiller.values['First Payment'] = null;
+      oldBiller.values['Payment'] = null;
+      oldBiller.values['Admin Fee'] = null;
+      oldBiller.values['Setup Fee'] = null;
+      oldBiller.values['Payment Method'] = null;
+      oldBiller.values['Credit Card Expiry Year'] = null;
+      oldBiller.values['Credit Card Expiry Month'] = null;
+      oldBiller.values['Billing Cash Term Start Date'] = null;
+      oldBiller.values['Billing Cash Term End Date'] = null;
+
+      changes = oldBiller.values['Billing Changes'];
+      if (!changes) {
+        changes = [];
+      } else if (typeof changes !== 'object') {
+        changes = JSON.parse(changes);
+      }
+      changes.push({
+        date: moment().format(contact_date_format),
+        user: profile.username,
+        action:
+          'Switched Biller Member to ' +
+          newBiller.values['First Name'] +
+          ' ' +
+          newBiller.values['Last Name'],
+        from: newBiller.values['Member ID'],
+        to: oldBiller.values['Member ID'],
+      });
+      oldBiller.values['Billing Changes'] = changes;
+
+      updateMember({
+        id: oldBiller.id,
+        memberItem: oldBiller,
+        allMembers,
+      });
+
+      // Find other family members to change parent Member
+      otherFamilyMembers = otherFamilyMembers.filter(
+        member => member !== newBiller.id && member !== oldBiller.id,
+      );
+      otherFamilyMembers.forEach((memberid, i) => {
+        var idx = allMembers.findIndex(member => memberid === member.id);
+        if (idx !== -1) {
+          var dependantMember = allMembers[idx];
+          dependantMember.values['Billing Parent Member'] = newBiller.id;
+          updateMember({
+            id: dependantMember.id,
+            memberItem: dependantMember,
+            allMembers,
+          });
+        }
+      });
+
+      setIsDirty(false);
+    },
     removeFamilyMember: ({
       memberItem,
       setIsDirty,
@@ -1560,6 +1909,28 @@ export const MemberViewContainer = compose(
         setSystemError,
       });
     },
+    updateMemberItem: ({
+      memberItem,
+      updateMember,
+      allMembers,
+      addNotification,
+      setSystemError,
+      setIsDirty,
+    }) => () => {
+      for (let i = 0; i < allMembers.length; i++) {
+        if (allMembers[i].id === memberItem.id) {
+          allMembers[i].values = memberItem.values;
+          break;
+        }
+      }
+      updateMember({
+        id: memberItem.id,
+        memberItem,
+        allMembers,
+        addNotification,
+        setSystemError,
+      });
+    },
     createUserAccount: ({
       memberItem,
       updateMember,
@@ -1630,9 +2001,11 @@ export const MemberViewContainer = compose(
       //$('#mainContent').offset({ top: 98});
       if (this.props.pathname !== nextProps.pathname) {
         this.props.fetchCurrentMember({ id: nextProps.match.params.id });
+        this.props.setShowChangeStatusModal(false);
       }
       if (
         nextProps.memberItem.values &&
+        nextProps.memberItem['id'] !== this.props.memberItem['id'] &&
         nextProps.memberItem.values['Is New Reply Received'] === 'true'
       ) {
         this.props.updateIsNewReplyReceived();

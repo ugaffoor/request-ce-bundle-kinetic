@@ -30,8 +30,9 @@ export const Catalog = ({
               className="hide-columns-container"
               classNamePrefix="hide-columns"
               placeholder="Select Lead"
+              allLeads={allLeads}
               onChange={e => {
-                selectLead(e.value, setSelectedLead);
+                selectLead(e.value, setSelectedLead, this.allLeads);
               }}
               style={{ width: '300px' }}
             />

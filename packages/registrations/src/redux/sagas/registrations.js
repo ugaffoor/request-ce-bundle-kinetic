@@ -21,13 +21,20 @@ export function* fetchRegistrationsSaga(action) {
     ]);
 
   if (action.payload !== undefined) {
-    searchBuilder.eq('values[Leads]', action.payload.leadID);
+    var idx = action.payload.allLeads.findIndex(
+      lead => lead.id === action.payload.leadID,
+    );
+    if (idx !== -1) {
+      var lead = action.payload.allLeads.get(idx);
+      searchBuilder.eq('values[First Name]', lead.values['First Name']);
+      searchBuilder.eq('values[Last Name]', lead.values['Last Name']);
+    }
   }
   searchBuilder.end();
 
   const search = searchBuilder.build();
 
-  const [kids, mens, womans] = yield all([
+  const [kids, mens, womans, barrafit] = yield all([
     call(CoreAPI.searchSubmissions, {
       search,
       kapp: kappSlug,
@@ -43,18 +50,23 @@ export function* fetchRegistrationsSaga(action) {
       kapp: kappSlug,
       form: 'pink-team-registration',
     }),
+    call(CoreAPI.searchSubmissions, {
+      search,
+      kapp: kappSlug,
+      form: 'barrafit-registration',
+    }),
   ]);
   const serverError =
     kids.serverError || mens.serverError || womans.serverError;
   if (serverError) {
     yield put(systemErrorActions.setSystemError(serverError));
   } else {
-    yield put(actions.setRegistrations(kids, mens, womans));
+    yield put(actions.setRegistrations(kids, mens, womans, barrafit));
   }
 }
 export function* fetchLeads(action) {
   const search = new CoreAPI.SubmissionSearch()
-    .eq('values[Lead State]', 'Open')
+    .in('values[Lead State]', ['Open', 'Converted'])
     .includes(['details', 'values'])
     .limit(1000)
     .build();

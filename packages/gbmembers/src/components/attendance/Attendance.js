@@ -23,6 +23,7 @@ import {
   getLocalePreference,
 } from '../Member/MemberUtils';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
+import { Utils } from 'common';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -87,6 +88,7 @@ export class AttendanceDetail extends Component {
   }
 
   handleScan(data) {
+    data = data.toLowerCase();
     console.log('Scanned ClassName00:' + data);
     console.log('Scanned ClassName11:' + this.state.className);
     this.setState({ memberItem: undefined });
@@ -96,8 +98,17 @@ export class AttendanceDetail extends Component {
 
     for (let i = 0; i < this.props.allMembers.length; i++) {
       if (
-        this.props.allMembers[i].id.split('-')[4].substring(6, 12) === data ||
-        this.props.allMembers[i].values['Alternate Barcode'] === data
+        this.props.allMembers[i].id
+          .split('-')[4]
+          .substring(6, 12)
+          .toLowerCase() === data ||
+        (this.props.allMembers[i].values['Alternate Barcode'] !== undefined &&
+        this.props.allMembers[i].values['Alternate Barcode'] !== null &&
+        this.props.allMembers[i].values['Alternate Barcode'] !== ''
+          ? this.props.allMembers[i].values[
+              'Alternate Barcode'
+            ].toLowerCase() === data
+          : false)
       ) {
         this.setState({ memberItem: this.props.allMembers[i] });
         if (
@@ -630,6 +641,25 @@ export class AttendanceDetail extends Component {
                     <div className="waiverIncomplete">Waiver NOT Agreed</div>
                   ) : (
                     <div />
+                  )}
+                  {Utils.getAttributeValue(
+                    this.props.space,
+                    'Covid Check Required',
+                  ) === 'TRUE' && (
+                    <div>
+                      {this.state.memberItem.values['Student Covid Check'] ===
+                        null ||
+                      this.state.memberItem.values['Student Covid Check'] ===
+                        undefined ||
+                      this.state.memberItem.values['Student Covid Check'] ===
+                        '' ? (
+                        <div className="waiverIncomplete">
+                          Student Covid Check Required
+                        </div>
+                      ) : (
+                        <div />
+                      )}
+                    </div>
                   )}
                 </div>
               )}

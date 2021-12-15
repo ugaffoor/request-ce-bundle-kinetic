@@ -7,6 +7,17 @@ export const gmt_format = 'YYYY-MM-DDTHH:mm:ss'; // Must manually add Z to resul
 export const email_sent_date_format = 'DD-MM-YYYY HH:mm';
 export const email_received_date_format = 'DD-MM-YYYY HH:mm';
 
+export function getTimezone(profileTimezone, spaceTimezone) {
+  var timezone =
+    profileTimezone !== null && profileTimezone !== ''
+      ? profileTimezone
+      : spaceTimezone;
+  if (timezone.indexOf('(') !== -1) {
+    timezone = timezone.substring(timezone.indexOf('(') + 1);
+    timezone = timezone.substring(0, timezone.indexOf(')'));
+  }
+  return timezone;
+}
 export function getLocalePreference(space, profile) {
   if (profile.preferredLocale !== null)
     return profile.preferredLocale.toLowerCase();
@@ -20,8 +31,12 @@ export function escapeRegExp(str) {
 export function substituteFields(text, person, space, profile) {
   if (text === undefined) return '';
 
-  text = text.replace(/member\('First Name'\)/g, person.values['First Name']);
-  text = text.replace(/member\('Last Name'\)/g, person.values['Last Name']);
+  text = text.replace(/\$\{space\}/g, space.slug);
+  if (person !== undefined) {
+    text = text.replace(/member\('ID'\)/g, person.id);
+    text = text.replace(/member\('First Name'\)/g, person.values['First Name']);
+    text = text.replace(/member\('Last Name'\)/g, person.values['Last Name']);
+  }
   var matches = text.match(/\$\{.*?\('(.*?)'\)\}/g);
   var self = this;
   if (matches !== null) {
@@ -36,52 +51,53 @@ export function substituteFields(text, person, space, profile) {
     });
   }
 
-  matches = text.match(/\$\{Intro Scheduled Date\}/g);
-  if (matches !== null) {
-    let introDate = undefined;
-    let history = person.values['History'];
-    if (history !== undefined) {
-      history = getJson(history);
-      for (let i = history.length - 1; i > 0; i--) {
-        if (history[i]['contactMethod'] === 'intro_class') {
-          introDate = moment(history[i]['contactDate'], 'YYYY-MM-DD HH:mm');
-          break;
+  if (person !== undefined) {
+    matches = text.match(/\$\{Intro Scheduled Date\}/g);
+    if (matches !== null) {
+      let introDate = undefined;
+      let history = person.values['History'];
+      if (history !== undefined) {
+        history = getJson(history);
+        for (let i = history.length - 1; i > 0; i--) {
+          if (history[i]['contactMethod'] === 'intro_class') {
+            introDate = moment(history[i]['contactDate'], 'YYYY-MM-DD HH:mm');
+            break;
+          }
         }
       }
-    }
-    if (introDate !== undefined) {
-      matches.forEach(function(value, index) {
-        text = text.replace(
-          new RegExp(escapeRegExp(value), 'g'),
-          introDate.format('Do MMM YYYY h:mA'),
-        );
-      });
-    }
-  }
-
-  matches = text.match(/\$\{Intro Scheduled Time\}/g);
-  if (matches !== null) {
-    let introTime = undefined;
-    let history = person.values['History'];
-    if (history !== undefined) {
-      history = getJson(history);
-      for (let i = history.length - 1; i > 0; i--) {
-        if (history[i]['contactMethod'] === 'intro_class') {
-          introTime = moment(history[i]['contactDate'], 'YYYY-MM-DD HH:mm');
-          break;
-        }
+      if (introDate !== undefined) {
+        matches.forEach(function(value, index) {
+          text = text.replace(
+            new RegExp(escapeRegExp(value), 'g'),
+            introDate.format('Do MMM YYYY h:mA'),
+          );
+        });
       }
     }
-    if (introTime !== undefined) {
-      matches.forEach(function(value, index) {
-        text = text.replace(
-          new RegExp(escapeRegExp(value), 'g'),
-          introTime.format('LT'),
-        );
-      });
+
+    matches = text.match(/\$\{Intro Scheduled Time\}/g);
+    if (matches !== null) {
+      let introTime = undefined;
+      let history = person.values['History'];
+      if (history !== undefined) {
+        history = getJson(history);
+        for (let i = history.length - 1; i > 0; i--) {
+          if (history[i]['contactMethod'] === 'intro_class') {
+            introTime = moment(history[i]['contactDate'], 'YYYY-MM-DD HH:mm');
+            break;
+          }
+        }
+      }
+      if (introTime !== undefined) {
+        matches.forEach(function(value, index) {
+          text = text.replace(
+            new RegExp(escapeRegExp(value), 'g'),
+            introTime.format('LT'),
+          );
+        });
+      }
     }
   }
-
   matches = text.match(/\$\{payment_end_date\}/g);
   if (matches !== null) {
     var termDate = moment(

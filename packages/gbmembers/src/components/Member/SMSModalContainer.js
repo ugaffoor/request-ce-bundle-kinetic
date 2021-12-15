@@ -17,6 +17,7 @@ import memberAvatar from '../../images/member_avatar.png';
 import { actions as errorActions } from '../../redux/modules/errors';
 import moment from 'moment';
 import { actions as dataStoreActions } from '../../redux/modules/settingsDatastore';
+import { substituteFields } from '../leads/LeadsUtils';
 
 const mapStateToProps = state => ({
   memberItem: state.member.members.currentMember,
@@ -296,7 +297,16 @@ export class SMSModal extends Component {
     let template = this.props.smsTemplates.find(
       template => template['id'] === templateId,
     );
-    this.setState({ smsText: template.values['SMS Content'] });
+    var smsText = substituteFields(
+      template.values['SMS Content'],
+      this.props.target === 'Leads'
+        ? this.props.leadItem
+        : this.props.memberItem,
+      this.props.space,
+      this.props.profile,
+    );
+
+    this.setState({ smsText: smsText });
   }
 
   render() {

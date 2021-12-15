@@ -241,7 +241,9 @@ export const SettingsView = ({
           </button>
         </div>
       )}
-      {(fetchingRecurringBookings || fetchingClassSchedules) &&
+      {(fetchingRecurringBookings ||
+        fetchingClassSchedules ||
+        fetchingClassBookings) &&
       showRecurringBookings ? (
         <p>Loading Recurring Bookings ....</p>
       ) : !fetchingRecurringBookings &&

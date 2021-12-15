@@ -253,6 +253,15 @@ export function* fetchCurrentMember(action) {
     for (let i = 0; i < posOrderSubmissions.submissions.length; i++) {
       posOrders[posOrders.length] = posOrderSubmissions.submissions[i].values;
     }
+    posOrders = posOrders.sort((a, b) => {
+      if (a['Date time processed'] < b['Date time processed']) {
+        return -1;
+      }
+      if (a['Date time processed'] > b['Date time processed']) {
+        return 1;
+      }
+      return 0;
+    });
     submission.submission.emailsReceived = emailReceivedContent;
     submission.submission.emailsSent = emailSentContent;
     submission.submission.smsContent = smsContent;
@@ -278,6 +287,76 @@ export function* fetchCurrentMember(action) {
       user: user.user,
     };
     if (action.payload.billingService === 'Bambora') {
+      var nextStartDate = moment(
+        submission.submission.values['Billing Start Date'],
+      );
+      if (nextStartDate.isBefore(moment())) {
+        var billingPeriod = submission.submission.values['Billing Period'];
+        var period = 'weeks';
+        var periodVal = 2;
+        if (billingPeriod === 'Daily') {
+          period = 'days';
+          periodVal = 1;
+        } else if (billingPeriod === 'Weekly') {
+          period = 'days';
+          periodVal = 7;
+        } else if (billingPeriod === 'Fortnightly') {
+          period = 'days';
+          periodVal = 14;
+        } else if (billingPeriod === 'Monthly') {
+          period = 'months';
+          periodVal = 1;
+        }
+        var nextBillingDate = undefined;
+        if (billingPeriod === 'Daily') {
+          nextBillingDate = moment(
+            submission.submission.values['Billing Start Date'],
+            'YYYY-MM-DD',
+          ).add(
+            moment().diff(
+              moment(
+                submission.submission.values['Billing Start Date'],
+                'YYYY-MM-DD',
+              ),
+              period,
+            ),
+            period,
+          );
+        } else {
+          nextBillingDate = moment(
+            submission.submission.values['Billing Start Date'],
+            'YYYY-MM-DD',
+          ).add(
+            moment().diff(
+              moment(
+                submission.submission.values['Billing Start Date'],
+                'YYYY-MM-DD',
+              ),
+              period,
+            ) + 1,
+            period,
+          );
+        }
+        if (billingPeriod === 'Fortnightly') {
+          var days = moment().diff(
+            moment(
+              submission.submission.values['Billing Start Date'],
+              'YYYY-MM-DD',
+            ),
+            'days',
+          );
+          var rem = days % 14;
+          if (rem !== 0) {
+            days = days - rem + 14;
+          }
+          nextBillingDate = moment(
+            submission.submission.values['Billing Start Date'],
+            'YYYY-MM-DD',
+          ).add(days, 'days');
+        }
+      } else {
+        nextBillingDate = nextStartDate;
+      }
       yield put(
         actions.setBillingInfo({
           statusCode: submission.submission.values['Status'],
@@ -292,8 +371,8 @@ export function* fetchCurrentMember(action) {
           customerBillingId:
             submission.submission.values['Billing Customer Id'],
           mobilePhone: submission.submission.values['Phone Number'],
-          nextBillingDate: submission.submission.values['Next Billing Date'],
-          paymentMethod: submission.submission.values['Payment Method'],
+          nextBillingDate: nextBillingDate,
+          paymentMethod: submission.submission.values['Billing Payment Type'],
           paymentPeriod: submission.submission.values['Billing Period'],
           customerReference:
             submission.submission.values['Billing Customer Reference'],
@@ -1548,15 +1627,24 @@ export function* refundTransaction(action) {
           id: action.payload.memberItem['id'],
           memberItem: action.payload.memberItem,
         });
-        action.payload.fetchCurrentMember({
+        /*        action.payload.fetchCurrentMember({
           id: action.payload.memberItem['id'],
           myThis: action.payload.myThis,
-        });
+        }); */
+
         action.payload.addNotification(
           NOTICE_TYPES.SUCCESS,
           'Payment refunded successfully',
           'Refund Transaction',
         );
+        if (action.payload.billingThis) {
+          action.payload.billingThis.setState({
+            showPaymentHistory: false,
+          });
+          action.payload.billingThis.setState({
+            showPaymentHistory: true,
+          });
+        }
       }
     })
     .catch(error => {
@@ -1701,12 +1789,14 @@ export function* fetchBillingCustomers(action) {
       if (member.values['Billing User'] === 'YES') {
         console.log('fetchBillingCustomers 22:' + member.values['Status']);
         billingCustomers[billingCustomers.length] = {
+          memberId: member.values['Member ID'],
           customerId: member.values['Billing Customer Id'],
           status: member.values['Status'],
           firstName: member.values['First Name'],
           lastName: member.values['Last Name'],
           billingAmount: member.values['Payment'],
           contractStartDate: member.values['Billing Start Date'],
+          billingPeriod: member.values['Billing Period'],
           billingPeriod: member.values['Billing Period'],
           paymentMethod: member.values['Payment Method'],
         };

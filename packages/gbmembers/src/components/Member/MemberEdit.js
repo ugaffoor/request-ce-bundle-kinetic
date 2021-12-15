@@ -555,6 +555,27 @@ export const MemberEdit = ({
                         />
                       </div>
                       <div>
+                        <label htmlFor="billingPeriod">Billing Period</label>
+                        <input
+                          type="text"
+                          name="billingPeriod"
+                          id="billingPeriod"
+                          size="30"
+                          ref={input => (this.input = input)}
+                          defaultValue={memberItem.values['Billing Period']}
+                          onChange={e =>
+                            handleChange(
+                              memberItem,
+                              'Billing Period',
+                              e,
+                              setIsDirty,
+                            )
+                          }
+                        />
+                      </div>
+                    </span>
+                    <span className="line">
+                      <div>
                         <label htmlFor="billingPayment">Payment</label>
                         <input
                           type="text"
@@ -565,6 +586,25 @@ export const MemberEdit = ({
                           defaultValue={memberItem.values['Payment']}
                           onChange={e =>
                             handleChange(memberItem, 'Payment', e, setIsDirty)
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="membershipCost">Membership Cost</label>
+                        <input
+                          type="text"
+                          name="membershipCost"
+                          id="membershipCost"
+                          size="30"
+                          ref={input => (this.input = input)}
+                          defaultValue={memberItem.values['Membership Cost']}
+                          onChange={e =>
+                            handleChange(
+                              memberItem,
+                              'Membership Cost',
+                              e,
+                              setIsDirty,
+                            )
                           }
                         />
                       </div>
@@ -696,6 +736,112 @@ export const MemberEdit = ({
                             handleChange(
                               memberItem,
                               'Status History',
+                              e,
+                              setIsDirty,
+                            )
+                          }
+                        />
+                      </div>
+                    </span>
+                    <span className="line">
+                      <div>
+                        <label htmlFor="statusHistory">Notes History</label>
+                        <input
+                          type="text"
+                          name="notesHistory"
+                          id="notesHistory"
+                          size="50"
+                          ref={input => (this.input = input)}
+                          defaultValue={memberItem.values['Notes History']}
+                          onChange={e =>
+                            handleChange(
+                              memberItem,
+                              'Notes History',
+                              e,
+                              setIsDirty,
+                            )
+                          }
+                        />
+                      </div>
+                    </span>
+                    <span className="line">
+                      <div>
+                        <label htmlFor="photo">Photo</label>
+                        <input
+                          type="text"
+                          name="photo"
+                          id="photo"
+                          size="50"
+                          ref={input => (this.input = input)}
+                          defaultValue={memberItem.values['Photo']}
+                          onChange={e =>
+                            handleChange(memberItem, 'Photo', e, setIsDirty)
+                          }
+                        />
+                      </div>
+                    </span>
+                    <span className="line">
+                      <div>
+                        <label htmlFor="photo">Refunded Payments</label>
+                        <input
+                          type="text"
+                          name="refundedHistory"
+                          id="refundedHistory"
+                          size="50"
+                          ref={input => (this.input = input)}
+                          defaultValue={memberItem.values['Refunded Payments']}
+                          onChange={e =>
+                            handleChange(
+                              memberItem,
+                              'Refunded Payments',
+                              e,
+                              setIsDirty,
+                            )
+                          }
+                        />
+                      </div>
+                    </span>
+                    <span className="line">
+                      <div>
+                        <label htmlFor="cashStart">
+                          Billing Cash Term Start Date
+                        </label>
+                        <input
+                          type="text"
+                          name="cashStart"
+                          id="cashStart"
+                          size="50"
+                          ref={input => (this.input = input)}
+                          defaultValue={
+                            memberItem.values['Billing Cash Term Start Date']
+                          }
+                          onChange={e =>
+                            handleChange(
+                              memberItem,
+                              'Billing Cash Term Start Date',
+                              e,
+                              setIsDirty,
+                            )
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="cashEnd">
+                          Billing Cash Term End Date
+                        </label>
+                        <input
+                          type="text"
+                          name="cashEnd"
+                          id="cashEnd"
+                          size="50"
+                          ref={input => (this.input = input)}
+                          defaultValue={
+                            memberItem.values['Billing Cash Term End Date']
+                          }
+                          onChange={e =>
+                            handleChange(
+                              memberItem,
+                              'Billing Cash Term End Date',
                               e,
                               setIsDirty,
                             )
@@ -1150,7 +1296,11 @@ export const MemberEdit = ({
                   Phone
                 </label>
                 <NumberFormat
-                  format="####-###-###"
+                  format={
+                    getAttributeValue(space, 'PhoneNumber Format') !== undefined
+                      ? getAttributeValue(space, 'PhoneNumber Format')
+                      : '####-###-###'
+                  }
                   mask="_"
                   required
                   ref={input => (this.input = input)}
@@ -1651,6 +1801,18 @@ export const MemberEditContainer = compose(
           .first()
           .focus();
       } else {
+        // Trim spaces
+        var keys = Object.keys(memberItem.values);
+        keys.forEach((item, i) => {
+          if (
+            memberItem.values[item] !== null &&
+            memberItem.values[item] !== undefined &&
+            typeof memberItem.values[item] !== 'object'
+          ) {
+            memberItem.values[item] = memberItem.values[item].trim();
+          }
+        });
+
         let emailChanged = false;
         memberChanges.forEach(change => {
           change.user = loggedInUserProfile.username;

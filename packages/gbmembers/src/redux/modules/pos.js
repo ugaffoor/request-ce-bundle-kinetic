@@ -3,6 +3,8 @@ import { Record, List } from 'immutable';
 import { namespace, withPayload } from '../../utils';
 
 export const types = {
+  FETCH_POS_CARDS: namespace('pos', 'FETCH_POS_CARDS'),
+  SET_POS_CARDS: namespace('pos', 'SET_POS_CARDS'),
   FETCH_POS_CATEGORIES: namespace('pos', 'FETCH_POS_CATEGORIES'),
   SET_POS_CATEGORIES: namespace('pos', 'SET_POS_CATEGORIES'),
   FETCH_POS_PRODUCTS: namespace('pos', 'FETCH_POS_PRODUCTS'),
@@ -25,9 +27,12 @@ export const types = {
   UPDATE_POS_CHECKOUT: namespace('pos', 'UPDATE_POS_CHECKOUT'),
   SAVE_POS_ORDER: namespace('pos', 'SAVE_POS_ORDER'),
   SAVE_POS_PURSCHASED_ITEM: namespace('pos', 'SAVE_POS_PURSCHASED_ITEM'),
+  SET_DUMMY: namespace('pos', 'SET_DUMMY'),
 };
 
 export const actions = {
+  fetchPOSCards: withPayload(types.FETCH_POS_CARDS),
+  setPOSCards: withPayload(types.SET_POS_CARDS),
   fetchPOSCategories: withPayload(types.FETCH_POS_CATEGORIES),
   setPOSCategories: withPayload(types.SET_POS_CATEGORIES),
   fetchPOSProducts: withPayload(types.FETCH_POS_PRODUCTS),
@@ -51,9 +56,12 @@ export const actions = {
   savePOSCheckout: withPayload(types.SAVE_POS_ORDER),
   setPOSSave: withPayload(types.SET_POS_SAVE),
   savePOSSavePurchasedItem: withPayload(types.SAVE_POS_PURSCHASED_ITEM),
+  setDummy: withPayload(types.SET_DUMMY),
 };
 
 export const State = Record({
+  posCards: [],
+  posCardsLoading: true,
   posCategories: [],
   posCategoriesLoading: true,
   posProducts: [],
@@ -76,6 +84,11 @@ export const State = Record({
 
 export const reducer = (state = State(), { type, payload }) => {
   switch (type) {
+    case types.FETCH_POS_CARDS:
+      return state.set('posCardsLoading', true);
+    case types.SET_POS_CARDS: {
+      return state.set('posCardsLoading', false).set('posCards', payload);
+    }
     case types.FETCH_POS_CATEGORIES:
       return state.set('posCategoriesLoading', true);
     case types.SET_POS_CATEGORIES: {

@@ -190,9 +190,12 @@ export class OrdersReport extends Component {
           total: Number.parseFloat(item.values['Total']),
           discount: Number.parseFloat(item.values['Discount']),
           salestax: Number.parseFloat(item.values['Sales Tax']),
-          products: JSON.parse(item.values['POS Checkout JSON'])[
-            'Checkout Items'
-          ].products,
+          products:
+            JSON.parse(item.values['POS Checkout JSON'])['Checkout Items']
+              .products !== undefined
+              ? JSON.parse(item.values['POS Checkout JSON'])['Checkout Items']
+                  .products
+              : [],
         };
       } else {
         data[idx].total =
@@ -203,7 +206,10 @@ export class OrdersReport extends Component {
           data[idx].salestax + Number.parseInt(item.values['Sales Tax']);
         data[idx].products = data[idx].products.concat(
           JSON.parse(item.values['POS Checkout JSON'])['Checkout Items']
-            .products,
+            .products !== undefined
+            ? JSON.parse(item.values['POS Checkout JSON'])['Checkout Items']
+                .products
+            : [],
         );
       }
     });

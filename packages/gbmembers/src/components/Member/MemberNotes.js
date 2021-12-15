@@ -275,6 +275,8 @@ export class MemberNotesHome extends Component {
                   <SMSModalContainer
                     submission={this.props.memberItem}
                     target="Member"
+                    space={this.props.space}
+                    profile={this.props.profile}
                     setShowSMSModal={this.props.setShowSMSModal}
                   />
                 )}

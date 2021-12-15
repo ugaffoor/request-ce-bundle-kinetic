@@ -1041,6 +1041,18 @@ export const LeadNewContainer = compose(
             reminderDateString,
           );
         }
+        // Trim spaces
+        var keys = Object.keys(leadItem.values);
+        keys.forEach((item, i) => {
+          if (
+            leadItem.values[item] !== null &&
+            leadItem.values[item] !== undefined &&
+            typeof leadItem.values[item] !== 'object'
+          ) {
+            leadItem.values[item] = leadItem.values[item].trim();
+          }
+        });
+
         leadItem.values['Lead State'] = 'Open';
         leadItem.values['Status'] = 'Open';
         leadItem.values['Date Created'] = moment().format('L');

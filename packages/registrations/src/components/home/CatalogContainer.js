@@ -42,8 +42,11 @@ export const CatalogContainer = compose(
       });
       return leadsVals;
     },
-    selectLead: ({ fetchRegistrations }) => leadID => {
-      fetchRegistrations({ leadID: leadID });
+    selectLead: ({ fetchRegistrations, allLeads }) => (
+      leadID,
+      setSelectedLead,
+    ) => {
+      fetchRegistrations({ leadID: leadID, allLeads: allLeads });
     },
   }),
 )(Catalog);

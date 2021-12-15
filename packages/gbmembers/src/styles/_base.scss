@@ -24,6 +24,23 @@ a {
 .fade:not(.show) {
   opacity: unset; /* Override issue */
 }
+.setChangeStatusDialog {
+  top: 30% !important;
+  left: 18% !important;
+  h2.freeze {
+    color: blue;
+  }
+  h2.resume,
+  h2.activate {
+    color: green;
+  }
+  h2.cancel {
+    color: red;
+  }
+  .cell {
+    margin-left: 10px;
+  }
+}
 
 .setStatusDialog {
   top: 30% !important;

@@ -66,6 +66,8 @@ const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
   allLeads: state.member.leads.allLeads,
   leadsLoading: state.member.leads.leadsLoading,
+  posCards: state.member.pos.posCards,
+  posCardsLoading: state.member.pos.posCardsLoading,
   posCategories: state.member.pos.posCategories,
   posCategoriesLoading: state.member.pos.posCategoriesLoading,
   posProducts: state.member.pos.posProducts,
@@ -86,6 +88,8 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = {
+  fetchPOSCards: actions.fetchPOSCards,
+  setPOSCards: actions.setPOSCards,
   fetchPOSCategories: actions.fetchPOSCategories,
   fetchPOSProducts: actions.fetchPOSProducts,
   fetchPOSBarcodes: actions.fetchPOSBarcodes,
@@ -98,10 +102,13 @@ const mapDispatchToProps = {
   fetchLeads: leadsActions.fetchLeads,
   savePOSStock: actions.savePOSStock,
   setSidebarDisplayType: appActions.setSidebarDisplayType,
+  updateMember: memberActions.updateMember,
+  addNotification: errorActions.addNotification,
+  setSystemError: errorActions.setSystemError,
 };
 var posThis = undefined;
 var verifyDeviceCount = 0;
-
+var updatingCard = false;
 const StripePaymentCapture = () => {
   const stripe = useStripe();
   const elements = useElements();
@@ -146,6 +153,7 @@ class PayNow extends Component {
     super(props);
     posThis = this;
     this.processPayment = this.processPayment.bind(this);
+    this.saveCardForLater = this.saveCardForLater.bind(this);
 
     axios
       .get('https://api.ipify.org/')
@@ -242,7 +250,7 @@ class PayNow extends Component {
       deviceStatus: 'UNPAIRED',
       status_message: undefined,
     };
-
+    updatingCard = false;
     this.handleScriptInject = this.handleScriptInject.bind(this);
   }
   handleScriptInject({ scriptTags }) {
@@ -324,9 +332,9 @@ class PayNow extends Component {
       disable = true;
     }
     if (
-      this.state.payment === 'creditcard' &&
+      (this.state.payment === 'creditcard' ||
+        this.state.payment === 'updateCreditCard') &&
       (this.state.cvc === '') |
-        (this.state.expiry === '') |
         (this.state.expiry === '') |
         (this.state.name === '') |
         (this.state.number === '')
@@ -336,6 +344,16 @@ class PayNow extends Component {
     return disable;
   }
   disablePaymentType() {
+    var disable = true;
+    if (this.state.personID !== undefined) {
+      disable = false;
+    }
+    if (this.state.total === 0) {
+      disable = true;
+    }
+    return disable;
+  }
+  disableCashPaymentType() {
     var disable = true;
     if (this.state.personID !== undefined) {
       disable = false;
@@ -359,6 +377,222 @@ class PayNow extends Component {
       this.state.total,
     );
   }
+  saveCardForLater = async () => {
+    var posSystem = getAttributeValue(this.props.space, 'POS System');
+    var posServiceURL = getAttributeValue(this.props.space, 'POS Service URL');
+
+    var data = JSON.stringify({
+      space: this.props.spaceSlug,
+      billingService: posSystem,
+      token: this.state.cardToken,
+      country: getAttributeValue(this.props.space, 'School Country Code'),
+      name: this.state.firstName + ' ' + this.state.lastName,
+      address: this.state.address,
+      city: this.state.city,
+      province: this.state.province,
+      postalCode: this.state.postCode,
+      email: this.state.email,
+    });
+
+    var config = {
+      method: 'post',
+      url: posServiceURL.replace('processPOS', 'createProfileCard'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: data,
+    };
+    await axios(config)
+      .then(function(response) {
+        var data = JSON.parse(response.data.data);
+        if (data.status === 1) {
+          posThis.setState({
+            profileId: data.profileId,
+          });
+          posThis.props.updateMemberItem(
+            posThis.state.personID,
+            data.profileId,
+          );
+          var saveButton = document.getElementById('save-to-profile');
+          saveButton.disabled = true;
+          $(saveButton).addClass('disabled');
+          $(saveButton).html('Saved');
+        } else {
+          posThis.setState({
+            status: data.status,
+            status_message: data.status_message,
+            errors: data.status_message,
+            auth_code: '',
+            transaction_id: '',
+            processingComplete: true,
+            processing: false,
+            datetime: moment(),
+          });
+        }
+      })
+      .catch(err => {
+        var error = 'Connection Error';
+        if (err.response) {
+          // client received an error response (5xx, 4xx)
+          error = err.response;
+        } else if (err.request) {
+          // client never received a response, or request never left
+          error = err.request;
+        }
+        posThis.setState({
+          status: '10',
+          status_message: 'System Error',
+          errors: error,
+          auth_code: '',
+          transaction_id: '',
+          processingComplete: true,
+          processing: false,
+          datetime: moment(),
+        });
+        console.log(error);
+      });
+  };
+  updateProfileCard = async (
+    posServiceURL,
+    spaceSlug,
+    posSystem,
+    profileId,
+    result,
+    name,
+  ) => {
+    if (posThis.state.cardToken === result['token']) return;
+    var data = JSON.stringify({
+      space: spaceSlug,
+      billingService: posSystem,
+      profileId: profileId,
+      token: result['token'],
+      name: name,
+      cardId: '1',
+    });
+
+    var config = {
+      method: 'post',
+      url: posServiceURL.replace('processPOS', 'updateProfileCard'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: data,
+    };
+    await axios(config)
+      .then(function(response) {
+        var data = JSON.parse(response.data.data);
+        if (data.status === 1) {
+          posThis.setState({
+            cardToken: result['token'],
+            cvc: 'XXX',
+            expiry: result['expiryMonth'] + '/' + result['expiryYear'],
+            number: result['last4'],
+            name: posThis.state.name,
+          });
+          updatingCard = false;
+          posThis.props.fetchPOSCards({
+            profileId: profileId,
+            setPOSCards: posThis.props.setPOSCards,
+          });
+        } else {
+          posThis.setState({
+            status: data.status,
+            status_message: data.status_message,
+            errors: data.status_message,
+            auth_code: '',
+            transaction_id: '',
+            processingComplete: true,
+            processing: false,
+            datetime: moment(),
+          });
+        }
+      })
+      .catch(err => {
+        var error = 'Connection Error';
+        if (err.response) {
+          // client received an error response (5xx, 4xx)
+          error = err.response;
+        } else if (err.request) {
+          // client never received a response, or request never left
+          error = err.request;
+        }
+        posThis.setState({
+          status: '10',
+          status_message: 'System Error',
+          errors: error,
+          auth_code: '',
+          transaction_id: '',
+          processingComplete: true,
+          processing: false,
+          datetime: moment(),
+        });
+        updatingCard = false;
+        console.log(error);
+      });
+  };
+  deleteCardProfile = async (
+    posServiceURL,
+    spaceSlug,
+    posSystem,
+    profileId,
+  ) => {
+    var data = JSON.stringify({
+      space: spaceSlug,
+      billingService: posSystem,
+      profileId: profileId,
+    });
+
+    var config = {
+      method: 'post',
+      url: posServiceURL.replace('processPOS', 'deleteProfile'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: data,
+    };
+    await axios(config)
+      .then(function(response) {
+        var data = JSON.parse(response.data.data);
+        if (data.status === '1') {
+          posThis.setState({
+            posProfileID: undefined,
+          });
+          posThis.props.updateMemberItem(posThis.state.personID, null);
+        } else {
+          posThis.setState({
+            status: data.status,
+            status_message: data.status_message,
+            errors: data.status_message,
+            auth_code: '',
+            transaction_id: '',
+            processingComplete: true,
+            processing: false,
+            datetime: moment(),
+          });
+        }
+      })
+      .catch(err => {
+        var error = 'Connection Error';
+        if (err.response) {
+          // client received an error response (5xx, 4xx)
+          error = err.response;
+        } else if (err.request) {
+          // client never received a response, or request never left
+          error = err.request;
+        }
+        posThis.setState({
+          status: '10',
+          status_message: 'System Error',
+          errors: error,
+          auth_code: '',
+          transaction_id: '',
+          processingComplete: true,
+          processing: false,
+          datetime: moment(),
+        });
+        console.log(error);
+      });
+  };
   fetchPaymentIntentClientSecret = async (
     posServiceURL,
     spaceSlug,
@@ -497,6 +731,8 @@ class PayNow extends Component {
       payment: this.state.total,
       orderId: uuid,
       cardToken: this.state.cardToken,
+      profileId: this.state.posProfileID,
+      cardId: this.state.cardId,
       firstName: this.state.firstName,
       lastName: this.state.lastName,
       sourceIP: this.state.publicIP,
@@ -607,6 +843,9 @@ class PayNow extends Component {
         formElem.append(
           "<div class='col-xs-2 text-center'><button id='pay-button' type='submit' class='verifyBtn btn-primary disabled' disabled='true'>Verify</button></div>",
         );
+        formElem.append(
+          "<div class='col-xs-2 text-center'><button id='save-to-profile' type='submit' class='btn btn-primary disabled' disabled='true'>Save for Later</button></div>",
+        );
         $('.card-container .row').append(formElem);
         customCheckoutController.createInputs();
         customCheckoutController.addListeners();
@@ -713,6 +952,10 @@ class PayNow extends Component {
           }
           self.setPayButton(false);
         });
+        // listen for submit button
+        document
+          .getElementById('save-to-profile')
+          .addEventListener('click', payThis.saveCardForLater);
       },
       onSubmit: function(event) {
         var self = this;
@@ -726,7 +969,6 @@ class PayNow extends Component {
 
         var callback = function(result) {
           console.log('token result : ' + JSON.stringify(result));
-          debugger;
           if (result.error) {
             self.processTokenError(result.error);
             payThis.setState({
@@ -735,17 +977,40 @@ class PayNow extends Component {
               expiry: '',
               number: '',
               name: '',
+              processingComplete: false,
             });
           } else {
             self.processTokenSuccess(result.token);
-
-            payThis.setState({
-              cardToken: result['token'],
-              cvc: 'XXX',
-              expiry: result['expiryMonth'] + '/' + result['expiryYear'],
-              number: result['last4'],
-              name: payThis.state.name,
-            });
+            if (payThis.state.payment === 'updateCreditCard') {
+              var posSystem = getAttributeValue(
+                payThis.props.space,
+                'POS System',
+              );
+              var posServiceURL = getAttributeValue(
+                payThis.props.space,
+                'POS Service URL',
+              );
+              if (!updatingCard) {
+                updatingCard = true;
+                payThis.updateProfileCard(
+                  posServiceURL,
+                  payThis.props.spaceSlug,
+                  posSystem,
+                  payThis.state.posProfileID,
+                  result,
+                  payThis.state.name,
+                );
+              }
+            } else {
+              payThis.setState({
+                cardToken: result['token'],
+                cvc: 'XXX',
+                expiry: result['expiryMonth'] + '/' + result['expiryYear'],
+                number: result['last4'],
+                name: payThis.state.name,
+                processingComplete: false,
+              });
+            }
           }
         };
 
@@ -829,6 +1094,9 @@ class PayNow extends Component {
         );
         this.setPayButton(true);
         this.toggleProcessingScreen();
+        var saveButton = document.getElementById('save-to-profile');
+        saveButton.disabled = true;
+        $(saveButton).addClass('disabled');
       },
       processTokenSuccess: function(token) {
         console.log('processTokenSuccess: ' + token);
@@ -837,7 +1105,16 @@ class PayNow extends Component {
         this.showSuccessFeedback('Success! Created token: ' + token);
         this.setPayButton(true);
         this.toggleProcessingScreen();
-
+        if (
+          (payThis.state.posProfileID === undefined ||
+            payThis.state.posProfileID === null) &&
+          payThis.state.personType === 'Member' &&
+          payThis.state.payment !== 'updateCreditCard'
+        ) {
+          var saveButton = document.getElementById('save-to-profile');
+          saveButton.disabled = false;
+          $(saveButton).removeClass('disabled');
+        }
         payThis.setState({
           status: '',
         });
@@ -1076,6 +1353,7 @@ class PayNow extends Component {
                       var phoneNumber = '';
                       var email = '';
                       var posProfileID = undefined;
+                      var cardId = undefined;
                       for (let i = 0; i < this.props.allMembers.length; i++) {
                         if (this.props.allMembers[i].id === e.value) {
                           firstName = this.props.allMembers[i].values[
@@ -1097,6 +1375,7 @@ class PayNow extends Component {
                           posProfileID = this.props.allMembers[i].values[
                             'POS Profile ID'
                           ];
+                          cardId = '1';
                         }
                       }
                       this.setState({
@@ -1111,7 +1390,15 @@ class PayNow extends Component {
                         phoneNumber: phoneNumber,
                         email: email,
                         posProfileID: posProfileID,
+                        cardId: cardId,
+                        payment: 'useSavedCreditCard',
                       });
+                      if (posProfileID !== undefined) {
+                        this.props.fetchPOSCards({
+                          profileId: posProfileID,
+                          setPOSCards: this.props.setPOSCards,
+                        });
+                      }
                     }}
                     style={{ width: '300px' }}
                   />
@@ -1132,6 +1419,7 @@ class PayNow extends Component {
                       var phoneNumber = '';
                       var email = '';
                       var posProfileID = undefined;
+                      var cardId = undefined;
                       for (let i = 0; i < this.props.allLeads.length; i++) {
                         if (this.props.allLeads[i].id === e.value) {
                           firstName = this.props.allLeads[i].values[
@@ -1160,6 +1448,7 @@ class PayNow extends Component {
                         phoneNumber: phoneNumber,
                         email: email,
                         posProfileID: posProfileID,
+                        cardId: cardId,
                       });
                     }}
                     style={{ width: '300px' }}
@@ -1179,9 +1468,146 @@ class PayNow extends Component {
               </span>
               {this.state.posProfileID !== undefined &&
               this.state.posProfileID !== null ? (
-                <span className="paymentType">
-                  <div className="label">Saved Card</div>
-                </span>
+                this.props.posCardsLoading ? (
+                  <span className="paymentType">
+                    <div className="label">Loading Saved Card...</div>
+                  </span>
+                ) : (
+                  <span className="paymentType">
+                    <div className="label">Saved Card</div>
+                    <table className="savedCards">
+                      <tr>
+                        <th>Number</th>
+                        <th>Expiry Month</th>
+                        <th>Year</th>
+                        <th>Type</th>
+                      </tr>
+                      {this.props.posCards.map((card, index) => (
+                        <tr>
+                          <td>{card.number}</td>
+                          <td>{card.expiryMonth}</td>
+                          <td>{card.expiryYear}</td>
+                          <td>{card.cardType}</td>
+                        </tr>
+                      ))}
+                    </table>
+                    <div className="radioGroup">
+                      <label htmlFor="savedCreditCard" className="radio">
+                        <input
+                          id="savedCreditCard"
+                          name="savedcard"
+                          type="radio"
+                          value="Use Saved Card"
+                          checked={this.state.payment === 'useSavedCreditCard'}
+                          onChange={e => {
+                            this.setState({
+                              payment: 'useSavedCreditCard',
+                              cardId: this.props.posCards[0].cardID,
+                              status: '',
+                              errors: '',
+                              processingComplete: false,
+                            });
+                            updatingCard = false;
+                          }}
+                          onClick={async e => {}}
+                        />
+                        Use Saved Card
+                      </label>
+                      <label htmlFor="updateCreditCard" className="radio">
+                        <input
+                          id="updateCreditCard"
+                          name="savedcard"
+                          type="radio"
+                          onChange={e => {
+                            this.setState({
+                              payment: 'updateCreditCard',
+                              cardToken: '',
+                              cvc: '',
+                              expiry: '',
+                              number: '',
+                              status: '',
+                              errors: '',
+                              processingComplete: false,
+                            });
+                            updatingCard = false;
+                          }}
+                          onClick={async e => {}}
+                        />
+                        Update Credit Card
+                      </label>
+                      <label htmlFor="removeCreditCard" className="radio">
+                        <input
+                          id="removeCreditCard"
+                          name="savedcard"
+                          type="radio"
+                          onChange={e => {
+                            this.setState({
+                              payment: 'removeCreditCard',
+                              cardToken: '',
+                              cvc: '',
+                              expiry: '',
+                              number: '',
+                              status: '',
+                              errors: '',
+                              processingComplete: false,
+                            });
+                            updatingCard = false;
+                          }}
+                          onClick={async e => {
+                            if (
+                              await confirm(
+                                <span>
+                                  <span>
+                                    Are you sure you want to REMOVE this credit
+                                    card?
+                                  </span>
+                                  <table>
+                                    <tbody>
+                                      <tr>
+                                        <th>Number</th>
+                                        <th>Expiry Month</th>
+                                        <th>Year</th>
+                                        <th>Type</th>
+                                      </tr>
+                                      {this.props.posCards.map(
+                                        (card, index) => (
+                                          <tr>
+                                            <td>{card.number}</td>
+                                            <td>{card.expiryMonth}</td>
+                                            <td>{card.expiryYear}</td>
+                                            <td>{card.cardType}</td>
+                                          </tr>
+                                        ),
+                                      )}
+                                    </tbody>
+                                  </table>
+                                </span>,
+                              )
+                            ) {
+                              console.log('sds');
+                              var posSystem = getAttributeValue(
+                                this.props.space,
+                                'POS System',
+                              );
+                              var posServiceURL = getAttributeValue(
+                                this.props.space,
+                                'POS Service URL',
+                              );
+
+                              this.deleteCardProfile(
+                                posServiceURL,
+                                this.props.spaceSlug,
+                                posSystem,
+                                this.state.posProfileID,
+                              );
+                            }
+                          }}
+                        />
+                        Remove Credit Card
+                      </label>
+                    </div>
+                  </span>
+                )
               ) : (
                 <span className="paymentType">
                   <div className="label">Payment Type</div>
@@ -1266,10 +1692,18 @@ class PayNow extends Component {
                         id="cash"
                         name="cardpayment"
                         type="radio"
-                        disabled={this.disablePaymentType()}
+                        disabled={this.disableCashPaymentType()}
                         value="Cash"
                         onChange={e => {
-                          this.setState({ payment: 'cash' });
+                          this.setState({
+                            payment: 'cash',
+                            cardToken: '',
+                            cvc: '',
+                            expiry: '',
+                            number: '',
+                            posProfileID: undefined,
+                            cardId: undefined,
+                          });
                         }}
                       />
                       Cash
@@ -1312,7 +1746,8 @@ class PayNow extends Component {
               ) : (
                 <div />
               )}
-              {this.state.payment === 'creditcard' &&
+              {(this.state.payment === 'creditcard' ||
+                this.state.payment === 'updateCreditCard') &&
               getAttributeValue(this.props.space, 'POS System') ===
                 'Bambora' ? (
                 <span className="creditCard" id="bamboraCheckout">
@@ -1336,11 +1771,11 @@ class PayNow extends Component {
                           name="viewport"
                           content="width=device-width, initial-scale=1"
                         />
-                        <div class="card-container">
-                          <div class="row"></div>
+                        <div className="card-container">
+                          <div className="row"></div>
                         </div>
-                        <div class="row">
-                          <div class="col-lg-12 text-center">
+                        <div className="row">
+                          <div className="col-lg-12 text-center">
                             <div id="feedback"></div>
                           </div>
                         </div>
@@ -1434,7 +1869,10 @@ class PayNow extends Component {
                     this.setState({
                       processing: true,
                     });
-                    if (this.state.payment === 'creditcard') {
+                    if (
+                      this.state.payment === 'creditcard' ||
+                      this.state.payment === 'useSavedCreditCard'
+                    ) {
                       this.processPayment();
                     } else {
                       setTimeout(function() {
@@ -1670,9 +2108,14 @@ class Checkout extends Component {
             subtotal={this.state.subtotal}
             discount={this.state.discount}
             salestax={this.state.salestax}
+            fetchPOSCards={this.props.fetchPOSCards}
+            setPOSCards={this.props.setPOSCards}
+            posCardsLoading={this.props.posCardsLoading}
+            posCards={this.props.posCards}
             updatePOSCheckout={this.props.updatePOSCheckout}
             fetchPOSCheckout={this.props.fetchPOSCheckout}
             completePOSCheckout={this.props.completePOSCheckout}
+            updateMemberItem={this.props.updateMemberItem}
             setShowCheckout={this.props.setShowCheckout}
             allMembers={this.props.allMembers}
             allLeads={this.props.allLeads}
@@ -2114,11 +2557,13 @@ class Checkout extends Component {
               </div>
               <div
                 className="checkoutButton"
-                disabled={this.state.total === 0}
+                disabled={
+                  this.state.total === 0 &&
+                  (this.state.discount !== this.state.subtotal ||
+                    this.state.subtotal === 0)
+                }
                 onClick={e => {
-                  if (this.state.total !== 0) {
-                    this.setShowPayNow(true);
-                  }
+                  this.setShowPayNow(true);
                 }}
               >
                 <span className="label">Checkout</span>
@@ -2599,9 +3044,14 @@ export class ProShop extends Component {
                 updateDiscount={this.props.updateDiscount}
                 removeDiscount={this.props.removeDiscount}
                 removeProduct={this.props.removeProduct}
+                fetchPOSCards={this.props.fetchPOSCards}
+                setPOSCards={this.props.setPOSCards}
+                posCardsLoading={this.props.posCardsLoading}
+                posCards={this.props.posCards}
                 updatePOSCheckout={this.props.updatePOSCheckout}
                 fetchPOSCheckout={this.props.fetchPOSCheckout}
                 completePOSCheckout={this.props.completePOSCheckout}
+                updateMemberItem={this.props.updateMemberItem}
                 allMembers={this.props.allMembers}
                 allLeads={this.props.allLeads}
                 fetchLeads={this.props.fetchLeads}
@@ -3050,6 +3500,7 @@ export const ProShopView = ({
   addProduct,
   updatePOSCheckout,
   completePOSCheckout,
+  updateMemberItem,
   removeProduct,
   addDiscount,
   updateDiscount,
@@ -3064,6 +3515,10 @@ export const ProShopView = ({
   snippets,
   savePOSStock,
   posStockSaving,
+  fetchPOSCards,
+  setPOSCards,
+  posCardsLoading,
+  posCards,
 }) => (
   <ProShop
     profile={profile}
@@ -3084,6 +3539,7 @@ export const ProShopView = ({
     kapp={kapp}
     spaceSlug={spaceSlug}
     completePOSCheckout={completePOSCheckout}
+    updateMemberItem={updateMemberItem}
     addProduct={addProduct}
     addDiscount={addDiscount}
     updateDiscount={updateDiscount}
@@ -3096,6 +3552,10 @@ export const ProShopView = ({
     snippets={snippets}
     savePOSStock={savePOSStock}
     posStockSaving={posStockSaving}
+    fetchPOSCards={fetchPOSCards}
+    setPOSCards={setPOSCards}
+    posCardsLoading={posCardsLoading}
+    posCards={posCards}
   />
 );
 
@@ -3320,7 +3780,10 @@ export const ProShopContainer = compose(
         );
         posCheckout['Checkout Items']['discountName'] = discount.values['Name'];
         posCheckout['Checkout Items']['discountType'] = discount.values['Type'];
-        if (discount.values['Voucher'] === undefined) {
+        if (
+          discount.values['Voucher'] === undefined ||
+          discount.values['Voucher'].length === 0
+        ) {
           posCheckout['Checkout Items']['discountValue'] =
             discount.values['Value'];
         } else {
@@ -3367,6 +3830,28 @@ export const ProShopContainer = compose(
     savePOSStock: ({ savePOSStock, profile }) => stock => {
       console.log('savePOSStock');
       savePOSStock(stock);
+    },
+    updateMemberItem: ({
+      allMembers,
+      updateMember,
+      addNotification,
+      setSystemError,
+    }) => (memberId, profileId) => {
+      var memberItem = {};
+      for (let i = 0; i < allMembers.length; i++) {
+        if (allMembers[i].id === memberId) {
+          memberItem = allMembers[i];
+          break;
+        }
+      }
+      memberItem.values['POS Profile ID'] = profileId;
+      updateMember({
+        id: memberItem.id,
+        memberItem,
+        allMembers,
+        addNotification,
+        setSystemError,
+      });
     },
   }),
   lifecycle({

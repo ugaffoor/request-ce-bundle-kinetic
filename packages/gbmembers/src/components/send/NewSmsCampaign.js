@@ -14,7 +14,7 @@ import NumberFormat from 'react-number-format';
 import 'react-datetime/css/react-datetime.css';
 import ReactTable from 'react-table';
 import moment from 'moment';
-import { email_sent_date_format } from '../leads/LeadsUtils';
+import { email_sent_date_format, substituteFields } from '../leads/LeadsUtils';
 import Select, { components } from 'react-select';
 import { actions as memberActions } from '../../redux/modules/members';
 import { matchesMemberFilter, matchesLeadFilter } from '../../utils/utils';
@@ -33,6 +33,7 @@ const mapStateToProps = state => ({
   leadLists: state.member.app.leadLists,
   allMembers: state.member.members.allMembers,
   allLeads: state.member.leads.allLeads,
+  profile: state.app.profile,
   space: state.member.app.space,
   smsAccountCredit: state.member.messaging.smsAccountCredit,
   smsAccountCreditLoading: state.member.messaging.smsAccountCreditLoading,
@@ -453,7 +454,15 @@ export class NewSmsCampaign extends Component {
     let template = this.props.smsTemplates.find(
       template => template['id'] === templateId,
     );
-    this.determineCreditRequired(template.values['SMS Content']);
+
+    var smsText = substituteFields(
+      template.values['SMS Content'],
+      undefined,
+      this.props.space,
+      this.props.profile,
+    );
+
+    this.determineCreditRequired(smsText);
   }
   render() {
     return (
@@ -574,7 +583,10 @@ export class NewSmsCampaign extends Component {
         <div className="row">
           <div className="col-md-10" style={{ height: '1000px' }}>
             <span className="line">
-              <label htmlFor="sms_text">SMS Text</label>
+              <label htmlFor="sms_text">
+                SMS Text: NOTE, member('ID'), member('First Name'), member('Last
+                Name') substitutes don't work for campaigns
+              </label>
               <div className="input-group">
                 <textarea
                   value={this.state.content}
@@ -615,6 +627,7 @@ export const NewSmsCampaignView = ({
   allMembers,
   allLeads,
   leadItem,
+  profile,
   space,
   submissionType,
   smsAccountCreditLoading,
@@ -641,6 +654,7 @@ export const NewSmsCampaignView = ({
         allMembers={allMembers}
         allLeads={allLeads}
         leadItem={leadItem}
+        profile={profile}
         space={space}
         submissionType={submissionType}
         smsAccountCreditLoading={smsAccountCreditLoading}

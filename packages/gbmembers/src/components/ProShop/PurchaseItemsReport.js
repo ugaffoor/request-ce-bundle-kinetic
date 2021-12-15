@@ -362,7 +362,7 @@ export class PurchaseItemsReport extends Component {
         Header: 'Quantity',
         width: 100,
       },
-      /*      {
+      {
         accessor: 'value',
         Header: 'Value',
         width: 150,
@@ -381,13 +381,15 @@ export class PurchaseItemsReport extends Component {
         Footer: (
           <span>
             <strong>Total: </strong>
-            {this.state !==undefined ? new Intl.NumberFormat(this.locale, {
-              style: 'currency',
-              currency: this.currency,
-            }).format(this.state.total) : 0}
+            {this.state !== undefined
+              ? new Intl.NumberFormat(this.locale, {
+                  style: 'currency',
+                  currency: this.currency,
+                }).format(this.state.total)
+              : 0}
           </span>
         ),
-      },*/
+      },
     ];
     return columns;
   }

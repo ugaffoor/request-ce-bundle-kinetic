@@ -7,6 +7,6 @@ export const ServiceCard = ({ path, form }) => (
       {/*  <Icon image={form.icon} background="blueSlate" /> */}
       {form.name}
     </h1>
-    <p>{form.description}</p>
+    <p dangerouslySetInnerHTML={{ __html: form.description }}></p>
   </Link>
 );

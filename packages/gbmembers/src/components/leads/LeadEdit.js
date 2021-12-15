@@ -1308,6 +1308,18 @@ export const LeadEditContainer = compose(
           .first()
           .focus();
       } else {
+        // Trim spaces
+        var keys = Object.keys(leadItem.values);
+        keys.forEach((item, i) => {
+          if (
+            leadItem.values[item] !== null &&
+            leadItem.values[item] !== undefined &&
+            typeof leadItem.values[item] !== 'object'
+          ) {
+            leadItem.values[item] = leadItem.values[item].trim();
+          }
+        });
+
         updateLead({
           id: leadItem['id'],
           leadItem: leadItem,

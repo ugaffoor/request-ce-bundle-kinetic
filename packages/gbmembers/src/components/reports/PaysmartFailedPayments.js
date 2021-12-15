@@ -4,7 +4,7 @@ import moment from 'moment';
 
 const ezidebit_date_format = 'YYYY-MM-DD HH:mm:ss';
 
-export class FailedPayments extends Component {
+export class PaysmartFailedPayments extends Component {
   constructor(props) {
     super(props);
     this.paymentHistory = this.props.paymentHistory;

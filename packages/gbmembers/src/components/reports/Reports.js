@@ -6,6 +6,7 @@ import 'bootstrap/scss/bootstrap.scss';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as reportingActions } from '../../redux/modules/reporting';
 import { actions as leadsActions } from '../../redux/modules/leads';
+import { actions as servicesActions } from '../../redux/modules/services';
 import 'react-tabulator/lib/styles.css'; // default theme
 import 'react-tabulator/css/bootstrap/tabulator_bootstrap.min.css'; // use Theme(s)
 import { actions as appActions } from '../../redux/modules/memberApp';
@@ -14,13 +15,15 @@ import { MemberFinancialStats } from './MemberFinancialStats';
 import { MemberFinancialReportContainer } from './MemberFinancialReport';
 import { LeadsActivityReport } from './LeadActivity';
 import { PDDailyReport } from './PDDaily';
+import { Services } from './Services';
 import { InactiveCustomersChart } from './PaysmartInactiveCustomers';
 import { VariationCustomers } from './PaysmartVariations';
 import { MemberBirthdays } from './MemberBirthdays';
 import { MemberLastAttendance } from './MemberLastAttendance';
 import { PaysmartMemberDescrepencies } from './PaysmartMemberDescrepencies';
 import { InactiveMembersNoHistory } from './InactiveMembersNoHistory';
-import { FailedPayments } from './PaysmartFailedPayments';
+import { PaysmartFailedPayments } from './PaysmartFailedPayments';
+import { BamboraFailedPayments } from './BamboraFailedPayments';
 import { PaysmartOverdues } from './PaysmartOverdues';
 import { actions } from '../../redux/modules/members';
 import moment from 'moment';
@@ -54,16 +57,22 @@ const mapStateToProps = state => ({
   customerRefundsLoading: state.member.members.customerRefundsLoading,
   FAILEDpaymentHistory: state.member.members.FAILEDpaymentHistory,
   FAILEDpaymentHistoryLoading: state.member.members.FALIEDpaymentHistoryLoading,
+  SUCCESSFULpaymentHistory: state.member.members.SUCCESSFULpaymentHistory,
+  SUCCESSFULpaymentHistoryLoading:
+    state.member.members.SUCCESSFULpaymentHistoryLoading,
   overdues: state.member.members.overdues,
   overduesLoading: state.member.members.overduesLoading,
   space: state.member.app.space,
   billingCustomersLoading: state.member.members.billingCustomersLoading,
   billingCustomers: state.member.members.billingCustomers,
+  services: state.member.services.services,
+  servicesLoading: state.member.services.servicesLoading,
 });
 
 const mapDispatchToProps = {
   fetchReport: reportingActions.fetchActivityReport,
   setReport: reportingActions.setActivityReport,
+  fetchServicesByDate: servicesActions.fetchServicesByDate,
   fetchLeads: leadsActions.fetchLeads,
   fetchLeadsByDate: leadsActions.fetchLeadsByDate,
   updateReportPreferences: appActions.updateReportPreferences,
@@ -90,6 +99,9 @@ export const ReportsView = ({
   leadsByDate,
   profile,
   membersLoading,
+  fetchServicesByDate,
+  services,
+  servicesLoading,
   fetchLeads,
   fetchLeadsByDate,
   leadsLoading,
@@ -108,6 +120,8 @@ export const ReportsView = ({
   setShowLeadActivityReport,
   showPDDailyReport,
   setShowPDDailyReport,
+  showServicesReport,
+  setServicesReport,
   updatePreferences,
   showInactiveChart,
   setShowInactiveChart,
@@ -136,11 +150,14 @@ export const ReportsView = ({
   setShowDescrepenciesReport,
   FAILEDpaymentHistory,
   FAILEDpaymentHistoryLoading,
+  SUCCESSFULpaymentHistory,
+  SUCCESSFULpaymentHistoryLoading,
   overdues,
   overduesLoading,
   showFailedPaymentsReport,
   setShowFailedPaymentsReport,
   getFailedPayments,
+  getSuccessfulPayments,
   showOverduesReport,
   setShowOverduesReport,
   getOverdues,
@@ -280,8 +297,10 @@ export const ReportsView = ({
               setCustomerRefunds={setCustomerRefunds}
               fetchPaymentHistory={fetchPaymentHistory}
               setPaymentHistory={setPaymentHistory}
-              paymentHistory={FAILEDpaymentHistory}
+              FAILEDpaymentHistory={FAILEDpaymentHistory}
               FAILEDpaymentHistoryLoading={FAILEDpaymentHistoryLoading}
+              SUCCESSFULpaymentHistory={SUCCESSFULpaymentHistory}
+              SUCCESSFULpaymentHistoryLoading={SUCCESSFULpaymentHistoryLoading}
               space={space}
               profile={profile}
             />
@@ -311,7 +330,7 @@ export const ReportsView = ({
         </div>
         {!showMemberFinancialReport ? null : (
           <div className="row">
-            <MemberFinancialReportContainer />
+            <MemberFinancialReportContainer addNotification setSystemError />
           </div>
         )}
       </div>
@@ -396,6 +415,32 @@ export const ReportsView = ({
             fetchLeadsByDate={fetchLeadsByDate}
             leadsByDate={leadsByDate}
             leadsByDateLoading={leadsByDateLoading}
+            profile={profile}
+            space={space}
+          />
+        </div>
+      )}
+    </div>
+    <div style={{ margin: '20px 0px 0px 10px' }} id="services-report">
+      <div className="row">
+        <button
+          type="button"
+          className="btn btn-primary report-btn-default"
+          disabled={!dummyFormLoaded}
+          onClick={e => {
+            setServicesReport(showServicesReport ? false : true);
+            document.getElementById('services-report').scrollIntoView();
+          }}
+        >
+          {showServicesReport ? 'Hide Services Report' : 'Show Services Report'}
+        </button>
+      </div>
+      {!showServicesReport ? null : (
+        <div className="row">
+          <Services
+            fetchServicesByDate={fetchServicesByDate}
+            services={services}
+            servicesLoading={servicesLoading}
             profile={profile}
             space={space}
           />
@@ -504,6 +549,47 @@ export const ReportsView = ({
         )}
       </div>
     )}
+    {Utils.getAttributeValue(space, 'Billing Company') !== 'Bambora' ||
+    !Utils.isMemberOf(profile, 'Billing') ? (
+      <div />
+    ) : (
+      <div style={{ margin: '20px 0px 0px 10px' }} id="failed-report">
+        <div className="row">
+          <button
+            type="button"
+            className="btn btn-primary report-btn-default"
+            disabled={!dummyFormLoaded}
+            onClick={e => {
+              setShowFailedPaymentsReport(
+                showFailedPaymentsReport ? false : true,
+              );
+              document.getElementById('failed-report').scrollIntoView();
+            }}
+          >
+            {showFailedPaymentsReport
+              ? 'Hide Failed Payments Report'
+              : 'Show Failed Payments Report'}
+          </button>
+        </div>
+        {!showFailedPaymentsReport ? null : (
+          <div className="row">
+            <div>
+              <BamboraFailedPayments
+                allMembers={members}
+                getFailedPayments={getFailedPayments}
+                paymentHistory={FAILEDpaymentHistory}
+                FAILEDpaymentHistoryLoading={FAILEDpaymentHistoryLoading}
+                getSuccessfulPayments={getSuccessfulPayments}
+                successfulPaymentHistory={SUCCESSFULpaymentHistory}
+                SUCCESSFULpaymentHistoryLoading={
+                  SUCCESSFULpaymentHistoryLoading
+                }
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    )}
     {Utils.getAttributeValue(space, 'Billing Company') !== 'PaySmart' ||
     !Utils.isMemberOf(profile, 'Billing') ? (
       <div />
@@ -529,7 +615,7 @@ export const ReportsView = ({
         {!showFailedPaymentsReport ? null : (
           <div className="row">
             <div>
-              <FailedPayments
+              <PaysmartFailedPayments
                 getFailedPayments={getFailedPayments}
                 paymentHistory={FAILEDpaymentHistory}
                 FAILEDpaymentHistoryLoading={FAILEDpaymentHistoryLoading}
@@ -590,6 +676,7 @@ export const ReportsContainer = compose(
   withState('showInactiveMembers', 'setShowInactiveMembers', false),
   withState('showLeadActivityReport', 'setShowLeadActivityReport', false),
   withState('showPDDailyReport', 'setShowPDDailyReport', false),
+  withState('showServicesReport', 'setServicesReport', false),
   withState('showInactiveChart', 'setShowInactiveChart', false),
   withState('showVariationsReport', 'setShowVariationsReport', false),
   withState('showDescrepenciesReport', 'setShowDescrepenciesReport', false),
@@ -698,11 +785,32 @@ export const ReportsContainer = compose(
         paymentSource: 'ALL',
         dateField: 'PAYMENT',
         dateFrom: moment()
-          .subtract(1, 'week')
+          .subtract(6, 'month')
           .format('YYYY-MM-DD'),
         dateTo: moment().format('YYYY-MM-DD'),
         setPaymentHistory: setPaymentHistory,
         internalPaymentType: 'client_failed',
+        addNotification: addNotification,
+        setSystemError: setSystemError,
+      });
+    },
+    getSuccessfulPayments: ({
+      fetchPaymentHistory,
+      setPaymentHistory,
+      addNotification,
+      setSystemError,
+    }) => () => {
+      fetchPaymentHistory({
+        paymentType: 'SUCCESSFUL',
+        paymentMethod: 'ALL',
+        paymentSource: 'ALL',
+        dateField: 'PAYMENT',
+        dateFrom: moment()
+          .subtract(1, 'month')
+          .format('YYYY-MM-DD'),
+        dateTo: moment().format('YYYY-MM-DD'),
+        setPaymentHistory: setPaymentHistory,
+        internalPaymentType: 'client_successful',
         addNotification: addNotification,
         setSystemError: setSystemError,
       });

@@ -7,6 +7,7 @@ import discountIcon from '../../images/discount.png?raw';
 
 const mapStateToProps = state => ({});
 const mapDispatchToProps = {};
+var addThis = undefined;
 
 export class AddDiscountDialog extends Component {
   handleClick = () => {
@@ -19,6 +20,8 @@ export class AddDiscountDialog extends Component {
   };
   constructor(props) {
     super(props);
+    addThis = this;
+
     this.state = {
       discountid: undefined,
     };
@@ -52,11 +55,16 @@ export class AddDiscountDialog extends Component {
                         name="option1"
                         value={discount.values['Value']}
                         data-id={discount['id']}
+                        onClick={e => {
+                          addThis.setState({
+                            discountid: $(e.target).attr('data-id'),
+                          });
+                        }}
                       />
                       <label
                         htmlFor={'var' + i + '-' + discount['id']}
                         onClick={e => {
-                          this.setState({
+                          addThis.setState({
                             discountid: $(e.target)
                               .siblings('input')
                               .attr('data-id'),
@@ -82,7 +90,7 @@ export class AddDiscountDialog extends Component {
                     type="button"
                     className="btn btn-primary cancel"
                     onClick={e => {
-                      this.props.setShowAddDiscountDialog(false, undefined);
+                      addThis.props.setShowAddDiscountDialog(false, undefined);
                     }}
                   >
                     Cancel
@@ -91,12 +99,12 @@ export class AddDiscountDialog extends Component {
                     type="button"
                     className="btn btn-primary add"
                     onClick={e => {
-                      this.props.setShowAddDiscountDialog(
+                      addThis.props.setShowAddDiscountDialog(
                         false,
-                        this.state.discountid,
+                        addThis.state.discountid,
                       );
                     }}
-                    disabled={this.state.discountid === undefined}
+                    disabled={addThis.state.discountid === undefined}
                   >
                     Add
                   </button>

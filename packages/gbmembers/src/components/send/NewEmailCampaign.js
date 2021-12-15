@@ -288,12 +288,19 @@ export class NewEmailCampaign extends Component {
     let options = [];
     let activeMembers = [];
     let inactiveMembers = [];
+    let frozenMembers = [];
 
     allMembers.forEach(member => {
-      if (member.values['Status'] === 'Active') {
+      if (
+        member.values['Status'] === 'Active' ||
+        member.values['Status'] === 'Pending Freeze' ||
+        member.values['Status'] === 'Pending Cancellation'
+      ) {
         activeMembers.push(member['id']);
       } else if (member.values['Status'] === 'Inactive') {
         inactiveMembers.push(member['id']);
+      } else if (member.values['Status'] === 'Frozen') {
+        frozenMembers.push(member['id']);
       }
     });
 
@@ -310,6 +317,14 @@ export class NewEmailCampaign extends Component {
         value: '__inactive_members__',
         label: 'Inactive Members',
         members: inactiveMembers,
+      });
+    }
+
+    if (frozenMembers.length > 0) {
+      options.push({
+        value: '__frozen_members__',
+        label: 'Frozen Members',
+        members: frozenMembers,
       });
     }
 

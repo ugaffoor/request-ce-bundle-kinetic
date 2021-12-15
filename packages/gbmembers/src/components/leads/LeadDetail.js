@@ -15,6 +15,7 @@ import {
   contact_date_format,
   email_sent_date_format,
   reminder_date_format,
+  getTimezone,
 } from '../leads/LeadsUtils';
 import lead_dtls from '../../images/lead_details.png';
 import convert_to_member from '../../images/convert_to_member.png';
@@ -760,6 +761,9 @@ export class LeadDetail extends Component {
                   onChange={this.handleDateChange}
                   defaultValue={moment()}
                 />
+                {this.state.contactDate === 'Invalid date' && (
+                  <span className="invaliddate">Invalid Date</span>
+                )}
               </li>
               <li className="sendEmail">
                 <NavLink
@@ -781,6 +785,8 @@ export class LeadDetail extends Component {
                 {this.props.showSMSModal && (
                   <SMSModalContainer
                     submission={this.props.leadItem}
+                    space={this.props.space}
+                    profile={this.props.profile}
                     target="Leads"
                     setShowSMSModal={this.props.setShowSMSModal}
                   />
@@ -826,7 +832,10 @@ export class LeadDetail extends Component {
                       type="button"
                       id="saveNote"
                       className="btn btn-primary btn-block saveNote"
-                      disabled={this.state.note === ''}
+                      disabled={
+                        this.state.note === '' ||
+                        this.state.contactDate === 'Invalid date'
+                      }
                       onClick={async e => {
                         if (this.state.contactMethod === 'intro_class') {
                           if (
@@ -1058,10 +1067,7 @@ export const LeadDetailContainer = compose(
           description: newHistory['note'],
           location: getAttributeValue(space, 'School Address'),
           attendeeEmail: leadItem.values['Email'],
-          timeZone:
-            profile.timezone !== null && profile.timezone !== ''
-              ? profile.timezone
-              : space.defaultTimezone,
+          timeZone: getTimezone(profile.timezone, space.defaultTimezone),
         };
 
         let startDateTime = moment(newHistory.contactDate, 'YYYY-MM-DD HH:mm');
@@ -1199,6 +1205,7 @@ export const LeadDetailContainer = compose(
 
       if (
         nextProps.leadItem.values &&
+        nextProps.leadItem['id'] !== this.props.leadItem['id'] &&
         nextProps.leadItem.values['Is New Reply Received'] === 'true'
       ) {
         this.props.updateIsNewReplyReceived();

@@ -8,9 +8,38 @@ import axios from 'axios';
 import { actions as errorActions, NOTICE_TYPES } from '../modules/errors';
 
 export const getAppSettings = state => state.member.app;
+const getProfileCardsUrl = '/getProfileCards';
 
 const util = require('util');
 
+export function* fetchPOSCards(action) {
+  const appSettings = yield select(getAppSettings);
+  var args = {
+    space: appSettings.spaceSlug,
+    billingService: appSettings.billingCompany,
+    profileId: action.payload.profileId,
+  };
+  console.log('action:' + action.payload);
+  axios
+    .post(appSettings.kineticBillingServerUrl + getProfileCardsUrl, args)
+    .then(result => {
+      if (result.data.error && result.data.error > 0) {
+        console.log(result.data.errorMessage);
+        action.payload.addNotification(
+          NOTICE_TYPES.ERROR,
+          result.data.errorMessage,
+          'Get POS Cards',
+        );
+      } else {
+        action.payload.setPOSCards(result.data.data);
+      }
+    })
+    .catch(error => {
+      console.log(error.response);
+      //action.payload.setSystemError(error);
+    });
+  yield put(actions.setDummy());
+}
 export function* fetchPOSCategories(action) {
   try {
     const search = new CoreAPI.SubmissionSearch()
@@ -436,6 +465,7 @@ export function* decrementPOSStock(action) {
 
 export function* watchPOS() {
   console.log('watchPOS');
+  yield takeEvery(types.FETCH_POS_CARDS, fetchPOSCards);
   yield takeEvery(types.FETCH_POS_CATEGORIES, fetchPOSCategories);
   yield takeEvery(types.FETCH_POS_PRODUCTS, fetchPOSProducts);
   yield takeEvery(types.FETCH_POS_BARCODES, fetchPOSBarcodes);

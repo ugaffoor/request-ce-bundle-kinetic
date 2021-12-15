@@ -26,6 +26,7 @@ import { actions as leadsActions } from '../../redux/modules/leads';
 import { actions as attendanceActions } from '../../redux/modules/attendance';
 import { actions as monthlyStatisticsActions } from '../../redux/modules/monthlyStatistics';
 import { actions as classActions } from '../../redux/modules/classes';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -91,6 +92,8 @@ export const HomeView = ({
   toDate,
   setIsAssigning,
   space,
+  currency,
+  locale,
 }) => (
   <div className="dashboard">
     <StatusMessagesContainer />
@@ -151,6 +154,8 @@ export const HomeView = ({
               monthlyStatistics={monthlyStatistics}
               fetchMonthlyStatistics={fetchMonthlyStatistics}
               fetchingMonthlyStatistics={fetchingMonthlyStatistics}
+              currency={currency}
+              locale={locale}
             />
           </div>
         </div>
@@ -224,6 +229,19 @@ export const HomeContainer = compose(
         }
       }
       this.props.fetchLeadsByDate();
+
+      let currency = getAttributeValue(this.props.space, 'Currency');
+      if (currency === undefined) currency = 'USD';
+
+      this.locale =
+        this.props.profile.preferredLocale === null
+          ? this.props.space.defaultLocale
+          : this.props.profile.preferredLocale;
+
+      this.setState({
+        currency: currency,
+        locale: this.locale,
+      });
     },
     UNSAFE_componentWillReceiveProps(nextProps) {
       this.props.setSidebarDisplayType('members');

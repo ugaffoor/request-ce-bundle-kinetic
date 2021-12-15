@@ -26,6 +26,8 @@ const mapStateToProps = state => ({
   members: state.member.members.allMembers,
   profile: state.member.app.profile,
   leads: state.member.leads.allLeads,
+  FAILEDpaymentHistory: state.member.members.FAILEDpaymentHistory,
+  FAILEDpaymentHistoryLoading: state.member.members.FALIEDpaymentHistoryLoading,
   paymentHistory: state.member.members.SUCCESSFULpaymentHistory,
   SUCCESSFULpaymentHistoryLoading:
     state.member.members.SUCCESSFULpaymentHistoryLoading,
@@ -104,13 +106,56 @@ export class MemberFinancialReport extends Component {
   UNSAFE_componentWillReceiveProps(nextProps) {
     if (
       !nextProps.billingReportCustomersLoading &&
+      !nextProps.FAILEDpaymentHistoryLoading &&
       !nextProps.SUCCESSFULpaymentHistoryLoading &&
       !nextProps.customerRefundsLoading &&
       !nextProps.posOrdersLoading
     ) {
+      this.failedPaymentHistory = [];
+      nextProps.FAILEDpaymentHistory.forEach((item, i) => {
+        this.failedPaymentHistory[this.failedPaymentHistory.length] = item;
+      });
       this.paymentHistory = [];
       nextProps.paymentHistory.forEach((item, i) => {
         this.paymentHistory[this.paymentHistory.length] = item;
+      });
+
+      this.failedPaymentHistory = this.failedPaymentHistory.filter(
+        payment => payment.paymentStatus === 'DECLINED',
+      );
+      this.failedPaymentHistory = this.failedPaymentHistory.sort((a, b) => {
+        if (a['debitDate'] < b['debitDate']) {
+          return 1;
+        }
+        if (a['debitDate'] > b['debitDate']) {
+          return -1;
+        }
+        return 0;
+      });
+      var uniqueFailed = [];
+      this.failedPaymentHistory.forEach((failed, i) => {
+        var idx = uniqueFailed.findIndex(
+          unique => unique.yourSystemReference === failed.yourSystemReference,
+        );
+        if (idx === -1) {
+          uniqueFailed[uniqueFailed.length] = failed;
+        }
+      });
+
+      var uniqueFailedHistory = [];
+      uniqueFailed.forEach((failed, i) => {
+        var idx = this.paymentHistory.findIndex(successful => {
+          return (
+            failed.yourSystemReference === successful.yourSystemReference &&
+            moment(successful.debitDate, 'YYYY-MM-DD').isAfter(
+              moment(failed.debitDate, 'YYYY-MM-DD'),
+            )
+          );
+        });
+
+        if (idx === -1) {
+          uniqueFailedHistory[uniqueFailedHistory.length] = failed;
+        }
       });
 
       this.posOrders = [];
@@ -126,6 +171,7 @@ export class MemberFinancialReport extends Component {
       let memberData = this.getMemberData(
         nextProps.members,
         nextProps.billingCustomers,
+        uniqueFailedHistory,
         this.paymentHistory,
         this.posOrders,
         this.refunds,
@@ -146,6 +192,8 @@ export class MemberFinancialReport extends Component {
       this.props.fetchBillingCustomers({
         setBillingCustomers: this.props.setBillingCustomers,
         allMembers: this.props.members,
+        setSystemError: this.props.setSystemError,
+        addNotification: this.props.addNotification,
       });
     }
     this.props.fetchPaymentHistory({
@@ -157,6 +205,20 @@ export class MemberFinancialReport extends Component {
       dateTo: this.state.repToDate.format('YYYY-MM-DD'),
       setPaymentHistory: this.props.setPaymentHistory,
       internalPaymentType: 'client_successful',
+      addNotification: this.props.addNotification,
+      setSystemError: this.props.setSystemError,
+    });
+    this.props.fetchPaymentHistory({
+      paymentType: 'FAILED',
+      paymentMethod: 'ALL',
+      paymentSource: 'ALL',
+      dateField: 'PAYMENT',
+      dateFrom: moment()
+        .subtract(6, 'month')
+        .format('YYYY-MM-DD'),
+      dateTo: moment().format('YYYY-MM-DD'),
+      setPaymentHistory: this.props.setPaymentHistory,
+      internalPaymentType: 'client_failed',
       addNotification: this.props.addNotification,
       setSystemError: this.props.setSystemError,
     });
@@ -212,6 +274,7 @@ export class MemberFinancialReport extends Component {
   getMemberData(
     members,
     billingCustomers,
+    failedPaymentHistory,
     paymentHistory,
     posOrders,
     customerRefunds,
@@ -222,6 +285,7 @@ export class MemberFinancialReport extends Component {
     if (!members || members.length <= 0) {
       return {
         accountHolders: { members: [], value: 0 },
+        forecastHolders: { members: [], value: 0 },
         posPayments: { members: [], value: 0 },
         salesTax: { members: [], value: 0 },
         refundMembers: { members: [], value: 0 },
@@ -230,6 +294,8 @@ export class MemberFinancialReport extends Component {
     // billingAmount, repBillingPeriod
     let accountHolders = [];
     let accountHoldersValue = 0;
+    let forecastHolders = [];
+    let forecastHoldersValue = 0;
     let posPeople = [];
     let posPaymentsValue = 0;
     let refundMembers = [];
@@ -268,6 +334,55 @@ export class MemberFinancialReport extends Component {
         posPaymentsValue += payment.paymentAmount;
       }
     });
+
+    billingCustomers.forEach((member, i) => {
+      // Ignore failed payments
+      var failedIdx = failedPaymentHistory.findIndex(
+        payment => payment.yourSystemReference === member.customerId,
+      );
+      if (member.status === 'Active' && failedIdx === -1) {
+        // Find latest payment date
+        var idx = paymentHistory.findIndex(item => {
+          return member.customerId === item.yourSystemReference;
+        });
+        var lastPayment;
+        if (idx !== -1) {
+          lastPayment = moment(
+            paymentHistory[idx]['debitDate'],
+            'YYYY-MM-DD HH:mm:ss',
+          );
+        } else {
+          lastPayment = moment(member.contractStartDate, 'YYYY-MM-DD');
+        }
+        var paymentPeriod = member.billingPeriod;
+        var period = 'months';
+        var periodCount = 1;
+        if (paymentPeriod === 'Daily') {
+          period = 'days';
+        } else if (paymentPeriod === 'Weekly') {
+          period = 'weeks';
+        } else if (paymentPeriod === 'Fortnightly') {
+          period = 'weeks';
+          periodCount = 2;
+        } else if (paymentPeriod === 'Monthly') {
+          period = 'months';
+        }
+        var nextBillingDate = lastPayment.add(period, periodCount);
+        while (nextBillingDate.isBefore(fromDate)) {
+          nextBillingDate = nextBillingDate.add(period, periodCount);
+        }
+        while (
+          (nextBillingDate.isAfter(fromDate) ||
+            nextBillingDate.isSame(fromDate)) &&
+          (nextBillingDate.isBefore(toDate) || nextBillingDate.isSame(toDate))
+        ) {
+          forecastHolders[forecastHolders.length] = member;
+          forecastHoldersValue += Number(member.billingAmount);
+          nextBillingDate = nextBillingDate.add(period, periodCount);
+        }
+      }
+    });
+
     let salesTaxValue = 0;
     posOrders.forEach(pos => {
       if (getAttributeValue(this.props.space, 'POS System') === 'Square') {
@@ -311,6 +426,10 @@ export class MemberFinancialReport extends Component {
 
     return {
       accountHolders: { members: accountHolders, value: accountHoldersValue },
+      forecastHolders: {
+        members: forecastHolders,
+        value: forecastHoldersValue,
+      },
       posPayments: { members: posPeople, value: posPaymentsValue },
       salesTax: { members: [], value: salesTaxValue.toFixed(2) },
       refundMembers: { members: refundMembers, value: refundValue.toFixed(2) },
@@ -771,7 +890,9 @@ export class MemberFinancialReport extends Component {
           return props.original.members_col1 === undefined ? (
             <div />
           ) : (
-            <div className="">{props.original.members_col1['period']}</div>
+            <div className="">
+              <I18n>{props.original.members_col1['period']}</I18n>
+            </div>
           );
         },
       },
@@ -835,7 +956,9 @@ export class MemberFinancialReport extends Component {
           return props.original.members_col2 === undefined ? (
             <div />
           ) : (
-            <div className="">{props.original.members_col2['period']}</div>
+            <div className="">
+              <I18n>{props.original.members_col2['period']}</I18n>
+            </div>
           );
         },
       },
@@ -1556,6 +1679,23 @@ export class MemberFinancialReport extends Component {
                   }).format(
                     this.state.repMemberData.accountHolders.value +
                       this.state.repMemberData.posPayments.value -
+                      this.state.repMemberData.refundMembers.value,
+                  )}
+                </div>
+              </div>
+              <div className="column col3"></div>
+              <div className="column col4"></div>
+            </div>
+            <div className="row header8">
+              <div className="column col1">Payments-Refunds+Forecast</div>
+              <div className="column col2">
+                <div className="dollarValue">
+                  {new Intl.NumberFormat(this.locale, {
+                    style: 'currency',
+                    currency: this.currency,
+                  }).format(
+                    this.state.repMemberData.accountHolders.value +
+                      this.state.repMemberData.forecastHolders.value -
                       this.state.repMemberData.refundMembers.value,
                   )}
                 </div>

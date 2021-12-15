@@ -313,7 +313,7 @@ export const reducer = (state = State(), { type, payload }) => {
       return state.set('memberPromotionsLoading', false);
     }
     case types.FETCH_PAYMENT_HISTORY: {
-      return state.set(payload.paymentType + 'PaymentHistoryLoading', true);
+      return state.set(payload.paymentType + 'paymentHistoryLoading', true);
     }
     case types.FETCH_OVERDUES: {
       return state.set('overduesLoading', true);

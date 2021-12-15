@@ -95,11 +95,19 @@ export const Header = ({
         )}
       </NavItem>
       <div className="nav-item-centre">
-        <img
-          src="https://gbfms-files.s3-ap-southeast-2.amazonaws.com/GB+Name+Log.png"
-          alt="GB Logo"
-          className="GBLogo"
-        />
+        {Utils.getAttributeValue(space, 'BarraFIT') === 'TRUE' ? (
+          <img
+            src="https://us-gbfms-files.s3.us-east-2.amazonaws.com/Barrafit.png"
+            alt="BarraFIT Logo"
+            className="BarraFITLogo"
+          />
+        ) : (
+          <img
+            src="https://gbfms-files.s3-ap-southeast-2.amazonaws.com/GB+Name+Log.png"
+            alt="GB Logo"
+            className="GBLogo"
+          />
+        )}
       </div>
       <div className="nav-item-right">
         <Dropdown

@@ -54,6 +54,7 @@ export class EmailCampaignsList extends Component {
     this.getNestedTableData = this.getNestedTableData.bind(this);
     this._nestedTableColumns = this.getNestedTableColumns();
     this._getRecipientColumns = this.getRecipientColumns();
+    this._getOpenedColumns = this.getOpenedColumns();
     this.state = {
       emailCampaigns,
     };
@@ -151,6 +152,26 @@ export class EmailCampaignsList extends Component {
       },
     ];
   };
+  getOpenedColumns = () => {
+    return [
+      {
+        accessor: 'opened',
+        Header: '',
+        headerClassName: 'opened_col',
+        className: 'opened_col',
+        Cell: props => {
+          return (
+            <NavLink
+              to={`/${props.original['type']}/${props.original['id']}`}
+              className=""
+            >
+              {props.original['name']}
+            </NavLink>
+          );
+        },
+      },
+    ];
+  };
 
   getNestedTableColumns(row) {
     return [
@@ -196,6 +217,40 @@ export class EmailCampaignsList extends Component {
         },
       },
       {
+        accessor: 'opened',
+        Header: 'Opened By',
+        headerClassName: 'opened_col',
+        className: 'opened_col',
+        style: { whiteSpace: 'unset' },
+        width: 300,
+        Cell: props => {
+          let values = props.value;
+          values.forEach(value => {
+            this.props.allMembers.forEach(member => {
+              if (value['id'] === member['id']) {
+                value['type'] = 'Member';
+                return;
+              }
+            });
+
+            this.props.allLeads.forEach(lead => {
+              if (value['id'] === lead['id']) {
+                value['type'] = 'LeadDetail';
+                return;
+              }
+            });
+          });
+          return (
+            <ReactTable
+              columns={this._getOpenedColumns}
+              pageSize={values.length > 20 ? 20 : values.length}
+              showPagination={values.length > 20 ? true : false}
+              data={values}
+            />
+          );
+        },
+      },
+      {
         accessor: 'attachments',
         Header: 'Attachments',
         headerClassName: 'attachments_col',
@@ -232,6 +287,32 @@ export class EmailCampaignsList extends Component {
         }
       });
     });
+    let opened = [];
+    if (row['opened'] !== undefined) {
+      this.props.allMembers.forEach(member => {
+        JSON.parse(row['opened']).forEach(recipient => {
+          if (recipient === member['id']) {
+            opened[opened.length] = {
+              id: member.id,
+              name:
+                member.values['First Name'] + ' ' + member.values['Last Name'],
+            };
+            return;
+          }
+        });
+      });
+      this.props.allLeads.forEach(lead => {
+        JSON.parse(row['opened']).forEach(recipient => {
+          if (recipient === lead['id']) {
+            opened[opened.length] = {
+              id: lead.id,
+              name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
+            };
+            return;
+          }
+        });
+      });
+    }
     let attachments = '';
     if (row['attachments'] !== undefined) {
       JSON.parse(row['attachments']).forEach(attachment => {
@@ -244,6 +325,7 @@ export class EmailCampaignsList extends Component {
       {
         body: <span dangerouslySetInnerHTML={{ __html: row['body'] }} />,
         recipients: members,
+        opened: opened,
         attachments: <span dangerouslySetInnerHTML={{ __html: attachments }} />,
       },
     ];

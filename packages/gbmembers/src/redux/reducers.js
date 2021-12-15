@@ -18,6 +18,7 @@ import { reducer as reporting } from './modules/reporting';
 import { reducer as attendance } from './modules/attendance';
 import { reducer as classes } from './modules/classes';
 import { reducer as pos } from './modules/pos';
+import { reducer as services } from './modules/services';
 
 export default {
   errors: errorsReducer,
@@ -40,4 +41,5 @@ export default {
   attendance,
   classes,
   pos,
+  services,
 };

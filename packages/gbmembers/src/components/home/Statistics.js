@@ -256,13 +256,14 @@ export class Statistics extends Component {
   getMemberData(members, fromDate, toDate) {
     if (!members || members.length <= 0) {
       return {
+        active: [],
         cancellations: [],
         pendingCancellations: [],
         frozen: [],
         pendingFrozen: [],
       };
     }
-
+    let active = [];
     let cancellations = [];
     let pendingCancellations = [];
     let frozen = [];
@@ -270,6 +271,9 @@ export class Statistics extends Component {
     members.forEach(member => {
       let memberStatus = memberStatusInDates(member, fromDate, toDate);
 
+      if (memberStatus === 'Frozen' || memberStatus === 'Active') {
+        active[active.length] = member;
+      }
       if (memberStatus === 'Inactive') {
         cancellations[cancellations.length] = member;
       }
@@ -288,6 +292,7 @@ export class Statistics extends Component {
     });
 
     return {
+      active: active,
       cancellations: cancellations,
       pendingCancellations: pendingCancellations,
       frozen: frozen,
@@ -1461,6 +1466,43 @@ export class Statistics extends Component {
                   />
                 </div>
               )}
+            </div>
+            <div className="statItem">
+              <div className="info percentage">
+                <div className="label">Attrition</div>
+                <div className="value">
+                  {!Number.isNaN(
+                    Number(
+                      (this.state.memberData.cancellations.length /
+                        this.state.memberData.active.length) *
+                        100,
+                    ),
+                  ) && (
+                    <span>
+                      {Number(
+                        (this.state.memberData.cancellations.length /
+                          this.state.memberData.active.length) *
+                          100,
+                      ).toFixed(2)}
+                      %
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="statItem">
+              <div className="info">
+                <div className="label">Growth</div>
+                <div className="value">
+                  {this.state.leadData.convertedTotal !== undefined &&
+                    this.state.memberData.cancellations !== undefined && (
+                      <span>
+                        {this.state.leadData.convertedTotal.length -
+                          this.state.memberData.cancellations.length}
+                      </span>
+                    )}
+                </div>
+              </div>
             </div>
           </div>
         </div>

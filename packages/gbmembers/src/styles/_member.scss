@@ -1,3 +1,9 @@
+.statusOptions a {
+  color: blue;
+}
+.memberOptions input {
+  margin-right: 10px;
+}
 .bamboraActivate {
   display: flex;
   flex-direction: column;
@@ -137,6 +143,10 @@
     size: letter landscape;
   }
 }
+.card1.Athlete,
+.card1.Elite_Athlete {
+  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/barrafit_attendance_card3-P1.png);
+}
 .card1.visitorCard {
   background-image: url(https://gbfms-files.s3.ap-southeast-2.amazonaws.com/VisitorCard.png);
 }
@@ -171,6 +181,10 @@
   background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Kids_Competition_Team-P1.png);
 }
 
+.card2.Athlete,
+.card2.Elite_Athlete {
+  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/barrafit_attendance_card3-P2.png);
+}
 .card2.GB1 {
   background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/GB1-P2.png);
 }
@@ -233,8 +247,8 @@
   .card1.Advanced_Kids {
     background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USAdvanced_Kids-P1.png);
   }
-  .card1.Kids_Competition_Team {
-    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USKids_Competition_Team-P1.png);
+  .card1.Competition_Team {
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/CompetitionTeam_P1.png);
   }
 
   .card2.GB1 {
@@ -264,8 +278,8 @@
   .card2.Advanced_Kids {
     background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USAdvanced_Kids-P2.png);
   }
-  .card2.Kids_Competition_Team {
-    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USKids_Competition_Team-P2.png);
+  .card2.Competition_Team {
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/CompetitionTeam_P2.png);
   }
 }
 .replyIcon {
@@ -470,6 +484,12 @@
     a {
       color: $darkgray;
     }
+    .checkboxFilter {
+      margin-left: 6px;
+    }
+    label {
+      min-width: 165px;
+    }
   }
   .btn-primary {
     border: none;
@@ -603,7 +623,7 @@
           line-height: 1.75rem;
           clear: right;
           float: right;
-          min-width: 100px;
+          min-width: 113px;
           text-transform: capitalize;
           font-size: 15px;
         }
@@ -1304,6 +1324,7 @@ iframe#printf {
       height: 84px;
     }
   }
+
   .attendanceName.Advanced_Kids {
     margin-top: 40mm;
     margin-left: 127mm;
@@ -1337,16 +1358,30 @@ iframe#printf {
     width: 185mm;
     height: 262mm;
   }
-
+  .Athlete .photoDiv,
+  .Elite_Athlete .photoDiv {
+    height: 96px;
+    width: 102px;
+    margin-left: 150mm;
+    margin-top: 23px;
+  }
+  .Athlete .noPhotoDiv,
+  .Elite_Athlete .noPhotoDiv {
+    width: 110px !important;
+    height: 110px !important;
+    margin-left: 110px !important;
+    margin-bottom: 23px !important;
+    margin-top: 7px !important;
+  }
   .Little_Champions_1 .photoDiv,
   .Little_Champions_2 .photoDiv,
   .Tiny_Champions .photoDiv,
   .Juniors .photoDiv,
   .Teens .photoDiv {
-    height: 205px;
-    width: 169px;
-    margin-left: 462px;
-    margin-top: 44px;
+    height: 124px;
+    width: 121px;
+    margin-left: 491px;
+    margin-top: 75px;
     .noPhotoDiv {
       width: 120px;
       height: 120px;
@@ -1368,6 +1403,19 @@ iframe#printf {
       margin-bottom: 23px;
     }
   }
+  .Competition_Team .photoDiv {
+    height: 119px;
+    width: 122px;
+    margin-left: 538px;
+    margin-top: 160px;
+    .noPhotoDiv {
+      width: 120px;
+      height: 120px;
+      padding: 20px;
+      margin-left: 150px;
+      margin-bottom: 23px;
+    }
+  }
   .GB1 .photoDiv,
   .GB2 .photoDiv,
   .GB3 .photoDiv {
@@ -1380,10 +1428,10 @@ iframe#printf {
     }
   }
   .photoDiv {
-    height: 162px;
-    width: 174px;
+    height: 126px;
+    width: 122px;
     margin-left: 130mm;
-    margin-top: 11.5mm;
+    margin-top: 19.5mm;
     line-height: 95px;
     background-color: transparent;
     float: left;
@@ -1419,8 +1467,21 @@ iframe#printf {
       float: left;
     }
   }
+  .attendanceBarcode.Athlete,
+  .attendanceBarcode.Elite_Athlete {
+    margin-top: 200mm;
+    margin-left: 143mm;
+    svg {
+      width: 143px;
+      height: 84px;
+    }
+  }
   .attendanceBarcode.Advanced_Kids {
     margin-top: 75mm;
+    margin-left: 162mm;
+  }
+  .attendanceBarcode.Competition_Team {
+    margin-top: 200mm;
     margin-left: 162mm;
   }
   .attendanceBarcode {
@@ -1438,9 +1499,26 @@ iframe#printf {
       height: 84px;
     }
   }
+  .attendanceName.Athlete,
+  .attendanceName.Elite_Athlete {
+    margin-top: -118mm;
+    margin-left: 119mm;
+    min-width: 400px;
+    p {
+      font-size: 18px;
+    }
+  }
   .attendanceName.Advanced_Kids {
     margin-top: 18mm;
     margin-left: 103mm;
+  }
+  .attendanceName.Competition_Team {
+    margin-top: -47mm;
+    margin-left: 103mm;
+    p {
+      font-size: 32px;
+      font-family: 'AdiHaus DIN Bold';
+    }
   }
   .attendanceName.Little_Champions_1,
   .attendanceName.Little_Champions_2,
@@ -1466,5 +1544,35 @@ iframe#printf {
     p {
       font-size: 22px;
     }
+  }
+  .ranking,
+  .lastpromotion,
+  .program {
+    transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
+    p {
+      font-size: 18px;
+    }
+  }
+  .ranking.Athlete,
+  .ranking.Elite_Athlete {
+    margin-top: -14mm;
+    margin-left: 121mm;
+    min-width: 300px;
+  }
+  .lastpromotion.Athlete,
+  .lastpromotion.Elite_Athlete {
+    margin-top: 71mm;
+    margin-left: 135mm;
+  }
+  .program.Athlete,
+  .program.Elite_Athlete {
+    margin-top: 0mm;
+    margin-left: 146mm;
+    min-width: 200px;
   }
 }

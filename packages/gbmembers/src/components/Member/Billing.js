@@ -536,7 +536,11 @@ export class FamilyFeeDetails extends Component {
         accessor: 'cost',
         Header: 'Cost',
         align: 'center',
-        Cell: props => (props.value ? '$' + props.value : 'NA'),
+        Cell: props =>
+          new Intl.NumberFormat(this.props.locale, {
+            style: 'currency',
+            currency: this.props.currency,
+          }).format(props.value),
       },
       {
         accessor: 'discount',
@@ -565,9 +569,10 @@ export class FamilyFeeDetails extends Component {
           <h4>Membership Cost:</h4>
           &nbsp;
           <h4>
-            {new Number(
-              this.props.memberItem.values['Membership Cost'],
-            ).toLocaleString('en', { style: 'currency', currency: 'USD' })}
+            {new Intl.NumberFormat(this.props.locale, {
+              style: 'currency',
+              currency: this.props.currency,
+            }).format(this.props.memberItem.values['Membership Cost'])}
           </h4>
         </span>
       </span>
@@ -628,19 +633,31 @@ export class PaymentHistory extends Component {
       {
         accessor: 'scheduledAmount',
         Header: 'Scheduled Amount',
-        Cell: props => '$' + props.value,
+        Cell: props =>
+          new Intl.NumberFormat(this.props.locale, {
+            style: 'currency',
+            currency: this.props.currency,
+          }).format(props.value),
       },
       {
         accessor: 'paymentAmount',
         Header: 'Payment Amount',
-        Cell: props => '$' + props.value,
+        Cell: props =>
+          new Intl.NumberFormat(this.props.locale, {
+            style: 'currency',
+            currency: this.props.currency,
+          }).format(props.value),
       },
       { accessor: 'paymentMethod', Header: 'Payment Method' },
       { accessor: 'paymentStatus', Header: 'Payment Status' },
       {
         accessor: 'transactionFee',
         Header: 'Transaction Fee',
-        Cell: props => '$' + props.value,
+        Cell: props =>
+          new Intl.NumberFormat(this.props.locale, {
+            style: 'currency',
+            currency: this.props.currency,
+          }).format(props.value),
       },
       {
         accessor: 'debitDate',
@@ -667,6 +684,8 @@ export class PaymentHistory extends Component {
             >
               Refund Payment
             </button>
+          ) : this.isPaymentRefunded(row.original['_id'], paymentsRefunded) ? (
+            'Refunded'
           ) : (
             ''
           ),
@@ -679,7 +698,12 @@ export class PaymentHistory extends Component {
     confirmWithInput({ message: 'hello' }).then(
       ({ reason }) => {
         console.log('proceed! input:' + reason);
-        this.props.refundPayment(paymentId, amount, reason);
+        this.props.refundPayment(
+          this.props.billingThis,
+          paymentId,
+          amount,
+          reason,
+        );
       },
       () => {
         console.log('cancel!');
@@ -1065,26 +1089,28 @@ export class BillingInfo extends Component {
                         </td>
                       </tr>
                     )}
-                    {this.props.billingInfo.nextBillingDate && (
-                      <tr>
-                        <td>Next Billing Date:</td>
-                        <td>
-                          {moment(
-                            this.props.billingInfo.nextBillingDate,
-                            'DD-MM-YYYY',
-                          ).format('L')}
-                        </td>
-                      </tr>
-                    )}
+                    {this.props.billingInfo.statusCode === 'Active' &&
+                      this.props.billingInfo.nextBillingDate && (
+                        <tr>
+                          <td>Next Billing Date:</td>
+                          <td>
+                            {moment(
+                              this.props.billingInfo.nextBillingDate,
+                              'DD-MM-YYYY',
+                            ).format('L')}
+                          </td>
+                        </tr>
+                      )}
                     {this.props.billingInfo.paymentAmountInCents && (
                       <tr>
                         <td>Payment Amount:</td>
                         <td>
-                          {'$' +
-                            Number(
-                              this.props.billingInfo.paymentAmountInCents,
-                            ) /
-                              100}
+                          {new Intl.NumberFormat(this.props.locale, {
+                            style: 'currency',
+                            currency: this.props.currency,
+                          }).format(
+                            this.props.billingInfo.paymentAmountInCents / 100,
+                          )}
                         </td>
                       </tr>
                     )}
@@ -1107,7 +1133,11 @@ export class BillingInfo extends Component {
                 <span className="line">
                   <div style={{ width: '90vw', marginTop: '10px' }}>
                     {this.props.familyMembers.length > 0 && (
-                      <FamilyFeeDetails memberItem={this.props.memberItem} />
+                      <FamilyFeeDetails
+                        memberItem={this.props.memberItem}
+                        currency={this.props.currency}
+                        locale={this.props.locale}
+                      />
                     )}
                   </div>
                 </span>
@@ -1132,8 +1162,11 @@ export class BillingInfo extends Component {
                           paymentHistoryLoading={
                             this.props.paymentHistoryLoading
                           }
+                          billingThis={this}
                           refundPayment={this.props.refundPayment}
                           memberItem={this.props.memberItem}
+                          currency={this.props.currency}
+                          locale={this.props.locale}
                         />
                       )}
                     </div>
@@ -1212,6 +1245,8 @@ export const Billing = ({
   getActionRequests,
   profile,
   space,
+  currency,
+  locale,
 }) =>
   currentMemberLoading ? (
     <div />
@@ -1253,6 +1288,8 @@ export const Billing = ({
                 getActionRequests={getActionRequests}
                 profile={profile}
                 space={space}
+                currency={currency}
+                locale={locale}
               />
             )}
           {(memberItem.values['Billing Customer Id'] === null ||
@@ -1641,7 +1678,8 @@ export const BillingContainer = compose(
       fetchMembers,
       addNotification,
       setSystemError,
-    }) => (paymentId, paymentAmount, billingChangeReason) => {
+      setIsDirty,
+    }) => (billingThis, paymentId, paymentAmount, billingChangeReason) => {
       console.log('### paymentId = ' + paymentId);
       let args = {};
       args.transactionId = paymentId;
@@ -1654,6 +1692,8 @@ export const BillingContainer = compose(
       args.billingChangeReason = billingChangeReason;
       args.addNotification = addNotification;
       args.setSystemError = setSystemError;
+      args.billingThis = billingThis;
+
       refundTransaction(args);
     },
     getActionRequests: ({
@@ -1716,22 +1756,19 @@ export const BillingContainer = compose(
         allMembers: this.props.allMembers,
         setFamilyMembers: this.props.setFamilyMembers,
       });
-      /*      if (
-        member &&
-        member.values['Billing Customer Id'] &&
-        member.values['DDR Status'] !== 'Processed'
-      ) {
-        this.props.fetchDdrStatus({
-          memberItem: member,
-          updateMember: this.props.updateMember,
-          fetchMember: this.props.fetchMember,
-          fetchMembers: this.props.fetchMembers,
-          myThis: this,
-          addNotification: this.props.addNotification,
-          setSystemError: this.props.setSystemError,
-        });
-      }
-*/
+
+      let currency = getAttributeValue(this.props.space, 'Currency');
+      if (currency === undefined) currency = 'USD';
+
+      this.locale =
+        this.props.profile.preferredLocale === null
+          ? this.props.space.defaultLocale
+          : this.props.profile.preferredLocale;
+
+      this.setState({
+        currency: currency,
+        locale: this.locale,
+      });
     },
 
     UNSAFE_componentWillReceiveProps(nextProps) {

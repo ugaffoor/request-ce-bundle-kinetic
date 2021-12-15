@@ -946,6 +946,18 @@ export const MemberNewContainer = compose(
           .first()
           .focus();
       } else {
+        // Trim spaces
+        var keys = Object.keys(memberItem.values);
+        keys.forEach((item, i) => {
+          if (
+            memberItem.values[item] !== null &&
+            memberItem.values[item] !== undefined &&
+            typeof memberItem.values[item] !== 'object'
+          ) {
+            memberItem.values[item] = memberItem.values[item].trim();
+          }
+        });
+
         memberItem.values['Status'] = 'Active';
         memberItem.values['Lead Submission ID'] = match.params['leadId'];
         createMember({
