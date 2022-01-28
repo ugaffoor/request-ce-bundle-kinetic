@@ -35,6 +35,7 @@ const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   leadItem: state.member.leads.currentLead,
   programs: state.member.app.programs,
+  additionalPrograms: state.member.app.additionalPrograms,
   currentLeadLoading: state.member.leads.currentLeadLoading,
   members: state.member.members.allMembers,
   leads: state.member.leads.allLeads,
@@ -419,6 +420,18 @@ export class LeadEdit extends Component {
                     <option value="" />
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
+                    {getAttributeValue(
+                      this.props.space,
+                      'Additional Gender Options',
+                    ) === 'YES' && (
+                      <option value="Prefer not to answer">
+                        Prefer not to answer
+                      </option>
+                    )}
+                    {getAttributeValue(
+                      this.props.space,
+                      'Additional Gender Options',
+                    ) === 'YES' && <option value="Other">Other</option>}
                   </select>
                   <div className="droparrow" />
                 </div>
@@ -529,10 +542,12 @@ export class LeadEdit extends Component {
                   >
                     <I18n>Postcode</I18n>
                   </label>
-                  {getAttributeValue(
-                    this.props.space,
-                    'School Country Code',
-                  ) === 'GB' ? (
+                  {getAttributeValue(this.props.space, 'Postcode Format') ===
+                    undefined ||
+                  getAttributeValue(this.props.space, 'Postcode Format') ===
+                    null ||
+                  getAttributeValue(this.props.space, 'Postcode Format') ===
+                    '' ? (
                     <input
                       type="text"
                       name="postcode"
@@ -541,10 +556,14 @@ export class LeadEdit extends Component {
                       required
                       ref={input => (this.input = input)}
                       defaultValue={this.props.leadItem.values['Postcode']}
-                      onChange={e => {
-                        e.target.value = e.target.value;
-                        handleChange(this.props.leadItem, 'Postcode', e);
-                      }}
+                      onChange={e =>
+                        handleChange(
+                          this.props.leadItem,
+                          'Postcode',
+                          e,
+                          this.setIsDirty,
+                        )
+                      }
                     />
                   ) : (
                     <NumberFormat
@@ -997,6 +1016,10 @@ export class LeadEdit extends Component {
                   </div>
                 </span>
               </div>
+              <div className="line">
+                <h1>Other Information</h1>
+                <hr />
+              </div>
               <span className="line">
                 <div>
                   <label id="birthday" htmlFor="birthday">
@@ -1051,11 +1074,13 @@ export class LeadEdit extends Component {
                     }
                   >
                     <option value="" />
-                    {this.props.programs.map(program => (
-                      <option key={program.program} value={program.program}>
-                        {program.program}
-                      </option>
-                    ))}
+                    {this.props.programs
+                      .concat(this.props.additionalPrograms)
+                      .map(program => (
+                        <option key={program.program} value={program.program}>
+                          {program.program}
+                        </option>
+                      ))}
                   </select>
                   <div className="droparrow" />
                 </div>
@@ -1253,6 +1278,7 @@ export const LeadEditView = ({
   fetchLeads,
   removeLead,
   programs,
+  additionalPrograms,
   currentLeadLoading,
   isDirty,
   setIsDirty,
@@ -1271,6 +1297,7 @@ export const LeadEditView = ({
       members={members}
       saveLead={saveLead}
       programs={programs}
+      additionalPrograms={additionalPrograms}
       removeLead={removeLead}
       isDirty={isDirty}
       setIsDirty={setIsDirty}

@@ -61,6 +61,7 @@ export class MemberActivityReport extends Component {
       { title: 'Address', field: 'address', tooltip: true },
       { title: K.translate('Suburb'), field: 'suburb', tooltip: true },
       { title: 'State', field: 'state' },
+      { title: K.translate('Postcode'), field: 'postcode' },
       { title: 'Age (Years)', field: 'age' },
       { title: 'Member Type', field: 'memberType' },
       { title: 'Program', field: 'program' },
@@ -146,6 +147,7 @@ export class MemberActivityReport extends Component {
     this.hiddenColumns = [
       { label: 'Address', value: 'address' },
       { label: K.translate('Suburb'), value: 'suburb' },
+      { label: K.translate('Postcode'), value: 'postcode' },
       { label: 'State', value: 'state' },
       { label: 'Age (Years)', value: 'age' },
       { label: 'Member Type', value: 'memberType' },
@@ -212,6 +214,7 @@ export class MemberActivityReport extends Component {
           { label: 'Address', value: 'address' },
           { label: K.translate('Suburb'), value: 'suburb' },
           { label: 'State', value: 'state' },
+          { label: K.translate('Postcode'), value: 'postcode' },
           { label: 'Age (Years)', value: 'age' },
           { label: 'Member Type', value: 'memberType' },
           { label: 'Program', value: 'program' },
@@ -269,6 +272,7 @@ export class MemberActivityReport extends Component {
       { label: 'Address', value: 'address' },
       { label: K.translate('Suburb'), value: 'suburb' },
       { label: 'State', value: 'state' },
+      { label: K.translate('Postcode'), value: 'postcode' },
       { label: 'Age (Years)', value: 'age' },
       { label: 'Member Type', value: 'memberType' },
       { label: 'Program', value: 'program' },
@@ -302,9 +306,17 @@ export class MemberActivityReport extends Component {
     );
     //    this.visibleColumns.push({ label: 'Notes', value: 'history' });
     this.selectedColumns = this.visibleColumns;
+    var genders = ['Male', 'Female'];
+    if (
+      getAttributeValue(this.props.space, 'Additional Gender Options') === 'YES'
+    ) {
+      genders[genders.length] = 'Prefer not to answer';
+      genders[genders.length] = 'Other';
+    }
     this.filterValueOptions = {
-      gender: ['Male', 'Female'],
+      gender: genders,
       status: this.props.memberStatusValues,
+      paymentPeriod: this.props.paymentPeriods,
       billingUser: ['YES'],
       billingMigrated: ['YES'],
       nonPaying: ['YES'],
@@ -916,10 +928,8 @@ export class MemberActivityReport extends Component {
     members.forEach(member => {
       memberActivityData.push({
         id: member['id'],
-        createdDate: moment(member['createdAt']).format('DD-MM-YYYY HH:mm'),
-        lastModifiedDate: moment(member['updatedAt']).format(
-          'DD-MM-YYYY HH:mm',
-        ),
+        createdDate: moment(member['createdAt']).format('L HH:mm'),
+        lastModifiedDate: moment(member['updatedAt']).format('L HH:mm'),
         name: member.values['Last Name'] + ' ' + member.values['First Name'],
         gender: member.values['Gender'],
         status: member.values['Status'],
@@ -928,6 +938,7 @@ export class MemberActivityReport extends Component {
         address: member.values['Address'],
         suburb: member.values['Suburb'],
         state: member.values['State'],
+        postcode: member.values['Postcode'],
         age: moment().diff(member.values['DOB'], 'years'),
         memberType: member.values['Member Type'],
         program: member.values['Ranking Program'],
@@ -936,7 +947,7 @@ export class MemberActivityReport extends Component {
         additionalProgram2: member.values['Additional Program 2'],
         lastAttendanceDate:
           member.values['Last Attendance Date'] !== undefined
-            ? moment(member.values['Last Attendance Date']).format('DD-MM-YYYY')
+            ? moment(member.values['Last Attendance Date']).format('L')
             : '',
         billingUser: member.values['Billing User'] === 'YES' ? 'YES' : 'NO',
         billerMigrated: member.values['Biller Migrated'] === 'YES' ? 'YES' : '',
@@ -1210,7 +1221,7 @@ export class MemberActivityReport extends Component {
       });
       for (var i = 0; i < history.length; i++) {
         history[i]['contactDate'] = moment(history[i]['contactDate']).format(
-          'DD-MM-YYYY HH:mm',
+          'L HH:mm',
         );
       }
       ReactDOM.render(
@@ -1646,8 +1657,8 @@ export class MemberActivityReport extends Component {
                     className="filter-value-select"
                   >
                     {this.state.selectedFilterValueOptions.map((fo, index) => (
-                      <option key={fo + index} value={fo}>
-                        {fo}
+                      <option key={fo + index} value={K.translate(fo)}>
+                        {K.translate(fo)}
                       </option>
                     ))}
                   </select>

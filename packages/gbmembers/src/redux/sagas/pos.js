@@ -223,7 +223,7 @@ export function* fetchPOSOrders(action) {
       )
       .lteq(
         'values[Date time processed]',
-        action.payload.dateTo.format('YYYY-MM-DDT00:00:00Z'),
+        action.payload.dateTo.format('YYYY-MM-DDT23:59:00Z'),
       )
       .limit(1000)
       .build();

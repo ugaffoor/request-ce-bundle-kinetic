@@ -207,6 +207,26 @@
     cursor: pointer;
     text-decoration: underline;
   }
+  .lctView {
+    float: left;
+    margin-left: 40px;
+    label {
+      float: left;
+    }
+    .checkboxFilter {
+      clear: none;
+      float: left;
+      margin-left: 10px;
+    }
+  }
+  .help {
+    margin-left: 10px;
+    cursor: pointer;
+  }
+  .lctModeHelp {
+    display: none;
+    float: left;
+  }
 }
 .memberFinanceStatistics {
   margin: 0.5%;

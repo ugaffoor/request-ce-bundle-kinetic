@@ -336,6 +336,12 @@ export function* fetchMemberAppSettingsTask() {
       kapp,
       space,
     )[0],
+    paymentPeriods: getAttributeValue(
+      'Payment Frequencies',
+      '',
+      kapp,
+      space,
+    )[0],
     discussionServerUrl: `/${space.slug}/kinetic-response`,
     profile,
     space,

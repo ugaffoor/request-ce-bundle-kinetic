@@ -117,7 +117,15 @@ export class MemberFinancialReport extends Component {
       });
       this.paymentHistory = [];
       nextProps.paymentHistory.forEach((item, i) => {
-        this.paymentHistory[this.paymentHistory.length] = item;
+        // only keep period payments
+        if (
+          moment(item.debitDate, 'YYYY-MM-DD HH:mm:ss').isBetween(
+            this.state.repFromDate,
+            this.state.repToDate,
+          )
+        ) {
+          this.paymentHistory[this.paymentHistory.length] = item;
+        }
       });
 
       this.failedPaymentHistory = this.failedPaymentHistory.filter(
@@ -168,6 +176,15 @@ export class MemberFinancialReport extends Component {
         this.refunds[this.refunds.length] = item;
       });
 
+      this.paymentHistory = this.paymentHistory.sort(function(a, b) {
+        if (a.debitDate > b.debitDate) {
+          return -1;
+        } else if (a.debitDate < b.debitDate) {
+          return 1;
+        }
+        return 0;
+      });
+
       let memberData = this.getMemberData(
         nextProps.members,
         nextProps.billingCustomers,
@@ -196,12 +213,18 @@ export class MemberFinancialReport extends Component {
         addNotification: this.props.addNotification,
       });
     }
+    var dateFrom = moment(this.state.repFromDate).format('YYYY-MM-DD');
+    if (getAttributeValue(this.props.space, 'Billing Company') === 'Bambora') {
+      dateFrom = moment(this.state.repFromDate)
+        .subtract('months', 1)
+        .format('YYYY-MM-DD');
+    }
     this.props.fetchPaymentHistory({
       paymentType: 'SUCCESSFUL',
       paymentMethod: 'ALL',
       paymentSource: 'ALL',
       dateField: 'PAYMENT',
-      dateFrom: this.state.repFromDate.format('YYYY-MM-DD'),
+      dateFrom: dateFrom,
       dateTo: this.state.repToDate.format('YYYY-MM-DD'),
       setPaymentHistory: this.props.setPaymentHistory,
       internalPaymentType: 'client_successful',
@@ -234,7 +257,29 @@ export class MemberFinancialReport extends Component {
       addNotification: this.props.addNotification,
     });
   }
+  updateBillingDates(billingCustomers, SUCCESSFULpaymentHistory) {
+    var payments = SUCCESSFULpaymentHistory.sort(function(a, b) {
+      if (a.debitDate < b.debitDate) {
+        return -1;
+      } else if (a.debitDate > b.debitDate) {
+        return 1;
+      }
+      return 0;
+    });
 
+    billingCustomers.forEach((member, i) => {
+      // Find earliest payment date
+      var idx = payments.findIndex(item => {
+        return member.customerId === item.yourSystemReference;
+      });
+      if (idx !== -1) {
+        member.contractStartDate = moment(
+          payments[idx]['debitDate'],
+          'YYYY-MM-DD HH:mm:ss',
+        ).format('YYYY-MM-DD');
+      }
+    });
+  }
   isRecurringPayment(payment, members) {
     var idx = members.findIndex(
       member =>
@@ -247,12 +292,18 @@ export class MemberFinancialReport extends Component {
   refreshData(fromDate, toDate) {
     this.paymentHistory = [];
 
+    var dateFrom = moment(fromDate).format('YYYY-MM-DD');
+    if (getAttributeValue(this.props.space, 'Billing Company') === 'Bambora') {
+      dateFrom = moment(fromDate)
+        .subtract('months', 1)
+        .format('YYYY-MM-DD');
+    }
     this.props.fetchPaymentHistory({
       paymentType: 'SUCCESSFUL',
       paymentMethod: 'ALL',
       paymentSource: 'ALL',
       dateField: 'PAYMENT',
-      dateFrom: fromDate.format('YYYY-MM-DD'),
+      dateFrom: dateFrom,
       dateTo: toDate.format('YYYY-MM-DD'),
       setPaymentHistory: this.props.setPaymentHistory,
       internalPaymentType: 'client_successful',
@@ -308,6 +359,18 @@ export class MemberFinancialReport extends Component {
           accountHolders[accountHolders.length] = member;
         }
         accountHoldersValue += payment.paymentAmount;
+        console.log(
+          '1 ' +
+            member.values['First Name'] +
+            ' ' +
+            member.values['Last Name'] +
+            ' - ' +
+            member.values['Billing Customer Reference'] +
+            ',' +
+            Number(payment.paymentAmount).toFixed(2) +
+            ',' +
+            payment.debitDate,
+        );
       } else if (
         getAttributeValue(this.props.space, 'POS System') === 'Bambora'
       ) {
@@ -330,8 +393,9 @@ export class MemberFinancialReport extends Component {
             }
           }
         }
-
-        posPaymentsValue += payment.paymentAmount;
+        if (payment.paymentStatus === 'APPROVAL') {
+          posPaymentsValue += payment.paymentAmount;
+        }
       }
     });
 
@@ -340,7 +404,12 @@ export class MemberFinancialReport extends Component {
       var failedIdx = failedPaymentHistory.findIndex(
         payment => payment.yourSystemReference === member.customerId,
       );
-      if (member.status === 'Active' && failedIdx === -1) {
+      if (
+        (member.status === 'Active' ||
+          member.status === 'Pending Freeze' ||
+          member.status === 'Pending Cancellation') &&
+        failedIdx === -1
+      ) {
         // Find latest payment date
         var idx = paymentHistory.findIndex(item => {
           return member.customerId === item.yourSystemReference;
@@ -367,10 +436,15 @@ export class MemberFinancialReport extends Component {
         } else if (paymentPeriod === 'Monthly') {
           period = 'months';
         }
+        if (lastPayment.isAfter(moment())) {
+          lastPayment = lastPayment.subtract(period, periodCount);
+        }
+
         var nextBillingDate = lastPayment.add(period, periodCount);
         while (nextBillingDate.isBefore(fromDate)) {
           nextBillingDate = nextBillingDate.add(period, periodCount);
         }
+        var count = 1;
         while (
           (nextBillingDate.isAfter(fromDate) ||
             nextBillingDate.isSame(fromDate)) &&
@@ -378,7 +452,22 @@ export class MemberFinancialReport extends Component {
         ) {
           forecastHolders[forecastHolders.length] = member;
           forecastHoldersValue += Number(member.billingAmount);
+          console.log(
+            count +
+              ' ' +
+              member['firstName'] +
+              ' ' +
+              member['lastName'] +
+              ' - ' +
+              member['billingId'] +
+              ',' +
+              Number(member.billingAmount).toFixed(2) +
+              ',' +
+              nextBillingDate.format('YYYY-MM-DD'),
+          );
+
           nextBillingDate = nextBillingDate.add(period, periodCount);
+          count += 1;
         }
       }
     });

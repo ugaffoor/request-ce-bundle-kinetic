@@ -212,6 +212,15 @@ var currencies = {
     code: 'USD',
     name_plural: 'US dollars',
   },
+  CAD: {
+    symbol: '$',
+    name: 'CAD Dollar',
+    symbol_native: '$',
+    decimal_digits: 2,
+    rounding: 0,
+    code: 'CAD',
+    name_plural: 'CAD dollars',
+  },
   EUR: {
     symbol: '€',
     name: 'Euro',
@@ -1195,6 +1204,10 @@ export function getJson(input) {
 
   if (typeof input === 'string') {
     try {
+      input = input
+        .replace(/[\n]/g, '\\n')
+        .replace(/[\r]/g, '\\r')
+        .replace(/[\t]/g, '\\t');
       return $.parseJSON(input);
     } catch (err) {
       return [input];

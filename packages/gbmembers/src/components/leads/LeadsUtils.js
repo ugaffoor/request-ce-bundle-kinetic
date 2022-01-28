@@ -287,6 +287,13 @@ export function getReminderDate(input) {
         .format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     );
   }
+  if (input === '2 days from now') {
+    return (
+      moment()
+        .add(2, 'days')
+        .format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    );
+  }
 
   if (input === 'Next Week') {
     return (

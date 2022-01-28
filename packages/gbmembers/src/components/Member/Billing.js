@@ -1089,7 +1089,11 @@ export class BillingInfo extends Component {
                         </td>
                       </tr>
                     )}
-                    {this.props.billingInfo.statusCode === 'Active' &&
+                    {(this.props.billingInfo.statusCode === 'Active' ||
+                      this.props.billingInfo.statusCode === 'Pending Freeze' ||
+                      this.props.billingInfo.statusCode ===
+                        'Pending Cancellation' ||
+                      this.props.billingInfo.statusCode === '0') &&
                       this.props.billingInfo.nextBillingDate && (
                         <tr>
                           <td>Next Billing Date:</td>
@@ -1101,6 +1105,17 @@ export class BillingInfo extends Component {
                           </td>
                         </tr>
                       )}
+                    {(this.props.billingInfo.statusCode === 'Frozen' ||
+                      this.props.billingInfo.statusCode === '2') && (
+                      <tr>
+                        <td>Next Billing Date:</td>
+                        <td>
+                          {this.props.memberItem.values['Resume Date'] == null
+                            ? 'Until Further Notice'
+                            : this.props.memberItem.values['Resume Date']}
+                        </td>
+                      </tr>
+                    )}
                     {this.props.billingInfo.paymentAmountInCents && (
                       <tr>
                         <td>Payment Amount:</td>

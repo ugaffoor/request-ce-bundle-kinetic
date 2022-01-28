@@ -99,7 +99,7 @@ export class ChangeStatusModal extends Component {
           >
             <div className="statusOptions">
               {Utils.getAttributeValue(this.props.space, 'Billing Company') ===
-                'Bambora' && (
+                this.props.billingCompany && (
                 <form>
                   <tbody>
                     {(this.props.memberItem.values['Status'] === 'Frozen' ||
@@ -131,9 +131,9 @@ export class ChangeStatusModal extends Component {
                                   dependant members.
                                 </li>
                                 <li>
-                                  Complete the Bambora Setup Biller
-                                  Details(Family) form to remove dependant
-                                  members from billing.
+                                  Complete the {this.props.billingCompany} Setup
+                                  Biller Details(Family) form to remove
+                                  dependant members from billing.
                                 </li>
                                 <li>
                                   Set this student's status to Frozen(Edit
@@ -154,7 +154,9 @@ export class ChangeStatusModal extends Component {
                                 <li>
                                   Click{' '}
                                   <NavLink
-                                    to={`/categories/bambora-billing/bambora-resume-frozen-member?id=${this.props.memberItem.id}`}
+                                    to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-resume-frozen-member?id=${
+                                      this.props.memberItem.id
+                                    }`}
                                     kappSlug={'services'}
                                     className={'nav-link icon-wrapper'}
                                     activeClassName="active"
@@ -209,7 +211,11 @@ export class ChangeStatusModal extends Component {
                                     <li>
                                       Click{' '}
                                       <NavLink
-                                        to={`/categories/bambora-billing/bambora-setup-biller-details?id=${this.props.memberItem.values['Billing Parent Member']}`}
+                                        to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-setup-biller-details?id=${
+                                          this.props.memberItem.values[
+                                            'Billing Parent Member'
+                                          ]
+                                        }`}
                                         kappSlug={'services'}
                                         className={'nav-link icon-wrapper'}
                                         activeClassName="active"
@@ -218,9 +224,11 @@ export class ChangeStatusModal extends Component {
                                         {' '}
                                         here{' '}
                                       </NavLink>{' '}
-                                      to complete Bambora Setup Biller
-                                      Details(Family) form to add this student
-                                      to billing.
+                                      to complete {
+                                        this.props.billingCompany
+                                      }{' '}
+                                      Setup Biller Details(Family) form to add
+                                      this student to billing.
                                     </li>
                                     <li>
                                       Set this student's status to Active(Edit
@@ -302,9 +310,9 @@ export class ChangeStatusModal extends Component {
                                       .
                                     </li>
                                     <li>
-                                      Complete the Bambora Setup Biller
-                                      Details(Family) form to remove other
-                                      members from billing.
+                                      Complete the {this.props.billingCompany}{' '}
+                                      Setup Biller Details(Family) form to
+                                      remove other members from billing.
                                     </li>
                                     <li>
                                       Complete a Resume Membership Frozen form.
@@ -336,7 +344,9 @@ export class ChangeStatusModal extends Component {
                                 <li>
                                   Click{' '}
                                   <NavLink
-                                    to={`/categories/bambora-billing/bambora-resume-frozen-member?id=${this.props.memberItem.id}`}
+                                    to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-resume-frozen-member?id=${
+                                      this.props.memberItem.id
+                                    }`}
                                     kappSlug={'services'}
                                     className={'nav-link icon-wrapper'}
                                     activeClassName="active"
@@ -410,9 +420,9 @@ export class ChangeStatusModal extends Component {
                                   dependant members.
                                 </li>
                                 <li>
-                                  Complete the Bambora Setup Biller
-                                  Details(Family) form to remove this student
-                                  from billing.
+                                  Complete the {this.props.billingCompany} Setup
+                                  Biller Details(Family) form to remove this
+                                  student from billing.
                                 </li>
                                 <li>
                                   Set this student's status to Frozen(Edit
@@ -433,7 +443,9 @@ export class ChangeStatusModal extends Component {
                                 <li>
                                   Click{' '}
                                   <NavLink
-                                    to={`/categories/bambora-billing/bambora-membership-freeze?id=${this.props.memberItem.id}`}
+                                    to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-membership-freeze?id=${
+                                      this.props.memberItem.id
+                                    }`}
                                     kappSlug={'services'}
                                     className={'nav-link icon-wrapper'}
                                     activeClassName="active"
@@ -474,7 +486,11 @@ export class ChangeStatusModal extends Component {
                                 <li>
                                   Click{' '}
                                   <NavLink
-                                    to={`/categories/bambora-billing/bambora-setup-biller-details?id=${this.props.memberItem.values['Billing Parent Member']}`}
+                                    to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-setup-biller-details?id=${
+                                      this.props.memberItem.values[
+                                        'Billing Parent Member'
+                                      ]
+                                    }`}
                                     kappSlug={'services'}
                                     className={'nav-link icon-wrapper'}
                                     activeClassName="active"
@@ -483,9 +499,9 @@ export class ChangeStatusModal extends Component {
                                     {' '}
                                     here{' '}
                                   </NavLink>{' '}
-                                  to complete Bambora Setup Biller
-                                  Details(Family) form to remove this student
-                                  from billing.
+                                  to complete {this.props.billingCompany} Setup
+                                  Biller Details(Family) form to remove this
+                                  student from billing.
                                 </li>
                                 <li>
                                   Set this student's status to Frozen(Edit
@@ -575,7 +591,9 @@ export class ChangeStatusModal extends Component {
                                 <li>
                                   Click{' '}
                                   <NavLink
-                                    to={`/categories/bambora-billing/bambora-membership-freeze?id=${this.props.memberItem.id}`}
+                                    to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-membership-freeze?id=${
+                                      this.props.memberItem.id
+                                    }`}
                                     kappSlug={'services'}
                                     className={'nav-link icon-wrapper'}
                                     activeClassName="active"
@@ -622,9 +640,9 @@ export class ChangeStatusModal extends Component {
                                   dependant members.
                                 </li>
                                 <li>
-                                  Complete the Bambora Setup Biller
-                                  Details(Family) form to remove this student
-                                  from billing.
+                                  Complete the {this.props.billingCompany} Setup
+                                  Biller Details(Family) form to remove this
+                                  student from billing.
                                 </li>
                                 <li>
                                   Set this student's status to Inactive(Edit
@@ -645,7 +663,9 @@ export class ChangeStatusModal extends Component {
                                 <li>
                                   Click{' '}
                                   <NavLink
-                                    to={`/categories/bambora-billing/bambora-member-cancellation?id=${this.props.memberItem.id}`}
+                                    to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-member-cancellation?id=${
+                                      this.props.memberItem.id
+                                    }`}
                                     kappSlug={'services'}
                                     className={'nav-link icon-wrapper'}
                                     activeClassName="active"
@@ -689,7 +709,11 @@ export class ChangeStatusModal extends Component {
                                 <li>
                                   Click{' '}
                                   <NavLink
-                                    to={`/categories/bambora-billing/bambora-setup-biller-details?id=${this.props.memberItem.values['Billing Parent Member']}`}
+                                    to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-setup-biller-details?id=${
+                                      this.props.memberItem.values[
+                                        'Billing Parent Member'
+                                      ]
+                                    }`}
                                     kappSlug={'services'}
                                     className={'nav-link icon-wrapper'}
                                     activeClassName="active"
@@ -698,9 +722,9 @@ export class ChangeStatusModal extends Component {
                                     {' '}
                                     here{' '}
                                   </NavLink>{' '}
-                                  to complete Bambora Setup Biller
-                                  Details(Family) form to remove this student
-                                  from billing.
+                                  to complete {this.props.billingCompany} Setup
+                                  Biller Details(Family) form to remove this
+                                  student from billing.
                                 </li>
                                 <li>
                                   Set this student's status to Inactive(Edit
@@ -799,7 +823,9 @@ export class ChangeStatusModal extends Component {
                                 <li>
                                   Click{' '}
                                   <NavLink
-                                    to={`/categories/bambora-billing/bambora-member-cancellation?id=${this.props.memberItem.id}`}
+                                    to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-member-cancellation?id=${
+                                      this.props.memberItem.id
+                                    }`}
                                     kappSlug={'services'}
                                     className={'nav-link icon-wrapper'}
                                     activeClassName="active"
@@ -831,7 +857,8 @@ export class ChangeStatusModal extends Component {
                                 details).
                               </li>
                               <li>
-                                Complete a Bambora Member Registration form.
+                                Complete a {this.props.billingCompany} Member
+                                Registration form.
                               </li>
                             </ol>
                           </td>

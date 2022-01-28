@@ -351,6 +351,14 @@ export const MemberEdit = ({
                   <option value="" />
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
+                  {getAttributeValue(space, 'Additional Gender Options') ===
+                    'YES' && (
+                    <option value="Prefer not to answer">
+                      Prefer not to answer
+                    </option>
+                  )}
+                  {getAttributeValue(space, 'Additional Gender Options') ===
+                    'YES' && <option value="Other">Other</option>}
                 </select>
                 <div className="droparrow" />
               </div>
@@ -657,6 +665,27 @@ export const MemberEdit = ({
                     </span>
                     <span className="line">
                       <div>
+                        <label htmlFor="resumeDate">Resume Date</label>
+                        <input
+                          type="text"
+                          name="resumeDate"
+                          id="resumeDate"
+                          size="30"
+                          ref={input => (this.input = input)}
+                          defaultValue={memberItem.values['Resume Date']}
+                          onChange={e =>
+                            handleChange(
+                              memberItem,
+                              'Resume Date',
+                              e,
+                              setIsDirty,
+                            )
+                          }
+                        />
+                      </div>
+                    </span>
+                    <span className="line">
+                      <div>
                         <label htmlFor="posProfileID">POS Profile ID</label>
                         <input
                           type="text"
@@ -776,6 +805,31 @@ export const MemberEdit = ({
                           defaultValue={memberItem.values['Photo']}
                           onChange={e =>
                             handleChange(memberItem, 'Photo', e, setIsDirty)
+                          }
+                        />
+                      </div>
+                    </span>
+                    <span className="line">
+                      <div>
+                        <label htmlFor="lastAttendanceDate">
+                          Last Attendance Date
+                        </label>
+                        <input
+                          type="text"
+                          name="Last Attendance Date"
+                          id="lastAttendanceDate"
+                          size="50"
+                          ref={input => (this.input = input)}
+                          defaultValue={
+                            memberItem.values['Last Attendance Date']
+                          }
+                          onChange={e =>
+                            handleChange(
+                              memberItem,
+                              'Last Attendance Date',
+                              e,
+                              setIsDirty,
+                            )
                           }
                         />
                       </div>
@@ -956,7 +1010,9 @@ export const MemberEdit = ({
                 >
                   <I18n>Postcode</I18n>
                 </label>
-                {getAttributeValue(space, 'School Country Code') === 'GB' ? (
+                {getAttributeValue(space, 'Postcode Format') === undefined ||
+                getAttributeValue(space, 'Postcode Format') === null ||
+                getAttributeValue(space, 'Postcode Format') === '' ? (
                   <input
                     type="text"
                     name="postcode"
@@ -965,9 +1021,15 @@ export const MemberEdit = ({
                     required
                     ref={input => (this.input = input)}
                     defaultValue={memberItem.values['Postcode']}
-                    onChange={e => {
-                      handleChange(memberItem, 'Postcode', e);
-                    }}
+                    onChange={e =>
+                      handleChange(
+                        memberItem,
+                        'Postcode',
+                        e,
+                        setIsDirty,
+                        memberChanges,
+                      )
+                    }
                   />
                 ) : (
                   <NumberFormat

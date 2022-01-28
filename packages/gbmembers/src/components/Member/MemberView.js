@@ -982,8 +982,10 @@ export const MemberView = ({
                 </div>
                 <span className="buttons">
                   {!Utils.isMemberOf(profile, 'Role::Program Managers') ||
-                  Utils.getAttributeValue(space, 'Billing Company') !==
-                    'Bambora' ? (
+                  (Utils.getAttributeValue(space, 'Billing Company') !==
+                    'Bambora' &&
+                    Utils.getAttributeValue(space, 'Billing Company') !==
+                      'Stripe') ? (
                     <div />
                   ) : (
                     <span>
@@ -1002,6 +1004,10 @@ export const MemberView = ({
                           space={space}
                           profile={profile}
                           setShowChangeStatusModal={setShowChangeStatusModal}
+                          billingCompany={Utils.getAttributeValue(
+                            space,
+                            'Billing Company',
+                          )}
                         />
                       )}
                     </span>

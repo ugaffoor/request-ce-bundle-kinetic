@@ -132,7 +132,7 @@ export const HomeView = ({
       </div>
       <div className="chart2Column">
         <div className="col1 chart4">
-          <DemographicChart allMembers={allMembers} />
+          <DemographicChart allMembers={allMembers} space={space} />
         </div>
         <div className="col2 chart6">
           <LeadsOriginChart

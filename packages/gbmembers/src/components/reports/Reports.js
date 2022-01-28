@@ -42,6 +42,7 @@ const mapStateToProps = state => ({
   leadsByDateLoading: state.member.leads.leadsByDateLoading,
   reportPreferences: state.member.app.reportPreferences,
   memberStatusValues: state.member.app.memberStatusValues,
+  paymentPeriods: state.member.app.paymentPeriods,
   leadStatusValues: state.member.app.leadStatusValues,
   leadSourceValues: state.member.app.leadSourceValues,
   triggers: state.member.app.triggers,
@@ -129,6 +130,7 @@ export const ReportsView = ({
   showInactiveMembers,
   reportPreferences,
   memberStatusValues,
+  paymentPeriods,
   leadStatusValues,
   leadSourceValues,
   programs,
@@ -206,6 +208,7 @@ export const ReportsView = ({
             reportPreferences={reportPreferences}
             updatePreferences={updatePreferences}
             memberStatusValues={memberStatusValues}
+            paymentPeriods={paymentPeriods}
             programs={programs}
             additionalPrograms={additionalPrograms}
             belts={belts}

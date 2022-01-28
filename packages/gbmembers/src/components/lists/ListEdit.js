@@ -17,6 +17,7 @@ import MomentLocaleUtils, {
 } from 'react-day-picker/moment';
 import '../helpers/jquery.multiselect.js';
 import { KappNavLink as NavLink } from 'common';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 <script src="../helpers/jquery.multiselect.js" />;
 
@@ -336,7 +337,7 @@ export class ListEditHome extends Component {
           joiningDateEnd: filter[key].startDate,
         });
       } else if (key === 'genderFilter') {
-        $('input[name=gender][value=' + filter[key].gender + ']').attr(
+        $('input[name=gender][value="' + filter[key].gender + '"]').attr(
           'checked',
           'checked',
         );
@@ -573,6 +574,40 @@ export class ListEditHome extends Component {
                         Female
                       </label>
                     </div>
+                    {getAttributeValue(
+                      this.props.space,
+                      'Additional Gender Options',
+                    ) === 'YES' && (
+                      <div className="form-check form-check-inline">
+                        <label className="form-check-label">
+                          <input
+                            type="radio"
+                            className="form-check-input"
+                            name="gender"
+                            value="Prefer not to answer"
+                            ref={input => (this.input = input)}
+                          />{' '}
+                          Prefer not to answer
+                        </label>
+                      </div>
+                    )}
+                    {getAttributeValue(
+                      this.props.space,
+                      'Additional Gender Options',
+                    ) === 'YES' && (
+                      <div className="form-check form-check-inline">
+                        <label className="form-check-label">
+                          <input
+                            type="radio"
+                            className="form-check-input"
+                            name="gender"
+                            value="Other"
+                            ref={input => (this.input = input)}
+                          />{' '}
+                          Other
+                        </label>
+                      </div>
+                    )}
                   </fieldset>
                 </div>
               </div>

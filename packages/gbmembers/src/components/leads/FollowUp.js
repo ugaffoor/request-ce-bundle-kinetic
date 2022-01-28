@@ -131,6 +131,7 @@ export class FollowUpDate extends Component {
                   onChange={e => this.handleChange('reminderDateString', e)}
                 >
                   <option value="Tomorrow">Tomorrow</option>
+                  <option value="2 days from now">2 days from now</option>
                   <option value="Next Week">Next Week</option>
                   <option value="Next Month">Next Month</option>
                   <option value="Custom">Custom</option>

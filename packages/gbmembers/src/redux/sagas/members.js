@@ -117,18 +117,18 @@ export function* fetchCurrentMember(action) {
       .index('values[Person ID]')
       .eq('values[Person ID]', action.payload.id)
       .include(['details', 'values'])
-      .limit(100)
+      .limit(1000)
       .build();
     const MEMBER_FILES_SEARCH = new CoreAPI.SubmissionSearch(true)
       .index('values[Member ID]')
       .eq('values[Member ID]', action.payload.id)
       .include(['details', 'values'])
-      .limit(100)
+      .limit(1000)
       .build();
     const MEMBER_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
       .eq('values[Member ID]', action.payload.id)
       .include(['details', 'values'])
-      .limit(100)
+      .limit(1000)
       .build();
     const [
       submission,
@@ -1791,6 +1791,7 @@ export function* fetchBillingCustomers(action) {
         billingCustomers[billingCustomers.length] = {
           memberId: member.values['Member ID'],
           customerId: member.values['Billing Customer Id'],
+          billingId: member.values['Billing Customer Reference'],
           status: member.values['Status'],
           firstName: member.values['First Name'],
           lastName: member.values['Last Name'],

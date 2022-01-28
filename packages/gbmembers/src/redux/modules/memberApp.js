@@ -57,6 +57,7 @@ export const State = Record({
   leadStatusValues: '',
   leadSourceValues: '',
   memberStatusValues: '',
+  paymentPeriods: '',
   ddrTemplates: List(),
   allTeams: List(),
   programs: List(),
@@ -136,6 +137,7 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('leadStatusValues', payload.leadStatusValues.split(','))
         .set('leadSourceValues', payload.leadSourceValues.split(','))
         .set('memberStatusValues', payload.memberStatusValues.split(','))
+        .set('paymentPeriods', payload.paymentPeriods.split(','))
         .set('billingCompany', payload.billingCompany)
         .set(
           'ddrTemplates',

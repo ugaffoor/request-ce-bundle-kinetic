@@ -38,6 +38,7 @@ const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   leadItem: state.member.leads.newLead,
   programs: state.member.app.programs,
+  additionalPrograms: state.member.app.additionalPrograms,
   newLeadLoading: state.member.leads.newLeadLoading,
   members: state.member.members.allMembers,
   leads: state.member.leads.allLeads,
@@ -322,6 +323,18 @@ export class LeadNew extends Component {
                     <option value="" />
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
+                    {getAttributeValue(
+                      this.props.space,
+                      'Additional Gender Options',
+                    ) === 'YES' && (
+                      <option value="Prefer not to answer">
+                        Prefer not to answer
+                      </option>
+                    )}
+                    {getAttributeValue(
+                      this.props.space,
+                      'Additional Gender Options',
+                    ) === 'YES' && <option value="Other">Other</option>}
                   </select>
                   <div className="droparrow" />
                 </div>
@@ -379,10 +392,12 @@ export class LeadNew extends Component {
                   <label htmlFor="postcode">
                     <I18n>Postcode</I18n>
                   </label>
-                  {getAttributeValue(
-                    this.props.space,
-                    'School Country Code',
-                  ) === 'GB' ? (
+                  {getAttributeValue(this.props.space, 'Postcode Format') ===
+                    undefined ||
+                  getAttributeValue(this.props.space, 'Postcode Format') ===
+                    null ||
+                  getAttributeValue(this.props.space, 'Postcode Format') ===
+                    '' ? (
                     <input
                       type="text"
                       name="postcode"
@@ -391,9 +406,9 @@ export class LeadNew extends Component {
                       required
                       ref={input => (this.input = input)}
                       defaultValue={this.props.leadItem.values['Postcode']}
-                      onChange={e => {
-                        handleChange(this.props.leadItem, 'Postcode', e);
-                      }}
+                      onChange={e =>
+                        handleChange(this.props.leadItem, 'Postcode', e)
+                      }
                     />
                   ) : (
                     <NumberFormat
@@ -408,6 +423,7 @@ export class LeadNew extends Component {
                             )
                           : '####'
                       }
+                      id="postcode"
                       mask="_"
                       ref={input => (this.input = input)}
                       onValueChange={(values, e) =>
@@ -590,6 +606,26 @@ export class LeadNew extends Component {
                         handleChange(this.props.leadItem, 'ParentLead', e);
                         this.props.leadItem.values['Parent or Guardian'] =
                           e.label;
+
+                        var idx = this.props.leads.findIndex(
+                          lead => lead.id === e.value,
+                        );
+                        if (idx !== -1) {
+                          if ($('#address').val() === '') {
+                            $('#address').val(
+                              this.props.leads[idx].values['Address'],
+                            );
+                            $('#suburb').val(
+                              this.props.leads[idx].values['Suburb'],
+                            );
+                            $('#state').val(
+                              this.props.leads[idx].values['State'],
+                            );
+                            $('#postcode').val(
+                              this.props.leads[idx].values['Postcode'],
+                            );
+                          }
+                        }
                       }}
                       style={{ width: '300px' }}
                     />
@@ -607,6 +643,25 @@ export class LeadNew extends Component {
                         handleChange(this.props.leadItem, 'ParentMember', e);
                         this.props.leadItem.values['Parent or Guardian'] =
                           e.label;
+                        var idx = this.props.members.findIndex(
+                          member => member.id === e.value,
+                        );
+                        if (idx !== -1) {
+                          if ($('#address').val() === '') {
+                            $('#address').val(
+                              this.props.members[idx].values['Address'],
+                            );
+                            $('#suburb').val(
+                              this.props.members[idx].values['Suburb'],
+                            );
+                            $('#state').val(
+                              this.props.members[idx].values['State'],
+                            );
+                            $('#postcode').val(
+                              this.props.members[idx].values['Postcode'],
+                            );
+                          }
+                        }
                       }}
                       style={{ width: '300px' }}
                     />
@@ -718,7 +773,12 @@ export class LeadNew extends Component {
                   </div>
                 </span>
               </div>
+              <div className="line">
+                <h1>Other Information</h1>
+                <hr />
+              </div>
               <span className="line">
+                <hr />
                 <div>
                   <label id="birthday" htmlFor="birthday">
                     Birthday
@@ -793,6 +853,7 @@ export class LeadNew extends Component {
                   >
                     <option value="" />
                     <option value="Tomorrow">Tomorrow</option>
+                    <option value="2 days from now">2 days from now</option>
                     <option value="Next Week">Next Week</option>
                     <option value="Next Month">Next Month</option>
                     <option value="Custom">Custom</option>
@@ -850,11 +911,13 @@ export class LeadNew extends Component {
                     }
                   >
                     <option value="" />
-                    {this.props.programs.map(program => (
-                      <option key={program.program} value={program.program}>
-                        {program.program}
-                      </option>
-                    ))}
+                    {this.props.programs
+                      .concat(this.props.additionalPrograms)
+                      .map(program => (
+                        <option key={program.program} value={program.program}>
+                          {program.program}
+                        </option>
+                      ))}
                   </select>
                   <div className="droparrow" />
                 </div>
@@ -980,6 +1043,7 @@ export const LeadNewView = ({
   saveLead,
   isDirty,
   programs,
+  additionalPrograms,
   setIsDirty,
   newLeadLoading,
   space,
@@ -995,6 +1059,7 @@ export const LeadNewView = ({
       members={members}
       saveLead={saveLead}
       programs={programs}
+      additionalPrograms={additionalPrograms}
       isDirty={isDirty}
       setIsDirty={setIsDirty}
       space={space}

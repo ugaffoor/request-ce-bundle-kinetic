@@ -10,6 +10,7 @@ import $ from 'jquery';
 import ReactTable from 'react-table';
 import { KappNavLink as NavLink } from 'common';
 import crossIcon from '../../images/cross.svg?raw';
+import helpIcon from '../../images/help.svg?raw';
 import SVGInline from 'react-svg-inline';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
@@ -45,8 +46,9 @@ export class MemberFinancialStats extends Component {
 
     this.currency = getAttributeValue(this.props.space, 'Currency');
     if (this.currency === undefined) this.currency = 'USD';
-
+    this.getMemberBilling = this.getMemberBilling.bind(this);
     this._getMemberRowTableColumns = this.getMemberRowTableColumns();
+    this.updateBillingDates = this.updateBillingDates.bind(this);
 
     this.setFromDate = moment().date(1);
     this.setToDate = moment()
@@ -57,6 +59,11 @@ export class MemberFinancialStats extends Component {
       .minute(59);
 
     let fromDate = this.setFromDate;
+    fromDate
+      .hour(0)
+      .minute(0)
+      .seconds(0)
+      .millisecond(0);
     let toDate = this.setToDate;
 
     let memberData = this.getMemberData(undefined);
@@ -81,6 +88,7 @@ export class MemberFinancialStats extends Component {
       showVariations: false,
       showFailed: false,
       historyLoaded: false,
+      valueViewSwitch: false,
     };
   }
 
@@ -92,12 +100,12 @@ export class MemberFinancialStats extends Component {
       !nextProps.FAILEDpaymentHistoryLoading &&
       !nextProps.SUCCESSFULpaymentHistoryLoading
     ) {
-      if (getAttributeValue(nextProps.space, 'Billing Company') === 'Bambora') {
-        this.updateBillingDates(
-          nextProps.billingCustomers,
-          nextProps.SUCCESSFULpaymentHistory,
-        );
-      }
+      //      if (getAttributeValue(nextProps.space, 'Billing Company') === 'Bambora') {
+      this.updateBillingDates(
+        nextProps.billingCustomers,
+        nextProps.SUCCESSFULpaymentHistory,
+      );
+      //      }
 
       let memberData = this.getMemberData(
         nextProps.members,
@@ -142,12 +150,20 @@ export class MemberFinancialStats extends Component {
     });
 */
     if (!this.state.historyLoaded) {
+      var dateFrom = moment(this.state.fromDate).format('YYYY-MM-DD');
+      if (
+        getAttributeValue(this.props.space, 'Billing Company') === 'Bambora'
+      ) {
+        dateFrom = moment(this.state.fromDate)
+          .subtract('months', 1)
+          .format('YYYY-MM-DD');
+      }
       this.props.fetchPaymentHistory({
         paymentType: 'SUCCESSFUL',
         paymentMethod: 'ALL',
         paymentSource: 'ALL',
         dateField: 'PAYMENT',
-        dateFrom: this.state.fromDate.format('YYYY-MM-DD'),
+        dateFrom: dateFrom,
         dateTo: this.state.toDate.format('YYYY-MM-DD'),
         setPaymentHistory: this.props.setPaymentHistory,
         internalPaymentType: 'client_successful',
@@ -180,7 +196,7 @@ export class MemberFinancialStats extends Component {
       }
       return 0;
     });
-
+    var myThis = this;
     billingCustomers.forEach((member, i) => {
       // Find earliest payment date
       var idx = payments.findIndex(item => {
@@ -191,6 +207,37 @@ export class MemberFinancialStats extends Component {
           payments[idx]['debitDate'],
           'YYYY-MM-DD HH:mm:ss',
         ).format('YYYY-MM-DD');
+
+        if (
+          moment(member.contractStartDate, 'YYYY-MM-DD').isBefore(
+            myThis.state.fromDate,
+          )
+        ) {
+          var paymentPeriod = member.billingPeriod;
+          var period = 'months';
+          var periodCount = 1;
+          if (paymentPeriod === 'Daily') {
+            period = 'days';
+          } else if (paymentPeriod === 'Weekly') {
+            period = 'weeks';
+          } else if (paymentPeriod === 'Fortnightly') {
+            period = 'weeks';
+            periodCount = 2;
+          } else if (paymentPeriod === 'Monthly') {
+            period = 'months';
+          }
+          var nextBillingDate = moment(
+            member.contractStartDate,
+            'YYYY-MM-DD',
+          ).add(period, periodCount);
+          while (nextBillingDate.isBefore(myThis.state.fromDate)) {
+            member.contractStartDate = nextBillingDate.format('YYYY-MM-DD');
+            nextBillingDate = moment(
+              member.contractStartDate,
+              'YYYY-MM-DD',
+            ).add(period, periodCount);
+          }
+        }
       }
     });
   }
@@ -298,15 +345,15 @@ export class MemberFinancialStats extends Component {
     }
     return 0;
   }
-  getMemberPaymentsValue(
+  getMemberBilling(
     member,
     billingCustomers,
+    paymentHistory,
     variationCustomers,
-    successfulPaymentHistory,
     fromDate,
     toDate,
   ) {
-    let scheduledPayment = parseFloat(
+    let cost = parseFloat(
       member.values['Billing User'] !== null &&
         member.values['Billing User'] !== undefined &&
         member.values['Billing User'] === 'YES'
@@ -314,26 +361,92 @@ export class MemberFinancialStats extends Component {
         : 0,
     );
 
-    if (scheduledPayment === 0) return 0;
+    if (cost === 0) return 0;
 
     if (member.values['Billing Payment Type'] === 'Cash') {
       return 0;
     }
 
-    // Determine how many actual payments made in period.
+    // Determine Billing period for biller, such as Weekly or Fortnightly
+    // Reduce to a weekly cost
+    // Determine times billing happens in selected period.
+    // Multiply weekly by times in period
+
     let billingIdx = billingCustomers.findIndex(
       element => element.customerId === member.values['Billing Customer Id'],
     );
     let billing = billingCustomers[billingIdx];
-    var paymentsMade = 0;
-    successfulPaymentHistory.forEach((item, i) => {
-      if (member.customerId === item.yourSystemReference) {
-        paymentsMade += item.billingAmount;
+    var paymentPeriod = billing.billingPeriod;
+    var period = 'months';
+    var periodCount = 1;
+    if (paymentPeriod === 'Daily') {
+      period = 'days';
+    } else if (paymentPeriod === 'Weekly') {
+      period = 'weeks';
+    } else if (paymentPeriod === 'Fortnightly') {
+      period = 'weeks';
+      periodCount = 2;
+    } else if (paymentPeriod === 'Monthly') {
+      period = 'months';
+    }
+    var lastPayment = moment(billing.contractStartDate, 'YYYY-MM-DD');
+    var total = 0;
+    // First get all actual payments
+    paymentHistory.forEach(payment => {
+      if (
+        member.values['Billing Customer Id'] === payment['yourSystemReference']
+      ) {
+        if (
+          moment(payment.debitDate, 'YYYY-MM-DD').isBetween(fromDate, toDate)
+        ) {
+          total += payment.paymentAmount;
+          lastPayment = moment(payment.debitDate, 'YYYY-MM-DD');
+          lastPayment = lastPayment.add(period, periodCount);
+        }
       }
     });
 
-    return paymentsMade;
+    let varCost = 0;
+    let varTotal = 0;
+
+    let variationIdx = variationCustomers.findIndex(
+      element => element.customerId === member.values['Billing Customer Id'],
+    );
+    if (variationIdx !== -1) {
+      let variation = variationCustomers[variationIdx];
+      varCost = variation.variationAmount;
+      let varStart = moment(variation.startDate, 'DD-MM-YYYY');
+      let varEnd =
+        variation.resumeDate === '03-01-0001'
+          ? moment('01-01-2500', 'DD-MM-YYYY')
+          : moment(variation.resumeDate, 'DD-MM-YYYY');
+      if (varStart.isSameOrAfter(fromDate)) {
+        var nextVarDate = varStart;
+        while (
+          (nextVarDate.isAfter(fromDate) || nextVarDate.isSame(fromDate)) &&
+          (nextVarDate.isBefore(toDate) || nextVarDate.isSame(toDate)) &&
+          (nextVarDate.isBefore(varEnd) || nextVarDate.isSame(varEnd))
+        ) {
+          varTotal += Number(billing.billingAmount) - Number(varCost);
+          nextVarDate = nextVarDate.add(period, periodCount);
+        }
+      }
+    }
+    var nextBillingDate = lastPayment;
+    while (nextBillingDate.isBefore(fromDate)) {
+      nextBillingDate = nextBillingDate.add(period, periodCount);
+    }
+    while (
+      (nextBillingDate.isAfter(fromDate) || nextBillingDate.isSame(fromDate)) &&
+      (nextBillingDate.isBefore(toDate) || nextBillingDate.isSame(toDate))
+    ) {
+      total += Number(billing.billingAmount);
+      nextBillingDate = nextBillingDate.add(period, periodCount);
+    }
+
+    return total - varTotal;
   }
+
   getMemberCost(
     member,
     billingCustomers,
@@ -410,8 +523,9 @@ export class MemberFinancialStats extends Component {
     let startDate = moment(billing.contractStartDate).isAfter(fromDate)
       ? moment(billing.contractStartDate)
       : fromDate;
-    let days = toDate.diff(startDate, 'days') + 1;
-
+    //    let days = toDate.diff(startDate, 'days') + 1;
+    let days = toDate.diff(startDate, 'days');
+    if (days < 0) days = 0;
     return days * dailyCost + varCost;
   }
 
@@ -512,56 +626,67 @@ export class MemberFinancialStats extends Component {
   ) {
     if (!members || members.length <= 0) {
       return {
-        billings: { members: [], value: 0 },
-        accountHolders: { members: [], value: 0 },
-        totalActiveMembers: { members: [], value: 0 },
-        activeMembers: { members: [], value: 0 },
-        activeCashMembers: { members: [], value: 0 },
-        cancellations: { members: [], value: 0 },
-        pendingCancellations: { members: [], value: 0 },
-        frozen: { members: [], value: 0 },
-        pendingFrozen: { members: [], value: 0 },
-        unfrozen: { members: [], value: 0 },
-        restored: { members: [], value: 0 },
-        newMembers: { members: [], value: 0 },
-        variations: { members: [], value: 0 },
-        failed: { members: [], value: 0 },
+        billings: { members: [], value: 0, billingValue: 0 },
+        accountHolders: { members: [], value: 0, billingValue: 0 },
+        totalActiveMembers: { members: [], value: 0, billingValue: 0 },
+        activeMembers: { members: [], value: 0, billingValue: 0 },
+        activeCashMembers: { members: [], value: 0, billingValue: 0 },
+        cancellations: { members: [], value: 0, billingValue: 0 },
+        pendingCancellations: { members: [], value: 0, billingValue: 0 },
+        frozen: { members: [], value: 0, billingValue: 0 },
+        pendingFrozen: { members: [], value: 0, billingValue: 0 },
+        unfrozen: { members: [], value: 0, billingValue: 0 },
+        restored: { members: [], value: 0, billingValue: 0 },
+        newMembers: { members: [], value: 0, billingValue: 0 },
+        variations: { members: [], value: 0, billingValue: 0 },
+        failed: { members: [], value: 0, billingValue: 0 },
       };
     }
     // billingAmount, billingPeriod
-    let billings = [];
-    let billingsValue = 0;
     let accountHolders = [];
     let accountHoldersValue = 0;
+    let accountHoldersBillingValue = 0;
     let totalActiveMembers = [];
     let totalActiveMembersValue = 0;
+    let totalActiveMembersBillingValue = 0;
     let aps = 0;
     let activeMembers = [];
     let activeMembersValue = 0;
+    let activeMembersBillingValue = 0;
     let activeCashMembers = [];
     let activeCashMembersValue = 0;
+    let activeCashMembersBillingValue = 0;
     let cancellations = [];
     let cancellationsValue = 0;
+    let cancellationsBillingValue = 0;
     let pendingCancellations = [];
     let pendingCancellationsValue = 0;
+    let pendingCancellationsBillingValue = 0;
     let frozen = [];
     let frozenValue = 0;
+    let frozenBillingValue = 0;
     let pendingFrozen = [];
     let pendingFrozenValue = 0;
+    let pendingFrozenBillingValue = 0;
     let unfrozen = [];
     let unfrozenValue = 0;
+    let unfrozenBillingValue = 0;
     let restored = [];
     let restoredValue = 0;
+    let restoredBillingValue = 0;
     let newMembers = [];
     let newMembersValue = 0;
+    let newMembersBillingValue = 0;
     let variations = [];
     let variationsValue = 0;
+    let variationsBillingValue = 0;
     let failed = [];
     let failedValue = 0;
+    let failedBillingValue = 0;
     members.forEach(member => {
       let memberStatus = memberStatusInDates(member, fromDate, toDate);
       let previousMemberStatus = memberPreviousStatus(member);
-      console.log(
+      /*      console.log(
         'getMemberData Status:' +
           member.values['Member ID'] +
           ' ' +
@@ -569,7 +694,7 @@ export class MemberFinancialStats extends Component {
           ' ' +
           memberStatus,
       );
-
+*/
       if (memberStatus === 'Active') {
         if (previousMemberStatus === 'Frozen') {
           unfrozen[unfrozen.length] = member;
@@ -580,11 +705,27 @@ export class MemberFinancialStats extends Component {
             fromDate,
             toDate,
           );
+          unfrozenBillingValue += this.getMemberBilling(
+            member,
+            billingCustomers,
+            SUCCESSFULpaymentHistory,
+            variationCustomers,
+            fromDate,
+            toDate,
+          );
         } else if (previousMemberStatus === 'Inactive') {
           restored[restored.length] = member;
           restoredValue += this.getMemberCost(
             member,
             billingCustomers,
+            variationCustomers,
+            fromDate,
+            toDate,
+          );
+          restoredBillingValue += this.getMemberBilling(
+            member,
+            billingCustomers,
+            SUCCESSFULpaymentHistory,
             variationCustomers,
             fromDate,
             toDate,
@@ -601,6 +742,14 @@ export class MemberFinancialStats extends Component {
             fromDate,
             toDate,
           );
+          newMembersBillingValue += this.getMemberBilling(
+            member,
+            billingCustomers,
+            SUCCESSFULpaymentHistory,
+            variationCustomers,
+            fromDate,
+            toDate,
+          );
         } else {
           if (member.values['Billing Payment Type'] === 'Cash') {
             if (
@@ -611,6 +760,11 @@ export class MemberFinancialStats extends Component {
             ) {
               activeCashMembers[activeCashMembers.length] = member;
               activeCashMembersValue += this.getMemberCashCost(
+                member,
+                fromDate,
+                toDate,
+              );
+              activeCashMembersBillingValue += this.getMemberCashCost(
                 member,
                 fromDate,
                 toDate,
@@ -630,7 +784,14 @@ export class MemberFinancialStats extends Component {
                 fromDate,
                 toDate,
               );
-              //console.log("Active: "+member.values["First Name"]+" "+member.values["Last Name"]+" - "+member.values['Membership Cost']);
+              activeMembersBillingValue += this.getMemberBilling(
+                member,
+                billingCustomers,
+                SUCCESSFULpaymentHistory,
+                variationCustomers,
+                fromDate,
+                toDate,
+              );
             }
           }
         }
@@ -642,7 +803,7 @@ export class MemberFinancialStats extends Component {
           (member.values['Non Paying'] === null ||
             member.values['Non Paying'] === undefined) &&
           member.values['Non Paying'] !== 'YES'
-        )
+        ) {
           frozenValue += this.getMemberCost(
             member,
             billingCustomers,
@@ -650,6 +811,15 @@ export class MemberFinancialStats extends Component {
             fromDate,
             toDate,
           );
+          frozenBillingValue += this.getMemberBilling(
+            member,
+            billingCustomers,
+            SUCCESSFULpaymentHistory,
+            variationCustomers,
+            fromDate,
+            toDate,
+          );
+        }
       }
       if (memberStatus === 'Pending Freeze') {
         pendingFrozen[pendingFrozen.length] = member;
@@ -657,7 +827,7 @@ export class MemberFinancialStats extends Component {
           (member.values['Non Paying'] === null ||
             member.values['Non Paying'] === undefined) &&
           member.values['Non Paying'] !== 'YES'
-        )
+        ) {
           pendingFrozenValue += this.getMemberCost(
             member,
             billingCustomers,
@@ -665,6 +835,15 @@ export class MemberFinancialStats extends Component {
             fromDate,
             toDate,
           );
+          pendingFrozenBillingValue += this.getMemberBilling(
+            member,
+            billingCustomers,
+            SUCCESSFULpaymentHistory,
+            variationCustomers,
+            fromDate,
+            toDate,
+          );
+        }
       }
       if (memberStatus === 'Inactive') {
         cancellations[cancellations.length] = member;
@@ -672,7 +851,7 @@ export class MemberFinancialStats extends Component {
           (member.values['Non Paying'] === null ||
             member.values['Non Paying'] === undefined) &&
           member.values['Non Paying'] !== 'YES'
-        )
+        ) {
           cancellationsValue += this.getMemberCost(
             member,
             billingCustomers,
@@ -680,6 +859,15 @@ export class MemberFinancialStats extends Component {
             fromDate,
             toDate,
           );
+          cancellationsBillingValue += this.getMemberBilling(
+            member,
+            billingCustomers,
+            SUCCESSFULpaymentHistory,
+            variationCustomers,
+            fromDate,
+            toDate,
+          );
+        }
       }
       if (memberStatus === 'Pending Cancellation') {
         pendingCancellations[pendingCancellations.length] = member;
@@ -687,7 +875,7 @@ export class MemberFinancialStats extends Component {
           (member.values['Non Paying'] === null ||
             member.values['Non Paying'] === undefined) &&
           member.values['Non Paying'] !== 'YES'
-        )
+        ) {
           pendingCancellationsValue += this.getMemberCost(
             member,
             billingCustomers,
@@ -695,6 +883,15 @@ export class MemberFinancialStats extends Component {
             fromDate,
             toDate,
           );
+          pendingCancellationsBillingValue += this.getMemberBilling(
+            member,
+            billingCustomers,
+            SUCCESSFULpaymentHistory,
+            variationCustomers,
+            fromDate,
+            toDate,
+          );
+        }
       }
       if (
         (memberStatus === 'Active' ||
@@ -707,14 +904,38 @@ export class MemberFinancialStats extends Component {
           (member.values['Non Paying'] === null ||
             member.values['Non Paying'] === undefined) &&
           member.values['Non Paying'] !== 'YES'
-        )
-          accountHoldersValue += this.getMemberCost(
+        ) {
+          var cost = this.getMemberCost(
             member,
             billingCustomers,
             variationCustomers,
             fromDate,
             toDate,
           );
+          accountHoldersValue += cost;
+          var billing = this.getMemberBilling(
+            member,
+            billingCustomers,
+            SUCCESSFULpaymentHistory,
+            variationCustomers,
+            fromDate,
+            toDate,
+          );
+          accountHoldersBillingValue += billing;
+          console.log(
+            member.values['First Name'] +
+              ' ' +
+              member.values['Last Name'] +
+              ' - ' +
+              member.values['Billing Customer Reference'] +
+              ',' +
+              member.values['Billing Start Date'] +
+              ',' +
+              Number(cost).toFixed(2) +
+              ',' +
+              Number(billing).toFixed(2),
+          );
+        }
       }
       if (
         memberStatus === 'Active' ||
@@ -726,7 +947,7 @@ export class MemberFinancialStats extends Component {
           (member.values['Non Paying'] === null ||
             member.values['Non Paying'] === undefined) &&
           member.values['Non Paying'] !== 'YES'
-        )
+        ) {
           totalActiveMembersValue += this.getMemberCost(
             member,
             billingCustomers,
@@ -734,6 +955,15 @@ export class MemberFinancialStats extends Component {
             fromDate,
             toDate,
           );
+          totalActiveMembersBillingValue += this.getMemberBilling(
+            member,
+            billingCustomers,
+            SUCCESSFULpaymentHistory,
+            variationCustomers,
+            fromDate,
+            toDate,
+          );
+        }
         aps += this.getMemberWeeklyCost(
           member,
           billingCustomers,
@@ -761,6 +991,7 @@ export class MemberFinancialStats extends Component {
           fromDate,
           toDate,
         );
+        variationsBillingValue = variationsValue;
       }
 
       let failedIdx = FAILEDpaymentHistory.findIndex(
@@ -784,33 +1015,77 @@ export class MemberFinancialStats extends Component {
         if (failedAmount !== 0) {
           failed[failed.length] = member;
           failedValue += failedAmount;
+          failedBillingValue += failedAmount;
         }
       }
     });
 
     return {
-      accountHolders: { members: accountHolders, value: accountHoldersValue },
+      accountHolders: {
+        members: accountHolders,
+        value: accountHoldersValue,
+        billingValue: accountHoldersBillingValue,
+      },
       totalActiveMembers: {
         members: totalActiveMembers,
         value: totalActiveMembersValue,
+        billingValue: totalActiveMembersBillingValue,
       },
-      activeMembers: { members: activeMembers, value: activeMembersValue },
+      activeMembers: {
+        members: activeMembers,
+        value: activeMembersValue,
+        billingValue: activeMembersBillingValue,
+      },
       activeCashMembers: {
         members: activeCashMembers,
         value: activeCashMembersValue,
+        billingValue: activeCashMembersBillingValue,
       },
-      cancellations: { members: cancellations, value: cancellationsValue },
+      cancellations: {
+        members: cancellations,
+        value: cancellationsValue,
+        billingValue: cancellationsBillingValue,
+      },
       pendingCancellations: {
         members: pendingCancellations,
         value: pendingCancellationsValue,
+        billingValue: pendingCancellationsBillingValue,
       },
-      frozen: { members: frozen, value: frozenValue },
-      pendingFrozen: { members: pendingFrozen, value: pendingFrozenValue },
-      unfrozen: { members: unfrozen, value: unfrozenValue },
-      restored: { members: restored, value: restoredValue },
-      newMembers: { members: newMembers, value: newMembersValue },
-      variations: { members: variations, value: variationsValue },
-      failed: { members: failed, value: failedValue },
+      frozen: {
+        members: frozen,
+        value: frozenValue,
+        billingValue: frozenBillingValue,
+      },
+      pendingFrozen: {
+        members: pendingFrozen,
+        value: pendingFrozenValue,
+        billingValue: pendingFrozenBillingValue,
+      },
+      unfrozen: {
+        members: unfrozen,
+        value: unfrozenValue,
+        billingValue: unfrozenBillingValue,
+      },
+      restored: {
+        members: restored,
+        value: restoredValue,
+        billingValue: restoredBillingValue,
+      },
+      newMembers: {
+        members: newMembers,
+        value: newMembersValue,
+        billingValue: newMembersBillingValue,
+      },
+      variations: {
+        members: variations,
+        value: variationsValue,
+        billingValue: variationsBillingValue,
+      },
+      failed: {
+        members: failed,
+        value: failedValue,
+        billingValue: failedBillingValue,
+      },
       aps: aps / totalActiveMembers.length,
     };
   }
@@ -846,7 +1121,11 @@ export class MemberFinancialStats extends Component {
         fromDate.date(1);
       }
 
-      fromDate.hour(0).minute(0);
+      fromDate
+        .hour(0)
+        .minute(0)
+        .seconds(0)
+        .millisecond(0);
       let toDate = moment();
       if (billingPeriod === 'weekly') {
         toDate
@@ -883,7 +1162,11 @@ export class MemberFinancialStats extends Component {
       if (billingPeriod === 'monthly') {
         fromDate.add(1, 'months').date(1);
       }
-      fromDate.hour(0).minute(0);
+      fromDate
+        .hour(0)
+        .minute(0)
+        .seconds(0)
+        .millisecond(0);
       let toDate = moment();
       if (billingPeriod === 'weekly') {
         toDate
@@ -919,7 +1202,11 @@ export class MemberFinancialStats extends Component {
       if (billingPeriod === 'monthly') {
         fromDate.subtract(1, 'months').date(1);
       }
-      fromDate.hour(0).minute(0);
+      fromDate
+        .hour(0)
+        .minute(0)
+        .seconds(0)
+        .millisecond(0);
       let toDate = moment();
       if (billingPeriod === 'weekly') {
         toDate.day(1).subtract(1, 'days');
@@ -947,7 +1234,11 @@ export class MemberFinancialStats extends Component {
         fromDate.subtract(3, 'months').date(1);
       }
 
-      fromDate.hour(0).minute(0);
+      fromDate
+        .hour(0)
+        .minute(0)
+        .seconds(0)
+        .millisecond(0);
       let toDate = moment();
       if (billingPeriod === 'weekly') {
         toDate.day(1).subtract(1, 'days');
@@ -972,7 +1263,8 @@ export class MemberFinancialStats extends Component {
       let fromDate = moment()
         .subtract(1, 'years')
         .hour(0)
-        .minute(0);
+        .minute(1)
+        .seconds(0);
       let toDate = moment()
         .hour(23)
         .minute(59);
@@ -1004,12 +1296,18 @@ export class MemberFinancialStats extends Component {
       addNotification: this.props.addNotification,
       setSystemError: this.props.setSystemError,
     });
+    var dateFrom = moment(fromDate).format('YYYY-MM-DD');
+    if (getAttributeValue(this.props.space, 'Billing Company') === 'Bambora') {
+      dateFrom = moment(fromDate)
+        .subtract('months', 1)
+        .format('YYYY-MM-DD');
+    }
     this.props.fetchPaymentHistory({
       paymentType: 'SUCCESSFUL',
       paymentMethod: 'ALL',
       paymentSource: 'ALL',
       dateField: 'PAYMENT',
-      dateFrom: fromDate.format('YYYY-MM-DD'),
+      dateFrom: dateFrom,
       dateTo: toDate.format('YYYY-MM-DD'),
       setPaymentHistory: this.props.setPaymentHistory,
       internalPaymentType: 'client_successful',
@@ -1333,6 +1631,43 @@ export class MemberFinancialStats extends Component {
       <div>Loading information ...</div>
     ) : (
       <span className="financialStats">
+        <div className="lctView">
+          <label htmlFor="lctMode">Switch Value/Billing</label>
+          <div className="checkboxFilter">
+            <input
+              id="lctMode"
+              type="checkbox"
+              value="1"
+              onChange={e => {
+                this.setState({
+                  valueViewSwitch: !this.state.valueViewSwitch,
+                });
+              }}
+            />
+            <label htmlFor="lctMode"></label>
+          </div>
+          {}
+        </div>
+        <SVGInline
+          svg={helpIcon}
+          className="icon help"
+          onClick={e => {
+            $('.lctModeHelp').toggle('');
+          }}
+        />
+        <span className="lctModeHelp">
+          <ul>
+            <li>
+              No - Displays amounts as value of membership. The membership cost
+              is broken down to a daily amount, then multiplied by the number of
+              days in the display period.
+            </li>
+            <li>
+              Yes - Displays amounts that represent actual billing values that
+              fall in the display period.
+            </li>
+          </ul>
+        </span>
         <span className="line">
           <div className="radioGroup">
             <br />
@@ -1659,7 +1994,11 @@ export class MemberFinancialStats extends Component {
                 {new Intl.NumberFormat(this.locale, {
                   style: 'currency',
                   currency: this.currency,
-                }).format(this.state.memberData.accountHolders.value)}
+                }).format(
+                  this.state.valueViewSwitch
+                    ? this.state.memberData.accountHolders.billingValue
+                    : this.state.memberData.accountHolders.value,
+                )}
               </div>
               {this.state.showAccountHolders && (
                 <div className="members">
@@ -1715,7 +2054,11 @@ export class MemberFinancialStats extends Component {
                 {new Intl.NumberFormat(this.locale, {
                   style: 'currency',
                   currency: this.currency,
-                }).format(this.state.memberData.totalActiveMembers.value)}
+                }).format(
+                  this.state.valueViewSwitch
+                    ? this.state.memberData.totalActiveMembers.billingValue
+                    : this.state.memberData.totalActiveMembers.value,
+                )}
               </div>
               {this.state.showTotalActiveMembers && (
                 <div className="members">
@@ -1783,7 +2126,11 @@ export class MemberFinancialStats extends Component {
                 {new Intl.NumberFormat(this.locale, {
                   style: 'currency',
                   currency: this.currency,
-                }).format(this.state.memberData.activeMembers.value)}
+                }).format(
+                  this.state.valueViewSwitch
+                    ? this.state.memberData.activeMembers.billingValue
+                    : this.state.memberData.activeMembers.value,
+                )}
               </div>
               {this.state.showActiveMembers && (
                 <div className="members">
@@ -1900,7 +2247,11 @@ export class MemberFinancialStats extends Component {
                 {new Intl.NumberFormat(this.locale, {
                   style: 'currency',
                   currency: this.currency,
-                }).format(this.state.memberData.cancellations.value)}
+                }).format(
+                  this.state.valueViewSwitch
+                    ? this.state.memberData.cancellations.billingValue
+                    : this.state.memberData.cancellations.value,
+                )}
               </div>
               {this.state.showCancellationsMembers && (
                 <div className="members">
@@ -1956,7 +2307,11 @@ export class MemberFinancialStats extends Component {
                 {new Intl.NumberFormat(this.locale, {
                   style: 'currency',
                   currency: this.currency,
-                }).format(this.state.memberData.pendingCancellations.value)}
+                }).format(
+                  this.state.valueViewSwitch
+                    ? this.state.memberData.pendingCancellations.billingValue
+                    : this.state.memberData.pendingCancellations.value,
+                )}
               </div>
               {this.state.showPendingCancellationsMembers && (
                 <div className="members">
@@ -2012,7 +2367,11 @@ export class MemberFinancialStats extends Component {
                 {new Intl.NumberFormat(this.locale, {
                   style: 'currency',
                   currency: this.currency,
-                }).format(this.state.memberData.frozen.value)}
+                }).format(
+                  this.state.valueViewSwitch
+                    ? this.state.memberData.frozen.billingValue
+                    : this.state.memberData.frozen.value,
+                )}
               </div>
               {this.state.showFrozenMembers && (
                 <div className="members">
@@ -2066,7 +2425,11 @@ export class MemberFinancialStats extends Component {
                 {new Intl.NumberFormat(this.locale, {
                   style: 'currency',
                   currency: this.currency,
-                }).format(this.state.memberData.pendingFrozen.value)}
+                }).format(
+                  this.state.valueViewSwitch
+                    ? this.state.memberData.pendingFrozen.billingValue
+                    : this.state.memberData.pendingFrozen.value,
+                )}
               </div>
               {this.state.showPendingFrozenMembers && (
                 <div className="members">
@@ -2120,7 +2483,11 @@ export class MemberFinancialStats extends Component {
                 {new Intl.NumberFormat(this.locale, {
                   style: 'currency',
                   currency: this.currency,
-                }).format(this.state.memberData.newMembers.value)}
+                }).format(
+                  this.state.valueViewSwitch
+                    ? this.state.memberData.newMembers.billingValue
+                    : this.state.memberData.newMembers.value,
+                )}
               </div>
               {this.state.showNewMembers && (
                 <div className="members">
@@ -2176,7 +2543,11 @@ export class MemberFinancialStats extends Component {
                 {new Intl.NumberFormat(this.locale, {
                   style: 'currency',
                   currency: this.currency,
-                }).format(this.state.memberData.unfrozen.value)}
+                }).format(
+                  this.state.valueViewSwitch
+                    ? this.state.memberData.unfrozen.billingValue
+                    : this.state.memberData.unfrozen.value,
+                )}
               </div>
               {this.state.showUnFrozenMembers && (
                 <div className="members">
@@ -2232,7 +2603,11 @@ export class MemberFinancialStats extends Component {
                 {new Intl.NumberFormat(this.locale, {
                   style: 'currency',
                   currency: this.currency,
-                }).format(this.state.memberData.restored.value)}
+                }).format(
+                  this.state.valueViewSwitch
+                    ? this.state.memberData.restored.billingValue
+                    : this.state.memberData.restored.value,
+                )}
               </div>
               {this.state.showRestoredMembers && (
                 <div className="members">
@@ -2288,7 +2663,11 @@ export class MemberFinancialStats extends Component {
                   {new Intl.NumberFormat(this.locale, {
                     style: 'currency',
                     currency: this.currency,
-                  }).format(this.state.memberData.variations.value)}
+                  }).format(
+                    this.state.valueViewSwitch
+                      ? this.state.memberData.variations.billingValue
+                      : this.state.memberData.variations.value,
+                  )}
                 </div>
                 {this.state.showVariations && (
                   <div className="members">
@@ -2344,7 +2723,11 @@ export class MemberFinancialStats extends Component {
                 {new Intl.NumberFormat(this.locale, {
                   style: 'currency',
                   currency: this.currency,
-                }).format(this.state.memberData.failed.value)}
+                }).format(
+                  this.state.valueViewSwitch
+                    ? this.state.memberData.failed.billingValue
+                    : this.state.memberData.failed.value,
+                )}
               </div>
               {this.state.showFailed && (
                 <div className="members">

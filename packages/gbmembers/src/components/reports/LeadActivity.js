@@ -22,6 +22,7 @@ import MomentLocaleUtils, {
 } from 'react-day-picker/moment';
 import { getLocalePreference } from '../Member/MemberUtils';
 import { I18n } from '../../../../app/src/I18nProvider';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 export const contact_date_format = 'YYYY-MM-DD HH:mm';
 
@@ -185,8 +186,15 @@ export class LeadsActivityReport extends Component {
       column => !this.hiddenColumns.some(hc => hc.value === column.value),
     );
     this.selectedColumns = this.visibleColumns;
+    var genders = ['Male', 'Female'];
+    if (
+      getAttributeValue(this.props.space, 'Additional Gender Options') === 'YES'
+    ) {
+      genders[genders.length] = 'Prefer not to answer';
+      genders[genders.length] = 'Other';
+    }
     this.filterValueOptions = {
-      gender: ['Male', 'Female'],
+      gender: genders,
       status: this.props.leadStatusValues,
       source: this.props.leadSourceValues,
     };
@@ -841,8 +849,8 @@ export class LeadsActivityReport extends Component {
     leads.forEach(lead => {
       leadsActivityData.push({
         id: lead['id'],
-        createdDate: moment(lead['createdAt']).format('DD-MM-YYYY HH:mm'),
-        lastModifiedDate: moment(lead['updatedAt']).format('DD-MM-YYYY HH:mm'),
+        createdDate: moment(lead['createdAt']).format('L HH:mm'),
+        lastModifiedDate: moment(lead['updatedAt']).format('L HH:mm'),
         name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
         gender: lead.values['Gender'],
         status: lead.values['Status'],
@@ -861,7 +869,7 @@ export class LeadsActivityReport extends Component {
         sourceReference4: lead.values['Source Reference 4'],
         sourceReference5: lead.values['Source Reference 5'],
         reminderDate: lead.values['Reminder Date']
-          ? moment(lead.values['Reminder Date']).format('DD-MM-YYYY')
+          ? moment(lead.values['Reminder Date']).format('L')
           : '',
         emailsSent: isNaN(lead.values['Emails Sent Count'])
           ? 0
@@ -1099,7 +1107,7 @@ export class LeadsActivityReport extends Component {
       });
       for (var i = 0; i < history.length; i++) {
         history[i]['contactDate'] = moment(history[i]['contactDate']).format(
-          'DD-MM-YYYY HH:mm',
+          'L HH:mm',
         );
       }
       ReactDOM.render(

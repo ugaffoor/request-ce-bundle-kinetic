@@ -164,6 +164,14 @@ export const MemberNew = ({
                     <option value="" />
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
+                    {getAttributeValue(space, 'Additional Gender Options') ===
+                      'YES' && (
+                      <option value="Prefer not to answer">
+                        Prefer not to answer
+                      </option>
+                    )}
+                    {getAttributeValue(space, 'Additional Gender Options') ===
+                      'YES' && <option value="Other">Other</option>}
                   </select>
                   <div className="droparrow" />
                 </div>
@@ -293,7 +301,9 @@ export const MemberNew = ({
                   >
                     <I18n>Postcode</I18n>
                   </label>
-                  {getAttributeValue(space, 'School Country Code') === 'GB' ? (
+                  {getAttributeValue(space, 'Postcode Format') === undefined ||
+                  getAttributeValue(space, 'Postcode Format') === null ||
+                  getAttributeValue(space, 'Postcode Format') === '' ? (
                     <input
                       type="text"
                       name="postcode"
