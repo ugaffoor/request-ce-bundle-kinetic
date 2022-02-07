@@ -695,7 +695,11 @@ export class PaymentHistory extends Component {
   }
 
   refundPayment(paymentId, amount) {
-    confirmWithInput({ message: 'hello' }).then(
+    confirmWithInput({
+      title: 'Refund transaction',
+      placeholder:
+        'Please enter a reason for this Refund. Not entering a valid reason could cause you pain later.',
+    }).then(
       ({ reason }) => {
         console.log('proceed! input:' + reason);
         this.props.refundPayment(

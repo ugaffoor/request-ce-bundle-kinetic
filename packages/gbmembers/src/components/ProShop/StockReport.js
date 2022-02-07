@@ -4,6 +4,9 @@ import { KappNavLink as NavLink } from 'common';
 import moment from 'moment';
 import { getCurrency } from '../Member/MemberUtils';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
+import ReactToPrint from 'react-to-print';
+import SVGInline from 'react-svg-inline';
+import printerIcon from '../../images/Print.svg?raw';
 
 export class StockReport extends Component {
   constructor(props) {
@@ -63,6 +66,7 @@ export class StockReport extends Component {
     }
 
     const data = posStock
+      .filter(stock => stock.values['Quantity'] !== '0')
       .sort((a, b) => {
         if (a.values['Product Name'] < b.values['Product Name']) {
           return -1;
@@ -183,7 +187,14 @@ export class StockReport extends Component {
           className="page-header"
           style={{ textAlign: 'center', marginBottom: '3%' }}
         ></div>
+        <ReactToPrint
+          trigger={() => (
+            <SVGInline svg={printerIcon} className="icon tablePrint" />
+          )}
+          content={() => this.tableComponentRef}
+        />
         <ReactTable
+          ref={el => (this.tableComponentRef = el)}
           columns={columns}
           data={data}
           className="-striped -highlight"

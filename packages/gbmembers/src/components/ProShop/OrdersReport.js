@@ -21,6 +21,8 @@ import { compose } from 'recompose';
 import { connect } from 'react-redux';
 import SVGInline from 'react-svg-inline';
 import crossIcon from '../../images/cross.svg?raw';
+import ReactToPrint from 'react-to-print';
+import printerIcon from '../../images/Print.svg?raw';
 
 const mapStateToProps = state => ({
   members: state.member.members.allMembers,
@@ -675,7 +677,14 @@ export class OrdersReport extends Component {
           <div className="purchaseItemsReport">Loading information ...</div>
         ) : (
           <div className="purchaseItemsReport">
+            <ReactToPrint
+              trigger={() => (
+                <SVGInline svg={printerIcon} className="icon tablePrint" />
+              )}
+              content={() => this.tableComponentRef}
+            />
             <ReactTable
+              ref={el => (this.tableComponentRef = el)}
               columns={this.getColumns()}
               data={this.state.data}
               className="-striped -highlight"

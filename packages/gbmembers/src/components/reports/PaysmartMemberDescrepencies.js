@@ -1,5 +1,8 @@
 import React, { Component } from 'react';
 import ReactTable from 'react-table';
+import ReactToPrint from 'react-to-print';
+import SVGInline from 'react-svg-inline';
+import printerIcon from '../../images/Print.svg?raw';
 
 export class PaysmartMemberDescrepencies extends Component {
   constructor(props) {
@@ -114,7 +117,14 @@ export class PaysmartMemberDescrepencies extends Component {
         >
           <h6>Member PaySmart Descrepencies</h6>
         </div>
+        <ReactToPrint
+          trigger={() => (
+            <SVGInline svg={printerIcon} className="icon tablePrint" />
+          )}
+          content={() => this.tableComponentRef}
+        />
         <ReactTable
+          ref={el => (this.tableComponentRef = el)}
           columns={columns}
           data={data}
           width="100%"

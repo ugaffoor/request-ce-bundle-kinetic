@@ -1393,7 +1393,11 @@ class PayNow extends Component {
                         cardId: cardId,
                         payment: 'useSavedCreditCard',
                       });
-                      if (posProfileID !== undefined) {
+                      if (
+                        posProfileID !== undefined &&
+                        posProfileID !== null &&
+                        posProfileID !== ''
+                      ) {
                         this.props.fetchPOSCards({
                           profileId: posProfileID,
                           setPOSCards: this.props.setPOSCards,

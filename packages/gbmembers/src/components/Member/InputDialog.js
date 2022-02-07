@@ -85,7 +85,7 @@ class InputDialog extends Component {
               onClose={dismiss}
             >
               <div className="card-title">
-                <h3>Billing Change Reason</h3>
+                <h3>{this.props.title}</h3>
               </div>
               <div className="container">
                 <form className="form-horizontal" role="form" id="ccForm">
@@ -103,7 +103,7 @@ class InputDialog extends Component {
                         id="changeReason"
                         rows="5"
                         onChange={this.handleInputChange}
-                        placeholder="Please enter a reason for this billing change. Not entering a valid reason could cause you pain later."
+                        placeholder={this.props.placeholder}
                       />
                     </div>
                   </div>

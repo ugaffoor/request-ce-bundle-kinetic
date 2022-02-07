@@ -99,6 +99,7 @@ const mapDispatchToProps = {
   setSystemError: errorActions.setSystemError,
   fetchNewCustomers: actions.fetchNewCustomers,
   setNewCustomers: actions.setNewCustomers,
+  refundTransaction: actions.refundTransaction,
   fetchMembers: actions.fetchMembers,
   fetchMemberAttendances: attendanceActions.fetchMemberAttendances,
   createMemberUserAccount: actions.createMemberUserAccount,
@@ -750,6 +751,7 @@ export const MemberView = ({
   deleteMemberFile,
   currency,
   updateMember,
+  refundPayment,
 }) =>
   initialLoad ? (
     <div className="loading">
@@ -1526,6 +1528,7 @@ export const MemberView = ({
               space={space}
               profile={profile}
               snippets={snippets}
+              refundPayment={refundPayment}
             />
           </div>
         </div>
@@ -1936,6 +1939,32 @@ export const MemberViewContainer = compose(
         addNotification,
         setSystemError,
       });
+    },
+    refundPayment: ({
+      memberItem,
+      refundTransaction,
+      updateMember,
+      fetchCurrentMember,
+      fetchMembers,
+      addNotification,
+      setSystemError,
+      setIsDirty,
+    }) => (billingThis, paymentId, paymentAmount, billingChangeReason) => {
+      console.log('### paymentId = ' + paymentId);
+      let args = {};
+      args.transactionId = paymentId;
+      args.refundAmount = paymentAmount;
+      args.memberItem = memberItem;
+      args.updateMember = updateMember;
+      args.fetchCurrentMember = fetchCurrentMember;
+      args.fetchMembers = fetchMembers;
+      args.myThis = memberItem.myThis;
+      args.billingChangeReason = billingChangeReason;
+      args.addNotification = addNotification;
+      args.setSystemError = setSystemError;
+      args.billingThis = billingThis;
+
+      refundTransaction(args);
     },
     createUserAccount: ({
       memberItem,

@@ -9,6 +9,7 @@ import printerIcon from '../../images/Print.svg?raw';
 import ReactToPrint from 'react-to-print';
 import SVGInline from 'react-svg-inline';
 import { I18n } from '../../../../app/src/I18nProvider';
+import { confirmWithInput } from './Confirm';
 
 export class MemberOrders extends Component {
   constructor(props) {
@@ -21,6 +22,7 @@ export class MemberOrders extends Component {
       this.props.profile.preferredLocale === null
         ? this.props.space.defaultLocale
         : this.props.profile.preferredLocale;
+    this.refundPayment = this.refundPayment.bind(this);
 
     this.state = {
       data,
@@ -36,6 +38,31 @@ export class MemberOrders extends Component {
   }
 
   UNSAFE_componentWillMount() {}
+
+  isPaymentRefunded(order) {
+    return order['Status'] === 'Refunded' ? true : false;
+  }
+
+  refundPayment(paymentId, amount) {
+    confirmWithInput({
+      title: 'Refund POS',
+      placeholder:
+        'Please enter a reason for this Refund. Not entering a valid reason could cause you pain later.',
+    }).then(
+      ({ reason }) => {
+        console.log('proceed! input:' + reason);
+        this.props.refundPayment(
+          this.props.billingThis,
+          paymentId,
+          amount,
+          reason,
+        );
+      },
+      () => {
+        console.log('cancel!');
+      },
+    );
+  }
 
   getColumns() {
     return [
@@ -65,6 +92,29 @@ export class MemberOrders extends Component {
           </span>
         ),
       },
+      /*      {
+        accessor: '$refundPayment',
+        Cell: row =>
+          !this.isPaymentRefunded(row.original) ? (
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={e =>
+                this.refundPayment(
+                  row.original['_id'],
+                  row.original.paymentAmount,
+                )
+              }
+            >
+              Refund Payment
+            </button>
+          ) : this.isPaymentRefunded(row.original) ? (
+            'Refunded'
+          ) : (
+            ''
+          ),
+      },
+*/
     ];
   }
 

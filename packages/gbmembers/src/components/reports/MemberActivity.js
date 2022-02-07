@@ -981,7 +981,12 @@ export class MemberActivityReport extends Component {
           member.values['Billing User'] === 'YES' &&
           member.values['Billing Family Members']
             ? JSON.parse(member.values['Billing Family Members']).length
-            : '',
+            : (member.values['Billing Parent Member'] === undefined ||
+                member.values['Billing Parent Member'] === '' ||
+                member.values['Billing Parent Member'] === null) &&
+              member.values['Billing User'] !== 'YES'
+            ? 'Orphan'
+            : 'Dependant',
         history: member.values['Notes History'],
         events: member.values['Notes History'],
         emailsSent: isNaN(member.values['Emails Sent Count'])
