@@ -234,6 +234,20 @@ ul.nav-header.apps.nav {
     }
   }
 }
+.leadsNavItem .nav-link {
+  .attention-svg.icon-svg {
+    height: 20px;
+  }
+}
+.leadsNavItem .nav-link.active {
+  .attention-svg.icon-svg path {
+    fill: orange;
+    stroke: white;
+  }
+  .attention-svg.icon-svg {
+    height: 20px;
+  }
+}
 .sendNavItem .nav-link.active {
   .icon-svg path {
     fill: #8ec640;

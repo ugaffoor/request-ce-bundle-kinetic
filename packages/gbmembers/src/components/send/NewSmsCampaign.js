@@ -17,7 +17,12 @@ import moment from 'moment';
 import { email_sent_date_format, substituteFields } from '../leads/LeadsUtils';
 import Select, { components } from 'react-select';
 import { actions as memberActions } from '../../redux/modules/members';
-import { matchesMemberFilter, matchesLeadFilter } from '../../utils/utils';
+import {
+  removeExcludedMembers,
+  matchesMemberFilter,
+  removeExcludedLeads,
+  matchesLeadFilter,
+} from '../../utils/utils';
 import { actions as messagingActions } from '../../redux/modules/messaging';
 import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
 import PropTypes from 'prop-types';
@@ -162,7 +167,10 @@ export class NewSmsCampaign extends Component {
     }
 
     memberLists.forEach(list => {
-      let matchesFilter = matchesMemberFilter(allMembers, list.filters);
+      let matchesFilter = removeExcludedMembers(
+        matchesMemberFilter(allMembers, list.filters),
+        list.excluded !== undefined ? list.excluded : [],
+      );
       options.push({
         value: list.name,
         label: list.name,
@@ -196,7 +204,10 @@ export class NewSmsCampaign extends Component {
     });
 
     leadLists.forEach(list => {
-      let matchesFilter = matchesLeadFilter(allLeads, list.filters);
+      let matchesFilter = removeExcludedLeads(
+        matchesLeadFilter(allLeads, list.filters),
+        list.excluded !== undefined ? list.excluded : [],
+      );
       options.push({
         value: list.name,
         label: list.name,

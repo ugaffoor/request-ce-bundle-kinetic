@@ -109,6 +109,10 @@ export class OrdersReport extends Component {
         accessor: 'size',
       },
       {
+        Header: 'Colour',
+        accessor: 'colour',
+      },
+      {
         Header: 'Price',
         accessor: 'price',
         Cell: props => {

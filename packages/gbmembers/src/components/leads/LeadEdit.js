@@ -1022,6 +1022,39 @@ export class LeadEdit extends Component {
               </div>
               <span className="line">
                 <div>
+                  <label htmlFor="optout" style={{ minWidth: '100px' }}>
+                    Opt Out
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="optout"
+                    id="optout"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="YES"
+                    checked={
+                      this.props.leadItem.values['Opt-Out'] === 'YES'
+                        ? true
+                        : false
+                    }
+                    onChange={e => {
+                      if (this.props.leadItem.values['Opt-Out'] === 'YES') {
+                        e.target.value = '';
+                      } else {
+                        e.target.value = 'YES';
+                      }
+                      handleChange(
+                        this.props.leadItem,
+                        'Opt-Out',
+                        e,
+                        this.setIsDirty,
+                      );
+                    }}
+                  />
+                </div>
+              </span>
+              <span className="line">
+                <div>
                   <label id="birthday" htmlFor="birthday">
                     Birthday
                   </label>

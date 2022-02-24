@@ -105,11 +105,16 @@ export class ListNewHome extends Component {
     compThis = this;
 
     this._columns = this.getColumns();
+    this.getExcluded = this.getExcluded.bind(this);
     this.state = {
       data: [],
       joiningDateStart: undefined,
       joiningDateEnd: undefined,
+      excluded: [],
     };
+  }
+  getExcluded() {
+    return this.state.excluded;
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {}
@@ -162,12 +167,50 @@ export class ListNewHome extends Component {
       id: uuid(),
       name: $('#listName').val(),
       filters: this.state.filters,
+      excluded: this.state.excluded,
     };
     this.props.addNewList(newList);
   }
 
   getColumns = () => {
     return [
+      {
+        id: 'selection',
+        Header: 'Exclude',
+        Cell: props => {
+          return (
+            <div>
+              <input
+                type="checkbox"
+                checked={
+                  this.getExcluded() !== undefined
+                    ? this.getExcluded().find(id => id === props.original._id)
+                    : false
+                }
+                onChange={e => {}}
+                onClick={e => {
+                  console.log(props.original._id);
+                  var excludes =
+                    this.state.excluded !== undefined
+                      ? this.state.excluded
+                      : [];
+                  if (e.currentTarget.checked) {
+                    excludes.push(props.original._id);
+                  } else {
+                    var idx = excludes.findIndex(
+                      id => id === props.original._id,
+                    );
+                    excludes.splice(idx, 1);
+                  }
+                  this.setState({
+                    excluded: excludes,
+                  });
+                }}
+              />
+            </div>
+          );
+        },
+      },
       {
         accessor: 'Member ID',
         Header: 'Member',

@@ -183,6 +183,12 @@ export const getConfig = ({
 export const displayableFormPredicate = form =>
   form.type === 'Service' && form.status === 'Active';
 
+export const removeExcludedMembers = (allMembers, excluded) => {
+  let members = allMembers.filter(member => {
+    return !excluded.includes(member.id) && member.values['Opt-Out'] !== 'YES';
+  });
+  return members;
+};
 export const matchesMemberFilter = (allMembers, filters) => {
   let members = allMembers.filter(member => {
     let match = true;
@@ -269,6 +275,12 @@ export const matchesMemberFilter = (allMembers, filters) => {
     return match;
   });
   return members;
+};
+export const removeExcludedLeads = (allLeads, excluded) => {
+  let leads = allLeads.filter(lead => {
+    return !excluded.includes(lead.id) && lead.values['Opt-Out'] !== 'YES';
+  });
+  return leads;
 };
 export const matchesLeadFilter = (allLeads, filters) => {
   let leads = allLeads.filter(lead => {

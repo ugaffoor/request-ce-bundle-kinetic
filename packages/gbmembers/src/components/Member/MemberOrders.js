@@ -15,7 +15,9 @@ export class MemberOrders extends Component {
   constructor(props) {
     super(props);
     const data = this.getData(this.props.memberItem);
-    this._columns = this.getColumns();
+    this._columns = this.getColumns(
+      getAttributeValue(this.props.space, 'POS System'),
+    );
     this.currency = getAttributeValue(this.props.space, 'Currency');
     if (this.currency === undefined) this.currency = 'USD';
     this.locale =
@@ -64,7 +66,7 @@ export class MemberOrders extends Component {
     );
   }
 
-  getColumns() {
+  getColumns(posSystem) {
     return [
       {
         accessor: 'Date time processed',
@@ -92,19 +94,21 @@ export class MemberOrders extends Component {
           </span>
         ),
       },
-      /*      {
+      {
         accessor: '$refundPayment',
+        Header: 'Refunds',
+        show: posSystem === 'XBambora' ? true : false,
         Cell: row =>
           !this.isPaymentRefunded(row.original) ? (
             <button
               type="button"
               className="btn btn-primary"
-              onClick={e =>
+              onClick={e => {
                 this.refundPayment(
-                  row.original['_id'],
-                  row.original.paymentAmount,
-                )
-              }
+                  row.original['Transaction ID'],
+                  row.original['Total'],
+                );
+              }}
             >
               Refund Payment
             </button>
@@ -114,7 +118,6 @@ export class MemberOrders extends Component {
             ''
           ),
       },
-*/
     ];
   }
 
@@ -260,7 +263,8 @@ export class MemberOrders extends Component {
                                 {product['quantity']}
                               </div>
                               <div className="name">
-                                {product['name']} {product['size']}
+                                {product['name']} {product['colour']}{' '}
+                                {product['size']}
                               </div>
                               <div className="price">
                                 <span className="price">

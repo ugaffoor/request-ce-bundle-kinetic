@@ -68,6 +68,7 @@ export class ListHome extends Component {
   constructor(props) {
     super(props);
     this.showMembers = this.showMembers.bind(this);
+    this.getExcluded = this.getExcluded.bind(this);
     this._listColumns = this.getListColumns();
     let listData = this.getListData(
       this.props.allMembers,
@@ -82,7 +83,9 @@ export class ListHome extends Component {
       selectedList: null,
     };
   }
-
+  getExcluded() {
+    return this.state.excluded;
+  }
   UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.memberLists) {
       this.setState({
@@ -109,6 +112,7 @@ export class ListHome extends Component {
         name: list.name,
         members: allMembers,
         filters: list.filters,
+        excluded: list.excluded !== undefined ? list.excluded : [],
       });
     });
 
@@ -136,6 +140,10 @@ export class ListHome extends Component {
           listMembersData: this.getListMembersData(rowInfo.original.filters),
           selected: rowInfo.index,
           selectedList: rowInfo.original.name,
+          excluded:
+            rowInfo.original.excluded !== undefined
+              ? rowInfo.original.excluded
+              : [],
         });
 
         if (handleOriginal) {
@@ -226,6 +234,28 @@ export class ListHome extends Component {
                 <ReactTable
                   columns={[
                     {
+                      id: 'selection',
+                      Header: 'Exclude',
+                      Cell: props => {
+                        return (
+                          <div>
+                            <input
+                              type="checkbox"
+                              checked={
+                                this.getExcluded() !== undefined
+                                  ? this.getExcluded().find(
+                                      id => id === props.original._id,
+                                    )
+                                  : false
+                              }
+                              onChange={e => {}}
+                              disabled={true}
+                            />
+                          </div>
+                        );
+                      },
+                    },
+                    {
                       accessor: 'Member ID',
                       Header: 'Member',
                       Cell: props => {
@@ -255,8 +285,8 @@ export class ListHome extends Component {
                       Header: 'Additional Program 1',
                     },
                     {
-                      accessor: 'Additional Program 2',
-                      Header: 'Additional Program 2',
+                      accessor: 'Opt-Out',
+                      Header: 'Opt-Out',
                     },
                   ]}
                   data={this.state.listMembersData}

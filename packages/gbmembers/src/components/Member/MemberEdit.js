@@ -1488,7 +1488,15 @@ export const MemberEdit = ({
             </span>
             <span className="line">
               <div className="field">
-                <label id="lastPromotion" htmlFor="lastPromotion">
+                <label
+                  id="lastPromotion"
+                  htmlFor="lastPromotion"
+                  required={
+                    memberItem.values['Last Promotion'] === undefined
+                      ? true
+                      : false
+                  }
+                >
                   Last Promotion
                 </label>
                 <DayPickerInput
@@ -1582,6 +1590,38 @@ export const MemberEdit = ({
                     handleChange(
                       memberItem,
                       'Non Paying',
+                      e,
+                      setIsDirty,
+                      memberChanges,
+                    );
+                  }}
+                />
+              </div>
+            </span>
+            <span className="line">
+              <div>
+                <label htmlFor="optout" style={{ minWidth: '100px' }}>
+                  Opt Out
+                </label>
+                <input
+                  type="checkbox"
+                  name="optout"
+                  id="optout"
+                  style={{ clear: 'none', margin: '4px' }}
+                  ref={input => (this.input = input)}
+                  value="YES"
+                  checked={
+                    memberItem.values['Opt-Out'] === 'YES' ? true : false
+                  }
+                  onChange={e => {
+                    if (memberItem.values['Opt-Out'] === 'YES') {
+                      e.target.value = '';
+                    } else {
+                      e.target.value = 'YES';
+                    }
+                    handleChange(
+                      memberItem,
+                      'Opt-Out',
                       e,
                       setIsDirty,
                       memberChanges,
@@ -1857,6 +1897,10 @@ export const MemberEditContainer = compose(
           .css('border-color', 'red');
         $('label[required]')
           .siblings('select[required]')
+          .css('border-color', 'red');
+        $('label[required]')
+          .siblings('.DayPickerInput')
+          .children('input')
           .css('border-color', 'red');
         $('label[required]')
           .siblings('input[required]')

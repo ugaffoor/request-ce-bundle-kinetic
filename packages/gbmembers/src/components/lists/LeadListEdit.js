@@ -126,12 +126,17 @@ export class ListEditHome extends Component {
       data = this.getData(leads);
     }
 
+    this.getExcluded = this.getExcluded.bind(this);
     this.state = {
       data,
       listToBeUpdated,
       createdDateStart: undefined,
       createdDateEnd: undefined,
+      excluded: [],
     };
+  }
+  getExcluded() {
+    return this.state.excluded;
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
@@ -148,17 +153,33 @@ export class ListEditHome extends Component {
         );
         data = this.getData(leads);
         this.populateFilters(listToBeUpdated);
+        this.setState({
+          excluded:
+            listToBeUpdated.excluded !== undefined
+              ? listToBeUpdated.excluded
+              : [],
+        });
       }
 
       this.setState({
         data,
         listToBeUpdated,
+        excluded: [],
       });
     }
   }
 
   componentDidMount() {
     this.populateFilters(this.state.listToBeUpdated);
+    if (this.state.listToBeUpdated !== null) {
+      this.setState({
+        excluded: this.state.listToBeUpdated.excluded,
+      });
+    } else {
+      this.setState({
+        excluded: [],
+      });
+    }
     this.refs.statusDiv &&
       $(this.refs.statusDiv)
         .find('select')
@@ -187,12 +208,54 @@ export class ListEditHome extends Component {
       id: this.state.listToBeUpdated['id'],
       name: $('#listName').val(),
       filters: this.state.filters,
+      excluded: this.state.excluded,
     };
     this.props.updateList(newList);
   }
 
+  getExcluded = () => {
+    return this.state.excluded;
+  };
+
   getColumns = () => {
     return [
+      {
+        id: 'selection',
+        Header: 'Exclude',
+        Cell: props => {
+          return (
+            <div>
+              <input
+                type="checkbox"
+                checked={
+                  this.getExcluded() !== undefined
+                    ? this.getExcluded().find(id => id === props.original._id)
+                    : false
+                }
+                onChange={e => {}}
+                onClick={e => {
+                  console.log(props.original._id);
+                  var excludes =
+                    this.state.excluded !== undefined
+                      ? this.state.excluded
+                      : [];
+                  if (e.currentTarget.checked) {
+                    excludes.push(props.original._id);
+                  } else {
+                    var idx = excludes.findIndex(
+                      id => id === props.original._id,
+                    );
+                    excludes.splice(idx, 1);
+                  }
+                  this.setState({
+                    excluded: excludes,
+                  });
+                }}
+              />
+            </div>
+          );
+        },
+      },
       { accessor: 'First Name', Header: 'First Name' },
       { accessor: 'Last Name', Header: 'Last Name' },
       { accessor: 'Status', Header: 'Status' },

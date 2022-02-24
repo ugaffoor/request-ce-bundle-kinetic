@@ -715,12 +715,21 @@ export const MemberNew = ({
               </span>
               <span className="line">
                 <div className="field">
-                  <label id="lastPromotion" htmlFor="lastPromotion">
+                  <label
+                    id="lastPromotion"
+                    htmlFor="lastPromotion"
+                    required={
+                      memberItem.values['Last Promotion'] === undefined
+                        ? true
+                        : false
+                    }
+                  >
                     Last Promotion
                   </label>
                   <DayPickerInput
                     name="lastPromotion"
                     id="lastPromotion"
+                    required
                     placeholder={moment(new Date())
                       .locale(getLocalePreference(space, profile))
                       .localeData()
@@ -950,6 +959,10 @@ export const MemberNewContainer = compose(
           .css('border-color', 'red');
         $('label[required]')
           .siblings('select[required]')
+          .css('border-color', 'red');
+        $('label[required]')
+          .siblings('.DayPickerInput')
+          .children('input')
           .css('border-color', 'red');
         $('label[required]')
           .siblings('input[required]')

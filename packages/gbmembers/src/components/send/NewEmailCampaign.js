@@ -17,7 +17,12 @@ import { actions as leadsActions } from '../../redux/modules/leads';
 import { actions as membersActions } from '../../redux/modules/members';
 import { actions as campaignActions } from '../../redux/modules/campaigns';
 import { actions as dataStoreActions } from '../../redux/modules/settingsDatastore';
-import { matchesMemberFilter, matchesLeadFilter } from '../../utils/utils';
+import {
+  removeExcludedMembers,
+  matchesMemberFilter,
+  removeExcludedLeads,
+  matchesLeadFilter,
+} from '../../utils/utils';
 import Select from 'react-select';
 import EmailEditor from 'react-email-editor';
 import {
@@ -332,9 +337,10 @@ export class NewEmailCampaign extends Component {
       options.push({
         value: list.name,
         label: list.name,
-        members: matchesMemberFilter(allMembers, list.filters).map(
-          member => member['id'],
-        ),
+        members: removeExcludedMembers(
+          matchesMemberFilter(allMembers, list.filters),
+          list.excluded !== undefined ? list.excluded : [],
+        ).map(member => member['id']),
       });
     });
 
@@ -352,9 +358,10 @@ export class NewEmailCampaign extends Component {
       options.push({
         value: list.name,
         label: list.name,
-        leads: matchesLeadFilter(allLeads, list.filters).map(
-          lead => lead['id'],
-        ),
+        leads: removeExcludedLeads(
+          matchesLeadFilter(allLeads, list.filters),
+          list.excluded !== undefined ? list.excluded : [],
+        ).map(lead => lead['id']),
       });
     });
 
@@ -401,22 +408,6 @@ export class NewEmailCampaign extends Component {
       let idx = 0;
       let endIdx = 0;
       var contentHTML = this.state.text;
-      /*
-      while (contentHTML.indexOf('<a href="', endIdx) !== -1) {
-        idx = contentHTML.indexOf('<a href="', endIdx);
-        endIdx = contentHTML.indexOf('"', idx + '<a href="'.length);
-        var url = contentHTML.substring(idx + '<a href="'.length, endIdx);
-        var encodeVal = btoa(url).replace('/', 'XXX');
-
-        var newUrl =
-            'https://gbbilling.com.au:8443/billingservice/goToUrl/' +
-            campaignSpace +
-            '/__campaign_id__/__member_id__/' +
-            encodeVal,
-          contentHTML = contentHTML.replace(url, newUrl);
-
-      }
-*/
 
       body = contentHTML;
     } else {
@@ -678,6 +669,17 @@ export class NewEmailCampaign extends Component {
                   onCopy={console.log(
                     'Email Footer copied to Clipboard, only paste into a HTML block',
                   )}
+                >
+                  <i className="fa fa-clipboard" aria-hidden="true"></i>
+                </CopyToClipboard>
+              </div>
+              <div className="copyItem">
+                <div className="copySample"> Opt-Out (HTML only)</div>
+                <CopyToClipboard
+                  text={
+                    "<a href=\"${kappAttributes('Kinetic Email Server URL')}/opt-out?space=${spaceSlug}&id=member('ID')\">Opt-Out</a>"
+                  }
+                  onCopy={console.log("member('ID') copied to Clipboard")}
                 >
                   <i className="fa fa-clipboard" aria-hidden="true"></i>
                 </CopyToClipboard>

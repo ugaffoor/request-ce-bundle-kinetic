@@ -57,6 +57,7 @@ export class LeadsActivityReport extends Component {
       { title: K.translate('Suburb'), field: 'suburb', tooltip: true },
       { title: 'State', field: 'state' },
       { title: 'Age (Years)', field: 'age' },
+      { title: 'Opt-Out', field: 'optout' },
       { title: 'Source', field: 'source' },
       { title: 'Source Reference 1', field: 'sourceReference1' },
       { title: 'Source Reference 2', field: 'sourceReference2' },
@@ -151,6 +152,7 @@ export class LeadsActivityReport extends Component {
       { label: K.translate('Suburb'), value: 'suburb' },
       { label: 'State', value: 'state' },
       { label: 'Age (Years)', value: 'age' },
+      { label: 'Opt-Out', value: 'optout' },
       { label: 'Source', value: 'source' },
       { label: 'Source Reference 1', value: 'sourceReference1' },
       { label: 'Source Reference 2', value: 'sourceReference2' },
@@ -197,6 +199,7 @@ export class LeadsActivityReport extends Component {
       gender: genders,
       status: this.props.leadStatusValues,
       source: this.props.leadSourceValues,
+      optout: ['YES'],
     };
     this.filterIds = {};
 
@@ -860,6 +863,7 @@ export class LeadsActivityReport extends Component {
         suburb: lead.values['Suburb'],
         state: lead.values['State'],
         age: moment().diff(lead.values['DOB'], 'years'),
+        optout: lead.values['Opt-Out'],
         source: lead.values['Source'],
         history: lead.values['History'],
         events: lead.values['History'],

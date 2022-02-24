@@ -44,6 +44,7 @@ export const State = Record({
   newLeadLoading: true,
   leadsLoading: true,
   leadsByDateLoading: true,
+  leadAttentionRequired: false,
 });
 
 export const reducer = (state = State(), { type, payload }) => {
@@ -57,10 +58,36 @@ export const reducer = (state = State(), { type, payload }) => {
     case types.FETCH_NEW_LEAD:
       return state.set('newLeadLoading', true);
     case types.SET_LEADS: {
-      return state.set('leadsLoading', false).set('allLeads', payload);
+      let attentionRequired = false;
+      if (
+        payload.findIndex(
+          lead =>
+            lead.values['Status'] !== 'Converted' &&
+            lead.values['Is New Reply Received'] === 'true',
+        ) !== -1
+      ) {
+        attentionRequired = true;
+      }
+      return state
+        .set('leadsLoading', false)
+        .set('allLeads', payload)
+        .set('leadAttentionRequired', attentionRequired);
     }
     case types.SET_LEADS_BY_DATE: {
-      return state.set('leadsByDateLoading', false).set('leadsByDate', payload);
+      let attentionRequired = false;
+      if (
+        payload.findIndex(
+          lead =>
+            lead.values['Status'] !== 'Converted' &&
+            lead.values['Is New Reply Received'] === 'true',
+        ) !== -1
+      ) {
+        attentionRequired = true;
+      }
+      return state
+        .set('leadsByDateLoading', false)
+        .set('leadsByDate', payload)
+        .set('leadAttentionRequired', attentionRequired);
     }
     case types.SET_CURRENT_LEAD: {
       return state.set('currentLeadLoading', false).set('currentLead', payload);
@@ -78,8 +105,21 @@ export const reducer = (state = State(), { type, payload }) => {
           allLeads[i] = payload.leadItem;
         }
       }
+      let attentionRequired = false;
+      if (
+        payload.allLeads.findIndex(
+          lead =>
+            lead.values['Status'] !== 'Converted' &&
+            lead.values['Is New Reply Received'] === 'true',
+        ) !== -1
+      ) {
+        attentionRequired = true;
+      }
 
-      return state.set('leadUpdating', false).set('allLeads', allLeads);
+      return state
+        .set('leadUpdating', false)
+        .set('allLeads', allLeads)
+        .set('leadAttentionRequired', attentionRequired);
     }
     default:
       return state;

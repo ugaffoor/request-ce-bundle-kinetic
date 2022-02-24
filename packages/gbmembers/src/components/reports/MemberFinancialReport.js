@@ -510,6 +510,28 @@ export class MemberFinancialReport extends Component {
         ) {
           refundMembers[refundMembers.length] = members[idx];
         }
+      } else {
+        var pIdx = paymentHistory.findIndex(
+          payment => payment.paymentID === refund.yourSystemReference,
+        );
+        if (pIdx !== -1) {
+          var mIdx = members.findIndex(
+            member =>
+              member.values['Billing Customer Id'] ===
+              paymentHistory[pIdx]['yourSystemReference'],
+          );
+          if (mIdx !== -1) {
+            if (
+              refundMembers.findIndex(
+                item =>
+                  item.values['Member ID'] ===
+                  members[mIdx].values['Member ID'],
+              ) === -1
+            ) {
+              refundMembers[refundMembers.length] = members[mIdx];
+            }
+          }
+        }
       }
     });
 
@@ -673,10 +695,19 @@ export class MemberFinancialReport extends Component {
     });
     return pos;
   }
-  getMemberRefunds(members, member, refunds) {
+  getMemberRefunds(members, member, refunds, paymentHistory) {
+    var payments = paymentHistory.filter(
+      payment =>
+        payment['yourSystemReference'] === member.values['Billing Customer Id'],
+    );
+
     var refundVal = 0;
     refunds.forEach((refund, i) => {
-      if (refund.yourSystemReference === member.values['Member ID']) {
+      if (
+        payments.findIndex(
+          payment => payment.paymentID === refund.yourSystemReference,
+        ) !== -1
+      ) {
         refundVal += Number.parseFloat(refund.paymentAmount);
       }
     });
@@ -783,7 +814,14 @@ export class MemberFinancialReport extends Component {
 
     return members_col;
   }
-  getRefundMembers(allMembers, members, billingCustomers, refunds, col) {
+  getRefundMembers(
+    allMembers,
+    members,
+    billingCustomers,
+    refunds,
+    col,
+    paymentHistory,
+  ) {
     var members_col = [];
 
     for (var i = col - 1; i < members.length; i = i + 2) {
@@ -793,7 +831,12 @@ export class MemberFinancialReport extends Component {
           members[i].values['Last Name'] +
           ' ' +
           members[i].values['First Name'],
-        refund: this.getMemberRefunds(allMembers, members[i], refunds),
+        refund: this.getMemberRefunds(
+          allMembers,
+          members[i],
+          refunds,
+          paymentHistory,
+        ),
       };
     }
 
@@ -883,7 +926,12 @@ export class MemberFinancialReport extends Component {
       },
     ];
   }
-  getMemberRefundsTableData(members, billingCustomers, refunds) {
+  getMemberRefundsTableData(
+    members,
+    billingCustomers,
+    refunds,
+    paymentHistory,
+  ) {
     members.sort(function(a, b) {
       if (a.values['Last Name'] < b.values['Last Name']) {
         return -1;
@@ -899,6 +947,7 @@ export class MemberFinancialReport extends Component {
       billingCustomers,
       refunds,
       1,
+      paymentHistory,
     );
     let members_col2 = this.getRefundMembers(
       this.state.allMembers,
@@ -906,6 +955,7 @@ export class MemberFinancialReport extends Component {
       billingCustomers,
       refunds,
       2,
+      paymentHistory,
     );
 
     return [
@@ -1377,6 +1427,7 @@ export class MemberFinancialReport extends Component {
                 this.state.repMemberData.refundMembers.members,
                 this.state.billingCustomers,
                 this.refunds,
+                this.paymentHistory,
               )}
               defaultPageSize={1}
               showPagination={false}
@@ -1787,6 +1838,19 @@ export class MemberFinancialReport extends Component {
                       this.state.repMemberData.forecastHolders.value -
                       this.state.repMemberData.refundMembers.value,
                   )}
+                </div>
+              </div>
+              <div className="column col3"></div>
+              <div className="column col4"></div>
+            </div>
+            <div className="row header9">
+              <div className="column col1">Forecast</div>
+              <div className="column col2">
+                <div className="dollarValue">
+                  {new Intl.NumberFormat(this.locale, {
+                    style: 'currency',
+                    currency: this.currency,
+                  }).format(this.state.repMemberData.forecastHolders.value)}
                 </div>
               </div>
               <div className="column col3"></div>

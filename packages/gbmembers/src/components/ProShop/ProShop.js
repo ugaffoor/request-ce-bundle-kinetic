@@ -1067,6 +1067,18 @@ class PayNow extends Component {
           payButton.className = 'btn btn-primary disabled';
         }
       },
+      setSaveLaterButton: function(enabled) {
+        console.log('checkout.setSaveButton() disabled: ' + !enabled);
+
+        var payButton = document.getElementById('save-to-profile');
+        if (enabled) {
+          payButton.disabled = false;
+          payButton.className = 'btn btn-primary';
+        } else {
+          payButton.disabled = true;
+          payButton.className = 'btn btn-primary disabled';
+        }
+      },
       toggleProcessingScreen: function() {
         var processingScreen = document.getElementById('processing-screen');
         if (processingScreen) {
@@ -1114,6 +1126,10 @@ class PayNow extends Component {
           var saveButton = document.getElementById('save-to-profile');
           saveButton.disabled = false;
           $(saveButton).removeClass('disabled');
+        } else {
+          var saveButton = document.getElementById('save-to-profile');
+          saveButton.disabled = true;
+          $(saveButton).addClass('disabled');
         }
         payThis.setState({
           status: '',
@@ -1240,7 +1256,7 @@ class PayNow extends Component {
             name: this.state.firstName + ' ' + this.state.lastName,
             datetime: moment(),
           });
-          this.completeCheckout();
+          //this.completeCheckout();
         }
       })
       .catch(error => {
@@ -1305,7 +1321,8 @@ class PayNow extends Component {
             </div>
           </span>
           {!this.state.processingComplete ||
-          (this.state.status !== '1' && this.state.status !== '') ? (
+          (this.state.status !== '1' && this.state.status !== '') ||
+          this.state.squareCheckoutStatus === 'CANCELED' ? (
             <span className="capturePayment">
               <span className="person">
                 <div className="radioGroup">
@@ -1651,7 +1668,11 @@ class PayNow extends Component {
                           disabled={this.disablePaymentType()}
                           value="Capture"
                           onChange={e => {
-                            this.setState({ payment: 'capture' });
+                            this.setState({
+                              payment: 'capture',
+                              squareCheckoutStatus: '',
+                              processingComplete: false,
+                            });
                           }}
                           onClick={async e => {
                             var url = getAttributeValue(
@@ -1737,10 +1758,11 @@ class PayNow extends Component {
                       </span>
                     </p>
                   )}
-                  {this.state.deviceStatus === 'CHECKOUT' && (
-                    <p>Capturing payment from customer, please wait...</p>
-                  )}
-                  {this.state.deviceStatus === 'CANCELED' && (
+                  {this.state.deviceStatus === 'CHECKOUT' &&
+                    this.state.squareCheckoutStatus !== 'CANCELED' && (
+                      <p>Capturing payment from customer, please wait...</p>
+                    )}
+                  {this.state.squareCheckoutStatus === 'CANCELED' && (
                     <p>Customer cancelled transaction...</p>
                   )}
                   {this.state.status_message !== undefined && (

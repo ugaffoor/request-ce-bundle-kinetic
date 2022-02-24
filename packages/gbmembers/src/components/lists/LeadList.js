@@ -68,6 +68,7 @@ export class ListHome extends Component {
   constructor(props) {
     super(props);
     this.showLeads = this.showLeads.bind(this);
+    this.getExcluded = this.getExcluded.bind(this);
     this._listColumns = this.getListColumns();
     let listData = this.getListData(this.props.allLeads, this.props.leadLists);
     this.allLeads = this.props.allLeads;
@@ -78,6 +79,9 @@ export class ListHome extends Component {
       selected: null,
       selectedList: null,
     };
+  }
+  getExcluded() {
+    return this.state.excluded;
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
@@ -103,6 +107,7 @@ export class ListHome extends Component {
         name: list.name,
         leads: allLeads,
         filters: list.filters,
+        excluded: list.excluded !== undefined ? list.excluded : [],
       });
     });
 
@@ -130,6 +135,10 @@ export class ListHome extends Component {
           listLeadsData: this.getlistLeadsData(rowInfo.original.filters),
           selected: rowInfo.index,
           selectedList: rowInfo.original.name,
+          excluded:
+            rowInfo.original.excluded !== undefined
+              ? rowInfo.original.excluded
+              : [],
         });
 
         if (handleOriginal) {
@@ -220,6 +229,28 @@ export class ListHome extends Component {
                 <ReactTable
                   columns={[
                     {
+                      id: 'selection',
+                      Header: 'Exclude',
+                      Cell: props => {
+                        return (
+                          <div>
+                            <input
+                              type="checkbox"
+                              checked={
+                                this.getExcluded() !== undefined
+                                  ? this.getExcluded().find(
+                                      id => id === props.original._id,
+                                    )
+                                  : false
+                              }
+                              onChange={e => {}}
+                              disabled={true}
+                            />
+                          </div>
+                        );
+                      },
+                    },
+                    {
                       accessor: 'First Name',
                       Header: 'Name',
                       Cell: props => {
@@ -247,6 +278,10 @@ export class ListHome extends Component {
                     { accessor: 'Source Reference 2', Header: 'Source 2' },
                     { accessor: 'Source Reference 3', Header: 'Source 3' },
                     { accessor: 'Source Reference 4', Header: 'Source 4' },
+                    {
+                      accessor: 'Opt-Out',
+                      Header: 'Opt-Out',
+                    },
                   ]}
                   data={this.state.listLeadsData}
                   defaultPageSize={this.state.listLeadsData.length}

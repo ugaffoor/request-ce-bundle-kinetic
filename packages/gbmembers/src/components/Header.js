@@ -12,10 +12,17 @@ import gradingIcon from '../images/Grading.svg?raw';
 import settingsIcon from '../images/Settings.svg?raw';
 import reportsIcon from '../images/Reports.svg?raw';
 import proShopIcon from '../images/proShop.svg?raw';
+import attentionRequired from '../images/flag.svg?raw';
 
 import { Utils } from 'common';
 
-export const Header = ({ loading, profile }) => (
+export const Header = ({
+  loading,
+  profile,
+  leadsByDateLoading,
+  leadsByDate,
+  leadAttentionRequired,
+}) => (
   <Navbar color="faded" light className="fixed-top">
     <Nav className="nav-header apps">
       <NavItem className="homeNavItem">
@@ -48,7 +55,13 @@ export const Header = ({ loading, profile }) => (
           activeClassName="active"
         >
           <SVGInline svg={leadsIcon} className="icon" />
-          <span className="appName">LEADS</span>
+          <span className="appName ">LEADS</span>
+          <SVGInline
+            svg={attentionRequired}
+            className={
+              leadAttentionRequired ? 'attention icon' : 'attention icon hide'
+            }
+          />
         </NavLink>
       </NavItem>
       <NavItem className="sendNavItem">
