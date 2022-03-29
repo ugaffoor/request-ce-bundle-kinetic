@@ -90,6 +90,7 @@ export class OrdersReport extends Component {
       total: 0,
       discountTotal: 0,
       salestaxTotal: 0,
+      refundTotal: 0,
       repFromDate,
       repToDate,
       repPeriod: 'monthly',
@@ -119,7 +120,13 @@ export class OrdersReport extends Component {
           return props.original.price === undefined ? (
             <div />
           ) : (
-            <div className="dollarValue">
+            <div
+              className={
+                props.original.status === 'refunded'
+                  ? 'dollarValue'
+                  : 'dollarValue'
+              }
+            >
               {new Intl.NumberFormat(this.locale, {
                 style: 'currency',
                 currency: this.currency,
@@ -145,10 +152,12 @@ export class OrdersReport extends Component {
       var total = 0;
       var discountTotal = 0;
       var salestaxTotal = 0;
+      var refundTotal = 0;
       data.forEach((item, i) => {
         total += item.total;
         discountTotal += item.discount;
         salestaxTotal += item.salestax;
+        refundTotal += item.refund;
       });
 
       this.setState({
@@ -157,6 +166,7 @@ export class OrdersReport extends Component {
         total,
         discountTotal,
         salestaxTotal,
+        refundTotal,
       });
     }
   }
@@ -185,39 +195,81 @@ export class OrdersReport extends Component {
       return [];
     }
     var data = [];
+    var products = [];
     posOrders.forEach((item, i) => {
-      var idx = data.findIndex(
-        dataItem => dataItem.key === item.values['Person ID'],
-      );
-      if (idx === -1) {
-        data[data.length] = {
-          key: item.values['Person ID'],
-          name: item.values['Person Name'],
-          total: Number.parseFloat(item.values['Total']),
-          discount: Number.parseFloat(item.values['Discount']),
-          salestax: Number.parseFloat(item.values['Sales Tax']),
-          products:
-            JSON.parse(item.values['POS Checkout JSON'])['Checkout Items']
-              .products !== undefined
-              ? JSON.parse(item.values['POS Checkout JSON'])['Checkout Items']
-                  .products
-              : [],
-        };
-      } else {
+      //    var idx = data.findIndex(
+      //      dataItem => dataItem.key === item.values['Person ID'],
+      //    );
+      //    idx=-1;
+      //    if (idx === -1) {
+      products = JSON.parse(item.values['POS Checkout JSON'])['Checkout Items']
+        .products;
+      var changeProds =
+        item.values['Status'] === 'Ordered'
+          ? products !== undefined
+            ? products
+            : []
+          : products !== undefined
+          ? products.forEach((prod, i) => {
+              prod['name'] = prod['name'];
+              prod['status'] = 'refunded';
+            })
+          : [];
+
+      data[data.length] = {
+        key: item.values['Person ID'],
+        date:
+          item.values['Date time processed'] !== undefined
+            ? moment(
+                item.values['Date time processed'],
+                'YYYY-MM-DDTHH:mm:sssZ',
+              ).format('L HH:mm')
+            : '',
+        name: item.values['Person Name'],
+        total: Number.parseFloat(item.values['Total']),
+        discount:
+          item.values['Discount'] !== undefined &&
+          item.values['Discount'] !== null
+            ? Number.parseFloat(item.values['Discount'])
+            : 0,
+        salestax:
+          item.values['Sales Tax'] !== undefined &&
+          item.values['Sales Tax'] !== null
+            ? Number.parseFloat(item.values['Sales Tax'])
+            : 0,
+        refund:
+          item.values['Refund'] !== undefined && item.values['Refund'] !== null
+            ? Number.parseFloat(item.values['Refund'])
+            : 0,
+        paymenttype:
+          item.values['Payment Type'] === 'cash' ? 'Cash' : 'Credit Card',
+        products: products,
+      };
+      /*  } else {
         data[idx].total =
-          data[idx].total + Number.parseInt(item.values['Total']);
+          data[idx].total + (item.values['Status']==="Ordered" ? Number.parseInt(item.values['Total']) : 0);
         data[idx].discount =
-          data[idx].discount + Number.parseInt(item.values['Discount']);
+          data[idx].discount + (item.values['Status']==="Ordered" ? Number.parseInt(item.values['Discount']) : 0);
         data[idx].salestax =
-          data[idx].salestax + Number.parseInt(item.values['Sales Tax']);
-        data[idx].products = data[idx].products.concat(
-          JSON.parse(item.values['POS Checkout JSON'])['Checkout Items']
-            .products !== undefined
-            ? JSON.parse(item.values['POS Checkout JSON'])['Checkout Items']
-                .products
-            : [],
-        );
-      }
+          data[idx].salestax + (item.values['Status']==="Ordered" ?  Number.parseInt(item.values['Sales Tax']) : 0);
+        data[idx].paymenttype = item.values['Payment Type']==="cash" ? "Cash" : "Credit Card";
+        products=JSON.parse(item.values['POS Checkout JSON'])['Checkout Items'].products;
+        changeProds=item.values['Status']==="Ordered" ?  (products !== undefined ? products : [])
+          : (products !== undefined
+                    ? products.forEach((prod, i) => {
+                        prod['name']=prod['name']+"(Refunded)";
+                        prod['status']='refunded'
+                      })
+                      : []
+            );
+        if (products!==undefined && products.length>0){
+          products.forEach((prod, i) => {
+            data[idx].products.push(prod);
+          });
+        }
+        console.log(data[idx].products.length);
+
+      } */
     });
 
     data
@@ -401,6 +453,10 @@ export class OrdersReport extends Component {
   getColumns() {
     const columns = [
       {
+        Header: 'Date',
+        accessor: 'date',
+      },
+      {
         accessor: 'name',
         Header: 'Name',
         width: 300,
@@ -504,6 +560,39 @@ export class OrdersReport extends Component {
               : 0}
           </span>
         ),
+      },
+      {
+        accessor: 'refund',
+        Header: 'Refund',
+        width: 150,
+        Cell: props => {
+          return props.original.refund === undefined ? (
+            <div />
+          ) : (
+            <div className="dollarValue">
+              {new Intl.NumberFormat(this.locale, {
+                style: 'currency',
+                currency: this.currency,
+              }).format(props.original.refund)}
+            </div>
+          );
+        },
+        Footer: (
+          <span>
+            <strong>Total: </strong>
+            {this.state !== undefined
+              ? new Intl.NumberFormat(this.locale, {
+                  style: 'currency',
+                  currency: this.currency,
+                }).format(this.state.refundTotal)
+              : 0}
+          </span>
+        ),
+      },
+      {
+        accessor: 'paymenttype',
+        Header: 'Payment Type',
+        width: 150,
       },
     ];
     return columns;
@@ -690,6 +779,7 @@ export class OrdersReport extends Component {
             <ReactTable
               ref={el => (this.tableComponentRef = el)}
               columns={this.getColumns()}
+              groupBy="paymenttype"
               data={this.state.data}
               className="-striped -highlight"
               defaultPageSize={

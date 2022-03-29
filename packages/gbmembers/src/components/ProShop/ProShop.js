@@ -374,7 +374,7 @@ class PayNow extends Component {
       this.props.subtotal,
       this.props.discount,
       this.props.salestax,
-      this.state.total,
+      this.props.total,
     );
   }
   saveCardForLater = async () => {
@@ -1626,6 +1626,25 @@ class PayNow extends Component {
                         />
                         Remove Credit Card
                       </label>
+                      <label htmlFor="cash" className="radio">
+                        <input
+                          id="cash"
+                          name="cardpayment"
+                          type="radio"
+                          disabled={this.disableCashPaymentType()}
+                          value="Cash"
+                          onChange={e => {
+                            this.setState({
+                              payment: 'cash',
+                              cardToken: '',
+                              cvc: '',
+                              expiry: '',
+                              number: '',
+                            });
+                          }}
+                        />
+                        Cash
+                      </label>
                     </div>
                   </span>
                 )
@@ -1897,7 +1916,8 @@ class PayNow extends Component {
                     });
                     if (
                       this.state.payment === 'creditcard' ||
-                      this.state.payment === 'useSavedCreditCard'
+                      this.state.payment === 'useSavedCreditCard' ||
+                      this.state.payment === 'updateCreditCard'
                     ) {
                       this.processPayment();
                     } else {
@@ -2051,11 +2071,14 @@ class Checkout extends Component {
     var salestax = 0;
     var total = 0;
 
-    salestax = parseFloat(
-      getAttributeValue(this.props.space, 'POS Sales Tax') === undefined
-        ? 0
-        : getAttributeValue(this.props.space, 'POS Sales Tax'),
-    );
+    if (this.state.salestax === 0) {
+    } else {
+      salestax = parseFloat(
+        getAttributeValue(this.props.space, 'POS Sales Tax') === undefined
+          ? 0
+          : getAttributeValue(this.props.space, 'POS Sales Tax'),
+      );
+    }
 
     if (nextProps.posCheckout['Checkout Items']['products'] !== undefined) {
       nextProps.posCheckout['Checkout Items']['products'].forEach(

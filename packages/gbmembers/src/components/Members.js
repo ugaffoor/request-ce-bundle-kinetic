@@ -181,6 +181,11 @@ export class Members extends React.Component {
                     row._original['Additional Email'] !== null &&
                     row._original['Additional Email']
                       .toLowerCase()
+                      .includes(filter.value.toLowerCase())) ||
+                  (row._original['Billing Customer Reference'] !== undefined &&
+                    row._original['Billing Customer Reference'] !== null &&
+                    row._original['Billing Customer Reference']
+                      .toLowerCase()
                       .includes(filter.value.toLowerCase()))
                 );
               },

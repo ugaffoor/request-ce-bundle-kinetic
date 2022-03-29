@@ -1,3 +1,13 @@
+@media print {
+  .paymentHistory {
+    .print {
+      display: none;
+    }
+    .refund .btn {
+      display: none;
+    }
+  }
+}
 .statusOptions a {
   color: blue;
 }
@@ -391,6 +401,9 @@
       }
       .printReceipt {
         cursor: pointer;
+      }
+      .refund {
+        text-decoration: line-through;
       }
     }
   }
@@ -980,6 +993,13 @@
   #registeriFrame {
     height: 1800px;
     border: 0;
+  }
+  .printReceipt {
+    cursor: pointer;
+  }
+  .icon-svg {
+    height: 1.5rem;
+    width: 1.5rem;
   }
   .userDetails {
     .billingInfo {

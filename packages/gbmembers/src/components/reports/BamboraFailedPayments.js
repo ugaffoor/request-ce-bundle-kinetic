@@ -3,7 +3,7 @@ import ReactTable from 'react-table';
 import moment from 'moment';
 import { KappNavLink as NavLink } from 'common';
 
-const ezidebit_date_format = 'YYYY-MM-DD HH:mm:ss';
+const ezidebit_date_format = 'YYYY-MM-DD HH:mm:sss';
 
 export class BamboraFailedPayments extends Component {
   constructor(props) {
@@ -38,7 +38,9 @@ export class BamboraFailedPayments extends Component {
 
   getData(failedPayments, successfulPayments) {
     failedPayments = failedPayments.filter(
-      payment => payment.paymentStatus === 'DECLINED',
+      payment =>
+        payment.paymentStatus === 'DECLINED' ||
+        payment.paymentStatus === 'EXPIRED CARD',
     );
     failedPayments = failedPayments.sort((a, b) => {
       if (a['debitDate'] < b['debitDate']) {
@@ -59,7 +61,7 @@ export class BamboraFailedPayments extends Component {
       }
     });
 
-    var uniqueHistory = [];
+    var uniqueHistoryAll = [];
     uniqueFailed.forEach((failed, i) => {
       var idx = successfulPayments.findIndex(successful => {
         return (
@@ -71,10 +73,29 @@ export class BamboraFailedPayments extends Component {
       });
 
       if (idx === -1) {
-        uniqueHistory[uniqueHistory.length] = failed;
+        uniqueHistoryAll[uniqueHistoryAll.length] = failed;
       }
     });
 
+    var uniqueHistory = [];
+    uniqueHistoryAll.map(payment => {
+      var idx = this.props.allMembers.findIndex(
+        member => member.values['Member ID'] === payment.yourSystemReference,
+      );
+      if (idx !== -1) {
+        if (
+          (this.props.allMembers[idx].values['Status'] === 'Active' ||
+            this.props.allMembers[idx].values['Status'] === 'Penging Freeze' ||
+            this.props.allMembers[idx].values['Status'] ===
+              'Pending Cancellation') &&
+          payment.debitDate !== null
+        ) {
+          uniqueHistory[uniqueHistory.length] = payment;
+        }
+      } else {
+        uniqueHistory[uniqueHistory.length] = payment;
+      }
+    });
     const data = uniqueHistory.map(payment => {
       var idx = this.props.allMembers.findIndex(
         member => member.values['Member ID'] === payment.yourSystemReference,
@@ -93,7 +114,7 @@ export class BamboraFailedPayments extends Component {
         name:
           member !== undefined
             ? member.values['First Name'] + ' ' + member.values['Last Name']
-            : '',
+            : payment.customerName + ' POS',
       };
     });
     return data;

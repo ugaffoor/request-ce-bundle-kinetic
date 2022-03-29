@@ -135,6 +135,7 @@ export function* fetchCurrentMember(action) {
       memberActivities,
       memberFilesSubmissions,
       posOrderSubmissions,
+      posPurchasedItems,
     ] = yield all([
       call(CoreAPI.fetchSubmission, {
         id: action.payload.id,
@@ -152,6 +153,11 @@ export function* fetchCurrentMember(action) {
       }),
       call(CoreAPI.searchSubmissions, {
         form: 'pos-order',
+        search: MEMBER_POS_SEARCH,
+        datastore: true,
+      }),
+      call(CoreAPI.searchSubmissions, {
+        form: 'pos-purchased-item',
         search: MEMBER_POS_SEARCH,
         datastore: true,
       }),
@@ -251,7 +257,9 @@ export function* fetchCurrentMember(action) {
     }
     let posOrders = [];
     for (let i = 0; i < posOrderSubmissions.submissions.length; i++) {
-      posOrders[posOrders.length] = posOrderSubmissions.submissions[i].values;
+      var len = posOrders.length;
+      posOrders[len] = posOrderSubmissions.submissions[i].values;
+      posOrders[len]['id'] = posOrderSubmissions.submissions[i]['id'];
     }
     posOrders = posOrders.sort((a, b) => {
       if (a['Date time processed'] < b['Date time processed']) {
@@ -262,6 +270,12 @@ export function* fetchCurrentMember(action) {
       }
       return 0;
     });
+    let posItems = [];
+    for (let i = 0; i < posPurchasedItems.submissions.length; i++) {
+      var len = posItems.length;
+      posItems[len] = posPurchasedItems.submissions[i].values;
+      posItems[len]['id'] = posPurchasedItems.submissions[i]['id'];
+    }
     submission.submission.emailsReceived = emailReceivedContent;
     submission.submission.emailsSent = emailSentContent;
     submission.submission.smsContent = smsContent;
@@ -269,6 +283,7 @@ export function* fetchCurrentMember(action) {
     submission.submission.promotionContent = promotionContent;
     submission.submission.memberFiles = memberFiles;
     submission.submission.posOrders = posOrders;
+    submission.submission.posItems = posItems;
     if (action.payload.setInitialLoad) {
       console.log('members.js setInitialLoad 111');
     }
@@ -1653,6 +1668,129 @@ export function* refundTransaction(action) {
     });
 }
 
+export function* refundPOSTransaction(action) {
+  const appSettings = yield select(getAppSettings);
+  let args = {};
+  args.space = appSettings.spaceSlug;
+  args.billingService = appSettings.billingCompany;
+  args.transactionId = action.payload.transactionId;
+  args.refundAmount = action.payload.refundAmount;
+
+  axios
+    .post(appSettings.kineticBillingServerUrl + refundTransactionUrl, args)
+    .then(result => {
+      //console.log("fetchWebToken # result = " + util.inspect(result));
+      if (result.data.error && result.data.error > 0) {
+        console.log('refundTransaction Error: ' + result.data.errorMessage);
+        action.payload.addNotification(
+          NOTICE_TYPES.ERROR,
+          result.data.errorMessage,
+          'Refund Transaction',
+        );
+        action.payload.refundPOSTransactionComplete({ id: '' });
+      } else {
+        console.log('#### Response = ' + result.data.data);
+
+        var order =
+          action.payload.memberItem.posOrders[
+            action.payload.memberItem.posOrders.findIndex(
+              item => item['Transaction ID'] === action.payload.transactionId,
+            )
+          ];
+        var products = JSON.parse(order['POS Checkout JSON'])['Checkout Items']
+          .products;
+        products.forEach((product, i) => {
+          if (product.productType === 'Apparel') {
+            action.payload.incrementPOSStock({
+              productID: product['productID'],
+              size: product['size'],
+              quantity: product['quantity'],
+            });
+            var pIdx = action.payload.memberItem.posItems.findIndex(
+              item =>
+                item['Product ID'] === product['productID'] &&
+                item['Size'] === product['size'] &&
+                parseInt(item['Quantity']) === product['quantity'] &&
+                item['Person ID'] === action.payload.memberItem.id,
+            );
+            if (pIdx !== -1) {
+              action.payload.deletePOSPurchasedItem({
+                id: action.payload.memberItem.posItems[pIdx].id,
+              });
+            }
+          } else if (product.productType === 'Package') {
+            product.packageStock.forEach((packageProduct, i) => {
+              action.payload.incrementPOSStock({
+                productID: packageProduct['productID'],
+                size: packageProduct['size'],
+                quantity: product['quantity'],
+              });
+              var pIdx = action.payload.memberItem.posItems.findIndex(
+                item =>
+                  item['Product ID'] === packageProduct['productID'] &&
+                  item['Size'] === packageProduct['size'] &&
+                  parseInt(item['Quantity']) === product['quantity'] &&
+                  item['Person ID'] === action.payload.memberItem.id,
+              );
+              if (pIdx !== -1) {
+                action.payload.deletePOSPurchasedItem({
+                  id: action.payload.memberItem.posItems[pIdx].id,
+                });
+              }
+            });
+          }
+        });
+
+        var orderValues = {};
+        orderValues['Status'] = 'Refunded';
+        orderValues['Refund'] = action.payload.refundAmount;
+        action.payload.updatePOSOrder({
+          id: order.id,
+          values: orderValues,
+        });
+
+        if (action.payload.memberItem.form.slug === 'member') {
+          let changes = getBillingChanges(action.payload.memberItem);
+          changes.push({
+            date: moment().format(contact_date_format),
+            user: appSettings.profile.username,
+            action: 'Refund Transaction',
+            to: { amount: +action.payload.refundAmount / 100 },
+            reason: action.payload.billingChangeReason,
+          });
+          action.payload.memberItem.values['Billing Changes'] = changes;
+          action.payload.updateMember({
+            id: action.payload.memberItem.id,
+            allMembers: action.payload.allMembers,
+            memberItem: action.payload.memberItem,
+          });
+        }
+        action.payload.addNotification(
+          NOTICE_TYPES.SUCCESS,
+          'Payment refunded successfully',
+          'Refund Transaction',
+        );
+        action.payload.refundPOSTransactionComplete({
+          id: action.payload.orderid,
+          value: action.payload.refundAmount,
+        });
+
+        if (action.payload.billingThis) {
+          action.payload.billingThis.setState({
+            showPaymentHistory: false,
+          });
+          action.payload.billingThis.setState({
+            showPaymentHistory: true,
+          });
+        }
+      }
+    })
+    .catch(error => {
+      console.log(util.inspect(error));
+      //action.payload.setSystemError(error);
+    });
+}
+
 export function* fetchDdrStatus(action) {
   const appSettings = yield select(getAppSettings);
   let args = {};
@@ -1755,6 +1893,7 @@ export function* fetchCustomerRefunds(action) {
   args.billingService = appSettings.billingCompany;
   args.dateFrom = action.payload.dateFrom;
   args.dateTo = action.payload.dateTo;
+  args.timezoneOffset = action.payload.timezoneOffset;
   axios
     .post(appSettings.kineticBillingServerUrl + getRefundsUrl, args)
     .then(result => {
@@ -2294,6 +2433,7 @@ export function* watchMembers() {
   yield takeEvery(types.REGISTER_BILLING_MEMBER, registerBillingMember);
   yield takeEvery(types.EDIT_PAYMENT_METHOD, editPaymentMethod);
   yield takeEvery(types.REFUND_TRANSACTION, refundTransaction);
+  yield takeEvery(types.REFUND_POS_TRANSACTION, refundPOSTransaction);
   yield takeEvery(types.SYNC_BILLING_CUSTOMER, syncBillingCustomer);
   yield takeEvery(types.FETCH_NEW_CUSTOMERS, fetchNewCustomers);
   yield takeEvery(types.FETCH_DDR_STATUS, fetchDdrStatus);

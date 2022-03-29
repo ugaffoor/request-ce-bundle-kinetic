@@ -1185,7 +1185,7 @@ export const MemberEdit = ({
                   htmlFor="datejoined"
                   id="datejoined"
                   required={
-                    memberItem.values['Date Joined'] === undefined
+                    memberItem.values['Date Joined'] === undefined && !editAdmin
                       ? true
                       : false
                   }
@@ -1220,7 +1220,9 @@ export const MemberEdit = ({
                   htmlFor="birthday"
                   id="birthday"
                   required={
-                    memberItem.values['DOB'] === undefined ? true : false
+                    memberItem.values['DOB'] === undefined && !editAdmin
+                      ? true
+                      : false
                   }
                 >
                   Birthday
@@ -1285,7 +1287,8 @@ export const MemberEdit = ({
                 <label
                   htmlFor="emergencyname"
                   required={
-                    memberItem.values['Emergency Contact Name'] === undefined
+                    memberItem.values['Emergency Contact Name'] === undefined &&
+                    !editAdmin
                       ? true
                       : false
                   }
@@ -1316,7 +1319,7 @@ export const MemberEdit = ({
                   htmlFor="relationship"
                   required={
                     memberItem.values['Emergency Contact Relationship'] ===
-                    undefined
+                      undefined && !editAdmin
                       ? true
                       : false
                   }
@@ -1350,7 +1353,8 @@ export const MemberEdit = ({
                 <label
                   htmlFor="emergencyphone"
                   required={
-                    memberItem.values['Emergency Contact Phone'] === undefined
+                    memberItem.values['Emergency Contact Phone'] ===
+                      undefined && !editAdmin
                       ? true
                       : false
                   }
@@ -1409,7 +1413,8 @@ export const MemberEdit = ({
                 <label
                   htmlFor="program"
                   required={
-                    memberItem.values['Ranking Program'] === undefined
+                    memberItem.values['Ranking Program'] === undefined &&
+                    !editAdmin
                       ? true
                       : false
                   }
@@ -1450,7 +1455,8 @@ export const MemberEdit = ({
                 <label
                   htmlFor="belt"
                   required={
-                    memberItem.values['Ranking Belt'] === undefined
+                    memberItem.values['Ranking Belt'] === undefined &&
+                    !editAdmin
                       ? true
                       : false
                   }
@@ -1492,7 +1498,8 @@ export const MemberEdit = ({
                   id="lastPromotion"
                   htmlFor="lastPromotion"
                   required={
-                    memberItem.values['Last Promotion'] === undefined
+                    memberItem.values['Last Promotion'] === undefined &&
+                    !editAdmin
                       ? true
                       : false
                   }

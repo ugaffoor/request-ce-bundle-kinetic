@@ -17,15 +17,18 @@ export const types = {
   SAVE_POS_STOCK: namespace('pos', 'SAVE_POS_STOCK'),
   SAVE_POS_STOCK_SAVED: namespace('pos', 'SAVE_POS_STOCK_SAVED'),
   DECREMENT_POS_STOCK: namespace('pos', 'DECREMENT_POS_STOCK'),
+  INCREMENT_POS_STOCK: namespace('pos', 'INCREMENT_POS_STOCK'),
   SET_POS_STOCK: namespace('pos', 'SET_POS_STOCK'),
   FETCH_POS_ORDERS: namespace('pos', 'FETCH_POS_ORDERS'),
   SET_POS_ORDERS: namespace('pos', 'SET_POS_ORDERS'),
+  UPDATE_POS_ORDER: namespace('pos', 'UPDATE_POS_ORDER'),
   FETCH_POS_DISCOUNTS: namespace('pos', 'FETCH_POS_DISCOUNTS'),
   SET_POS_DISCOUNTS: namespace('pos', 'SET_POS_DISCOUNTS'),
   FETCH_POS_CHECKOUT: namespace('pos', 'FETCH_POS_CHECKOUT'),
   SET_POS_CHECKOUT: namespace('pos', 'SET_POS_CHECKOUT'),
   UPDATE_POS_CHECKOUT: namespace('pos', 'UPDATE_POS_CHECKOUT'),
   SAVE_POS_ORDER: namespace('pos', 'SAVE_POS_ORDER'),
+  DELETE_POS_PURSCHASED_ITEM: namespace('pos', 'DELETE_POS_PURSCHASED_ITEM'),
   SAVE_POS_PURSCHASED_ITEM: namespace('pos', 'SAVE_POS_PURSCHASED_ITEM'),
   SET_DUMMY: namespace('pos', 'SET_DUMMY'),
 };
@@ -44,10 +47,12 @@ export const actions = {
   savePOSStock: withPayload(types.SAVE_POS_STOCK),
   setPOSStockSaved: withPayload(types.SAVE_POS_STOCK_SAVED),
   decrementPOSStock: withPayload(types.DECREMENT_POS_STOCK),
+  incrementPOSStock: withPayload(types.INCREMENT_POS_STOCK),
   fetchPOSItems: withPayload(types.FETCH_POS_ITEMS),
   setPOSItems: withPayload(types.SET_POS_ITEMS),
   fetchPOSOrders: withPayload(types.FETCH_POS_ORDERS),
   setPOSOrders: withPayload(types.SET_POS_ORDERS),
+  updatePOSOrder: withPayload(types.UPDATE_POS_ORDER),
   fetchPOSDiscounts: withPayload(types.FETCH_POS_DISCOUNTS),
   setPOSDiscounts: withPayload(types.SET_POS_DISCOUNTS),
   fetchPOSCheckout: withPayload(types.FETCH_POS_CHECKOUT),
@@ -55,6 +60,7 @@ export const actions = {
   updatePOSCheckout: withPayload(types.UPDATE_POS_CHECKOUT),
   savePOSCheckout: withPayload(types.SAVE_POS_ORDER),
   setPOSSave: withPayload(types.SET_POS_SAVE),
+  deletePOSPurchasedItem: withPayload(types.DELETE_POS_PURSCHASED_ITEM),
   savePOSSavePurchasedItem: withPayload(types.SAVE_POS_PURSCHASED_ITEM),
   setDummy: withPayload(types.SET_DUMMY),
 };
@@ -79,6 +85,7 @@ export const State = Record({
   posCheckout: {},
   posSaving: false,
   posStockSaving: false,
+  posOrderUpdated: false,
   error: null,
 });
 
@@ -120,6 +127,9 @@ export const reducer = (state = State(), { type, payload }) => {
       return state.set('posOrdersLoading', true);
     case types.SET_POS_ORDERS: {
       return state.set('posOrdersLoading', false).set('posOrders', payload);
+    }
+    case types.UPDATE_POS_ORDER: {
+      return state.set('posOrderUpdated', true);
     }
     case types.FETCH_POS_DISCOUNTS:
       return state.set('posDiscountsLoading', true);

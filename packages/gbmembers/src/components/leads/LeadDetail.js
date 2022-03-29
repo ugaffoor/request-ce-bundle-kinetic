@@ -8,6 +8,7 @@ import {
   withProps,
 } from 'recompose';
 import { actions } from '../../redux/modules/leads';
+import { actions as memberActions } from '../../redux/modules/members';
 import { actions as appActions } from '../../redux/modules/memberApp';
 import { KappNavLink as NavLink } from 'common';
 import $ from 'jquery';
@@ -49,6 +50,7 @@ import binIcon from '../../images/bin.svg?raw';
 import { confirm } from '../helpers/Confirmation';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { LeadOrders } from './LeadOrders';
+import { actions as posActions } from '../../redux/modules/pos';
 
 const mapStateToProps = state => ({
   profile: state.app.profile,
@@ -63,6 +65,9 @@ const mapStateToProps = state => ({
   leadStatusValues: state.member.app.leadStatusValues,
   journeyTriggers: state.member.app.triggers,
   snippets: state.member.app.snippets,
+  refundPOSTransactionInProgress:
+    state.member.members.refundPOSTransactionInProgress,
+  refundPOSTransactionID: state.member.members.refundPOSTransactionID,
 });
 const mapDispatchToProps = {
   fetchLead: actions.fetchCurrentLead,
@@ -73,6 +78,11 @@ const mapDispatchToProps = {
   setSystemError: errorActions.setSystemError,
   createJourneyEvent: settingsActions.createJourneyEvent,
   setSidebarDisplayType: appActions.setSidebarDisplayType,
+  refundPOSTransaction: memberActions.refundPOSTransaction,
+  refundPOSTransactionComplete: memberActions.refundPOSTransactionComplete,
+  updatePOSOrder: posActions.updatePOSOrder,
+  incrementPOSStock: posActions.incrementPOSStock,
+  deletePOSPurchasedItem: posActions.deletePOSPurchasedItem,
 };
 
 function convertContactType(type) {
@@ -935,6 +945,11 @@ export class LeadDetail extends Component {
             space={this.props.space}
             profile={this.props.profile}
             snippets={this.props.snippets}
+            refundPOSPayment={this.props.refundPOSPayment}
+            refundPOSTransactionInProgress={
+              this.props.refundPOSTransactionInProgress
+            }
+            refundPOSTransactionID={this.props.refundPOSTransactionID}
           />
         </div>
       </div>
@@ -965,6 +980,9 @@ export const LeadDetailView = ({
   snippets,
   journeyTriggers,
   createJourneyEvent,
+  refundPOSPayment,
+  refundPOSTransactionInProgress,
+  refundPOSTransactionID,
 }) =>
   currentLeadLoading ? (
     <div />
@@ -991,6 +1009,9 @@ export const LeadDetailView = ({
       journeyTriggers={journeyTriggers}
       createJourneyEvent={createJourneyEvent}
       updateAttentionRequired={updateAttentionRequired}
+      refundPOSPayment={refundPOSPayment}
+      refundPOSTransactionInProgress={refundPOSTransactionInProgress}
+      refundPOSTransactionID={refundPOSTransactionID}
     />
   );
 
@@ -1027,6 +1048,41 @@ export const LeadDetailContainer = compose(
         setSystemError,
       });
       setIsDirty(false);
+    },
+    refundPOSPayment: ({
+      leadItem,
+      refundPOSTransaction,
+      refundPOSTransactionComplete,
+      updatePOSOrder,
+      incrementPOSStock,
+      deletePOSPurchasedItem,
+      addNotification,
+      setSystemError,
+      setIsDirty,
+    }) => (
+      billingThis,
+      orderid,
+      paymentId,
+      paymentAmount,
+      billingChangeReason,
+    ) => {
+      console.log('### paymentId = ' + paymentId);
+      let args = {};
+      args.orderid = orderid;
+      args.transactionId = paymentId;
+      args.refundAmount = paymentAmount;
+      args.memberItem = leadItem;
+      args.myThis = leadItem.myThis;
+      args.billingChangeReason = billingChangeReason;
+      args.addNotification = addNotification;
+      args.setSystemError = setSystemError;
+      args.billingThis = billingThis;
+      args.updatePOSOrder = updatePOSOrder;
+      args.incrementPOSStock = incrementPOSStock;
+      args.deletePOSPurchasedItem = deletePOSPurchasedItem;
+      args.refundPOSTransactionComplete = refundPOSTransactionComplete;
+
+      refundPOSTransaction(args);
     },
     saveLeadNote: ({
       profile,

@@ -46,7 +46,9 @@ export class ReceiptToPrint extends React.Component {
 
     this.state = {
       posCheckout: this.props.posCheckout,
+      status: this.props.status,
       total: this.props.total,
+      refund: this.props.refund,
       subtotal: this.props.subtotal,
       salestax: this.props.salestax,
       discount: this.props.discount,
@@ -249,6 +251,19 @@ export class ReceiptToPrint extends React.Component {
             }).format(this.state.total)}
           </span>
         </span>
+        {this.state.status === 'Refunded' && (
+          <span className="refund">
+            <span className="label">
+              <I18n>REFUND</I18n>
+            </span>
+            <span className="value">
+              {new Intl.NumberFormat(this.props.locale, {
+                style: 'currency',
+                currency: this.props.currency,
+              }).format(this.state.refund)}
+            </span>
+          </span>
+        )}
         <span className="transDetails">
           <span className="auth_code">
             <span className="label">Card Number:</span>

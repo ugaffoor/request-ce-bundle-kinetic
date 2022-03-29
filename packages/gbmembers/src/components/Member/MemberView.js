@@ -45,6 +45,7 @@ import { AttendanceDialogContainer } from '../attendance/AttendanceDialog';
 import { SwitchBillingMemberContainer } from './SwitchBillingMemberContainer';
 import { Requests } from './Requests';
 import { MemberAttendanceContainer } from './MemberAttendance';
+import { actions as posActions } from '../../redux/modules/pos';
 import { actions as campaignActions } from '../../redux/modules/campaigns';
 import { actions as attendanceActions } from '../../redux/modules/attendance';
 import { actions as appActions } from '../../redux/modules/memberApp';
@@ -59,7 +60,12 @@ import {
   Legend,
 } from 'recharts';
 import { Utils } from 'common';
-import { getProgramSVG, getBeltSVG, isBillingParent } from './MemberUtils';
+import {
+  getProgramSVG,
+  getBeltSVG,
+  isBillingParent,
+  isNewMember,
+} from './MemberUtils';
 import ReactToPrint from 'react-to-print';
 import css from 'css';
 import attentionRequired from '../../images/flag.svg?raw';
@@ -77,6 +83,9 @@ const mapStateToProps = state => ({
   campaignLoading: state.member.campaigns.emailCampaignLoading,
   newCustomers: state.member.members.newCustomers,
   newCustomersLoading: state.member.members.newCustomersLoading,
+  refundPOSTransactionInProgress:
+    state.member.members.refundPOSTransactionInProgress,
+  refundPOSTransactionID: state.member.members.refundPOSTransactionID,
   space: state.member.app.space,
   snippets: state.member.app.snippets,
   profile: state.member.app.profile,
@@ -100,6 +109,11 @@ const mapDispatchToProps = {
   fetchNewCustomers: actions.fetchNewCustomers,
   setNewCustomers: actions.setNewCustomers,
   refundTransaction: actions.refundTransaction,
+  refundPOSTransaction: actions.refundPOSTransaction,
+  refundPOSTransactionComplete: actions.refundPOSTransactionComplete,
+  updatePOSOrder: posActions.updatePOSOrder,
+  incrementPOSStock: posActions.incrementPOSStock,
+  deletePOSPurchasedItem: posActions.deletePOSPurchasedItem,
   fetchMembers: actions.fetchMembers,
   fetchMemberAttendances: attendanceActions.fetchMemberAttendances,
   createMemberUserAccount: actions.createMemberUserAccount,
@@ -752,6 +766,9 @@ export const MemberView = ({
   currency,
   updateMember,
   refundPayment,
+  refundPOSPayment,
+  refundPOSTransactionInProgress,
+  refundPOSTransactionID,
 }) =>
   initialLoad ? (
     <div className="loading">
@@ -989,6 +1006,20 @@ export const MemberView = ({
                     Utils.getAttributeValue(space, 'Billing Company') !==
                       'Stripe') ? (
                     <div />
+                  ) : isNewMember(memberItem) ? (
+                    <span>
+                      <a
+                        href={
+                          Utils.getAttributeValue(space, 'Web Server Url') +
+                          '/#/kapps/services/categories/bambora-billing/bambora-member-registration?id=' +
+                          memberItem.id
+                        }
+                        className="btn btn-primary"
+                        style={{ marginLeft: '10px', color: 'white' }}
+                      >
+                        Register
+                      </a>
+                    </span>
                   ) : (
                     <span>
                       <a
@@ -1189,7 +1220,13 @@ export const MemberView = ({
           </div>
           <div className="userDetails2">
             <div className="ranking">
-              <h4>Rank</h4>
+              <h4>
+                Rank (Member since:{' '}
+                {moment(memberItem.values['Date Joined'], 'YYYY-MM-DD').format(
+                  'MMM Do YYYY',
+                )}
+                )
+              </h4>
               <div className="program">
                 <p>{memberItem.values['Ranking Program']}</p>
                 <span placeholder="View Attendance">
@@ -1525,10 +1562,13 @@ export const MemberView = ({
           <div>
             <MemberOrders
               memberItem={memberItem}
+              allMembers={allMembers}
               space={space}
               profile={profile}
               snippets={snippets}
-              refundPayment={refundPayment}
+              refundPOSPayment={refundPOSPayment}
+              refundPOSTransactionInProgress={refundPOSTransactionInProgress}
+              refundPOSTransactionID={refundPOSTransactionID}
             />
           </div>
         </div>
@@ -1965,6 +2005,45 @@ export const MemberViewContainer = compose(
       args.billingThis = billingThis;
 
       refundTransaction(args);
+    },
+    refundPOSPayment: ({
+      memberItem,
+      refundPOSTransaction,
+      refundPOSTransactionComplete,
+      updatePOSOrder,
+      incrementPOSStock,
+      deletePOSPurchasedItem,
+      updateMember,
+      fetchMembers,
+      addNotification,
+      setSystemError,
+      setIsDirty,
+    }) => (
+      billingThis,
+      orderid,
+      paymentId,
+      paymentAmount,
+      billingChangeReason,
+    ) => {
+      console.log('### paymentId = ' + paymentId);
+      let args = {};
+      args.orderid = orderid;
+      args.transactionId = paymentId;
+      args.refundAmount = paymentAmount;
+      args.memberItem = memberItem;
+      args.updateMember = updateMember;
+      args.fetchMembers = fetchMembers;
+      args.myThis = memberItem.myThis;
+      args.billingChangeReason = billingChangeReason;
+      args.addNotification = addNotification;
+      args.setSystemError = setSystemError;
+      args.billingThis = billingThis;
+      args.updatePOSOrder = updatePOSOrder;
+      args.incrementPOSStock = incrementPOSStock;
+      args.deletePOSPurchasedItem = deletePOSPurchasedItem;
+      args.refundPOSTransactionComplete = refundPOSTransactionComplete;
+
+      refundPOSTransaction(args);
     },
     createUserAccount: ({
       memberItem,

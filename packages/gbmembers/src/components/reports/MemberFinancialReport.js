@@ -5,7 +5,7 @@ import { getJson } from '../Member/MemberUtils';
 import $ from 'jquery';
 import ReactTable from 'react-table';
 import { KappNavLink as NavLink } from 'common';
-import { getCurrency } from '../Member/MemberUtils';
+import { getCurrency, getTimezoneOff } from '../Member/MemberUtils';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
 import 'react-day-picker/lib/style.css';
@@ -248,6 +248,7 @@ export class MemberFinancialReport extends Component {
     this.props.fetchPOSOrders({
       dateFrom: this.state.repFromDate,
       dateTo: this.state.repToDate,
+      timezoneOffset: getTimezoneOff(),
     });
     this.props.fetchCustomerRefunds({
       dateFrom: this.state.repFromDate.format('YYYY-MM-DD'),
@@ -255,6 +256,7 @@ export class MemberFinancialReport extends Component {
       setCustomerRefunds: this.props.setCustomerRefunds,
       setSystemError: this.props.setSystemError,
       addNotification: this.props.addNotification,
+      timezoneOffset: getTimezoneOff(),
     });
   }
   updateBillingDates(billingCustomers, SUCCESSFULpaymentHistory) {
@@ -313,6 +315,7 @@ export class MemberFinancialReport extends Component {
     this.props.fetchPOSOrders({
       dateFrom: fromDate,
       dateTo: toDate,
+      timezoneOffset: getTimezoneOff(),
     });
     this.props.fetchCustomerRefunds({
       dateFrom: fromDate.format('YYYY-MM-DD'),
@@ -320,6 +323,7 @@ export class MemberFinancialReport extends Component {
       setCustomerRefunds: this.props.setCustomerRefunds,
       setSystemError: this.props.setSystemError,
       addNotification: this.props.addNotification,
+      timezoneOffset: getTimezoneOff(),
     });
   }
   getMemberData(
@@ -369,6 +373,8 @@ export class MemberFinancialReport extends Component {
             ',' +
             Number(payment.paymentAmount).toFixed(2) +
             ',' +
+            payment.paymentID +
+            ',' +
             payment.debitDate,
         );
       } else if (
@@ -392,13 +398,25 @@ export class MemberFinancialReport extends Component {
               posPeople[posPeople.length] = members[idx];
             }
           }
+        } else {
+          if (payment.paymentStatus !== 'Refund') {
+            console.log(
+              'ORPHANED,' +
+                Number(payment.paymentAmount).toFixed(2) +
+                ',' +
+                payment.paymentID +
+                ',' +
+                payment.debitDate,
+            );
+          }
         }
-        if (payment.paymentStatus === 'APPROVAL') {
+        /*      if (payment.paymentStatus === 'APPROVAL') {
           posPaymentsValue += payment.paymentAmount;
-        }
+        } */
       }
     });
 
+    //    if (fromDate.month()>=moment().month() && toDate.month()>=moment().month()) {
     billingCustomers.forEach((member, i) => {
       // Ignore failed payments
       var failedIdx = failedPaymentHistory.findIndex(
@@ -453,7 +471,8 @@ export class MemberFinancialReport extends Component {
           forecastHolders[forecastHolders.length] = member;
           forecastHoldersValue += Number(member.billingAmount);
           console.log(
-            count +
+            'Forecast,' +
+              count +
               ' ' +
               member['firstName'] +
               ' ' +
@@ -471,23 +490,21 @@ export class MemberFinancialReport extends Component {
         }
       }
     });
-
+    //  }
     let salesTaxValue = 0;
     posOrders.forEach(pos => {
-      if (getAttributeValue(this.props.space, 'POS System') === 'Square') {
-        posPaymentsValue += Number.parseFloat(pos.values['Total']);
-        var idx = members.findIndex(
-          item => item.id === pos.values['Person ID'],
-        );
-        if (idx !== -1) {
-          if (
-            posPeople.findIndex(item => item.id === pos.values['Person ID']) ===
-            -1
-          ) {
-            posPeople[posPeople.length] = members[idx];
-          }
+      //      if (getAttributeValue(this.props.space, 'POS System') === 'Square') {
+      posPaymentsValue += Number.parseFloat(pos.values['Total']);
+      var idx = members.findIndex(item => item.id === pos.values['Person ID']);
+      if (idx !== -1) {
+        if (
+          posPeople.findIndex(item => item.id === pos.values['Person ID']) ===
+          -1
+        ) {
+          posPeople[posPeople.length] = members[idx];
         }
       }
+      //      }
       if (
         pos.values['Sales Tax'] !== undefined &&
         pos.values['Sales Tax'] !== null &&
@@ -500,15 +517,28 @@ export class MemberFinancialReport extends Component {
     customerRefunds.forEach(refund => {
       refundValue += refund.paymentAmount;
       var idx = members.findIndex(
-        item => item.values['Member ID'] === refund.yourSystemReference,
+        item =>
+          item.values['Member ID'] === refund.yourSystemReference ||
+          item.values['First Name'] + ' ' + item.values['Last Name'] ===
+            refund.customerName,
       );
       if (idx !== -1) {
-        if (
-          refundMembers.findIndex(
-            item => item.values['Member ID'] === refund.yourSystemReference,
-          ) === -1
-        ) {
-          refundMembers[refundMembers.length] = members[idx];
+        var mIdx;
+        mIdx = refundMembers.findIndex(
+          item =>
+            item.member.values['Member ID'] === refund.yourSystemReference ||
+            item.member.values['First Name'] +
+              ' ' +
+              item.member.values['Last Name'] ===
+              refund.customerName,
+        );
+        if (mIdx === -1) {
+          refundMembers[refundMembers.length] = {
+            member: members[idx],
+            refundValue: refund.paymentAmount,
+          };
+        } else {
+          refundMembers[mIdx]['refundValue'] += refund.paymentAmount;
         }
       } else {
         var pIdx = paymentHistory.findIndex(
@@ -518,17 +548,22 @@ export class MemberFinancialReport extends Component {
           var mIdx = members.findIndex(
             member =>
               member.values['Billing Customer Id'] ===
-              paymentHistory[pIdx]['yourSystemReference'],
+              refund.yourSystemReference,
           );
           if (mIdx !== -1) {
             if (
               refundMembers.findIndex(
                 item =>
-                  item.values['Member ID'] ===
-                  members[mIdx].values['Member ID'],
+                  item.member.values['Member ID'] ===
+                  members[mIdx].member.values['Member ID'],
               ) === -1
             ) {
-              refundMembers[refundMembers.length] = members[mIdx];
+              refundMembers[refundMembers.length] = {
+                member: members[idx],
+                refundValue: refund.paymentAmount,
+              };
+            } else {
+              refundMembers[mIdx]['refundValue'] += refund.paymentAmount;
             }
           }
         }
@@ -560,8 +595,8 @@ export class MemberFinancialReport extends Component {
     } else {
       this.setState({
         isShowCustom: false,
-        repFromDate: this.state.repFromDate,
-        repToDate: this.state.repToDate,
+        repFromDate: this.state.repFromDate.hour(0).minute(0),
+        repToDate: this.state.repToDate.hour(23).minute(59),
       });
       this.refreshData(this.state.repFromDate, this.state.repToDate);
     }
@@ -696,7 +731,7 @@ export class MemberFinancialReport extends Component {
     return pos;
   }
   getMemberRefunds(members, member, refunds, paymentHistory) {
-    var payments = paymentHistory.filter(
+    /*    var payments = paymentHistory.filter(
       payment =>
         payment['yourSystemReference'] === member.values['Billing Customer Id'],
     );
@@ -710,8 +745,8 @@ export class MemberFinancialReport extends Component {
       ) {
         refundVal += Number.parseFloat(refund.paymentAmount);
       }
-    });
-    return refundVal;
+    }); */
+    return member.refundValue;
   }
   getMemberFee(members, member) {
     if (
@@ -826,11 +861,11 @@ export class MemberFinancialReport extends Component {
 
     for (var i = col - 1; i < members.length; i = i + 2) {
       members_col[members_col.length] = {
-        memberId: members[i].id,
+        memberId: members[i].member.id,
         name:
-          members[i].values['Last Name'] +
+          members[i].member.values['Last Name'] +
           ' ' +
-          members[i].values['First Name'],
+          members[i].member.values['First Name'],
         refund: this.getMemberRefunds(
           allMembers,
           members[i],
@@ -933,9 +968,9 @@ export class MemberFinancialReport extends Component {
     paymentHistory,
   ) {
     members.sort(function(a, b) {
-      if (a.values['Last Name'] < b.values['Last Name']) {
+      if (a.member.values['Last Name'] < b.member.values['Last Name']) {
         return -1;
-      } else if (a.values['Last Name'] > b.values['Last Name']) {
+      } else if (a.member.values['Last Name'] > b.member.values['Last Name']) {
         return 1;
       }
       return 0;
@@ -1203,7 +1238,7 @@ export class MemberFinancialReport extends Component {
         accessor: 'members',
         Header: '',
         headerClassName: 'members_col',
-        className: 'members_col',
+        className: 'members_col refund',
         Cell: props => {
           return props.original.members_col1 === undefined ? (
             <div />
@@ -1239,7 +1274,7 @@ export class MemberFinancialReport extends Component {
         accessor: 'members',
         Header: '',
         headerClassName: 'members_col',
-        className: 'members_col',
+        className: 'members_col refund',
         Cell: props => {
           return props.original.members_col2 === undefined ? (
             <div />
@@ -1827,7 +1862,7 @@ export class MemberFinancialReport extends Component {
               <div className="column col4"></div>
             </div>
             <div className="row header8">
-              <div className="column col1">Payments-Refunds+Forecast</div>
+              <div className="column col1">Payments-Refunds+POS+Forecast</div>
               <div className="column col2">
                 <div className="dollarValue">
                   {new Intl.NumberFormat(this.locale, {
@@ -1835,6 +1870,7 @@ export class MemberFinancialReport extends Component {
                     currency: this.currency,
                   }).format(
                     this.state.repMemberData.accountHolders.value +
+                      this.state.repMemberData.posPayments.value +
                       this.state.repMemberData.forecastHolders.value -
                       this.state.repMemberData.refundMembers.value,
                   )}

@@ -8,18 +8,23 @@ import { ReceiptToPrint } from '../ProShop/ReceiptToPrint';
 import printerIcon from '../../images/Print.svg?raw';
 import ReactToPrint from 'react-to-print';
 import SVGInline from 'react-svg-inline';
+import { confirmWithAmount } from '../Member/ConfirmWithAmount';
 
 export class LeadOrders extends Component {
   constructor(props) {
     super(props);
     const data = this.getData(this.props.leadItem);
-    this._columns = this.getColumns();
+    this._columns = this.getColumns(
+      getAttributeValue(this.props.space, 'POS System'),
+    );
     this.currency = getAttributeValue(this.props.space, 'Currency');
     if (this.currency === undefined) this.currency = 'USD';
     this.locale =
       this.props.profile.preferredLocale === null
         ? this.props.space.defaultLocale
         : this.props.profile.preferredLocale;
+
+    this.refundPayment = this.refundPayment.bind(this);
 
     this.state = {
       data,
@@ -36,7 +41,39 @@ export class LeadOrders extends Component {
 
   UNSAFE_componentWillMount() {}
 
-  getColumns() {
+  isPaymentRefunded(order, id) {
+    return order['Status'] === 'Refunded'
+      ? true
+      : order['id'] === id
+      ? true
+      : false;
+  }
+
+  refundPayment(orderid, paymentId, originalAmount) {
+    confirmWithAmount({
+      title: 'Refund POS',
+      amount: originalAmount,
+      changeReason: 'Refund for Order: ' + paymentId,
+      placeholder:
+        'Please enter a reason for this Refund. Not entering a valid reason could cause you pain later.',
+    }).then(
+      ({ amount, reason }) => {
+        console.log('proceed! input:' + reason);
+        this.props.refundPOSPayment(
+          this.props.billingThis,
+          orderid,
+          paymentId,
+          amount,
+          reason,
+        );
+      },
+      () => {
+        console.log('cancel!');
+      },
+    );
+  }
+
+  getColumns(posSystem) {
     return [
       {
         accessor: 'Date time processed',
@@ -45,7 +82,7 @@ export class LeadOrders extends Component {
           <span>
             {moment(
               row.original['Date time processed'],
-              'YYYY-MM-DDTHH:MM:SSZ',
+              'YYYY-MM-DDTHH:mm:SSZ',
             ).format('MMM Do YYYY, h:mm:ss a')}
           </span>
         ),
@@ -64,6 +101,54 @@ export class LeadOrders extends Component {
           </span>
         ),
       },
+      {
+        accessor: '$refundPayment',
+        Header: 'Refunds',
+        show: posSystem === 'Bambora' ? true : false,
+        Cell: row =>
+          !this.isPaymentRefunded(
+            row.original,
+            this.props.refundPOSTransactionID.id,
+          ) ? (
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={
+                this.props.refundPOSTransactionInProgress ? true : false
+              }
+              onClick={e => {
+                this.refundPayment(
+                  row.original['id'],
+                  row.original['Transaction ID'],
+                  row.original['Total'],
+                );
+              }}
+            >
+              {this.props.refundPOSTransactionInProgress
+                ? 'Refunding...'
+                : 'Refund Payment'}
+            </button>
+          ) : this.isPaymentRefunded(
+              row.original,
+              this.props.refundPOSTransactionID.id,
+            ) ? (
+            <span>
+              Refunded{' '}
+              <span className="refund">
+                {new Intl.NumberFormat(this.locale, {
+                  style: 'currency',
+                  currency: this.currency,
+                }).format(
+                  this.props.refundPOSTransactionID.id === row.original['id']
+                    ? this.props.refundPOSTransactionID.value
+                    : row.original['Refund'],
+                )}
+              </span>
+            </span>
+          ) : (
+            ''
+          ),
+      },
     ];
   }
 
@@ -77,14 +162,14 @@ export class LeadOrders extends Component {
 
     return orders.sort(function(order1, order2) {
       if (
-        moment(order1['Date time processed'], email_sent_date_format).isAfter(
-          moment(order2['Date time processed'], email_sent_date_format),
+        moment(order1['Date time processed'], 'YYYY-MM-DDTHH:mm:SSZ').isAfter(
+          moment(order2['Date time processed'], 'YYYY-MM-DDTHH:mm:SSZ'),
         )
       ) {
         return -1;
       } else if (
-        moment(order1['Date time processed'], email_sent_date_format).isBefore(
-          moment(order2['Date time processed'], email_sent_date_format),
+        moment(order1['Date time processed'], 'YYYY-MM-DDTHH:mm:SSZ').isBefore(
+          moment(order2['Date time processed'], 'YYYY-MM-DDTHH:mm:SSZ'),
         )
       ) {
         return 1;
@@ -204,7 +289,8 @@ export class LeadOrders extends Component {
                                 {product['quantity']}
                               </div>
                               <div className="name">
-                                {product['name']} {product['size']}
+                                {product['name']} {product['colour']}{' '}
+                                {product['size']}
                               </div>
                               <div className="price">
                                 <span className="price">

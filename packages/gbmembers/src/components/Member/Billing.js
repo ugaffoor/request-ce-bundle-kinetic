@@ -40,6 +40,10 @@ import { actions as errorActions } from '../../redux/modules/errors';
 import { RecentNotificationsContainer } from '../notifications/RecentNotifications';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { actions as appActions } from '../../redux/modules/memberApp';
+import printerIcon from '../../images/Print.svg?raw';
+import { MembershipReceiptToPrint } from './MembershipReceiptToPrint';
+import ReactToPrint from 'react-to-print';
+import SVGInline from 'react-svg-inline';
 
 <script src="../helpers/jquery.multiselect.js" />;
 
@@ -66,7 +70,8 @@ const mapStateToProps = state => ({
   ddrTemplates: state.member.app.ddrTemplates,
   actionRequests: state.member.members.actionRequests,
   actionRequestsLoading: state.member.members.actionRequestsLoading,
-  space: state.app.space,
+  space: state.member.app.space,
+  snippets: state.member.app.snippets,
 });
 
 const mapDispatchToProps = {
@@ -587,6 +592,7 @@ export class PaymentHistory extends Component {
     this.paymentHistory = this.props.paymentHistory;
     let data = this.getData(this.paymentHistory);
     let columns = this.getColumns();
+    this.rowRecieptsRefs = new Map();
     this.state = {
       data,
       columns,
@@ -667,6 +673,8 @@ export class PaymentHistory extends Component {
       },
       {
         accessor: '$refundPayment',
+        headerClassName: 'refund',
+        className: 'refund',
         Cell: row =>
           !this.isPaymentRefunded(row.original['_id'], paymentsRefunded) &&
           (row.original.paymentStatus === 'S' ||
@@ -689,6 +697,45 @@ export class PaymentHistory extends Component {
           ) : (
             ''
           ),
+      },
+      {
+        headerClassName: 'print',
+        className: 'print',
+        Cell: row => (
+          <span className="col-sm-2 orderreceipt">
+            <span style={{ display: 'none' }}>
+              <MembershipReceiptToPrint
+                locale={this.props.locale}
+                currency={this.props.currency}
+                paymentID={row.original._id}
+                status={
+                  this.isPaymentRefunded(row.original['_id'], paymentsRefunded)
+                    ? 'Refunded'
+                    : 'Approved'
+                }
+                total={row.original.paymentAmount}
+                datetime={moment(row.original.debitDate, 'YYYY-MM-DD HH:mm:SS')}
+                space={this.props.space}
+                snippets={this.props.snippets}
+                name={
+                  this.props.memberItem.values['First Name'] +
+                  ' ' +
+                  this.props.memberItem.values['Last Name']
+                }
+                ref={el => this.rowRecieptsRefs.set(row.original._id, el)}
+              />
+            </span>
+            <span className="printReceipt">
+              <ReactToPrint
+                trigger={() => (
+                  <SVGInline svg={printerIcon} className="icon barcodePrint" />
+                )}
+                content={() => this.rowRecieptsRefs.get(row.original._id)}
+                pageStyle="@page {size: a4 portrait;margin: 0;}"
+              />
+            </span>
+          </span>
+        ),
       },
     ];
     return columns;
@@ -720,14 +767,23 @@ export class PaymentHistory extends Component {
     return this.props.paymentHistoryLoading ? (
       <div>Loading Payment History ...</div>
     ) : (
-      <ReactTable
-        columns={columns}
-        data={data}
-        className="-striped -highlight"
-        defaultPageSize={data.length > 0 ? data.length : 2}
-        pageSize={data.length > 0 ? data.length : 2}
-        showPagination={false}
-      />
+      <div className="purchaseItemsReport">
+        <ReactToPrint
+          trigger={() => (
+            <SVGInline svg={printerIcon} className="icon tablePrint" />
+          )}
+          content={() => this.tableComponentRef}
+        />
+        <ReactTable
+          ref={el => (this.tableComponentRef = el)}
+          columns={columns}
+          data={data}
+          className="-striped -highlight paymentHistory"
+          defaultPageSize={data.length > 0 ? data.length : 2}
+          pageSize={data.length > 0 ? data.length : 2}
+          showPagination={false}
+        />
+      </div>
     );
   }
 }
@@ -852,6 +908,7 @@ export class BillingInfo extends Component {
         : this.props.profile.preferredLocale,
     );
 
+    getAttributeValue(this.props.space, 'Billing Company');
     this.src =
       this.props.billingWidgetUrl +
       '&er=' +
@@ -1186,6 +1243,8 @@ export class BillingInfo extends Component {
                           memberItem={this.props.memberItem}
                           currency={this.props.currency}
                           locale={this.props.locale}
+                          space={this.props.space}
+                          snippets={this.props.snippets}
                         />
                       )}
                     </div>
@@ -1264,6 +1323,7 @@ export const Billing = ({
   getActionRequests,
   profile,
   space,
+  snippets,
   currency,
   locale,
 }) =>
@@ -1307,6 +1367,7 @@ export const Billing = ({
                 getActionRequests={getActionRequests}
                 profile={profile}
                 space={space}
+                snippets={snippets}
                 currency={currency}
                 locale={locale}
               />
@@ -1676,7 +1737,7 @@ export const BillingContainer = compose(
         dateField: 'PAYMENT',
         dateFrom: moment
           .utc()
-          .subtract(3, 'months')
+          .subtract(1, 'years')
           .format('YYYY-MM-DD'),
         dateTo: moment
           .utc()

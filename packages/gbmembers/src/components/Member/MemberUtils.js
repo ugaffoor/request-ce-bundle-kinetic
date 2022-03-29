@@ -245,6 +245,18 @@ export function getCurrency(currency) {
   return currencies[currency];
 }
 
+export function getTimezoneOff() {
+  var currentTime = new Date();
+  var currentTimezone = currentTime.getTimezoneOffset();
+  currentTimezone = (currentTimezone / 60) * -1;
+  var offset = 'Z';
+  if (currentTimezone !== 0) {
+    offset = currentTimezone > 0 ? '+' : '-';
+    offset += currentTimezone;
+  }
+  return offset;
+}
+
 export function getProgramSVG(program) {
   switch (program) {
     case 'GB1':
@@ -1286,6 +1298,20 @@ export function isBillingParent(member) {
     }
   });
   return isPrimary;
+}
+export function isNewMember(member) {
+  var newMember = true;
+  if (
+    member.values['Billing User'] === 'YES' ||
+    member.values['Billing Migrated'] === 'YES' ||
+    (member.values['Billing Customer Reference'] !== null &&
+      member.values['Billing Customer Reference'] !== undefined) ||
+    (member.values['Billing Parent Member'] !== null &&
+      member.values['Billing Parent Member'] !== undefined)
+  ) {
+    newMember = false;
+  }
+  return newMember;
 }
 
 export function setMemberPromotionValues(member, belts) {

@@ -9,7 +9,7 @@ import printerIcon from '../../images/Print.svg?raw';
 import ReactToPrint from 'react-to-print';
 import SVGInline from 'react-svg-inline';
 import { I18n } from '../../../../app/src/I18nProvider';
-import { confirmWithInput } from './Confirm';
+import { confirmWithAmount } from './ConfirmWithAmount';
 
 export class MemberOrders extends Component {
   constructor(props) {
@@ -41,20 +41,27 @@ export class MemberOrders extends Component {
 
   UNSAFE_componentWillMount() {}
 
-  isPaymentRefunded(order) {
-    return order['Status'] === 'Refunded' ? true : false;
+  isPaymentRefunded(order, id) {
+    return order['Status'] === 'Refunded'
+      ? true
+      : order['id'] === id
+      ? true
+      : false;
   }
 
-  refundPayment(paymentId, amount) {
-    confirmWithInput({
+  refundPayment(orderid, paymentId, originalAmount) {
+    confirmWithAmount({
       title: 'Refund POS',
+      amount: originalAmount,
+      changeReason: 'Refund for Order: ' + paymentId,
       placeholder:
         'Please enter a reason for this Refund. Not entering a valid reason could cause you pain later.',
     }).then(
-      ({ reason }) => {
+      ({ amount, reason }) => {
         console.log('proceed! input:' + reason);
-        this.props.refundPayment(
+        this.props.refundPOSPayment(
           this.props.billingThis,
+          orderid,
           paymentId,
           amount,
           reason,
@@ -75,7 +82,7 @@ export class MemberOrders extends Component {
           <span>
             {moment(
               row.original['Date time processed'],
-              'YYYY-MM-DDTHH:MM:SSZ',
+              'YYYY-MM-DDTHH:mm:SSZ',
             ).format('MMM Do YYYY, h:mm:ss a')}
           </span>
         ),
@@ -97,23 +104,47 @@ export class MemberOrders extends Component {
       {
         accessor: '$refundPayment',
         Header: 'Refunds',
-        show: posSystem === 'XBambora' ? true : false,
+        show: posSystem === 'Bambora' ? true : false,
         Cell: row =>
-          !this.isPaymentRefunded(row.original) ? (
+          !this.isPaymentRefunded(
+            row.original,
+            this.props.refundPOSTransactionID.id,
+          ) ? (
             <button
               type="button"
               className="btn btn-primary"
+              disabled={
+                this.props.refundPOSTransactionInProgress ? true : false
+              }
               onClick={e => {
                 this.refundPayment(
+                  row.original['id'],
                   row.original['Transaction ID'],
                   row.original['Total'],
                 );
               }}
             >
-              Refund Payment
+              {this.props.refundPOSTransactionInProgress
+                ? 'Refunding...'
+                : 'Refund Payment'}
             </button>
-          ) : this.isPaymentRefunded(row.original) ? (
-            'Refunded'
+          ) : this.isPaymentRefunded(
+              row.original,
+              this.props.refundPOSTransactionID.id,
+            ) ? (
+            <span>
+              Refunded{' '}
+              <span className="refund">
+                {new Intl.NumberFormat(this.locale, {
+                  style: 'currency',
+                  currency: this.currency,
+                }).format(
+                  this.props.refundPOSTransactionID.id === row.original['id']
+                    ? this.props.refundPOSTransactionID.value
+                    : row.original['Refund'],
+                )}
+              </span>
+            </span>
           ) : (
             ''
           ),
@@ -131,14 +162,14 @@ export class MemberOrders extends Component {
 
     return orders.sort(function(order1, order2) {
       if (
-        moment(order1['Date time processed'], email_sent_date_format).isAfter(
-          moment(order2['Date time processed'], email_sent_date_format),
+        moment(order1['Date time processed'], 'YYYY-MM-DDTHH:mm:SSZ').isAfter(
+          moment(order2['Date time processed'], 'YYYY-MM-DDTHH:mm:SSZ'),
         )
       ) {
         return -1;
       } else if (
-        moment(order1['Date time processed'], email_sent_date_format).isBefore(
-          moment(order2['Date time processed'], email_sent_date_format),
+        moment(order1['Date time processed'], 'YYYY-MM-DDTHH:mm:SSZ').isBefore(
+          moment(order2['Date time processed'], 'YYYY-MM-DDTHH:mm:SSZ'),
         )
       ) {
         return 1;
@@ -187,7 +218,9 @@ export class MemberOrders extends Component {
                       ? checkout['Checkout Items']['products']
                       : [],
                   posCheckout: checkout,
+                  status: order['Status'],
                   total: order['Total'],
+                  refund: order['Refund'],
                   subtotal: order['SubTotal'],
                   salestax: order['Sales Tax'],
                   discount: order['Discount'],
@@ -197,7 +230,7 @@ export class MemberOrders extends Component {
                   snippets: this.props.snippets,
                   datetime: moment(
                     order['Date time processed'],
-                    'YYYY-MM-DDTHH:MM:SSZ',
+                    'YYYY-MM-DDTHH:mm:SSZ',
                   ),
                   name: order['Person Name'],
                 });
@@ -224,7 +257,9 @@ export class MemberOrders extends Component {
                                 locale={this.locale}
                                 currency={this.currency}
                                 posCheckout={this.state.posCheckout}
+                                status={this.state.status}
                                 total={this.state.total}
+                                refund={this.state.refund}
                                 subtotal={this.state.subtotal}
                                 discount={this.state.discount}
                                 salestax={this.state.salestax}

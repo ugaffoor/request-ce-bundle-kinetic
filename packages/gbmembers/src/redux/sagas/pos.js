@@ -219,11 +219,15 @@ export function* fetchPOSOrders(action) {
       .index('values[Date time processed]')
       .gteq(
         'values[Date time processed]',
-        action.payload.dateFrom.format('YYYY-MM-DDT00:00:00Z'),
+        action.payload.dateFrom.format(
+          'YYYY-MM-DDT00:00:00' + action.payload.timezoneOffset,
+        ),
       )
       .lteq(
         'values[Date time processed]',
-        action.payload.dateTo.format('YYYY-MM-DDT23:59:00Z'),
+        action.payload.dateTo.format(
+          'YYYY-MM-DDT23:59:00' + action.payload.timezoneOffset,
+        ),
       )
       .limit(1000)
       .build();
@@ -316,6 +320,24 @@ export function* updatePOSCheckout(action) {
     yield put(errorActions.setSystemError(error));
   }
 }
+
+export function* updatePOSOrder(action) {
+  try {
+    const { submission } = yield call(CoreAPI.updateSubmission, {
+      id: action.payload.id,
+      values: action.payload.values,
+      datastore: true,
+    });
+    console.log('updatePOSOrder');
+    yield put(
+      errorActions.addSuccess('Order update successfully', 'Update POS Order'),
+    );
+  } catch (error) {
+    console.log('Error in updatePOSOrder: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
+
 export function* savePOSCheckout(action) {
   try {
     let values = {};
@@ -329,7 +351,7 @@ export function* savePOSCheckout(action) {
       '...' +
       action.payload['number'].substring(action.payload['number'].length - 4);
     values['Date time processed'] = moment(action.payload['datetime']).format(
-      'YYYY-MM-DDTHH:MM:SSZ',
+      'YYYY-MM-DDTHH:mm:SSZ',
     );
     values['Auth Code'] = action.payload['auth_code'];
     values['SubTotal'] = action.payload['subtotal'];
@@ -458,7 +480,57 @@ export function* decrementPOSStock(action) {
       console.log('decrementPOSStock');
     }
   } catch (error) {
-    console.log('Error in savePOSStock: ' + util.inspect(error));
+    console.log('Error in decrementPOSStock: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
+export function* incrementPOSStock(action) {
+  try {
+    const SEARCH = new CoreAPI.SubmissionSearch(true)
+      .includes(['details', 'values'])
+      .index('values[Product ID],values[Size]')
+      .eq('values[Product ID]', action.payload.productID)
+      .eq('values[Size]', action.payload.size)
+      .build();
+    const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
+      datastore: true,
+      form: 'pos-stock',
+      search: SEARCH,
+    });
+    if (submissions.length > 0) {
+      let values = {};
+      values['Quantity'] =
+        parseInt(submissions[0].values['Quantity']) + action.payload.quantity;
+
+      const { submission } = yield call(CoreAPI.updateSubmission, {
+        id: submissions[0].id,
+        values: values,
+        datastore: true,
+        include: 'details,values',
+      });
+
+      console.log('incrementPOSStock');
+    }
+  } catch (error) {
+    console.log('Error in incrementPOSStock: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
+export function* deletePOSPurchasedItem(action) {
+  try {
+    const { submission } = yield call(CoreAPI.deleteSubmission, {
+      id: action.payload.id,
+      datastore: true,
+    });
+
+    yield put(
+      errorActions.addSuccess(
+        'POS Purchased Item deleted successfully',
+        'Delete POS Purchased Item',
+      ),
+    );
+  } catch (error) {
+    console.log('Error in deletePOSPurchasedItem: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));
   }
 }
@@ -477,6 +549,10 @@ export function* watchPOS() {
   yield takeEvery(types.UPDATE_POS_CHECKOUT, updatePOSCheckout);
   yield takeEvery(types.SAVE_POS_ORDER, savePOSCheckout);
   yield takeEvery(types.SAVE_POS_STOCK, savePOSStock);
+  yield takeEvery(types.UPDATE_POS_ORDER, updatePOSOrder);
+  console.log('watchPOS2');
   yield takeEvery(types.DECREMENT_POS_STOCK, decrementPOSStock);
+  yield takeEvery(types.INCREMENT_POS_STOCK, incrementPOSStock);
   yield takeEvery(types.SAVE_POS_PURSCHASED_ITEM, savePOSSavePurchasedItem);
+  yield takeEvery(types.DELETE_POS_PURSCHASED_ITEM, deletePOSPurchasedItem);
 }

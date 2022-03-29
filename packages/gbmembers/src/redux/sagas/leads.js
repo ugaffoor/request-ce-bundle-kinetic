@@ -75,7 +75,12 @@ export function* fetchCurrentLead(action) {
       .include(['details', 'values'])
       .limit(100)
       .build();
-    const [submission, leadActivities, posOrderSubmissions] = yield all([
+    const [
+      submission,
+      leadActivities,
+      posOrderSubmissions,
+      posPurchasedItems,
+    ] = yield all([
       call(CoreAPI.fetchSubmission, {
         id: action.payload.id,
         include: SUBMISSION_INCLUDES,
@@ -87,6 +92,11 @@ export function* fetchCurrentLead(action) {
       }),
       call(CoreAPI.searchSubmissions, {
         form: 'pos-order',
+        search: MEMBER_POS_SEARCH,
+        datastore: true,
+      }),
+      call(CoreAPI.searchSubmissions, {
+        form: 'pos-purchased-item',
         search: MEMBER_POS_SEARCH,
         datastore: true,
       }),
@@ -135,13 +145,31 @@ export function* fetchCurrentLead(action) {
     }
     let posOrders = [];
     for (let i = 0; i < posOrderSubmissions.submissions.length; i++) {
-      posOrders[posOrders.length] = posOrderSubmissions.submissions[i].values;
+      var len = posOrders.length;
+      posOrders[len] = posOrderSubmissions.submissions[i].values;
+      posOrders[len]['id'] = posOrderSubmissions.submissions[i]['id'];
+    }
+    posOrders = posOrders.sort((a, b) => {
+      if (a['Date time processed'] < b['Date time processed']) {
+        return -1;
+      }
+      if (a['Date time processed'] > b['Date time processed']) {
+        return 1;
+      }
+      return 0;
+    });
+    let posItems = [];
+    for (let i = 0; i < posPurchasedItems.submissions.length; i++) {
+      var len = posItems.length;
+      posItems[len] = posPurchasedItems.submissions[i].values;
+      posItems[len]['id'] = posPurchasedItems.submissions[i]['id'];
     }
     submission.submission.emailsReceived = emailReceivedContent;
     submission.submission.emailsSent = emailSentContent;
     submission.submission.smsContent = smsContent;
     submission.submission.requestContent = requestContent;
     submission.submission.posOrders = posOrders;
+    submission.submission.posItems = posItems;
     yield put(actions.setCurrentLead(submission.submission));
   } catch (error) {
     console.log('Error in fetchCurrentLead: ' + util.inspect(error));

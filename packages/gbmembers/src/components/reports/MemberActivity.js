@@ -54,6 +54,8 @@ export class MemberActivityReport extends Component {
     this.columns = [
       { title: 'Last Modified Date', field: 'lastModifiedDate' },
       { title: 'Name', field: 'name', tooltip: true, bottomCalc: 'count' },
+      { title: 'First Name', field: 'firstname' },
+      { title: 'Last Name', field: 'lastname' },
       { title: 'Gender', field: 'gender' },
       { title: 'Status', field: 'status' },
       { title: 'Email', field: 'email', tooltip: true },
@@ -70,6 +72,7 @@ export class MemberActivityReport extends Component {
       { title: 'Additional Program 1', field: 'additionalProgram1' },
       { title: 'Additional Program 2', field: 'additionalProgram2' },
       { title: 'Last Attendance Date', field: 'lastAttendanceDate' },
+      { title: 'Last Payment Date', field: 'lastPaymentDate' },
       { title: 'Billing User', field: 'billingUser' },
       { title: 'Biller Migrated', field: 'billerMigrated' },
       { title: 'Biller ID', field: 'billerId' },
@@ -147,6 +150,8 @@ export class MemberActivityReport extends Component {
       },
     ];
     this.hiddenColumns = [
+      { label: 'First Name', value: 'firstname' },
+      { label: 'Last Name', value: 'lastname' },
       { label: 'Address', value: 'address' },
       { label: K.translate('Suburb'), value: 'suburb' },
       { label: K.translate('Postcode'), value: 'postcode' },
@@ -159,6 +164,7 @@ export class MemberActivityReport extends Component {
       { label: 'Additional Program 1', value: 'additionalProgram1' },
       { label: 'Additional Program 2', value: 'additionalProgram2' },
       { label: 'Last Attendance Date', value: 'lastAttendanceDate' },
+      { label: 'Last Payment Date', value: 'lastPaymentDate' },
       { label: 'Billing User', value: 'billingUser' },
       { label: 'Biller Migrated', value: 'billerMigrated' },
       { label: 'Biller ID', value: 'billerId' },
@@ -211,6 +217,8 @@ export class MemberActivityReport extends Component {
         label: 'Member Columns',
         options: [
           { label: 'Name', value: 'name' },
+          { label: 'First Name', value: 'firstname' },
+          { label: 'Last Name', value: 'lastname' },
           { label: 'Gender', value: 'gender' },
           { label: 'Status', value: 'status' },
           { label: 'Email', value: 'email' },
@@ -236,6 +244,7 @@ export class MemberActivityReport extends Component {
           { label: 'SMS Sent', value: 'smsSent' },
           { label: 'SMS Received', value: 'smsReceived' },
           { label: 'Last Attendance Date', value: 'lastAttendanceDate' },
+          { label: 'Last Payment Date', value: 'lastPaymentDate' },
         ],
       },
       {
@@ -271,6 +280,8 @@ export class MemberActivityReport extends Component {
 
     this.filterColumns = [
       { label: 'Name', value: 'name' },
+      { label: 'First Name', value: 'firstname' },
+      { label: 'Last Name', value: 'lastname' },
       { label: 'Gender', value: 'gender' },
       { label: 'Status', value: 'status' },
       { label: 'Email', value: 'email' },
@@ -925,6 +936,17 @@ export class MemberActivityReport extends Component {
     return '0';
   }
 
+  getLastPaymentDate(member) {
+    if (getAttributeValue(this.props.space, 'Billing Company') === 'Bambora') {
+      return member.values['Billing Start Date'] !== undefined
+        ? moment(member.values['Billing Start Date']).format('L')
+        : '';
+    } else {
+      return member.values['Last Payment Date'] !== undefined
+        ? moment(member.values['Last Payment Date']).format('L')
+        : '';
+    }
+  }
   getGridData(members) {
     if (!members || members.length < 0) {
       return [];
@@ -940,6 +962,8 @@ export class MemberActivityReport extends Component {
         createdDate: moment(member['createdAt']).format('L HH:mm'),
         lastModifiedDate: moment(member['updatedAt']).format('L HH:mm'),
         name: member.values['Last Name'] + ' ' + member.values['First Name'],
+        firstname: member.values['First Name'],
+        lastname: member.values['Last Name'],
         gender: member.values['Gender'],
         status: member.values['Status'],
         email: member.values['Email'],
@@ -959,6 +983,7 @@ export class MemberActivityReport extends Component {
           member.values['Last Attendance Date'] !== undefined
             ? moment(member.values['Last Attendance Date']).format('L')
             : '',
+        lastPaymentDate: this.getLastPaymentDate(member),
         billingUser: member.values['Billing User'] === 'YES' ? 'YES' : 'NO',
         billerMigrated: member.values['Biller Migrated'] === 'YES' ? 'YES' : '',
         billerId: member.values['Billing Customer Reference'],
