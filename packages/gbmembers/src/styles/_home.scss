@@ -18,7 +18,10 @@
     }
   }
 }
-
+.homeOverdues {
+  float: left;
+  clear: left;
+}
 .dashboard {
   height: 3100px;
   @media (min-width: 321px) {

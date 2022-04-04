@@ -16,6 +16,7 @@ import 'bootstrap/scss/bootstrap.scss';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as errorActions } from '../../redux/modules/errors';
 import { Utils } from 'common';
+import { BamboraOverdues } from './BamboraOverdues';
 import { DemographicChart } from './Demographic';
 import { ProgramsChart } from './Programs';
 import { Statistics } from './Statistics';
@@ -31,6 +32,7 @@ import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   memberItem: state.member.members.currentMember,
+  membersLoading: state.member.members.membersLoading,
   allMembers: state.member.members.allMembers,
   billingPayments: state.member.members.billingPayments,
   billingPaymentsLoading: state.member.members.billingPaymentsLoading,
@@ -48,6 +50,11 @@ const mapStateToProps = state => ({
   monthlyStatistics: state.member.monthlyStatistics.monthlyStatistics,
   monthlyStatisticsLoading:
     state.member.monthlyStatistics.monthlyStatisticsLoading,
+  FAILEDpaymentHistory: state.member.members.FAILEDpaymentHistory,
+  FAILEDpaymentHistoryLoading: state.member.members.FALIEDpaymentHistoryLoading,
+  SUCCESSFULpaymentHistory: state.member.members.SUCCESSFULpaymentHistory,
+  SUCCESSFULpaymentHistoryLoading:
+    state.member.members.SUCCESSFULpaymentHistoryLoading,
 });
 
 const mapDispatchToProps = {
@@ -62,11 +69,14 @@ const mapDispatchToProps = {
   setSystemError: errorActions.setSystemError,
   fetchMonthlyStatistics: monthlyStatisticsActions.fetchMonthlyStatistics,
   setSidebarDisplayType: appActions.setSidebarDisplayType,
+  fetchPaymentHistory: actions.fetchPaymentHistory,
+  setPaymentHistory: actions.setPaymentHistory,
 };
 
 export const HomeView = ({
   memberItem,
   allMembers,
+  membersLoading,
   billingPayments,
   getBillingPayments,
   billingPaymentsLoading,
@@ -94,6 +104,12 @@ export const HomeView = ({
   space,
   currency,
   locale,
+  getFailedPayments,
+  FAILEDpaymentHistory,
+  FAILEDpaymentHistoryLoading,
+  getSuccessfulPayments,
+  SUCCESSFULpaymentHistory,
+  SUCCESSFULpaymentHistoryLoading,
 }) => (
   <div className="dashboard">
     <StatusMessagesContainer />
@@ -111,6 +127,26 @@ export const HomeView = ({
       profile={profile}
       space={space}
     />
+    {
+      <div className="homeOverdues">
+        {!membersLoading && (
+          <div>
+            <BamboraOverdues
+              allMembers={allMembers}
+              getFailedPayments={getFailedPayments}
+              paymentHistory={FAILEDpaymentHistory}
+              FAILEDpaymentHistoryLoading={FAILEDpaymentHistoryLoading}
+              getSuccessfulPayments={getSuccessfulPayments}
+              successfulPaymentHistory={SUCCESSFULpaymentHistory}
+              SUCCESSFULpaymentHistoryLoading={SUCCESSFULpaymentHistoryLoading}
+              space={space}
+              locale={locale}
+              profile={profile}
+            />
+          </div>
+        )}
+      </div>
+    }
     <div className="charts">
       <div className="chart2Column">
         <div className="col1 chart5">
@@ -173,6 +209,48 @@ export const HomeContainer = compose(
   withState('fromDate', 'setFromDate', moment().subtract(7, 'days')),
   withState('toDate', 'setToDate', moment()),
   withHandlers({
+    getFailedPayments: ({
+      fetchPaymentHistory,
+      setPaymentHistory,
+      addNotification,
+      setSystemError,
+    }) => () => {
+      fetchPaymentHistory({
+        paymentType: 'FAILED',
+        paymentMethod: 'ALL',
+        paymentSource: 'ALL',
+        dateField: 'PAYMENT',
+        dateFrom: moment()
+          .subtract(6, 'month')
+          .format('YYYY-MM-DD'),
+        dateTo: moment().format('YYYY-MM-DD'),
+        setPaymentHistory: setPaymentHistory,
+        internalPaymentType: 'client_failed',
+        addNotification: addNotification,
+        setSystemError: setSystemError,
+      });
+    },
+    getSuccessfulPayments: ({
+      fetchPaymentHistory,
+      setPaymentHistory,
+      addNotification,
+      setSystemError,
+    }) => () => {
+      fetchPaymentHistory({
+        paymentType: 'SUCCESSFUL',
+        paymentMethod: 'ALL',
+        paymentSource: 'ALL',
+        dateField: 'PAYMENT',
+        dateFrom: moment()
+          .subtract(1, 'month')
+          .format('YYYY-MM-DD'),
+        dateTo: moment().format('YYYY-MM-DD'),
+        setPaymentHistory: setPaymentHistory,
+        internalPaymentType: 'client_successful',
+        addNotification: addNotification,
+        setSystemError: setSystemError,
+      });
+    },
     getBillingPayments: ({
       memberItem,
       fetchBillingPayments,

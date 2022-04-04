@@ -88,8 +88,8 @@ export class MemberFinancialReport extends Component {
       .hour(23)
       .minute(59);
 
-    let repFromDate = this.setFromDate;
-    let repToDate = this.setToDate;
+    let repFromDate = this.setFromDate.hour(0).minute(0);
+    let repToDate = this.setToDate.hour(23).minute(59);
     this.paymentHistory = [];
     let memberData = this.getMemberData(undefined);
     this.state = {
@@ -127,6 +127,30 @@ export class MemberFinancialReport extends Component {
           this.paymentHistory[this.paymentHistory.length] = item;
         }
       });
+      this.paymentHistory = this.paymentHistory.sort(function(a, b) {
+        if (a.debitDate > b.debitDate) {
+          return -1;
+        } else if (a.debitDate < b.debitDate) {
+          return 1;
+        }
+        return 0;
+      });
+
+      if (
+        getAttributeValue(this.props.space, 'Billing Company') === 'Bambora'
+      ) {
+        nextProps.billingCustomers.forEach((member, i) => {
+          var hIdx = this.paymentHistory.findIndex(
+            payment => payment.yourSystemReference === member.customerId,
+          );
+          if (hIdx !== -1) {
+            member.contractStartDate = moment(
+              this.paymentHistory[hIdx].debitDate,
+              'YYYY-MM-DD HH:mm:sss',
+            ).format('YYYY-MM-DD');
+          }
+        });
+      }
 
       this.failedPaymentHistory = this.failedPaymentHistory.filter(
         payment => payment.paymentStatus === 'DECLINED',
@@ -174,15 +198,6 @@ export class MemberFinancialReport extends Component {
       this.refunds = [];
       nextProps.customerRefunds.forEach((item, i) => {
         this.refunds[this.refunds.length] = item;
-      });
-
-      this.paymentHistory = this.paymentHistory.sort(function(a, b) {
-        if (a.debitDate > b.debitDate) {
-          return -1;
-        } else if (a.debitDate < b.debitDate) {
-          return 1;
-        }
-        return 0;
       });
 
       let memberData = this.getMemberData(
@@ -419,9 +434,18 @@ export class MemberFinancialReport extends Component {
     //    if (fromDate.month()>=moment().month() && toDate.month()>=moment().month()) {
     billingCustomers.forEach((member, i) => {
       // Ignore failed payments
-      var failedIdx = failedPaymentHistory.findIndex(
-        payment => payment.yourSystemReference === member.customerId,
-      );
+      var failedIdx = failedPaymentHistory.findIndex(payment => {
+        if (getAttributeValue(this.props.space, 'POS System') === 'Bambora')
+          return (
+            payment.yourSystemReference === member.customerId &&
+            moment(payment, 'YYYY-MM-DD HH:mm:sss').isAfter(
+              moment(member.contractStartDate, 'YYYY-MM-DD'),
+            )
+          );
+        else {
+          return payment.yourSystemReference === member.customerId;
+        }
+      });
       if (
         (member.status === 'Active' ||
           member.status === 'Pending Freeze' ||

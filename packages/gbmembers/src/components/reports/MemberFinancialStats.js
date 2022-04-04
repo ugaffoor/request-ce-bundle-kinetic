@@ -560,7 +560,7 @@ export class MemberFinancialStats extends Component {
       var totalAmount = parseFloat(member.values['Membership Cost']);
       var weeks = endTerm.diff(startTerm, 'weeks');
 
-      return totalAmount / weeks;
+      return weeks > 0 ? totalAmount / weeks : 0;
     }
 
     let billingIdx = billingCustomers.findIndex(
