@@ -677,6 +677,7 @@ export class PaymentHistory extends Component {
         Cell: row =>
           !this.isPaymentRefunded(row.original['_id'], paymentsRefunded) &&
           (row.original.paymentStatus === 'S' ||
+            row.original.paymentStatus === 'paid' ||
             row.original.paymentStatus === 'Settled' ||
             row.original.paymentStatus === 'Approved') ? (
             <button

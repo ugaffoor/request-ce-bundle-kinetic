@@ -438,22 +438,12 @@ export class LeadEdit extends Component {
               </span>
               <span className="line">
                 <div>
-                  <label
-                    htmlFor="address"
-                    required={
-                      this.props.leadItem.values['Address'] === undefined
-                        ? true
-                        : false
-                    }
-                  >
-                    Address
-                  </label>
+                  <label htmlFor="address">Address</label>
                   <input
                     type="text"
                     name="address"
                     id="address"
                     size="80"
-                    required
                     ref={input => (this.input = input)}
                     value={this.props.leadItem.values['Address']}
                     onChange={e =>
@@ -469,21 +459,13 @@ export class LeadEdit extends Component {
               </span>
               <span className="line">
                 <div>
-                  <label
-                    htmlFor="suburb"
-                    required={
-                      this.props.leadItem.values['Suburb'] === undefined
-                        ? true
-                        : false
-                    }
-                  >
+                  <label htmlFor="suburb">
                     <I18n>Suburb</I18n>
                   </label>
                   <input
                     type="text"
                     name="suburb"
                     id="suburb"
-                    required
                     ref={input => (this.input = input)}
                     value={this.props.leadItem.values['Suburb']}
                     onChange={e =>
@@ -497,20 +479,10 @@ export class LeadEdit extends Component {
                   />
                 </div>
                 <div>
-                  <label
-                    htmlFor="State"
-                    required={
-                      this.props.leadItem.values['State'] === undefined
-                        ? true
-                        : false
-                    }
-                  >
-                    State
-                  </label>
+                  <label htmlFor="State">State</label>
                   <select
                     name="state"
                     id="state"
-                    required
                     ref={input => (this.input = input)}
                     value={this.props.leadItem.values['State']}
                     onChange={e =>
@@ -532,14 +504,7 @@ export class LeadEdit extends Component {
                   <div className="droparrow" />
                 </div>
                 <div>
-                  <label
-                    htmlFor="postcode"
-                    required={
-                      this.props.leadItem.values['Postcode'] === undefined
-                        ? true
-                        : false
-                    }
-                  >
+                  <label htmlFor="postcode">
                     <I18n>Postcode</I18n>
                   </label>
                   {getAttributeValue(this.props.space, 'Postcode Format') ===
@@ -553,7 +518,6 @@ export class LeadEdit extends Component {
                       name="postcode"
                       id="postcode"
                       size="10"
-                      required
                       ref={input => (this.input = input)}
                       defaultValue={this.props.leadItem.values['Postcode']}
                       onChange={e =>

@@ -17,6 +17,7 @@ import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as errorActions } from '../../redux/modules/errors';
 import { Utils } from 'common';
 import { BamboraOverdues } from './BamboraOverdues';
+import { StripeOverdues } from './StripeOverdues';
 import { DemographicChart } from './Demographic';
 import { ProgramsChart } from './Programs';
 import { Statistics } from './Statistics';
@@ -127,7 +128,7 @@ export const HomeView = ({
       profile={profile}
       space={space}
     />
-    {
+    {getAttributeValue(space, 'Billing Company') === 'Bambora' && (
       <div className="homeOverdues">
         {!membersLoading && (
           <div>
@@ -146,7 +147,27 @@ export const HomeView = ({
           </div>
         )}
       </div>
-    }
+    )}
+    {getAttributeValue(space, 'Billing Company') === 'Stripe' && (
+      <div className="homeOverdues">
+        {!membersLoading && (
+          <div>
+            <StripeOverdues
+              allMembers={allMembers}
+              getFailedPayments={getFailedPayments}
+              paymentHistory={FAILEDpaymentHistory}
+              FAILEDpaymentHistoryLoading={FAILEDpaymentHistoryLoading}
+              getSuccessfulPayments={getSuccessfulPayments}
+              successfulPaymentHistory={SUCCESSFULpaymentHistory}
+              SUCCESSFULpaymentHistoryLoading={SUCCESSFULpaymentHistoryLoading}
+              space={space}
+              locale={locale}
+              profile={profile}
+            />
+          </div>
+        )}
+      </div>
+    )}
     <div className="charts">
       <div className="chart2Column">
         <div className="col1 chart5">

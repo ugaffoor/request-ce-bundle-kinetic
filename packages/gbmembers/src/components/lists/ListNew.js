@@ -111,6 +111,7 @@ export class ListNewHome extends Component {
       joiningDateStart: undefined,
       joiningDateEnd: undefined,
       excluded: [],
+      count: 0,
     };
   }
   getExcluded() {
@@ -213,7 +214,15 @@ export class ListNewHome extends Component {
       },
       {
         accessor: 'Member ID',
-        Header: 'Member',
+        Header: props => {
+          return (
+            <span>
+              <span>
+                Member({this.state !== undefined ? this.state.count : '0'})
+              </span>
+            </span>
+          );
+        },
         Cell: props => {
           return (
             <NavLink to={`/Member/${props.original._id}`} className="">
@@ -400,8 +409,10 @@ export class ListNewHome extends Component {
       return match;
     });
 
+    var data = this.getData(members);
     this.setState({
-      data: this.getData(members),
+      data: data,
+      count: data.length,
       filters: filters,
     });
   }
@@ -593,7 +604,7 @@ export class ListNewHome extends Component {
                     <div className="form-check form-check-inline">
                       <label className="form-check-label">
                         <input
-                          type="radio"
+                          type="checkbox"
                           className="form-check-input"
                           name="gender"
                           value="Male"
@@ -605,7 +616,7 @@ export class ListNewHome extends Component {
                     <div className="form-check form-check-inline">
                       <label className="form-check-label">
                         <input
-                          type="radio"
+                          type="checkbox"
                           className="form-check-input"
                           name="gender"
                           value="Female"
@@ -843,6 +854,9 @@ export class ListNewHome extends Component {
             <div className="row">
               <div className="col">
                 <ReactTable
+                  ref={r => {
+                    this.selectTable = r;
+                  }}
                   columns={this._columns}
                   data={this.state.data}
                   defaultPageSize={this.state.data.length}

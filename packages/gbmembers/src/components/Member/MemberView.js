@@ -1008,17 +1008,34 @@ export const MemberView = ({
                     <div />
                   ) : isNewMember(memberItem) ? (
                     <span>
-                      <a
-                        href={
-                          Utils.getAttributeValue(space, 'Web Server Url') +
-                          '/#/kapps/services/categories/bambora-billing/bambora-member-registration?id=' +
-                          memberItem.id
-                        }
-                        className="btn btn-primary"
-                        style={{ marginLeft: '10px', color: 'white' }}
-                      >
-                        Register
-                      </a>
+                      {Utils.getAttributeValue(space, 'Billing Company') ===
+                        'Bambora' && (
+                        <a
+                          href={
+                            Utils.getAttributeValue(space, 'Web Server Url') +
+                            '/#/kapps/services/categories/bambora-billing/bambora-member-registration?id=' +
+                            memberItem.id
+                          }
+                          className="btn btn-primary"
+                          style={{ marginLeft: '10px', color: 'white' }}
+                        >
+                          Register
+                        </a>
+                      )}
+                      {Utils.getAttributeValue(space, 'Billing Company') ===
+                        'Stripe' && (
+                        <a
+                          href={
+                            Utils.getAttributeValue(space, 'Web Server Url') +
+                            '/#/kapps/services/categories/stripe-billing/stripe-member-registration?id=' +
+                            memberItem.id
+                          }
+                          className="btn btn-primary"
+                          style={{ marginLeft: '10px', color: 'white' }}
+                        >
+                          Register
+                        </a>
+                      )}
                     </span>
                   ) : (
                     <span>

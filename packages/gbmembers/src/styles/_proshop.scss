@@ -718,6 +718,25 @@
         }
       }
     }
+    .cancelTerminalButton {
+      background-color: #e1251b;
+      border-radius: 10px;
+      color: white;
+      margin-left: auto;
+      cursor: pointer;
+      img {
+        margin: 4px;
+        height: 32px;
+      }
+      .label {
+        text-transform: uppercase;
+        font-family: 'AdiHaus DIN Medium';
+        padding-top: 5px;
+        margin-right: 4px;
+        margin-top: 12px;
+        margin-left: 10px;
+      }
+    }
     .paynowButton {
       background-color: #e1251b;
       border-radius: 10px;

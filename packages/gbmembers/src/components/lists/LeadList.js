@@ -78,6 +78,7 @@ export class ListHome extends Component {
       listLeadsData: [],
       selected: null,
       selectedList: null,
+      count: 0,
     };
   }
   getExcluded() {
@@ -131,8 +132,10 @@ export class ListHome extends Component {
   showLeads(state, rowInfo, column) {
     return {
       onClick: (e, handleOriginal) => {
+        var listLeadsData = this.getlistLeadsData(rowInfo.original.filters);
         this.setState({
-          listLeadsData: this.getlistLeadsData(rowInfo.original.filters),
+          listLeadsData: listLeadsData,
+          count: listLeadsData.length,
           selected: rowInfo.index,
           selectedList: rowInfo.original.name,
           excluded:
@@ -252,7 +255,19 @@ export class ListHome extends Component {
                     },
                     {
                       accessor: 'First Name',
-                      Header: 'Name',
+                      Header: props => {
+                        return (
+                          <span>
+                            <span>
+                              Name(
+                              {this.state !== undefined
+                                ? this.state.count
+                                : '0'}
+                              )
+                            </span>
+                          </span>
+                        );
+                      },
                       Cell: props => {
                         return (
                           <NavLink
@@ -264,12 +279,6 @@ export class ListHome extends Component {
                           </NavLink>
                         );
                       },
-                      Footer: (
-                        <span>
-                          <strong>Total: </strong>
-                          {this.state.listLeadsData.length}
-                        </span>
-                      ),
                     },
                     { accessor: 'Status', Header: 'Status' },
                     { accessor: 'Gender', Header: 'Gender' },

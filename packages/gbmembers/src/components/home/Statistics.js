@@ -577,7 +577,7 @@ export class Statistics extends Component {
   getLeadTableHeaderName() {
     if (this.state.showNewLeads) return 'Leads';
     if (this.state.showScheduledLeads) return 'Intro Scheduled';
-    if (this.state.showIntroLeads) return 'Actual Intros';
+    if (this.state.showIntroLeads) return 'Completed Intros';
   }
   getLeadTableColumns(row) {
     return [
@@ -1137,7 +1137,7 @@ export class Statistics extends Component {
             </div>
             <div className="statItem">
               <div className="info">
-                <div className="label">Actual Intros</div>
+                <div className="label">Completed Intros</div>
                 <div
                   className="value"
                   onClick={e =>

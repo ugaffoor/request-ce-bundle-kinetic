@@ -78,6 +78,7 @@ export class ListHome extends Component {
 
     this.state = {
       listData: listData,
+      count: 0,
       listMembersData: [],
       selected: null,
       selectedList: null,
@@ -136,8 +137,10 @@ export class ListHome extends Component {
   showMembers(state, rowInfo, column) {
     return {
       onClick: (e, handleOriginal) => {
+        var listMembersData = this.getListMembersData(rowInfo.original.filters);
         this.setState({
-          listMembersData: this.getListMembersData(rowInfo.original.filters),
+          listMembersData: listMembersData,
+          count: listMembersData.length,
           selected: rowInfo.index,
           selectedList: rowInfo.original.name,
           excluded:
@@ -257,7 +260,19 @@ export class ListHome extends Component {
                     },
                     {
                       accessor: 'Member ID',
-                      Header: 'Member',
+                      Header: props => {
+                        return (
+                          <span>
+                            <span>
+                              Member(
+                              {this.state !== undefined
+                                ? this.state.count
+                                : '0'}
+                              )
+                            </span>
+                          </span>
+                        );
+                      },
                       Cell: props => {
                         return (
                           <NavLink
@@ -269,12 +284,6 @@ export class ListHome extends Component {
                           </NavLink>
                         );
                       },
-                      Footer: (
-                        <span>
-                          <strong>Total: </strong>
-                          {this.state.listMembersData.length}
-                        </span>
-                      ),
                     },
                     { accessor: 'Gender', Header: 'Gender' },
                     { accessor: 'Member Type', Header: 'Member Type' },

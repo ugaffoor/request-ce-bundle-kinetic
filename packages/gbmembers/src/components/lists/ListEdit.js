@@ -128,6 +128,7 @@ export class ListEditHome extends Component {
       joiningDateStart: undefined,
       joiningDateEnd: undefined,
       excluded: [],
+      count: data.length,
     };
   }
   getExcluded() {
@@ -272,7 +273,15 @@ export class ListEditHome extends Component {
       },
       {
         accessor: 'Member ID',
-        Header: 'Member',
+        Header: props => {
+          return (
+            <span>
+              <span>
+                Member({this.state !== undefined ? this.state.count : '0'})
+              </span>
+            </span>
+          );
+        },
         Cell: props => {
           return (
             <NavLink to={`/Member/${props.original._id}`} className="">
@@ -378,9 +387,10 @@ export class ListEditHome extends Component {
     }
 
     let members = matchesMemberFilter(this.props.allMembers, filters);
-
+    var data = this.getData(members);
     this.setState({
-      data: this.getData(members),
+      data: data,
+      count: data.length,
       filters: filters,
     });
   }
@@ -614,7 +624,7 @@ export class ListEditHome extends Component {
                     <div className="form-check form-check-inline">
                       <label className="form-check-label">
                         <input
-                          type="radio"
+                          type="checkbox"
                           className="form-check-input"
                           name="gender"
                           value="Male"
@@ -626,7 +636,7 @@ export class ListEditHome extends Component {
                     <div className="form-check form-check-inline">
                       <label className="form-check-label">
                         <input
-                          type="radio"
+                          type="checkbox"
                           className="form-check-input"
                           name="gender"
                           value="Female"

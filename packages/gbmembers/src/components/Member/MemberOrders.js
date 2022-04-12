@@ -104,7 +104,10 @@ export class MemberOrders extends Component {
       {
         accessor: '$refundPayment',
         Header: 'Refunds',
-        show: posSystem === 'Bambora' ? true : false,
+        show:
+          posSystem === 'Bambora' || posSystem.indexOf('Stripe') !== -1
+            ? true
+            : false,
         Cell: row =>
           !this.isPaymentRefunded(
             row.original,

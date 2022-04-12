@@ -24,6 +24,7 @@ import { PaysmartMemberDescrepencies } from './PaysmartMemberDescrepencies';
 import { InactiveMembersNoHistory } from './InactiveMembersNoHistory';
 import { PaysmartFailedPayments } from './PaysmartFailedPayments';
 import { BamboraFailedPayments } from './BamboraFailedPayments';
+import { StripeFailedPayments } from './StripeFailedPayments';
 import { PaysmartOverdues } from './PaysmartOverdues';
 import { actions } from '../../redux/modules/members';
 import moment from 'moment';
@@ -57,7 +58,7 @@ const mapStateToProps = state => ({
   customerRefunds: state.member.members.customerRefunds,
   customerRefundsLoading: state.member.members.customerRefundsLoading,
   FAILEDpaymentHistory: state.member.members.FAILEDpaymentHistory,
-  FAILEDpaymentHistoryLoading: state.member.members.FALIEDpaymentHistoryLoading,
+  FAILEDpaymentHistoryLoading: state.member.members.FAILEDpaymentHistoryLoading,
   SUCCESSFULpaymentHistory: state.member.members.SUCCESSFULpaymentHistory,
   SUCCESSFULpaymentHistoryLoading:
     state.member.members.SUCCESSFULpaymentHistoryLoading,
@@ -593,6 +594,47 @@ export const ReportsView = ({
         )}
       </div>
     )}
+    {Utils.getAttributeValue(space, 'Billing Company') !== 'Stripe' ||
+    !Utils.isMemberOf(profile, 'Billing') ? (
+      <div />
+    ) : (
+      <div style={{ margin: '20px 0px 0px 10px' }} id="failed-report">
+        <div className="row">
+          <button
+            type="button"
+            className="btn btn-primary report-btn-default"
+            disabled={!dummyFormLoaded}
+            onClick={e => {
+              setShowFailedPaymentsReport(
+                showFailedPaymentsReport ? false : true,
+              );
+              document.getElementById('failed-report').scrollIntoView();
+            }}
+          >
+            {showFailedPaymentsReport
+              ? 'Hide Failed Payments Report'
+              : 'Show Failed Payments Report'}
+          </button>
+        </div>
+        {!showFailedPaymentsReport ? null : (
+          <div className="row">
+            <div>
+              <StripeFailedPayments
+                allMembers={members}
+                getFailedPayments={getFailedPayments}
+                paymentHistory={FAILEDpaymentHistory}
+                FAILEDpaymentHistoryLoading={FAILEDpaymentHistoryLoading}
+                getSuccessfulPayments={getSuccessfulPayments}
+                successfulPaymentHistory={SUCCESSFULpaymentHistory}
+                SUCCESSFULpaymentHistoryLoading={
+                  SUCCESSFULpaymentHistoryLoading
+                }
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    )}
     {Utils.getAttributeValue(space, 'Billing Company') !== 'PaySmart' ||
     !Utils.isMemberOf(profile, 'Billing') ? (
       <div />
@@ -622,6 +664,12 @@ export const ReportsView = ({
                 getFailedPayments={getFailedPayments}
                 paymentHistory={FAILEDpaymentHistory}
                 FAILEDpaymentHistoryLoading={FAILEDpaymentHistoryLoading}
+                allMembers={members}
+                getSuccessfulPayments={getSuccessfulPayments}
+                successfulPaymentHistory={SUCCESSFULpaymentHistory}
+                SUCCESSFULpaymentHistoryLoading={
+                  SUCCESSFULpaymentHistoryLoading
+                }
               />
             </div>
           </div>
@@ -788,7 +836,7 @@ export const ReportsContainer = compose(
         paymentSource: 'ALL',
         dateField: 'PAYMENT',
         dateFrom: moment()
-          .subtract(6, 'month')
+          .subtract(7, 'month')
           .format('YYYY-MM-DD'),
         dateTo: moment().format('YYYY-MM-DD'),
         setPaymentHistory: setPaymentHistory,

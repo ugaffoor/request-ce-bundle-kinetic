@@ -18,6 +18,7 @@ import MomentLocaleUtils, {
 import { getLocalePreference } from '../Member/MemberUtils';
 import '../helpers/jquery.multiselect.js';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
+import { KappNavLink as NavLink } from 'common';
 
 <script src="../helpers/jquery.multiselect.js" />;
 
@@ -129,6 +130,7 @@ export class ListEditHome extends Component {
     this.getExcluded = this.getExcluded.bind(this);
     this.state = {
       data,
+      count: data.length,
       listToBeUpdated,
       createdDateStart: undefined,
       createdDateEnd: undefined,
@@ -163,6 +165,7 @@ export class ListEditHome extends Component {
 
       this.setState({
         data,
+        count: data.length,
         listToBeUpdated,
         excluded: [],
       });
@@ -256,8 +259,25 @@ export class ListEditHome extends Component {
           );
         },
       },
-      { accessor: 'First Name', Header: 'First Name' },
-      { accessor: 'Last Name', Header: 'Last Name' },
+      {
+        accessor: 'First Name',
+        Header: props => {
+          return (
+            <span>
+              <span>
+                Name({this.state !== undefined ? this.state.count : '0'})
+              </span>
+            </span>
+          );
+        },
+        Cell: props => {
+          return (
+            <NavLink to={`/LeadDetail/${props.original._id}`} className="">
+              {props.original['First Name']} {props.original['Last Name']}
+            </NavLink>
+          );
+        },
+      },
       { accessor: 'Status', Header: 'Status' },
       { accessor: 'Gender', Header: 'Gender' },
       { accessor: 'Interesting in Program', Header: 'Program' },
@@ -615,7 +635,7 @@ export class ListEditHome extends Component {
                     <div className="form-check form-check-inline">
                       <label className="form-check-label">
                         <input
-                          type="radio"
+                          type="checkbox"
                           className="form-check-input"
                           name="gender"
                           value="Male"
@@ -627,7 +647,7 @@ export class ListEditHome extends Component {
                     <div className="form-check form-check-inline">
                       <label className="form-check-label">
                         <input
-                          type="radio"
+                          type="checkbox"
                           className="form-check-input"
                           name="gender"
                           value="Female"
