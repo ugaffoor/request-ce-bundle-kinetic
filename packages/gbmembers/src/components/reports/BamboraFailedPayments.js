@@ -40,6 +40,7 @@ export class BamboraFailedPayments extends Component {
     failedPayments = failedPayments.filter(
       payment =>
         payment.paymentStatus === 'DECLINED' ||
+        payment.paymentStatus === 'PIN RETRY EXCEEDED' ||
         payment.paymentStatus === 'EXPIRED CARD',
     );
     failedPayments = failedPayments.sort((a, b) => {

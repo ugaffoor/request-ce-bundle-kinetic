@@ -161,9 +161,6 @@ class PayNow extends Component {
     posThis = this;
     this.processPayment = this.processPayment.bind(this);
     this.saveCardForLater = this.saveCardForLater.bind(this);
-    this.stripeTerminalDiscoverReaderHandler = this.stripeTerminalDiscoverReaderHandler.bind(
-      this,
-    );
 
     axios
       .get('https://api.ipify.org/')
@@ -610,6 +607,7 @@ class PayNow extends Component {
     posSystem,
     currency,
     amount,
+    email,
   ) => {
     var clientSecret = 'NOT_FOUND';
     var data = JSON.stringify({
@@ -618,6 +616,7 @@ class PayNow extends Component {
       type: 'payment',
       currency: currency,
       amount: amount,
+      email: email,
     });
 
     var config = {
@@ -672,6 +671,7 @@ class PayNow extends Component {
       posSystem,
       posThis.props.currency,
       posThis.state.total,
+      posThis.state.email,
     );
 
     if (clientSecret === 'NOT_FOUND') {
@@ -1321,6 +1321,16 @@ class PayNow extends Component {
       deviceStatus: 'ERROR',
     });
   }
+  stripeTerminalCancelCapture() {
+    terminal.cancelCollectPaymentMethod().then(function(result) {
+      console.log('Canceled Capture');
+      posThis.setState({
+        status: '',
+        status_message: undefined,
+        paymentIntentId: undefined,
+      });
+    });
+  }
   fetchStripeTerminalPaymentIntentClientSecret(amount) {
     var url = getAttributeValue(this.props.space, 'POS Service URL');
     url = url.replace('processPOS', 'terminalCheckout');
@@ -1422,33 +1432,92 @@ class PayNow extends Component {
         //        terminal.setSimulatorConfiguration({testCardNumber: '4000000000009995'}); // charge_declined_insufficient_funds
         //        terminal.setSimulatorConfiguration({testCardNumber: '4001007020000002'}); // offline_pin_cvm
 
-        terminal.collectPaymentMethod(client_secret).then(function(result) {
-          if (result.error) {
-            posThis.setState({
-              status: '0',
-              deviceStatus: 'ERROR',
-              status_message: result.error.message,
-            });
-          } else {
-            console.log('terminal.collectPaymentMethod', result.paymentIntent);
-            terminal
-              .processPayment(result.paymentIntent)
-              .then(function(result) {
-                if (result.error) {
-                  console.log(result.error);
-                  posThis.setState({
-                    status: '0',
-                    deviceStatus: 'ERROR',
-                    status_message: result.error.message,
-                  });
-                } else if (result.paymentIntent) {
-                  paymentIntentId = result.paymentIntent.id;
-                  console.log('terminal.processPayment', result.paymentIntent);
-                  posThis.stripeTerminalCapture(paymentIntentId);
-                }
+        terminal
+          .collectPaymentMethod(client_secret, {
+            stripeAccount: getAttributeValue(
+              posThis.props.space,
+              'Stripe Account ID',
+            ),
+          })
+          .then(function(result) {
+            if (result.error) {
+              posThis.setState({
+                status: '0',
+                deviceStatus: 'ERROR',
+                status_message: result.error.message,
               });
-          }
-        });
+            } else {
+              console.log(
+                'terminal.collectPaymentMethod',
+                result.paymentIntent,
+              );
+              terminal
+                .processPayment(result.paymentIntent)
+                .then(function(result) {
+                  if (result.error) {
+                    console.log(result.error);
+                    posThis.setState({
+                      status: '0',
+                      deviceStatus: 'ERROR',
+                      status_message: result.error.message,
+                    });
+                  } else if (result.paymentIntent) {
+                    paymentIntentId = result.paymentIntent.id;
+                    console.log(
+                      'terminal.processPayment',
+                      result.paymentIntent,
+                    );
+                    posThis.stripeTerminalCapture(paymentIntentId);
+                  }
+                });
+            }
+          });
+      });
+  }
+  stripeTerminalCreateReaderLocationHandler() {
+    var url = getAttributeValue(this.props.space, 'POS Service URL');
+    url = url.replace('processPOS', 'createDeviceID');
+    var schoolAddress = getAttributeValue(this.props.space, 'School Address');
+    var addressInfo = schoolAddress.split(',');
+
+    var args = {
+      space: this.props.space.slug,
+      billingService: 'Stripe',
+      deviceId: this.state.stripeTerminalCode,
+      name: getAttributeValue(this.props.space, 'School Name'),
+      address: addressInfo.length > 0 ? addressInfo[0].trim() : 'unknown',
+      city: getAttributeValue(this.props.space, 'School City'),
+      postcode: getAttributeValue(this.props.space, 'School Postcode'),
+      country: getAttributeValue(this.props.space, 'School Country Code'),
+    };
+    const bodyContent = JSON.stringify(args);
+    return fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: bodyContent,
+    })
+      .then(function(response) {
+        return response.json();
+      })
+      .then(function(data) {
+        console.log('server.capture', data);
+        if (data.error === 100) {
+          posThis.setState({
+            status: '0',
+            deviceStatus: 'ERROR',
+            status_message: data.errorMessage,
+          });
+          return null;
+        } else {
+          data = JSON.parse(data.data);
+
+          posThis.setState({
+            processing: false,
+          });
+          posThis.stripeTerminalDiscoverReaderHandler();
+        }
       });
   }
   stripeTerminalDiscoverReaderHandler() {
@@ -1464,8 +1533,8 @@ class PayNow extends Component {
       } else if (discoverResult.discoveredReaders.length === 0) {
         console.log('No available readers.');
         posThis.setState({
-          status: '0',
-          deviceStatus: 'ERROR',
+          status: '1',
+          deviceStatus: 'CAPTURE',
           status_message:
             'No readers have been detected. Please ensure you have a Terminal configured against your location.',
         });
@@ -1929,75 +1998,90 @@ class PayNow extends Component {
                     )}
                     {getAttributeValue(this.props.space, 'POS System') ===
                       'StripeTerminal' && (
-                      <label htmlFor="captureStripe" className="radio">
-                        <input
-                          id="captureStripe"
-                          name="cardpayment"
-                          type="radio"
-                          checked={
-                            this.state.payment !== undefined &&
-                            this.state.payment === 'capture'
-                          }
-                          disabled={this.disablePaymentType()}
-                          value="Capture"
-                          onChange={e => {
-                            this.setState({
-                              payment: 'capture',
-                              squareCheckoutStatus: '',
-                              processingComplete: false,
-                              paymentIntentId: undefined,
-                            });
-                          }}
-                          onClick={async e => {
-                            StripeTerminal = await loadStripeTerminal();
-                            terminal = StripeTerminal.create({
-                              onFetchConnectionToken: async () => {
-                                var url = getAttributeValue(
-                                  this.props.space,
-                                  'POS Service URL',
-                                );
-                                url = url.replace(
-                                  'processPOS',
-                                  'createDeviceID',
-                                );
-                                var args = {
-                                  space: this.props.space.slug,
-                                  billingService: 'Stripe',
-                                };
+                      <Elements
+                        stripe={loadStripe(
+                          getAttributeValue(
+                            this.props.space,
+                            'POS Stripe Publishable Key',
+                          ),
+                          {
+                            stripeAccount: getAttributeValue(
+                              this.props.space,
+                              'Stripe Account ID',
+                            ),
+                          },
+                        )}
+                      >
+                        <label htmlFor="captureStripe" className="radio">
+                          <input
+                            id="captureStripe"
+                            name="cardpayment"
+                            type="radio"
+                            checked={
+                              this.state.payment !== undefined &&
+                              this.state.payment === 'capture'
+                            }
+                            disabled={this.disablePaymentType()}
+                            value="Capture"
+                            onChange={e => {
+                              this.setState({
+                                payment: 'capture',
+                                squareCheckoutStatus: '',
+                                processingComplete: false,
+                                paymentIntentId: undefined,
+                              });
+                            }}
+                            onClick={async e => {
+                              StripeTerminal = await loadStripeTerminal();
+                              terminal = StripeTerminal.create({
+                                onFetchConnectionToken: async () => {
+                                  var url = getAttributeValue(
+                                    this.props.space,
+                                    'POS Service URL',
+                                  );
+                                  url = url.replace(
+                                    'processPOS',
+                                    'pairedDevice',
+                                  );
+                                  var args = {
+                                    space: this.props.space.slug,
+                                    billingService: 'Stripe',
+                                  };
 
-                                const bodyContent = JSON.stringify(args);
-                                return fetch(url, {
-                                  method: 'POST',
-                                  headers: {
-                                    'Content-Type': 'application/json',
-                                  },
-                                  body: bodyContent,
-                                })
-                                  .then(function(response) {
-                                    return response.json();
+                                  const bodyContent = JSON.stringify(args);
+                                  return fetch(url, {
+                                    method: 'POST',
+                                    headers: {
+                                      'Content-Type': 'application/json',
+                                    },
+                                    body: bodyContent,
                                   })
-                                  .then(function(data) {
-                                    data = JSON.parse(data.data);
-                                    if (data.error === 100) {
-                                      this.setState({
-                                        deviceStatus: 'ERROR',
-                                        status_message:
-                                          'Unable to connect to Terminal server',
-                                      });
-                                    } else {
-                                      return data.secret;
-                                    }
-                                  });
-                              },
-                              onUnexpectedReaderDisconnect: this
-                                .unexpectedDisconnect,
-                            });
+                                    .then(function(response) {
+                                      return response.json();
+                                    })
+                                    .then(function(data) {
+                                      data = JSON.parse(data.data);
+                                      if (data.error === 100) {
+                                        this.setState({
+                                          deviceStatus: 'ERROR',
+                                          status_message:
+                                            'Unable to connect to Terminal server',
+                                        });
+                                      } else {
+                                        return data.secret;
+                                      }
+                                    });
+                                },
+                                onUnexpectedReaderDisconnect: this
+                                  .unexpectedDisconnect,
+                              });
 
-                            this.stripeTerminalDiscoverReaderHandler();
-                          }}
-                        />
-                        Capture
-                      </label>
+                              this.stripeTerminalDiscoverReaderHandler();
+                            }}
+                          />
+                          Capture
+                        </label>
+                      </Elements>
                     )}
                     <label htmlFor="cash" className="radio">
                       <input
@@ -2011,6 +2095,13 @@ class PayNow extends Component {
                         disabled={this.disableCashPaymentType()}
                         value="Cash"
                         onChange={e => {
+                          if (
+                            this.state.payment === 'capture' &&
+                            this.state.paymentIntentId !== undefined
+                          ) {
+                            this.stripeTerminalCancelCapture();
+                          }
+
                           this.setState({
                             payment: 'cash',
                             cardToken: '',
@@ -2049,6 +2140,51 @@ class PayNow extends Component {
                   )}
                   {this.state.status_message !== undefined && (
                     <p>An error has ocurred: {this.state.status_message}</p>
+                  )}
+                  {this.state.deviceStatus === 'CAPTURE' && (
+                    <div>
+                      <p>
+                        Please enter you terminal pairing code then click to
+                        Pair
+                      </p>
+                      <input
+                        id="stripeTerminalPairingCode"
+                        type="text"
+                        placeholder="Enter Terminal pairing code"
+                        className="pairingCodeInput"
+                        size="50"
+                        onChange={e => {
+                          this.setState({
+                            stripeTerminalCode: e.target.value,
+                          });
+                        }}
+                      />
+                      <div
+                        className="pairTerminalButton"
+                        onClick={async e => {
+                          posThis.stripeTerminalCreateReaderLocationHandler();
+                        }}
+                      >
+                        {this.state.processing ? (
+                          <ScaleLoader
+                            className="processing"
+                            height="35px"
+                            width="16px"
+                            radius="2px"
+                            margin="4px"
+                            color="white"
+                          />
+                        ) : (
+                          <span>
+                            <span className="label">Apply Pairing Code</span>
+                            <img
+                              src={checkoutRightArrowIcon}
+                              alt="Apply Pairing Code"
+                            />
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   )}
                 </span>
               ) : (
@@ -2141,6 +2277,12 @@ class PayNow extends Component {
                         this.props.space,
                         'POS Stripe Publishable Key',
                       ),
+                      {
+                        stripeAccount: getAttributeValue(
+                          this.props.space,
+                          'Stripe Account ID',
+                        ),
+                      },
                     )}
                   >
                     <StripePaymentCapture />

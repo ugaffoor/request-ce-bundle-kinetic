@@ -40,8 +40,10 @@ const reducer = (state = defaultState, action) => {
     case types.SET_REGISTRATIONS: {
       let submissions = action.payload.kids.submissions
         .concat(action.payload.womans.submissions)
-        .concat(action.payload.mens.submissions)
-        .concat(action.payload.barrafit.submissions);
+        .concat(action.payload.mens.submissions);
+      if (action.payload.barrafit.submissions !== undefined) {
+        submissions.concat(action.payload.barrafit.submissions);
+      }
 
       submissions.sort(function(a, b) {
         if (new Date(a.submittedAt) < new Date(b.submittedAt)) {

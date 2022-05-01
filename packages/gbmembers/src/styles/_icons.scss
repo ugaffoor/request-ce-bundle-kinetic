@@ -42,3 +42,12 @@ span.SVGInline.attention.icon {
 span.SVGInline.attention.hide {
   display: none;
 }
+span.SVGInline.noBilling.icon .icon-svg path {
+  fill: #a46fad;
+}
+span.SVGInline.noBilling.icon {
+  padding-right: 4px;
+}
+span.SVGInline.noBilling.hide {
+  display: none;
+}

@@ -841,6 +841,52 @@ export class ChangeStatusModal extends Component {
                           </tr>
                         </span>
                       )}
+                    {this.props.memberItem.values['Status'] ===
+                      'Pending Cancellation' && (
+                      <span className="cell">
+                        <tr>
+                          <td>
+                            <h2 className="cancel">Revoke Cancellation</h2>
+                            <h4>Member</h4>
+                            <span>
+                              The member selected{' '}
+                              <b>
+                                {this.props.memberItem.values['First Name']}{' '}
+                                {this.props.memberItem.values['Last Name']}
+                              </b>{' '}
+                            </span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <span>
+                              If you wish to Revoke the current cancellation for
+                              this member and ALL dependant members, please
+                              follow below.
+                            </span>
+                            <br />
+                            <ol>
+                              <li>
+                                Click{' '}
+                                <NavLink
+                                  to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-revoke-cancellation?id=${
+                                    this.props.memberItem.id
+                                  }`}
+                                  kappSlug={'services'}
+                                  className={'nav-link icon-wrapper'}
+                                  activeClassName="active"
+                                  style={{ display: 'inline' }}
+                                >
+                                  {' '}
+                                  here{' '}
+                                </NavLink>{' '}
+                                to complete a Revoking Cancellation form.
+                              </li>
+                            </ol>
+                          </td>
+                        </tr>
+                      </span>
+                    )}
                     {this.props.memberItem.values['Status'] === 'Inactive' && (
                       <span className="cell">
                         <tr>

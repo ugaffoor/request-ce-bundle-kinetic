@@ -5,14 +5,21 @@ import 'react-table/react-table.css';
 import { KappNavLink as NavLink } from 'common';
 import SVGInline from 'react-svg-inline';
 import attentionRequired from '../images/flag.svg?raw';
+import noBilling from '../images/credit-card.svg?raw';
 import $ from 'jquery';
 import { matchesMemberFilter } from '../utils/utils';
+import { getAttributeValue } from '../lib/react-kinops-components/src/utils';
 
 export class ListMembers extends React.Component {
   constructor(props) {
     super();
     this.state = {
-      data: this.getData(props.allMembers, props.memberLists, props.listName),
+      data: this.getData(
+        props.space,
+        props.allMembers,
+        props.memberLists,
+        props.listName,
+      ),
     };
     this.actions = props.actions;
     this.toggleSidebarOpen = props.toggleSidebarOpen;
@@ -21,14 +28,26 @@ export class ListMembers extends React.Component {
   UNSAFE_componentWillReceiveProps(nextProps) {
     this.setState({
       data: this.getData(
+        this.props.space,
         nextProps.allMembers,
         nextProps.memberLists,
         nextProps.listName,
       ),
     });
   }
-
-  getData(allMembers, memberLists, listName) {
+  isOrphan(space, allMembers, member) {
+    if (getAttributeValue(space, 'Billing Company') === 'No Billing')
+      return false;
+    return (member.values['Billing Parent Member'] === undefined ||
+      member.values['Billing Parent Member'] === '' ||
+      member.values['Billing Parent Member'] === null) &&
+      member.values['Billing User'] !== 'YES' &&
+      member.values['Status'] === 'Active' &&
+      member.values['Non Paying'] !== 'YES'
+      ? true
+      : false;
+  }
+  getData(space, allMembers, memberLists, listName) {
     if (!allMembers || allMembers.length <= 0 || !memberLists || !listName) {
       return [];
     }
@@ -46,6 +65,7 @@ export class ListMembers extends React.Component {
     let data = members.map(member => {
       return {
         id: member.id,
+        orphan: this.isOrphan(space, allMembers, member),
         ...member.values,
       };
     });
@@ -77,6 +97,12 @@ export class ListMembers extends React.Component {
             cellInfo.original['Is New Reply Received'] === 'true'
               ? 'attention icon'
               : 'attention icon hide'
+          }
+        />
+        <SVGInline
+          svg={noBilling}
+          className={
+            cellInfo.original.orphan ? 'noBilling icon' : 'noBilling icon hide'
           }
         />
         {cellInfo.original['Last Name']}

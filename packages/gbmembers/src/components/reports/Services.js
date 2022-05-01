@@ -170,9 +170,11 @@ export class Services extends Component {
       data[data.length] = {
         id: service.id,
         name:
-          service.values['Student First Name'] +
-          ' ' +
-          service.values['Student Last Name'],
+          service.values['Student First Name'] !== undefined
+            ? service.values['Student First Name'] +
+              ' ' +
+              service.values['Student Last Name']
+            : service.values['First Name'] + ' ' + service.values['Last Name'],
         submittedAt: moment(service.submittedAt),
       };
     });

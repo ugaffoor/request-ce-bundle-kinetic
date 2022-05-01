@@ -30,6 +30,7 @@ const mapStateToProps = state => ({
   memberLists: state.member.app.memberLists,
   myFilters: state.member.app.myFilters,
   profile: state.member.app.profile,
+  space: state.member.app.space,
 });
 
 const mapDispatchToProps = {

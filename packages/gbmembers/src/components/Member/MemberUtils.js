@@ -1219,7 +1219,7 @@ export function getJson(input) {
       input = input
         .replace(/[\n]/g, '\\n')
         .replace(/[\r]/g, '\\r')
-        .replace(/[\t]/g, '\\t');
+        .replace(/[\t]/g, '');
       return $.parseJSON(input);
     } catch (err) {
       return [input];
@@ -1317,7 +1317,7 @@ export function isNewMember(member) {
 export function setMemberPromotionValues(member, belts) {
   let statusIndicator = 'notready';
   let statusText = 'NOT READY';
-  let programOrder = 0;
+  let programOrder = 100;
   let promotionSort = 2;
   let attendClasses = 0;
   let durationPeriod = 0;

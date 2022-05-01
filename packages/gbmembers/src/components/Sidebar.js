@@ -7,6 +7,7 @@ import { KappNavLink as NavLink } from 'common';
 import { Utils } from 'common';
 import download from '../images/download.svg?raw';
 import SVGInline from 'react-svg-inline';
+import attentionRequired from '../images/flag.svg?raw';
 
 export const Sidebar = ({
   documentationUrl,
@@ -33,6 +34,10 @@ export const Sidebar = ({
   profile,
   downloadLeads,
   downloadMembers,
+  space,
+  setAttentionRequiredOnly,
+  attentionRequiredOnly,
+  toggleAttentionRequiredOnly,
 }) => (
   <div className={'sidebar ' + sidebarDisplayType}>
     {sidebarDisplayType === 'leads' && (
@@ -110,6 +115,7 @@ export const Sidebar = ({
               allMembers={allMembers}
               currentFilter={currentFilter}
               actions={actions}
+              space={space}
             />
           )
         )}
@@ -119,6 +125,7 @@ export const Sidebar = ({
             actions={actions}
             memberLists={memberLists}
             listName={listName}
+            space={space}
           />
         )}
       </div>

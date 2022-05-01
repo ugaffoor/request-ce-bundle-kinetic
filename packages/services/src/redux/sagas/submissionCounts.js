@@ -9,9 +9,9 @@ const buildSearch = (coreState, username) =>
     .coreState(coreState)
     .type(constants.SUBMISSION_FORM_TYPE)
     .limit(constants.SUBMISSION_COUNT_LIMIT)
-    .or()
-    .eq(`values[${constants.REQUESTED_FOR_FIELD}]`, username)
-    .eq('submittedBy', username)
+    //    .or()
+    //    .eq(`values[${constants.REQUESTED_FOR_FIELD}]`, username)
+    //    .eq('submittedBy', username)
     .end()
     .build();
 

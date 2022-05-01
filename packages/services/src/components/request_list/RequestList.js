@@ -30,6 +30,7 @@ export const RequestList = ({
   handleNextPage,
   handlePreviousPage,
   refreshPage,
+  searchByName,
 }) => (
   <Fragment>
     <PageTitle parts={['My Requests']} />
@@ -66,6 +67,21 @@ export const RequestList = ({
             </span>
           </button>
         </div>
+      </div>
+      <div className="filterSection">
+        <form className="search-box__form">
+          <input
+            type="text"
+            placeholder="Search by Full Name"
+            autoFocus
+            onKeyUp={event => {
+              if (event.keyCode === 13) {
+                searchByName(event.target.value);
+              }
+            }}
+          />
+          <span className="fa fa-search" />
+        </form>
       </div>
       <div className="cards__wrapper cards__wrapper--requests">
         {submissions.size > 0 ? (

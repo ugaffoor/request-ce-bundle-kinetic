@@ -276,6 +276,7 @@ export function* fetchCurrentMember(action) {
       posItems[len] = posPurchasedItems.submissions[i].values;
       posItems[len]['id'] = posPurchasedItems.submissions[i]['id'];
     }
+
     submission.submission.emailsReceived = emailReceivedContent;
     submission.submission.emailsSent = emailSentContent;
     submission.submission.smsContent = smsContent;

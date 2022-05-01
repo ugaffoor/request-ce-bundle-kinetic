@@ -110,6 +110,7 @@ export class MemberActivityReport extends Component {
       { title: 'Payment Period', field: 'paymentPeriod' },
       { title: 'Payment Type', field: 'paymentType' },
       { title: 'Family Members', field: 'familyMembers' },
+      { title: 'Fee Program', field: 'feeProgram' },
       {
         title: 'Notes',
         field: 'history',
@@ -178,6 +179,7 @@ export class MemberActivityReport extends Component {
       { label: 'Payment Period', value: 'paymentPeriod' },
       { label: 'Payment Type', value: 'paymentType' },
       { label: 'Family Members', value: 'familyMembers' },
+      { label: 'Fee Program', value: 'feeProgram' },
       { label: 'Emails Sent', value: 'emailsSent' },
       { label: 'Emails Received', value: 'emailsReceived' },
       { label: 'SMS Sent', value: 'smsSent' },
@@ -231,6 +233,7 @@ export class MemberActivityReport extends Component {
           { label: 'DOB (Year)', value: 'year' },
           { label: 'Member Type', value: 'memberType' },
           { label: 'Program', value: 'program' },
+          { label: 'Fee Program', value: 'feeProgram' },
           { label: 'Account Created', value: 'accountCreated' },
           { label: 'Covid19 Waiver', value: 'covid19Waiver' },
           { label: 'Opt-Out', value: 'optout' },
@@ -294,6 +297,7 @@ export class MemberActivityReport extends Component {
       { label: 'DOB (Year)', value: 'year' },
       { label: 'Member Type', value: 'memberType' },
       { label: 'Program', value: 'program' },
+      { label: 'Fee Program', value: 'feeProgram' },
       { label: 'Belt', value: 'belt' },
       { label: 'Additional Program 1', value: 'additionalProgram1' },
       { label: 'Additional Program 2', value: 'additionalProgram2' },
@@ -936,6 +940,38 @@ export class MemberActivityReport extends Component {
     return '0';
   }
 
+  getFeeProgram(members, member) {
+    if (
+      member.values['Family Fee Details'] !== null &&
+      member.values['Family Fee Details'] !== undefined
+    ) {
+      let json = getJson(member.values['Family Fee Details']);
+      for (var i = 0; i < json.length; i++) {
+        if (json[i]['id'] === member.id) {
+          return json[i]['feeProgram'];
+        }
+      }
+    }
+
+    if (
+      member.values['Billing Parent Member'] !== null &&
+      member.values['Billing Parent Member'] !== undefined
+    ) {
+      let parent = members.findIndex(mem => {
+        return mem.id === member.values['Billing Parent Member'];
+      });
+      if (parent !== -1) {
+        let json = getJson(members[parent].values['Family Fee Details']);
+        for (var i = 0; i < json.length; i++) {
+          if (json[i]['id'] === member.id) {
+            return json[i]['feeProgram'];
+          }
+        }
+      }
+    }
+    return '';
+  }
+
   getLastPaymentDate(member) {
     if (getAttributeValue(this.props.space, 'Billing Company') === 'Bambora') {
       return member.values['Billing Start Date'] !== undefined
@@ -976,6 +1012,7 @@ export class MemberActivityReport extends Component {
         year: moment(member.values['DOB']).year(),
         memberType: member.values['Member Type'],
         program: member.values['Ranking Program'],
+        feeProgram: this.getFeeProgram(members, member),
         belt: member.values['Ranking Belt'],
         additionalProgram1: member.values['Additional Program 1'],
         additionalProgram2: member.values['Additional Program 2'],
@@ -985,7 +1022,8 @@ export class MemberActivityReport extends Component {
             : '',
         lastPaymentDate: this.getLastPaymentDate(member),
         billingUser: member.values['Billing User'] === 'YES' ? 'YES' : 'NO',
-        billerMigrated: member.values['Biller Migrated'] === 'YES' ? 'YES' : '',
+        //        billerMigrated: member.values['Biller Migrated'] === 'YES' ? 'YES' : '',
+        billerMigrated: member.values['Biller Migrated'],
         billerId: member.values['Billing Customer Reference'],
         nonPaying: member.values['Non Paying'] === 'YES' ? 'YES' : '',
         accountCreated: member.user !== undefined ? 'YES' : 'NO',

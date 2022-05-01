@@ -31,14 +31,19 @@ const enhance = compose(
     handleNextPage: props => () => props.fetchNextPage(props.coreState),
     handlePreviousPage: props => () => props.fetchPreviousPage(props.coreState),
     refreshPage: props => () => props.fetchCurrentPage(props.coreState),
+    searchByName: props => name =>
+      props.fetchSubmissions({
+        name: name,
+        coreState: props.coreState,
+      }),
   }),
   lifecycle({
     UNSAFE_componentWillMount() {
-      this.props.fetchSubmissions(this.props.coreState);
+      this.props.fetchSubmissions({ coreState: this.props.coreState });
     },
     UNSAFE_componentWillUpdate(nextProps) {
       if (this.props.coreState !== nextProps.coreState) {
-        this.props.fetchSubmissions(nextProps.coreState);
+        this.props.fetchSubmissions({ coreState: nextProps.coreState });
         this.props.fetchSubmissionCounts();
       }
     },

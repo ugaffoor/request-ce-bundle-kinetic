@@ -50,7 +50,11 @@ export class Statistics extends Component {
     this.setToDate = this.props.setToDate;
 
     let fromDate = moment().subtract(7, 'days');
-    let toDate = moment();
+    fromDate.hour(0).minute(0);
+
+    let toDate = moment()
+      .hour(23)
+      .minute(59);
 
     let leads = this.props.leadsByDate;
     let leadData = this.getData(

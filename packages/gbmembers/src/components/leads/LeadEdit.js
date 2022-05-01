@@ -1328,9 +1328,22 @@ export const LeadEditContainer = compose(
           .siblings('select[required]')
           .css('border-color', 'red');
         $('label[required]')
-          .siblings('input[required]')
-          .first()
-          .focus();
+          .siblings('textarea[required]')
+          .css('border-color', 'red');
+        $('label[required]')
+          .siblings('.DayPickerInput')
+          .children('input')
+          .css('border-color', 'red');
+        var firstElem = $('label[required]')
+          .siblings(
+            'input[required],select[required],textarea[required],.DayPickerInput',
+          )
+          .first();
+        if (firstElem.hasClass('DayPickerInput')) {
+          firstElem.children('input').focus();
+        } else {
+          firstElem.focus();
+        }
       } else {
         // Trim spaces
         var keys = Object.keys(leadItem.values);

@@ -6,19 +6,27 @@ import { KappNavLink as NavLink } from 'common';
 import SVGInline from 'react-svg-inline';
 import attentionRequired from '../images/flag.svg?raw';
 
+var leadsThis;
 export class Leads extends React.Component {
   constructor(props) {
     super();
     this.actions = props.actions;
     this.state = {
       data: this.getData(props.allLeads),
+      filtered: [],
+      filterAll: '',
+      attentionRequiredOnly: false,
     };
     this.toggleSidebarOpen = props.toggleSidebarOpen;
+    this.filterAll = this.filterAll.bind(this);
+
+    leadsThis = this;
   }
   addFilterPlaceholder = () => {
     const filters = document.querySelectorAll('div.rt-th > input');
     for (let filter of filters) {
-      filter.placeholder = 'Search [Name,Number,Email]';
+      //filter.placeholder = 'Search [Name,Number,Email]';
+      $(filter).hide();
     }
   };
 
@@ -26,8 +34,10 @@ export class Leads extends React.Component {
     this.addFilterPlaceholder();
   }
   UNSAFE_componentWillReceiveProps(nextProps) {
+    var data = this.getData(nextProps.allLeads);
     this.setState({
-      data: this.getData(nextProps.allLeads),
+      data: data,
+      filteredCount: data.length,
     });
   }
 
@@ -86,24 +96,54 @@ export class Leads extends React.Component {
       </NavLink>
     );
   }
+  filterAll(e) {
+    const { value } = e.target;
+    const filterAll = value;
+    const filtered = [{ id: 'id', value: filterAll }];
+    // NOTE: this completely clears any COLUMN filters
+    this.setState({ filterAll, filtered });
+  }
+
   render() {
     const { data } = this.state;
     return (
       <div>
+        <button
+          id="attentionRequiredOnly"
+          type="button"
+          className={
+            this.state.attentionRequiredOnly
+              ? 'attentionRequiredOnly Active'
+              : 'attentionRequiredOnly'
+          }
+          onClick={e => {
+            const filterAll = '';
+            const filtered = [{ id: 'id', value: filterAll }];
+            // NOTE: this completely clears any COLUMN filters
+            this.setState({
+              attentionRequiredOnly: !this.state.attentionRequiredOnly,
+              filterAll,
+              filtered,
+            });
+          }}
+        >
+          <SVGInline svg={attentionRequired} className={'attention icon'} />
+        </button>
+        <input
+          value={this.state.filterAll}
+          placeholder="Search [Name,Number,Email]"
+          onChange={this.filterAll}
+          className="searchInput"
+        />
         <ReactTable
           ref={r => {
             this.selectTable = r;
           }}
           data={data}
-          filterable
           showPagination={false}
           minRows="0"
-          defaultFilterMethod={(filter, row, column) => {
-            const id = filter.pivotId || filter.id;
-            return row[id] !== undefined
-              ? String(row[id]).startsWith(filter.value)
-              : true;
-          }}
+          filterable
+          filtered={this.state.filtered}
           onFilteredChange={(filtered, column) => {
             this.setState({ dummy: true });
           }}
@@ -112,50 +152,96 @@ export class Leads extends React.Component {
           }}
           columns={[
             {
-              id: 'id',
-              accessor: d => d.id,
+              id: 'names',
               Cell: this.renderCell,
               Header: (
                 <span>
                   <strong>Total: </strong>
-                  {this.selectTable !== undefined
+                  {/*this.selectTable !== undefined
                     ? this.selectTable.state.sortedData.length
-                    : data.length}
+                    : data.length*/}
+                  {this.state.filteredCount}
                 </span>
               ),
-              filterMethod: (filter, row) => {
-                return (
-                  (row._original['First Name'] !== undefined &&
-                    row._original['First Name'] !== null &&
-                    row._original['First Name']
-                      .toLowerCase()
-                      .includes(filter.value.toLowerCase())) ||
-                  (row._original['Last Name'] !== undefined &&
-                    row._original['Last Name'] !== null &&
-                    row._original['Last Name']
-                      .toLowerCase()
-                      .includes(filter.value.toLowerCase())) ||
-                  (row._original['Phone Number'] !== undefined &&
-                    row._original['Phone Number'] !== null &&
-                    row._original['Phone Number']
-                      .toLowerCase()
-                      .includes(filter.value.toLowerCase())) ||
-                  (row._original['Additional Phone Number'] !== undefined &&
-                    row._original['Additional Phone Number'] !== null &&
-                    row._original['Additional Phone Number']
-                      .toLowerCase()
-                      .includes(filter.value.toLowerCase())) ||
-                  (row._original['Email'] !== undefined &&
-                    row._original['Email'] !== null &&
-                    row._original['Email']
-                      .toLowerCase()
-                      .includes(filter.value.toLowerCase())) ||
-                  (row._original['Additional Email'] !== undefined &&
-                    row._original['Additional Email'] !== null &&
-                    row._original['Additional Email']
-                      .toLowerCase()
-                      .includes(filter.value.toLowerCase()))
-                );
+            },
+            {
+              id: 'id',
+              width: 0,
+              resizable: false,
+              sortable: false,
+              filterAll: true,
+              filterMethod: (filter, rows) => {
+                var filteredRows = rows.filter(row => {
+                  return this.state.attentionRequiredOnly
+                    ? ((row._original['First Name'] !== undefined &&
+                        row._original['First Name'] !== null &&
+                        row._original['First Name']
+                          .toLowerCase()
+                          .includes(filter.value.toLowerCase())) ||
+                        (row._original['Last Name'] !== undefined &&
+                          row._original['Last Name'] !== null &&
+                          row._original['Last Name']
+                            .toLowerCase()
+                            .includes(filter.value.toLowerCase())) ||
+                        (row._original['Phone Number'] !== undefined &&
+                          row._original['Phone Number'] !== null &&
+                          row._original['Phone Number']
+                            .toLowerCase()
+                            .includes(filter.value.toLowerCase())) ||
+                        (row._original['Additional Phone Number'] !==
+                          undefined &&
+                          row._original['Additional Phone Number'] !== null &&
+                          row._original['Additional Phone Number']
+                            .toLowerCase()
+                            .includes(filter.value.toLowerCase())) ||
+                        (row._original['Email'] !== undefined &&
+                          row._original['Email'] !== null &&
+                          row._original['Email']
+                            .toLowerCase()
+                            .includes(filter.value.toLowerCase())) ||
+                        (row._original['Additional Email'] !== undefined &&
+                          row._original['Additional Email'] !== null &&
+                          row._original['Additional Email']
+                            .toLowerCase()
+                            .includes(filter.value.toLowerCase()))) &&
+                        this.state.attentionRequiredOnly &&
+                          row._original['Is New Reply Received'] === 'true'
+                    : (row._original['First Name'] !== undefined &&
+                        row._original['First Name'] !== null &&
+                        row._original['First Name']
+                          .toLowerCase()
+                          .includes(filter.value.toLowerCase())) ||
+                        (row._original['Last Name'] !== undefined &&
+                          row._original['Last Name'] !== null &&
+                          row._original['Last Name']
+                            .toLowerCase()
+                            .includes(filter.value.toLowerCase())) ||
+                        (row._original['Phone Number'] !== undefined &&
+                          row._original['Phone Number'] !== null &&
+                          row._original['Phone Number']
+                            .toLowerCase()
+                            .includes(filter.value.toLowerCase())) ||
+                        (row._original['Additional Phone Number'] !==
+                          undefined &&
+                          row._original['Additional Phone Number'] !== null &&
+                          row._original['Additional Phone Number']
+                            .toLowerCase()
+                            .includes(filter.value.toLowerCase())) ||
+                        (row._original['Email'] !== undefined &&
+                          row._original['Email'] !== null &&
+                          row._original['Email']
+                            .toLowerCase()
+                            .includes(filter.value.toLowerCase())) ||
+                        (row._original['Additional Email'] !== undefined &&
+                          row._original['Additional Email'] !== null &&
+                          row._original['Additional Email']
+                            .toLowerCase()
+                            .includes(filter.value.toLowerCase()));
+                });
+                setTimeout(function() {
+                  leadsThis.setState({ filteredCount: filteredRows.length });
+                }, 100);
+                return filteredRows;
               },
             },
           ]}

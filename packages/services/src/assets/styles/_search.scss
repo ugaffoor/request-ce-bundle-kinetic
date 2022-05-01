@@ -1,6 +1,23 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  *   Search ~ services
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+.filterSection {
+  margin-bottom: 10px;
+  .fa {
+    font-size: 24px;
+    position: absolute;
+    left: 400px;
+    color: #d4d4d4;
+  }
+  button {
+    width: 3rem;
+  }
+  input[type='text'] {
+    padding: 9px !important;
+    font-size: 24px !important;
+    -webkit-text-fill-color: unset;
+  }
+}
 
 // Highlight
 .highlight {

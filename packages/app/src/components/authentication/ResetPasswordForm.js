@@ -26,7 +26,7 @@ const ResetPassword = ({
 
       <p>
         <I18n>
-          If you don't receieve an email, contact your kinops administrator.
+          If you don't receieve an email, contact your GB Members administrator.
         </I18n>
       </p>
     </div>

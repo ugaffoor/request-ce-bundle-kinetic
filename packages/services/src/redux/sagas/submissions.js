@@ -5,7 +5,7 @@ import * as constants from '../../constants';
 import { actions, types } from '../modules/submissions';
 import { actions as systemErrorActions } from '../modules/systemError';
 
-export function* fetchSubmissionsSaga({ payload: { coreState } }) {
+export function* fetchSubmissionsSaga(action) {
   const kappSlug = yield select(state => state.app.config.kappSlug);
   const username = yield select(state => state.app.profile.username);
   const pageToken = yield select(state => state.services.submissions.current);
@@ -20,12 +20,21 @@ export function* fetchSubmissionsSaga({ payload: { coreState } }) {
       'form.kapp',
       'form.kapp.attributes',
       'form.kapp.space.attributes',
-    ])
-    .or()
-    .eq(`values[${constants.REQUESTED_FOR_FIELD}]`, username)
-    .eq('submittedBy', username)
-    .eq('createdBy', username)
-    .end();
+    ]);
+  if (
+    action.payload.coreState !== undefined &&
+    action.payload.coreState.name !== undefined
+  ) {
+    searchBuilder
+      .or()
+      .eq(
+        `values[${constants.REQUESTED_FOR_FIELD}]`,
+        action.payload.coreState.name,
+      );
+    //    .eq('submittedBy', username)
+    //    .eq('createdBy', username)
+  }
+  searchBuilder.end();
   // Add some of the optional parameters to the search
   //  if (coreState) searchBuilder.coreState(coreState);
   if (pageToken) searchBuilder.pageToken(pageToken);

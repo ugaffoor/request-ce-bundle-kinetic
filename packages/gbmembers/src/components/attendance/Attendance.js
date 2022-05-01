@@ -24,6 +24,7 @@ import {
 } from '../Member/MemberUtils';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { Utils } from 'common';
+import { KappNavLink as NavLink } from 'common';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -726,8 +727,13 @@ export class AttendanceDetail extends Component {
                           )}
                           <span className="memberInfo">
                             <h4 className="memberName">
-                              {checkin.values['First Name']}{' '}
-                              {checkin.values['Last Name']}
+                              <NavLink
+                                to={`/Member/${checkin.values['Member GUID']}`}
+                                className=""
+                              >
+                                {checkin.values['First Name']}{' '}
+                                {checkin.values['Last Name']}
+                              </NavLink>
                             </h4>
                             <h5
                               className={checkin.values['Attendance Status'][0]}

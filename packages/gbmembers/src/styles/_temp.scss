@@ -182,3 +182,19 @@ body a {
     height: 2rem;
   }
 }
+input.searchInput {
+  -webkit-text-fill-color: unset;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: #fff;
+  font-size: inherit;
+  border-radius: 3px;
+  font-weight: 400;
+  outline-width: 0;
+  width: 206px;
+}
+.leadsSidebar .rt-table {
+  overflow-x: hidden !important;
+}
+.membersSidebar .rt-table {
+  overflow-x: hidden !important;
+}

@@ -74,6 +74,7 @@ export class BamboraOverdues extends Component {
     failedPayments = failedPayments.filter(
       payment =>
         payment.paymentStatus === 'DECLINED' ||
+        payment.paymentStatus === 'PIN RETRY EXCEEDED' ||
         payment.paymentStatus === 'EXPIRED CARD',
     );
     failedPayments = failedPayments.sort((a, b) => {
@@ -254,6 +255,24 @@ export class BamboraOverdues extends Component {
                 }).format(this.state.total)
               : 0}
           </span>
+        ),
+      },
+      {
+        accessor: 'memberGUID',
+        headerClassName: 'refund',
+        className: 'refund',
+        Cell: props => (
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={e =>
+              (window.location =
+                '/#/kapps/services/categories/bambora-billing/bambora-change-payment-type?id=' +
+                props.value)
+            }
+          >
+            Pay Now
+          </button>
         ),
       },
     ];
