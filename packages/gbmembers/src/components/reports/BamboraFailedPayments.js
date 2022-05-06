@@ -2,6 +2,9 @@ import React, { Component } from 'react';
 import ReactTable from 'react-table';
 import moment from 'moment';
 import { KappNavLink as NavLink } from 'common';
+import SVGInline from 'react-svg-inline';
+import ReactToPrint from 'react-to-print';
+import printerIcon from '../../images/Print.svg?raw';
 
 const ezidebit_date_format = 'YYYY-MM-DD HH:mm:sss';
 
@@ -165,7 +168,14 @@ export class BamboraFailedPayments extends Component {
         >
           <h6>Failed Payments - Last 6 Months</h6>
         </div>
+        <ReactToPrint
+          trigger={() => (
+            <SVGInline svg={printerIcon} className="icon tablePrint" />
+          )}
+          content={() => this.tableComponentRef}
+        />
         <ReactTable
+          ref={el => (this.tableComponentRef = el)}
           columns={columns}
           data={data}
           className="-striped -highlight"

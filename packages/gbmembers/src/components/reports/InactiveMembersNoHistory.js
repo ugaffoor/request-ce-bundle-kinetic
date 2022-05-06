@@ -2,6 +2,9 @@ import React, { Component } from 'react';
 import ReactTable from 'react-table';
 import { KappNavLink as NavLink } from 'common';
 import moment from 'moment';
+import SVGInline from 'react-svg-inline';
+import ReactToPrint from 'react-to-print';
+import printerIcon from '../../images/Print.svg?raw';
 
 export class InactiveMembersNoHistory extends Component {
   constructor(props) {
@@ -72,7 +75,14 @@ export class InactiveMembersNoHistory extends Component {
         >
           <h6>Inactive Members with No Status History</h6>
         </div>
+        <ReactToPrint
+          trigger={() => (
+            <SVGInline svg={printerIcon} className="icon tablePrint" />
+          )}
+          content={() => this.tableComponentRef}
+        />
         <ReactTable
+          ref={el => (this.tableComponentRef = el)}
           columns={columns}
           data={data}
           className="-striped -highlight"

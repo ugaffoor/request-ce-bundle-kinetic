@@ -52,6 +52,10 @@ export const types = {
   REGISTER_BILLING_MEMBER: namespace('members', 'REGISTER_BILLING_MEMBER'),
   EDIT_PAYMENT_METHOD: namespace('members', 'EDIT_PAYMENT_METHOD'),
   REFUND_TRANSACTION: namespace('members', 'REFUND_TRANSACTION'),
+  REFUND_TRANSACTION_COMPLETE: namespace(
+    'members',
+    'REFUND_TRANSACTION_COMPLETE',
+  ),
   REFUND_POS_TRANSACTION: namespace('members', 'REFUND_POS_TRANSACTION'),
   REFUND_POS_TRANSACTION_COMPLETE: namespace(
     'members',
@@ -132,6 +136,7 @@ export const actions = {
   registerBillingMember: withPayload(types.REGISTER_BILLING_MEMBER),
   editPaymentMethod: withPayload(types.EDIT_PAYMENT_METHOD),
   refundTransaction: withPayload(types.REFUND_TRANSACTION),
+  refundTransactionComplete: withPayload(types.REFUND_TRANSACTION_COMPLETE),
   refundPOSTransaction: withPayload(types.REFUND_POS_TRANSACTION),
   refundPOSTransactionComplete: withPayload(
     types.REFUND_POS_TRANSACTION_COMPLETE,
@@ -207,12 +212,23 @@ export const State = Record({
   inactiveCustomersCount: [],
   inactiveCustomersLoading: true,
   promotingMember: false,
+  refundTransactionInProgress: false,
+  refundTransactionID: {},
   refundPOSTransactionInProgress: false,
   refundPOSTransactionID: {},
 });
 
 export const reducer = (state = State(), { type, payload }) => {
   switch (type) {
+    case types.REFUND_TRANSACTION:
+      return state.set('refundTransactionInProgress', true);
+    case types.REFUND_TRANSACTION_COMPLETE:
+      return state
+        .set('refundTransactionInProgress', false)
+        .set('refundTransactionID', {
+          id: payload.id,
+          value: payload.value,
+        });
     case types.REFUND_POS_TRANSACTION:
       return state.set('refundPOSTransactionInProgress', true);
     case types.REFUND_POS_TRANSACTION_COMPLETE:

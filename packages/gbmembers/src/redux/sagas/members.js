@@ -1615,6 +1615,7 @@ export function* refundTransaction(action) {
           result.data.errorMessage,
           'Refund Transaction',
         );
+        action.payload.refundTransactionComplete({ id: '' });
       } else {
         console.log('#### Response = ' + result.data.data);
         let paymentsRefunded =
@@ -1643,16 +1644,17 @@ export function* refundTransaction(action) {
           id: action.payload.memberItem['id'],
           memberItem: action.payload.memberItem,
         });
-        /*        action.payload.fetchCurrentMember({
-          id: action.payload.memberItem['id'],
-          myThis: action.payload.myThis,
-        }); */
 
         action.payload.addNotification(
           NOTICE_TYPES.SUCCESS,
           'Payment refunded successfully',
           'Refund Transaction',
         );
+        action.payload.refundTransactionComplete({
+          id: action.payload.transactionId,
+          value: action.payload.refundAmount,
+        });
+
         if (action.payload.billingThis) {
           action.payload.billingThis.setState({
             showPaymentHistory: false,
@@ -2398,6 +2400,14 @@ export function* createMemberUserAccount(action) {
     });
 
     action.payload.memberItem.user = user;
+
+    var allMembers = action.payload.allMembers;
+    for (var i = 0; i < allMembers.length; i++) {
+      if (allMembers[i]['id'] === action.payload.memberItem.id) {
+        allMembers[i] = action.payload.memberItem;
+      }
+    }
+
     yield put(action.payload.setCreatingUserAccount(false));
   } catch (error) {
     console.log('Error in createMemberUserAccount: ' + util.inspect(error));

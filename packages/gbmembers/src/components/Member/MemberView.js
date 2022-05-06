@@ -2063,6 +2063,7 @@ export const MemberViewContainer = compose(
       refundPOSTransaction(args);
     },
     createUserAccount: ({
+      allMembers,
       memberItem,
       updateMember,
       createMemberUserAccount,
@@ -2073,6 +2074,7 @@ export const MemberViewContainer = compose(
       setCreatingUserAccount(true);
 
       createMemberUserAccount({
+        allMembers,
         memberItem,
         updateMember,
         addNotification,

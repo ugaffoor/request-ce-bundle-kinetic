@@ -2,6 +2,9 @@ import React, { Component } from 'react';
 import ReactTable from 'react-table';
 import { KappNavLink as NavLink } from 'common';
 import moment from 'moment';
+import ReactToPrint from 'react-to-print';
+import printerIcon from '../../images/Print.svg?raw';
+import SVGInline from 'react-svg-inline';
 
 export class MemberBirthdays extends Component {
   constructor(props) {
@@ -143,7 +146,14 @@ export class MemberBirthdays extends Component {
           </select>
           <div className="droparrow" />
         </div>
+        <ReactToPrint
+          trigger={() => (
+            <SVGInline svg={printerIcon} className="icon tablePrint" />
+          )}
+          content={() => this.tableComponentRef}
+        />
         <ReactTable
+          ref={el => (this.tableComponentRef = el)}
           columns={columns}
           data={data}
           className="-striped -highlight"

@@ -102,8 +102,8 @@ export class BamboraOverdues extends Component {
       var idx = successfulPayments.findIndex(successful => {
         return (
           failed.yourSystemReference === successful.yourSystemReference &&
-          moment(successful.debitDate, 'YYYY-MM-DD').isAfter(
-            moment(failed.debitDate, 'YYYY-MM-DD'),
+          moment(successful.debitDate, 'YYYY-MM-DD HH:mm:SS').isAfter(
+            moment(failed.debitDate, 'YYYY-MM-DD HH:mm:SS'),
           )
         );
       });

@@ -405,7 +405,7 @@ export class LeadNew extends Component {
                       size="10"
                       required
                       ref={input => (this.input = input)}
-                      defaultValue={this.props.leadItem.values['Postcode']}
+                      defaultValue={''}
                       onChange={e =>
                         handleChange(this.props.leadItem, 'Postcode', e)
                       }

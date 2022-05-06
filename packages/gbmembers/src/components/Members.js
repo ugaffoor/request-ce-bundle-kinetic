@@ -202,10 +202,11 @@ export class Members extends React.Component {
               Header: (
                 <span>
                   <strong>Total: </strong>
-                  {/*this.selectTable !== undefined
+                  {this.state.filteredCount !== undefined
+                    ? this.state.filteredCount
+                    : this.selectTable !== undefined
                     ? this.selectTable.state.sortedData.length
-                    : data.length*/}
-                  {this.state.filteredCount}
+                    : data.length}
                 </span>
               ),
             },
@@ -262,7 +263,7 @@ export class Members extends React.Component {
                             .toLowerCase()
                             .includes(filter.value.toLowerCase()))) &&
                         this.state.attentionRequiredOnly &&
-                          row._original['Is New Reply Received'] === 'true'
+                        row._original['Is New Reply Received'] === 'true'
                     : (row._original['First Name'] !== undefined &&
                         row._original['First Name'] !== null &&
                         row._original['First Name']

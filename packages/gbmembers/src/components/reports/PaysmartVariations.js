@@ -1,5 +1,8 @@
 import React, { Component } from 'react';
 import ReactTable from 'react-table';
+import SVGInline from 'react-svg-inline';
+import ReactToPrint from 'react-to-print';
+import printerIcon from '../../images/Print.svg?raw';
 
 export class VariationCustomers extends Component {
   constructor(props) {
@@ -97,7 +100,14 @@ export class VariationCustomers extends Component {
         >
           <h6>Variation Customers</h6>
         </div>
+        <ReactToPrint
+          trigger={() => (
+            <SVGInline svg={printerIcon} className="icon tablePrint" />
+          )}
+          content={() => this.tableComponentRef}
+        />
         <ReactTable
+          ref={el => (this.tableComponentRef = el)}
           columns={columns}
           data={data}
           className="-striped -highlight"

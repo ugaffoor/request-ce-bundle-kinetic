@@ -7,6 +7,8 @@ import { Utils } from 'common';
 import SVGInline from 'react-svg-inline';
 import crossIcon from '../../images/cross.svg?raw';
 import { KappNavLink as NavLink } from 'common';
+import ReactToPrint from 'react-to-print';
+import printerIcon from '../../images/Print.svg?raw';
 
 export class Services extends Component {
   constructor(props) {
@@ -257,7 +259,14 @@ export class Services extends Component {
             </button>
           </div>
         </div>
+        <ReactToPrint
+          trigger={() => (
+            <SVGInline svg={printerIcon} className="icon tablePrint" />
+          )}
+          content={() => this.tableComponentRef}
+        />
         <ReactTable
+          ref={el => (this.tableComponentRef = el)}
           columns={columns}
           data={data}
           className="-striped -highlight"

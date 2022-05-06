@@ -48,8 +48,7 @@ const mapDispatchToProps = {
 
 const util = require('util');
 export class SMSModal extends Component {
-  handleClick = () => this.setState({ isShowingModal: true });
-  handleClose = () => {
+  handleClose = e => {
     this.setState({ isShowingModal: false });
     this.props.setShowSMSModal(false);
   };
@@ -311,9 +310,14 @@ export class SMSModal extends Component {
 
   render() {
     return (
-      <div onClick={this.handleClick}>
-        <ModalContainer onClose={this.handleClose} zIndex={1030}>
-          <ModalDialog onClose={this.handleClose} style={inlineStyle}>
+      <div>
+        <ModalContainer zIndex={1030}>
+          <ModalDialog
+            onClose={this.handleClose}
+            style={inlineStyle}
+            dismissOnBackgroundClick={false}
+            className="smsDialog"
+          >
             <div>
               <div className="row">
                 <div className="col-md-12" style={{ textAlign: 'center' }}>

@@ -66,11 +66,14 @@ export class MemberActivityReport extends Component {
       { title: K.translate('Postcode'), field: 'postcode' },
       { title: 'Age (Years)', field: 'age' },
       { title: 'DOB (Year)', field: 'year' },
+      { title: 'DOB', field: 'dob' },
       { title: 'Member Type', field: 'memberType' },
       { title: 'Program', field: 'program' },
       { title: 'Belt', field: 'belt' },
       { title: 'Additional Program 1', field: 'additionalProgram1' },
       { title: 'Additional Program 2', field: 'additionalProgram2' },
+      { title: 'Date Joined', field: 'dateJoined' },
+      { title: 'Days Since Joined', field: 'daysSinceJoined' },
       { title: 'Last Attendance Date', field: 'lastAttendanceDate' },
       { title: 'Last Payment Date', field: 'lastPaymentDate' },
       { title: 'Billing User', field: 'billingUser' },
@@ -159,11 +162,14 @@ export class MemberActivityReport extends Component {
       { label: 'State', value: 'state' },
       { label: 'Age (Years)', value: 'age' },
       { label: 'DOB (Year)', value: 'year' },
+      { label: 'DOB', value: 'dob' },
       { label: 'Member Type', value: 'memberType' },
       { label: 'Program', value: 'program' },
       { label: 'Belt', value: 'belt' },
       { label: 'Additional Program 1', value: 'additionalProgram1' },
       { label: 'Additional Program 2', value: 'additionalProgram2' },
+      { label: 'Date Joined', value: 'dateJoined' },
+      { label: 'Days Since Joined', value: 'daysSinceJoined' },
       { label: 'Last Attendance Date', value: 'lastAttendanceDate' },
       { label: 'Last Payment Date', value: 'lastPaymentDate' },
       { label: 'Billing User', value: 'billingUser' },
@@ -231,6 +237,7 @@ export class MemberActivityReport extends Component {
           { label: K.translate('Postcode'), value: 'postcode' },
           { label: 'Age (Years)', value: 'age' },
           { label: 'DOB (Year)', value: 'year' },
+          { label: 'DOB', value: 'dob' },
           { label: 'Member Type', value: 'memberType' },
           { label: 'Program', value: 'program' },
           { label: 'Fee Program', value: 'feeProgram' },
@@ -247,6 +254,8 @@ export class MemberActivityReport extends Component {
           { label: 'SMS Sent', value: 'smsSent' },
           { label: 'SMS Received', value: 'smsReceived' },
           { label: 'Last Attendance Date', value: 'lastAttendanceDate' },
+          { label: 'Date Joined', value: 'dateJoined' },
+          { label: 'Days Since Joined', value: 'daysSinceJoined' },
           { label: 'Last Payment Date', value: 'lastPaymentDate' },
         ],
       },
@@ -295,6 +304,7 @@ export class MemberActivityReport extends Component {
       { label: K.translate('Postcode'), value: 'postcode' },
       { label: 'Age (Years)', value: 'age' },
       { label: 'DOB (Year)', value: 'year' },
+      { label: 'DOB', value: 'dob' },
       { label: 'Member Type', value: 'memberType' },
       { label: 'Program', value: 'program' },
       { label: 'Fee Program', value: 'feeProgram' },
@@ -983,6 +993,37 @@ export class MemberActivityReport extends Component {
         : '';
     }
   }
+  familyMemberStatus(member) {
+    var status = 'Orphan';
+
+    if (
+      member.values['Billing User'] === 'YES' &&
+      member.values['Billing Family Members']
+    ) {
+      status = '' + JSON.parse(member.values['Billing Family Members']).length;
+    } else if (member.values['Billing User'] === 'YES') {
+      status = '1';
+    }
+    if (
+      (member.values['Billing Parent Member'] === undefined ||
+        member.values['Billing Parent Member'] === '' ||
+        member.values['Billing Parent Member'] === null) &&
+      member.values['Billing User'] !== 'YES'
+    ) {
+      status = 'orphan';
+    }
+    if (
+      member.values['Billing Parent Member'] !== undefined &&
+      member.values['Billing Parent Member'] !== '' &&
+      member.values['Billing Parent Member'] !== null &&
+      member.values['Billing User'] !== 'YES' &&
+      member.values['Billing Parent Member'] !== member['id']
+    ) {
+      status = 'dependant';
+    }
+
+    return status;
+  }
   getGridData(members) {
     if (!members || members.length < 0) {
       return [];
@@ -1010,12 +1051,25 @@ export class MemberActivityReport extends Component {
         postcode: member.values['Postcode'],
         age: moment().diff(member.values['DOB'], 'years'),
         year: moment(member.values['DOB']).year(),
+        dob: moment(member.values['DOB']).format('L'),
         memberType: member.values['Member Type'],
         program: member.values['Ranking Program'],
         feeProgram: this.getFeeProgram(members, member),
         belt: member.values['Ranking Belt'],
         additionalProgram1: member.values['Additional Program 1'],
         additionalProgram2: member.values['Additional Program 2'],
+        dateJoined:
+          member.values['Date Joined'] !== undefined
+            ? moment(member.values['Date Joined']).format('L')
+            : '',
+        daysSinceJoined:
+          member.values['Date Joined'] !== undefined
+            ? Math.round(
+                moment
+                  .duration(moment().diff(moment(member.values['Date Joined'])))
+                  .asDays(),
+              )
+            : '',
         lastAttendanceDate:
           member.values['Last Attendance Date'] !== undefined
             ? moment(member.values['Last Attendance Date']).format('L')
@@ -1051,16 +1105,7 @@ export class MemberActivityReport extends Component {
           member.values['Billing User'] === 'YES'
             ? member.values['Billing Payment Type']
             : '',
-        familyMembers:
-          member.values['Billing User'] === 'YES' &&
-          member.values['Billing Family Members']
-            ? JSON.parse(member.values['Billing Family Members']).length
-            : (member.values['Billing Parent Member'] === undefined ||
-                member.values['Billing Parent Member'] === '' ||
-                member.values['Billing Parent Member'] === null) &&
-              member.values['Billing User'] !== 'YES'
-            ? 'Orphan'
-            : 'Dependant',
+        familyMembers: this.familyMemberStatus(member),
         history: member.values['Notes History'],
         events: member.values['Notes History'],
         emailsSent: isNaN(member.values['Emails Sent Count'])
@@ -1704,6 +1749,9 @@ export class MemberActivityReport extends Component {
                     </option>
                     <option key="lastAttendanceDate" value="lastAttendanceDate">
                       Last Attendance Date
+                    </option>
+                    <option key="dateJoined" value="dateJoined">
+                      Date Joined
                     </option>
                   </select>
                 </span>

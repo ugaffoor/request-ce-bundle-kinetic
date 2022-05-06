@@ -35,6 +35,7 @@ import '../helpers/jquery.multiselect.css';
 import { contact_date_format } from '../leads/LeadsUtils';
 import { confirmWithInput } from './Confirm';
 import { confirmWithDates } from './ConfirmWithDates';
+import { confirmWithAmount } from './ConfirmWithAmount';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as errorActions } from '../../redux/modules/errors';
 import { RecentNotificationsContainer } from '../notifications/RecentNotifications';
@@ -61,6 +62,8 @@ const mapStateToProps = state => ({
   membershipFees: state.member.app.membershipFees,
   paymentHistory: state.member.members.ALLpaymentHistory,
   paymentHistoryLoading: state.member.members.ALLpaymentHistoryLoading,
+  refundTransactionInProgress: state.member.members.refundTransactionInProgress,
+  refundTransactionID: state.member.members.refundTransactionID,
   familyMembers: state.member.members.familyMembers,
   removedBillingMembers: state.member.members.removedBillingMembers,
   billingDDRUrl: state.member.app.billingDDRUrl,
@@ -88,6 +91,7 @@ const mapDispatchToProps = {
   fetchFamilyMembers: actions.fetchFamilyMembers,
   setFamilyMembers: actions.setFamilyMembers,
   refundTransaction: actions.refundTransaction,
+  refundTransactionComplete: actions.refundTransactionComplete,
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
   fetchDdrStatus: actions.fetchDdrStatus,
@@ -609,13 +613,32 @@ export class PaymentHistory extends Component {
   }
 
   getData(payments) {
-    const data = payments.map(payment => {
+    var successfulPayments = [];
+    payments.forEach((payment, i) => {
+      if (payment.paymentStatus !== 'Refund') {
+        successfulPayments[successfulPayments.length] = payment;
+      }
+    });
+
+    payments.forEach((payment, i) => {
+      if (payment.paymentStatus === 'Refund') {
+        var idx = successfulPayments.findIndex(item => {
+          return item.paymentID === payment.yourSystemReference;
+        });
+        if (idx !== -1) {
+          successfulPayments[idx].refundAmount = payment.paymentAmount;
+        }
+      }
+    });
+
+    const data = successfulPayments.map(payment => {
       return {
         _id: payment.paymentID,
         scheduledAmount: payment.scheduledAmount,
         paymentAmount: payment.paymentAmount,
         paymentMethod: payment.paymentMethod,
         paymentStatus: payment.paymentStatus,
+        refundAmount: payment.refundAmount,
         transactionFee: payment.transactionFeeCustomer,
         debitDate: payment.debitDate,
       };
@@ -683,6 +706,7 @@ export class PaymentHistory extends Component {
             <button
               type="button"
               className="btn btn-primary"
+              disabled={this.props.refundTransactionInProgress ? true : false}
               onClick={e =>
                 this.refundPayment(
                   row.original['_id'],
@@ -690,10 +714,39 @@ export class PaymentHistory extends Component {
                 )
               }
             >
-              Refund Payment
+              {this.props.refundTransactionInProgress
+                ? 'Refunding...'
+                : 'Refund Payment'}
             </button>
           ) : this.isPaymentRefunded(row.original['_id'], paymentsRefunded) ? (
-            'Refunded'
+            <span>
+              Refunded{' '}
+              {row.original['refundAmount'] !== undefined && (
+                <span className="refundValue">
+                  {new Intl.NumberFormat(this.props.locale, {
+                    style: 'currency',
+                    currency: this.props.currency,
+                  }).format(
+                    row.original['refundAmount'] !== undefined
+                      ? row.original['refundAmount']
+                      : '',
+                  )}
+                </span>
+              )}
+              {this.props.refundTransactionID.id !== undefined &&
+                this.props.refundTransactionID.id === row.original['id'] && (
+                  <span className="refundValue">
+                    {new Intl.NumberFormat(this.props.locale, {
+                      style: 'currency',
+                      currency: this.props.currency,
+                    }).format(
+                      this.props.refundTransactionID.id === row.original['id']
+                        ? this.props.refundTransactionID.value
+                        : row.original['Refund'],
+                    )}
+                  </span>
+                )}
+            </span>
           ) : (
             ''
           ),
@@ -742,12 +795,13 @@ export class PaymentHistory extends Component {
   }
 
   refundPayment(paymentId, amount) {
-    confirmWithInput({
+    confirmWithAmount({
       title: 'Refund transaction',
+      amount: amount,
       placeholder:
         'Please enter a reason for this Refund. Not entering a valid reason could cause you pain later.',
     }).then(
-      ({ reason }) => {
+      ({ amount, reason }) => {
         console.log('proceed! input:' + reason);
         this.props.refundPayment(
           this.props.billingThis,
@@ -1240,6 +1294,10 @@ export class BillingInfo extends Component {
                           }
                           billingThis={this}
                           refundPayment={this.props.refundPayment}
+                          refundTransactionInProgress={
+                            this.props.refundTransactionInProgress
+                          }
+                          refundTransactionID={this.props.refundTransactionID}
                           memberItem={this.props.memberItem}
                           currency={this.props.currency}
                           locale={this.props.locale}
@@ -1315,6 +1373,8 @@ export const Billing = ({
   billingCompany,
   updatePaymentMethod,
   refundPayment,
+  refundTransactionInProgress,
+  refundTransactionID,
   doPaySmartRegistration,
   setDoPaySmartRegistration,
   ddrTemplates,
@@ -1362,6 +1422,8 @@ export const Billing = ({
                 billingCompany={billingCompany}
                 updatePaymentMethod={updatePaymentMethod}
                 refundPayment={refundPayment}
+                refundTransactionInProgress={refundTransactionInProgress}
+                refundTransactionID={refundTransactionID}
                 actionRequests={actionRequests}
                 actionRequestsLoading={actionRequestsLoading}
                 getActionRequests={getActionRequests}
@@ -1500,6 +1562,7 @@ export const BillingContainer = compose(
       allMembers,
       familyMembers,
       removedBillingMembers,
+      refundTransactionComplete,
     }) => {
       return {};
     },
@@ -1753,6 +1816,7 @@ export const BillingContainer = compose(
     refundPayment: ({
       memberItem,
       refundTransaction,
+      refundTransactionComplete,
       updateMember,
       fetchCurrentMember,
       fetchMembers,
@@ -1773,6 +1837,7 @@ export const BillingContainer = compose(
       args.addNotification = addNotification;
       args.setSystemError = setSystemError;
       args.billingThis = billingThis;
+      args.refundTransactionComplete = refundTransactionComplete;
 
       refundTransaction(args);
     },
