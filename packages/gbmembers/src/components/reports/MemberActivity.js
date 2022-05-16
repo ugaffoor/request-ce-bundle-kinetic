@@ -76,6 +76,8 @@ export class MemberActivityReport extends Component {
       { title: 'Days Since Joined', field: 'daysSinceJoined' },
       { title: 'Last Attendance Date', field: 'lastAttendanceDate' },
       { title: 'Last Payment Date', field: 'lastPaymentDate' },
+      { title: 'Cash Term Start Date', field: 'cashStartDate' },
+      { title: 'Cash Term End Date', field: 'cashEndDate' },
       { title: 'Billing User', field: 'billingUser' },
       { title: 'Biller Migrated', field: 'billerMigrated' },
       { title: 'Biller ID', field: 'billerId' },
@@ -172,6 +174,8 @@ export class MemberActivityReport extends Component {
       { label: 'Days Since Joined', value: 'daysSinceJoined' },
       { label: 'Last Attendance Date', value: 'lastAttendanceDate' },
       { label: 'Last Payment Date', value: 'lastPaymentDate' },
+      { label: 'Cash Term Start Date', value: 'cashStartDate' },
+      { label: 'Cash Term End Date', value: 'cashEndDate' },
       { label: 'Billing User', value: 'billingUser' },
       { label: 'Biller Migrated', value: 'billerMigrated' },
       { label: 'Biller ID', value: 'billerId' },
@@ -257,6 +261,8 @@ export class MemberActivityReport extends Component {
           { label: 'Date Joined', value: 'dateJoined' },
           { label: 'Days Since Joined', value: 'daysSinceJoined' },
           { label: 'Last Payment Date', value: 'lastPaymentDate' },
+          { label: 'Cash Term Start Date', value: 'cashStartDate' },
+          { label: 'Cash Term End Date', value: 'cashEndDate' },
         ],
       },
       {
@@ -267,6 +273,8 @@ export class MemberActivityReport extends Component {
           { label: 'Biller ID', value: 'billerId' },
           { label: 'Non Paying', value: 'nonPaying' },
           { label: 'Last Payment Date', value: 'lastPaymentDate' },
+          { label: 'Cash Term Start Date', value: 'cashStartDate' },
+          { label: 'Cash Term End Date', value: 'cashEndDate' },
           { label: 'Cost', value: 'cost' },
           { label: 'Fee', value: 'fee' },
           { label: 'Average', value: 'average' },
@@ -350,6 +358,7 @@ export class MemberActivityReport extends Component {
       gender: genders,
       status: this.props.memberStatusValues,
       paymentPeriod: this.props.paymentPeriods,
+      paymentType: ['Credit Card', 'Bank Account', 'Cash'],
       billingUser: ['YES'],
       billingMigrated: ['YES'],
       nonPaying: ['YES'],
@@ -1075,6 +1084,14 @@ export class MemberActivityReport extends Component {
             ? moment(member.values['Last Attendance Date']).format('L')
             : '',
         lastPaymentDate: this.getLastPaymentDate(member),
+        cashStartDate:
+          member.values['Billing Cash Term Start Date'] !== undefined
+            ? moment(member.values['Billing Cash Term Start Date']).format('L')
+            : '',
+        cashEndDate:
+          member.values['Billing Cash Term End Date'] !== undefined
+            ? moment(member.values['Billing Cash Term End Date']).format('L')
+            : '',
         billingUser: member.values['Billing User'] === 'YES' ? 'YES' : 'NO',
         //        billerMigrated: member.values['Biller Migrated'] === 'YES' ? 'YES' : '',
         billerMigrated: member.values['Biller Migrated'],
@@ -1749,6 +1766,12 @@ export class MemberActivityReport extends Component {
                     </option>
                     <option key="lastAttendanceDate" value="lastAttendanceDate">
                       Last Attendance Date
+                    </option>
+                    <option key="cashStartDate" value="cashStartDate">
+                      Cash Term Start Date
+                    </option>
+                    <option key="cashEndDate" value="cashEndDate">
+                      Cash Term End Date
                     </option>
                     <option key="dateJoined" value="dateJoined">
                       Date Joined

@@ -29,6 +29,7 @@ import PropTypes from 'prop-types';
 import { actions as dataStoreActions } from '../../redux/modules/settingsDatastore';
 import { actions as leadsActions } from '../../redux/modules/leads';
 import { actions as appActions } from '../../redux/modules/memberApp';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -527,6 +528,7 @@ export class NewSmsCampaign extends Component {
                   options={this.state.selectedOption}
                   showManageNumbersModal={this.showManageNumbersModal}
                   updateCreditsRequired={this.updateCreditsRequired}
+                  space={this.props.space}
                 />
               )}
             </div>
@@ -877,7 +879,23 @@ class ManageNumbersModal extends Component {
                           </td>
                           <td>
                             <label key={phoneNumber.number}>
-                              {phoneNumber.number}
+                              {
+                                <NumberFormat
+                                  value={phoneNumber.number}
+                                  displayType={'text'}
+                                  format={
+                                    getAttributeValue(
+                                      this.props.space,
+                                      'PhoneNumber Format',
+                                    ) !== undefined
+                                      ? getAttributeValue(
+                                          this.props.space,
+                                          'PhoneNumber Format',
+                                        )
+                                      : '####-###-###'
+                                  }
+                                />
+                              }
                               <Checkbox
                                 name={
                                   phoneNumber.listName +
@@ -899,7 +917,23 @@ class ManageNumbersModal extends Component {
                           </td>
                           <td>
                             <label key={phoneNumber.additionalNumber}>
-                              {phoneNumber.additionalNumber}
+                              {
+                                <NumberFormat
+                                  value={phoneNumber.additionalNumber}
+                                  displayType={'text'}
+                                  format={
+                                    getAttributeValue(
+                                      this.props.space,
+                                      'PhoneNumber Format',
+                                    ) !== undefined
+                                      ? getAttributeValue(
+                                          this.props.space,
+                                          'PhoneNumber Format',
+                                        )
+                                      : '####-###-###'
+                                  }
+                                />
+                              }
                               <Checkbox
                                 name={
                                   phoneNumber.listName +

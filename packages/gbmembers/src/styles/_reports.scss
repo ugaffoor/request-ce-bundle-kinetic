@@ -231,12 +231,17 @@
     float: left;
   }
 }
+.statisticsHelp {
+  display: none;
+  float: left;
+}
 .memberFinanceStatistics {
   margin: 0.5%;
   max-width: 1153px;
   clear: left;
   .statItems {
     display: block;
+    float: left;
     .statItem {
       background-color: $gray2;
       margin: 0.5%;

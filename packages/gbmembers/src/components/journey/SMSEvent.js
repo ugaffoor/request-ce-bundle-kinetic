@@ -26,6 +26,8 @@ import { contact_date_format } from '../leads/LeadsUtils';
 import { getHistoryInfo } from './JourneyUtils';
 import { HistoryInfo } from './HistoryInfo';
 import { actions as appActions } from '../../redux/modules/memberApp';
+import NumberFormat from 'react-number-format';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -116,27 +118,90 @@ class EventResult extends Component {
                   <td className="value">
                     <span className="sms">
                       {this.props.journeyEvent.values['Record Type'] ===
-                      'Member'
-                        ? this.props.memberItem && this.props.memberItem.values
-                          ? this.props.memberItem.values['Phone Number'] +
-                            (this.props.memberItem.values[
-                              'Additional Phone Number'
-                            ]
-                              ? ',' +
+                      'Member' ? (
+                        this.props.memberItem &&
+                        this.props.memberItem.values ? (
+                          <span>
+                            <NumberFormat
+                              value={
+                                this.props.memberItem.values['Phone Number']
+                              }
+                              displayType={'text'}
+                              format={
+                                getAttributeValue(
+                                  this.props.space,
+                                  'PhoneNumber Format',
+                                ) !== undefined
+                                  ? getAttributeValue(
+                                      this.props.space,
+                                      'PhoneNumber Format',
+                                    )
+                                  : '####-###-###'
+                              }
+                            />
+                            <NumberFormat
+                              value={
                                 this.props.memberItem.values[
-                                  'Additional Phone Number'
+                                  'AdditionalPhone Number'
                                 ]
-                              : '')
-                          : ''
-                        : this.props.leadItem && this.props.leadItem.values
-                        ? this.props.leadItem.values['Phone Number'] +
-                          (this.props.leadItem.values['Additional Phone Number']
-                            ? ',' +
+                              }
+                              displayType={'text'}
+                              format={
+                                getAttributeValue(
+                                  this.props.space,
+                                  'PhoneNumber Format',
+                                ) !== undefined
+                                  ? getAttributeValue(
+                                      this.props.space,
+                                      'PhoneNumber Format',
+                                    )
+                                  : '####-###-###'
+                              }
+                            />
+                          </span>
+                        ) : (
+                          ''
+                        )
+                      ) : this.props.leadItem && this.props.leadItem.values ? (
+                        <span>
+                          <NumberFormat
+                            value={this.props.leadItem.values['Phone Number']}
+                            displayType={'text'}
+                            format={
+                              getAttributeValue(
+                                this.props.space,
+                                'PhoneNumber Format',
+                              ) !== undefined
+                                ? getAttributeValue(
+                                    this.props.space,
+                                    'PhoneNumber Format',
+                                  )
+                                : '####-###-###'
+                            }
+                          />
+                          <NumberFormat
+                            value={
                               this.props.leadItem.values[
                                 'Additional Phone Number'
                               ]
-                            : '')
-                        : ''}
+                            }
+                            displayType={'text'}
+                            format={
+                              getAttributeValue(
+                                this.props.space,
+                                'PhoneNumber Format',
+                              ) !== undefined
+                                ? getAttributeValue(
+                                    this.props.space,
+                                    'PhoneNumber Format',
+                                  )
+                                : '####-###-###'
+                            }
+                          />
+                        </span>
+                      ) : (
+                        ''
+                      )}
                     </span>
                   </td>
                 </tr>
@@ -158,6 +223,8 @@ export class SMSEvent extends Component {
     );
 
     this.sendSms = this.sendSms.bind(this);
+    this.sendEnabled = this.sendEnabled.bind(this);
+
     var smsText = substituteFields(
       this.props.smsTemplate['SMS Content'],
       this.props.leadItem !== undefined
@@ -191,6 +258,26 @@ export class SMSEvent extends Component {
       text: this.state.smsText,
       datetime: moment().format('DD-MM-YYYY hh:mm A'),
     });
+  }
+
+  sendEnabled() {
+    var enable = true;
+    if (parseInt(this.props.smsAccountCredit) <= 0) enable = false;
+
+    if (
+      this.props.memberItem !== undefined &&
+      (this.props.memberItem.values['Phone Number'] === null ||
+        this.props.memberItem.values['Phone Number'] === '')
+    )
+      enable = false;
+    if (
+      this.props.leadItem !== undefined &&
+      (this.props.leadItem.values['Phone Number'] === undefined ||
+        this.props.leadItem.values['Phone Number'] === '')
+    )
+      enable = false;
+
+    return enable;
   }
 
   render() {
@@ -251,30 +338,91 @@ export class SMSEvent extends Component {
                     <td className="label">Phone:</td>
                     <td className="value">
                       <span className="sms">
-                        {this.props.recordType === 'Member'
-                          ? this.props.memberItem &&
-                            this.props.memberItem.values
-                            ? this.props.memberItem.values['Phone Number'] +
-                              (this.props.memberItem.values[
-                                'Additional Phone Number'
-                              ]
-                                ? ',' +
+                        {this.props.recordType === 'Member' ? (
+                          this.props.memberItem &&
+                          this.props.memberItem.values ? (
+                            <span>
+                              <NumberFormat
+                                value={
+                                  this.props.memberItem.values['Phone Number']
+                                }
+                                displayType={'text'}
+                                format={
+                                  getAttributeValue(
+                                    this.props.space,
+                                    'PhoneNumber Format',
+                                  ) !== undefined
+                                    ? getAttributeValue(
+                                        this.props.space,
+                                        'PhoneNumber Format',
+                                      )
+                                    : '####-###-###'
+                                }
+                              />
+                              <NumberFormat
+                                value={
                                   this.props.memberItem.values[
                                     'Additional Phone Number'
                                   ]
-                                : '')
-                            : ''
-                          : this.props.leadItem && this.props.leadItem.values
-                          ? this.props.leadItem.values['Phone Number'] +
-                            (this.props.leadItem.values[
-                              'Additional Phone Number'
-                            ]
-                              ? ',' +
+                                }
+                                displayType={'text'}
+                                format={
+                                  getAttributeValue(
+                                    this.props.space,
+                                    'PhoneNumber Format',
+                                  ) !== undefined
+                                    ? getAttributeValue(
+                                        this.props.space,
+                                        'PhoneNumber Format',
+                                      )
+                                    : '####-###-###'
+                                }
+                              />
+                            </span>
+                          ) : (
+                            ''
+                          )
+                        ) : this.props.leadItem &&
+                          this.props.leadItem.values ? (
+                          <span>
+                            <NumberFormat
+                              value={this.props.leadItem.values['Phone Number']}
+                              displayType={'text'}
+                              format={
+                                getAttributeValue(
+                                  this.props.space,
+                                  'PhoneNumber Format',
+                                ) !== undefined
+                                  ? getAttributeValue(
+                                      this.props.space,
+                                      'PhoneNumber Format',
+                                    )
+                                  : '####-###-###'
+                              }
+                            />
+                            <NumberFormat
+                              value={
                                 this.props.leadItem.values[
                                   'Additional Phone Number'
                                 ]
-                              : '')
-                          : ''}
+                              }
+                              displayType={'text'}
+                              format={
+                                getAttributeValue(
+                                  this.props.space,
+                                  'PhoneNumber Format',
+                                ) !== undefined
+                                  ? getAttributeValue(
+                                      this.props.space,
+                                      'PhoneNumber Format',
+                                    )
+                                  : '####-###-###'
+                              }
+                            />
+                          </span>
+                        ) : (
+                          ''
+                        )}
                       </span>
                     </td>
                   </tr>
@@ -291,7 +439,7 @@ export class SMSEvent extends Component {
             <button
               type="button"
               id="saveButton"
-              disabled={parseInt(this.props.smsAccountCredit) <= 0}
+              disabled={!this.sendEnabled()}
               className="btn btn-primary send"
               onClick={e =>
                 this.sendSms(

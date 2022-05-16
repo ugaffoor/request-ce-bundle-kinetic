@@ -69,7 +69,51 @@ export class BamboraOverdues extends Component {
       });
     }
   }
+  validOverdue(member, successfulPayments, payment) {
+    var valid = false;
 
+    if (
+      (member.values['Status'] === 'Active' ||
+        member.values['Status'] === 'Penging Freeze' ||
+        member.values['Status'] === 'Pending Cancellation') &&
+      payment.debitDate !== null &&
+      member.values['Non Paying'] !== 'YES'
+    ) {
+      valid = true;
+    }
+    var billingStartDate = this.getLastBillingStartDate(
+      member,
+      successfulPayments,
+    );
+    if (
+      billingStartDate.isAfter(moment(payment.debitDate, 'YYYY-MM-DD HH:mm:SS'))
+    ) {
+      valid = false;
+    }
+    return valid;
+  }
+  getLastBillingStartDate(member, successfulPayments) {
+    var billingStartDate = moment(
+      member.values['Billing Start Date'],
+      'YYYY-MM-DD',
+    );
+    var idx = successfulPayments.findIndex(successful => {
+      return (
+        member.values['Member ID'] === successful.yourSystemReference &&
+        moment(successful.debitDate, 'YYYY-MM-DD HH:mm:SS').isAfter(
+          billingStartDate,
+        )
+      );
+    });
+
+    if (idx !== -1) {
+      billingStartDate = moment(
+        successfulPayments[idx].debitDate,
+        'YYYY-MM-DD HH:mm:SS',
+      );
+    }
+    return billingStartDate;
+  }
   getData(failedPayments, successfulPayments) {
     failedPayments = failedPayments.filter(
       payment =>
@@ -121,11 +165,11 @@ export class BamboraOverdues extends Component {
       );
       if (idx !== -1) {
         if (
-          (this.props.allMembers[idx].values['Status'] === 'Active' ||
-            this.props.allMembers[idx].values['Status'] === 'Penging Freeze' ||
-            this.props.allMembers[idx].values['Status'] ===
-              'Pending Cancellation') &&
-          payment.debitDate !== null
+          this.validOverdue(
+            this.props.allMembers[idx],
+            successfulPayments,
+            payment,
+          )
         ) {
           uniqueHistory[uniqueHistory.length] = payment;
         }
@@ -141,7 +185,10 @@ export class BamboraOverdues extends Component {
       }
       var lastPayment;
       if (idx !== -1) {
-        lastPayment = moment(member.values['Billing Start Date'], 'YYYY-MM-DD');
+        lastPayment = this.getLastBillingStartDate(
+          this.props.allMembers[idx],
+          successfulPayments,
+        );
       }
       let nowDate = moment();
       var overdueAmount = 0;
@@ -176,7 +223,7 @@ export class BamboraOverdues extends Component {
         _id: payment.paymentID,
         paymentAmount: payment.paymentAmount,
         overdueAmount: overdueAmount,
-        successDate: moment(member.values['Billing Start Date'], 'YYYY-MM-DD'),
+        successDate: this.getLastBillingStartDate(member, successfulPayments),
         debitDate: payment.debitDate,
         memberGUID: member !== undefined ? member.id : '',
         name: member.values['First Name'] + ' ' + member.values['Last Name'],

@@ -18,6 +18,8 @@ import { actions as errorActions } from '../../redux/modules/errors';
 import moment from 'moment';
 import { actions as dataStoreActions } from '../../redux/modules/settingsDatastore';
 import { substituteFields } from '../leads/LeadsUtils';
+import NumberFormat from 'react-number-format';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const mapStateToProps = state => ({
   memberItem: state.member.members.currentMember,
@@ -62,7 +64,17 @@ export class SMSModal extends Component {
     let numberOptions = [
       {
         value: this.props.submission.values['Phone Number'],
-        label: this.props.submission.values['Phone Number'],
+        label: (
+          <NumberFormat
+            value={this.props.submission.values['Phone Number']}
+            displayType={'text'}
+            format={
+              getAttributeValue(props.space, 'PhoneNumber Format') !== undefined
+                ? getAttributeValue(props.space, 'PhoneNumber Format')
+                : '####-###-###'
+            }
+          />
+        ),
       },
     ];
 

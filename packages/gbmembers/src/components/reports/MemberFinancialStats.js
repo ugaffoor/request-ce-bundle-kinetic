@@ -76,7 +76,9 @@ export class MemberFinancialStats extends Component {
       viewPeriod: 'this_period',
       showTotalActiveMembers: false,
       showActiveMembers: false,
+      showActiveNonPayingMembers: false,
       showActiveCashMembers: false,
+      showActiveCashOverdueMembers: false,
       showAccountHolders: false,
       showCancellationsMembers: false,
       showPendingCancellationsMembers: false,
@@ -243,6 +245,19 @@ export class MemberFinancialStats extends Component {
   }
 
   getScheduledPayment(member, billingCustomers) {
+    if (member.values['Billing Payment Type'] === 'Cash') {
+      if (
+        moment(member.values['Billing Cash Term Start Date']).isBetween(
+          this.state.fromDate,
+          this.state.toDate,
+        )
+      ) {
+        return member.values['Membership Cost'];
+      } else {
+        return '0';
+      }
+    }
+
     if (
       member.values['Billing User'] !== null &&
       member.values['Billing User'] !== undefined &&
@@ -524,7 +539,7 @@ export class MemberFinancialStats extends Component {
       ? moment(billing.contractStartDate)
       : fromDate;
     //    let days = toDate.diff(startDate, 'days') + 1;
-    let days = toDate.diff(startDate, 'days');
+    let days = toDate.diff(startDate, 'days') + 1;
     if (days < 0) days = 0;
     return days * dailyCost + varCost;
   }
@@ -538,7 +553,15 @@ export class MemberFinancialStats extends Component {
     // Determine times billing happens in selected period.
     // Multiply weekly by times in period
 
-    return parseFloat(member.values['Membership Cost']);
+    if (
+      moment(member.values['Billing Cash Term End Date']).isBetween(
+        fromDate,
+        toDate,
+      )
+    ) {
+      return parseFloat(member.values['Membership Cost']);
+    }
+    return '0';
   }
 
   getMemberWeeklyCost(
@@ -614,6 +637,18 @@ export class MemberFinancialStats extends Component {
 
     return 0;
   }
+  isOrphan(space, member) {
+    if (getAttributeValue(space, 'Billing Company') === 'No Billing')
+      return false;
+    return (member.values['Billing Parent Member'] === undefined ||
+      member.values['Billing Parent Member'] === '' ||
+      member.values['Billing Parent Member'] === null) &&
+      member.values['Billing User'] !== 'YES' &&
+      member.values['Status'] === 'Active' &&
+      member.values['Non Paying'] !== 'YES'
+      ? true
+      : false;
+  }
   getMemberData(
     members,
     billingCustomers,
@@ -630,7 +665,10 @@ export class MemberFinancialStats extends Component {
         accountHolders: { members: [], value: 0, billingValue: 0 },
         totalActiveMembers: { members: [], value: 0, billingValue: 0 },
         activeMembers: { members: [], value: 0, billingValue: 0 },
+        nonpayingMembers: { members: [], value: 0, billingValue: 0 },
+        orphanMembers: { members: [], value: 0, billingValue: 0 },
         activeCashMembers: { members: [], value: 0, billingValue: 0 },
+        activeCashOverdueMembers: { members: [], value: 0, billingValue: 0 },
         cancellations: { members: [], value: 0, billingValue: 0 },
         pendingCancellations: { members: [], value: 0, billingValue: 0 },
         frozen: { members: [], value: 0, billingValue: 0 },
@@ -652,10 +690,17 @@ export class MemberFinancialStats extends Component {
     let aps = 0;
     let activeMembers = [];
     let activeMembersValue = 0;
+    let nonpayingMembers = [];
+    let nonpayingMembersValue = 0;
+    let orphanMembers = [];
+    let orphanMembersValue = 0;
     let activeMembersBillingValue = 0;
     let activeCashMembers = [];
     let activeCashMembersValue = 0;
     let activeCashMembersBillingValue = 0;
+    let activeCashOverdueMembers = [];
+    let activeCashOverdueMembersValue = 0;
+    let activeCashOverdueMembersBillingValue = 0;
     let cancellations = [];
     let cancellationsValue = 0;
     let cancellationsBillingValue = 0;
@@ -732,7 +777,8 @@ export class MemberFinancialStats extends Component {
           );
         } else if (
           member.values['Billing Payment Type'] !== 'Cash' &&
-          moment(member.createdAt).isBetween(fromDate, toDate)
+          moment(member.createdAt).isBetween(fromDate, toDate) &&
+          !this.isOrphan(this.props.space, member)
         ) {
           newMembers[newMembers.length] = member;
           newMembersValue += this.getMemberCost(
@@ -751,9 +797,12 @@ export class MemberFinancialStats extends Component {
             toDate,
           );
         } else {
-          if (member.values['Billing Payment Type'] === 'Cash') {
+          if (
+            member.values['Billing Payment Type'] === 'Cash' &&
+            member.values['Non Paying'] !== 'YES'
+          ) {
             if (
-              moment(member.values['Billing Cash Term Start Date']).isBetween(
+              moment(member.values['Billing Cash Term End Date']).isAfter(
                 fromDate,
                 toDate,
               )
@@ -769,14 +818,33 @@ export class MemberFinancialStats extends Component {
                 fromDate,
                 toDate,
               );
+            } else if (
+              moment(member.values['Billing Cash Term End Date']).isBefore(
+                toDate,
+              )
+            ) {
+              activeCashOverdueMembers[
+                activeCashOverdueMembers.length
+              ] = member;
+              activeCashOverdueMembersValue += this.getMemberCashCost(
+                member,
+                fromDate,
+                toDate,
+              );
+              activeCashOverdueMembersBillingValue += this.getMemberCashCost(
+                member,
+                fromDate,
+                toDate,
+              );
             }
           } else {
-            activeMembers[activeMembers.length] = member;
             if (
               (member.values['Non Paying'] === null ||
                 member.values['Non Paying'] === undefined) &&
-              member.values['Non Paying'] !== 'YES'
+              member.values['Non Paying'] !== 'YES' &&
+              !this.isOrphan(this.props.space, member)
             ) {
+              activeMembers[activeMembers.length] = member;
               activeMembersValue += this.getMemberCost(
                 member,
                 billingCustomers,
@@ -892,6 +960,22 @@ export class MemberFinancialStats extends Component {
             toDate,
           );
         }
+      }
+      if (
+        (memberStatus === 'Active' ||
+          memberStatus === 'Pending Freeze' ||
+          memberStatus === 'Pending Cancellation') &&
+        member.values['Non Paying'] === 'YES'
+      ) {
+        nonpayingMembers[nonpayingMembers.length] = member;
+      }
+      if (
+        (memberStatus === 'Active' ||
+          memberStatus === 'Pending Freeze' ||
+          memberStatus === 'Pending Cancellation') &&
+        this.isOrphan(this.props.space, member)
+      ) {
+        orphanMembers[orphanMembers.length] = member;
       }
       if (
         (memberStatus === 'Active' ||
@@ -1036,10 +1120,25 @@ export class MemberFinancialStats extends Component {
         value: activeMembersValue,
         billingValue: activeMembersBillingValue,
       },
+      nonpayingMembers: {
+        members: nonpayingMembers,
+        value: nonpayingMembersValue,
+        billingValue: 0,
+      },
+      orphanMembers: {
+        members: orphanMembers,
+        value: orphanMembersValue,
+        billingValue: 0,
+      },
       activeCashMembers: {
         members: activeCashMembers,
         value: activeCashMembersValue,
         billingValue: activeCashMembersBillingValue,
+      },
+      activeCashOverdueMembers: {
+        members: activeCashOverdueMembers,
+        value: activeCashOverdueMembersValue,
+        billingValue: activeCashOverdueMembersBillingValue,
       },
       cancellations: {
         members: cancellations,
@@ -1326,8 +1425,22 @@ export class MemberFinancialStats extends Component {
       member.values['Non Paying'] !== null &&
       member.values['Non Paying'] !== undefined &&
       member.values['Non Paying'] === 'YES'
-    )
-      return 'Non Paying';
+    ) {
+      return '0';
+    }
+
+    if (member.values['Billing Payment Type'] === 'Cash') {
+      if (
+        moment(member.values['Billing Cash Term Start Date']).isBetween(
+          this.state.fromDate,
+          this.state.toDate,
+        )
+      ) {
+        return member.values['Membership Cost'];
+      } else {
+        return '0';
+      }
+    }
     if (
       member.values['Family Fee Details'] !== null &&
       member.values['Family Fee Details'] !== undefined
@@ -1578,7 +1691,10 @@ export class MemberFinancialStats extends Component {
   getMemberTableHeaderName() {
     if (this.state.showTotalActiveMembers) return 'Total Active';
     if (this.state.showActiveMembers) return 'Active';
+    if (this.state.showActiveNonPayingMembers) return 'Active Non Paying';
+    if (this.state.showActiveOrphanMembers) return 'Active Orphan';
     if (this.state.showActiveCashMembers) return 'Active Cash';
+    if (this.state.showActiveCashOverdueMembers) return 'Active Cash Overdue';
     if (this.state.showAccountHolders) return 'Active Account Holders';
     if (this.state.showCancellationsMembers) return 'Cancellations';
     if (this.state.showPendingCancellationsMembers)
@@ -1963,6 +2079,84 @@ export class MemberFinancialStats extends Component {
         </div>
 
         <div className="memberFinanceStatistics">
+          <SVGInline
+            svg={helpIcon}
+            className="icon help"
+            onClick={e => {
+              $('.statisticsHelp').toggle('');
+            }}
+          />
+          <span className="statisticsHelp">
+            <p>
+              The Fininancial Statistic report, is a display of value of
+              memberships for the specified period. The value is displayed by
+              Member status, the design is not to show a total value but rather
+              a breakdown of values by Member status.
+              <br />
+              All memberships are broken down to a daily value, then the value
+              of the membership is calculated within the period.
+              <br />
+              Example, if a member is signed during the month, then only the
+              portion of the period the membership is active will be calculated.
+              <br />
+              Example, if a member is cancelled, then only the portion of the
+              period the cancellation applies for is calculated.
+            </p>
+            <ul>
+              <li>
+                Total Account Holders - Members that have a status = "Active"
+                and is the Billing user.
+              </li>
+              <li>
+                Total Active - Members that have a status = "Active","Pending
+                Freeze" & "Pending Cancellation".
+              </li>
+              <li>
+                Average Price per Student(weekly) - The average value of a
+                Active students by week, which includes Active, Pending Freeze
+                and Pending Cancellation members(Non Paying is also included).
+              </li>
+              <li>
+                Active - Members that have a status = "Active" and have a
+                Subscription membership.
+              </li>
+              <li>
+                New Members - Members that have registered in the display
+                period.
+              </li>
+              <li>
+                Active Non Paying - Members that have a status = "Active" but
+                have been marked as "Non Paying".
+              </li>
+              <li>
+                Active Cash - Members with a status = "Active" and have a Cash
+                payment type with a Cash Term Date within the period.
+              </li>
+              <li>
+                Active Cash Overdue - Members with a status = "Active" and have
+                a Cash payment type, but has a Cash Term Date that is earlier
+                than the current period.
+              </li>
+              <li>
+                Cancellations - Members that have a status = "Inactive" and had
+                become Inactive in display period.
+              </li>
+              <li>
+                Pending Cancellations - Members that are scheduled to be
+                cancelled in the display period.
+              </li>
+              <li>Frozen - Members that are Frozen in the display period.</li>
+              <li>
+                Pending Freezes - Members that are scheduled to be Frozen in the
+                display period.
+              </li>
+              <li>
+                Failed Payments - Members that have had a failed payment in the
+                display period.
+              </li>
+            </ul>
+          </span>
+
           <div className="statItems">
             <div className="statItem">
               <div className="info">
@@ -1974,7 +2168,10 @@ export class MemberFinancialStats extends Component {
                       showAccountHolders: true,
                       showTotalActiveMembers: false,
                       showActiveMembers: false,
+                      showActiveNonPayingMembers: false,
+                      showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
+                      showActiveCashOverdueMembers: false,
                       showCancellationsMembers: false,
                       showPendingCancellationsMembers: false,
                       showFrozenMembers: false,
@@ -2033,7 +2230,10 @@ export class MemberFinancialStats extends Component {
                     this.setState({
                       showTotalActiveMembers: true,
                       showActiveMembers: false,
+                      showActiveNonPayingMembers: false,
+                      showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
+                      showActiveCashOverdueMembers: false,
                       showAccountHolders: false,
                       showCancellationsMembers: false,
                       showPendingCancellationsMembers: false,
@@ -2105,7 +2305,10 @@ export class MemberFinancialStats extends Component {
                     this.setState({
                       showActiveMembers: true,
                       showTotalActiveMembers: false,
+                      showActiveNonPayingMembers: false,
+                      showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
+                      showActiveCashOverdueMembers: false,
                       showAccountHolders: false,
                       showCancellationsMembers: false,
                       showPendingCancellationsMembers: false,
@@ -2156,6 +2359,193 @@ export class MemberFinancialStats extends Component {
                 </div>
               )}
             </div>
+            <div className="statItem">
+              <div className="info">
+                <div className="label">New Members</div>
+                <div
+                  className="value"
+                  onClick={e =>
+                    this.setState({
+                      showAccountHolders: false,
+                      showActiveMembers: false,
+                      showTotalActiveMembers: false,
+                      showActiveNonPayingMembers: false,
+                      showActiveOrphanMembers: false,
+                      showActiveCashMembers: false,
+                      showActiveCashOverdueMembers: false,
+                      showCancellationsMembers: false,
+                      showPendingCancellationsMembers: false,
+                      showFrozenMembers: false,
+                      showPendingFrozenMembers: false,
+                      showNewMembers: true,
+                      showVariations: false,
+                      showFailed: false,
+                    })
+                  }
+                >
+                  {this.state.memberData.newMembers.members.length}
+                </div>
+              </div>
+              <div className="dollarValue">
+                {new Intl.NumberFormat(this.locale, {
+                  style: 'currency',
+                  currency: this.currency,
+                }).format(
+                  this.state.valueViewSwitch
+                    ? this.state.memberData.newMembers.billingValue
+                    : this.state.memberData.newMembers.value,
+                )}
+              </div>
+              {this.state.showNewMembers && (
+                <div className="members">
+                  <span
+                    className="closeMembers"
+                    onClick={e =>
+                      this.setState({
+                        showNewMembers: false,
+                      })
+                    }
+                  >
+                    <SVGInline svg={crossIcon} className="icon" />
+                  </span>
+                  <ReactTable
+                    columns={this.getMemberTableColumns()}
+                    data={this.getMemberTableData(
+                      this.state.memberData.newMembers.members,
+                      this.state.billingCustomers,
+                    )}
+                    defaultPageSize={1}
+                    showPagination={false}
+                  />
+                </div>
+              )}
+            </div>
+            <div className="statItem">
+              <div className="info">
+                <div className="label">Active Orphan</div>
+                <div
+                  className="value"
+                  onClick={e =>
+                    this.setState({
+                      showActiveMembers: false,
+                      showTotalActiveMembers: false,
+                      showActiveNonPayingMembers: false,
+                      showActiveOrphanMembers: true,
+                      showActiveCashMembers: false,
+                      showActiveCashOverdueMembers: false,
+                      showAccountHolders: false,
+                      showCancellationsMembers: false,
+                      showPendingCancellationsMembers: false,
+                      showFrozenMembers: false,
+                      showUnFrozenMembers: false,
+                      showRestoredMembers: false,
+                      showPendingFrozenMembers: false,
+                      showNewMembers: false,
+                      showVariations: false,
+                      showFailed: false,
+                    })
+                  }
+                >
+                  {this.state.memberData.orphanMembers.members.length}
+                </div>
+              </div>
+              <div className="dollarValue">
+                {new Intl.NumberFormat(this.locale, {
+                  style: 'currency',
+                  currency: this.currency,
+                }).format(
+                  this.state.valueViewSwitch
+                    ? this.state.memberData.orphanMembers.billingValue
+                    : this.state.memberData.orphanMembers.value,
+                )}
+              </div>
+              {this.state.showActiveOrphanMembers && (
+                <div className="members">
+                  <span
+                    className="closeMembers"
+                    onClick={e =>
+                      this.setState({
+                        showActiveOrphanMembers: false,
+                      })
+                    }
+                  >
+                    <SVGInline svg={crossIcon} className="icon" />
+                  </span>
+                  <ReactTable
+                    columns={this.getMemberTableColumns()}
+                    data={this.getMemberTableData(
+                      this.state.memberData.orphanMembers.members,
+                      this.state.billingCustomers,
+                    )}
+                    defaultPageSize={1}
+                    showPagination={false}
+                  />
+                </div>
+              )}
+            </div>
+            <div className="statItem">
+              <div className="info">
+                <div className="label">Active Non Paying</div>
+                <div
+                  className="value"
+                  onClick={e =>
+                    this.setState({
+                      showActiveMembers: false,
+                      showTotalActiveMembers: false,
+                      showActiveNonPayingMembers: true,
+                      showActiveOrphanMembers: false,
+                      showActiveCashMembers: false,
+                      showActiveCashOverdueMembers: false,
+                      showAccountHolders: false,
+                      showCancellationsMembers: false,
+                      showPendingCancellationsMembers: false,
+                      showFrozenMembers: false,
+                      showUnFrozenMembers: false,
+                      showRestoredMembers: false,
+                      showPendingFrozenMembers: false,
+                      showNewMembers: false,
+                      showVariations: false,
+                      showFailed: false,
+                    })
+                  }
+                >
+                  {this.state.memberData.nonpayingMembers.members.length}
+                </div>
+              </div>
+              <div className="dollarValue">
+                {new Intl.NumberFormat(this.locale, {
+                  style: 'currency',
+                  currency: this.currency,
+                }).format(
+                  this.state.valueViewSwitch
+                    ? this.state.memberData.nonpayingMembers.billingValue
+                    : this.state.memberData.nonpayingMembers.value,
+                )}
+              </div>
+              {this.state.showActiveNonPayingMembers && (
+                <div className="members">
+                  <span
+                    className="closeMembers"
+                    onClick={e =>
+                      this.setState({
+                        showActiveNonPayingMembers: false,
+                      })
+                    }
+                  >
+                    <SVGInline svg={crossIcon} className="icon" />
+                  </span>
+                  <ReactTable
+                    columns={this.getMemberTableColumns()}
+                    data={this.getMemberTableData(
+                      this.state.memberData.nonpayingMembers.members,
+                      this.state.billingCustomers,
+                    )}
+                    defaultPageSize={1}
+                    showPagination={false}
+                  />
+                </div>
+              )}
+            </div>
             {getAttributeValue(this.props.space, 'Allow Cash Payments') !==
             'true' ? (
               <div />
@@ -2169,7 +2559,10 @@ export class MemberFinancialStats extends Component {
                       this.setState({
                         showActiveMembers: false,
                         showTotalActiveMembers: false,
+                        showActiveNonPayingMembers: false,
+                        showActiveOrphanMembers: false,
                         showActiveCashMembers: true,
+                        showActiveCashOverdueMembers: false,
                         showAccountHolders: false,
                         showCancellationsMembers: false,
                         showPendingCancellationsMembers: false,
@@ -2217,6 +2610,75 @@ export class MemberFinancialStats extends Component {
                 )}
               </div>
             )}
+            {getAttributeValue(this.props.space, 'Allow Cash Payments') !==
+            'true' ? (
+              <div />
+            ) : (
+              <div className="statItem">
+                <div className="info">
+                  <div className="label">Active Cash Overdue</div>
+                  <div
+                    className="value"
+                    onClick={e =>
+                      this.setState({
+                        showActiveMembers: false,
+                        showTotalActiveMembers: false,
+                        showActiveNonPayingMembers: false,
+                        showActiveOrphanMembers: false,
+                        showActiveCashMembers: false,
+                        showActiveCashOverdueMembers: true,
+                        showAccountHolders: false,
+                        showCancellationsMembers: false,
+                        showPendingCancellationsMembers: false,
+                        showFrozenMembers: false,
+                        showUnFrozenMembers: false,
+                        showRestoredMembers: false,
+                        showPendingFrozenMembers: false,
+                        showNewMembers: false,
+                        showVariations: false,
+                        showFailed: false,
+                      })
+                    }
+                  >
+                    {
+                      this.state.memberData.activeCashOverdueMembers.members
+                        .length
+                    }
+                  </div>
+                </div>
+                <div className="dollarValue">
+                  {new Intl.NumberFormat(this.locale, {
+                    style: 'currency',
+                    currency: this.currency,
+                  }).format(
+                    this.state.memberData.activeCashOverdueMembers.value,
+                  )}
+                </div>
+                {this.state.showActiveCashOverdueMembers && (
+                  <div className="members">
+                    <span
+                      className="closeMembers"
+                      onClick={e =>
+                        this.setState({
+                          showActiveCashOverdueMembers: false,
+                        })
+                      }
+                    >
+                      <SVGInline svg={crossIcon} className="icon" />
+                    </span>
+                    <ReactTable
+                      columns={this.getMemberTableColumns()}
+                      data={this.getMemberTableData(
+                        this.state.memberData.activeCashOverdueMembers.members,
+                        this.state.billingCustomers,
+                      )}
+                      defaultPageSize={1}
+                      showPagination={false}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
             <div className="statItem">
               <div className="info">
                 <div className="label">Cancellations</div>
@@ -2227,7 +2689,10 @@ export class MemberFinancialStats extends Component {
                       showCancellationsMembers: true,
                       showAccountHolders: false,
                       showTotalActiveMembers: false,
+                      showActiveNonPayingMembers: false,
+                      showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
+                      showActiveCashOverdueMembers: false,
                       showActiveMembers: false,
                       showPendingCancellationsMembers: false,
                       showFrozenMembers: false,
@@ -2287,7 +2752,10 @@ export class MemberFinancialStats extends Component {
                       showAccountHolders: false,
                       showActiveMembers: false,
                       showTotalActiveMembers: false,
+                      showActiveNonPayingMembers: false,
+                      showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
+                      showActiveCashOverdueMembers: false,
                       showCancellationsMembers: false,
                       showPendingCancellationsMembers: true,
                       showFrozenMembers: false,
@@ -2347,7 +2815,10 @@ export class MemberFinancialStats extends Component {
                       showAccountHolders: false,
                       showActiveMembers: false,
                       showTotalActiveMembers: false,
+                      showActiveNonPayingMembers: false,
+                      showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
+                      showActiveCashOverdueMembers: false,
                       showCancellationsMembers: false,
                       showPendingCancellationsMembers: false,
                       showFrozenMembers: true,
@@ -2407,7 +2878,10 @@ export class MemberFinancialStats extends Component {
                       showAccountHolders: false,
                       showActiveMembers: false,
                       showTotalActiveMembers: false,
+                      showActiveNonPayingMembers: false,
+                      showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
+                      showActiveCashOverdueMembers: false,
                       showCancellationsMembers: false,
                       showPendingCancellationsMembers: false,
                       showFrozenMembers: false,
@@ -2457,64 +2931,6 @@ export class MemberFinancialStats extends Component {
             </div>
             <div className="statItem">
               <div className="info">
-                <div className="label">New Members</div>
-                <div
-                  className="value"
-                  onClick={e =>
-                    this.setState({
-                      showAccountHolders: false,
-                      showActiveMembers: false,
-                      showTotalActiveMembers: false,
-                      showActiveCashMembers: false,
-                      showCancellationsMembers: false,
-                      showPendingCancellationsMembers: false,
-                      showFrozenMembers: false,
-                      showPendingFrozenMembers: false,
-                      showNewMembers: true,
-                      showVariations: false,
-                      showFailed: false,
-                    })
-                  }
-                >
-                  {this.state.memberData.newMembers.members.length}
-                </div>
-              </div>
-              <div className="dollarValue">
-                {new Intl.NumberFormat(this.locale, {
-                  style: 'currency',
-                  currency: this.currency,
-                }).format(
-                  this.state.valueViewSwitch
-                    ? this.state.memberData.newMembers.billingValue
-                    : this.state.memberData.newMembers.value,
-                )}
-              </div>
-              {this.state.showNewMembers && (
-                <div className="members">
-                  <span
-                    className="closeMembers"
-                    onClick={e =>
-                      this.setState({
-                        showNewMembers: false,
-                      })
-                    }
-                  >
-                    <SVGInline svg={crossIcon} className="icon" />
-                  </span>
-                  <ReactTable
-                    columns={this.getMemberTableColumns()}
-                    data={this.getMemberTableData(
-                      this.state.memberData.newMembers.members,
-                      this.state.billingCustomers,
-                    )}
-                    defaultPageSize={1}
-                    showPagination={false}
-                  />
-                </div>
-              )}
-            </div>
-            <div className="statItem">
-              <div className="info">
                 <div className="label">UnFrozen</div>
                 <div
                   className="value"
@@ -2523,7 +2939,10 @@ export class MemberFinancialStats extends Component {
                       showAccountHolders: false,
                       showActiveMembers: false,
                       showTotalActiveMembers: false,
+                      showActiveNonPayingMembers: false,
+                      showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
+                      showActiveCashOverdueMembers: false,
                       showCancellationsMembers: false,
                       showPendingCancellationsMembers: false,
                       showFrozenMembers: false,
@@ -2583,7 +3002,10 @@ export class MemberFinancialStats extends Component {
                       showAccountHolders: false,
                       showActiveMembers: false,
                       showTotalActiveMembers: false,
+                      showActiveNonPayingMembers: false,
+                      showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
+                      showActiveCashOverdueMembers: false,
                       showCancellationsMembers: false,
                       showPendingCancellationsMembers: false,
                       showFrozenMembers: false,
@@ -2645,7 +3067,10 @@ export class MemberFinancialStats extends Component {
                         showAccountHolders: false,
                         showTotalActiveMembers: false,
                         showActiveMembers: false,
+                        showActiveNonPayingMembers: false,
+                        showActiveOrphanMembers: false,
                         showActiveCashMembers: false,
+                        showActiveCashOverdueMembers: false,
                         showCancellationsMembers: false,
                         showPendingCancellationsMembers: false,
                         showFrozenMembers: false,
@@ -2705,7 +3130,10 @@ export class MemberFinancialStats extends Component {
                       showAccountHolders: false,
                       showTotalActiveMembers: false,
                       showActiveMembers: false,
+                      showActiveNonPayingMembers: false,
+                      showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
+                      showActiveCashOverdueMembers: false,
                       showCancellationsMembers: false,
                       showPendingCancellationsMembers: false,
                       showFrozenMembers: false,

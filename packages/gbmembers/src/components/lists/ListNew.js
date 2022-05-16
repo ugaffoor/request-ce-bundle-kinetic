@@ -261,17 +261,20 @@ export class ListNewHome extends Component {
     let startDate = null,
       endDate = null;
 
-    if (
-      this.state.joiningDateStart !== undefined &&
-      this.state.joiningDateEnd !== undefined
-    ) {
+    if (this.state.joiningDateStart !== undefined) {
       filters.push({
         joiningDateFilter: {
           startDate: this.state.joiningDateStart,
-          endDate: this.state.joiningDateEnd,
         },
       });
       startDate = moment(this.state.joiningDateStart, 'YYYY-MM-DD');
+    }
+    if (this.state.joiningDateEnd !== undefined) {
+      filters.push({
+        joiningDateFilter: {
+          endDate: this.state.joiningDateEnd,
+        },
+      });
       endDate = moment(this.state.joiningDateEnd, 'YYYY-MM-DD');
     }
 
@@ -327,12 +330,36 @@ export class ListNewHome extends Component {
       filters.push({ billingMemberFilter: true });
     }
 
+    if ($('input[name=nonPaying]:checked').val()) {
+      filters.push({ nonPayingFilter: true });
+    }
+
     let members = this.props.allMembers.filter(function(member) {
       let match = true;
       for (var i = 0; i < filters.length; i++) {
         let keys = Object.keys(filters[i]);
         if (keys[0] === 'joiningDateFilter') {
           if (
+            startDate !== null &&
+            endDate === null &&
+            !moment(member.values['Date Joined'], 'YYYY-MM-DD').isAfter(
+              startDate,
+            )
+          ) {
+            match = false;
+          }
+          if (
+            endDate !== null &&
+            startDate === null &&
+            !moment(member.values['Date Joined'], 'YYYY-MM-DD').isBefore(
+              endDate,
+            )
+          ) {
+            match = false;
+          }
+          if (
+            startDate !== null &&
+            endDate !== null &&
             !moment(member.values['Date Joined'], 'YYYY-MM-DD').isBetween(
               startDate,
               endDate,
@@ -402,6 +429,10 @@ export class ListNewHome extends Component {
           }
         } else if (keys[0] === 'billingMemberFilter') {
           if (!member.values['Billing Customer Id']) {
+            match = false;
+          }
+        } else if (keys[0] === 'nonPayingFilter') {
+          if (member.values['Non Paying'] !== 'YES') {
             match = false;
           }
         }
@@ -494,14 +525,6 @@ export class ListNewHome extends Component {
                           .toLowerCase()}
                         formatDate={formatDate}
                         parseDate={parseDate}
-                        value={
-                          this.state.joiningDateStart !== undefined
-                            ? moment(
-                                this.state.joiningDateStart,
-                                'YYYY-MM-DD',
-                              ).toDate()
-                            : ''
-                        }
                         onDayChange={function(
                           selectedDay,
                           modifiers,
@@ -533,14 +556,6 @@ export class ListNewHome extends Component {
                           .toLowerCase()}
                         formatDate={formatDate}
                         parseDate={parseDate}
-                        value={
-                          this.state.joiningDateEnd !== undefined
-                            ? moment(
-                                this.state.joiningDateEnd,
-                                'YYYY-MM-DD',
-                              ).toDate()
-                            : ''
-                        }
                         onDayChange={function(
                           selectedDay,
                           modifiers,
@@ -809,7 +824,7 @@ export class ListNewHome extends Component {
                     style={{ position: 'relative' }}
                   >
                     <legend className="scheduler-border">Billing Member</legend>
-                    <div className="form-check">
+                    <div className="form-check form-check-inline">
                       <label className="form-check-label">
                         <input
                           type="checkbox"
@@ -819,6 +834,18 @@ export class ListNewHome extends Component {
                           value="true"
                         />{' '}
                         Billing Member
+                      </label>
+                    </div>
+                    <div className="form-check form-check-inline">
+                      <label className="form-check-label">
+                        <input
+                          type="checkbox"
+                          id="nonPaying"
+                          name="nonPaying"
+                          className="form-check-input"
+                          value="true"
+                        />{' '}
+                        Non Paying
                       </label>
                     </div>
                   </fieldset>

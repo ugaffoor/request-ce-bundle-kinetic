@@ -198,9 +198,29 @@ export const matchesMemberFilter = (allMembers, filters) => {
     for (var i = 0; i < filters.length; i++) {
       let keys = Object.keys(filters[i]);
       if (keys[0] === 'joiningDateFilter') {
-        startDate = moment(filters[i][keys[0]].startDate, 'YYYY-MM-DD');
-        endDate = moment(filters[i][keys[0]].endDate, 'YYYY-MM-DD');
+        startDate =
+          filters[i][keys[0]].startDate !== undefined
+            ? moment(filters[i][keys[0]].startDate, 'YYYY-MM-DD')
+            : undefined;
+        endDate =
+          filters[i][keys[0]].endDate !== undefined
+            ? moment(filters[i][keys[0]].endDate, 'YYYY-MM-DD')
+            : undefined;
         if (
+          startDate !== undefined &&
+          endDate === undefined &&
+          !moment(member.values['Date Joined'], 'YYYY-MM-DD').isAfter(startDate)
+        ) {
+          match = false;
+        } else if (
+          endDate !== undefined &&
+          startDate === undefined &&
+          !moment(member.values['Date Joined'], 'YYYY-MM-DD').isBefore(endDate)
+        ) {
+          match = false;
+        } else if (
+          startDate !== undefined &&
+          endDate !== undefined &&
           !moment(member.values['Date Joined'], 'YYYY-MM-DD').isBetween(
             startDate,
             endDate,

@@ -16,20 +16,21 @@ export class I18nProvider extends React.Component {
     this.state = { translations: Map() };
     this.loading = Map();
     this.mergeTranslations = !!props.mergeTranslations;
+    this.translationsLoadedCallback = props.translationsLoadedCallback;
   }
 
   componentDidMount() {
-    if (this.props.validVersion) {
-      this.loadTranslations(this.props.locale, 'shared');
-    } else if (this.props.version) {
-      console.warn(
-        `You are currently running Kinetic CE ${this.props.version}. Translations require Kinetic CE ${MINIMUM_CE_VERSION} or greater.`,
-      );
-    }
+    //    if (this.props.validVersion) {
+    this.loadTranslations(this.props.locale, 'shared');
+    //    } else if (this.props.version) {
+    //      console.warn(
+    //        `You are currently running Kinetic CE ${this.props.version}. Translations require Kinetic CE ${MINIMUM_CE_VERSION} or greater.`,
+    //      );
+    //    }
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if (this.props.validVersion) {
+    if (true /*this.props.validVersion*/) {
       if (prevProps.locale !== this.props.locale || !prevProps.validVersion) {
         this.loadTranslations(this.props.locale, 'shared');
       }
@@ -43,6 +44,10 @@ export class I18nProvider extends React.Component {
               ...this.state.translations.get(this.props.locale).toJS(),
             }
           : this.state.translations.get(this.props.locale).toJS();
+
+        if (this.translationsLoadedCallback !== undefined) {
+          this.translationsLoadedCallback();
+        }
       }
     } else if (this.props.version) {
       console.warn(

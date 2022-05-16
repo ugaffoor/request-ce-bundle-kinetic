@@ -31,6 +31,9 @@ export function* fetchAppTask({ payload }) {
         'attributes,profileAttributes,profileAttributesMap,memberships,memberships.team,memberships.team.attributes,memberships.team.memberships,memberships.team.memberships.user,attributes,space,space.details,space.attributes,space.attributesMap,space.kapps,space.kapps.attributes',
     });
 
+    if (!profile.enabled) {
+      window.location = '/app/logout';
+    }
     const space = Map(profile.space)
       .delete('kapps')
       .toJS();

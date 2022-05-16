@@ -386,6 +386,10 @@ export class ListEditHome extends Component {
       filters.push({ billingMemberFilter: true });
     }
 
+    if ($('input[name=nonPaying]:checked').val()) {
+      filters.push({ nonPayingFilter: true });
+    }
+
     let members = matchesMemberFilter(this.props.allMembers, filters);
     var data = this.getData(members);
     this.setState({
@@ -404,8 +408,8 @@ export class ListEditHome extends Component {
       let key = Object.keys(filter)[0];
       if (key === 'joiningDateFilter') {
         compThis.setState({
-          joiningDateStart: filter[key].endDate,
-          joiningDateEnd: filter[key].startDate,
+          joiningDateStart: filter[key].startDate,
+          joiningDateEnd: filter[key].endDate,
         });
       } else if (key === 'genderFilter') {
         $('input[name=gender][value="' + filter[key].gender + '"]').attr(
@@ -429,6 +433,8 @@ export class ListEditHome extends Component {
         $('#memberType').val(filter[key].memberType);
       } else if (key === 'billingMemberFilter') {
         $('input[name=billingMember][value=true]').attr('checked', 'checked');
+      } else if (key === 'nonPayingFilter') {
+        $('input[name=nonPaying][value=true]').attr('checked', 'checked');
       }
     });
 
@@ -829,7 +835,7 @@ export class ListEditHome extends Component {
                     style={{ position: 'relative' }}
                   >
                     <legend className="scheduler-border">Billing Member</legend>
-                    <div className="form-check">
+                    <div className="form-check form-check-inline">
                       <label className="form-check-label">
                         <input
                           type="checkbox"
@@ -839,6 +845,18 @@ export class ListEditHome extends Component {
                           value="true"
                         />{' '}
                         Billing Member
+                      </label>
+                    </div>
+                    <div className="form-check form-check-inline">
+                      <label className="form-check-label">
+                        <input
+                          type="checkbox"
+                          id="nonPaying"
+                          name="nonPaying"
+                          className="form-check-input"
+                          value="true"
+                        />{' '}
+                        Non Paying
                       </label>
                     </div>
                   </fieldset>

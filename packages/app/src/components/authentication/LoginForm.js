@@ -1,7 +1,9 @@
 import React from 'react';
-import { compose, withHandlers } from 'recompose';
+import { compose, withHandlers, lifecycle } from 'recompose';
 import { login } from '../../utils/authentication';
 import { I18n } from '../../I18nProvider';
+import { Utils } from 'common';
+import { App as SpaceApp } from 'space/src/App';
 
 export const Login = ({
   handleLogin,
@@ -13,6 +15,8 @@ export const Login = ({
   handlePassword,
   error,
   routed,
+  space,
+  pathname,
 }) => (
   <form className="login-form-container" onSubmit={handleLogin}>
     <div
@@ -21,7 +25,15 @@ export const Login = ({
         flexDirection: 'column',
       }}
     >
+      <p>{Utils.getAttributeValue(SpaceApp, 'School Email')}</p>
       <div className="form-group">
+        {pathname.includes('redirected') && (
+          <span className="redirected">
+            The GB Members environment has been migrated. If you have been
+            provided a new password, please proceed with the Sign In. Otherwise,
+            click "RESET PASSWORD" to reset a password.
+          </span>
+        )}
         <label htmlFor="email">
           <I18n>User Name</I18n>
         </label>
@@ -76,13 +88,14 @@ const tryAuthentication = ({
   handleAuthenticated,
   routed,
   push,
+  pathname,
 }) => async (username, password) => {
   try {
     await login(username, password);
 
     handleAuthenticated();
 
-    if (routed) {
+    if (routed || pathname.includes('redirected')) {
       push('/');
     }
   } catch (error) {
@@ -90,12 +103,23 @@ const tryAuthentication = ({
     setPassword('');
   }
 };
-
 export const LoginForm = compose(
   withHandlers({
     tryAuthentication,
   }),
   withHandlers({
     handleLogin,
+  }),
+  lifecycle({
+    /*    componentDidMount() {
+      console.log("Login Form mounted");
+      setTimeout(function(){
+        console.log("Login Form:"+window.bundle.config.translations);
+        debugger;
+        if (window.bundle.identity()!=="unus@uniqconsulting.com.au" && window.bundle.config.translations !== undefined && window.bundle.config.translations.shared.Redirect !== undefined){
+          window.location=window.bundle.config.translations.shared.Redirect;
+        }
+      },1000);
+    },*/
   }),
 )(Login);

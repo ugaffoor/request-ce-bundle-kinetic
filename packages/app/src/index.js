@@ -36,6 +36,22 @@ axios.interceptors.response.use(null, authInterceptor.handleRejected);
 CoreAPI.addResponseInterceptor(null, authInterceptor.handleRejected);
 CoreAPI.setDefaultAuthAssumed(true);
 
+function translationsLoadedCallback() {
+  console.log('translationsLoadedCallback');
+  if (
+    window.bundle.identity() !== 'unus@uniqconsulting.com.au' &&
+    window.bundle.config.translations !== undefined &&
+    window.bundle.config.translations.shared.Redirect !== undefined
+  ) {
+    window.location = window.bundle.config.translations.shared.Redirect;
+  } else if (
+    window.bundle.identity() !== 'anonymous' &&
+    window.location.hash.includes('redirected')
+  ) {
+    window.location.hash = '#/';
+  }
+}
+
 ReactDOM.render(
   <Fragment>
     <Helmet>
@@ -45,7 +61,9 @@ ReactDOM.render(
       />
     </Helmet>
     <Provider store={store}>
-      <ConnectedI18nProvider>
+      <ConnectedI18nProvider
+        translationsLoadedCallback={translationsLoadedCallback}
+      >
         <ConnectedRouter history={history}>
           <AuthenticatedContainer>
             <Route path="/" component={App} />

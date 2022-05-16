@@ -1886,7 +1886,7 @@ export class MemberFinancialReport extends Component {
               <div className="column col4"></div>
             </div>
             <div className="row header8">
-              <div className="column col1">Payments-Refunds+POS+Forecast</div>
+              <div className="column col1">Membership-Refunds+POS+Forecast</div>
               <div className="column col2">
                 <div className="dollarValue">
                   {new Intl.NumberFormat(this.locale, {
@@ -1911,6 +1911,22 @@ export class MemberFinancialReport extends Component {
                     style: 'currency',
                     currency: this.currency,
                   }).format(this.state.repMemberData.forecastHolders.value)}
+                </div>
+              </div>
+              <div className="column col3"></div>
+              <div className="column col4"></div>
+            </div>
+            <div className="row header10">
+              <div className="column col1">Membership+Forecast</div>
+              <div className="column col2">
+                <div className="dollarValue">
+                  {new Intl.NumberFormat(this.locale, {
+                    style: 'currency',
+                    currency: this.currency,
+                  }).format(
+                    this.state.repMemberData.accountHolders.value +
+                      this.state.repMemberData.forecastHolders.value,
+                  )}
                 </div>
               </div>
               <div className="column col3"></div>

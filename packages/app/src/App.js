@@ -80,6 +80,7 @@ export const mapStateToProps = state => ({
   kappSlug: state.app.config.kappSlug,
   pathname: state.router.location.pathname,
   locale: state.app.config.locale,
+  space: state.member.app.space,
 });
 export const mapDispatchToProps = {
   loadApp: loadingActions.loadApp,

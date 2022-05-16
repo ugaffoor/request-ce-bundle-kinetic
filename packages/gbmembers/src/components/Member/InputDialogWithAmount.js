@@ -66,8 +66,17 @@ class InputDialogWithAmount extends Component {
       alert('Amount must be valid');
       return;
     }
-    if (this.state.amount > this.originalAmount) {
-      alert('Amount must not be greater than original amount');
+    if (
+      Number.parseFloat(this.state.amount) >
+      Number.parseFloat(this.originalAmount)
+    ) {
+      alert(
+        'Amount must not be greater than original amount [Refund Amount:' +
+          this.state.amount +
+          ', Amount:' +
+          this.originalAmount +
+          ']',
+      );
       return;
     }
 

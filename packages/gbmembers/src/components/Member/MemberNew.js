@@ -311,7 +311,6 @@ export const MemberNew = ({
                       size="10"
                       required
                       ref={input => (this.input = input)}
-                      value={''}
                       onChange={e => {
                         handleChange(memberItem, 'Postcode', e);
                       }}
@@ -328,7 +327,6 @@ export const MemberNew = ({
                       mask="_"
                       required
                       ref={input => (this.input = input)}
-                      value={''}
                       onValueChange={(values, e) =>
                         handleFormattedChange(values, memberItem, 'Postcode', e)
                       }
@@ -402,7 +400,6 @@ export const MemberNew = ({
                     mask="_"
                     required
                     ref={input => (this.input = input)}
-                    value={''}
                     onValueChange={(values, e) =>
                       handleFormattedChange(
                         values,
@@ -425,7 +422,6 @@ export const MemberNew = ({
                     }
                     mask="_"
                     ref={input => (this.input = input)}
-                    value={''}
                     onValueChange={(values, e) =>
                       handleFormattedChange(
                         values,
@@ -495,7 +491,6 @@ export const MemberNew = ({
                     formatDate={formatDate}
                     parseDate={parseDate}
                     fieldName="DOB"
-                    value={''}
                     memberItem={memberItem}
                     onDayPickerHide={handleDateChange}
                     dayPickerProps={{
@@ -619,7 +614,6 @@ export const MemberNew = ({
                     mask="_"
                     required
                     ref={input => (this.input = input)}
-                    value={''}
                     onValueChange={(values, e) =>
                       handleFormattedChange(
                         values,
