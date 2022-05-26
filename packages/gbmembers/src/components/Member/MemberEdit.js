@@ -704,6 +704,29 @@ export const MemberEdit = ({
                           }
                         />
                       </div>
+                      <div>
+                        <label htmlFor="registeredWithCard">
+                          Registered with Card
+                        </label>
+                        <input
+                          type="text"
+                          name="registeredWithCard"
+                          id="registeredWithCard"
+                          size="30"
+                          ref={input => (this.input = input)}
+                          defaultValue={
+                            memberItem.values['Registered with Card']
+                          }
+                          onChange={e =>
+                            handleChange(
+                              memberItem,
+                              'Registered with Card',
+                              e,
+                              setIsDirty,
+                            )
+                          }
+                        />
+                      </div>
                     </span>
                     <span className="line">
                       <div>
@@ -967,7 +990,7 @@ export const MemberEdit = ({
                   }
                 />
               </div>
-              <div>
+              <div className="state">
                 <label
                   htmlFor="State"
                   required={
@@ -1001,7 +1024,7 @@ export const MemberEdit = ({
                 </select>
                 <div className="droparrow" />
               </div>
-              <div>
+              <div className="postcode">
                 <label
                   htmlFor="postcode"
                   required={

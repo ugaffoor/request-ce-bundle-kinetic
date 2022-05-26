@@ -227,6 +227,8 @@ export class MemberFinancialStats extends Component {
             periodCount = 2;
           } else if (paymentPeriod === 'Monthly') {
             period = 'months';
+          } else if (paymentPeriod === 'Yeary') {
+            period = 'years';
           }
           var nextBillingDate = moment(
             member.contractStartDate,
@@ -352,6 +354,8 @@ export class MemberFinancialStats extends Component {
         varDailyCost = varAmount / 2 / 7;
       } else if (paymentPeriod === 'Monthly') {
         varDailyCost = (varAmount * 12) / 52 / 7;
+      } else if (paymentPeriod === 'Yearly') {
+        varDailyCost = varAmount / 52 / 7;
       }
 
       return billing.billingAmount > variationCustomer.variationAmount
@@ -403,6 +407,8 @@ export class MemberFinancialStats extends Component {
       periodCount = 2;
     } else if (paymentPeriod === 'Monthly') {
       period = 'months';
+    } else if (paymentPeriod === 'Yearly') {
+      period = 'years';
     }
     var lastPayment = moment(billing.contractStartDate, 'YYYY-MM-DD');
     var total = 0;
@@ -518,6 +524,8 @@ export class MemberFinancialStats extends Component {
           varDailyCost = varAmount / 2 / 7;
         } else if (paymentPeriod === 'Monthly') {
           varDailyCost = (varAmount * 12) / 52 / 7;
+        } else if (paymentPeriod === 'Yearly') {
+          varDailyCost = varAmount / 365;
         }
 
         varCost = varDays * varDailyCost;
@@ -534,6 +542,8 @@ export class MemberFinancialStats extends Component {
       dailyCost = cost / 2 / 7;
     } else if (paymentPeriod === 'Monthly') {
       dailyCost = (cost * 12) / 52 / 7;
+    } else if (paymentPeriod === 'Yearly') {
+      dailyCost = cost / 52 / 7;
     }
     let startDate = moment(billing.contractStartDate).isAfter(fromDate)
       ? moment(billing.contractStartDate)
@@ -615,6 +625,8 @@ export class MemberFinancialStats extends Component {
             varWeeklyCost = varAmount / 2;
           } else if (paymentPeriod === 'Monthly') {
             varWeeklyCost = (varAmount * 12) / 52;
+          } else if (paymentPeriod === 'Yearly') {
+            varWeeklyCost = varAmount / 52;
           }
 
           varCost = varWeeklyCost;
@@ -631,6 +643,8 @@ export class MemberFinancialStats extends Component {
         weeklyCost = billing.billingAmount / 2;
       } else if (paymentPeriod === 'Monthly') {
         weeklyCost = (billing.billingAmount * 12) / 52;
+      } else if (paymentPeriod === 'Yearly') {
+        weeklyCost = billing.billingAmount / 52;
       }
       return weeklyCost + varCost;
     }
@@ -2127,6 +2141,11 @@ export class MemberFinancialStats extends Component {
               <li>
                 Active Non Paying - Members that have a status = "Active" but
                 have been marked as "Non Paying".
+              </li>
+              <li>
+                Active Orphan - Members that have a status = "Active" but are
+                not being billed, or been made a Family member or defined as Non
+                Paying.
               </li>
               <li>
                 Active Cash - Members with a status = "Active" and have a Cash

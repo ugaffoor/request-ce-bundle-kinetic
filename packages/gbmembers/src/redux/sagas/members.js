@@ -322,6 +322,9 @@ export function* fetchCurrentMember(action) {
         } else if (billingPeriod === 'Monthly') {
           period = 'months';
           periodVal = 1;
+        } else if (billingPeriod === 'Yearly') {
+          period = 'years';
+          periodVal = 1;
         }
         var nextBillingDate = undefined;
         if (billingPeriod === 'Daily') {
@@ -392,6 +395,7 @@ export function* fetchCurrentMember(action) {
           paymentPeriod: submission.submission.values['Billing Period'],
           customerReference:
             submission.submission.values['Billing Customer Reference'],
+          cardOnFileID: submission.submission.values['POS Profile ID'],
           paymentAmountInCents:
             parseFloat(submission.submission.values['Payment'], 2) * 100,
         }),

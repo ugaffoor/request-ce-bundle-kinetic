@@ -25,7 +25,7 @@ export class StockReport extends Component {
         : this.props.profile.preferredLocale;
 
     this.getColumns = this.getColumns.bind(this);
-    let data = this.getData(this.props.posStock);
+    let data = this.getData(this.props.posStock, true);
     var total = 0;
     this.props.posStock.forEach((stock, i) => {
       var idx = this.props.posProducts.findIndex(
@@ -53,6 +53,7 @@ export class StockReport extends Component {
     this.state = {
       data,
       columns,
+      stockViewMode: false,
     };
   }
 
@@ -60,13 +61,19 @@ export class StockReport extends Component {
 
   UNSAFE_componentWillMount() {}
 
-  getData(posStock) {
+  getData(posStock, onlyStocked) {
     if (!posStock || posStock.length <= 0) {
       return [];
     }
 
-    const data = posStock
-      .filter(stock => stock.values['Quantity'] !== '0')
+    var data = posStock;
+    if (onlyStocked) {
+      data = posStock.filter(stock => stock.values['Quantity'] !== '0');
+    } else {
+      data = posStock.filter(stock => stock.values['Quantity'] === '0');
+    }
+
+    data = data
       .sort((a, b) => {
         if (a.values['Product Name'] < b.values['Product Name']) {
           return -1;
@@ -186,13 +193,63 @@ export class StockReport extends Component {
         <div
           className="page-header"
           style={{ textAlign: 'center', marginBottom: '3%' }}
-        ></div>
-        <ReactToPrint
-          trigger={() => (
-            <SVGInline svg={printerIcon} className="icon tablePrint" />
-          )}
-          content={() => this.tableComponentRef}
-        />
+        >
+          <ReactToPrint
+            trigger={() => (
+              <SVGInline svg={printerIcon} className="icon tablePrint" />
+            )}
+            content={() => this.tableComponentRef}
+          />
+          <div className="showStockView">
+            <label htmlFor="stockViewMode">Show Empty Stock</label>
+            <div className="checkboxFilter">
+              <input
+                id="stockViewMode"
+                type="checkbox"
+                value="0"
+                onChange={e => {
+                  var newMode = !this.state.stockViewMode;
+                  var data = this.getData(this.props.posStock, !newMode);
+                  var total = 0;
+                  data.forEach((stock, i) => {
+                    var idx = this.props.posProducts.findIndex(
+                      prod => prod['id'] === stock.productid,
+                    );
+                    if (idx !== -1) {
+                      total +=
+                        Number.parseFloat(stock.quantity) *
+                        Number.parseFloat(
+                          this.props.posProducts[idx].values['Price'],
+                        );
+                    }
+                  });
+
+                  data.forEach((stock, i) => {
+                    var idx = this.props.posProducts.findIndex(
+                      prod => prod['id'] === stock.productid,
+                    );
+                    if (idx !== -1) {
+                      stock['price'] = Number.parseFloat(
+                        this.props.posProducts[idx].values['Price'],
+                      );
+                    }
+                  });
+
+                  let columns = this.getColumns(total);
+
+                  this.setState({
+                    stockViewMode: newMode,
+                    data: data,
+                    columns: columns,
+                    total: total,
+                  });
+                }}
+              />
+              <label htmlFor="stockViewMode"></label>
+            </div>
+            {}
+          </div>
+        </div>
         <ReactTable
           ref={el => (this.tableComponentRef = el)}
           columns={columns}

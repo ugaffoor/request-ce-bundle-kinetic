@@ -77,7 +77,8 @@ export class BamboraOverdues extends Component {
         member.values['Status'] === 'Penging Freeze' ||
         member.values['Status'] === 'Pending Cancellation') &&
       payment.debitDate !== null &&
-      member.values['Non Paying'] !== 'YES'
+      member.values['Non Paying'] !== 'YES' &&
+      member.values['Billing Payment Type'] === 'Credit Card'
     ) {
       valid = true;
     }
@@ -318,7 +319,7 @@ export class BamboraOverdues extends Component {
                 props.value)
             }
           >
-            Pay Now
+            Update Credit Card
           </button>
         ),
       },

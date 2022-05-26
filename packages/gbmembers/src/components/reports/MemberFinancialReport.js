@@ -477,6 +477,8 @@ export class MemberFinancialReport extends Component {
           periodCount = 2;
         } else if (paymentPeriod === 'Monthly') {
           period = 'months';
+        } else if (paymentPeriod === 'Yearly') {
+          period = 'years';
         }
         if (lastPayment.isAfter(moment())) {
           lastPayment = lastPayment.subtract(period, periodCount);

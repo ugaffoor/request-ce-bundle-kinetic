@@ -763,6 +763,16 @@
     }
   }
 }
+.state {
+  width: auto !important;
+  label {
+    min-width: unset !important;
+  }
+}
+.postcode {
+  width: 20% !important;
+  margin-left: 13%;
+}
 
 .memberEditDetails {
   background-color: white;

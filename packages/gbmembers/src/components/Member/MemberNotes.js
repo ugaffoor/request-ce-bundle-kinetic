@@ -233,7 +233,6 @@ export class MemberNotesHome extends Component {
                     {this.props.memberItem.values['Reminder Date']
                       ? moment(
                           this.props.memberItem.values['Reminder Date'],
-                          'YYYY-MM-DD',
                         ).format('L')
                       : ''}
                   </NavLink>

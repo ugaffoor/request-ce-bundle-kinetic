@@ -715,14 +715,14 @@ export class TasksDetail extends Component {
     if (!date) {
       return undefined;
     }
-    return moment(date, 'YYYY-MM-DD').date();
+    return moment(date).date();
   }
 
   getMonth(date) {
     if (!date) {
       return undefined;
     }
-    return moment(date, 'YYYY-MM-DD')
+    return moment(date)
       .format('MMM')
       .toUpperCase();
   }

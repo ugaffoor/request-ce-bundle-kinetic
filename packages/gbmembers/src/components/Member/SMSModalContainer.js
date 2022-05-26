@@ -111,7 +111,7 @@ export class SMSModal extends Component {
     }
 
     let to = null;
-    if (this.state.selectedOption.length == 1) {
+    if (this.state.selectedOption.length === 1) {
       to = this.state.selectedOption[0].value;
     } else {
       to =
@@ -151,12 +151,27 @@ export class SMSModal extends Component {
       });
     }
 
+    var dt = moment().format('L hh:mm A');
     this.props.sendSmsMessage({
       type: 'outbound',
       status: 'sent',
       to: to,
       text: content,
-      datetime: moment().format('DD-MM-YYYY hh:mm A'),
+      datetime: dt,
+    });
+
+    var newMessages = [];
+
+    newMessages.push(
+      <div className="outgoing_msg" key={this.state.messages.length + 1}>
+        <div className="sent_msg">
+          <p>{content}</p>
+          <span className="time_date">{dt}</span>{' '}
+        </div>
+      </div>,
+    );
+    this.setState({
+      messages: newMessages.concat(this.state.messages),
     });
   }
 
@@ -188,27 +203,25 @@ export class SMSModal extends Component {
           ? content['Sent Date']
           : content['Received Date'];
 
-      dt = moment(dt, 'DD-MM-YYYY HH:mm');
+      dt = moment(dt, 'L HH:mm');
       dt = dt.add(moment().utcOffset() * 60, 'seconds');
 */
       var dt = moment(value['createdAt']);
 
       smsValues[smsValues.length] = {
         Direction: value.values['Direction'],
-        Date: dt.format('DD-MM-YYYY HH:mm'),
+        Date: dt.format('L HH:mm'),
         Content: content['Content'],
       };
     });
     smsValues.sort(function(sms1, sms2) {
       if (
-        moment(sms1['Date'], 'DD-MM-YYYY HH:mm').isAfter(
-          moment(sms2['Date'], 'DD-MM-YYYY HH:mm'),
-        )
+        moment(sms1['Date'], 'L HH:mm').isAfter(moment(sms2['Date'], 'L HH:mm'))
       ) {
         return -1;
       } else if (
-        moment(sms1['Date'], 'DD-MM-YYYY HH:mm').isBefore(
-          moment(sms2['Date'], 'DD-MM-YYYY HH:mm'),
+        moment(sms1['Date'], 'L HH:mm').isBefore(
+          moment(sms2['Date'], 'L HH:mm'),
         )
       ) {
         return 1;
@@ -249,9 +262,9 @@ export class SMSModal extends Component {
 
     smsResult.forEach((element, index) => {
       if (element['Direction'] === 'Outbound') {
-        var dt = moment(element['Date'], 'DD-MM-YYYY HH:mm');
+        var dt = moment(element['Date'], 'L HH:mm');
         //dt = dt.add(moment().utcOffset() * 60, 'seconds');
-        element['Date'] = dt.format('DD-MM-YYYY HH:mm');
+        element['Date'] = dt.format('L HH:mm');
         sms_msgs.push(
           <div className="outgoing_msg" key={index}>
             <div className="sent_msg">
@@ -261,9 +274,9 @@ export class SMSModal extends Component {
           </div>,
         );
       } else if (element['Direction'] === 'Inbound') {
-        dt = moment(element['Date'], 'DD-MM-YYYY HH:mm');
+        dt = moment(element['Date'], 'L HH:mm');
         //dt = dt.add(moment().utcOffset() * 60, 'seconds');
-        element['Date'] = dt.format('DD-MM-YYYY HH:mm');
+        element['Date'] = dt.format('L HH:mm');
         sms_msgs.push(
           <div className="incoming_msg" key={index}>
             <div className="incoming_msg_img">

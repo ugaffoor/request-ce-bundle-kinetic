@@ -548,7 +548,8 @@ const PageBreakWrapper = styled.div`
 
 class AttendanceCardToPrint extends React.Component {
   render() {
-    return this.props.memberItem.values['Ranking Program'] === undefined ? (
+    return this.props.memberItem.values['Ranking Program'] === undefined ||
+      this.props.memberItem.values['Ranking Program'] === null ? (
       <div />
     ) : (
       <div
@@ -1326,8 +1327,8 @@ export const MemberView = ({
               </div>
               <div
                 className={
-                  memberItem.values['Billing Payment Type'] !== 'Cash' &&
-                  memberItem.values['Non Paying'] !== 'YES' &&
+                  /*memberItem.values['Billing Payment Type'] !== 'Cash' &&
+                  memberItem.values['Non Paying'] !== 'YES' && */
                   memberItem.values['Billing Customer Id'] !== undefined &&
                   memberItem.values['Billing Customer Id'] !== '' &&
                   memberItem.values['Billing Customer Id'] !== null

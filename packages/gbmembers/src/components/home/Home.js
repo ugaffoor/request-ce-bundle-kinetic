@@ -319,7 +319,10 @@ export const HomeContainer = compose(
   }),
   lifecycle({
     UNSAFE_componentWillMount() {
-      if (Utils.isMemberOf(this.props.profile, 'Billing')) {
+      if (
+        Utils.isMemberOf(this.props.profile, 'Billing') &&
+        getAttributeValue(this.props.space, 'Billing Company') !== 'No Billing'
+      ) {
         if (
           !this.props.billingPayments ||
           this.props.billingPayments.length <= 0

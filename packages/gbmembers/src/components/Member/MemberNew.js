@@ -260,7 +260,7 @@ export const MemberNew = ({
                     onChange={e => handleChange(memberItem, 'Suburb', e)}
                   />
                 </div>
-                <div>
+                <div className="state">
                   <label
                     htmlFor="State"
                     required={
@@ -289,7 +289,7 @@ export const MemberNew = ({
                   </select>
                   <div className="droparrow" />
                 </div>
-                <div>
+                <div className="postcode">
                   <label
                     htmlFor="postcode"
                     required={
@@ -311,6 +311,7 @@ export const MemberNew = ({
                       size="10"
                       required
                       ref={input => (this.input = input)}
+                      defaultValue={memberItem.values['Postcode']}
                       onChange={e => {
                         handleChange(memberItem, 'Postcode', e);
                       }}
@@ -400,6 +401,7 @@ export const MemberNew = ({
                     mask="_"
                     required
                     ref={input => (this.input = input)}
+                    value={memberItem.values['Phone Number']}
                     onValueChange={(values, e) =>
                       handleFormattedChange(
                         values,
@@ -422,6 +424,7 @@ export const MemberNew = ({
                     }
                     mask="_"
                     ref={input => (this.input = input)}
+                    value={memberItem.values['Additional Phone Number']}
                     onValueChange={(values, e) =>
                       handleFormattedChange(
                         values,

@@ -565,7 +565,7 @@ class PayNow extends Component {
           posThis.setState({
             posProfileID: undefined,
           });
-          posThis.props.updateMemberItem(posThis.state.personID, null);
+          posThis.props.updateMemberItem(posThis.state.personID, '');
         } else {
           posThis.setState({
             status: data.status,
@@ -1751,7 +1751,8 @@ class PayNow extends Component {
                 </span>
               </span>
               {this.state.posProfileID !== undefined &&
-              this.state.posProfileID !== null ? (
+              this.state.posProfileID !== null &&
+              this.state.posProfileID !== '' ? (
                 this.props.posCardsLoading ? (
                   <span className="paymentType">
                     <div className="label">Loading Saved Card...</div>

@@ -15,6 +15,27 @@
   }
 }
 
+.stockReport {
+  .tablePrint {
+    cursor: pointer;
+    float: left;
+  }
+  .showStockView {
+    width: 50%;
+    margin-left: 200px;
+    label {
+      float: left;
+      margin-right: 20px;
+    }
+    .checkboxFilter {
+      float: left;
+      clear: none;
+    }
+  }
+  .ReactTable {
+    clear: left;
+  }
+}
 // Bambora checkout
 #bamboraCheckout {
   .errorDetails {

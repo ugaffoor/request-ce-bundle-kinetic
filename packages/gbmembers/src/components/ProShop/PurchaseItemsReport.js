@@ -91,6 +91,8 @@ export class PurchaseItemsReport extends Component {
       allMembers: this.props.members,
       data,
       total: 0,
+      costTotal: 0,
+      profitTotal: 0,
       repFromDate,
       repToDate,
       repPeriod: 'monthly',
@@ -107,14 +109,20 @@ export class PurchaseItemsReport extends Component {
       });
       let data = this.getData(this.posPurchaseItems, this.props.posProducts);
       var total = 0;
+      var costTotal = 0;
+      var profitTotal = 0;
       data.forEach((item, i) => {
         total += item.value;
+        costTotal += item.cost;
+        profitTotal += item.profit;
       });
 
       this.setState({
         allMembers: nextProps.members,
         data,
         total,
+        costTotal,
+        profitTotal,
       });
     }
   }
@@ -146,6 +154,36 @@ export class PurchaseItemsReport extends Component {
     console.log('No product price found for :' + item['id']);
     return 0;
   }
+  getItemCost(item, posProducts) {
+    if (
+      item.values['Cost'] !== undefined &&
+      item.values['Cost'] !== null &&
+      item.values['Cost'] !== ''
+    ) {
+      return Number.parseFloat(item.values['Cost']);
+    } else {
+      var idx = posProducts.findIndex(
+        product => product['id'] === item.values['Product ID'],
+      );
+      if (idx !== -1) {
+        if (
+          posProducts[idx].values['Cost'] !== undefined &&
+          posProducts[idx].values['Cost'] !== null &&
+          posProducts[idx].values['Cost'] !== ''
+        ) {
+          return Number.parseFloat(posProducts[idx].values['Cost']);
+        } else {
+          return 0;
+        }
+      }
+    }
+    console.log('No product cost found for :' + item['id']);
+    return 0;
+  }
+  getItemProfit(cost, price) {
+    if (cost === 0) return 0;
+    return price - cost;
+  }
   getData(posPurchaseItems, posProducts) {
     if (!posPurchaseItems || posPurchaseItems.length <= 0) {
       return [];
@@ -158,6 +196,9 @@ export class PurchaseItemsReport extends Component {
           item.values['Product Name'] +
             (item.values['Size'] !== undefined ? item.values['Size'] : ''),
       );
+      var price = this.getItemPrice(item, posProducts);
+      var cost = this.getItemCost(item, posProducts);
+      var profit = this.getItemProfit(cost, price);
       if (idx === -1) {
         data[data.length] = {
           key:
@@ -166,17 +207,19 @@ export class PurchaseItemsReport extends Component {
           name: item.values['Product Name'],
           size: item.values['Size'],
           quantity: Number.parseInt(item.values['Quantity']),
-          value:
-            Number.parseInt(item.values['Quantity']) *
-            this.getItemPrice(item, posProducts),
+          value: Number.parseInt(item.values['Quantity']) * price,
+          cost: Number.parseInt(item.values['Quantity']) * cost,
+          profit: Number.parseInt(item.values['Quantity']) * profit,
         };
       } else {
         data[idx].quantity =
           data[idx].quantity + Number.parseInt(item.values['Quantity']);
         data[idx].value =
-          data[idx].value +
-          Number.parseInt(item.values['Quantity']) *
-            this.getItemPrice(item, posProducts);
+          data[idx].value + Number.parseInt(item.values['Quantity']) * price;
+        data[idx].cost =
+          data[idx].cost + Number.parseInt(item.values['Quantity']) * cost;
+        data[idx].profit =
+          data[idx].profit + Number.parseInt(item.values['Quantity']) * profit;
       }
     });
 
@@ -203,6 +246,7 @@ export class PurchaseItemsReport extends Component {
           size: item.size,
           quantity: item.quantity,
           value: item.value,
+          cost: item.cost,
         };
       });
     return data;
@@ -365,6 +409,34 @@ export class PurchaseItemsReport extends Component {
         width: 100,
       },
       {
+        accessor: 'cost',
+        Header: 'Cost',
+        width: 150,
+        Cell: props => {
+          return props.original.cost === undefined ? (
+            <div />
+          ) : (
+            <div className="dollarValue">
+              {new Intl.NumberFormat(this.locale, {
+                style: 'currency',
+                currency: this.currency,
+              }).format(props.original.cost)}
+            </div>
+          );
+        },
+        Footer: (
+          <span>
+            <strong>Total: </strong>
+            {this.state !== undefined
+              ? new Intl.NumberFormat(this.locale, {
+                  style: 'currency',
+                  currency: this.currency,
+                }).format(this.state.costTotal)
+              : 0}
+          </span>
+        ),
+      },
+      {
         accessor: 'value',
         Header: 'Value',
         width: 150,
@@ -388,6 +460,34 @@ export class PurchaseItemsReport extends Component {
                   style: 'currency',
                   currency: this.currency,
                 }).format(this.state.total)
+              : 0}
+          </span>
+        ),
+      },
+      {
+        accessor: 'profit',
+        Header: 'Profit',
+        width: 150,
+        Cell: props => {
+          return props.original.profit === undefined ? (
+            <div />
+          ) : (
+            <div className="dollarValue">
+              {new Intl.NumberFormat(this.locale, {
+                style: 'currency',
+                currency: this.currency,
+              }).format(props.original.profit)}
+            </div>
+          );
+        },
+        Footer: (
+          <span>
+            <strong>Total: </strong>
+            {this.state !== undefined
+              ? new Intl.NumberFormat(this.locale, {
+                  style: 'currency',
+                  currency: this.currency,
+                }).format(this.state.profitTotal)
               : 0}
           </span>
         ),

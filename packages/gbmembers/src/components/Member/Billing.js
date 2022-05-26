@@ -1082,253 +1082,285 @@ export class BillingInfo extends Component {
           {this.props.memberItem.values['Last Name']}
         </h1>
         <hr />
+        {this.props.memberItem.values['Billing Payment Type'] === 'Cash' && (
+          <p>Cash</p>
+        )}
+        {this.props.memberItem.values['Non Paying'] === 'YES' && (
+          <p>Non Paying</p>
+        )}
         <span className="line">
-          <div title="Billing Info" className="billingInfo">
-            {!this.props.isValidInput ? (
-              <div ref="errorDiv" style={errorMessageDiv}>
-                {this.props.errorMessage}
-              </div>
-            ) : (
-              ''
-            )}
-            <hr />
-            {this.props.billingInfoLoading === true ? (
-              <div>
-                <p>Loading Billing Information</p>
-                <ReactSpinner />
-              </div>
-            ) : (
+          {this.props.memberItem.values['Billing Payment Type'] !== 'Cash' &&
+            this.props.memberItem.values['Non Paying'] !== 'YES' && (
               <span>
-                <table
-                  className={
-                    this.props.billingInfo.customerBillingId !== undefined
-                      ? 'show'
-                      : 'hide'
-                  }
-                >
-                  <tbody>
-                    <tr>
-                      <th width="30%">Item</th>
-                      <th width="70%">Value</th>
-                    </tr>
-                    {getAttributeValue(this.props.space, 'Billing Company') ===
-                      'PaySmart' && (
-                      <tr>
-                        <td>DDR Status:</td>
-                        <td>{this.props.memberItem.values['DDR Status']}</td>
-                      </tr>
-                    )}
-                    {getAttributeValue(this.props.space, 'Billing Company') ===
-                      'PaySmart' && (
-                      <tr>
-                        <td>FFA ID:</td>
-                        <td>{this.props.billingInfo.ffaid}</td>
-                      </tr>
-                    )}
-                    <tr>
-                      <td>Billing Reference ID:</td>
-                      <td>{this.props.billingInfo.customerReference}</td>
-                    </tr>
-                    <tr>
-                      <td>Billing Status:</td>
-                      {getAttributeValue(
-                        this.props.space,
-                        'Billing Company',
-                      ) === 'PaySmart' && (
-                        <td>
-                          {this.props.billingInfo.statusCode}-
-                          {this.props.billingInfo.statusDescription}
-                        </td>
-                      )}
-                      {getAttributeValue(
-                        this.props.space,
-                        'Billing Company',
-                      ) !== 'PaySmart' && (
-                        <td>{this.props.billingInfo.statusCode}</td>
-                      )}
-                    </tr>
-                    <tr>
-                      <td>Name:</td>
-                      <td>
-                        {this.props.billingInfo.customerFirstName}{' '}
-                        {this.props.billingInfo.customerName}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Address:</td>
-                      <td>{this.props.billingInfo.addressLine1}</td>
-                    </tr>
-                    <tr>
-                      <td />
-                      <td>{this.props.billingInfo.addressLine2}</td>
-                    </tr>
-                    <tr>
-                      <td />
-                      <td>
-                        {this.props.billingInfo.addressSuburb},
-                        {this.props.billingInfo.addressState}{' '}
-                        {this.props.billingInfo.addressPostCode}
-                      </td>
-                    </tr>
-                    {this.props.billingInfo.email && (
-                      <tr>
-                        <td>Email:</td>
-                        <td>{this.props.billingInfo.email}</td>
-                      </tr>
-                    )}
-                    {this.props.billingInfo.mobilePhone && (
-                      <tr>
-                        <td>Phone:</td>
-                        <td>{this.props.billingInfo.mobilePhone}</td>
-                      </tr>
-                    )}
-                    <tr>
-                      <td>Payment Method:</td>
-                      <td>
-                        <PaymentType
-                          type={this.props.billingInfo.paymentMethod}
-                        />
-                      </td>
-                    </tr>
-                    {this.props.billingInfo.paymentPeriod && (
-                      <tr>
-                        <td>Payment Period:</td>
-                        <td>
-                          <PaymentPeriod
-                            period={
-                              this.props.memberItem.values[
-                                'Billing Payment Period'
-                              ]
-                            }
-                          />
-                        </td>
-                      </tr>
-                    )}
-                    {(this.props.billingInfo.statusCode === 'Active' ||
-                      this.props.billingInfo.statusCode === 'Pending Freeze' ||
-                      this.props.billingInfo.statusCode ===
-                        'Pending Cancellation' ||
-                      this.props.billingInfo.statusCode === '0') &&
-                      this.props.billingInfo.nextBillingDate && (
-                        <tr>
-                          <td>Next Billing Date:</td>
-                          <td>
-                            {moment(
-                              this.props.billingInfo.nextBillingDate,
-                              'DD-MM-YYYY',
-                            ).format('L')}
-                          </td>
-                        </tr>
-                      )}
-                    {(this.props.billingInfo.statusCode === 'Frozen' ||
-                      this.props.billingInfo.statusCode === '2') && (
-                      <tr>
-                        <td>Next Billing Date:</td>
-                        <td>
-                          {this.props.memberItem.values['Resume Date'] == null
-                            ? 'Until Further Notice'
-                            : this.props.memberItem.values['Resume Date']}
-                        </td>
-                      </tr>
-                    )}
-                    {this.props.billingInfo.paymentAmountInCents && (
-                      <tr>
-                        <td>Payment Amount:</td>
-                        <td>
-                          {new Intl.NumberFormat(this.props.locale, {
-                            style: 'currency',
-                            currency: this.props.currency,
-                          }).format(
-                            this.props.billingInfo.paymentAmountInCents / 100,
-                          )}
-                        </td>
-                      </tr>
-                    )}
-                    {getAttributeValue(this.props.space, 'Billing Company') ===
-                      'PaySmart' && (
-                      <tr>
-                        <td>Successful Payments:</td>
-                        <td>
-                          {'$' +
-                            Number(
-                              this.props.billingInfo
-                                .totalPaymentsSuccessfulAmount,
-                            )}
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-                <hr />
-                <span className="line">
-                  <div style={{ width: '90vw', marginTop: '10px' }}>
-                    {this.props.familyMembers.length > 0 && (
-                      <FamilyFeeDetails
-                        memberItem={this.props.memberItem}
-                        currency={this.props.currency}
-                        locale={this.props.locale}
-                      />
-                    )}
-                  </div>
-                </span>
-                <div className="section1">
-                  <span className="line">
-                    <div style={{ marginTop: '10px' }}>
-                      <button
-                        type="button"
-                        id="showHidePaymentHistory"
-                        className={'btn btn-primary'}
-                        onClick={e => this.showHidePaymentHistory()}
-                      >
-                        {this.state.paymentHistoryBtnLabel}
-                      </button>
+                <div title="Billing Info" className="billingInfo">
+                  {!this.props.isValidInput ? (
+                    <div ref="errorDiv" style={errorMessageDiv}>
+                      {this.props.errorMessage}
                     </div>
-                  </span>
+                  ) : (
+                    ''
+                  )}
+                  <hr />
+                  {this.props.billingInfoLoading === true ? (
+                    <div>
+                      <p>Loading Billing Information</p>
+                      <ReactSpinner />
+                    </div>
+                  ) : (
+                    <span>
+                      <table
+                        className={
+                          this.props.billingInfo.customerBillingId !== undefined
+                            ? 'show'
+                            : 'hide'
+                        }
+                      >
+                        <tbody>
+                          <tr>
+                            <th width="30%">Item</th>
+                            <th width="70%">Value</th>
+                          </tr>
+                          {getAttributeValue(
+                            this.props.space,
+                            'Billing Company',
+                          ) === 'PaySmart' && (
+                            <tr>
+                              <td>DDR Status:</td>
+                              <td>
+                                {this.props.memberItem.values['DDR Status']}
+                              </td>
+                            </tr>
+                          )}
+                          {getAttributeValue(
+                            this.props.space,
+                            'Billing Company',
+                          ) === 'PaySmart' && (
+                            <tr>
+                              <td>FFA ID:</td>
+                              <td>{this.props.billingInfo.ffaid}</td>
+                            </tr>
+                          )}
+                          <tr>
+                            <td>Billing Reference ID:</td>
+                            <td>{this.props.billingInfo.customerReference}</td>
+                          </tr>
+                          <tr>
+                            <td>Billing Status:</td>
+                            {getAttributeValue(
+                              this.props.space,
+                              'Billing Company',
+                            ) === 'PaySmart' && (
+                              <td>
+                                {this.props.billingInfo.statusCode}-
+                                {this.props.billingInfo.statusDescription}
+                              </td>
+                            )}
+                            {getAttributeValue(
+                              this.props.space,
+                              'Billing Company',
+                            ) !== 'PaySmart' && (
+                              <td>{this.props.billingInfo.statusCode}</td>
+                            )}
+                          </tr>
+                          <tr>
+                            <td>Name:</td>
+                            <td>
+                              {this.props.billingInfo.customerFirstName}{' '}
+                              {this.props.billingInfo.customerName}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>Address:</td>
+                            <td>{this.props.billingInfo.addressLine1}</td>
+                          </tr>
+                          <tr>
+                            <td />
+                            <td>{this.props.billingInfo.addressLine2}</td>
+                          </tr>
+                          <tr>
+                            <td />
+                            <td>
+                              {this.props.billingInfo.addressSuburb},
+                              {this.props.billingInfo.addressState}{' '}
+                              {this.props.billingInfo.addressPostCode}
+                            </td>
+                          </tr>
+                          {this.props.billingInfo.email && (
+                            <tr>
+                              <td>Email:</td>
+                              <td>{this.props.billingInfo.email}</td>
+                            </tr>
+                          )}
+                          {this.props.billingInfo.mobilePhone && (
+                            <tr>
+                              <td>Phone:</td>
+                              <td>{this.props.billingInfo.mobilePhone}</td>
+                            </tr>
+                          )}
+                          <tr>
+                            <td>Payment Method:</td>
+                            <td>
+                              <PaymentType
+                                type={this.props.billingInfo.paymentMethod}
+                              />
+                            </td>
+                          </tr>
+                          {this.props.billingInfo.paymentPeriod && (
+                            <tr>
+                              <td>Payment Period:</td>
+                              <td>
+                                <PaymentPeriod
+                                  period={
+                                    this.props.memberItem.values[
+                                      'Billing Payment Period'
+                                    ]
+                                  }
+                                />
+                              </td>
+                            </tr>
+                          )}
+                          {(this.props.billingInfo.statusCode === 'Active' ||
+                            this.props.billingInfo.statusCode ===
+                              'Pending Freeze' ||
+                            this.props.billingInfo.statusCode ===
+                              'Pending Cancellation' ||
+                            this.props.billingInfo.statusCode === '0') &&
+                            this.props.billingInfo.nextBillingDate && (
+                              <tr>
+                                <td>Next Billing Date:</td>
+                                <td>
+                                  {moment(
+                                    this.props.billingInfo.nextBillingDate,
+                                    'DD-MM-YYYY',
+                                  ).format('L')}
+                                </td>
+                              </tr>
+                            )}
+                          {(this.props.billingInfo.statusCode === 'Frozen' ||
+                            this.props.billingInfo.statusCode === '2') && (
+                            <tr>
+                              <td>Next Billing Date:</td>
+                              <td>
+                                {this.props.memberItem.values['Resume Date'] ==
+                                null
+                                  ? 'Until Further Notice'
+                                  : this.props.memberItem.values['Resume Date']}
+                              </td>
+                            </tr>
+                          )}
+                          {this.props.billingInfo.paymentAmountInCents && (
+                            <tr>
+                              <td>Payment Amount:</td>
+                              <td>
+                                {new Intl.NumberFormat(this.props.locale, {
+                                  style: 'currency',
+                                  currency: this.props.currency,
+                                }).format(
+                                  this.props.billingInfo.paymentAmountInCents /
+                                    100,
+                                )}
+                              </td>
+                            </tr>
+                          )}
+                          {getAttributeValue(
+                            this.props.space,
+                            'Billing Company',
+                          ) === 'Bambora' &&
+                            this.props.billingInfo.cardOnFileID !== undefined &&
+                            this.props.billingInfo.cardOnFileID !== '' &&
+                            this.props.billingInfo.cardOnFileID !== null && (
+                              <tr>
+                                <td>Card on File ID:</td>
+                                <td>{this.props.billingInfo.cardOnFileID}</td>
+                              </tr>
+                            )}
+                          {getAttributeValue(
+                            this.props.space,
+                            'Billing Company',
+                          ) === 'PaySmart' && (
+                            <tr>
+                              <td>Successful Payments:</td>
+                              <td>
+                                {'$' +
+                                  Number(
+                                    this.props.billingInfo
+                                      .totalPaymentsSuccessfulAmount,
+                                  )}
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </span>
+                  )}
+                  <hr />
                   <span className="line">
                     <div style={{ width: '90vw', marginTop: '10px' }}>
-                      {this.state.showPaymentHistory && (
-                        <PaymentHistory
-                          paymentHistory={this.props.paymentHistory}
-                          paymentHistoryLoading={
-                            this.props.paymentHistoryLoading
-                          }
-                          billingThis={this}
-                          refundPayment={this.props.refundPayment}
-                          refundTransactionInProgress={
-                            this.props.refundTransactionInProgress
-                          }
-                          refundTransactionID={this.props.refundTransactionID}
+                      {this.props.familyMembers.length > 0 && (
+                        <FamilyFeeDetails
                           memberItem={this.props.memberItem}
                           currency={this.props.currency}
                           locale={this.props.locale}
-                          space={this.props.space}
-                          snippets={this.props.snippets}
                         />
                       )}
                     </div>
-                  </span>
-                  <span className="line">
-                    <div style={{ marginTop: '10px' }}>
-                      <button
-                        type="button"
-                        className={'btn btn-primary'}
-                        onClick={e => this.setShowBillingAudit(true)}
-                      >
-                        Billing Audit
-                      </button>
-                    </div>
-                    {this.state.showBillingAudit && (
-                      <BillingAudit
-                        memberItem={this.props.memberItem}
-                        setShowBillingAudit={this.setShowBillingAudit}
-                      />
-                    )}
                   </span>
                 </div>
               </span>
             )}
-          </div>
         </span>
+        <div className="line">
+          <span className="line">
+            <div style={{ marginTop: '10px' }}>
+              <button
+                type="button"
+                id="showHidePaymentHistory"
+                className={'btn btn-primary'}
+                onClick={e => this.showHidePaymentHistory()}
+              >
+                {this.state.paymentHistoryBtnLabel}
+              </button>
+            </div>
+          </span>
+          <span className="line">
+            <div style={{ width: '90vw', marginTop: '10px' }}>
+              {this.state.showPaymentHistory && (
+                <PaymentHistory
+                  paymentHistory={this.props.paymentHistory}
+                  paymentHistoryLoading={this.props.paymentHistoryLoading}
+                  billingThis={this}
+                  refundPayment={this.props.refundPayment}
+                  refundTransactionInProgress={
+                    this.props.refundTransactionInProgress
+                  }
+                  refundTransactionID={this.props.refundTransactionID}
+                  memberItem={this.props.memberItem}
+                  currency={this.props.currency}
+                  locale={this.props.locale}
+                  space={this.props.space}
+                  snippets={this.props.snippets}
+                />
+              )}
+            </div>
+          </span>
+          <span className="line">
+            <div style={{ marginTop: '10px' }}>
+              <button
+                type="button"
+                className={'btn btn-primary'}
+                onClick={e => this.setShowBillingAudit(true)}
+              >
+                Billing Audit
+              </button>
+            </div>
+            {this.state.showBillingAudit && (
+              <BillingAudit
+                memberItem={this.props.memberItem}
+                setShowBillingAudit={this.setShowBillingAudit}
+              />
+            )}
+          </span>
+        </div>
       </div>
     );
   }

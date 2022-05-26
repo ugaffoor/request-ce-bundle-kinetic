@@ -582,6 +582,7 @@ export const SMSEventView = ({
           leadItem={journeyEvent.leadItem}
           memberItem={journeyEvent.memberItem}
           smsSent={smsSent}
+          space={space}
           eventDeleted={eventDeleted}
         />
       )}

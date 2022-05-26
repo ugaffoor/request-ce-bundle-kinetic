@@ -478,7 +478,7 @@ export class LeadEdit extends Component {
                     }
                   />
                 </div>
-                <div>
+                <div className="state">
                   <label htmlFor="State">State</label>
                   <select
                     name="state"
@@ -503,7 +503,7 @@ export class LeadEdit extends Component {
                   </select>
                   <div className="droparrow" />
                 </div>
-                <div>
+                <div className="postcode">
                   <label htmlFor="postcode">
                     <I18n>Postcode</I18n>
                   </label>
