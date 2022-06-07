@@ -57,6 +57,10 @@ const mapDispatchToProps = {
   updateLead: leadsActions.updateLead,
   setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
+var convertedLeadBirthday = undefined;
+var convertedLeadPostcode = undefined;
+var convertedLeadPhone = undefined;
+var convertedLeadEmergencyPhone = undefined;
 
 export function handleNameChange(memberItem, event) {
   var firstName = memberItem.values['First Name'];
@@ -311,7 +315,11 @@ export const MemberNew = ({
                       size="10"
                       required
                       ref={input => (this.input = input)}
-                      defaultValue={memberItem.values['Postcode']}
+                      defaultValue={
+                        convertedLeadPostcode !== undefined
+                          ? memberItem.values['Postcode']
+                          : ''
+                      }
                       onChange={e => {
                         handleChange(memberItem, 'Postcode', e);
                       }}
@@ -328,6 +336,11 @@ export const MemberNew = ({
                       mask="_"
                       required
                       ref={input => (this.input = input)}
+                      value={
+                        convertedLeadPostcode !== undefined
+                          ? memberItem.values['Postcode']
+                          : ''
+                      }
                       onValueChange={(values, e) =>
                         handleFormattedChange(values, memberItem, 'Postcode', e)
                       }
@@ -383,7 +396,8 @@ export const MemberNew = ({
                   <label
                     htmlFor="phone"
                     required={
-                      memberItem.values['Phone Number'] === undefined
+                      memberItem.values['Phone Number'] === undefined &&
+                      convertedLeadPhone === undefined
                         ? true
                         : false
                     }
@@ -401,7 +415,9 @@ export const MemberNew = ({
                     mask="_"
                     required
                     ref={input => (this.input = input)}
-                    value={memberItem.values['Phone Number']}
+                    value={
+                      convertedLeadPhone !== undefined ? convertedLeadPhone : ''
+                    }
                     onValueChange={(values, e) =>
                       handleFormattedChange(
                         values,
@@ -475,8 +491,9 @@ export const MemberNew = ({
                     id="birthday"
                     htmlFor="birthday"
                     required={
-                      memberItem.values['DOB'] === undefined ||
-                      memberItem.values['DOB'] === ''
+                      (memberItem.values['DOB'] === undefined ||
+                        memberItem.values['DOB'] === '') &&
+                      convertedLeadBirthday === undefined
                         ? true
                         : false
                     }
@@ -494,6 +511,11 @@ export const MemberNew = ({
                     formatDate={formatDate}
                     parseDate={parseDate}
                     fieldName="DOB"
+                    value={
+                      convertedLeadBirthday !== undefined
+                        ? getDateValue(convertedLeadBirthday)
+                        : ''
+                    }
                     memberItem={memberItem}
                     onDayPickerHide={handleDateChange}
                     dayPickerProps={{
@@ -598,7 +620,8 @@ export const MemberNew = ({
                   <label
                     htmlFor="emergencyphone"
                     required={
-                      memberItem.values['Emergency Contact Phone'] === undefined
+                      memberItem.values['Emergency Contact Phone'] ===
+                        undefined && convertedLeadEmergencyPhone === undefined
                         ? true
                         : false
                     }
@@ -616,6 +639,11 @@ export const MemberNew = ({
                     }
                     mask="_"
                     required
+                    value={
+                      convertedLeadEmergencyPhone !== undefined
+                        ? convertedLeadEmergencyPhone
+                        : ''
+                    }
                     ref={input => (this.input = input)}
                     onValueChange={(values, e) =>
                       handleFormattedChange(
@@ -987,6 +1015,7 @@ export const MemberNewContainer = compose(
 
         memberItem.values['Status'] = 'Active';
         memberItem.values['Lead Submission ID'] = match.params['leadId'];
+        $('#saveButton').prop('disabled', true);
         createMember({
           memberItem,
           history: memberItem.history,
@@ -1096,16 +1125,19 @@ export const MemberNewContainer = compose(
           'Additional Phone Number',
           'additionalPhoneNumber',
         );
-        $('#birthday').val(nextProps.leadItem.values['DOB']);
+        convertedLeadBirthday = nextProps.leadItem.values['DOB'];
         handleDynamicChange(nextProps.memberItem, 'DOB', 'birthday');
         $('#program').val(nextProps.leadItem.values['Interest in Program']);
         handleDynamicChange(nextProps.memberItem, 'Ranking Program', 'program');
+        //$('#postcode').val(nextProps.leadItem.values['Postcode']);
+        convertedLeadPostcode = nextProps.leadItem.values['Postcode'];
         handleDynamicFormattedChange(
           nextProps.leadItem.values['Postcode'],
           nextProps.memberItem,
           'Postcode',
           'postcode',
         );
+        convertedLeadPhone = nextProps.leadItem.values['Phone Number'];
         handleDynamicFormattedChange(
           nextProps.leadItem.values['Phone Number'],
           nextProps.memberItem,
@@ -1128,10 +1160,10 @@ export const MemberNewContainer = compose(
           'Emergency Contact Relationship',
           'relationship',
         );
-        $('#emergencyphone').val(
+        convertedLeadEmergencyPhone =
+          nextProps.leadItem.values['Emergency Contact Phone'];
+        handleDynamicFormattedChange(
           nextProps.leadItem.values['Emergency Contact Phone'],
-        );
-        handleDynamicChange(
           nextProps.memberItem,
           'Emergency Contact Phone',
           'emergencyphone',
@@ -1144,6 +1176,11 @@ export const MemberNewContainer = compose(
         );
         $('#covid19').val(nextProps.leadItem.values['GB Waiver']);
         handleDynamicChange(nextProps.memberItem, 'Covid19 Waiver', 'covid19');
+      } else {
+        convertedLeadBirthday = undefined;
+        convertedLeadPostcode = undefined;
+        convertedLeadPhone = undefined;
+        convertedLeadEmergencyPhone = undefined;
       }
     },
     componentDidMount() {

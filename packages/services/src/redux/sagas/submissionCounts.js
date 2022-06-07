@@ -40,9 +40,13 @@ export function* fetchSubmissionCountsSaga() {
   } else {
     yield put(
       actions.setSubmissionCounts({
-        Draft: draft.submissions.length,
-        Submitted: submitted.submissions.length,
-        Closed: closed.submissions.length,
+        Draft: draft.submissions !== undefined ? draft.submissions.length : 0,
+        Submitted:
+          submitted.submissions !== undefined
+            ? submitted.submissions.length
+            : 0,
+        Closed:
+          closed.submissions !== undefined ? closed.submissions.length : 0,
       }),
     );
   }

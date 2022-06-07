@@ -3,6 +3,7 @@ import wallyHappyImage from 'common/src/assets/images/wally-happy.svg';
 import { KappLink as Link, PageTitle } from 'common';
 import { RequestCard } from '../shared/RequestCard';
 import { getSubmissionPath } from '../../utils';
+import { Utils } from 'common';
 
 const emptyStateMessage = type => {
   switch (type) {
@@ -31,6 +32,7 @@ export const RequestList = ({
   handlePreviousPage,
   refreshPage,
   searchByName,
+  profile,
 }) => (
   <Fragment>
     <PageTitle parts={['My Requests']} />
@@ -68,21 +70,27 @@ export const RequestList = ({
           </button>
         </div>
       </div>
-      <div className="filterSection">
-        <form className="search-box__form">
-          <input
-            type="text"
-            placeholder="Search by Full Name"
-            autoFocus
-            onKeyUp={event => {
-              if (event.keyCode === 13) {
-                searchByName(event.target.value);
-              }
-            }}
-          />
-          <span className="fa fa-search" />
-        </form>
-      </div>
+      {profile !== undefined &&
+        profile.memberships !== undefined &&
+        (profile.spaceAdmin ||
+          Utils.isMemberOf(profile, 'Role::Data Admin') ||
+          Utils.isMemberOf(profile, 'Role::Program Managers')) && (
+          <div className="filterSection">
+            <form className="search-box__form">
+              <input
+                type="text"
+                placeholder="Search by Full Name"
+                autoFocus
+                onKeyUp={event => {
+                  if (event.keyCode === 13) {
+                    searchByName(event.target.value);
+                  }
+                }}
+              />
+              <span className="fa fa-search" />
+            </form>
+          </div>
+        )}
       <div className="cards__wrapper cards__wrapper--requests">
         {submissions.size > 0 ? (
           submissions

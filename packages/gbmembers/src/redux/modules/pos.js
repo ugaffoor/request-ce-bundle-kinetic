@@ -3,6 +3,8 @@ import { Record, List } from 'immutable';
 import { namespace, withPayload } from '../../utils';
 
 export const types = {
+  AUTO_CREATE_CARD: namespace('pos', 'AUTO_CREATE_CARD'),
+  SET_CREATE_CARD: namespace('pos', 'SET_CREATE_CARD'),
   FETCH_POS_CARDS: namespace('pos', 'FETCH_POS_CARDS'),
   SET_POS_CARDS: namespace('pos', 'SET_POS_CARDS'),
   FETCH_POS_CATEGORIES: namespace('pos', 'FETCH_POS_CATEGORIES'),
@@ -34,6 +36,8 @@ export const types = {
 };
 
 export const actions = {
+  autoCreateCard: withPayload(types.AUTO_CREATE_CARD),
+  setCreateCard: withPayload(types.SET_CREATE_CARD),
   fetchPOSCards: withPayload(types.FETCH_POS_CARDS),
   setPOSCards: withPayload(types.SET_POS_CARDS),
   fetchPOSCategories: withPayload(types.FETCH_POS_CATEGORIES),
@@ -66,6 +70,8 @@ export const actions = {
 };
 
 export const State = Record({
+  posAutoCardCreated: {},
+  posAutoCreateCardProcessing: false,
   posCards: [],
   posCardsLoading: true,
   posCategories: [],
@@ -91,6 +97,10 @@ export const State = Record({
 
 export const reducer = (state = State(), { type, payload }) => {
   switch (type) {
+    case types.AUTO_CREATE_CARD:
+      return state.set('posAutoCreateCardProcessing', true);
+    case types.SET_CREATE_CARD:
+      return state.set('posAutoCreateCardProcessing', false);
     case types.FETCH_POS_CARDS:
       return state.set('posCardsLoading', true);
     case types.SET_POS_CARDS: {

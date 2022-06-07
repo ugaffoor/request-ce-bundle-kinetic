@@ -12,9 +12,9 @@ export function getTimezone(profileTimezone, spaceTimezone) {
     profileTimezone !== null && profileTimezone !== ''
       ? profileTimezone
       : spaceTimezone;
-  if (timezone.indexOf('(') !== -1) {
-    timezone = timezone.substring(timezone.indexOf('(') + 1);
-    timezone = timezone.substring(0, timezone.indexOf(')'));
+  if (timezone.lastIndexOf('(') !== -1) {
+    timezone = timezone.substring(timezone.lastIndexOf('(') + 1);
+    timezone = timezone.substring(0, timezone.lastIndexOf(')'));
   }
   return timezone;
 }

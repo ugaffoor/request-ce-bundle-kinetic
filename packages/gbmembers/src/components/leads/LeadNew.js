@@ -1132,6 +1132,8 @@ export const LeadNewContainer = compose(
         leadItem.values['Status'] = 'Open';
         leadItem.values['Date Created'] = moment().format('L');
         //console.log("### saving lead # " + util.inspect(leadItem.values));
+
+        $('#saveButton').prop('disabled', true);
         createLead({
           leadItem,
           history: leadItem.history,

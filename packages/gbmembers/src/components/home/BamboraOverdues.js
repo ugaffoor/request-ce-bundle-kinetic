@@ -118,6 +118,7 @@ export class BamboraOverdues extends Component {
   getData(failedPayments, successfulPayments) {
     failedPayments = failedPayments.filter(
       payment =>
+        payment.paymentStatus === 'Transaction Declined' ||
         payment.paymentStatus === 'DECLINED' ||
         payment.paymentStatus === 'PIN RETRY EXCEEDED' ||
         payment.paymentStatus === 'EXPIRED CARD',
@@ -309,15 +310,18 @@ export class BamboraOverdues extends Component {
         accessor: 'memberGUID',
         headerClassName: 'refund',
         className: 'refund',
+        width: 200,
         Cell: props => (
           <button
             type="button"
             className="btn btn-primary"
-            onClick={e =>
-              (window.location =
-                '/#/kapps/services/categories/bambora-billing/bambora-change-payment-type?id=' +
-                props.value)
-            }
+            onClick={e => {
+              window.location =
+                '/#/kapps/services/categories/bambora-billing/bambora-change-credit-card-details?id=' +
+                props.value +
+                '&overdue=' +
+                props.original.overdueAmount;
+            }}
           >
             Update Credit Card
           </button>

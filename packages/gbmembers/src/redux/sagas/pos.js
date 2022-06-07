@@ -2,6 +2,7 @@ import { select, all, call, put, takeEvery } from 'redux-saga/effects';
 import { CoreAPI } from 'react-kinetic-core';
 import $ from 'jquery';
 import moment from 'moment';
+import { getAttributeValue } from '../../utils';
 
 import { types, actions } from '../modules/pos';
 import axios from 'axios';
@@ -534,9 +535,59 @@ export function* deletePOSPurchasedItem(action) {
     yield put(errorActions.setSystemError(error));
   }
 }
+export function* autoCreateCard(action) {
+  const appSettings = yield select(getAppSettings);
+  var args = {
+    space: appSettings.spaceSlug,
+    billingService: appSettings.billingCompany,
+    transactionID: action.payload.transactionID,
+    name:
+      action.payload.member.values['First Name'] +
+      ' ' +
+      action.payload.member.values['Last Name'],
+    address: action.payload.member.values['Address'],
+    city: action.payload.member.values['Suburb'],
+    province: action.payload.member.values['State'],
+    country: getAttributeValue(
+      'School Country Code',
+      '',
+      appSettings.kapp,
+      appSettings.space,
+    )[0],
+    postalCode: action.payload.member.values['Postcode'],
+    email: action.payload.member.values['Email'],
+  };
+
+  console.log('action:' + action.payload);
+  axios
+    .post(appSettings.kineticBillingServerUrl + '/createProfileCard', args)
+    .then(result => {
+      if (result.data.error && result.data.error > 0) {
+        console.log(result.data.errorMessage);
+        action.payload.addNotification(
+          NOTICE_TYPES.ERROR,
+          result.data.errorMessage,
+          'Auto Create Card',
+        );
+      } else {
+        var data = JSON.parse(result.data.data);
+        action.payload.setCreateCard();
+        action.payload.autoCreateCardCompleted(
+          data.profileId,
+          action.payload.member,
+        );
+      }
+    })
+    .catch(error => {
+      console.log(error.response);
+      //action.payload.setSystemError(error);
+    });
+  yield put(actions.setDummy());
+}
 
 export function* watchPOS() {
   console.log('watchPOS');
+  yield takeEvery(types.AUTO_CREATE_CARD, autoCreateCard);
   yield takeEvery(types.FETCH_POS_CARDS, fetchPOSCards);
   yield takeEvery(types.FETCH_POS_CATEGORIES, fetchPOSCategories);
   yield takeEvery(types.FETCH_POS_PRODUCTS, fetchPOSProducts);

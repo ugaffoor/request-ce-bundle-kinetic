@@ -1,5 +1,6 @@
 import { call, put, select, takeEvery } from 'redux-saga/effects';
 import { CoreAPI } from 'react-kinetic-core';
+import { Utils } from 'common';
 
 import * as constants from '../../constants';
 import { actions, types } from '../modules/submissions';
@@ -8,6 +9,7 @@ import { actions as systemErrorActions } from '../modules/systemError';
 export function* fetchSubmissionsSaga(action) {
   const kappSlug = yield select(state => state.app.config.kappSlug);
   const username = yield select(state => state.app.profile.username);
+  const profile = yield select(state => state.app.profile);
   const pageToken = yield select(state => state.services.submissions.current);
   const searchBuilder = new CoreAPI.SubmissionSearch()
     .type(constants.SUBMISSION_FORM_TYPE)
@@ -33,6 +35,16 @@ export function* fetchSubmissionsSaga(action) {
       );
     //    .eq('submittedBy', username)
     //    .eq('createdBy', username)
+  } else if (
+    profile.spaceAdmin ||
+    Utils.isMemberOf(profile, 'Role::Data Admin') ||
+    Utils.isMemberOf(profile, 'Role::Program Managers')
+  ) {
+  } else {
+    searchBuilder
+      .or()
+      .eq('submittedBy', username)
+      .eq('createdBy', username);
   }
   searchBuilder.end();
   // Add some of the optional parameters to the search

@@ -11,6 +11,7 @@ const mapStateToProps = (state, props) => ({
   hasPreviousPage: !state.services.submissions.previous.isEmpty(),
   counts: state.services.submissionCounts.data,
   type: props.match.params.type,
+  profile: state.app.profile,
 });
 
 const mapDispatchToProps = {
