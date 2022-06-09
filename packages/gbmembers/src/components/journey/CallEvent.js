@@ -169,6 +169,7 @@ export class CallEvent extends Component {
           : this.props.memberItem,
         this.props.space,
         this.props.profile,
+        this.props.journeyEvent,
       ),
     };
   }

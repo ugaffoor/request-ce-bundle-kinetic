@@ -28,7 +28,7 @@ export function getLocalePreference(space, profile) {
 export function escapeRegExp(str) {
   return str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1');
 }
-export function substituteFields(text, person, space, profile) {
+export function substituteFields(text, person, space, profile, journeyEvent) {
   if (text === undefined) return '';
 
   text = text.replace(/\$\{space\}/g, space.slug);
@@ -129,6 +129,16 @@ export function substituteFields(text, person, space, profile) {
       text = text.replace(
         new RegExp(escapeRegExp(value), 'g'),
         moment().format('Do MMM YYYY'),
+      );
+    });
+  }
+
+  matches = text.match(/\$\{Event Source Date\}/g);
+  if (matches !== null) {
+    matches.forEach(function(value, index) {
+      text = text.replace(
+        new RegExp(escapeRegExp(value), 'g'),
+        moment(journeyEvent.values['Event Source Date']).format('Do MMM YYYY'),
       );
     });
   }

@@ -743,7 +743,10 @@ export function* syncBillingCustomer(action) {
         action.payload.memberItem.values['Membership Cost'] =
           result.data.data.paymentAmountInCents / 100;
 
-        if (action.payload.memberItem.values['DOB'].indexOf('-') === 2) {
+        if (
+          action.payload.memberItem.values['DOB'] !== null &&
+          action.payload.memberItem.values['DOB'].indexOf('-') === 2
+        ) {
           action.payload.memberItem.values['DOB'] = result.data.data.dob;
         }
         if (

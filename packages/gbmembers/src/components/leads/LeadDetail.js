@@ -1147,6 +1147,8 @@ export const LeadDetailContainer = compose(
           values['Status'] = 'New';
           values['Trigger ID'] = trigger['id'];
           values['Record Type'] = trigger['values']['Record Type'];
+          values['Trigger Date'] = moment().format('YYYY-MM-DD');
+          values['Event Source Date'] = startDateTime.format('YYYY-MM-DD');
           values['Record ID'] = leadItem['id'];
           values['Record Name'] =
             leadItem['values']['First Name'] +
@@ -1178,6 +1180,8 @@ export const LeadDetailContainer = compose(
             leadItem['values']['First Name'] +
             ' ' +
             leadItem['values']['Last Name'];
+          values['Trigger Date'] = moment().format('YYYY-MM-DD');
+          values['Event Source Date'] = moment().format('YYYY-MM-DD');
           values['Action'] = trigger['values']['Action'];
           values['Contact Type'] = trigger['values']['Contact Type'];
           values['Template Name'] = trigger['values']['Template Name'];

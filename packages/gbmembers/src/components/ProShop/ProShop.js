@@ -1718,7 +1718,9 @@ class PayNow extends Component {
                             successful => {
                               return (
                                 memberItem.values['Member ID'] ===
-                                successful.yourSystemReference
+                                  successful.yourSystemReference ||
+                                memberItem.values['Billing Customer Id'] ===
+                                  successful.yourSystemReference
                               );
                             },
                           );

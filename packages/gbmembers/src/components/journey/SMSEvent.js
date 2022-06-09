@@ -232,6 +232,7 @@ export class SMSEvent extends Component {
         : this.props.memberItem,
       this.props.space,
       this.props.profile,
+      this.props.journeyEvent,
     );
     this.state = {
       smsText: smsText,

@@ -190,6 +190,22 @@ export class OrdersReport extends Component {
       products[products.length] = {};
     });
   }
+  getTotalValue(item) {
+    if (getAttributeValue(this.props.space, 'POS System') === 'Bambora') {
+      if (
+        item.values['Sales Tax'] !== undefined &&
+        item.values['Sales Tax'] !== null
+      ) {
+        return (
+          Number.parseFloat(item.values['Total']) -
+          Number.parseFloat(item.values['Sales Tax'])
+        );
+      }
+      return Number.parseFloat(item.values['Total']);
+    } else {
+      return Number.parseFloat(item.values['Total']);
+    }
+  }
   getData(posOrders, posProducts) {
     if (!posOrders || posOrders.length <= 0) {
       return [];
@@ -226,7 +242,7 @@ export class OrdersReport extends Component {
               ).format('L HH:mm')
             : '',
         name: item.values['Person Name'],
-        total: Number.parseFloat(item.values['Total']),
+        total: this.getTotalValue(item),
         discount:
           item.values['Discount'] !== undefined &&
           item.values['Discount'] !== null

@@ -341,6 +341,23 @@ export class MemberFinancialReport extends Component {
       timezoneOffset: getTimezoneOff(),
     });
   }
+  getTotalValue(item) {
+    if (getAttributeValue(this.props.space, 'POS System') === 'Bambora') {
+      if (
+        item.values['Sales Tax'] !== undefined &&
+        item.values['Sales Tax'] !== null
+      ) {
+        return (
+          Number.parseFloat(item.values['Total']) -
+          Number.parseFloat(item.values['Sales Tax'])
+        );
+      }
+      return Number.parseFloat(item.values['Total']);
+    } else {
+      return Number.parseFloat(item.values['Total']);
+    }
+  }
+
   getMemberData(
     members,
     billingCustomers,
@@ -520,7 +537,7 @@ export class MemberFinancialReport extends Component {
     let salesTaxValue = 0;
     posOrders.forEach(pos => {
       //      if (getAttributeValue(this.props.space, 'POS System') === 'Square') {
-      posPaymentsValue += Number.parseFloat(pos.values['Total']);
+      posPaymentsValue += this.getTotalValue(pos);
       var idx = members.findIndex(item => item.id === pos.values['Person ID']);
       if (idx !== -1) {
         if (
