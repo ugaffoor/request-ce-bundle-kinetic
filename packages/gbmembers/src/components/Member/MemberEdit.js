@@ -1458,7 +1458,7 @@ export const MemberEdit = ({
                       setIsDirty,
                       memberChanges,
                     );
-                    memberItem.values['Ranking Belt'] = undefined;
+                    //memberItem.values['Ranking Belt'] = undefined;
                     console.log(
                       'Ranking Program change belt=' +
                         memberItem.values['Ranking Belt'],
