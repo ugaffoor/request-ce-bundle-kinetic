@@ -28,7 +28,12 @@ export class MemberLastAttendance extends Component {
     }
     let toWeek = moment().subtract(week, 'weeks');
     let members = allMembers.filter(member => {
-      if (member.values['Status'] !== 'Active') return false;
+      if (
+        member.values['Status'] !== 'Active' &&
+        member.values['Status'] !== 'Pending Freeze' &&
+        member.values['Status'] !== 'Pending Cancellation'
+      )
+        return false;
       let lastAttendance = moment(member.values['Last Attendance Date']);
       return lastAttendance.isBefore(toWeek) ? true : false;
     });
