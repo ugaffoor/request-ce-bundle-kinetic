@@ -125,6 +125,12 @@ export function* fetchCurrentMember(action) {
       .include(['details', 'values'])
       .limit(1000)
       .build();
+    const MEMBER_ADDITIONAL_SERVICES = new CoreAPI.SubmissionSearch(true)
+      .index('values[Member GUID]')
+      .eq('values[Member GUID]', action.payload.id)
+      .include(['details', 'values'])
+      .limit(1000)
+      .build();
     const MEMBER_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
       .eq('values[Member ID]', action.payload.id)
       .include(['details', 'values'])
@@ -136,6 +142,7 @@ export function* fetchCurrentMember(action) {
       memberFilesSubmissions,
       posOrderSubmissions,
       posPurchasedItems,
+      memberAdditionalServices,
     ] = yield all([
       call(CoreAPI.fetchSubmission, {
         id: action.payload.id,
@@ -159,6 +166,14 @@ export function* fetchCurrentMember(action) {
       call(CoreAPI.searchSubmissions, {
         form: 'pos-purchased-item',
         search: MEMBER_POS_SEARCH,
+        datastore: true,
+      }),
+      call(CoreAPI.searchSubmissions, {
+        form:
+          action.payload.billingService === 'Bambora'
+            ? 'bambora-member-additional-services'
+            : 'member-additional-services',
+        search: MEMBER_ADDITIONAL_SERVICES,
         datastore: true,
       }),
     ]);
@@ -272,9 +287,17 @@ export function* fetchCurrentMember(action) {
     });
     let posItems = [];
     for (let i = 0; i < posPurchasedItems.submissions.length; i++) {
-      var len = posItems.length;
+      len = posItems.length;
       posItems[len] = posPurchasedItems.submissions[i].values;
       posItems[len]['id'] = posPurchasedItems.submissions[i]['id'];
+    }
+
+    let additionalServices = [];
+    for (let i = 0; i < memberAdditionalServices.submissions.length; i++) {
+      len = additionalServices.length;
+      additionalServices[len] = memberAdditionalServices.submissions[i].values;
+      additionalServices[len]['id'] =
+        memberAdditionalServices.submissions[i]['id'];
     }
 
     submission.submission.emailsReceived = emailReceivedContent;
@@ -285,6 +308,7 @@ export function* fetchCurrentMember(action) {
     submission.submission.memberFiles = memberFiles;
     submission.submission.posOrders = posOrders;
     submission.submission.posItems = posItems;
+    submission.submission.additionalServices = additionalServices;
     if (action.payload.setInitialLoad) {
       console.log('members.js setInitialLoad 111');
     }
@@ -2430,6 +2454,7 @@ export function* watchMembers() {
   yield takeEvery(types.CREATE_MEMBER, createMember);
   yield takeEvery(types.DELETE_MEMBER, deleteMember);
   yield takeEvery(types.DELETE_MEMBER_FILE, deleteMemberFile);
+  yield takeEvery(types.CANCEL_ADDITIONAL_SERVICE, cancelAdditionalService);
   yield takeEvery(types.FETCH_NEW_MEMBER, fetchNewMember);
   yield takeEvery(types.FETCH_BILLING_INFO, fetchBillingInfo);
   yield takeEvery(
@@ -2501,6 +2526,18 @@ export function updateBillingMembers(
   membersToRemove.forEach(member => {
     updateBillingMember({ id: member['id'], memberItem: member });
   });
+}
+
+export function* cancelAdditionalService(action) {
+  let values = {};
+  values['Status'] = 'Cancelled';
+  const { submission } = yield call(CoreAPI.updateSubmission, {
+    id: action.payload['id'],
+    values: values,
+    datastore: true,
+  });
+
+  console.log('cancelAdditionalService');
 }
 
 function getBillingChanges(memberItem) {

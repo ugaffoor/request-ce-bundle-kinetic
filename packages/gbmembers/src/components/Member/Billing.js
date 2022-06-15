@@ -41,6 +41,7 @@ import { actions as errorActions } from '../../redux/modules/errors';
 import { RecentNotificationsContainer } from '../notifications/RecentNotifications';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { actions as appActions } from '../../redux/modules/memberApp';
+import { actions as posActions } from '../../redux/modules/pos';
 import printerIcon from '../../images/Print.svg?raw';
 import { MembershipReceiptToPrint } from './MembershipReceiptToPrint';
 import ReactToPrint from 'react-to-print';
@@ -54,6 +55,8 @@ const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   memberItem: state.member.members.currentMember,
   billingInfo: state.member.members.billingInfo,
+  posCards: state.member.pos.posCards,
+  posCardsLoading: state.member.pos.posCardsLoading,
   members: state.member.members.allMembers,
   billingInfoLoading: state.member.members.billingInfoLoading,
   completeMemberBilling: state.member.members.completeMemberBilling,
@@ -83,6 +86,8 @@ const mapDispatchToProps = {
   fetchBillingInfoAfterRegistration: actions.fetchBillingInfoAfterRegistration,
   setBillingInfo: actions.setBillingInfo,
   setCurrentMember: actions.setCurrentMember,
+  fetchPOSCards: posActions.fetchPOSCards,
+  setPOSCards: posActions.setPOSCards,
   updateMember: actions.updateMember,
   fetchMembers: actions.fetchMembers,
   editPaymentAmount: actions.editPaymentAmount,
@@ -1268,10 +1273,38 @@ export class BillingInfo extends Component {
                           ) === 'Bambora' &&
                             this.props.billingInfo.cardOnFileID !== undefined &&
                             this.props.billingInfo.cardOnFileID !== '' &&
-                            this.props.billingInfo.cardOnFileID !== null && (
+                            this.props.billingInfo.cardOnFileID !== null &&
+                            !this.props.posCardsLoading && (
                               <tr>
-                                <td>Card on File ID:</td>
-                                <td>{this.props.billingInfo.cardOnFileID}</td>
+                                <td>Card on File:</td>
+                                <td>
+                                  <tbody>
+                                    <tr>
+                                      <th width="300">Card ID</th>
+                                      <th width="150">Number</th>
+                                      <th>Expiry Month</th>
+                                      <th>Year</th>
+                                      <th>Type</th>
+                                    </tr>
+                                    <tr>
+                                      <td>
+                                        {this.props.billingInfo.cardOnFileID}
+                                      </td>
+                                      <td>
+                                        {this.props.posCords[0]['number']}
+                                      </td>
+                                      <td>
+                                        {this.props.posCords[0]['expiryMonth']}
+                                      </td>
+                                      <td>
+                                        {this.props.posCords[0]['expiryYear']}
+                                      </td>
+                                      <td>
+                                        {this.props.posCords[0]['cardType']}
+                                      </td>
+                                    </tr>
+                                  </tbody>
+                                </td>
                               </tr>
                             )}
                           {getAttributeValue(
@@ -1384,6 +1417,10 @@ export const Billing = ({
   fetchBillingInfo,
   fetchBillingInfoAfterRegistration,
   setBillingInfo,
+  fetchPOSCards,
+  setPOSCards,
+  posCards,
+  posCardsLoading,
   updateMember,
   allMembers,
   saveMember,
@@ -1449,6 +1486,10 @@ export const Billing = ({
                 getPaymentHistory={getPaymentHistory}
                 paymentHistory={paymentHistory}
                 paymentHistoryLoading={paymentHistoryLoading}
+                fetchPOSCards={fetchPOSCards}
+                setPOSCards={setPOSCards}
+                posCords={posCards}
+                posCardsLoading={posCardsLoading}
                 billingWidgetUrl={billingWidgetUrl}
                 setIsAddMember={setIsAddMember}
                 billingCompany={billingCompany}
@@ -1905,6 +1946,16 @@ export const BillingContainer = compose(
         if (
           getAttributeValue(this.props.space, 'Billing Company') === 'Bambora'
         ) {
+          if (
+            member.values['POS Profile ID'] !== undefined &&
+            member.values['POS Profile ID'] !== null &&
+            member.values['POS Profile ID'] !== ''
+          ) {
+            this.props.fetchPOSCards({
+              profileId: member.values['POS Profile ID'],
+              setPOSCards: this.props.setPOSCards,
+            });
+          }
         } else {
           if (member.values['Billing Customer Id']) {
             this.props.fetchBillingInfo({

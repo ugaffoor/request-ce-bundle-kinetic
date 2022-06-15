@@ -38,6 +38,7 @@ import { EmailsReceived } from './EmailsReceived';
 import { MemberEmails } from './MemberEmails';
 import { MemberSMS } from './MemberSMS';
 import { MemberViewNotes } from './MemberViewNotes';
+import { MemberAdditionalServices } from './MemberAdditionalServices';
 import { MemberFiles } from './MemberFiles';
 import { MemberOrders } from './MemberOrders';
 import { GradingStatus } from '../attendance/GradingStatus';
@@ -99,6 +100,7 @@ const mapDispatchToProps = {
   fetchCurrentMember: actions.fetchCurrentMember,
   updateMember: actions.updateMember,
   deleteMemberFile: actions.deleteMemberFile,
+  cancelAdditionalService: actions.cancelAdditionalService,
   setCurrentMember: actions.setCurrentMember,
   fetchCampaign: campaignActions.fetchEmailCampaign,
   syncBillingCustomer: actions.syncBillingCustomer,
@@ -764,6 +766,7 @@ export const MemberView = ({
   updateMemberItem,
   locale,
   deleteMemberFile,
+  cancelAdditionalService,
   currency,
   updateMember,
   refundPayment,
@@ -1533,6 +1536,20 @@ export const MemberView = ({
             />
           </div>
           <div>
+            {Utils.getAttributeValue(space, 'Billing Company') ===
+              'Bambora' && (
+              <MemberAdditionalServices
+                memberItem={memberItem}
+                allMembers={allMembers}
+                space={space}
+                profile={profile}
+                cancelAdditionalService={cancelAdditionalService}
+                locale={locale}
+                currency={currency}
+              />
+            )}
+          </div>
+          <div>
             <MemberFiles
               memberItem={memberItem}
               space={space}
@@ -2116,7 +2133,10 @@ export const MemberViewContainer = compose(
     componentWillMount() {
       //      this.props.memberItem.values = [];
       //      this.props.memberItem.id = 'xx-xx-xx-xx-xx';
-      this.props.fetchCurrentMember({ id: this.props.match.params.id });
+      this.props.fetchCurrentMember({
+        id: this.props.match.params.id,
+        billingService: getAttributeValue(this.props.space, 'Billing Company'),
+      });
 
       let currency = getAttributeValue(this.props.space, 'Currency');
       if (currency === undefined) currency = 'USD';
@@ -2134,7 +2154,13 @@ export const MemberViewContainer = compose(
     componentWillReceiveProps(nextProps) {
       //$('#mainContent').offset({ top: 98});
       if (this.props.pathname !== nextProps.pathname) {
-        this.props.fetchCurrentMember({ id: nextProps.match.params.id });
+        this.props.fetchCurrentMember({
+          id: nextProps.match.params.id,
+          billingService: getAttributeValue(
+            this.props.space,
+            'Billing Company',
+          ),
+        });
         this.props.setShowChangeStatusModal(false);
       }
       if (

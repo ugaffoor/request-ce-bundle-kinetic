@@ -18,6 +18,7 @@ import MomentLocaleUtils, {
 } from 'react-day-picker/moment';
 import { getLocalePreference } from '../Member/MemberUtils';
 import { actions as appActions } from '../../redux/modules/memberApp';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -245,6 +246,7 @@ export const MemberFollowUpContainer = compose(
         id: this.props.match.params['id'],
         myThis: this,
         history: this.props.history,
+        billingService: getAttributeValue(this.props.space, 'Billing Company'),
       });
     },
     UNSAFE_componentWillReceiveProps(nextProps) {
@@ -253,6 +255,10 @@ export const MemberFollowUpContainer = compose(
           id: this.props.match.params['id'],
           myThis: this,
           history: this.props.history,
+          billingService: getAttributeValue(
+            this.props.space,
+            'Billing Company',
+          ),
         });
       }
     },

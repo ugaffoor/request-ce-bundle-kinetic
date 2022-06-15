@@ -22,6 +22,7 @@ import { MemberEmails } from './MemberEmails';
 import { actions as campaignActions } from '../../redux/modules/campaigns';
 import { SMSModalContainer } from './SMSModalContainer';
 import { actions as appActions } from '../../redux/modules/memberApp';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -444,6 +445,7 @@ export const MemberNotesContainer = compose(
         id: this.props.match.params['id'],
         myThis: this,
         history: this.props.history,
+        billingService: getAttributeValue(this.props.space, 'Billing Company'),
       });
     },
     UNSAFE_componentWillReceiveProps(nextProps) {
@@ -452,6 +454,10 @@ export const MemberNotesContainer = compose(
           id: this.props.match.params['id'],
           myThis: this,
           history: this.props.history,
+          billingService: getAttributeValue(
+            this.props.space,
+            'Billing Company',
+          ),
         });
       }
       if (

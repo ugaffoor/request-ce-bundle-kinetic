@@ -2013,6 +2013,7 @@ export const MemberEditContainer = compose(
         id: this.props.match.params.id,
         history: this.props.history,
         fetchMembers: this.props.fetchMembers,
+        billingService: getAttributeValue(this.props.space, 'Billing Company'),
       });
     },
     UNSAFE_componentWillReceiveProps(nextProps) {
@@ -2021,6 +2022,10 @@ export const MemberEditContainer = compose(
           id: this.props.match.params.id,
           history: this.props.history,
           fetchMembers: this.props.fetchMembers,
+          billingService: getAttributeValue(
+            this.props.space,
+            'Billing Company',
+          ),
         });
       }
     },
