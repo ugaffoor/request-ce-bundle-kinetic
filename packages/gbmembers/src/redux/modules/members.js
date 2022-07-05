@@ -36,6 +36,12 @@ export const types = {
   SET_PAYMENT_HISTORY: namespace('members', 'SET_PAYMENT_HISTORY'),
   FETCH_OVERDUES: namespace('members', 'FETCH_OVERDUES'),
   SET_OVERDUES: namespace('members', 'SET_OVERDUES'),
+  FETCH_ADDITIONAL_SERVICES: namespace('members', 'FETCH_ADDITIONAL_SERVICES'),
+  FETCH_ACTIVE_ADDITIONAL_SERVICES: namespace(
+    'members',
+    'FETCH_ACTIVE_ADDITIONAL_SERVICES',
+  ),
+  SET_ADDITIONAL_SERVICES: namespace('members', 'SET_ADDITIONAL_SERVICES'),
   CLEAR_PAYMENT_SCHEDULE: namespace('members', 'CLEAR_PAYMENT_SCHEDULE'),
   CREATE_PAYMENT_SCHEDULE: namespace('members', 'CREATE_PAYMENT_SCHEDULE'),
   FETCH_BILLING_PAYMENTS: namespace('members', 'FETCH_BILLING_PAYMENTS'),
@@ -123,6 +129,11 @@ export const actions = {
   setPaymentHistory: withPayload(types.SET_PAYMENT_HISTORY),
   fetchOverdues: withPayload(types.FETCH_OVERDUES),
   setOverdues: withPayload(types.SET_OVERDUES),
+  fetchAdditionalServices: withPayload(types.FETCH_ADDITIONAL_SERVICES),
+  fetchActiveAdditionalServices: withPayload(
+    types.FETCH_ACTIVE_ADDITIONAL_SERVICES,
+  ),
+  setAdditionalServices: withPayload(types.SET_ADDITIONAL_SERVICES),
   clearPaymentSchedule: withPayload(types.CLEAR_PAYMENT_SCHEDULE),
   createPaymentSchedule: withPayload(types.CREATE_PAYMENT_SCHEDULE),
   fetchBillingPayments: withPayload(types.FETCH_BILLING_PAYMENTS),
@@ -188,12 +199,14 @@ export const State = Record({
   FAILEDpaymentHistory: [],
   SUCCESSFULpaymentHistory: [],
   overdues: [],
+  additionalServices: [],
   billingPayments: [],
   billingPaymentsLoading: false,
   ALLpaymentHistoryLoading: true,
   FAILEDpaymentHistoryLoading: true,
   SUCCESSFULpaymentHistoryLoading: true,
   overduesLoading: true,
+  additionalServicesLoading: true,
   processedAndScheduledPayments: {},
   processedAndScheduledPaymentsLoading: true,
   familyMembers: [],
@@ -336,6 +349,11 @@ export const reducer = (state = State(), { type, payload }) => {
     case types.SET_OVERDUES: {
       return state.set('overduesLoading', false).set('overdues', payload);
     }
+    case types.SET_ADDITIONAL_SERVICES: {
+      return state
+        .set('additionalServicesLoading', false)
+        .set('additionalServices', payload);
+    }
     case types.SET_BILLING_PAYMENTS: {
       return state
         .set('billingPaymentsLoading', false)
@@ -355,6 +373,12 @@ export const reducer = (state = State(), { type, payload }) => {
     }
     case types.FETCH_OVERDUES: {
       return state.set('overduesLoading', true);
+    }
+    case types.FETCH_ADDITIONAL_SERVICES: {
+      return state.set('additionalServicesLoading', true);
+    }
+    case types.FETCH_ACTIVE_ADDITIONAL_SERVICES: {
+      return state.set('additionalServicesLoading', true);
     }
     case types.FETCH_PROCESSED_SCHEDULED_PAYMENTS: {
       return state.set('processedAndScheduledPaymentsLoading', true);
@@ -397,6 +421,7 @@ export const reducer = (state = State(), { type, payload }) => {
       return state.set('customerRefundsLoading', true);
     }
     case types.SET_CUSTOMER_REFUNDS: {
+      console.log('SET_CUSTOMER_REFUNDS:' + payload.length);
       return state
         .set('customerRefundsLoading', false)
         .set('customerRefunds', payload);

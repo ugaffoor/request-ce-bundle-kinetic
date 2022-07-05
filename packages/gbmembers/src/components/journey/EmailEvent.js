@@ -158,7 +158,17 @@ export class EmailEvent extends Component {
 
     this.createCampaign = this.createCampaign.bind(this);
     this.onLoadEmail = this.onLoadEmail.bind(this);
-
+    var optOut = false;
+    if (
+      this.props.leadItem !== undefined &&
+      this.props.leadItem.values['Opt-Out'] === 'YES'
+    )
+      optOut = true;
+    if (
+      this.props.memberItem !== undefined &&
+      this.props.memberItem.values['Opt-Out'] === 'YES'
+    )
+      optOut = true;
     this.state = {
       subject: this.props.emailTemplate['Subject'],
       text: substituteFields(
@@ -170,6 +180,7 @@ export class EmailEvent extends Component {
         this.props.profile,
         this.props.journeyEvent,
       ),
+      optOut: optOut,
       showEditor: false,
     };
     editorThis = this;
@@ -293,14 +304,16 @@ export class EmailEvent extends Component {
                     to={`/Member/${this.props.journeyEvent.values['Record ID']}`}
                     className="nameValue"
                   >
-                    {this.props.journeyEvent.values['Record Name']}
+                    {this.props.journeyEvent.values['Record Name']}{' '}
+                    {this.state.optOut ? '(Opted Out)' : ''}
                   </NavLink>
                 ) : (
                   <NavLink
                     to={`/LeadDetail/${this.props.journeyEvent.values['Record ID']}`}
                     className="nameValue"
                   >
-                    {this.props.journeyEvent.values['Record Name']}
+                    {this.props.journeyEvent.values['Record Name']}{' '}
+                    {this.state.optOut ? '(Opted Out)' : ''}
                   </NavLink>
                 )}
               </h1>
@@ -361,6 +374,7 @@ export class EmailEvent extends Component {
               type="button"
               id="saveButton"
               className="btn btn-primary send"
+              disabled={this.state.optOut ? true : false}
               onClick={e => this.createCampaign()}
             >
               Send

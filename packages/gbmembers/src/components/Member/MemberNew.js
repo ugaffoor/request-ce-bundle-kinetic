@@ -513,7 +513,9 @@ export const MemberNew = ({
                     fieldName="DOB"
                     value={
                       convertedLeadBirthday !== undefined
-                        ? getDateValue(convertedLeadBirthday)
+                        ? memberItem.values['DOB'] === ''
+                          ? getDateValue(convertedLeadBirthday)
+                          : getDateValue(memberItem.values['DOB'])
                         : ''
                     }
                     memberItem={memberItem}
@@ -1013,6 +1015,9 @@ export const MemberNewContainer = compose(
           }
         });
 
+        if (convertedLeadBirthday !== undefined) {
+          memberItem.values['DOB'] = convertedLeadBirthday;
+        }
         memberItem.values['Status'] = 'Active';
         memberItem.values['Lead Submission ID'] = match.params['leadId'];
         $('#saveButton').prop('disabled', true);

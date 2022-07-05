@@ -142,7 +142,6 @@ export function* fetchCurrentMember(action) {
       memberFilesSubmissions,
       posOrderSubmissions,
       posPurchasedItems,
-      memberAdditionalServices,
     ] = yield all([
       call(CoreAPI.fetchSubmission, {
         id: action.payload.id,
@@ -168,15 +167,31 @@ export function* fetchCurrentMember(action) {
         search: MEMBER_POS_SEARCH,
         datastore: true,
       }),
-      call(CoreAPI.searchSubmissions, {
-        form:
-          action.payload.billingService === 'Bambora'
-            ? 'bambora-member-additional-services'
-            : 'member-additional-services',
-        search: MEMBER_ADDITIONAL_SERVICES,
-        datastore: true,
-      }),
     ]);
+
+    let additionalServices = [];
+
+    if (action.payload.billingService === 'Bambora') {
+      const [memberAdditionalServices] = yield all([
+        call(CoreAPI.searchSubmissions, {
+          form:
+            action.payload.billingService === 'Bambora'
+              ? 'bambora-member-additional-services'
+              : 'member-additional-services',
+          search: MEMBER_ADDITIONAL_SERVICES,
+          datastore: true,
+        }),
+      ]);
+      if (action.payload.billingService === 'Bambora') {
+        for (let i = 0; i < memberAdditionalServices.submissions.length; i++) {
+          var len = additionalServices.length;
+          additionalServices[len] =
+            memberAdditionalServices.submissions[i].values;
+          additionalServices[len]['id'] =
+            memberAdditionalServices.submissions[i]['id'];
+        }
+      }
+    }
     const [user] = yield all([
       call(CoreAPI.fetchUser, {
         username: submission.submission.values['Member ID'],
@@ -292,14 +307,6 @@ export function* fetchCurrentMember(action) {
       posItems[len]['id'] = posPurchasedItems.submissions[i]['id'];
     }
 
-    let additionalServices = [];
-    for (let i = 0; i < memberAdditionalServices.submissions.length; i++) {
-      len = additionalServices.length;
-      additionalServices[len] = memberAdditionalServices.submissions[i].values;
-      additionalServices[len]['id'] =
-        memberAdditionalServices.submissions[i]['id'];
-    }
-
     submission.submission.emailsReceived = emailReceivedContent;
     submission.submission.emailsSent = emailSentContent;
     submission.submission.smsContent = smsContent;
@@ -329,6 +336,7 @@ export function* fetchCurrentMember(action) {
     if (action.payload.billingService === 'Bambora') {
       var nextStartDate = moment(
         submission.submission.values['Billing Start Date'],
+        'YYYY-MM-DD',
       );
       if (nextStartDate.isBefore(moment())) {
         var billingPeriod = submission.submission.values['Billing Period'];
@@ -1064,6 +1072,68 @@ export function* fetchOverdues(action) {
       //action.payload.setSystemError(error);
     });
   yield put(actions.setDummy());
+}
+
+export function* fetchAdditionalServices(action) {
+  try {
+    if (action.payload.additionalServiceForm !== '') {
+      const search = new CoreAPI.SubmissionSearch(true)
+        .includes(['details', 'values'])
+        .index('values[Start Date]')
+        .between(
+          'values[Start Date]',
+          action.payload.dateFrom.format('YYYY-MM-DD'),
+          action.payload.dateTo.format('YYYY-MM-DD'),
+        )
+        .limit(1000)
+        .build();
+
+      const { submissions, serverError } = yield call(
+        CoreAPI.searchSubmissions,
+        {
+          datastore: true,
+          form: action.payload.additionalServiceForm,
+          search,
+        },
+      );
+      yield put(actions.setAdditionalServices(submissions));
+    } else {
+      yield put(actions.setAdditionalServices([]));
+    }
+  } catch (error) {
+    console.log('Error in fetchAdditionalServices: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
+
+export function* fetchActiveAdditionalServices(action) {
+  try {
+    if (action.payload.additionalServiceForm !== '') {
+      const search = new CoreAPI.SubmissionSearch(true)
+        .includes(['details', 'values'])
+        .index('values[Status]')
+        .eq('values[Status]', 'Active')
+        .limit(1000)
+        .build();
+
+      const { submissions, serverError } = yield call(
+        CoreAPI.searchSubmissions,
+        {
+          datastore: true,
+          form: action.payload.additionalServiceForm,
+          search,
+        },
+      );
+      yield put(actions.setAdditionalServices(submissions));
+    } else {
+      yield put(actions.setAdditionalServices([]));
+    }
+  } catch (error) {
+    console.log(
+      'Error in fetchActiveAdditionalServices: ' + util.inspect(error),
+    );
+    yield put(errorActions.setSystemError(error));
+  }
 }
 
 export function* fetchBillingPayments(action) {
@@ -2465,6 +2535,11 @@ export function* watchMembers() {
   yield takeEvery(types.FETCH_MEMBER_PROMOTIONS, fetchMemberPromotions);
   yield takeEvery(types.FETCH_PAYMENT_HISTORY, fetchPaymentHistory);
   yield takeEvery(types.FETCH_OVERDUES, fetchOverdues);
+  yield takeEvery(types.FETCH_ADDITIONAL_SERVICES, fetchAdditionalServices);
+  yield takeEvery(
+    types.FETCH_ACTIVE_ADDITIONAL_SERVICES,
+    fetchActiveAdditionalServices,
+  );
   yield takeEvery(types.CLEAR_PAYMENT_SCHEDULE, clearPaymentSchedule);
   yield takeEvery(types.CREATE_PAYMENT_SCHEDULE, createPaymentSchedule);
   yield takeEvery(types.FETCH_BILLING_PAYMENTS, fetchBillingPayments);

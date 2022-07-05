@@ -1330,8 +1330,8 @@ export const MemberView = ({
               </div>
               <div
                 className={
-                  /*memberItem.values['Billing Payment Type'] !== 'Cash' &&
-                  memberItem.values['Non Paying'] !== 'YES' && */
+                  memberItem.values['Billing Payment Type'] !== 'Cash' &&
+                  memberItem.values['Non Paying'] !== 'YES' &&
                   memberItem.values['Billing Customer Id'] !== undefined &&
                   memberItem.values['Billing Customer Id'] !== '' &&
                   memberItem.values['Billing Customer Id'] !== null
@@ -1349,6 +1349,28 @@ export const MemberView = ({
                     type={memberItem.values['Billing Payment Type']}
                   />
                 </p>
+                {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
+                  <div />
+                ) : (
+                  <NavLink
+                    to={`/Billing/${memberItem.id}`}
+                    className="btn btn-primary"
+                  >
+                    Billing
+                  </NavLink>
+                )}
+              </div>
+              <div
+                className={
+                  memberItem.values['Billing Payment Type'] === 'Cash' ||
+                  memberItem.values['Non Paying'] === 'YES' ||
+                  memberItem.values['Billing Customer Id'] === undefined ||
+                    memberItem.values['Billing Customer Id'] === '' ||
+                    memberItem.values['Billing Customer Id'] === null
+                    ? 'billingInfo show'
+                    : 'hide'
+                }
+              >
                 {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
                   <div />
                 ) : (

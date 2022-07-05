@@ -282,7 +282,7 @@ export class ListHome extends Component {
                     },
                     { accessor: 'Status', Header: 'Status' },
                     { accessor: 'Gender', Header: 'Gender' },
-                    { accessor: 'Interesting in Program', Header: 'Program' },
+                    { accessor: 'Interest in Program', Header: 'Program' },
                     { accessor: 'Source Reference 1', Header: 'Source 1' },
                     { accessor: 'Source Reference 2', Header: 'Source 2' },
                     { accessor: 'Source Reference 3', Header: 'Source 3' },

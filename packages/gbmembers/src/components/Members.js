@@ -193,6 +193,28 @@ export class Members extends React.Component {
             this.setState({ dummy: true });
           }}
           getTdProps={(state, rowInfo, column, instance) => {
+            if (rowInfo !== undefined) {
+              return {
+                onClick: (event, handleOriginal) => {
+                  event.stopPropagation();
+
+                  this.setState({
+                    selectedRow: rowInfo.index,
+                  });
+                  if (handleOriginal) handleOriginal();
+                },
+              };
+            }
+          }}
+          getTrProps={(state, rowInfo, column) => {
+            if (
+              rowInfo !== undefined &&
+              rowInfo.index === this.state.selectedRow
+            ) {
+              return {
+                className: 'selected-row',
+              };
+            }
             return {};
           }}
           columns={[

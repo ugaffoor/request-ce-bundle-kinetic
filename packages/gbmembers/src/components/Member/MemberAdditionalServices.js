@@ -50,7 +50,10 @@ export class MemberAdditionalServices extends Component {
 
   getPOSProfileID(memberItem, allMembers) {
     var dependantBillerProfileID = undefined;
-    if (memberItem.values['Billing Parent Member'] !== memberItem.id) {
+    if (
+      memberItem.values['Billing Parent Member'] !== undefined &&
+      memberItem.values['Billing Parent Member'] !== memberItem.id
+    ) {
       var parentMember = undefined;
       for (let i = 0; i < allMembers.length; i++) {
         if (

@@ -1859,6 +1859,7 @@ class PayNow extends Component {
                               status: '',
                               errors: '',
                               processingComplete: false,
+                              cardToken: undefined,
                             });
                             updatingCard = false;
                           }}
@@ -2016,12 +2017,12 @@ class PayNow extends Component {
                             this.props.space,
                             'POS Stripe Publishable Key',
                           ),
-                          {
+                          /*                          {
                             stripeAccount: getAttributeValue(
                               this.props.space,
                               'Stripe Account ID',
                             ),
-                          },
+                          },*/
                         )}
                       >
                         <label htmlFor="captureStripe" className="radio">
@@ -2289,12 +2290,12 @@ class PayNow extends Component {
                         this.props.space,
                         'POS Stripe Publishable Key',
                       ),
-                      {
+                      /*                      {
                         stripeAccount: getAttributeValue(
                           this.props.space,
                           'Stripe Account ID',
                         ),
-                      },
+                      }, */
                     )}
                   >
                     <StripePaymentCapture />

@@ -224,6 +224,17 @@ export class SMSEvent extends Component {
 
     this.sendSms = this.sendSms.bind(this);
     this.sendEnabled = this.sendEnabled.bind(this);
+    var optOut = false;
+    if (
+      this.props.leadItem !== undefined &&
+      this.props.leadItem.values['Opt-Out'] === 'YES'
+    )
+      optOut = true;
+    if (
+      this.props.memberItem !== undefined &&
+      this.props.memberItem.values['Opt-Out'] === 'YES'
+    )
+      optOut = true;
 
     var smsText = substituteFields(
       this.props.smsTemplate['SMS Content'],
@@ -236,6 +247,7 @@ export class SMSEvent extends Component {
     );
     this.state = {
       smsText: smsText,
+      optOut: optOut,
     };
   }
 
@@ -264,6 +276,7 @@ export class SMSEvent extends Component {
   sendEnabled() {
     var enable = true;
     if (parseInt(this.props.smsAccountCredit) <= 0) enable = false;
+    if (this.state.optOut) return false;
 
     if (
       this.props.memberItem !== undefined &&
@@ -306,14 +319,16 @@ export class SMSEvent extends Component {
                     to={`/Member/${this.props.journeyEvent.values['Record ID']}`}
                     className="nameValue"
                   >
-                    {this.props.journeyEvent.values['Record Name']}
+                    {this.props.journeyEvent.values['Record Name']}{' '}
+                    {this.state.optOut ? '(Opted Out)' : ''}
                   </NavLink>
                 ) : (
                   <NavLink
                     to={`/LeadDetail/${this.props.journeyEvent.values['Record ID']}`}
                     className="nameValue"
                   >
-                    {this.props.journeyEvent.values['Record Name']}
+                    {this.props.journeyEvent.values['Record Name']}{' '}
+                    {this.state.optOut ? '(Opted Out)' : ''}
                   </NavLink>
                 )}
               </h1>

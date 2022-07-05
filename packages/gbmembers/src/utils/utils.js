@@ -290,6 +290,10 @@ export const matchesMemberFilter = (allMembers, filters) => {
         if (!member.values['Billing Customer Id']) {
           match = false;
         }
+      } else if (keys[0] === 'nonPayingFilter') {
+        if (member.values['Non Paying'] !== 'YES') {
+          match = false;
+        }
       }
     }
     return match;

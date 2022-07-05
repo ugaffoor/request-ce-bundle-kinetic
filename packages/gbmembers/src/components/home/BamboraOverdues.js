@@ -94,10 +94,14 @@ export class BamboraOverdues extends Component {
     return valid;
   }
   getLastBillingStartDate(member, successfulPayments) {
+    var resumeDate = moment(member.values['Resume Date'], 'YYYY-MM-DD');
     var billingStartDate = moment(
       member.values['Billing Start Date'],
       'YYYY-MM-DD',
     );
+    if (resumeDate.isAfter(billingStartDate)) {
+      billingStartDate = resumeDate;
+    }
     var idx = successfulPayments.findIndex(successful => {
       return (
         member.values['Member ID'] === successful.yourSystemReference &&

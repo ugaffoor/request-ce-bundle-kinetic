@@ -16,7 +16,6 @@ import MomentLocaleUtils, {
 import { getLocalePreference } from '../Member/MemberUtils';
 import { I18n } from '../../../../app/src/I18nProvider';
 import { actions } from '../../redux/modules/members';
-import { actions as posActions } from '../../redux/modules/pos';
 import { compose } from 'recompose';
 import { connect } from 'react-redux';
 import SVGInline from 'react-svg-inline';
@@ -27,19 +26,19 @@ import printerIcon from '../../images/Print.svg?raw';
 const mapStateToProps = state => ({
   members: state.member.members.allMembers,
   profile: state.member.app.profile,
-  leads: state.member.leads.allLeads,
   space: state.member.app.space,
-  posPurchaseItemsLoading: state.member.pos.posItemsLoading,
-  posPurchaseItems: state.member.pos.posItems,
+  additionalServices: state.member.members.additionalServices,
+  additionalServicesLoading: state.member.members.additionalServicesLoading,
 });
 
 const mapDispatchToProps = {
-  fetchPOSPurchaseItems: posActions.fetchPOSItems,
+  fetchAdditionalServices: actions.fetchAdditionalServices,
+  setAdditionalServices: actions.setAdditionalServices,
 };
 
 var compThis = undefined;
 
-export class PurchaseItemsReport extends Component {
+export class AdditionalServicesReport extends Component {
   handleClose = () => {
     var lastActive = this.state.lastActive;
     $('.dateSettings button[active=true]').attr('active', 'false');
@@ -53,16 +52,12 @@ export class PurchaseItemsReport extends Component {
     super(props);
     compThis = this;
     this.getColumns = this.getColumns.bind(this);
+
     this.locale =
       this.props.profile.preferredLocale === null
         ? this.props.space.defaultLocale
         : this.props.profile.preferredLocale;
-
-    moment.locale(
-      this.props.profile.preferredLocale === null
-        ? this.props.space.defaultLocale
-        : this.props.profile.preferredLocale,
-    );
+    moment.locale(this.locale);
 
     this.currency = getAttributeValue(this.props.space, 'Currency');
     if (this.currency === undefined) this.currency = 'USD';
@@ -90,174 +85,68 @@ export class PurchaseItemsReport extends Component {
       columns,
       allMembers: this.props.members,
       data,
-      total: 0,
-      costTotal: 0,
-      profitTotal: 0,
       repFromDate,
       repToDate,
       repPeriod: 'monthly',
       repViewPeriod: 'this_period',
-      showRepAccountHolders: false,
     };
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
-    if (!nextProps.posPurchaseItemsLoading) {
-      this.posPurchaseItems = [];
-      nextProps.posPurchaseItems.forEach((item, i) => {
-        this.posPurchaseItems[this.posPurchaseItems.length] = item;
+    if (!nextProps.additionalServicesLoading) {
+      this.additionalServices = [];
+      nextProps.additionalServices.forEach((item, i) => {
+        this.additionalServices[this.additionalServices.length] = item;
       });
-      let data = this.getData(this.posPurchaseItems, this.props.posProducts);
-      var total = 0;
-      var costTotal = 0;
-      var profitTotal = 0;
-      data.forEach((item, i) => {
-        total += item.value;
-        costTotal += item.cost;
-        profitTotal += item.profit;
-      });
+      let data = this.getData(this.additionalServices, this.props.allMembers);
 
       this.setState({
         allMembers: nextProps.members,
         data,
-        total,
-        costTotal,
-        profitTotal,
       });
     }
   }
 
   componentDidMount() {
-    this.props.fetchPOSPurchaseItems({
+    this.props.fetchAdditionalServices({
       dateFrom: this.state.repFromDate,
       dateTo: this.state.repToDate,
+      additionalServiceForm:
+        getAttributeValue(this.props.space, 'Billing Company') === 'Bambora'
+          ? 'bambora-member-additional-services'
+          : '',
     });
   }
 
   refreshData(fromDate, toDate) {
-    this.props.fetchPOSPurchaseItems({
+    this.props.fetchAdditionalServices({
       dateFrom: fromDate,
       dateTo: toDate,
+      additionalServiceForm:
+        getAttributeValue(this.props.space, 'Billing Company') === 'Bambora'
+          ? 'bambora-member-additional-services'
+          : '',
     });
   }
-  getItemPrice(item, posProducts) {
-    if (item.values['Price'] !== null && item.values['Price'] !== '') {
-      return Number.parseFloat(item.values['Price']);
-    } else {
-      var idx = posProducts.findIndex(
-        product => product['id'] === item.values['Product ID'],
-      );
-      if (idx !== -1) {
-        return Number.parseFloat(posProducts[idx].values['Price']);
-      }
-    }
-    console.log('No product price found for :' + item['id']);
-    return 0;
-  }
-  getItemCost(item, posProducts) {
-    if (
-      item.values['Cost'] !== undefined &&
-      item.values['Cost'] !== null &&
-      item.values['Cost'] !== ''
-    ) {
-      return Number.parseFloat(item.values['Cost'].replace('$', ''));
-    } else {
-      var idx = posProducts.findIndex(
-        product => product['id'] === item.values['Product ID'],
-      );
-      if (idx !== -1) {
-        if (
-          posProducts[idx].values['Cost'] !== undefined &&
-          posProducts[idx].values['Cost'] !== null &&
-          posProducts[idx].values['Cost'] !== ''
-        ) {
-          return Number.parseFloat(
-            posProducts[idx].values['Cost'].replace('$', ''),
-          );
-        } else {
-          return 0;
-        }
-      }
-    }
-    console.log('No product cost found for :' + item['id']);
-    return 0;
-  }
-  getItemProfit(posProducts, item, cost, price) {
-    var idx = posProducts.findIndex(
-      product => product['id'] === item.values['Product ID'],
-    );
-    if (idx !== -1) {
-      if (cost === 0 && posProducts[idx].values['Product Type'] === 'Apparel')
-        return 0;
-    }
-    return price - cost;
-  }
-  getData(posPurchaseItems, posProducts) {
-    if (!posPurchaseItems || posPurchaseItems.length <= 0) {
+  getData(additionalServices, allMembers) {
+    if (!additionalServices || additionalServices.length <= 0) {
       return [];
     }
-    var data = [];
-    posPurchaseItems.forEach((item, i) => {
-      var idx = data.findIndex(
-        dataItem =>
-          dataItem.key ===
-          item.values['Product Name'] +
-            (item.values['Size'] !== undefined ? item.values['Size'] : ''),
+
+    additionalServices.forEach((service, i) => {
+      var idx = allMembers.findIndex(
+        member => member.id === service.values['Member GUID'],
       );
-      var price = this.getItemPrice(item, posProducts);
-      var cost = this.getItemCost(item, posProducts);
-      var profit = this.getItemProfit(posProducts, item, cost, price);
-      if (idx === -1) {
-        data[data.length] = {
-          key:
-            item.values['Product Name'] +
-            (item.values['Size'] !== undefined ? item.values['Size'] : ''),
-          name: item.values['Product Name'],
-          size: item.values['Size'],
-          quantity: Number.parseInt(item.values['Quantity']),
-          value: Number.parseInt(item.values['Quantity']) * price,
-          cost: Number.parseInt(item.values['Quantity']) * cost,
-          profit: Number.parseInt(item.values['Quantity']) * profit,
-        };
-      } else {
-        data[idx].quantity =
-          data[idx].quantity + Number.parseInt(item.values['Quantity']);
-        data[idx].value =
-          data[idx].value + Number.parseInt(item.values['Quantity']) * price;
-        data[idx].cost =
-          data[idx].cost + Number.parseInt(item.values['Quantity']) * cost;
-        data[idx].profit =
-          data[idx].profit + Number.parseInt(item.values['Quantity']) * profit;
+
+      if (idx !== -1) {
+        service.values['Member Name'] =
+          allMembers[idx].values['First Name'] +
+          ' ' +
+          allMembers[idx].values['Last Name'];
       }
     });
 
-    data
-      .sort((a, b) => {
-        if (a.name < b.name) {
-          return -1;
-        } else if (a.name > b.name) {
-          return 1;
-        }
-        return 0;
-      })
-      .sort((a, b) => {
-        if (a.size < b.size) {
-          return -1;
-        } else if (a.size > b.size) {
-          return 1;
-        }
-        return 0;
-      })
-      .map(item => {
-        return {
-          name: item.name,
-          size: item.size,
-          quantity: item.quantity,
-          value: item.value,
-          cost: item.cost,
-        };
-      });
-    return data;
+    return additionalServices;
   }
   handleInputChange(event) {
     this.setState({
@@ -398,107 +287,74 @@ export class PurchaseItemsReport extends Component {
       });
     }
   }
-
   getColumns() {
     const columns = [
+      {
+        Header: 'Status',
+        accessor: 'status',
+        Cell: props => props.original.values['Status'],
+      },
       {
         accessor: 'name',
         Header: 'Name',
         width: 300,
+        Cell: props => props.original.values['Name'],
       },
       {
-        accessor: 'size',
-        Header: 'Size',
+        accessor: 'memberName',
+        Header: 'Member',
+        width: 200,
+        Cell: props => {
+          return (
+            <NavLink
+              to={`/Member/${props.original.values['Member GUID']}`}
+              className=""
+            >
+              {props.original.values['Member Name']}
+            </NavLink>
+          );
+        },
+      },
+      {
+        accessor: 'paymentFrequency',
+        Header: 'Payment Frequency',
+        width: 200,
+        Cell: props => props.original.values['Display Payment Frequency'],
+      },
+      {
+        accessor: 'fee',
+        Header: 'Fee',
+        width: 150,
+        Cell: props => {
+          return (
+            <div className="dollarValue">
+              {new Intl.NumberFormat(this.locale, {
+                style: 'currency',
+                currency: this.currency,
+              }).format(props.original.values['Fee'])}
+            </div>
+          );
+        },
+      },
+      {
+        accessor: 'start',
+        Header: 'Start',
         width: 100,
+        Cell: props =>
+          moment(props.original.values['Start Date']).format('D MMM YYYY'),
       },
       {
-        accessor: 'quantity',
-        Header: 'Quantity',
+        accessor: 'end',
+        Header: 'End',
         width: 100,
+        Cell: props =>
+          moment(props.original.values['End Date']).format('D MMM YYYY'),
       },
       {
-        accessor: 'cost',
-        Header: 'Cost',
-        width: 150,
-        Cell: props => {
-          return props.original.cost === undefined ? (
-            <div />
-          ) : (
-            <div className="dollarValue">
-              {new Intl.NumberFormat(this.locale, {
-                style: 'currency',
-                currency: this.currency,
-              }).format(props.original.cost)}
-            </div>
-          );
-        },
-        Footer: (
-          <span>
-            <strong>Total: </strong>
-            {this.state !== undefined
-              ? new Intl.NumberFormat(this.locale, {
-                  style: 'currency',
-                  currency: this.currency,
-                }).format(this.state.costTotal)
-              : 0}
-          </span>
-        ),
-      },
-      {
-        accessor: 'value',
-        Header: 'Value',
-        width: 150,
-        Cell: props => {
-          return props.original.value === undefined ? (
-            <div />
-          ) : (
-            <div className="dollarValue">
-              {new Intl.NumberFormat(this.locale, {
-                style: 'currency',
-                currency: this.currency,
-              }).format(props.original.value)}
-            </div>
-          );
-        },
-        Footer: (
-          <span>
-            <strong>Total: </strong>
-            {this.state !== undefined
-              ? new Intl.NumberFormat(this.locale, {
-                  style: 'currency',
-                  currency: this.currency,
-                }).format(this.state.total)
-              : 0}
-          </span>
-        ),
-      },
-      {
-        accessor: 'profit',
-        Header: 'Profit',
-        width: 150,
-        Cell: props => {
-          return props.original.profit === undefined ? (
-            <div />
-          ) : (
-            <div className="dollarValue">
-              {new Intl.NumberFormat(this.locale, {
-                style: 'currency',
-                currency: this.currency,
-              }).format(props.original.profit)}
-            </div>
-          );
-        },
-        Footer: (
-          <span>
-            <strong>Total: </strong>
-            {this.state !== undefined
-              ? new Intl.NumberFormat(this.locale, {
-                  style: 'currency',
-                  currency: this.currency,
-                }).format(this.state.profitTotal)
-              : 0}
-          </span>
-        ),
+        accessor: 'billingID',
+        Header: 'Billing ID',
+        width: 100,
+        Cell: props => props.original.values['Billing ID'],
       },
     ];
     return columns;
@@ -506,7 +362,7 @@ export class PurchaseItemsReport extends Component {
 
   render() {
     return (
-      <span className="purchaseItemsReport">
+      <span className="additionalServicesReport">
         <div className="page-header" style={{ textAlign: 'center' }}>
           <div className="dateSettings">
             <button
@@ -672,10 +528,12 @@ export class PurchaseItemsReport extends Component {
             {this.state.repToDate.format('L')}
           </span>
         </div>
-        {this.props.posPurchaseItemsLoading ? (
-          <div className="purchaseItemsReport">Loading information ...</div>
+        {this.props.additionalServicesLoading ? (
+          <div className="additionalServicesReport">
+            Loading information ...
+          </div>
         ) : (
-          <div className="purchaseItemsReport">
+          <div className="additionalServicesReport">
             <ReactToPrint
               trigger={() => (
                 <SVGInline svg={printerIcon} className="icon tablePrint" />
@@ -685,6 +543,7 @@ export class PurchaseItemsReport extends Component {
             <ReactTable
               ref={el => (this.tableComponentRef = el)}
               columns={this.getColumns()}
+              groupBy="paymenttype"
               data={this.state.data}
               className="-striped -highlight"
               defaultPageSize={
@@ -692,6 +551,33 @@ export class PurchaseItemsReport extends Component {
               }
               pageSize={this.state.data.length > 0 ? this.state.data.length : 2}
               showPagination={false}
+              expanded={this.state.expandedRows}
+              onExpandedChange={(newExpanded, index) => {
+                this.setState(oldState => {
+                  const itemIndex = index[0];
+                  const isExpanded = oldState.expandedRows[itemIndex];
+                  const expandedList = [...this.state.expandedRows];
+                  expandedList[itemIndex] = !isExpanded;
+                  return {
+                    expandedRows: expandedList,
+                  };
+                });
+              }}
+              SubComponent={row => {
+                return (
+                  <ReactTable
+                    data={row.original.products}
+                    columns={this.productColumns}
+                    TheadComponent={() => null}
+                    defaultPageSize={
+                      row.original.products.length > 0
+                        ? row.original.products.length
+                        : 2
+                    }
+                    showPagination={false}
+                  />
+                );
+              }}
             />
             <br />
           </div>
@@ -702,4 +588,6 @@ export class PurchaseItemsReport extends Component {
 }
 
 const enhance = compose(connect(mapStateToProps, mapDispatchToProps));
-export const PurchaseItemsReportContainer = enhance(PurchaseItemsReport);
+export const AdditionalServicesReportContainer = enhance(
+  AdditionalServicesReport,
+);

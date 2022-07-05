@@ -569,14 +569,16 @@ export class LeadDetail extends Component {
                       title="Lead Details"
                     />
                   </NavLink>
-                  <NavLink to={`/NewMember/${this.props.leadItem['id']}`}>
-                    <img
-                      src={convert_to_member}
-                      alt="Convert to Member"
-                      style={{ border: 'none', marginRight: '20px' }}
-                      title="Convert to Member"
-                    />
-                  </NavLink>
+                  {this.props.leadItem.values['Lead State'] !== 'Converted' && (
+                    <NavLink to={`/NewMember/${this.props.leadItem['id']}`}>
+                      <img
+                        src={convert_to_member}
+                        alt="Convert to Member"
+                        style={{ border: 'none', marginRight: '20px' }}
+                        title="Convert to Member"
+                      />
+                    </NavLink>
+                  )}
                   <NavLink
                     to={`/FollowUp/${this.props.leadItem['id']}`}
                     className="btn btn-primary followup_button followup_image"

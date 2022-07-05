@@ -571,7 +571,7 @@ export class MemberFinancialStats extends Component {
     ) {
       return parseFloat(member.values['Membership Cost']);
     }
-    return '0';
+    return 0;
   }
 
   getMemberWeeklyCost(

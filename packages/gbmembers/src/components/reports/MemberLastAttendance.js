@@ -9,12 +9,12 @@ import printerIcon from '../../images/Print.svg?raw';
 export class MemberLastAttendance extends Component {
   constructor(props) {
     super(props);
-    let data = this.getData(this.props.allMembers, 3);
+    let data = this.getData(this.props.allMembers, 2);
     let columns = this.getColumns();
     this.state = {
       data,
       columns,
-      week: '3',
+      week: '2',
     };
   }
 

@@ -137,7 +137,9 @@
       }
     }
   }
-
+  .rt-tr.selected-row.selected-row {
+    background-color: #bdbdbd !important;
+  }
   .nav-link {
     color: $gray;
     cursor: pointer;

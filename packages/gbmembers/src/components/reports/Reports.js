@@ -26,6 +26,7 @@ import { PaysmartFailedPayments } from './PaysmartFailedPayments';
 import { BamboraFailedPayments } from './BamboraFailedPayments';
 import { StripeFailedPayments } from './StripeFailedPayments';
 import { PaysmartOverdues } from './PaysmartOverdues';
+import { AdditionalServicesReportContainer } from './AdditionalServicesReport';
 import { actions } from '../../redux/modules/members';
 import moment from 'moment';
 import { Utils } from 'common';
@@ -164,6 +165,8 @@ export const ReportsView = ({
   showOverduesReport,
   setShowOverduesReport,
   getOverdues,
+  showAdditionalServicesReport,
+  setShowAdditionalServicesReport,
   fetchPaymentHistory,
   setPaymentHistory,
   fetchOverdues,
@@ -594,6 +597,44 @@ export const ReportsView = ({
         )}
       </div>
     )}
+    {Utils.getAttributeValue(space, 'Billing Company') !== 'Bambora' ||
+    !Utils.isMemberOf(profile, 'Billing') ? (
+      <div />
+    ) : (
+      <div
+        style={{ margin: '20px 0px 0px 10px' }}
+        id="additional-services-report"
+      >
+        <div className="row">
+          <button
+            type="button"
+            className="btn btn-primary report-btn-default"
+            disabled={!dummyFormLoaded}
+            onClick={e => {
+              setShowAdditionalServicesReport(
+                showAdditionalServicesReport ? false : true,
+              );
+              document.getElementById('failed-report').scrollIntoView();
+            }}
+          >
+            {showAdditionalServicesReport
+              ? 'Hide Additional Services Report'
+              : 'Show Additional Services Report'}
+          </button>
+        </div>
+        {!showAdditionalServicesReport ? null : (
+          <div className="row">
+            <div>
+              <AdditionalServicesReportContainer
+                allMembers={members}
+                profile={profile}
+                space={space}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    )}
     {Utils.getAttributeValue(space, 'Billing Company') !== 'Stripe' ||
     !Utils.isMemberOf(profile, 'Billing') ? (
       <div />
@@ -733,6 +774,11 @@ export const ReportsContainer = compose(
   withState('showDescrepenciesReport', 'setShowDescrepenciesReport', false),
   withState('showFailedPaymentsReport', 'setShowFailedPaymentsReport', false),
   withState('showOverduesReport', 'setShowOverduesReport', false),
+  withState(
+    'showAdditionalServicesReport',
+    'setShowAdditionalServicesReport',
+    false,
+  ),
   withState('dummyFormLoaded', 'setDummyFormLoaded', false),
   withHandlers({
     singleSetDummyFormLoaded: () => (dummyFormLoaded, setDummyFormLoaded) => {
@@ -874,6 +920,18 @@ export const ReportsContainer = compose(
     }) => () => {
       fetchOverdues({
         setOverdues: setOverdues,
+        addNotification: addNotification,
+        setSystemError: setSystemError,
+      });
+    },
+    getAdditionalServices: ({
+      fetchAdditionalServices,
+      setAdditionalServices,
+      addNotification,
+      setSystemError,
+    }) => () => {
+      fetchAdditionalServices({
+        setAdditionalServices: setAdditionalServices,
         addNotification: addNotification,
         setSystemError: setSystemError,
       });

@@ -38,6 +38,8 @@ const mapStateToProps = state => ({
   posOrders: state.member.pos.posOrders,
   customerRefunds: state.member.members.customerRefunds,
   customerRefundsLoading: state.member.members.customerRefundsLoading,
+  additionalServices: state.member.members.additionalServices,
+  additionalServicesLoading: state.member.members.additionalServicesLoading,
 });
 
 const mapDispatchToProps = {
@@ -48,6 +50,9 @@ const mapDispatchToProps = {
   fetchPOSOrders: posActions.fetchPOSOrders,
   fetchCustomerRefunds: actions.fetchCustomerRefunds,
   setCustomerRefunds: actions.setCustomerRefunds,
+  fetchActiveAdditionalServices: actions.fetchActiveAdditionalServices,
+  fetchAdditionalServices: actions.fetchAdditionalServices,
+  setAdditionalServices: actions.setAdditionalServices,
 };
 
 var compThis = undefined;
@@ -109,7 +114,8 @@ export class MemberFinancialReport extends Component {
       !nextProps.FAILEDpaymentHistoryLoading &&
       !nextProps.SUCCESSFULpaymentHistoryLoading &&
       !nextProps.customerRefundsLoading &&
-      !nextProps.posOrdersLoading
+      !nextProps.posOrdersLoading &&
+      !nextProps.additionalServicesLoading
     ) {
       this.failedPaymentHistory = [];
       nextProps.FAILEDpaymentHistory.forEach((item, i) => {
@@ -196,6 +202,9 @@ export class MemberFinancialReport extends Component {
       });
 
       this.refunds = [];
+      console.log(
+        'nextProps.customerRefunds:' + nextProps.customerRefunds.length,
+      );
       nextProps.customerRefunds.forEach((item, i) => {
         this.refunds[this.refunds.length] = item;
       });
@@ -207,6 +216,7 @@ export class MemberFinancialReport extends Component {
         this.paymentHistory,
         this.posOrders,
         this.refunds,
+        this.props.additionalServices,
         this.state.repFromDate,
         this.state.repToDate,
         this.state.repBillingPeriod,
@@ -214,6 +224,7 @@ export class MemberFinancialReport extends Component {
       this.setState({
         allMembers: nextProps.members,
         billingCustomers: nextProps.billingCustomers,
+        additionalServices: this.props.additionalServices,
         repMemberData: memberData,
       });
     }
@@ -265,6 +276,14 @@ export class MemberFinancialReport extends Component {
       dateTo: this.state.repToDate,
       timezoneOffset: getTimezoneOff(),
     });
+    this.props.fetchAdditionalServices({
+      dateFrom: this.state.repFromDate,
+      dateTo: this.state.repToDate,
+      additionalServiceForm:
+        getAttributeValue(this.props.space, 'Billing Company') === 'Bambora'
+          ? 'bambora-member-additional-services'
+          : '',
+    });
     this.props.fetchCustomerRefunds({
       dateFrom: this.state.repFromDate.format('YYYY-MM-DD'),
       dateTo: this.state.repToDate.format('YYYY-MM-DD'),
@@ -298,9 +317,29 @@ export class MemberFinancialReport extends Component {
     });
   }
   isRecurringPayment(payment, members) {
+    if (
+      payment['paymentReference'] !== null &&
+      payment['paymentReference'] !== undefined &&
+      payment['paymentReference'] !== ''
+    )
+      return undefined;
     var idx = members.findIndex(
       member =>
         member.values['Billing Customer Id'] === payment['yourSystemReference'],
+    );
+
+    if (idx !== -1) return members[idx];
+    return undefined;
+  }
+  isAdditionalServicePayment(payment, members) {
+    if (
+      payment['paymentReference'] === null ||
+      payment['paymentReference'] === undefined ||
+      payment['paymentReference'] === ''
+    )
+      return undefined;
+    var idx = members.findIndex(
+      member => member.values['Member ID'] === payment['yourSystemReference'],
     );
 
     if (idx !== -1) return members[idx];
@@ -331,6 +370,12 @@ export class MemberFinancialReport extends Component {
       dateFrom: fromDate,
       dateTo: toDate,
       timezoneOffset: getTimezoneOff(),
+    });
+    this.props.fetchActiveAdditionalServices({
+      additionalServiceForm:
+        getAttributeValue(this.props.space, 'Billing Company') === 'Bambora'
+          ? 'bambora-member-additional-services'
+          : '',
     });
     this.props.fetchCustomerRefunds({
       dateFrom: fromDate.format('YYYY-MM-DD'),
@@ -365,6 +410,7 @@ export class MemberFinancialReport extends Component {
     paymentHistory,
     posOrders,
     customerRefunds,
+    additionalServicesRecords,
     fromDate,
     toDate,
     repBillingPeriod,
@@ -372,6 +418,7 @@ export class MemberFinancialReport extends Component {
     if (!members || members.length <= 0) {
       return {
         accountHolders: { members: [], value: 0 },
+        additionalServices: { members: [], value: 0 },
         forecastHolders: { members: [], value: 0 },
         posPayments: { members: [], value: 0 },
         salesTax: { members: [], value: 0 },
@@ -381,6 +428,8 @@ export class MemberFinancialReport extends Component {
     // billingAmount, repBillingPeriod
     let accountHolders = [];
     let accountHoldersValue = 0;
+    let additionalServices = [];
+    let additionalServicesValue = 0;
     let forecastHolders = [];
     let forecastHoldersValue = 0;
     let posPeople = [];
@@ -389,6 +438,13 @@ export class MemberFinancialReport extends Component {
     let refundValue = 0;
     paymentHistory.forEach(payment => {
       var member = this.isRecurringPayment(payment, members);
+      var additionalServiceMember = undefined;
+      if (member === undefined) {
+        additionalServiceMember = this.isAdditionalServicePayment(
+          payment,
+          members,
+        );
+      }
       if (member !== undefined) {
         // Needed for Bambora
         if (accountHolders.findIndex(item => item.id === member.id) === -1) {
@@ -402,6 +458,33 @@ export class MemberFinancialReport extends Component {
             member.values['Last Name'] +
             ' - ' +
             member.values['Billing Customer Reference'] +
+            ',' +
+            Number(payment.paymentAmount).toFixed(2) +
+            ',' +
+            payment.paymentID +
+            ',' +
+            payment.debitDate,
+        );
+      } else if (additionalServiceMember !== undefined) {
+        if (
+          additionalServices.findIndex(
+            service =>
+              service.id === additionalServiceMember.id &&
+              service.values['Service Name'] === payment.paymentReference,
+          ) === -1
+        ) {
+          var idx = additionalServices.length;
+          additionalServices[idx] = additionalServiceMember;
+          additionalServices[idx]['Service Name'] = payment.paymentReference;
+        }
+        additionalServicesValue += payment.paymentAmount;
+        console.log(
+          '1 ' +
+            additionalServiceMember.values['First Name'] +
+            ' ' +
+            additionalServiceMember.values['Last Name'] +
+            ' - ' +
+            additionalServiceMember.values['Billing Customer Reference'] +
             ',' +
             Number(payment.paymentAmount).toFixed(2) +
             ',' +
@@ -534,6 +617,58 @@ export class MemberFinancialReport extends Component {
       }
     });
     //  }
+
+    additionalServicesRecords.forEach((service, i) => {
+      // Find latest payment date
+      var idx = paymentHistory.findIndex(item => {
+        return service.values['Member ID'] === item.yourSystemReference;
+      });
+      var lastPayment;
+      if (idx !== -1) {
+        lastPayment = moment(
+          paymentHistory[idx]['debitDate'],
+          'YYYY-MM-DD HH:mm:ss',
+        );
+      } else {
+        lastPayment = moment(service.values['End Date'], 'YYYY-MM-DD');
+      }
+      var paymentPeriod = service.values['Payment Frequency'];
+      var period = 'months';
+      var periodCount = 1;
+      if (paymentPeriod === 'Daily') {
+        period = 'days';
+      } else if (paymentPeriod === 'Weekly') {
+        period = 'weeks';
+      } else if (paymentPeriod === 'Fortnightly') {
+        period = 'weeks';
+        periodCount = 2;
+      } else if (paymentPeriod === 'Monthly') {
+        period = 'months';
+      } else if (paymentPeriod === 'Yearly') {
+        period = 'years';
+      }
+      if (lastPayment.isAfter(moment())) {
+        lastPayment = lastPayment.subtract(period, periodCount);
+      }
+
+      var nextBillingDate = lastPayment.add(period, periodCount);
+      while (nextBillingDate.isBefore(fromDate)) {
+        nextBillingDate = nextBillingDate.add(period, periodCount);
+      }
+      var count = 1;
+      while (
+        (nextBillingDate.isAfter(fromDate) ||
+          nextBillingDate.isSame(fromDate)) &&
+        (nextBillingDate.isBefore(toDate) || nextBillingDate.isSame(toDate))
+      ) {
+        forecastHolders[forecastHolders.length] = service;
+        forecastHoldersValue += Number(service.values['Fee']);
+
+        nextBillingDate = nextBillingDate.add(period, periodCount);
+        count += 1;
+      }
+    });
+
     let salesTaxValue = 0;
     posOrders.forEach(pos => {
       //      if (getAttributeValue(this.props.space, 'POS System') === 'Square') {
@@ -557,7 +692,10 @@ export class MemberFinancialReport extends Component {
       }
     });
 
+    console.log('customerRefunds:' + customerRefunds.length);
+
     customerRefunds.forEach(refund => {
+      console.log('customerRefunds refund:' + refund.paymentAmount);
       refundValue += refund.paymentAmount;
       var idx = members.findIndex(
         item =>
@@ -611,10 +749,21 @@ export class MemberFinancialReport extends Component {
           }
         }
       }
+      console.log(
+        'Refund,' +
+          ' ' +
+          refund.yourSystemReference +
+          ' ' +
+          refund.paymentAmount,
+      );
     });
 
     return {
       accountHolders: { members: accountHolders, value: accountHoldersValue },
+      additionalServices: {
+        members: additionalServices,
+        value: additionalServicesValue,
+      },
       forecastHolders: {
         members: forecastHolders,
         value: forecastHoldersValue,
@@ -791,6 +940,33 @@ export class MemberFinancialReport extends Component {
     }); */
     return member.refundValue;
   }
+
+  getAdditionalServicesFee(additionalServices, member) {
+    var fee = 0;
+    additionalServices.forEach((service, i) => {
+      if (
+        service.values['Member ID'] === member.values['Member ID'] &&
+        member['Service Name'] === service.values['Name']
+      ) {
+        fee = fee + parseFloat(service.values['Fee']);
+      }
+    });
+
+    return fee;
+  }
+  getAdditionalServiceName(additionalServices, member) {
+    var name = '';
+    additionalServices.forEach((service, i) => {
+      if (
+        service.values['Member ID'] === member.values['Member ID'] &&
+        member['Service Name'] === service.values['Name']
+      ) {
+        name = member['Service Name'];
+      }
+    });
+
+    return name;
+  }
   getMemberFee(members, member) {
     if (
       member.values['Non Paying'] !== null &&
@@ -871,6 +1047,25 @@ export class MemberFinancialReport extends Component {
         fee: this.getMemberFee(allMembers, members[i]),
         cost: this.getScheduledPayment(members[i], billingCustomers),
         period: this.getMemberPeriod(allMembers, members[i]),
+      };
+    }
+
+    return members_col;
+  }
+  getAdditionalServiceMembers(allMembers, members, additionalServices, col) {
+    var members_col = [];
+
+    for (var i = col - 1; i < members.length; i = i + 2) {
+      var fee = this.getAdditionalServicesFee(additionalServices, members[i]);
+      members_col[members_col.length] = {
+        memberId: members[i].id,
+        name:
+          members[i].values['Last Name'] +
+          ' ' +
+          members[i].values['First Name'],
+        fee: fee,
+        cost: fee,
+        period: this.getAdditionalServiceName(additionalServices, members[i]),
       };
     }
 
@@ -958,6 +1153,38 @@ export class MemberFinancialReport extends Component {
       this.state.allMembers,
       members,
       billingCustomers,
+      2,
+    );
+
+    return [
+      {
+        members: {
+          members_col1: members_col1,
+          members_col2: members_col2,
+        },
+      },
+    ];
+  }
+  getAdditionalServicesTableData(members, additionalServices) {
+    members.sort(function(a, b) {
+      if (a.values['Last Name'] < b.values['Last Name']) {
+        return -1;
+      } else if (a.values['Last Name'] > b.values['Last Name']) {
+        return 1;
+      }
+      return 0;
+    });
+
+    let members_col1 = this.getAdditionalServiceMembers(
+      this.state.allMembers,
+      members,
+      additionalServices,
+      1,
+    );
+    let members_col2 = this.getAdditionalServiceMembers(
+      this.state.allMembers,
+      members,
+      additionalServices,
       2,
     );
 
@@ -1335,6 +1562,7 @@ export class MemberFinancialReport extends Component {
   };
   getMemberTableHeaderName() {
     if (this.state.showAccountHolders) return 'Memberships';
+    if (this.state.showAdditionalServices) return 'Additional Services';
     if (this.state.showPOSPeople) return 'POS Member/Lead';
     if (this.state.showRefundMembers) return 'Refunds';
   }
@@ -1457,6 +1685,29 @@ export class MemberFinancialReport extends Component {
               data={this.getMemberTableData(
                 this.state.repMemberData.accountHolders.members,
                 this.state.billingCustomers,
+              )}
+              defaultPageSize={1}
+              showPagination={false}
+            />
+          </div>
+        )}
+        {this.state.showAdditionalServices && (
+          <div className="members">
+            <span
+              className="closeMembers"
+              onClick={e =>
+                this.setState({
+                  showAdditionalServices: false,
+                })
+              }
+            >
+              <SVGInline svg={crossIcon} className="icon" />
+            </span>
+            <ReactTable
+              columns={this.getMemberTableColumns()}
+              data={this.getAdditionalServicesTableData(
+                this.state.repMemberData.additionalServices.members,
+                this.state.additionalServices,
               )}
               defaultPageSize={1}
               showPagination={false}
@@ -1760,7 +2011,7 @@ export class MemberFinancialReport extends Component {
         </div>
         {this.props.billingReportCustomersLoading ||
         this.props.SUCCESSFULpaymentHistoryLoading ||
-        this.customerRefundsLoading ||
+        this.props.customerRefundsLoading ||
         this.props.posOrdersLoading ? (
           <div className="memberFinanceReport">Loading information ...</div>
         ) : (
@@ -1802,6 +2053,7 @@ export class MemberFinancialReport extends Component {
                   onClick={e =>
                     this.setState({
                       showAccountHolders: true,
+                      showAdditionalServices: false,
                       showPOSPeople: false,
                       showRefundMembers: false,
                     })
@@ -1826,6 +2078,36 @@ export class MemberFinancialReport extends Component {
               </div>
               <div className="column col4"></div>
             </div>
+            {getAttributeValue(this.props.space, 'Billing Company') ===
+              'Bambora' && (
+              <div className="row header4">
+                <div className="column col1">Additional Services</div>
+                <div className="column col2">
+                  <div
+                    className="dollarValue membersLink"
+                    onClick={e =>
+                      this.setState({
+                        showAdditionalServices: true,
+                        showAccountHolders: false,
+                        showPOSPeople: false,
+                        showRefundMembers: false,
+                      })
+                    }
+                  >
+                    {new Intl.NumberFormat(this.locale, {
+                      style: 'currency',
+                      currency: this.currency,
+                    }).format(
+                      this.state.repMemberData.additionalServices.value,
+                    )}
+                  </div>
+                </div>
+                <div className="column col3">
+                  <div className="percentValue"></div>
+                </div>
+                <div className="column col4"></div>
+              </div>
+            )}
             <div className="row header5">
               <div className="column col1">POS</div>
               <div className="column col2">
@@ -1834,6 +2116,7 @@ export class MemberFinancialReport extends Component {
                   onClick={e =>
                     this.setState({
                       showAccountHolders: false,
+                      showAdditionalServices: false,
                       showPOSPeople: true,
                       showRefundMembers: false,
                     })
@@ -1873,6 +2156,7 @@ export class MemberFinancialReport extends Component {
                   onClick={e =>
                     this.setState({
                       showAccountHolders: false,
+                      showAdditionalServices: false,
                       showPOSPeople: false,
                       showRefundMembers: true,
                     })

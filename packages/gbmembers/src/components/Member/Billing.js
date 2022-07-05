@@ -646,6 +646,8 @@ export class PaymentHistory extends Component {
         refundAmount: payment.refundAmount,
         transactionFee: payment.transactionFeeCustomer,
         debitDate: payment.debitDate,
+        paymentSource: payment.paymentSource,
+        paymentReference: payment.paymentReference,
       };
     });
     return data;
@@ -663,8 +665,21 @@ export class PaymentHistory extends Component {
         ? JSON.parse(this.props.memberItem.values['Refunded Payments'])
         : [];
 
-    const columns = [
-      {
+    const columns = [];
+    if (getAttributeValue(this.props.space, 'Billing Company') === 'Bambora') {
+      columns.push({
+        accessor: 'paymentReference',
+        Header: 'Type',
+        Cell: props => {
+          return props.value !== undefined && props.value !== ''
+            ? props.value
+            : 'Membership';
+        },
+      });
+    }
+
+    if (getAttributeValue(this.props.space, 'Billing Company') === 'PaySmart') {
+      columns.push({
         accessor: 'scheduledAmount',
         Header: 'Scheduled Amount',
         Cell: props =>
@@ -672,130 +687,134 @@ export class PaymentHistory extends Component {
             style: 'currency',
             currency: this.props.currency,
           }).format(props.value),
-      },
-      {
-        accessor: 'paymentAmount',
-        Header: 'Payment Amount',
-        Cell: props =>
-          new Intl.NumberFormat(this.props.locale, {
-            style: 'currency',
-            currency: this.props.currency,
-          }).format(props.value),
-      },
-      { accessor: 'paymentMethod', Header: 'Payment Method' },
-      { accessor: 'paymentStatus', Header: 'Payment Status' },
-      {
-        accessor: 'transactionFee',
-        Header: 'Transaction Fee',
-        Cell: props =>
-          new Intl.NumberFormat(this.props.locale, {
-            style: 'currency',
-            currency: this.props.currency,
-          }).format(props.value),
-      },
-      {
-        accessor: 'debitDate',
-        Header: 'Debit Date',
-        Cell: props => moment(props.value, ezidebit_date_format).format('L'),
-      },
-      {
-        accessor: '$refundPayment',
-        headerClassName: 'refund',
-        className: 'refund',
-        Cell: row =>
-          !this.isPaymentRefunded(row.original['_id'], paymentsRefunded) &&
-          (row.original.paymentStatus === 'S' ||
-            row.original.paymentStatus === 'paid' ||
-            row.original.paymentStatus === 'Settled' ||
-            row.original.paymentStatus === 'Approved') ? (
-            <button
-              type="button"
-              className="btn btn-primary"
-              disabled={this.props.refundTransactionInProgress ? true : false}
-              onClick={e =>
-                this.refundPayment(
-                  row.original['_id'],
-                  row.original.paymentAmount,
-                )
-              }
-            >
-              {this.props.refundTransactionInProgress
-                ? 'Refunding...'
-                : 'Refund Payment'}
-            </button>
-          ) : this.isPaymentRefunded(row.original['_id'], paymentsRefunded) ? (
-            <span>
-              Refunded{' '}
-              {row.original['refundAmount'] !== undefined && (
+      });
+    }
+    columns.push({
+      accessor: 'paymentAmount',
+      Header: 'Payment Amount',
+      Cell: props =>
+        new Intl.NumberFormat(this.props.locale, {
+          style: 'currency',
+          currency: this.props.currency,
+        }).format(props.value),
+    });
+    if (getAttributeValue(this.props.space, 'Billing Company') === 'PaySmart') {
+      columns.push({ accessor: 'paymentMethod', Header: 'Payment Method' });
+    }
+    columns.push({ accessor: 'paymentStatus', Header: 'Payment Status' });
+    /*      columns.push(
+        {
+          accessor: 'transactionFee',
+          Header: 'Transaction Fee',
+          Cell: props =>
+            new Intl.NumberFormat(this.props.locale, {
+              style: 'currency',
+              currency: this.props.currency,
+            }).format(props.value),
+        });
+*/
+    columns.push({
+      accessor: 'debitDate',
+      Header: 'Debit Date',
+      Cell: props => moment(props.value, ezidebit_date_format).format('L'),
+    });
+    columns.push({
+      accessor: '$refundPayment',
+      headerClassName: 'refund',
+      className: 'refund',
+      Cell: row =>
+        !this.isPaymentRefunded(row.original['_id'], paymentsRefunded) &&
+        (row.original.paymentStatus === 'S' ||
+          row.original.paymentStatus === 'paid' ||
+          row.original.paymentStatus === 'Settled' ||
+          row.original.paymentStatus === 'Approved') ? (
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={this.props.refundTransactionInProgress ? true : false}
+            onClick={e =>
+              this.refundPayment(
+                row.original['_id'],
+                row.original.paymentAmount,
+              )
+            }
+          >
+            {this.props.refundTransactionInProgress
+              ? 'Refunding...'
+              : 'Refund Payment'}
+          </button>
+        ) : this.isPaymentRefunded(row.original['_id'], paymentsRefunded) ? (
+          <span>
+            Refunded{' '}
+            {row.original['refundAmount'] !== undefined && (
+              <span className="refundValue">
+                {new Intl.NumberFormat(this.props.locale, {
+                  style: 'currency',
+                  currency: this.props.currency,
+                }).format(
+                  row.original['refundAmount'] !== undefined
+                    ? row.original['refundAmount']
+                    : '',
+                )}
+              </span>
+            )}
+            {this.props.refundTransactionID.id !== undefined &&
+              this.props.refundTransactionID.id === row.original['id'] && (
                 <span className="refundValue">
                   {new Intl.NumberFormat(this.props.locale, {
                     style: 'currency',
                     currency: this.props.currency,
                   }).format(
-                    row.original['refundAmount'] !== undefined
-                      ? row.original['refundAmount']
-                      : '',
+                    this.props.refundTransactionID.id === row.original['id']
+                      ? this.props.refundTransactionID.value
+                      : row.original['Refund'],
                   )}
                 </span>
               )}
-              {this.props.refundTransactionID.id !== undefined &&
-                this.props.refundTransactionID.id === row.original['id'] && (
-                  <span className="refundValue">
-                    {new Intl.NumberFormat(this.props.locale, {
-                      style: 'currency',
-                      currency: this.props.currency,
-                    }).format(
-                      this.props.refundTransactionID.id === row.original['id']
-                        ? this.props.refundTransactionID.value
-                        : row.original['Refund'],
-                    )}
-                  </span>
-                )}
-            </span>
-          ) : (
-            ''
-          ),
-      },
-      {
-        headerClassName: 'print',
-        className: 'print',
-        Cell: row => (
-          <span className="col-sm-2 orderreceipt">
-            <span style={{ display: 'none' }}>
-              <MembershipReceiptToPrint
-                locale={this.props.locale}
-                currency={this.props.currency}
-                paymentID={row.original._id}
-                status={
-                  this.isPaymentRefunded(row.original['_id'], paymentsRefunded)
-                    ? 'Refunded'
-                    : 'Approved'
-                }
-                total={row.original.paymentAmount}
-                datetime={moment(row.original.debitDate, 'YYYY-MM-DD HH:mm:SS')}
-                space={this.props.space}
-                snippets={this.props.snippets}
-                name={
-                  this.props.memberItem.values['First Name'] +
-                  ' ' +
-                  this.props.memberItem.values['Last Name']
-                }
-                ref={el => this.rowRecieptsRefs.set(row.original._id, el)}
-              />
-            </span>
-            <span className="printReceipt">
-              <ReactToPrint
-                trigger={() => (
-                  <SVGInline svg={printerIcon} className="icon barcodePrint" />
-                )}
-                content={() => this.rowRecieptsRefs.get(row.original._id)}
-                pageStyle="@page {size: a4 portrait;margin: 0;}"
-              />
-            </span>
           </span>
+        ) : (
+          ''
         ),
-      },
-    ];
+    });
+    columns.push({
+      headerClassName: 'print',
+      className: 'print',
+      Cell: row => (
+        <span className="col-sm-2 orderreceipt">
+          <span style={{ display: 'none' }}>
+            <MembershipReceiptToPrint
+              locale={this.props.locale}
+              currency={this.props.currency}
+              paymentID={row.original._id}
+              status={
+                this.isPaymentRefunded(row.original['_id'], paymentsRefunded)
+                  ? 'Refunded'
+                  : 'Approved'
+              }
+              total={row.original.paymentAmount}
+              datetime={moment(row.original.debitDate, 'YYYY-MM-DD HH:mm:SS')}
+              space={this.props.space}
+              snippets={this.props.snippets}
+              name={
+                this.props.memberItem.values['First Name'] +
+                ' ' +
+                this.props.memberItem.values['Last Name']
+              }
+              ref={el => this.rowRecieptsRefs.set(row.original._id, el)}
+            />
+          </span>
+          <span className="printReceipt">
+            <ReactToPrint
+              trigger={() => (
+                <SVGInline svg={printerIcon} className="icon barcodePrint" />
+              )}
+              content={() => this.rowRecieptsRefs.get(row.original._id)}
+              pageStyle="@page {size: a4 portrait;margin: 0;}"
+            />
+          </span>
+        </span>
+      ),
+    });
     return columns;
   }
 
@@ -1095,7 +1114,10 @@ export class BillingInfo extends Component {
         )}
         <span className="line">
           {this.props.memberItem.values['Billing Payment Type'] !== 'Cash' &&
-            this.props.memberItem.values['Non Paying'] !== 'YES' && (
+            this.props.memberItem.values['Non Paying'] !== 'YES' &&
+            this.props.memberItem.values['Billing Customer Id'] !== undefined &&
+              this.props.memberItem.values['Billing Customer Id'] !== null &&
+              this.props.memberItem.values['Billing Customer Id'] !== '' && (
               <span>
                 <div title="Billing Info" className="billingInfo">
                   {!this.props.isValidInput ? (
@@ -1234,10 +1256,15 @@ export class BillingInfo extends Component {
                               <tr>
                                 <td>Next Billing Date:</td>
                                 <td>
-                                  {moment(
-                                    this.props.billingInfo.nextBillingDate,
-                                    'DD-MM-YYYY',
-                                  ).format('L')}
+                                  {typeof this.props.billingInfo
+                                    .nextBillingDate === 'string'
+                                    ? moment(
+                                        this.props.billingInfo.nextBillingDate,
+                                        'DD-MM-YYYY',
+                                      ).format('L')
+                                    : this.props.billingInfo.nextBillingDate.format(
+                                        'L',
+                                      )}
                                 </td>
                               </tr>
                             )}
@@ -1343,18 +1370,22 @@ export class BillingInfo extends Component {
             )}
         </span>
         <div className="line">
-          <span className="line">
-            <div style={{ marginTop: '10px' }}>
-              <button
-                type="button"
-                id="showHidePaymentHistory"
-                className={'btn btn-primary'}
-                onClick={e => this.showHidePaymentHistory()}
-              >
-                {this.state.paymentHistoryBtnLabel}
-              </button>
-            </div>
-          </span>
+          {this.props.memberItem.values['Billing Customer Id'] !== null &&
+            this.props.memberItem.values['Billing Customer Id'] !== undefined &&
+            this.props.memberItem.values['Billing Customer Id'] !== '' && (
+              <span className="line">
+                <div style={{ marginTop: '10px' }}>
+                  <button
+                    type="button"
+                    id="showHidePaymentHistory"
+                    className={'btn btn-primary'}
+                    onClick={e => this.showHidePaymentHistory()}
+                  >
+                    {this.state.paymentHistoryBtnLabel}
+                  </button>
+                </div>
+              </span>
+            )}
           <span className="line">
             <div style={{ width: '90vw', marginTop: '10px' }}>
               {this.state.showPaymentHistory && (
@@ -1464,50 +1495,50 @@ export const Billing = ({
       <RecentNotificationsContainer />
       <div className="general">
         <div className="userDetails">
-          {memberItem.values['Billing Customer Id'] !== null &&
+          {/*memberItem.values['Billing Customer Id'] !== null &&
             memberItem.values['Billing Customer Id'] !== undefined &&
-            memberItem.values['Billing Customer Id'] !== '' && (
-              <BillingInfo
-                billingInfo={billingInfo}
-                billingInfoLoading={billingInfoLoading}
-                memberItem={memberItem}
-                removeBillingMember={removeBillingMember}
-                myThis={memberItem.myThis}
-                setIsDirty={setIsDirty}
-                familyMembers={familyMembers}
-                allMembers={allMembers}
-                membershipFees={membershipFees}
-                updateBillingMember={updateBillingMember}
-                isValidInput={isValidInput}
-                setIsValidInput={setIsValidInput}
-                errorMessage={errorMessage}
-                setErrorMessage={setErrorMessage}
-                onFeeProgramChange={onFeeProgramChange}
-                getPaymentHistory={getPaymentHistory}
-                paymentHistory={paymentHistory}
-                paymentHistoryLoading={paymentHistoryLoading}
-                fetchPOSCards={fetchPOSCards}
-                setPOSCards={setPOSCards}
-                posCords={posCards}
-                posCardsLoading={posCardsLoading}
-                billingWidgetUrl={billingWidgetUrl}
-                setIsAddMember={setIsAddMember}
-                billingCompany={billingCompany}
-                updatePaymentMethod={updatePaymentMethod}
-                refundPayment={refundPayment}
-                refundTransactionInProgress={refundTransactionInProgress}
-                refundTransactionID={refundTransactionID}
-                actionRequests={actionRequests}
-                actionRequestsLoading={actionRequestsLoading}
-                getActionRequests={getActionRequests}
-                profile={profile}
-                space={space}
-                snippets={snippets}
-                currency={currency}
-                locale={locale}
-              />
-            )}
-          {(memberItem.values['Billing Customer Id'] === null ||
+            memberItem.values['Billing Customer Id'] !== ''*/ true && (
+            <BillingInfo
+              billingInfo={billingInfo}
+              billingInfoLoading={billingInfoLoading}
+              memberItem={memberItem}
+              removeBillingMember={removeBillingMember}
+              myThis={memberItem.myThis}
+              setIsDirty={setIsDirty}
+              familyMembers={familyMembers}
+              allMembers={allMembers}
+              membershipFees={membershipFees}
+              updateBillingMember={updateBillingMember}
+              isValidInput={isValidInput}
+              setIsValidInput={setIsValidInput}
+              errorMessage={errorMessage}
+              setErrorMessage={setErrorMessage}
+              onFeeProgramChange={onFeeProgramChange}
+              getPaymentHistory={getPaymentHistory}
+              paymentHistory={paymentHistory}
+              paymentHistoryLoading={paymentHistoryLoading}
+              fetchPOSCards={fetchPOSCards}
+              setPOSCards={setPOSCards}
+              posCords={posCards}
+              posCardsLoading={posCardsLoading}
+              billingWidgetUrl={billingWidgetUrl}
+              setIsAddMember={setIsAddMember}
+              billingCompany={billingCompany}
+              updatePaymentMethod={updatePaymentMethod}
+              refundPayment={refundPayment}
+              refundTransactionInProgress={refundTransactionInProgress}
+              refundTransactionID={refundTransactionID}
+              actionRequests={actionRequests}
+              actionRequestsLoading={actionRequestsLoading}
+              getActionRequests={getActionRequests}
+              profile={profile}
+              space={space}
+              snippets={snippets}
+              currency={currency}
+              locale={locale}
+            />
+          )}
+          {/*(memberItem.values['Billing Customer Id'] === null ||
             memberItem.values['Billing Customer Id'] === undefined ||
             memberItem.values['Billing Customer Id'] === '') && (
             <span>
@@ -1516,7 +1547,7 @@ export const Billing = ({
                 of a Billing Member.
               </h3>
             </span>
-          )}
+          )*/}
         </div>
       </div>
     </div>
@@ -1866,7 +1897,12 @@ export const BillingContainer = compose(
       setSystemError,
     }) => () => {
       fetchPaymentHistory({
-        billingRef: memberItem.values['Billing Customer Id'],
+        billingRef:
+          memberItem.values['Billing Customer Id'] !== null &&
+          memberItem.values['Billing Customer Id'] !== undefined &&
+          memberItem.values['Billing Customer Id'] !== ''
+            ? memberItem.values['Billing Customer Id']
+            : memberItem.values['Member ID'],
         paymentType: 'ALL',
         paymentMethod: 'ALL',
         paymentSource: 'ALL',
