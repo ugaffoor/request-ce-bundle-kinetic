@@ -317,8 +317,8 @@ export const MemberNew = ({
                       ref={input => (this.input = input)}
                       defaultValue={
                         convertedLeadPostcode !== undefined
-                          ? memberItem.values['Postcode']
-                          : ''
+                          ? convertedLeadPostcode
+                          : memberItem.values['Postcode']
                       }
                       onChange={e => {
                         handleChange(memberItem, 'Postcode', e);
@@ -338,8 +338,8 @@ export const MemberNew = ({
                       ref={input => (this.input = input)}
                       value={
                         convertedLeadPostcode !== undefined
-                          ? memberItem.values['Postcode']
-                          : ''
+                          ? convertedLeadPostcode
+                          : memberItem.values['Postcode']
                       }
                       onValueChange={(values, e) =>
                         handleFormattedChange(values, memberItem, 'Postcode', e)
@@ -416,7 +416,9 @@ export const MemberNew = ({
                     required
                     ref={input => (this.input = input)}
                     value={
-                      convertedLeadPhone !== undefined ? convertedLeadPhone : ''
+                      convertedLeadPhone !== undefined
+                        ? convertedLeadPhone
+                        : memberItem.values['Phone Number']
                     }
                     onValueChange={(values, e) =>
                       handleFormattedChange(
@@ -644,7 +646,7 @@ export const MemberNew = ({
                     value={
                       convertedLeadEmergencyPhone !== undefined
                         ? convertedLeadEmergencyPhone
-                        : ''
+                        : memberItem.values['Emergency Contact Phone']
                     }
                     ref={input => (this.input = input)}
                     onValueChange={(values, e) =>

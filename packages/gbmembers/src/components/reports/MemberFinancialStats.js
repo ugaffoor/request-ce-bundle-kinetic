@@ -249,8 +249,7 @@ export class MemberFinancialStats extends Component {
   getScheduledPayment(member, billingCustomers) {
     if (member.values['Billing Payment Type'] === 'Cash') {
       if (
-        moment(member.values['Billing Cash Term Start Date']).isBetween(
-          this.state.fromDate,
+        moment(member.values['Billing Cash Term End Date']).isAfter(
           this.state.toDate,
         )
       ) {
@@ -563,12 +562,7 @@ export class MemberFinancialStats extends Component {
     // Determine times billing happens in selected period.
     // Multiply weekly by times in period
 
-    if (
-      moment(member.values['Billing Cash Term End Date']).isBetween(
-        fromDate,
-        toDate,
-      )
-    ) {
+    if (moment(member.values['Billing Cash Term End Date']).isAfter(toDate)) {
       return parseFloat(member.values['Membership Cost']);
     }
     return 0;
@@ -816,22 +810,33 @@ export class MemberFinancialStats extends Component {
             member.values['Non Paying'] !== 'YES'
           ) {
             if (
+              moment(member.values['Billing Cash Term Start Date']).isBefore(
+                toDate,
+              ) &&
               moment(member.values['Billing Cash Term End Date']).isAfter(
                 fromDate,
-                toDate,
               )
             ) {
               activeCashMembers[activeCashMembers.length] = member;
-              activeCashMembersValue += this.getMemberCashCost(
-                member,
-                fromDate,
-                toDate,
-              );
-              activeCashMembersBillingValue += this.getMemberCashCost(
-                member,
-                fromDate,
-                toDate,
-              );
+              if (
+                moment(member.values['Billing Cash Term Start Date']).isBefore(
+                  toDate,
+                ) &&
+                moment(member.values['Billing Cash Term Start Date']).isAfter(
+                  fromDate,
+                )
+              ) {
+                activeCashMembersValue += this.getMemberCashCost(
+                  member,
+                  fromDate,
+                  toDate,
+                );
+                activeCashMembersBillingValue += this.getMemberCashCost(
+                  member,
+                  fromDate,
+                  toDate,
+                );
+              }
             } else if (
               moment(member.values['Billing Cash Term End Date']).isBefore(
                 toDate,

@@ -251,7 +251,7 @@ export function getTimezoneOff() {
   currentTimezone = (currentTimezone / 60) * -1;
   var offset = 'Z';
   if (currentTimezone !== 0) {
-    offset = currentTimezone > 0 ? '+' : '-';
+    offset = currentTimezone > 0 ? '+' : '';
     offset += currentTimezone;
   }
   return offset;

@@ -83,9 +83,10 @@ export class CallScriptModal extends Component {
   render() {
     return (
       <div onClick={this.handleClick}>
-        <ModalContainer onClose={this.handleClose}>
+        <ModalContainer zIndex={1030} onClose={this.handleClose}>
           <ModalDialog
             className="call-scripts-modal"
+            style={inlineStyle}
             onClose={this.handleClose}
           >
             {this.props.callScriptsLoading ? (
@@ -157,4 +158,14 @@ export class CallScriptModal extends Component {
 }
 
 const enhance = compose(connect(mapStateToProps, mapDispatchToProps));
+const inlineStyle = {
+  position: 'absolute',
+  marginBottom: '20px',
+  width: '80%',
+  height: '80%',
+  top: '10%',
+  transform: 'matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)',
+  left: '20%',
+  overflowY: 'scroll',
+};
 export const CallScriptModalContainer = enhance(CallScriptModal);

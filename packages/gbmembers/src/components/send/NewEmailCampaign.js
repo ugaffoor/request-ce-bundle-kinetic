@@ -401,6 +401,9 @@ export class NewEmailCampaign extends Component {
         recipientIds.push(...option.leads);
       });
     }
+    let uniqueRecipientIds = recipientIds.filter(
+      (x, i, a) => a.indexOf(x) === i,
+    );
     // Extract Embedded images from the Body
     let embeddedImages = [];
     let body = '';
@@ -439,7 +442,7 @@ export class NewEmailCampaign extends Component {
       this.state.schoolEmail,
       this.state.aliasEmail,
       this.state.subject,
-      recipientIds,
+      uniqueRecipientIds,
       body,
       embeddedImages,
       this.props.space,

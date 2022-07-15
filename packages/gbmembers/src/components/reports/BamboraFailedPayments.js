@@ -44,6 +44,7 @@ export class BamboraFailedPayments extends Component {
       payment =>
         payment.paymentStatus === 'DECLINED' ||
         payment.paymentStatus === 'PIN RETRY EXCEEDED' ||
+        payment.paymentStatus === 'SERV NOT ALLOWED' ||
         payment.paymentStatus === 'EXPIRED CARD',
     );
     failedPayments = failedPayments.sort((a, b) => {

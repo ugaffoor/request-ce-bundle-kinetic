@@ -3546,9 +3546,13 @@ export class ProShop extends Component {
       idx = this.props.posProducts.findIndex((product, i) => {
         var matched = false;
         var sizes = product.values['Sizes'];
-        var productSku = product.values['SKU'];
+        var productSku =
+          product.values['SKU'] !== null ? product.values['SKU'].trim() : '';
         sizes.forEach((size, i) => {
-          if (productSku + size === skuValue) {
+          if (
+            productSku + size === skuValue ||
+            (size === 'ALL' && productSku === skuValue)
+          ) {
             matched = true;
             productSKUValue = productSku;
           }
@@ -3964,7 +3968,10 @@ export class ProShop extends Component {
                       .filter(product => {
                         if (
                           (this.state.scanned &&
-                          this.state.productCodeValue === product.values['SKU']
+                          this.state.productCodeValue ===
+                            (product.values['SKU'] !== null
+                              ? product.values['SKU'].trim()
+                              : product.values['SKU'])
                             ? true
                             : false) ||
                           (this.state.scanned === undefined &&

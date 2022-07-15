@@ -1006,6 +1006,8 @@ export function* fetchPaymentHistory(action) {
           args.dateFrom = action.payload.dateFrom;
           args.dateTo = action.payload.dateTo;
           args.customerId = action.payload.billingRef;
+          args.timezoneOffset = null;
+
           axios
             .post(appSettings.kineticBillingServerUrl + getRefundsUrl, args)
             .then(result => {
@@ -2011,6 +2013,8 @@ export function* fetchCustomerRefunds(action) {
           );
         }
       } else {
+        console.log('fetchCustomerRefunds1:' + util.inspect(result.data));
+        console.log('fetchCustomerRefunds2:' + result.data.data.length);
         action.payload.setCustomerRefunds(result.data.data);
       }
     })

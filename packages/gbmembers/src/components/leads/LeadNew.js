@@ -500,6 +500,7 @@ export class LeadNew extends Component {
                 <div>
                   <label htmlFor="phone">Phone</label>
                   <NumberFormat
+                    id="phone"
                     format={
                       getAttributeValue(
                         this.props.space,
@@ -513,6 +514,7 @@ export class LeadNew extends Component {
                     }
                     mask="_"
                     ref={input => (this.input = input)}
+                    value={this.props.leadItem.values['Phone Number']}
                     onValueChange={(values, e) =>
                       handleFormattedChange(
                         values,
@@ -615,15 +617,39 @@ export class LeadNew extends Component {
                             $('#address').val(
                               this.props.leads[idx].values['Address'],
                             );
+                            this.props.leadItem.values[
+                              'Address'
+                            ] = this.props.leads[idx].values['Address'];
                             $('#suburb').val(
                               this.props.leads[idx].values['Suburb'],
                             );
+                            this.props.leadItem.values[
+                              'Suburb'
+                            ] = this.props.leads[idx].values['Suburb'];
                             $('#state').val(
                               this.props.leads[idx].values['State'],
                             );
+                            this.props.leadItem.values[
+                              'State'
+                            ] = this.props.leads[idx].values['State'];
                             $('#postcode').val(
                               this.props.leads[idx].values['Postcode'],
                             );
+                            this.props.leadItem.values[
+                              'Postcode'
+                            ] = this.props.leads[idx].values['Postcode'];
+                            $('#email').val(
+                              this.props.leads[idx].values['Email'],
+                            );
+                            this.props.leadItem.values[
+                              'Email'
+                            ] = this.props.leads[idx].values['Email'];
+                            $('#phone').val(
+                              this.props.leads[idx].values['Phone Number'],
+                            );
+                            this.props.leadItem.values[
+                              'Phone Number'
+                            ] = this.props.leads[idx].values['Phone Number'];
                           }
                         }
                       }}
@@ -651,15 +677,39 @@ export class LeadNew extends Component {
                             $('#address').val(
                               this.props.members[idx].values['Address'],
                             );
+                            this.props.leadItem.values[
+                              'Address'
+                            ] = this.props.members[idx].values['Address'];
                             $('#suburb').val(
                               this.props.members[idx].values['Suburb'],
                             );
+                            this.props.leadItem.values[
+                              'Suburb'
+                            ] = this.props.members[idx].values['Suburb'];
                             $('#state').val(
                               this.props.members[idx].values['State'],
                             );
+                            this.props.leadItem.values[
+                              'State'
+                            ] = this.props.members[idx].values['State'];
                             $('#postcode').val(
                               this.props.members[idx].values['Postcode'],
                             );
+                            this.props.leadItem.values[
+                              'Postcode'
+                            ] = this.props.members[idx].values['Postcode'];
+                            $('#email').val(
+                              this.props.members[idx].values['Email'],
+                            );
+                            this.props.leadItem.values[
+                              'Email'
+                            ] = this.props.members[idx].values['Email'];
+                            $('#phone').val(
+                              this.props.members[idx].values['Phone Number'],
+                            );
+                            this.props.leadItem.values[
+                              'Phone Number'
+                            ] = this.props.members[idx].values['Phone Number'];
                           }
                         }
                       }}

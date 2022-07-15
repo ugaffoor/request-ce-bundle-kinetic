@@ -21,11 +21,13 @@ import { compose } from 'recompose';
 import { connect } from 'react-redux';
 import SVGInline from 'react-svg-inline';
 import crossIcon from '../../images/cross.svg?raw';
+import { actions as leadsActions } from '../../redux/modules/leads';
 
 const mapStateToProps = state => ({
   members: state.member.members.allMembers,
   profile: state.member.app.profile,
   leads: state.member.leads.allLeads,
+  leadsLoading: state.member.leads.leadsLoading,
   FAILEDpaymentHistory: state.member.members.FAILEDpaymentHistory,
   FAILEDpaymentHistoryLoading: state.member.members.FALIEDpaymentHistoryLoading,
   paymentHistory: state.member.members.SUCCESSFULpaymentHistory,
@@ -43,6 +45,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = {
+  fetchLeads: leadsActions.fetchLeads,
   fetchPaymentHistory: actions.fetchPaymentHistory,
   setPaymentHistory: actions.setPaymentHistory,
   fetchBillingCustomers: actions.fetchBillingCustomers,
@@ -115,7 +118,8 @@ export class MemberFinancialReport extends Component {
       !nextProps.SUCCESSFULpaymentHistoryLoading &&
       !nextProps.customerRefundsLoading &&
       !nextProps.posOrdersLoading &&
-      !nextProps.additionalServicesLoading
+      !nextProps.additionalServicesLoading &&
+      !nextProps.leadsLoading
     ) {
       this.failedPaymentHistory = [];
       nextProps.FAILEDpaymentHistory.forEach((item, i) => {
@@ -211,6 +215,7 @@ export class MemberFinancialReport extends Component {
 
       let memberData = this.getMemberData(
         nextProps.members,
+        nextProps.leads,
         nextProps.billingCustomers,
         uniqueFailedHistory,
         this.paymentHistory,
@@ -292,6 +297,10 @@ export class MemberFinancialReport extends Component {
       addNotification: this.props.addNotification,
       timezoneOffset: getTimezoneOff(),
     });
+
+    if (this.props.leads.length === 0) {
+      this.props.fetchLeads();
+    }
   }
   updateBillingDates(billingCustomers, SUCCESSFULpaymentHistory) {
     var payments = SUCCESSFULpaymentHistory.sort(function(a, b) {
@@ -405,6 +414,7 @@ export class MemberFinancialReport extends Component {
 
   getMemberData(
     members,
+    leads,
     billingCustomers,
     failedPaymentHistory,
     paymentHistory,
@@ -511,6 +521,19 @@ export class MemberFinancialReport extends Component {
               ) === -1
             ) {
               posPeople[posPeople.length] = members[idx];
+            }
+          } else {
+            idx = leads.findIndex(
+              item => item.id === order.values['Person ID'],
+            );
+            if (idx !== -1) {
+              if (
+                posPeople.findIndex(
+                  item => item.id === order.values['Person ID'],
+                ) === -1
+              ) {
+                posPeople[posPeople.length] = members[idx];
+              }
             }
           }
         } else {
@@ -1077,6 +1100,10 @@ export class MemberFinancialReport extends Component {
     for (var i = col - 1; i < members.length; i = i + 2) {
       members_col[members_col.length] = {
         memberId: members[i].id,
+        type:
+          allMembers.findIndex(member => member.id === members[i].id) !== -1
+            ? 'Member'
+            : 'Lead',
         name:
           members[i].values['Last Name'] +
           ' ' +
@@ -1100,6 +1127,10 @@ export class MemberFinancialReport extends Component {
     for (var i = col - 1; i < members.length; i = i + 2) {
       members_col[members_col.length] = {
         memberId: members[i].member.id,
+        type:
+          allMembers.findIndex(member => member.id === members[i].id) !== -1
+            ? 'Member'
+            : 'Lead',
         name:
           members[i].member.values['Last Name'] +
           ' ' +
@@ -1420,7 +1451,11 @@ export class MemberFinancialReport extends Component {
             <div />
           ) : (
             <NavLink
-              to={`/Member/${props.original.members_col1['memberId']}`}
+              to={`/${
+                props.original.members_col1['type'] === 'Member'
+                  ? 'Member'
+                  : 'Lead'
+              }/${props.original.members_col1['memberId']}`}
               className=""
             >
               {props.original.members_col1['name']}
@@ -1456,7 +1491,11 @@ export class MemberFinancialReport extends Component {
             <div />
           ) : (
             <NavLink
-              to={`/Member/${props.original.members_col2['memberId']}`}
+              to={`/${
+                props.original.members_col2['type'] === 'Member'
+                  ? 'Member'
+                  : 'Lead'
+              }/${props.original.members_col2['memberId']}`}
               className=""
             >
               {props.original.members_col2['name']}

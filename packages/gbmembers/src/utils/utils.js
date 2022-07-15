@@ -209,13 +209,17 @@ export const matchesMemberFilter = (allMembers, filters) => {
         if (
           startDate !== undefined &&
           endDate === undefined &&
-          !moment(member.values['Date Joined'], 'YYYY-MM-DD').isAfter(startDate)
+          !moment(member.values['Date Joined'], 'YYYY-MM-DD').isSameOrAfter(
+            startDate,
+          )
         ) {
           match = false;
         } else if (
           endDate !== undefined &&
           startDate === undefined &&
-          !moment(member.values['Date Joined'], 'YYYY-MM-DD').isBefore(endDate)
+          !moment(member.values['Date Joined'], 'YYYY-MM-DD').isSameOrBefore(
+            endDate,
+          )
         ) {
           match = false;
         } else if (

@@ -317,7 +317,7 @@ export function getReminderDate(input) {
     return (
       moment()
         .add(1, 'months')
-        .format('YYYYY-MM-DDTHH:mm:ss') + 'Z'
+        .format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     );
   }
 

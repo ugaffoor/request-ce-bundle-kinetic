@@ -64,9 +64,13 @@ export class RecordStockDialog extends Component {
       idx = this.props.products.findIndex((product, i) => {
         var matched = false;
         var sizes = product.values['Sizes'];
-        var productSku = product.values['SKU'];
+        var productSku =
+          product.values['SKU'] !== null ? product.values['SKU'].trim() : '';
         sizes.forEach((size, i) => {
-          if (productSku + size === skuValue) {
+          if (
+            productSku + size === skuValue ||
+            (size === 'ALL' && productSku === skuValue)
+          ) {
             matched = true;
             sizeVal = size;
           }
@@ -223,8 +227,9 @@ export class RecordStockDialog extends Component {
                       ((this.state.productCodeValue !== '' &&
                         this.state.productCodeValue
                           .toLowerCase()
-                          .indexOf(product.values['SKU'].toLowerCase()) !==
-                          -1) ||
+                          .indexOf(
+                            product.values['SKU'].trim().toLowerCase(),
+                          ) !== -1) ||
                         (this.state.productNameValue !== '' &&
                           product.values['Name']
                             .toLowerCase()

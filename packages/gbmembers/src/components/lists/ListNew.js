@@ -342,7 +342,7 @@ export class ListNewHome extends Component {
           if (
             startDate !== null &&
             endDate === null &&
-            !moment(member.values['Date Joined'], 'YYYY-MM-DD').isAfter(
+            !moment(member.values['Date Joined'], 'YYYY-MM-DD').isSameOrAfter(
               startDate,
             )
           ) {
@@ -351,7 +351,7 @@ export class ListNewHome extends Component {
           if (
             endDate !== null &&
             startDate === null &&
-            !moment(member.values['Date Joined'], 'YYYY-MM-DD').isBefore(
+            !moment(member.values['Date Joined'], 'YYYY-MM-DD').isSameOrBefore(
               endDate,
             )
           ) {
