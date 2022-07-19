@@ -13,6 +13,7 @@ import { LoginModal } from './components/authentication/LoginModal';
 import { HeaderContainer } from './components/HeaderContainer';
 import { actions as loadingActions } from './redux/modules/loading';
 import { actions as journeyeventsActions } from './redux/modules/journeyevents';
+import { actions as helpActions } from './redux/modules/help';
 import { actions as layoutActions } from './redux/modules/layout';
 import { App as ServicesApp } from 'services/src/App';
 import { App as RegistrationsApp } from 'registrations/src/App';
@@ -85,6 +86,7 @@ export const mapStateToProps = state => ({
 export const mapDispatchToProps = {
   loadApp: loadingActions.loadApp,
   fetchJourneyEvents: journeyeventsActions.fetchJourneyEvents,
+  fetchHelp: helpActions.fetchHelp,
   setSidebarOpen: layoutActions.setSidebarOpen,
   setSuppressedSidebarOpen: layoutActions.setSuppressedSidebarOpen,
 };
@@ -145,6 +147,7 @@ export const App = compose(
     componentDidMount() {
       this.props.loadApp(true);
       this.props.fetchJourneyEvents();
+      this.props.fetchHelp();
     },
   }),
 )(AppComponent);

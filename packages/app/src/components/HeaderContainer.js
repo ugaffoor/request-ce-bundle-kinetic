@@ -11,6 +11,7 @@ import { Utils } from 'common';
 
 import * as selectors from '../redux/selectors';
 import { actions } from '../redux/modules/journeyevents';
+import { actions as helpActions } from '../redux/modules/help';
 
 export const mapStateToProps = state => ({
   loading: state.app.loading,

@@ -78,7 +78,6 @@ export const JOURNEY_TRIGGERS_SEARCH = new CoreAPI.SubmissionSearch(true)
 
 // TODO decide on error handling for these calls.
 export function* fetchMemberAppSettingsTask() {
-  console.log('debug 1');
   const {
     kapps: { kapps },
     space: { space },
@@ -96,12 +95,10 @@ export function* fetchMemberAppSettingsTask() {
       search: PROGRAMBELTS_SEARCH,
     }),
   });
-  console.log('debug 2');
   var kapp = undefined;
   kapps.forEach(function(k) {
     if (k.slug === 'gbmembers') kapp = k;
   });
-  console.log('debug 3:' + kapp);
   const submissions2 = yield all({
     submissions: call(CoreAPI.searchSubmissions, {
       datastore: true,
@@ -109,7 +106,6 @@ export function* fetchMemberAppSettingsTask() {
       search: PROGRAMBELTS_SEARCH2,
     }),
   });
-  console.log('debug 4:' + submissions2);
   var beltSubmissions = [];
   beltSubmissions = beltSubmissions.concat(submissions);
   beltSubmissions = beltSubmissions.concat(
@@ -174,7 +170,6 @@ export function* fetchMemberAppSettingsTask() {
   });
 
   var belts = beltsMap.toList();
-  console.log('debug 4');
 
   const memberTypes = yield all({
     submissions: call(CoreAPI.searchSubmissions, {
@@ -205,7 +200,6 @@ export function* fetchMemberAppSettingsTask() {
     return 0;
   });
   var membershipTypes = memberTypesMap.toList();
-  console.log('debug 5');
 
   const memberFees = yield all({
     submissions: call(CoreAPI.searchSubmissions, {
@@ -285,7 +279,6 @@ export function* fetchMemberAppSettingsTask() {
     });
   }
   var snippets = snippetsMap.toList();
-  console.log('debug 5');
 
   const triggersSubs = yield all({
     submissions: call(CoreAPI.searchSubmissions, {
@@ -354,7 +347,6 @@ export function* fetchMemberAppSettingsTask() {
     triggers,
     kapp,
   };
-  console.log('debug 7');
 
   yield put(actions.setAppSettings(appSettings));
 }

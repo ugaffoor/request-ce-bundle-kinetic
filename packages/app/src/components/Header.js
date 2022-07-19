@@ -11,6 +11,7 @@ import {
 } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import { KappLink, Utils } from 'common';
+import { HelpContainer } from './HelpContainer';
 import { JourneyEventsContainer } from './JourneyEventsContainer';
 import { ProfileContainer } from './ProfileContainer';
 import { I18n } from '../I18nProvider';
@@ -140,6 +141,7 @@ export const Header = ({
             ))}
           </DropdownMenu>
         </Dropdown>
+        {!isGuest && <HelpContainer />}
         {!isGuest && <JourneyEventsContainer />}
         <ProfileContainer space={space} />
       </div>

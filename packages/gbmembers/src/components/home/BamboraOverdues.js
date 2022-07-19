@@ -125,6 +125,7 @@ export class BamboraOverdues extends Component {
         payment.paymentStatus === 'Transaction Declined' ||
         payment.paymentStatus === 'DECLINED' ||
         payment.paymentStatus === 'PIN RETRY EXCEEDED' ||
+        payment.paymentStatus === 'SERV NOT ALLOWED' ||
         payment.paymentStatus === 'EXPIRED CARD',
     );
     failedPayments = failedPayments.sort((a, b) => {
