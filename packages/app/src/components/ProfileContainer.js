@@ -1,5 +1,5 @@
 import { connect } from 'react-redux';
-import { compose, withHandlers, withState, lifecycle } from 'recompose';
+import { compose, withHandlers, withState } from 'recompose';
 
 import { Profile } from './Profile';
 import { modalFormActions } from 'common';

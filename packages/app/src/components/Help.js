@@ -1,12 +1,6 @@
-import React, { Fragment } from 'react';
-import { Link } from 'react-router-dom';
+import React from 'react';
 import { Dropdown, DropdownToggle, DropdownMenu } from 'reactstrap';
 import { I18n } from '../I18nProvider';
-import phone from '../assets/images/phone.png';
-import mail from '../assets/images/mail.png';
-import sms from '../assets/images/sms.png';
-import moment from 'moment';
-import $ from 'jquery';
 
 export const Help = ({
   Help,
