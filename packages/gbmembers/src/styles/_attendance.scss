@@ -583,6 +583,20 @@
   .classAttendancesLabel {
     margin-left: 40px;
   }
+  .checkinFilter {
+    float: left;
+    flex-flow: row;
+    margin-left: 22px;
+    label {
+      float: left;
+      font-weight: bolder;
+    }
+    .checkboxFilter {
+      float: left;
+      clear: none;
+      margin-left: 10px;
+    }
+  }
 }
 .classSection {
   padding-left: 0px;
@@ -663,9 +677,9 @@
     position: relative;
     top: 12px;
     @media (min-width: 415px) {
-      top: 15px;
+      top: 12px;
     }
-    right: 40px;
+    right: 26px;
     width: 0 !important;
     height: 0;
     pointer-events: none;

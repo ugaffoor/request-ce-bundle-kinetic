@@ -70,9 +70,15 @@ export const reducer = (state = State(), { type, payload }) => {
     case types.FETCH_CLASS_SCHEDULES:
       return state.set('fetchingClassSchedules', true);
     case types.SET_CLASS_SCHEDULES: {
+      let data = payload.sort(function(a, b) {
+        if (moment(a.start).isAfter(moment(b.start))) return 1;
+        if (moment(a.start).isBefore(moment(b.start))) return -1;
+        return 0;
+      });
+
       return state
         .set('fetchingClassSchedules', false)
-        .set('classSchedules', payload);
+        .set('classSchedules', data);
     }
     case types.FETCH_CLASS_BOOKINGS:
       return state.set('fetchingClassBookings', true);

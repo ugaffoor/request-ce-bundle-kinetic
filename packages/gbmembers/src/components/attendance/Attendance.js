@@ -34,6 +34,8 @@ const mapStateToProps = state => ({
   fetchingClassAttendances: state.member.attendance.fetchingClassAttendances,
   classBookings: state.member.classes.classBookings,
   fetchingClassBookings: state.member.classes.fetchingClassBookings,
+  classSchedules: state.member.classes.classSchedules,
+  fetchingClassSchedules: state.member.classes.fetchingClassSchedules,
   belts: state.member.app.belts,
   profile: state.member.kinops.profile,
   space: state.member.app.space,
@@ -42,6 +44,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = {
   fetchClassAttendances: attendanceActions.fetchClassAttendances,
   fetchClassBookings: classActions.fetchClassBookings,
+  fetchClassSchedules: classActions.fetchClassSchedules,
   createAttendance: attendanceActions.createAttendance,
   deleteAttendance: attendanceActions.deleteAttendance,
   setClassAttendances: attendanceActions.setClassAttendances,
@@ -77,11 +80,41 @@ export class AttendanceDetail extends Component {
       memberAlreadyCheckedIn,
       noProgramSet,
       captureType,
+      useCalendarSchedule: true,
+      classScheduleDateDay: moment().day() === 0 ? 7 : moment().day(),
     };
     this.props.fetchClassAttendances({
       classDate: classDate,
       className: className,
     });
+  }
+
+  UNSAFE_componentWillReceiveProps(nextProps) {
+    if (!nextProps.fetchingClassSchedules) {
+      var classScheduleDateDay = moment().day() === 0 ? 7 : moment().day();
+      var classID = this.getClosestClass(
+        classScheduleDateDay,
+        nextProps.classSchedules,
+      );
+      var scheduleIdx = nextProps.classSchedules.findIndex(
+        schedule => schedule.id === classID,
+      );
+
+      let className = nextProps.classSchedules.get(scheduleIdx).program;
+      let classDate = moment(
+        nextProps.classSchedules.get(scheduleIdx).start,
+      ).format('L hh:mm A');
+      let classTime = moment(
+        nextProps.classSchedules.get(scheduleIdx).start,
+      ).format('HH:mm');
+
+      this.setState({
+        classScheduleDateDay: classScheduleDateDay,
+        className,
+        classDate,
+        classTime,
+      });
+    }
   }
 
   handleError(data) {
@@ -364,408 +397,559 @@ export class AttendanceDetail extends Component {
     }, 500);
   }
 
+  getClosestClass(classScheduleDateDay, classSchedules) {
+    var scheduleID = '';
+    var lastDate = undefined;
+    classSchedules.forEach((schedule, i) => {
+      if (
+        classScheduleDateDay ===
+        (moment(schedule.start).day() === 0 ? 7 : moment(schedule.start).day())
+      ) {
+        if (
+          lastDate === undefined ||
+          (moment(schedule.start).hour() > lastDate.hour() &&
+            moment(schedule.start).hour() <= moment().hour())
+        ) {
+          scheduleID = schedule.id;
+          lastDate = moment(schedule.start);
+        }
+      }
+    });
+
+    return scheduleID;
+  }
   render() {
     return (
-      <div className="attendanceSection">
-        <div className="classSection">
-          <span className="line">
-            <div className="sessionDate">
-              <label htmlFor="sessionDate">DATE</label>
-              <Datetime
-                className="float-right"
-                defaultValue={moment().set({
-                  hour: moment().get('hour'),
-                  minute: 0,
-                  second: 0,
-                })}
-                dateFormat={moment(new Date())
-                  .locale(
-                    getLocalePreference(this.props.space, this.props.profile),
-                  )
-                  .localeData()
-                  .longDateFormat('L')}
-                timeConstraints={{
-                  minutes: {
-                    step: parseInt(
-                      getAttributeValue(
-                        this.props.space,
-                        'Calendar Time Slots',
-                        '15',
-                      ),
-                    ),
-                  },
-                }}
-                onBlur={dt => {
-                  this.doShowAttendance(
-                    dt.format('L hh:mm A'),
-                    this.state.className,
-                  );
-                  this.setState({
-                    classDate: dt.format('L hh:mm A'),
-                    classTime: dt.format('HH:mm'),
-                  });
-                }}
-              />
-            </div>
-            <div className="class">
-              <label htmlFor="programClass">CLASS</label>
-              <select
-                name="programClass"
-                id="programClass"
-                defaultValue={this.props.programs.get(0).program}
-                onChange={e => {
-                  this.doShowAttendance(this.state.classDate, e.target.value);
-                }}
-              >
-                <option value="" />
-                {this.props.programs
-                  .concat(this.props.additionalPrograms)
-                  .map(program => (
-                    <option key={program.program} value={program.program}>
-                      {program.program}
-                    </option>
-                  ))}
-              </select>
-              <div className="droparrow" />
-            </div>
-          </span>
-        </div>
-        <div className="classBookingSection">
-          <h4 className="classBookingLabel">Class Bookings</h4>
-          {this.props.fetchingClassBookings ? (
-            <h4>Loading Class Bookings....</h4>
-          ) : (
-            <div>
-              {this.props.classBookings.size === 0 ? (
-                <div>
-                  <h4>No bookings for this class</h4>
-                </div>
-              ) : (
-                <div className="classBookings">
-                  {this.props.classBookings.map((booking, index) => (
-                    <span key={index} className={'memberCell'} id={booking.id}>
-                      <span className="top">
-                        {booking.photo === undefined ? (
-                          <span className="noPhoto">
-                            {booking.firstName[0]}
-                            {booking.lastName[0]}
-                          </span>
-                        ) : (
-                          <img
-                            src={booking.photo}
-                            alt="Member Photograph"
-                            className="photo"
-                          />
-                        )}
-                        <span className="memberInfo">
-                          <h4 className="memberName">
-                            {booking.firstName} {booking.lastName}
-                          </h4>
-                          <span
-                            className="checkinBooking"
-                            onClick={e => this.checkinBooking(booking)}
-                          >
-                            <SVGInline svg={tickIcon} className="icon" />
-                          </span>
-                          <span
-                            className="noshowBooking"
-                            onClick={e => this.noShowBooking(booking)}
-                          >
-                            <SVGInline svg={crossIcon} className="icon" />
-                          </span>
-                        </span>
-                      </span>
-                      <span className="bottom">
-                        <span className="ranking">
-                          <div className="program">
-                            {getProgramSVG(booking.rankingProgram)}
-                          </div>
-                          <div className="belt">
-                            {getBeltSVG(booking.rankingBelt)}
-                          </div>
-                        </span>
-                      </span>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-        <div className="checkinSection">
-          {this.state.memberItem === undefined &&
-          this.state.captureType === 'scanner' ? (
-            <div className="readyToScan">
-              <h5>READY TO SCAN MEMBER</h5>
-              <SVGInline svg={barcodeIcon} className="icon" />
-              <button
-                type="button"
-                id="changeToManual"
-                className="btn btn-primary btn-block"
-                onClick={e => this.switchToManual()}
-              >
-                Enter Manually
-              </button>
-            </div>
-          ) : (
-            <div />
-          )}
-          {this.state.memberItem === undefined &&
-          this.state.captureType === 'manual' ? (
-            <div className="manual">
-              <h5>PLEASE SELECT MEMBER</h5>
-              <Select
-                closeMenuOnSelect={true}
-                options={this.getAllMembers()}
-                className="hide-columns-container"
-                classNamePrefix="hide-columns"
-                placeholder="Select Member"
-                onChange={e => {
-                  this.selectMember(e);
-                }}
-                style={{ width: '300px' }}
-              />
-              <button
-                type="button"
-                id="changeToScan"
-                className="btn btn-primary btn-block"
-                onClick={e => this.switchToScan()}
-              >
-                Switch to Scan
-              </button>
-            </div>
-          ) : (
-            <div />
-          )}
-          {this.state.memberItem === undefined ? (
-            <div />
-          ) : (
-            <div className="memberInfo">
-              {this.state.memberItem.values['Photo'] === undefined ? (
-                <span className="noPhoto">
-                  {this.state.memberItem.values['First Name'][0]}
-                  {this.state.memberItem.values['Last Name'][0]}
-                </span>
-              ) : (
-                <img
-                  src={this.state.memberItem.values['Photo']}
-                  alt="Member Photograph"
-                  className="photo"
+      <div>
+        {this.props.fetchingClassSchedules ? (
+          <div>Loading...</div>
+        ) : (
+          <div className="attendanceSection">
+            <div className="checkinFilter">
+              <label htmlFor="checkins">Anytime Mode</label>
+              <div className="checkboxFilter">
+                <input
+                  id="checkins"
+                  type="checkbox"
+                  value="1"
+                  onChange={e => {
+                    this.setState({
+                      useCalendarSchedule: !this.state.useCalendarSchedule,
+                    });
+                  }}
                 />
-              )}
-              <div className="info">
-                {this.state.memberAlreadyCheckedIn ? (
-                  <h2 className="alreadyCheckedinLabel">
-                    Member already checked in
-                  </h2>
-                ) : (
-                  <div />
-                )}
-                {this.state.noProgramSet ? (
-                  <h2 className="noProgramSetLabel">
-                    Member does not have a Program or Belt value set
-                  </h2>
-                ) : (
-                  <div />
-                )}
-                {!this.state.memberAlreadyCheckedIn &&
-                this.state.noProgramSet ? (
-                  <h2>Checking in member</h2>
-                ) : (
-                  <div />
-                )}
-                <h4>
-                  {this.state.memberItem.values['First Name']}{' '}
-                  {this.state.memberItem.values['Last Name']}:{' '}
-                  <b>{this.state.memberItem.values['Ranking Program']}</b>-
-                  <i>{this.state.memberItem.values['Ranking Belt']}</i>
-                </h4>
-                <h4>
-                  For class <b>{this.state.className}</b> at{' '}
-                  <b>
-                    {moment(this.state.classDate, 'L hh:mm A').format(
-                      'L hh:mm A',
-                    )}
-                  </b>
-                </h4>
+                <label for="checkins"></label>
               </div>
-              {this.state.memberAlreadyCheckedIn || this.state.noProgramSet ? (
-                <div />
-              ) : (
-                <div className="applyCheckin">
-                  <div>
+            </div>
+            {this.state.useCalendarSchedule ? (
+              <div className="classSection">
+                <span className="line">
+                  <div className="sessionDate">
+                    <label htmlFor="sessionDate">DATE</label>
+                    <Datetime
+                      className="float-right"
+                      defaultValue={moment()}
+                      dateFormat={moment(new Date())
+                        .locale(
+                          getLocalePreference(
+                            this.props.space,
+                            this.props.profile,
+                          ),
+                        )
+                        .localeData()
+                        .longDateFormat('L')}
+                      timeFormat={false}
+                      onBlur={dt => {
+                        this.setState({
+                          classScheduleDateDay:
+                            moment(dt).day() === 0 ? 7 : moment(dt).day(),
+                        });
+                      }}
+                    />
+                  </div>
+                  <div className="class">
+                    <label htmlFor="programClass">CLASS</label>
                     <select
-                      name="status"
-                      id="status"
-                      ref={input => (this.input = input)}
-                      defaultValue="Full Class"
+                      name="programClass"
+                      id="programClass"
+                      defaultValue={this.getClosestClass(
+                        this.state.classScheduleDateDay,
+                        this.props.classSchedules,
+                      )}
                       onChange={e => {
-                        this.setState({ attendanceStatus: e.target.value });
+                        var scheduleIdx = this.props.classSchedules.findIndex(
+                          schedule => schedule.id === e.target.value,
+                        );
+                        var classDate = moment(
+                          this.props.classSchedules.get(scheduleIdx).start,
+                        ).format('L hh:mm A');
+
+                        this.setState({
+                          classDate: classDate,
+                          classTime: moment(
+                            this.props.classSchedules.get(scheduleIdx).start,
+                          ).format('HH:mm'),
+                        });
+
+                        this.doShowAttendance(
+                          classDate,
+                          this.props.classSchedules.get(scheduleIdx).program,
+                        );
                       }}
                     >
                       <option value="" />
-                      <option key="Full Class" value="Full Class">
-                        Full Class
-                      </option>
-                      <option key="Class Only" value="Class Only">
-                        Class Only
-                      </option>
-                      <option key="Spar Only" value="Spar Only">
-                        Spar Only
-                      </option>
-                      <option key="Late" value="Late">
-                        Late
-                      </option>
+                      {this.props.classSchedules
+                        .filter(schedule => {
+                          if (
+                            this.state.classScheduleDateDay ===
+                            (moment(schedule.start).day() === 0
+                              ? 7
+                              : moment(schedule.start).day())
+                          ) {
+                            return true;
+                          }
+                          return false;
+                        })
+                        .map(schedule => (
+                          <option key={schedule.id} value={schedule.id}>
+                            {schedule.title}[{schedule.program}]-
+                            {moment(schedule.start).format('h:mm A')}
+                          </option>
+                        ))}
                     </select>
                     <div className="droparrow" />
                   </div>
-                  <div>
-                    <button
-                      type="button"
-                      id="checkinMember"
-                      className="btn btn-primary btn-block"
-                      onClick={e => this.checkInMember()}
-                    >
-                      Check-in Member
-                    </button>
+                </span>
+              </div>
+            ) : (
+              <div className="classSection">
+                <span className="line">
+                  <div className="sessionDate">
+                    <label htmlFor="sessionDate">DATE</label>
+                    <Datetime
+                      className="float-right"
+                      defaultValue={moment().set({
+                        hour: moment().get('hour'),
+                        minute: 0,
+                        second: 0,
+                      })}
+                      dateFormat={moment(new Date())
+                        .locale(
+                          getLocalePreference(
+                            this.props.space,
+                            this.props.profile,
+                          ),
+                        )
+                        .localeData()
+                        .longDateFormat('L')}
+                      timeConstraints={{
+                        minutes: {
+                          step: parseInt(
+                            getAttributeValue(
+                              this.props.space,
+                              'Calendar Time Slots',
+                              '15',
+                            ),
+                          ),
+                        },
+                      }}
+                      onBlur={dt => {
+                        this.doShowAttendance(
+                          dt.format('L hh:mm A'),
+                          this.state.className,
+                        );
+                        this.setState({
+                          classDate: dt.format('L hh:mm A'),
+                          classTime: dt.format('HH:mm'),
+                        });
+                      }}
+                    />
                   </div>
-                  {this.state.memberItem.values['Covid19 Waiver'] === null ||
-                  this.state.memberItem.values['Covid19 Waiver'] ===
-                    undefined ||
-                  this.state.memberItem.values['Covid19 Waiver'] === '' ? (
-                    <div className="waiverIncomplete">Waiver Required</div>
-                  ) : (
-                    <div />
-                  )}
-                  {this.state.memberItem.values['Covid19 Waiver'] ===
-                  'NOT Agreed' ? (
-                    <div className="waiverIncomplete">Waiver NOT Agreed</div>
-                  ) : (
-                    <div />
-                  )}
-                  {Utils.getAttributeValue(
-                    this.props.space,
-                    'Covid Check Required',
-                  ) === 'TRUE' && (
+                  <div className="class">
+                    <label htmlFor="programClass">CLASS</label>
+                    <select
+                      name="programClass"
+                      id="programClass"
+                      defaultValue={this.props.programs.get(0).program}
+                      onChange={e => {
+                        this.doShowAttendance(
+                          this.state.classDate,
+                          e.target.value,
+                        );
+                      }}
+                    >
+                      <option value="" />
+                      {this.props.programs
+                        .concat(this.props.additionalPrograms)
+                        .map(program => (
+                          <option key={program.program} value={program.program}>
+                            {program.program}
+                          </option>
+                        ))}
+                    </select>
+                    <div className="droparrow" />
+                  </div>
+                </span>
+              </div>
+            )}
+            <div className="classBookingSection">
+              <h4 className="classBookingLabel">Class Bookings</h4>
+              {this.props.fetchingClassBookings ? (
+                <h4>Loading Class Bookings....</h4>
+              ) : (
+                <div>
+                  {this.props.classBookings.size === 0 ? (
                     <div>
-                      {this.state.memberItem.values['Student Covid Check'] ===
-                        null ||
-                      this.state.memberItem.values['Student Covid Check'] ===
-                        undefined ||
-                      this.state.memberItem.values['Student Covid Check'] ===
-                        '' ? (
-                        <div className="waiverIncomplete">
-                          Student Covid Check Required
-                        </div>
-                      ) : (
-                        <div />
-                      )}
+                      <h4>No bookings for this class</h4>
+                    </div>
+                  ) : (
+                    <div className="classBookings">
+                      {this.props.classBookings.map((booking, index) => (
+                        <span
+                          key={index}
+                          className={'memberCell'}
+                          id={booking.id}
+                        >
+                          <span className="top">
+                            {booking.photo === undefined ? (
+                              <span className="noPhoto">
+                                {booking.firstName[0]}
+                                {booking.lastName[0]}
+                              </span>
+                            ) : (
+                              <img
+                                src={booking.photo}
+                                alt="Member Photograph"
+                                className="photo"
+                              />
+                            )}
+                            <span className="memberInfo">
+                              <h4 className="memberName">
+                                {booking.firstName} {booking.lastName}
+                              </h4>
+                              <span
+                                className="checkinBooking"
+                                onClick={e => this.checkinBooking(booking)}
+                              >
+                                <SVGInline svg={tickIcon} className="icon" />
+                              </span>
+                              <span
+                                className="noshowBooking"
+                                onClick={e => this.noShowBooking(booking)}
+                              >
+                                <SVGInline svg={crossIcon} className="icon" />
+                              </span>
+                            </span>
+                          </span>
+                          <span className="bottom">
+                            <span className="ranking">
+                              <div className="program">
+                                {getProgramSVG(booking.rankingProgram)}
+                              </div>
+                              <div className="belt">
+                                {getBeltSVG(booking.rankingBelt)}
+                              </div>
+                            </span>
+                          </span>
+                        </span>
+                      ))}
                     </div>
                   )}
                 </div>
               )}
-              <GradingStatus
-                memberItem={this.state.memberItem}
-                belts={this.props.belts}
-                allMembers={this.props.allMembers}
-              />
-              {this.state.captureType === 'manual' ? (
-                <button
-                  type="button"
-                  id="manualNewMember"
-                  className="btn btn-primary btn-block"
-                  onClick={e => this.selectNewMember()}
-                >
-                  Select New Member
-                </button>
+            </div>
+            <div className="checkinSection">
+              {this.state.memberItem === undefined &&
+              this.state.captureType === 'scanner' ? (
+                <div className="readyToScan">
+                  <h5>READY TO SCAN MEMBER</h5>
+                  <SVGInline svg={barcodeIcon} className="icon" />
+                  <button
+                    type="button"
+                    id="changeToManual"
+                    className="btn btn-primary btn-block"
+                    onClick={e => this.switchToManual()}
+                  >
+                    Enter Manually
+                  </button>
+                </div>
               ) : (
                 <div />
               )}
-            </div>
-          )}
-        </div>
-        <div className="attendanceSection">
-          <h4 className="classAttendancesLabel">Class Attendees</h4>
-          {this.props.fetchingClassAttendances ? (
-            <h4>Loading Class Attendances....</h4>
-          ) : (
-            <div className="classMembers">
-              {this.props.classAttendances.length === 0 ? (
-                <div>
-                  <h4>No members checked in for this class</h4>
+              {this.state.memberItem === undefined &&
+              this.state.captureType === 'manual' ? (
+                <div className="manual">
+                  <h5>PLEASE SELECT MEMBER</h5>
+                  <Select
+                    closeMenuOnSelect={true}
+                    options={this.getAllMembers()}
+                    className="hide-columns-container"
+                    classNamePrefix="hide-columns"
+                    placeholder="Select Member"
+                    onChange={e => {
+                      this.selectMember(e);
+                    }}
+                    style={{ width: '300px' }}
+                  />
+                  <button
+                    type="button"
+                    id="changeToScan"
+                    className="btn btn-primary btn-block"
+                    onClick={e => this.switchToScan()}
+                  >
+                    Switch to Scan
+                  </button>
                 </div>
               ) : (
-                <div>
-                  {this.props.classAttendances
-                    .filter(
-                      checkin =>
-                        checkin.values['Class Time'] === this.state.classTime &&
-                        checkin.values['Class'] === this.state.className,
-                    )
-                    .map((checkin, index) => (
-                      <span
-                        key={index}
-                        className={
-                          checkin.memberAlreadyCheckedIn
-                            ? 'memberCell alreadyCheckedIn'
-                            : 'memberCell'
-                        }
-                        id={checkin.id}
-                      >
-                        <span className="top">
-                          {checkin.values['Photo'] === undefined ? (
-                            <span className="noPhoto">
-                              {checkin.values['First Name'][0]}
-                              {checkin.values['Last Name'][0]}
-                            </span>
+                <div />
+              )}
+              {this.state.memberItem === undefined ? (
+                <div />
+              ) : (
+                <div className="memberInfo">
+                  {this.state.memberItem.values['Photo'] === undefined ? (
+                    <span className="noPhoto">
+                      {this.state.memberItem.values['First Name'][0]}
+                      {this.state.memberItem.values['Last Name'][0]}
+                    </span>
+                  ) : (
+                    <img
+                      src={this.state.memberItem.values['Photo']}
+                      alt="Member Photograph"
+                      className="photo"
+                    />
+                  )}
+                  <div className="info">
+                    {this.state.memberAlreadyCheckedIn ? (
+                      <h2 className="alreadyCheckedinLabel">
+                        Member already checked in
+                      </h2>
+                    ) : (
+                      <div />
+                    )}
+                    {this.state.noProgramSet ? (
+                      <h2 className="noProgramSetLabel">
+                        Member does not have a Program or Belt value set
+                      </h2>
+                    ) : (
+                      <div />
+                    )}
+                    {!this.state.memberAlreadyCheckedIn &&
+                    this.state.noProgramSet ? (
+                      <h2>Checking in member</h2>
+                    ) : (
+                      <div />
+                    )}
+                    <h4>
+                      {this.state.memberItem.values['First Name']}{' '}
+                      {this.state.memberItem.values['Last Name']}:{' '}
+                      <b>{this.state.memberItem.values['Ranking Program']}</b>-
+                      <i>{this.state.memberItem.values['Ranking Belt']}</i>
+                    </h4>
+                    <h4>
+                      For class <b>{this.state.className}</b> at{' '}
+                      <b>
+                        {moment(this.state.classDate, 'L hh:mm A').format(
+                          'L hh:mm A',
+                        )}
+                      </b>
+                    </h4>
+                  </div>
+                  {this.state.memberAlreadyCheckedIn ||
+                  this.state.noProgramSet ? (
+                    <div />
+                  ) : (
+                    <div className="applyCheckin">
+                      <div>
+                        <select
+                          name="status"
+                          id="status"
+                          ref={input => (this.input = input)}
+                          defaultValue="Full Class"
+                          onChange={e => {
+                            this.setState({ attendanceStatus: e.target.value });
+                          }}
+                        >
+                          <option value="" />
+                          <option key="Full Class" value="Full Class">
+                            Full Class
+                          </option>
+                          <option key="Class Only" value="Class Only">
+                            Class Only
+                          </option>
+                          <option key="Spar Only" value="Spar Only">
+                            Spar Only
+                          </option>
+                          <option key="Late" value="Late">
+                            Late
+                          </option>
+                        </select>
+                        <div className="droparrow" />
+                      </div>
+                      <div>
+                        <button
+                          type="button"
+                          id="checkinMember"
+                          className="btn btn-primary btn-block"
+                          onClick={e => this.checkInMember()}
+                        >
+                          Check-in Member
+                        </button>
+                      </div>
+                      {this.state.memberItem.values['Covid19 Waiver'] ===
+                        null ||
+                      this.state.memberItem.values['Covid19 Waiver'] ===
+                        undefined ||
+                      this.state.memberItem.values['Covid19 Waiver'] === '' ? (
+                        <div className="waiverIncomplete">Waiver Required</div>
+                      ) : (
+                        <div />
+                      )}
+                      {this.state.memberItem.values['Covid19 Waiver'] ===
+                      'NOT Agreed' ? (
+                        <div className="waiverIncomplete">
+                          Waiver NOT Agreed
+                        </div>
+                      ) : (
+                        <div />
+                      )}
+                      {Utils.getAttributeValue(
+                        this.props.space,
+                        'Covid Check Required',
+                      ) === 'TRUE' && (
+                        <div>
+                          {this.state.memberItem.values[
+                            'Student Covid Check'
+                          ] === null ||
+                          this.state.memberItem.values[
+                            'Student Covid Check'
+                          ] === undefined ||
+                          this.state.memberItem.values[
+                            'Student Covid Check'
+                          ] === '' ? (
+                            <div className="waiverIncomplete">
+                              Student Covid Check Required
+                            </div>
                           ) : (
-                            <img
-                              src={checkin.values['Photo']}
-                              alt="Member Photograph"
-                              className="photo"
-                            />
+                            <div />
                           )}
-                          <span className="memberInfo">
-                            <h4 className="memberName">
-                              <NavLink
-                                to={`/Member/${checkin.values['Member GUID']}`}
-                                className=""
-                              >
-                                {checkin.values['First Name']}{' '}
-                                {checkin.values['Last Name']}
-                              </NavLink>
-                            </h4>
-                            <h5
-                              className={checkin.values['Attendance Status'][0]}
-                            >
-                              {checkin.values['Attendance Status'][0]}
-                            </h5>
-                            <span
-                              className="deleteCheckin"
-                              onClick={e => this.deleteCheckin(checkin)}
-                            >
-                              <SVGInline svg={binIcon} className="icon" />
-                            </span>
-                          </span>
-                        </span>
-                        <span className="bottom">
-                          <span className="ranking">
-                            <div className="program">
-                              {getProgramSVG(checkin.values['Ranking Program'])}
-                            </div>
-                            <div className="belt">
-                              {getBeltSVG(checkin.values['Ranking Belt'])}
-                            </div>
-                          </span>
-                        </span>
-                      </span>
-                    ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <GradingStatus
+                    memberItem={this.state.memberItem}
+                    belts={this.props.belts}
+                    allMembers={this.props.allMembers}
+                  />
+                  {this.state.captureType === 'manual' ? (
+                    <button
+                      type="button"
+                      id="manualNewMember"
+                      className="btn btn-primary btn-block"
+                      onClick={e => this.selectNewMember()}
+                    >
+                      Select New Member
+                    </button>
+                  ) : (
+                    <div />
+                  )}
                 </div>
               )}
             </div>
-          )}
-        </div>
-        <BarcodeReader onError={this.handleError} onScan={this.handleScan} />
+            <div className="attendanceSection">
+              <h4 className="classAttendancesLabel">Class Attendees</h4>
+              {this.props.fetchingClassAttendances ? (
+                <h4>Loading Class Attendances....</h4>
+              ) : (
+                <div className="classMembers">
+                  {this.props.classAttendances.length === 0 ? (
+                    <div>
+                      <h4>No members checked in for this class</h4>
+                    </div>
+                  ) : (
+                    <div>
+                      {this.props.classAttendances
+                        .filter(
+                          checkin =>
+                            checkin.values['Class Time'] ===
+                              this.state.classTime &&
+                            checkin.values['Class'] === this.state.className,
+                        )
+                        .map((checkin, index) => (
+                          <span
+                            key={index}
+                            className={
+                              checkin.memberAlreadyCheckedIn
+                                ? 'memberCell alreadyCheckedIn'
+                                : 'memberCell'
+                            }
+                            id={checkin.id}
+                          >
+                            <span className="top">
+                              {checkin.values['Photo'] === undefined ? (
+                                <span className="noPhoto">
+                                  {checkin.values['First Name'][0]}
+                                  {checkin.values['Last Name'][0]}
+                                </span>
+                              ) : (
+                                <img
+                                  src={checkin.values['Photo']}
+                                  alt="Member Photograph"
+                                  className="photo"
+                                />
+                              )}
+                              <span className="memberInfo">
+                                <h4 className="memberName">
+                                  <NavLink
+                                    to={`/Member/${checkin.values['Member GUID']}`}
+                                    className=""
+                                  >
+                                    {checkin.values['First Name']}{' '}
+                                    {checkin.values['Last Name']}
+                                  </NavLink>
+                                </h4>
+                                <h5
+                                  className={
+                                    checkin.values['Attendance Status'][0]
+                                  }
+                                >
+                                  {checkin.values['Attendance Status'][0]}
+                                </h5>
+                                <span
+                                  className="deleteCheckin"
+                                  onClick={e => this.deleteCheckin(checkin)}
+                                >
+                                  <SVGInline svg={binIcon} className="icon" />
+                                </span>
+                              </span>
+                            </span>
+                            <span className="bottom">
+                              <span className="ranking">
+                                <div className="program">
+                                  {getProgramSVG(
+                                    checkin.values['Ranking Program'],
+                                  )}
+                                </div>
+                                <div className="belt">
+                                  {getBeltSVG(checkin.values['Ranking Belt'])}
+                                </div>
+                              </span>
+                            </span>
+                          </span>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            <BarcodeReader
+              onError={this.handleError}
+              onScan={this.handleScan}
+            />
+            }
+          </div>
+        )}
       </div>
     );
   }
@@ -783,6 +967,8 @@ export const AttendanceView = ({
   fetchingClassAttendances,
   fetchingClassBookings,
   classBookings,
+  classSchedules,
+  fetchingClassSchedules,
   deleteAttendance,
   setClassAttendances,
   setClassBookings,
@@ -803,6 +989,8 @@ export const AttendanceView = ({
     classBookings={classBookings}
     fetchingClassAttendances={fetchingClassAttendances}
     fetchingClassBookings={fetchingClassBookings}
+    classSchedules={classSchedules}
+    fetchingClassSchedules={fetchingClassSchedules}
     deleteAttendance={deleteAttendance}
     setClassAttendances={setClassAttendances}
     setClassBookings={setClassBookings}
@@ -870,6 +1058,7 @@ export const AttendanceContainer = compose(
           ? this.props.space.defaultLocale
           : this.props.profile.preferredLocale,
       );
+      this.props.fetchClassSchedules();
     },
     UNSAFE_componentWillReceiveProps(nextProps) {
       $('.content')
