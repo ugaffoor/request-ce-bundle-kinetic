@@ -532,7 +532,7 @@ export class MemberFinancialReport extends Component {
                   item => item.id === order.values['Person ID'],
                 ) === -1
               ) {
-                posPeople[posPeople.length] = members[idx];
+                posPeople[posPeople.length] = leads[idx];
               }
             }
           }
@@ -1454,7 +1454,7 @@ export class MemberFinancialReport extends Component {
               to={`/${
                 props.original.members_col1['type'] === 'Member'
                   ? 'Member'
-                  : 'Lead'
+                  : 'LeadDetail'
               }/${props.original.members_col1['memberId']}`}
               className=""
             >
@@ -1494,7 +1494,7 @@ export class MemberFinancialReport extends Component {
               to={`/${
                 props.original.members_col2['type'] === 'Member'
                   ? 'Member'
-                  : 'Lead'
+                  : 'LeadDetail'
               }/${props.original.members_col2['memberId']}`}
               className=""
             >
