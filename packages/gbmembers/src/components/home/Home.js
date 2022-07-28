@@ -52,7 +52,7 @@ const mapStateToProps = state => ({
   monthlyStatisticsLoading:
     state.member.monthlyStatistics.monthlyStatisticsLoading,
   FAILEDpaymentHistory: state.member.members.FAILEDpaymentHistory,
-  FAILEDpaymentHistoryLoading: state.member.members.FALIEDpaymentHistoryLoading,
+  FAILEDpaymentHistoryLoading: state.member.members.FAILEDpaymentHistoryLoading,
   SUCCESSFULpaymentHistory: state.member.members.SUCCESSFULpaymentHistory,
   SUCCESSFULpaymentHistoryLoading:
     state.member.members.SUCCESSFULpaymentHistoryLoading,

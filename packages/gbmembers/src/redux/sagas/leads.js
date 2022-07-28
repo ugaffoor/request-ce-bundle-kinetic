@@ -33,7 +33,7 @@ export function* fetchLeads(action) {
       form: 'lead',
       search,
     });
-    console.log('AllLeads # ' + submissions);
+    //    console.log('AllLeads # ' + submissions);
     yield put(actions.setLeads(submissions));
   } catch (error) {
     console.log('Error in fetchLeads: ' + util.inspect(error));
@@ -54,7 +54,7 @@ export function* fetchLeadsByDate(action) {
       form: 'lead',
       search,
     });
-    console.log('Leads by Date# ' + submissions);
+    //    console.log('Leads by Date# ' + submissions);
     yield put(actions.setLeadsByDate(submissions));
   } catch (error) {
     console.log('Error in fetchLeadsByDate: ' + util.inspect(error));

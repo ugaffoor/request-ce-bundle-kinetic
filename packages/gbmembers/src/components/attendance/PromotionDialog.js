@@ -136,6 +136,8 @@ export class PromotionDialog extends Component {
     );
 
     this.setShowAttendanceDialog = this.setShowAttendanceDialog.bind(this);
+    this.setMemberPromotions = this.setMemberPromotions.bind(this);
+
     if (props.memberItem.promotionContent === undefined)
       props.memberItem.promotionContent = [];
 

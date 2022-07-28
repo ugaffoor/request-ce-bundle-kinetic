@@ -30,8 +30,8 @@ export const Help = ({
         <span className="title">
           <I18n>Help Information</I18n>
         </span>
-        <div class="search-box">
-          <form class="search-box__form">
+        <div className="search-box">
+          <form className="search-box__form">
             <input
               type="text"
               placeholder="Filter Help"
@@ -40,7 +40,7 @@ export const Help = ({
                 setFilterValue(e.target.value);
               }}
             />
-            <span class="fa fa-search"></span>
+            <span className="fa fa-search"></span>
           </form>
         </div>
         <div className="actions"></div>

@@ -4,9 +4,11 @@ import { CoreAPI } from 'react-kinetic-core';
 import { types, actions } from '../modules/attendance';
 import moment from 'moment';
 import { actions as errorActions } from '../modules/errors';
+import { setMemberPromotionValues } from '../../components/Member/MemberUtils';
 
 export const SUBMISSION_INCLUDES = 'details,values';
 export const getMembersApp = state => state.member.members;
+export const getApp = state => state.member.app;
 const util = require('util');
 
 function excludeFromAttendanceCount(additionalPrograms, className) {
@@ -65,17 +67,30 @@ export function* fetchClassAttendances(action) {
       search,
     });
     const membersApp = yield select(getMembersApp);
+    const app = yield select(getApp);
     submissions.forEach(attendance => {
       let memberItem = undefined;
       for (let i = 0; i < membersApp.allMembers.length; i++) {
         if (membersApp.allMembers[i].id === attendance.values['Member GUID']) {
           memberItem = membersApp.allMembers[i];
+          setMemberPromotionValues(memberItem, app.belts);
           break;
         }
       }
       attendance.values['Photo'] = memberItem.values['Photo'];
       attendance.values['First Name'] = memberItem.values['First Name'];
       attendance.values['Last Name'] = memberItem.values['Last Name'];
+
+      attendance.programOrder = memberItem.programOrder;
+      attendance.promotionSort = memberItem.promotionSort;
+      attendance.statusText = memberItem.statusText;
+      attendance.attendClasses = memberItem.attendClasses;
+      attendance.durationPeriod = memberItem.durationPeriod;
+      attendance.attendanceVal = memberItem.attendanceVal;
+      attendance.daysElapsed = memberItem.daysElapsed;
+      attendance.daysVal = memberItem.daysVal;
+      attendance.attendancePerc = memberItem.attendancePerc;
+      attendance.statusIndicator = memberItem.statusIndicator;
     });
 
     yield put(actions.setClassAttendances(submissions));
@@ -126,9 +141,23 @@ export function* createAttendance(action) {
         break;
       }
     }
+    const app = yield select(getApp);
+    setMemberPromotionValues(memberItem, app.belts);
+
     submission.values['Photo'] = memberItem.values['Photo'];
     submission.values['First Name'] = memberItem.values['First Name'];
     submission.values['Last Name'] = memberItem.values['Last Name'];
+
+    submission.programOrder = memberItem.programOrder;
+    submission.promotionSort = memberItem.promotionSort;
+    submission.statusText = memberItem.statusText;
+    submission.attendClasses = memberItem.attendClasses;
+    submission.durationPeriod = memberItem.durationPeriod;
+    submission.attendanceVal = memberItem.attendanceVal;
+    submission.daysElapsed = memberItem.daysElapsed;
+    submission.daysVal = memberItem.daysVal;
+    submission.attendancePerc = memberItem.attendancePerc;
+    submission.statusIndicator = memberItem.statusIndicator;
 
     // Only Increment attendanceCount if the first classs of the day
     let checkin = action.payload.classAttendances.find(

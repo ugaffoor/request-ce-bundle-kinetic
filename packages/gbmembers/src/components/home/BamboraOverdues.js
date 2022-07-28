@@ -5,7 +5,11 @@ import { KappNavLink as NavLink } from 'common';
 import ReactToPrint from 'react-to-print';
 import printerIcon from '../../images/Print.svg?raw';
 import SVGInline from 'react-svg-inline';
-import { getCurrency } from '../Member/MemberUtils';
+import {
+  getCurrency,
+  validOverdue,
+  getLastBillingStartDate,
+} from '../Member/MemberUtils';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const ezidebit_date_format = 'YYYY-MM-DD HH:mm:sss';
@@ -69,56 +73,7 @@ export class BamboraOverdues extends Component {
       });
     }
   }
-  validOverdue(member, successfulPayments, payment) {
-    var valid = false;
 
-    if (
-      (member.values['Status'] === 'Active' ||
-        member.values['Status'] === 'Penging Freeze' ||
-        member.values['Status'] === 'Pending Cancellation') &&
-      payment.debitDate !== null &&
-      member.values['Non Paying'] !== 'YES' &&
-      member.values['Billing Payment Type'] === 'Credit Card'
-    ) {
-      valid = true;
-    }
-    var billingStartDate = this.getLastBillingStartDate(
-      member,
-      successfulPayments,
-    );
-    if (
-      billingStartDate.isAfter(moment(payment.debitDate, 'YYYY-MM-DD HH:mm:SS'))
-    ) {
-      valid = false;
-    }
-    return valid;
-  }
-  getLastBillingStartDate(member, successfulPayments) {
-    var resumeDate = moment(member.values['Resume Date'], 'YYYY-MM-DD');
-    var billingStartDate = moment(
-      member.values['Billing Start Date'],
-      'YYYY-MM-DD',
-    );
-    if (resumeDate.isAfter(billingStartDate)) {
-      billingStartDate = resumeDate;
-    }
-    var idx = successfulPayments.findIndex(successful => {
-      return (
-        member.values['Member ID'] === successful.yourSystemReference &&
-        moment(successful.debitDate, 'YYYY-MM-DD HH:mm:SS').isAfter(
-          billingStartDate,
-        )
-      );
-    });
-
-    if (idx !== -1) {
-      billingStartDate = moment(
-        successfulPayments[idx].debitDate,
-        'YYYY-MM-DD HH:mm:SS',
-      );
-    }
-    return billingStartDate;
-  }
   getData(failedPayments, successfulPayments) {
     failedPayments = failedPayments.filter(
       payment =>
@@ -174,11 +129,7 @@ export class BamboraOverdues extends Component {
       );
       if (idx !== -1) {
         if (
-          this.validOverdue(
-            this.props.allMembers[idx],
-            successfulPayments,
-            payment,
-          )
+          validOverdue(this.props.allMembers[idx], successfulPayments, payment)
         ) {
           uniqueHistory[uniqueHistory.length] = payment;
         }
@@ -196,7 +147,7 @@ export class BamboraOverdues extends Component {
       }
       var lastPayment;
       if (idx !== -1) {
-        lastPayment = this.getLastBillingStartDate(
+        lastPayment = getLastBillingStartDate(
           this.props.allMembers[idx],
           successfulPayments,
         );
@@ -234,7 +185,7 @@ export class BamboraOverdues extends Component {
         _id: payment.paymentID,
         paymentAmount: payment.paymentAmount,
         overdueAmount: overdueAmount,
-        successDate: this.getLastBillingStartDate(member, successfulPayments),
+        successDate: getLastBillingStartDate(member, successfulPayments),
         debitDate: payment.debitDate,
         memberGUID: member !== undefined ? member.id : '',
         name: member.values['First Name'] + ' ' + member.values['Last Name'],

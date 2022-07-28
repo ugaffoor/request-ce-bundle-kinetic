@@ -29,7 +29,7 @@ const mapStateToProps = state => ({
   leads: state.member.leads.allLeads,
   leadsLoading: state.member.leads.leadsLoading,
   FAILEDpaymentHistory: state.member.members.FAILEDpaymentHistory,
-  FAILEDpaymentHistoryLoading: state.member.members.FALIEDpaymentHistoryLoading,
+  FAILEDpaymentHistoryLoading: state.member.members.FAILEDpaymentHistoryLoading,
   paymentHistory: state.member.members.SUCCESSFULpaymentHistory,
   SUCCESSFULpaymentHistoryLoading:
     state.member.members.SUCCESSFULpaymentHistoryLoading,

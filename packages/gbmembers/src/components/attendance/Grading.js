@@ -181,7 +181,7 @@ export class GradingDetail extends Component {
                     }
                   }}
                 />
-                <label for="checkins"></label>
+                <label htmlFor="checkins"></label>
               </div>
               {this.props.fetchingClassSchedules ||
               this.props.fetchingClassAttendances ? (

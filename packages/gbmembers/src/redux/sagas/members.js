@@ -49,6 +49,7 @@ export function* fetchMembers(action) {
       .in('values[Status]', [
         'Active',
         'Frozen',
+        'Casual',
         'Pending Freeze',
         'Pending Suspension',
         'Pending Cancellation',

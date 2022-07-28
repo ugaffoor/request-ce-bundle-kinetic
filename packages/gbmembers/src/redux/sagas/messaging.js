@@ -248,25 +248,25 @@ export function* createLeadActivities(action) {
 
 export function* getIndividualSMS(action) {
   try {
-    const MEMBER_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
+    const MEMBER_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch()
       .eq('values[Type]', 'SMS')
       .eq('values[Direction]', 'Outbound')
       .include(['details', 'values'])
       .startDate(
         moment()
-          .subtract(120, 'days')
+          .subtract(31, 'days')
           .toDate(),
       )
       .endDate(moment().toDate())
       .limit(25)
       .build();
-    const LEAD_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
+    const LEAD_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch()
       .eq('values[Type]', 'SMS')
       .eq('values[Direction]', 'Outbound')
       .include(['details', 'values'])
       .startDate(
         moment()
-          .subtract(120, 'days')
+          .subtract(31, 'days')
           .toDate(),
       )
       .endDate(moment().toDate())
@@ -322,7 +322,7 @@ export function* getIndividualSMS(action) {
 
     yield put(action.payload.setIndividualSMS(individualSMS));
   } catch (error) {
-    console.log('Error in fetchMemberPromotions: ' + util.inspect(error));
+    console.log('Error in getIndividualSMS: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));
   }
 }

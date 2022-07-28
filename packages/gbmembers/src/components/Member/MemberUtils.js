@@ -1313,6 +1313,53 @@ export function isNewMember(member) {
   }
   return newMember;
 }
+export function validOverdue(member, successfulPayments, payment) {
+  var valid = false;
+
+  if (
+    (member.values['Status'] === 'Active' ||
+      member.values['Status'] === 'Penging Freeze' ||
+      member.values['Status'] === 'Pending Cancellation') &&
+    payment.debitDate !== null &&
+    member.values['Non Paying'] !== 'YES' &&
+    member.values['Billing Payment Type'] === 'Credit Card'
+  ) {
+    valid = true;
+  }
+  var billingStartDate = getLastBillingStartDate(member, successfulPayments);
+  if (
+    billingStartDate.isAfter(moment(payment.debitDate, 'YYYY-MM-DD HH:mm:SS'))
+  ) {
+    valid = false;
+  }
+  return valid;
+}
+export function getLastBillingStartDate(member, successfulPayments) {
+  var resumeDate = moment(member.values['Resume Date'], 'YYYY-MM-DD');
+  var billingStartDate = moment(
+    member.values['Billing Start Date'],
+    'YYYY-MM-DD',
+  );
+  if (resumeDate.isAfter(billingStartDate)) {
+    billingStartDate = resumeDate;
+  }
+  var idx = successfulPayments.findIndex(successful => {
+    return (
+      member.values['Member ID'] === successful.yourSystemReference &&
+      moment(successful.debitDate, 'YYYY-MM-DD HH:mm:SS').isAfter(
+        billingStartDate,
+      )
+    );
+  });
+
+  if (idx !== -1) {
+    billingStartDate = moment(
+      successfulPayments[idx].debitDate,
+      'YYYY-MM-DD HH:mm:SS',
+    );
+  }
+  return billingStartDate;
+}
 
 export function setMemberPromotionValues(member, belts) {
   let statusIndicator = 'notready';

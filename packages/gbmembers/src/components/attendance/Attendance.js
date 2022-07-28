@@ -6,6 +6,7 @@ import { actions as attendanceActions } from '../../redux/modules/attendance';
 import { actions as memberActions } from '../../redux/modules/members';
 import { actions as classActions } from '../../redux/modules/classes';
 import { actions as appActions } from '../../redux/modules/memberApp';
+import { actions as errorActions } from '../../redux/modules/errors';
 import { connect } from 'react-redux';
 import moment from 'moment';
 import Datetime from 'react-datetime';
@@ -18,9 +19,12 @@ import Select from 'react-select';
 import { withHandlers } from 'recompose';
 import { GradingStatus } from './GradingStatus';
 import {
+  getCurrency,
   getProgramSVG,
   getBeltSVG,
   getLocalePreference,
+  validOverdue,
+  getLastBillingStartDate,
 } from '../Member/MemberUtils';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { Utils } from 'common';
@@ -28,6 +32,7 @@ import { KappNavLink as NavLink } from 'common';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
+  membersLoading: state.member.members.membersLoading,
   programs: state.member.app.programs,
   additionalPrograms: state.member.app.additionalPrograms,
   classAttendances: state.member.attendance.classAttendances,
@@ -39,6 +44,11 @@ const mapStateToProps = state => ({
   belts: state.member.app.belts,
   profile: state.member.kinops.profile,
   space: state.member.app.space,
+  FAILEDpaymentHistory: state.member.members.FAILEDpaymentHistory,
+  FAILEDpaymentHistoryLoading: state.member.members.FAILEDpaymentHistoryLoading,
+  SUCCESSFULpaymentHistory: state.member.members.SUCCESSFULpaymentHistory,
+  SUCCESSFULpaymentHistoryLoading:
+    state.member.members.SUCCESSFULpaymentHistoryLoading,
 });
 
 const mapDispatchToProps = {
@@ -52,6 +62,10 @@ const mapDispatchToProps = {
   updateBooking: classActions.updateBooking,
   updateMember: memberActions.updateMember,
   setSidebarDisplayType: appActions.setSidebarDisplayType,
+  fetchPaymentHistory: memberActions.fetchPaymentHistory,
+  setPaymentHistory: memberActions.setPaymentHistory,
+  addNotification: errorActions.addNotification,
+  setSystemError: errorActions.setSystemError,
 };
 
 export class AttendanceDetail extends Component {
@@ -59,6 +73,8 @@ export class AttendanceDetail extends Component {
     super(props);
 
     this.handleScan = this.handleScan.bind(this);
+    this.getBamboraOverdues = this.getBamboraOverdues.bind(this);
+
     let className = this.props.programs.get(0).program;
     let classDate = moment()
       .set({ hour: moment().get('hour'), minute: 0, second: 0 })
@@ -71,7 +87,72 @@ export class AttendanceDetail extends Component {
     let memberAlreadyCheckedIn = false;
     let noProgramSet = false;
     let captureType = 'scanner';
+    let overduesLoaded = false;
+
+    this.currency = getAttributeValue(this.props.space, 'Currency');
+    if (this.currency === undefined) this.currency = 'USD';
+    if (this.currency === undefined) {
+      this.currencySymbol = '$';
+    } else {
+      this.currencySymbol = getCurrency(this.currency)['symbol'];
+    }
+
+    if (this.props.allMembers.length > 0) {
+      this.props.fetchClassAttendances({
+        classDate: classDate,
+        className: className,
+      });
+    }
+    var overdueMembers = [];
+    if (getAttributeValue(this.props.space, 'Billing Company') === 'Bambora') {
+      if (
+        this.props.FAILEDpaymentHistory.length === 0 &&
+        this.props.SUCCESSFULpaymentHistory.length === 0
+      ) {
+        this.props.fetchPaymentHistory({
+          paymentType: 'FAILED',
+          paymentMethod: 'ALL',
+          paymentSource: 'ALL',
+          dateField: 'PAYMENT',
+          dateFrom: moment()
+            .subtract(6, 'month')
+            .format('YYYY-MM-DD'),
+          dateTo: moment().format('YYYY-MM-DD'),
+          setPaymentHistory: this.props.setPaymentHistory,
+          internalPaymentType: 'client_failed',
+          addNotification: this.props.addNotification,
+          setSystemError: this.props.setSystemError,
+        });
+
+        this.props.fetchPaymentHistory({
+          paymentType: 'SUCCESSFUL',
+          paymentMethod: 'ALL',
+          paymentSource: 'ALL',
+          dateField: 'PAYMENT',
+          dateFrom: moment()
+            .subtract(1, 'month')
+            .format('YYYY-MM-DD'),
+          dateTo: moment().format('YYYY-MM-DD'),
+          setPaymentHistory: this.props.setPaymentHistory,
+          internalPaymentType: 'client_successful',
+          addNotification: this.props.addNotification,
+          setSystemError: this.props.setSystemError,
+        });
+      } else {
+        if (
+          getAttributeValue(this.props.space, 'Billing Company') === 'Bambora'
+        ) {
+          overdueMembers = this.getBamboraOverdues(
+            this.props.FAILEDpaymentHistory,
+            this.props.SUCCESSFULpaymentHistory,
+            this.props.allMembers,
+          );
+        }
+        overduesLoaded = true;
+      }
+    }
     this.state = {
+      manualSelect: false,
       className,
       classDate,
       classTime,
@@ -82,15 +163,18 @@ export class AttendanceDetail extends Component {
       captureType,
       useCalendarSchedule: true,
       classScheduleDateDay: moment().day() === 0 ? 7 : moment().day(),
+      overdueMembers,
+      overduesLoaded: overduesLoaded,
     };
-    this.props.fetchClassAttendances({
-      classDate: classDate,
-      className: className,
-    });
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
-    if (!nextProps.fetchingClassSchedules) {
+    if (
+      !nextProps.fetchingClassSchedules &&
+      !nextProps.fetchingClassAttendances &&
+      nextProps.classSchedules.size !== 0 &&
+      !this.state.manualSelect
+    ) {
       var classScheduleDateDay = moment().day() === 0 ? 7 : moment().day();
       var classID = this.getClosestClass(
         classScheduleDateDay,
@@ -115,6 +199,155 @@ export class AttendanceDetail extends Component {
         classTime,
       });
     }
+    if (
+      nextProps.allMembers.length !== 0 &&
+      nextProps.allMembers.length !== this.props.allMembers.length
+    ) {
+      let className = this.props.programs.get(0).program;
+      let classDate = moment()
+        .set({ hour: moment().get('hour'), minute: 0, second: 0 })
+        .format('L hh:mm A');
+      this.props.fetchClassAttendances({
+        classDate: classDate,
+        className: className,
+      });
+    }
+    if (
+      !nextProps.FAILEDpaymentHistoryLoading &&
+      !nextProps.SUCCESSFULpaymentHistoryLoading &&
+      nextProps.FAILEDpaymentHistory.length > 0 &&
+      !this.state.overduesLoaded &&
+      nextProps.allMembers.length > 0
+    ) {
+      var overdueMembers = this.getBamboraOverdues(
+        nextProps.FAILEDpaymentHistory,
+        nextProps.SUCCESSFULpaymentHistory,
+        nextProps.allMembers,
+      );
+      this.setState({
+        overdueMembers: overdueMembers,
+        overduesLoaded: true,
+      });
+    }
+  }
+
+  getBamboraOverdues(failedPayments, successfulPayments, allMembers) {
+    failedPayments = failedPayments.filter(
+      payment =>
+        payment.paymentStatus === 'Transaction Declined' ||
+        payment.paymentStatus === 'DECLINED' ||
+        payment.paymentStatus === 'PIN RETRY EXCEEDED' ||
+        payment.paymentStatus === 'SERV NOT ALLOWED' ||
+        payment.paymentStatus === 'EXPIRED CARD',
+    );
+    failedPayments = failedPayments.sort((a, b) => {
+      if (a['debitDate'] < b['debitDate']) {
+        return 1;
+      }
+      if (a['debitDate'] > b['debitDate']) {
+        return -1;
+      }
+      return 0;
+    });
+    var uniqueFailed = [];
+    failedPayments.forEach((failed, i) => {
+      var idx = uniqueFailed.findIndex(
+        unique => unique.yourSystemReference === failed.yourSystemReference,
+      );
+      if (idx === -1) {
+        uniqueFailed[uniqueFailed.length] = failed;
+      }
+    });
+
+    var uniqueHistoryAll = [];
+    uniqueFailed.forEach((failed, i) => {
+      // Remove any failed that has a successful payment
+      var idx = successfulPayments.findIndex(successful => {
+        return (
+          failed.yourSystemReference === successful.yourSystemReference &&
+          moment(successful.debitDate, 'YYYY-MM-DD HH:mm:SS').isAfter(
+            moment(failed.debitDate, 'YYYY-MM-DD HH:mm:SS'),
+          )
+        );
+      });
+
+      if (idx === -1) {
+        uniqueHistoryAll[uniqueHistoryAll.length] = failed;
+      }
+    });
+
+    var uniqueHistory = [];
+    uniqueHistoryAll.map(payment => {
+      // Keep only Recurring Billing failures
+      var idx = allMembers.findIndex(
+        member =>
+          member.values['Member ID'] === payment.yourSystemReference ||
+          member.values['Billing Customer Id'] === payment.yourSystemReference,
+      );
+      if (idx !== -1) {
+        if (validOverdue(allMembers[idx], successfulPayments, payment)) {
+          uniqueHistory[uniqueHistory.length] = payment;
+        }
+      }
+    });
+    const data = uniqueHistory.map(payment => {
+      var idx = allMembers.findIndex(
+        member =>
+          member.values['Member ID'] === payment.yourSystemReference ||
+          member.values['Billing Customer Id'] === payment.yourSystemReference,
+      );
+      var member = undefined;
+      if (idx !== -1) {
+        member = allMembers[idx];
+      }
+      var lastPayment;
+      if (idx !== -1) {
+        lastPayment = getLastBillingStartDate(
+          allMembers[idx],
+          successfulPayments,
+        );
+      }
+      let nowDate = moment();
+      var overdueAmount = 0;
+      if (member !== undefined) {
+        var paymentPeriod = member.values['Billing Payment Period'];
+        var period = 'months';
+        var periodCount = 1;
+        if (paymentPeriod === 'Daily') {
+          period = 'days';
+        } else if (paymentPeriod === 'Weekly') {
+          period = 'weeks';
+        } else if (paymentPeriod === 'Fortnightly') {
+          period = 'weeks';
+          periodCount = 2;
+        } else if (paymentPeriod === 'Monthly') {
+          period = 'months';
+        }
+        if (lastPayment.isAfter(moment())) {
+          lastPayment = lastPayment.subtract(period, periodCount);
+        }
+
+        var nextBillingDate = lastPayment.add(period, periodCount);
+        while (nextBillingDate.isBefore(nowDate)) {
+          overdueAmount = overdueAmount + payment.paymentAmount;
+          nextBillingDate = nextBillingDate.add(period, periodCount);
+        }
+        if (overdueAmount === 0) {
+          overdueAmount = payment.paymentAmount;
+        }
+      }
+      return {
+        _id: payment.paymentID,
+        paymentAmount: payment.paymentAmount,
+        overdueAmount: overdueAmount,
+        successDate: getLastBillingStartDate(member, successfulPayments),
+        debitDate: payment.debitDate,
+        memberGUID: member !== undefined ? member.id : '',
+        name: member.values['First Name'] + ' ' + member.values['Last Name'],
+      };
+    });
+
+    return data;
   }
 
   handleError(data) {
@@ -217,6 +450,7 @@ export class AttendanceDetail extends Component {
       this.state.memberItem,
       this.state.className,
       this.state.classDate,
+      this.state.classTime,
       this.state.attendanceStatus,
       this.props.classAttendances,
       this.props.allMembers,
@@ -268,6 +502,7 @@ export class AttendanceDetail extends Component {
         memberItem,
         this.state.className,
         this.state.classDate,
+        this.state.classTime,
         'Full Class',
         this.props.classAttendances,
         this.props.allMembers,
@@ -352,11 +587,50 @@ export class AttendanceDetail extends Component {
     });
     return membersVals;
   }
+  getOptionStyle(schedule) {
+    return {
+      backgroundColor: schedule.colour,
+      color: schedule.textColour,
+      padding: '6px',
+      margin: '4px',
+    };
+  }
+  getDayClasses(classSchedules, classScheduleDateDay) {
+    let classes = [];
+    classSchedules
+      .filter(schedule => {
+        if (
+          classScheduleDateDay ===
+          (moment(schedule.start).day() === 0
+            ? 7
+            : moment(schedule.start).day())
+        ) {
+          return true;
+        }
+        return false;
+      })
+      .map(schedule =>
+        classes.push({
+          label: (
+            <span style={this.getOptionStyle(schedule)}>
+              {schedule.title +
+                '[' +
+                schedule.program +
+                ']-' +
+                moment(schedule.start).format('h:mm A')}
+            </span>
+          ),
+          value: schedule.id,
+        }),
+      );
+    return classes;
+  }
   selectMember(e) {
     let id = e.value;
     this.setState({ memberItem: undefined });
     this.setState({ memberAlreadyCheckedIn: false });
     this.setState({ noProgramSet: false });
+    this.setState({ overdueMember: false });
     this.setState({ attendanceStatus: 'Full Class' });
 
     let memberItem;
@@ -386,6 +660,18 @@ export class AttendanceDetail extends Component {
       } else {
         this.props.classAttendances[i].memberAlreadyCheckedIn = false;
       }
+    }
+
+    var overdueIdx = this.state.overdueMembers.findIndex(
+      member => member.memberGUID === memberItem.id,
+    );
+    if (overdueIdx !== -1) {
+      memberItem.overdueAmount = this.state.overdueMembers[
+        overdueIdx
+      ].overdueAmount;
+      this.setState({
+        overdueMember: true,
+      });
     }
 
     //    if (this.state.memberAlreadyCheckedIn){
@@ -421,7 +707,11 @@ export class AttendanceDetail extends Component {
   render() {
     return (
       <div>
-        {this.props.fetchingClassSchedules ? (
+        {this.props.fetchingClassSchedules ||
+        (getAttributeValue(this.props.space, 'Billing Company') === 'Bambora' &&
+          (this.props.FAILEDpaymentHistoryLoading ||
+            this.props.SUCCESSFULpaymentHistoryLoading)) ||
+        this.props.membersLoading ? (
           <div>Loading...</div>
         ) : (
           <div className="attendanceSection">
@@ -435,10 +725,14 @@ export class AttendanceDetail extends Component {
                   onChange={e => {
                     this.setState({
                       useCalendarSchedule: !this.state.useCalendarSchedule,
+                      classScheduleDateDay:
+                        moment(this.state.classDate, 'L hh:mm A').day() === 0
+                          ? 7
+                          : moment(this.state.classDate, 'L hh:mm A').day(),
                     });
                   }}
                 />
-                <label for="checkins"></label>
+                <label htmlFor="checkins"></label>
               </div>
             </div>
             {this.state.useCalendarSchedule ? (
@@ -448,7 +742,14 @@ export class AttendanceDetail extends Component {
                     <label htmlFor="sessionDate">DATE</label>
                     <Datetime
                       className="float-right"
-                      defaultValue={moment()}
+                      defaultValue={moment(
+                        this.state.classDate,
+                        'L hh:mm A',
+                      ).set({
+                        hour: 0,
+                        minute: 0,
+                        second: 0,
+                      })}
                       dateFormat={moment(new Date())
                         .locale(
                           getLocalePreference(
@@ -460,7 +761,16 @@ export class AttendanceDetail extends Component {
                         .longDateFormat('L')}
                       timeFormat={false}
                       onBlur={dt => {
+                        this.doShowAttendance(
+                          dt.format('L hh:mm A'),
+                          undefined,
+                        );
+                        $(
+                          '.classSection .hide-columns__single-value span',
+                        ).html('');
                         this.setState({
+                          manualSelect: true,
+                          classDate: dt.format('L hh:mm A'),
                           classScheduleDateDay:
                             moment(dt).day() === 0 ? 7 : moment(dt).day(),
                         });
@@ -469,55 +779,43 @@ export class AttendanceDetail extends Component {
                   </div>
                   <div className="class">
                     <label htmlFor="programClass">CLASS</label>
-                    <select
-                      name="programClass"
-                      id="programClass"
-                      defaultValue={this.getClosestClass(
-                        this.state.classScheduleDateDay,
+                    <Select
+                      closeMenuOnSelect={true}
+                      options={this.getDayClasses(
                         this.props.classSchedules,
+                        this.state.classScheduleDateDay,
                       )}
+                      styles={{
+                        option: base => ({
+                          ...base,
+                          width: '100%',
+                        }),
+                        input: base => ({
+                          ...base,
+                          width: '400px',
+                        }),
+                      }}
+                      className="programClass"
+                      classNamePrefix="hide-columns"
+                      placeholder="Select Class"
                       onChange={e => {
                         var scheduleIdx = this.props.classSchedules.findIndex(
-                          schedule => schedule.id === e.target.value,
+                          schedule => schedule.id === e.value,
                         );
-                        var classDate = moment(
-                          this.props.classSchedules.get(scheduleIdx).start,
-                        ).format('L hh:mm A');
 
                         this.setState({
-                          classDate: classDate,
+                          manualSelect: true,
                           classTime: moment(
                             this.props.classSchedules.get(scheduleIdx).start,
                           ).format('HH:mm'),
                         });
 
                         this.doShowAttendance(
-                          classDate,
+                          this.state.classDate,
                           this.props.classSchedules.get(scheduleIdx).program,
                         );
                       }}
-                    >
-                      <option value="" />
-                      {this.props.classSchedules
-                        .filter(schedule => {
-                          if (
-                            this.state.classScheduleDateDay ===
-                            (moment(schedule.start).day() === 0
-                              ? 7
-                              : moment(schedule.start).day())
-                          ) {
-                            return true;
-                          }
-                          return false;
-                        })
-                        .map(schedule => (
-                          <option key={schedule.id} value={schedule.id}>
-                            {schedule.title}[{schedule.program}]-
-                            {moment(schedule.start).format('h:mm A')}
-                          </option>
-                        ))}
-                    </select>
-                    <div className="droparrow" />
+                    />
                   </div>
                 </span>
               </div>
@@ -528,7 +826,10 @@ export class AttendanceDetail extends Component {
                     <label htmlFor="sessionDate">DATE</label>
                     <Datetime
                       className="float-right"
-                      defaultValue={moment().set({
+                      defaultValue={moment(
+                        this.state.classDate,
+                        'L hh:mm A',
+                      ).set({
                         hour: moment().get('hour'),
                         minute: 0,
                         second: 0,
@@ -559,6 +860,7 @@ export class AttendanceDetail extends Component {
                           this.state.className,
                         );
                         this.setState({
+                          manualSelect: true,
                           classDate: dt.format('L hh:mm A'),
                           classTime: dt.format('HH:mm'),
                         });
@@ -570,7 +872,6 @@ export class AttendanceDetail extends Component {
                     <select
                       name="programClass"
                       id="programClass"
-                      defaultValue={this.props.programs.get(0).program}
                       onChange={e => {
                         this.doShowAttendance(
                           this.state.classDate,
@@ -835,6 +1136,23 @@ export class AttendanceDetail extends Component {
                           )}
                         </div>
                       )}
+                      {this.state.overdueMember ? (
+                        <span
+                          className="overdue"
+                          onClick={e => {
+                            window.location =
+                              '/#/kapps/services/categories/bambora-billing/bambora-change-credit-card-details?id=' +
+                              this.state.memberItem.id +
+                              '&overdue=' +
+                              this.state.memberItem.overdueAmount;
+                          }}
+                        >
+                          <i className="fa fa-usd overdue"></i>
+                          <span>{this.state.memberItem.overdueAmount}</span>
+                        </span>
+                      ) : (
+                        <div />
+                      )}
                     </div>
                   )}
                   <GradingStatus
@@ -858,7 +1176,37 @@ export class AttendanceDetail extends Component {
               )}
             </div>
             <div className="attendanceSection">
-              <h4 className="classAttendancesLabel">Class Attendees</h4>
+              <h4 className="classAttendancesLabel">
+                Class Attendees (
+                {
+                  this.props.classAttendances.filter(checkin => {
+                    var result =
+                      checkin.values['Class Time'] === this.state.classTime &&
+                      checkin.values['Class'] === this.state.className;
+
+                    if (result) {
+                      var overdueIdx = this.state.overdueMembers.findIndex(
+                        member =>
+                          member.memberGUID === checkin.values['Member GUID'],
+                      );
+                      if (overdueIdx !== -1) {
+                        checkin.overdueMember = true;
+                        checkin.overdueAmount = this.state.overdueMembers[
+                          overdueIdx
+                        ].overdueAmount;
+                      }
+                      var mIdx = this.props.allMembers.findIndex(
+                        member => member.id === checkin.values['Member GUID'],
+                      );
+                      if (mIdx !== -1) {
+                        checkin.memberItem = this.props.allMembers[mIdx];
+                      }
+                    }
+                    return result;
+                  }).length
+                }
+                )
+              </h4>
               {this.props.fetchingClassAttendances ? (
                 <h4>Loading Class Attendances....</h4>
               ) : (
@@ -870,12 +1218,13 @@ export class AttendanceDetail extends Component {
                   ) : (
                     <div>
                       {this.props.classAttendances
-                        .filter(
-                          checkin =>
+                        .filter(checkin => {
+                          return (
                             checkin.values['Class Time'] ===
                               this.state.classTime &&
-                            checkin.values['Class'] === this.state.className,
-                        )
+                            checkin.values['Class'] === this.state.className
+                          );
+                        })
                         .map((checkin, index) => (
                           <span
                             key={index}
@@ -916,6 +1265,24 @@ export class AttendanceDetail extends Component {
                                 >
                                   {checkin.values['Attendance Status'][0]}
                                 </h5>
+                                {checkin.overdueMember ? (
+                                  <span
+                                    className="overdue"
+                                    onClick={e => {
+                                      window.location =
+                                        '/#/kapps/services/categories/bambora-billing/bambora-change-credit-card-details?id=' +
+                                        checkin.values['Member GUID'] +
+                                        '&overdue=' +
+                                        checkin.overdueAmount;
+                                    }}
+                                  >
+                                    <i className="fa fa-usd overdue"></i>
+                                    <span>{checkin.overdueAmount}</span>
+                                  </span>
+                                ) : (
+                                  <div />
+                                )}
+
                                 <span
                                   className="deleteCheckin"
                                   onClick={e => this.deleteCheckin(checkin)}
@@ -935,6 +1302,11 @@ export class AttendanceDetail extends Component {
                                   {getBeltSVG(checkin.values['Ranking Belt'])}
                                 </div>
                               </span>
+                              <GradingStatus
+                                memberItem={checkin.memberItem}
+                                belts={this.props.belts}
+                                allMembers={this.props.allMembers}
+                              />
                             </span>
                           </span>
                         ))}
@@ -974,8 +1346,17 @@ export const AttendanceView = ({
   setClassBookings,
   updateBooking,
   updateMember,
+  belts,
   space,
   profile,
+  fetchPaymentHistory,
+  setPaymentHistory,
+  addNotification,
+  setSystemError,
+  FAILEDpaymentHistory,
+  FAILEDpaymentHistoryLoading,
+  SUCCESSFULpaymentHistory,
+  SUCCESSFULpaymentHistoryLoading,
 }) => (
   <AttendanceDetail
     allMembers={allMembers}
@@ -996,8 +1377,17 @@ export const AttendanceView = ({
     setClassBookings={setClassBookings}
     updateBooking={updateBooking}
     updateMember={updateMember}
+    belts={belts}
     space={space}
     profile={profile}
+    fetchPaymentHistory={fetchPaymentHistory}
+    setPaymentHistory={setPaymentHistory}
+    addNotification={addNotification}
+    setSystemError={setSystemError}
+    FAILEDpaymentHistory={FAILEDpaymentHistory}
+    FAILEDpaymentHistoryLoading={FAILEDpaymentHistoryLoading}
+    SUCCESSFULpaymentHistory={SUCCESSFULpaymentHistory}
+    SUCCESSFULpaymentHistoryLoading={SUCCESSFULpaymentHistoryLoading}
   />
 );
 
@@ -1011,6 +1401,7 @@ export const AttendanceContainer = compose(
       memberItem,
       className,
       classDate,
+      classTime,
       attendanceStatus,
       classAttendances,
       allMembers,
@@ -1022,6 +1413,7 @@ export const AttendanceContainer = compose(
       memberItem,
       className,
       classDate,
+      classTime,
       attendanceStatus,
       classAttendances,
       allMembers,
@@ -1037,7 +1429,7 @@ export const AttendanceContainer = compose(
       values['Class'] = className;
       let dt = moment(classDate, 'L hh:mm A');
       values['Class Date'] = moment(dt).format('YYYY-MM-DD');
-      values['Class Time'] = dt.format('HH:mm');
+      values['Class Time'] = classTime;
       values['Attendance Status'] = attendanceStatus;
 
       createAttendance({
@@ -1058,7 +1450,9 @@ export const AttendanceContainer = compose(
           ? this.props.space.defaultLocale
           : this.props.profile.preferredLocale,
       );
-      this.props.fetchClassSchedules();
+      if (this.props.classSchedules.size === 0) {
+        this.props.fetchClassSchedules();
+      }
     },
     UNSAFE_componentWillReceiveProps(nextProps) {
       $('.content')

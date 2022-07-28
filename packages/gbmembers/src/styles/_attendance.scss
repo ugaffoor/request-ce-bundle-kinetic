@@ -1,7 +1,10 @@
 .checkboxFilter > input[type='checkbox'] {
   visibility: hidden;
 }
-
+i.fa.fa-usd.overdue {
+  font-size: 20pt;
+  color: red;
+}
 .checkboxFilter {
   position: relative;
   clear: left;
@@ -606,6 +609,10 @@
   padding-top: 20px;
   width: 100%;
   display: flex;
+  .programClass {
+    clear: left;
+    width: 450px;
+  }
   .buttons {
     margin-top: 35px;
   }
@@ -780,6 +787,19 @@
       #status {
         margin-bottom: 10px;
       }
+      .overdue {
+        cursor: pointer;
+        margin-left: 4px;
+        margin-top: 7px;
+        font-size: 24pt;
+      }
+      span {
+        font-size: 20pt;
+        color: red;
+      }
+      span:hover {
+        text-decoration: underline;
+      }
     }
     #manualNewMember {
       width: 200px;
@@ -838,6 +858,18 @@
 .classMembers {
   border-top-color: #d5d5d5;
   background-color: #f2efef;
+  .memberCell {
+    .ranking {
+      float: left;
+    }
+    .grading {
+      float: left;
+      clear: left;
+      .bar {
+        width: 100px;
+      }
+    }
+  }
 }
 
 .checkinMembers,
@@ -881,6 +913,19 @@
     .memberInfo {
       padding-left: 6px;
       float: left;
+      .overdue {
+        cursor: pointer;
+        float: left;
+        margin-left: 4px;
+        margin-top: 7px;
+        font-size: 24pt;
+        span {
+          color: red;
+        }
+        span:hover {
+          text-decoration: underline;
+        }
+      }
     }
     .L {
       font-weight: bold;

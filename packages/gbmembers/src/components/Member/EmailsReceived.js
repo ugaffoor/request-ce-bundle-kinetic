@@ -106,7 +106,12 @@ export class EmailsReceived extends Component {
                 return (
                   <div style={{ padding: '20px', textAlign: 'left' }}>
                     <div
-                      dangerouslySetInnerHTML={{ __html: row.original.Content }}
+                      dangerouslySetInnerHTML={{
+                        __html: row.original.Content.replace(
+                          '<style>',
+                          '<XXstyle>',
+                        ),
+                      }}
                     />
                   </div>
                 );
