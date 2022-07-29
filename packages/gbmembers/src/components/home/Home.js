@@ -125,6 +125,7 @@ export const HomeView = ({
       fetchLeadsByDate={fetchLeadsByDate}
       leadsByDateLoading={leadsByDateLoading}
       allMembers={allMembers}
+      membersLoading={membersLoading}
       profile={profile}
       space={space}
     />
@@ -330,7 +331,7 @@ export const HomeContainer = compose(
           this.props.getBillingPayments('current_month');
         }
       }
-      this.props.fetchLeadsByDate();
+      //      this.props.fetchLeadsByDate();
 
       let currency = getAttributeValue(this.props.space, 'Currency');
       if (currency === undefined) currency = 'USD';

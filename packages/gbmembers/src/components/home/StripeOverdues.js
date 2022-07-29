@@ -121,6 +121,7 @@ export class StripeOverdues extends Component {
       if (idx !== -1) {
         if (
           (this.props.allMembers[idx].values['Status'] === 'Active' ||
+            this.props.allMembers[idx].values['Status'] === 'Casual' ||
             this.props.allMembers[idx].values['Status'] === 'Penging Freeze' ||
             this.props.allMembers[idx].values['Status'] ===
               'Pending Cancellation') &&

@@ -113,6 +113,7 @@ export class DemographicChart extends Component {
     allMembers.forEach(member => {
       if (
         member.values['Status'] === 'Active' ||
+        member.values['Status'] === 'Casual' ||
         member.values['Status'] === 'Pending Freeze' ||
         member.values['Status'] === 'Pending Cancellation'
       ) {

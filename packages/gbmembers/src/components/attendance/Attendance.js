@@ -413,7 +413,7 @@ export class AttendanceDetail extends Component {
     console.log('Scanned ClassName:' + this.state.className);
   }
 
-  doShowAttendance(classDate, className) {
+  doShowAttendance(classDate, classTime, className) {
     this.setState({
       className: className,
       memberItem: undefined,
@@ -425,7 +425,7 @@ export class AttendanceDetail extends Component {
     ) {
       this.props.fetchClassBookings({
         classDate: moment(classDate, 'L hh:mm A').format('YYYY-MM-DD'),
-        classTime: moment(classDate, 'L hh:mm A').format('HH:mm'),
+        classTime: classTime,
         program: className,
         status: 'Booked',
         allMembers: this.props.allMembers,
@@ -763,6 +763,7 @@ export class AttendanceDetail extends Component {
                       onBlur={dt => {
                         this.doShowAttendance(
                           dt.format('L hh:mm A'),
+                          dt.format('hh:mm'),
                           undefined,
                         );
                         $(
@@ -812,6 +813,9 @@ export class AttendanceDetail extends Component {
 
                         this.doShowAttendance(
                           this.state.classDate,
+                          moment(
+                            this.props.classSchedules.get(scheduleIdx).start,
+                          ).format('HH:mm'),
                           this.props.classSchedules.get(scheduleIdx).program,
                         );
                       }}
@@ -857,6 +861,7 @@ export class AttendanceDetail extends Component {
                       onBlur={dt => {
                         this.doShowAttendance(
                           dt.format('L hh:mm A'),
+                          dt.format('hh:mm'),
                           this.state.className,
                         );
                         this.setState({
@@ -875,6 +880,7 @@ export class AttendanceDetail extends Component {
                       onChange={e => {
                         this.doShowAttendance(
                           this.state.classDate,
+                          this.state.classTime,
                           e.target.value,
                         );
                       }}

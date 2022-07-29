@@ -111,9 +111,9 @@ export class Statistics extends Component {
   }
 
   UNSAFE_componentWillMount() {
-    /*    if (this.props.leadsByDate.length===0){
+    if (this.props.leadsByDate.length === 0) {
       this.props.fetchLeadsByDate();
-    }*/
+    }
   }
 
   getData(leads, allMembers, fromDate, toDate, LCTViewSwitch) {
@@ -275,7 +275,11 @@ export class Statistics extends Component {
     members.forEach(member => {
       let memberStatus = memberStatusInDates(member, fromDate, toDate);
 
-      if (memberStatus === 'Frozen' || memberStatus === 'Active') {
+      if (
+        memberStatus === 'Frozen' ||
+        memberStatus === 'Active' ||
+        memberStatus === 'Casual'
+      ) {
         active[active.length] = member;
       }
       if (memberStatus === 'Inactive') {
@@ -486,6 +490,27 @@ export class Statistics extends Component {
   }
 
   getLeadTableData(leads) {
+    leads = leads.sort(function(lead1, lead2) {
+      try {
+        if (
+          (
+            lead1.values['First Name'] + lead1.values['Last Name']
+          ).toLowerCase() <
+          (lead2.values['First Name'] + lead2.values['Last Name']).toLowerCase()
+        )
+          return -1;
+        if (
+          (
+            lead1.values['First Name'] + lead1.values['Last Name']
+          ).toLowerCase() >
+          (lead2.values['First Name'] + lead2.values['Last Name']).toLowerCase()
+        )
+          return 1;
+      } catch (error) {
+        return 0;
+      }
+      return 0;
+    });
     let leads_col1 = this.getLeads(leads, 1);
     let leads_col2 = this.getLeads(leads, 2);
     let leads_col3 = this.getLeads(leads, 3);
@@ -638,6 +663,32 @@ export class Statistics extends Component {
   }
 
   getMemberTableData(members) {
+    members = members.sort(function(member1, member2) {
+      try {
+        if (
+          (
+            member1.values['First Name'] + member1.values['Last Name']
+          ).toLowerCase() <
+          (
+            member2.values['First Name'] + member2.values['Last Name']
+          ).toLowerCase()
+        )
+          return -1;
+        if (
+          (
+            member1.values['First Name'] + member1.values['Last Name']
+          ).toLowerCase() >
+          (
+            member2.values['First Name'] + member2.values['Last Name']
+          ).toLowerCase()
+        )
+          return 1;
+      } catch (error) {
+        return 0;
+      }
+      return 0;
+    });
+
     let members_col1 = this.getMembers(members, 1);
     let members_col2 = this.getMembers(members, 2);
     let members_col3 = this.getMembers(members, 3);

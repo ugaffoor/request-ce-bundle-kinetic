@@ -1242,6 +1242,8 @@ export function memberStatusInDates(member, fromDate, toDate) {
           return 'Active';
         } else if (history[i]['status'] === 'Inactive') {
           return 'Inactive';
+        } else if (history[i]['status'] === 'Casual') {
+          return 'Casual';
         } else if (history[i]['status'] === 'Pending Cancellation') {
           return 'Pending Cancellation';
         } else if (

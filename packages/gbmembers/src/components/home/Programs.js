@@ -69,6 +69,7 @@ export class ProgramsChart extends Component {
       let program = programInfo.get(member.values['Ranking Program']);
       if (
         member.values['Status'] === 'Active' ||
+        member.values['Status'] === 'Casual' ||
         member.values['Status'] === 'Pending Freeze' ||
         member.values['Status'] === 'Pending Cancellation'
       ) {

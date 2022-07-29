@@ -42,20 +42,45 @@ export function* fetchLeads(action) {
 }
 export function* fetchLeadsByDate(action) {
   try {
+    let allSubmissions = [];
+
     const search = new CoreAPI.SubmissionSearch()
+      .includes(['details', 'values'])
       .sortBy('updatedAt')
       .sortDirection('DESC')
-      .includes(['details', 'values'])
       .limit(1000)
       .build();
 
-    const { submissions } = yield call(CoreAPI.searchSubmissions, {
-      kapp: 'gbmembers',
-      form: 'lead',
-      search,
-    });
+    const { submissions, nextPageToken } = yield call(
+      CoreAPI.searchSubmissions,
+      {
+        kapp: 'gbmembers',
+        form: 'lead',
+        search,
+      },
+    );
+    allSubmissions = allSubmissions.concat(submissions);
+
+    if (nextPageToken) {
+      const search2 = new CoreAPI.SubmissionSearch()
+        .includes(['details', 'values'])
+        .sortBy('updatedAt')
+        .sortDirection('DESC')
+        .pageToken(nextPageToken)
+        .limit(1000)
+        .build();
+
+      const [submissions2] = yield all([
+        call(CoreAPI.searchSubmissions, {
+          kapp: 'gbmembers',
+          form: 'lead',
+          search: search2,
+        }),
+      ]);
+      allSubmissions = allSubmissions.concat(submissions2.submissions);
+    }
     //    console.log('Leads by Date# ' + submissions);
-    yield put(actions.setLeadsByDate(submissions));
+    yield put(actions.setLeadsByDate(allSubmissions));
   } catch (error) {
     console.log('Error in fetchLeadsByDate: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));

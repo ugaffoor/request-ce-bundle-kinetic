@@ -64,7 +64,8 @@ export class Members extends React.Component {
       if (currentFilter === 'Active Members') {
         if (
           member.values['Status'] !== 'Inactive' &&
-          member.values['Status'] !== 'Frozen'
+          member.values['Status'] !== 'Frozen' &&
+          member.values['Status'] !== 'Casual'
         )
           match = true;
       } else if (currentFilter === 'Frozen Members') {

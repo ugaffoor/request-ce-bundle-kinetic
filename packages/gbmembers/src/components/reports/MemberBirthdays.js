@@ -34,6 +34,7 @@ export class MemberBirthdays extends Component {
     let members = allMembers
       .filter(member => {
         return member.values['Status'] === 'Active' ||
+          member.values['Status'] === 'Casual' ||
           member.values['Status'] === 'Pending Freeze' ||
           member.values['Status'] === 'Pending Cancellation'
           ? true
