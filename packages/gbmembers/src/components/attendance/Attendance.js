@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { compose, lifecycle } from 'recompose';
+import { compose, lifecycle, withProps } from 'recompose';
 import $ from 'jquery';
 import BarcodeReader from 'react-barcode-reader';
 import { actions as attendanceActions } from '../../redux/modules/attendance';
@@ -29,6 +29,7 @@ import {
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { Utils } from 'common';
 import { KappNavLink as NavLink } from 'common';
+import { FullScreen, useFullScreenHandle } from 'react-full-screen';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -66,6 +67,28 @@ const mapDispatchToProps = {
   setPaymentHistory: memberActions.setPaymentHistory,
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
+};
+
+const SelfCheckinMode = () => {
+  const handle = useFullScreenHandle();
+
+  return (
+    <div>
+      <div className="startSelfCheckin">
+        <button
+          type="button"
+          id="selfCheckinBtn"
+          className="btn btn-primary btn-block"
+          onClick={handle.enter}
+        >
+          Start Self Checkin
+        </button>
+      </div>
+      <FullScreen handle={handle}>
+        <div className="selfCheckinMode">Woohoooo !!!!!</div>
+      </FullScreen>
+    </div>
+  );
 };
 
 export class AttendanceDetail extends Component {
@@ -165,6 +188,7 @@ export class AttendanceDetail extends Component {
       classScheduleDateDay: moment().day() === 0 ? 7 : moment().day(),
       overdueMembers,
       overduesLoaded: overduesLoaded,
+      isFullscreenMode: false,
     };
   }
 
@@ -735,6 +759,7 @@ export class AttendanceDetail extends Component {
                 <label htmlFor="checkins"></label>
               </div>
             </div>
+            <SelfCheckinMode />
             {this.state.useCalendarSchedule ? (
               <div className="classSection">
                 <span className="line">
@@ -1396,9 +1421,9 @@ export const AttendanceView = ({
     SUCCESSFULpaymentHistoryLoading={SUCCESSFULpaymentHistoryLoading}
   />
 );
-
 export const AttendanceContainer = compose(
   connect(mapStateToProps, mapDispatchToProps),
+  withProps(props => {}),
   withHandlers({
     checkinMember: ({
       createAttendance,
