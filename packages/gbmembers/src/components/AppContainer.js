@@ -3,11 +3,13 @@ import { compose, lifecycle } from 'recompose';
 import { actions as appActions } from '../lib/react-kinops-components';
 import { actions } from '../redux/modules/memberApp';
 import { actions as alertsActions } from '../redux/modules/alerts';
+import * as selectors from '../lib/react-kinops-components/src/redux/kinopsSelectors';
 
 import { App } from './App';
 
 const mapStateToProps = state => ({
   loading: state.member.app.loading || state.member.kinops.loading,
+  isKiosk: selectors.selectHasRoleKiosk(state),
 });
 
 const mapDispatchToProps = {

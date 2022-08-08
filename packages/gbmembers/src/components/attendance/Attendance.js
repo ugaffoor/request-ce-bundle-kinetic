@@ -32,6 +32,8 @@ import { KappNavLink as NavLink } from 'common';
 import { confirm } from '../helpers/Confirmation';
 import PinInput from 'w-react-pin-input';
 import Countdown from 'react-countdown';
+import * as selectors from '../../lib/react-kinops-components/src/redux/kinopsSelectors';
+import { FullScreen, useFullScreenHandle } from 'react-full-screen';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -53,9 +55,11 @@ const mapStateToProps = state => ({
   SUCCESSFULpaymentHistory: state.member.members.SUCCESSFULpaymentHistory,
   SUCCESSFULpaymentHistoryLoading:
     state.member.members.SUCCESSFULpaymentHistoryLoading,
+  isKiosk: selectors.selectHasRoleKiosk(state),
 });
 
 const mapDispatchToProps = {
+  fetchMembers: memberActions.fetchMembers,
   fetchClassAttendances: attendanceActions.fetchClassAttendances,
   fetchClassBookings: classActions.fetchClassBookings,
   fetchClassSchedules: classActions.fetchClassSchedules,
@@ -2388,6 +2392,9 @@ export const AttendanceContainer = compose(
       );
       if (this.props.classSchedules.size === 0) {
         this.props.fetchClassSchedules();
+      }
+      if (this.props.isKiosk) {
+        this.props.fetchMembers();
       }
     },
     UNSAFE_componentWillReceiveProps(nextProps) {

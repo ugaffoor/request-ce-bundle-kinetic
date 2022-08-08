@@ -27,6 +27,10 @@ export const selectTeamsKapp = state =>
   kappBySpaceAttribute(state, 'Teams Kapp Slug');
 
 // Role Selectors
+export const selectHasRoleKiosk = state =>
+  !state.member.kinops.loading
+    ? Utils.isMemberOf(state.member.kinops.profile, 'Role::Kiosk')
+    : false;
 export const selectHasRoleDataAdmin = state =>
   !state.app.loading
     ? Utils.isMemberOf(state.app.profile, 'Role::Data Admin')

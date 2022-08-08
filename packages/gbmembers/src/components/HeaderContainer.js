@@ -11,6 +11,7 @@ export const mapStateToProps = state => ({
   // Selectors
   hasAccessToManagement: selectors.selectHasAccessToManagement(state),
   hasAccessToSupport: selectors.selectHasAccessToSupport(state),
+  isKiosk: selectors.selectHasRoleKiosk(state),
   isGuest: selectors.selectIsGuest(state),
   adminKapp: selectors.selectAdminKapp(state),
   predefinedKapps: selectors.selectPredefinedKapps(state),

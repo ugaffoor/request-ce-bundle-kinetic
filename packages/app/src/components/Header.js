@@ -55,6 +55,7 @@ export const Header = ({
   additionalKapps,
   kappDropdownOpen,
   kappDropdownToggle,
+  isKiosk,
   space,
 }) => (
   <Navbar color="faded" light fixed="top">
@@ -63,7 +64,7 @@ export const Header = ({
         currentKapp !== null ? currentKapp.slug + ' nav-header' : 'nav-header'
       }
     >
-      {hasSidebar && (
+      {hasSidebar && !isKiosk && (
         <NavItem id="header-sidebar-toggle">
           <NavLink
             className="drawer-button"
@@ -141,8 +142,8 @@ export const Header = ({
             ))}
           </DropdownMenu>
         </Dropdown>
-        {!isGuest && <HelpContainer />}
-        {!isGuest && <JourneyEventsContainer />}
+        {!isGuest && !isKiosk && <HelpContainer />}
+        {!isGuest && !isKiosk && <JourneyEventsContainer />}
         <ProfileContainer space={space} />
       </div>
     </Nav>

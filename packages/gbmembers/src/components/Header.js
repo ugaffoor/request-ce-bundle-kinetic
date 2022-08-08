@@ -22,115 +22,132 @@ export const Header = ({
   leadsByDateLoading,
   leadsByDate,
   leadAttentionRequired,
+  isKiosk,
 }) => (
   <Navbar color="faded" light className="fixed-top">
-    <Nav className="nav-header apps">
-      <NavItem className="homeNavItem">
-        <NavLink
-          to="/Home"
-          className="nav-link icon-wrapper"
-          strict
-          activeClassName="active"
-        >
-          <SVGInline svg={homeIcon} className="icon" />
-          <span className="appName">DASHBOARD</span>
-        </NavLink>
-      </NavItem>
-      <NavItem className="attendanceNavItem">
-        <NavLink
-          to="/Attendance"
-          className="nav-link icon-wrapper"
-          strict
-          activeClassName="active"
-        >
-          <SVGInline svg={attendanceIcon} className="icon" />
-          <span className="appName">ATTENDANCE</span>
-        </NavLink>
-      </NavItem>
-      <NavItem className="leadsNavItem">
-        <NavLink
-          to="/Leads"
-          className="nav-link icon-wrapper"
-          strict
-          activeClassName="active"
-        >
-          <SVGInline svg={leadsIcon} className="icon" />
-          <span className="appName ">LEADS</span>
-          <SVGInline
-            svg={attentionRequired}
-            className={
-              leadAttentionRequired ? 'attention icon' : 'attention icon hide'
-            }
-          />
-        </NavLink>
-      </NavItem>
-      <NavItem className="sendNavItem">
-        <NavLink
-          to="/Send"
-          className="nav-link icon-wrapper"
-          strict
-          activeClassName="active"
-        >
-          <SVGInline svg={sendIcon} className="icon" />
-          <span className="appName">SEND</span>
-        </NavLink>
-      </NavItem>
-      <NavItem className="gradingNavItem">
-        <NavLink
-          to="/Grading"
-          className="nav-link icon-wrapper"
-          strict
-          activeClassName="active"
-        >
-          <SVGInline svg={gradingIcon} className="icon" />
-          <span className="appName">GRADING</span>
-        </NavLink>
-      </NavItem>
-      {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
-        <div />
-      ) : (
-        <NavItem className="settingsNavItem">
+    {!isKiosk ? (
+      <Nav className="nav-header apps">
+        <NavItem className="homeNavItem">
           <NavLink
-            to="/Settings"
+            to="/Home"
             className="nav-link icon-wrapper"
             strict
             activeClassName="active"
           >
-            <SVGInline svg={settingsIcon} className="icon" />
-            <span className="appName">SETTINGS</span>
+            <SVGInline svg={homeIcon} className="icon" />
+            <span className="appName">DASHBOARD</span>
           </NavLink>
         </NavItem>
-      )}
-      {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
-        <div />
-      ) : (
-        <NavItem className="reportsNavItem">
+        <NavItem className="attendanceNavItem">
           <NavLink
-            to="/Reports"
+            to="/Attendance"
             className="nav-link icon-wrapper"
             strict
             activeClassName="active"
           >
-            <SVGInline svg={reportsIcon} className="icon" />
-            <span className="appName">REPORTS</span>
+            <SVGInline svg={attendanceIcon} className="icon" />
+            <span className="appName">ATTENDANCE</span>
           </NavLink>
         </NavItem>
-      )}
-      {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
-        <div />
-      ) : (
-        <NavItem className="proShopNavItem">
+        <NavItem className="leadsNavItem">
           <NavLink
-            to="/ProShop"
+            to="/Leads"
             className="nav-link icon-wrapper"
             strict
             activeClassName="active"
           >
-            <SVGInline svg={proShopIcon} className="icon" />
-            <span className="appName">PRO SHOP</span>
+            <SVGInline svg={leadsIcon} className="icon" />
+            <span className="appName ">LEADS</span>
+            <SVGInline
+              svg={attentionRequired}
+              className={
+                leadAttentionRequired ? 'attention icon' : 'attention icon hide'
+              }
+            />
           </NavLink>
         </NavItem>
-      )}
-    </Nav>
+        <NavItem className="sendNavItem">
+          <NavLink
+            to="/Send"
+            className="nav-link icon-wrapper"
+            strict
+            activeClassName="active"
+          >
+            <SVGInline svg={sendIcon} className="icon" />
+            <span className="appName">SEND</span>
+          </NavLink>
+        </NavItem>
+        <NavItem className="gradingNavItem">
+          <NavLink
+            to="/Grading"
+            className="nav-link icon-wrapper"
+            strict
+            activeClassName="active"
+          >
+            <SVGInline svg={gradingIcon} className="icon" />
+            <span className="appName">GRADING</span>
+          </NavLink>
+        </NavItem>
+        {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
+          <div />
+        ) : (
+          <NavItem className="settingsNavItem">
+            <NavLink
+              to="/Settings"
+              className="nav-link icon-wrapper"
+              strict
+              activeClassName="active"
+            >
+              <SVGInline svg={settingsIcon} className="icon" />
+              <span className="appName">SETTINGS</span>
+            </NavLink>
+          </NavItem>
+        )}
+        {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
+          <div />
+        ) : (
+          <NavItem className="reportsNavItem">
+            <NavLink
+              to="/Reports"
+              className="nav-link icon-wrapper"
+              strict
+              activeClassName="active"
+            >
+              <SVGInline svg={reportsIcon} className="icon" />
+              <span className="appName">REPORTS</span>
+            </NavLink>
+          </NavItem>
+        )}
+        {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
+          <div />
+        ) : (
+          <NavItem className="proShopNavItem">
+            <NavLink
+              to="/ProShop"
+              className="nav-link icon-wrapper"
+              strict
+              activeClassName="active"
+            >
+              <SVGInline svg={proShopIcon} className="icon" />
+              <span className="appName">PRO SHOP</span>
+            </NavLink>
+          </NavItem>
+        )}
+      </Nav>
+    ) : (
+      <Nav className="nav-header apps">
+        <NavItem className="attendanceNavItem">
+          <NavLink
+            to="/Attendance"
+            className="nav-link icon-wrapper"
+            strict
+            activeClassName="active"
+          >
+            <SVGInline svg={attendanceIcon} className="icon" />
+            <span className="appName">ATTENDANCE</span>
+          </NavLink>
+        </NavItem>
+      </Nav>
+    )}
   </Navbar>
 );

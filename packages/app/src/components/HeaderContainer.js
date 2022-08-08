@@ -17,6 +17,7 @@ export const mapStateToProps = state => ({
   space: state.app.space,
   profile: state.app.profile,
   // Selectors
+  isKiosk: selectors.selectHasRoleKiosk(state),
   hasAccessToManagement: selectors.selectHasAccessToManagement(state),
   hasAccessToSupport: selectors.selectHasAccessToSupport(state),
   isGuest: selectors.selectIsGuest(state),

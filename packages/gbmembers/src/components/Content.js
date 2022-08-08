@@ -34,10 +34,15 @@ import { SMSEventContainer } from './journey/SMSEvent';
 import { CallEventContainer } from './journey/CallEvent';
 import { ProShopContainer } from './ProShop/ProShop';
 
-export const Content = () => (
+export const Content = ({ isKiosk }) => (
   <div className="content" id="mainContent">
     <NotificationsContainer />
-    <Route path="/" exact render={() => <Redirect to="/Home" />} />
+    {!isKiosk && (
+      <Route path="/" exact render={() => <Redirect to="/Home" />} />
+    )}
+    {isKiosk && (
+      <Route path="/" exact render={() => <Redirect to="/Attendance" />} />
+    )}
     <Route path="/Home" component={HomeContainer} />
     <Route path="/Attendance" component={AttendanceContainer} />
     <Route path="/Grading" component={GradingContainer} />

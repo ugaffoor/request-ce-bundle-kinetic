@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { compose, withHandlers, withState } from 'recompose';
 import Sidebar from 'react-sidebar';
 //import { Sidebar } from './Sidebar';
+import * as selectors from '../lib/react-kinops-components/src/redux/kinopsSelectors';
 
 export const Layout = ({
   isOpenedBar,
@@ -12,6 +13,7 @@ export const Layout = ({
   setSidebarOpen,
   mainContent,
   sidebarContent,
+  isKiosk,
 }) => (
   <div
     className={
@@ -22,9 +24,9 @@ export const Layout = ({
     }
   >
     <Sidebar
-      sidebar={sidebarContent}
+      sidebar={!isKiosk ? sidebarContent : <div />}
       shadow={false}
-      open={isOpenedBar && !isLarge}
+      open={!isKiosk ? isOpenedBar && !isLarge : false}
       docked={isOpenedBar && isLarge}
       toggleSidebarOpen={toggleSidebarOpen}
       onSetOpen={setSidebarOpen}
@@ -39,6 +41,7 @@ export const Layout = ({
 export const mapStateToProps = state => ({
   isLarge: state.app.layout.get('size') !== 'small',
   isOpenedBar: state.app.layout.get('sidebarOpen'),
+  isKiosk: selectors.selectHasRoleKiosk(state),
 });
 
 export const LayoutContainer = compose(

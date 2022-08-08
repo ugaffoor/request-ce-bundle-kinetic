@@ -9,7 +9,7 @@ import { SidebarContainer } from './SidebarContainer';
 import { HeaderContainer } from './HeaderContainer';
 import { LoginModal } from './authentication/LoginModal';
 
-export const App = ({ loading }) => (
+export const App = ({ loading, isKiosk }) => (
   <div>
     <Helmet>
       <meta
@@ -25,7 +25,7 @@ export const App = ({ loading }) => (
         <HeaderContainer />
         <LayoutContainer
           sidebarContent={<SidebarContainer />}
-          mainContent={<Content />}
+          mainContent={<Content isKiosk={isKiosk} />}
         />
         <LoginModal />
       </div>
