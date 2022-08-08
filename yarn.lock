@@ -18136,6 +18136,13 @@ react-copy-to-clipboard@^5.0.2:
     copy-to-clipboard "^3"
     prop-types "^15.5.8"
 
+react-countdown@^2.3.2:
+  version "2.3.2"
+  resolved "https://registry.yarnpkg.com/react-countdown/-/react-countdown-2.3.2.tgz#4cc27f28f2dcd47237ee66e4b9f6d2a21fc0b0ad"
+  integrity sha512-Q4SADotHtgOxNWhDdvgupmKVL0pMB9DvoFcxv5AzjsxVhzOVxnttMbAywgqeOdruwEAmnPhOhNv/awAgkwru2w==
+  dependencies:
+    prop-types "^15.7.2"
+
 react-credit-cards@^0.8.3:
   version "0.8.3"
   resolved "https://registry.yarnpkg.com/react-credit-cards/-/react-credit-cards-0.8.3.tgz#608a8ee8bf3a88857fc83023ffba1ad536ba8c7e"
@@ -22879,6 +22886,11 @@ vm-browserify@^1.0.1:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/vm-browserify/-/vm-browserify-1.1.2.tgz#78641c488b8e6ca91a75f511e7a3b32a86e5dda0"
   integrity sha512-2ham8XPWTONajOR0ohOKOHXkm3+gaBmGut3SRuu75xLd/RRaY6vqgh8NBYYk7+RW3u5AtzPQZG8F10LHkl0lAQ==
+
+w-react-pin-input@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/w-react-pin-input/-/w-react-pin-input-1.0.4.tgz#18680f5d93695acaa32c08d186351f91d097421b"
+  integrity sha512-BTeOx30Tv5mFmuYoe5tpnmJZ5mULAHswzovECYeHOBal0bw5iMkgov3+lpaDJZq6qTDIeYo/0PjxAEjy8+K72g==
 
 w3c-hr-time@^1.0.2:
   version "1.0.2"

@@ -4,6 +4,7 @@ import { namespace, withPayload } from '../../utils';
 export const types = {
   CREATE_ATTENDANCE: namespace('attendance', 'CREATE_ATTENDANCE'),
   DELETE_ATTENDANCE: namespace('attendance', 'DELETE_ATTENDANCE'),
+  SET_ADD_ATTENDANCE: namespace('attendance', 'SET_ADD_ATTENDANCE'),
   FETCH_CLASS_ATTENDANCES: namespace('attendance', 'FETCH_CLASS_ATTENDANCES'),
   SET_CLASS_ATTENDANCES: namespace('attendance', 'SET_CLASS_ATTENDANCES'),
   FETCH_MEMBER_ATTENDANCES: namespace('attendance', 'FETCH_MEMBER_ATTENDANCES'),
@@ -20,6 +21,7 @@ export const actions = {
   deleteAttendance: withPayload(types.DELETE_ATTENDANCE),
   fetchClassAttendances: withPayload(types.FETCH_CLASS_ATTENDANCES),
   setClassAttendances: withPayload(types.SET_CLASS_ATTENDANCES),
+  setAddAttendance: withPayload(types.SET_ADD_ATTENDANCE),
   fetchMemberAttendances: withPayload(types.FETCH_MEMBER_ATTENDANCES),
   setMemberAttendances: withPayload(types.SET_MEMBER_ATTENDANCES),
   fetchAttendancesByDate: withPayload(types.FETCH_ATTENDANCES_BY_DATE),
@@ -34,6 +36,7 @@ export const State = Record({
   newAttendance: {},
   fetchingAttendancesByDate: true,
   attendancesByDate: List(),
+  attendanceAdded: {},
 });
 
 export const reducer = (state = State(), { type, payload }) => {
@@ -53,6 +56,8 @@ export const reducer = (state = State(), { type, payload }) => {
     }
     case types.FETCH_MEMBER_ATTENDANCES:
       return state.set('fetchingMemberAttendances', true);
+    case types.SET_ADD_ATTENDANCE:
+      return state.set('attendanceAdded', payload);
     case types.SET_MEMBER_ATTENDANCES: {
       var memberAttendances = [];
 

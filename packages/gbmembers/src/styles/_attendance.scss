@@ -1,10 +1,156 @@
+.countdown {
+  .details {
+    width: 300px;
+    float: left;
+  }
+  .time {
+    float: left;
+    border-radius: 100%;
+    background-color: red;
+    padding: 13px;
+    color: white;
+    font-size: 24pt;
+    width: 78px;
+    text-align: center;
+  }
+}
+.verifyPIN {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  z-index: 200;
+  text-align: center;
+}
+.fullScreenMode {
+  overflow: auto;
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 10000;
+  width: 100%;
+  height: 100%;
+  opacity: 1;
+  background-color: white;
+  .checkinBackground {
+    opacity: 0.2;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: auto;
+    border: unset;
+  }
+}
 .startSelfCheckin {
   clear: left;
   float: right;
   margin-top: -38px;
 }
 .selfCheckinMode {
-  background: #000;
+  #exitSelfCheckinBtn {
+    z-index: 100;
+    position: absolute;
+    top: 20px;
+    left: 0;
+  }
+  .checkinAttendance {
+    position: relative;
+    left: 50%;
+    margin-left: -350px;
+    width: 700px;
+    top: 40px;
+    .memberSelection {
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 20px;
+      .readyToScan {
+        margin: 0px;
+      }
+    }
+  }
+  .classBookingSection {
+    margin-left: 10%;
+    margin-right: 10%;
+    width: 80%;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    justify-content: center;
+    flex-wrap: nowrap;
+  }
+  .dayClass {
+    input[type='radio'] {
+      display: none;
+      &:not(:disabled) ~ label {
+        cursor: pointer;
+      }
+      &:disabled ~ label {
+        color: hsla(150, 5%, 75%, 1);
+        border-color: hsla(150, 5%, 75%, 1);
+        box-shadow: none;
+        cursor: not-allowed;
+      }
+    }
+    label {
+      height: 100%;
+      display: block;
+      background: white;
+      border-radius: 20px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      //margin: 1rem;
+      text-align: center;
+      box-shadow: 0px 3px 10px -2px hsla(150, 5%, 65%, 0.5);
+      position: relative;
+    }
+    input[type='radio']:checked + label {
+      background: #e1251b;
+      color: white;
+      box-shadow: 0px 0px 0px 5px #e1251b;
+      &::after {
+        color: hsla(215, 5%, 25%, 1);
+        font-family: FontAwesome;
+        border: 2px solid #e1251b;
+        content: '\f00c';
+        font-size: 24px;
+        position: absolute;
+        top: -25px;
+        left: 50%;
+        transform: translateX(-50%);
+        height: 50px;
+        width: 50px;
+        line-height: 50px;
+        text-align: center;
+        border-radius: 50%;
+        background: white;
+        box-shadow: 0px 2px 5px -2px hsla(0, 0%, 0%, 0.25);
+      }
+    }
+    input[type='radio']#control_05:checked + label {
+      background: red;
+      border-color: red;
+    }
+    p {
+      font-weight: 900;
+    }
+  }
+}
+.fullscreen-enabled {
+  background: white;
+}
+.fullscreen-enabled .selfCheckinMode {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-image: URL('');
 }
 .checkboxFilter > input[type='checkbox'] {
   visibility: hidden;
@@ -789,6 +935,7 @@ i.fa.fa-usd.overdue {
       font-size: 40px;
     }
     .applyCheckin {
+      clear: left;
       float: left;
       padding-top: 36px;
       padding-left: 20px;
@@ -830,6 +977,7 @@ i.fa.fa-usd.overdue {
       clear: left;
       line-height: 2em;
       margin: 10px;
+      cursor: pointer;
       .icon-svg {
         height: 2em;
         width: 2em;

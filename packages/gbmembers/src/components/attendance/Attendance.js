@@ -29,7 +29,9 @@ import {
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { Utils } from 'common';
 import { KappNavLink as NavLink } from 'common';
-import { FullScreen, useFullScreenHandle } from 'react-full-screen';
+import { confirm } from '../helpers/Confirmation';
+import PinInput from 'w-react-pin-input';
+import Countdown from 'react-countdown';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -38,6 +40,7 @@ const mapStateToProps = state => ({
   additionalPrograms: state.member.app.additionalPrograms,
   classAttendances: state.member.attendance.classAttendances,
   fetchingClassAttendances: state.member.attendance.fetchingClassAttendances,
+  attendanceAdded: state.member.attendance.attendanceAdded,
   classBookings: state.member.classes.classBookings,
   fetchingClassBookings: state.member.classes.fetchingClassBookings,
   classSchedules: state.member.classes.classSchedules,
@@ -69,34 +72,907 @@ const mapDispatchToProps = {
   setSystemError: errorActions.setSystemError,
 };
 
-const SelfCheckinMode = () => {
-  const handle = useFullScreenHandle();
+var attendanceThis = undefined;
 
-  return (
-    <div>
-      <div className="startSelfCheckin">
-        <button
-          type="button"
-          id="selfCheckinBtn"
-          className="btn btn-primary btn-block"
-          onClick={handle.enter}
-        >
-          Start Self Checkin
-        </button>
+export class SelfCheckinMode extends Component {
+  constructor(props) {
+    super(props);
+    this.attendanceThis = this.props.attendanceThis;
+    this.selectSelfCheckinMember = this.selectSelfCheckinMember.bind(this);
+    this.doShowSelfCheckinAttendance = this.doShowSelfCheckinAttendance.bind(
+      this,
+    );
+    this.selfCheckinHandleScan = this.selfCheckinHandleScan.bind(this);
+    this.getClassAllowedMembers = this.getClassAllowedMembers.bind(this);
+    this.renderer = this.renderer.bind(this);
+    this.cancelCheckinUndo = this.cancelCheckinUndo.bind(this);
+
+    this.tick = this.tick.bind(this);
+
+    attendanceThis.props.fetchClassAttendances({
+      classDate: moment().format('YYYY-MM-DD'),
+    });
+    var classScheduleDateDay = moment().day() === 0 ? 7 : moment().day();
+    var schedules = attendanceThis.props.classSchedules.filter(schedule => {
+      var scheduleDay =
+        moment(schedule.start).day() === 0 ? 7 : moment(schedule.start).day();
+
+      if (classScheduleDateDay === scheduleDay) {
+        return (
+          moment(schedule.start).isAfter(moment()) ||
+          moment(schedule.end).isAfter(moment())
+        );
+      }
+      return false;
+    });
+    var classTime =
+      schedules.size > 0
+        ? moment(schedules.get(0).start).format('HH:mm')
+        : undefined;
+
+    this.state = {
+      currentClassScheduleId: schedules.size > 0 ? schedules.get(0).id : '',
+      showingFullScreen: false,
+      verifyPIN: false,
+      memberItem: undefined,
+      classDate: moment()
+        .set({ hour: moment().get('hour'), minute: 0, second: 0 })
+        .format('L hh:mm A'),
+      classScheduleDateDay: classScheduleDateDay,
+      classTime: classTime,
+      className: schedules.size > 0 ? schedules.get(0).program : '',
+      allowedPrograms:
+        schedules.size > 0 ? JSON.parse(schedules.get(0).allowedPrograms) : [],
+      currentSchedules: schedules,
+      attendanceAdded: undefined,
+      checkinClassMember: false,
+    };
+  }
+  renderer = ({ hours, minutes, seconds, completed }) => {
+    if (completed) {
+      // Render a completed state
+      this.setState({
+        attendanceAdded: undefined,
+        checkinClassMember: false,
+      });
+
+      return <div />;
+    } else {
+      // Render a countdown
+      return (
+        <span className="countdown">
+          <div className="details">
+            <div className="name">
+              {attendanceThis.props.attendanceAdded.name}
+            </div>
+            <div className="className">
+              {attendanceThis.props.attendanceAdded.class}
+            </div>
+          </div>
+          <div className="time">{seconds}</div>
+          <button
+            type="button"
+            id="undoChecking"
+            className="btn btn-primary btn-block"
+            onClick={async e => {
+              this.cancelCheckinUndo();
+            }}
+          >
+            Undo Checkin
+          </button>
+        </span>
+      );
+    }
+  };
+
+  cancelCheckinUndo() {
+    attendanceThis.props.deleteAttendance({
+      attendance: this.state.attendanceAdded,
+      additionalPrograms: attendanceThis.props.additionalPrograms,
+      classAttendances: attendanceThis.props.classAttendances,
+      updateMember: attendanceThis.props.updateMember,
+      allMembers: attendanceThis.props.allMembers,
+      classDate: attendanceThis.state.classDate,
+    });
+    this.setState({
+      attendanceAdded: undefined,
+      checkinClassMember: false,
+    });
+  }
+  tick() {
+    console.log('Self Checkin Ticking ...' + this);
+    var classDate = moment(this.state.classDate, 'L hh:mm A');
+    classDate
+      .hour(0)
+      .minute(0)
+      .second(0)
+      .millisecond(0);
+    var today = moment();
+    today
+      .hour(0)
+      .minute(0)
+      .second(0)
+      .millisecond(0);
+
+    if (classDate.isBefore(today)) {
+      var schedules = attendanceThis.props.classSchedules.filter(schedule => {
+        return (
+          moment(schedule.start).isAfter(moment()) ||
+          moment(schedule.end).isAfter(moment())
+        );
+      });
+      var classTime =
+        schedules.size > 0
+          ? moment(schedules.get(0).start).format('HH:mm')
+          : undefined;
+
+      this.setState({
+        classScheduleDateDay: moment().day() === 0 ? 7 : moment().day(),
+        classDate: moment()
+          .set({ hour: moment().get('hour'), minute: 0, second: 0 })
+          .format('L hh:mm A'),
+        classTime: classTime,
+        currentClassScheduleId: schedules.size > 0 ? schedules.get(0).id : '',
+      });
+    } else if (classDate.isSame(today)) {
+      var classScheduleDateDay = moment().day() === 0 ? 7 : moment().day();
+      schedules = attendanceThis.props.classSchedules.filter(schedule => {
+        var scheduleDay =
+          moment(schedule.start).day() === 0 ? 7 : moment(schedule.start).day();
+
+        if (classScheduleDateDay === scheduleDay) {
+          return (
+            moment(schedule.start).isAfter(moment()) ||
+            moment(schedule.end).isAfter(moment())
+          );
+        }
+        return false;
+      });
+      classTime =
+        schedules.size > 0
+          ? moment(schedules.get(0).start).format('HH:mm')
+          : undefined;
+
+      if (this.state.currentSchedules.size !== schedules.size) {
+        attendanceThis.props.fetchClassBookings({
+          classDate: moment(this.state.classDate, 'L hh:mm A').format(
+            'YYYY-MM-DD',
+          ),
+          classTime: classTime,
+          program: schedules.size > 0 ? schedules.get(0).program : '',
+          status: 'Booked',
+          allMembers: attendanceThis.props.allMembers,
+        });
+        this.setState({
+          classTime: classTime,
+          currentClassScheduleId: schedules.size > 0 ? schedules.get(0).id : '',
+          allowedPrograms:
+            schedules.size > 0
+              ? JSON.parse(schedules.get(0).allowedPrograms)
+              : [],
+          currentSchedules: schedules,
+        });
+      }
+    }
+  }
+  UNSAFE_componentWillReceiveProps(nextProps) {
+    if (
+      nextProps.attendanceAdded.id !== undefined &&
+      this.state.attendanceAdded === undefined &&
+      this.state.checkinClassMember
+    ) {
+      this.setState({
+        attendanceAdded: nextProps.attendanceAdded,
+      });
+    }
+  }
+  UNSAFE_componentWillMount() {
+    let timer = setInterval(this.tick, 60 * 1000 * 1, this); // refresh every 15 minutes
+    this.setState({ timer: timer });
+  }
+  componentWillUnmount() {
+    clearInterval(this.state.timer);
+  }
+
+  getClassAllowedMembers() {
+    let membersVals = [];
+    membersVals.push({
+      label: '',
+      value: '',
+    });
+    attendanceThis.props.allMembers.forEach(member => {
+      if (
+        member.values['Status'] !== 'Inactive' &&
+        member.values['Status'] !== 'Frozen' &&
+        this.state.allowedPrograms.findIndex(
+          program => program.value === member.values['Ranking Program'],
+        ) !== -1
+      ) {
+        membersVals.push({
+          label: member.values['Last Name'] + ' ' + member.values['First Name'],
+          value: member.id,
+        });
+      }
+    });
+    return membersVals;
+  }
+
+  doShowSelfCheckinAttendance(attendanceThis, classDate, scheduleID) {
+    var scheduleIdx = attendanceThis.props.classSchedules.findIndex(
+      schedule => schedule.id === scheduleID,
+    );
+    var classTime = moment(
+      attendanceThis.props.classSchedules.get(scheduleIdx).start,
+    ).format('HH:mm');
+    attendanceThis.props.fetchClassBookings({
+      classDate: moment(classDate, 'L hh:mm A').format('YYYY-MM-DD'),
+      classTime: classTime,
+      program: attendanceThis.props.classSchedules.get(scheduleIdx).program,
+      status: 'Booked',
+      allMembers: attendanceThis.props.allMembers,
+    });
+
+    this.setState({
+      currentClassScheduleId: attendanceThis.props.classSchedules.get(
+        scheduleIdx,
+      ).id,
+      memberItem: undefined,
+      memberAlreadyCheckedIn: false,
+      classTime: classTime,
+      className: attendanceThis.props.classSchedules.get(scheduleIdx).program,
+      allowedPrograms: JSON.parse(
+        attendanceThis.props.classSchedules.get(scheduleIdx).allowedPrograms,
+      ),
+      attendanceAdded: undefined,
+      checkinClassMember: false,
+    });
+  }
+
+  selectSelfCheckinMember(e) {
+    let id = e.value;
+    this.setState({
+      memberItem: undefined,
+      memberAlreadyCheckedIn: false,
+      noProgramSet: false,
+      overdueMember: false,
+      attendanceStatus: 'Full Class',
+      attendanceAdded: undefined,
+      checkinClassMember: false,
+    });
+
+    if (id !== '') {
+      let memberItem;
+      for (let i = 0; i < attendanceThis.props.allMembers.length; i++) {
+        if (attendanceThis.props.allMembers[i].id === id) {
+          memberItem = attendanceThis.props.allMembers[i];
+          this.setState({ memberItem: attendanceThis.props.allMembers[i] });
+          if (
+            attendanceThis.props.allMembers[i].values['Ranking Program'] ===
+              undefined ||
+            attendanceThis.props.allMembers[i].values['Ranking Belt'] ===
+              undefined
+          ) {
+            this.setState({ noProgramSet: true });
+          }
+          break;
+        }
+      }
+      for (let i = 0; i < attendanceThis.props.classAttendances.length; i++) {
+        if (
+          attendanceThis.props.classAttendances[i].values['Member ID'] ===
+            memberItem.values['Member ID'] &&
+          attendanceThis.props.classAttendances[i].values['Class Time'] ===
+            this.state.classTime &&
+          attendanceThis.props.classAttendances[i].values['Class'] ===
+            this.state.className
+        ) {
+          this.setState({ memberAlreadyCheckedIn: true });
+          attendanceThis.props.classAttendances[
+            i
+          ].memberAlreadyCheckedIn = true;
+        } else {
+          attendanceThis.props.classAttendances[
+            i
+          ].memberAlreadyCheckedIn = false;
+        }
+      }
+
+      //    if (this.state.memberAlreadyCheckedIn){
+      attendanceThis.props.setClassAttendances(
+        attendanceThis.props.classAttendances,
+      );
+      //    }
+    } else {
+      for (let i = 0; i < attendanceThis.props.classAttendances.length; i++) {
+        attendanceThis.props.classAttendances[i].memberAlreadyCheckedIn = false;
+      }
+    }
+    console.log('Scanned:' + id);
+    setTimeout(function() {
+      $('#checkinMember').focus();
+    }, 500);
+  }
+  selfCheckInMember() {
+    let attendance = {
+      attendanceStatus: this.state.attendanceStatus,
+    };
+    this.setState({
+      memberItem: undefined,
+      checkinClassMember: true,
+    });
+    attendanceThis.props.checkinMember(
+      attendanceThis.props.createAttendance,
+      attendance,
+      attendanceThis.props.additionalPrograms,
+      this.state.memberItem,
+      this.state.className,
+      this.state.classDate,
+      this.state.classTime,
+      this.state.attendanceStatus,
+      attendanceThis.props.classAttendances,
+      attendanceThis.props.allMembers,
+      attendanceThis.props.updateMember,
+    );
+    console.log('checkInMember');
+  }
+  selfCheckinBooking(booking) {
+    let memberItem;
+    for (let i = 0; i < attendanceThis.props.allMembers.length; i++) {
+      if (attendanceThis.props.allMembers[i].id === booking.memberGUID) {
+        memberItem = attendanceThis.props.allMembers[i];
+        this.setState({ memberItem: attendanceThis.props.allMembers[i] });
+        if (
+          attendanceThis.props.allMembers[i].values['Ranking Program'] ===
+            undefined ||
+          attendanceThis.props.allMembers[i].values['Ranking Belt'] ===
+            undefined
+        ) {
+          this.setState({ noProgramSet: true });
+        }
+        break;
+      }
+    }
+    var memberAlreadyCheckedIn = false;
+    for (let j = 0; j < attendanceThis.props.classAttendances.length; j++) {
+      if (
+        attendanceThis.props.classAttendances[j].values['Member GUID'] ===
+          booking.memberGUID &&
+        attendanceThis.props.classAttendances[j].values['Class Time'] ===
+          this.state.classTime &&
+        attendanceThis.props.classAttendances[j].values['Class'] ===
+          this.state.className
+      ) {
+        this.setState({ memberAlreadyCheckedIn: true });
+        attendanceThis.props.classAttendances[j].memberAlreadyCheckedIn = true;
+        memberAlreadyCheckedIn = true;
+        break;
+      }
+    }
+
+    let attendance = {
+      attendanceStatus: 'Full Class',
+    };
+    this.setState({
+      memberItem: undefined,
+      checkinClassMember: true,
+    });
+    if (!memberAlreadyCheckedIn) {
+      attendanceThis.props.checkinMember(
+        attendanceThis.props.createAttendance,
+        attendance,
+        attendanceThis.props.additionalPrograms,
+        memberItem,
+        this.state.className,
+        this.state.classDate,
+        this.state.classTime,
+        'Full Class',
+        attendanceThis.props.classAttendances,
+        attendanceThis.props.allMembers,
+        attendanceThis.props.updateMember,
+      );
+    }
+    let values = {};
+    values['Status'] = 'Attended';
+    attendanceThis.props.updateBooking({
+      id: booking.id,
+      values,
+    });
+    var idx = attendanceThis.props.classBookings.findIndex(
+      element => element.id === booking.id,
+    );
+    var classBookings = attendanceThis.props.classBookings.splice(idx, 1);
+    attendanceThis.props.setClassBookings({
+      allMembers: attendanceThis.props.allMembers,
+      classBookings: classBookings,
+    });
+
+    console.log('checkInMember');
+  }
+  handleError(data) {
+    console.log('Scanned Error:' + data);
+  }
+
+  selfCheckinHandleScan(data) {
+    data = data.toLowerCase();
+    console.log('Selfcheckin Scanned ClassName00:' + data);
+    console.log('Selfcheckin Scanned ClassName11:' + this.state.className);
+    this.setState({
+      memberItem: undefined,
+      memberAlreadyCheckedIn: false,
+      noProgramSet: false,
+      attendanceStatus: 'Full Class',
+      checkinClassMember: true,
+    });
+
+    for (let i = 0; i < attendanceThis.props.allMembers.length; i++) {
+      if (
+        attendanceThis.props.allMembers[i].id
+          .split('-')[4]
+          .substring(6, 12)
+          .toLowerCase() === data ||
+        (attendanceThis.props.allMembers[i].values['Alternate Barcode'] !==
+          undefined &&
+        attendanceThis.props.allMembers[i].values['Alternate Barcode'] !==
+          null &&
+        attendanceThis.props.allMembers[i].values['Alternate Barcode'] !== ''
+          ? attendanceThis.props.allMembers[i].values[
+              'Alternate Barcode'
+            ].toLowerCase() === data
+          : false)
+      ) {
+        this.setState({ memberItem: attendanceThis.props.allMembers[i] });
+        if (
+          attendanceThis.props.allMembers[i].values['Ranking Program'] ===
+            undefined ||
+          attendanceThis.props.allMembers[i].values['Ranking Belt'] ===
+            undefined
+        ) {
+          this.setState({ noProgramSet: true });
+        }
+        break;
+      }
+    }
+    for (let i = 0; i < attendanceThis.props.classAttendances.length; i++) {
+      if (
+        this.state.memberItem !== undefined &&
+        attendanceThis.props.classAttendances[i].values['Member ID'] ===
+          this.state.memberItem.values['Member ID'] &&
+        attendanceThis.props.classAttendances[i].values['Class Time'] ===
+          this.state.classTime &&
+        attendanceThis.props.classAttendances[i].values['Class'] ===
+          this.state.className
+      ) {
+        this.setState({ memberAlreadyCheckedIn: true });
+        attendanceThis.props.classAttendances[i].memberAlreadyCheckedIn = true;
+      } else {
+        attendanceThis.props.classAttendances[i].memberAlreadyCheckedIn = false;
+      }
+    }
+
+    attendanceThis.props.setClassAttendances(
+      attendanceThis.props.classAttendances,
+    );
+    setTimeout(function() {
+      $('#checkinMember').focus();
+    }, 500);
+
+    console.log('Scanned ClassName:' + this.state.className);
+  }
+  render() {
+    return (
+      <div>
+        <div className="fullScreenMode">
+          <div>
+            <img
+              className="checkinBackground"
+              src="https://gbfms-files.s3-ap-southeast-2.amazonaws.com/GB+Name+Log.png"
+              alt=""
+            />
+            <div className="selfCheckinMode">
+              {this.state.verifyPIN && (
+                <div className="verifyPIN">
+                  <div className="info">
+                    Please enter the Self Checkin code to exit Self Checkin
+                    mode.
+                  </div>
+                  <PinInput
+                    className="pinInput"
+                    length={4}
+                    initialValue=""
+                    secret
+                    onChange={(value, index) => {}}
+                    type="numeric"
+                    inputMode="number"
+                    style={{ padding: '10px' }}
+                    inputStyle={{ borderColor: 'red' }}
+                    inputFocusStyle={{ borderColor: 'blue' }}
+                    onComplete={(value, index) => {
+                      if (value === '0000') {
+                        this.setState({
+                          memberItem: undefined,
+                          verifyPIN: false,
+                          invalidPIN: false,
+                        });
+                        attendanceThis.setState({
+                          showingFullScreen: false,
+                        });
+                      } else {
+                        this.setState({
+                          invalidPIN: true,
+                        });
+                      }
+                    }}
+                    autoSelect={true}
+                    regexCriteria={/^[ A-Za-z0-9_@./#&+-]*$/}
+                  />
+                  {this.state.invalidPIN && (
+                    <div className="invalidPIN">
+                      Invalid pin entered, please try again.
+                    </div>
+                  )}
+                </div>
+              )}
+              <button
+                type="button"
+                id="exitSelfCheckinBtn"
+                className="btn btn-primary btn-block"
+                onClick={async e => {
+                  this.setState({
+                    verifyPIN: true,
+                  });
+                  setTimeout(function() {
+                    $('.pincode-input-container input')
+                      .first()
+                      .focus();
+                  }, 100);
+                }}
+              >
+                Exit Self Checkin
+              </button>
+              <div className="checkinAttendance checkinSection">
+                <div className="dayClasses">
+                  {attendanceThis
+                    .getDayClasses(
+                      attendanceThis.props.classSchedules,
+                      this.state.classScheduleDateDay,
+                    )
+                    .filter(dayClass => {
+                      return (
+                        moment(dayClass.schedule.start).isAfter(moment()) ||
+                        moment(dayClass.schedule.end).isAfter(moment())
+                      );
+                    })
+                    .map((dayClass, idx) => (
+                      <div className="dayClass" key={idx}>
+                        <input
+                          type="radio"
+                          name="dayClass"
+                          id={'class_' + idx}
+                          value={dayClass.value}
+                          checked={
+                            dayClass.value === this.state.currentClassScheduleId
+                              ? true
+                              : false
+                          }
+                          onChange={e => {
+                            this.doShowSelfCheckinAttendance(
+                              attendanceThis,
+                              this.state.classDate,
+                              e.target.value,
+                            );
+                          }}
+                        />
+                        <label htmlFor={'class_' + idx}>{dayClass.label}</label>
+                      </div>
+                    ))}
+                </div>
+
+                {this.state.classTime !== undefined && (
+                  <div className="memberSelection">
+                    <div className="readyToScan">
+                      <h5>READY TO SCAN MEMBER</h5>
+                      <SVGInline svg={barcodeIcon} className="icon" />
+                    </div>
+                    <div className="manual">
+                      <h5>OR SELECT MEMBER</h5>
+                      <Select
+                        closeMenuOnSelect={true}
+                        options={this.getClassAllowedMembers()}
+                        className="hide-columns-container"
+                        classNamePrefix="hide-columns"
+                        placeholder="Select Member"
+                        value={
+                          this.memberItem === undefined
+                            ? ''
+                            : this.memberItem.id
+                        }
+                        onChange={e => {
+                          this.selectSelfCheckinMember(e);
+                        }}
+                        style={{ width: '300px' }}
+                      />
+                    </div>
+                  </div>
+                )}
+                {this.state.memberItem === undefined ? (
+                  <div />
+                ) : (
+                  <div className="memberInfo">
+                    {this.state.memberItem.values['Photo'] === undefined ? (
+                      <span className="noPhoto">
+                        {this.state.memberItem.values['First Name'][0]}
+                        {this.state.memberItem.values['Last Name'][0]}
+                      </span>
+                    ) : (
+                      <img
+                        src={this.state.memberItem.values['Photo']}
+                        alt="Member Photograph"
+                        className="photo"
+                      />
+                    )}
+                    <div className="info">
+                      {this.state.memberAlreadyCheckedIn ? (
+                        <h2 className="alreadyCheckedinLabel">
+                          Member already checked in
+                        </h2>
+                      ) : (
+                        <div />
+                      )}
+                      {this.state.noProgramSet ? (
+                        <h2 className="noProgramSetLabel">
+                          Member does not have a Program or Belt value set
+                        </h2>
+                      ) : (
+                        <div />
+                      )}
+                      {!this.state.memberAlreadyCheckedIn &&
+                      this.state.noProgramSet ? (
+                        <h2>Checking in member</h2>
+                      ) : (
+                        <div />
+                      )}
+                      <h4>
+                        {this.state.memberItem.values['First Name']}{' '}
+                        {this.state.memberItem.values['Last Name']}:{' '}
+                        <b>{this.state.memberItem.values['Ranking Program']}</b>
+                        -<i>{this.state.memberItem.values['Ranking Belt']}</i>
+                      </h4>
+                      <h4>
+                        For class <b>{this.state.className}</b> at{' '}
+                        <b>
+                          {moment(this.state.classDate, 'L hh:mm A').format(
+                            'L',
+                          )}{' '}
+                          {moment(this.state.classTime, 'HH:mm').format(
+                            'h:mm A',
+                          )}
+                        </b>
+                      </h4>
+                    </div>
+                    {this.state.memberAlreadyCheckedIn ||
+                    this.state.noProgramSet ? (
+                      <div />
+                    ) : (
+                      <div className="applyCheckin">
+                        <div>
+                          <button
+                            type="button"
+                            id="checkinMember"
+                            className="btn btn-primary btn-block"
+                            onClick={e => this.selfCheckInMember()}
+                          >
+                            Check-in
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {this.state.attendanceAdded &&
+                  this.state.checkinClassMember && (
+                    <Countdown
+                      date={Date.now() + 1000 * 20}
+                      renderer={this.renderer}
+                    />
+                  )}
+              </div>
+              <div className="classBookingSection">
+                <h4 className="classBookingLabel">Class Bookings</h4>
+                {attendanceThis.props.fetchingClassBookings ? (
+                  <h4>Loading Class Bookings....</h4>
+                ) : (
+                  <div>
+                    {attendanceThis.props.classBookings.size === 0 ? (
+                      <div>
+                        <h4>No bookings for this class</h4>
+                      </div>
+                    ) : (
+                      <div className="classBookings">
+                        {attendanceThis.props.classBookings.map(
+                          (booking, index) => (
+                            <span
+                              key={index}
+                              className={'memberCell'}
+                              id={booking.id}
+                            >
+                              <span className="top">
+                                {booking.photo === undefined ? (
+                                  <span className="noPhoto">
+                                    {booking.firstName[0]}
+                                    {booking.lastName[0]}
+                                  </span>
+                                ) : (
+                                  <img
+                                    src={booking.photo}
+                                    alt="Member Photograph"
+                                    className="photo"
+                                  />
+                                )}
+                                <span className="memberInfo">
+                                  <h4 className="memberName">
+                                    {booking.firstName} {booking.lastName}
+                                  </h4>
+                                  <span
+                                    className="checkinBooking"
+                                    onClick={e =>
+                                      this.selfCheckinBooking(booking)
+                                    }
+                                  >
+                                    <SVGInline
+                                      svg={tickIcon}
+                                      className="icon"
+                                    />
+                                  </span>
+                                </span>
+                              </span>
+                              <span className="bottom">
+                                <span className="ranking">
+                                  <div className="program">
+                                    {getProgramSVG(booking.rankingProgram)}
+                                  </div>
+                                  <div className="belt">
+                                    {getBeltSVG(booking.rankingBelt)}
+                                  </div>
+                                </span>
+                              </span>
+                            </span>
+                          ),
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="attendanceSection">
+                <h4 className="classAttendancesLabel">
+                  (
+                  {
+                    attendanceThis.props.classAttendances.filter(checkin => {
+                      var result =
+                        checkin.values['Class Time'] === this.state.classTime &&
+                        checkin.values['Class'] === this.state.className;
+
+                      if (result) {
+                        var mIdx = attendanceThis.props.allMembers.findIndex(
+                          member => member.id === checkin.values['Member GUID'],
+                        );
+                        if (mIdx !== -1) {
+                          checkin.memberItem =
+                            attendanceThis.props.allMembers[mIdx];
+                        }
+                      }
+                      return result;
+                    }).length
+                  }
+                  )
+                </h4>
+                {attendanceThis.props.fetchingClassAttendances ? (
+                  <h4>Loading Class Attendances....</h4>
+                ) : (
+                  <div className="classMembers">
+                    {attendanceThis.props.classAttendances.length === 0 ? (
+                      <div>
+                        <h4>No members checked in for this class</h4>
+                      </div>
+                    ) : (
+                      <div>
+                        {attendanceThis.props.classAttendances
+                          .filter(checkin => {
+                            return (
+                              checkin.values['Class Time'] ===
+                                this.state.classTime &&
+                              checkin.values['Class'] === this.state.className
+                            );
+                          })
+                          .map((checkin, index) => (
+                            <span
+                              key={index}
+                              className={
+                                checkin.memberAlreadyCheckedIn
+                                  ? 'memberCell alreadyCheckedIn'
+                                  : 'memberCell'
+                              }
+                              id={checkin.id}
+                            >
+                              <span className="top">
+                                {checkin.values['Photo'] === undefined ? (
+                                  <span className="noPhoto">
+                                    {checkin.values['First Name'][0]}
+                                    {checkin.values['Last Name'][0]}
+                                  </span>
+                                ) : (
+                                  <img
+                                    src={checkin.values['Photo']}
+                                    alt="Member Photograph"
+                                    className="photo"
+                                  />
+                                )}
+                                <span className="memberInfo">
+                                  <h4 className="memberName">
+                                    <span>
+                                      {checkin.values['First Name']}{' '}
+                                      {checkin.values['Last Name']}
+                                    </span>
+                                  </h4>
+                                  <h5
+                                    className={
+                                      checkin.values['Attendance Status'][0]
+                                    }
+                                  >
+                                    {checkin.values['Attendance Status'][0]}
+                                  </h5>
+
+                                  <span
+                                    className="deleteCheckin"
+                                    onClick={e =>
+                                      attendanceThis.deleteCheckin(checkin)
+                                    }
+                                  >
+                                    <SVGInline svg={binIcon} className="icon" />
+                                  </span>
+                                </span>
+                              </span>
+                              <span className="bottom">
+                                <span className="ranking">
+                                  <div className="program">
+                                    {getProgramSVG(
+                                      checkin.values['Ranking Program'],
+                                    )}
+                                  </div>
+                                  <div className="belt">
+                                    {getBeltSVG(checkin.values['Ranking Belt'])}
+                                  </div>
+                                </span>
+                              </span>
+                            </span>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+        {this.state.classTime !== undefined && (
+          <BarcodeReader
+            onError={this.handleError}
+            onScan={this.selfCheckinHandleScan}
+          />
+        )}
       </div>
-      <FullScreen handle={handle}>
-        <div className="selfCheckinMode">Woohoooo !!!!!</div>
-      </FullScreen>
-    </div>
-  );
-};
+    );
+  }
+}
 
 export class AttendanceDetail extends Component {
   constructor(props) {
     super(props);
 
+    attendanceThis = this;
     this.handleScan = this.handleScan.bind(this);
     this.getBamboraOverdues = this.getBamboraOverdues.bind(this);
+    this.getDayClasses = this.getDayClasses.bind(this);
 
     let className = this.props.programs.get(0).program;
     let classDate = moment()
@@ -189,6 +1065,7 @@ export class AttendanceDetail extends Component {
       overdueMembers,
       overduesLoaded: overduesLoaded,
       isFullscreenMode: false,
+      showingFullScreen: false,
     };
   }
 
@@ -218,9 +1095,9 @@ export class AttendanceDetail extends Component {
 
       this.setState({
         classScheduleDateDay: classScheduleDateDay,
-        className,
+        //        className,
         classDate,
-        classTime,
+        //        classTime,
       });
     }
     if (
@@ -445,6 +1322,7 @@ export class AttendanceDetail extends Component {
     if (
       moment(classDate).format('L hh:mm A') !==
         moment(this.state.classDate).format('L hh:mm A') ||
+      classTime !== this.state.classTime ||
       this.state.className !== className
     ) {
       this.props.fetchClassBookings({
@@ -601,6 +1479,10 @@ export class AttendanceDetail extends Component {
   }
   getAllMembers() {
     let membersVals = [];
+    membersVals.push({
+      label: '',
+      value: '',
+    });
     this.props.allMembers.forEach(member => {
       if (member.values['Status'] !== 'Inactive') {
         membersVals.push({
@@ -645,6 +1527,7 @@ export class AttendanceDetail extends Component {
             </span>
           ),
           value: schedule.id,
+          schedule: schedule,
         }),
       );
     return classes;
@@ -759,7 +1642,26 @@ export class AttendanceDetail extends Component {
                 <label htmlFor="checkins"></label>
               </div>
             </div>
-            <SelfCheckinMode />
+            <div className="startSelfCheckin">
+              <button
+                type="button"
+                id="selfCheckinBtn"
+                className="btn btn-primary btn-block"
+                onClick={e => {
+                  this.setState({
+                    showingFullScreen: true,
+                  });
+                }}
+              >
+                Start Self Checkin
+              </button>
+            </div>
+            {this.state.showingFullScreen && (
+              <SelfCheckinMode
+                attendanceThis={this}
+                attendanceAdded={this.props.attendanceAdded}
+              />
+            )}
             {this.state.useCalendarSchedule ? (
               <div className="classSection">
                 <span className="line">
@@ -1346,11 +2248,12 @@ export class AttendanceDetail extends Component {
                 </div>
               )}
             </div>
-            <BarcodeReader
-              onError={this.handleError}
-              onScan={this.handleScan}
-            />
-            }
+            {!this.state.showingFullScreen && (
+              <BarcodeReader
+                onError={this.handleError}
+                onScan={this.handleScan}
+              />
+            )}
           </div>
         )}
       </div>
@@ -1388,6 +2291,7 @@ export const AttendanceView = ({
   FAILEDpaymentHistoryLoading,
   SUCCESSFULpaymentHistory,
   SUCCESSFULpaymentHistoryLoading,
+  attendanceAdded,
 }) => (
   <AttendanceDetail
     allMembers={allMembers}
@@ -1419,6 +2323,7 @@ export const AttendanceView = ({
     FAILEDpaymentHistoryLoading={FAILEDpaymentHistoryLoading}
     SUCCESSFULpaymentHistory={SUCCESSFULpaymentHistory}
     SUCCESSFULpaymentHistoryLoading={SUCCESSFULpaymentHistoryLoading}
+    attendanceAdded={attendanceAdded}
   />
 );
 export const AttendanceContainer = compose(

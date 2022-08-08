@@ -193,9 +193,23 @@ export function* createAttendance(action) {
         myThis: action.payload.myThis,
       });
     }
+    var values = [];
+    values['Member GUID'] = memberItem.id;
+
     action.payload.classAttendances[
       action.payload.classAttendances.length
     ] = submission;
+    yield put(
+      actions.setAddAttendance({
+        id: submission.id,
+        values: values,
+        name:
+          memberItem.values['First Name'] +
+          ' ' +
+          memberItem.values['Last Name'],
+        class: action.payload.values['Class'],
+      }),
+    );
     yield put(actions.setClassAttendances(action.payload.classAttendances));
   } catch (error) {
     console.log('Error in createAttendance: ' + util.inspect(error));
