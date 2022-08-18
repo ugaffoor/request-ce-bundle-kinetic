@@ -22,6 +22,7 @@ export const Header = ({
   leadsByDateLoading,
   leadsByDate,
   leadAttentionRequired,
+  memberAttentionRequired,
   isKiosk,
 }) => (
   <Navbar color="faded" light className="fixed-top">
@@ -36,6 +37,14 @@ export const Header = ({
           >
             <SVGInline svg={homeIcon} className="icon" />
             <span className="appName">DASHBOARD</span>
+            <SVGInline
+              svg={attentionRequired}
+              className={
+                memberAttentionRequired
+                  ? 'attention icon'
+                  : 'attention icon hide'
+              }
+            />
           </NavLink>
         </NavItem>
         <NavItem className="attendanceNavItem">

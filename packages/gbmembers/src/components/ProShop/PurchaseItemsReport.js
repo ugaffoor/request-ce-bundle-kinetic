@@ -31,10 +31,13 @@ const mapStateToProps = state => ({
   space: state.member.app.space,
   posPurchaseItemsLoading: state.member.pos.posItemsLoading,
   posPurchaseItems: state.member.pos.posItems,
+  posOrdersPILoading: state.member.pos.posOrdersPILoading,
+  posOrdersPI: state.member.pos.posOrdersPI,
 });
 
 const mapDispatchToProps = {
   fetchPOSPurchaseItems: posActions.fetchPOSItems,
+  fetchPOSOrdersPI: posActions.fetchPOSOrdersPI,
 };
 
 var compThis = undefined;
@@ -93,6 +96,7 @@ export class PurchaseItemsReport extends Component {
       total: 0,
       costTotal: 0,
       profitTotal: 0,
+      discountsTotal: 0,
       repFromDate,
       repToDate,
       repPeriod: 'monthly',
@@ -102,12 +106,18 @@ export class PurchaseItemsReport extends Component {
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
-    if (!nextProps.posPurchaseItemsLoading) {
+    if (!nextProps.posPurchaseItemsLoading && !nextProps.posOrdersPILoading) {
       this.posPurchaseItems = [];
       nextProps.posPurchaseItems.forEach((item, i) => {
         this.posPurchaseItems[this.posPurchaseItems.length] = item;
       });
+      this.posOrders = [];
+      nextProps.posOrdersPI.forEach((item, i) => {
+        this.posOrders[this.posOrders.length] = item;
+      });
       let data = this.getData(this.posPurchaseItems, this.props.posProducts);
+      let discountsTotal = this.getDiscounts(this.posOrders);
+
       var total = 0;
       var costTotal = 0;
       var profitTotal = 0;
@@ -123,6 +133,7 @@ export class PurchaseItemsReport extends Component {
         total,
         costTotal,
         profitTotal,
+        discountsTotal,
       });
     }
   }
@@ -132,10 +143,18 @@ export class PurchaseItemsReport extends Component {
       dateFrom: this.state.repFromDate,
       dateTo: this.state.repToDate,
     });
+    this.props.fetchPOSOrdersPI({
+      dateFrom: this.state.repFromDate,
+      dateTo: this.state.repToDate,
+    });
   }
 
   refreshData(fromDate, toDate) {
     this.props.fetchPOSPurchaseItems({
+      dateFrom: fromDate,
+      dateTo: toDate,
+    });
+    this.props.fetchPOSOrdersPI({
       dateFrom: fromDate,
       dateTo: toDate,
     });
@@ -191,6 +210,18 @@ export class PurchaseItemsReport extends Component {
         return 0;
     }
     return price - cost;
+  }
+  getDiscounts(posOrders) {
+    var discounts = 0;
+    posOrders.forEach((order, i) => {
+      discounts +=
+        order.values['Discount'] !== undefined &&
+        order.values['Discount'] !== null
+          ? Number.parseFloat(order.values['Discount'])
+          : 0;
+    });
+
+    return discounts;
   }
   getData(posPurchaseItems, posProducts) {
     if (!posPurchaseItems || posPurchaseItems.length <= 0) {
@@ -489,14 +520,36 @@ export class PurchaseItemsReport extends Component {
           );
         },
         Footer: (
-          <span>
-            <strong>Total: </strong>
-            {this.state !== undefined
-              ? new Intl.NumberFormat(this.locale, {
-                  style: 'currency',
-                  currency: this.currency,
-                }).format(this.state.profitTotal)
-              : 0}
+          <span className="totalsDetail">
+            <span>
+              <strong>Total: </strong>
+              {this.state !== undefined
+                ? new Intl.NumberFormat(this.locale, {
+                    style: 'currency',
+                    currency: this.currency,
+                  }).format(this.state.profitTotal)
+                : 0}
+            </span>
+            <br />
+            <span>
+              <strong>Discounts: </strong>
+              {this.state !== undefined
+                ? new Intl.NumberFormat(this.locale, {
+                    style: 'currency',
+                    currency: this.currency,
+                  }).format(this.state.discountsTotal)
+                : 0}
+            </span>
+            <br />
+            <span>
+              <strong>Profit: </strong>
+              {this.state !== undefined
+                ? new Intl.NumberFormat(this.locale, {
+                    style: 'currency',
+                    currency: this.currency,
+                  }).format(this.state.profitTotal - this.state.discountsTotal)
+                : 0}
+            </span>
           </span>
         ),
       },

@@ -84,7 +84,7 @@
       padding: 1.5rem;
       background-color: inherit;
       .redirected {
-        color: white;
+        color: black;
       }
       h3 {
         justify-content: center;
@@ -100,7 +100,7 @@
       .btn[disabled] {
         padding: 0.5rem 0.75rem;
         background-color: $gray2;
-        color: white;
+        color: black;
         margin-bottom: 4px;
       }
       hr {

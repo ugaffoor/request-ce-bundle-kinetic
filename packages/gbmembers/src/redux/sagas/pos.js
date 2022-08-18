@@ -244,6 +244,37 @@ export function* fetchPOSOrders(action) {
     yield put(errorActions.setSystemError(error));
   }
 }
+export function* fetchPOSOrdersPI(action) {
+  try {
+    const search = new CoreAPI.SubmissionSearch(true)
+      .includes(['details', 'values'])
+      .index('values[Date time processed]')
+      .gteq(
+        'values[Date time processed]',
+        action.payload.dateFrom.format(
+          'YYYY-MM-DDT00:00:00' + action.payload.timezoneOffset,
+        ),
+      )
+      .lteq(
+        'values[Date time processed]',
+        action.payload.dateTo.format(
+          'YYYY-MM-DDT23:59:00' + action.payload.timezoneOffset,
+        ),
+      )
+      .limit(1000)
+      .build();
+
+    const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
+      datastore: true,
+      form: 'pos-order',
+      search,
+    });
+    yield put(actions.setPOSOrdersPI(submissions));
+  } catch (error) {
+    console.log('Error in fetchPOSOrdersPI: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
 export function* fetchPOSDiscounts(action) {
   try {
     const search = new CoreAPI.SubmissionSearch()
@@ -595,6 +626,7 @@ export function* watchPOS() {
   yield takeEvery(types.FETCH_POS_STOCK, fetchPOSStock);
   yield takeEvery(types.FETCH_POS_ITEMS, fetchPOSItems);
   yield takeEvery(types.FETCH_POS_ORDERS, fetchPOSOrders);
+  yield takeEvery(types.FETCH_POS_ORDERS_PI, fetchPOSOrdersPI);
   yield takeEvery(types.FETCH_POS_DISCOUNTS, fetchPOSDiscounts);
   yield takeEvery(types.FETCH_POS_CHECKOUT, fetchPOSCheckout);
   yield takeEvery(types.UPDATE_POS_CHECKOUT, updatePOSCheckout);

@@ -104,15 +104,6 @@ export class LeadsActivityReport extends Component {
         width: 100,
       },
     ];
-    this.hiddenColumns = [
-      { label: 'Address', value: 'address' },
-      { label: K.translate('Suburb'), value: 'suburb' },
-      { label: 'State', value: 'state' },
-      { label: 'Emails Sent', value: 'emailsSent' },
-      { label: 'Emails Received', value: 'emailsReceived' },
-      { label: 'SMS Sent', value: 'smsSent' },
-      { label: 'SMS Received', value: 'smsReceived' },
-    ];
     this.notesColumns = [
       { title: 'Contact Method', field: 'contactMethod' },
       { title: 'Date', field: 'contactDate', type: 'date' },
@@ -141,7 +132,29 @@ export class LeadsActivityReport extends Component {
       { title: 'Condition', field: 'Condition' },
       { title: 'Note', field: 'Note' },
     ];
-
+    this.hiddenColumns = [
+      { label: 'Gender', value: 'gender' },
+      { label: 'Status', value: 'status' },
+      { label: 'Email', value: 'email' },
+      { label: 'Address', value: 'address' },
+      { label: K.translate('Suburb'), value: 'suburb' },
+      { label: 'State', value: 'state' },
+      { label: 'Age (Years)', value: 'age' },
+      { label: 'Opt-Out', value: 'optout' },
+      { label: 'Source', value: 'source' },
+      { label: 'Source Reference 1', value: 'sourceReference1' },
+      { label: 'Source Reference 2', value: 'sourceReference2' },
+      { label: 'Source Reference 3', value: 'sourceReference3' },
+      { label: 'Source Reference 4', value: 'sourceReference4' },
+      { label: 'Source Reference 5', value: 'sourceReference5' },
+      { label: 'Reminder Date', value: 'reminderDate', dataType: 'date' },
+      { label: 'Notes', value: 'history' },
+      { label: 'Events', value: 'events' },
+      { label: 'Emails Sent', value: 'emailsSent' },
+      { label: 'Emails Received', value: 'emailsReceived' },
+      { label: 'SMS Sent', value: 'smsSent' },
+      { label: 'SMS Received', value: 'smsReceived' },
+    ];
     this.columnsToHide = [
       { label: 'Name', value: 'name' },
       { label: 'Gender', value: 'gender' },
@@ -268,6 +281,7 @@ export class LeadsActivityReport extends Component {
       this.state.hiddenColumns.forEach(column => {
         this.leadsActivityGridref.table.hideColumn(column.value);
       });
+      this.leadsActivityGridref.table.redraw();
     }
   };
 

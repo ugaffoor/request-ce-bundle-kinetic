@@ -26,7 +26,10 @@ import {
   validOverdue,
   getLastBillingStartDate,
 } from '../Member/MemberUtils';
-import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
+import {
+  getAttributeValue,
+  setAttributeValue,
+} from '../../lib/react-kinops-components/src/utils';
 import { Utils } from 'common';
 import { KappNavLink as NavLink } from 'common';
 import { confirm } from '../helpers/Confirmation';
@@ -34,6 +37,8 @@ import PinInput from 'w-react-pin-input';
 import Countdown from 'react-countdown';
 import * as selectors from '../../lib/react-kinops-components/src/redux/kinopsSelectors';
 import { FullScreen, useFullScreenHandle } from 'react-full-screen';
+import { CoreAPI } from 'react-kinetic-core';
+import { Map } from 'immutable';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -78,7 +83,163 @@ const mapDispatchToProps = {
 
 var attendanceThis = undefined;
 
-export class SelfCheckinMode extends Component {
+const SelfCheckinMode = (attendanceThis, attendanceAdded) => {
+  const fullscreenHandle = useFullScreenHandle();
+
+  function reportChange(state, handle) {
+    console.log('Fullscreen exited:' + state);
+    setTimeout(function() {
+      $('.pincode-input-container input')
+        .first()
+        .focus();
+    }, 100);
+  }
+  return (
+    <div>
+      <div className="startSelfCheckin">
+        <button
+          type="button"
+          id="selfCheckinBtn"
+          className="btn btn-primary btn-block"
+          onClick={e => {
+            attendanceThis.attendanceThis.setState({
+              verifyPIN: true,
+              isFullscreenMode: true,
+            });
+            fullscreenHandle.enter();
+          }}
+        >
+          Start Self Checkin
+        </button>
+      </div>
+      <FullScreen handle={fullscreenHandle} onChange={reportChange}>
+        {attendanceThis.attendanceThis.state.isFullscreenMode && (
+          <SelfCheckin
+            profile={attendanceThis.attendanceThis.props.profile}
+            space={attendanceThis.attendanceThis.props.space}
+            attendanceThis={attendanceThis}
+            attendanceAdded={
+              attendanceThis.attendanceThis.props.attendanceAdded
+            }
+            fullscreenHandle={fullscreenHandle}
+          />
+        )}
+      </FullScreen>
+    </div>
+  );
+};
+
+export class SelfCheckinSetPIN extends Component {
+  updateProfileValues = async profile => {
+    console.log('updateProfileValues');
+    let profileCopy = {}; //_.cloneDeep(profile);
+    profileCopy = {
+      profileAttributes: profile.profileAttributes,
+    };
+    const { space, serverError } = await CoreAPI.updateProfile({
+      profile: profileCopy,
+      include: 'attributesMap',
+    });
+  };
+
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      settingPin: false,
+    };
+  }
+  render() {
+    return (
+      <div className="selfCheckSetPIN">
+        {!this.state.settingPin && (
+          <button
+            type="button"
+            id="setPIN"
+            className="btn btn-primary btn-block"
+            onClick={async e => {
+              this.setState({
+                settingPin: true,
+              });
+            }}
+          >
+            Set Self Checkin PIN
+          </button>
+        )}
+        {this.state.settingPin && (
+          <div className="pinEntry">
+            <PinInput
+              className="pinInput"
+              length={4}
+              initialValue={
+                getAttributeValue(
+                  { attributes: this.props.profile.profileAttributes },
+                  'Kiosk PIN',
+                ) !== undefined
+                  ? getAttributeValue(
+                      { attributes: this.props.profile.profileAttributes },
+                      'Kiosk PIN',
+                    )
+                  : '0000'
+              }
+              onChange={(value, index) => {}}
+              type="numeric"
+              inputMode="number"
+              style={{ padding: '10px' }}
+              inputStyle={{ borderColor: 'red' }}
+              inputFocusStyle={{ borderColor: 'blue' }}
+              onComplete={(value, index) => {
+                this.setState({
+                  newCheckinPIN: value,
+                });
+              }}
+              autoSelect={true}
+              regexCriteria={/^[ A-Za-z0-9_@./#&+-]*$/}
+            />
+            <div className="buttons">
+              <button
+                type="button"
+                id="cancelPIN"
+                className="btn btn-primary btn-block"
+                onClick={async e => {
+                  this.setState({
+                    settingPin: false,
+                  });
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                id="applyPIN"
+                className="btn btn-primary btn-block"
+                onClick={async e => {
+                  setAttributeValue(
+                    { attributes: this.props.profile.profileAttributes },
+                    'Kiosk PIN',
+                    this.state.newCheckinPIN,
+                  );
+                  var attributes = Map();
+                  attributes = attributes.set('Kiosk PIN', [
+                    this.state.newCheckinPIN,
+                  ]);
+                  this.updateProfileValues(this.props.profile);
+                  this.setState({
+                    settingPin: false,
+                  });
+                }}
+              >
+                Apply
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+}
+
+export class SelfCheckin extends Component {
   constructor(props) {
     super(props);
     this.attendanceThis = this.props.attendanceThis;
@@ -114,6 +275,15 @@ export class SelfCheckinMode extends Component {
         ? moment(schedules.get(0).start).format('HH:mm')
         : undefined;
 
+    if (schedules.size > 0) {
+      this.doShowSelfCheckinAttendance(
+        attendanceThis,
+        moment()
+          .set({ hour: moment().get('hour'), minute: 0, second: 0 })
+          .format('L hh:mm A'),
+        schedules.get(0).id,
+      );
+    }
     this.state = {
       currentClassScheduleId: schedules.size > 0 ? schedules.get(0).id : '',
       showingFullScreen: false,
@@ -130,6 +300,8 @@ export class SelfCheckinMode extends Component {
       currentSchedules: schedules,
       attendanceAdded: undefined,
       checkinClassMember: false,
+      addedBooking: undefined,
+      invalidMemberClass: undefined,
     };
   }
   renderer = ({ hours, minutes, seconds, completed }) => {
@@ -137,7 +309,9 @@ export class SelfCheckinMode extends Component {
       // Render a completed state
       this.setState({
         attendanceAdded: undefined,
+        addedBooking: undefined,
         checkinClassMember: false,
+        invalidMemberClass: undefined,
       });
 
       return <div />;
@@ -178,9 +352,30 @@ export class SelfCheckinMode extends Component {
       allMembers: attendanceThis.props.allMembers,
       classDate: attendanceThis.state.classDate,
     });
+
+    if (this.state.addedBooking !== undefined) {
+      let values = {};
+      values['Status'] = 'Booked';
+      attendanceThis.props.updateBooking({
+        id: this.state.addedBooking.id,
+        values,
+      });
+      var idx = attendanceThis.props.classBookings.findIndex(
+        element => element.id === this.state.addedBooking.id,
+      );
+      var classBookings = attendanceThis.props.classBookings.concat(
+        this.state.addedBooking,
+      );
+      attendanceThis.props.setClassBookings({
+        allMembers: attendanceThis.props.allMembers,
+        classBookings: classBookings,
+      });
+    }
     this.setState({
       attendanceAdded: undefined,
       checkinClassMember: false,
+      addedBooking: undefined,
+      invalidMemberClass: undefined,
     });
   }
   tick() {
@@ -249,6 +444,7 @@ export class SelfCheckinMode extends Component {
         });
         this.setState({
           classTime: classTime,
+          className: schedules.size > 0 ? schedules.get(0).program : '',
           currentClassScheduleId: schedules.size > 0 ? schedules.get(0).id : '',
           allowedPrograms:
             schedules.size > 0
@@ -325,9 +521,13 @@ export class SelfCheckinMode extends Component {
       classTime: classTime,
       className: attendanceThis.props.classSchedules.get(scheduleIdx).program,
       allowedPrograms: JSON.parse(
-        attendanceThis.props.classSchedules.get(scheduleIdx).allowedPrograms,
+        attendanceThis.props.classSchedules.get(scheduleIdx).allowedPrograms !==
+          undefined
+          ? attendanceThis.props.classSchedules.get(scheduleIdx).allowedPrograms
+          : '[]',
       ),
       attendanceAdded: undefined,
+      addedBooking: undefined,
       checkinClassMember: false,
     });
   }
@@ -341,6 +541,7 @@ export class SelfCheckinMode extends Component {
       overdueMember: false,
       attendanceStatus: 'Full Class',
       attendanceAdded: undefined,
+      addedBooking: undefined,
       checkinClassMember: false,
     });
 
@@ -490,6 +691,9 @@ export class SelfCheckinMode extends Component {
       classBookings: classBookings,
     });
 
+    this.setState({
+      addedBooking: booking,
+    });
     console.log('checkInMember');
   }
   handleError(data) {
@@ -505,9 +709,10 @@ export class SelfCheckinMode extends Component {
       memberAlreadyCheckedIn: false,
       noProgramSet: false,
       attendanceStatus: 'Full Class',
+      attendanceAdded: undefined,
       checkinClassMember: true,
     });
-
+    var memberItem;
     for (let i = 0; i < attendanceThis.props.allMembers.length; i++) {
       if (
         attendanceThis.props.allMembers[i].id
@@ -524,6 +729,7 @@ export class SelfCheckinMode extends Component {
             ].toLowerCase() === data
           : false)
       ) {
+        memberItem = attendanceThis.props.allMembers[i];
         this.setState({ memberItem: attendanceThis.props.allMembers[i] });
         if (
           attendanceThis.props.allMembers[i].values['Ranking Program'] ===
@@ -536,6 +742,12 @@ export class SelfCheckinMode extends Component {
         break;
       }
     }
+    var memberAlreadyCheckedIn = false;
+    var validClassessAllowed =
+      this.state.allowedPrograms.findIndex(
+        program => program.value === memberItem.values['Ranking Program'],
+      ) !== -1;
+
     for (let i = 0; i < attendanceThis.props.classAttendances.length; i++) {
       if (
         this.state.memberItem !== undefined &&
@@ -548,17 +760,45 @@ export class SelfCheckinMode extends Component {
       ) {
         this.setState({ memberAlreadyCheckedIn: true });
         attendanceThis.props.classAttendances[i].memberAlreadyCheckedIn = true;
+        memberAlreadyCheckedIn = true;
       } else {
         attendanceThis.props.classAttendances[i].memberAlreadyCheckedIn = false;
       }
     }
 
-    attendanceThis.props.setClassAttendances(
-      attendanceThis.props.classAttendances,
-    );
-    setTimeout(function() {
-      $('#checkinMember').focus();
-    }, 500);
+    let attendance = {
+      attendanceStatus: 'Full Class',
+    };
+    this.setState({
+      memberItem: undefined,
+      checkinClassMember: true,
+      invalidMemberClass: undefined,
+    });
+    if (!memberAlreadyCheckedIn && validClassessAllowed) {
+      attendanceThis.props.checkinMember(
+        attendanceThis.props.createAttendance,
+        attendance,
+        attendanceThis.props.additionalPrograms,
+        memberItem,
+        this.state.className,
+        this.state.classDate,
+        this.state.classTime,
+        'Full Class',
+        attendanceThis.props.classAttendances,
+        attendanceThis.props.allMembers,
+        attendanceThis.props.updateMember,
+      );
+      attendanceThis.props.setClassAttendances(
+        attendanceThis.props.classAttendances,
+      );
+      setTimeout(function() {
+        $('#checkinMember').focus();
+      }, 500);
+    } else if (!validClassessAllowed) {
+      this.setState({
+        invalidMemberClass: true,
+      });
+    }
 
     console.log('Scanned ClassName:' + this.state.className);
   }
@@ -573,7 +813,7 @@ export class SelfCheckinMode extends Component {
               alt=""
             />
             <div className="selfCheckinMode">
-              {this.state.verifyPIN && (
+              {this.state.verifyPIN && !this.state.isFullscreenMode && (
                 <div className="verifyPIN">
                   <div className="info">
                     Please enter the Self Checkin code to exit Self Checkin
@@ -591,15 +831,26 @@ export class SelfCheckinMode extends Component {
                     inputStyle={{ borderColor: 'red' }}
                     inputFocusStyle={{ borderColor: 'blue' }}
                     onComplete={(value, index) => {
-                      if (value === '0000') {
+                      if (
+                        value ===
+                          getAttributeValue(
+                            {
+                              attributes: this.props.profile.profileAttributes,
+                            },
+                            'Kiosk PIN',
+                          ) ||
+                        value === '0000'
+                      ) {
                         this.setState({
                           memberItem: undefined,
                           verifyPIN: false,
                           invalidPIN: false,
                         });
                         attendanceThis.setState({
-                          showingFullScreen: false,
+                          verifyPIN: false,
+                          isFullscreenMode: false,
                         });
+                        this.props.fullscreenHandle.exit();
                       } else {
                         this.setState({
                           invalidPIN: true,
@@ -779,6 +1030,14 @@ export class SelfCheckinMode extends Component {
                       renderer={this.renderer}
                     />
                   )}
+                {this.state.invalidMemberClass &&
+                  this.state.checkinClassMember && (
+                    <h4 className="invalidClass">
+                      {' '}
+                      Invalid Member Program - Not valid for current class
+                      selection.{' '}
+                    </h4>
+                  )}
               </div>
               <div className="classBookingSection">
                 <h4 className="classBookingLabel">Class Bookings</h4>
@@ -918,22 +1177,6 @@ export class SelfCheckinMode extends Component {
                                       {checkin.values['Last Name']}
                                     </span>
                                   </h4>
-                                  <h5
-                                    className={
-                                      checkin.values['Attendance Status'][0]
-                                    }
-                                  >
-                                    {checkin.values['Attendance Status'][0]}
-                                  </h5>
-
-                                  <span
-                                    className="deleteCheckin"
-                                    onClick={e =>
-                                      attendanceThis.deleteCheckin(checkin)
-                                    }
-                                  >
-                                    <SVGInline svg={binIcon} className="icon" />
-                                  </span>
                                 </span>
                               </span>
                               <span className="bottom">
@@ -1070,6 +1313,7 @@ export class AttendanceDetail extends Component {
       overduesLoaded: overduesLoaded,
       isFullscreenMode: false,
       showingFullScreen: false,
+      verifyPIN: false,
     };
   }
 
@@ -1646,26 +1890,64 @@ export class AttendanceDetail extends Component {
                 <label htmlFor="checkins"></label>
               </div>
             </div>
-            <div className="startSelfCheckin">
-              <button
-                type="button"
-                id="selfCheckinBtn"
-                className="btn btn-primary btn-block"
-                onClick={e => {
-                  this.setState({
-                    showingFullScreen: true,
-                  });
-                }}
-              >
-                Start Self Checkin
-              </button>
-            </div>
-            {this.state.showingFullScreen && (
-              <SelfCheckinMode
-                attendanceThis={this}
-                attendanceAdded={this.props.attendanceAdded}
-              />
+            <SelfCheckinMode
+              profile={this.props.profile}
+              space={this.props.space}
+              attendanceThis={this}
+              attendanceAdded={this.props.attendanceAdded}
+            />
+            <SelfCheckinSetPIN
+              profile={this.props.profile}
+              space={this.props.space}
+            />
+            {this.state.verifyPIN && (
+              <div className="verifyPINBase">
+                <div className="info">
+                  Please enter the Self Checkin code to exit Self Checkin mode.
+                </div>
+                <PinInput
+                  className="pinInput"
+                  length={4}
+                  initialValue=""
+                  secret
+                  onChange={(value, index) => {}}
+                  type="numeric"
+                  inputMode="number"
+                  style={{ padding: '10px' }}
+                  inputStyle={{ borderColor: 'red' }}
+                  inputFocusStyle={{ borderColor: 'blue' }}
+                  onComplete={(value, index) => {
+                    if (
+                      value ===
+                        getAttributeValue(
+                          { attributes: this.props.profile.profileAttributes },
+                          'Kiosk PIN',
+                        ) ||
+                      value === '0000'
+                    ) {
+                      this.setState({
+                        memberItem: undefined,
+                        verifyPIN: false,
+                        invalidPIN: false,
+                        isFullscreenMode: false,
+                      });
+                    } else {
+                      this.setState({
+                        invalidPIN: true,
+                      });
+                    }
+                  }}
+                  autoSelect={true}
+                  regexCriteria={/^[ A-Za-z0-9_@./#&+-]*$/}
+                />
+                {this.state.invalidPIN && (
+                  <div className="invalidPIN">
+                    Invalid pin entered, please try again.
+                  </div>
+                )}
+              </div>
             )}
+
             {this.state.useCalendarSchedule ? (
               <div className="classSection">
                 <span className="line">
@@ -1958,6 +2240,13 @@ export class AttendanceDetail extends Component {
                     />
                   )}
                   <div className="info">
+                    {this.state.memberItem.values['Status'] === 'Frozen' ? (
+                      <h2 className="frozenMemberLabel">
+                        Member is currently Frozen
+                      </h2>
+                    ) : (
+                      <div />
+                    )}
                     {this.state.memberAlreadyCheckedIn ? (
                       <h2 className="alreadyCheckedinLabel">
                         Member already checked in

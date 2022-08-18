@@ -56,6 +56,8 @@ export const reducer = (state = State(), { type, payload }) => {
     }
     case types.FETCH_MEMBER_ATTENDANCES:
       return state.set('fetchingMemberAttendances', true);
+    case types.CREATE_ATTENDANCE:
+      return state.set('attendanceAdded', {});
     case types.SET_ADD_ATTENDANCE:
       return state.set('attendanceAdded', payload);
     case types.SET_MEMBER_ATTENDANCES: {

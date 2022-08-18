@@ -23,6 +23,8 @@ export const types = {
   SET_POS_STOCK: namespace('pos', 'SET_POS_STOCK'),
   FETCH_POS_ORDERS: namespace('pos', 'FETCH_POS_ORDERS'),
   SET_POS_ORDERS: namespace('pos', 'SET_POS_ORDERS'),
+  FETCH_POS_ORDERS_PI: namespace('pos', 'FETCH_POS_ORDERS_PI'),
+  SET_POS_ORDERS_PI: namespace('pos', 'SET_POS_ORDERS_PI'),
   UPDATE_POS_ORDER: namespace('pos', 'UPDATE_POS_ORDER'),
   FETCH_POS_DISCOUNTS: namespace('pos', 'FETCH_POS_DISCOUNTS'),
   SET_POS_DISCOUNTS: namespace('pos', 'SET_POS_DISCOUNTS'),
@@ -56,6 +58,8 @@ export const actions = {
   setPOSItems: withPayload(types.SET_POS_ITEMS),
   fetchPOSOrders: withPayload(types.FETCH_POS_ORDERS),
   setPOSOrders: withPayload(types.SET_POS_ORDERS),
+  fetchPOSOrdersPI: withPayload(types.FETCH_POS_ORDERS_PI),
+  setPOSOrdersPI: withPayload(types.SET_POS_ORDERS_PI),
   updatePOSOrder: withPayload(types.UPDATE_POS_ORDER),
   fetchPOSDiscounts: withPayload(types.FETCH_POS_DISCOUNTS),
   setPOSDiscounts: withPayload(types.SET_POS_DISCOUNTS),
@@ -86,6 +90,8 @@ export const State = Record({
   posItemsLoading: true,
   posOrders: [],
   posOrdersLoading: true,
+  posOrdersPI: [],
+  posOrdersPILoading: true,
   posDiscounts: [],
   posDiscountsLoading: true,
   posCheckout: {},
@@ -137,6 +143,11 @@ export const reducer = (state = State(), { type, payload }) => {
       return state.set('posOrdersLoading', true);
     case types.SET_POS_ORDERS: {
       return state.set('posOrdersLoading', false).set('posOrders', payload);
+    }
+    case types.FETCH_POS_ORDERS_PI:
+      return state.set('posOrdersPILoading', true);
+    case types.SET_POS_ORDERS_PI: {
+      return state.set('posOrdersPILoading', false).set('posOrdersPI', payload);
     }
     case types.UPDATE_POS_ORDER: {
       return state.set('posOrderUpdated', true);

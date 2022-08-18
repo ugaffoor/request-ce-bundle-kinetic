@@ -17,6 +17,22 @@ moment.locale('en', {
 });
 const localizer = momentLocalizer(moment); // or globalizeLocalizer
 
+function convertCalendarDate(dateVal) {
+  var dayOfWeek = dateVal.split('-')[0];
+  var hour = dateVal.split('-')[1].split(':')[0];
+  var minute = dateVal.split('-')[1].split(':')[1];
+
+  var dt = moment()
+    .day(dayOfWeek === '0' ? '7' : dayOfWeek)
+    .hour(hour)
+    .minute(minute)
+    .second(0);
+  if (moment().day() === 0 && dt.day() !== 0) {
+    dt.add(-7, 'days');
+  }
+  return dt.toDate();
+}
+
 function EventWeek({ event }) {
   return (
     <span>
@@ -164,6 +180,23 @@ export class ClassesCalendar extends Component {
         id: event.classID,
         values: values,
       });
+      var cidx = this.props.classSchedules.findIndex(
+        schedule => schedule.classID === event.classID,
+      );
+      if (cidx !== -1) {
+        var scheduledClass = this.props.classSchedules.get(cidx);
+
+        scheduledClass.title = title;
+        scheduledClass.program = program;
+        scheduledClass.maxStudents = maxStudents;
+        scheduledClass.start = convertCalendarDate(values['Start']);
+        scheduledClass.end = convertCalendarDate(values['End']);
+        scheduledClass.colour = colour;
+        scheduledClass.textColour = textColour;
+        scheduledClass.allowedPrograms = allowedPrograms;
+        scheduledClass.coaches = coaches;
+        scheduledClass.cancellationCutoff = cancellationCutoff;
+      }
     }
   };
 
@@ -227,6 +260,18 @@ export class ClassesCalendar extends Component {
       id: updatedEvent.classID,
       values: values,
     });
+
+    var cidx = this.props.classSchedules.findIndex(
+      schedule => schedule.classID === updatedEvent.classID,
+    );
+    if (cidx !== -1) {
+      this.props.classSchedules.get(cidx).start = convertCalendarDate(
+        values['Start'],
+      );
+      this.props.classSchedules.get(cidx).end = convertCalendarDate(
+        values['End'],
+      );
+    }
   }
   resizeEvent = ({ event, start, end }) => {
     const { events } = this.state;
@@ -249,6 +294,17 @@ export class ClassesCalendar extends Component {
       id: event.classID,
       values: values,
     });
+    var cidx = this.props.classSchedules.findIndex(
+      schedule => schedule.classID === event.classID,
+    );
+    if (cidx !== -1) {
+      this.props.classSchedules.get(cidx).start = convertCalendarDate(
+        values['Start'],
+      );
+      this.props.classSchedules.get(cidx).end = convertCalendarDate(
+        values['End'],
+      );
+    }
   };
   render() {
     let formats = {

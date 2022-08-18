@@ -1,3 +1,7 @@
+.selfCheckSetPIN {
+  clear: left;
+  float: right;
+}
 .countdown {
   .details {
     width: 300px;
@@ -13,6 +17,16 @@
     width: 78px;
     text-align: center;
   }
+}
+.verifyPINBase {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  z-index: 200;
+  text-align: center;
+  top: 138px;
+  left: -40px;
 }
 .verifyPIN {
   position: fixed;
@@ -49,6 +63,9 @@
   margin-top: -38px;
 }
 .selfCheckinMode {
+  .invalidClass {
+    color: red;
+  }
   #exitSelfCheckinBtn {
     z-index: 100;
     position: absolute;
@@ -83,6 +100,17 @@
     flex-direction: column;
     justify-content: center;
     flex-wrap: nowrap;
+    .classBookings {
+      .memberCell {
+        .checkinBooking {
+          line-height: 3em;
+          .icon-svg {
+            height: 3em;
+            width: 3em;
+          }
+        }
+      }
+    }
   }
   .dayClass {
     input[type='radio'] {
@@ -141,8 +169,12 @@
     }
   }
 }
-.fullscreen-enabled {
-  background: white;
+
+.fullscreen {
+  display: none;
+}
+.fullscreen.fullscreen-enabled {
+  display: block;
 }
 .fullscreen-enabled .selfCheckinMode {
   display: block;
@@ -901,6 +933,9 @@ i.fa.fa-usd.overdue {
       .noProgramSetLabel,
       .alreadyCheckedinLabel {
         color: red;
+      }
+      .frozenMemberLabel {
+        color: blue;
       }
       h4 {
         width: 90%;

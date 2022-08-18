@@ -207,7 +207,8 @@ ul.nav-header.apps.nav {
     stroke-width: 1px;
   }
 }
-.leadsNavItem .nav-link.active {
+.leadsNavItem .nav-link.active,
+.homeNavItem .nav-link.active {
   .icon-svg path {
     fill: #bdbdbd;
     stroke: #bdbdbd;
@@ -237,7 +238,8 @@ ul.nav-header.apps.nav {
     }
   }
 }
-.leadsNavItem .nav-link {
+.leadsNavItem .nav-link,
+.homeNavItem .nav-link {
   .attention-svg.icon-svg {
     height: 20px;
   }

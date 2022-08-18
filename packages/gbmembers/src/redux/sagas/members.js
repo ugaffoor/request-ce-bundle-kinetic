@@ -355,6 +355,12 @@ export function* fetchCurrentMember(action) {
         } else if (billingPeriod === 'Monthly') {
           period = 'months';
           periodVal = 1;
+        } else if (billingPeriod === 'Quarterly') {
+          period = 'months';
+          periodVal = 3;
+        } else if (billingPeriod === '6 Months') {
+          period = 'months';
+          periodVal = 6;
         } else if (billingPeriod === 'Yearly') {
           period = 'years';
           periodVal = 1;
@@ -385,7 +391,7 @@ export function* fetchCurrentMember(action) {
                 'YYYY-MM-DD',
               ),
               period,
-            ) + 1,
+            ) + periodVal,
             period,
           );
         }

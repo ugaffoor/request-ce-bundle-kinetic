@@ -231,6 +231,7 @@ export const State = Record({
   refundTransactionID: {},
   refundPOSTransactionInProgress: false,
   refundPOSTransactionID: {},
+  memberAttentionRequired: false,
 });
 
 export const reducer = (state = State(), { type, payload }) => {
@@ -264,6 +265,7 @@ export const reducer = (state = State(), { type, payload }) => {
     case types.FETCH_NEW_MEMBER:
       return state.set('newMemberLoading', true);
     case types.SET_MEMBERS: {
+      let attentionRequired = false;
       // Apply currentFilter
       var members = [];
       for (var k = 0; k < payload.members.length; k++) {
@@ -272,9 +274,15 @@ export const reducer = (state = State(), { type, payload }) => {
           user => user.username === payload.members[k].values['Member ID'],
         );
         members[members.length] = payload.members[k];
+        if (members[k].values['Is New Reply Received'] === 'true') {
+          attentionRequired = true;
+        }
       }
 
-      return state.set('membersLoading', false).set('allMembers', members);
+      return state
+        .set('membersLoading', false)
+        .set('allMembers', members)
+        .set('memberAttentionRequired', attentionRequired);
     }
     case types.UPDATE_ALL_MEMBERS: {
       return state
@@ -480,8 +488,19 @@ export const reducer = (state = State(), { type, payload }) => {
           allMembers[i] = payload.memberItem;
         }
       }
+      let attentionRequired = false;
+      if (
+        allMembers.findIndex(
+          member => member.values['Is New Reply Received'] === 'true',
+        ) !== -1
+      ) {
+        attentionRequired = true;
+      }
 
-      return state.set('memberUpdating', false).set('allMembers', allMembers);
+      return state
+        .set('memberUpdating', false)
+        .set('allMembers', allMembers)
+        .set('memberAttentionRequired', attentionRequired);
     }
     case types.ACTIVATE_BILLER: {
       return state.set('activatingBiller', true);
