@@ -42,6 +42,8 @@ const mapStateToProps = state => ({
   customerRefundsLoading: state.member.members.customerRefundsLoading,
   additionalServices: state.member.members.additionalServices,
   additionalServicesLoading: state.member.members.additionalServicesLoading,
+  cashPaymentsByDate: state.member.members.cashPaymentsByDate,
+  cashPaymentsByDateLoading: state.member.members.cashPaymentsByDateLoading,
 });
 
 const mapDispatchToProps = {
@@ -56,6 +58,7 @@ const mapDispatchToProps = {
   fetchActiveAdditionalServices: actions.fetchActiveAdditionalServices,
   fetchAdditionalServices: actions.fetchAdditionalServices,
   setAdditionalServices: actions.setAdditionalServices,
+  fetchCashPaymentsByDate: actions.fetchCashPaymentsByDate,
 };
 
 var compThis = undefined;
@@ -119,6 +122,7 @@ export class MemberFinancialReport extends Component {
       !nextProps.customerRefundsLoading &&
       !nextProps.posOrdersLoading &&
       !nextProps.additionalServicesLoading &&
+      !nextProps.cashPaymentsByDateLoading &&
       !nextProps.leadsLoading
     ) {
       this.failedPaymentHistory = [];
@@ -222,6 +226,7 @@ export class MemberFinancialReport extends Component {
         this.posOrders,
         this.refunds,
         this.props.additionalServices,
+        this.props.cashPaymentsByDate,
         this.state.repFromDate,
         this.state.repToDate,
         this.state.repBillingPeriod,
@@ -230,6 +235,7 @@ export class MemberFinancialReport extends Component {
         allMembers: nextProps.members,
         billingCustomers: nextProps.billingCustomers,
         additionalServices: this.props.additionalServices,
+        cashPayments: this.props.cashPaymentsByDate,
         repMemberData: memberData,
       });
     }
@@ -296,6 +302,10 @@ export class MemberFinancialReport extends Component {
       setSystemError: this.props.setSystemError,
       addNotification: this.props.addNotification,
       timezoneOffset: getTimezoneOff(),
+    });
+    this.props.fetchCashPaymentsByDate({
+      dateFrom: this.state.repFromDate.format('YYYY-MM-DD'),
+      dateTo: this.state.repToDate.format('YYYY-MM-DD'),
     });
 
     if (this.props.leads.length === 0) {
@@ -394,6 +404,10 @@ export class MemberFinancialReport extends Component {
       addNotification: this.props.addNotification,
       timezoneOffset: getTimezoneOff(),
     });
+    this.props.fetchCashPaymentsByDate({
+      dateFrom: fromDate.format('YYYY-MM-DD'),
+      dateTo: toDate.format('YYYY-MM-DD'),
+    });
   }
   getTotalValue(item) {
     if (getAttributeValue(this.props.space, 'POS System') === 'Bambora') {
@@ -421,6 +435,7 @@ export class MemberFinancialReport extends Component {
     posOrders,
     customerRefunds,
     additionalServicesRecords,
+    cashPaymentsByDate,
     fromDate,
     toDate,
     repBillingPeriod,
@@ -429,6 +444,7 @@ export class MemberFinancialReport extends Component {
       return {
         accountHolders: { members: [], value: 0 },
         additionalServices: { members: [], value: 0 },
+        cashPayments: { members: [], value: 0 },
         forecastHolders: { members: [], value: 0 },
         posPayments: { members: [], value: 0 },
         salesTax: { members: [], value: 0 },
@@ -446,6 +462,8 @@ export class MemberFinancialReport extends Component {
     let posPaymentsValue = 0;
     let refundMembers = [];
     let refundValue = 0;
+    let cashPayments = [];
+    let cashPaymentsValue = 0;
     paymentHistory.forEach(payment => {
       var member = this.isRecurringPayment(payment, members);
       var additionalServiceMember = undefined;
@@ -781,6 +799,23 @@ export class MemberFinancialReport extends Component {
       );
     });
 
+    cashPaymentsByDate.forEach((payment, i) => {
+      var mIdx = members.findIndex(
+        member => member.id === payment.values['Member GUID'],
+      );
+      payment['member'] = members[mIdx];
+      var pIdx = cashPayments.findIndex(
+        item => item.values['Member GUID'] === payment.values['Member GUID'],
+      );
+      if (pIdx === -1) {
+        payment.amount = Number(payment.values['Amount']);
+        cashPayments[cashPayments.length] = payment;
+      } else {
+        cashPayments[pIdx].amount += Number(payment.values['Amount']);
+      }
+      cashPaymentsValue += Number(payment.values['Amount']);
+    });
+
     return {
       accountHolders: { members: accountHolders, value: accountHoldersValue },
       additionalServices: {
@@ -794,6 +829,10 @@ export class MemberFinancialReport extends Component {
       posPayments: { members: posPeople, value: posPaymentsValue },
       salesTax: { members: [], value: salesTaxValue.toFixed(2) },
       refundMembers: { members: refundMembers, value: refundValue.toFixed(2) },
+      cashPayments: {
+        members: cashPayments,
+        value: cashPaymentsValue,
+      },
     };
   }
 
@@ -977,6 +1016,16 @@ export class MemberFinancialReport extends Component {
 
     return fee;
   }
+  getCashPaymentAmount(payments, member) {
+    var amount = 0;
+    payments.forEach((payment, i) => {
+      if (payment.member.values['Member ID'] === member.values['Member ID']) {
+        amount = amount + parseFloat(payment.amount);
+      }
+    });
+
+    return amount;
+  }
   getAdditionalServiceName(additionalServices, member) {
     var name = '';
     additionalServices.forEach((service, i) => {
@@ -1089,6 +1138,25 @@ export class MemberFinancialReport extends Component {
         fee: fee,
         cost: fee,
         period: this.getAdditionalServiceName(additionalServices, members[i]),
+      };
+    }
+
+    return members_col;
+  }
+  getCashPaymentMembers(allMembers, members, cashPayments, col) {
+    var members_col = [];
+
+    for (var i = col - 1; i < members.length; i = i + 2) {
+      var amount = this.getCashPaymentAmount(members, members[i].member);
+      members_col[members_col.length] = {
+        memberId: members[i].member.id,
+        name:
+          members[i].member.values['Last Name'] +
+          ' ' +
+          members[i].member.values['First Name'],
+        fee: amount,
+        cost: amount,
+        period: 'Cash',
       };
     }
 
@@ -1216,6 +1284,38 @@ export class MemberFinancialReport extends Component {
       this.state.allMembers,
       members,
       additionalServices,
+      2,
+    );
+
+    return [
+      {
+        members: {
+          members_col1: members_col1,
+          members_col2: members_col2,
+        },
+      },
+    ];
+  }
+  getCashPaymentsTableData(members, cashPayments) {
+    members.sort(function(a, b) {
+      if (a.member.values['Last Name'] < b.member.values['Last Name']) {
+        return -1;
+      } else if (a.member.values['Last Name'] > b.member.values['Last Name']) {
+        return 1;
+      }
+      return 0;
+    });
+
+    let members_col1 = this.getCashPaymentMembers(
+      this.state.allMembers,
+      members,
+      cashPayments,
+      1,
+    );
+    let members_col2 = this.getCashPaymentMembers(
+      this.state.allMembers,
+      members,
+      cashPayments,
       2,
     );
 
@@ -1602,6 +1702,7 @@ export class MemberFinancialReport extends Component {
   getMemberTableHeaderName() {
     if (this.state.showAccountHolders) return 'Memberships';
     if (this.state.showAdditionalServices) return 'Additional Services';
+    if (this.state.showCashPayments) return 'Cash Payments';
     if (this.state.showPOSPeople) return 'POS Member/Lead';
     if (this.state.showRefundMembers) return 'Refunds';
   }
@@ -1747,6 +1848,29 @@ export class MemberFinancialReport extends Component {
               data={this.getAdditionalServicesTableData(
                 this.state.repMemberData.additionalServices.members,
                 this.state.additionalServices,
+              )}
+              defaultPageSize={1}
+              showPagination={false}
+            />
+          </div>
+        )}
+        {this.state.showCashPayments && (
+          <div className="members">
+            <span
+              className="closeMembers"
+              onClick={e =>
+                this.setState({
+                  showCashPayments: false,
+                })
+              }
+            >
+              <SVGInline svg={crossIcon} className="icon" />
+            </span>
+            <ReactTable
+              columns={this.getMemberTableColumns()}
+              data={this.getCashPaymentsTableData(
+                this.state.repMemberData.cashPayments.members,
+                this.state.cashPayments,
               )}
               defaultPageSize={1}
               showPagination={false}
@@ -2093,6 +2217,7 @@ export class MemberFinancialReport extends Component {
                     this.setState({
                       showAccountHolders: true,
                       showAdditionalServices: false,
+                      showCashPayments: false,
                       showPOSPeople: false,
                       showRefundMembers: false,
                     })
@@ -2120,6 +2245,35 @@ export class MemberFinancialReport extends Component {
             {getAttributeValue(this.props.space, 'Billing Company') ===
               'Bambora' && (
               <div className="row header4">
+                <div className="column col1">Membership Cash Payments</div>
+                <div className="column col2">
+                  <div
+                    className="dollarValue membersLink"
+                    onClick={e =>
+                      this.setState({
+                        showAdditionalServices: false,
+                        showCashPayments: true,
+                        showAccountHolders: false,
+                        showPOSPeople: false,
+                        showRefundMembers: false,
+                      })
+                    }
+                  >
+                    {new Intl.NumberFormat(this.locale, {
+                      style: 'currency',
+                      currency: this.currency,
+                    }).format(this.state.repMemberData.cashPayments.value)}
+                  </div>
+                </div>
+                <div className="column col3">
+                  <div className="percentValue"></div>
+                </div>
+                <div className="column col4"></div>
+              </div>
+            )}
+            {getAttributeValue(this.props.space, 'Billing Company') ===
+              'Bambora' && (
+              <div className="row header4">
                 <div className="column col1">Additional Services</div>
                 <div className="column col2">
                   <div
@@ -2127,6 +2281,7 @@ export class MemberFinancialReport extends Component {
                     onClick={e =>
                       this.setState({
                         showAdditionalServices: true,
+                        showCashPayments: false,
                         showAccountHolders: false,
                         showPOSPeople: false,
                         showRefundMembers: false,
@@ -2156,6 +2311,7 @@ export class MemberFinancialReport extends Component {
                     this.setState({
                       showAccountHolders: false,
                       showAdditionalServices: false,
+                      showCashPayments: false,
                       showPOSPeople: true,
                       showRefundMembers: false,
                     })
@@ -2196,6 +2352,7 @@ export class MemberFinancialReport extends Component {
                     this.setState({
                       showAccountHolders: false,
                       showAdditionalServices: false,
+                      showCashPayments: false,
                       showPOSPeople: false,
                       showRefundMembers: true,
                     })
@@ -2236,6 +2393,7 @@ export class MemberFinancialReport extends Component {
                     currency: this.currency,
                   }).format(
                     this.state.repMemberData.accountHolders.value +
+                      this.state.repMemberData.cashPayments.value +
                       this.state.repMemberData.posPayments.value +
                       this.state.repMemberData.forecastHolders.value -
                       this.state.repMemberData.refundMembers.value,
@@ -2267,7 +2425,26 @@ export class MemberFinancialReport extends Component {
                     currency: this.currency,
                   }).format(
                     this.state.repMemberData.accountHolders.value +
+                      this.state.repMemberData.cashPayments.value +
                       this.state.repMemberData.forecastHolders.value,
+                  )}
+                </div>
+              </div>
+              <div className="column col3"></div>
+              <div className="column col4"></div>
+            </div>
+            <div className="row header10">
+              <div className="column col1">Membership+Forecast-Refunds</div>
+              <div className="column col2">
+                <div className="dollarValue">
+                  {new Intl.NumberFormat(this.locale, {
+                    style: 'currency',
+                    currency: this.currency,
+                  }).format(
+                    this.state.repMemberData.accountHolders.value +
+                      this.state.repMemberData.cashPayments.value +
+                      this.state.repMemberData.forecastHolders.value -
+                      this.state.repMemberData.refundMembers.value,
                   )}
                 </div>
               </div>

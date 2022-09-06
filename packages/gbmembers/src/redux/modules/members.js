@@ -96,6 +96,17 @@ export const types = {
   MEMBER_PROMOTED: namespace('members', 'MEMBER_PROMOTED'),
   CREATE_MEMBER_ACCOUNT: namespace('members', 'CREATE_MEMBER_ACCOUNT'),
   USER_ACCOUNT_CREATED: namespace('members', 'USER_ACCOUNT_CREATED'),
+  ADD_CASH_PAYMENT: namespace('members', 'ADD_CASH_PAYMENT'),
+  FETCH_MEMBER_CASH_PAYMENTS: namespace(
+    'members',
+    'FETCH_MEMBER_CASH_PAYMENTS',
+  ),
+  SET_MEMBER_CASH_PAYMENTS: namespace('members', 'SET_MEMBER_CASH_PAYMENTS'),
+  FETCH_CASH_PAYMENTS_BYDATE: namespace(
+    'attendance',
+    'FETCH_CASH_PAYMENTS_BYDATE',
+  ),
+  SET_CASH_PAYMENTS_BYDATE: namespace('attendance', 'SET_CASH_PAYMENTS_BYDATE'),
 };
 
 export const actions = {
@@ -178,6 +189,11 @@ export const actions = {
   memberPromoted: withPayload(types.MEMBER_PROMOTED),
   createMemberUserAccount: withPayload(types.CREATE_MEMBER_ACCOUNT),
   userAccountCreated: withPayload(types.USER_ACCOUNT_CREATED),
+  addCashPayment: withPayload(types.ADD_CASH_PAYMENT),
+  fetchMemberCashPayments: withPayload(types.FETCH_MEMBER_CASH_PAYMENTS),
+  setMemberCashPayments: withPayload(types.SET_MEMBER_CASH_PAYMENTS),
+  fetchCashPaymentsByDate: withPayload(types.FETCH_CASH_PAYMENTS_BYDATE),
+  setCashPaymentsByDate: withPayload(types.SET_CASH_PAYMENTS_BYDATE),
 };
 
 export const State = Record({
@@ -232,6 +248,10 @@ export const State = Record({
   refundPOSTransactionInProgress: false,
   refundPOSTransactionID: {},
   memberAttentionRequired: false,
+  memberCashPayments: [],
+  memberCashPaymentsLoading: true,
+  cashPaymentsByDate: [],
+  cashPaymentsByDateLoading: true,
 });
 
 export const reducer = (state = State(), { type, payload }) => {
@@ -509,6 +529,34 @@ export const reducer = (state = State(), { type, payload }) => {
       return state
         .set('activatingBiller', false)
         .set('activatingBillerCompleted', true);
+    }
+    case types.FETCH_MEMBER_CASH_PAYMENTS: {
+      return state.set('memberCashPaymentsLoading', true);
+    }
+    case types.SET_MEMBER_CASH_PAYMENTS: {
+      var payments = [];
+
+      for (var k = 0; k < payload.length; k++) {
+        payments[payments.length] = payload[k];
+      }
+
+      return state
+        .set('memberCashPaymentsLoading', false)
+        .set('memberCashPayments', payments);
+    }
+    case types.FETCH_CASH_PAYMENTS_BYDATE: {
+      return state.set('cashPaymentsByDateLoading', true);
+    }
+    case types.SET_CASH_PAYMENTS_BYDATE: {
+      var payments = [];
+
+      for (var k = 0; k < payload.length; k++) {
+        payments[payments.length] = payload[k];
+      }
+
+      return state
+        .set('cashPaymentsByDateLoading', false)
+        .set('cashPaymentsByDate', payments);
     }
     default:
       return state;

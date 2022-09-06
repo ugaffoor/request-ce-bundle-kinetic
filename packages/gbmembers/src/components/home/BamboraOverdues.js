@@ -77,12 +77,13 @@ export class BamboraOverdues extends Component {
   getData(failedPayments, successfulPayments) {
     failedPayments = failedPayments.filter(
       payment =>
-        payment.paymentStatus === 'Transaction Declined' ||
-        payment.paymentStatus === 'DECLINED' ||
-        payment.paymentStatus === 'PIN RETRY EXCEEDED' ||
-        payment.paymentStatus === 'SERV NOT ALLOWED' ||
-        payment.paymentStatus === 'Validation greater than maximum amount' ||
-        payment.paymentStatus === 'EXPIRED CARD',
+        (payment.paymentStatus === 'Transaction Declined' ||
+          payment.paymentStatus === 'DECLINED' ||
+          payment.paymentStatus === 'PIN RETRY EXCEEDED' ||
+          payment.paymentStatus === 'SERV NOT ALLOWED' ||
+          payment.paymentStatus === 'Validation greater than maximum amount' ||
+          payment.paymentStatus === 'EXPIRED CARD') &&
+        payment.paymentSource !== 'Manual Membership Payment',
     );
     failedPayments = failedPayments.sort((a, b) => {
       if (a['debitDate'] < b['debitDate']) {

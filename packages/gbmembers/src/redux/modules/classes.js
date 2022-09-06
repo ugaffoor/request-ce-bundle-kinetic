@@ -85,7 +85,9 @@ export const reducer = (state = State(), { type, payload }) => {
     case types.SET_CLASS_BOOKINGS: {
       payload.classBookings.forEach(booking => {
         var memberRec = payload.allMembers.find(
-          member => member.id === booking.memberGUID,
+          member =>
+            member.id === booking.memberGUID ||
+            member.values['Member ID'] === booking.memberID,
         );
         booking['photo'] = memberRec.values['Photo'];
         booking['firstName'] = memberRec.values['First Name'];

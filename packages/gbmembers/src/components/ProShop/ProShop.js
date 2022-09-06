@@ -762,7 +762,7 @@ class PayNow extends Component {
       country: this.state.country === undefined ? 'US' : this.state.country,
       phoneNumber: this.state.phoneNumber,
       email: this.state.email,
-      description: schoolName + ' sale',
+      description: schoolName + ' POS',
     });
 
     var config = {
@@ -2410,7 +2410,7 @@ class PayNow extends Component {
                   className="paynowButton"
                   disabled={this.disablePayNow() && !this.state.processing}
                   onClick={e => {
-                    if (this.disablePayNow() && !this.state.processing) return;
+                    if (this.disablePayNow() || this.state.processing) return;
                     this.setState({
                       processing: true,
                     });
@@ -2419,6 +2419,7 @@ class PayNow extends Component {
                       this.state.payment === 'useSavedCreditCard' ||
                       this.state.payment === 'updateCreditCard'
                     ) {
+                      console.log('calling processPayment');
                       this.processPayment();
                     } else {
                       setTimeout(function() {
@@ -4476,7 +4477,7 @@ export const ProShopContainer = compose(
           paymentSource: 'ALL',
           dateField: 'PAYMENT',
           dateFrom: moment()
-            .subtract(1, 'month')
+            .subtract(2, 'month')
             .format('YYYY-MM-DD'),
           dateTo: moment().format('YYYY-MM-DD'),
           setPaymentHistory: this.props.setPaymentHistory,

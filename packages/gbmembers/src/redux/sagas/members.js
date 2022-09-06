@@ -504,6 +504,7 @@ export function* fetchNewMember(action) {
 }
 
 export function* updateCurrentMember(action) {
+  console.log('In updateCurrentMember');
   try {
     const { submission } = yield call(CoreAPI.updateSubmission, {
       id: action.payload.id,
@@ -2526,6 +2527,76 @@ export function* createMemberUserAccount(action) {
     yield put(errorActions.setSystemError(error));
   }
 }
+export function* addCashPayment(action) {
+  try {
+    const { submission } = yield call(CoreAPI.createSubmission, {
+      datastore: true,
+      formSlug: 'cash-payment',
+      values: action.payload.values,
+      completed: true,
+      include: SUBMISSION_INCLUDES,
+    });
+    if (action.payload.completeCashPayment) {
+      action.payload.completeCashPayment();
+    }
+    // Set next this.props.billingInfo.nextBillingDate
+    var values = {};
+    values['Billing Start Date'] = action.payload.nextBillingDate.format(
+      'YYYY-MM-DD',
+    );
+    var mItem = {};
+    mItem['values'] = values;
+    action.payload.updateMember({
+      id: action.payload.memberItem['id'],
+      memberItem: mItem,
+      fromBilling: true,
+    });
+  } catch (error) {
+    console.log('Error in addCashPayment: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
+export function* fetchMemberCashPayments(action) {
+  try {
+    const search = new CoreAPI.SubmissionSearch(true)
+      .eq('values[Member GUID]', action.payload.id)
+      .index('values[Member GUID]')
+      .include(['details', 'values'])
+      .limit(1000)
+      .build();
+    const { submissions } = yield call(CoreAPI.searchSubmissions, {
+      form: 'cash-payment',
+      datastore: true,
+      search,
+    });
+
+    yield put(actions.setMemberCashPayments(submissions));
+  } catch (error) {
+    console.log('Error in fetchMemberCashPayments: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
+export function* fetchCashPaymentsByDate(action) {
+  try {
+    const search = new CoreAPI.SubmissionSearch(true)
+      .gteq('values[Date]', action.payload.dateFrom)
+      .lteq('values[Date]', action.payload.dateTo)
+      .index('values[Date]')
+      .include(['details', 'values'])
+      .limit(1000)
+      .build();
+    const { submissions } = yield call(CoreAPI.searchSubmissions, {
+      form: 'cash-payment',
+      datastore: true,
+      search,
+    });
+
+    yield put(actions.setCashPaymentsByDate(submissions));
+  } catch (error) {
+    console.log('Error in fetchCashPaymentsByDate: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
 export function* watchMembers() {
   console.log('watchMembers');
   yield takeEvery(types.FETCH_MEMBERS, fetchMembers);
@@ -2580,6 +2651,9 @@ export function* watchMembers() {
   );
   yield takeEvery(types.PROMOTE_MEMBER, promoteMember);
   yield takeEvery(types.CREATE_MEMBER_ACCOUNT, createMemberUserAccount);
+  yield takeEvery(types.ADD_CASH_PAYMENT, addCashPayment);
+  yield takeEvery(types.FETCH_MEMBER_CASH_PAYMENTS, fetchMemberCashPayments);
+  yield takeEvery(types.FETCH_CASH_PAYMENTS_BYDATE, fetchCashPaymentsByDate);
 }
 
 export default function fetchMemberById(id) {

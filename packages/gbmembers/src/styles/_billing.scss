@@ -1,3 +1,217 @@
+@media print {
+  html,
+  body {
+    height: initial !important;
+    overflow: initial !important;
+    -webkit-print-color-adjust: exact;
+    float: none;
+    //    margin: 0;
+    //    background-color: blue;
+    .receiptPrint {
+      //margin-top: 100px;
+      height: 1100px;
+      .header,
+      .footer {
+        display: block !important;
+      }
+      .details {
+        display: flex;
+        flex-direction: column;
+        margin-top: 30px;
+        border-bottom-style: solid;
+        border-bottom-width: 1px;
+        border-bottom-color: #808080;
+        margin-left: auto;
+        margin-right: auto;
+        width: 800px;
+        padding-bottom: 30px;
+      }
+      .total {
+        display: flex;
+        width: 800px;
+        height: 50px;
+        margin-left: auto;
+        margin-right: auto;
+        .value {
+          margin-left: auto;
+        }
+      }
+      .transDetails {
+        display: flex;
+        width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 20px;
+        margin-bottom: 20px;
+        .auth_code {
+          display: flex;
+          margin-right: 20px;
+          .label {
+            margin-right: 10px;
+          }
+        }
+        .transaction_id {
+          display: flex;
+          .label {
+            margin-right: 10px;
+          }
+        }
+      }
+      .datetime {
+        display: flex;
+        width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: 20px;
+      }
+    }
+  }
+}
+.memberBillingDetails {
+  .paynow {
+    background-color: #f6f3f3;
+    border-radius: 5px;
+    padding: 10px;
+    width: 600px;
+    .receipt {
+      .receiptPrint {
+        display: flex;
+        flex-direction: column;
+        .details {
+          display: none;
+        }
+        .total {
+          padding-left: 0;
+          .value {
+            margin-left: 20px;
+          }
+        }
+        .transDetails {
+          display: flex;
+          flex-direction: column;
+        }
+      }
+      .printReceipt {
+        display: flex;
+        width: 800px;
+        margin-left: auto;
+        .barcodePrint {
+          cursor: pointer;
+          .icon-svg {
+            width: 2rem !important;
+            height: 2rem !important;
+          }
+        }
+      }
+    }
+    #feedback.success {
+      background-color: white !important;
+      margin-bottom: 10px;
+    }
+    .card-container {
+      background-color: unset;
+    }
+    #checkout-form {
+      border-radius: 5px;
+    }
+    input {
+      float: none !important;
+    }
+    .totalRow {
+      display: flex;
+      margin-left: auto;
+      margin-right: auto;
+      flex-direction: column;
+      .total {
+        margin-top: 20px;
+        padding-bottom: 10px;
+        border-bottom-style: solid;
+        border-bottom-width: 2px;
+        border-bottom-color: #808080;
+      }
+    }
+    .paymentType {
+      display: flex;
+      width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+      flex-direction: column;
+      .label {
+        font-size: 26px;
+        font-family: 'AdiHaus DIN Medium';
+      }
+      input {
+        margin: 10px;
+      }
+      .savedCards {
+        width: 60%;
+      }
+    }
+    .creditCard {
+      display: flex;
+      width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+      flex-direction: row;
+      .rccs {
+        perspective: 1000px;
+        width: 290px;
+        margin: 0;
+      }
+      .cardDetails {
+        width: 300px;
+        input {
+          margin: 2px;
+        }
+        input[name='expiry'] {
+          width: 90px;
+        }
+        input[name='cvc'] {
+          width: 60px;
+        }
+      }
+    }
+    .paynowButton {
+      background-color: #e1251b;
+      border-radius: 10px;
+      color: white;
+      margin-left: auto;
+      width: 150px;
+      cursor: pointer;
+      img {
+        margin: 4px;
+        height: 32px;
+      }
+      .label {
+        text-transform: uppercase;
+        font-family: 'AdiHaus DIN Medium';
+        padding-top: 5px;
+        margin-right: 4px;
+        margin-top: 12px;
+        margin-left: 10px;
+      }
+    }
+    .paynowButton[disabled] {
+      background-color: #ccbbba !important;
+    }
+    .error {
+      display: flex;
+      width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+      flex-direction: column;
+      background-color: #ec0c0c;
+      border-radius: 5px;
+      margin-top: 10px;
+      color: white;
+      padding: 10px;
+      label {
+        margin-right: 10px;
+      }
+    }
+  }
+}
+
 .supported-card-icon {
   height: 25px;
   border: none !important;

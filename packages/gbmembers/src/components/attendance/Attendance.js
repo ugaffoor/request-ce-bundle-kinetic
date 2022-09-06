@@ -106,7 +106,12 @@ const SelfCheckinMode = (attendanceThis, attendanceAdded) => {
               verifyPIN: true,
               isFullscreenMode: true,
             });
-            fullscreenHandle.enter();
+            if (document.fullscreenEnabled) {
+              fullscreenHandle.enter();
+            } else {
+              console.log('This browser is not able to use Fullscreen mode');
+              $('.fullscreen').addClass('fullscreen-enabled');
+            }
           }}
         >
           Start Self Checkin
@@ -622,8 +627,13 @@ export class SelfCheckin extends Component {
   }
   selfCheckinBooking(booking) {
     let memberItem;
+
     for (let i = 0; i < attendanceThis.props.allMembers.length; i++) {
-      if (attendanceThis.props.allMembers[i].id === booking.memberGUID) {
+      if (
+        attendanceThis.props.allMembers[i].id === booking.memberGUID ||
+        attendanceThis.props.allMembers[i].values['Member ID'] ===
+          booking.memberID
+      ) {
         memberItem = attendanceThis.props.allMembers[i];
         this.setState({ memberItem: attendanceThis.props.allMembers[i] });
         if (
@@ -1612,7 +1622,10 @@ export class AttendanceDetail extends Component {
   checkinBooking(booking) {
     let memberItem;
     for (let i = 0; i < this.props.allMembers.length; i++) {
-      if (this.props.allMembers[i].id === booking.memberGUID) {
+      if (
+        this.props.allMembers[i].id === booking.memberGUID ||
+        this.props.allMembers[i].values['Member ID'] === booking.memberID
+      ) {
         memberItem = this.props.allMembers[i];
         this.setState({ memberItem: this.props.allMembers[i] });
         if (

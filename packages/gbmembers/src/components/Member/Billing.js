@@ -46,6 +46,11 @@ import printerIcon from '../../images/Print.svg?raw';
 import { MembershipReceiptToPrint } from './MembershipReceiptToPrint';
 import ReactToPrint from 'react-to-print';
 import SVGInline from 'react-svg-inline';
+import axios from 'axios';
+import { ReceiptToPrint } from './ReceiptToPrint';
+import ScaleLoader from 'react-spinners/ScaleLoader';
+import checkoutRightArrowIcon from '../../images/checkoutRightArrow.png?raw';
+import Helmet from 'react-helmet';
 
 <script src="../helpers/jquery.multiselect.js" />;
 
@@ -77,7 +82,10 @@ const mapStateToProps = state => ({
   actionRequests: state.member.members.actionRequests,
   actionRequestsLoading: state.member.members.actionRequestsLoading,
   space: state.member.app.space,
+  spaceSlug: state.member.app.spaceSlug,
   snippets: state.member.app.snippets,
+  memberCashPayments: state.member.members.memberCashPayments,
+  memberCashPaymentsLoading: state.member.members.memberCashPaymentsLoading,
 });
 
 const mapDispatchToProps = {
@@ -103,6 +111,8 @@ const mapDispatchToProps = {
   fetchActionRequests: actions.fetchActionRequests,
   setActionRequests: actions.setActionRequests,
   setSidebarDisplayType: appActions.setSidebarDisplayType,
+  addCashPayment: actions.addCashPayment,
+  fetchMemberCashPayments: actions.fetchMemberCashPayments,
 };
 
 const ezidebit_date_format = 'YYYY-MM-DD HH:mm:ss';
@@ -195,6 +205,772 @@ const copyToClipboard = str => {
   }
 };
 
+var payNowThis;
+class PayNow extends Component {
+  constructor(props) {
+    super(props);
+    payNowThis = this;
+    this.processPayment = this.processPayment.bind(this);
+    this.processCashPayment = this.processCashPayment.bind(this);
+    this.completeCashPayment = this.completeCashPayment.bind(this);
+    this.processBamboraPayment = this.processBamboraPayment.bind(this);
+    this.completePayment = this.completePayment.bind(this);
+    this.disablePayNow = this.disablePayNow.bind(this);
+    this.loadBamboraCheckout = this.loadBamboraCheckout.bind(this);
+
+    axios
+      .get('https://api.ipify.org/')
+      .then(ip => {
+        this.setState({
+          publicIP: ip.data,
+        });
+      })
+      .catch(error => {
+        console.log(error.response);
+      });
+
+    if (getAttributeValue(this.props.space, 'POS System') !== 'Bambora') {
+      this.loadBamboraCheckout = this.loadBamboraCheckout.bind(this);
+
+      this.customCheckout = undefined;
+      this.isCardNumberComplete = false;
+      this.isCVVComplete = false;
+      this.isExpiryComplete = false;
+    }
+
+    this.state = {
+      personType: 'Member',
+      personID: undefined,
+      payment: undefined,
+      cvc: '',
+      expiry: '',
+      focus: '',
+      name:
+        this.props.memberItem.values['First Name'] +
+        ' ' +
+        this.props.memberItem.values['Last Name'],
+      firstName: this.props.memberItem.values['First Name'],
+      lastName: this.props.memberItem.values['Last Name'],
+      number: '',
+      posProfileID: this.props.memberItem.values['POS Profile ID'],
+      processing: false,
+      processingComplete: false,
+      issuer: '',
+      maxLength: 16,
+      status: '',
+      errors: '',
+      myExternalLib: null,
+      country: getAttributeValue(this.props.space, 'School Country Code'),
+      paymentAmount: '0',
+      address: this.props.memberItem.values['Address'],
+      city: this.props.memberItem.values['Suburb'],
+      postCode: this.props.memberItem.values['Postcode'],
+      province: this.props.memberItem.values['State'],
+      phoneNumber: this.props.memberItem.values['Phone Number'],
+      email: this.props.memberItem.values['Email'],
+    };
+    this.handleScriptInject = this.handleScriptInject.bind(this);
+  }
+  handleScriptInject({ scriptTags }) {
+    if (scriptTags) {
+      const scriptTag = scriptTags[0];
+      scriptTag.onload = () => {
+        // I don't really like referencing window.
+        console.log(`myExternalLib loaded!`, window.myExternalLib);
+        this.setState({
+          myExternalLib: window.myExternalLib,
+        });
+        this.loadBamboraCheckout();
+      };
+    }
+  }
+  componentWillReceiveProps(nextProps) {}
+  componentWillMount() {}
+
+  completePayment() {}
+  processBamboraPayment(posServiceURL, spaceSlug, posSystem, schoolName, uuid) {
+    var data = JSON.stringify({
+      space: this.props.spaceSlug,
+      billingService: posSystem,
+      issuer: this.state.issuer,
+      customerId: 'dummy',
+      payment: this.state.paymentAmount,
+      orderId: this.props.memberItem.values['Billing Customer Id'],
+      cardToken: this.state.cardToken,
+      profileId: this.state.posProfileID,
+      cardId: this.state.cardId,
+      firstName: this.state.firstName,
+      lastName: this.state.lastName,
+      sourceIP: this.state.publicIP,
+      address: this.state.address,
+      city: this.state.city,
+      province: this.state.province,
+      postCode: this.state.postCode,
+      country: this.state.country === undefined ? 'US' : this.state.country,
+      phoneNumber: this.state.phoneNumber,
+      email: this.state.email,
+      description: 'Manual Membership Payment',
+    });
+
+    var config = {
+      method: 'post',
+      url: posServiceURL,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: data,
+    };
+    axios(config)
+      .then(function(response) {
+        var data = JSON.parse(response.data.data);
+        console.log(JSON.stringify(data));
+        payNowThis.setState({
+          status: data['status'],
+          status_message: data['status_message'],
+          errors: data['errors'],
+          auth_code: data['auth_code'],
+          transaction_id: data['transaction_id'],
+          processingComplete: true,
+          processing: false,
+          datetime: moment(),
+        });
+
+        if (data['status'] === '1') {
+          payNowThis.completePayment();
+        } else {
+          payNowThis.setState({
+            processingComplete: false,
+          });
+        }
+      })
+      .catch(err => {
+        var error = 'Connection Error';
+        if (err.response) {
+          // client received an error response (5xx, 4xx)
+          error = err.response;
+        } else if (err.request) {
+          // client never received a response, or request never left
+          error = err.request;
+        }
+        payNowThis.setState({
+          status: '10',
+          status_message: 'System Error',
+          errors: error,
+          auth_code: '',
+          transaction_id: '',
+          processingComplete: false,
+          processing: false,
+          datetime: moment(),
+        });
+        console.log(error);
+      });
+  }
+  disablePayNow() {
+    var disable = false;
+    if (this.state.processing) {
+      return true;
+    }
+    if (
+      this.state.paymentAmount === undefined ||
+      this.state.paymentAmount === '0' ||
+      this.state.paymentAmount === ''
+    ) {
+      disable = true;
+    }
+    if (this.state.payment === undefined) {
+      disable = true;
+    }
+    if (
+      (this.state.payment === 'creditcard' ||
+        this.state.payment === 'updateCreditCard') &&
+      (this.state.cvc === '') |
+        (this.state.expiry === '') |
+        (this.state.name === '') |
+        (this.state.number === '')
+    ) {
+      disable = true;
+    }
+    return disable;
+  }
+  processPayment() {
+    var posSystem = getAttributeValue(this.props.space, 'POS System');
+    var posServiceURL = getAttributeValue(this.props.space, 'POS Service URL');
+    var schoolName = getAttributeValue(this.props.space, 'School Name');
+    if (posSystem === 'Bambora') {
+      this.processBamboraPayment(
+        posServiceURL,
+        this.props.spaceSlug,
+        posSystem,
+        schoolName,
+        this.props.memberItem.values['Billing Customer Id'],
+      );
+    }
+  }
+  processCashPayment() {
+    let values = {};
+    values['Member ID'] = this.props.memberItem.values['Member ID'];
+    values['Member GUID'] = this.props.memberItem.id;
+    values['Date'] = moment();
+    values['Amount'] = this.state.paymentAmount;
+
+    this.props.addCashPaymentValue(
+      values,
+      this.completeCashPayment,
+      this.props.billingInfo.nextBillingDate,
+      this.props.memberItem,
+    );
+  }
+  completeCashPayment() {
+    this.setState({
+      transaction_id: 'Cash',
+      status: '1',
+      processingComplete: true,
+      datetime: moment(),
+    });
+  }
+  loadBamboraCheckout() {
+    console.log('Loading Bambora Checkout');
+
+    this.customCheckout = window.customcheckout();
+    var customCheckoutController = {
+      payThis: this,
+      init: function() {
+        console.log('checkout.init()');
+        let formElem = $(
+          "<form id='checkout-form' class='form-inline  text-center'></form>",
+        );
+        formElem.append(
+          "<div class='form-group col-xs-6 has-feedback' id='card-number-bootstrap'><div id='card-number' class='form-control'></div><label class='help-block' for='card-number' id='card-number-error'></label></div>",
+        );
+        formElem.append(
+          "<div class='form-group col-xs-2 has-feedback' id='card-cvv-bootstrap'><div id='card-cvv' class='form-control'></div><label class='help-block' for='card-cvv' id='card-cvv-error'></label></div>",
+        );
+        formElem.append(
+          "<div class='form-group col-xs-2 has-feedback' id='card-expiry-bootstrap'><div id='card-expiry' class='form-control'></div><label class='help-block' for='card-expiry' id='card-expiry-error'></label></div>",
+        );
+        formElem.append(
+          "<div class='col-xs-2 text-center'><button id='pay-button' type='submit' class='verifyBtn btn-primary disabled' disabled='true'>Create Token</button></div>",
+        );
+        //        formElem.append(
+        //          "<div class='col-xs-2 text-center'><button id='save-to-profile' type='submit' class='btn btn-primary disabled' disabled='true'>Save for Later</button></div>",
+        //        );
+        $('.card-container .row').append(formElem);
+        customCheckoutController.createInputs();
+        customCheckoutController.addListeners();
+      },
+      createInputs: function() {
+        console.log('checkout.createInputs()');
+        var options = {};
+        var payThis = customCheckoutController.payThis;
+        // Create and mount the inputs
+        options.placeholder = 'Card number';
+        payThis.customCheckout
+          .create('card-number', options)
+          .mount('#card-number');
+
+        options.placeholder = 'CVV';
+        payThis.customCheckout.create('cvv', options).mount('#card-cvv');
+
+        options.placeholder = 'MM / YY';
+        payThis.customCheckout.create('expiry', options).mount('#card-expiry');
+      },
+      addListeners: function() {
+        var self = this;
+        var payThis = customCheckoutController.payThis;
+
+        // listen for submit button
+        if (document.getElementById('checkout-form') !== null) {
+          document
+            .getElementById('checkout-form')
+            .addEventListener('submit', self.onSubmit.bind(self));
+        }
+
+        payThis.customCheckout.on('brand', function(event) {
+          console.log('brand: ' + JSON.stringify(event));
+
+          var cardLogo = 'none';
+          if (event.brand && event.brand !== 'unknown') {
+            var filePath =
+              'https://cdn.na.bambora.com/downloads/images/cards/' +
+              event.brand +
+              '.svg';
+            cardLogo = 'url(' + filePath + ')';
+          }
+          document.getElementById(
+            'card-number',
+          ).style.backgroundImage = cardLogo;
+        });
+
+        payThis.customCheckout.on('blur', function(event) {
+          console.log('blur: ' + JSON.stringify(event));
+        });
+
+        payThis.customCheckout.on('focus', function(event) {
+          console.log('focus: ' + JSON.stringify(event));
+        });
+
+        payThis.customCheckout.on('empty', function(event) {
+          console.log('empty: ' + JSON.stringify(event));
+
+          if (event.empty) {
+            if (event.field === 'card-number') {
+              payThis.isCardNumberComplete = false;
+            } else if (event.field === 'cvv') {
+              payThis.isCVVComplete = false;
+            } else if (event.field === 'expiry') {
+              payThis.isExpiryComplete = false;
+            }
+            self.setPayButton(false);
+          }
+        });
+
+        payThis.customCheckout.on('complete', function(event) {
+          console.log('complete: ' + JSON.stringify(event));
+
+          if (event.field === 'card-number') {
+            payThis.isCardNumberComplete = true;
+            self.hideErrorForId('card-number');
+          } else if (event.field === 'cvv') {
+            payThis.isCVVComplete = true;
+            self.hideErrorForId('card-cvv');
+          } else if (event.field === 'expiry') {
+            payThis.isExpiryComplete = true;
+            self.hideErrorForId('card-expiry');
+          }
+
+          self.setPayButton(
+            payThis.isCardNumberComplete &&
+              payThis.isCVVComplete &&
+              payThis.isExpiryComplete,
+          );
+        });
+
+        payThis.customCheckout.on('error', function(event) {
+          console.log('error: ' + JSON.stringify(event));
+
+          if (event.field === 'card-number') {
+            payThis.isCardNumberComplete = false;
+            self.showErrorForId('card-number', event.message);
+          } else if (event.field === 'cvv') {
+            payThis.isCVVComplete = false;
+            self.showErrorForId('card-cvv', event.message);
+          } else if (event.field === 'expiry') {
+            payThis.isExpiryComplete = false;
+            self.showErrorForId('card-expiry', event.message);
+          }
+          self.setPayButton(false);
+        });
+      },
+      onSubmit: function(event) {
+        var self = this;
+        var payThis = customCheckoutController.payThis;
+
+        console.log('checkout.onSubmit()');
+
+        event.preventDefault();
+        self.setPayButton(false);
+        self.toggleProcessingScreen();
+
+        var callback = function(result) {
+          console.log('token result : ' + JSON.stringify(result));
+          if (result.error) {
+            self.processTokenError(result.error);
+            payThis.setState({
+              cardToken: '',
+              cvc: '',
+              expiry: '',
+              number: '',
+              name: '',
+              processingComplete: false,
+            });
+          } else {
+            self.processTokenSuccess(result.token);
+            if (payThis.state.payment === 'updateCreditCard') {
+              var posSystem = getAttributeValue(
+                payThis.props.space,
+                'POS System',
+              );
+              var posServiceURL = getAttributeValue(
+                payThis.props.space,
+                'POS Service URL',
+              );
+            } else {
+              payThis.setState({
+                cardToken: result['token'],
+                cvc: 'XXX',
+                expiry: result['expiryMonth'] + '/' + result['expiryYear'],
+                number: result['last4'],
+                name: payThis.state.name,
+                processingComplete: false,
+              });
+            }
+          }
+        };
+
+        console.log('checkout.createToken()');
+        payThis.customCheckout.createToken(callback);
+      },
+      hideErrorForId: function(id) {
+        console.log('hideErrorForId: ' + id);
+
+        var element = document.getElementById(id);
+
+        if (element !== null) {
+          var errorElement = document.getElementById(id + '-error');
+          if (errorElement !== null) {
+            errorElement.innerHTML = '';
+          }
+
+          var bootStrapParent = document.getElementById(id + '-bootstrap');
+          if (bootStrapParent !== null) {
+            bootStrapParent.className = 'form-group has-feedback has-success';
+          }
+        } else {
+          console.log('showErrorForId: Could not find ' + id);
+        }
+      },
+      showErrorForId: function(id, message) {
+        console.log('showErrorForId: ' + id + ' ' + message);
+
+        var element = document.getElementById(id);
+
+        if (element !== null) {
+          var errorElement = document.getElementById(id + '-error');
+          if (errorElement !== null) {
+            errorElement.innerHTML = message;
+          }
+
+          var bootStrapParent = document.getElementById(id + '-bootstrap');
+          if (bootStrapParent !== null) {
+            bootStrapParent.className = 'form-group has-feedback has-error ';
+          }
+        } else {
+          console.log('showErrorForId: Could not find ' + id);
+        }
+      },
+      setPayButton: function(enabled) {
+        console.log('checkout.setPayButton() disabled: ' + !enabled);
+
+        var payButton = document.getElementById('pay-button');
+        if (enabled) {
+          payButton.disabled = false;
+          payButton.className = 'btn btn-primary';
+        } else {
+          payButton.disabled = true;
+          payButton.className = 'btn btn-primary disabled';
+        }
+      },
+      setSaveLaterButton: function(enabled) {
+        console.log('checkout.setSaveButton() disabled: ' + !enabled);
+
+        var payButton = document.getElementById('save-to-profile');
+        if (enabled) {
+          payButton.disabled = false;
+          payButton.className = 'btn btn-primary';
+        } else {
+          payButton.disabled = true;
+          payButton.className = 'btn btn-primary disabled';
+        }
+      },
+      toggleProcessingScreen: function() {
+        var processingScreen = document.getElementById('processing-screen');
+        if (processingScreen) {
+          processingScreen.classList.toggle('visible');
+        }
+      },
+      showErrorFeedback: function(message) {
+        var xMark = '\u2718';
+        this.feedback = document.getElementById('feedback');
+        this.feedback.innerHTML = xMark + ' ' + message;
+        this.feedback.classList.add('error');
+      },
+      showSuccessFeedback: function(message) {
+        var checkMark = '\u2714';
+        this.feedback = document.getElementById('feedback');
+        this.feedback.innerHTML = checkMark + ' ' + message;
+        this.feedback.classList.add('success');
+      },
+      processTokenError: function(error) {
+        error = JSON.stringify(error, undefined, 2);
+        console.log('processTokenError: ' + error);
+
+        this.showErrorFeedback(
+          'Error creating token: </br>' + JSON.stringify(error, null, 4),
+        );
+        this.setPayButton(true);
+        this.toggleProcessingScreen();
+        var saveButton = document.getElementById('save-to-profile');
+        saveButton.disabled = true;
+        $(saveButton).addClass('disabled');
+      },
+      processTokenSuccess: function(token) {
+        console.log('processTokenSuccess: ' + token);
+        var payThis = customCheckoutController.payThis;
+
+        this.showSuccessFeedback('Success! Created token: ' + token);
+        this.setPayButton(true);
+        this.toggleProcessingScreen();
+
+        payThis.setState({
+          status: '',
+        });
+      },
+    };
+    customCheckoutController.init();
+  }
+
+  render() {
+    return (
+      <div>
+        <div className="paynow">
+          {!this.state.processingComplete ||
+          (this.state.status !== '1' && this.state.status !== '') ? (
+            <span className="capturePayment">
+              <span className="totalRow">
+                <span className="total">
+                  <div className="label">Membership Amount</div>
+                  <div className="value">
+                    <NumberFormat
+                      ref={input => (this.input = input)}
+                      value={this.state.paymentAmount}
+                      onValueChange={(values, e) => {
+                        var { formattedValue, value } = values;
+                        this.setState({
+                          paymentAmount: value,
+                        });
+                      }}
+                    />
+                  </div>
+                </span>
+              </span>
+              {this.state.posProfileID !== undefined &&
+              this.state.posProfileID !== null &&
+              this.state.posProfileID !== '' &&
+              this.props.posCardsLoading ? (
+                <span className="paymentType">
+                  <div className="label">Loading Saved Card...</div>
+                </span>
+              ) : (
+                <span className="paymentType">
+                  <div className="label">Saved Card</div>
+                  <table className="savedCards">
+                    <tr>
+                      <th>Number</th>
+                      <th>Expiry Month</th>
+                      <th>Year</th>
+                      <th>Type</th>
+                    </tr>
+                    {this.props.posCards.map((card, index) => (
+                      <tr>
+                        <td>{card.number}</td>
+                        <td>{card.expiryMonth}</td>
+                        <td>{card.expiryYear}</td>
+                        <td>{card.cardType}</td>
+                      </tr>
+                    ))}
+                  </table>
+                  <div className="radioGroup">
+                    <label htmlFor="savedCreditCard" className="radio">
+                      <input
+                        id="savedCreditCard"
+                        name="savedcard"
+                        type="radio"
+                        value="Use Saved Card"
+                        checked={this.state.payment === 'useSavedCreditCard'}
+                        onChange={e => {
+                          this.setState({
+                            payment: 'useSavedCreditCard',
+                            cardId: this.props.posCards[0].cardID,
+                            number: this.props.posCards[0].number,
+                            status: '',
+                            errors: '',
+                            processingComplete: false,
+                            cardToken: undefined,
+                          });
+                        }}
+                        onClick={async e => {}}
+                      />
+                      Use Saved Card
+                    </label>
+                    <label htmlFor="useAnotherCreditCard" className="radio">
+                      <input
+                        id="useAnotherCreditCard"
+                        name="savedcard"
+                        type="radio"
+                        onChange={e => {
+                          this.setState({ payment: 'creditcard' });
+                        }}
+                        onClick={async e => {}}
+                      />
+                      Use Another Credit Card
+                    </label>
+                    <label htmlFor="cash" className="radio">
+                      <input
+                        id="cash"
+                        name="savedcard"
+                        type="radio"
+                        value="Cash"
+                        onChange={e => {
+                          this.setState({
+                            payment: 'cash',
+                            cardToken: '',
+                            cvc: '',
+                            expiry: '',
+                            number: '',
+                          });
+                        }}
+                      />
+                      Cash
+                    </label>
+                  </div>
+                </span>
+              )}
+              {this.state.payment === 'creditcard' &&
+                getAttributeValue(this.props.space, 'POS System') ===
+                  'Bambora' && (
+                  <span className="creditCard" id="bamboraCheckout">
+                    {/* Load the myExternalLib.js library. */}
+                    <Helmet
+                      script={[
+                        {
+                          src:
+                            'https://libs.na.bambora.com/customcheckout/1/customcheckout.js',
+                        },
+                      ]}
+                      // Helmet doesn't support `onload` in script objects so we have to hack in our own
+                      onChangeClientState={(newState, addedTags) =>
+                        this.handleScriptInject(addedTags)
+                      }
+                    />
+                    <div>
+                      {this.state.myExternalLib !== null ? (
+                        <span>
+                          <meta
+                            name="viewport"
+                            content="width=device-width, initial-scale=1"
+                          />
+                          <div className="card-container">
+                            <div className="row"></div>
+                          </div>
+                          <div className="row">
+                            <div className="col-lg-12 text-center">
+                              <div id="feedback"></div>
+                            </div>
+                          </div>
+                        </span>
+                      ) : (
+                        'loading...'
+                      )}
+                    </div>
+                  </span>
+                )}
+              {this.state.status !== '1' && this.state.status !== '' && (
+                <span className="error">
+                  <span className="statusCode">
+                    <label>Status:</label>
+                    <value>{this.state.status}</value>
+                  </span>
+                  <span className="statusMessage">
+                    <label>Status Message:</label>
+                    <value>{this.state.status_message}</value>
+                  </span>
+                  {this.state.errors !== '' && (
+                    <span className="errors">
+                      <label>Errors:</label>
+                      <value>{this.state.errors}</value>
+                    </span>
+                  )}
+                </span>
+              )}
+            </span>
+          ) : (
+            <span className="receipt">
+              <ReceiptToPrint
+                locale={this.props.locale}
+                currency={this.props.currency}
+                total={this.state.paymentAmount}
+                number={this.state.number}
+                auth_code={this.state.auth_code}
+                transaction_id={this.state.transaction_id}
+                space={this.props.space}
+                snippets={this.props.snippets}
+                datetime={this.state.datetime}
+                name={this.state.name}
+                ref={el => (this.componentRef = el)}
+              />
+              <span className="printReceipt">
+                <ReactToPrint
+                  trigger={() => (
+                    <SVGInline
+                      svg={printerIcon}
+                      className="icon barcodePrint"
+                    />
+                  )}
+                  content={() => this.componentRef}
+                  pageStyle="@page {size: a4 portrait;margin: 0;}"
+                />
+              </span>
+            </span>
+          )}
+          <span className="bottomRow">
+            {(!this.state.processingComplete ||
+              (this.state.status !== '1' && this.state.status !== '')) &&
+              this.state.payment !== 'capture' && (
+                <div
+                  className="paynowButton"
+                  disabled={this.disablePayNow() && !this.state.processing}
+                  onClick={e => {
+                    if (this.disablePayNow() || this.state.processing) return;
+                    this.setState({
+                      processing: true,
+                    });
+                    if (
+                      this.state.payment === 'creditcard' ||
+                      this.state.payment === 'useSavedCreditCard' ||
+                      this.state.payment === 'updateCreditCard'
+                    ) {
+                      this.processPayment();
+                    } else if (this.state.payment === 'cash') {
+                      this.processCashPayment();
+                    } else {
+                      setTimeout(function() {
+                        this.setState({
+                          processing: false,
+                          processingComplete: true,
+                          status: '1',
+                          errors: '',
+                          auth_code: '',
+                          transaction_id: 'cash',
+                          datetime: moment(),
+                        });
+                        this.completePayment();
+                      });
+                    }
+                  }}
+                >
+                  {this.state.processing ? (
+                    <ScaleLoader
+                      className="processing"
+                      height="35px"
+                      width="16px"
+                      radius="2px"
+                      margin="4px"
+                      color="white"
+                    />
+                  ) : (
+                    <span>
+                      <span className="label">Pay Now</span>
+                      <img src={checkoutRightArrowIcon} alt="Pay Now" />
+                    </span>
+                  )}
+                </div>
+              )}
+          </span>
+        </div>
+      </div>
+    );
+  }
+}
 export class ActionRequests extends Component {
   constructor(props) {
     super(props);
@@ -599,7 +1375,8 @@ export class PaymentHistory extends Component {
     super(props);
     this.refundPayment = this.refundPayment.bind(this);
     this.paymentHistory = this.props.paymentHistory;
-    let data = this.getData(this.paymentHistory);
+    this.memberCashPayments = this.props.memberCashPayments;
+    let data = this.getData(this.paymentHistory, this.memberCashPayments);
     let columns = this.getColumns();
     this.rowRecieptsRefs = new Map();
     this.state = {
@@ -609,15 +1386,18 @@ export class PaymentHistory extends Component {
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
-    if (nextProps.paymentHistory) {
+    if (nextProps.paymentHistory && !nextProps.memberCashPaymentsLoading) {
       this.paymentHistory = nextProps.paymentHistory;
       this.setState({
-        data: this.getData(nextProps.paymentHistory),
+        data: this.getData(
+          nextProps.paymentHistory,
+          nextProps.memberCashPayments,
+        ),
       });
     }
   }
 
-  getData(payments) {
+  getData(payments, memberCashPayments) {
     var successfulPayments = [];
     payments.forEach((payment, i) => {
       if (payment.paymentStatus !== 'Refund') {
@@ -635,10 +1415,39 @@ export class PaymentHistory extends Component {
         }
       }
     });
+    memberCashPayments.forEach((payment, i) => {
+      successfulPayments[successfulPayments.length] = {
+        paymentAmount: payment.values['Amount'],
+        scheduledAmount: payment.values['Amount'],
+        paymentMethod: 'Cash',
+        paymentStatus: 'Cash',
+        debitDate: moment(payment.values['Date']).format('YYYY-MM-DD HH:mm:ss'),
+        paymentSource: 'Cash',
+        paymentID: 'Cash',
+      };
+    });
 
-    const data = successfulPayments.map(payment => {
+    let dataResult = successfulPayments.sort(function(p1, p2) {
+      if (
+        moment(p1.debitDate, contact_date_format).isAfter(
+          moment(p2.debitDate, contact_date_format),
+        )
+      ) {
+        return -1;
+      }
+      if (
+        moment(p1.debitDate, contact_date_format).isBefore(
+          moment(p2.debitDate, contact_date_format),
+        )
+      ) {
+        return 1;
+      }
+      return 0;
+    });
+    var idx = 0;
+    dataResult = dataResult.map(payment => {
       return {
-        _id: payment.paymentID,
+        _id: payment.paymentID + '_' + idx++,
         scheduledAmount: payment.scheduledAmount,
         paymentAmount: payment.paymentAmount,
         paymentMethod: payment.paymentMethod,
@@ -648,9 +1457,10 @@ export class PaymentHistory extends Component {
         debitDate: payment.debitDate,
         paymentSource: payment.paymentSource,
         paymentReference: payment.paymentReference,
+        paymentID: payment.paymentID,
       };
     });
-    return data;
+    return dataResult;
   }
 
   isPaymentRefunded(paymentId, paymentsRefunded) {
@@ -674,6 +1484,15 @@ export class PaymentHistory extends Component {
           return props.value !== undefined && props.value !== ''
             ? props.value
             : 'Membership';
+        },
+      });
+    }
+    if (getAttributeValue(this.props.space, 'Billing Company') === 'Bambora') {
+      columns.push({
+        accessor: 'paymentID',
+        Header: 'Transaction ID',
+        Cell: props => {
+          return props.value;
         },
       });
     }
@@ -702,17 +1521,6 @@ export class PaymentHistory extends Component {
       columns.push({ accessor: 'paymentMethod', Header: 'Payment Method' });
     }
     columns.push({ accessor: 'paymentStatus', Header: 'Payment Status' });
-    /*      columns.push(
-        {
-          accessor: 'transactionFee',
-          Header: 'Transaction Fee',
-          Cell: props =>
-            new Intl.NumberFormat(this.props.locale, {
-              style: 'currency',
-              currency: this.props.currency,
-            }).format(props.value),
-        });
-*/
     columns.push({
       accessor: 'debitDate',
       Header: 'Debit Date',
@@ -723,7 +1531,7 @@ export class PaymentHistory extends Component {
       headerClassName: 'refund',
       className: 'refund',
       Cell: row =>
-        !this.isPaymentRefunded(row.original['_id'], paymentsRefunded) &&
+        !this.isPaymentRefunded(row.original.paymentID, paymentsRefunded) &&
         (row.original.paymentStatus === 'S' ||
           row.original.paymentStatus === 'paid' ||
           row.original.paymentStatus === 'Settled' ||
@@ -734,7 +1542,7 @@ export class PaymentHistory extends Component {
             disabled={this.props.refundTransactionInProgress ? true : false}
             onClick={e =>
               this.refundPayment(
-                row.original['_id'],
+                row.original.paymentID,
                 row.original.paymentAmount,
               )
             }
@@ -743,7 +1551,7 @@ export class PaymentHistory extends Component {
               ? 'Refunding...'
               : 'Refund Payment'}
           </button>
-        ) : this.isPaymentRefunded(row.original['_id'], paymentsRefunded) ? (
+        ) : this.isPaymentRefunded(row.original.paymentID, paymentsRefunded) ? (
           <span>
             Refunded{' '}
             {row.original['refundAmount'] !== undefined && (
@@ -759,13 +1567,13 @@ export class PaymentHistory extends Component {
               </span>
             )}
             {this.props.refundTransactionID.id !== undefined &&
-              this.props.refundTransactionID.id === row.original['id'] && (
+              this.props.refundTransactionID.id === row.original.paymentID && (
                 <span className="refundValue">
                   {new Intl.NumberFormat(this.props.locale, {
                     style: 'currency',
                     currency: this.props.currency,
                   }).format(
-                    this.props.refundTransactionID.id === row.original['id']
+                    this.props.refundTransactionID.id === row.original.paymentID
                       ? this.props.refundTransactionID.value
                       : row.original['Refund'],
                   )}
@@ -785,9 +1593,9 @@ export class PaymentHistory extends Component {
             <MembershipReceiptToPrint
               locale={this.props.locale}
               currency={this.props.currency}
-              paymentID={row.original._id}
+              paymentID={row.original['paymentID']}
               status={
-                this.isPaymentRefunded(row.original['_id'], paymentsRefunded)
+                this.isPaymentRefunded(row.original.paymentID, paymentsRefunded)
                   ? 'Refunded'
                   : 'Approved'
               }
@@ -1025,6 +1833,7 @@ export class BillingInfo extends Component {
       showPaymentHistory,
       paymentHistoryBtnLabel,
       showBillingAudit: false,
+      capturePayment: false,
     };
   }
 
@@ -1061,6 +1870,9 @@ export class BillingInfo extends Component {
   showHidePaymentHistory() {
     if (!this.state.showPaymentHistory) {
       this.getPaymentHistory();
+      this.props.fetchMemberCashPayments({
+        id: this.props.memberItem.id,
+      });
     }
 
     let label = this.state.showPaymentHistory
@@ -1116,8 +1928,8 @@ export class BillingInfo extends Component {
           {this.props.memberItem.values['Billing Payment Type'] !== 'Cash' &&
             this.props.memberItem.values['Non Paying'] !== 'YES' &&
             this.props.memberItem.values['Billing Customer Id'] !== undefined &&
-              this.props.memberItem.values['Billing Customer Id'] !== null &&
-              this.props.memberItem.values['Billing Customer Id'] !== '' && (
+            this.props.memberItem.values['Billing Customer Id'] !== null &&
+            this.props.memberItem.values['Billing Customer Id'] !== '' && (
               <span>
                 <div title="Billing Info" className="billingInfo">
                   {!this.props.isValidInput ? (
@@ -1305,35 +2117,64 @@ export class BillingInfo extends Component {
                               <tr>
                                 <td>Card on File:</td>
                                 <td>
-                                  <tbody>
-                                    <tr>
-                                      <th width="300">Card ID</th>
-                                      <th width="150">Number</th>
-                                      <th>Expiry Month</th>
-                                      <th>Year</th>
-                                      <th>Type</th>
-                                    </tr>
-                                    <tr>
-                                      <td>
-                                        {this.props.billingInfo.cardOnFileID}
-                                      </td>
-                                      <td>
-                                        {this.props.posCords[0]['number']}
-                                      </td>
-                                      <td>
-                                        {this.props.posCords[0]['expiryMonth']}
-                                      </td>
-                                      <td>
-                                        {this.props.posCords[0]['expiryYear']}
-                                      </td>
-                                      <td>
-                                        {this.props.posCords[0]['cardType']}
-                                      </td>
-                                    </tr>
-                                  </tbody>
+                                  <table>
+                                    <tbody>
+                                      <tr>
+                                        <th width="300">Card ID</th>
+                                        <th width="150">Number</th>
+                                        <th>Expiry Month</th>
+                                        <th>Year</th>
+                                        <th>Type</th>
+                                      </tr>
+                                      <tr>
+                                        <td>
+                                          {this.props.billingInfo.cardOnFileID}
+                                        </td>
+                                        <td>
+                                          {this.props.posCards[0]['number']}
+                                        </td>
+                                        <td>
+                                          {
+                                            this.props.posCards[0][
+                                              'expiryMonth'
+                                            ]
+                                          }
+                                        </td>
+                                        <td>
+                                          {this.props.posCards[0]['expiryYear']}
+                                        </td>
+                                        <td>
+                                          {this.props.posCards[0]['cardType']}
+                                        </td>
+                                      </tr>
+                                    </tbody>
+                                  </table>
                                 </td>
                               </tr>
                             )}
+                          {getAttributeValue(
+                            this.props.space,
+                            'Billing Company',
+                          ) === 'Bambora' && (
+                            <tr>
+                              <td rowSpan="2">
+                                <button
+                                  type="button"
+                                  className="btn btn-primary"
+                                  onClick={e => {
+                                    this.setState({
+                                      capturePayment: !this.state
+                                        .capturePayment,
+                                    });
+                                  }}
+                                >
+                                  {!this.state.capturePayment
+                                    ? 'Capture Member Payment'
+                                    : 'Cancel Member Payment'}
+                                </button>
+                              </td>
+                            </tr>
+                          )}
                           {getAttributeValue(
                             this.props.space,
                             'Billing Company',
@@ -1351,6 +2192,24 @@ export class BillingInfo extends Component {
                           )}
                         </tbody>
                       </table>
+                      {this.state.capturePayment && (
+                        <PayNow
+                          locale={this.props.locale}
+                          currency={this.props.currency}
+                          total={this.state.total}
+                          fetchPOSCards={this.props.fetchPOSCards}
+                          posCardsLoading={this.props.posCardsLoading}
+                          posCards={this.props.posCards}
+                          addCashPaymentValue={this.props.addCashPaymentValue}
+                          memberItem={this.props.memberItem}
+                          space={this.props.space}
+                          kapp={this.props.kapp}
+                          spaceSlug={this.props.space.slug}
+                          snippets={this.props.snippets}
+                          addNotification={this.props.addNotification}
+                          billingInfo={this.props.billingInfo}
+                        />
+                      )}
                     </span>
                   )}
                   <hr />
@@ -1403,6 +2262,10 @@ export class BillingInfo extends Component {
                   locale={this.props.locale}
                   space={this.props.space}
                   snippets={this.props.snippets}
+                  memberCashPayments={this.props.memberCashPayments}
+                  memberCashPaymentsLoading={
+                    this.props.memberCashPaymentsLoading
+                  }
                 />
               )}
             </div>
@@ -1486,6 +2349,10 @@ export const Billing = ({
   snippets,
   currency,
   locale,
+  addCashPaymentValue,
+  memberCashPayments,
+  memberCashPaymentsLoading,
+  fetchMemberCashPayments,
 }) =>
   currentMemberLoading ? (
     <div />
@@ -1519,11 +2386,12 @@ export const Billing = ({
               paymentHistoryLoading={paymentHistoryLoading}
               fetchPOSCards={fetchPOSCards}
               setPOSCards={setPOSCards}
-              posCords={posCards}
+              posCards={posCards}
               posCardsLoading={posCardsLoading}
               billingWidgetUrl={billingWidgetUrl}
               setIsAddMember={setIsAddMember}
               billingCompany={billingCompany}
+              updateMember={updateMember}
               updatePaymentMethod={updatePaymentMethod}
               refundPayment={refundPayment}
               refundTransactionInProgress={refundTransactionInProgress}
@@ -1536,6 +2404,10 @@ export const Billing = ({
               snippets={snippets}
               currency={currency}
               locale={locale}
+              addCashPaymentValue={addCashPaymentValue}
+              memberCashPayments={memberCashPayments}
+              memberCashPaymentsLoading={memberCashPaymentsLoading}
+              fetchMemberCashPayments={fetchMemberCashPayments}
             />
           )}
           {/*(memberItem.values['Billing Customer Id'] === null ||
@@ -1921,6 +2793,24 @@ export const BillingContainer = compose(
         addNotification: addNotification,
         setSystemError: setSystemError,
       });
+    },
+    addCashPaymentValue: ({
+      addCashPayment,
+      updateMember,
+      addNotification,
+      setSystemError,
+      setIsDirty,
+    }) => (values, completeCashPayment, nextBillingDate, memberItem) => {
+      let args = {};
+      args.values = values;
+      args.completeCashPayment = completeCashPayment;
+      args.nextBillingDate = nextBillingDate;
+      args.memberItem = memberItem;
+      args.updateMember = updateMember;
+      args.addNotification = addNotification;
+      args.setSystemError = setSystemError;
+
+      addCashPayment(args);
     },
     refundPayment: ({
       memberItem,
