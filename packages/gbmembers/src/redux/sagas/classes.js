@@ -60,6 +60,10 @@ export function* fetchClassSchedules(action) {
           cancellationCutoff:
             classSchedulesSubmissions[i].values['Cancellation Cutoff'],
           coaches: classSchedulesSubmissions[i].values['Coaches'],
+          acceptTrials:
+            classSchedulesSubmissions[i].values['Accept Trial Bookings'],
+          studentType: classSchedulesSubmissions[i].values['Trial Type'],
+          ageInfo: classSchedulesSubmissions[i].values['Child Trial Ages'],
         },
       );
     }

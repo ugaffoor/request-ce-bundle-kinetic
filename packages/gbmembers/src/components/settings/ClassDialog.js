@@ -55,6 +55,9 @@ export class ClassDialog extends Component {
       this.state.allowedPrograms,
       this.state.cancellationCutoff,
       this.state.coaches,
+      this.state.acceptTrials,
+      this.state.studentType,
+      this.state.ageInfo,
       this.state.event,
     );
     this.setState({
@@ -66,6 +69,9 @@ export class ClassDialog extends Component {
       textColor: undefined,
       allowedPrograms: undefined,
       cancellationCutoff: undefined,
+      acceptTrials: undefined,
+      studentType: undefined,
+      ageInfo: undefined,
       coaches: undefined,
     });
   };
@@ -155,6 +161,9 @@ export class ClassDialog extends Component {
         coaches: this.props.event.coaches,
         cancellationCutoff: this.props.event.cancellationCutoff,
         displayColorPicker: false,
+        acceptTrials: this.props.event.acceptTrials,
+        studentType: this.props.event.studentType,
+        ageInfo: this.props.event.ageInfo,
       };
     } else {
       this.state = {
@@ -170,6 +179,9 @@ export class ClassDialog extends Component {
         allowedPrograms: [],
         coaches: undefined,
         cancellationCutoff: undefined,
+        acceptTrials: undefined,
+        studentType: undefined,
+        ageInfo: undefined,
       };
     }
   }
@@ -379,6 +391,72 @@ export class ClassDialog extends Component {
                   isMulti={true}
                 />
               </div>
+              <div className="titleDiv form-group">
+                <label htmlFor="acceptTrials">Accept Trial Bookings</label>
+                <input
+                  type="checkbox"
+                  name="acceptTrials"
+                  id="acceptTrials"
+                  checked={this.state.acceptTrials === 'YES' ? true : false}
+                  onChange={e => {
+                    const isChecked = e.target.checked;
+                    this.setState({ acceptTrials: isChecked ? 'YES' : '' });
+                  }}
+                />
+              </div>
+              {this.state.acceptTrials && (
+                <div className="trialInfo">
+                  <div className="radioGroup">
+                    <label htmlFor="adult" className="radio">
+                      <input
+                        id="adult"
+                        name="studentType"
+                        type="radio"
+                        checked={
+                          this.state.studentType === 'Adult' ? true : false
+                        }
+                        onChange={e => {
+                          this.setState({
+                            studentType: 'Adult',
+                          });
+                        }}
+                      />
+                      Adult
+                    </label>
+                    <label htmlFor="child" className="radio">
+                      <input
+                        id="child"
+                        name="studentType"
+                        type="radio"
+                        checked={
+                          this.state.studentType === 'Child' ? true : false
+                        }
+                        onChange={e => {
+                          this.setState({
+                            studentType: 'Child',
+                          });
+                        }}
+                      />
+                      Child
+                    </label>
+                  </div>
+                </div>
+              )}
+              {this.state.studentType === 'Child' && (
+                <div className="titleDiv form-group">
+                  <label htmlFor="ageInfo">Age Information</label>
+                  <input
+                    type="text"
+                    name="ageInfo"
+                    id="ageInfo"
+                    placeHolder="Describe age group of students"
+                    value={this.state.ageInfo}
+                    onChange={e => {
+                      this.setState({ ageInfo: e.target.value });
+                    }}
+                  />
+                </div>
+              )}
               {this.state.event !== undefined && (
                 <button
                   type="button"
@@ -406,7 +484,7 @@ export class ClassDialog extends Component {
 const enhance = compose(connect(mapStateToProps, mapDispatchToProps));
 const inlineStyle = {
   width: '500px',
-  top: '30%',
+  top: '20%',
   left: '20%',
 };
 

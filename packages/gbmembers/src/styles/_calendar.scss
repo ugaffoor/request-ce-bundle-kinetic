@@ -39,6 +39,22 @@
   .btn {
     margin: 5px;
   }
+  #acceptTrials {
+    height: 25px;
+    width: 25px;
+  }
+  .trialInfo {
+    margin-left: 26%;
+  }
+  #adult,
+  #child {
+    width: 20px;
+    height: 20px;
+  }
+  #ageInfo {
+    width: 70%;
+    -webkit-text-fill-color: unset;
+  }
 }
 .scheduleCalendar,
 #dayClasses {

@@ -105,6 +105,9 @@ export class ClassesCalendar extends Component {
     allowedPrograms,
     cancellationCutoff,
     coaches,
+    acceptTrials,
+    studentType,
+    ageInfo,
     event,
   ) => {
     if (event === undefined) {
@@ -122,6 +125,9 @@ export class ClassesCalendar extends Component {
       values['Allowed Programs'] = allowedPrograms;
       values['Coaches'] = coaches;
       values['Cancellation Cutoff'] = cancellationCutoff;
+      values['Accept Trial Bookings'] = acceptTrials;
+      values['Trial Type'] = studentType;
+      values['Child Trial Ages'] = ageInfo;
 
       this.setState({
         events: [
@@ -138,6 +144,9 @@ export class ClassesCalendar extends Component {
             allowedPrograms,
             coaches,
             cancellationCutoff,
+            acceptTrials,
+            studentType,
+            ageInfo,
           },
         ],
         showClassDialog: false,
@@ -158,6 +167,10 @@ export class ClassesCalendar extends Component {
         events[idx].allowedPrograms = allowedPrograms;
         events[idx].coaches = coaches;
         events[idx].cancellationCutoff = cancellationCutoff;
+        events[idx].acceptTrials = acceptTrials;
+        events[idx].studentType = studentType;
+        events[idx].ageInfo = ageInfo;
+
         return { events };
       });
       this.setState({
@@ -175,6 +188,9 @@ export class ClassesCalendar extends Component {
       values['Allowed Programs'] = allowedPrograms;
       values['Coaches'] = coaches;
       values['Cancellation Cutoff'] = cancellationCutoff;
+      values['Accept Trial Bookings'] = acceptTrials;
+      values['Trial Type'] = studentType;
+      values['Child Trial Ages'] = ageInfo;
 
       this.editClass({
         id: event.classID,
@@ -196,16 +212,12 @@ export class ClassesCalendar extends Component {
         scheduledClass.allowedPrograms = allowedPrograms;
         scheduledClass.coaches = coaches;
         scheduledClass.cancellationCutoff = cancellationCutoff;
+        scheduledClass.acceptTrials = acceptTrials;
+        scheduledClass.studentType = studentType;
+        scheduledClass.ageInfo = ageInfo;
       }
     }
   };
-
-  getData(data) {
-    if (!data || data.size <= 0) {
-      return [];
-    }
-    return data;
-  }
   handleSelect = ({ start, end }) => {
     this.setState({
       showClassDialog: true,
@@ -328,6 +340,9 @@ export class ClassesCalendar extends Component {
             allowedPrograms={this.allowedPrograms}
             coaches={this.coaches}
             cancellationCutoff={this.cancellationCutoff}
+            acceptTrials={this.acceptTrials}
+            studentType={this.studentType}
+            ageInfo={this.ageInfo}
             cancelDialog={this.cancelDialog}
             applyDates={this.applyDates}
             deleteEvent={this.deleteEvent}
