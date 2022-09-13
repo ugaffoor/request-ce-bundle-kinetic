@@ -514,7 +514,6 @@ export class LeadNew extends Component {
                     }
                     mask="_"
                     ref={input => (this.input = input)}
-                    value={this.props.leadItem.values['Phone Number']}
                     onValueChange={(values, e) =>
                       handleFormattedChange(
                         values,

@@ -629,31 +629,33 @@ export class MemberFinancialReport extends Component {
         while (nextBillingDate.isBefore(fromDate)) {
           nextBillingDate = nextBillingDate.add(period, periodCount);
         }
-        var count = 1;
-        while (
-          (nextBillingDate.isAfter(fromDate) ||
-            nextBillingDate.isSame(fromDate)) &&
-          (nextBillingDate.isBefore(toDate) || nextBillingDate.isSame(toDate))
-        ) {
-          forecastHolders[forecastHolders.length] = member;
-          forecastHoldersValue += Number(member.billingAmount);
-          console.log(
-            'Forecast,' +
-              count +
-              ' ' +
-              member['firstName'] +
-              ' ' +
-              member['lastName'] +
-              ' - ' +
-              member['billingId'] +
-              ',' +
-              Number(member.billingAmount).toFixed(2) +
-              ',' +
-              nextBillingDate.format('YYYY-MM-DD'),
-          );
+        if (toDate.isAfter(moment())) {
+          var count = 1;
+          while (
+            (nextBillingDate.isAfter(fromDate) ||
+              nextBillingDate.isSame(fromDate)) &&
+            (nextBillingDate.isBefore(toDate) || nextBillingDate.isSame(toDate))
+          ) {
+            forecastHolders[forecastHolders.length] = member;
+            forecastHoldersValue += Number(member.billingAmount);
+            console.log(
+              'Forecast,' +
+                count +
+                ' ' +
+                member['firstName'] +
+                ' ' +
+                member['lastName'] +
+                ' - ' +
+                member['billingId'] +
+                ',' +
+                Number(member.billingAmount).toFixed(2) +
+                ',' +
+                nextBillingDate.format('YYYY-MM-DD'),
+            );
 
-          nextBillingDate = nextBillingDate.add(period, periodCount);
-          count += 1;
+            nextBillingDate = nextBillingDate.add(period, periodCount);
+            count += 1;
+          }
         }
       }
     });
@@ -696,17 +698,19 @@ export class MemberFinancialReport extends Component {
       while (nextBillingDate.isBefore(fromDate)) {
         nextBillingDate = nextBillingDate.add(period, periodCount);
       }
-      var count = 1;
-      while (
-        (nextBillingDate.isAfter(fromDate) ||
-          nextBillingDate.isSame(fromDate)) &&
-        (nextBillingDate.isBefore(toDate) || nextBillingDate.isSame(toDate))
-      ) {
-        forecastHolders[forecastHolders.length] = service;
-        forecastHoldersValue += Number(service.values['Fee']);
+      if (toDate.isAfter(moment())) {
+        var count = 1;
+        while (
+          (nextBillingDate.isAfter(fromDate) ||
+            nextBillingDate.isSame(fromDate)) &&
+          (nextBillingDate.isBefore(toDate) || nextBillingDate.isSame(toDate))
+        ) {
+          forecastHolders[forecastHolders.length] = service;
+          forecastHoldersValue += Number(service.values['Fee']);
 
-        nextBillingDate = nextBillingDate.add(period, periodCount);
-        count += 1;
+          nextBillingDate = nextBillingDate.add(period, periodCount);
+          count += 1;
+        }
       }
     });
 
