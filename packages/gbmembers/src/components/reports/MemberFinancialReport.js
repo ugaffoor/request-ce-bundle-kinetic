@@ -339,7 +339,7 @@ export class MemberFinancialReport extends Component {
     if (
       payment['paymentReference'] !== null &&
       payment['paymentReference'] !== undefined &&
-      payment['paymentReference'] !== ''
+      payment['paymentReference'].trim() !== ''
     )
       return undefined;
     var idx = members.findIndex(
