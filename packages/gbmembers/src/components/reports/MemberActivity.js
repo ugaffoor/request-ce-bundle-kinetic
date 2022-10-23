@@ -86,6 +86,7 @@ export class MemberActivityReport extends Component {
       { title: 'Account Created', field: 'accountCreated' },
       { title: 'Covid19 Waiver', field: 'covid19Waiver' },
       { title: 'Opt-Out', field: 'optout' },
+      { title: 'Barcode', field: 'barcode' },
       {
         title: 'Cost',
         field: 'cost',
@@ -217,6 +218,7 @@ export class MemberActivityReport extends Component {
       { label: 'Account Created', value: 'accountCreated' },
       { label: 'Covid19 Waiver', value: 'covid19Waiver' },
       { label: 'Opt-Out', value: 'optout' },
+      { label: 'Barcode', value: 'barcode' },
       { label: 'Cost', value: 'cost', key: 'cost' },
       { label: 'Average', value: 'average', key: 'cost' },
       { label: 'Payment Period', value: 'paymentPeriod' },
@@ -254,6 +256,7 @@ export class MemberActivityReport extends Component {
           { label: 'Account Created', value: 'accountCreated' },
           { label: 'Covid19 Waiver', value: 'covid19Waiver' },
           { label: 'Opt-Out', value: 'optout' },
+          { label: 'Barcode', value: 'barcode' },
           { label: 'Belt', value: 'belt' },
           { label: 'Emergency Contact Name', value: 'emergencyContactName' },
           { label: 'Additional Program 1', value: 'additionalProgram1' },
@@ -334,6 +337,7 @@ export class MemberActivityReport extends Component {
       { label: 'Account Created', value: 'accountCreated' },
       { label: 'Covid19 Waiver', value: 'covid19Waiver' },
       { label: 'Opt-Out', value: 'optout' },
+      { label: 'Barcode', value: 'barcode' },
       { label: 'Notes', value: 'history' },
       { label: 'Cost', value: 'cost', key: 'cost' },
       { label: 'Fee', value: 'fee', key: 'fee' },
@@ -1110,6 +1114,12 @@ export class MemberActivityReport extends Component {
         accountCreated: member.user !== undefined ? 'YES' : 'NO',
         covid19Waiver: member.values['Covid19 Waiver'],
         optout: member.values['Opt-Out'] === 'YES' ? 'YES' : '',
+        barcode:
+          member.values['Alternate Barcode'] !== '' &&
+          member.values['Alternate Barcode'] !== undefined &&
+          member.values['Alternate Barcode'] !== null
+            ? member.values['Alternate Barcode']
+            : member.id.split('-')[4].substring(6, 12),
         cost:
           member.values['Billing User'] === 'YES'
             ? member.values['Membership Cost']

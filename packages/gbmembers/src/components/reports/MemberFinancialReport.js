@@ -214,7 +214,14 @@ export class MemberFinancialReport extends Component {
         'nextProps.customerRefunds:' + nextProps.customerRefunds.length,
       );
       nextProps.customerRefunds.forEach((item, i) => {
-        this.refunds[this.refunds.length] = item;
+        if (
+          moment(item.debitDate, 'YYYY-MM-DD HH:mm:ss').isBetween(
+            this.state.repFromDate,
+            this.state.repToDate,
+          )
+        ) {
+          this.refunds[this.refunds.length] = item;
+        }
       });
 
       let memberData = this.getMemberData(
@@ -223,6 +230,7 @@ export class MemberFinancialReport extends Component {
         nextProps.billingCustomers,
         uniqueFailedHistory,
         this.paymentHistory,
+        this.props.paymentHistory,
         this.posOrders,
         this.refunds,
         this.props.additionalServices,
@@ -253,7 +261,7 @@ export class MemberFinancialReport extends Component {
     var dateFrom = moment(this.state.repFromDate).format('YYYY-MM-DD');
     if (getAttributeValue(this.props.space, 'Billing Company') === 'Bambora') {
       dateFrom = moment(this.state.repFromDate)
-        .subtract('months', 1)
+        .subtract('months', 2)
         .format('YYYY-MM-DD');
     }
     this.props.fetchPaymentHistory({
@@ -273,10 +281,8 @@ export class MemberFinancialReport extends Component {
       paymentMethod: 'ALL',
       paymentSource: 'ALL',
       dateField: 'PAYMENT',
-      dateFrom: moment()
-        .subtract(6, 'month')
-        .format('YYYY-MM-DD'),
-      dateTo: moment().format('YYYY-MM-DD'),
+      dateFrom: dateFrom,
+      dateTo: this.state.repToDate.format('YYYY-MM-DD'),
       setPaymentHistory: this.props.setPaymentHistory,
       internalPaymentType: 'client_failed',
       addNotification: this.props.addNotification,
@@ -339,7 +345,7 @@ export class MemberFinancialReport extends Component {
     if (
       payment['paymentReference'] !== null &&
       payment['paymentReference'] !== undefined &&
-      payment['paymentReference'] !== ''
+      payment['paymentReference'].trim() !== ''
     )
       return undefined;
     var idx = members.findIndex(
@@ -382,6 +388,18 @@ export class MemberFinancialReport extends Component {
       dateTo: toDate.format('YYYY-MM-DD'),
       setPaymentHistory: this.props.setPaymentHistory,
       internalPaymentType: 'client_successful',
+      addNotification: this.props.addNotification,
+      setSystemError: this.props.setSystemError,
+    });
+    this.props.fetchPaymentHistory({
+      paymentType: 'FAILED',
+      paymentMethod: 'ALL',
+      paymentSource: 'ALL',
+      dateField: 'PAYMENT',
+      dateFrom: dateFrom,
+      dateTo: toDate.format('YYYY-MM-DD'),
+      setPaymentHistory: this.props.setPaymentHistory,
+      internalPaymentType: 'client_failed',
       addNotification: this.props.addNotification,
       setSystemError: this.props.setSystemError,
     });
@@ -432,6 +450,7 @@ export class MemberFinancialReport extends Component {
     billingCustomers,
     failedPaymentHistory,
     paymentHistory,
+    fullPaymentHistory,
     posOrders,
     customerRefunds,
     additionalServicesRecords,
@@ -449,6 +468,7 @@ export class MemberFinancialReport extends Component {
         posPayments: { members: [], value: 0 },
         salesTax: { members: [], value: 0 },
         refundMembers: { members: [], value: 0 },
+        refundPOS: { members: [], value: 0 },
       };
     }
     // billingAmount, repBillingPeriod
@@ -462,6 +482,8 @@ export class MemberFinancialReport extends Component {
     let posPaymentsValue = 0;
     let refundMembers = [];
     let refundValue = 0;
+    let refundPOS = [];
+    let refundPOSValue = 0;
     let cashPayments = [];
     let cashPaymentsValue = 0;
     paymentHistory.forEach(payment => {
@@ -767,29 +789,28 @@ export class MemberFinancialReport extends Component {
           refundMembers[mIdx]['refundValue'] += refund.paymentAmount;
         }
       } else {
-        var pIdx = paymentHistory.findIndex(
+        var pIdx = fullPaymentHistory.findIndex(
           payment => payment.paymentID === refund.yourSystemReference,
         );
         if (pIdx !== -1) {
           var mIdx = members.findIndex(
             member =>
               member.values['Billing Customer Id'] ===
-              refund.yourSystemReference,
+              fullPaymentHistory[pIdx].yourSystemReference,
           );
           if (mIdx !== -1) {
-            if (
-              refundMembers.findIndex(
-                item =>
-                  item.member.values['Member ID'] ===
-                  members[mIdx].member.values['Member ID'],
-              ) === -1
-            ) {
+            var rIdx = refundMembers.findIndex(
+              item =>
+                item.member.values['Member ID'] ===
+                members[mIdx].values['Member ID'],
+            );
+            if (rIdx === -1) {
               refundMembers[refundMembers.length] = {
-                member: members[idx],
+                member: members[mIdx],
                 refundValue: refund.paymentAmount,
               };
             } else {
-              refundMembers[mIdx]['refundValue'] += refund.paymentAmount;
+              refundMembers[rIdx]['refundValue'] += refund.paymentAmount;
             }
           }
         }

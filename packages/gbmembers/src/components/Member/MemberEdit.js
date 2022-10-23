@@ -665,6 +665,31 @@ export const MemberEdit = ({
                     </span>
                     <span className="line">
                       <div>
+                        <label htmlFor="billingFamilyMembers">
+                          Billing Family Members
+                        </label>
+                        <input
+                          type="text"
+                          name="billingFamilyMembers"
+                          id="billingFamilyMembers"
+                          size="90"
+                          ref={input => (this.input = input)}
+                          defaultValue={
+                            memberItem.values['Billing Family Members']
+                          }
+                          onChange={e =>
+                            handleChange(
+                              memberItem,
+                              'Billing Family Members',
+                              e,
+                              setIsDirty,
+                            )
+                          }
+                        />
+                      </div>
+                    </span>
+                    <span className="line">
+                      <div>
                         <label htmlFor="resumeDate">Resume Date</label>
                         <input
                           type="text"
