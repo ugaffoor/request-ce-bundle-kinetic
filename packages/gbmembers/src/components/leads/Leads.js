@@ -88,7 +88,11 @@ function getLatestHistory(history) {
         'YYYY-MM-DD HH:mm',
         'YYYY-MM-DDTHH:mm:ss',
       ]).isBefore(
-        moment(b['contactDate'], ['YYYY-MM-DD HH:mm', 'YYYY-MM-DDTHH:mm:ss']),
+        moment(b['contactDate'], [
+          'YYYY-MM-DD HH:mm',
+          'YYYY-MM-DDTHH:mm:ss',
+          'YYYY-MM-DDTHH:mm:ssZ',
+        ]),
       )
     ) {
       return 1;
@@ -98,7 +102,11 @@ function getLatestHistory(history) {
         'YYYY-MM-DD HH:mm',
         'YYYY-MM-DDTHH:mm:ss',
       ]).isAfter(
-        moment(b['contactDate'], ['YYYY-MM-DD HH:mm', 'YYYY-MM-DDTHH:mm:ss']),
+        moment(b['contactDate'], [
+          'YYYY-MM-DD HH:mm',
+          'YYYY-MM-DDTHH:mm:ss',
+          'YYYY-MM-DDTHH:mm:ssZ',
+        ]),
       )
     ) {
       return -1;
@@ -364,55 +372,87 @@ export class TasksDetail extends Component {
       return (
         <span className="notesCell phone">
           <img src={phone} alt="Phone Call" title="Phone Call" />
-          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format('L LT')}
+          {moment(row.original.contactDate, [
+            'YYYY-MM-DD HH:mm',
+            'YYYY-MM-DDTHH:mm:ss',
+            'YYYY-MM-DDTHH:mm:ssZ',
+          ]).format('L LT')}
         </span>
       );
     } else if (row.original.contactMethod === 'email') {
       return (
         <span className="notesCell email">
           <img src={mail} alt="Email" title="Phone Call" />
-          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format('L LT')}
+          {moment(row.original.contactDate, [
+            'YYYY-MM-DD HH:mm',
+            'YYYY-MM-DDTHH:mm:ss',
+            'YYYY-MM-DDTHH:mm:ssZ',
+          ]).format('L LT')}
         </span>
       );
     } else if (row.original.contactMethod === 'in_person') {
       return (
         <span className="notesCell in-person">
           <img src={in_person} alt="In Person" title="Phone Call" />
-          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format('L LT')}
+          {moment(row.original.contactDate, [
+            'YYYY-MM-DD HH:mm',
+            'YYYY-MM-DDTHH:mm:ss',
+            'YYYY-MM-DDTHH:mm:ssZ',
+          ]).format('L LT')}
         </span>
       );
     } else if (row.original.contactMethod === 'intro_class') {
       return (
         <span className="notesCell intro_class">
           <img src={intro_class} alt="Intro Class" title="Phone Call" />
-          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format('L LT')}
+          {moment(row.original.contactDate, [
+            'YYYY-MM-DD HH:mm',
+            'YYYY-MM-DDTHH:mm:ss',
+            'YYYY-MM-DDTHH:mm:ssZ',
+          ]).format('L LT')}
         </span>
       );
     } else if (row.original.contactMethod === 'free_class') {
       return (
         <span className="notesCell free_class">
           <img src={free_class} alt="Free Class" title="Phone Call" />
-          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format('L LT')}
+          {moment(row.original.contactDate, [
+            'YYYY-MM-DD HH:mm',
+            'YYYY-MM-DDTHH:mm:ss',
+            'YYYY-MM-DDTHH:mm:ssZ',
+          ]).format('L LT')}
         </span>
       );
     } else if (row.original.contactMethod === 'attended_class') {
       return (
         <span className="notesCell attended_class">
           <img src={attended_class} alt="Attended Class" title="Phone Call" />
-          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format('L LT')}
+          {moment(row.original.contactDate, [
+            'YYYY-MM-DD HH:mm',
+            'YYYY-MM-DDTHH:mm:ss',
+            'YYYY-MM-DDTHH:mm:ssZ',
+          ]).format('L LT')}
         </span>
       );
     } else if (row.original.contactMethod === 'noshow_class') {
       return (
         <span className="notesCell noshow_class">
           <img src={noshow_class} alt="Class No Show" title="Class No Show" />
-          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format('L LT')}
+          {moment(row.original.contactDate, [
+            'YYYY-MM-DD HH:mm',
+            'YYYY-MM-DDTHH:mm:ss',
+            'YYYY-MM-DDTHH:mm:ssZ',
+          ]).format('L LT')}
         </span>
       );
     } else {
       return (
         <span className="notesCell">
-          {moment(row.original.contactDate, 'YYYY-MM-DD HH:mm').format('L LT')}
+          {moment(row.original.contactDate, [
+            'YYYY-MM-DD HH:mm',
+            'YYYY-MM-DDTHH:mm:ss',
+            'YYYY-MM-DDTHH:mm:ssZ',
+          ]).format('L LT')}
         </span>
       );
     }

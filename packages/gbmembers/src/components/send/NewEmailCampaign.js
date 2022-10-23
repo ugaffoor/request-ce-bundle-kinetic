@@ -390,6 +390,7 @@ export class NewEmailCampaign extends Component {
       return;
     }
 
+    $('#saveButton').prop('disabled', true);
     let recipientIds = [];
     if (this.props.submissionId) {
       recipientIds = [this.props.submissionId];
