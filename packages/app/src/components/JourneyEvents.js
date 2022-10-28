@@ -22,13 +22,7 @@ export const JourneyEvents = ({
     <DropdownToggle nav role="button">
       <i className="fa fa-fw fa-bell" />
       {journeyevents.size > 0 && (
-        <span className="badge badge-secondary">
-          {
-            journeyevents.filter(
-              journeyevent => journeyevent.values['Status'] === 'New',
-            ).size
-          }
-        </span>
+        <span className="badge badge-secondary">{journeyevents.size}</span>
       )}
     </DropdownToggle>
     <DropdownMenu right className="events-menu">

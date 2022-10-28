@@ -566,7 +566,9 @@ class AttendanceCardToPrint extends React.Component {
           id="attendanceCard_p1"
           className={
             'card1 ' +
-            this.props.memberItem.values['Ranking Program'].replace(/ /g, '_')
+            this.props.memberItem.values['Ranking Program']
+              .replace(/ /g, '_')
+              .replace(/\+/g, '_')
           }
         >
           <div className="photoDiv">
@@ -589,7 +591,9 @@ class AttendanceCardToPrint extends React.Component {
           <div
             className={
               'attendanceBarcode ' +
-              this.props.memberItem.values['Ranking Program'].replace(/ /g, '_')
+              this.props.memberItem.values['Ranking Program']
+                .replace(/ /g, '_')
+                .replace(/\+/g, '_')
             }
           >
             <Barcode
@@ -610,7 +614,9 @@ class AttendanceCardToPrint extends React.Component {
           <div
             className={
               'attendanceName ' +
-              this.props.memberItem.values['Ranking Program'].replace(/ /g, '_')
+              this.props.memberItem.values['Ranking Program']
+                .replace(/ /g, '_')
+                .replace(/\+/g, '_')
             }
           >
             <p>
@@ -663,7 +669,9 @@ class AttendanceCardToPrint extends React.Component {
           id="attendanceCard_p2"
           className={
             'card2 ' +
-            this.props.memberItem.values['Ranking Program'].replace(/ /g, '_')
+            this.props.memberItem.values['Ranking Program']
+              .replace(/ /g, '_')
+              .replace(/\+/g, '_')
           }
         ></div>
       </div>
@@ -1365,8 +1373,8 @@ export const MemberView = ({
                   memberItem.values['Billing Payment Type'] === 'Cash' ||
                   memberItem.values['Non Paying'] === 'YES' ||
                   memberItem.values['Billing Customer Id'] === undefined ||
-                    memberItem.values['Billing Customer Id'] === '' ||
-                    memberItem.values['Billing Customer Id'] === null
+                  memberItem.values['Billing Customer Id'] === '' ||
+                  memberItem.values['Billing Customer Id'] === null
                     ? 'billingInfo show'
                     : 'hide'
                 }

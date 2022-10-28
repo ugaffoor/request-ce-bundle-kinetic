@@ -42,6 +42,7 @@ function EventWeek({ event }) {
         {event.maxStudents}
       </em>
       <p>{event.title}</p>
+      <p>{event.acceptTrials === 'YES' ? 'Accept Trials' : ''}</p>
     </span>
   );
 }
