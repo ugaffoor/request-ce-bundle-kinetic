@@ -35,7 +35,6 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = {
-  fetchMembers: actions.fetchMembers,
   updateMembersList: appActions.updateMembersList,
 };
 var compThis = undefined;

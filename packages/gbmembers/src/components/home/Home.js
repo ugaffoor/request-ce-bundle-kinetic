@@ -60,7 +60,6 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = {
   fetchCurrentMember: actions.fetchCurrentMember,
-  fetchMembers: actions.fetchMembers,
   fetchBillingPayments: actions.fetchBillingPayments,
   fetchLeadsByDate: leadsActions.fetchLeadsByDate,
   fetchAttendancesByDate: attendanceActions.fetchAttendancesByDate,

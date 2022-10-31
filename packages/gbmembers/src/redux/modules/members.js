@@ -18,6 +18,7 @@ export const types = {
   BILLER_ACTIVATED: namespace('members', 'BILLER_ACTIVATED'),
   UPDATE_MEMBER: namespace('members', 'UPDATE_MEMBER'),
   MEMBER_SAVED: namespace('members', 'MEMBER_SAVED'),
+  MEMBER_DELETED: namespace('members', 'MEMBER_DELETED'),
   CREATE_MEMBER: namespace('members', 'CREATE_MEMBER'),
   DELETE_MEMBER: namespace('members', 'DELETE_MEMBER'),
   DELETE_MEMBER_FILE: namespace('members', 'DELETE_MEMBER_FILE'),
@@ -122,6 +123,7 @@ export const actions = {
   activateBiller: withPayload(types.ACTIVATE_BILLER),
   updateMember: withPayload(types.UPDATE_MEMBER),
   memberSaved: withPayload(types.MEMBER_SAVED),
+  memberDeleted: withPayload(types.MEMBER_DELETED),
   billerActivated: withPayload(types.BILLER_ACTIVATED),
   createMember: withPayload(types.CREATE_MEMBER),
   deleteMember: withPayload(types.DELETE_MEMBER),
@@ -198,6 +200,7 @@ export const actions = {
 
 export const State = Record({
   allMembers: [],
+  memberLastFetchTime: undefined,
   currentMember: {},
   newMember: {},
   initialLoad: true,
@@ -285,8 +288,9 @@ export const reducer = (state = State(), { type, payload }) => {
     case types.FETCH_NEW_MEMBER:
       return state.set('newMemberLoading', true);
     case types.SET_MEMBERS: {
+      var allMembers = state.get('allMembers');
+
       let attentionRequired = false;
-      // Apply currentFilter
       var members = [];
       for (var k = 0; k < payload.members.length; k++) {
         setMemberPromotionValues(payload.members[k], payload.belts);
@@ -299,9 +303,24 @@ export const reducer = (state = State(), { type, payload }) => {
         }
       }
 
+      if (allMembers.length === 0) {
+        allMembers = members;
+      } else {
+        for (var k = 0; k < members.length; k++) {
+          var mIdx = allMembers.findIndex(
+            member => member.id === members[k].id,
+          );
+          if (mIdx !== -1) {
+            allMembers[mIdx] = members[k];
+          } else {
+            allMembers.push(members[k]);
+          }
+        }
+      }
       return state
         .set('membersLoading', false)
-        .set('allMembers', members)
+        .set('allMembers', allMembers)
+        .set('memberLastFetchTime', moment().format('YYYY-MM-DDTHH:mm:ssZ'))
         .set('memberAttentionRequired', attentionRequired);
     }
     case types.UPDATE_ALL_MEMBERS: {
@@ -521,6 +540,9 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('memberUpdating', false)
         .set('allMembers', allMembers)
         .set('memberAttentionRequired', attentionRequired);
+    }
+    case types.MEMBER_DELETED: {
+      return state.set('allMembers', payload.allMembers);
     }
     case types.ACTIVATE_BILLER: {
       return state.set('activatingBiller', true);

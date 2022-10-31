@@ -41,8 +41,6 @@ export function* createEmailCampaign(action) {
 
     if (action.payload.history)
       action.payload.history.push('/kapps/gbmembers/Send');
-    //if (action.payload.fetchLeads)
-    //action.payload.fetchLeads();
     console.log('createCampaign # ' + submission);
     yield put(
       errorActions.addSuccess(

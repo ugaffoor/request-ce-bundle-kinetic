@@ -1,4 +1,5 @@
 import { Record } from 'immutable';
+import moment from 'moment';
 
 import { namespace, withPayload } from '../../utils';
 
@@ -14,6 +15,7 @@ export const types = {
   LEAD_SAVED: namespace('leads', 'LEAD_SAVED'),
   CREATE_LEAD: namespace('leads', 'CREATE_LEAD'),
   DELETE_LEAD: namespace('leads', 'DELETE_LEAD'),
+  LEAD_DELETED: namespace('leads', 'LEAD_DELETED'),
   FETCH_NEW_LEAD: namespace('leads', 'FETCH_NEW_LEAD'),
   SET_NEW_LEAD: namespace('leads', 'SET_NEW_LEAD'),
 };
@@ -30,12 +32,14 @@ export const actions = {
   leadSaved: withPayload(types.LEAD_SAVED),
   createLead: withPayload(types.CREATE_LEAD),
   deleteLead: withPayload(types.DELETE_LEAD),
+  leadDeleted: withPayload(types.LEAD_DELETED),
   fetchNewLead: withPayload(types.FETCH_NEW_LEAD),
   setNewLead: withPayload(types.SET_NEW_LEAD),
 };
 
 export const State = Record({
   allLeads: [],
+  leadLastFetchTime: undefined,
   leadsByDate: [],
   currentLead: {},
   newLead: {},
@@ -58,19 +62,36 @@ export const reducer = (state = State(), { type, payload }) => {
     case types.FETCH_NEW_LEAD:
       return state.set('newLeadLoading', true);
     case types.SET_LEADS: {
+      var allLeads = state.get('allLeads');
       let attentionRequired = false;
-      if (
-        payload.findIndex(
-          lead =>
-            lead.values['Status'] !== 'Converted' &&
-            lead.values['Is New Reply Received'] === 'true',
-        ) !== -1
-      ) {
-        attentionRequired = true;
+      var leads = [];
+      for (var k = 0; k < payload.length; k++) {
+        leads[leads.length] = payload[k];
+        if (
+          leads[k].values['Status'] !== 'Converted' &&
+          leads[k].values['Is New Reply Received'] === 'true'
+        ) {
+          attentionRequired = true;
+        }
       }
+
+      if (allLeads.length === 0) {
+        allLeads = leads;
+      } else {
+        for (var k = 0; k < leads.length; k++) {
+          var mIdx = allLeads.findIndex(lead => lead.id === leads[k].id);
+          if (mIdx !== -1) {
+            allLeads[mIdx] = leads[k];
+          } else {
+            allLeads.push(leads[k]);
+          }
+        }
+      }
+
       return state
         .set('leadsLoading', false)
-        .set('allLeads', payload)
+        .set('allLeads', allLeads)
+        .set('leadLastFetchTime', moment().format('YYYY-MM-DDTHH:mm:ssZ'))
         .set('leadAttentionRequired', attentionRequired);
     }
     case types.SET_LEADS_BY_DATE: {
@@ -97,6 +118,9 @@ export const reducer = (state = State(), { type, payload }) => {
     }
     case types.UPDATE_LEAD: {
       return state.set('leadUpdating', true);
+    }
+    case types.LEAD_DELETED: {
+      return state.set('allLeads', payload.allLeads);
     }
     case types.LEAD_SAVED: {
       var allLeads = payload.allLeads;

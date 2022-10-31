@@ -18,7 +18,6 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = {
-  fetchLeads: actions.fetchLeads,
   addLeadsList: appActions.addLeadsList,
   removeLeadsList: appActions.removeLeadsList,
   setSidebarDisplayType: appActions.setSidebarDisplayType,

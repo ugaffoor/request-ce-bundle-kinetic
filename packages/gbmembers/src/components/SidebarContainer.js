@@ -18,6 +18,7 @@ const mapStateToProps = state => ({
   supportUrl: state.member.app.supportUrl,
   sidebarDisplayType: state.member.app.sidebarDisplayType,
   allMembers: state.member.members.allMembers,
+  memberLastFetchTime: state.member.members.memberLastFetchTime,
   allLeads: state.member.leads.allLeads,
   currentFilter: state.member.members.currentFilter,
   membersLoading: state.member.members.membersLoading,
@@ -35,7 +36,6 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = {
   fetchMembers: memberActions.fetchMembers,
-  fetchLeads: memberActions.fetchLeads,
   setMemberFilter: memberActions.setMemberFilter,
   getMemberFilter: memberActions.getMemberFilter,
 };
@@ -57,6 +57,7 @@ export const SidebarContainer = compose(
       setFilterType,
       setListName,
       setFilterValue,
+      memberLastFetchTime,
     }) => () => {
       let filterValue = $('.membersFilters').val();
       setFilterValue(filterValue);
@@ -65,11 +66,11 @@ export const SidebarContainer = compose(
         .attr('type');
       if (filterType === 'filter') {
         setMemberFilter($('.membersFilters').val());
-        fetchMembers();
+        fetchMembers({ memberLastFetchTime: memberLastFetchTime });
         setFilterType('filter');
       } else if (filterType === 'list') {
         setMemberFilter('All Members');
-        fetchMembers();
+        fetchMembers({ memberLastFetchTime: memberLastFetchTime });
         setFilterType('list');
         setListName($('.membersFilters').val());
       }
@@ -114,7 +115,9 @@ export const SidebarContainer = compose(
   }),
   lifecycle({
     UNSAFE_componentWillMount() {
-      this.props.fetchMembers();
+      this.props.fetchMembers({
+        memberLastFetchTime: this.props.memberLastFetchTime,
+      });
     },
   }),
 )(Sidebar);

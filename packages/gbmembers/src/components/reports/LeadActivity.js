@@ -247,7 +247,9 @@ export class LeadsActivityReport extends Component {
   }
 
   componentWillMount() {
-    this.props.fetchLeads();
+    if (this.props.leads.length === 0) {
+      this.props.fetchLeads();
+    }
   }
 
   getTablePreferences = reportPreferences => {

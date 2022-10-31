@@ -97,7 +97,6 @@ const mapDispatchToProps = {
   fetchPOSCards: posActions.fetchPOSCards,
   setPOSCards: posActions.setPOSCards,
   updateMember: actions.updateMember,
-  fetchMembers: actions.fetchMembers,
   editPaymentAmount: actions.editPaymentAmount,
   fetchPaymentHistory: actions.fetchPaymentHistory,
   setPaymentHistory: actions.setPaymentHistory,
@@ -2731,7 +2730,6 @@ export const BillingContainer = compose(
           id: memberItem['id'],
           memberItem,
           history: memberItem.myThis.props.history,
-          fetchMembers: memberItem.myThis.props.fetchMembers,
           fromBilling: true,
         });
         setIsDirty(false);
@@ -2818,7 +2816,6 @@ export const BillingContainer = compose(
       refundTransactionComplete,
       updateMember,
       fetchCurrentMember,
-      fetchMembers,
       addNotification,
       setSystemError,
       setIsDirty,
@@ -2830,7 +2827,6 @@ export const BillingContainer = compose(
       args.memberItem = memberItem;
       args.updateMember = updateMember;
       args.fetchCurrentMember = fetchCurrentMember;
-      args.fetchMembers = fetchMembers;
       args.myThis = memberItem.myThis;
       args.billingChangeReason = billingChangeReason;
       args.addNotification = addNotification;

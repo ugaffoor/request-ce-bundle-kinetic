@@ -45,6 +45,7 @@ const mapStateToProps = state => ({
   membershipTypes: state.member.app.membershipTypes,
   newMemberLoading: state.member.members.newMemberLoading,
   allMembers: state.member.members.allMembers,
+  memberLastFetchTime: state.member.members.memberLastFetchTime,
   leadItem: state.member.leads.currentLead,
   profile: state.member.kinops.profile,
   space: state.member.app.space,
@@ -957,6 +958,7 @@ export const MemberNewContainer = compose(
       leadItem,
       updateLead,
       match,
+      memberLastFetchTime,
     }) => () => {
       $('#duplicateUserInfo')
         .removeClass('show')
@@ -1026,6 +1028,7 @@ export const MemberNewContainer = compose(
         createMember({
           memberItem,
           history: memberItem.history,
+          memberLastFetchTime: memberLastFetchTime,
           fetchMembers: memberItem.fetchMembers,
           leadId: match.params['leadId'],
           leadItem: leadItem,

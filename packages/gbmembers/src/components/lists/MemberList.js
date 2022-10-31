@@ -18,7 +18,6 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = {
-  fetchMembers: actions.fetchMembers,
   addMembersList: appActions.addMembersList,
   removeMembersList: appActions.removeMembersList,
   setSidebarDisplayType: appActions.setSidebarDisplayType,

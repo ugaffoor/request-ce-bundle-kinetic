@@ -59,7 +59,6 @@ const mapDispatchToProps = {
   updateMember: actions.updateMember,
   deleteMember: actions.deleteMember,
   fetchCurrentMember: actions.fetchCurrentMember,
-  fetchMembers: actions.fetchMembers,
   updateLead: leadActions.updateLead,
   setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
@@ -168,7 +167,6 @@ export const MemberEdit = ({
   allMembers,
   updateMember,
   updateLead,
-  fetchMembers,
   deleteMemberCall,
   deleteMember,
   isDirty,
@@ -1802,12 +1800,7 @@ export const MemberEdit = ({
               <span className="leftButtons">
                 <Confirm
                   onConfirm={e =>
-                    deleteMemberCall(
-                      memberItem,
-                      deleteMember,
-                      fetchMembers,
-                      updateLead,
-                    )
+                    deleteMemberCall(memberItem, deleteMember, updateLead)
                   }
                   body="Are you sure you want to delete this member?"
                   confirmText="Confirm Delete"
@@ -1889,16 +1882,18 @@ export const MemberEditContainer = compose(
     deleteMemberCall: ({
       memberItem,
       deleteMember,
-      fetchMembers,
       updateLead,
+      allMembers,
+      setIsDirty,
     }) => () => {
       let convertedLead = memberItem.values['Lead Submission ID'];
       deleteMember({
+        allMembers,
         memberItem,
         history: memberItem.history,
-        fetchMembers: fetchMembers,
       });
       console.log('delete member:' + memberItem.username);
+
       let values = {};
       values['Converted Member ID'] = null;
       values['Status'] = 'Open';
@@ -1913,6 +1908,7 @@ export const MemberEditContainer = compose(
           leadItem: leadItem,
         });
       }
+      setIsDirty(false);
     },
     saveMember: ({
       memberItem,
@@ -1921,7 +1917,6 @@ export const MemberEditContainer = compose(
       allMembers,
       memberChanges,
       loggedInUserProfile,
-      fetchMembers,
       setIsDirty,
     }) => () => {
       if (!isDirty) {
@@ -2005,8 +2000,6 @@ export const MemberEditContainer = compose(
           memberItem,
           emailChanged,
           allMembers,
-          /*          history: memberItem.history,
-          fetchMembers: fetchMembers, */
         });
         for (let i = 0; i < allMembers.length; i++) {
           if (allMembers[i].id === memberItem.id) {
@@ -2023,7 +2016,6 @@ export const MemberEditContainer = compose(
       this.props.fetchCurrentMember({
         id: this.props.match.params.id,
         history: this.props.history,
-        fetchMembers: this.props.fetchMembers,
       });
     },
     componentDidUpdate() {
@@ -2037,7 +2029,6 @@ export const MemberEditContainer = compose(
       this.props.fetchCurrentMember({
         id: this.props.match.params.id,
         history: this.props.history,
-        fetchMembers: this.props.fetchMembers,
         billingService: getAttributeValue(this.props.space, 'Billing Company'),
       });
     },
@@ -2046,7 +2037,6 @@ export const MemberEditContainer = compose(
         this.props.fetchCurrentMember({
           id: this.props.match.params.id,
           history: this.props.history,
-          fetchMembers: this.props.fetchMembers,
           billingService: getAttributeValue(
             this.props.space,
             'Billing Company',

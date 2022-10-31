@@ -3,6 +3,7 @@ import { CoreAPI } from 'react-kinetic-core';
 import { types, actions } from '../modules/leads';
 import { actions as errorActions, NOTICE_TYPES } from '../modules/errors';
 import axios from 'axios';
+import moment from 'moment';
 
 export const ERROR_STATUS_STRING = 'There was a problem retrieving items.';
 export const TOO_MANY_STATUS_STRING = 'Your filter matches too many items.';
@@ -20,18 +21,28 @@ const util = require('util');
 
 export function* fetchLeads(action) {
   try {
-    const search = new CoreAPI.SubmissionSearch()
+    let leadLastFetchTime =
+      action.payload !== undefined &&
+      action.payload.leadLastFetchTime !== undefined
+        ? action.payload.leadLastFetchTime
+        : undefined;
+    let searchCurrent = new CoreAPI.SubmissionSearch()
       .eq('values[Lead State]', 'Open')
       .sortBy('updatedAt')
       .sortDirection('DESC')
       .includes(['details', 'values'])
-      .limit(1000)
-      .build();
+      .limit(1000);
+    if (leadLastFetchTime !== undefined) {
+      searchCurrent = searchCurrent.startDate(
+        moment(leadLastFetchTime).toDate(),
+      );
+    }
+    searchCurrent = searchCurrent.build();
 
     const { submissions } = yield call(CoreAPI.searchSubmissions, {
       kapp: 'gbmembers',
       form: 'lead',
-      search,
+      search: searchCurrent,
     });
     //    console.log('AllLeads # ' + submissions);
     yield put(actions.setLeads(submissions));
@@ -128,7 +139,8 @@ export function* fetchCurrentLead(action) {
     ]);
 
     if (action.payload.myThis) submission.myThis = action.payload.myThis;
-    if (action.payload.history) submission.history = action.payload.history;
+    if (action.payload.history)
+      submission.submission.history = action.payload.history;
     if (action.payload.fetchLeads)
       submission.fetchLeads = action.payload.fetchLeads;
 
@@ -225,7 +237,10 @@ export function* updateCurrentLead(action) {
       //action.payload.history.push("/LeadDetail/"+action.payload['id']);
       action.payload.history.push('/kapps/gbmembers/Leads');
     }
-    if (action.payload.fetchLeads) action.payload.fetchLeads();
+    if (action.payload.fetchLeads)
+      action.payload.fetchLeads({
+        leadLastFetchTime: action.payload.leadLastFetchTime,
+      });
     if (action.payload.fetchLead)
       action.payload.fetchLead({
         id: action.payload['id'],
@@ -310,8 +325,13 @@ export function* createLead(action) {
       include: SUBMISSION_INCLUDES,
     });
     if (action.payload.history)
-      action.payload.history.push('/kapps/gbmembers/Leads');
-    if (action.payload.fetchLeads) action.payload.fetchLeads();
+      action.payload.history.push(
+        '/kapps/gbmembers/LeadDetail/' + submission.id,
+      );
+    if (action.payload.fetchLeads)
+      action.payload.fetchLeads({
+        leadLastFetchTime: action.payload.leadLastFetchTime,
+      });
     console.log('createLead # ' + submission);
     yield put(
       errorActions.addSuccess('Lead created successfully', 'Create Lead'),
@@ -327,9 +347,18 @@ export function* deleteLead(action) {
     const { submission } = yield call(CoreAPI.deleteSubmission, {
       id: action.payload.leadItem.id,
     });
+    let mIdx = action.payload.allLeads.findIndex(
+      lead => lead.id === action.payload.leadItem.id,
+    );
+    action.payload.allLeads.splice(mIdx, 1);
+
+    yield put(
+      actions.leadDeleted({
+        allLeads: action.payload.allLeads,
+      }),
+    );
     if (action.payload.history)
       action.payload.history.push('/kapps/gbmembers/Leads');
-    if (action.payload.fetchLeads) action.payload.fetchLeads();
     console.log('deleteLead # ' + submission);
     yield put(
       errorActions.addSuccess('Lead deleted successfully', 'Delete Lead'),

@@ -30,7 +30,6 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = {
   updateMember: actions.updateMember,
   fetchCurrentMember: actions.fetchCurrentMember,
-  fetchMembers: actions.fetchMembers,
   setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 export class FollowUpDate extends Component {
@@ -212,11 +211,7 @@ export const MemberFollowUpContainer = compose(
     return {};
   }),
   withHandlers({
-    saveMember: ({
-      memberItem,
-      updateMember,
-      fetchMembers,
-    }) => reminderDate => {
+    saveMember: ({ memberItem, updateMember }) => reminderDate => {
       //console.log("### reminder date = " + reminderDate);
       if (reminderDate) {
         memberItem.values['Reminder Date'] =

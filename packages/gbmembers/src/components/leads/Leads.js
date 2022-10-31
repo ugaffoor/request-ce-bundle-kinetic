@@ -55,7 +55,9 @@ const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   leadItem: state.member.leads.currentLead,
   allLeads: state.member.leads.allLeads,
+  leadLastFetchTime: state.member.leads.leadLastFetchTime,
   allMembers: state.member.members.allMembers,
+  memberLastFetchTime: state.member.members.memberLastFetchTime,
   profile: state.member.kinops.profile,
   space: state.member.app.space,
   leadLists: state.member.app.leadLists,
@@ -2093,8 +2095,12 @@ export const LeadsView = ({
 );
 function tick(mythis) {
   console.log('Ticking ...' + mythis);
-  mythis.props.fetchLeads();
-  mythis.props.fetchMembers();
+  mythis.props.fetchLeads({
+    leadLastFetchTime: mythis.props.leadLastFetchTime,
+  });
+  mythis.props.fetchMembers({
+    memberLastFetchTime: mythis.props.memberLastFetchTime,
+  });
 }
 export const LeadsContainer = compose(
   connect(mapStateToProps, mapDispatchToProps),
@@ -2120,8 +2126,12 @@ export const LeadsContainer = compose(
           : this.props.profile.preferredLocale,
       );
 
-      this.props.fetchLeads();
-      this.props.fetchMembers();
+      this.props.fetchLeads({
+        leadLastFetchTime: this.props.leadLastFetchTime,
+      });
+      this.props.fetchMembers({
+        memberLastFetchTime: this.props.memberLastFetchTime,
+      });
       let timer = setInterval(tick, 60 * 1000 * 2, this); // refresh every 2 minutes
       this.setState({ timer: timer });
     },

@@ -39,6 +39,7 @@ const mapStateToProps = state => ({
   currentLeadLoading: state.member.leads.currentLeadLoading,
   members: state.member.members.allMembers,
   leads: state.member.leads.allLeads,
+  leadLastFetchTime: state.member.leads.leadLastFetchTime,
   profile: state.member.kinops.profile,
   leadSourceValues: state.member.app.leadSourceValues,
   space: state.app.space,
@@ -59,8 +60,8 @@ export class LeadEdit extends Component {
         : this.props.profile.preferredLocale,
     );
 
-    this.saveLead = this.props.saveLead;
-    this.removeLead = this.props.removeLead;
+    this.saveLead = this.props.saveLead.bind(this);
+    this.removeLead = this.props.removeLead.bind(this);
     this.setIsDirty = this.props.setIsDirty;
     let parentGuardian;
     if (
@@ -1316,7 +1317,12 @@ export const LeadEditContainer = compose(
     fetchLeads: ({ fetchLeads }) => () => {
       fetchLeads({});
     },
-    saveLead: ({ updateLead, fetchLeads, isDirty }) => leadItem => {
+    saveLead: ({
+      updateLead,
+      fetchLeads,
+      isDirty,
+      leadLastFetchTime,
+    }) => leadItem => {
       if (!isDirty) {
         return;
       }
@@ -1361,22 +1367,25 @@ export const LeadEditContainer = compose(
           id: leadItem['id'],
           leadItem: leadItem,
           history: leadItem.history,
+          leadLastFetchTime: leadLastFetchTime,
           fetchLeads: fetchLeads,
         });
       }
     },
-    removeLead: ({ leadItem, deleteLead, fetchLeads }) => () => {
+    removeLead: ({ leads, leadItem, deleteLead, setIsDirty }) => () => {
       leadItem.values['Lead State'] = 'Deleted';
       deleteLead({
         leadItem: leadItem,
         history: leadItem.history,
-        fetchLeads: fetchLeads,
+        allLeads: leads,
       });
     },
   }),
   lifecycle({
     UNSAFE_componentWillMount() {
-      this.props.fetchLeads();
+      this.props.fetchLeads({
+        leadLastFetchTime: this.props.leadLastFetchTime,
+      });
       this.props.fetchLead({
         id: this.props.match.params['id'],
         myThis: this,

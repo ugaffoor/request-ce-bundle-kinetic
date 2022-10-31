@@ -44,20 +44,27 @@ const util = require('util');
 export function* fetchMembers(action) {
   try {
     const appSettings = yield select(getAppSettings);
-    const searchCurrent = new CoreAPI.SubmissionSearch()
-      .includes(['details', 'values'])
-      .in('values[Status]', [
-        'Active',
-        'Frozen',
-        'Casual',
-        'Pending Freeze',
-        'Pending Suspension',
-        'Pending Cancellation',
-      ])
-      .limit(1000)
-      .build();
+    let memberLastFetchTime =
+      action.payload !== undefined &&
+      action.payload.memberLastFetchTime !== undefined
+        ? action.payload.memberLastFetchTime
+        : undefined;
 
-    const [submissions, users] = yield all([
+    let searchCurrent = new CoreAPI.SubmissionSearch()
+      //      .includes(['details', 'values[Member ID],values[First Name],values[Last Name],values[Status],values[Gender],values[DOB],values[Ranking Program],values[Ranking Belt],values[Status History],values[History],values[Billing Parent Member],values[Billing User],values[Non Paying],values[Lead Submission ID],values[Billing Customer Id],values[Billing Customer Reference],values[Billing Payment Period],values[Billing Start Date],values[Billing User],values[Billing Migrated],values[Attendance Count],values[Last Promotion],values[Resume Date],values[Is New Reply Received],values[Billing Payment Type],values[Alternate Barcode],values[Photo],values[Covid19 Waiver],values[Student Covid Check],values[Membership Cost],values[Billing Cash Term Start Date],values[Billing Cash Term End Date],values[Family Fee Details],values[Billing User]'])
+      .includes(['details', 'values'])
+      .sortBy('updatedAt')
+      .sortDirection('DESC')
+      .limit(1000);
+    if (memberLastFetchTime !== undefined) {
+      searchCurrent = searchCurrent.startDate(
+        moment(memberLastFetchTime).toDate(),
+      );
+    }
+    searchCurrent = searchCurrent.build();
+
+    let submissions = [];
+    const [submissions1, users] = yield all([
       call(CoreAPI.searchSubmissions, {
         form: 'member',
         kapp: 'gbmembers',
@@ -67,41 +74,28 @@ export function* fetchMembers(action) {
         include: ['details'],
       }),
     ]);
-    let inactiveSubmissions = [];
-    const searchInactive = new CoreAPI.SubmissionSearch()
-      .includes(['details', 'values'])
-      .in('values[Status]', ['Inactive'])
-      .limit(1000)
-      .build();
-    const [submissions2] = yield all([
-      call(CoreAPI.searchSubmissions, {
-        form: 'member',
-        kapp: 'gbmembers',
-        search: searchInactive,
-      }),
-    ]);
-    inactiveSubmissions = submissions2.submissions;
-    if (submissions2['nextPageToken']) {
-      const searchInactive2 = new CoreAPI.SubmissionSearch()
+    submissions = submissions1.submissions;
+    if (submissions1['nextPageToken']) {
+      let searchCurrent = new CoreAPI.SubmissionSearch()
+        //      .includes(['details', 'values[Member ID],values[First Name],values[Last Name],values[Status],values[Gender],values[DOB],values[Ranking Program],values[Ranking Belt],values[Status History],values[History],values[Billing Parent Member],values[Billing User],values[Non Paying],values[Lead Submission ID],values[Billing Customer Id],values[Billing Customer Reference],values[Billing Payment Period],values[Billing Start Date],values[Billing User],values[Billing Migrated],values[Attendance Count],values[Last Promotion],values[Resume Date],values[Is New Reply Received],values[Billing Payment Type],values[Alternate Barcode],values[Photo],values[Covid19 Waiver],values[Student Covid Check],values[Membership Cost],values[Billing Cash Term Start Date],values[Billing Cash Term End Date],values[Family Fee Details],values[Billing User]'])
         .includes(['details', 'values'])
-        .in('values[Status]', ['Inactive'])
         .limit(1000)
-        .pageToken(submissions2['nextPageToken'])
+        .sortBy('updatedAt')
+        .sortDirection('DESC')
+        .pageToken(submissions1['nextPageToken'])
         .build();
-      const [submissions3] = yield all([
+      const [submissions2] = yield all([
         call(CoreAPI.searchSubmissions, {
           form: 'member',
           kapp: 'gbmembers',
-          search: searchInactive2,
+          search: searchCurrent,
         }),
       ]);
-      inactiveSubmissions = inactiveSubmissions.concat(
-        submissions3.submissions,
-      );
+      submissions = submissions.concat(submissions2.submissions);
     }
-
+    let inactiveSubmissions = [];
     let memberInfo = {
-      members: submissions.submissions.concat(inactiveSubmissions),
+      members: submissions,
       belts: appSettings.belts,
       users: users.users,
     };
@@ -233,8 +227,6 @@ export function* fetchCurrentMember(action) {
     }
     if (action.payload.myThis) submission.myThis = action.payload.myThis;
     if (action.payload.history) submission.history = action.payload.history;
-    if (action.payload.fetchMembers)
-      submission.fetchMembers = action.payload.fetchMembers;
     if (action.payload.forBilling)
       submission.forBilling = action.payload.forBilling;
 
@@ -441,21 +433,6 @@ export function* fetchCurrentMember(action) {
       );
     }
     yield put(actions.setCurrentMember(memberInfo));
-    /*
-
-    const { submission } = yield call(CoreAPI.fetchSubmission, {
-      id: action.payload.id,
-      include: SUBMISSION_INCLUDES,
-    });
-    if (action.payload.myThis) submission.myThis = action.payload.myThis;
-    if (action.payload.history) submission.history = action.payload.history;
-    if (action.payload.fetchMembers)
-      submission.fetchMembers = action.payload.fetchMembers;
-    if (action.payload.forBilling)
-      submission.forBilling = action.payload.forBilling;
-
-    yield put(actions.setCurrentMember(submission));
-*/
   } catch (error) {
     console.log('Error in fetchCurrentMember: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));
@@ -588,8 +565,11 @@ export function* createMember(action) {
 
     if (action.payload.history)
       action.payload.history.push('/kapps/gbmembers/Member/' + submission.id);
-    if (action.payload.fetchMembers) action.payload.fetchMembers();
-
+    if (action.payload.fetchMembers) {
+      action.payload.fetchMembers({
+        memberLastFetchTime: action.payload.memberLastFetchTime,
+      });
+    }
     if (
       action.payload.showNotification === undefined ||
       action.payload.showNotification !== false
@@ -610,7 +590,14 @@ export function* deleteMember(action) {
       id: action.payload.memberItem.id,
     });
     if (action.payload.history) action.payload.history.push('/Home');
-    if (action.payload.fetchMembers) action.payload.fetchMembers();
+    let mIdx = action.payload.allMembers.findIndex(
+      member => member.id === action.payload.memberItem.id,
+    );
+    action.payload.allMembers.splice(mIdx, 1);
+
+    actions.memberDeleted({
+      allMembers: action.payload.allMembers,
+    });
 
     yield put(
       errorActions.addSuccess('Member deleted successfully', 'Delete Member'),

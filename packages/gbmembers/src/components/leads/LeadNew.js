@@ -42,6 +42,7 @@ const mapStateToProps = state => ({
   newLeadLoading: state.member.leads.newLeadLoading,
   members: state.member.members.allMembers,
   leads: state.member.leads.allLeads,
+  leadLastFetchTime: state.member.leads.leadLastFetchTime,
   profile: state.member.kinops.profile,
   leadSourceValues: state.member.app.leadSourceValues,
   space: state.member.app.space,
@@ -1125,7 +1126,7 @@ export const LeadNewContainer = compose(
     fetchLeads: ({ fetchLeads }) => () => {
       fetchLeads({});
     },
-    saveLead: ({ createLead, fetchLeads }) => (
+    saveLead: ({ createLead, fetchLeads, leadLastFetchTime }) => (
       leadItem,
       history,
       reminderDateString,
@@ -1186,6 +1187,7 @@ export const LeadNewContainer = compose(
         createLead({
           leadItem,
           history: leadItem.history,
+          leadLastFetchTime: leadLastFetchTime,
           fetchLeads: fetchLeads,
         });
       }
