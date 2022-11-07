@@ -56,6 +56,7 @@ export class ClassDialog extends Component {
       this.state.cancellationCutoff,
       this.state.coaches,
       this.state.acceptTrials,
+      this.state.trialLimit,
       this.state.studentType,
       this.state.ageInfo,
       this.state.event,
@@ -70,6 +71,7 @@ export class ClassDialog extends Component {
       allowedPrograms: undefined,
       cancellationCutoff: undefined,
       acceptTrials: undefined,
+      trialLimit: undefined,
       studentType: undefined,
       ageInfo: undefined,
       coaches: undefined,
@@ -162,6 +164,7 @@ export class ClassDialog extends Component {
         cancellationCutoff: this.props.event.cancellationCutoff,
         displayColorPicker: false,
         acceptTrials: this.props.event.acceptTrials,
+        trialLimit: this.props.event.trialLimit,
         studentType: this.props.event.studentType,
         ageInfo: this.props.event.ageInfo,
       };
@@ -180,6 +183,7 @@ export class ClassDialog extends Component {
         coaches: undefined,
         cancellationCutoff: undefined,
         acceptTrials: undefined,
+        trialLimit: undefined,
         studentType: undefined,
         ageInfo: undefined,
       };
@@ -440,9 +444,21 @@ export class ClassDialog extends Component {
                       Child
                     </label>
                   </div>
+                  <div className="trialLimitDiv form-group">
+                    <label htmlFor="trialLimit">Limit</label>
+                    <input
+                      type="number"
+                      name="trialLimit"
+                      id="trialLimit"
+                      defaultValue={this.state.trialLimit}
+                      onChange={e => {
+                        this.setState({ trialLimit: e.target.value });
+                      }}
+                    />
+                  </div>
                 </div>
               )}
-              {this.state.studentType === 'Child' && (
+              {this.state.acceptTrials && this.state.studentType === 'Child' && (
                 <div className="titleDiv form-group">
                   <label htmlFor="ageInfo">Age Information</label>
                   <input

@@ -145,7 +145,7 @@ export class PromotionReviewDialog extends Component {
       data: data,
     });
   }
-  UNSAFE_componentWillMount() {
+  componentDidMount() {
     this.props.fetchMemberAttendances({
       id: this.props.memberItem.id,
       fromDate: this.state.fromDate,

@@ -62,6 +62,7 @@ export function* fetchClassSchedules(action) {
           coaches: classSchedulesSubmissions[i].values['Coaches'],
           acceptTrials:
             classSchedulesSubmissions[i].values['Accept Trial Bookings'],
+          trialLimit: classSchedulesSubmissions[i].values['Trial Limit'],
           studentType: classSchedulesSubmissions[i].values['Trial Type'],
           ageInfo: classSchedulesSubmissions[i].values['Child Trial Ages'],
         },

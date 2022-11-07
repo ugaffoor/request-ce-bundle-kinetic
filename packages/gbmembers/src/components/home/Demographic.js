@@ -53,7 +53,7 @@ export class DemographicChart extends Component {
       });
     }
   }
-  UNSAFE_componentWillMount() {}
+  componentDidMount() {}
 
   getData(allMembers) {
     if (!allMembers) {

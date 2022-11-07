@@ -120,12 +120,14 @@ export class AttendancePerDay extends Component {
       });
     }
   }
-  UNSAFE_componentWillMount() {
+  componentDidMount() {
     this.props.fetchAttendancesByDate({
       fromDate: this.state.fromDate,
       toDate: this.state.toDate,
     });
-    this.props.fetchClassSchedules();
+    if (this.props.classSchedules.length === 0) {
+      this.props.fetchClassSchedules();
+    }
   }
   getProgramBackgroundColor(program) {
     if (program === 'GB1') {

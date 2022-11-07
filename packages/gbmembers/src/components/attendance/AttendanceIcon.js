@@ -15,7 +15,7 @@ export class AttendanceIcon extends Component {
     };
   }
   UNSAFE_componentWillReceiveProps(nextProps) {}
-  UNSAFE_componentWillMount() {}
+  componentDidMount() {}
   setShowAttendanceDialog(show) {
     this.setState({
       showAttendanceDialog: show,

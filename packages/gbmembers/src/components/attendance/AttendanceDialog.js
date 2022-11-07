@@ -78,7 +78,7 @@ export class AttendanceDialog extends Component {
       average: average,
     });
   }
-  UNSAFE_componentWillMount() {
+  componentDidMount() {
     moment.locale(
       this.props.profile.preferredLocale === null
         ? this.props.space.defaultLocale

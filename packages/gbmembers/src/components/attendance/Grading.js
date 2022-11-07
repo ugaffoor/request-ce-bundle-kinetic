@@ -339,15 +339,13 @@ export const GradingContainer = compose(
   connect(mapStateToProps, mapDispatchToProps),
   withHandlers({}),
   lifecycle({
-    UNSAFE_componentWillMount() {
+    UNSAFE_componentWillReceiveProps(nextProps) {},
+    componentDidMount() {
       moment.locale(
         this.props.profile.preferredLocale === null
           ? this.props.space.defaultLocale
           : this.props.profile.preferredLocale,
       );
-    },
-    UNSAFE_componentWillReceiveProps(nextProps) {},
-    componentDidMount() {
       this.props.setSidebarDisplayType('members');
       $('.content')
         .parent('div')[0]

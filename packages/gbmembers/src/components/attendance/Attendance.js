@@ -253,6 +253,7 @@ export class SelfCheckin extends Component {
       this,
     );
     this.selfCheckinHandleScan = this.selfCheckinHandleScan.bind(this);
+    this.handleError = this.handleError.bind(this);
     this.getClassAllowedMembers = this.getClassAllowedMembers.bind(this);
     this.renderer = this.renderer.bind(this);
     this.cancelCheckinUndo = this.cancelCheckinUndo.bind(this);
@@ -471,7 +472,7 @@ export class SelfCheckin extends Component {
       });
     }
   }
-  UNSAFE_componentWillMount() {
+  componentDidMount() {
     let timer = setInterval(this.tick, 60 * 1000 * 1, this); // refresh every 15 minutes
     this.setState({ timer: timer });
   }
@@ -708,6 +709,13 @@ export class SelfCheckin extends Component {
   }
   handleError(data) {
     console.log('Scanned Error:' + data);
+    // Check is actually does match the Alt Barcode
+    var mIdx = attendanceThis.props.allMembers.findIndex(
+      member => member.values['Alternate Barcode'] === data,
+    );
+    if (mIdx !== -1) {
+      this.selfCheckinHandleScan(data);
+    }
   }
 
   selfCheckinHandleScan(data) {
@@ -1228,6 +1236,8 @@ export class AttendanceDetail extends Component {
 
     attendanceThis = this;
     this.handleScan = this.handleScan.bind(this);
+    this.handleError = this.handleError.bind(this);
+
     this.getBamboraOverdues = this.getBamboraOverdues.bind(this);
     this.getDayClasses = this.getDayClasses.bind(this);
 
@@ -1511,6 +1521,13 @@ export class AttendanceDetail extends Component {
 
   handleError(data) {
     console.log('Scanned Error:' + data);
+    // Check is actually does match the Alt Barcode
+    var mIdx = this.props.allMembers.findIndex(
+      member => member.values['Alternate Barcode'] === data,
+    );
+    if (mIdx !== -1) {
+      this.handleScan(data);
+    }
   }
 
   handleScan(data) {
@@ -2036,6 +2053,8 @@ export class AttendanceDetail extends Component {
                             this.props.classSchedules.get(scheduleIdx).start,
                           ).format('HH:mm'),
                         });
+                        $('#changeToManual').focus();
+                        $('#checkinMember').focus();
 
                         this.doShowAttendance(
                           this.state.classDate,
@@ -2686,7 +2705,12 @@ export const AttendanceContainer = compose(
     },
   }),
   lifecycle({
-    UNSAFE_componentWillMount() {
+    UNSAFE_componentWillReceiveProps(nextProps) {
+      $('.content')
+        .parent('div')[0]
+        .scrollIntoView(true);
+    },
+    componentDidMount() {
       moment.locale(
         this.props.profile.preferredLocale === null
           ? this.props.space.defaultLocale
@@ -2698,13 +2722,6 @@ export const AttendanceContainer = compose(
       if (this.props.isKiosk) {
         this.props.fetchMembers();
       }
-    },
-    UNSAFE_componentWillReceiveProps(nextProps) {
-      $('.content')
-        .parent('div')[0]
-        .scrollIntoView(true);
-    },
-    componentDidMount() {
       this.props.setSidebarDisplayType('members');
     },
     componentWillUnmount() {},

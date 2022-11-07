@@ -59,6 +59,7 @@ export function* sendSms(action) {
             id: action.payload.memberItem['id'],
             memberItem: action.payload.memberItem,
             history: action.payload.memberItem.history,
+            fetchMemberAdditional: action.payload.fetchMemberAdditional,
           });
         } else if (action.payload.target === 'Leads') {
           let leadActivities = { values: {} };
@@ -217,6 +218,7 @@ export function* createMemberActivities(action) {
       action.payload.fetchMember({
         id: action.payload.id,
         myThis: action.payload.myThis,
+        allMembers: action.payload.allMembers,
       });
     }
   } catch (error) {

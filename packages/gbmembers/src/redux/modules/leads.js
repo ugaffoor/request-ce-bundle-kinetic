@@ -67,12 +67,6 @@ export const reducer = (state = State(), { type, payload }) => {
       var leads = [];
       for (var k = 0; k < payload.length; k++) {
         leads[leads.length] = payload[k];
-        if (
-          leads[k].values['Status'] !== 'Converted' &&
-          leads[k].values['Is New Reply Received'] === 'true'
-        ) {
-          attentionRequired = true;
-        }
       }
 
       if (allLeads.length === 0) {
@@ -85,6 +79,15 @@ export const reducer = (state = State(), { type, payload }) => {
           } else {
             allLeads.push(leads[k]);
           }
+        }
+      }
+
+      for (var k = 0; k < allLeads.length; k++) {
+        if (
+          allLeads[k].values['Status'] !== 'Converted' &&
+          allLeads[k].values['Is New Reply Received'] === 'true'
+        ) {
+          attentionRequired = true;
         }
       }
 
@@ -123,6 +126,12 @@ export const reducer = (state = State(), { type, payload }) => {
       return state.set('allLeads', payload.allLeads);
     }
     case types.LEAD_SAVED: {
+      var leadsByDate = state.leadsByDate;
+      for (var i = 0; i < leadsByDate.length; i++) {
+        if (leadsByDate[i]['id'] === payload.leadItem.id) {
+          leadsByDate[i] = payload.leadItem;
+        }
+      }
       var allLeads = payload.allLeads;
       for (var i = 0; i < allLeads.length; i++) {
         if (allLeads[i]['id'] === payload.leadItem.id) {
@@ -143,6 +152,7 @@ export const reducer = (state = State(), { type, payload }) => {
       return state
         .set('leadUpdating', false)
         .set('allLeads', allLeads)
+        .set('leadsByDate', leadsByDate)
         .set('leadAttentionRequired', attentionRequired);
     }
     default:

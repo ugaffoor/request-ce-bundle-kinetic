@@ -42,7 +42,12 @@ function EventWeek({ event }) {
         {event.maxStudents}
       </em>
       <p>{event.title}</p>
-      <p>{event.acceptTrials === 'YES' ? 'Accept Trials' : ''}</p>
+      <p>
+        {event.acceptTrials === 'YES' ? 'Accept Trials' : ''}{' '}
+        {event.acceptTrials === 'YES' && event.trialLimit !== ''
+          ? '(' + event.trialLimit + ')'
+          : ''}
+      </p>
     </span>
   );
 }
@@ -107,6 +112,7 @@ export class ClassesCalendar extends Component {
     cancellationCutoff,
     coaches,
     acceptTrials,
+    trialLimit,
     studentType,
     ageInfo,
     event,
@@ -127,6 +133,7 @@ export class ClassesCalendar extends Component {
       values['Coaches'] = coaches;
       values['Cancellation Cutoff'] = cancellationCutoff;
       values['Accept Trial Bookings'] = acceptTrials;
+      values['Trial Limit'] = trialLimit;
       values['Trial Type'] = studentType;
       values['Child Trial Ages'] = ageInfo;
 
@@ -146,6 +153,7 @@ export class ClassesCalendar extends Component {
             coaches,
             cancellationCutoff,
             acceptTrials,
+            trialLimit,
             studentType,
             ageInfo,
           },
@@ -169,6 +177,7 @@ export class ClassesCalendar extends Component {
         events[idx].coaches = coaches;
         events[idx].cancellationCutoff = cancellationCutoff;
         events[idx].acceptTrials = acceptTrials;
+        events[idx].trialLimit = trialLimit;
         events[idx].studentType = studentType;
         events[idx].ageInfo = ageInfo;
 
@@ -190,6 +199,7 @@ export class ClassesCalendar extends Component {
       values['Coaches'] = coaches;
       values['Cancellation Cutoff'] = cancellationCutoff;
       values['Accept Trial Bookings'] = acceptTrials;
+      values['Trial Limit'] = trialLimit;
       values['Trial Type'] = studentType;
       values['Child Trial Ages'] = ageInfo;
 
@@ -214,6 +224,7 @@ export class ClassesCalendar extends Component {
         scheduledClass.coaches = coaches;
         scheduledClass.cancellationCutoff = cancellationCutoff;
         scheduledClass.acceptTrials = acceptTrials;
+        scheduledClass.trialLimit = trialLimit;
         scheduledClass.studentType = studentType;
         scheduledClass.ageInfo = ageInfo;
       }
@@ -342,6 +353,7 @@ export class ClassesCalendar extends Component {
             coaches={this.coaches}
             cancellationCutoff={this.cancellationCutoff}
             acceptTrials={this.acceptTrials}
+            trialLimit={this.trialLimit}
             studentType={this.studentType}
             ageInfo={this.ageInfo}
             cancelDialog={this.cancelDialog}

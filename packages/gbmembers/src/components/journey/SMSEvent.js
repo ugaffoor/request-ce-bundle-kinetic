@@ -623,7 +623,6 @@ export const SMSEventContainer = compose(
       sendSms,
       createLeadActivities,
       createMemberActivities,
-      fetchCurrentMember,
       fetchLead,
       updateMember,
       updateLead,

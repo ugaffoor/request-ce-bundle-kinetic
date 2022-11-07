@@ -170,7 +170,7 @@ export class PromotionDialog extends Component {
     };
   }
   UNSAFE_componentWillReceiveProps(nextProps) {}
-  UNSAFE_componentWillMount() {
+  componentDidMount() {
     if (this.props.memberItem.promotionContent.length === 0) {
       this.props.fetchMemberPromotions({
         id: this.props.memberItem.id,

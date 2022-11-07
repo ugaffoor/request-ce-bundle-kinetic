@@ -27,6 +27,7 @@ import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   memberItem: state.member.members.currentMember,
+  allMembers: state.member.members.allMembers,
   campaignItem: state.member.campaigns.emailCampaignItem,
   campaignLoading: state.member.campaigns.emailCampaignLoading,
   currentMemberLoading: state.member.members.currentMemberLoading,
@@ -446,6 +447,7 @@ export const MemberNotesContainer = compose(
         myThis: this,
         history: this.props.history,
         billingService: getAttributeValue(this.props.space, 'Billing Company'),
+        allMembers: this.props.allMembers,
       });
     },
     UNSAFE_componentWillReceiveProps(nextProps) {
@@ -458,6 +460,7 @@ export const MemberNotesContainer = compose(
             this.props.space,
             'Billing Company',
           ),
+          allMembers: this.props.allMembers,
         });
       }
       if (

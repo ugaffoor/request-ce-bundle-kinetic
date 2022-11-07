@@ -98,7 +98,7 @@ const enhance = compose(
         this.props.setFormSlug(nextProps.formSlug);
       }
     },
-    UNSAFE_componentWillMount() {
+    componentDidMount() {
       this.props.fetchForms();
     },
   }),

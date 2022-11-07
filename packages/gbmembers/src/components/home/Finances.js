@@ -33,7 +33,9 @@ export class Finances extends Component {
     }
   }
   UNSAFE_componentWillMount() {
-    this.props.fetchMonthlyStatistics();
+    if (this.props.monthlyStatistics.length === 0) {
+      this.props.fetchMonthlyStatistics();
+    }
   }
   getMinValue(statistics) {
     var minValue = -1;

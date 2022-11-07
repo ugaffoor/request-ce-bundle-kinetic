@@ -2169,7 +2169,7 @@ export class BillingInfo extends Component {
                                 >
                                   {!this.state.capturePayment
                                     ? 'Capture Member Payment'
-                                    : 'Cancel Member Payment'}
+                                    : 'Close Member Payment'}
                                 </button>
                               </td>
                             </tr>
@@ -2898,6 +2898,7 @@ export const BillingContainer = compose(
             this.props.space,
             'Billing Company',
           ),
+          allMembers: this.props.allMembers,
         });
       }
 
@@ -2954,6 +2955,7 @@ export const BillingContainer = compose(
               this.props.space,
               'Billing Company',
             ),
+            allMembers: this.props.allMembers,
           });
         }
       }

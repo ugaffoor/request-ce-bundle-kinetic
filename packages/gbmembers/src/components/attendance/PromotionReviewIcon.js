@@ -16,7 +16,7 @@ export class PromotionReviewIcon extends Component {
     };
   }
   UNSAFE_componentWillReceiveProps(nextProps) {}
-  UNSAFE_componentWillMount() {}
+  componentDidMount() {}
   setShowPromotionReviewDialog(show) {
     this.setState({
       showPromotionReviewDialog: show,

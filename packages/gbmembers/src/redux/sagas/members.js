@@ -72,6 +72,7 @@ export function* fetchMembers(action) {
       }),
       call(CoreAPI.fetchUsers, {
         include: ['details'],
+        limit: 1000,
       }),
     ]);
     submissions = submissions1.submissions;
@@ -108,91 +109,35 @@ export function* fetchMembers(action) {
 export function* fetchCurrentMember(action) {
   try {
     const appSettings = yield select(getAppSettings);
-    const MEMBER_POS_SEARCH = new CoreAPI.SubmissionSearch(true)
-      .index('values[Person ID]')
-      .eq('values[Person ID]', action.payload.id)
-      .include(['details', 'values'])
-      .limit(1000)
-      .build();
-    const MEMBER_FILES_SEARCH = new CoreAPI.SubmissionSearch(true)
-      .index('values[Member ID]')
-      .eq('values[Member ID]', action.payload.id)
-      .include(['details', 'values'])
-      .limit(1000)
-      .build();
-    const MEMBER_ADDITIONAL_SERVICES = new CoreAPI.SubmissionSearch(true)
-      .index('values[Member GUID]')
-      .eq('values[Member GUID]', action.payload.id)
-      .include(['details', 'values'])
-      .limit(1000)
-      .build();
-    const MEMBER_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
-      .eq('values[Member ID]', action.payload.id)
-      .include(['details', 'values'])
-      .limit(1000)
-      .build();
-    const [
-      submission,
-      memberActivities,
-      memberFilesSubmissions,
-      posOrderSubmissions,
-      posPurchasedItems,
-    ] = yield all([
+    const [submission] = yield all([
       call(CoreAPI.fetchSubmission, {
         id: action.payload.id,
         include: SUBMISSION_INCLUDES,
       }),
-      call(CoreAPI.searchSubmissions, {
-        form: 'member-activities',
-        kapp: 'gbmembers',
-        search: MEMBER_ACTIVITIES_SEARCH,
-      }),
-      call(CoreAPI.searchSubmissions, {
-        form: 'member-files',
-        search: MEMBER_FILES_SEARCH,
-        datastore: true,
-      }),
-      call(CoreAPI.searchSubmissions, {
-        form: 'pos-order',
-        search: MEMBER_POS_SEARCH,
-        datastore: true,
-      }),
-      call(CoreAPI.searchSubmissions, {
-        form: 'pos-purchased-item',
-        search: MEMBER_POS_SEARCH,
-        datastore: true,
-      }),
     ]);
-
-    let additionalServices = [];
-
-    if (action.payload.billingService === 'Bambora') {
-      const [memberAdditionalServices] = yield all([
-        call(CoreAPI.searchSubmissions, {
-          form:
-            action.payload.billingService === 'Bambora'
-              ? 'bambora-member-additional-services'
-              : 'member-additional-services',
-          search: MEMBER_ADDITIONAL_SERVICES,
-          datastore: true,
+    let fetchedUser = undefined;
+    if (
+      action.payload.allMembers !== undefined &&
+      action.payload.allMembers.length === 0
+    ) {
+      const [user] = yield all([
+        call(CoreAPI.fetchUser, {
+          username: submission.submission.values['Member ID'],
+          include: ['details'],
         }),
       ]);
-      if (action.payload.billingService === 'Bambora') {
-        for (let i = 0; i < memberAdditionalServices.submissions.length; i++) {
-          var len = additionalServices.length;
-          additionalServices[len] =
-            memberAdditionalServices.submissions[i].values;
-          additionalServices[len]['id'] =
-            memberAdditionalServices.submissions[i]['id'];
-        }
-      }
+      fetchedUser = user;
     }
-    const [user] = yield all([
-      call(CoreAPI.fetchUser, {
-        username: submission.submission.values['Member ID'],
-        include: ['details'],
-      }),
-    ]);
+    if (action.payload.myThis) submission.myThis = action.payload.myThis;
+    if (action.payload.history)
+      submission.submission.history = action.payload.history;
+    if (action.payload.forBilling)
+      submission.forBilling = action.payload.forBilling;
+
+    if (action.payload.setInitialLoad) {
+      console.log('members.js setInitialLoad 111');
+    }
+
     if (submission.submission.values['Lead Submission ID'] !== undefined) {
       const LEAD_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
         .eq(
@@ -225,106 +170,14 @@ export function* fetchCurrentMember(action) {
     } else {
       submission.submission.leadRequestContent = undefined;
     }
-    if (action.payload.myThis) submission.myThis = action.payload.myThis;
-    if (action.payload.history) submission.history = action.payload.history;
-    if (action.payload.forBilling)
-      submission.forBilling = action.payload.forBilling;
-
-    // Add Email Sent/Recieved submissions
-    let emailSentContent = [];
-    let emailReceivedContent = [];
-    let smsContent = [];
-    let requestContent = [];
-    let promotionContent = [];
-    for (let i = 0; i < memberActivities.submissions.length; i++) {
-      if (
-        memberActivities.submissions[i].values['Type'] === 'Email' &&
-        memberActivities.submissions[i].values['Direction'] === 'Outbound'
-      ) {
-        emailSentContent[emailSentContent.length] = JSON.parse(
-          memberActivities.submissions[i].values['Content'],
-        );
-      }
-      if (
-        memberActivities.submissions[i].values['Type'] === 'Email' &&
-        memberActivities.submissions[i].values['Direction'] === 'Inbound'
-      ) {
-        emailReceivedContent[emailReceivedContent.length] = JSON.parse(
-          memberActivities.submissions[i].values['Content'],
-        );
-        emailReceivedContent[emailReceivedContent.length - 1]['Activity ID'] =
-          memberActivities.submissions[i].id;
-      }
-      if (memberActivities.submissions[i].values['Type'] === 'SMS') {
-        smsContent[smsContent.length] = memberActivities.submissions[i];
-      }
-      if (
-        memberActivities.submissions[i].values['Type'] === 'Request' &&
-        memberActivities.submissions[i].values['Direction'] === 'Inbound'
-      ) {
-        requestContent[requestContent.length] = JSON.parse(
-          memberActivities.submissions[i].values['Content'],
-        );
-      }
-      if (memberActivities.submissions[i].values['Type'] === 'Promotion') {
-        var content = JSON.parse(
-          memberActivities.submissions[i].values['Content'],
-        );
-        content['Submitter'] = memberActivities.submissions[i].updatedBy;
-        promotionContent[promotionContent.length] = content;
-      }
-    }
-    let memberFiles = [];
-    for (let i = 0; i < memberFilesSubmissions.submissions.length; i++) {
-      memberFiles[memberFiles.length] = memberFilesSubmissions.submissions[i];
-    }
-    let posOrders = [];
-    for (let i = 0; i < posOrderSubmissions.submissions.length; i++) {
-      var len = posOrders.length;
-      posOrders[len] = posOrderSubmissions.submissions[i].values;
-      posOrders[len]['id'] = posOrderSubmissions.submissions[i]['id'];
-    }
-    posOrders = posOrders.sort((a, b) => {
-      if (a['Date time processed'] < b['Date time processed']) {
-        return -1;
-      }
-      if (a['Date time processed'] > b['Date time processed']) {
-        return 1;
-      }
-      return 0;
-    });
-    let posItems = [];
-    for (let i = 0; i < posPurchasedItems.submissions.length; i++) {
-      len = posItems.length;
-      posItems[len] = posPurchasedItems.submissions[i].values;
-      posItems[len]['id'] = posPurchasedItems.submissions[i]['id'];
-    }
-
-    submission.submission.emailsReceived = emailReceivedContent;
-    submission.submission.emailsSent = emailSentContent;
-    submission.submission.smsContent = smsContent;
-    submission.submission.requestContent = requestContent;
-    submission.submission.promotionContent = promotionContent;
-    submission.submission.memberFiles = memberFiles;
-    submission.submission.posOrders = posOrders;
-    submission.submission.posItems = posItems;
-    submission.submission.additionalServices = additionalServices;
-    if (action.payload.setInitialLoad) {
-      console.log('members.js setInitialLoad 111');
-    }
 
     if (action.payload.myThis)
       submission.submission.myThis = action.payload.myThis;
-    /*    if (action.payload.history) submission.history = action.payload.history;
-    if (action.payload.fetchMembers)
-      submission.fetchMembers = action.payload.fetchMembers;
-    if (action.payload.forBilling)
-      submission.forBilling = action.payload.forBilling;
-*/
+
     let memberInfo = {
       member: submission.submission,
       belts: appSettings.belts,
-      user: user.user,
+      user: fetchedUser,
     };
     if (action.payload.billingService === 'Bambora') {
       var nextStartDate = moment(
@@ -438,6 +291,170 @@ export function* fetchCurrentMember(action) {
     yield put(errorActions.setSystemError(error));
   }
 }
+export function* fetchCurrentMemberAdditional(action) {
+  try {
+    const MEMBER_POS_SEARCH = new CoreAPI.SubmissionSearch(true)
+      .index('values[Person ID]')
+      .eq('values[Person ID]', action.payload.id)
+      .include(['details', 'values'])
+      .limit(1000)
+      .build();
+    const MEMBER_FILES_SEARCH = new CoreAPI.SubmissionSearch(true)
+      .index('values[Member ID]')
+      .eq('values[Member ID]', action.payload.id)
+      .include(['details', 'values'])
+      .limit(1000)
+      .build();
+    const MEMBER_ADDITIONAL_SERVICES = new CoreAPI.SubmissionSearch(true)
+      .index('values[Member GUID]')
+      .eq('values[Member GUID]', action.payload.id)
+      .include(['details', 'values'])
+      .limit(1000)
+      .build();
+    const MEMBER_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
+      .eq('values[Member ID]', action.payload.id)
+      .include(['details', 'values'])
+      .limit(1000)
+      .build();
+    const [
+      memberActivities,
+      memberFilesSubmissions,
+      posOrderSubmissions,
+      posPurchasedItems,
+    ] = yield all([
+      call(CoreAPI.searchSubmissions, {
+        form: 'member-activities',
+        kapp: 'gbmembers',
+        search: MEMBER_ACTIVITIES_SEARCH,
+      }),
+      call(CoreAPI.searchSubmissions, {
+        form: 'member-files',
+        search: MEMBER_FILES_SEARCH,
+        datastore: true,
+      }),
+      call(CoreAPI.searchSubmissions, {
+        form: 'pos-order',
+        search: MEMBER_POS_SEARCH,
+        datastore: true,
+      }),
+      call(CoreAPI.searchSubmissions, {
+        form: 'pos-purchased-item',
+        search: MEMBER_POS_SEARCH,
+        datastore: true,
+      }),
+    ]);
+
+    let additionalServices = [];
+
+    if (action.payload.billingService === 'Bambora') {
+      const [memberAdditionalServices] = yield all([
+        call(CoreAPI.searchSubmissions, {
+          form:
+            action.payload.billingService === 'Bambora'
+              ? 'bambora-member-additional-services'
+              : 'member-additional-services',
+          search: MEMBER_ADDITIONAL_SERVICES,
+          datastore: true,
+        }),
+      ]);
+      if (action.payload.billingService === 'Bambora') {
+        for (let i = 0; i < memberAdditionalServices.submissions.length; i++) {
+          var len = additionalServices.length;
+          additionalServices[len] =
+            memberAdditionalServices.submissions[i].values;
+          additionalServices[len]['id'] =
+            memberAdditionalServices.submissions[i]['id'];
+        }
+      }
+    }
+
+    // Add Email Sent/Recieved submissions
+    let emailSentContent = [];
+    let emailReceivedContent = [];
+    let smsContent = [];
+    let requestContent = [];
+    let promotionContent = [];
+    for (let i = 0; i < memberActivities.submissions.length; i++) {
+      if (
+        memberActivities.submissions[i].values['Type'] === 'Email' &&
+        memberActivities.submissions[i].values['Direction'] === 'Outbound'
+      ) {
+        emailSentContent[emailSentContent.length] = JSON.parse(
+          memberActivities.submissions[i].values['Content'],
+        );
+      }
+      if (
+        memberActivities.submissions[i].values['Type'] === 'Email' &&
+        memberActivities.submissions[i].values['Direction'] === 'Inbound'
+      ) {
+        emailReceivedContent[emailReceivedContent.length] = JSON.parse(
+          memberActivities.submissions[i].values['Content'],
+        );
+        emailReceivedContent[emailReceivedContent.length - 1]['Activity ID'] =
+          memberActivities.submissions[i].id;
+      }
+      if (memberActivities.submissions[i].values['Type'] === 'SMS') {
+        smsContent[smsContent.length] = memberActivities.submissions[i];
+      }
+      if (
+        memberActivities.submissions[i].values['Type'] === 'Request' &&
+        memberActivities.submissions[i].values['Direction'] === 'Inbound'
+      ) {
+        requestContent[requestContent.length] = JSON.parse(
+          memberActivities.submissions[i].values['Content'],
+        );
+      }
+      if (memberActivities.submissions[i].values['Type'] === 'Promotion') {
+        var content = JSON.parse(
+          memberActivities.submissions[i].values['Content'],
+        );
+        content['Submitter'] = memberActivities.submissions[i].updatedBy;
+        promotionContent[promotionContent.length] = content;
+      }
+    }
+    let memberFiles = [];
+    for (let i = 0; i < memberFilesSubmissions.submissions.length; i++) {
+      memberFiles[memberFiles.length] = memberFilesSubmissions.submissions[i];
+    }
+    let posOrders = [];
+    for (let i = 0; i < posOrderSubmissions.submissions.length; i++) {
+      var len = posOrders.length;
+      posOrders[len] = posOrderSubmissions.submissions[i].values;
+      posOrders[len]['id'] = posOrderSubmissions.submissions[i]['id'];
+    }
+    posOrders = posOrders.sort((a, b) => {
+      if (a['Date time processed'] < b['Date time processed']) {
+        return -1;
+      }
+      if (a['Date time processed'] > b['Date time processed']) {
+        return 1;
+      }
+      return 0;
+    });
+    let posItems = [];
+    for (let i = 0; i < posPurchasedItems.submissions.length; i++) {
+      len = posItems.length;
+      posItems[len] = posPurchasedItems.submissions[i].values;
+      posItems[len]['id'] = posPurchasedItems.submissions[i]['id'];
+    }
+
+    let memberInfo = {
+      emailsReceived: emailReceivedContent,
+      emailsSent: emailSentContent,
+      smsContent: smsContent,
+      requestContent: requestContent,
+      promotionContent: promotionContent,
+      memberFiles: memberFiles,
+      posOrders: posOrders,
+      posItems: posItems,
+      additionalServices: additionalServices,
+    };
+    yield put(actions.setCurrentMemberAdditional(memberInfo));
+  } catch (error) {
+    console.log('Error in setCurrentMemberAdditional: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
 export function* fetchMemberPromotions(action) {
   try {
     const MEMBER_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
@@ -510,6 +527,11 @@ export function* updateCurrentMember(action) {
     if (action.payload.fetchMembers) action.payload.fetchMembers();
     if (action.payload.fetchMember)
       action.payload.fetchMember({
+        id: action.payload.id,
+        myThis: action.payload.myThis,
+      });
+    if (action.payload.fetchMemberAdditional)
+      action.payload.fetchMemberAdditional({
         id: action.payload.id,
         myThis: action.payload.myThis,
       });
@@ -589,7 +611,8 @@ export function* deleteMember(action) {
     const { submission } = yield call(CoreAPI.deleteSubmission, {
       id: action.payload.memberItem.id,
     });
-    if (action.payload.history) action.payload.history.push('/Home');
+    if (action.payload.history)
+      action.payload.history.push('/kapps/gbmembers/Home');
     let mIdx = action.payload.allMembers.findIndex(
       member => member.id === action.payload.memberItem.id,
     );
@@ -2588,6 +2611,10 @@ export function* watchMembers() {
   console.log('watchMembers');
   yield takeEvery(types.FETCH_MEMBERS, fetchMembers);
   yield takeEvery(types.FETCH_CURRENT_MEMBER, fetchCurrentMember);
+  yield takeEvery(
+    types.FETCH_CURRENT_MEMBER_ADDITIONAL,
+    fetchCurrentMemberAdditional,
+  );
   yield takeEvery(types.ACTIVATE_BILLER, activateBiller);
   yield takeEvery(types.UPDATE_MEMBER, updateCurrentMember);
   yield takeEvery(types.CREATE_MEMBER, createMember);

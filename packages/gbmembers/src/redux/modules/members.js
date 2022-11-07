@@ -11,9 +11,17 @@ export const types = {
   SET_MEMBER_FILTER: namespace('members', 'SET_MEMBER_FILTER'),
   GET_MEMBER_FILTER: namespace('members', 'GET_MEMBER_FILTER'),
   FETCH_CURRENT_MEMBER: namespace('members', 'FETCH_CURRENT_MEMBER'),
+  FETCH_CURRENT_MEMBER_ADDITIONAL: namespace(
+    'members',
+    'FETCH_CURRENT_MEMBER_ADDITIONAL',
+  ),
   FETCH_MEMBER_PROMOTIONS: namespace('members', 'FETCH_MEMBER_PROMOTIONS'),
   SET_MEMBER_PROMOTIONS: namespace('members', 'SET_MEMBER_PROMOTIONS'),
   SET_CURRENT_MEMBER: namespace('members', 'SET_CURRENT_MEMBER'),
+  SET_CURRENT_MEMBER_ADDITIONAL: namespace(
+    'members',
+    'SET_CURRENT_MEMBER_ADDITIONAL',
+  ),
   ACTIVATE_BILLER: namespace('members', 'ACTIVATE_BILLER'),
   BILLER_ACTIVATED: namespace('members', 'BILLER_ACTIVATED'),
   UPDATE_MEMBER: namespace('members', 'UPDATE_MEMBER'),
@@ -118,6 +126,10 @@ export const actions = {
   getMemberFilter: withPayload(types.GET_MEMBER_FILTER),
   fetchCurrentMember: withPayload(types.FETCH_CURRENT_MEMBER),
   setCurrentMember: withPayload(types.SET_CURRENT_MEMBER),
+  fetchCurrentMemberAdditional: withPayload(
+    types.FETCH_CURRENT_MEMBER_ADDITIONAL,
+  ),
+  setCurrentMemberAdditional: withPayload(types.SET_CURRENT_MEMBER_ADDITIONAL),
   fetchMemberPromotions: withPayload(types.FETCH_MEMBER_PROMOTIONS),
   setMemberPromotions: withPayload(types.SET_MEMBER_PROMOTIONS),
   activateBiller: withPayload(types.ACTIVATE_BILLER),
@@ -202,9 +214,11 @@ export const State = Record({
   allMembers: [],
   memberLastFetchTime: undefined,
   currentMember: {},
+  currentMemberAdditional: {},
   newMember: {},
   initialLoad: true,
   currentMemberLoading: true,
+  currentMemberAdditionalLoading: true,
   newMemberLoading: true,
   membersLoading: true,
   memberUpdating: true,
@@ -280,7 +294,22 @@ export const reducer = (state = State(), { type, payload }) => {
     case types.FETCH_MEMBERS:
       return state.set('membersLoading', true);
     case types.FETCH_CURRENT_MEMBER:
-      return state.set('currentMemberLoading', true);
+      var currentMemberAdditional = {
+        emailsReceived: [],
+        emailsSent: [],
+        smsContent: [],
+        requestContent: [],
+        promotionContent: [],
+        memberFiles: [],
+        posOrders: [],
+        posItems: [],
+        additionalServices: [],
+      };
+      return state
+        .set('currentMemberLoading', true)
+        .set('currentMemberAdditional', currentMemberAdditional);
+    case types.FETCH_CURRENT_MEMBER_ADDITIONAL:
+      return state.set('currentMemberAdditionalLoading', true);
     case types.FETCH_BILLING_INFO:
       return state
         .set('billingInfoLoading', true)
@@ -295,12 +324,12 @@ export const reducer = (state = State(), { type, payload }) => {
       for (var k = 0; k < payload.members.length; k++) {
         setMemberPromotionValues(payload.members[k], payload.belts);
         payload.members[k].user = payload.users.find(
-          user => user.username === payload.members[k].values['Member ID'],
+          user =>
+            payload.members[k].values['Member ID'] !== null &&
+            user.username.toLowerCase() ===
+              payload.members[k].values['Member ID'].toLowerCase(),
         );
         members[members.length] = payload.members[k];
-        if (members[k].values['Is New Reply Received'] === 'true') {
-          attentionRequired = true;
-        }
       }
 
       if (allMembers.length === 0) {
@@ -315,6 +344,12 @@ export const reducer = (state = State(), { type, payload }) => {
           } else {
             allMembers.push(members[k]);
           }
+        }
+      }
+
+      for (var k = 0; k < allMembers.length; k++) {
+        if (allMembers[k].values['Is New Reply Received'] === 'true') {
+          attentionRequired = true;
         }
       }
       return state
@@ -335,6 +370,8 @@ export const reducer = (state = State(), { type, payload }) => {
       return state.get('currentFilter');
     }
     case types.SET_CURRENT_MEMBER: {
+      let allMembers = state.get('allMembers');
+
       if (payload.member.forBilling) {
         if (payload.member.values['Billing First Name'] === undefined)
           payload.member.values['Billing First Name'] =
@@ -361,13 +398,50 @@ export const reducer = (state = State(), { type, payload }) => {
           payload.member.values['Billing Postcode'] =
             payload.member.values['Postcode'];
       }
-      payload.member.user = payload.user;
       setMemberPromotionValues(payload.member, payload.belts);
 
+      payload.member.emailsReceived =
+        state.currentMemberAdditional.emailReceivedContent;
+      payload.member.emailsSent = state.currentMemberAdditional.emailsSent;
+      payload.member.smsContent = state.currentMemberAdditional.smsContent;
+      payload.member.requestContent =
+        state.currentMemberAdditional.requestContent;
+      payload.member.promotionContent =
+        state.currentMemberAdditional.promotionContent;
+      payload.member.memberFiles = state.currentMemberAdditional.memberFiles;
+      payload.member.posOrders = state.currentMemberAdditional.posOrders;
+      payload.member.posItems = state.currentMemberAdditional.posItems;
+      payload.member.additionalServices =
+        state.currentMemberAdditional.additionalServices;
+
+      if (allMembers.length !== 0) {
+        mIdx = allMembers.findIndex(member => member.id === payload.member.id);
+        if (mIdx !== -1) {
+          payload.member.user = allMembers[mIdx].user;
+        }
+      } else {
+        payload.member.user = payload.user.user;
+      }
       return state
         .set('initialLoad', false)
         .set('currentMemberLoading', false)
         .set('currentMember', payload.member);
+    }
+    case types.SET_CURRENT_MEMBER_ADDITIONAL: {
+      state.currentMember.emailsReceived = payload.emailReceivedContent;
+      state.currentMember.emailsSent = payload.emailsSent;
+      state.currentMember.smsContent = payload.smsContent;
+      state.currentMember.requestContent = payload.requestContent;
+      state.currentMember.promotionContent = payload.promotionContent;
+      state.currentMember.memberFiles = payload.memberFiles;
+      state.currentMember.posOrders = payload.posOrders;
+      state.currentMember.posItems = payload.posItems;
+      state.currentMember.additionalServices = payload.additionalServices;
+
+      return state
+        .set('currentMemberAdditionalLoading', false)
+        .set('currentMemberAdditional', payload)
+        .set('currentMember', state.currentMember);
     }
     case types.SET_BILLING_INFO: {
       if (

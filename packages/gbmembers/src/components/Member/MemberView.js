@@ -79,6 +79,8 @@ const mapStateToProps = state => ({
   memberItem: state.member.members.currentMember,
   initialLoad: state.member.members.initialLoad,
   currentMemberLoading: state.member.members.currentMemberLoading,
+  currentMemberAdditionalLoading:
+    state.member.members.currentMemberAdditionalLoading,
   allMembers: state.member.members.allMembers,
   campaignItem: state.member.campaigns.emailCampaignItem,
   campaignLoading: state.member.campaigns.emailCampaignLoading,
@@ -98,6 +100,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = {
   fetchCurrentMember: actions.fetchCurrentMember,
+  fetchCurrentMemberAdditional: actions.fetchCurrentMemberAdditional,
   updateMember: actions.updateMember,
   deleteMemberFile: actions.deleteMemberFile,
   cancelAdditionalService: actions.cancelAdditionalService,
@@ -733,6 +736,7 @@ export const MemberView = ({
   isDirty,
   setIsDirty,
   currentMemberLoading,
+  currentMemberAdditionalLoading,
   fetchCampaign,
   campaignItem,
   campaignLoading,
@@ -1557,85 +1561,95 @@ export const MemberView = ({
               </NavLink>
             </div>
           </div>
-          <div>
-            <MemberViewNotes
-              saveRemoveMemberNote={saveRemoveMemberNote}
-              space={space}
-              profile={profile}
-              memberItem={memberItem}
-            />
-          </div>
-          <div>
-            {Utils.getAttributeValue(space, 'Billing Company') ===
-              'Bambora' && (
-              <MemberAdditionalServices
-                memberItem={memberItem}
-                allMembers={allMembers}
-                space={space}
-                profile={profile}
-                cancelAdditionalService={cancelAdditionalService}
-                locale={locale}
-                currency={currency}
-              />
-            )}
-          </div>
-          <div>
-            <MemberFiles
-              memberItem={memberItem}
-              space={space}
-              profile={profile}
-              deleteMemberFile={deleteMemberFile}
-            />
-          </div>
-          <div>
-            <MemberEmails
-              memberItem={memberItem}
-              fetchCampaign={fetchCampaign}
-              campaignItem={campaignItem}
-              campaignLoading={campaignLoading}
-              space={space}
-              profile={profile}
-            />
-          </div>
-          <div>
-            <EmailsReceived
-              submission={memberItem}
-              space={space}
-              profile={profile}
-            />
-          </div>
-          <div>
-            <MemberSMS
-              memberItem={memberItem}
-              space={space}
-              profile={profile}
-            />
-          </div>
-          <div>
-            <Requests
-              requestContent={
-                memberItem.leadRequestContent === undefined
-                  ? memberItem.requestContent
-                  : memberItem.leadRequestContent.concat(
-                      memberItem.requestContent,
-                    )
-              }
-              space={space}
-              profile={profile}
-            />
-          </div>
-          <div>
-            <MemberOrders
-              memberItem={memberItem}
-              allMembers={allMembers}
-              space={space}
-              profile={profile}
-              snippets={snippets}
-              refundPOSPayment={refundPOSPayment}
-              refundPOSTransactionInProgress={refundPOSTransactionInProgress}
-              refundPOSTransactionID={refundPOSTransactionID}
-            />
-          </div>
+          {(currentMemberLoading || currentMemberAdditionalLoading) && (
+            <p>... Loading Additional Details</p>
+          )}
+
+          {!currentMemberLoading && !currentMemberAdditionalLoading && (
+            <div className="additionalDetails">
+              <div>
+                <MemberViewNotes
+                  saveRemoveMemberNote={saveRemoveMemberNote}
+                  space={space}
+                  profile={profile}
+                  memberItem={memberItem}
+                />
+              </div>
+              <div>
+                {Utils.getAttributeValue(space, 'Billing Company') ===
+                  'Bambora' && (
+                  <MemberAdditionalServices
+                    memberItem={memberItem}
+                    allMembers={allMembers}
+                    space={space}
+                    profile={profile}
+                    cancelAdditionalService={cancelAdditionalService}
+                    locale={locale}
+                    currency={currency}
+                  />
+                )}
+              </div>
+              <div>
+                <MemberFiles
+                  memberItem={memberItem}
+                  space={space}
+                  profile={profile}
+                  deleteMemberFile={deleteMemberFile}
+                />
+              </div>
+              <div>
+                <MemberEmails
+                  memberItem={memberItem}
+                  fetchCampaign={fetchCampaign}
+                  campaignItem={campaignItem}
+                  campaignLoading={campaignLoading}
+                  space={space}
+                  profile={profile}
+                />
+              </div>
+              <div>
+                <EmailsReceived
+                  submission={memberItem}
+                  space={space}
+                  profile={profile}
+                />
+              </div>
+              <div>
+                <MemberSMS
+                  memberItem={memberItem}
+                  space={space}
+                  profile={profile}
+                />
+              </div>
+              <div>
+                <Requests
+                  requestContent={
+                    memberItem.leadRequestContent === undefined
+                      ? memberItem.requestContent
+                      : memberItem.leadRequestContent.concat(
+                          memberItem.requestContent,
+                        )
+                  }
+                  space={space}
+                  profile={profile}
+                />
+              </div>
+              <div>
+                <MemberOrders
+                  memberItem={memberItem}
+                  allMembers={allMembers}
+                  space={space}
+                  profile={profile}
+                  snippets={snippets}
+                  refundPOSPayment={refundPOSPayment}
+                  refundPOSTransactionInProgress={
+                    refundPOSTransactionInProgress
+                  }
+                  refundPOSTransactionID={refundPOSTransactionID}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </span>
@@ -1891,6 +1905,7 @@ export const MemberViewContainer = compose(
       syncBillingCustomer,
       setBillingInfo,
       fetchCurrentMember,
+      fetchCurrentMemberAdditional,
       fetchMembers,
       addNotification,
       setSystemError,
@@ -1915,6 +1930,7 @@ export const MemberViewContainer = compose(
         setCurrentMember: setCurrentMember,
         setBillingInfo: setBillingInfo,
         fetchCurrentMember: fetchCurrentMember,
+        fetchCurrentMemberAdditional: fetchCurrentMemberAdditional,
         fetchMembers: fetchMembers,
         addNotification: addNotification,
         setSystemError: setSystemError,
@@ -2050,6 +2066,7 @@ export const MemberViewContainer = compose(
       refundTransaction,
       updateMember,
       fetchCurrentMember,
+      fetchCurrentMemberAdditional,
       fetchMembers,
       addNotification,
       setSystemError,
@@ -2062,6 +2079,7 @@ export const MemberViewContainer = compose(
       args.memberItem = memberItem;
       args.updateMember = updateMember;
       args.fetchCurrentMember = fetchCurrentMember;
+      args.fetchCurrentMemberAdditional = fetchCurrentMemberAdditional;
       args.fetchMembers = fetchMembers;
       args.myThis = memberItem.myThis;
       args.billingChangeReason = billingChangeReason;
@@ -2166,6 +2184,11 @@ export const MemberViewContainer = compose(
       this.props.fetchCurrentMember({
         id: this.props.match.params.id,
         billingService: getAttributeValue(this.props.space, 'Billing Company'),
+        allMembers: this.props.allMembers,
+      });
+      this.props.fetchCurrentMemberAdditional({
+        id: this.props.match.params.id,
+        billingService: getAttributeValue(this.props.space, 'Billing Company'),
       });
 
       let currency = getAttributeValue(this.props.space, 'Currency');
@@ -2185,6 +2208,14 @@ export const MemberViewContainer = compose(
       //$('#mainContent').offset({ top: 98});
       if (this.props.pathname !== nextProps.pathname) {
         this.props.fetchCurrentMember({
+          id: nextProps.match.params.id,
+          billingService: getAttributeValue(
+            this.props.space,
+            'Billing Company',
+          ),
+          allMembers: this.props.allMembers,
+        });
+        this.props.fetchCurrentMemberAdditional({
           id: nextProps.match.params.id,
           billingService: getAttributeValue(
             this.props.space,

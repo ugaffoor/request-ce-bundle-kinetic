@@ -42,6 +42,7 @@ export class Statistics extends Component {
     );
 
     this._getLeadRowTableColumns = this.getLeadRowTableColumns();
+    this._getLeadIntroRowTableColumns = this.getLeadIntroRowTableColumns();
     this._getMemberRowTableColumns = this.getMemberRowTableColumns();
 
     this.setIsAssigning = this.props.setIsAssigning;
@@ -480,6 +481,7 @@ export class Statistics extends Component {
       //if (i % (col-1) === 0){
       leads_col[leads_col.length] = {
         leadId: leads[i].id,
+        lead: leads[i],
         name:
           leads[i].values['First Name'] + ' ' + leads[i].values['Last Name'],
       };
@@ -488,7 +490,21 @@ export class Statistics extends Component {
 
     return leads_col;
   }
+  getLeadIntroInfo(lead) {
+    var info = '';
+    var history =
+      lead.values['History'] !== undefined
+        ? getJson(lead.values['History'])
+        : {};
+    for (var i = history.length - 1; i >= 0; i--) {
+      if (history[i]['contactMethod'] === 'intro_class') {
+        info = ' (' + moment(history[i]['contactDate']).format('L h:mmA') + ')';
+        break;
+      }
+    }
 
+    return lead.values['First Name'] + ' ' + lead.values['Last Name'] + info;
+  }
   getLeadTableData(leads) {
     leads = leads.sort(function(lead1, lead2) {
       try {
@@ -603,6 +619,48 @@ export class Statistics extends Component {
       },
     ];
   };
+  getLeadIntroRowTableColumns = () => {
+    return [
+      {
+        accessor: 'leads',
+        Header: '',
+        width: 300,
+        headerClassName: 'leads_col',
+        className: 'leads_col',
+        Cell: props => {
+          return props.original.leads_col1 === undefined ? (
+            <div />
+          ) : (
+            <NavLink
+              to={`/LeadDetail/${props.original.leads_col1['leadId']}`}
+              className=""
+            >
+              {this.getLeadIntroInfo(props.original.leads_col1['lead'])}
+            </NavLink>
+          );
+        },
+      },
+      {
+        accessor: 'leads',
+        Header: '',
+        width: 300,
+        headerClassName: 'leads_col',
+        className: 'leads_col',
+        Cell: props => {
+          return props.original.leads_col2 === undefined ? (
+            <div />
+          ) : (
+            <NavLink
+              to={`/LeadDetail/${props.original.leads_col2['leadId']}`}
+              className=""
+            >
+              {this.getLeadIntroInfo(props.original.leads_col2['lead'])}
+            </NavLink>
+          );
+        },
+      },
+    ];
+  };
   getLeadTableHeaderName() {
     if (this.state.showNewLeads) return 'Leads';
     if (this.state.showScheduledLeads) return 'Intro Scheduled';
@@ -637,6 +695,44 @@ export class Statistics extends Component {
               columns={this._getLeadRowTableColumns}
               pageSize={leads_col1.length > 20 ? 20 : leads_col1.length}
               showPagination={leads_col1.length > 20 ? true : false}
+              data={leads}
+            />
+          );
+        },
+      },
+    ];
+  }
+  getLeadIntroTableColumns(row) {
+    return [
+      {
+        accessor: 'leads',
+        Header: this.getLeadTableHeaderName(),
+        headerClassName: 'leads_col',
+        className: 'leads_col',
+        style: { whiteSpace: 'unset' },
+        maxWidth: '100%',
+        Cell: props => {
+          let leads_col1 = props.value.leads_col1;
+          let leads_col2 = props.value.leads_col2;
+          let leads_col3 = props.value.leads_col3;
+          let leads_col4 = props.value.leads_col4;
+
+          let leads = [];
+          for (var i = 0; i < leads_col1.length; i++) {
+            leads[leads.length] = {
+              leads_col1: leads_col1[i],
+              leads_col2: leads_col2.length > i ? leads_col2[i] : undefined,
+            };
+            leads[leads.length] = {
+              leads_col1: leads_col3.length > i ? leads_col3[i] : undefined,
+              leads_col2: leads_col4.length > i ? leads_col4[i] : undefined,
+            };
+          }
+          return (
+            <ReactTable
+              columns={this._getLeadIntroRowTableColumns}
+              pageSize={leads_col1.length * 2 > 20 ? 20 : leads_col1.length * 2}
+              showPagination={leads_col1.length * 2 > 20 ? true : false}
               data={leads}
             />
           );
@@ -1180,7 +1276,7 @@ export class Statistics extends Component {
                     <SVGInline svg={crossIcon} className="icon" />
                   </span>
                   <ReactTable
-                    columns={this.getLeadTableColumns()}
+                    columns={this.getLeadIntroTableColumns()}
                     data={this.getLeadTableData(
                       this.state.leadData.introsTotal,
                     )}

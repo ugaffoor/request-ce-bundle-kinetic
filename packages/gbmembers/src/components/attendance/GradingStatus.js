@@ -33,7 +33,7 @@ export class GradingStatus extends Component {
       showPromotionDialog: showPromotionDialog,
     });
   }
-  UNSAFE_componentWillMount() {}
+  componentDidMount() {}
   setShowPromotionDialog(gradingStatusThis, show) {
     gradingStatusThis.setState({ showPromotionDialog: show });
   }

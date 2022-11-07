@@ -23,6 +23,7 @@ import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   memberItem: state.member.members.currentMember,
+  allMembers: state.member.members.allMembers,
   currentMemberLoading: state.member.members.currentMemberLoading,
   profile: state.member.kinops.profile,
   space: state.member.app.space,
@@ -242,6 +243,7 @@ export const MemberFollowUpContainer = compose(
         myThis: this,
         history: this.props.history,
         billingService: getAttributeValue(this.props.space, 'Billing Company'),
+        allMembers: this.props.allMembers,
       });
     },
     UNSAFE_componentWillReceiveProps(nextProps) {
@@ -254,6 +256,7 @@ export const MemberFollowUpContainer = compose(
             this.props.space,
             'Billing Company',
           ),
+          allMembers: this.props.allMembers,
         });
       }
     },

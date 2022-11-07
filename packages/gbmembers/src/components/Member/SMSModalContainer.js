@@ -23,6 +23,7 @@ import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const mapStateToProps = state => ({
   memberItem: state.member.members.currentMember,
+  allMembers: state.member.members.allMembers,
   leadItem: state.member.leads.currentLead,
   currentMemberLoading: state.member.members.currentMemberLoading,
   currentLeadLoading: state.member.leads.currentLeadLoading,
@@ -34,7 +35,7 @@ const mapStateToProps = state => ({
   space: state.member.app.space,
 });
 const mapDispatchToProps = {
-  fetchCurrentMember: actions.fetchCurrentMember,
+  fetchCurrentMemberAdditional: actions.fetchCurrentMemberAdditional,
   updateMember: actions.updateMember,
   updateLead: leadsActions.updateLead,
   fetchLead: leadsActions.fetchCurrentLead,
@@ -488,7 +489,8 @@ const enhance = compose(
       sendSms,
       createLeadActivities,
       createMemberActivities,
-      fetchCurrentMember,
+      fetchCurrentMemberAdditional,
+      allMembers,
       fetchLead,
       updateMember,
       updateLead,
@@ -516,7 +518,8 @@ const enhance = compose(
           memberItem: submission,
           updateMember,
           createMemberActivities: createMemberActivities,
-          fetchMember: fetchCurrentMember,
+          fetchMemberAdditional: fetchCurrentMemberAdditional,
+          allMembers: allMembers,
           addNotification: addNotification,
           setSystemError: setSystemError,
           myThis: this,

@@ -45,7 +45,7 @@ export class BamboraOverdues extends Component {
     };
   }
 
-  UNSAFE_componentWillMount() {
+  componentDidMount() {
     this.props.getFailedPayments();
     this.props.getSuccessfulPayments();
   }
@@ -171,13 +171,13 @@ export class BamboraOverdues extends Component {
           period = 'months';
         }
         if (lastPayment.isAfter(moment())) {
-          lastPayment = lastPayment.subtract(period, periodCount);
+          lastPayment = lastPayment.subtract(periodCount, period);
         }
 
-        var nextBillingDate = lastPayment.add(period, periodCount);
+        var nextBillingDate = lastPayment.add(periodCount, period);
         while (nextBillingDate.isBefore(nowDate)) {
           overdueAmount = overdueAmount + payment.paymentAmount;
-          nextBillingDate = nextBillingDate.add(period, periodCount);
+          nextBillingDate = nextBillingDate.add(periodCount, period);
         }
         if (overdueAmount === 0) {
           overdueAmount = payment.paymentAmount;

@@ -28,7 +28,6 @@ const mapStateToProps = state => ({
   profile: state.member.kinops.profile,
 });
 const mapDispatchToProps = {
-  fetchCurrentMember: actions.fetchCurrentMember,
   updateMember: actions.updateMember,
   activateBiller: actions.activateBiller,
   billerActivated: actions.billerActivated,

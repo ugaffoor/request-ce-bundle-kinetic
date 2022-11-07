@@ -59,7 +59,6 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = {
-  fetchCurrentMember: actions.fetchCurrentMember,
   fetchBillingPayments: actions.fetchBillingPayments,
   fetchLeadsByDate: leadsActions.fetchLeadsByDate,
   fetchAttendancesByDate: attendanceActions.fetchAttendancesByDate,
@@ -318,7 +317,13 @@ export const HomeContainer = compose(
     },
   }),
   lifecycle({
-    UNSAFE_componentWillMount() {
+    UNSAFE_componentWillReceiveProps(nextProps) {
+      this.props.setSidebarDisplayType('members');
+      $('.content')
+        .parent('div')[0]
+        .scrollIntoView(true);
+    },
+    componentDidMount() {
       if (
         Utils.isMemberOf(this.props.profile, 'Billing') &&
         getAttributeValue(this.props.space, 'Billing Company') !== 'No Billing'
@@ -345,13 +350,6 @@ export const HomeContainer = compose(
         locale: this.locale,
       });
     },
-    UNSAFE_componentWillReceiveProps(nextProps) {
-      this.props.setSidebarDisplayType('members');
-      $('.content')
-        .parent('div')[0]
-        .scrollIntoView(true);
-    },
-    componentDidMount() {},
     UNSAFE_componentWillUnmount() {},
   }),
 )(HomeView);

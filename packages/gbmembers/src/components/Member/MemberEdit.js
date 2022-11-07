@@ -1998,6 +1998,7 @@ export const MemberEditContainer = compose(
         updateMember({
           id: memberItem.id,
           memberItem,
+          history: memberItem.history,
           emailChanged,
           allMembers,
         });
@@ -2016,6 +2017,7 @@ export const MemberEditContainer = compose(
       this.props.fetchCurrentMember({
         id: this.props.match.params.id,
         history: this.props.history,
+        allMembers: this.props.allMembers,
       });
     },
     componentDidUpdate() {
@@ -2030,6 +2032,7 @@ export const MemberEditContainer = compose(
         id: this.props.match.params.id,
         history: this.props.history,
         billingService: getAttributeValue(this.props.space, 'Billing Company'),
+        allMembers: this.props.allMembers,
       });
     },
     UNSAFE_componentWillReceiveProps(nextProps) {
@@ -2041,6 +2044,7 @@ export const MemberEditContainer = compose(
             this.props.space,
             'Billing Company',
           ),
+          allMembers: this.props.allMembers,
         });
       }
     },
