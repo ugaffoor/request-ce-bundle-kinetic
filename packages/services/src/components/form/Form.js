@@ -346,6 +346,7 @@ export class DatepickerWrapper extends React.Component {
         inline={inline}
         onGenerate={onGenerate}
         onSelectDate={onSelectDate}
+        scrollInput={false}
       />
     );
   }

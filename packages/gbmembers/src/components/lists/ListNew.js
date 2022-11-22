@@ -359,9 +359,13 @@ export class ListNewHome extends Component {
           if (
             startDate !== null &&
             endDate !== null &&
-            !moment(member.values['Date Joined'], 'YYYY-MM-DD').isBetween(
-              startDate,
-              endDate,
+            !(
+              moment(member.values['Date Joined'], 'YYYY-MM-DD').isSameOrAfter(
+                startDate,
+              ) &&
+              moment(member.values['Date Joined'], 'YYYY-MM-DD').isSameOrBefore(
+                endDate,
+              )
             )
           ) {
             match = false;

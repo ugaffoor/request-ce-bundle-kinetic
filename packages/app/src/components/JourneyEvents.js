@@ -22,7 +22,13 @@ export const JourneyEvents = ({
     <DropdownToggle nav role="button">
       <i className="fa fa-fw fa-bell" />
       {journeyevents.size > 0 && (
-        <span className="badge badge-secondary">{journeyevents.size}</span>
+        <span className="badge badge-secondary">
+          {
+            journeyevents.filter(
+              journeyevent => journeyevent.values['Status'] === 'New',
+            ).size
+          }
+        </span>
       )}
     </DropdownToggle>
     {isOpen && (

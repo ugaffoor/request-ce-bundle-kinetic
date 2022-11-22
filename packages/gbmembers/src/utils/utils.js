@@ -200,11 +200,11 @@ export const matchesMemberFilter = (allMembers, filters) => {
       if (keys[0] === 'joiningDateFilter') {
         startDate =
           filters[i][keys[0]].startDate !== undefined
-            ? moment(filters[i][keys[0]].startDate, 'YYYY-MM-DD')
+            ? moment(filters[i][keys[0]].startDate, 'YYYY-MM-DD').startOf('day')
             : undefined;
         endDate =
           filters[i][keys[0]].endDate !== undefined
-            ? moment(filters[i][keys[0]].endDate, 'YYYY-MM-DD')
+            ? moment(filters[i][keys[0]].endDate, 'YYYY-MM-DD').endOf('day')
             : undefined;
         if (
           startDate !== undefined &&
@@ -225,9 +225,13 @@ export const matchesMemberFilter = (allMembers, filters) => {
         } else if (
           startDate !== undefined &&
           endDate !== undefined &&
-          !moment(member.values['Date Joined'], 'YYYY-MM-DD').isBetween(
-            startDate,
-            endDate,
+          !(
+            moment(member.values['Date Joined'], 'YYYY-MM-DD').isSameOrAfter(
+              startDate,
+            ) &&
+            moment(member.values['Date Joined'], 'YYYY-MM-DD').isSameOrBefore(
+              endDate,
+            )
           )
         ) {
           match = false;
@@ -319,9 +323,19 @@ export const matchesLeadFilter = (allLeads, filters) => {
     for (var i = 0; i < filters.length; i++) {
       let keys = Object.keys(filters[i]);
       if (keys[0] === 'createdDateFilter') {
-        startDate = moment(filters[i][keys[0]].startDate, 'YYYY-MM-DD');
-        endDate = moment(filters[i][keys[0]].endDate, 'YYYY-MM-DD');
-        if (!moment(lead.createdAt).isBetween(startDate, endDate)) {
+        startDate = moment(filters[i][keys[0]].startDate, 'YYYY-MM-DD').startOf(
+          'day',
+        );
+        endDate = moment(filters[i][keys[0]].endDate, 'YYYY-MM-DD').endOf(
+          'day',
+        );
+
+        if (
+          !(
+            moment(lead.createdAt).isSameOrAfter(startDate) &&
+            moment(lead.createdAt).isSameOrBefore(endDate)
+          )
+        ) {
           match = false;
         }
       } else if (keys[0] === 'genderFilter') {

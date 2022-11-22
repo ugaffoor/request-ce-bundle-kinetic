@@ -286,7 +286,8 @@ export class MemberFinancialStats extends Component {
     var uniqueHistory = [];
     FAILEDpaymentHistory.forEach((item, i) => {
       if (
-        moment(item.debitDate, 'YYYY-MM-DD').isBetween(fromDate, toDate) &&
+        moment(item.debitDate, 'YYYY-MM-DD').isSameOrAfter(fromDate) &&
+        moment(item.debitDate, 'YYYY-MM-DD').isSameOrBefore(toDate) &&
         member.values['Billing Customer Id'] === item.yourSystemReference
       ) {
         var idx = uniqueHistory.findIndex(
@@ -301,7 +302,8 @@ export class MemberFinancialStats extends Component {
 
     uniqueHistory.forEach((failed, i) => {
       if (
-        moment(failed.debitDate, 'YYYY-MM-DD').isBetween(fromDate, toDate) &&
+        moment(failed.debitDate, 'YYYY-MM-DD').isSameOrAfter(fromDate) &&
+        moment(failed.debitDate, 'YYYY-MM-DD').isSameOrBefore(toDate) &&
         member.values['Billing Customer Id'] === failed.yourSystemReference
       ) {
         // Check if a payment was made since, if so don't include
@@ -417,7 +419,8 @@ export class MemberFinancialStats extends Component {
         member.values['Billing Customer Id'] === payment['yourSystemReference']
       ) {
         if (
-          moment(payment.debitDate, 'YYYY-MM-DD').isBetween(fromDate, toDate)
+          moment(payment.debitDate, 'YYYY-MM-DD').isSameOrAfter(fromDate) &&
+          moment(payment.debitDate, 'YYYY-MM-DD').isSameOrBefore(toDate)
         ) {
           total += payment.paymentAmount;
           lastPayment = moment(payment.debitDate, 'YYYY-MM-DD');
@@ -1450,8 +1453,10 @@ export class MemberFinancialStats extends Component {
 
     if (member.values['Billing Payment Type'] === 'Cash') {
       if (
-        moment(member.values['Billing Cash Term Start Date']).isBetween(
+        moment(member.values['Billing Cash Term Start Date']).isSameOrAfter(
           this.state.fromDate,
+        ) &&
+        moment(member.values['Billing Cash Term Start Date']).isSameOrBefore(
           this.state.toDate,
         )
       ) {

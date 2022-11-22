@@ -148,19 +148,24 @@ export class TasksDetail extends Component {
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
-    this.setState({
-      tasks: this.getLeadTasksData(
+    let tasks = this.sort(
+      this.getLeadTasksData(
         nextProps.allLeads,
         this.state.showTasksSelectValue,
       ),
-    });
-    this.setState({
-      memberTasksData: this.getMemberTasksData(
+      'date',
+    );
+    let memberTasksData = this.sort(
+      this.getMemberTasksData(
         nextProps.allMembers,
         this.state.showTasksSelectValue,
       ),
-    });
+      'date',
+    );
+
     this.setState({
+      tasks: tasks,
+      memberTasksData: memberTasksData,
       allLeads: this.getLeadsData(nextProps.allLeads),
     });
     let attentionRequiredOnly = false;

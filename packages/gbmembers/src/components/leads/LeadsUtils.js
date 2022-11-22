@@ -58,7 +58,7 @@ export function substituteFields(text, person, space, profile, journeyEvent) {
       let history = person.values['History'];
       if (history !== undefined) {
         history = getJson(history);
-        for (let i = history.length - 1; i > 0; i--) {
+        for (let i = history.length - 1; i >= 0; i--) {
           if (history[i]['contactMethod'] === 'intro_class') {
             introDate = moment(history[i]['contactDate'], 'YYYY-MM-DD HH:mm');
             break;
@@ -69,7 +69,7 @@ export function substituteFields(text, person, space, profile, journeyEvent) {
         matches.forEach(function(value, index) {
           text = text.replace(
             new RegExp(escapeRegExp(value), 'g'),
-            introDate.format('Do MMM YYYY h:mA'),
+            introDate.format('Do MMM YYYY h:mmA'),
           );
         });
       }
@@ -81,7 +81,7 @@ export function substituteFields(text, person, space, profile, journeyEvent) {
       let history = person.values['History'];
       if (history !== undefined) {
         history = getJson(history);
-        for (let i = history.length - 1; i > 0; i--) {
+        for (let i = history.length - 1; i >= 0; i--) {
           if (history[i]['contactMethod'] === 'intro_class') {
             introTime = moment(history[i]['contactDate'], 'YYYY-MM-DD HH:mm');
             break;

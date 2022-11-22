@@ -239,8 +239,34 @@ export class MemberFinancialReport extends Component {
 
       var cashMemberRegistrations = [];
       nextProps.services.forEach((service, i) => {
-        if (service.form.slug === 'cash-member-registration') {
+        if (
+          service.form.slug === 'cash-member-registration' &&
+          moment(service.createdAt).isAfter(this.state.repFromDate) &&
+          moment(service.createdAt).isBefore(this.state.repToDate)
+        ) {
           cashMemberRegistrations.push(service);
+        }
+      });
+
+      var cancellationRequests = [];
+      nextProps.services.forEach((service, i) => {
+        if (
+          service.form.slug === 'bambora-member-cancellation' ||
+          service.form.slug === 'paysmart-member-registration' ||
+          service.form.slug === 'stripe-member-registration'
+        ) {
+          cancellationRequests.push(service);
+        }
+      });
+
+      var freezeRequests = [];
+      nextProps.services.forEach((service, i) => {
+        if (
+          service.form.slug === 'bambora-membership-freeze' ||
+          service.form.slug === 'membership-freeze' ||
+          service.form.slug === 'stripe-membership-freeze'
+        ) {
+          freezeRequests.push(service);
         }
       });
 
@@ -256,6 +282,8 @@ export class MemberFinancialReport extends Component {
         this.props.additionalServices,
         this.props.cashPaymentsByDate,
         cashMemberRegistrations,
+        cancellationRequests,
+        freezeRequests,
         this.state.repFromDate,
         this.state.repToDate,
         this.state.repBillingPeriod,
@@ -314,8 +342,9 @@ export class MemberFinancialReport extends Component {
       dateTo: this.state.repToDate,
       timezoneOffset: getTimezoneOff(),
     });
+    var additionalServicesFromDate = moment(this.state.repFromDate);
     this.props.fetchAdditionalServices({
-      dateFrom: this.state.repFromDate,
+      dateFrom: additionalServicesFromDate.subtract(6, 'months'),
       dateTo: this.state.repToDate,
       additionalServiceForm:
         getAttributeValue(this.props.space, 'Billing Company') === 'Bambora'
@@ -334,8 +363,9 @@ export class MemberFinancialReport extends Component {
       dateFrom: this.state.repFromDate.format('YYYY-MM-DD'),
       dateTo: this.state.repToDate.format('YYYY-MM-DD'),
     });
+    var servicesFromDate = moment(this.state.repFromDate);
     this.props.fetchServicesByDate({
-      fromDate: this.state.repFromDate,
+      fromDate: servicesFromDate.subtract(3, 'months'),
       toDate: this.state.repToDate,
     });
 
@@ -451,8 +481,9 @@ export class MemberFinancialReport extends Component {
       dateFrom: fromDate.format('YYYY-MM-DD'),
       dateTo: toDate.format('YYYY-MM-DD'),
     });
+    var servicesFromDate = moment(fromDate);
     this.props.fetchServicesByDate({
-      fromDate: fromDate,
+      fromDate: servicesFromDate.subtract(3, 'months'),
       toDate: toDate,
     });
   }
@@ -472,6 +503,40 @@ export class MemberFinancialReport extends Component {
       return Number.parseFloat(item.values['Total']);
     }
   }
+  noCancellationRequests(cancellationRequests, member, nextBillingDate) {
+    var datePrior = false;
+    if (member.status === 'Pending Cancellation') {
+      cancellationRequests.forEach((request, i) => {
+        if (member.id === request.values['Members']) {
+          var startDate = moment(
+            request.values['The last debit will be taken on'],
+            'YYYY-MM-DD',
+          );
+          if (startDate.isSameOrBefore(nextBillingDate)) {
+            datePrior = true;
+          }
+        }
+      });
+    }
+    return datePrior;
+  }
+  noFreezeRequests(freezeRequests, member, nextBillingDate) {
+    var datePrior = false;
+    if (member.status === 'Pending Freeze') {
+      freezeRequests.forEach((request, i) => {
+        if (member.id === request.values['Members']) {
+          var startDate = moment(
+            request.values['Date of Last Payment'],
+            'YYYY-MM-DD',
+          );
+          if (startDate.isSameOrBefore(nextBillingDate)) {
+            datePrior = true;
+          }
+        }
+      });
+    }
+    return datePrior;
+  }
 
   getMemberData(
     members,
@@ -485,6 +550,8 @@ export class MemberFinancialReport extends Component {
     additionalServicesRecords,
     cashPaymentsByDate,
     cashMemberRegistrations,
+    cancellationRequests,
+    freezeRequests,
     fromDate,
     toDate,
     repBillingPeriod,
@@ -546,16 +613,19 @@ export class MemberFinancialReport extends Component {
             payment.debitDate,
         );
       } else if (additionalServiceMember !== undefined) {
-        if (
-          additionalServices.findIndex(
-            service =>
-              service.id === additionalServiceMember.id &&
-              service.values['Service Name'] === payment.paymentReference,
-          ) === -1
-        ) {
+        var sIdx = additionalServices.findIndex(
+          service =>
+            service.id === additionalServiceMember.id &&
+            service.values['Service Name'] === payment.paymentReference,
+        );
+        if (sIdx === -1) {
           var idx = additionalServices.length;
           additionalServices[idx] = additionalServiceMember;
           additionalServices[idx]['Service Name'] = payment.paymentReference;
+          additionalServices[idx]['Service Charge'] = payment.paymentAmount;
+        } else {
+          additionalServices[idx]['Service Charge'] =
+            additionalServices[idx]['Service Charge'] + payment.paymentAmount;
         }
         additionalServicesValue += payment.paymentAmount;
         console.log(
@@ -645,6 +715,17 @@ export class MemberFinancialReport extends Component {
           member.status === 'Pending Cancellation') &&
         failedIdx === -1
       ) {
+        //Set id value of members
+        members.forEach((item, i) => {
+          if (
+            item.values['Member ID'] === member.memberId ||
+            item.values['Member ID'] === member.customerId
+          ) {
+            member.id = item.id;
+            member.status = item.values['Status'];
+          }
+        });
+
         // Find latest payment date
         var idx = paymentHistory.findIndex(item => {
           return member.customerId === item.yourSystemReference;
@@ -677,10 +758,12 @@ export class MemberFinancialReport extends Component {
           lastPayment = lastPayment.subtract(period, periodCount);
         }
 
+        // Find first billing date inside period
         var nextBillingDate = lastPayment.add(period, periodCount);
         while (nextBillingDate.isBefore(fromDate)) {
           nextBillingDate = nextBillingDate.add(period, periodCount);
         }
+        // Only valid if period is in the future
         if (toDate.isAfter(moment())) {
           var count = 1;
           while (
@@ -688,25 +771,39 @@ export class MemberFinancialReport extends Component {
               nextBillingDate.isSame(fromDate)) &&
             (nextBillingDate.isBefore(toDate) || nextBillingDate.isSame(toDate))
           ) {
-            forecastHolders[forecastHolders.length] = member;
-            forecastHoldersValue += Number(member.billingAmount);
-            console.log(
-              'Forecast,' +
-                count +
-                ' ' +
-                member['firstName'] +
-                ' ' +
-                member['lastName'] +
-                ' - ' +
-                member['billingId'] +
-                ',' +
-                Number(member.billingAmount).toFixed(2) +
-                ',' +
-                nextBillingDate.format('YYYY-MM-DD'),
-            );
+            // Need to check if a Cancellation or Freeze is valid
+            // nextBillingDate must not be after and Cancellation start dates
+            // or and Freeze start dates
+            if (
+              !this.noCancellationRequests(
+                cancellationRequests,
+                member,
+                nextBillingDate,
+              ) &&
+              !this.noFreezeRequests(freezeRequests, member, nextBillingDate)
+            ) {
+              forecastHolders[forecastHolders.length] = member;
+              forecastHoldersValue += Number(member.billingAmount);
+              console.log(
+                'Forecast,' +
+                  count +
+                  ' ' +
+                  member['firstName'] +
+                  ' ' +
+                  member['lastName'] +
+                  ' - ' +
+                  member['billingId'] +
+                  ',' +
+                  Number(member.billingAmount).toFixed(2) +
+                  ',' +
+                  nextBillingDate.format('YYYY-MM-DD'),
+              );
 
-            nextBillingDate = nextBillingDate.add(period, periodCount);
-            count += 1;
+              nextBillingDate = nextBillingDate.add(period, periodCount);
+              count += 1;
+            } else {
+              break;
+            }
           }
         }
       }
@@ -1094,7 +1191,7 @@ export class MemberFinancialReport extends Component {
   }
 
   getAdditionalServicesFee(additionalServices, member) {
-    var fee = 0;
+    /*    var fee = 0;
     additionalServices.forEach((service, i) => {
       if (
         service.values['Member ID'] === member.values['Member ID'] &&
@@ -1103,8 +1200,8 @@ export class MemberFinancialReport extends Component {
         fee = fee + parseFloat(service.values['Fee']);
       }
     });
-
-    return fee;
+*/
+    return member['Service Charge'];
   }
   getCashPaymentAmount(payments, member) {
     var amount = 0;
@@ -2265,6 +2362,7 @@ export class MemberFinancialReport extends Component {
         {this.props.billingReportCustomersLoading ||
         this.props.SUCCESSFULpaymentHistoryLoading ||
         this.props.customerRefundsLoading ||
+        this.props.servicesLoading ||
         this.props.posOrdersLoading ? (
           <div className="memberFinanceReport">Loading information ...</div>
         ) : (

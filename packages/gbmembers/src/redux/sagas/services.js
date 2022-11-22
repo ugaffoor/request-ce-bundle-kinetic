@@ -10,6 +10,8 @@ export function* fetchServicesByDate(action) {
   const searchBuilder = new CoreAPI.SubmissionSearch()
     .coreState('Submitted')
     .type('Service')
+    .sortBy('submittedAt')
+    .sortDirection('DESC')
     .limit(1000)
     .includes(['details', 'values', 'form']);
 

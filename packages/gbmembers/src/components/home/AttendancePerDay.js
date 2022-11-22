@@ -125,7 +125,7 @@ export class AttendancePerDay extends Component {
       fromDate: this.state.fromDate,
       toDate: this.state.toDate,
     });
-    if (this.props.classSchedules.length === 0) {
+    if (this.props.classSchedules.size === 0) {
       this.props.fetchClassSchedules();
     }
   }

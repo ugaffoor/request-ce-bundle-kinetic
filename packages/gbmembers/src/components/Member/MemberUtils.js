@@ -1266,7 +1266,7 @@ export function memberStatusInDates(member, fromDate, toDate) {
     var createdAt = moment(member.createdAt);
     var updatedAt = moment(member.updatedAt);
     return member.values['Status'] === 'Inactive' &&
-      (!moment(member.updatedAt).isBetween(fromDate, toDate) ||
+      (!moment(member.createdAt).isBetween(fromDate, toDate) ||
         createdAt.day() === updatedAt.day())
       ? ''
       : moment(member.createdAt).isAfter(toDate)

@@ -401,7 +401,7 @@ export const reducer = (state = State(), { type, payload }) => {
       setMemberPromotionValues(payload.member, payload.belts);
 
       payload.member.emailsReceived =
-        state.currentMemberAdditional.emailReceivedContent;
+        state.currentMemberAdditional.emailsReceived;
       payload.member.emailsSent = state.currentMemberAdditional.emailsSent;
       payload.member.smsContent = state.currentMemberAdditional.smsContent;
       payload.member.requestContent =
@@ -428,7 +428,7 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('currentMember', payload.member);
     }
     case types.SET_CURRENT_MEMBER_ADDITIONAL: {
-      state.currentMember.emailsReceived = payload.emailReceivedContent;
+      state.currentMember.emailsReceived = payload.emailsReceived;
       state.currentMember.emailsSent = payload.emailsSent;
       state.currentMember.smsContent = payload.smsContent;
       state.currentMember.requestContent = payload.requestContent;
