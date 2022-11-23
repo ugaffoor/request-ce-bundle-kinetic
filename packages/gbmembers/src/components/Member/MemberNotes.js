@@ -19,6 +19,7 @@ import phone from '../../images/phone.png';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { EmailsReceived } from './EmailsReceived';
 import { MemberEmails } from './MemberEmails';
+import { MemberSMS } from './MemberSMS';
 import { actions as campaignActions } from '../../redux/modules/campaigns';
 import { SMSModalContainer } from './SMSModalContainer';
 import { actions as appActions } from '../../redux/modules/memberApp';
@@ -31,12 +32,15 @@ const mapStateToProps = state => ({
   campaignItem: state.member.campaigns.emailCampaignItem,
   campaignLoading: state.member.campaigns.emailCampaignLoading,
   currentMemberLoading: state.member.members.currentMemberLoading,
+  currentMemberAdditionalLoading:
+    state.member.members.currentMemberAdditionalLoading,
   space: state.member.app.space,
   profile: state.member.kinops.profile,
 });
 const mapDispatchToProps = {
   updateMember: actions.updateMember,
   fetchCurrentMember: actions.fetchCurrentMember,
+  fetchCurrentMemberAdditional: actions.fetchCurrentMemberAdditional,
   fetchMembers: actions.fetchMembers,
   fetchCampaign: campaignActions.fetchEmailCampaign,
   setSidebarDisplayType: appActions.setSidebarDisplayType,
@@ -340,23 +344,39 @@ export class MemberNotesHome extends Component {
             />
           </div>
         </div>
-        <div>
-          <MemberEmails
-            memberItem={this.props.memberItem}
-            fetchCampaign={this.props.fetchCampaign}
-            campaignItem={this.props.campaignItem}
-            campaignLoading={this.props.campaignLoading}
-            space={this.props.space}
-            profile={this.props.profile}
-          />
-        </div>
-        <div>
-          <EmailsReceived
-            submission={this.props.memberItem}
-            space={this.props.space}
-            profile={this.props.profile}
-          />
-        </div>
+        {(this.props.currentMemberLoading ||
+          this.props.currentMemberAdditionalLoading) && (
+          <p>... Loading Additional Details</p>
+        )}
+        {!this.props.currentMemberLoading &&
+          !this.props.currentMemberAdditionalLoading && (
+            <div>
+              <div>
+                <MemberEmails
+                  memberItem={this.props.memberItem}
+                  fetchCampaign={this.props.fetchCampaign}
+                  campaignItem={this.props.campaignItem}
+                  campaignLoading={this.props.campaignLoading}
+                  space={this.props.space}
+                  profile={this.props.profile}
+                />
+              </div>
+              <div>
+                <EmailsReceived
+                  submission={this.props.memberItem}
+                  space={this.props.space}
+                  profile={this.props.profile}
+                />
+              </div>
+              <div>
+                <MemberSMS
+                  memberItem={this.props.memberItem}
+                  space={this.props.space}
+                  profile={this.props.profile}
+                />
+              </div>
+            </div>
+          )}
       </div>
     );
   }
@@ -366,6 +386,7 @@ export const MemberNotesView = ({
   memberItem,
   saveMember,
   currentMemberLoading,
+  currentMemberAdditionalLoading,
   fetchCampaign,
   campaignItem,
   campaignLoading,
@@ -383,6 +404,8 @@ export const MemberNotesView = ({
       fetchCampaign={fetchCampaign}
       campaignItem={campaignItem}
       campaignLoading={campaignLoading}
+      currentMemberLoading={currentMemberLoading}
+      currentMemberAdditionalLoading={currentMemberAdditionalLoading}
       space={space}
       setShowSMSModal={setShowSMSModal}
       showSMSModal={showSMSModal}
@@ -449,6 +472,10 @@ export const MemberNotesContainer = compose(
         billingService: getAttributeValue(this.props.space, 'Billing Company'),
         allMembers: this.props.allMembers,
       });
+      this.props.fetchCurrentMemberAdditional({
+        id: this.props.match.params.id,
+        billingService: getAttributeValue(this.props.space, 'Billing Company'),
+      });
     },
     UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.pathname !== nextProps.pathname) {
@@ -461,6 +488,13 @@ export const MemberNotesContainer = compose(
             'Billing Company',
           ),
           allMembers: this.props.allMembers,
+        });
+        this.props.fetchCurrentMemberAdditional({
+          id: this.props.match.params['id'],
+          billingService: getAttributeValue(
+            this.props.space,
+            'Billing Company',
+          ),
         });
       }
       if (
