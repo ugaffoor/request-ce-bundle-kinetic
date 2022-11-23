@@ -25,6 +25,7 @@ import mail from '../../images/mail.png';
 import sms from '../../images/sms.png';
 import in_person from '../../images/in_person.png';
 import intro_class from '../../images/intro_class.png';
+import cancel_class from '../../images/class_cancelled.png';
 import free_class from '../../images/free_class.png';
 import attended_class from '../../images/user-check.png';
 import noshow_class from '../../images/no-show.png';
@@ -47,6 +48,7 @@ import { LeadSMS } from './LeadSMS';
 import attentionRequired from '../../images/flag.svg?raw';
 import SVGInline from 'react-svg-inline';
 import binIcon from '../../images/bin.svg?raw';
+import cancelClassIcon from '../../images/cancel-class.svg?raw';
 import { confirm } from '../helpers/Confirmation';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { LeadOrders } from './LeadOrders';
@@ -106,6 +108,9 @@ function convertContactType(type) {
     case 'free_class':
       label = 'Free Class';
       break;
+    case 'cancelled_class':
+      label = 'Cancelled Class';
+      break;
     case 'attended_class':
       label = 'Attended Class';
       break;
@@ -146,6 +151,8 @@ export class LeadDetail extends Component {
     super(props);
     this.saveLeadNote = this.props.saveLeadNote;
     this.saveRemoveLeadNote = this.props.saveRemoveLeadNote;
+    this.saveCancelTrialNote = this.props.saveCancelTrialNote;
+
     this.saveStatus = this.props.saveStatus;
     moment.locale(
       this.props.profile.preferredLocale === null
@@ -256,7 +263,7 @@ export class LeadDetail extends Component {
     });
     columns.push({
       accessor: 'submitter',
-      width: 50,
+      width: 100,
       Cell: this.formatDeleteCell,
     });
 
@@ -343,6 +350,13 @@ export class LeadDetail extends Component {
           Free Class
         </span>
       );
+    } else if (row.original.contactMethod === 'cancel_class') {
+      return (
+        <span className="notesCell cancel_class">
+          <img src={cancel_class} alt="Cancel Class" />
+          Cancel Class
+        </span>
+      );
     } else if (row.original.contactMethod === 'attended_class') {
       return (
         <span className="notesCell attended_class">
@@ -378,58 +392,147 @@ export class LeadDetail extends Component {
   }
   formatDeleteCell(cellInfo) {
     return (
-      <span
-        className="deleteNote"
-        onClick={async e => {
-          console.log(
-            e.currentTarget.getAttribute('noteDate') +
-              ' ' +
-              e.currentTarget.getAttribute('noteType'),
-          );
-          if (
-            await confirm(
-              <span>
-                <span>Are your sure you want to DELETE this Note?</span>
-                <table>
-                  <tbody>
-                    <tr>
-                      <td>Date:</td>
-                      <td>
-                        {moment(
-                          cellInfo.original.contactDate,
-                          'YYYY-MM-DD HH:mm',
-                        ).format('lll')}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Time:</td>
-                      <td>
-                        {convertContactType(cellInfo.original.contactMethod)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Note:</td>
-                      <td>{cellInfo.original.note}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </span>,
-            )
-          ) {
-            let history = getJson(this.state.leadItem.values['History']);
-            history = history.filter(element => {
-              return !(
-                element.contactDate === cellInfo.original.contactDate &&
-                element.contactMethod === cellInfo.original.contactMethod &&
-                element.note === cellInfo.original.note
-              );
-            });
-            console.log(history);
-            this.saveRemoveLeadNote(history);
-          }
-        }}
-      >
-        <SVGInline svg={binIcon} className="icon" />
+      <span>
+        {' '}
+        {cellInfo.original.contactMethod === 'intro_class' &&
+          moment(cellInfo.original.contactDate, 'YYYY-MM-DD HH:mm').isAfter(
+            moment(),
+          ) && (
+            <span
+              className="cancelTrial"
+              onClick={async e => {
+                console.log(
+                  e.currentTarget.getAttribute('noteDate') +
+                    ' ' +
+                    e.currentTarget.getAttribute('noteType'),
+                );
+                if (
+                  await confirm(
+                    <span>
+                      <span>
+                        Are you sure you want to CANCEL this Trial Class?
+                      </span>
+                      <table>
+                        <tbody>
+                          <tr>
+                            <td>Date:</td>
+                            <td>
+                              {moment(
+                                cellInfo.original.contactDate,
+                                'YYYY-MM-DD HH:mm',
+                              ).format('lll')}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>Type:</td>
+                            <td>
+                              {convertContactType(
+                                cellInfo.original.contactMethod,
+                              )}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>Note:</td>
+                            <td>{cellInfo.original.note}</td>
+                          </tr>
+                          <tr>
+                            <td>Reason:</td>
+                            <td>
+                              <textarea id="cancelTrialReason"> </textarea>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </span>,
+                  )
+                ) {
+                  let history = getJson(this.state.leadItem.values['History']);
+                  let historyItem = history.filter(element => {
+                    return (
+                      element.contactDate === cellInfo.original.contactDate &&
+                      element.contactMethod ===
+                        cellInfo.original.contactMethod &&
+                      element.note === cellInfo.original.note
+                    );
+                  });
+                  historyItem[0].contactMethod = 'cancelled_class';
+                  historyItem[0].note =
+                    historyItem[0].note +
+                    '\n Class Cancelled:' +
+                    moment().format('lll');
+                  if (
+                    $('#cancelTrialReason')
+                      .val()
+                      .trim() !== ''
+                  ) {
+                    historyItem[0].note =
+                      historyItem[0].note +
+                      '\n Reason:' +
+                      $('#cancelTrialReason')
+                        .val()
+                        .trim();
+                  }
+                  console.log(history);
+                  this.saveCancelTrialNote(history);
+                }
+              }}
+            >
+              <SVGInline svg={cancelClassIcon} className="icon" />
+            </span>
+          )}
+        <span
+          className="deleteNote"
+          onClick={async e => {
+            console.log(
+              e.currentTarget.getAttribute('noteDate') +
+                ' ' +
+                e.currentTarget.getAttribute('noteType'),
+            );
+            if (
+              await confirm(
+                <span>
+                  <span>Are you sure you want to DELETE this Note?</span>
+                  <table>
+                    <tbody>
+                      <tr>
+                        <td>Date:</td>
+                        <td>
+                          {moment(
+                            cellInfo.original.contactDate,
+                            'YYYY-MM-DD HH:mm',
+                          ).format('lll')}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Type:</td>
+                        <td>
+                          {convertContactType(cellInfo.original.contactMethod)}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Note:</td>
+                        <td>{cellInfo.original.note}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </span>,
+              )
+            ) {
+              let history = getJson(this.state.leadItem.values['History']);
+              history = history.filter(element => {
+                return !(
+                  element.contactDate === cellInfo.original.contactDate &&
+                  element.contactMethod === cellInfo.original.contactMethod &&
+                  element.note === cellInfo.original.note
+                );
+              });
+              console.log(history);
+              this.saveRemoveLeadNote(history);
+            }
+          }}
+        >
+          <SVGInline svg={binIcon} className="icon" />
+        </span>
       </span>
     );
   }
@@ -716,6 +819,24 @@ export class LeadDetail extends Component {
                   />
                 </a>
               </li>
+              <li className="nav-item icon cancel_class">
+                <a
+                  className="nav-link"
+                  title="Cancel Class"
+                  data-toggle="tab"
+                  href="#method"
+                  id="cancel_tab"
+                  role="tab"
+                  aria-controls="contact_method"
+                  onClick={() => this.handleContactMethodChange('cancel_class')}
+                >
+                  <img
+                    src={cancel_class}
+                    alt="Cancel Class"
+                    style={{ border: 'none' }}
+                  />
+                </a>
+              </li>
               <li className="nav-item icon attended_class">
                 <a
                   className="nav-link"
@@ -963,6 +1084,7 @@ export const LeadDetailView = ({
   leadItem,
   saveLeadNote,
   saveRemoveLeadNote,
+  saveCancelTrialNote,
   saveStatus,
   fetchCampaign,
   campaignItem,
@@ -993,6 +1115,7 @@ export const LeadDetailView = ({
       leadItem={leadItem}
       saveLeadNote={saveLeadNote}
       saveRemoveLeadNote={saveRemoveLeadNote}
+      saveCancelTrialNote={saveCancelTrialNote}
       saveStatus={saveStatus}
       fetchCampaign={fetchCampaign}
       campaignItem={campaignItem}
@@ -1026,6 +1149,29 @@ export const LeadDetailContainer = compose(
   withState('showSMSModal', 'setShowSMSModal', false),
   withState('showSetStatusModal', 'setShowSetStatusModal', false),
   withHandlers({
+    saveCancelTrialNote: ({
+      profile,
+      leadItem,
+      allLeads,
+      updateLead,
+      fetchLead,
+      addNotification,
+      setSystemError,
+      space,
+      setIsDirty,
+    }) => newHistory => {
+      leadItem.values['History'] = newHistory;
+
+      /*    updateLead({
+        id: leadItem['id'],
+        leadItem: leadItem,
+        allLeads: allLeads,
+        myThis: this,
+        addNotification,
+        setSystemError,
+      }); */
+      setIsDirty(false);
+    },
     saveRemoveLeadNote: ({
       profile,
       leadItem,
