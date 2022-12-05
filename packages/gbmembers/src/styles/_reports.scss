@@ -1,3 +1,35 @@
+.attendanceReport {
+  .dateRange {
+  }
+  .selection {
+    float: left;
+    width: 100%;
+  }
+  .customDates {
+    margin: 0;
+    width: 100%;
+    float: left;
+    margin-top: 4px;
+    margin-left: 100px;
+    .form-group {
+      width: auto;
+      float: left;
+      margin-bottom: 0px;
+      margin-right: 10px;
+      #fromDate {
+        width: 170px;
+      }
+      #toDate {
+        width: 170px;
+        float: left;
+      }
+    }
+    .customButton {
+      margin-top: 4px;
+      float: left;
+    }
+  }
+}
 .memberFinanceReport {
   width: 1100px;
   .row {

@@ -20,6 +20,7 @@ import { InactiveCustomersChart } from './PaysmartInactiveCustomers';
 import { VariationCustomers } from './PaysmartVariations';
 import { MemberBirthdays } from './MemberBirthdays';
 import { MemberLastAttendance } from './MemberLastAttendance';
+import { MemberMostAttendance } from './MemberMostAttendance';
 import { PaysmartMemberDescrepencies } from './PaysmartMemberDescrepencies';
 import { InactiveMembersNoHistory } from './InactiveMembersNoHistory';
 import { PaysmartFailedPayments } from './PaysmartFailedPayments';
@@ -28,6 +29,7 @@ import { StripeFailedPayments } from './StripeFailedPayments';
 import { PaysmartOverdues } from './PaysmartOverdues';
 import { AdditionalServicesReportContainer } from './AdditionalServicesReport';
 import { actions } from '../../redux/modules/members';
+import { actions as attendanceActions } from '../../redux/modules/attendance';
 import moment from 'moment';
 import { Utils } from 'common';
 import { CoreForm } from 'react-kinetic-core';
@@ -70,6 +72,8 @@ const mapStateToProps = state => ({
   billingCustomers: state.member.members.billingCustomers,
   services: state.member.services.services,
   servicesLoading: state.member.services.servicesLoading,
+  fetchingAttendancesByDate: state.member.attendance.fetchingAttendancesByDate,
+  attendancesByDate: state.member.attendance.attendancesByDate,
 });
 
 const mapDispatchToProps = {
@@ -92,6 +96,7 @@ const mapDispatchToProps = {
   fetchBillingCustomers: actions.fetchBillingCustomers,
   setBillingCustomers: actions.setBillingCustomers,
   setSidebarDisplayType: appActions.setSidebarDisplayType,
+  fetchAttendancesByDate: attendanceActions.fetchAttendancesByDate,
 };
 
 export const ReportsView = ({
@@ -119,6 +124,8 @@ export const ReportsView = ({
   setBirthdaysReport,
   showLastAttendance,
   setShowLastAttendance,
+  showMostAttendance,
+  setShowMostAttendance,
   showLeadActivityReport,
   setShowLeadActivityReport,
   showPDDailyReport,
@@ -185,6 +192,9 @@ export const ReportsView = ({
   setDummyFormLoaded,
   dummyFormLoaded,
   singleSetDummyFormLoaded,
+  fetchAttendancesByDate,
+  fetchingAttendancesByDate,
+  attendancesByDate,
 }) => (
   <div className="reports">
     <StatusMessagesContainer />
@@ -262,6 +272,34 @@ export const ReportsView = ({
         <div className="row">
           <div className="attendanceReport">
             <MemberLastAttendance allMembers={members} />
+          </div>
+        </div>
+      )}
+    </div>
+    <div style={{ margin: '20px 0px 0px 10px' }} id="most-attendance-report">
+      <div className="row">
+        <button
+          type="button"
+          className="btn btn-primary report-btn-default"
+          disabled={!dummyFormLoaded}
+          onClick={e => {
+            setShowMostAttendance(showMostAttendance ? false : true);
+          }}
+        >
+          {showMostAttendance ? 'Hide Most Attendance' : 'Show Most Attendance'}
+        </button>
+      </div>
+      {!showMostAttendance ? null : (
+        <div className="row">
+          <div className="attendanceReport">
+            <MemberMostAttendance
+              allMembers={members}
+              fetchAttendancesByDate={fetchAttendancesByDate}
+              fetchingAttendancesByDate={fetchingAttendancesByDate}
+              attendancesByDate={attendancesByDate}
+              space={space}
+              profile={profile}
+            />
           </div>
         </div>
       )}
@@ -763,6 +801,7 @@ export const ReportsContainer = compose(
   withState('showMemberActivityReport', 'setShowMemberActivityReport', false),
   withState('showBirthdaysReport', 'setBirthdaysReport', false),
   withState('showLastAttendance', 'setShowLastAttendance', false),
+  withState('showMostAttendance', 'setShowMostAttendance', false),
   withState('showMemberFinancialStats', 'setShowMemberFinancialStats', false),
   withState('showMemberFinancialReport', 'setShowMemberFinancialReport', false),
   withState('showInactiveMembers', 'setShowInactiveMembers', false),

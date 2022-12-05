@@ -81,6 +81,7 @@ export class BamboraOverdues extends Component {
           payment.paymentStatus === 'DECLINED' ||
           payment.paymentStatus === 'PIN RETRY EXCEEDED' ||
           payment.paymentStatus === 'SERV NOT ALLOWED' ||
+          payment.paymentStatus === 'INV ACCT NUM' ||
           payment.paymentStatus === 'Validation greater than maximum amount' ||
           payment.paymentStatus === 'EXPIRED CARD') &&
         payment.paymentSource !== 'Manual Membership Payment',

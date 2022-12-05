@@ -17,6 +17,7 @@ export const getCurrentLead = state => state.currentLead;
 export const getNewLead = state => state.newLead;
 
 const createEventUrl = '/create-event';
+const deleteEventUrl = '/delete-event';
 const util = require('util');
 
 export function* fetchLeads(action) {
@@ -256,56 +257,96 @@ export function* updateCurrentLead(action) {
         leadItem: action.payload.leadItem,
       }),
     );
-    if (!action.payload.calendarEvent) {
-      return;
-    }
-
-    var args = {
-      space: appSettings.spaceSlug,
-      summary: action.payload.calendarEvent.summary,
-      description: action.payload.calendarEvent.description,
-      location: action.payload.calendarEvent.location,
-      attendeeEmail: action.payload.calendarEvent.attendeeEmail,
-      startDateTime: action.payload.calendarEvent.startDateTime,
-      endDateTime: action.payload.calendarEvent.endDateTime,
-      timeZone: action.payload.calendarEvent.timeZone,
-    };
-    axios
-      .post(
-        appSettings.kapp.attributes['Kinetic Email Server URL'] +
-          createEventUrl,
-        args,
-      )
-      .then(result => {
-        if (result.data.error && result.data.error > 0) {
-          console.log(result.data.errorMessage);
-          action.payload.addNotification(
-            NOTICE_TYPES.ERROR,
-            result.data.errorMessage,
-            'Create Calendar Event',
-          );
-        } else {
-          let data = result.data.data;
-          let msg = null;
-          if (data) {
-            msg =
-              'Event created successfully. Following events already exist for the date\n';
-            data.forEach(dt => (msg += dt + ' \n'));
+    if (action.payload.calendarEvent) {
+      var args = {
+        space: appSettings.spaceSlug,
+        summary: action.payload.calendarEvent.summary,
+        description: action.payload.calendarEvent.description,
+        location: action.payload.calendarEvent.location,
+        attendeeEmail: action.payload.calendarEvent.attendeeEmail,
+        startDateTime: action.payload.calendarEvent.startDateTime,
+        endDateTime: action.payload.calendarEvent.endDateTime,
+        timeZone: action.payload.calendarEvent.timeZone,
+      };
+      axios
+        .post(
+          appSettings.kapp.attributes['Kinetic Email Server URL'] +
+            createEventUrl,
+          args,
+        )
+        .then(result => {
+          if (result.data.error && result.data.error > 0) {
+            console.log(result.data.errorMessage);
+            action.payload.addNotification(
+              NOTICE_TYPES.ERROR,
+              result.data.errorMessage,
+              'Create Calendar Event',
+            );
           } else {
-            msg = 'Event created successfully.';
-          }
+            let data = result.data.data;
+            let msg = null;
+            if (data) {
+              msg =
+                'Event created successfully. Following events already exist for the date\n';
+              data.forEach(dt => (msg += dt + ' \n'));
+            } else {
+              msg = 'Event created successfully.';
+            }
 
-          action.payload.addNotification(
-            NOTICE_TYPES.SUCCESS,
-            msg,
-            'Create Calendar Event',
-          );
-        }
-      })
-      .catch(error => {
-        console.log(error.response);
-        //action.payload.setSystemError(error);
-      });
+            action.payload.addNotification(
+              NOTICE_TYPES.SUCCESS,
+              msg,
+              'Create Calendar Event',
+            );
+          }
+        })
+        .catch(error => {
+          console.log(error.response);
+          //action.payload.setSystemError(error);
+        });
+    }
+    if (action.payload.calendarDeleteEvent) {
+      var args = {
+        space: appSettings.spaceSlug,
+        summary: action.payload.calendarDeleteEvent.summary,
+        attendeeEmail: action.payload.calendarDeleteEvent.attendeeEmail,
+        startDateTime: action.payload.calendarDeleteEvent.startDateTime,
+        timeZone: action.payload.calendarDeleteEvent.timeZone,
+      };
+      axios
+        .post(
+          appSettings.kapp.attributes['Kinetic Email Server URL'] +
+            deleteEventUrl,
+          args,
+        )
+        .then(result => {
+          if (result.data.error && result.data.error > 0) {
+            console.log(result.data.errorMessage);
+            action.payload.addNotification(
+              NOTICE_TYPES.ERROR,
+              result.data.errorMessage,
+              'Delete Calendar Event',
+            );
+          } else {
+            let data = result.data.data;
+            let msg = null;
+            if (data) {
+            } else {
+              msg = 'Event deleted successfully.';
+            }
+
+            action.payload.addNotification(
+              NOTICE_TYPES.SUCCESS,
+              msg,
+              'Deleted Calendar Event',
+            );
+          }
+        })
+        .catch(error => {
+          console.log(error.response);
+          //action.payload.setSystemError(error);
+        });
+    }
   } catch (error) {
     console.log('Error in updateCurrentLead: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));

@@ -350,11 +350,11 @@ export class LeadDetail extends Component {
           Free Class
         </span>
       );
-    } else if (row.original.contactMethod === 'cancel_class') {
+    } else if (row.original.contactMethod === 'cancelled_class') {
       return (
-        <span className="notesCell cancel_class">
-          <img src={cancel_class} alt="Cancel Class" />
-          Cancel Class
+        <span className="notesCell cancelled_class">
+          <img src={cancel_class} alt="Cancelled Class" />
+          Cancelled Class
         </span>
       );
     } else if (row.original.contactMethod === 'attended_class') {
@@ -381,7 +381,7 @@ export class LeadDetail extends Component {
       return '';
     }
 
-    return row.original.note;
+    return row.original.note.replaceAll('<br>', ' ');
   }
   formatSubmitterCell(row) {
     if (!row.original.submitter) {
@@ -394,7 +394,7 @@ export class LeadDetail extends Component {
     return (
       <span>
         {' '}
-        {cellInfo.original.contactMethod === 'intro_class' &&
+        {/*cellInfo.original.contactMethod === 'intro_class' &&
           moment(cellInfo.original.contactDate, 'YYYY-MM-DD HH:mm').isAfter(
             moment(),
           ) && (
@@ -458,7 +458,10 @@ export class LeadDetail extends Component {
                   historyItem[0].contactMethod = 'cancelled_class';
                   historyItem[0].note =
                     historyItem[0].note +
-                    '\n Class Cancelled:' +
+                    '<br> Trial Class:' + moment(historyItem[0].contactDate).format('L h:mm A');
+                  historyItem[0].note =
+                    historyItem[0].note +
+                    '<br> Class Cancelled:' +
                     moment().format('lll');
                   if (
                     $('#cancelTrialReason')
@@ -467,19 +470,19 @@ export class LeadDetail extends Component {
                   ) {
                     historyItem[0].note =
                       historyItem[0].note +
-                      '\n Reason:' +
+                      '<br> Reason:' +
                       $('#cancelTrialReason')
                         .val()
                         .trim();
                   }
                   console.log(history);
-                  this.saveCancelTrialNote(history);
+                  this.saveCancelTrialNote(history, cellInfo.original.contactMethod, cellInfo.original.contactDate);
                 }
               }}
             >
               <SVGInline svg={cancelClassIcon} className="icon" />
             </span>
-          )}
+          )*/}
         <span
           className="deleteNote"
           onClick={async e => {
@@ -819,24 +822,6 @@ export class LeadDetail extends Component {
                   />
                 </a>
               </li>
-              <li className="nav-item icon cancel_class">
-                <a
-                  className="nav-link"
-                  title="Cancel Class"
-                  data-toggle="tab"
-                  href="#method"
-                  id="cancel_tab"
-                  role="tab"
-                  aria-controls="contact_method"
-                  onClick={() => this.handleContactMethodChange('cancel_class')}
-                >
-                  <img
-                    src={cancel_class}
-                    alt="Cancel Class"
-                    style={{ border: 'none' }}
-                  />
-                </a>
-              </li>
               <li className="nav-item icon attended_class">
                 <a
                   className="nav-link"
@@ -1022,9 +1007,10 @@ export class LeadDetail extends Component {
               showPagination={false}
               SubComponent={row => {
                 return (
-                  <div style={{ padding: '20px', textAlign: 'left' }}>
-                    {row.original.note}
-                  </div>
+                  <div
+                    style={{ padding: '20px', textAlign: 'left' }}
+                    dangerouslySetInnerHTML={{ __html: row.original.note }}
+                  ></div>
                 );
               }}
             />
@@ -1159,17 +1145,35 @@ export const LeadDetailContainer = compose(
       setSystemError,
       space,
       setIsDirty,
-    }) => newHistory => {
+    }) => (newHistory, contactType, contactDate) => {
       leadItem.values['History'] = newHistory;
 
-      /*    updateLead({
+      let calendarDeleteEvent = null;
+
+      calendarDeleteEvent = {
+        summary:
+          leadItem.values['First Name'] +
+          ' ' +
+          leadItem.values['Last Name'] +
+          ' - ' +
+          convertContactType(contactType),
+        attendeeEmail: leadItem.values['Email'],
+        timeZone: getTimezone(profile.timezone, space.defaultTimezone),
+      };
+
+      let startDateTime = moment(contactDate, 'YYYY-MM-DD HH:mm');
+      let rfcStartDateTime = startDateTime.utc().format('YYYY-MM-DDTHH:mm:ssZ');
+      calendarDeleteEvent.startDateTime = rfcStartDateTime;
+
+      updateLead({
         id: leadItem['id'],
         leadItem: leadItem,
         allLeads: allLeads,
         myThis: this,
         addNotification,
         setSystemError,
-      }); */
+        calendarDeleteEvent,
+      });
       setIsDirty(false);
     },
     saveRemoveLeadNote: ({

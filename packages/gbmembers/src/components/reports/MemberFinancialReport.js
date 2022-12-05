@@ -975,8 +975,7 @@ export class MemberFinancialReport extends Component {
       );
       payment['member'] = members[mIdx];
       var pIdx = cashPayments.findIndex(
-        item =>
-          item.member.values['Member GUID'] === payment.values['Member GUID'],
+        item => item.member.id === payment.values['Member GUID'],
       );
       if (pIdx === -1) {
         payment.amount = Number(payment.values['Amount']);

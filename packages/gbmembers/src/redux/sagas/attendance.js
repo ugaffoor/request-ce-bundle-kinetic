@@ -1,5 +1,5 @@
 import { List } from 'immutable';
-import { select, call, put, takeEvery } from 'redux-saga/effects';
+import { select, call, put, takeEvery, all } from 'redux-saga/effects';
 import { CoreAPI } from 'react-kinetic-core';
 import { types, actions } from '../modules/attendance';
 import moment from 'moment';
@@ -29,6 +29,7 @@ export function* fetchAttendancesByDate(action) {
   try {
     let dtFrom = moment(action.payload.fromDate);
     let dtTo = moment(action.payload.toDate);
+    let allSubmissions = [];
 
     const search = new CoreAPI.SubmissionSearch(true)
       .gteq('values[Class Date]', dtFrom.format('YYYY-MM-DD'))
@@ -38,13 +39,41 @@ export function* fetchAttendancesByDate(action) {
       .limit(1000)
       .build();
 
-    const { submissions } = yield call(CoreAPI.searchSubmissions, {
+    var { submissions, nextPageToken } = yield call(CoreAPI.searchSubmissions, {
       form: 'member-attendance',
       datastore: true,
       search,
     });
+    allSubmissions = allSubmissions.concat(submissions);
 
-    yield put(actions.setAttendancesByDate(submissions));
+    while (nextPageToken) {
+      var search2 = new CoreAPI.SubmissionSearch(true)
+        .gteq('values[Class Date]', dtFrom.format('YYYY-MM-DD'))
+        .lteq('values[Class Date]', dtTo.format('YYYY-MM-DD'))
+        .index('values[Class Date]')
+        .includes(['details', 'values'])
+        .pageToken(nextPageToken)
+        .limit(1000)
+        .build();
+
+      var [submissions2] = yield all([
+        call(CoreAPI.searchSubmissions, {
+          form: 'member-attendance',
+          datastore: true,
+          search: search2,
+        }),
+      ]);
+
+      allSubmissions = allSubmissions.concat(submissions2.submissions);
+
+      if (submissions2.nextPageToken !== null) {
+        nextPageToken = submissions2.nextPageToken;
+      } else {
+        nextPageToken = undefined;
+      }
+    }
+
+    yield put(actions.setAttendancesByDate(allSubmissions));
   } catch (error) {
     console.log('Error in fetchClassAttendances: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));
