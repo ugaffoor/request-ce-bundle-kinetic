@@ -430,6 +430,11 @@ export const CallEventView = ({
   journeyEvent === undefined ||
   journeyEvent.callTemplate === undefined ? (
     <div>Loading...</div>
+  ) : journeyEvent.callTemplate === 'NOT_FOUND' ? (
+    <div>
+      Call Script Template [{journeyEvent.submission.values['Template Name']}]
+      was not found
+    </div>
   ) : (
     <div className="">
       {!callRecorded && !eventDeleted ? (

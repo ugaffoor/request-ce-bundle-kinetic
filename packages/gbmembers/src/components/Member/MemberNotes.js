@@ -45,6 +45,7 @@ const mapDispatchToProps = {
   fetchCampaign: campaignActions.fetchEmailCampaign,
   setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
+const date_format = ['YYYY-MM-DD', 'YYYY-MM-DDTHH:mm:ssZ'];
 
 const Datetime = require('react-datetime');
 function getLatestHistory(history) {
@@ -239,6 +240,7 @@ export class MemberNotesHome extends Component {
                     {this.props.memberItem.values['Reminder Date']
                       ? moment(
                           this.props.memberItem.values['Reminder Date'],
+                          date_format,
                         ).format('L')
                       : ''}
                   </NavLink>

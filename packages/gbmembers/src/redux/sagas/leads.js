@@ -22,6 +22,8 @@ const util = require('util');
 
 export function* fetchLeads(action) {
   try {
+    let allSubmissions = [];
+
     let leadLastFetchTime =
       action.payload !== undefined &&
       action.payload.leadLastFetchTime !== undefined
@@ -40,13 +42,36 @@ export function* fetchLeads(action) {
     }
     searchCurrent = searchCurrent.build();
 
-    const { submissions } = yield call(CoreAPI.searchSubmissions, {
+    var { submissions, nextPageToken } = yield call(CoreAPI.searchSubmissions, {
       kapp: 'gbmembers',
       form: 'lead',
       search: searchCurrent,
     });
+    allSubmissions = allSubmissions.concat(submissions);
+
+    while (nextPageToken) {
+      var search2 = new CoreAPI.SubmissionSearch()
+        .eq('values[Lead State]', 'Open')
+        .sortBy('updatedAt')
+        .sortDirection('DESC')
+        .includes(['details', 'values'])
+        .pageToken(nextPageToken)
+        .limit(1000)
+        .build();
+
+      var { submissions, nextPageToken } = yield call(
+        CoreAPI.searchSubmissions,
+        {
+          kapp: 'gbmembers',
+          form: 'lead',
+          search: search2,
+        },
+      );
+
+      allSubmissions = allSubmissions.concat(submissions);
+    }
     //    console.log('AllLeads # ' + submissions);
-    yield put(actions.setLeads(submissions));
+    yield put(actions.setLeads(allSubmissions));
   } catch (error) {
     console.log('Error in fetchLeads: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));
@@ -63,18 +88,15 @@ export function* fetchLeadsByDate(action) {
       .limit(1000)
       .build();
 
-    const { submissions, nextPageToken } = yield call(
-      CoreAPI.searchSubmissions,
-      {
-        kapp: 'gbmembers',
-        form: 'lead',
-        search,
-      },
-    );
+    var { submissions, nextPageToken } = yield call(CoreAPI.searchSubmissions, {
+      kapp: 'gbmembers',
+      form: 'lead',
+      search,
+    });
     allSubmissions = allSubmissions.concat(submissions);
 
-    if (nextPageToken) {
-      const search2 = new CoreAPI.SubmissionSearch()
+    while (nextPageToken) {
+      var search2 = new CoreAPI.SubmissionSearch()
         .includes(['details', 'values'])
         .sortBy('updatedAt')
         .sortDirection('DESC')
@@ -82,14 +104,15 @@ export function* fetchLeadsByDate(action) {
         .limit(1000)
         .build();
 
-      const [submissions2] = yield all([
-        call(CoreAPI.searchSubmissions, {
+      var { submissions, nextPageToken } = yield call(
+        CoreAPI.searchSubmissions,
+        {
           kapp: 'gbmembers',
           form: 'lead',
           search: search2,
-        }),
-      ]);
-      allSubmissions = allSubmissions.concat(submissions2.submissions);
+        },
+      );
+      allSubmissions = allSubmissions.concat(submissions);
     }
     //    console.log('Leads by Date# ' + submissions);
     yield put(actions.setLeadsByDate(allSubmissions));
@@ -393,9 +416,15 @@ export function* deleteLead(action) {
     );
     action.payload.allLeads.splice(mIdx, 1);
 
+    var lIdx = action.payload.leadsByDate.findIndex(
+      lead => lead.id === action.payload.leadItem.id,
+    );
+    action.payload.leadsByDate.splice(lIdx, 1);
+
     yield put(
       actions.leadDeleted({
         allLeads: action.payload.allLeads,
+        leadsByDate: action.payload.leadsByDate,
       }),
     );
     if (action.payload.history)

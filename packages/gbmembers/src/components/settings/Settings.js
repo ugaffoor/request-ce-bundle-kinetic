@@ -80,6 +80,13 @@ class ComponentToPrint extends React.Component {
       <div id="memberBarcodes">
         {this.props.allMembers
           .filter(member => member.values['Status'] !== 'Inactive')
+          .sort(function(a, b) {
+            return a.values['Date Joined'] > b.values['Date Joined']
+              ? -1
+              : b.values['Date Joined'] > a.values['Date Joined']
+              ? 1
+              : 0;
+          })
           .map((member, index) =>
             index !== 0 && index % 65 === 0 ? (
               <div className="barCode pageBreak" key={index}>

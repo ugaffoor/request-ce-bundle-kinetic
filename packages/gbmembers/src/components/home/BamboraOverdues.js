@@ -82,6 +82,7 @@ export class BamboraOverdues extends Component {
           payment.paymentStatus === 'PIN RETRY EXCEEDED' ||
           payment.paymentStatus === 'SERV NOT ALLOWED' ||
           payment.paymentStatus === 'INV ACCT NUM' ||
+          payment.paymentStatus === 'Invalid Card Number' ||
           payment.paymentStatus === 'Validation greater than maximum amount' ||
           payment.paymentStatus === 'EXPIRED CARD') &&
         payment.paymentSource !== 'Manual Membership Payment',
@@ -107,6 +108,7 @@ export class BamboraOverdues extends Component {
 
     var uniqueHistoryAll = [];
     uniqueFailed.forEach((failed, i) => {
+      //      console.log("Failed:"+failed.yourSystemReference);
       // Remove any failed that has a successful payment
       var idx = successfulPayments.findIndex(successful => {
         return (

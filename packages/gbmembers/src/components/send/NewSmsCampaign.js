@@ -30,6 +30,7 @@ import { actions as dataStoreActions } from '../../redux/modules/settingsDatasto
 import { actions as leadsActions } from '../../redux/modules/leads';
 import { actions as appActions } from '../../redux/modules/memberApp';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
+import ReactSpinner from 'react16-spinjs';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -89,6 +90,7 @@ export class NewSmsCampaign extends Component {
       smsCreditsRequired: 0,
       uniquePhoneNumbersCount: 0,
       disableCreateCampaign: true,
+      sendingSMSCampaign: false,
       showManageNumbersModal: false,
     };
   }
@@ -408,7 +410,13 @@ export class NewSmsCampaign extends Component {
       return;
     }
 
+    this.setState({
+      disableCreateCampaign: true,
+      sendingSMSCampaign: true,
+    });
+
     this.props.saveCampaign(
+      this,
       ids,
       phoneNumbers,
       this.state.content,
@@ -610,6 +618,7 @@ export class NewSmsCampaign extends Component {
                   style={{ resize: 'none' }}
                   placeholder="Max 765 characters allowed"
                 />
+                {this.state.sendingSMSCampaign && <ReactSpinner />}
                 <button
                   type="button"
                   id="createCampaignBtn"
@@ -699,7 +708,7 @@ export const SmsCampaignContainer = compose(
       createLeadActivities,
       fetchMembers,
       escapeRegExp,
-    }) => (ids, phoneNumbers, content, space, submissionType) => {
+    }) => (myThis, ids, phoneNumbers, content, space, submissionType) => {
       var matches = content.match(/\$\{.*?\('(.*?)'\)\}/g);
       if (matches !== null) {
         matches.forEach(function(value, index) {
@@ -723,6 +732,7 @@ export const SmsCampaignContainer = compose(
       campaignItem.values['Sent Date'] = moment().format(
         email_sent_date_format,
       );
+
       createCampaign({
         campaignItem,
         phoneNumbers,

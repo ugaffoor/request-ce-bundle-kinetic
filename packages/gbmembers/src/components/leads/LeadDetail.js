@@ -394,7 +394,7 @@ export class LeadDetail extends Component {
     return (
       <span>
         {' '}
-        {/*cellInfo.original.contactMethod === 'intro_class' &&
+        {cellInfo.original.contactMethod === 'intro_class' &&
           moment(cellInfo.original.contactDate, 'YYYY-MM-DD HH:mm').isAfter(
             moment(),
           ) && (
@@ -458,7 +458,8 @@ export class LeadDetail extends Component {
                   historyItem[0].contactMethod = 'cancelled_class';
                   historyItem[0].note =
                     historyItem[0].note +
-                    '<br> Trial Class:' + moment(historyItem[0].contactDate).format('L h:mm A');
+                    '<br> Trial Class:' +
+                    moment(historyItem[0].contactDate).format('L h:mm A');
                   historyItem[0].note =
                     historyItem[0].note +
                     '<br> Class Cancelled:' +
@@ -476,13 +477,17 @@ export class LeadDetail extends Component {
                         .trim();
                   }
                   console.log(history);
-                  this.saveCancelTrialNote(history, cellInfo.original.contactMethod, cellInfo.original.contactDate);
+                  this.saveCancelTrialNote(
+                    history,
+                    cellInfo.original.contactMethod,
+                    cellInfo.original.contactDate,
+                  );
                 }
               }}
             >
               <SVGInline svg={cancelClassIcon} className="icon" />
             </span>
-          )*/}
+          )}
         <span
           className="deleteNote"
           onClick={async e => {
@@ -966,6 +971,37 @@ export class LeadDetail extends Component {
                                   <tbody>
                                     <tr>
                                       <td>Intro Date:</td>
+                                      <td>
+                                        {moment(
+                                          this.state.contactDate,
+                                          'YYYY-MM-DD HH:mm',
+                                        ).format('lll')}
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td>Note:</td>
+                                      <td>{this.state.note}</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                              </span>,
+                            )
+                          ) {
+                            this.saveNote();
+                          }
+                        } else if (this.state.contactMethod === 'free_class') {
+                          if (
+                            await confirm(
+                              <span>
+                                <span>
+                                  Are you sure you want to schedule this Free
+                                  Class? Note, the note will be visible to the
+                                  Lead.
+                                </span>
+                                <table>
+                                  <tbody>
+                                    <tr>
+                                      <td>Free Class Date:</td>
                                       <td>
                                         {moment(
                                           this.state.contactDate,

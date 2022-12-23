@@ -10,6 +10,7 @@ import { App } from './App';
 const mapStateToProps = state => ({
   loading: state.member.app.loading || state.member.kinops.loading,
   isKiosk: selectors.selectHasRoleKiosk(state),
+  space: state.member.kinops.space,
 });
 
 const mapDispatchToProps = {

@@ -28,6 +28,7 @@ import { BamboraFailedPayments } from './BamboraFailedPayments';
 import { StripeFailedPayments } from './StripeFailedPayments';
 import { PaysmartOverdues } from './PaysmartOverdues';
 import { AdditionalServicesReportContainer } from './AdditionalServicesReport';
+import { ResumingMembers } from './ResumingMembers';
 import { actions } from '../../redux/modules/members';
 import { actions as attendanceActions } from '../../redux/modules/attendance';
 import moment from 'moment';
@@ -132,6 +133,8 @@ export const ReportsView = ({
   setShowPDDailyReport,
   showServicesReport,
   setServicesReport,
+  showResumingReport,
+  setResumingReport,
   updatePreferences,
   showInactiveChart,
   setShowInactiveChart,
@@ -492,6 +495,28 @@ export const ReportsView = ({
         </div>
       )}
     </div>
+    <div style={{ margin: '20px 0px 0px 10px' }} id="resuming-report">
+      <div className="row">
+        <button
+          type="button"
+          className="btn btn-primary report-btn-default"
+          disabled={!dummyFormLoaded}
+          onClick={e => {
+            setResumingReport(showResumingReport ? false : true);
+            document.getElementById('resuming-report').scrollIntoView();
+          }}
+        >
+          {showResumingReport
+            ? 'Hide Resuming Members Report'
+            : 'Show Resuming Members Report'}
+        </button>
+      </div>
+      {!showResumingReport ? null : (
+        <div className="row">
+          <ResumingMembers allMembers={members} />
+        </div>
+      )}
+    </div>
     {Utils.getAttributeValue(space, 'Billing Company') !== 'PaySmart' ||
     !Utils.isMemberOf(profile, 'Billing') ? (
       <div />
@@ -808,6 +833,7 @@ export const ReportsContainer = compose(
   withState('showLeadActivityReport', 'setShowLeadActivityReport', false),
   withState('showPDDailyReport', 'setShowPDDailyReport', false),
   withState('showServicesReport', 'setServicesReport', false),
+  withState('showResumingReport', 'setResumingReport', false),
   withState('showInactiveChart', 'setShowInactiveChart', false),
   withState('showVariationsReport', 'setShowVariationsReport', false),
   withState('showDescrepenciesReport', 'setShowDescrepenciesReport', false),

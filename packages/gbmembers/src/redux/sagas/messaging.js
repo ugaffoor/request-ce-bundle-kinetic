@@ -167,6 +167,9 @@ export function* sendBulkSms(action) {
             });
           }
         }
+
+        if (action.payload.history)
+          action.payload.history.push('/kapps/gbmembers/Send');
       }
     })
     .catch(error => {

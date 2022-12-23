@@ -1,3 +1,11 @@
+#chat-widget-container iframe {
+  border-width: 0;
+  height: 100%;
+}
+#chat-widget-minimized {
+  top: 0px;
+  position: absolute;
+}
 .isSafari {
   .content {
     margin-left: 20px;

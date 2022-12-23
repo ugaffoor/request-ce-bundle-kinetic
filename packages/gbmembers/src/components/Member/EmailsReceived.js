@@ -69,7 +69,7 @@ export class EmailsReceived extends Component {
       emails[i]['Campaign ID'] = submission.id;
     }
 
-    return emails.sort(function(email1, email2) {
+    emails = emails.sort(function(email1, email2) {
       if (
         moment(email1['Received Date'], email_received_date_format).isAfter(
           moment(email2['Received Date'], email_received_date_format),
@@ -85,6 +85,14 @@ export class EmailsReceived extends Component {
       }
       return 0;
     });
+
+    emails.forEach(email => {
+      email['Received Date'] = moment(
+        email['Received Date'],
+        email_received_date_format,
+      ).format('L HH:mm');
+    });
+    return emails;
   }
 
   render() {

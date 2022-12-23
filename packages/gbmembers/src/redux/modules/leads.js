@@ -63,6 +63,7 @@ export const reducer = (state = State(), { type, payload }) => {
       return state.set('newLeadLoading', true);
     case types.SET_LEADS: {
       var allLeads = state.get('allLeads');
+      var leadsByDate = state.get('leadsByDate');
       let attentionRequired = false;
       var leads = [];
       for (var k = 0; k < payload.length; k++) {
@@ -90,10 +91,22 @@ export const reducer = (state = State(), { type, payload }) => {
           attentionRequired = true;
         }
       }
-
+      if (leadsByDate.length !== 0 && payload.length !== 0) {
+        for (var k = 0; k < payload.length; k++) {
+          var mIdx = leadsByDate.findIndex(
+            lead => lead.id === leadsByDate[k].id,
+          );
+          if (mIdx !== -1) {
+            leadsByDate[mIdx] = leads[k];
+          } else {
+            leadsByDate.push(leads[k]);
+          }
+        }
+      }
       return state
         .set('leadsLoading', false)
         .set('allLeads', allLeads)
+        .set('leadsByDate', leadsByDate)
         .set('leadLastFetchTime', moment().format('YYYY-MM-DDTHH:mm:ssZ'))
         .set('leadAttentionRequired', attentionRequired);
     }
@@ -123,7 +136,9 @@ export const reducer = (state = State(), { type, payload }) => {
       return state.set('leadUpdating', true);
     }
     case types.LEAD_DELETED: {
-      return state.set('allLeads', payload.allLeads);
+      return state
+        .set('allLeads', payload.allLeads)
+        .set('leadsByDate', payload.leadsByDate);
     }
     case types.LEAD_SAVED: {
       var leadsByDate = state.leadsByDate;

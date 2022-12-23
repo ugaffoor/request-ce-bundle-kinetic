@@ -524,6 +524,11 @@ export const EmailEventView = ({
   journeyEvent === undefined ||
   journeyEvent.emailTemplate === undefined ? (
     <div>Loading...</div>
+  ) : journeyEvent.emailTemplate === 'NOT_FOUND' ? (
+    <div>
+      Email Template [{journeyEvent.submission.values['Template Name']}] was not
+      found
+    </div>
   ) : (
     <div className="">
       {!emailSent && !eventDeleted ? (

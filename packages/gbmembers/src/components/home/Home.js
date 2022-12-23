@@ -17,6 +17,7 @@ import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as errorActions } from '../../redux/modules/errors';
 import { Utils } from 'common';
 import { BamboraOverdues } from './BamboraOverdues';
+import { PaysmartOverdues } from './PaysmartOverdues';
 import { StripeOverdues } from './StripeOverdues';
 import { DemographicChart } from './Demographic';
 import { ProgramsChart } from './Programs';
@@ -56,6 +57,8 @@ const mapStateToProps = state => ({
   SUCCESSFULpaymentHistory: state.member.members.SUCCESSFULpaymentHistory,
   SUCCESSFULpaymentHistoryLoading:
     state.member.members.SUCCESSFULpaymentHistoryLoading,
+  overdues: state.member.members.overdues,
+  overduesLoading: state.member.members.overduesLoading,
 });
 
 const mapDispatchToProps = {
@@ -70,6 +73,8 @@ const mapDispatchToProps = {
   setSidebarDisplayType: appActions.setSidebarDisplayType,
   fetchPaymentHistory: actions.fetchPaymentHistory,
   setPaymentHistory: actions.setPaymentHistory,
+  fetchOverdues: actions.fetchOverdues,
+  setOverdues: actions.setOverdues,
 };
 
 export const HomeView = ({
@@ -109,6 +114,11 @@ export const HomeView = ({
   getSuccessfulPayments,
   SUCCESSFULpaymentHistory,
   SUCCESSFULpaymentHistoryLoading,
+  getOverdues,
+  fetchOverdues,
+  setOverdues,
+  overdues,
+  overduesLoading,
 }) => (
   <div className="dashboard">
     <StatusMessagesContainer />
@@ -142,6 +152,19 @@ export const HomeView = ({
               space={space}
               locale={locale}
               profile={profile}
+            />
+          </div>
+        )}
+      </div>
+    )}
+    {getAttributeValue(space, 'Billing Company') === 'PaySmart' && (
+      <div className="homeOverdues">
+        {!membersLoading && (
+          <div>
+            <PaysmartOverdues
+              getOverdues={getOverdues}
+              overdues={overdues}
+              overduesLoading={overduesLoading}
             />
           </div>
         )}
@@ -229,6 +252,18 @@ export const HomeContainer = compose(
   withState('fromDate', 'setFromDate', moment().subtract(7, 'days')),
   withState('toDate', 'setToDate', moment()),
   withHandlers({
+    getOverdues: ({
+      fetchOverdues,
+      setOverdues,
+      addNotification,
+      setSystemError,
+    }) => () => {
+      fetchOverdues({
+        setOverdues: setOverdues,
+        addNotification: addNotification,
+        setSystemError: setSystemError,
+      });
+    },
     getFailedPayments: ({
       fetchPaymentHistory,
       setPaymentHistory,

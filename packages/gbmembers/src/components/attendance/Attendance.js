@@ -1245,9 +1245,9 @@ export class AttendanceDetail extends Component {
     let classDate = moment()
       .set({ hour: moment().get('hour'), minute: 0, second: 0 })
       .format('L hh:mm A');
-    let classTime = moment()
-      .set({ hour: moment().get('hour'), minute: 0, second: 0 })
-      .format('HH:mm');
+    //    let classTime = moment()
+    //      .set({ hour: moment().get('hour'), minute: 0, second: 0 })
+    //      .format('HH:mm');
     let attendanceStatus = 'Full Class';
     let memberItem = undefined;
     let memberAlreadyCheckedIn = false;
@@ -1321,7 +1321,7 @@ export class AttendanceDetail extends Component {
       manualSelect: false,
       className,
       classDate,
-      classTime,
+      //      classTime,
       attendanceStatus,
       memberItem,
       memberAlreadyCheckedIn,
@@ -1908,8 +1908,14 @@ export class AttendanceDetail extends Component {
                   type="checkbox"
                   value="1"
                   onChange={e => {
+                    var classTime = this.state.useCalendarSchedule
+                      ? moment(this.state.classDate, 'L hh:mm A').format(
+                          'HH:mm',
+                        )
+                      : undefined;
                     this.setState({
                       useCalendarSchedule: !this.state.useCalendarSchedule,
+                      classTime,
                       classScheduleDateDay:
                         moment(this.state.classDate, 'L hh:mm A').day() === 0
                           ? 7
@@ -2144,435 +2150,446 @@ export class AttendanceDetail extends Component {
                 </span>
               </div>
             )}
-            <div className="classBookingSection">
-              <h4 className="classBookingLabel">Class Bookings</h4>
-              {this.props.fetchingClassBookings ? (
-                <h4>Loading Class Bookings....</h4>
-              ) : (
-                <div>
-                  {this.props.classBookings.size === 0 ? (
-                    <div>
-                      <h4>No bookings for this class</h4>
-                    </div>
-                  ) : (
-                    <div className="classBookings">
-                      {this.props.classBookings.map((booking, index) => (
-                        <span
-                          key={index}
-                          className={'memberCell'}
-                          id={booking.id}
-                        >
-                          <span className="top">
-                            {booking.photo === undefined ? (
-                              <span className="noPhoto">
-                                {booking.firstName[0]}
-                                {booking.lastName[0]}
-                              </span>
-                            ) : (
-                              <img
-                                src={booking.photo}
-                                alt="Member Photograph"
-                                className="photo"
-                              />
-                            )}
-                            <span className="memberInfo">
-                              <h4 className="memberName">
-                                {booking.firstName} {booking.lastName}
-                              </h4>
-                              <span
-                                className="checkinBooking"
-                                onClick={e => this.checkinBooking(booking)}
-                              >
-                                <SVGInline svg={tickIcon} className="icon" />
-                              </span>
-                              <span
-                                className="noshowBooking"
-                                onClick={e => this.noShowBooking(booking)}
-                              >
-                                <SVGInline svg={crossIcon} className="icon" />
-                              </span>
-                            </span>
-                          </span>
-                          <span className="bottom">
-                            <span className="ranking">
-                              <div className="program">
-                                {getProgramSVG(booking.rankingProgram)}
-                              </div>
-                              <div className="belt">
-                                {getBeltSVG(booking.rankingBelt)}
-                              </div>
-                            </span>
-                          </span>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-            <div className="checkinSection">
-              {this.state.memberItem === undefined &&
-              this.state.captureType === 'scanner' ? (
-                <div className="readyToScan">
-                  <h5>READY TO SCAN MEMBER</h5>
-                  <SVGInline svg={barcodeIcon} className="icon" />
-                  <button
-                    type="button"
-                    id="changeToManual"
-                    className="btn btn-primary btn-block"
-                    onClick={e => this.switchToManual()}
-                  >
-                    Enter Manually
-                  </button>
-                </div>
-              ) : (
-                <div />
-              )}
-              {this.state.memberItem === undefined &&
-              this.state.captureType === 'manual' ? (
-                <div className="manual">
-                  <h5>PLEASE SELECT MEMBER</h5>
-                  <Select
-                    closeMenuOnSelect={true}
-                    options={this.getAllMembers()}
-                    className="hide-columns-container"
-                    classNamePrefix="hide-columns"
-                    placeholder="Select Member"
-                    onChange={e => {
-                      this.selectMember(e);
-                    }}
-                    style={{ width: '300px' }}
-                  />
-                  <button
-                    type="button"
-                    id="changeToScan"
-                    className="btn btn-primary btn-block"
-                    onClick={e => this.switchToScan()}
-                  >
-                    Switch to Scan
-                  </button>
-                </div>
-              ) : (
-                <div />
-              )}
-              {this.state.memberItem === undefined ? (
-                <div />
-              ) : (
-                <div className="memberInfo">
-                  {this.state.memberItem.values['Photo'] === undefined ? (
-                    <span className="noPhoto">
-                      {this.state.memberItem.values['First Name'][0]}
-                      {this.state.memberItem.values['Last Name'][0]}
-                    </span>
-                  ) : (
-                    <img
-                      src={this.state.memberItem.values['Photo']}
-                      alt="Member Photograph"
-                      className="photo"
-                    />
-                  )}
-                  <div className="info">
-                    {this.state.memberItem.values['Status'] === 'Frozen' ? (
-                      <h2 className="frozenMemberLabel">
-                        Member is currently Frozen
-                      </h2>
-                    ) : (
-                      <div />
-                    )}
-                    {this.state.memberAlreadyCheckedIn ? (
-                      <h2 className="alreadyCheckedinLabel">
-                        Member already checked in
-                      </h2>
-                    ) : (
-                      <div />
-                    )}
-                    {this.state.noProgramSet ? (
-                      <h2 className="noProgramSetLabel">
-                        Member does not have a Program or Belt value set
-                      </h2>
-                    ) : (
-                      <div />
-                    )}
-                    {!this.state.memberAlreadyCheckedIn &&
-                    this.state.noProgramSet ? (
-                      <h2>Checking in member</h2>
-                    ) : (
-                      <div />
-                    )}
-                    <h4>
-                      {this.state.memberItem.values['First Name']}{' '}
-                      {this.state.memberItem.values['Last Name']}:{' '}
-                      <b>{this.state.memberItem.values['Ranking Program']}</b>-
-                      <i>{this.state.memberItem.values['Ranking Belt']}</i>
-                    </h4>
-                    <h4>
-                      For class <b>{this.state.className}</b> at{' '}
-                      <b>
-                        {moment(this.state.classDate, 'L hh:mm A').format(
-                          'L hh:mm A',
-                        )}
-                      </b>
-                    </h4>
-                  </div>
-                  {this.state.memberAlreadyCheckedIn ||
-                  this.state.noProgramSet ? (
-                    <div />
-                  ) : (
-                    <div className="applyCheckin">
+            {this.state.classTime !== undefined && (
+              <div className="classBookingSection">
+                <h4 className="classBookingLabel">Class Bookings</h4>
+                {this.props.fetchingClassBookings ? (
+                  <h4>Loading Class Bookings....</h4>
+                ) : (
+                  <div>
+                    {this.props.classBookings.size === 0 ? (
                       <div>
-                        <select
-                          name="status"
-                          id="status"
-                          ref={input => (this.input = input)}
-                          defaultValue="Full Class"
-                          onChange={e => {
-                            this.setState({ attendanceStatus: e.target.value });
-                          }}
-                        >
-                          <option value="" />
-                          <option key="Full Class" value="Full Class">
-                            Full Class
-                          </option>
-                          <option key="Class Only" value="Class Only">
-                            Class Only
-                          </option>
-                          <option key="Spar Only" value="Spar Only">
-                            Spar Only
-                          </option>
-                          <option key="Late" value="Late">
-                            Late
-                          </option>
-                        </select>
-                        <div className="droparrow" />
+                        <h4>No bookings for this class</h4>
                       </div>
-                      <div>
-                        <button
-                          type="button"
-                          id="checkinMember"
-                          className="btn btn-primary btn-block"
-                          onClick={e => this.checkInMember()}
-                        >
-                          Check-in Member
-                        </button>
-                      </div>
-                      {this.state.memberItem.values['Covid19 Waiver'] ===
-                        null ||
-                      this.state.memberItem.values['Covid19 Waiver'] ===
-                        undefined ||
-                      this.state.memberItem.values['Covid19 Waiver'] === '' ? (
-                        <div className="waiverIncomplete">Waiver Required</div>
-                      ) : (
-                        <div />
-                      )}
-                      {this.state.memberItem.values['Covid19 Waiver'] ===
-                      'NOT Agreed' ? (
-                        <div className="waiverIncomplete">
-                          Waiver NOT Agreed
-                        </div>
-                      ) : (
-                        <div />
-                      )}
-                      {Utils.getAttributeValue(
-                        this.props.space,
-                        'Covid Check Required',
-                      ) === 'TRUE' && (
-                        <div>
-                          {this.state.memberItem.values[
-                            'Student Covid Check'
-                          ] === null ||
-                          this.state.memberItem.values[
-                            'Student Covid Check'
-                          ] === undefined ||
-                          this.state.memberItem.values[
-                            'Student Covid Check'
-                          ] === '' ? (
-                            <div className="waiverIncomplete">
-                              Student Covid Check Required
-                            </div>
-                          ) : (
-                            <div />
-                          )}
-                        </div>
-                      )}
-                      {this.state.overdueMember ? (
-                        <span
-                          className="overdue"
-                          onClick={e => {
-                            window.location =
-                              '/#/kapps/services/categories/bambora-billing/bambora-change-credit-card-details?id=' +
-                              this.state.memberItem.id +
-                              '&overdue=' +
-                              this.state.memberItem.overdueAmount;
-                          }}
-                        >
-                          <i className="fa fa-usd overdue"></i>
-                          <span>{this.state.memberItem.overdueAmount}</span>
-                        </span>
-                      ) : (
-                        <div />
-                      )}
-                    </div>
-                  )}
-                  <GradingStatus
-                    memberItem={this.state.memberItem}
-                    belts={this.props.belts}
-                    allMembers={this.props.allMembers}
-                  />
-                  {this.state.captureType === 'manual' ? (
-                    <button
-                      type="button"
-                      id="manualNewMember"
-                      className="btn btn-primary btn-block"
-                      onClick={e => this.selectNewMember()}
-                    >
-                      Select New Member
-                    </button>
-                  ) : (
-                    <div />
-                  )}
-                </div>
-              )}
-            </div>
-            <div className="attendanceSection">
-              <h4 className="classAttendancesLabel">
-                Class Attendees (
-                {
-                  this.props.classAttendances.filter(checkin => {
-                    var result =
-                      checkin.values['Class Time'] === this.state.classTime &&
-                      checkin.values['Class'] === this.state.className;
-
-                    if (result) {
-                      var overdueIdx = this.state.overdueMembers.findIndex(
-                        member =>
-                          member.memberGUID === checkin.values['Member GUID'],
-                      );
-                      if (overdueIdx !== -1) {
-                        checkin.overdueMember = true;
-                        checkin.overdueAmount = this.state.overdueMembers[
-                          overdueIdx
-                        ].overdueAmount;
-                      }
-                      var mIdx = this.props.allMembers.findIndex(
-                        member => member.id === checkin.values['Member GUID'],
-                      );
-                      if (mIdx !== -1) {
-                        checkin.memberItem = this.props.allMembers[mIdx];
-                      }
-                    }
-                    return result;
-                  }).length
-                }
-                )
-              </h4>
-              {this.props.fetchingClassAttendances ? (
-                <h4>Loading Class Attendances....</h4>
-              ) : (
-                <div className="classMembers">
-                  {this.props.classAttendances.length === 0 ? (
-                    <div>
-                      <h4>No members checked in for this class</h4>
-                    </div>
-                  ) : (
-                    <div>
-                      {this.props.classAttendances
-                        .filter(checkin => {
-                          return (
-                            checkin.values['Class Time'] ===
-                              this.state.classTime &&
-                            checkin.values['Class'] === this.state.className
-                          );
-                        })
-                        .map((checkin, index) => (
+                    ) : (
+                      <div className="classBookings">
+                        {this.props.classBookings.map((booking, index) => (
                           <span
                             key={index}
-                            className={
-                              checkin.memberAlreadyCheckedIn
-                                ? 'memberCell alreadyCheckedIn'
-                                : 'memberCell'
-                            }
-                            id={checkin.id}
+                            className={'memberCell'}
+                            id={booking.id}
                           >
                             <span className="top">
-                              {checkin.values['Photo'] === undefined ? (
+                              {booking.photo === undefined ? (
                                 <span className="noPhoto">
-                                  {checkin.values['First Name'][0]}
-                                  {checkin.values['Last Name'][0]}
+                                  {booking.firstName[0]}
+                                  {booking.lastName[0]}
                                 </span>
                               ) : (
                                 <img
-                                  src={checkin.values['Photo']}
+                                  src={booking.photo}
                                   alt="Member Photograph"
                                   className="photo"
                                 />
                               )}
                               <span className="memberInfo">
                                 <h4 className="memberName">
-                                  <NavLink
-                                    to={`/Member/${checkin.values['Member GUID']}`}
-                                    className=""
-                                  >
-                                    {checkin.values['First Name']}{' '}
-                                    {checkin.values['Last Name']}
-                                  </NavLink>
+                                  {booking.firstName} {booking.lastName}
                                 </h4>
-                                <h5
-                                  className={
-                                    checkin.values['Attendance Status'][0]
-                                  }
-                                >
-                                  {checkin.values['Attendance Status'][0]}
-                                </h5>
-                                {checkin.overdueMember ? (
-                                  <span
-                                    className="overdue"
-                                    onClick={e => {
-                                      window.location =
-                                        '/#/kapps/services/categories/bambora-billing/bambora-change-credit-card-details?id=' +
-                                        checkin.values['Member GUID'] +
-                                        '&overdue=' +
-                                        checkin.overdueAmount;
-                                    }}
-                                  >
-                                    <i className="fa fa-usd overdue"></i>
-                                    <span>{checkin.overdueAmount}</span>
-                                  </span>
-                                ) : (
-                                  <div />
-                                )}
-
                                 <span
-                                  className="deleteCheckin"
-                                  onClick={e => this.deleteCheckin(checkin)}
+                                  className="checkinBooking"
+                                  onClick={e => this.checkinBooking(booking)}
                                 >
-                                  <SVGInline svg={binIcon} className="icon" />
+                                  <SVGInline svg={tickIcon} className="icon" />
+                                </span>
+                                <span
+                                  className="noshowBooking"
+                                  onClick={e => this.noShowBooking(booking)}
+                                >
+                                  <SVGInline svg={crossIcon} className="icon" />
                                 </span>
                               </span>
                             </span>
                             <span className="bottom">
                               <span className="ranking">
                                 <div className="program">
-                                  {getProgramSVG(
-                                    checkin.values['Ranking Program'],
-                                  )}
+                                  {getProgramSVG(booking.rankingProgram)}
                                 </div>
                                 <div className="belt">
-                                  {getBeltSVG(checkin.values['Ranking Belt'])}
+                                  {getBeltSVG(booking.rankingBelt)}
                                 </div>
                               </span>
-                              <GradingStatus
-                                memberItem={checkin.memberItem}
-                                belts={this.props.belts}
-                                allMembers={this.props.allMembers}
-                              />
                             </span>
                           </span>
                         ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+            {this.state.classTime !== undefined && (
+              <div className="checkinSection">
+                {this.state.memberItem === undefined &&
+                this.state.captureType === 'scanner' ? (
+                  <div className="readyToScan">
+                    <h5>READY TO SCAN MEMBER</h5>
+                    <SVGInline svg={barcodeIcon} className="icon" />
+                    <button
+                      type="button"
+                      id="changeToManual"
+                      className="btn btn-primary btn-block"
+                      onClick={e => this.switchToManual()}
+                    >
+                      Enter Manually
+                    </button>
+                  </div>
+                ) : (
+                  <div />
+                )}
+                {this.state.memberItem === undefined &&
+                this.state.captureType === 'manual' ? (
+                  <div className="manual">
+                    <h5>PLEASE SELECT MEMBER</h5>
+                    <Select
+                      closeMenuOnSelect={true}
+                      options={this.getAllMembers()}
+                      className="hide-columns-container"
+                      classNamePrefix="hide-columns"
+                      placeholder="Select Member"
+                      onChange={e => {
+                        this.selectMember(e);
+                      }}
+                      style={{ width: '300px' }}
+                    />
+                    <button
+                      type="button"
+                      id="changeToScan"
+                      className="btn btn-primary btn-block"
+                      onClick={e => this.switchToScan()}
+                    >
+                      Switch to Scan
+                    </button>
+                  </div>
+                ) : (
+                  <div />
+                )}
+                {this.state.memberItem === undefined ? (
+                  <div />
+                ) : (
+                  <div className="memberInfo">
+                    {this.state.memberItem.values['Photo'] === undefined ? (
+                      <span className="noPhoto">
+                        {this.state.memberItem.values['First Name'][0]}
+                        {this.state.memberItem.values['Last Name'][0]}
+                      </span>
+                    ) : (
+                      <img
+                        src={this.state.memberItem.values['Photo']}
+                        alt="Member Photograph"
+                        className="photo"
+                      />
+                    )}
+                    <div className="info">
+                      {this.state.memberItem.values['Status'] === 'Frozen' ? (
+                        <h2 className="frozenMemberLabel">
+                          Member is currently Frozen
+                        </h2>
+                      ) : (
+                        <div />
+                      )}
+                      {this.state.memberAlreadyCheckedIn ? (
+                        <h2 className="alreadyCheckedinLabel">
+                          Member already checked in
+                        </h2>
+                      ) : (
+                        <div />
+                      )}
+                      {this.state.noProgramSet ? (
+                        <h2 className="noProgramSetLabel">
+                          Member does not have a Program or Belt value set
+                        </h2>
+                      ) : (
+                        <div />
+                      )}
+                      {!this.state.memberAlreadyCheckedIn &&
+                      this.state.noProgramSet ? (
+                        <h2>Checking in member</h2>
+                      ) : (
+                        <div />
+                      )}
+                      <h4>
+                        {this.state.memberItem.values['First Name']}{' '}
+                        {this.state.memberItem.values['Last Name']}:{' '}
+                        <b>{this.state.memberItem.values['Ranking Program']}</b>
+                        -<i>{this.state.memberItem.values['Ranking Belt']}</i>
+                      </h4>
+                      <h4>
+                        For class <b>{this.state.className}</b> at{' '}
+                        <b>
+                          {moment(this.state.classDate, 'L hh:mm A').format(
+                            'L hh:mm A',
+                          )}
+                        </b>
+                      </h4>
                     </div>
-                  )}
-                </div>
-              )}
-            </div>
+                    {this.state.memberAlreadyCheckedIn ||
+                    this.state.noProgramSet ? (
+                      <div />
+                    ) : (
+                      <div className="applyCheckin">
+                        <div>
+                          <select
+                            name="status"
+                            id="status"
+                            ref={input => (this.input = input)}
+                            defaultValue="Full Class"
+                            onChange={e => {
+                              this.setState({
+                                attendanceStatus: e.target.value,
+                              });
+                            }}
+                          >
+                            <option value="" />
+                            <option key="Full Class" value="Full Class">
+                              Full Class
+                            </option>
+                            <option key="Class Only" value="Class Only">
+                              Class Only
+                            </option>
+                            <option key="Spar Only" value="Spar Only">
+                              Spar Only
+                            </option>
+                            <option key="Late" value="Late">
+                              Late
+                            </option>
+                          </select>
+                          <div className="droparrow" />
+                        </div>
+                        <div>
+                          <button
+                            type="button"
+                            id="checkinMember"
+                            className="btn btn-primary btn-block"
+                            onClick={e => this.checkInMember()}
+                          >
+                            Check-in Member
+                          </button>
+                        </div>
+                        {this.state.memberItem.values['Covid19 Waiver'] ===
+                          null ||
+                        this.state.memberItem.values['Covid19 Waiver'] ===
+                          undefined ||
+                        this.state.memberItem.values['Covid19 Waiver'] ===
+                          '' ? (
+                          <div className="waiverIncomplete">
+                            Waiver Required
+                          </div>
+                        ) : (
+                          <div />
+                        )}
+                        {this.state.memberItem.values['Covid19 Waiver'] ===
+                        'NOT Agreed' ? (
+                          <div className="waiverIncomplete">
+                            Waiver NOT Agreed
+                          </div>
+                        ) : (
+                          <div />
+                        )}
+                        {Utils.getAttributeValue(
+                          this.props.space,
+                          'Covid Check Required',
+                        ) === 'TRUE' && (
+                          <div>
+                            {this.state.memberItem.values[
+                              'Student Covid Check'
+                            ] === null ||
+                            this.state.memberItem.values[
+                              'Student Covid Check'
+                            ] === undefined ||
+                            this.state.memberItem.values[
+                              'Student Covid Check'
+                            ] === '' ? (
+                              <div className="waiverIncomplete">
+                                Student Covid Check Required
+                              </div>
+                            ) : (
+                              <div />
+                            )}
+                          </div>
+                        )}
+                        {this.state.overdueMember ? (
+                          <span
+                            className="overdue"
+                            onClick={e => {
+                              window.location =
+                                '/#/kapps/services/categories/bambora-billing/bambora-change-credit-card-details?id=' +
+                                this.state.memberItem.id +
+                                '&overdue=' +
+                                this.state.memberItem.overdueAmount;
+                            }}
+                          >
+                            <i className="fa fa-usd overdue"></i>
+                            <span>{this.state.memberItem.overdueAmount}</span>
+                          </span>
+                        ) : (
+                          <div />
+                        )}
+                      </div>
+                    )}
+                    <GradingStatus
+                      memberItem={this.state.memberItem}
+                      belts={this.props.belts}
+                      allMembers={this.props.allMembers}
+                    />
+                    {this.state.captureType === 'manual' ? (
+                      <button
+                        type="button"
+                        id="manualNewMember"
+                        className="btn btn-primary btn-block"
+                        onClick={e => this.selectNewMember()}
+                      >
+                        Select New Member
+                      </button>
+                    ) : (
+                      <div />
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+            {this.state.classTime !== undefined && (
+              <div className="attendanceSection">
+                <h4 className="classAttendancesLabel">
+                  Class Attendees (
+                  {
+                    this.props.classAttendances.filter(checkin => {
+                      var result =
+                        checkin.values['Class Time'] === this.state.classTime &&
+                        checkin.values['Class'] === this.state.className;
+
+                      if (result) {
+                        var overdueIdx = this.state.overdueMembers.findIndex(
+                          member =>
+                            member.memberGUID === checkin.values['Member GUID'],
+                        );
+                        if (overdueIdx !== -1) {
+                          checkin.overdueMember = true;
+                          checkin.overdueAmount = this.state.overdueMembers[
+                            overdueIdx
+                          ].overdueAmount;
+                        }
+                        var mIdx = this.props.allMembers.findIndex(
+                          member => member.id === checkin.values['Member GUID'],
+                        );
+                        if (mIdx !== -1) {
+                          checkin.memberItem = this.props.allMembers[mIdx];
+                        }
+                      }
+                      return result;
+                    }).length
+                  }
+                  )
+                </h4>
+                {this.props.fetchingClassAttendances ? (
+                  <h4>Loading Class Attendances....</h4>
+                ) : (
+                  <div className="classMembers">
+                    {this.props.classAttendances.length === 0 ? (
+                      <div>
+                        <h4>No members checked in for this class</h4>
+                      </div>
+                    ) : (
+                      <div>
+                        {this.props.classAttendances
+                          .filter(checkin => {
+                            return (
+                              checkin.values['Class Time'] ===
+                                this.state.classTime &&
+                              checkin.values['Class'] === this.state.className
+                            );
+                          })
+                          .map((checkin, index) => (
+                            <span
+                              key={index}
+                              className={
+                                checkin.memberAlreadyCheckedIn
+                                  ? 'memberCell alreadyCheckedIn'
+                                  : 'memberCell'
+                              }
+                              id={checkin.id}
+                            >
+                              <span className="top">
+                                {checkin.values['Photo'] === undefined ? (
+                                  <span className="noPhoto">
+                                    {checkin.values['First Name'][0]}
+                                    {checkin.values['Last Name'][0]}
+                                  </span>
+                                ) : (
+                                  <img
+                                    src={checkin.values['Photo']}
+                                    alt="Member Photograph"
+                                    className="photo"
+                                  />
+                                )}
+                                <span className="memberInfo">
+                                  <h4 className="memberName">
+                                    <NavLink
+                                      to={`/Member/${checkin.values['Member GUID']}`}
+                                      className=""
+                                    >
+                                      {checkin.values['First Name']}{' '}
+                                      {checkin.values['Last Name']}
+                                    </NavLink>
+                                  </h4>
+                                  <h5
+                                    className={
+                                      checkin.values['Attendance Status'][0]
+                                    }
+                                  >
+                                    {checkin.values['Attendance Status'][0]}
+                                  </h5>
+                                  {checkin.overdueMember ? (
+                                    <span
+                                      className="overdue"
+                                      onClick={e => {
+                                        window.location =
+                                          '/#/kapps/services/categories/bambora-billing/bambora-change-credit-card-details?id=' +
+                                          checkin.values['Member GUID'] +
+                                          '&overdue=' +
+                                          checkin.overdueAmount;
+                                      }}
+                                    >
+                                      <i className="fa fa-usd overdue"></i>
+                                      <span>{checkin.overdueAmount}</span>
+                                    </span>
+                                  ) : (
+                                    <div />
+                                  )}
+
+                                  <span
+                                    className="deleteCheckin"
+                                    onClick={e => this.deleteCheckin(checkin)}
+                                  >
+                                    <SVGInline svg={binIcon} className="icon" />
+                                  </span>
+                                </span>
+                              </span>
+                              <span className="bottom">
+                                <span className="ranking">
+                                  <div className="program">
+                                    {getProgramSVG(
+                                      checkin.values['Ranking Program'],
+                                    )}
+                                  </div>
+                                  <div className="belt">
+                                    {getBeltSVG(checkin.values['Ranking Belt'])}
+                                  </div>
+                                </span>
+                                <GradingStatus
+                                  memberItem={checkin.memberItem}
+                                  belts={this.props.belts}
+                                  allMembers={this.props.allMembers}
+                                />
+                              </span>
+                            </span>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
             {!this.state.showingFullScreen && (
               <BarcodeReader
                 onError={this.handleError}

@@ -168,8 +168,8 @@ export function* createSmsCampaign(action) {
       include: SUBMISSION_INCLUDES,
     });
 
-    if (action.payload.history)
-      action.payload.history.push('/kapps/gbmembers/Send');
+    //    if (action.payload.history)
+    //      action.payload.history.push('/kapps/gbmembers/Send');
     action.payload.sendSms({
       campaignItem: action.payload.campaignItem,
       phoneNumbers: action.payload.phoneNumbers,
@@ -177,6 +177,7 @@ export function* createSmsCampaign(action) {
       createMemberActivities: action.payload.createMemberActivities,
       createLeadActivities: action.payload.createLeadActivities,
       fetchMembers: action.payload.fetchMembers,
+      history: action.payload.history,
     });
     yield put(
       errorActions.addSuccess(

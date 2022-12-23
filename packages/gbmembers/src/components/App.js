@@ -8,8 +8,10 @@ import { Content } from './Content';
 import { SidebarContainer } from './SidebarContainer';
 import { HeaderContainer } from './HeaderContainer';
 import { LoginModal } from './authentication/LoginModal';
+import { LiveChatWidget, EventHandlerPayload } from '@livechat/widget-react';
+import { getAttributeValue } from '../lib/react-kinops-components/src/utils';
 
-export const App = ({ loading, isKiosk }) => (
+export const App = ({ loading, isKiosk, space }) => (
   <div>
     <Helmet>
       <meta
@@ -23,6 +25,12 @@ export const App = ({ loading, isKiosk }) => (
     ) : (
       <div className="app gbmembers">
         <HeaderContainer />
+        {getAttributeValue(space, 'LiveChat License') !== undefined && (
+          <LiveChatWidget
+            license={getAttributeValue(space, 'LiveChat License')} //"14790045"
+            visibility="minimized"
+          />
+        )}
         <LayoutContainer
           sidebarContent={<SidebarContainer />}
           mainContent={<Content isKiosk={isKiosk} />}

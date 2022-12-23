@@ -131,7 +131,11 @@ export function* fetchJourneyEvent(action) {
       form: 'email-templates',
       search,
     });
-    journeyEvent['emailTemplate'] = submissions[0].values;
+    if (submissions.length > 0) {
+      journeyEvent['emailTemplate'] = submissions[0].values;
+    } else {
+      journeyEvent['emailTemplate'] = 'NOT_FOUND';
+    }
   }
 
   if (submission.values['Contact Type'] === 'SMS') {
@@ -147,7 +151,11 @@ export function* fetchJourneyEvent(action) {
       form: 'sms-templates',
       search,
     });
-    journeyEvent['smsTemplate'] = submissions[0].values;
+    if (submissions.length > 0) {
+      journeyEvent['smsTemplate'] = submissions[0].values;
+    } else {
+      journeyEvent['smsTemplate'] = 'NOT_FOUND';
+    }
   }
 
   if (submission.values['Contact Type'] === 'Call') {
@@ -164,7 +172,11 @@ export function* fetchJourneyEvent(action) {
       form: 'call-scripts',
       search,
     });
-    journeyEvent['callTemplate'] = submissions[0].values;
+    if (submissions.length > 0) {
+      journeyEvent['callTemplate'] = submissions[0].values;
+    } else {
+      journeyEvent['callTemplate'] = 'NOT_FOUND';
+    }
   }
 
   console.log(

@@ -1657,6 +1657,20 @@
     "@types/yargs" "^15.0.0"
     chalk "^4.0.0"
 
+"@livechat/widget-core@1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@livechat/widget-core/-/widget-core-1.2.1.tgz#13da10e17b2a58d3da50f52895bea0476541c72c"
+  integrity sha512-9RrKCJauqBI4gA+3QSv9nNIxxSiSLEt0QqwFl3dvtiue5fMcxSA5EqR0CBorZUppn++i4gDfZDDb7dmJG8aLqQ==
+  dependencies:
+    mitt "3.0.0"
+
+"@livechat/widget-react@^1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@livechat/widget-react/-/widget-react-1.2.1.tgz#40781e7379964068af2af0a0407f97a5752e7381"
+  integrity sha512-aMopXGPJLgiJdwJCxTZ01RS4VMDx9AuY1dCo7czexp64JskdDOwhWXAxQAHIOL3Z1aswiiefW7so06KfWa/lhA==
+  dependencies:
+    "@livechat/widget-core" "1.2.1"
+
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
   resolved "https://registry.yarnpkg.com/@nodelib/fs.scandir/-/fs.scandir-2.1.5.tgz#7619c2eb21b25483f6d167548b4cfd5a7488c3d5"
@@ -14629,6 +14643,11 @@ mississippi@^3.0.0:
     pumpify "^1.3.3"
     stream-each "^1.1.0"
     through2 "^2.0.0"
+
+mitt@3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/mitt/-/mitt-3.0.0.tgz#69ef9bd5c80ff6f57473e8d89326d01c414be0bd"
+  integrity sha512-7dX2/10ITVyqh4aOSVI9gdape+t9l2/8QxHrFmUXu4EEUpdlxl6RudZUPZoc+zuY2hk1j7XxVroIVIan/pD/SQ==
 
 mixin-deep@^1.1.3, mixin-deep@^1.2.0:
   version "1.3.2"

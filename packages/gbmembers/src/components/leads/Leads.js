@@ -70,6 +70,7 @@ const mapDispatchToProps = {
   fetchMembers: memberActions.fetchMembers,
   setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
+const date_format = ['YYYY-MM-DD', 'YYYY-MM-DDTHH:mm:ssZ'];
 
 function getLatestHistory(history) {
   //console.log("# history = " + util.inspect(history));
@@ -536,15 +537,14 @@ export class TasksDetail extends Component {
       return;
     }
 
-    const date_format = 'YYYY-MM-DD';
     let members = [];
 
     if (duration === 'Todays Tasks') {
       const today = moment().startOf('day');
       allMembers.forEach(member => {
         if (
-          member.values['Reminder Date'] ||
-          member.values['Is New Reply Received'] === 'true'
+          member.values['Reminder Date'] &&
+          member.values['Reminder Date'].indexOf('Invalid date') === -1
         ) {
           if (
             moment(member.values['Reminder Date'], date_format).isBefore(
@@ -554,15 +554,11 @@ export class TasksDetail extends Component {
             moment(member.values['Reminder Date'], date_format).isSame(
               today,
               'd',
-            ) ||
-            member.values['Is New Reply Received'] === 'true'
+            )
           ) {
             members.push({
               _id: member['id'],
-              date:
-                member.values['Reminder Date'] !== undefined
-                  ? moment(member.values['Reminder Date']).format('L LT')
-                  : moment().format('L LT'),
+              date: member.values['Reminder Date'],
               name:
                 member.values['First Name'] + ' ' + member.values['Last Name'],
               note: getLatestHistory(member.values['Notes History'])
@@ -581,8 +577,8 @@ export class TasksDetail extends Component {
         .startOf('day');
       allMembers.forEach(member => {
         if (
-          member.values['Reminder Date'] ||
-          member.values['Is New Reply Received'] === 'true'
+          member.values['Reminder Date'] &&
+          member.values['Reminder Date'].indexOf('Invalid date') === -1
         ) {
           if (
             moment(member.values['Reminder Date'], date_format).isBefore(
@@ -594,15 +590,11 @@ export class TasksDetail extends Component {
               endDate,
               'days',
               '[]',
-            ) ||
-            member.values['Is New Reply Received'] === 'true'
+            )
           ) {
             members.push({
               _id: member['id'],
-              date:
-                member.values['Reminder Date'] !== undefined
-                  ? moment(member.values['Reminder Date']).format('L LT')
-                  : moment().format('L LT'),
+              date: member.values['Reminder Date'],
               name:
                 member.values['First Name'] + ' ' + member.values['Last Name'],
               note: getLatestHistory(member.values['Notes History'])
@@ -621,8 +613,8 @@ export class TasksDetail extends Component {
         .startOf('day');
       allMembers.forEach(member => {
         if (
-          member.values['Reminder Date'] ||
-          member.values['Is New Reply Received'] === 'true'
+          member.values['Reminder Date'] &&
+          member.values['Reminder Date'].indexOf('Invalid date') === -1
         ) {
           if (
             moment(member.values['Reminder Date'], date_format).isBefore(
@@ -634,15 +626,11 @@ export class TasksDetail extends Component {
               endDate,
               'days',
               '[]',
-            ) ||
-            member.values['Is New Reply Received'] === 'true'
+            )
           ) {
             members.push({
               _id: member['id'],
-              date:
-                member.values['Reminder Date'] !== undefined
-                  ? moment(member.values['Reminder Date']).format('L LT')
-                  : moment().format('L LT'),
+              date: member.values['Reminder Date'],
               name:
                 member.values['First Name'] + ' ' + member.values['Last Name'],
               note: getLatestHistory(member.values['Notes History'])
@@ -656,16 +644,13 @@ export class TasksDetail extends Component {
     } else if (duration === 'All Tasks') {
       allMembers.forEach(member => {
         if (
-          (member.values['Reminder Date'] !== undefined &&
-            member.values['Reminder Date'] !== null) ||
-          member.values['Is New Reply Received'] === 'true'
+          member.values['Reminder Date'] !== undefined &&
+          member.values['Reminder Date'] !== null &&
+          member.values['Reminder Date'].indexOf('Invalid date') === -1
         ) {
           members[members.length] = {
             _id: member['id'],
-            date:
-              member.values['Reminder Date'] !== undefined
-                ? moment(member.values['Reminder Date']).format('L LT')
-                : moment().format('L LT'),
+            date: member.values['Reminder Date'],
             name:
               member.values['First Name'] + ' ' + member.values['Last Name'],
             note: getLatestHistory(member.values['Notes History'])
@@ -762,14 +747,14 @@ export class TasksDetail extends Component {
     if (!date) {
       return undefined;
     }
-    return moment(date).date();
+    return moment(date, date_format).date();
   }
 
   getMonth(date) {
     if (!date) {
       return undefined;
     }
-    return moment(date)
+    return moment(date, date_format)
       .format('MMM')
       .toUpperCase();
   }

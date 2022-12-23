@@ -40,6 +40,7 @@ const mapStateToProps = state => ({
   members: state.member.members.allMembers,
   leads: state.member.leads.allLeads,
   leadLastFetchTime: state.member.leads.leadLastFetchTime,
+  leadsByDate: state.member.leads.leadsByDate,
   profile: state.member.kinops.profile,
   leadSourceValues: state.member.app.leadSourceValues,
   space: state.app.space,
@@ -1372,12 +1373,19 @@ export const LeadEditContainer = compose(
         });
       }
     },
-    removeLead: ({ leads, leadItem, deleteLead, setIsDirty }) => () => {
+    removeLead: ({
+      leads,
+      leadsByDate,
+      leadItem,
+      deleteLead,
+      setIsDirty,
+    }) => () => {
       leadItem.values['Lead State'] = 'Deleted';
       deleteLead({
         leadItem: leadItem,
         history: leadItem.history,
         allLeads: leads,
+        leadsByDate: leadsByDate,
       });
     },
   }),

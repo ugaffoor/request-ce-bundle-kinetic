@@ -375,7 +375,17 @@ export class MemberOrders extends Component {
                         <div className="productLine">
                           <div className="quantity"></div>
                           <div className="name">
-                            <I18n>TOTAL</I18n>
+                            {getAttributeValue(
+                              this.props.space,
+                              'POS Sales Total Label',
+                            ) === undefined ? (
+                              <I18n>TOTAL</I18n>
+                            ) : (
+                              getAttributeValue(
+                                this.props.space,
+                                'POS Sales Total Label',
+                              )
+                            )}
                           </div>
                           <div className="price">
                             <span className="price">

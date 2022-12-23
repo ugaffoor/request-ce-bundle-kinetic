@@ -171,10 +171,15 @@ export class MemberFinancialReport extends Component {
             payment => payment.yourSystemReference === member.customerId,
           );
           if (hIdx !== -1) {
-            member.contractStartDate = moment(
+            let debitDate = moment(
               this.paymentHistory[hIdx].debitDate,
               'YYYY-MM-DD HH:mm:sss',
-            ).format('YYYY-MM-DD');
+            );
+            if (
+              debitDate.isAfter(moment(member.contractStartDate, 'YYYY-MM-DD'))
+            ) {
+              member.contractStartDate = debitDate.format('YYYY-MM-DD');
+            }
           }
         });
       }
@@ -276,7 +281,7 @@ export class MemberFinancialReport extends Component {
         nextProps.billingCustomers,
         uniqueFailedHistory,
         this.paymentHistory,
-        this.props.paymentHistory,
+        nextProps.paymentHistory,
         this.posOrders,
         this.refunds,
         this.props.additionalServices,
@@ -310,7 +315,7 @@ export class MemberFinancialReport extends Component {
     var dateFrom = moment(this.state.repFromDate).format('YYYY-MM-DD');
     if (getAttributeValue(this.props.space, 'Billing Company') === 'Bambora') {
       dateFrom = moment(this.state.repFromDate)
-        .subtract('months', 2)
+        .subtract('months', 6)
         .format('YYYY-MM-DD');
     }
     this.props.fetchPaymentHistory({
@@ -431,7 +436,7 @@ export class MemberFinancialReport extends Component {
     var dateFrom = moment(fromDate).format('YYYY-MM-DD');
     if (getAttributeValue(this.props.space, 'Billing Company') === 'Bambora') {
       dateFrom = moment(fromDate)
-        .subtract('months', 1)
+        .subtract('months', 6)
         .format('YYYY-MM-DD');
     }
     this.props.fetchPaymentHistory({
@@ -506,7 +511,7 @@ export class MemberFinancialReport extends Component {
   noCancellationRequests(cancellationRequests, member, nextBillingDate) {
     var datePrior = false;
     if (member.status === 'Pending Cancellation') {
-      cancellationRequests.forEach((request, i) => {
+      /*      cancellationRequests.forEach((request, i) => {
         if (member.id === request.values['Members']) {
           var startDate = moment(
             request.values['The last debit will be taken on'],
@@ -516,25 +521,46 @@ export class MemberFinancialReport extends Component {
             datePrior = true;
           }
         }
-      });
+      }); */
+      datePrior = true;
     }
     return datePrior;
   }
   noFreezeRequests(freezeRequests, member, nextBillingDate) {
     var datePrior = false;
-    if (member.status === 'Pending Freeze') {
-      freezeRequests.forEach((request, i) => {
-        if (member.id === request.values['Members']) {
-          var startDate = moment(
-            request.values['Date of Last Payment'],
+    //    if (member.status === 'Pending Freeze') {
+    freezeRequests.forEach((request, i) => {
+      if (member.id === request.values['Members']) {
+        var startDate = moment(
+          request.values['Date of Last Payment'],
+          'YYYY-MM-DD',
+        );
+        var resumeDate = undefined;
+        if (
+          request.values['Date Payments Resume'] !== undefined &&
+          request.values['Date Payments Resume'] !== null
+        ) {
+          resumeDate = moment(
+            request.values['Date Payments Resume'],
             'YYYY-MM-DD',
           );
-          if (startDate.isSameOrBefore(nextBillingDate)) {
-            datePrior = true;
-          }
         }
-      });
-    }
+
+        if (
+          startDate.isSameOrBefore(nextBillingDate) &&
+          resumeDate === undefined
+        ) {
+          datePrior = true;
+        }
+        if (
+          resumeDate !== undefined &&
+          resumeDate.isSameOrAfter(nextBillingDate)
+        ) {
+          datePrior = true;
+        }
+      }
+    });
+    //  }
     return datePrior;
   }
 
@@ -610,7 +636,9 @@ export class MemberFinancialReport extends Component {
             ',' +
             payment.paymentID +
             ',' +
-            payment.debitDate,
+            payment.debitDate +
+            ',' +
+            accountHoldersValue,
         );
       } else if (additionalServiceMember !== undefined) {
         var sIdx = additionalServices.findIndex(
@@ -678,13 +706,27 @@ export class MemberFinancialReport extends Component {
           }
         } else {
           if (payment.paymentStatus !== 'Refund') {
+            if (payment.paymentAmount !== 0) {
+              // Needed for Bambora
+              accountHolders[accountHolders.length] = {
+                id: 'Orphan',
+                values: {
+                  'First Name': payment.paymentID,
+                  'Last Name': '',
+                },
+                fee: payment.paymentAmount,
+              };
+              accountHoldersValue += payment.paymentAmount;
+            }
             console.log(
               'ORPHANED,' +
                 Number(payment.paymentAmount).toFixed(2) +
                 ',' +
                 payment.paymentID +
                 ',' +
-                payment.debitDate,
+                payment.debitDate +
+                ',' +
+                accountHoldersValue,
             );
           }
         }
@@ -710,10 +752,10 @@ export class MemberFinancialReport extends Component {
         }
       });
       if (
-        (member.status === 'Active' ||
-          member.status === 'Pending Freeze' ||
-          member.status === 'Pending Cancellation') &&
-        failedIdx === -1
+        member.status === 'Active' ||
+        member.status === 'Pending Freeze' ||
+        member.status === 'Pending Cancellation' /*&&
+        failedIdx === -1*/
       ) {
         //Set id value of members
         members.forEach((item, i) => {
@@ -727,15 +769,20 @@ export class MemberFinancialReport extends Component {
         });
 
         // Find latest payment date
-        var idx = paymentHistory.findIndex(item => {
+        var idx = fullPaymentHistory.findIndex(item => {
           return member.customerId === item.yourSystemReference;
         });
         var lastPayment;
         if (idx !== -1) {
           lastPayment = moment(
-            paymentHistory[idx]['debitDate'],
+            fullPaymentHistory[idx]['debitDate'],
             'YYYY-MM-DD HH:mm:ss',
           );
+          if (
+            moment(member.contractStartDate, 'YYYY-MM-DD').isAfter(lastPayment)
+          ) {
+            lastPayment = moment(member.contractStartDate, 'YYYY-MM-DD');
+          }
         } else {
           lastPayment = moment(member.contractStartDate, 'YYYY-MM-DD');
         }
@@ -802,7 +849,7 @@ export class MemberFinancialReport extends Component {
               nextBillingDate = nextBillingDate.add(period, periodCount);
               count += 1;
             } else {
-              break;
+              nextBillingDate = nextBillingDate.add(period, periodCount);
             }
           }
         }
@@ -866,7 +913,6 @@ export class MemberFinancialReport extends Component {
     let salesTaxValue = 0;
     posOrders.forEach(pos => {
       //      if (getAttributeValue(this.props.space, 'POS System') === 'Square') {
-      posPaymentsValue += this.getTotalValue(pos);
       var idx = members.findIndex(item => item.id === pos.values['Person ID']);
       if (idx !== -1) {
         if (
@@ -884,6 +930,14 @@ export class MemberFinancialReport extends Component {
       ) {
         salesTaxValue += Number.parseFloat(pos.values['Sales Tax']);
       }
+    });
+
+    posPeople.forEach(person => {
+      posPaymentsValue += /*this.getTotalValue(pos);*/ this.getMemberPOS(
+        members,
+        person,
+        posOrders,
+      );
     });
 
     console.log('customerRefunds:' + customerRefunds.length);
@@ -1302,9 +1356,18 @@ export class MemberFinancialReport extends Component {
           members[i].values['Last Name'] +
           ' ' +
           members[i].values['First Name'],
-        fee: this.getMemberFee(allMembers, members[i]),
-        cost: this.getScheduledPayment(members[i], billingCustomers),
-        period: this.getMemberPeriod(allMembers, members[i]),
+        fee:
+          members[i].id !== 'Orphan'
+            ? this.getMemberFee(allMembers, members[i])
+            : members[i].fee,
+        cost:
+          members[i].id !== 'Orphan'
+            ? this.getScheduledPayment(members[i], billingCustomers)
+            : members[i].fee,
+        period:
+          members[i].id !== 'Orphan'
+            ? this.getMemberPeriod(allMembers, members[i])
+            : 'Unknown',
       };
     }
 
@@ -2562,6 +2625,7 @@ export class MemberFinancialReport extends Component {
                   }).format(
                     this.state.repMemberData.accountHolders.value +
                       this.state.repMemberData.cashPayments.value +
+                      this.state.repMemberData.additionalServices.value +
                       this.state.repMemberData.posPayments.value -
                       this.state.repMemberData.refundMembers.value,
                   )}

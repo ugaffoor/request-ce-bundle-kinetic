@@ -551,33 +551,6 @@ export class AdditionalServicesReport extends Component {
               }
               pageSize={this.state.data.length > 0 ? this.state.data.length : 2}
               showPagination={false}
-              expanded={this.state.expandedRows}
-              onExpandedChange={(newExpanded, index) => {
-                this.setState(oldState => {
-                  const itemIndex = index[0];
-                  const isExpanded = oldState.expandedRows[itemIndex];
-                  const expandedList = [...this.state.expandedRows];
-                  expandedList[itemIndex] = !isExpanded;
-                  return {
-                    expandedRows: expandedList,
-                  };
-                });
-              }}
-              SubComponent={row => {
-                return (
-                  <ReactTable
-                    data={row.original.products}
-                    columns={this.productColumns}
-                    TheadComponent={() => null}
-                    defaultPageSize={
-                      row.original.products.length > 0
-                        ? row.original.products.length
-                        : 2
-                    }
-                    showPagination={false}
-                  />
-                );
-              }}
             />
             <br />
           </div>

@@ -568,6 +568,11 @@ export const SMSEventView = ({
   journeyEvent === undefined ||
   journeyEvent.smsTemplate === undefined ? (
     <div>Loading...</div>
+  ) : journeyEvent.smsTemplate === 'NOT_FOUND' ? (
+    <div>
+      SMS Template [{journeyEvent.submission.values['Template Name']}] was not
+      found
+    </div>
   ) : (
     <div className="">
       {!smsSent && !eventDeleted ? (

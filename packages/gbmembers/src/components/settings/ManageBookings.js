@@ -22,6 +22,7 @@ export class ManageBookings extends Component {
     this.classBookings = this.getGridData(
       this.rawClassBookings,
       this.classSchedules,
+      this.props.allMembers,
     );
     this.deleteBooking = this.props.deleteBooking.bind(this);
     this.updateBooking = this.props.updateBooking.bind(this);
@@ -159,6 +160,7 @@ export class ManageBookings extends Component {
       this.classBookings = this.getGridData(
         this.rawClassBookings,
         this.classSchedules,
+        this.props.allMembers,
       );
 
       var idx = this.classBookings.findIndex(element => {
@@ -197,6 +199,7 @@ export class ManageBookings extends Component {
       this.classBookings = this.getGridData(
         this.rawClassBookings,
         this.classSchedules,
+        this.props.allMembers,
       );
     }
   }
@@ -293,14 +296,19 @@ export class ManageBookings extends Component {
       });
     }
   }
-  getGridData(bookings, classSchedules, memberGUID) {
+  getGridData(bookings, classSchedules, allMembers, memberGUID) {
     if (!bookings || bookings.length < 0) {
       return [];
     }
+    let mIdx = allMembers.findIndex(member => member.id === memberGUID);
+    let memberID = mIdx !== -1 ? allMembers[mIdx].values['Member ID'] : '';
 
     let bookingsDataMap = new Map();
     bookings.forEach(booking => {
-      if (memberGUID !== undefined && booking.memberGUID === memberGUID) {
+      if (
+        memberGUID !== undefined &&
+        (booking.memberGUID === memberGUID || booking.memberID === memberID)
+      ) {
         this.addClassBooking(bookingsDataMap, booking);
       } else if (
         memberGUID === undefined ||
@@ -808,6 +816,7 @@ export class ManageBookings extends Component {
                     this.classBookings = this.getGridData(
                       this.rawClassBookings,
                       this.classSchedules,
+                      this.props.allMembers,
                       e.value === 'CLEAR' ? undefined : e.value,
                     );
                     var rows = [];

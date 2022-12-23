@@ -64,8 +64,13 @@
     -webkit-print-color-adjust: exact;
     float: none;
   }
+  .visitorCardXX {
+    .card1 {
+      height: 350mm !important;
+    }
+  }
   .attendanceCard,
-  .visitorCard {
+  .visitorCardXX {
     .card1 {
       margin-top: 0mm;
     }
@@ -85,64 +90,6 @@
     .filler {
       width: 10mm;
       height: 10mm;
-    }
-  }
-  .visitorCard {
-    .schoolName {
-      margin-top: 552px;
-      margin-left: 188px;
-    }
-    .memberName {
-      margin-left: 364px;
-    }
-    .photoDiv {
-      margin-left: 118mm;
-      margin-top: 49.5mm;
-      .noPhotoDiv {
-        margin-left: 145px;
-        margin-bottom: 23px;
-      }
-      .photoImg {
-      }
-    }
-  }
-  .attendanceCard.US,
-  .visitorCard.US {
-    .card1 {
-    }
-    .card2 {
-      margin-top: 10mm;
-      height: 324mm !important;
-    }
-    .card1,
-    .card2 {
-      width: 185mm;
-      height: 262mm;
-      background-size: contain;
-      background-repeat: no-repeat;
-    }
-    .filler {
-      width: 10mm;
-      height: 10mm;
-    }
-  }
-  .visitorCard.US {
-    .schoolName {
-      margin-top: 452px;
-      margin-left: 188px;
-    }
-    .memberName {
-      margin-left: 364px;
-    }
-    .photoDiv {
-      margin-left: 118mm;
-      margin-top: 49.5mm;
-      .noPhotoDiv {
-        margin-left: 145px;
-        margin-bottom: 23px;
-      }
-      .photoImg {
-      }
     }
   }
 }
@@ -230,76 +177,76 @@
 
 .US {
   .card1.visitorCard {
-    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/VisitorCard.png);
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/VisitorCard2022.png);
   }
   .card1.Combo_GBF___BarraFIT,
   .card1.Combo_GB1___BarraFIT,
   .card1.GBF,
   .card1.GB1 {
-    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB1-P1.png);
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB12022-P1.png);
   }
   .card1.Combo_GB2___BarraFIT,
   .card1.GB2 {
-    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB2-P1.png);
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB22022-P1.png);
   }
   .card1.GB3 {
-    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB3-P1.png);
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB32022-P1.png);
   }
   .card1.Tiny_Champions {
-    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USTiny_Champions-P1.png);
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USTiny_Champions2022-P1.png);
   }
   .card1.Little_Champions_1 {
-    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USLittle_Champions_1-P1.png);
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USLittle_Champions_12022-P1.png);
   }
   .card1.Little_Champions_2 {
-    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USLittle_Champions_2-P1.png);
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USLittle_Champions_22022-P1.png);
   }
   .card1.Juniors {
-    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USJuniors-P1.png);
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USJuniors2022-P1.png);
   }
   .card1.Teens {
-    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USTeens-P1.png);
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USTeens2022-P1.png);
   }
   .card1.Advanced_Kids {
-    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USAdvanced_Kids-P1.png);
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USAdvanced_Kids2022-P1.png);
   }
   .card1.Competition_Team {
-    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/CompetitionTeam_P1.png);
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/CompetitionTeam2022_P1.png);
   }
 
   .card2.Combo_GBF___BarraFIT,
   .card2.Combo_GB1___BarraFIT,
   .card2.GBF,
   .card2.GB1 {
-    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB1-P2.png);
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB12022-P2.png);
   }
   .card2.Combo_GB2___BarraFIT,
   .card2.GB2 {
-    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB2-P2.png);
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB22022-P2.png);
   }
   .card2.GB3 {
-    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB3-P2.png);
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB32022-P2.png);
   }
   .card2.Tiny_Champions {
-    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USTiny_Champions-P2.png);
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USTiny_Champions2022-P2.png);
   }
   .card2.Little_Champions_1 {
-    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USLittle_Champions_1-P2.png);
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USLittle_Champions_12022-P2.png);
   }
   .card2.Little_Champions_2 {
-    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USLittle_Champions_2-P2.png);
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USLittle_Champions_22022-P2.png);
   }
   .card2.Juniors {
-    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USJuniors-P2.png);
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USJuniors2022-P2.png);
   }
   .card2.Teens {
-    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USTeens-P2.png);
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USTeens2022-P2.png);
   }
   .card2.Advanced_Kids {
-    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USAdvanced_Kids-P2.png);
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USAdvanced2022_Kids-P2.png);
   }
   .card2.Competition_Team {
-    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/CompetitionTeam_P2.png);
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/CompetitionTeam2022_P2.png);
   }
 }
 .replyIcon {
@@ -1198,7 +1145,7 @@ iframe#printf {
 .visitorCard {
   .schoolName {
     margin-top: 602px;
-    margin-left: 206px;
+    margin-left: 286px;
     transform: rotate(90deg);
     -webkit-transform: rotate(90deg);
     -moz-transform: rotate(90deg);
@@ -1210,8 +1157,8 @@ iframe#printf {
     }
   }
   .memberName {
-    margin-top: 0px;
-    margin-left: 415px;
+    margin-top: 2px;
+    margin-left: 499px;
     color: white;
     transform: rotate(90deg);
     -webkit-transform: rotate(90deg);
@@ -1226,8 +1173,8 @@ iframe#printf {
   .photoDiv {
     height: 162px;
     width: 174px;
-    margin-left: 159mm;
-    margin-top: 62.5mm;
+    margin-left: 173mm;
+    margin-top: 70.5mm;
     line-height: 95px;
     background-color: transparent;
     float: left;
@@ -1266,8 +1213,35 @@ iframe#printf {
 }
 .visitorCard.US {
   .card1 {
-    width: 185mm;
-    height: 262mm;
+    width: 600px;
+    height: 960px;
+    /*    width: 127mm;
+    height: 203.2mm;*/
+  }
+  .schoolName {
+    margin-top: 560px;
+    margin-left: 225px;
+  }
+  .photoDiv {
+    margin-left: 119mm;
+    margin-top: -142.5mm;
+    height: 106px;
+    width: 106px;
+    .noPhotoDiv {
+      width: 113px;
+      height: 112px;
+      margin-left: 107px;
+      margin-top: 4px;
+    }
+  }
+  .memberName {
+    margin-top: -101px;
+    margin-left: 309px;
+    width: 300px;
+    color: black;
+    p {
+      font-size: 28px;
+    }
   }
 }
 
@@ -1402,8 +1376,10 @@ iframe#printf {
 .attendanceCard.US {
   .card1,
   .card2 {
-    width: 185mm;
-    height: 262mm;
+    width: 600px;
+    height: 960px;
+    /*    width: 127mm;
+    height: 203.2mm; */
   }
   .BarraFIT .photoDiv,
   .Athlete .photoDiv,
@@ -1429,8 +1405,8 @@ iframe#printf {
   .Teens .photoDiv {
     height: 124px;
     width: 121px;
-    margin-left: 491px;
-    margin-top: 75px;
+    margin-left: 427px;
+    margin-top: 31px;
     .noPhotoDiv {
       width: 120px;
       height: 120px;
@@ -1456,8 +1432,8 @@ iframe#printf {
   .Competition_Team .photoDiv {
     height: 119px;
     width: 122px;
-    margin-left: 538px;
-    margin-top: 160px;
+    margin-left: 423px;
+    margin-top: 158px;
     .noPhotoDiv {
       width: 120px;
       height: 120px;
@@ -1477,15 +1453,15 @@ iframe#printf {
       width: 120px;
       height: 120px;
       padding: 20px;
-      margin-left: 120px;
+      margin-left: 127px;
       margin-bottom: 23px;
     }
   }
   .photoDiv {
     height: 126px;
     width: 122px;
-    margin-left: 130mm;
-    margin-top: 19.5mm;
+    margin-left: 110mm;
+    margin-top: 10.5mm;
     line-height: 95px;
     background-color: transparent;
     float: left;
@@ -1495,7 +1471,7 @@ iframe#printf {
       padding: 20px;
       margin-left: 120px;
       margin-bottom: 23px;
-      margin-top: 10px;
+      margin-top: 0px;
       font-size: 54px;
       transform-origin: 0 0;
       transform: rotate(90deg);
@@ -1535,13 +1511,18 @@ iframe#printf {
     margin-top: 75mm;
     margin-left: 162mm;
   }
+  .attendanceBarcode.Little_Champions_1,
+  .attendanceBarcode.Little_Champions_2 {
+    margin-top: 48mm;
+    margin-left: 123mm;
+  }
   .attendanceBarcode.Competition_Team {
-    margin-top: 200mm;
-    margin-left: 162mm;
+    margin-top: 193mm;
+    margin-left: 136mm;
   }
   .attendanceBarcode {
-    margin-top: 67mm;
-    margin-left: 161mm;
+    margin-top: 57mm;
+    margin-left: 122mm;
     transform: rotate(90deg);
     -webkit-transform: rotate(90deg);
     -moz-transform: rotate(90deg);
@@ -1550,8 +1531,8 @@ iframe#printf {
     filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
     width: 100px;
     svg {
-      width: 207px;
-      height: 84px;
+      width: 200px;
+      height: auto;
     }
   }
   .attendanceName.BarraFIT,
@@ -1569,8 +1550,9 @@ iframe#printf {
     margin-left: 103mm;
   }
   .attendanceName.Competition_Team {
-    margin-top: -47mm;
-    margin-left: 103mm;
+    margin-top: -28mm;
+    margin-left: 84mm;
+    width: 300px;
     p {
       font-size: 32px;
       font-family: 'AdiHaus DIN Bold';
@@ -1581,17 +1563,19 @@ iframe#printf {
   .attendanceName.Tiny_Champions,
   .attendanceName.Juniors,
   .attendanceName.Teens {
-    margin-top: 22mm;
-    margin-left: 103mm;
+    margin-top: 54mm;
+    margin-left: 78mm;
   }
-  .attendanceName.Combo_GB2___BarraFIT,
-  .attendanceName.GB2,
-  .attendanceName.GB3 {
+  .attendanceName.Combo_GB2___BarraFIT {
     margin-left: 101mm;
   }
+  .attendanceName.GB2,
+  .attendanceName.GB3 {
+    margin-left: 54mm;
+  }
   .attendanceName {
-    margin-top: 23mm;
-    margin-left: 102mm;
+    margin-top: 65mm;
+    margin-left: 54mm;
     transform: rotate(90deg);
     -webkit-transform: rotate(90deg);
     -moz-transform: rotate(90deg);
@@ -1599,7 +1583,7 @@ iframe#printf {
     -o-transform: rotate(90deg);
     filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
     p {
-      font-size: 22px;
+      font-size: 23px;
     }
   }
   .ranking,
