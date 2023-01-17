@@ -627,7 +627,7 @@ class AttendanceCardToPrint extends React.Component {
               {this.props.memberItem.values['Last Name']}
             </p>
           </div>
-          {getAttributeValue(this.props.space, 'BarraFIT') === 'TRUE' && (
+          {/*this.props.memberItem.values['Ranking Program'].indexOf("BarraFIT")!==-1 && (
             <div
               className={
                 'ranking ' +
@@ -639,8 +639,8 @@ class AttendanceCardToPrint extends React.Component {
             >
               <p></p>
             </div>
-          )}
-          {getAttributeValue(this.props.space, 'BarraFIT') === 'TRUE' && (
+          )*/}
+          {/*this.props.memberItem.values['Ranking Program'].indexOf("BarraFIT")!==-1 && (
             <div
               className={
                 'lastpromotion ' +
@@ -652,8 +652,8 @@ class AttendanceCardToPrint extends React.Component {
             >
               <p>{this.props.memberItem.values['Last Promotion']}</p>
             </div>
-          )}
-          {getAttributeValue(this.props.space, 'BarraFIT') === 'TRUE' && (
+          )*/}
+          {/*this.props.memberItem.values['Ranking Program'].indexOf("BarraFIT")!==-1 && (
             <div
               className={
                 'program ' +
@@ -665,18 +665,129 @@ class AttendanceCardToPrint extends React.Component {
             >
               <p>{this.props.memberItem.values['Ranking Program']}</p>
             </div>
-          )}
+          )*/}
         </div>
         <PageBreakWrapper>&nbsp;</PageBreakWrapper>
-        <div
-          id="attendanceCard_p2"
-          className={
-            'card2 ' +
-            this.props.memberItem.values['Ranking Program']
-              .replace(/ /g, '_')
-              .replace(/\+/g, '_')
-          }
-        ></div>
+        {this.props.memberItem.values['Ranking Program'].indexOf('Combo') ===
+          -1 && (
+          <div
+            id="attendanceCard_p2"
+            className={
+              'card2 ' +
+              this.props.memberItem.values['Ranking Program']
+                .replace(/ /g, '_')
+                .replace(/\+/g, '_')
+            }
+          ></div>
+        )}
+        {this.props.memberItem.values['Ranking Program'].indexOf('Combo') !==
+          -1 && (
+          <div
+            id="attendanceCard_p2"
+            className={
+              'card2 ' +
+              this.props.memberItem.values['Ranking Program']
+                .replace(/ /g, '_')
+                .replace(/\+/g, '_') +
+              ' BarraFIT'
+            }
+          >
+            <div
+              className={
+                'attendanceBarcode ' +
+                this.props.memberItem.values['Ranking Program']
+                  .replace(/ /g, '_')
+                  .replace(/\+/g, '_') +
+                ' BarraFIT'
+              }
+            >
+              <Barcode
+                value={
+                  this.props.memberItem.values['Alternate Barcode'] ===
+                    undefined ||
+                  this.props.memberItem.values['Alternate Barcode'] === '' ||
+                  this.props.memberItem.values['Alternate Barcode'] === null
+                    ? this.props.memberItem.id.split('-')[4].substring(6, 12)
+                    : this.props.memberItem.values['Alternate Barcode']
+                }
+                width={1.3}
+                height={30}
+                displayValue={false}
+                type={'CODE128'}
+              />
+            </div>
+            <div className="photoDiv">
+              {this.props.memberItem.values['Photo'] === undefined &&
+              this.props.memberItem.values['First Name'] !== undefined ? (
+                <span className="noPhotoDiv">
+                  <span className="name">
+                    {this.props.memberItem.values['First Name'][0]}
+                    {this.props.memberItem.values['Last Name'][0]}
+                  </span>
+                </span>
+              ) : (
+                <img
+                  src={this.props.memberItem.values['Photo']}
+                  alt="Member Photograph"
+                  className="photoImg"
+                />
+              )}
+            </div>
+            <div
+              className={
+                'attendanceName ' +
+                this.props.memberItem.values['Ranking Program']
+                  .replace(/ /g, '_')
+                  .replace(/\+/g, '_') +
+                ' BarraFIT'
+              }
+            >
+              <p>
+                {this.props.memberItem.values['First Name']}{' '}
+                {this.props.memberItem.values['Last Name']}
+              </p>
+            </div>
+            {/*this.props.memberItem.values['Ranking Program'].indexOf("BarraFIT")!==-1 && (
+              <div
+                className={
+                  'ranking ' +
+                  this.props.memberItem.values['Ranking Program'].replace(
+                    / /g,
+                    '_',
+                  )
+                }
+              >
+                <p></p>
+              </div>
+            )*/}
+            {/*this.props.memberItem.values['Ranking Program'].indexOf("BarraFIT")!==-1 && (
+              <div
+                className={
+                  'lastpromotion ' +
+                  this.props.memberItem.values['Ranking Program'].replace(
+                    / /g,
+                    '_',
+                  )
+                }
+              >
+                <p>{this.props.memberItem.values['Last Promotion']}</p>
+              </div>
+            )*/}
+            {/*this.props.memberItem.values['Ranking Program'].indexOf("BarraFIT")!==-1 && (
+              <div
+                className={
+                  'program ' +
+                  this.props.memberItem.values['Ranking Program'].replace(
+                    / /g,
+                    '_',
+                  )
+                }
+              >
+                <p>{this.props.memberItem.values['Ranking Program']}</p>
+              </div>
+            )*/}
+          </div>
+        )}
       </div>
     );
   }

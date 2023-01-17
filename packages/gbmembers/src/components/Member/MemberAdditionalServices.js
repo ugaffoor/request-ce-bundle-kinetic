@@ -52,6 +52,8 @@ export class MemberAdditionalServices extends Component {
     var dependantBillerProfileID = undefined;
     if (
       memberItem.values['Billing Parent Member'] !== undefined &&
+      memberItem.values['Billing Parent Member'] !== null &&
+      memberItem.values['Billing Parent Member'] !== '' &&
       memberItem.values['Billing Parent Member'] !== memberItem.id
     ) {
       var parentMember = undefined;

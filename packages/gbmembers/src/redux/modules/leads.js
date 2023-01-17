@@ -93,15 +93,22 @@ export const reducer = (state = State(), { type, payload }) => {
       }
       if (leadsByDate.length !== 0 && payload.length !== 0) {
         for (var k = 0; k < payload.length; k++) {
-          var mIdx = leadsByDate.findIndex(
-            lead => lead.id === leadsByDate[k].id,
-          );
+          var mIdx = leadsByDate.findIndex(lead => lead.id === payload[k].id);
           if (mIdx !== -1) {
             leadsByDate[mIdx] = leads[k];
           } else {
             leadsByDate.push(leads[k]);
           }
         }
+
+        leadsByDate = leadsByDate.sort(function(a, b) {
+          if (a['createdAt'] > b['createdAt']) {
+            return -1;
+          } else if (a['createdAt'] < b['createdAt']) {
+            return 1;
+          }
+          return 0;
+        });
       }
       return state
         .set('leadsLoading', false)

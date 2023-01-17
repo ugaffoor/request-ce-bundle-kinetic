@@ -230,6 +230,7 @@ export const FollowUpContainer = compose(
         id: leadItem['id'],
         leadItem: leadItem,
         history: leadItem.history,
+        showLead: true,
       });
     },
   }),

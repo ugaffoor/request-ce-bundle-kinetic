@@ -706,7 +706,10 @@ export class MemberFinancialReport extends Component {
           }
         } else {
           if (payment.paymentStatus !== 'Refund') {
-            if (payment.paymentAmount !== 0) {
+            if (
+              payment.paymentAmount !== 0 &&
+              payment.paymentSource.indexOf('POS') === -1
+            ) {
               // Needed for Bambora
               accountHolders[accountHolders.length] = {
                 id: 'Orphan',

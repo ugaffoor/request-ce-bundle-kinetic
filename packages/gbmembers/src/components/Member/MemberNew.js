@@ -73,6 +73,7 @@ export function handleNameChange(memberItem, event) {
   )
     .replace(/ /g, '')
     .replace(/'/g, '')
+    .replace(/"/g, '')
     .replace(/`/g, '')
     .replace(/\./g, '')
     .replace(/,/g, '')

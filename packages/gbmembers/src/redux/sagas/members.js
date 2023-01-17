@@ -2488,6 +2488,7 @@ export function* promoteMember(action) {
     action.payload.updateMember({
       id: action.payload.memberItem['id'],
       memberItem: action.payload.memberItem,
+      allMembers: action.payload.allMembers,
     });
     //    memberActivities.values['Content']['Submitter'] = action.payload.submitter;
     action.payload.memberItem.promotionContent.splice(

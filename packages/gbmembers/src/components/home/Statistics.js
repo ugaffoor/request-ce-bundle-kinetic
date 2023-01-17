@@ -18,6 +18,7 @@ import MomentLocaleUtils, {
   formatDate,
   parseDate,
 } from 'react-day-picker/moment';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 var compThis = undefined;
 
@@ -86,34 +87,70 @@ export class Statistics extends Component {
       showPendingCancellationsMembers: false,
       showFrozenMembers: false,
       showPendingFrozenMembers: false,
+      showOverdueMembers: false,
     };
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
-    let leads = nextProps.leadsByDate;
-    let leadData = this.getData(
-      leads,
-      this.state.allMembers,
-      this.state.fromDate,
-      this.state.toDate,
-      this.state.LCTViewSwitch,
-    );
-    let memberData = this.getMemberData(
-      nextProps.allMembers,
-      this.state.fromDate,
-      this.state.toDate,
-    );
-    this.setState({
-      leads,
-      allMembers: nextProps.allMembers,
-      leadData,
-      memberData,
-    });
+    if (
+      getAttributeValue(this.props.space, 'Billing Company') === 'PaySmart' &&
+      !nextProps.overduesLoading
+    ) {
+      let leads = nextProps.leadsByDate;
+      let leadData = this.getData(
+        leads,
+        this.state.allMembers,
+        this.state.fromDate,
+        this.state.toDate,
+        this.state.LCTViewSwitch,
+      );
+      let memberData = this.getMemberData(
+        nextProps.allMembers,
+        this.state.fromDate,
+        this.state.toDate,
+        nextProps.overdues,
+      );
+      this.setState({
+        leads,
+        allMembers: nextProps.allMembers,
+        leadData,
+        memberData,
+      });
+    } else if (
+      getAttributeValue(this.props.space, 'Billing Company') !== 'PaySmart'
+    ) {
+      let leads = nextProps.leadsByDate;
+      let leadData = this.getData(
+        leads,
+        this.state.allMembers,
+        this.state.fromDate,
+        this.state.toDate,
+        this.state.LCTViewSwitch,
+      );
+      let memberData = this.getMemberData(
+        nextProps.allMembers,
+        this.state.fromDate,
+        this.state.toDate,
+      );
+      this.setState({
+        leads,
+        allMembers: nextProps.allMembers,
+        leadData,
+        memberData,
+      });
+    }
   }
 
   UNSAFE_componentWillMount() {
     if (this.props.leadsByDate.length === 0) {
       this.props.fetchLeadsByDate();
+    }
+
+    if (
+      getAttributeValue(this.props.space, 'Billing Company') === 'PaySmart' &&
+      this.props.overdues.length === 0
+    ) {
+      this.props.getOverdues();
     }
   }
 
@@ -258,7 +295,7 @@ export class Statistics extends Component {
       convertedTotal: convertedTotal,
     };
   }
-  getMemberData(members, fromDate, toDate) {
+  getMemberData(members, fromDate, toDate, overdueRecords) {
     if (!members || members.length <= 0) {
       return {
         active: [],
@@ -266,6 +303,7 @@ export class Statistics extends Component {
         pendingCancellations: [],
         frozen: [],
         pendingFrozen: [],
+        overdues: [],
       };
     }
     let active = [];
@@ -273,6 +311,8 @@ export class Statistics extends Component {
     let pendingCancellations = [];
     let frozen = [];
     let pendingFrozen = [];
+    let overdues = [];
+
     members.forEach(member => {
       let memberStatus = memberStatusInDates(member, fromDate, toDate);
 
@@ -300,12 +340,25 @@ export class Statistics extends Component {
       }
     });
 
+    if (overdueRecords !== undefined) {
+      overdueRecords.forEach(payment => {
+        overdues[overdues.length] = {
+          payment: payment,
+          member: members.find(
+            member =>
+              member.values['Billing Customer Id'] ===
+              payment.customerReference,
+          ),
+        };
+      });
+    }
     return {
       active: active,
       cancellations: cancellations,
       pendingCancellations: pendingCancellations,
       frozen: frozen,
       pendingFrozen: pendingFrozen,
+      overdues: overdues,
     };
   }
 
@@ -757,6 +810,27 @@ export class Statistics extends Component {
 
     return members_col;
   }
+  getOverdueMembers(overdues, col) {
+    var members_col = [];
+
+    for (var i = col - 1; i < overdues.length; i = i + 4) {
+      members_col[members_col.length] = {
+        memberId: overdues[i].member.id,
+        name:
+          overdues[i].member.values['First Name'] +
+          ' ' +
+          overdues[i].member.values['Last Name'] +
+          ' (' +
+          new Intl.NumberFormat(this.props.locale, {
+            style: 'currency',
+            currency: this.props.currency,
+          }).format(-parseInt(overdues[i].payment.amountOverdue)) +
+          ')',
+      };
+    }
+
+    return members_col;
+  }
 
   getMemberTableData(members) {
     members = members.sort(function(member1, member2) {
@@ -801,6 +875,53 @@ export class Statistics extends Component {
       },
     ];
   }
+  getOverdueMemberTableData(overdues) {
+    overdues = overdues.sort(function(overdue1, overdue2) {
+      try {
+        if (
+          (
+            overdue1.member.values['First Name'] +
+            overdue1.member.values['Last Name']
+          ).toLowerCase() <
+          (
+            overdue2.member.values['First Name'] +
+            overdue2.member.values['Last Name']
+          ).toLowerCase()
+        )
+          return -1;
+        if (
+          (
+            overdue1.member.values['First Name'] +
+            overdue1.member.values['Last Name']
+          ).toLowerCase() >
+          (
+            overdue2.member.values['First Name'] +
+            overdue2.member.values['Last Name']
+          ).toLowerCase()
+        )
+          return 1;
+      } catch (error) {
+        return 0;
+      }
+      return 0;
+    });
+
+    let members_col1 = this.getOverdueMembers(overdues, 1);
+    let members_col2 = this.getOverdueMembers(overdues, 2);
+    let members_col3 = this.getOverdueMembers(overdues, 3);
+    let members_col4 = this.getOverdueMembers(overdues, 4);
+
+    return [
+      {
+        members: {
+          members_col1: members_col1,
+          members_col2: members_col2,
+          members_col3: members_col3,
+          members_col4: members_col4,
+        },
+      },
+    ];
+  }
   getMemberRowTableColumns = () => {
     return [
       {
@@ -808,6 +929,7 @@ export class Statistics extends Component {
         Header: '',
         headerClassName: 'members_col',
         className: 'members_col',
+        width: 200,
         Cell: props => {
           return props.original.members_col1 === undefined ? (
             <div />
@@ -826,6 +948,7 @@ export class Statistics extends Component {
         Header: '',
         headerClassName: 'members_col',
         className: 'members_col',
+        width: 200,
         Cell: props => {
           return props.original.members_col2 === undefined ? (
             <div />
@@ -844,6 +967,7 @@ export class Statistics extends Component {
         Header: '',
         headerClassName: 'members_col',
         className: 'members_col',
+        width: 200,
         Cell: props => {
           return props.original.members_col3 === undefined ? (
             <div />
@@ -862,6 +986,7 @@ export class Statistics extends Component {
         Header: '',
         headerClassName: 'members_col',
         className: 'members_col',
+        width: 200,
         Cell: props => {
           return props.original.members_col4 === undefined ? (
             <div />
@@ -884,6 +1009,7 @@ export class Statistics extends Component {
     if (this.state.showFrozenMembers) return 'Frozen';
     if (this.state.showPendingFrozenMembers) return 'Pending Frozen';
     if (this.state.showConvertedLeads) return 'New Students';
+    if (this.state.showOverdueMembers) return 'Overdue';
   }
   getMemberTableColumns(row) {
     return [
@@ -1171,6 +1297,7 @@ export class Statistics extends Component {
                       showPendingCancellationsMembers: false,
                       showFrozenMembers: false,
                       showPendingFrozenMembers: false,
+                      showOverdueMembers: false,
                     })
                   }
                 >
@@ -1224,6 +1351,7 @@ export class Statistics extends Component {
                       showPendingCancellationsMembers: false,
                       showFrozenMembers: false,
                       showPendingFrozenMembers: false,
+                      showOverdueMembers: false,
                     })
                   }
                 >
@@ -1301,6 +1429,7 @@ export class Statistics extends Component {
                       showPendingCancellationsMembers: false,
                       showFrozenMembers: false,
                       showPendingFrozenMembers: false,
+                      showOverdueMembers: false,
                     })
                   }
                 >
@@ -1378,6 +1507,7 @@ export class Statistics extends Component {
                       showPendingCancellationsMembers: false,
                       showFrozenMembers: false,
                       showPendingFrozenMembers: false,
+                      showOverdueMembers: false,
                     })
                   }
                 >
@@ -1459,6 +1589,7 @@ export class Statistics extends Component {
                       showPendingCancellationsMembers: false,
                       showFrozenMembers: false,
                       showPendingFrozenMembers: false,
+                      showOverdueMembers: false,
                     })
                   }
                 >
@@ -1503,6 +1634,7 @@ export class Statistics extends Component {
                       showPendingCancellationsMembers: true,
                       showFrozenMembers: false,
                       showPendingFrozenMembers: false,
+                      showOverdueMembers: false,
                     })
                   }
                 >
@@ -1547,6 +1679,7 @@ export class Statistics extends Component {
                       showPendingCancellationsMembers: false,
                       showFrozenMembers: true,
                       showPendingFrozenMembers: false,
+                      showOverdueMembers: false,
                     })
                   }
                 >
@@ -1589,6 +1722,7 @@ export class Statistics extends Component {
                       showPendingCancellationsMembers: false,
                       showFrozenMembers: false,
                       showPendingFrozenMembers: true,
+                      showOverdueMembers: false,
                     })
                   }
                 >
@@ -1655,6 +1789,56 @@ export class Statistics extends Component {
                 </div>
               </div>
             </div>
+            {getAttributeValue(this.props.space, 'Billing Company') ===
+              'PaySmart' && (
+              <div className="statItem">
+                <div className="info">
+                  <div className="label">Overdues</div>
+                  <div
+                    className="value"
+                    onClick={e =>
+                      this.setState({
+                        showNewLeads: false,
+                        showScheduledLeads: false,
+                        showIntroLeads: false,
+                        showConvertedLeads: false,
+                        showCancellationsMembers: false,
+                        showPendingCancellationsMembers: false,
+                        showFrozenMembers: false,
+                        showPendingFrozenMembers: false,
+                        showOverdueMembers: true,
+                      })
+                    }
+                  >
+                    {this.state.memberData.overdues !== undefined && (
+                      <span>{this.state.memberData.overdues.length}</span>
+                    )}
+                  </div>
+                </div>
+                {this.state.showOverdueMembers && (
+                  <div className="members">
+                    <span
+                      className="closeMembers"
+                      onClick={e =>
+                        this.setState({
+                          showOverdueMembers: false,
+                        })
+                      }
+                    >
+                      <SVGInline svg={crossIcon} className="icon" />
+                    </span>
+                    <ReactTable
+                      columns={this.getMemberTableColumns()}
+                      data={this.getOverdueMemberTableData(
+                        this.state.memberData.overdues,
+                      )}
+                      defaultPageSize={1}
+                      showPagination={false}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </span>

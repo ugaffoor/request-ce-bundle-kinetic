@@ -129,7 +129,6 @@ export class BamboraOverdues extends Component {
       // Keep only Recurring Billing failures
       var idx = this.props.allMembers.findIndex(
         member =>
-          member.values['Member ID'] === payment.yourSystemReference ||
           member.values['Billing Customer Id'] === payment.yourSystemReference,
       );
       if (idx !== -1) {
@@ -143,7 +142,6 @@ export class BamboraOverdues extends Component {
     const data = uniqueHistory.map(payment => {
       var idx = this.props.allMembers.findIndex(
         member =>
-          member.values['Member ID'] === payment.yourSystemReference ||
           member.values['Billing Customer Id'] === payment.yourSystemReference,
       );
       var member = undefined;

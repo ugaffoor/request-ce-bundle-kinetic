@@ -66,11 +66,13 @@
   }
   .visitorCardXX {
     .card1 {
-      height: 350mm !important;
+      //      height: 350mm !important;
+      width: 240mm;
+      height: 330mm;
     }
   }
   .attendanceCard,
-  .visitorCardXX {
+  .visitorCard {
     .card1 {
       margin-top: 0mm;
     }
@@ -103,10 +105,10 @@
 .card1.BarraFIT,
 .card1.Athlete,
 .card1.Elite_Athlete {
-  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/barrafit_attendance_card3-P1.png);
+  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/barrafit_attendance_card32022-P1.png);
 }
 .card1.visitorCard {
-  background-image: url(https://gbfms-files.s3.ap-southeast-2.amazonaws.com/VisitorCard.png);
+  background-image: url(https://gbfms-files.s3.ap-southeast-2.amazonaws.com/VisitorCard2020.png);
 }
 .card1.GB1 {
   background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/GB1-P1.png);
@@ -142,7 +144,7 @@
 .card2.BarraFIT,
 .card2.Athlete,
 .card2.Elite_Athlete {
-  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/barrafit_attendance_card3-P2.png);
+  background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/barrafit_attendance_card32022-P2.png);
 }
 .card2.GB1 {
   background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/GB1-P2.png);
@@ -216,11 +218,17 @@
 
   .card2.Combo_GBF___BarraFIT,
   .card2.Combo_GB1___BarraFIT,
+  .card2.GB1 {
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/barrafit_attendance_card32022-P1_2.png);
+  }
   .card2.GBF,
   .card2.GB1 {
     background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB12022-P2.png);
   }
   .card2.Combo_GB2___BarraFIT,
+  .card2.GB2 {
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/barrafit_attendance_card32022-P1_2.png);
+  }
   .card2.GB2 {
     background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/USGB22022-P2.png);
   }
@@ -1143,6 +1151,10 @@ iframe#printf {
   display: none;
 }
 .visitorCard {
+  .card1 {
+    width: 240mm;
+    height: 330mm;
+  }
   .schoolName {
     margin-top: 602px;
     margin-left: 286px;
@@ -1378,15 +1390,13 @@ iframe#printf {
   .card2 {
     width: 600px;
     height: 960px;
-    /*    width: 127mm;
-    height: 203.2mm; */
   }
   .BarraFIT .photoDiv,
   .Athlete .photoDiv,
   .Elite_Athlete .photoDiv {
     height: 96px;
     width: 102px;
-    margin-left: 150mm;
+    margin-left: 127mm;
     margin-top: 23px;
   }
   .BarraFIT .noPhotoDiv,
@@ -1419,8 +1429,8 @@ iframe#printf {
   .Advanced_Kids .photoDiv {
     height: 119px;
     width: 122px;
-    margin-left: 491px;
-    margin-top: 77px;
+    margin-left: 388px;
+    margin-top: 60px;
     .noPhotoDiv {
       width: 120px;
       height: 120px;
@@ -1455,6 +1465,49 @@ iframe#printf {
       padding: 20px;
       margin-left: 127px;
       margin-bottom: 23px;
+    }
+  }
+  .card2.BarraFIT {
+    .photoDiv {
+      height: 96px;
+      width: 102px;
+      margin-left: 5mm;
+      margin-top: 605px;
+      .noPhotoDiv {
+        width: 98px !important;
+        height: 98px !important;
+        margin-left: 3px !important;
+        margin-bottom: 23px !important;
+        margin-top: 103px !important;
+
+        -webkit-transform: rotate(270deg) !important;
+        -moz-transform: rotate(270deg) !important;
+        -ms-transform: rotate(270deg) !important;
+        -o-transform: rotate(270deg) !important;
+      }
+      .photoImg {
+        -webkit-transform: rotate(270deg) !important;
+        -moz-transform: rotate(270deg) !important;
+        -ms-transform: rotate(270deg) !important;
+        -o-transform: rotate(270deg) !important;
+      }
+    }
+    .attendanceName {
+      margin-top: -18mm;
+      margin-left: -137mm;
+      min-width: 400px;
+      -webkit-transform: rotate(270deg) !important;
+      -moz-transform: rotate(270deg) !important;
+      -ms-transform: rotate(270deg) !important;
+      -o-transform: rotate(270deg) !important;
+    }
+    .attendanceBarcode {
+      margin-top: 34mm;
+      margin-left: 12mm;
+      -webkit-transform: rotate(270deg) !important;
+      -moz-transform: rotate(270deg) !important;
+      -ms-transform: rotate(270deg) !important;
+      -o-transform: rotate(270deg) !important;
     }
   }
   .photoDiv {
@@ -1500,16 +1553,16 @@ iframe#printf {
   .attendanceBarcode.BarraFIT,
   .attendanceBarcode.Athlete,
   .attendanceBarcode.Elite_Athlete {
-    margin-top: 200mm;
-    margin-left: 143mm;
+    margin-top: 193mm;
+    margin-left: 121mm;
     svg {
-      width: 143px;
-      height: 84px;
+      width: 127px;
+      height: 101px;
     }
   }
   .attendanceBarcode.Advanced_Kids {
-    margin-top: 75mm;
-    margin-left: 162mm;
+    margin-top: 63mm;
+    margin-left: 124mm;
   }
   .attendanceBarcode.Little_Champions_1,
   .attendanceBarcode.Little_Champions_2 {
@@ -1538,16 +1591,16 @@ iframe#printf {
   .attendanceName.BarraFIT,
   .attendanceName.Athlete,
   .attendanceName.Elite_Athlete {
-    margin-top: -118mm;
-    margin-left: 119mm;
+    margin-top: -109mm;
+    margin-left: 95mm;
     min-width: 400px;
     p {
       font-size: 18px;
     }
   }
   .attendanceName.Advanced_Kids {
-    margin-top: 18mm;
-    margin-left: 103mm;
+    margin-top: 40mm;
+    margin-left: 78mm;
   }
   .attendanceName.Competition_Team {
     margin-top: -28mm;
@@ -1566,9 +1619,9 @@ iframe#printf {
     margin-top: 54mm;
     margin-left: 78mm;
   }
-  .attendanceName.Combo_GB2___BarraFIT {
+  /*  .card1.attendanceName.Combo_GB2___BarraFIT {
     margin-left: 101mm;
-  }
+  } */
   .attendanceName.GB2,
   .attendanceName.GB3 {
     margin-left: 54mm;

@@ -1368,6 +1368,7 @@ export const LeadEditContainer = compose(
           id: leadItem['id'],
           leadItem: leadItem,
           history: leadItem.history,
+          showLead: true,
           leadLastFetchTime: leadLastFetchTime,
           fetchLeads: fetchLeads,
         });

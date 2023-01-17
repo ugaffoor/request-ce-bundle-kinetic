@@ -136,6 +136,11 @@ export const HomeView = ({
       membersLoading={membersLoading}
       profile={profile}
       space={space}
+      currency={currency}
+      locale={locale}
+      getOverdues={getOverdues}
+      overdues={overdues}
+      overduesLoading={overduesLoading}
     />
     {getAttributeValue(space, 'Billing Company') === 'Bambora' && (
       <div className="homeOverdues">
@@ -152,19 +157,6 @@ export const HomeView = ({
               space={space}
               locale={locale}
               profile={profile}
-            />
-          </div>
-        )}
-      </div>
-    )}
-    {getAttributeValue(space, 'Billing Company') === 'PaySmart' && (
-      <div className="homeOverdues">
-        {!membersLoading && (
-          <div>
-            <PaysmartOverdues
-              getOverdues={getOverdues}
-              overdues={overdues}
-              overduesLoading={overduesLoading}
             />
           </div>
         )}

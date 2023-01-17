@@ -258,8 +258,13 @@ export function* updateCurrentLead(action) {
       values: action.payload.leadItem.values,
     });
     if (action.payload.history) {
-      //action.payload.history.push("/LeadDetail/"+action.payload['id']);
-      action.payload.history.push('/kapps/gbmembers/Leads');
+      if (action.payload.showLead) {
+        action.payload.history.push(
+          '/kapps/gbmembers/LeadDetail/' + action.payload['id'],
+        );
+      } else {
+        action.payload.history.push('/kapps/gbmembers/Leads');
+      }
     }
     if (action.payload.fetchLeads)
       action.payload.fetchLeads({

@@ -173,6 +173,17 @@ export class PurchaseItemsReport extends Component {
     console.log('No product price found for :' + item['id']);
     return 0;
   }
+  getItemColour(item, posProducts) {
+    var colour = '';
+    var idx = posProducts.findIndex(
+      product => product['id'] === item.values['Product ID'],
+    );
+    if (idx !== -1) {
+      colour = posProducts[idx].values['Colour'];
+    }
+
+    return colour;
+  }
   getItemCost(item, posProducts) {
     if (
       item.values['Cost'] !== undefined &&
@@ -236,6 +247,7 @@ export class PurchaseItemsReport extends Component {
             (item.values['Size'] !== undefined ? item.values['Size'] : ''),
       );
       var price = this.getItemPrice(item, posProducts);
+      var colour = this.getItemColour(item, posProducts);
       var cost = this.getItemCost(item, posProducts);
       var profit = this.getItemProfit(posProducts, item, cost, price);
       if (idx === -1) {
@@ -245,6 +257,7 @@ export class PurchaseItemsReport extends Component {
             (item.values['Size'] !== undefined ? item.values['Size'] : ''),
           name: item.values['Product Name'],
           size: item.values['Size'],
+          colour: colour,
           quantity: Number.parseInt(item.values['Quantity']),
           value: Number.parseInt(item.values['Quantity']) * price,
           cost: Number.parseInt(item.values['Quantity']) * cost,
@@ -283,6 +296,7 @@ export class PurchaseItemsReport extends Component {
         return {
           name: item.name,
           size: item.size,
+          colour: item.colour,
           quantity: item.quantity,
           value: item.value,
           cost: item.cost,
@@ -440,6 +454,11 @@ export class PurchaseItemsReport extends Component {
       {
         accessor: 'size',
         Header: 'Size',
+        width: 100,
+      },
+      {
+        accessor: 'colour',
+        Header: 'Colour',
         width: 100,
       },
       {
