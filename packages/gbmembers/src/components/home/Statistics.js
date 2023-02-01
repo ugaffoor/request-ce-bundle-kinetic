@@ -51,7 +51,7 @@ export class Statistics extends Component {
     this.setFromDate = this.props.setFromDate;
     this.setToDate = this.props.setToDate;
 
-    let fromDate = moment().subtract(7, 'days');
+    let fromDate = moment().subtract(6, 'days');
     fromDate.hour(0).minute(0);
 
     let toDate = moment()
@@ -428,7 +428,7 @@ export class Statistics extends Component {
       this.datesChanged(this.setFromDate, this.setToDate, fromDate, toDate);
     } else if (type === 'last_7_days') {
       let fromDate = moment()
-        .subtract(7, 'days')
+        .subtract(6, 'days')
         .hour(0)
         .minute(0);
       let toDate = moment()
@@ -458,7 +458,7 @@ export class Statistics extends Component {
       this.datesChanged(this.setFromDate, this.setToDate, fromDate, toDate);
     } else if (type === 'last_30_days') {
       let fromDate = moment()
-        .subtract(30, 'days')
+        .subtract(29, 'days')
         .hour(0)
         .minute(0);
       let toDate = moment()

@@ -42,7 +42,7 @@ export const Profile = ({
         <Link to="/settings/profile" className="dropdown-item" onClick={toggle}>
           <I18n>Profile</I18n>
         </Link>
-        {profile.spaceAdmin && (
+        {/*profile.spaceAdmin && (
           <a
             role="button"
             tabIndex="0"
@@ -51,8 +51,8 @@ export const Profile = ({
           >
             <I18n>Invite Others</I18n>
           </a>
-        )}
-        {!isGuest && (
+        )*/}
+        {/*!isGuest && (
           <a
             role="button"
             tabIndex="0"
@@ -61,8 +61,8 @@ export const Profile = ({
           >
             <I18n>Get Help</I18n>
           </a>
-        )}
-        {!isGuest && (
+        )*/}
+        {/*!isGuest && (
           <a
             role="button"
             tabIndex="0"
@@ -71,7 +71,7 @@ export const Profile = ({
           >
             <I18n>Give Feedback</I18n>
           </a>
-        )}
+        )*/}
         {!isGuest && (
           <Link to="/about" className="dropdown-item" onClick={toggle}>
             <I18n>About My Space</I18n>

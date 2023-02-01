@@ -84,6 +84,7 @@ export class BamboraOverdues extends Component {
           payment.paymentStatus === 'INV ACCT NUM' ||
           payment.paymentStatus === 'Invalid Card Number' ||
           payment.paymentStatus === 'Validation greater than maximum amount' ||
+          payment.paymentStatus === 'BAD PROCESSING CODE' ||
           payment.paymentStatus === 'EXPIRED CARD') &&
         payment.paymentSource !== 'Manual Membership Payment',
     );

@@ -258,26 +258,37 @@ export class TasksDetail extends Component {
     if (duration === 'Todays Tasks') {
       const today = moment().startOf('day');
       allLeads.forEach(lead => {
-        if (lead.values['Reminder Date'] !== undefined) {
-          if (
-            moment(lead.values['Reminder Date'], date_format).isBefore(
-              today,
-              'd',
-            ) ||
-            moment(lead.values['Reminder Date'], date_format).isSame(today, 'd')
-          ) {
-            var latestHistory = getLatestHistory(lead.values['History']);
-            leads.push({
-              _id: lead['id'],
-              date: lead.values['Reminder Date'],
-              name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
-              contactMethod:
-                latestHistory !== undefined ? latestHistory.contactMethod : '',
-              contactDate:
-                latestHistory !== undefined ? latestHistory.contactDate : '',
-              note: latestHistory !== undefined ? latestHistory.note : '',
-              attentionRequired: lead.values['Is New Reply Received'],
-            });
+        if (
+          lead.values['Status'] !== 'Converted' &&
+          lead.values['Status'] !== 'Deleted'
+        ) {
+          if (lead.values['Reminder Date'] !== undefined) {
+            if (
+              moment(lead.values['Reminder Date'], date_format).isBefore(
+                today,
+                'd',
+              ) ||
+              moment(lead.values['Reminder Date'], date_format).isSame(
+                today,
+                'd',
+              )
+            ) {
+              var latestHistory = getLatestHistory(lead.values['History']);
+              leads.push({
+                _id: lead['id'],
+                date: lead.values['Reminder Date'],
+                name:
+                  lead.values['First Name'] + ' ' + lead.values['Last Name'],
+                contactMethod:
+                  latestHistory !== undefined
+                    ? latestHistory.contactMethod
+                    : '',
+                contactDate:
+                  latestHistory !== undefined ? latestHistory.contactDate : '',
+                note: latestHistory !== undefined ? latestHistory.note : '',
+                attentionRequired: lead.values['Is New Reply Received'],
+              });
+            }
           }
         }
       });
@@ -288,31 +299,39 @@ export class TasksDetail extends Component {
         .add(1, 'weeks')
         .startOf('day');
       allLeads.forEach(lead => {
-        if (lead.values['Reminder Date'] !== undefined) {
-          if (
-            moment(lead.values['Reminder Date'], date_format).isBefore(
-              startDate,
-              'd',
-            ) ||
-            moment(lead.values['Reminder Date'], date_format).isBetween(
-              startDate,
-              endDate,
-              'days',
-              '[]',
-            )
-          ) {
-            var latestHistory = getLatestHistory(lead.values['History']);
-            leads.push({
-              _id: lead['id'],
-              date: lead.values['Reminder Date'],
-              name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
-              contactMethod:
-                latestHistory !== undefined ? latestHistory.contactMethod : '',
-              contactDate:
-                latestHistory !== undefined ? latestHistory.contactDate : '',
-              note: latestHistory !== undefined ? latestHistory.note : '',
-              attentionRequired: lead.values['Is New Reply Received'],
-            });
+        if (
+          lead.values['Status'] !== 'Converted' &&
+          lead.values['Status'] !== 'Deleted'
+        ) {
+          if (lead.values['Reminder Date'] !== undefined) {
+            if (
+              moment(lead.values['Reminder Date'], date_format).isBefore(
+                startDate,
+                'd',
+              ) ||
+              moment(lead.values['Reminder Date'], date_format).isBetween(
+                startDate,
+                endDate,
+                'days',
+                '[]',
+              )
+            ) {
+              var latestHistory = getLatestHistory(lead.values['History']);
+              leads.push({
+                _id: lead['id'],
+                date: lead.values['Reminder Date'],
+                name:
+                  lead.values['First Name'] + ' ' + lead.values['Last Name'],
+                contactMethod:
+                  latestHistory !== undefined
+                    ? latestHistory.contactMethod
+                    : '',
+                contactDate:
+                  latestHistory !== undefined ? latestHistory.contactDate : '',
+                note: latestHistory !== undefined ? latestHistory.note : '',
+                attentionRequired: lead.values['Is New Reply Received'],
+              });
+            }
           }
         }
       });
@@ -323,21 +342,54 @@ export class TasksDetail extends Component {
         .add(1, 'months')
         .startOf('day');
       allLeads.forEach(lead => {
-        if (lead.values['Reminder Date']) {
+        if (
+          lead.values['Status'] !== 'Converted' &&
+          lead.values['Status'] !== 'Deleted'
+        ) {
+          if (lead.values['Reminder Date']) {
+            if (
+              moment(lead.values['Reminder Date'], date_format).isBefore(
+                startDate,
+                'd',
+              ) ||
+              moment(lead.values['Reminder Date'], date_format).isBetween(
+                startDate,
+                endDate,
+                'days',
+                '[]',
+              )
+            ) {
+              var latestHistory = getLatestHistory(lead.values['History']);
+              leads.push({
+                _id: lead['id'],
+                date: lead.values['Reminder Date'],
+                name:
+                  lead.values['First Name'] + ' ' + lead.values['Last Name'],
+                contactMethod:
+                  latestHistory !== undefined
+                    ? latestHistory.contactMethod
+                    : '',
+                contactDate:
+                  latestHistory !== undefined ? latestHistory.contactDate : '',
+                note: latestHistory !== undefined ? latestHistory.note : '',
+                attentionRequired: lead.values['Is New Reply Received'],
+              });
+            }
+          }
+        }
+      });
+    } else if (duration === 'All Tasks') {
+      allLeads.forEach(lead => {
+        if (
+          lead.values['Status'] !== 'Converted' &&
+          lead.values['Status'] !== 'Deleted'
+        ) {
           if (
-            moment(lead.values['Reminder Date'], date_format).isBefore(
-              startDate,
-              'd',
-            ) ||
-            moment(lead.values['Reminder Date'], date_format).isBetween(
-              startDate,
-              endDate,
-              'days',
-              '[]',
-            )
+            lead.values['Reminder Date'] !== undefined &&
+            lead.values['Reminder Date'] !== null
           ) {
             var latestHistory = getLatestHistory(lead.values['History']);
-            leads.push({
+            leads[leads.length] = {
               _id: lead['id'],
               date: lead.values['Reminder Date'],
               name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
@@ -347,28 +399,8 @@ export class TasksDetail extends Component {
                 latestHistory !== undefined ? latestHistory.contactDate : '',
               note: latestHistory !== undefined ? latestHistory.note : '',
               attentionRequired: lead.values['Is New Reply Received'],
-            });
+            };
           }
-        }
-      });
-    } else if (duration === 'All Tasks') {
-      allLeads.forEach(lead => {
-        if (
-          lead.values['Reminder Date'] !== undefined &&
-          lead.values['Reminder Date'] !== null
-        ) {
-          var latestHistory = getLatestHistory(lead.values['History']);
-          leads[leads.length] = {
-            _id: lead['id'],
-            date: lead.values['Reminder Date'],
-            name: lead.values['First Name'] + ' ' + lead.values['Last Name'],
-            contactMethod:
-              latestHistory !== undefined ? latestHistory.contactMethod : '',
-            contactDate:
-              latestHistory !== undefined ? latestHistory.contactDate : '',
-            note: latestHistory !== undefined ? latestHistory.note : '',
-            attentionRequired: lead.values['Is New Reply Received'],
-          };
         }
       });
     }

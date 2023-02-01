@@ -259,9 +259,48 @@ export function* deleteJourneyEvent(action) {
       datastore: true,
     });
 
-    console.log('updateJourneyEvent');
+    console.log('deleteJourneyEvent');
   } catch (error) {
-    console.log('Error in updateJourneyEvent: ' + util.inspect(error));
+    console.log('Error in deleteJourneyEvent: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
+export function* createTrialBooking(action) {
+  try {
+    const { submission } = yield call(CoreAPI.createSubmission, {
+      formSlug: 'trial-booking',
+      values: action.payload.values,
+      datastore: true,
+    });
+    console.log('create Trial Booking');
+  } catch (error) {
+    console.log('Error in createTrialBooking: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
+export function* deleteTrialBooking(action) {
+  try {
+    const search = new CoreAPI.SubmissionSearch(true)
+      .includes(['details', 'values'])
+      .index('values[Lead ID],values[Trial Datetime]')
+      .eq('values[Lead ID]', action.payload.values['Lead ID'])
+      .eq('values[Trial Datetime]', action.payload.values['Trial Datetime'])
+      .build();
+
+    const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
+      datastore: true,
+      form: 'trial-booking',
+      search,
+    });
+    if (submissions.length > 0) {
+      const { errors, serverError } = yield call(CoreAPI.deleteSubmission, {
+        id: submissions[0]['id'],
+        datastore: true,
+      });
+    }
+    console.log('deleteTrialBooking');
+  } catch (error) {
+    console.log('Error in deleteTrialBooking: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));
   }
 }
@@ -276,4 +315,6 @@ export function* watchSettingsDatastore() {
   yield takeEvery(types.CREATE_JOURNEY_EVENT, createJourneyEvent);
   yield takeEvery(types.UPDATE_JOURNEY_EVENT, updateJourneyEvent);
   yield takeEvery(types.DELETE_JOURNEY_EVENT, deleteJourneyEvent);
+  yield takeEvery(types.CREATE_TRIAL_BOOKING, createTrialBooking);
+  yield takeEvery(types.DELETE_TRIAL_BOOKING, deleteTrialBooking);
 }

@@ -46,6 +46,7 @@ const mapStateToProps = state => ({
   newMemberLoading: state.member.members.newMemberLoading,
   allMembers: state.member.members.allMembers,
   memberLastFetchTime: state.member.members.memberLastFetchTime,
+  allLeads: state.member.leads.allLeads,
   leadItem: state.member.leads.currentLead,
   profile: state.member.kinops.profile,
   space: state.member.app.space,
@@ -958,6 +959,7 @@ export const MemberNewContainer = compose(
     saveMember: ({
       memberItem,
       createMember,
+      allLeads,
       leadItem,
       updateLead,
       match,
@@ -1033,6 +1035,7 @@ export const MemberNewContainer = compose(
           history: memberItem.history,
           memberLastFetchTime: memberLastFetchTime,
           fetchMembers: memberItem.fetchMembers,
+          allLeads: allLeads,
           leadId: match.params['leadId'],
           leadItem: leadItem,
           updateLead: updateLead,

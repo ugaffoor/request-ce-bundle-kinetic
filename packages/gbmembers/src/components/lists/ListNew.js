@@ -152,6 +152,13 @@ export class ListNewHome extends Component {
         .multiselect({
           texts: { placeholder: 'Select Additional Program 2' },
         });
+    this.refs.specificMembersDiv &&
+      $(this.refs.specificMembersDiv)
+        .find('select')
+        .multiselect({
+          texts: { placeholder: 'Select Members' },
+          search: true,
+        });
   }
 
   createList() {
@@ -333,11 +340,21 @@ export class ListNewHome extends Component {
       filters.push({ nonPayingFilter: true });
     }
 
+    if ($('#specificMembers').val() && $('#specificMembers').val().length > 0) {
+      filters.push({
+        specificMembersFilter: { specificMembers: $('#specificMembers').val() },
+      });
+    }
+
     let members = this.props.allMembers.filter(function(member) {
       let match = true;
       for (var i = 0; i < filters.length; i++) {
         let keys = Object.keys(filters[i]);
-        if (keys[0] === 'joiningDateFilter') {
+        if (keys[0] === 'specificMembersFilter') {
+          if ($.inArray(member.id, filters[i][keys[0]].specificMembers) < 0) {
+            match = false;
+          }
+        } else if (keys[0] === 'joiningDateFilter') {
           if (
             startDate !== null &&
             endDate === null &&
@@ -850,6 +867,46 @@ export class ListNewHome extends Component {
                         />{' '}
                         Non Paying
                       </label>
+                    </div>
+                  </fieldset>
+                </div>
+              </div>
+              <div className="row">
+                <div className="col">
+                  <fieldset
+                    className="scheduler-border"
+                    style={{ position: 'relative' }}
+                  >
+                    <legend className="scheduler-border">
+                      Specific Members
+                    </legend>
+                    <div
+                      className="form-group form-inline"
+                      ref="specificMembersDiv"
+                    >
+                      <label htmlFor="specificMembers">
+                        Specific Members(Only Active)&nbsp;
+                      </label>
+                      <select
+                        className="form-control"
+                        multiple
+                        id="specificMembers"
+                        ref={input => (this.input = input)}
+                        style={{ height: 'auto' }}
+                      >
+                        {this.props.allMembers
+                          .filter(
+                            member => member.values['Status'] === 'Active',
+                          )
+                          .map(member => (
+                            <option key={member.id} value={member.id}>
+                              {member.values['First Name'] +
+                                ' ' +
+                                member.values['Last Name']}
+                            </option>
+                          ))}
+                      </select>
+                      <div className="droparrow" />
                     </div>
                   </fieldset>
                 </div>

@@ -22,6 +22,8 @@ export const types = {
   CREATE_JOURNEY_EVENT: namespace('datastore', 'CREATE_JOURNEY_EVENT'),
   UPDATE_JOURNEY_EVENT: namespace('datastore', 'UPDATE_JOURNEY_EVENT'),
   DELETE_JOURNEY_EVENT: namespace('datastore', 'DELETE_JOURNEY_EVENT'),
+  CREATE_TRIAL_BOOKING: namespace('datastore', 'CREATE_TRIAL_BOOKING'),
+  DELETE_TRIAL_BOOKING: namespace('datastore', 'DELETE_TRIAL_BOOKING'),
 };
 
 export const actions = {
@@ -41,6 +43,8 @@ export const actions = {
   createJourneyEvent: withPayload(types.CREATE_JOURNEY_EVENT),
   updateJourneyEvent: withPayload(types.UPDATE_JOURNEY_EVENT),
   deleteJourneyEvent: withPayload(types.DELETE_JOURNEY_EVENT),
+  createTrialBooking: withPayload(types.CREATE_TRIAL_BOOKING),
+  deleteTrialBooking: withPayload(types.DELETE_TRIAL_BOOKING),
 };
 
 export const State = Record({

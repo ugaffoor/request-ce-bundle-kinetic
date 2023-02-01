@@ -197,7 +197,11 @@ export const matchesMemberFilter = (allMembers, filters) => {
 
     for (var i = 0; i < filters.length; i++) {
       let keys = Object.keys(filters[i]);
-      if (keys[0] === 'joiningDateFilter') {
+      if (keys[0] === 'specificMembersFilter') {
+        if ($.inArray(member.id, filters[i][keys[0]].specificMembers) < 0) {
+          match = false;
+        }
+      } else if (keys[0] === 'joiningDateFilter') {
         startDate =
           filters[i][keys[0]].startDate !== undefined
             ? moment(filters[i][keys[0]].startDate, 'YYYY-MM-DD').startOf('day')
@@ -322,7 +326,11 @@ export const matchesLeadFilter = (allLeads, filters) => {
 
     for (var i = 0; i < filters.length; i++) {
       let keys = Object.keys(filters[i]);
-      if (keys[0] === 'createdDateFilter') {
+      if (keys[0] === 'specificLeadsFilter') {
+        if ($.inArray(lead.id, filters[i][keys[0]].specificLeads) < 0) {
+          match = false;
+        }
+      } else if (keys[0] === 'createdDateFilter') {
         startDate = moment(filters[i][keys[0]].startDate, 'YYYY-MM-DD').startOf(
           'day',
         );

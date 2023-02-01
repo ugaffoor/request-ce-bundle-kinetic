@@ -1955,7 +1955,7 @@ export class MemberFinancialReport extends Component {
     if (this.state.showAccountHolders) return 'Memberships';
     if (this.state.showAdditionalServices) return 'Additional Services';
     if (this.state.showCashPayments) return 'Cash Payments';
-    if (this.state.showPOSPeople) return 'POS Member/Lead';
+    if (this.state.showPOSPeople) return 'ProShop Member/Lead';
     if (this.state.showRefundMembers) return 'Refunds';
   }
   getMemberTableColumns(row) {
@@ -2437,11 +2437,13 @@ export class MemberFinancialReport extends Component {
               <div className="column col2">{this.currencySymbol} Amount</div>
               <div className="column col3">%</div>
               <div className="column col4">
-                {getAttributeValue(this.props.space, 'POS Sales Tax Label') ===
-                undefined ? (
+                {getAttributeValue(
+                  this.props.space,
+                  'ProShop Sales Tax Label',
+                ) === undefined ? (
                   <I18n>SALES TAX</I18n>
                 ) : (
-                  getAttributeValue(this.props.space, 'POS Sales Tax Label')
+                  getAttributeValue(this.props.space, 'ProShop Sales Tax Label')
                 )}
               </div>
             </div>
@@ -2554,7 +2556,7 @@ export class MemberFinancialReport extends Component {
               </div>
             )}
             <div className="row header5">
-              <div className="column col1">POS</div>
+              <div className="column col1">ProShop</div>
               <div className="column col2">
                 <div
                   className="dollarValue  membersLink"
@@ -2638,7 +2640,9 @@ export class MemberFinancialReport extends Component {
               <div className="column col4"></div>
             </div>
             <div className="row header8">
-              <div className="column col1">Membership-Refunds+POS+Forecast</div>
+              <div className="column col1">
+                Membership-Refunds+ProShop+Forecast
+              </div>
               <div className="column col2">
                 <div className="dollarValue">
                   {new Intl.NumberFormat(this.locale, {

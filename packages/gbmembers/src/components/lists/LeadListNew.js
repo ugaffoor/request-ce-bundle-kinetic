@@ -133,6 +133,13 @@ export class ListNewHome extends Component {
         .multiselect({
           texts: { placeholder: 'Select Program' },
         });
+    this.refs.specificLeadsDiv &&
+      $(this.refs.specificLeadsDiv)
+        .find('select')
+        .multiselect({
+          texts: { placeholder: 'Select Leads' },
+          search: true,
+        });
   }
 
   createList() {
@@ -301,6 +308,12 @@ export class ListNewHome extends Component {
         sourceReference4Filter: {
           sourceReference4: $('#sourceReference4').val(),
         },
+      });
+    }
+
+    if ($('#specificLeads').val() && $('#specificLeads').val().length > 0) {
+      filters.push({
+        specificLeadsFilter: { specificLeads: $('#specificLeads').val() },
       });
     }
 
@@ -706,6 +719,42 @@ export class ListNewHome extends Component {
                             {value}
                           </option>
                         ))}
+                      </select>
+                      <div className="droparrow" />
+                    </div>
+                  </fieldset>
+                </div>
+              </div>
+              <div className="row">
+                <div className="col">
+                  <fieldset
+                    className="scheduler-border"
+                    style={{ position: 'relative' }}
+                  >
+                    <legend className="scheduler-border">Specific Leads</legend>
+                    <div
+                      className="form-group form-inline"
+                      ref="specificLeadsDiv"
+                    >
+                      <label htmlFor="specificLeads">
+                        Specific Leads&nbsp;
+                      </label>
+                      <select
+                        className="form-control"
+                        multiple
+                        id="specificLeads"
+                        ref={input => (this.input = input)}
+                        style={{ height: 'auto' }}
+                      >
+                        {this.props.allLeads
+                          .filter(lead => lead.values['Status'] === 'Open')
+                          .map(lead => (
+                            <option key={lead.id} value={lead.id}>
+                              {lead.values['First Name'] +
+                                ' ' +
+                                lead.values['Last Name']}
+                            </option>
+                          ))}
                       </select>
                       <div className="droparrow" />
                     </div>

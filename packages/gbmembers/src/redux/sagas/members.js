@@ -582,6 +582,7 @@ export function* createMember(action) {
       action.payload.updateLead({
         id: action.payload.leadItem['id'],
         leadItem: action.payload.leadItem,
+        allLeads: action.payload.allLeads,
       });
     }
 

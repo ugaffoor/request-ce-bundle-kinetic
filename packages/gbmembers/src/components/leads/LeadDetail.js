@@ -79,6 +79,8 @@ const mapDispatchToProps = {
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
   createJourneyEvent: settingsActions.createJourneyEvent,
+  createTrialBooking: settingsActions.createTrialBooking,
+  deleteTrialBooking: settingsActions.deleteTrialBooking,
   setSidebarDisplayType: appActions.setSidebarDisplayType,
   refundPOSTransaction: memberActions.refundPOSTransaction,
   refundPOSTransactionComplete: memberActions.refundPOSTransactionComplete,
@@ -1125,6 +1127,8 @@ export const LeadDetailView = ({
   snippets,
   journeyTriggers,
   createJourneyEvent,
+  createTrialBooking,
+  deleteTrialBooking,
   refundPOSPayment,
   refundPOSTransactionInProgress,
   refundPOSTransactionID,
@@ -1154,6 +1158,8 @@ export const LeadDetailView = ({
       snippets={snippets}
       journeyTriggers={journeyTriggers}
       createJourneyEvent={createJourneyEvent}
+      createTrialBooking={createTrialBooking}
+      deleteTrialBooking={deleteTrialBooking}
       updateAttentionRequired={updateAttentionRequired}
       refundPOSPayment={refundPOSPayment}
       refundPOSTransactionInProgress={refundPOSTransactionInProgress}
@@ -1177,6 +1183,9 @@ export const LeadDetailContainer = compose(
       allLeads,
       updateLead,
       fetchLead,
+      journeyTriggers,
+      createJourneyEvent,
+      deleteTrialBooking,
       addNotification,
       setSystemError,
       space,
@@ -1196,9 +1205,46 @@ export const LeadDetailContainer = compose(
         attendeeEmail: leadItem.values['Email'],
         timeZone: getTimezone(profile.timezone, space.defaultTimezone),
       };
-
       let startDateTime = moment(contactDate, 'YYYY-MM-DD HH:mm');
       let rfcStartDateTime = startDateTime.utc().format('YYYY-MM-DDTHH:mm:ssZ');
+
+      var triggerIdx = journeyTriggers.findIndex(
+        element =>
+          element['values']['Record Type'] === 'Lead' &&
+          element['values']['Lead Condition'] === 'Trial Class Cancelled' &&
+          element['values']['Lead Condition Duration'] === '0',
+      );
+      if (triggerIdx !== -1) {
+        console.log('Creating Journey Event');
+        var trigger = journeyTriggers.get(triggerIdx);
+        var values = {};
+        values['Status'] = 'New';
+        values['Trigger ID'] = trigger['id'];
+        values['Record Type'] = trigger['values']['Record Type'];
+        values['Trigger Date'] = moment().format('YYYY-MM-DD');
+        values['Event Source Date'] = startDateTime.format('YYYY-MM-DD');
+        values['Record ID'] = leadItem['id'];
+        values['Record Name'] =
+          leadItem['values']['First Name'] +
+          ' ' +
+          leadItem['values']['Last Name'];
+        values['Action'] = trigger['values']['Action'];
+        values['Contact Type'] = trigger['values']['Contact Type'];
+        values['Template Name'] = trigger['values']['Template Name'];
+
+        createJourneyEvent({ values });
+      }
+
+      if (true) {
+        values = {};
+        values['Lead ID'] = leadItem['id'];
+        values['Trial Datetime'] = startDateTime
+          .utc()
+          .format('YYYYMMDDTHH:mm:ssZ');
+
+        deleteTrialBooking({ values });
+      }
+
       calendarDeleteEvent.startDateTime = rfcStartDateTime;
 
       updateLead({
@@ -1377,6 +1423,23 @@ export const LeadDetailContainer = compose(
           createJourneyEvent({ values });
         }
       }
+      /* Leave for now, need to allow selection of Trial Classes
+      if (newHistory.contactMethod === 'intro_class') {
+        console.log('Creating Trial Booking');
+        var values = {};
+        values['Lead ID'] = leadItem['id'];
+        values['Name'] =
+          leadItem['values']['First Name'] +
+          ' ' +
+          leadItem['values']['Last Name'];
+        values['Email'] = leadItem['values']['Email'];
+        values['Phone Number'] = leadItem['values']['Phone Number'];
+        values['Trial Datetime'] = leadItem['values']['Phone Number'];
+        values['Class Title'] = leadItem['values']['Phone Number'];
+
+        createJourneyEvent({ values });
+      }
+*/
       updateLead({
         id: leadItem['id'],
         leadItem: leadItem,

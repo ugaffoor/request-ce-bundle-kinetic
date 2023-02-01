@@ -29,6 +29,7 @@ export const App = ({ loading, isKiosk, space }) => (
           <LiveChatWidget
             license={getAttributeValue(space, 'LiveChat License')} //"14790045"
             visibility="minimized"
+            customerName={getAttributeValue(space, 'School Name')}
           />
         )}
         <LayoutContainer
