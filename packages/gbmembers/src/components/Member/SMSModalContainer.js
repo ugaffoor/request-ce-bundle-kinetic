@@ -199,19 +199,19 @@ export class SMSModal extends Component {
     let smsValues = [];
     sms.forEach(value => {
       let content = JSON.parse(value.values['Content']);
-      /*      var dt =
+      var dt =
         value.values['Direction'] === 'Outbound'
           ? content['Sent Date']
           : content['Received Date'];
 
       dt = moment(dt, 'L HH:mm');
-      dt = dt.add(moment().utcOffset() * 60, 'seconds');
-*/
-      var dt = moment(value['createdAt']);
+      //      dt = dt.add(moment().utcOffset() * 60, 'seconds');
+
+      //      var dt = moment(value['createdAt']);
 
       smsValues[smsValues.length] = {
         Direction: value.values['Direction'],
-        Date: dt.format('L HH:mm'),
+        Date: dt.format('L h:mm A'),
         Content: content['Content'],
       };
     });

@@ -33,11 +33,12 @@ const mapStateToProps = state => ({
   profile: state.member.app.profile,
   leads: state.member.leads.allLeads,
   leadsLoading: state.member.leads.leadsLoading,
-  FAILEDpaymentHistory: state.member.members.FAILEDpaymentHistory,
-  FAILEDpaymentHistoryLoading: state.member.members.FAILEDpaymentHistoryLoading,
-  paymentHistory: state.member.members.SUCCESSFULpaymentHistory,
-  SUCCESSFULpaymentHistoryLoading:
-    state.member.members.SUCCESSFULpaymentHistoryLoading,
+  FINFAILEDpaymentHistory: state.member.members.FINFAILEDpaymentHistory,
+  FINFAILEDpaymentHistoryLoading:
+    state.member.members.FINFAILEDpaymentHistoryLoading,
+  paymentHistory: state.member.members.FINSUCCESSFULpaymentHistory,
+  FINSUCCESSFULpaymentHistoryLoading:
+    state.member.members.FINSUCCESSFULpaymentHistoryLoading,
   space: state.member.app.space,
   billingReportCustomersLoading: state.member.members.billingCustomersLoading,
   billingCustomers: state.member.members.billingCustomers,
@@ -129,8 +130,8 @@ export class MemberFinancialReport extends Component {
   UNSAFE_componentWillReceiveProps(nextProps) {
     if (
       !nextProps.billingReportCustomersLoading &&
-      !nextProps.FAILEDpaymentHistoryLoading &&
-      !nextProps.SUCCESSFULpaymentHistoryLoading &&
+      !nextProps.FINFAILEDpaymentHistoryLoading &&
+      !nextProps.FINSUCCESSFULpaymentHistoryLoading &&
       !nextProps.customerRefundsLoading &&
       !nextProps.posOrdersLoading &&
       !nextProps.additionalServicesLoading &&
@@ -139,7 +140,7 @@ export class MemberFinancialReport extends Component {
       !nextProps.servicesLoading
     ) {
       this.failedPaymentHistory = [];
-      nextProps.FAILEDpaymentHistory.forEach((item, i) => {
+      nextProps.FINFAILEDpaymentHistory.forEach((item, i) => {
         this.failedPaymentHistory[this.failedPaymentHistory.length] = item;
       });
       this.paymentHistory = [];
@@ -319,7 +320,7 @@ export class MemberFinancialReport extends Component {
         .format('YYYY-MM-DD');
     }
     this.props.fetchPaymentHistory({
-      paymentType: 'SUCCESSFUL',
+      paymentType: 'FINSUCCESSFUL',
       paymentMethod: 'ALL',
       paymentSource: 'ALL',
       dateField: 'PAYMENT',
@@ -331,7 +332,7 @@ export class MemberFinancialReport extends Component {
       setSystemError: this.props.setSystemError,
     });
     this.props.fetchPaymentHistory({
-      paymentType: 'FAILED',
+      paymentType: 'FINFAILED',
       paymentMethod: 'ALL',
       paymentSource: 'ALL',
       dateField: 'PAYMENT',
@@ -378,8 +379,8 @@ export class MemberFinancialReport extends Component {
       this.props.fetchLeads();
     }
   }
-  updateBillingDates(billingCustomers, SUCCESSFULpaymentHistory) {
-    var payments = SUCCESSFULpaymentHistory.sort(function(a, b) {
+  updateBillingDates(billingCustomers, FINSUCCESSFULpaymentHistory) {
+    var payments = FINSUCCESSFULpaymentHistory.sort(function(a, b) {
       if (a.debitDate < b.debitDate) {
         return -1;
       } else if (a.debitDate > b.debitDate) {
@@ -440,7 +441,7 @@ export class MemberFinancialReport extends Component {
         .format('YYYY-MM-DD');
     }
     this.props.fetchPaymentHistory({
-      paymentType: 'SUCCESSFUL',
+      paymentType: 'FINSUCCESSFUL',
       paymentMethod: 'ALL',
       paymentSource: 'ALL',
       dateField: 'PAYMENT',
@@ -452,7 +453,7 @@ export class MemberFinancialReport extends Component {
       setSystemError: this.props.setSystemError,
     });
     this.props.fetchPaymentHistory({
-      paymentType: 'FAILED',
+      paymentType: 'FINFAILED',
       paymentMethod: 'ALL',
       paymentSource: 'ALL',
       dateField: 'PAYMENT',
@@ -2425,7 +2426,7 @@ export class MemberFinancialReport extends Component {
           </span>
         </div>
         {this.props.billingReportCustomersLoading ||
-        this.props.SUCCESSFULpaymentHistoryLoading ||
+        this.props.FINSUCCESSFULpaymentHistoryLoading ||
         this.props.customerRefundsLoading ||
         this.props.servicesLoading ||
         this.props.posOrdersLoading ? (

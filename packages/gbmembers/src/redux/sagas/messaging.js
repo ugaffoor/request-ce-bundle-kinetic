@@ -80,6 +80,7 @@ export function* sendSms(action) {
           action.payload.updateLead({
             id: action.payload.leadItem['id'],
             leadItem: action.payload.leadItem,
+            showLead: true,
             history: action.payload.leadItem.history,
           });
         }

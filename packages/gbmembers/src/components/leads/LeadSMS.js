@@ -55,19 +55,19 @@ export class LeadSMS extends Component {
     let smsValues = [];
     sms.forEach(value => {
       let content = JSON.parse(value.values['Content']);
-      /*      var dtStr =
+      var dtStr =
         value.values['Direction'] === 'Outbound'
           ? content['Sent Date']
           : content['Received Date'];
-      var dt = moment(dtStr, 'DD-MM-YYYY HH:mm');
-      if (dtStr.indexOf("Z")!==-1){
-        dt = dt.add(moment().utcOffset() * 60, 'seconds');
-      }
-*/
-      var dt = moment(value['createdAt']);
+      var dt = moment(dtStr, 'L HH:mm');
+      //      if (dtStr.indexOf("Z")!==-1){
+      //        dt = dt.add(moment().utcOffset() * 60, 'seconds');
+      //      }
+
+      //      var dt = moment(value['createdAt']);
       smsValues[smsValues.length] = {
         Direction: value.values['Direction'],
-        Date: dt.format('L HH:mm'),
+        Date: dt.format('L h:mm A'),
         Content: content['Content'],
       };
     });
