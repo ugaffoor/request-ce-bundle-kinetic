@@ -198,6 +198,7 @@ export const HomeView = ({
             classSchedules={classSchedules}
             fetchingClassSchedules={fetchingClassSchedules}
             allMembers={allMembers}
+            space={space}
           />
         </div>
       </div>

@@ -186,7 +186,18 @@ export class MemberFinancialReport extends Component {
       }
 
       this.failedPaymentHistory = this.failedPaymentHistory.filter(
-        payment => payment.paymentStatus === 'DECLINED',
+        payment =>
+          (payment.paymentStatus === 'Transaction Declined' ||
+            payment.paymentStatus === 'DECLINED' ||
+            payment.paymentStatus === 'PIN RETRY EXCEEDED' ||
+            payment.paymentStatus === 'SERV NOT ALLOWED' ||
+            payment.paymentStatus === 'INV ACCT NUM' ||
+            payment.paymentStatus === 'Invalid Card Number' ||
+            payment.paymentStatus ===
+              'Validation greater than maximum amount' ||
+            payment.paymentStatus === 'BAD PROCESSING CODE' ||
+            payment.paymentStatus === 'EXPIRED CARD') &&
+          payment.paymentSource !== 'Manual Membership Payment',
       );
       this.failedPaymentHistory = this.failedPaymentHistory.sort((a, b) => {
         if (a['debitDate'] < b['debitDate']) {
@@ -336,7 +347,9 @@ export class MemberFinancialReport extends Component {
       paymentMethod: 'ALL',
       paymentSource: 'ALL',
       dateField: 'PAYMENT',
-      dateFrom: dateFrom,
+      dateFrom: moment()
+        .subtract(6, 'month')
+        .format('YYYY-MM-DD'),
       dateTo: this.state.repToDate.format('YYYY-MM-DD'),
       setPaymentHistory: this.props.setPaymentHistory,
       internalPaymentType: 'client_failed',
@@ -457,7 +470,9 @@ export class MemberFinancialReport extends Component {
       paymentMethod: 'ALL',
       paymentSource: 'ALL',
       dateField: 'PAYMENT',
-      dateFrom: dateFrom,
+      dateFrom: moment()
+        .subtract(6, 'month')
+        .format('YYYY-MM-DD'),
       dateTo: toDate.format('YYYY-MM-DD'),
       setPaymentHistory: this.props.setPaymentHistory,
       internalPaymentType: 'client_failed',
@@ -649,7 +664,10 @@ export class MemberFinancialReport extends Component {
         );
         if (sIdx === -1) {
           var idx = additionalServices.length;
-          additionalServices[idx] = additionalServiceMember;
+          additionalServices[idx] = {
+            id: additionalServiceMember.id,
+            values: additionalServiceMember.values,
+          };
           additionalServices[idx]['Service Name'] = payment.paymentReference;
           additionalServices[idx]['Service Charge'] = payment.paymentAmount;
         } else {
@@ -742,19 +760,6 @@ export class MemberFinancialReport extends Component {
 
     //    if (fromDate.month()>=moment().month() && toDate.month()>=moment().month()) {
     billingCustomers.forEach((member, i) => {
-      // Ignore failed payments
-      var failedIdx = failedPaymentHistory.findIndex(payment => {
-        if (getAttributeValue(this.props.space, 'POS System') === 'Bambora')
-          return (
-            payment.yourSystemReference === member.customerId &&
-            moment(payment, 'YYYY-MM-DD HH:mm:sss').isAfter(
-              moment(member.contractStartDate, 'YYYY-MM-DD'),
-            )
-          );
-        else {
-          return payment.yourSystemReference === member.customerId;
-        }
-      });
       if (
         member.status === 'Active' ||
         member.status === 'Pending Freeze' ||
@@ -790,72 +795,91 @@ export class MemberFinancialReport extends Component {
         } else {
           lastPayment = moment(member.contractStartDate, 'YYYY-MM-DD');
         }
-        var paymentPeriod = member.billingPeriod;
-        var period = 'months';
-        var periodCount = 1;
-        if (paymentPeriod === 'Daily') {
-          period = 'days';
-        } else if (paymentPeriod === 'Weekly') {
-          period = 'weeks';
-        } else if (paymentPeriod === 'Fortnightly') {
-          period = 'weeks';
-          periodCount = 2;
-        } else if (paymentPeriod === 'Monthly') {
-          period = 'months';
-        } else if (paymentPeriod === 'Yearly') {
-          period = 'years';
-        }
-        if (lastPayment.isAfter(moment())) {
-          lastPayment = lastPayment.subtract(period, periodCount);
-        }
 
-        // Find first billing date inside period
-        var nextBillingDate = lastPayment.add(period, periodCount);
-        while (nextBillingDate.isBefore(fromDate)) {
-          nextBillingDate = nextBillingDate.add(period, periodCount);
-        }
-        // Only valid if period is in the future
-        if (toDate.isAfter(moment())) {
-          var count = 1;
-          while (
-            (nextBillingDate.isAfter(fromDate) ||
-              nextBillingDate.isSame(fromDate)) &&
-            (nextBillingDate.isBefore(toDate) || nextBillingDate.isSame(toDate))
-          ) {
-            // Need to check if a Cancellation or Freeze is valid
-            // nextBillingDate must not be after and Cancellation start dates
-            // or and Freeze start dates
-            if (
-              !this.noCancellationRequests(
-                cancellationRequests,
-                member,
-                nextBillingDate,
-              ) &&
-              !this.noFreezeRequests(freezeRequests, member, nextBillingDate)
+        var failedIdx = failedPaymentHistory.findIndex(payment => {
+          if (getAttributeValue(this.props.space, 'POS System') === 'Bambora')
+            return (
+              payment.yourSystemReference === member.customerId &&
+              moment(payment.debitDate, 'YYYY-MM-DD HH:mm:sss').isAfter(
+                lastPayment,
+              )
+            );
+          else {
+            return payment.yourSystemReference === member.customerId;
+          }
+        });
+
+        if (failedIdx === -1) {
+          var paymentPeriod = member.billingPeriod;
+          var period = 'months';
+          var periodCount = 1;
+          if (paymentPeriod === 'Daily') {
+            period = 'days';
+          } else if (paymentPeriod === 'Weekly') {
+            period = 'weeks';
+          } else if (paymentPeriod === 'Fortnightly') {
+            period = 'weeks';
+            periodCount = 2;
+          } else if (paymentPeriod === 'Monthly') {
+            period = 'months';
+          } else if (paymentPeriod === 'Yearly') {
+            period = 'years';
+          }
+          if (lastPayment.isAfter(moment())) {
+            lastPayment = lastPayment.subtract(period, periodCount);
+          }
+
+          // Find first billing date inside period
+          var nextBillingDate = lastPayment.add(period, periodCount);
+          while (nextBillingDate.isBefore(fromDate)) {
+            nextBillingDate = nextBillingDate.add(period, periodCount);
+          }
+          // Only valid if period is in the future
+          if (toDate.isAfter(moment())) {
+            var count = 1;
+            while (
+              (nextBillingDate.isAfter(fromDate) ||
+                nextBillingDate.isSame(fromDate)) &&
+              (nextBillingDate.isBefore(toDate) ||
+                nextBillingDate.isSame(toDate))
             ) {
-              forecastHolders[forecastHolders.length] = member;
-              forecastHoldersValue += Number(member.billingAmount);
-              console.log(
-                'Forecast,' +
-                  count +
-                  ' ' +
-                  member['firstName'] +
-                  ' ' +
-                  member['lastName'] +
-                  ' - ' +
-                  member['billingId'] +
-                  ',' +
-                  Number(member.billingAmount).toFixed(2) +
-                  ',' +
-                  nextBillingDate.format('YYYY-MM-DD'),
-              );
+              // Need to check if a Cancellation or Freeze is valid
+              // nextBillingDate must not be after and Cancellation start dates
+              // or and Freeze start dates
+              if (
+                !this.noCancellationRequests(
+                  cancellationRequests,
+                  member,
+                  nextBillingDate,
+                ) &&
+                !this.noFreezeRequests(freezeRequests, member, nextBillingDate)
+              ) {
+                forecastHolders[forecastHolders.length] = member;
+                forecastHoldersValue += Number(member.billingAmount);
+                console.log(
+                  'Forecast,' +
+                    count +
+                    ' ' +
+                    member['firstName'] +
+                    ' ' +
+                    member['lastName'] +
+                    ' - ' +
+                    member['billingId'] +
+                    ',' +
+                    Number(member.billingAmount).toFixed(2) +
+                    ',' +
+                    nextBillingDate.format('YYYY-MM-DD'),
+                );
 
-              nextBillingDate = nextBillingDate.add(period, periodCount);
-              count += 1;
-            } else {
-              nextBillingDate = nextBillingDate.add(period, periodCount);
+                nextBillingDate = nextBillingDate.add(period, periodCount);
+                count += 1;
+              } else {
+                nextBillingDate = nextBillingDate.add(period, periodCount);
+              }
             }
           }
+        } else {
+          console.log('Overdue Member:' + member.customerId);
         }
       }
     });

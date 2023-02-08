@@ -59,7 +59,7 @@ export class LeadSMS extends Component {
         value.values['Direction'] === 'Outbound'
           ? content['Sent Date']
           : content['Received Date'];
-      var dt = moment(dtStr, 'L HH:mm');
+      var dt = moment(dtStr, ['L HH:mm', 'DD-MM-YYYY HH:mm']);
       //      if (dtStr.indexOf("Z")!==-1){
       //        dt = dt.add(moment().utcOffset() * 60, 'seconds');
       //      }

@@ -478,7 +478,7 @@ export function* fetchMemberPromotions(action) {
       }
     }
 
-    yield put(action.payload.setMemberPromotions(promotionContent));
+    action.payload.setMemberPromotions(promotionContent);
   } catch (error) {
     console.log('Error in fetchMemberPromotions: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));
@@ -2499,9 +2499,9 @@ export function* promoteMember(action) {
     );
 
     yield put(actions.memberPromoted());
-    yield put(action.payload.promotionComplete());
+    action.payload.promotionComplete();
   } catch (error) {
-    console.log('Error in updateCurrentMember: ' + util.inspect(error));
+    console.log('Error in promoteMember: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));
   }
 }

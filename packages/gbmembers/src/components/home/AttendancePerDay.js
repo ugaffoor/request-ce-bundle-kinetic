@@ -17,6 +17,7 @@ import { KappNavLink as NavLink } from 'common';
 import crossIcon from '../../images/cross.svg?raw';
 import SVGInline from 'react-svg-inline';
 import { actions as classActions } from '../../redux/modules/classes';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const chartLabels = {
   this_week: 'This Week',
@@ -40,7 +41,7 @@ export class AttendancePerDay extends Component {
     let fromDate = this.props.fromDate;
     let toDate = this.props.toDate;
     let attendances = this.props.attendancesByDate;
-    let data = this.getData(attendances, this.props.allMembers);
+    let data = this.getData(attendances, this.props.allMembers, false);
     this.attendanceOnClick = this.attendanceOnClick.bind(this);
     this.renderAttendancesCustomizedLabel = this.renderAttendancesCustomizedLabel.bind(
       this,
@@ -90,20 +91,39 @@ export class AttendancePerDay extends Component {
       attendanceClasses: [],
       expandedRows: [],
       classSchedules: [],
+      isBarraFIT: false,
     };
   }
   UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.classSchedules) {
       this.classSchedules = nextProps.classSchedules;
+      var isBarraFIT = false;
+      this.classSchedules.forEach((schedule, i) => {
+        if (schedule.program === 'BarraFIT') {
+          isBarraFIT = true;
+        }
+      });
+
+      this.setState({
+        isBarraFIT: isBarraFIT,
+      });
     }
     if (nextProps.attendancesByDate) {
       this.setState({
-        data: this.getData(nextProps.attendancesByDate, this.props.allMembers),
+        data: this.getData(
+          nextProps.attendancesByDate,
+          this.props.allMembers,
+          this.state.isBarraFIT,
+        ),
       });
     }
     if (nextProps.allMembers.length !== this.props.allMembers.length) {
       this.setState({
-        data: this.getData(nextProps.attendancesByDate, nextProps.allMembers),
+        data: this.getData(
+          nextProps.attendancesByDate,
+          nextProps.allMembers,
+          this.state.isBarraFIT,
+        ),
       });
     }
     if (
@@ -193,7 +213,7 @@ export class AttendancePerDay extends Component {
       },
     };
   }
-  getData(attendances, allMembers) {
+  getData(attendances, allMembers, isBarraFIT) {
     if (!attendances || attendances.size <= 0) {
       return [];
     }
@@ -202,18 +222,41 @@ export class AttendancePerDay extends Component {
 
     attendances.forEach(attendance => {
       var type = '';
-      switch (attendance.values['Ranking Program']) {
-        case 'GB1':
-          type = 'Adult';
-          break;
-        case 'GB2':
-          type = 'Adult';
-          break;
-        case 'GB3':
-          type = 'Adult';
-          break;
-        default:
-          type = 'Kids';
+
+      if (isBarraFIT) {
+        switch (attendance.values['Ranking Program']) {
+          case 'GB1':
+            type = 'Jiu Jitsu';
+            break;
+          case 'GB2':
+            type = 'Jiu Jitsu';
+            break;
+          case 'GB3':
+            type = 'Jiu Jitsu';
+            break;
+          case 'GBF':
+            type = 'Jiu Jitsu';
+            break;
+          case 'BarraFIT':
+            type = 'BarraFIT';
+            break;
+          default:
+            type = 'Jiu Jitsu';
+        }
+      } else {
+        switch (attendance.values['Ranking Program']) {
+          case 'GB1':
+            type = 'Adult';
+            break;
+          case 'GB2':
+            type = 'Adult';
+            break;
+          case 'GB3':
+            type = 'Adult';
+            break;
+          default:
+            type = 'Kids';
+        }
       }
       var dayAttendances =
         attendanceByType.get(attendance.values['Class Date']) === undefined
@@ -248,15 +291,31 @@ export class AttendancePerDay extends Component {
         attendanceByType.get(attendance.values['Class Date']) === undefined
           ? 0
           : attendanceByType.get(attendance.values['Class Date'])['adults'];
+      var jiuJitsuCount =
+        attendanceByType.get(attendance.values['Class Date']) === undefined
+          ? 0
+          : attendanceByType.get(attendance.values['Class Date'])['jiujitsu'];
       var kidCount =
         attendanceByType.get(attendance.values['Class Date']) === undefined
           ? 0
           : attendanceByType.get(attendance.values['Class Date'])['kids'];
+      var barraFITCount =
+        attendanceByType.get(attendance.values['Class Date']) === undefined
+          ? 0
+          : attendanceByType.get(attendance.values['Class Date'])['barraFIT'];
       if (type === 'Adult') {
         adultCount =
           attendanceByType.get(attendance.values['Class Date']) === undefined
             ? 1
             : ++attendanceByType.get(attendance.values['Class Date'])['adults'];
+      }
+      if (type === 'Jiu Jitsu') {
+        jiuJitsuCount =
+          attendanceByType.get(attendance.values['Class Date']) === undefined
+            ? 1
+            : ++attendanceByType.get(attendance.values['Class Date'])[
+                'jiujitsu'
+              ];
       }
       if (type === 'Kids') {
         kidCount =
@@ -264,10 +323,20 @@ export class AttendancePerDay extends Component {
             ? 1
             : ++attendanceByType.get(attendance.values['Class Date'])['kids'];
       }
+      if (type === 'BarraFIT') {
+        barraFITCount =
+          attendanceByType.get(attendance.values['Class Date']) === undefined
+            ? 1
+            : ++attendanceByType.get(attendance.values['Class Date'])[
+                'barraFIT'
+              ];
+      }
       attendanceByType.set(attendance.values['Class Date'], {
         date: attendance.values['Class Date'],
         adults: adultCount,
+        jiujitsu: jiuJitsuCount,
         kids: kidCount,
+        barraFIT: barraFITCount,
         members: members,
         attendances: dayAttendances,
       });
@@ -278,7 +347,9 @@ export class AttendancePerDay extends Component {
       attendancesValues.push({
         date: attendanceInfo.date,
         adults: attendanceInfo.adults,
+        jiujitsu: attendanceInfo.jiujitsu,
         kids: attendanceInfo.kids,
+        barraFIT: attendanceInfo.barraFIT,
         members: attendanceInfo.members,
         attendances: attendanceInfo.attendances,
       });
@@ -635,26 +706,20 @@ export class AttendancePerDay extends Component {
                 />
                 <Legend content={this.renderCusomizedLegend} />
                 <Bar
-                  dataKey="adults"
+                  dataKey={this.state.isBarraFIT ? 'jiujitsu' : 'adults'}
                   fill="#0070c0"
                   style={{ cursor: 'pointer' }}
                   onClick={this.attendanceOnClick}
                 >
-                  <LabelList
-                    dataKey="adults"
-                    content={this.renderAttendancesCustomizedLabel}
-                  />
+                  <LabelList content={this.renderAttendancesCustomizedLabel} />
                 </Bar>
                 <Bar
-                  dataKey="kids"
+                  dataKey={this.state.isBarraFIT ? 'barraFIT' : 'kids'}
                   fill="#92d050"
                   style={{ cursor: 'pointer' }}
                   onClick={this.attendanceOnClick}
                 >
-                  <LabelList
-                    dataKey="kids"
-                    content={this.renderAttendancesCustomizedLabel}
-                  />
+                  <LabelList content={this.renderAttendancesCustomizedLabel} />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>

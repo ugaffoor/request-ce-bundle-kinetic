@@ -204,7 +204,7 @@ export class SMSModal extends Component {
           ? content['Sent Date']
           : content['Received Date'];
 
-      dt = moment(dt, 'L HH:mm');
+      dt = moment(dt, ['L HH:mm', 'DD-MM-YYYY HH:mm']);
       //      dt = dt.add(moment().utcOffset() * 60, 'seconds');
 
       //      var dt = moment(value['createdAt']);
