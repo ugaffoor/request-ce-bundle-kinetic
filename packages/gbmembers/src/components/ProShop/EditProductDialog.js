@@ -11,12 +11,7 @@ const mapDispatchToProps = {};
 var dialogThis = undefined;
 
 export class EditProductDialog extends Component {
-  handleClick = () => {
-    //    this.setState({ isShowingModal: false });
-    //    this.props.setShowAttendanceDialog(false);
-  };
   handleClose = () => {
-    //    this.setState({ isShowingModal: false });
     this.props.setShowEditProductDialog(false);
   };
   constructor(props) {
@@ -35,6 +30,7 @@ export class EditProductDialog extends Component {
           <ModalDialog
             className="editProductDialog"
             onClose={this.handleClose}
+            dismissOnBackgroundClick={false}
             style={inlineStyle}
           >
             <span className="product">

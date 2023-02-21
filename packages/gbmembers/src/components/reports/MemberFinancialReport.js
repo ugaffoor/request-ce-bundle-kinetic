@@ -17,7 +17,10 @@ import MomentLocaleUtils, {
   formatDate,
   parseDate,
 } from 'react-day-picker/moment';
-import { getLocalePreference } from '../Member/MemberUtils';
+import {
+  getLocalePreference,
+  isBamboraFailedPayment,
+} from '../Member/MemberUtils';
 import { I18n } from '../../../../app/src/I18nProvider';
 import { actions } from '../../redux/modules/members';
 import { actions as posActions } from '../../redux/modules/pos';
@@ -185,19 +188,8 @@ export class MemberFinancialReport extends Component {
         });
       }
 
-      this.failedPaymentHistory = this.failedPaymentHistory.filter(
-        payment =>
-          (payment.paymentStatus === 'Transaction Declined' ||
-            payment.paymentStatus === 'DECLINED' ||
-            payment.paymentStatus === 'PIN RETRY EXCEEDED' ||
-            payment.paymentStatus === 'SERV NOT ALLOWED' ||
-            payment.paymentStatus === 'INV ACCT NUM' ||
-            payment.paymentStatus === 'Invalid Card Number' ||
-            payment.paymentStatus ===
-              'Validation greater than maximum amount' ||
-            payment.paymentStatus === 'BAD PROCESSING CODE' ||
-            payment.paymentStatus === 'EXPIRED CARD') &&
-          payment.paymentSource !== 'Manual Membership Payment',
+      this.failedPaymentHistory = this.failedPaymentHistory.filter(payment =>
+        isBamboraFailedPayment(payment),
       );
       this.failedPaymentHistory = this.failedPaymentHistory.sort((a, b) => {
         if (a['debitDate'] < b['debitDate']) {
@@ -286,6 +278,16 @@ export class MemberFinancialReport extends Component {
           freezeRequests.push(service);
         }
       });
+      var resumeFreezeRequests = [];
+      nextProps.services.forEach((service, i) => {
+        if (
+          service.form.slug === 'bambora-resume-frozen-member' ||
+          service.form.slug === 'paysmart-resume-frozen-member' ||
+          service.form.slug === 'stripe-resume-frozen-member'
+        ) {
+          resumeFreezeRequests.push(service);
+        }
+      });
 
       let memberData = this.getMemberData(
         nextProps.members,
@@ -301,6 +303,7 @@ export class MemberFinancialReport extends Component {
         cashMemberRegistrations,
         cancellationRequests,
         freezeRequests,
+        resumeFreezeRequests,
         this.state.repFromDate,
         this.state.repToDate,
         this.state.repBillingPeriod,
@@ -384,7 +387,7 @@ export class MemberFinancialReport extends Component {
     });
     var servicesFromDate = moment(this.state.repFromDate);
     this.props.fetchServicesByDate({
-      fromDate: servicesFromDate.subtract(3, 'months'),
+      fromDate: servicesFromDate.subtract(12, 'months'),
       toDate: this.state.repToDate,
     });
 
@@ -542,44 +545,70 @@ export class MemberFinancialReport extends Component {
     }
     return datePrior;
   }
-  noFreezeRequests(freezeRequests, member, nextBillingDate) {
+  noFreezeRequests(
+    freezeRequests,
+    resumeFreezeRequests,
+    member,
+    nextBillingDate,
+  ) {
     var datePrior = false;
-    //    if (member.status === 'Pending Freeze') {
-    freezeRequests.forEach((request, i) => {
-      if (member.id === request.values['Members']) {
-        var startDate = moment(
-          request.values['Date of Last Payment'],
-          'YYYY-MM-DD',
-        );
-        var resumeDate = undefined;
-        if (
-          request.values['Date Payments Resume'] !== undefined &&
-          request.values['Date Payments Resume'] !== null
-        ) {
-          resumeDate = moment(
-            request.values['Date Payments Resume'],
+    if (member.status === 'Pending Freeze') {
+      freezeRequests.forEach((request, i) => {
+        if (member.id === request.values['Members']) {
+          var startDate = moment(
+            request.values['Date of Last Payment'],
             'YYYY-MM-DD',
           );
-        }
+          var resumeDate = undefined;
+          if (
+            request.values['Date Payments Resume'] !== undefined &&
+            request.values['Date Payments Resume'] !== null
+          ) {
+            resumeDate = moment(
+              request.values['Date Payments Resume'],
+              'YYYY-MM-DD',
+            );
+          }
 
-        if (
-          startDate.isSameOrBefore(nextBillingDate) &&
-          resumeDate === undefined
-        ) {
-          datePrior = true;
+          if (
+            startDate.isSameOrBefore(nextBillingDate) &&
+            resumeDate === undefined
+          ) {
+            datePrior = true;
+          }
+          if (
+            resumeDate !== undefined &&
+            resumeDate.isSameOrAfter(nextBillingDate)
+          ) {
+            datePrior = true;
+          }
         }
-        if (
-          resumeDate !== undefined &&
-          resumeDate.isSameOrAfter(nextBillingDate)
-        ) {
-          datePrior = true;
-        }
-      }
-    });
-    //  }
+      });
+    }
+
+    if (datePrior) {
+      // Check
+    }
     return datePrior;
   }
+  isCashMember(members, member, lastPayment) {
+    var mIdx = members.findIndex(mem => mem.id === member.id);
+    if (mIdx !== -1) {
+      if (
+        members[mIdx].values['Billing Payment Type'] !== undefined &&
+        members[mIdx].values['Billing Payment Type'] === 'Cash'
+      ) {
+        var endTerm = moment(
+          members[mIdx].values['Billing Cash Term End Date'],
+        );
 
+        return members[mIdx].values['Billing Payment Type'] === 'Cash' &&
+          endTerm.isSameOrAfter(lastPayment)
+          ? true
+          : false;
+      } else return false;
+    } else return false;
+  }
   getMemberData(
     members,
     leads,
@@ -594,6 +623,7 @@ export class MemberFinancialReport extends Component {
     cashMemberRegistrations,
     cancellationRequests,
     freezeRequests,
+    resumeFreezeRequests,
     fromDate,
     toDate,
     repBillingPeriod,
@@ -758,6 +788,46 @@ export class MemberFinancialReport extends Component {
       }
     });
 
+    cashMemberRegistrations.forEach(registration => {
+      var pIdx = cashPayments.findIndex(
+        item => item.member.id === registration.values['Members'],
+      );
+      if (pIdx === -1) {
+        var mIdx = members.findIndex(
+          member => member.id === registration.values['Members'],
+        );
+        cashPayments[cashPayments.length] = {
+          member: members[mIdx],
+          amount: Number(registration.values['Payment Required']),
+          endPeriod: moment(registration.values['Term End Date']),
+        };
+      } else {
+        cashPayments[pIdx].amount += Number(
+          registration.values['Payment Required'],
+        );
+        cashPayments[pIdx].endPeriod = moment(
+          registration.values['Term End Date'],
+        );
+      }
+      cashPaymentsValue += Number(registration.values['Payment Required']);
+    });
+    cashPaymentsByDate.forEach((payment, i) => {
+      var mIdx = members.findIndex(
+        member => member.id === payment.values['Member GUID'],
+      );
+      payment['member'] = members[mIdx];
+      var pIdx = cashPayments.findIndex(
+        item => item.member.id === payment.values['Member GUID'],
+      );
+      if (pIdx === -1) {
+        payment.amount = Number(payment.values['Amount']);
+        cashPayments[cashPayments.length] = payment;
+      } else {
+        cashPayments[pIdx].amount += Number(payment.values['Amount']);
+      }
+      cashPaymentsValue += Number(payment.values['Amount']);
+    });
+
     //    if (fromDate.month()>=moment().month() && toDate.month()>=moment().month()) {
     billingCustomers.forEach((member, i) => {
       if (
@@ -809,7 +879,10 @@ export class MemberFinancialReport extends Component {
           }
         });
 
-        if (failedIdx === -1) {
+        if (
+          failedIdx === -1 &&
+          !this.isCashMember(members, member, lastPayment, cashPayments)
+        ) {
           var paymentPeriod = member.billingPeriod;
           var period = 'months';
           var periodCount = 1;
@@ -852,7 +925,12 @@ export class MemberFinancialReport extends Component {
                   member,
                   nextBillingDate,
                 ) &&
-                !this.noFreezeRequests(freezeRequests, member, nextBillingDate)
+                !this.noFreezeRequests(
+                  freezeRequests,
+                  resumeFreezeRequests,
+                  member,
+                  nextBillingDate,
+                )
               ) {
                 forecastHolders[forecastHolders.length] = member;
                 forecastHoldersValue += Number(member.billingAmount);
@@ -879,7 +957,7 @@ export class MemberFinancialReport extends Component {
             }
           }
         } else {
-          console.log('Overdue Member:' + member.customerId);
+          console.log('Overdue Member,' + member.customerId + ',,');
         }
       }
     });
@@ -1031,41 +1109,6 @@ export class MemberFinancialReport extends Component {
           ' ' +
           refund.paymentAmount,
       );
-    });
-    cashMemberRegistrations.forEach(registration => {
-      var pIdx = cashPayments.findIndex(
-        item => item.member.id === registration.values['Members'],
-      );
-      if (pIdx === -1) {
-        var mIdx = members.findIndex(
-          member => member.id === registration.values['Members'],
-        );
-        cashPayments[cashPayments.length] = {
-          member: members[mIdx],
-          amount: Number(registration.values['Payment Required']),
-        };
-      } else {
-        cashPayments[pIdx].amount += Number(
-          registration.values['Payment Required'],
-        );
-      }
-      cashPaymentsValue += Number(registration.values['Payment Required']);
-    });
-    cashPaymentsByDate.forEach((payment, i) => {
-      var mIdx = members.findIndex(
-        member => member.id === payment.values['Member GUID'],
-      );
-      payment['member'] = members[mIdx];
-      var pIdx = cashPayments.findIndex(
-        item => item.member.id === payment.values['Member GUID'],
-      );
-      if (pIdx === -1) {
-        payment.amount = Number(payment.values['Amount']);
-        cashPayments[cashPayments.length] = payment;
-      } else {
-        cashPayments[pIdx].amount += Number(payment.values['Amount']);
-      }
-      cashPaymentsValue += Number(payment.values['Amount']);
     });
 
     return {

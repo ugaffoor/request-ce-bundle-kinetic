@@ -98,7 +98,7 @@ export const HomeView = ({
   fetchingClassSchedules,
   monthlyStatistics,
   fetchMonthlyStatistics,
-  fetchingMonthlyStatistics,
+  monthlyStatisticsLoading,
   datesChanged,
   setFromDate,
   setToDate,
@@ -141,6 +141,8 @@ export const HomeView = ({
       getOverdues={getOverdues}
       overdues={overdues}
       overduesLoading={overduesLoading}
+      monthlyStatistics={monthlyStatistics}
+      monthlyStatisticsLoading={monthlyStatisticsLoading}
     />
     {getAttributeValue(space, 'Billing Company') === 'Bambora' && (
       <div className="homeOverdues">
@@ -225,7 +227,7 @@ export const HomeView = ({
             <Finances
               monthlyStatistics={monthlyStatistics}
               fetchMonthlyStatistics={fetchMonthlyStatistics}
-              fetchingMonthlyStatistics={fetchingMonthlyStatistics}
+              monthlyStatisticsLoading={monthlyStatisticsLoading}
               currency={currency}
               locale={locale}
             />

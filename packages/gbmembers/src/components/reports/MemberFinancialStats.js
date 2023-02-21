@@ -286,8 +286,8 @@ export class MemberFinancialStats extends Component {
     var uniqueHistory = [];
     FAILEDpaymentHistory.forEach((item, i) => {
       if (
-        moment(item.debitDate, 'YYYY-MM-DD').isSameOrAfter(fromDate) &&
-        moment(item.debitDate, 'YYYY-MM-DD').isSameOrBefore(toDate) &&
+        moment(item.debitDate, 'YYYY-MM-DD').isSameOrAfter(fromDate, 'day') &&
+        moment(item.debitDate, 'YYYY-MM-DD').isSameOrBefore(toDate, 'day') &&
         member.values['Billing Customer Id'] === item.yourSystemReference
       ) {
         var idx = uniqueHistory.findIndex(
@@ -302,8 +302,8 @@ export class MemberFinancialStats extends Component {
 
     uniqueHistory.forEach((failed, i) => {
       if (
-        moment(failed.debitDate, 'YYYY-MM-DD').isSameOrAfter(fromDate) &&
-        moment(failed.debitDate, 'YYYY-MM-DD').isSameOrBefore(toDate) &&
+        moment(failed.debitDate, 'YYYY-MM-DD').isSameOrAfter(fromDate, 'day') &&
+        moment(failed.debitDate, 'YYYY-MM-DD').isSameOrBefore(toDate, 'day') &&
         member.values['Billing Customer Id'] === failed.yourSystemReference
       ) {
         // Check if a payment was made since, if so don't include
@@ -419,8 +419,11 @@ export class MemberFinancialStats extends Component {
         member.values['Billing Customer Id'] === payment['yourSystemReference']
       ) {
         if (
-          moment(payment.debitDate, 'YYYY-MM-DD').isSameOrAfter(fromDate) &&
-          moment(payment.debitDate, 'YYYY-MM-DD').isSameOrBefore(toDate)
+          moment(payment.debitDate, 'YYYY-MM-DD').isSameOrAfter(
+            fromDate,
+            'day',
+          ) &&
+          moment(payment.debitDate, 'YYYY-MM-DD').isSameOrBefore(toDate, 'day')
         ) {
           total += payment.paymentAmount;
           lastPayment = moment(payment.debitDate, 'YYYY-MM-DD');
@@ -443,7 +446,7 @@ export class MemberFinancialStats extends Component {
         variation.resumeDate === '03-01-0001'
           ? moment('01-01-2500', 'DD-MM-YYYY')
           : moment(variation.resumeDate, 'DD-MM-YYYY');
-      if (varStart.isSameOrAfter(fromDate)) {
+      if (varStart.isSameOrAfter(fromDate, 'day')) {
         var nextVarDate = varStart;
         while (
           (nextVarDate.isAfter(fromDate) || nextVarDate.isSame(fromDate)) &&
@@ -511,7 +514,10 @@ export class MemberFinancialStats extends Component {
         variation.resumeDate === '03-01-0001'
           ? moment('01-01-2500', 'DD-MM-YYYY')
           : moment(variation.resumeDate, 'DD-MM-YYYY');
-      if (varStart.isSameOrAfter(fromDate) && varEnd.isSameOrBefore(toDate)) {
+      if (
+        varStart.isSameOrAfter(fromDate, 'day') &&
+        varEnd.isSameOrBefore(toDate, 'day')
+      ) {
         let varAmount = variation.variationAmount - billing.billingAmount;
         let varStartDate = varStart.isAfter(fromDate) ? varStart : fromDate;
         let varEndDate = varEnd.isBefore(toDate) ? varEnd : toDate;
@@ -610,7 +616,10 @@ export class MemberFinancialStats extends Component {
           variation.resumeDate === '03-01-0001'
             ? moment('01-01-2500', 'DD-MM-YYYY')
             : moment(variation.resumeDate, 'DD-MM-YYYY');
-        if (varStart.isSameOrAfter(fromDate) && varEnd.isSameOrBefore(toDate)) {
+        if (
+          varStart.isSameOrAfter(fromDate, 'day') &&
+          varEnd.isSameOrBefore(toDate, 'day')
+        ) {
           let varAmount = variation.variationAmount - billing.billingAmount;
           let varStartDate = varStart.isAfter(fromDate) ? varStart : fromDate;
           let varEndDate = varEnd.isBefore(toDate) ? varEnd : toDate;
@@ -659,6 +668,23 @@ export class MemberFinancialStats extends Component {
       member.values['Non Paying'] !== 'YES'
       ? true
       : false;
+  }
+  dateJoined(member, fromDate, toDate) {
+    if (
+      member['values']['Date Joined'] !== undefined &&
+      member['values']['Date Joined'] !== null &&
+      member['values']['Date Joined'] !== ''
+    ) {
+      if (
+        moment(member['values']['Date Joined'], 'YYYY-MM-DD').isBetween(
+          fromDate,
+          toDate,
+        )
+      ) {
+        return true;
+      }
+    }
+    return false;
   }
   getMemberData(
     members,
@@ -787,9 +813,10 @@ export class MemberFinancialStats extends Component {
             toDate,
           );
         } else if (
-          member.values['Billing Payment Type'] !== 'Cash' &&
-          moment(member.createdAt).isBetween(fromDate, toDate) &&
-          !this.isOrphan(this.props.space, member)
+          /*member.values['Billing Payment Type'] !== 'Cash' && */
+          this.dateJoined(member, fromDate, toDate) //&&
+          /*moment(member.createdAt).isBetween(fromDate, toDate) && */
+          //!this.isOrphan(this.props.space, member)
         ) {
           newMembers[newMembers.length] = member;
           newMembersValue += this.getMemberCost(
@@ -1455,9 +1482,11 @@ export class MemberFinancialStats extends Component {
       if (
         moment(member.values['Billing Cash Term Start Date']).isSameOrAfter(
           this.state.fromDate,
+          'day',
         ) &&
         moment(member.values['Billing Cash Term Start Date']).isSameOrBefore(
           this.state.toDate,
+          'day',
         )
       ) {
         return member.values['Membership Cost'];

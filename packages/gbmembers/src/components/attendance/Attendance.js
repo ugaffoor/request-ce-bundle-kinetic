@@ -25,6 +25,7 @@ import {
   getLocalePreference,
   validOverdue,
   getLastBillingStartDate,
+  isBamboraFailedPayment,
 } from '../Member/MemberUtils';
 import {
   getAttributeValue,
@@ -1401,13 +1402,8 @@ export class AttendanceDetail extends Component {
   }
 
   getBamboraOverdues(failedPayments, successfulPayments, allMembers) {
-    failedPayments = failedPayments.filter(
-      payment =>
-        payment.paymentStatus === 'Transaction Declined' ||
-        payment.paymentStatus === 'DECLINED' ||
-        payment.paymentStatus === 'PIN RETRY EXCEEDED' ||
-        payment.paymentStatus === 'SERV NOT ALLOWED' ||
-        payment.paymentStatus === 'EXPIRED CARD',
+    failedPayments = failedPayments.filter(payment =>
+      isBamboraFailedPayment(payment),
     );
     failedPayments = failedPayments.sort((a, b) => {
       if (a['debitDate'] < b['debitDate']) {

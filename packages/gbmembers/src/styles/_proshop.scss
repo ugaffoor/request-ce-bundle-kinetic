@@ -316,7 +316,7 @@
 }
 .recordStockDialog {
   a.narcissus_x3xwbs {
-    display: none;
+    z-index: 1000;
   }
   .productStock {
     .filterInfo {
@@ -498,7 +498,6 @@
 .addProductDialog,
 .editProductDialog {
   .narcissus_x3xwbs {
-    display: none;
   }
 }
 .addProductToCheckoutDialog {

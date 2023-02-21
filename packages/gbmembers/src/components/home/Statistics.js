@@ -21,6 +21,8 @@ import MomentLocaleUtils, {
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 var compThis = undefined;
+var twelveMonthRetentionRateData = undefined;
+var retentionRateData = 0;
 
 export class Statistics extends Component {
   handleClose = () => {
@@ -88,6 +90,9 @@ export class Statistics extends Component {
       showFrozenMembers: false,
       showPendingFrozenMembers: false,
       showOverdueMembers: false,
+      showRententionRates: false,
+      retentionRate: retentionRateData,
+      twelveMonthRetentionRate: twelveMonthRetentionRateData,
     };
   }
 
@@ -139,6 +144,45 @@ export class Statistics extends Component {
         memberData,
       });
     }
+
+    if (
+      !nextProps.monthlyStatisticsLoading &&
+      !nextProps.membersLoading &&
+      twelveMonthRetentionRateData === undefined
+    ) {
+      var monthlyStatisticsSorted = nextProps.monthlyStatistics.sort(function(
+        stat1,
+        stat2,
+      ) {
+        try {
+          if (
+            stat1.values['Year'] + stat1.values['Month'] <
+            stat2.values['Year'] + stat2.values['Month']
+          )
+            return -1;
+          if (
+            stat1.values['Year'] + stat1.values['Month'] >
+            stat2.values['Year'] + stat2.values['Month']
+          )
+            return 1;
+        } catch (error) {
+          return 0;
+        }
+        return 0;
+      });
+      retentionRateData = this.getRetentionRate(
+        nextProps.allMembers,
+        monthlyStatisticsSorted,
+      );
+      twelveMonthRetentionRateData = this.getTwelveMonthRetentionRate(
+        nextProps.allMembers,
+        monthlyStatisticsSorted,
+      );
+      this.setState({
+        retentionRate: retentionRateData,
+        twelveMonthRetentionRate: twelveMonthRetentionRateData,
+      });
+    }
   }
 
   UNSAFE_componentWillMount() {
@@ -154,6 +198,274 @@ export class Statistics extends Component {
     }
   }
 
+  getRetentionRate(allMembers, monthlyStatistics) {
+    if (monthlyStatistics.length > 1) {
+      let prevMonth = monthlyStatistics[monthlyStatistics.length - 2];
+      let month = monthlyStatistics[monthlyStatistics.length - 1];
+      let firstDayOfMonth = moment(
+        month.values['Year'] + '-' + month.values['Month'] + '-01',
+      );
+      let lastDayOfMonth = moment(
+        month.values['Year'] + '-' + month.values['Month'] + '-01',
+      ).endOf('month');
+
+      let newMembers = this.getNewMembers(
+        allMembers,
+        firstDayOfMonth,
+        lastDayOfMonth,
+      );
+      var beginOfMonth = this.getActiveMembers(allMembers, firstDayOfMonth);
+      var endOfMonth = this.getActiveMembers(allMembers, lastDayOfMonth);
+
+      return (endOfMonth - newMembers) / beginOfMonth;
+    } else {
+      return 0;
+    }
+  }
+  getNewMembers(allMembers, startOfMonth, endOfMonth) {
+    var newMembers = 0;
+    allMembers.forEach((member, i) => {
+      if (
+        member['values']['Date Joined'] !== undefined &&
+        member['values']['Date Joined'] !== null &&
+        member['values']['Date Joined'] !== ''
+      ) {
+        if (
+          moment(member['values']['Date Joined'], 'YYYY-MM-DD').isSameOrAfter(
+            startOfMonth,
+            'day',
+          ) &&
+          moment(member['values']['Date Joined'], 'YYYY-MM-DD').isSameOrBefore(
+            endOfMonth,
+            'day',
+          )
+        ) {
+          newMembers = newMembers + 1;
+          if (startOfMonth.month() === 13) {
+            console.log(
+              startOfMonth.format('YYYY-MM-DD') +
+                ',New Member,' +
+                member['values']['Date Joined'] +
+                ', ' +
+                member['values']['First Name'] +
+                ' ' +
+                member['values']['Last Name'],
+            );
+          }
+        }
+      }
+    });
+
+    return newMembers;
+  }
+  getActiveMembers(allMembers, day) {
+    var activeMembers = 0;
+    allMembers.forEach((member, i) => {
+      if (
+        member['values']['Status History'] === undefined ||
+        member['values']['Status History'] === ''
+      ) {
+        if (
+          member['values']['Date Joined'] !== undefined &&
+          member['values']['Date Joined'] !== null &&
+          member['values']['Date Joined'] !== ''
+        ) {
+          if (
+            moment(
+              member['values']['Date Joined'],
+              'YYYY-MM-DD',
+            ).isSameOrBefore(day, 'day') &&
+            member['values']['Status'] === 'Active'
+          ) {
+            activeMembers = activeMembers + 1;
+            if (day.month() === 13) {
+              console.log(
+                day.format('YYYY-MM-DD') +
+                  ' 1, Active Member,' +
+                  member['values']['Date Joined'] +
+                  ', ' +
+                  member['values']['First Name'] +
+                  ' ' +
+                  member['values']['Last Name'],
+              );
+            }
+          }
+        }
+      } else {
+        var statusHistory = JSON.parse(member['values']['Status History']);
+        var statusHistorySorted = statusHistory.sort(function(stat1, stat2) {
+          var date1 = moment(stat1.date);
+          var date2 = moment(stat2.date);
+
+          try {
+            if (date1.isBefore(date2)) return 1;
+            if (date1.isAfter(date2)) return -1;
+          } catch (error) {
+            return 0;
+          }
+          return 0;
+        });
+
+        let oldestDate = moment(
+          statusHistorySorted[statusHistorySorted.length - 1].date,
+        );
+        if (day.isSameOrBefore(oldestDate)) {
+          if (
+            member['values']['Date Joined'] !== undefined &&
+            member['values']['Date Joined'] !== null &&
+            member['values']['Date Joined'] !== ''
+          ) {
+            if (
+              moment(
+                member['values']['Date Joined'],
+                'YYYY-MM-DD',
+              ).isSameOrBefore(day, 'day')
+            ) {
+              activeMembers = activeMembers + 1;
+              if (day.month() === 13) {
+                console.log(
+                  day.format('YYYY-MM-DD') +
+                    '2, Active Member,' +
+                    member['values']['Date Joined'] +
+                    ', ' +
+                    member['values']['First Name'] +
+                    ' ' +
+                    member['values']['Last Name'],
+                );
+              }
+            }
+          }
+        } else {
+          // Locate the Status of Member on this date
+          for (var idx = statusHistorySorted.length - 1; idx >= 0; idx--) {
+            let currentDate = moment(statusHistorySorted[idx].date);
+            let currentStatus = statusHistorySorted[idx].status;
+            let nextStatus = undefined;
+            let nextDate = undefined;
+
+            if (idx > 0) {
+              nextStatus = statusHistorySorted[idx - 1].status;
+              nextDate = moment(statusHistorySorted[idx - 1].date);
+            }
+
+            if (
+              day.isSameOrAfter(currentDate, 'day') &&
+              (nextDate === undefined || day.isSameOrBefore(nextDate, 'day'))
+            ) {
+              if (
+                currentStatus === 'Active' ||
+                currentStatus === 'Frozen' ||
+                currentStatus === 'Pending Freeze' ||
+                currentStatus === 'Pending Cancellation'
+              ) {
+                activeMembers = activeMembers + 1;
+                if (day.month() === 13) {
+                  console.log(
+                    day.format('YYYY-MM-DD') +
+                      ' 3, Active Member,' +
+                      member['values']['Date Joined'] +
+                      ', ' +
+                      member['values']['First Name'] +
+                      ' ' +
+                      member['values']['Last Name'],
+                  );
+                }
+                idx = -1; //Break
+              }
+            }
+          }
+        }
+      }
+    });
+
+    return activeMembers;
+  }
+  getTwelveMonthRetentionRate(allMembers, monthlyStatistics) {
+    var twelveMonthRates = [];
+    var rententionRate = 0;
+    var newMembersTotal = 0;
+    var retentionTotal = 0;
+    var periodStartCount = 0;
+    var periodEndCount = 0;
+    var retentionTotalMonths =
+      monthlyStatistics.length > 12 ? 12 : monthlyStatistics.length - 1;
+    for (
+      var i =
+        monthlyStatistics.length > 12 ? (i = monthlyStatistics.length - 12) : 0;
+      i < monthlyStatistics.length;
+      i++
+    ) {
+      if (i === 0) continue;
+      var firstDayOfMonth = moment(
+        monthlyStatistics[i].values['Year'] +
+          '-' +
+          monthlyStatistics[i].values['Month'] +
+          '-01',
+        'YYYY-MM-DD',
+      );
+      var lastDayOfMonth = moment(
+        monthlyStatistics[i].values['Year'] +
+          '-' +
+          monthlyStatistics[i].values['Month'] +
+          '-01',
+        'YYYY-MM-DD',
+      ).endOf('month');
+      var beginOfMonth =
+        i === 0 ? 0 : this.getActiveMembers(allMembers, firstDayOfMonth);
+      var endOfMonth = this.getActiveMembers(allMembers, lastDayOfMonth);
+      var newMembers = this.getNewMembers(
+        allMembers,
+        firstDayOfMonth,
+        lastDayOfMonth,
+      );
+
+      if (periodStartCount === 0) {
+        periodStartCount = i === 0 ? 0 : beginOfMonth;
+      }
+      newMembersTotal = newMembersTotal + newMembers;
+      retentionTotal =
+        retentionTotal + (endOfMonth - newMembers) / parseInt(beginOfMonth);
+
+      twelveMonthRates.push({
+        month: moment()
+          .month(parseInt(monthlyStatistics[i].values['Month']))
+          .subtract(1, 'months')
+          .format('MMMM'),
+        beginOfMonth: beginOfMonth,
+        endOfMonth: endOfMonth,
+        newMembers: newMembers,
+        rententionRate: (
+          (endOfMonth - newMembers) /
+          parseInt(beginOfMonth)
+        ).toLocaleString(undefined, {
+          style: 'percent',
+          minimumFractionDigits: 2,
+        }),
+      });
+    }
+
+    if (monthlyStatistics.length > 1) {
+      periodEndCount = endOfMonth;
+    }
+    return {
+      values: twelveMonthRates,
+      newMembersTotal: newMembersTotal,
+      retentionTotalMonths: retentionTotalMonths,
+      retentionTotal: (
+        retentionTotal / retentionTotalMonths
+      ).toLocaleString(undefined, {
+        style: 'percent',
+        minimumFractionDigits: 2,
+      }),
+      twelveMonthAverage: (
+        (periodEndCount - newMembersTotal) /
+        periodStartCount
+      ).toLocaleString(undefined, {
+        style: 'percent',
+        minimumFractionDigits: 2,
+      }),
+    };
+  }
   getData(leads, allMembers, fromDate, toDate, LCTViewSwitch) {
     if (!leads || leads.length <= 0) {
       return {
@@ -316,11 +628,7 @@ export class Statistics extends Component {
     members.forEach(member => {
       let memberStatus = memberStatusInDates(member, fromDate, toDate);
 
-      if (
-        memberStatus === 'Frozen' ||
-        memberStatus === 'Active' ||
-        memberStatus === 'Casual'
-      ) {
+      if (memberStatus === 'Frozen' || memberStatus === 'Active') {
         active[active.length] = member;
       }
       if (memberStatus === 'Inactive') {
@@ -1298,6 +1606,7 @@ export class Statistics extends Component {
                       showFrozenMembers: false,
                       showPendingFrozenMembers: false,
                       showOverdueMembers: false,
+                      showRententionRates: false,
                     })
                   }
                 >
@@ -1352,6 +1661,7 @@ export class Statistics extends Component {
                       showFrozenMembers: false,
                       showPendingFrozenMembers: false,
                       showOverdueMembers: false,
+                      showRententionRates: false,
                     })
                   }
                 >
@@ -1430,6 +1740,7 @@ export class Statistics extends Component {
                       showFrozenMembers: false,
                       showPendingFrozenMembers: false,
                       showOverdueMembers: false,
+                      showRententionRates: false,
                     })
                   }
                 >
@@ -1508,6 +1819,7 @@ export class Statistics extends Component {
                       showFrozenMembers: false,
                       showPendingFrozenMembers: false,
                       showOverdueMembers: false,
+                      showRententionRates: false,
                     })
                   }
                 >
@@ -1590,6 +1902,7 @@ export class Statistics extends Component {
                       showFrozenMembers: false,
                       showPendingFrozenMembers: false,
                       showOverdueMembers: false,
+                      showRententionRates: false,
                     })
                   }
                 >
@@ -1635,6 +1948,7 @@ export class Statistics extends Component {
                       showFrozenMembers: false,
                       showPendingFrozenMembers: false,
                       showOverdueMembers: false,
+                      showRententionRates: false,
                     })
                   }
                 >
@@ -1680,6 +1994,7 @@ export class Statistics extends Component {
                       showFrozenMembers: true,
                       showPendingFrozenMembers: false,
                       showOverdueMembers: false,
+                      showRententionRates: false,
                     })
                   }
                 >
@@ -1723,6 +2038,7 @@ export class Statistics extends Component {
                       showFrozenMembers: false,
                       showPendingFrozenMembers: true,
                       showOverdueMembers: false,
+                      showRententionRates: false,
                     })
                   }
                 >
@@ -1789,6 +2105,176 @@ export class Statistics extends Component {
                 </div>
               </div>
             </div>
+            {
+              <div className="statItem">
+                <div className="info percentage">
+                  <div className="label">Retention Rate</div>
+                  <div
+                    className="value"
+                    onClick={e =>
+                      this.setState({
+                        showNewLeads: false,
+                        showScheduledLeads: false,
+                        showIntroLeads: false,
+                        showConvertedLeads: false,
+                        showCancellationsMembers: false,
+                        showPendingCancellationsMembers: false,
+                        showFrozenMembers: false,
+                        showPendingFrozenMembers: false,
+                        showOverdueMembers: false,
+                        showRententionRates: true,
+                      })
+                    }
+                  >
+                    {this.props.monthlyStatisticsLoading ? (
+                      <span>Loading</span>
+                    ) : (
+                      <span>
+                        {this.state.retentionRate.toLocaleString(undefined, {
+                          style: 'percent',
+                          minimumFractionDigits: 2,
+                        })}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {this.state.showRententionRates && (
+                  <div className="members retentionRates">
+                    <span
+                      className="closeMembers"
+                      onClick={e =>
+                        this.setState({
+                          showRententionRates: false,
+                        })
+                      }
+                    >
+                      <SVGInline svg={crossIcon} className="icon" />
+                    </span>
+                    <div className="retentionRates">
+                      <SVGInline
+                        svg={helpIcon}
+                        className="icon help"
+                        onClick={e => {
+                          $('.retentionRateHelp').toggle('');
+                        }}
+                      />
+                      <span className="retentionRateHelp">
+                        <table>
+                          <tbody>
+                            <tr className="header">
+                              <td colSpan="2">Student Retention Calculator</td>
+                            </tr>
+                            <tr>
+                              <td className="col1">What is Rentention Rate?</td>
+                              <td className="col2">
+                                Student retention rate designates the percentage
+                                of students a school has retained over a given
+                                time period.
+                              </td>
+                            </tr>
+                            <tr>
+                              <td className="col1">Why is it important?</td>
+                              <td className="col2">
+                                A high retention rate is good and means that
+                                you're keeping most of your students happy and
+                                contributing to the mission of Gracie Barra.
+                                Customer retention is the lifeblood of any
+                                organization. It's no secret that it's cheaper
+                                to keep an existing student than it is to get a
+                                new one. Focus on keeping your retention rate as
+                                high as possible.
+                              </td>
+                            </tr>
+                            <tr>
+                              <td className="col1">
+                                Student Retention Rate Formula
+                              </td>
+                              <td className="col2">
+                                Student Retention Rate = (Students at end of
+                                time period - New Students acquired during time
+                                period) / Students at start of time period
+                              </td>
+                            </tr>
+                            <tr>
+                              <td className="col1">Number of students</td>
+                              <td className="col2">
+                                The number of students are any student that
+                                during the period has a status of Active or
+                                Frozen.
+                              </td>
+                            </tr>
+                            {/*  <tr>
+                          <td className="col1">Retention Rate vs. Cancellation Rate</td>
+                          <td className="col2">While related, Student Cancellation Rate is the exact opposite of Retention Rate and is the percentage of Students who cancelled or did not renew during a given time period.</td>
+                        </tr>
+                        <tr>
+                          <td className="col1">Cancellation Rate Formula</td>
+                          <td className="col2">Student Cancellation Rate = Cancelled Students during Month / Students at Start of Month</td>
+                        </tr> */}
+                          </tbody>
+                        </table>
+                      </span>
+                      <table>
+                        <tbody>
+                          <tr>
+                            <th className="left">Month</th>
+                            <th># students first day of month</th>
+                            <th># students last day of month</th>
+                            <th># of students added during the month</th>
+                            <th>Monthly Rentention</th>
+                          </tr>
+                          {this.state.twelveMonthRetentionRate.values.map(
+                            (monthStat, index) => (
+                              <tr key={index}>
+                                <td className="left">{monthStat.month}</td>
+                                <td>{monthStat.beginOfMonth}</td>
+                                <td>{monthStat.endOfMonth}</td>
+                                <td>{monthStat.newMembers}</td>
+                                <td className="right">
+                                  {monthStat.rententionRate}
+                                </td>
+                              </tr>
+                            ),
+                          )}
+                          <tr className="footer">
+                            <td className="left" colSpan="4">
+                              Monthly Average
+                            </td>
+                            <td className="right">
+                              {
+                                this.state.twelveMonthRetentionRate
+                                  .retentionTotal
+                              }
+                            </td>
+                          </tr>
+                          <tr className="footer">
+                            <td className="left" colSpan="3">
+                              {
+                                this.state.twelveMonthRetentionRate
+                                  .retentionTotalMonths
+                              }
+                              -month retention
+                            </td>
+                            <td>
+                              {
+                                this.state.twelveMonthRetentionRate
+                                  .newMembersTotal
+                              }
+                            </td>
+                            <td className="right">
+                              {
+                                this.state.twelveMonthRetentionRate
+                                  .twelveMonthAverage
+                              }
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            }
             {getAttributeValue(this.props.space, 'Billing Company') ===
               'PaySmart' && (
               <div className="statItem">
@@ -1807,6 +2293,7 @@ export class Statistics extends Component {
                         showFrozenMembers: false,
                         showPendingFrozenMembers: false,
                         showOverdueMembers: true,
+                        showRententionRates: false,
                       })
                     }
                   >

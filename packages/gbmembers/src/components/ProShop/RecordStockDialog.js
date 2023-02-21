@@ -15,12 +15,7 @@ const mapStateToProps = state => ({});
 const mapDispatchToProps = {};
 var dialogThis = null;
 export class RecordStockDialog extends Component {
-  handleClick = () => {
-    //    this.setState({ isShowingModal: false });
-    //    this.props.setShowAttendanceDialog(false);
-  };
-  handleClose = () => {
-    //    this.setState({ isShowingModal: false });
+  handleClose = e => {
     this.props.setShowRecordStockDialog(false);
   };
   constructor(props) {
@@ -142,22 +137,25 @@ export class RecordStockDialog extends Component {
   }
   UNSAFE_componentWillMount() {}
   onChange = e => {
-    this.setState({ [e.target.name]: e.target.value });
+    this.setState({
+      [e.target.name]: e.target.value,
+      isShowingModal: this.props.isShowingModal,
+    });
   };
 
   render() {
     return (
-      <div onClick={this.handleClick}>
-        <ModalContainer zIndex={1030}>
-          <ModalDialog
-            className="recordStockDialog"
-            onClose={this.handleClose}
-            style={inlineStyle}
-          >
-            <span className="productStock">
-              <div className="filterInfo">
-                {<SVGInline svg={barcodeIcon} className="barcodeIcon" />}
-                {/*<input
+      <ModalContainer zIndex={1030}>
+        <ModalDialog
+          className="recordStockDialog"
+          onClose={this.handleClose}
+          dismissOnBackgroundClick={false}
+          style={inlineStyle}
+        >
+          <span className="productStock">
+            <div className="filterInfo">
+              {<SVGInline svg={barcodeIcon} className="barcodeIcon" />}
+              {/*<input
                   type="text"
                   value={this.state.productCodeValue}
                   className="searchValue"
@@ -166,308 +164,308 @@ export class RecordStockDialog extends Component {
                     this.handleScan(e.target.value);
                   }}
                 />*/}
-                <input
-                  type="text"
-                  value={this.state.productNameValue}
-                  className="searchValue"
-                  placeholder="Search by Name..."
-                  onChange={e => {
-                    this.setState({
-                      productNameValue: e.target.value,
-                      scanned: false,
-                    });
-                  }}
-                />
-                <div className="editStockView">
-                  <label htmlFor="editStockMode">Edit Stock</label>
-                  <div className="checkboxFilter">
-                    <input
-                      id="editStockMode"
-                      type="checkbox"
-                      value="1"
-                      onChange={e => {
-                        Object.keys(this.state).map(key => {
-                          if (key.indexOf('qty') !== -1) {
-                            console.log('key:' + key);
-                            this.setState({
-                              [key]: 0,
-                            });
-                          }
-                          if (key.indexOf('sizeSelected') !== -1) {
-                            console.log('key:' + key);
-                            this.setState({
-                              [key]: '',
-                            });
-                          }
-                          return true;
-                        });
-                        $('.sizeElement input').prop('checked', false);
-                        this.setState({
-                          editStockSwitch: !this.state.editStockSwitch,
-                        });
-                      }}
-                    />
-                    <label htmlFor="editStockMode"></label>
-                  </div>
-                  {}
+              <input
+                type="text"
+                value={this.state.productNameValue}
+                className="searchValue"
+                placeholder="Search by Name..."
+                onChange={e => {
+                  this.setState({
+                    productNameValue: e.target.value,
+                    scanned: false,
+                  });
+                }}
+              />
+              <div className="editStockView">
+                <label htmlFor="editStockMode">Edit Stock</label>
+                <div className="checkboxFilter">
+                  <input
+                    id="editStockMode"
+                    type="checkbox"
+                    value="1"
+                    onChange={e => {
+                      Object.keys(this.state).map(key => {
+                        if (key.indexOf('qty') !== -1) {
+                          console.log('key:' + key);
+                          this.setState({
+                            [key]: 0,
+                          });
+                        }
+                        if (key.indexOf('sizeSelected') !== -1) {
+                          console.log('key:' + key);
+                          this.setState({
+                            [key]: '',
+                          });
+                        }
+                        return true;
+                      });
+                      $('.sizeElement input').prop('checked', false);
+                      this.setState({
+                        editStockSwitch: !this.state.editStockSwitch,
+                      });
+                    }}
+                  />
+                  <label htmlFor="editStockMode"></label>
                 </div>
+                {}
               </div>
-              {this.state.scanned && this.state.productCodeValue === '' && (
-                <div className="noProductFound">
-                  No product found with SKU and Size: {this.state.scannedSKU}
-                </div>
-              )}
-              {this.props.products &&
-                this.props.products
-                  .filter(product => {
-                    if (
-                      product.values['Status'] === 'Active' &&
-                      product.values['Product Type'] === 'Apparel' &&
-                      product.values['SKU'] !== null &&
-                      ((this.state.productCodeValue !== '' &&
-                        this.state.productCodeValue
+            </div>
+            {this.state.scanned && this.state.productCodeValue === '' && (
+              <div className="noProductFound">
+                No product found with SKU and Size: {this.state.scannedSKU}
+              </div>
+            )}
+            {this.props.products &&
+              this.props.products
+                .filter(product => {
+                  if (
+                    product.values['Status'] === 'Active' &&
+                    product.values['Product Type'] === 'Apparel' &&
+                    product.values['SKU'] !== null &&
+                    ((this.state.productNameValue !== '' &&
+                      product.values['SKU']
+                        .toLowerCase()
+                        .indexOf(
+                          this.state.productNameValue.trim().toLowerCase(),
+                        ) !== -1) ||
+                      (this.state.productNameValue !== '' &&
+                        product.values['Name']
                           .toLowerCase()
                           .indexOf(
-                            product.values['SKU'].trim().toLowerCase(),
+                            this.state.productNameValue.toLowerCase(),
                           ) !== -1) ||
-                        (this.state.productNameValue !== '' &&
-                          product.values['Name']
-                            .toLowerCase()
-                            .indexOf(
-                              this.state.productNameValue.toLowerCase(),
-                            ) !== -1))
-                    ) {
-                      return true;
-                    }
-                    return false;
-                  })
-                  .sort((a, b) => {
-                    if (
-                      b.values['Display Order'] === undefined ||
-                      a.values['Display Order'] < b.values['Display Order']
-                    ) {
-                      return -1;
-                    }
-                    if (
-                      a.values['Display Order'] === undefined ||
-                      a.values['Display Order'] > b.values['Display Order']
-                    ) {
-                      return 1;
-                    }
+                      (this.state.productNameValue !== '' &&
+                        product.values['Colour'] !== null &&
+                        product.values['Colour']
+                          .toLowerCase()
+                          .indexOf(
+                            this.state.productNameValue.toLowerCase(),
+                          ) !== -1))
+                  ) {
+                    return true;
+                  }
+                  return false;
+                })
+                .sort((a, b) => {
+                  if (
+                    b.values['Display Order'] === undefined ||
+                    a.values['Display Order'] < b.values['Display Order']
+                  ) {
+                    return -1;
+                  }
+                  if (
+                    a.values['Display Order'] === undefined ||
+                    a.values['Display Order'] > b.values['Display Order']
+                  ) {
+                    return 1;
+                  }
 
-                    return 0;
-                  })
-                  .map((product, index) => {
-                    return (
+                  return 0;
+                })
+                .map((product, index) => {
+                  return (
+                    <div
+                      className={
+                        index % 2 === 0 ? 'productInfo even' : 'productInfo odd'
+                      }
+                      key={index}
+                    >
                       <div
-                        className={
-                          index % 2 === 0
-                            ? 'productInfo even'
-                            : 'productInfo odd'
-                        }
-                        key={index}
-                      >
-                        <div
-                          className="productImage"
-                          style={{
-                            backgroundImage: `url(${product.values['Image URL']})`,
-                          }}
-                        ></div>
-                        <div className="details">
-                          <div className="item">
-                            <div className="label">Code:</div>
-                            <div className="SKU">{product.values['SKU']}</div>
-                          </div>
-                          <div className="item">
-                            <div className="label">Name:</div>
-                            <div className="name">{product.values['Name']}</div>
-                          </div>
-                          <div className="item">
-                            <div className="label">Colour:</div>
-                            <div className="colour">
-                              {product.values['Colour']}
-                            </div>
+                        className="productImage"
+                        style={{
+                          backgroundImage: `url(${product.values['Image URL']})`,
+                        }}
+                      ></div>
+                      <div className="details">
+                        <div className="item">
+                          <div className="label">Code:</div>
+                          <div className="SKU">{product.values['SKU']}</div>
+                        </div>
+                        <div className="item">
+                          <div className="label">Name:</div>
+                          <div className="name">{product.values['Name']}</div>
+                        </div>
+                        <div className="item">
+                          <div className="label">Colour:</div>
+                          <div className="colour">
+                            {product.values['Colour']}
                           </div>
                         </div>
-                        <div className="sizes">
-                          {product.values['Sizes'].map((size, i) => {
-                            return (
-                              <div className="sizeElement" key={i}>
-                                <input
-                                  id={'var' + i + '-' + product['id']}
-                                  type="radio"
-                                  className="var-1"
-                                  name={'option' + product['id']}
-                                  value={size}
-                                  data-id={product['id']}
-                                  data-length="false"
-                                  defaultChecked={
-                                    this.state.productScanned ===
-                                    product['id'] + size
-                                  }
-                                />
-                                <label
-                                  htmlFor={'var' + i + '-' + product['id']}
-                                  onClick={e => {
-                                    var id = $(e.target)
-                                      .siblings('input')
-                                      .attr('id');
-                                    id = id.substring(id.indexOf('-') + 1);
-                                    var value = $(e.target)
-                                      .siblings('input')
-                                      .val();
-                                    if (this.state.editStockSwitch) {
-                                      var qty =
-                                        product.stock.filter(
-                                          stock =>
-                                            stock.values['Size'] === size,
-                                        ).length > 0
-                                          ? product.stock.filter(
-                                              stock =>
-                                                stock.values['Size'] === size,
-                                            )[0].values['Quantity']
-                                          : 0;
-                                      this.setState({
-                                        ['sizeSelected' + id]: value,
-                                        ['qty' + id]: qty,
-                                      });
-                                    } else {
-                                      this.setState({
-                                        ['sizeSelected' + id]: value,
-                                        ['qty' + id]: 0,
-                                      });
-                                    }
-                                  }}
-                                >
-                                  {this.state.editStockSwitch
-                                    ? size +
-                                      '-' +
-                                      (product.stock.filter(
+                      </div>
+                      <div className="sizes">
+                        {product.values['Sizes'].map((size, i) => {
+                          return (
+                            <div className="sizeElement" key={i}>
+                              <input
+                                id={'var' + i + '-' + product['id']}
+                                type="radio"
+                                className="var-1"
+                                name={'option' + product['id']}
+                                value={size}
+                                data-id={product['id']}
+                                data-length="false"
+                                defaultChecked={
+                                  this.state.productScanned ===
+                                  product['id'] + size
+                                }
+                              />
+                              <label
+                                htmlFor={'var' + i + '-' + product['id']}
+                                onClick={e => {
+                                  var id = $(e.target)
+                                    .siblings('input')
+                                    .attr('id');
+                                  id = id.substring(id.indexOf('-') + 1);
+                                  var value = $(e.target)
+                                    .siblings('input')
+                                    .val();
+                                  if (this.state.editStockSwitch) {
+                                    var qty =
+                                      product.stock.filter(
                                         stock => stock.values['Size'] === size,
                                       ).length > 0
                                         ? product.stock.filter(
                                             stock =>
                                               stock.values['Size'] === size,
                                           )[0].values['Quantity']
-                                        : 0)
-                                    : size}
-                                </label>
-                              </div>
-                            );
-                          })}
-                        </div>
-                        <div className="addQuantity">
-                          <div className="quantity">
-                            <span>Quantity</span>
-                            <NumericInput
-                              id={'qty-' + product.id}
-                              className="form-control"
-                              min={0}
-                              max={1000}
-                              step={1}
-                              precision={0}
-                              size={2}
-                              mobile
-                              value={this.state['qty' + product.id]}
-                              onChange={(value, inputValue, input) => {
-                                console.log('onChange:' + value);
-                                // event is a global var that is not know to editor
-                                var id = $(input).attr('id');
-                                id = id.substring(id.indexOf('-') + 1);
-                                console.log('onChange event with id:' + id);
-
-                                dialogThis.setState({
-                                  ['qty' + id]: parseInt(value),
-                                });
-                              }}
-                            />
-                          </div>
-                          {this.state.editStockSwitch ? (
-                            <div className="editStock">
-                              {this.state.posStockSaving ? (
-                                <ScaleLoader
-                                  className="processing"
-                                  height="35"
-                                  width="16"
-                                  radius="2"
-                                  margin="4"
-                                  color="#b6b1b1"
-                                />
-                              ) : (
-                                <button
-                                  type="button"
-                                  className="btn btn-primary editStockBtn"
-                                  onClick={e => {
-                                    this.props.savePOSStock({
-                                      products: this.props.products,
-                                      product: product,
-                                      size: this.state[
-                                        'sizeSelected' + product.id
-                                      ],
-                                      quantity: this.state['qty' + product.id],
+                                        : 0;
+                                    this.setState({
+                                      ['sizeSelected' + id]: value,
+                                      ['qty' + id]: qty,
                                     });
-                                  }}
-                                  disabled={
-                                    this.state['sizeSelected' + product.id] ===
-                                      undefined ||
-                                    this.state['qty' + product.id] === undefined
-                                  }
-                                >
-                                  Update Stock
-                                </button>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="addStock">
-                              {this.state.posStockSaving ? (
-                                <ScaleLoader
-                                  className="processing"
-                                  height="35"
-                                  width="16"
-                                  radius="2"
-                                  margin="4"
-                                  color="#b6b1b1"
-                                />
-                              ) : (
-                                <button
-                                  type="button"
-                                  className="btn btn-primary addStockBtn"
-                                  onClick={e => {
-                                    this.props.savePOSStock({
-                                      products: this.props.products,
-                                      product: product,
-                                      size: this.state[
-                                        'sizeSelected' + product.id
-                                      ],
-                                      quantity: this.state['qty' + product.id],
-                                      addStock: true,
+                                  } else {
+                                    this.setState({
+                                      ['sizeSelected' + id]: value,
+                                      ['qty' + id]: 0,
                                     });
-                                  }}
-                                  disabled={
-                                    this.state['sizeSelected' + product.id] ===
-                                      undefined ||
-                                    this.state['qty' + product.id] ===
-                                      undefined ||
-                                    this.state['qty' + product.id] === 0
                                   }
-                                >
-                                  Add Stock
-                                </button>
-                              )}
+                                }}
+                              >
+                                {this.state.editStockSwitch
+                                  ? size +
+                                    '-' +
+                                    (product.stock.filter(
+                                      stock => stock.values['Size'] === size,
+                                    ).length > 0
+                                      ? product.stock.filter(
+                                          stock =>
+                                            stock.values['Size'] === size,
+                                        )[0].values['Quantity']
+                                      : 0)
+                                  : size}
+                              </label>
                             </div>
-                          )}
-                        </div>
+                          );
+                        })}
                       </div>
-                    );
-                  })}
-            </span>
-            <BarcodeReader
-              onError={this.handleError}
-              onScan={this.handleScan}
-            />
-          </ModalDialog>
-        </ModalContainer>
-      </div>
+                      <div className="addQuantity">
+                        <div className="quantity">
+                          <span>Quantity</span>
+                          <NumericInput
+                            id={'qty-' + product.id}
+                            className="form-control"
+                            min={0}
+                            max={1000}
+                            step={1}
+                            precision={0}
+                            size={2}
+                            mobile
+                            value={this.state['qty' + product.id]}
+                            onChange={(value, inputValue, input) => {
+                              console.log('onChange:' + value);
+                              // event is a global var that is not know to editor
+                              var id = $(input).attr('id');
+                              id = id.substring(id.indexOf('-') + 1);
+                              console.log('onChange event with id:' + id);
+
+                              dialogThis.setState({
+                                ['qty' + id]: parseInt(value),
+                              });
+                            }}
+                          />
+                        </div>
+                        {this.state.editStockSwitch ? (
+                          <div className="editStock">
+                            {this.state.posStockSaving ? (
+                              <ScaleLoader
+                                className="processing"
+                                height="35"
+                                width="16"
+                                radius="2"
+                                margin="4"
+                                color="#b6b1b1"
+                              />
+                            ) : (
+                              <button
+                                type="button"
+                                className="btn btn-primary editStockBtn"
+                                onClick={e => {
+                                  this.props.savePOSStock({
+                                    products: this.props.products,
+                                    product: product,
+                                    size: this.state[
+                                      'sizeSelected' + product.id
+                                    ],
+                                    quantity: this.state['qty' + product.id],
+                                  });
+                                }}
+                                disabled={
+                                  this.state['sizeSelected' + product.id] ===
+                                    undefined ||
+                                  this.state['qty' + product.id] === undefined
+                                }
+                              >
+                                Update Stock
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="addStock">
+                            {this.state.posStockSaving ? (
+                              <ScaleLoader
+                                className="processing"
+                                height="35"
+                                width="16"
+                                radius="2"
+                                margin="4"
+                                color="#b6b1b1"
+                              />
+                            ) : (
+                              <button
+                                type="button"
+                                className="btn btn-primary addStockBtn"
+                                onClick={e => {
+                                  this.props.savePOSStock({
+                                    products: this.props.products,
+                                    product: product,
+                                    size: this.state[
+                                      'sizeSelected' + product.id
+                                    ],
+                                    quantity: this.state['qty' + product.id],
+                                    addStock: true,
+                                  });
+                                }}
+                                disabled={
+                                  this.state['sizeSelected' + product.id] ===
+                                    undefined ||
+                                  this.state['qty' + product.id] ===
+                                    undefined ||
+                                  this.state['qty' + product.id] === 0
+                                }
+                              >
+                                Add Stock
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+          </span>
+          <BarcodeReader onError={this.handleError} onScan={this.handleScan} />
+        </ModalDialog>
+      </ModalContainer>
     );
   }
 }

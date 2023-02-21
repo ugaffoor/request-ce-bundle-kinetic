@@ -5,6 +5,7 @@ import { KappNavLink as NavLink } from 'common';
 import SVGInline from 'react-svg-inline';
 import ReactToPrint from 'react-to-print';
 import printerIcon from '../../images/Print.svg?raw';
+import { isBamboraFailedPayment } from '../Member/MemberUtils';
 
 const ezidebit_date_format = 'YYYY-MM-DD HH:mm:sss';
 
@@ -40,12 +41,8 @@ export class BamboraFailedPayments extends Component {
   }
 
   getData(failedPayments, successfulPayments) {
-    failedPayments = failedPayments.filter(
-      payment =>
-        payment.paymentStatus === 'DECLINED' ||
-        payment.paymentStatus === 'PIN RETRY EXCEEDED' ||
-        payment.paymentStatus === 'SERV NOT ALLOWED' ||
-        payment.paymentStatus === 'EXPIRED CARD',
+    failedPayments = failedPayments.filter(payment =>
+      isBamboraFailedPayment(payment),
     );
     failedPayments = failedPayments.sort((a, b) => {
       if (a['debitDate'] < b['debitDate']) {

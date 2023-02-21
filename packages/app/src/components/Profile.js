@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Dropdown, DropdownToggle, DropdownMenu } from 'reactstrap';
 import { bundle } from 'react-kinetic-core';
 import { I18n } from '../I18nProvider';
+import { version } from '../../package.json';
 
 export const Profile = ({
   profile,
@@ -72,11 +73,7 @@ export const Profile = ({
             <I18n>Give Feedback</I18n>
           </a>
         )*/}
-        {!isGuest && (
-          <Link to="/about" className="dropdown-item" onClick={toggle}>
-            <I18n>About My Space</I18n>
-          </Link>
-        )}
+        <div className="dropdown-item">Version:{version}</div>
         <div className="dropdown-divider" />
         <a
           href={`${bundle.spaceLocation()}/app/logout`}

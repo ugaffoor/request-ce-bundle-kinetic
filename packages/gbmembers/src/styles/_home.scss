@@ -336,11 +336,18 @@
         }
         .info.percentage {
           .value {
-            font-size: 50px !important;
+            font-size: 45px !important;
           }
         }
         .value {
           color: #4d5059;
+        }
+        .members.retentionRates {
+          width: 1000px !important;
+          left: 200px !important;
+          top: 100px !important;
+          background-color: #4d5059 !important;
+          border-radius: 5px;
         }
         .members {
           position: absolute;
@@ -355,6 +362,74 @@
             margin-left: 8px;
             margin-top: 2px;
             cursor: pointer;
+          }
+          .retentionRates {
+            background-color: white;
+            border-radius: 5px;
+            margin-left: 10px;
+            margin-top: 32px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            table {
+              width: 100%;
+              .left {
+                text-align: left !important;
+                padding-left: 20px;
+              }
+              .right {
+                text-align: right !important;
+                padding-right: 20px;
+              }
+              tr {
+                text-align: center;
+              }
+              tr.header {
+                border-bottom-style: solid;
+                border-bottom-width: 1px;
+              }
+              th {
+                padding-right: 15px;
+                padding-left: 5px;
+                background-color: #e2dddd;
+              }
+              .footer {
+                background-color: #efe6e6;
+              }
+            }
+            .help {
+              margin-left: 10px;
+              cursor: pointer;
+              float: left;
+            }
+            .retentionRateHelp {
+              display: none;
+              float: left;
+              table {
+                tr.header {
+                  border-bottom-style: solid;
+                  border-bottom-width: 1px;
+                  background-color: #aeabab;
+                  font-size: 25px;
+                }
+                tr {
+                  text-align: center;
+                  td.col1 {
+                    width: 200px;
+                    text-align: left;
+                    padding-left: 4px;
+                    background-color: #f4eded;
+                    border-bottom-style: solid;
+                    border-bottom-width: 1px;
+                  }
+                  td.col2 {
+                    border-bottom-style: solid;
+                    border-bottom-width: 1px;
+                    border-left-style: solid;
+                    border-left-width: 1px;
+                  }
+                }
+              }
+            }
           }
           .closeMembers path {
             fill: white !important;

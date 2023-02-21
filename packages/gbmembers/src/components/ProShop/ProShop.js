@@ -3778,34 +3778,26 @@ export class ProShop extends Component {
                       this.setShowRecordStockDialog(true);
                     }}
                   >
-                    {this.state.showRecordStockDialog && (
-                      <RecordStockDialogContainer
-                        setShowRecordStockDialog={this.setShowRecordStockDialog}
-                        products={this.props.posProducts}
-                        locale={this.props.locale}
-                        currency={this.props.currency}
-                        savePOSStock={this.props.savePOSStock}
-                        posStockSaving={this.props.posStockSaving}
-                        posBarcodes={this.props.posBarcodes}
-                      />
-                    )}
                     <img src={addIcon} alt="Add" />
                     <span className="appName">RECORD STOCK</span>
                   </div>
+                  {this.state.showRecordStockDialog && (
+                    <RecordStockDialogContainer
+                      setShowRecordStockDialog={this.setShowRecordStockDialog}
+                      products={this.props.posProducts}
+                      locale={this.props.locale}
+                      currency={this.props.currency}
+                      savePOSStock={this.props.savePOSStock}
+                      posStockSaving={this.props.posStockSaving}
+                      posBarcodes={this.props.posBarcodes}
+                    />
+                  )}
                   <div
                     className="addButton"
                     onClick={e => {
                       this.setShowAddProductDialog(true);
                     }}
                   >
-                    {this.state.showAddProductDialog && (
-                      <AddProductDialogContainer
-                        setShowAddProductDialog={this.setShowAddProductDialog}
-                        productType={this.props.productType}
-                        locale={this.props.locale}
-                        currency={this.props.currency}
-                      />
-                    )}
                     <img src={addIcon} alt="Add" />
                     <span className="appName">
                       ADD{' '}
@@ -3814,6 +3806,14 @@ export class ProShop extends Component {
                         : 'SERVICE'}
                     </span>
                   </div>
+                  {this.state.showAddProductDialog && (
+                    <AddProductDialogContainer
+                      setShowAddProductDialog={this.setShowAddProductDialog}
+                      productType={this.props.productType}
+                      locale={this.props.locale}
+                      currency={this.props.currency}
+                    />
+                  )}
                   <div className="setting">
                     <SVGInline
                       svg={settingsIcon}

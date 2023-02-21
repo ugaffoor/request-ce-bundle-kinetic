@@ -9,6 +9,7 @@ import {
   getCurrency,
   validOverdue,
   getLastBillingStartDate,
+  isBamboraFailedPayment,
 } from '../Member/MemberUtils';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
@@ -75,18 +76,8 @@ export class BamboraOverdues extends Component {
   }
 
   getData(failedPayments, successfulPayments) {
-    failedPayments = failedPayments.filter(
-      payment =>
-        (payment.paymentStatus === 'Transaction Declined' ||
-          payment.paymentStatus === 'DECLINED' ||
-          payment.paymentStatus === 'PIN RETRY EXCEEDED' ||
-          payment.paymentStatus === 'SERV NOT ALLOWED' ||
-          payment.paymentStatus === 'INV ACCT NUM' ||
-          payment.paymentStatus === 'Invalid Card Number' ||
-          payment.paymentStatus === 'Validation greater than maximum amount' ||
-          payment.paymentStatus === 'BAD PROCESSING CODE' ||
-          payment.paymentStatus === 'EXPIRED CARD') &&
-        payment.paymentSource !== 'Manual Membership Payment',
+    failedPayments = failedPayments.filter(payment =>
+      isBamboraFailedPayment(payment),
     );
     failedPayments = failedPayments.sort((a, b) => {
       if (a['debitDate'] < b['debitDate']) {

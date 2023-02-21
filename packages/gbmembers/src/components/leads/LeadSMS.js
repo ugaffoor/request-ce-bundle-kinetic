@@ -58,29 +58,33 @@ export class LeadSMS extends Component {
       var dtStr =
         value.values['Direction'] === 'Outbound'
           ? content['Sent Date']
-          : content['Received Date'];
-      var dt = moment(dtStr, ['L HH:mm', 'DD-MM-YYYY HH:mm']);
-      //      if (dtStr.indexOf("Z")!==-1){
-      //        dt = dt.add(moment().utcOffset() * 60, 'seconds');
-      //      }
+          : /*content['Received Date']*/ value['createdAt'];
+      var dt = moment(dtStr, [
+        'L HH:mm',
+        'DD-MM-YYYY HH:mm',
+        'YYYY-MM-DDThh:mm:ss.SSSZ',
+      ]);
+      /*      if (dtStr.indexOf("Z")!==-1){
+        dt = dt.add(moment().utcOffset() * 60, 'seconds');
+      } */
 
-      //      var dt = moment(value['createdAt']);
+      var dt = moment(value['createdAt']);
       smsValues[smsValues.length] = {
         Direction: value.values['Direction'],
-        Date: dt.format('L h:mm A'),
+        Date: dt.format('L hh:mm A'),
         Content: content['Content'],
       };
     });
     smsValues.sort(function(sms1, sms2) {
       if (
-        moment(sms1['Date'], 'DD-MM-YYYY HH:mm').isAfter(
-          moment(sms2['Date'], 'DD-MM-YYYY HH:mm'),
+        moment(sms1['Date'], 'L hh:mm A').isAfter(
+          moment(sms2['Date'], 'L hh:mm A'),
         )
       ) {
         return -1;
       } else if (
-        moment(sms1['Date'], 'DD-MM-YYYY HH:mm').isBefore(
-          moment(sms2['Date'], 'DD-MM-YYYY HH:mm'),
+        moment(sms1['Date'], 'L hh:mm A').isBefore(
+          moment(sms2['Date'], 'L hh:mm A'),
         )
       ) {
         return 1;

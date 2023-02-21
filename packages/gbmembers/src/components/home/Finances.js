@@ -171,7 +171,7 @@ export class Finances extends Component {
 
   render() {
     const { data } = this.state;
-    return this.props.fetchingMonthlyStatistics ? (
+    return this.props.monthlyStatisticsLoading ? (
       <div className="financesLoading">
         <p>Loading Finances ...</p>
       </div>

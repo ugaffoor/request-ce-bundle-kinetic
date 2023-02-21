@@ -11,12 +11,7 @@ const mapDispatchToProps = {};
 var dialogThis = undefined;
 
 export class AddProductDialog extends Component {
-  handleClick = () => {
-    //    this.setState({ isShowingModal: false });
-    //    this.props.setShowAttendanceDialog(false);
-  };
-  handleClose = () => {
-    //    this.setState({ isShowingModal: false });
+  handleClose = e => {
     this.props.setShowAddProductDialog(false);
   };
   constructor(props) {
@@ -34,35 +29,34 @@ export class AddProductDialog extends Component {
   UNSAFE_componentWillMount() {}
   render() {
     return (
-      <div onClick={this.handleClick}>
-        <ModalContainer zIndex={1030}>
-          <ModalDialog
-            className="addProductDialog"
-            onClose={this.handleClose}
-            style={inlineStyle}
-          >
-            <span className="product">
-              <CoreForm
-                datastore
-                form="pos-product"
-                values={this.state.values}
-                created={function(props) {
-                  console.log('Submission Update completed');
-                  //                dialogThis.props.product.values=props.submission.values;
-                  dialogThis.handleClose();
-                }}
-                onLoaded={function() {
-                  console.log('Form loaded');
-                  /*dialogThis.setState({
+      <ModalContainer zIndex={1030}>
+        <ModalDialog
+          className="addProductDialog"
+          onClose={this.handleClose}
+          dismissOnBackgroundClick={false}
+          style={inlineStyle}
+        >
+          <span className="product">
+            <CoreForm
+              datastore
+              form="pos-product"
+              values={this.state.values}
+              created={function(props) {
+                console.log('Submission Update completed');
+                //                dialogThis.props.product.values=props.submission.values;
+                dialogThis.handleClose();
+              }}
+              onLoaded={function() {
+                console.log('Form loaded');
+                /*dialogThis.setState({
                   loadingForm: false,
                 });*/
-                }}
-                error={function() {}}
-              />
-            </span>
-          </ModalDialog>
-        </ModalContainer>
-      </div>
+              }}
+              error={function() {}}
+            />
+          </span>
+        </ModalDialog>
+      </ModalContainer>
     );
   }
 }

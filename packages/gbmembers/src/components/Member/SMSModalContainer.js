@@ -207,7 +207,7 @@ export class SMSModal extends Component {
       dt = moment(dt, ['L HH:mm', 'DD-MM-YYYY HH:mm']);
       //      dt = dt.add(moment().utcOffset() * 60, 'seconds');
 
-      //      var dt = moment(value['createdAt']);
+      dt = moment(value['createdAt']);
 
       smsValues[smsValues.length] = {
         Direction: value.values['Direction'],
