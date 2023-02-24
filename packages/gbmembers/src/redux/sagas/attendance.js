@@ -216,9 +216,13 @@ export function* createAttendance(action) {
       memberItem.values['Attendance Count'] = attendanceCount;
       memberItem.values['Last Attendance Date'] = moment().format('YYYY-MM-DD');
 
+      var values = {};
+      values['Attendance Count'] = attendanceCount;
+      values['Last Attendance Date'] = moment().format('YYYY-MM-DD');
       action.payload.updateMember({
         id: memberItem['id'],
         memberItem: memberItem,
+        values: values,
         myThis: action.payload.myThis,
       });
     }
@@ -302,9 +306,12 @@ export function* deleteAttendance(action) {
         attendanceCount -= 1;
         memberItem.values['Attendance Count'] = attendanceCount;
 
+        var values = {};
+        values['Attendance Count'] = attendanceCount;
         action.payload.updateMember({
           id: memberItem['id'],
           memberItem: memberItem,
+          values: values,
           myThis: action.payload.myThis,
         });
       }

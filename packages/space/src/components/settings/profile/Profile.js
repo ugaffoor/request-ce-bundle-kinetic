@@ -8,6 +8,7 @@ import { actions } from '../../../redux/modules/profiles';
 import { ProfileCard } from 'common';
 import { TeamCard } from '../../shared/TeamCard';
 import { I18n } from '../../../../../app/src/I18nProvider';
+import * as selectors from 'app/src/redux/selectors';
 
 export const EditProfileComponent = ({
   loading,
@@ -31,6 +32,7 @@ export const EditProfileComponent = ({
   kapps,
   locales,
   timezones,
+  isGuest,
 }) => (
   <div className="page-container page-container--panels page-container--space-profile-edit">
     <PageTitle parts={['Edit Profile']} />
@@ -64,6 +66,7 @@ export const EditProfileComponent = ({
                 <input
                   type="text"
                   id="displayName"
+                  disabled={true}
                   name="displayName"
                   onChange={handleFieldChange}
                   value={fieldValues.displayName}
@@ -77,6 +80,7 @@ export const EditProfileComponent = ({
                   <input
                     type="text"
                     id="email"
+                    disabled={true}
                     name="email"
                     onChange={handleFieldChange}
                     value={fieldValues.email}
@@ -89,6 +93,7 @@ export const EditProfileComponent = ({
                   <input
                     type="text"
                     id="phoneNumber"
+                    disabled={true}
                     name="phoneNumber"
                     onChange={handleFieldChange}
                     value={fieldValues.phoneNumber}
@@ -100,6 +105,7 @@ export const EditProfileComponent = ({
                     <select
                       type="text"
                       id="preferredLocale"
+                      disabled={true}
                       name="preferredLocale"
                       className="form-control"
                       onChange={handleFieldChange}
@@ -123,6 +129,7 @@ export const EditProfileComponent = ({
                     <select
                       type="text"
                       id="timezone"
+                      disabled={true}
                       name="timezone"
                       className="form-control"
                       onChange={handleFieldChange}
@@ -148,6 +155,7 @@ export const EditProfileComponent = ({
                           className="form-control"
                           type="kapp"
                           id="defaultKappDisplay"
+                          disabled={true}
                           name="defaultKappDisplay"
                           onChange={handleFieldChange}
                           value={fieldValues.defaultKappDisplay}
@@ -229,10 +237,7 @@ export const EditProfileComponent = ({
               </div>
             </form>
           </section>
-          {(managerEnabled ||
-            siteEnabled ||
-            departmentEnabled ||
-            organizationEnabled) && (
+          {!isGuest && (
             <section>
               <h2 className="section__title">User Attributes</h2>
               <div className="user-attributes-wrapper">
@@ -305,25 +310,28 @@ export const EditProfileComponent = ({
               </div>
             </section>
           )}
-          <section>
-            <h2 className="section__title">Roles</h2>
+          {!isGuest && (
+            <div>
+              <section>
+                <h2 className="section__title">Roles</h2>
 
-            <UserRoles
-              roles={profile.memberships.filter(item =>
-                item.team.name.startsWith('Role::'),
-              )}
-            />
-          </section>
-          <section>
-            <h2 className="section__title">Teams</h2>
-            <UserTeams
-              teams={profile.memberships.filter(
-                item => !item.team.name.startsWith('Role::'),
-              )}
-            />
-          </section>
+                <UserRoles
+                  roles={profile.memberships.filter(item =>
+                    item.team.name.startsWith('Role::'),
+                  )}
+                />
+              </section>
+              <section>
+                <h2 className="section__title">Teams</h2>
+                <UserTeams
+                  teams={profile.memberships.filter(
+                    item => !item.team.name.startsWith('Role::'),
+                  )}
+                />
+              </section>
+            </div>
+          )}
         </div>
-
         <div className="page-panel page-panel--two-fifths page-panel--sidebar page-panel--space-profile-edit-sidebar">
           <ProfileCard
             user={buildProfile(fieldValues, profile)}
@@ -475,6 +483,7 @@ const mapStateToProps = state => ({
   kapps: state.app.kapps,
   locales: state.app.config.locales,
   timezones: state.app.config.timezones,
+  isGuest: selectors.selectIsGuest(state),
 });
 
 const mapDispatchToProps = {

@@ -5,6 +5,7 @@ import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import { CameraFeed } from './Member/CameraFeed';
 import { bundle } from 'react-kinetic-core';
+import { contact_date_format } from './leads/LeadsUtils';
 
 class UploadPhoto extends React.Component {
   constructor(props) {
@@ -146,6 +147,18 @@ export class PhotoForm extends Component {
     } else {
       this.props.memberItem.values['Photo'] = K('field[Photo Image]').value();
     }
+    var key = 'Photo';
+    if (this.props.memberChanges) {
+      let memberChange = this.props.memberChanges.find(
+        change => change.field === key,
+      );
+      if (!memberChange) {
+        memberChange = { field: key, from: this.props.memberItem.values[key] };
+        this.props.memberChanges.push(memberChange);
+      }
+      memberChange.to = this.props.memberItem.values['Photo'];
+      memberChange.date = moment().format(contact_date_format);
+    }
     //    ReactDOM.render(React.createElement(Photo, {memberItem: this.props.memberItem, setUpload: this.setUpload}),$('.photo-form')[0]);
     if (
       window.cameraFeedEl &&
@@ -169,6 +182,20 @@ export class PhotoForm extends Component {
     } else {
       this.props.memberItem.values['Photo'] = K('field[Photo Image]').value();
     }
+
+    var key = 'Photo';
+    if (this.props.memberChanges) {
+      let memberChange = this.props.memberChanges.find(
+        change => change.field === key,
+      );
+      if (!memberChange) {
+        memberChange = { field: key, from: this.props.memberItem.values[key] };
+        this.props.memberChanges.push(memberChange);
+      }
+      memberChange.to = this.props.memberItem.values['Photo'];
+      memberChange.date = moment().format(contact_date_format);
+    }
+
     if (
       window.cameraFeedEl &&
       window.cameraFeedEl.videoPlayer.srcObject !== null

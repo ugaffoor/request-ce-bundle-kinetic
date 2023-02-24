@@ -521,9 +521,12 @@ export const CallEventContainer = compose(
           submitter: profile.displayName,
         });
         call.person.values['Notes History'] = notesHistory;
+        let values = {};
+        values['Notes History'] = notesHistory;
         updateMember({
           id: call.person.id,
           memberItem: call.person,
+          values: values,
         });
         for (let i = 0; i < allMembers.length; i++) {
           if (allMembers[i].id === call.person.id) {

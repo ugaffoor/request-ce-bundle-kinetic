@@ -5,6 +5,7 @@ import { namespace, withPayload } from '../../utils';
 export const types = {
   AUTO_CREATE_CARD: namespace('pos', 'AUTO_CREATE_CARD'),
   SET_CREATE_CARD: namespace('pos', 'SET_CREATE_CARD'),
+  CLEAR_POS_CARDS: namespace('pos', 'CLEAR_POS_CARDS'),
   FETCH_POS_CARDS: namespace('pos', 'FETCH_POS_CARDS'),
   SET_POS_CARDS: namespace('pos', 'SET_POS_CARDS'),
   FETCH_POS_CATEGORIES: namespace('pos', 'FETCH_POS_CATEGORIES'),
@@ -40,6 +41,7 @@ export const types = {
 export const actions = {
   autoCreateCard: withPayload(types.AUTO_CREATE_CARD),
   setCreateCard: withPayload(types.SET_CREATE_CARD),
+  clearPOSCards: withPayload(types.CLEAR_POS_CARDS),
   fetchPOSCards: withPayload(types.FETCH_POS_CARDS),
   setPOSCards: withPayload(types.SET_POS_CARDS),
   fetchPOSCategories: withPayload(types.FETCH_POS_CATEGORIES),
@@ -107,8 +109,10 @@ export const reducer = (state = State(), { type, payload }) => {
       return state.set('posAutoCreateCardProcessing', true);
     case types.SET_CREATE_CARD:
       return state.set('posAutoCreateCardProcessing', false);
+    case types.CLEAR_POS_CARDS:
+      return state.set('posCards', []);
     case types.FETCH_POS_CARDS:
-      return state.set('posCardsLoading', true);
+      return state.set('posCards', []).set('posCardsLoading', true);
     case types.SET_POS_CARDS: {
       return state.set('posCardsLoading', false).set('posCards', payload);
     }

@@ -361,7 +361,11 @@ export const MemberEdit = ({
                 <div className="droparrow" />
               </div>
               <span id="photoForm">
-                <PhotoForm memberItem={memberItem} setIsDirty={setIsDirty} />
+                <PhotoForm
+                  memberItem={memberItem}
+                  setIsDirty={setIsDirty}
+                  memberChanges={memberChanges}
+                />
               </span>
             </span>
             {profile.username !== 'unus@uniqconsulting.com.au' ? (
@@ -397,6 +401,7 @@ export const MemberEdit = ({
                               'Billing User',
                               e,
                               setIsDirty,
+                              memberChanges,
                             )
                           }
                         />
@@ -416,6 +421,7 @@ export const MemberEdit = ({
                               'Biller Migrated',
                               e,
                               setIsDirty,
+                              memberChanges,
                             )
                           }
                         />
@@ -441,6 +447,7 @@ export const MemberEdit = ({
                               'Credit Card Expiry Month',
                               e,
                               setIsDirty,
+                              memberChanges,
                             )
                           }
                         />
@@ -464,6 +471,7 @@ export const MemberEdit = ({
                               'Credit Card Expiry Year',
                               e,
                               setIsDirty,
+                              memberChanges,
                             )
                           }
                         />
@@ -487,6 +495,7 @@ export const MemberEdit = ({
                               'Billing Customer Id',
                               e,
                               setIsDirty,
+                              memberChanges,
                             )
                           }
                         />
@@ -508,6 +517,7 @@ export const MemberEdit = ({
                               'Billing Customer Reference',
                               e,
                               setIsDirty,
+                              memberChanges,
                             )
                           }
                         />
@@ -533,6 +543,7 @@ export const MemberEdit = ({
                               'Billing Payment Type',
                               e,
                               setIsDirty,
+                              memberChanges,
                             )
                           }
                         />
@@ -556,6 +567,7 @@ export const MemberEdit = ({
                               'Billing Payment Period',
                               e,
                               setIsDirty,
+                              memberChanges,
                             )
                           }
                         />
@@ -575,6 +587,7 @@ export const MemberEdit = ({
                               'Billing Period',
                               e,
                               setIsDirty,
+                              memberChanges,
                             )
                           }
                         />
@@ -610,6 +623,7 @@ export const MemberEdit = ({
                               'Membership Cost',
                               e,
                               setIsDirty,
+                              memberChanges,
                             )
                           }
                         />
@@ -633,6 +647,7 @@ export const MemberEdit = ({
                               'Billing Start Date',
                               e,
                               setIsDirty,
+                              memberChanges,
                             )
                           }
                         />
@@ -656,6 +671,7 @@ export const MemberEdit = ({
                               'Billing Parent Member',
                               e,
                               setIsDirty,
+                              memberChanges,
                             )
                           }
                         />
@@ -681,6 +697,7 @@ export const MemberEdit = ({
                               'Billing Family Members',
                               e,
                               setIsDirty,
+                              memberChanges,
                             )
                           }
                         />
@@ -702,6 +719,7 @@ export const MemberEdit = ({
                               'Resume Date',
                               e,
                               setIsDirty,
+                              memberChanges,
                             )
                           }
                         />
@@ -723,6 +741,7 @@ export const MemberEdit = ({
                               'POS Profile ID',
                               e,
                               setIsDirty,
+                              memberChanges,
                             )
                           }
                         />
@@ -746,6 +765,7 @@ export const MemberEdit = ({
                               'Registered with Card',
                               e,
                               setIsDirty,
+                              memberChanges,
                             )
                           }
                         />
@@ -771,6 +791,7 @@ export const MemberEdit = ({
                               'Emails Received Count',
                               e,
                               setIsDirty,
+                              memberChanges,
                             )
                           }
                         />
@@ -792,6 +813,7 @@ export const MemberEdit = ({
                               'Lead Submission ID',
                               e,
                               setIsDirty,
+                              memberChanges,
                             )
                           }
                         />
@@ -813,6 +835,7 @@ export const MemberEdit = ({
                               'Status History',
                               e,
                               setIsDirty,
+                              memberChanges,
                             )
                           }
                         />
@@ -834,6 +857,7 @@ export const MemberEdit = ({
                               'Notes History',
                               e,
                               setIsDirty,
+                              memberChanges,
                             )
                           }
                         />
@@ -850,7 +874,13 @@ export const MemberEdit = ({
                           ref={input => (this.input = input)}
                           defaultValue={memberItem.values['Photo']}
                           onChange={e =>
-                            handleChange(memberItem, 'Photo', e, setIsDirty)
+                            handleChange(
+                              memberItem,
+                              'Photo',
+                              e,
+                              setIsDirty,
+                              memberChanges,
+                            )
                           }
                         />
                       </div>
@@ -875,6 +905,7 @@ export const MemberEdit = ({
                               'Last Attendance Date',
                               e,
                               setIsDirty,
+                              memberChanges,
                             )
                           }
                         />
@@ -882,7 +913,9 @@ export const MemberEdit = ({
                     </span>
                     <span className="line">
                       <div>
-                        <label htmlFor="photo">Refunded Payments</label>
+                        <label htmlFor="refundedHistory">
+                          Refunded Payments
+                        </label>
                         <input
                           type="text"
                           name="refundedHistory"
@@ -896,6 +929,7 @@ export const MemberEdit = ({
                               'Refunded Payments',
                               e,
                               setIsDirty,
+                              memberChanges,
                             )
                           }
                         />
@@ -921,6 +955,7 @@ export const MemberEdit = ({
                               'Billing Cash Term Start Date',
                               e,
                               setIsDirty,
+                              memberChanges,
                             )
                           }
                         />
@@ -944,6 +979,7 @@ export const MemberEdit = ({
                               'Billing Cash Term End Date',
                               e,
                               setIsDirty,
+                              memberChanges,
                             )
                           }
                         />
@@ -1995,9 +2031,15 @@ export const MemberEditContainer = compose(
         changes.push(...memberChanges);
         memberItem.values['Member Changes'] = changes;
         //console.log("memberChanges=" + util.inspect(changes));
+        var values = {};
+        memberChanges.forEach(
+          field => (values[field.field] = memberItem.values[field.field]),
+        );
+        values['Member Changes'] = changes;
         updateMember({
           id: memberItem.id,
           memberItem,
+          values: values,
           history: memberItem.history,
           emailChanged,
           allMembers,

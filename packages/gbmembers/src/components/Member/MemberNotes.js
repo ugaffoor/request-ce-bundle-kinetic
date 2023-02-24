@@ -439,9 +439,14 @@ export const MemberNotesContainer = compose(
       memberItem.values['Notes History'] = notesHistory;
       // Clear Reminder Date
       memberItem.values['Reminder Date'] = '';
+
+      var values = {};
+      values['Notes History'] = notesHistory;
+      values['Reminder Date'] = '';
       updateMember({
         id: memberItem['id'],
         memberItem: memberItem,
+        values,
         fetchMember: fetchCurrentMember,
         fetchMembers: fetchMembers,
         myThis: this,
@@ -453,9 +458,12 @@ export const MemberNotesContainer = compose(
       fetchMembers,
     }) => () => {
       memberItem.values['Is New Reply Received'] = false;
+      var values = {};
+      values['Is New Reply Received'] = false;
       updateMember({
         id: memberItem['id'],
         memberItem: memberItem,
+        values: values,
       });
     },
   }),

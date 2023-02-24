@@ -291,34 +291,26 @@ export function getReminderDate(input) {
   }
 
   if (input === 'Tomorrow') {
-    return (
-      moment()
-        .add(1, 'days')
-        .format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-    );
+    return moment()
+      .add(1, 'days')
+      .format('YYYY-MM-DDTHH:mm:ssZ');
   }
   if (input === '2 days from now') {
-    return (
-      moment()
-        .add(2, 'days')
-        .format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-    );
+    return moment()
+      .add(2, 'days')
+      .format('YYYY-MM-DDTHH:mm:ssZ');
   }
 
   if (input === 'Next Week') {
-    return (
-      moment()
-        .add(1, 'weeks')
-        .format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-    );
+    return moment()
+      .add(1, 'weeks')
+      .format('YYYY-MM-DDTHH:mm:ssZ');
   }
 
   if (input === 'Next Month') {
-    return (
-      moment()
-        .add(1, 'months')
-        .format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-    );
+    return moment()
+      .add(1, 'months')
+      .format('YYYY-MM-DDTHH:mm:ssZ');
   }
 
   if (input === 'Never') {

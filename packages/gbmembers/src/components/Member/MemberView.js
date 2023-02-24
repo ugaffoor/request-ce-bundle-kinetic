@@ -1046,11 +1046,14 @@ export const MemberView = ({
                           } else {
                             memberItem.values['Student Covid Check'] = '';
                           }
+                          var values = {};
+                          values['Student Covid Check'] =
+                            memberItem.values['Student Covid Check'];
                           setIsDirty(true);
-                          updateMemberItem();
+                          updateMemberItem(values);
                         }}
                       />
-                      <label for="studentcovidcheck"></label>
+                      <label htmlFor="studentcovidcheck"></label>
                     </div>
                   </div>
                 )}
@@ -1074,7 +1077,10 @@ export const MemberView = ({
                             memberItem.values['Mother Covid Check'] = '';
                           }
                           setIsDirty(true);
-                          updateMemberItem();
+                          var values = {};
+                          values['Mother Covid Check'] =
+                            memberItem.values['Mother Covid Check'];
+                          updateMemberItem(values);
                         }}
                       />
                       <label for="mothercovidcheck"></label>
@@ -1101,7 +1107,10 @@ export const MemberView = ({
                             memberItem.values['Father Covid Check'] = '';
                           }
                           setIsDirty(true);
-                          updateMemberItem();
+                          var values = {};
+                          values['Father Covid Check'] =
+                            memberItem.values['Father Covid Check'];
+                          updateMemberItem(values);
                         }}
                       />
                       <label for="fathercovidcheck"></label>
@@ -1932,9 +1941,12 @@ export const MemberViewContainer = compose(
       allMembers,
     }) => () => {
       memberItem.values['Billing Parent Member'] = null;
+      var values = {};
+      values['Billing Parent Member'] = null;
       updateMember({
         id: memberItem.id,
         memberItem,
+        values,
         allMembers,
       });
       for (let i = 0; i < allMembers.length; i++) {
@@ -1970,9 +1982,12 @@ export const MemberViewContainer = compose(
         submitter: profile.displayName,
       });
       memberItem.values['Notes History'] = notesHistory;
+      var values = {};
+      values['Notes History'] = notesHistory;
       updateMember({
         id: memberItem.id,
         memberItem,
+        values,
         allMembers,
       });
       for (let i = 0; i < allMembers.length; i++) {
@@ -1993,9 +2008,12 @@ export const MemberViewContainer = compose(
       allMembers,
     }) => newHistory => {
       memberItem.values['Notes History'] = newHistory;
+      var values = {};
+      values['Notes History'] = newHistory;
       updateMember({
         id: memberItem.id,
         memberItem,
+        values,
         allMembers,
       });
       /*      for (let i = 0; i < allMembers.length; i++) {
@@ -2081,10 +2099,19 @@ export const MemberViewContainer = compose(
         to: '',
       });
       memberItem.values['Billing Changes'] = changes;
-
+      var values = {};
+      values['Billing Customer Reference'] = null;
+      values['Billing Customer Id'] = null;
+      values['Billing User'] = null;
+      values['Billing Payment Type'] = null;
+      values['Billing Payment Period'] = null;
+      values['Payment Schedule'] = null;
+      values['Membership Cost'] = null;
+      values['Billing Changes'] = changes;
       updateMember({
         id: memberItem.id,
         memberItem,
+        values,
         allMembers,
       });
       setIsDirty(false);
@@ -2111,9 +2138,12 @@ export const MemberViewContainer = compose(
       setSystemError,
     }) => () => {
       memberItem.values['Is New Reply Received'] = 'false';
+      var values = {};
+      values['Is New Reply Received'] = 'false';
       updateMember({
         id: memberItem.id,
         memberItem,
+        values,
         allMembers,
         addNotification,
         setSystemError,
@@ -2142,9 +2172,12 @@ export const MemberViewContainer = compose(
           break;
         }
       }
+      let values = {};
+      values['Is New Reply Received'] = 'true';
       updateMember({
         id: memberItem.id,
         memberItem,
+        values,
         allMembers,
         addNotification,
         setSystemError,
@@ -2157,7 +2190,7 @@ export const MemberViewContainer = compose(
       addNotification,
       setSystemError,
       setIsDirty,
-    }) => () => {
+    }) => values => {
       for (let i = 0; i < allMembers.length; i++) {
         if (allMembers[i].id === memberItem.id) {
           allMembers[i].values = memberItem.values;
@@ -2167,6 +2200,7 @@ export const MemberViewContainer = compose(
       updateMember({
         id: memberItem.id,
         memberItem,
+        values,
         allMembers,
         addNotification,
         setSystemError,

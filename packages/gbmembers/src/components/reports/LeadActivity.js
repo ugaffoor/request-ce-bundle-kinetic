@@ -23,8 +23,9 @@ import MomentLocaleUtils, {
 import { getLocalePreference } from '../Member/MemberUtils';
 import { I18n } from '../../../../app/src/I18nProvider';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
+import { KappNavLink as NavLink } from 'common';
 
-export const contact_date_format = 'YYYY-MM-DD HH:mm';
+export const contact_date_format = ['YYYY-MM-DD HH:mm', 'YYYY-MM-DDTHH:mm:ssZ'];
 
 const util = require('util');
 var compThis = undefined;
@@ -48,7 +49,13 @@ export class LeadsActivityReport extends Component {
     this.columns = [
       { title: 'Created Date', field: 'createdDate' },
       { title: 'Last Modified Date', field: 'lastModifiedDate' },
-      { title: 'Name', field: 'name', tooltip: true, bottomCalc: 'count' },
+      {
+        title: 'Name',
+        field: 'name',
+        tooltip: true,
+        bottomCalc: 'count',
+        formatter: reactFormatter(<this.OpenLeadCellButton />),
+      },
       { title: 'Gender', field: 'gender' },
       { title: 'Status', field: 'status' },
       { title: 'Email', field: 'email', tooltip: true },
@@ -65,6 +72,8 @@ export class LeadsActivityReport extends Component {
       { title: 'Source Reference 4', field: 'sourceReference4' },
       { title: 'Source Reference 5', field: 'sourceReference5' },
       { title: 'Reminder Date', field: 'reminderDate' },
+      { title: 'Days Since Last Contact', field: 'daysSinceLastContact' },
+      { title: 'Last Contact Date', field: 'lastContactDate' },
       {
         title: 'Notes',
         field: 'history',
@@ -148,6 +157,12 @@ export class LeadsActivityReport extends Component {
       { label: 'Source Reference 4', value: 'sourceReference4' },
       { label: 'Source Reference 5', value: 'sourceReference5' },
       { label: 'Reminder Date', value: 'reminderDate', dataType: 'date' },
+      { label: 'Days Since Last Contact', value: 'daysSinceLastContact' },
+      {
+        label: 'Last Contact Date',
+        value: 'lastContactDate',
+        dataType: 'date',
+      },
       { label: 'Notes', value: 'history' },
       { label: 'Events', value: 'events' },
       { label: 'Emails Sent', value: 'emailsSent' },
@@ -173,6 +188,12 @@ export class LeadsActivityReport extends Component {
       { label: 'Source Reference 4', value: 'sourceReference4' },
       { label: 'Source Reference 5', value: 'sourceReference5' },
       { label: 'Reminder Date', value: 'reminderDate', dataType: 'date' },
+      { label: 'Days Since Last Contact', value: 'daysSinceLastContact' },
+      {
+        label: 'Last Contact Date',
+        value: 'lastContactDate',
+        dataType: 'date',
+      },
       { label: 'Notes', value: 'history' },
       { label: 'Events', value: 'events' },
       { label: 'Emails Sent', value: 'emailsSent' },
@@ -799,10 +820,14 @@ export class LeadsActivityReport extends Component {
 
   ExpandNotesCellButton = (props: any) => {
     var notes = getJson(props.cell.getValue());
-    notes.forEach((item, i) => {
-      item['note'] = item['note'].replace(/(?:\r\n|\r|\n)/g, '<br>');
-    });
-
+    try {
+      notes.forEach((item, i) => {
+        item['note'] =
+          item['note'] !== undefined
+            ? item['note'].replace(/(?:\r\n|\r|\n)/g, '<br>')
+            : '';
+      });
+    } catch (e) {}
     notes.sort(function(a, b) {
       if (a['contactDate'] > b['contactDate']) {
         return -1;
@@ -836,6 +861,16 @@ export class LeadsActivityReport extends Component {
       </span>
     );
   };
+  OpenLeadCellButton = (props: any) => {
+    return (
+      <a
+        href={`/#/kapps/gbmembers/LeadDetail/${props.cell.getData().id}`}
+        className=""
+      >
+        {props.cell.getValue()}
+      </a>
+    );
+  };
 
   ExpandCellButton = (props: any) => {
     const value = props.cell.getValue();
@@ -855,7 +890,55 @@ export class LeadsActivityReport extends Component {
       </span>
     );
   };
+  getLatestHistory(history) {
+    //console.log("# history = " + util.inspect(history));
+    let sortedHistory = getJson(history)
+      .slice()
+      .sort(function(a, b) {
+        if (
+          moment(a['contactDate'], contact_date_format).isBefore(
+            moment(b['contactDate'], contact_date_format),
+          )
+        )
+          return 1;
+        if (
+          moment(a['contactDate'], contact_date_format).isAfter(
+            moment(b['contactDate'], contact_date_format),
+          )
+        )
+          return -1;
+        return 0;
+      });
 
+    if (typeof sortedHistory[0] === 'string') {
+      try {
+        sortedHistory[0] = sortedHistory[0]
+          .replace(/[\n]/g, '\\n')
+          .replace(/[\r]/g, '\\r')
+          .replace(/[\t]/g, '');
+        sortedHistory[0] = $.parseJSON(sortedHistory[0])[0];
+      } catch (err) {}
+    }
+
+    return sortedHistory[0];
+  }
+
+  getLastContactDayCount(lead) {
+    var item = this.getLatestHistory(lead.values['History']);
+    if (item !== undefined) {
+      var lastDate = moment(item['contactDate'], contact_date_format);
+
+      return moment().diff(lastDate, 'days');
+    }
+    return '';
+  }
+  getLastContactDate(lead) {
+    var item = this.getLatestHistory(lead.values['History']);
+    if (item !== undefined) {
+      return moment(item['contactDate'], contact_date_format).format('L');
+    }
+    return '';
+  }
   getGridData(leads) {
     if (!leads || leads.length <= 0) {
       return [];
@@ -891,6 +974,8 @@ export class LeadsActivityReport extends Component {
         reminderDate: lead.values['Reminder Date']
           ? moment(lead.values['Reminder Date']).format('L')
           : '',
+        daysSinceLastContact: this.getLastContactDayCount(lead),
+        lastContactDate: this.getLastContactDate(lead),
         emailsSent: isNaN(lead.values['Emails Sent Count'])
           ? 0
           : parseInt(lead.values['Emails Sent Count']),

@@ -1255,8 +1255,8 @@ export function memberStatusInDates(member, fromDate, toDate) {
       var date2 = moment(stat2.date);
 
       try {
-        if (date1.isBefore(date2)) return 1;
-        if (date1.isAfter(date2)) return -1;
+        if (date1.isBefore(date2)) return -1;
+        if (date1.isAfter(date2)) return 1;
       } catch (error) {
         return 0;
       }
@@ -1267,6 +1267,7 @@ export function memberStatusInDates(member, fromDate, toDate) {
       statusHistorySorted[statusHistorySorted.length - 1].date,
     );
     if (oldestDate.isBetween(fromDate, toDate)) {
+      // Looking for New Members
       if (
         member['values']['Date Joined'] !== undefined &&
         member['values']['Date Joined'] !== null &&
@@ -1285,41 +1286,40 @@ export function memberStatusInDates(member, fromDate, toDate) {
           return 'Active';
         }
       }
-    } else {
-      for (var i = statusHistorySorted.length - 1; i >= 0; i--) {
-        if (
-          moment(new Date(statusHistorySorted[i]['date'])).isSameOrAfter(
-            fromDate,
-            'day',
-          ) &&
-          moment(new Date(statusHistorySorted[i]['date'])).isSameOrBefore(
-            toDate,
-            'day',
-          )
+    }
+    for (var i = statusHistorySorted.length - 1; i >= 0; i--) {
+      if (
+        moment(new Date(statusHistorySorted[i]['date'])).isSameOrAfter(
+          fromDate,
+          'day',
+        ) &&
+        moment(new Date(statusHistorySorted[i]['date'])).isSameOrBefore(
+          toDate,
+          'day',
+        )
+      ) {
+        if (statusHistorySorted[i]['status'] === 'Active') {
+          return 'Active';
+        } else if (statusHistorySorted[i]['status'] === 'Inactive') {
+          return 'Inactive';
+        } else if (statusHistorySorted[i]['status'] === 'Casual') {
+          return 'Casual';
+        } else if (
+          statusHistorySorted[i]['status'] === 'Pending Cancellation'
         ) {
-          if (statusHistorySorted[i]['status'] === 'Active') {
-            return 'Active';
-          } else if (statusHistorySorted[i]['status'] === 'Inactive') {
-            return 'Inactive';
-          } else if (statusHistorySorted[i]['status'] === 'Casual') {
-            return 'Casual';
-          } else if (
-            statusHistorySorted[i]['status'] === 'Pending Cancellation'
-          ) {
-            return 'Pending Cancellation';
-          } else if (
-            statusHistorySorted[i]['status'] === 'Frozen' ||
-            statusHistorySorted[i]['status'] === 'Suspended'
-          ) {
-            return 'Frozen';
-          } else if (
-            statusHistorySorted[i]['status'] === 'Pending Freeze' ||
-            statusHistorySorted[i]['status'] === 'Pending Suspension'
-          ) {
-            return 'Pending Freeze';
-          }
-        } else {
+          return 'Pending Cancellation';
+        } else if (
+          statusHistorySorted[i]['status'] === 'Frozen' ||
+          statusHistorySorted[i]['status'] === 'Suspended'
+        ) {
+          return 'Frozen';
+        } else if (
+          statusHistorySorted[i]['status'] === 'Pending Freeze' ||
+          statusHistorySorted[i]['status'] === 'Pending Suspension'
+        ) {
+          return 'Pending Freeze';
         }
+      } else {
       }
     }
     if (

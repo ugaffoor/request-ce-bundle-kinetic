@@ -94,6 +94,7 @@ const mapDispatchToProps = {
   fetchBillingInfoAfterRegistration: actions.fetchBillingInfoAfterRegistration,
   setBillingInfo: actions.setBillingInfo,
   setCurrentMember: actions.setCurrentMember,
+  clearPOSCards: posActions.clearPOSCards,
   fetchPOSCards: posActions.fetchPOSCards,
   setPOSCards: posActions.setPOSCards,
   updateMember: actions.updateMember,
@@ -769,28 +770,30 @@ class PayNow extends Component {
                     ))}
                   </table>
                   <div className="radioGroup">
-                    <label htmlFor="savedCreditCard" className="radio">
-                      <input
-                        id="savedCreditCard"
-                        name="savedcard"
-                        type="radio"
-                        value="Use Saved Card"
-                        checked={this.state.payment === 'useSavedCreditCard'}
-                        onChange={e => {
-                          this.setState({
-                            payment: 'useSavedCreditCard',
-                            cardId: this.props.posCards[0].cardID,
-                            number: this.props.posCards[0].number,
-                            status: '',
-                            errors: '',
-                            processingComplete: false,
-                            cardToken: undefined,
-                          });
-                        }}
-                        onClick={async e => {}}
-                      />
-                      Use Saved Card
-                    </label>
+                    {this.props.posCards.length > 0 && (
+                      <label htmlFor="savedCreditCard" className="radio">
+                        <input
+                          id="savedCreditCard"
+                          name="savedcard"
+                          type="radio"
+                          value="Use Saved Card"
+                          checked={this.state.payment === 'useSavedCreditCard'}
+                          onChange={e => {
+                            this.setState({
+                              payment: 'useSavedCreditCard',
+                              cardId: this.props.posCards[0].cardID,
+                              number: this.props.posCards[0].number,
+                              status: '',
+                              errors: '',
+                              processingComplete: false,
+                              cardToken: undefined,
+                            });
+                          }}
+                          onClick={async e => {}}
+                        />
+                        Use Saved Card
+                      </label>
+                    )}
                     <label htmlFor="useAnotherCreditCard" className="radio">
                       <input
                         id="useAnotherCreditCard"
@@ -2112,7 +2115,8 @@ export class BillingInfo extends Component {
                             this.props.billingInfo.cardOnFileID !== undefined &&
                             this.props.billingInfo.cardOnFileID !== '' &&
                             this.props.billingInfo.cardOnFileID !== null &&
-                            !this.props.posCardsLoading && (
+                            !this.props.posCardsLoading &&
+                            this.props.posCards.length > 0 && (
                               <tr>
                                 <td>Card on File:</td>
                                 <td>
@@ -2877,6 +2881,8 @@ export const BillingContainer = compose(
               profileId: member.values['POS Profile ID'],
               setPOSCards: this.props.setPOSCards,
             });
+          } else {
+            this.props.clearPOSCards();
           }
         } else {
           if (member.values['Billing Customer Id']) {

@@ -615,10 +615,17 @@ export function* autoCreateCard(action) {
     });
   yield put(actions.setDummy());
 }
+export function* clearPOSCards(action) {
+  try {
+  } catch (error) {
+    console.log('Error in clearPOSCards: ' + util.inspect(error));
+  }
+}
 
 export function* watchPOS() {
   console.log('watchPOS');
   yield takeEvery(types.AUTO_CREATE_CARD, autoCreateCard);
+  yield takeEvery(types.CLEAR_POS_CARDS, clearPOSCards);
   yield takeEvery(types.FETCH_POS_CARDS, fetchPOSCards);
   yield takeEvery(types.FETCH_POS_CATEGORIES, fetchPOSCategories);
   yield takeEvery(types.FETCH_POS_PRODUCTS, fetchPOSProducts);

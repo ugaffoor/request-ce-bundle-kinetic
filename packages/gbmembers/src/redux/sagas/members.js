@@ -500,9 +500,14 @@ export function* fetchNewMember(action) {
 export function* updateCurrentMember(action) {
   console.log('In updateCurrentMember');
   try {
+    var values =
+      action.payload.values !== undefined
+        ? action.payload.values
+        : action.payload.memberItem.values;
+
     const { submission } = yield call(CoreAPI.updateSubmission, {
       id: action.payload.id,
-      values: action.payload.memberItem.values,
+      values: values,
     });
     if (action.payload.emailChanged) {
       let user = {
@@ -1762,9 +1767,16 @@ export function* refundTransaction(action) {
           reason: action.payload.billingChangeReason,
         });
         action.payload.memberItem.values['Billing Changes'] = changes;
+
+        var values = {};
+        values['Refunded Payments'] =
+          action.payload.memberItem.values['Refunded Payments'];
+        values['Billing Changes'] =
+          action.payload.memberItem.values['Billing Changes'];
         action.payload.updateMember({
           id: action.payload.memberItem['id'],
           memberItem: action.payload.memberItem,
+          values: values,
         });
 
         action.payload.addNotification(
@@ -1884,10 +1896,14 @@ export function* refundPOSTransaction(action) {
             reason: action.payload.billingChangeReason,
           });
           action.payload.memberItem.values['Billing Changes'] = changes;
+
+          var values = {};
+          values['Billing Changes'] = changes;
           action.payload.updateMember({
             id: action.payload.memberItem.id,
             allMembers: action.payload.allMembers,
             memberItem: action.payload.memberItem,
+            values: values,
           });
         }
         action.payload.addNotification(
@@ -2489,6 +2505,7 @@ export function* promoteMember(action) {
     action.payload.updateMember({
       id: action.payload.memberItem['id'],
       memberItem: action.payload.memberItem,
+      values: action.payload.values,
       allMembers: action.payload.allMembers,
     });
     //    memberActivities.values['Content']['Submitter'] = action.payload.submitter;

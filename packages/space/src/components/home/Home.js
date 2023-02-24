@@ -40,7 +40,7 @@ const HomeComponent = ({
     <CreateDiscussionModal />
     <div className="page-panel page-panel--space-home">
       <h4 className="space-home-title">
-        <I18n>Welcome to kinops for</I18n> {spaceName}
+        <I18n>Welcome to GB Members for</I18n> {spaceName}
       </h4>
       {discussionsEnabled ? (
         <div className="page-title">

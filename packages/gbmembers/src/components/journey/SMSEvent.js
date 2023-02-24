@@ -670,11 +670,14 @@ export const SMSEventContainer = compose(
           submitter: profile.displayName,
         });
         journeyEvent.memberItem.values['Notes History'] = notesHistory;
+        let values = {};
+        values['Notes History'] = notesHistory;
         sendSms({
           sms: sms,
           target: journeyEvent.submission.values['Record Type'],
           id: journeyEvent.memberItem['id'],
           memberItem: journeyEvent.memberItem,
+          values: values,
           updateMember,
           createMemberActivities: createMemberActivities,
           addNotification: addNotification,

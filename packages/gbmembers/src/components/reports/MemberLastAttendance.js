@@ -51,6 +51,7 @@ export class MemberLastAttendance extends Component {
       .map(member => {
         return {
           name: member.values['First Name'] + ' ' + member.values['Last Name'],
+          program: member.values['Ranking Program'],
           memberID: member.id,
           lastAttendance: member.values['Last Attendance Date'],
         };
@@ -73,6 +74,11 @@ export class MemberLastAttendance extends Component {
             </NavLink>
           );
         },
+      },
+      {
+        accessor: 'program',
+        Header: 'Program',
+        width: 300,
       },
       {
         accessor: 'lastAttendance',

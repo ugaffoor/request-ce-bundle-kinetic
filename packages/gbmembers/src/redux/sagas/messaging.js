@@ -55,9 +55,15 @@ export function* sendSms(action) {
             myThis: action.payload.myThis,
             fetchMember: action.payload.fetchMember,
           });
+          var values =
+            action.payload.values !== undefined
+              ? action.payload.values
+              : action.payload.memberItem.values;
+
           action.payload.updateMember({
             id: action.payload.memberItem['id'],
             memberItem: action.payload.memberItem,
+            values: values,
             history: action.payload.memberItem.history,
             fetchMemberAdditional: action.payload.fetchMemberAdditional,
           });

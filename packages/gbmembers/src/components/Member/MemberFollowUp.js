@@ -222,9 +222,12 @@ export const MemberFollowUpContainer = compose(
       } else {
         memberItem.values['Reminder Date'] = '';
       }
+      let values = {};
+      values['Reminder Date'] = memberItem.values['Reminder Date'];
       updateMember({
         id: memberItem['id'],
         memberItem: memberItem,
+        values: values,
         history: memberItem.history,
         fromTasks: true,
       });

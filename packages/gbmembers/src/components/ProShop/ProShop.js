@@ -4432,9 +4432,12 @@ export const ProShopContainer = compose(
         }
       }
       memberItem.values['POS Profile ID'] = profileId;
+      var values = {};
+      values['POS Profile ID'] = profileId;
       updateMember({
         id: memberItem.id,
         memberItem,
+        values,
         allMembers,
         addNotification,
         setSystemError,
@@ -4443,10 +4446,12 @@ export const ProShopContainer = compose(
     autoCreateCardCompleted: ({ updateMember }) => (profileID, member) => {
       console.log('autoCreateCardCompleted');
       member.values['POS Profile ID'] = profileID;
-
+      var values = {};
+      values['POS Profile ID'] = profileID;
       updateMember({
         id: member.id,
         memberItem: member,
+        values,
       });
 
       posThis.setState({

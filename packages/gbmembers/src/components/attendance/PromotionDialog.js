@@ -80,10 +80,19 @@ export class PromotionDialog extends Component {
     member.attendancePerc = this.props.memberItem.attendancePerc;
     member.statusIndicator = this.props.memberItem.statusIndicator;
 
+    var values = {};
+    values['Last Promotion'] = this.props.memberItem.values['Last Promotion'];
+    values['Attendance Count'] = this.props.memberItem.values[
+      'Attendance Count'
+    ];
+    values['Ranking Program'] = this.props.memberItem.values['Ranking Program'];
+    values['Ranking Belt'] = this.props.memberItem.values['Ranking Belt'];
+
     this.props.promoteMember({
       createMemberActivities: this.props.createMemberActivities,
       updateMember: this.props.updateMember,
       memberItem: this.props.memberItem,
+      values: values,
       allMembers: this.props.allMembers,
       notes: $('#note').val(),
       gradingStatus: this.props.gradingStatus,

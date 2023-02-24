@@ -630,9 +630,12 @@ export const EmailEventContainer = compose(
           submitter: profile.displayName,
         });
         journeyEvent.memberItem.values['Notes History'] = notesHistory;
+        let values = {};
+        values['Notes History'] = notesHistory;
         updateMember({
           id: journeyEvent.memberItem['id'],
           memberItem: journeyEvent.memberItem,
+          values: values,
         });
       } else if (journeyEvent.submission.values['Record Type'] === 'Lead') {
         var notesHistory = journeyEvent.leadItem.values['History'];
