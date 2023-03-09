@@ -1243,7 +1243,7 @@ export function getJson(input) {
   }
 }
 
-export function memberStatusInDates(member, fromDate, toDate) {
+export function memberStatusInDates(member, fromDate, toDate, returnStatus) {
   var history =
     member.values['Status History'] !== undefined
       ? getJson(member.values['Status History'])
@@ -1255,8 +1255,8 @@ export function memberStatusInDates(member, fromDate, toDate) {
       var date2 = moment(stat2.date);
 
       try {
-        if (date1.isBefore(date2)) return -1;
-        if (date1.isAfter(date2)) return 1;
+        if (date1.isBefore(date2, 'day')) return -1;
+        if (date1.isAfter(date2, 'day')) return 1;
       } catch (error) {
         return 0;
       }
@@ -1289,14 +1289,19 @@ export function memberStatusInDates(member, fromDate, toDate) {
     }
     for (var i = statusHistorySorted.length - 1; i >= 0; i--) {
       if (
-        moment(new Date(statusHistorySorted[i]['date'])).isSameOrAfter(
+        (moment(new Date(statusHistorySorted[i]['date'])).isSameOrAfter(
           fromDate,
           'day',
         ) &&
-        moment(new Date(statusHistorySorted[i]['date'])).isSameOrBefore(
-          toDate,
-          'day',
-        )
+          moment(new Date(statusHistorySorted[i]['date'])).isSameOrBefore(
+            toDate,
+            'day',
+          )) ||
+        (fromDate.isSame(toDate, 'day') &&
+          fromDate.isAfter(
+            moment(new Date(statusHistorySorted[i]['date'])),
+            'day',
+          ))
       ) {
         if (statusHistorySorted[i]['status'] === 'Active') {
           return 'Active';
@@ -1341,18 +1346,8 @@ export function memberStatusInDates(member, fromDate, toDate) {
       }
     }
 
-    return member.values['Status'] === 'Inactive' ? '' : 'Active';
+    return returnStatus ? member['values']['Status'] : '';
   } else {
-    /*    var createdAt = moment(member.createdAt);
-    var updatedAt = moment(member.updatedAt);
-    return member.values['Status'] === 'Inactive' &&
-      (!moment(member.createdAt).isBetween(fromDate, toDate) ||
-        createdAt.day() === updatedAt.day())
-      ? ''
-      : moment(member.createdAt).isAfter(toDate)
-      ? ''
-      : member.values['Status'];
-  }*/
     if (
       member['values']['Date Joined'] !== undefined &&
       member['values']['Date Joined'] !== null &&
@@ -1369,11 +1364,17 @@ export function memberStatusInDates(member, fromDate, toDate) {
         )
       ) {
         return 'Active';
+      } else {
+        return returnStatus
+          ? member['values']['Status']
+          : member.values['Status'] === 'Inactive'
+          ? ''
+          : 'Active';
       }
     }
   }
 }
-export function memberPreviousStatus(member) {
+export function memberPreviousStatus(member, fromDate, toDate) {
   var history =
     member.values['Status History'] !== undefined
       ? getJson(member.values['Status History'])
@@ -1385,15 +1386,53 @@ export function memberPreviousStatus(member) {
       var date2 = moment(stat2.date);
 
       try {
-        if (date1.isBefore(date2)) return 1;
-        if (date1.isAfter(date2)) return -1;
+        if (date1.isBefore(date2, 'day')) return -1;
+        if (date1.isAfter(date2, 'day')) return 1;
       } catch (error) {
         return 0;
       }
       return 0;
     });
 
-    return statusHistorySorted[statusHistorySorted.length - 1]['status'];
+    for (var i = statusHistorySorted.length - 1; i >= 0; i--) {
+      if (
+        moment(new Date(statusHistorySorted[i]['date'])).isSameOrAfter(
+          fromDate,
+          'day',
+        ) &&
+        moment(new Date(statusHistorySorted[i]['date'])).isSameOrBefore(
+          toDate,
+          'day',
+        )
+      ) {
+        if (i > 0) {
+          if (statusHistorySorted[i - 1]['status'] === 'Active') {
+            return 'Active';
+          } else if (statusHistorySorted[i - 1]['status'] === 'Inactive') {
+            return 'Inactive';
+          } else if (statusHistorySorted[i - 1]['status'] === 'Casual') {
+            return 'Casual';
+          } else if (
+            statusHistorySorted[i - 1]['status'] === 'Pending Cancellation'
+          ) {
+            return 'Pending Cancellation';
+          } else if (
+            statusHistorySorted[i - 1]['status'] === 'Frozen' ||
+            statusHistorySorted[i - 1]['status'] === 'Suspended'
+          ) {
+            return 'Frozen';
+          } else if (
+            statusHistorySorted[i - 1]['status'] === 'Pending Freeze' ||
+            statusHistorySorted[i - 1]['status'] === 'Pending Suspension'
+          ) {
+            return 'Pending Freeze';
+          }
+        }
+      } else {
+      }
+    }
+
+    return '';
   } else {
     return '';
   }

@@ -367,6 +367,10 @@ export const HomeContainer = compose(
       }
       //      this.props.fetchLeadsByDate();
 
+      if (this.props.monthlyStatistics.length === 0) {
+        this.props.fetchMonthlyStatistics();
+      }
+
       let currency = getAttributeValue(this.props.space, 'Currency');
       if (currency === undefined) currency = 'USD';
 

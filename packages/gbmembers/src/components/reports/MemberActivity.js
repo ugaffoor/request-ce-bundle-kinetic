@@ -53,7 +53,13 @@ export class MemberActivityReport extends Component {
 
     this.columns = [
       { title: 'Last Modified Date', field: 'lastModifiedDate' },
-      { title: 'Name', field: 'name', tooltip: true, bottomCalc: 'count' },
+      {
+        title: 'Name',
+        field: 'name',
+        tooltip: true,
+        bottomCalc: 'count',
+        formatter: reactFormatter(<this.OpenMemberCellButton />),
+      },
       { title: 'First Name', field: 'firstname' },
       { title: 'Last Name', field: 'lastname' },
       { title: 'Gender', field: 'gender' },
@@ -888,6 +894,16 @@ export class MemberActivityReport extends Component {
 
   handleIncludesChange = options => {
     this.setState({ includesValue: options });
+  };
+  OpenMemberCellButton = (props: any) => {
+    return (
+      <a
+        href={`/#/kapps/gbmembers/Member/${props.cell.getData().id}`}
+        className=""
+      >
+        {props.cell.getValue()}
+      </a>
+    );
   };
 
   ExpandNotesCellButton = (props: any) => {

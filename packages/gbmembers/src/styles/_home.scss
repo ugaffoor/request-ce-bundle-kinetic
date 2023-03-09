@@ -371,6 +371,9 @@
             margin-right: 10px;
             margin-bottom: 10px;
             table {
+              .frozenCount {
+                color: darkblue;
+              }
               width: 100%;
               .left {
                 text-align: left !important;

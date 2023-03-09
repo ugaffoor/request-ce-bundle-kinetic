@@ -1404,7 +1404,7 @@ export class LeadsActivityReport extends Component {
 
           events.forEach((event, i) => {
             data[data.length] = {
-              Date: moment(event['createdAt']).format(contact_date_format),
+              Date: moment(event['createdAt']).format('YYYY-MM-DD HH:mm'),
               Status: event.values['Status'],
               'Contact Type': event.values['Contact Type'],
               Note: event.values['Template Name'],
@@ -1430,7 +1430,7 @@ export class LeadsActivityReport extends Component {
               data[data.length] = {
                 Date: moment(leadItem['createdAt'])
                   .add(trigger.values['Lead Condition Duration'], 'days')
-                  .format(contact_date_format),
+                  .format('YYYY-MM-DD HH:mm'),
                 Status: 'Defined',
                 'Contact Type': trigger.values['Contact Type'],
                 Note: 'Defined',
@@ -1444,7 +1444,7 @@ export class LeadsActivityReport extends Component {
             if (note['note'].indexOf('Journey Event:') === -1) {
               if (note['note'].indexOf('Website page') !== -1) {
                 websiteNote = {
-                  Date: moment(note['contactDate']).format(contact_date_format),
+                  Date: moment(note['contactDate']).format('YYYY-MM-DD HH:mm'),
                   Status: 'Website',
                   'Contact Type': 'Website',
                   Note: note['note'],
@@ -1452,7 +1452,7 @@ export class LeadsActivityReport extends Component {
                 };
               } else {
                 data[data.length] = {
-                  Date: moment(note['contactDate']).format(contact_date_format),
+                  Date: moment(note['contactDate']).format('YYYY-MM-DD HH:mm'),
                   Status: 'Manual',
                   'Contact Type': note['contactMethod'],
                   Note: note['note'],

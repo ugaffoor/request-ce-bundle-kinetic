@@ -2036,6 +2036,8 @@ export const MemberEditContainer = compose(
           field => (values[field.field] = memberItem.values[field.field]),
         );
         values['Member Changes'] = changes;
+        values['Status'] = memberItem.values['Status'];
+        values['Status History'] = memberItem.values['Status History'];
         updateMember({
           id: memberItem.id,
           memberItem,

@@ -315,7 +315,7 @@ export const ReportsView = ({
           <button
             type="button"
             className="btn btn-primary report-btn-default"
-            disabled={!dummyFormLoaded}
+            disabled={true}
             onClick={e =>
               setShowMemberFinancialStats(
                 showMemberFinancialStats ? false : true,
@@ -349,6 +349,9 @@ export const ReportsView = ({
               FAILEDpaymentHistoryLoading={FAILEDpaymentHistoryLoading}
               SUCCESSFULpaymentHistory={SUCCESSFULpaymentHistory}
               SUCCESSFULpaymentHistoryLoading={SUCCESSFULpaymentHistoryLoading}
+              fetchServicesByDate={fetchServicesByDate}
+              services={services}
+              servicesLoading={servicesLoading}
               space={space}
               profile={profile}
             />

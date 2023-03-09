@@ -277,6 +277,27 @@ export class StripeOverdues extends Component {
           </span>
         ),
       },
+      {
+        accessor: 'memberGUID',
+        headerClassName: 'refund',
+        className: 'refund',
+        width: 200,
+        Cell: props => (
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={e => {
+              window.location =
+                '/#/kapps/services/categories/stripe-billing/stripe-change-payment-type?id=' +
+                props.value +
+                '&overdue=' +
+                props.original.overdueAmount;
+            }}
+          >
+            Update Credit Card
+          </button>
+        ),
+      },
     ];
     return columns;
   }

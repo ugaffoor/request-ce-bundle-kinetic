@@ -380,6 +380,66 @@ export class Statistics extends Component {
 
     return activeMembers;
   }
+  getFrozenMembers(allMembers, day) {
+    var frozenMembers = 0;
+    allMembers.forEach((member, i) => {
+      if (
+        member['values']['Status History'] === undefined ||
+        member['values']['Status History'] === ''
+      ) {
+      } else {
+        var statusHistory = JSON.parse(member['values']['Status History']);
+        var statusHistorySorted = statusHistory.sort(function(stat1, stat2) {
+          var date1 = moment(stat1.date);
+          var date2 = moment(stat2.date);
+
+          try {
+            if (date1.isBefore(date2)) return 1;
+            if (date1.isAfter(date2)) return -1;
+          } catch (error) {
+            return 0;
+          }
+          return 0;
+        });
+
+        // Locate the Status of Member on this date
+        for (var idx = statusHistorySorted.length - 1; idx >= 0; idx--) {
+          let currentDate = moment(statusHistorySorted[idx].date);
+          let currentStatus = statusHistorySorted[idx].status;
+          let nextStatus = undefined;
+          let nextDate = undefined;
+
+          if (idx > 0) {
+            nextStatus = statusHistorySorted[idx - 1].status;
+            nextDate = moment(statusHistorySorted[idx - 1].date);
+          }
+
+          if (
+            day.isSameOrAfter(currentDate, 'day') &&
+            (nextDate === undefined || day.isSameOrBefore(nextDate, 'day'))
+          ) {
+            if (currentStatus === 'Frozen') {
+              frozenMembers = frozenMembers + 1;
+              if (day.month() === 13) {
+                console.log(
+                  day.format('YYYY-MM-DD') +
+                    ' 3, Frozen Member,' +
+                    member['values']['Date Joined'] +
+                    ', ' +
+                    member['values']['First Name'] +
+                    ' ' +
+                    member['values']['Last Name'],
+                );
+              }
+              idx = -1; //Break
+            }
+          }
+        }
+      }
+    });
+
+    return frozenMembers;
+  }
   getTwelveMonthRetentionRate(allMembers, monthlyStatistics) {
     var twelveMonthRates = [];
     var rententionRate = 0;
@@ -412,7 +472,10 @@ export class Statistics extends Component {
       ).endOf('month');
       var beginOfMonth =
         i === 0 ? 0 : this.getActiveMembers(allMembers, firstDayOfMonth);
+      var beginOfMonthFrozen =
+        i === 0 ? 0 : this.getFrozenMembers(allMembers, firstDayOfMonth);
       var endOfMonth = this.getActiveMembers(allMembers, lastDayOfMonth);
+      var endOfMonthFrozen = this.getFrozenMembers(allMembers, lastDayOfMonth);
       var newMembers = this.getNewMembers(
         allMembers,
         firstDayOfMonth,
@@ -432,7 +495,9 @@ export class Statistics extends Component {
           .subtract(1, 'months')
           .format('MMMM'),
         beginOfMonth: beginOfMonth,
+        beginOfMonthFrozen: beginOfMonthFrozen,
         endOfMonth: endOfMonth,
+        endOfMonthFrozen: endOfMonthFrozen,
         newMembers: newMembers,
         rententionRate: (
           (endOfMonth - newMembers) /
@@ -451,12 +516,13 @@ export class Statistics extends Component {
       values: twelveMonthRates,
       newMembersTotal: newMembersTotal,
       retentionTotalMonths: retentionTotalMonths,
-      retentionTotal: (
-        retentionTotal / retentionTotalMonths
-      ).toLocaleString(undefined, {
-        style: 'percent',
-        minimumFractionDigits: 2,
-      }),
+      retentionTotal: (retentionTotal / retentionTotalMonths).toLocaleString(
+        undefined,
+        {
+          style: 'percent',
+          minimumFractionDigits: 2,
+        },
+      ),
       twelveMonthAverage: (
         (periodEndCount - newMembersTotal) /
         periodStartCount
@@ -2200,7 +2266,7 @@ export class Statistics extends Component {
                               <td className="col2">
                                 The number of students are any student that
                                 during the period has a status of Active or
-                                Frozen.
+                                Frozen(Identified as blue).
                               </td>
                             </tr>
                             {/*  <tr>
@@ -2227,8 +2293,18 @@ export class Statistics extends Component {
                             (monthStat, index) => (
                               <tr key={index}>
                                 <td className="left">{monthStat.month}</td>
-                                <td>{monthStat.beginOfMonth}</td>
-                                <td>{monthStat.endOfMonth}</td>
+                                <td>
+                                  {monthStat.beginOfMonth}
+                                  <span className="frozenCount">
+                                    ({monthStat.beginOfMonthFrozen})
+                                  </span>
+                                </td>
+                                <td>
+                                  {monthStat.endOfMonth}
+                                  <span className="frozenCount">
+                                    ({monthStat.endOfMonthFrozen})
+                                  </span>
+                                </td>
                                 <td>{monthStat.newMembers}</td>
                                 <td className="right">
                                   {monthStat.rententionRate}

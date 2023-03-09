@@ -1606,6 +1606,10 @@ class LeadEmails extends Component {
   substituteFields(body) {
     if (body === undefined) return '';
     body = body.replace(
+      /\${submitterName}/g,
+      this.props.campaignItem.createdBy,
+    );
+    body = body.replace(
       /member\('First Name'\)/g,
       this.props.leadItem.values['First Name'],
     );
