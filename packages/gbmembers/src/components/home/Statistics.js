@@ -23,6 +23,7 @@ import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 var compThis = undefined;
 var twelveMonthRetentionRateData = undefined;
 var retentionRateData = 0;
+var apsData = 0;
 
 export class Statistics extends Component {
   handleClose = () => {
@@ -104,7 +105,7 @@ export class Statistics extends Component {
       let leads = nextProps.leadsByDate;
       let leadData = this.getData(
         leads,
-        this.state.allMembers,
+        nextProps.allMembers,
         this.state.fromDate,
         this.state.toDate,
         this.state.LCTViewSwitch,
@@ -127,7 +128,7 @@ export class Statistics extends Component {
       let leads = nextProps.leadsByDate;
       let leadData = this.getData(
         leads,
-        this.state.allMembers,
+        nextProps.allMembers,
         this.state.fromDate,
         this.state.toDate,
         this.state.LCTViewSwitch,
@@ -178,7 +179,13 @@ export class Statistics extends Component {
         nextProps.allMembers,
         monthlyStatisticsSorted,
       );
+      /*      apsData = this.getAPSRate(
+        nextProps.allMembers,
+        monthlyStatisticsSorted,
+      ); */
+
       this.setState({
+        apsData: apsData,
         retentionRate: retentionRateData,
         twelveMonthRetentionRate: twelveMonthRetentionRateData,
       });
@@ -197,7 +204,21 @@ export class Statistics extends Component {
       this.props.getOverdues();
     }
   }
+  getAPSRate(allMembers, monthlyStatistics) {
+    if (monthlyStatistics.length > 1) {
+      let month = monthlyStatistics[monthlyStatistics.length - 1];
+      let lastDayOfMonth = moment(
+        month.values['Year'] + '-' + month.values['Month'] + '-01',
+      ).endOf('month');
 
+      var billingAmount = month.values['Monthly Revenue'];
+      var endOfMonth = this.getActiveMembers(allMembers, lastDayOfMonth);
+
+      return parseFloat(billingAmount) / endOfMonth;
+    } else {
+      return 0;
+    }
+  }
   getRetentionRate(allMembers, monthlyStatistics) {
     if (monthlyStatistics.length > 1) {
       let prevMonth = monthlyStatistics[monthlyStatistics.length - 2];

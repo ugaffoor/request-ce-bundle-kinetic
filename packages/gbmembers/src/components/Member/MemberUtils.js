@@ -1266,8 +1266,12 @@ export function memberStatusInDates(member, fromDate, toDate, returnStatus) {
     let oldestDate = moment(
       statusHistorySorted[statusHistorySorted.length - 1].date,
     );
+    let oldestStatus =
+      statusHistorySorted[statusHistorySorted.length - 1].status;
+
     if (oldestDate.isBetween(fromDate, toDate)) {
-      // Looking for New Members
+      return oldestStatus;
+      /*      // Looking for New Members
       if (
         member['values']['Date Joined'] !== undefined &&
         member['values']['Date Joined'] !== null &&
@@ -1283,9 +1287,11 @@ export function memberStatusInDates(member, fromDate, toDate, returnStatus) {
             'day',
           )
         ) {
-          return 'Active';
+          return returnStatus
+          ? member['values']['Status']
+          : 'Active';
         }
-      }
+      } */
     }
     for (var i = statusHistorySorted.length - 1; i >= 0; i--) {
       if (

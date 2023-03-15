@@ -30,6 +30,7 @@ import SVGInline from 'react-svg-inline';
 import crossIcon from '../../images/cross.svg?raw';
 import { actions as leadsActions } from '../../redux/modules/leads';
 import { actions as servicesActions } from '../../redux/modules/services';
+import helpIcon from '../../images/help.svg?raw';
 
 const mapStateToProps = state => ({
   members: state.member.members.allMembers,
@@ -127,6 +128,7 @@ export class MemberFinancialReport extends Component {
       repBillingPeriod: 'monthly',
       repViewPeriod: 'this_period',
       showRepAccountHolders: false,
+      showConcernedMembers: false,
     };
   }
 
@@ -148,12 +150,25 @@ export class MemberFinancialReport extends Component {
       });
       this.paymentHistory = [];
       nextProps.paymentHistory.forEach((item, i) => {
+        if (
+          getAttributeValue(this.props.space, 'Billing Company') === 'Bambora'
+        ) {
+          var isRefunded = false;
+          var rIdx = nextProps.customerRefunds.findIndex(
+            refund => refund.yourSystemReference === item.paymentID,
+          );
+          if (rIdx !== -1) {
+            isRefunded = true;
+          }
+        }
+
         // only keep period payments
         if (
           moment(item.debitDate, 'YYYY-MM-DD HH:mm:ss').isBetween(
             this.state.repFromDate,
             this.state.repToDate,
-          )
+          ) &&
+          !isRefunded
         ) {
           this.paymentHistory[this.paymentHistory.length] = item;
         }
@@ -166,30 +181,6 @@ export class MemberFinancialReport extends Component {
         }
         return 0;
       });
-
-      if (
-        getAttributeValue(this.props.space, 'Billing Company') === 'Bambora'
-      ) {
-        nextProps.billingCustomers.forEach((member, i) => {
-          var hIdx = this.paymentHistory.findIndex(
-            payment =>
-              payment.yourSystemReference === member.customerId &&
-              payment.paymentSource !== 'Manual Membership Payment' &&
-              payment.paymentSource !== 'Overdue Payment',
-          );
-          if (hIdx !== -1) {
-            let debitDate = moment(
-              this.paymentHistory[hIdx].debitDate,
-              'YYYY-MM-DD HH:mm:sss',
-            );
-            if (
-              debitDate.isAfter(moment(member.contractStartDate, 'YYYY-MM-DD'))
-            ) {
-              member.contractStartDate = debitDate.format('YYYY-MM-DD');
-            }
-          }
-        });
-      }
 
       if (
         getAttributeValue(this.props.space, 'Billing Company') === 'Bambora'
@@ -237,6 +228,30 @@ export class MemberFinancialReport extends Component {
           uniqueFailedHistory[uniqueFailedHistory.length] = failed;
         }
       });
+
+      if (
+        getAttributeValue(this.props.space, 'Billing Company') === 'Bambora'
+      ) {
+        nextProps.billingCustomers.forEach((member, i) => {
+          var hIdx = this.paymentHistory.findIndex(
+            payment =>
+              payment.yourSystemReference === member.customerId &&
+              payment.paymentSource !== 'Manual Membership Payment' &&
+              payment.paymentSource !== 'Overdue Payment',
+          );
+          if (hIdx !== -1) {
+            let debitDate = moment(
+              this.paymentHistory[hIdx].debitDate,
+              'YYYY-MM-DD HH:mm:sss',
+            );
+            if (
+              debitDate.isAfter(moment(member.contractStartDate, 'YYYY-MM-DD'))
+            ) {
+              member.contractStartDate = debitDate.format('YYYY-MM-DD');
+            }
+          }
+        });
+      }
 
       this.posOrders = [];
       nextProps.posOrders.forEach((item, i) => {
@@ -621,10 +636,12 @@ export class MemberFinancialReport extends Component {
     lastPayment,
     fullPaymentHistory,
     fromDate,
+    concernedMembers,
   ) {
     if (lastPayment.isSameOrAfter(fromDate)) {
       return false;
     }
+    concernedMembers[concernedMembers.length] = member;
     return true;
   }
   isCashMember(members, member, lastPayment) {
@@ -865,7 +882,11 @@ export class MemberFinancialReport extends Component {
     });
 
     //    if (fromDate.month()>=moment().month() && toDate.month()>=moment().month()) {
-    var concernedDate = moment(fromDate).subtract(1, 'months');
+    var concernedDate = moment(fromDate).subtract(1, 'month');
+    if (moment(paymentHistory[0].debitDate).isAfter(concernedDate)) {
+      concernedDate = moment(paymentHistory[0].debitDate).subtract(1, 'month');
+    }
+    var concernedMembers = [];
 
     billingCustomers.forEach((member, i) => {
       //Set id value of members
@@ -893,11 +914,23 @@ export class MemberFinancialReport extends Component {
       ) {
         // Find latest payment date
         var idx = fullPaymentHistory.findIndex(item => {
-          return (
+          if (
             member.customerId === item.yourSystemReference &&
             item.paymentSource !== 'Manual Membership Payment' &&
             item.paymentSource !== 'Overdue Payment'
-          );
+          ) {
+            //Ensure no refund was done
+            var refundedIdx = customerRefunds.findIndex(
+              refund => refund.yourSystemReference === item.paymentID,
+            );
+            if (refundedIdx !== -1) {
+              return false;
+            } else {
+              return true;
+            }
+          } else {
+            return false;
+          }
         });
         var lastPayment;
         if (idx !== -1) {
@@ -932,6 +965,7 @@ export class MemberFinancialReport extends Component {
           lastPayment,
           fullPaymentHistory,
           concernedDate,
+          concernedMembers,
         );
         if (
           failedIdx === -1 &&
@@ -1217,6 +1251,7 @@ export class MemberFinancialReport extends Component {
         members: cashPayments,
         value: cashPaymentsValue,
       },
+      concernedMembers: concernedMembers,
     };
   }
 
@@ -2217,6 +2252,76 @@ export class MemberFinancialReport extends Component {
   render() {
     return (
       <span className="financialStats">
+        {this.state.showConcernedMembers && (
+          <div className="members concernedMembers">
+            <span
+              className="closeMembers"
+              onClick={e =>
+                this.setState({
+                  showConcernedMembers: false,
+                })
+              }
+            >
+              <SVGInline svg={crossIcon} className="icon" />
+            </span>
+            <div className="concernedMembers">
+              <span className="concernedMembersHelp">
+                <table>
+                  <tbody>
+                    <tr>
+                      <td className="col1" colSpan="2">
+                        When calculating the forecast values for a period. These
+                        members have data that needs to be reviewed. The member
+                        has not been included in the forecast calculation.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </span>
+              <div className="concernedMembersInfo">
+                <table>
+                  <tbody>
+                    <tr>
+                      <th>Name</th>
+                      <th>Last Billing Date</th>
+                    </tr>
+                    {this.state.repMemberData.concernedMembers
+                      .filter(member => {
+                        if (
+                          member.member !== undefined &&
+                          member.member.values['Billing Payment Type'] ===
+                            'Cash'
+                        ) {
+                          return false;
+                        }
+                        return true;
+                      })
+                      .map((member, index) => (
+                        <tr key={index}>
+                          <td className="left">
+                            {member.member !== undefined && (
+                              <NavLink
+                                to={`/Member/${member.member.id}`}
+                                className=""
+                              >
+                                {member['firstName'] + ' ' + member['lastName']}
+                              </NavLink>
+                            )}
+                            {member.member === undefined && (
+                              <span>
+                                {member['firstName'] + ' ' + member['lastName']}
+                              </span>
+                            )}
+                          </td>
+                          <td>{member.contractStartDate}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
         {this.state.showAccountHolders && (
           <div className="members">
             <span
@@ -2818,7 +2923,18 @@ export class MemberFinancialReport extends Component {
               <div className="column col4"></div>
             </div>
             <div className="row header9">
-              <div className="column col1">Forecast</div>
+              <div className="column col1">
+                Forecast
+                <SVGInline
+                  svg={helpIcon}
+                  className="icon help"
+                  onClick={e => {
+                    this.setState({
+                      showConcernedMembers: true,
+                    });
+                  }}
+                />
+              </div>
               <div className="column col2">
                 <div className="dollarValue">
                   {new Intl.NumberFormat(this.locale, {
