@@ -1437,9 +1437,9 @@ class PayNow extends Component {
         Math.round(posThis.state.total * 100),
       )
       .then(function(client_secret) {
-        terminal.setSimulatorConfiguration({
-          testCardNumber: '4242424242424242',
-        });
+        //        terminal.setSimulatorConfiguration({
+        //          testCardNumber: '4242424242424242',
+        //        });
         //        terminal.setSimulatorConfiguration({testCardNumber: '4000000000000002'}); // charge_declined
         //        terminal.setSimulatorConfiguration({testCardNumber: '4000000000009995'}); // charge_declined_insufficient_funds
         //        terminal.setSimulatorConfiguration({testCardNumber: '4001007020000002'}); // offline_pin_cvm

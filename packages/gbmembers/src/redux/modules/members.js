@@ -72,6 +72,7 @@ export const types = {
     'members',
     'REFUND_TRANSACTION_COMPLETE',
   ),
+  REFUND_CASH_TRANSACTION: namespace('members', 'REFUND_CASH_TRANSACTION'),
   REFUND_POS_TRANSACTION: namespace('members', 'REFUND_POS_TRANSACTION'),
   REFUND_POS_TRANSACTION_COMPLETE: namespace(
     'members',
@@ -176,6 +177,7 @@ export const actions = {
   refundTransaction: withPayload(types.REFUND_TRANSACTION),
   refundTransactionComplete: withPayload(types.REFUND_TRANSACTION_COMPLETE),
   refundPOSTransaction: withPayload(types.REFUND_POS_TRANSACTION),
+  refundCashTransaction: withPayload(types.REFUND_CASH_TRANSACTION),
   refundPOSTransactionComplete: withPayload(
     types.REFUND_POS_TRANSACTION_COMPLETE,
   ),
@@ -287,6 +289,8 @@ export const reducer = (state = State(), { type, payload }) => {
           value: payload.value,
         });
     case types.REFUND_POS_TRANSACTION:
+      return state.set('refundPOSTransactionInProgress', true);
+    case types.REFUND_CASH_TRANSACTION:
       return state.set('refundPOSTransactionInProgress', true);
     case types.REFUND_POS_TRANSACTION_COMPLETE:
       return state

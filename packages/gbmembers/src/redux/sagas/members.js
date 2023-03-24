@@ -1807,6 +1807,7 @@ export function* refundTransaction(action) {
 
 export function* refundPOSTransaction(action) {
   const appSettings = yield select(getAppSettings);
+
   let args = {};
   args.space = appSettings.spaceSlug;
   args.billingService = appSettings.billingCompany;
@@ -1931,7 +1932,106 @@ export function* refundPOSTransaction(action) {
       //action.payload.setSystemError(error);
     });
 }
+export function* refundCashTransaction(action) {
+  const appSettings = yield select(getAppSettings);
 
+  var order =
+    action.payload.memberItem.posOrders[
+      action.payload.memberItem.posOrders.findIndex(
+        item => item.id === action.payload.orderid,
+      )
+    ];
+  var products = JSON.parse(order['POS Checkout JSON'])['Checkout Items']
+    .products;
+  products.forEach((product, i) => {
+    if (product.productType === 'Apparel') {
+      action.payload.incrementPOSStock({
+        productID: product['productID'],
+        size: product['size'],
+        quantity: product['quantity'],
+      });
+      var pIdx = action.payload.memberItem.posItems.findIndex(
+        item =>
+          item['Product ID'] === product['productID'] &&
+          item['Size'] === product['size'] &&
+          parseInt(item['Quantity']) === product['quantity'] &&
+          item['Person ID'] === action.payload.memberItem.id,
+      );
+      if (pIdx !== -1) {
+        action.payload.deletePOSPurchasedItem({
+          id: action.payload.memberItem.posItems[pIdx].id,
+        });
+      }
+    } else if (product.productType === 'Package') {
+      product.packageStock.forEach((packageProduct, i) => {
+        action.payload.incrementPOSStock({
+          productID: packageProduct['productID'],
+          size: packageProduct['size'],
+          quantity: product['quantity'],
+        });
+        var pIdx = action.payload.memberItem.posItems.findIndex(
+          item =>
+            item['Product ID'] === packageProduct['productID'] &&
+            item['Size'] === packageProduct['size'] &&
+            parseInt(item['Quantity']) === product['quantity'] &&
+            item['Person ID'] === action.payload.memberItem.id,
+        );
+        if (pIdx !== -1) {
+          action.payload.deletePOSPurchasedItem({
+            id: action.payload.memberItem.posItems[pIdx].id,
+          });
+        }
+      });
+    }
+  });
+
+  var orderValues = {};
+  orderValues['Status'] = 'Refunded';
+  orderValues['Refund'] = action.payload.refundAmount;
+  action.payload.updatePOSOrder({
+    id: order.id,
+    values: orderValues,
+  });
+
+  if (action.payload.memberItem.form.slug === 'member') {
+    let changes = getBillingChanges(action.payload.memberItem);
+    changes.push({
+      date: moment().format(contact_date_format),
+      user: appSettings.profile.username,
+      action: 'Refund Transaction',
+      to: { amount: +action.payload.refundAmount / 100 },
+      reason: action.payload.billingChangeReason,
+    });
+    action.payload.memberItem.values['Billing Changes'] = changes;
+
+    var values = {};
+    values['Billing Changes'] = changes;
+    action.payload.updateMember({
+      id: action.payload.memberItem.id,
+      allMembers: action.payload.allMembers,
+      memberItem: action.payload.memberItem,
+      values: values,
+    });
+  }
+  action.payload.addNotification(
+    NOTICE_TYPES.SUCCESS,
+    'Payment refunded successfully',
+    'Refund Transaction',
+  );
+  action.payload.refundPOSTransactionComplete({
+    id: action.payload.orderid,
+    value: action.payload.refundAmount,
+  });
+
+  if (action.payload.billingThis) {
+    action.payload.billingThis.setState({
+      showPaymentHistory: false,
+    });
+    action.payload.billingThis.setState({
+      showPaymentHistory: true,
+    });
+  }
+}
 export function* fetchDdrStatus(action) {
   const appSettings = yield select(getAppSettings);
   let args = {};
@@ -2667,6 +2767,7 @@ export function* watchMembers() {
   yield takeEvery(types.EDIT_PAYMENT_METHOD, editPaymentMethod);
   yield takeEvery(types.REFUND_TRANSACTION, refundTransaction);
   yield takeEvery(types.REFUND_POS_TRANSACTION, refundPOSTransaction);
+  yield takeEvery(types.REFUND_CASH_TRANSACTION, refundCashTransaction);
   yield takeEvery(types.SYNC_BILLING_CUSTOMER, syncBillingCustomer);
   yield takeEvery(types.FETCH_NEW_CUSTOMERS, fetchNewCustomers);
   yield takeEvery(types.FETCH_DDR_STATUS, fetchDdrStatus);

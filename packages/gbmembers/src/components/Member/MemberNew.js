@@ -1115,7 +1115,11 @@ export const MemberNewContainer = compose(
         handleDynamicChange(nextProps.memberItem, 'Address', 'address');
         $('#suburb').val(nextProps.leadItem.values['Suburb']);
         handleDynamicChange(nextProps.memberItem, 'Suburb', 'suburb');
-        $('#state').val(nextProps.leadItem.values['State'].toUpperCase());
+        $('#state').val(
+          nextProps.leadItem.values['State'] !== undefined
+            ? nextProps.leadItem.values['State'].toUpperCase()
+            : '',
+        );
         handleDynamicChange(nextProps.memberItem, 'State', 'state');
         $('#email').val(nextProps.leadItem.values['Email']);
         handleDynamicChange(nextProps.memberItem, 'Email', 'email');

@@ -154,12 +154,12 @@ export class MemberFinancialReport extends Component {
           getAttributeValue(this.props.space, 'Billing Company') === 'Bambora'
         ) {
           var isRefunded = false;
-          var rIdx = nextProps.customerRefunds.findIndex(
+          /*          var rIdx = nextProps.customerRefunds.findIndex(
             refund => refund.yourSystemReference === item.paymentID,
           );
           if (rIdx !== -1) {
             isRefunded = true;
-          }
+          } */
         }
 
         // only keep period payments
@@ -409,12 +409,16 @@ export class MemberFinancialReport extends Component {
     });
 
     this.props.fetchCustomerRefunds({
-      dateFrom: this.state.repFromDate.format('YYYY-MM-DD'),
-      dateTo: this.state.repToDate.format('YYYY-MM-DD'),
+      dateFrom: moment(this.state.repFromDate)
+        .subtract(1, 'days')
+        .format('YYYY-MM-DD'),
+      dateTo: moment(this.state.repToDate)
+        .add(1, 'days')
+        .format('YYYY-MM-DD'),
       setCustomerRefunds: this.props.setCustomerRefunds,
       setSystemError: this.props.setSystemError,
       addNotification: this.props.addNotification,
-      timezoneOffset: getTimezoneOff(),
+      /*      timezoneOffset: getTimezoneOff(), */
     });
     this.props.fetchCashPaymentsByDate({
       dateFrom: this.state.repFromDate.format('YYYY-MM-DD'),
@@ -533,12 +537,16 @@ export class MemberFinancialReport extends Component {
           : '',
     });
     this.props.fetchCustomerRefunds({
-      dateFrom: fromDate.format('YYYY-MM-DD'),
-      dateTo: toDate.format('YYYY-MM-DD'),
+      dateFrom: moment(fromDate)
+        .subtract(1, 'days')
+        .format('YYYY-MM-DD'),
+      dateTo: moment(toDate)
+        .add(1, 'days')
+        .format('YYYY-MM-DD'),
       setCustomerRefunds: this.props.setCustomerRefunds,
       setSystemError: this.props.setSystemError,
       addNotification: this.props.addNotification,
-      timezoneOffset: getTimezoneOff(),
+      /*     timezoneOffset: getTimezoneOff(),*/
     });
     this.props.fetchCashPaymentsByDate({
       dateFrom: fromDate.format('YYYY-MM-DD'),

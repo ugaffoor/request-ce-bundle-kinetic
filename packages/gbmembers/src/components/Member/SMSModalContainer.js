@@ -202,9 +202,13 @@ export class SMSModal extends Component {
       var dt =
         value.values['Direction'] === 'Outbound'
           ? content['Sent Date']
-          : content['Received Date'];
+          : /*content['Received Date'];*/ value['createdAt'];
 
-      dt = moment(dt, ['L HH:mm', 'DD-MM-YYYY HH:mm']);
+      dt = moment(dt, [
+        'L HH:mm',
+        'DD-MM-YYYY HH:mm',
+        'YYYY-MM-DDThh:mm:ss.SSSZ',
+      ]);
       //      dt = dt.add(moment().utcOffset() * 60, 'seconds');
 
       dt = moment(value['createdAt']);
@@ -217,12 +221,14 @@ export class SMSModal extends Component {
     });
     smsValues.sort(function(sms1, sms2) {
       if (
-        moment(sms1['Date'], 'L HH:mm').isAfter(moment(sms2['Date'], 'L HH:mm'))
+        moment(sms1['Date'], 'L hh:mm A').isAfter(
+          moment(sms2['Date'], 'L hh:mm A'),
+        )
       ) {
         return -1;
       } else if (
-        moment(sms1['Date'], 'L HH:mm').isBefore(
-          moment(sms2['Date'], 'L HH:mm'),
+        moment(sms1['Date'], 'L hh:mm A').isBefore(
+          moment(sms2['Date'], 'L hh:mm A'),
         )
       ) {
         return 1;

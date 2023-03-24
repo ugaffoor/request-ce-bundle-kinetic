@@ -115,6 +115,7 @@ const mapDispatchToProps = {
   setNewCustomers: actions.setNewCustomers,
   refundTransaction: actions.refundTransaction,
   refundPOSTransaction: actions.refundPOSTransaction,
+  refundCashTransaction: actions.refundCashTransaction,
   refundPOSTransactionComplete: actions.refundPOSTransactionComplete,
   updatePOSOrder: posActions.updatePOSOrder,
   incrementPOSStock: posActions.incrementPOSStock,
@@ -2236,6 +2237,7 @@ export const MemberViewContainer = compose(
     },
     refundPOSPayment: ({
       memberItem,
+      refundCashTransaction,
       refundPOSTransaction,
       refundPOSTransactionComplete,
       updatePOSOrder,
@@ -2271,7 +2273,11 @@ export const MemberViewContainer = compose(
       args.deletePOSPurchasedItem = deletePOSPurchasedItem;
       args.refundPOSTransactionComplete = refundPOSTransactionComplete;
 
-      refundPOSTransaction(args);
+      if (paymentId === 'cash') {
+        refundCashTransaction(args);
+      } else {
+        refundPOSTransaction(args);
+      }
     },
     createUserAccount: ({
       allMembers,

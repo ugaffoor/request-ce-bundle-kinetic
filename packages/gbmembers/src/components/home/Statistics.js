@@ -313,7 +313,14 @@ export class Statistics extends Component {
           }
         }
       } else {
-        var statusHistory = JSON.parse(member['values']['Status History']);
+        var statusHistory = JSON.parse(
+          member['values']['Status History'] === null ||
+            member['values']['Status History'] === undefined
+            ? '[]'
+            : member['values']['Status History'],
+        );
+        let oldestDate = undefined;
+
         var statusHistorySorted = statusHistory.sort(function(stat1, stat2) {
           var date1 = moment(stat1.date);
           var date2 = moment(stat2.date);
@@ -327,10 +334,10 @@ export class Statistics extends Component {
           return 0;
         });
 
-        let oldestDate = moment(
-          statusHistorySorted[statusHistorySorted.length - 1].date,
-        );
-        if (day.isSameOrBefore(oldestDate)) {
+        if (statusHistorySorted.length > 0) {
+          moment(statusHistorySorted[statusHistorySorted.length - 1].date);
+        }
+        if (oldestDate !== undefined && day.isSameOrBefore(oldestDate)) {
           if (
             member['values']['Date Joined'] !== undefined &&
             member['values']['Date Joined'] !== null &&
@@ -406,6 +413,7 @@ export class Statistics extends Component {
     allMembers.forEach((member, i) => {
       if (
         member['values']['Status History'] === undefined ||
+        member['values']['Status History'] === null ||
         member['values']['Status History'] === ''
       ) {
       } else {
@@ -737,14 +745,16 @@ export class Statistics extends Component {
 
     if (overdueRecords !== undefined) {
       overdueRecords.forEach(payment => {
-        overdues[overdues.length] = {
-          payment: payment,
-          member: members.find(
-            member =>
-              member.values['Billing Customer Id'] ===
-              payment.customerReference,
-          ),
-        };
+        var member = members.find(
+          member =>
+            member.values['Billing Customer Id'] === payment.customerReference,
+        );
+        if (member !== undefined) {
+          overdues[overdues.length] = {
+            payment: payment,
+            member: member,
+          };
+        }
       });
     }
     return {

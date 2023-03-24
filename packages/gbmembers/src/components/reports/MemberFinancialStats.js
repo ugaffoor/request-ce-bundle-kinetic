@@ -592,12 +592,13 @@ export class MemberFinancialStats extends Component {
       period = 'years';
     }
     var total = cost;
-    let startDate = moment(billing.contractStartDate).isAfter(fromDate)
-      ? moment(billing.contractStartDate)
-      : moment(fromDate);
+    let startDate = moment(billing.contractStartDate);
+    while (startDate.isBefore(fromDate)) {
+      startDate = startDate.add(period, periodCount);
+    }
 
     var nextBillingDate = startDate.add(period, periodCount);
-    while (nextBillingDate.isBefore(fromDate)) {
+    while (nextBillingDate.isBefore(toDate)) {
       total = total + cost;
       nextBillingDate = nextBillingDate.add(period, periodCount);
     }
