@@ -13,12 +13,18 @@ import $ from 'jquery';
 import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
 import { PaymentPeriod, PaymentType } from './BillingUtils';
 import NumberFormat from 'react-number-format';
+import MomentLocaleUtils, {
+  formatDate,
+  parseDate,
+} from 'react-day-picker/moment';
 import {
+  getLocalePreference,
   handleChange,
   handleFormattedChange,
   handleMultiSelectChange,
   getJson,
 } from './MemberUtils';
+import DayPickerInput from 'react-day-picker/DayPickerInput';
 import ReactTable from 'react-table';
 import 'react-table/react-table.css';
 import checkboxHOC from 'react-table/lib/hoc/selectTable';
@@ -116,6 +122,7 @@ const mapDispatchToProps = {
 };
 
 const ezidebit_date_format = 'YYYY-MM-DD HH:mm:ss';
+var compThis = undefined;
 
 function isValidFamilyMembers(familyMembers) {
   for (var i = 0; i < familyMembers.length; i++) {
@@ -418,6 +425,7 @@ class PayNow extends Component {
       this.completeCashPayment,
       this.props.billingInfo.nextBillingDate,
       this.props.memberItem,
+      this.props.updateMember,
     );
   }
   completeCashPayment() {
@@ -1790,11 +1798,15 @@ class BillingAudit extends Component {
 export class BillingInfo extends Component {
   constructor(props) {
     super(props);
+    compThis = this;
+
     moment.locale(
       this.props.profile.preferredLocale === null
         ? this.props.space.defaultLocale
         : this.props.profile.preferredLocale,
     );
+    this.completeRenewCashPayment = this.completeRenewCashPayment.bind(this);
+    this.processRenewCashPayment = this.processRenewCashPayment.bind(this);
 
     getAttributeValue(this.props.space, 'Billing Company');
     this.src =
@@ -1836,6 +1848,8 @@ export class BillingInfo extends Component {
       paymentHistoryBtnLabel,
       showBillingAudit: false,
       capturePayment: false,
+      cashRenewal: false,
+      processingRenewCash: false,
     };
   }
 
@@ -1904,7 +1918,100 @@ export class BillingInfo extends Component {
     });
     return memberData;
   }
+  getRenewalToDate(fromDate, memberItem) {
+    var period = memberItem.values['Billing Payment Period'];
 
+    if (period === 'Fortnightly' || period === 'Weekly') {
+      var from = moment(memberItem.values['Billing Cash Term Start Date']);
+      var to = moment(memberItem.values['Billing Cash Term End Date']);
+      var weeks = to.diff(from, 'weeks');
+
+      return fromDate.add(weeks, 'weeks');
+    }
+
+    if (period === 'Monthly') {
+      var from = moment(memberItem.values['Billing Cash Term Start Date']);
+      var to = moment(memberItem.values['Billing Cash Term End Date']);
+      var months = to.diff(from, 'months');
+
+      return fromDate.add(months, 'months');
+    }
+    return undefined;
+  }
+  processRenewCashPayment() {
+    this.setState({
+      processingRenewCash: true,
+    });
+
+    let values = {};
+    values['Member ID'] = this.props.memberItem.values['Member ID'];
+    values['Member GUID'] = this.props.memberItem.id;
+    values['Date'] = moment();
+    values['Amount'] = this.props.memberItem.values['Membership Cost'];
+
+    this.props.addCashPaymentValue(
+      values,
+      this.completeRenewCashPayment,
+      undefined,
+      this.props.memberItem,
+      this.props.updateMember,
+    );
+  }
+  completeRenewCashPayment(updateMember) {
+    var origStartDate = moment(
+      this.props.memberItem.values['Billing Cash Term Start Date'],
+      'YYYY-MM-DD',
+    );
+    var origEndDate = moment(
+      this.props.memberItem.values['Billing Cash Term End Date'],
+      'YYYY-MM-DD',
+    );
+
+    this.props.memberItem.values[
+      'Billing Cash Term Start Date'
+    ] = this.state.renewalFromDate.format('YYYY-MM-DD');
+    this.props.memberItem.values[
+      'Billing Cash Term End Date'
+    ] = this.state.renewalToDate.format('YYYY-MM-DD');
+
+    let changes = this.props.memberItem.values['Billing Changes'];
+    if (!changes) {
+      changes = [];
+    } else if (typeof changes !== 'object') {
+      changes = JSON.parse(changes);
+    }
+    changes.push({
+      date: moment().format(contact_date_format),
+      user: this.props.profile.username,
+      action: 'Cash Membership Renewal',
+      from: origStartDate.format('L') + ' - ' + origEndDate.format('L'),
+      to:
+        this.state.renewalFromDate.format('L') +
+        ' - ' +
+        this.state.renewalToDate.format('L'),
+    });
+
+    let values = {};
+    values['Billing Start Date'] = this.props.billingInfo.nextBillingDate;
+    values['Billing Cash Term Start Date'] = this.state.renewalFromDate.format(
+      'YYYY-MM-DD',
+    );
+    values['Billing Cash Term End Date'] = this.state.renewalToDate.format(
+      'YYYY-MM-DD',
+    );
+    values['Billing Changes'] = changes;
+
+    updateMember({
+      id: this.props.memberItem['id'],
+      memberItem: this.props.memberItem,
+      values: values,
+    });
+
+    this.setState({
+      processingRenewCash: false,
+      cashRenewal: false,
+    });
+  }
   handleInputChange(event) {
     this.setState({
       [event.target.name]: event.target.value,
@@ -1920,9 +2027,185 @@ export class BillingInfo extends Component {
           {this.props.memberItem.values['Last Name']}
         </h1>
         <hr />
-        {this.props.memberItem.values['Billing Payment Type'] === 'Cash' && (
-          <p>Cash</p>
-        )}
+        {this.props.memberItem.values['Billing Payment Type'] === 'Cash' &&
+          !this.state.cashRenewal && (
+            <div
+              className={
+                this.props.memberItem.values['Billing Payment Type'] === 'Cash'
+                  ? 'billingInfo show'
+                  : 'hide'
+              }
+            >
+              <p>
+                Cash paid for period{' '}
+                {moment(
+                  this.props.memberItem.values['Billing Cash Term Start Date'],
+                ).format('L')}{' '}
+                to{' '}
+                {moment(
+                  this.props.memberItem.values['Billing Cash Term End Date'],
+                ).format('L')}
+              </p>
+              <p>
+                Payment:{' '}
+                {new Intl.NumberFormat(this.props.locale, {
+                  style: 'currency',
+                  currency: this.props.currency,
+                }).format(this.props.memberItem.values['Membership Cost'])}
+              </p>
+              {
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={e => {
+                    this.setState({
+                      cashRenewal: true,
+                      renewalFromDate: moment(
+                        this.props.memberItem.values[
+                          'Billing Cash Term End Date'
+                        ],
+                      ).add(1, 'day'),
+                      renewalToDate: this.getRenewalToDate(
+                        moment(
+                          this.props.memberItem.values[
+                            'Billing Cash Term End Date'
+                          ],
+                        ).add(1, 'day'),
+                        this.props.memberItem,
+                      ),
+                    });
+                  }}
+                >
+                  Renew existing
+                </button>
+              }
+              {getAttributeValue(this.props.space, 'Billing Company') ===
+                'Bambora' && (
+                <a
+                  href={
+                    getAttributeValue(this.props.space, 'Web Server Url') +
+                    '/#/kapps/services/categories/bambora-billing/cash-member-registration?id=' +
+                    this.props.memberItem.id
+                  }
+                  className="btn btn-primary"
+                  style={{ marginLeft: '10px', color: 'white' }}
+                >
+                  Renew with new details
+                </a>
+              )}
+              {getAttributeValue(this.props.space, 'Billing Company') ===
+                'PaySmart' && (
+                <a
+                  href={
+                    getAttributeValue(this.props.space, 'Web Server Url') +
+                    '/#/kapps/services/categories/billing-registration/cash-member-registration?id=' +
+                    this.props.memberItem.id
+                  }
+                  className="btn btn-primary"
+                  style={{ marginLeft: '10px', color: 'white' }}
+                >
+                  Renew with new details
+                </a>
+              )}
+            </div>
+          )}
+        {this.props.memberItem.values['Billing Payment Type'] === 'Cash' &&
+          this.state.cashRenewal && (
+            <div>
+              <div className="cashRenewalContainer">
+                <div className="cashRenewalDiv">
+                  <p>
+                    Payment:{' '}
+                    {new Intl.NumberFormat(this.props.locale, {
+                      style: 'currency',
+                      currency: this.props.currency,
+                    }).format(this.props.memberItem.values['Membership Cost'])}
+                  </p>
+                  <div className="col-md-8">
+                    <div className="row">
+                      <div className="form-group col-xs-2 mr-1">
+                        <label htmlFor="fromDate" className="control-label">
+                          From Date
+                        </label>
+                        <DayPickerInput
+                          name="fromDate"
+                          id="fromDate"
+                          placeholder={moment(new Date())
+                            .locale(
+                              getLocalePreference(
+                                this.props.space,
+                                this.props.profile,
+                              ),
+                            )
+                            .localeData()
+                            .longDateFormat('L')
+                            .toLowerCase()}
+                          formatDate={formatDate}
+                          parseDate={parseDate}
+                          value={this.state.renewalFromDate.toDate()}
+                          onDayChange={function(
+                            selectedDay,
+                            modifiers,
+                            dayPickerInput,
+                          ) {
+                            compThis.setState({
+                              renewalFromDate: moment(selectedDay),
+                              renewalToDate: compThis.getRenewalToDate(
+                                moment(selectedDay),
+                                compThis.props.memberItem,
+                              ),
+                            });
+                          }}
+                          dayPickerProps={{
+                            locale: getLocalePreference(
+                              this.props.space,
+                              this.props.profile,
+                            ),
+                            localeUtils: MomentLocaleUtils,
+                          }}
+                        />
+                      </div>
+                      <div className="form-group col-xs-2 mr-1">
+                        <label htmlFor="toDate" className="control-label">
+                          To Date
+                        </label>
+                        <input
+                          type="text"
+                          name="toDate"
+                          id="toDate"
+                          disabled={true}
+                          ref={input => (this.input = input)}
+                          defaultValue={''}
+                          value={this.state.renewalToDate.format('L')}
+                        />
+                      </div>
+                    </div>
+                    <div className="row">
+                      <div className="form-group col-xs-2">
+                        <label className="control-label">&nbsp;</label>
+                        <button
+                          className="btn btn-primary form-control input-sm"
+                          onClick={e => this.setState({ cashRenewal: false })}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                      <div className="form-group col-xs-2">
+                        <label className="control-label">&nbsp;</label>
+                        <button
+                          className="btn btn-primary form-control input-sm"
+                          onClick={e => this.processRenewCashPayment()}
+                          disabled={this.state.processingRenewCash}
+                        >
+                          Renew
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         {this.props.memberItem.values['Non Paying'] === 'YES' && (
           <p>Non Paying</p>
         )}
@@ -2798,11 +3081,15 @@ export const BillingContainer = compose(
     },
     addCashPaymentValue: ({
       addCashPayment,
-      updateMember,
       addNotification,
       setSystemError,
-      setIsDirty,
-    }) => (values, completeCashPayment, nextBillingDate, memberItem) => {
+    }) => (
+      values,
+      completeCashPayment,
+      nextBillingDate,
+      memberItem,
+      updateMember,
+    ) => {
       let args = {};
       args.values = values;
       args.completeCashPayment = completeCashPayment;
@@ -2867,7 +3154,9 @@ export const BillingContainer = compose(
         }
       }
       if (member === undefined) {
-        this.props.history.push('/Member/' + this.props.match.params['id']);
+        this.props.history.push(
+          '/kapps/gbmembers/Member/' + this.props.match.params['id'],
+        );
       } else {
         if (
           getAttributeValue(this.props.space, 'Billing Company') === 'Bambora'
@@ -2939,7 +3228,9 @@ export const BillingContainer = compose(
           }
         }
         if (member === undefined) {
-          this.props.history.push('/Member/' + this.props.match.params['id']);
+          this.props.history.push(
+            '/kapps/gbmembers/Member/' + this.props.match.params['id'],
+          );
         } else {
           if (
             getAttributeValue(this.props.space, 'Billing Company') === 'Bambora'

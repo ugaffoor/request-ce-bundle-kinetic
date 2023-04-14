@@ -334,6 +334,13 @@
     }
   }
   .viewContent {
+    #notesDiv {
+      flex: 0 0 83%;
+      max-width: 83%;
+      padding-right: 15px;
+      display: flex;
+      flex-direction: column;
+    }
     @media only screen and (max-width: 700px) {
       .email-row {
         margin: unset !important;

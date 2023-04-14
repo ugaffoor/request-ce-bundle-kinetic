@@ -114,7 +114,7 @@ export function* fetchEmailCampaigns(action) {
     //action.payload.campaignItem.myThis=undefined;
     //action.payload.campaignItem.history=undefined;
     //action.payload.campaignItem.fetchCampaigns=undefined;
-    const search = new CoreAPI.SubmissionSearch()
+    let search = new CoreAPI.SubmissionSearch()
       .includes([
         'details',
         'values[Recipients]',
@@ -126,15 +126,29 @@ export function* fetchEmailCampaigns(action) {
         'values[Clicked By Members]',
         'values[Attachments]',
       ])
-      .build();
+      .limit(25);
+    if (action.payload.nextPageToken !== undefined) {
+      search = search.pageToken(action.payload.nextPageToken);
+    }
 
-    const { submissions } = yield call(CoreAPI.searchSubmissions, {
-      kapp: 'gbmembers',
-      form: 'email-campaigns',
-      search,
-    });
-    console.log('#### fetchCampaigns');
-    yield put(actions.setEmailCampaigns(submissions));
+    search = search.build();
+
+    const { submissions, nextPageToken } = yield call(
+      CoreAPI.searchSubmissions,
+      {
+        kapp: 'gbmembers',
+        form: 'email-campaigns',
+        search,
+      },
+    );
+    console.log('#### fetchCampaigns nextPageToken:' + nextPageToken);
+    yield put(
+      actions.setEmailCampaigns({
+        submissions,
+        nextPageToken,
+        initial: action.payload.nextPageToken === undefined ? true : false,
+      }),
+    );
   } catch (error) {
     console.log('Error in fetchCampaigns: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));
@@ -246,7 +260,7 @@ export function* fetchSmsCampaign(action) {
 
 export function* fetchSmsCampaigns(action) {
   try {
-    const search = new CoreAPI.SubmissionSearch()
+    let search = new CoreAPI.SubmissionSearch()
       .includes([
         'details',
         'values[Recipients]',
@@ -254,14 +268,29 @@ export function* fetchSmsCampaigns(action) {
         'values[SMS Content]',
         'values[Sent Date]',
       ])
-      .build();
+      .limit(25);
 
-    const { submissions } = yield call(CoreAPI.searchSubmissions, {
-      kapp: 'gbmembers',
-      form: 'sms-campaigns',
-      search,
-    });
-    yield put(actions.setSmsCampaigns(submissions));
+    if (action.payload.nextPageToken !== undefined) {
+      search = search.pageToken(action.payload.nextPageToken);
+    }
+
+    search = search.build();
+
+    const { submissions, nextPageToken } = yield call(
+      CoreAPI.searchSubmissions,
+      {
+        kapp: 'gbmembers',
+        form: 'sms-campaigns',
+        search,
+      },
+    );
+    yield put(
+      actions.setSmsCampaigns({
+        submissions,
+        nextPageToken,
+        initial: action.payload.nextPageToken === undefined ? true : false,
+      }),
+    );
   } catch (error) {
     console.log('Error in fetchCampaigns: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));

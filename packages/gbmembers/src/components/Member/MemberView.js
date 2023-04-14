@@ -16,6 +16,10 @@ import aidIcon from '../../images/Emergency.svg?raw';
 import printerIcon from '../../images/Print.svg?raw';
 import waiverIcon from '../../images/clipboard.svg?raw';
 import statsBarIcon from '../../images/stats-bars.svg?raw';
+import phone from '../../images/phone.png';
+import mail from '../../images/mail.png';
+import sms from '../../images/sms.png';
+import in_person from '../../images/in_person.png';
 import SVGInline from 'react-svg-inline';
 import html2canvas from 'html2canvas';
 import { KappNavLink as NavLink } from 'common';
@@ -73,6 +77,7 @@ import attentionRequired from '../../images/flag.svg?raw';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import styled from 'styled-components';
 import { confirm } from '../helpers/Confirmation';
+import 'react-datetime/css/react-datetime.css';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -126,6 +131,7 @@ const mapDispatchToProps = {
   getAttributeValue: getAttributeValue,
   setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
+const Datetime = require('react-datetime');
 
 function getClassNames(node) {
   return [
@@ -897,6 +903,12 @@ export const MemberView = ({
   refundPOSPayment,
   refundPOSTransactionInProgress,
   refundPOSTransactionID,
+  handleContactMethodChange,
+  contactLabel,
+  setContactLabel,
+  handleDateChange,
+  setContactDate,
+  contactDate,
 }) =>
   initialLoad ? (
     <div className="loading">
@@ -1429,6 +1441,7 @@ export const MemberView = ({
               <h4>Billing</h4>
               <div
                 className={
+                  memberItem.values['Non Paying'] !== 'YES' &&
                   memberItem.values['Billing Payment Type'] === 'Cash'
                     ? 'billingInfo show'
                     : 'hide'
@@ -1451,6 +1464,16 @@ export const MemberView = ({
                     currency: currency,
                   }).format(memberItem.values['Membership Cost'])}
                 </p>
+                {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
+                  <div />
+                ) : (
+                  <NavLink
+                    to={`/Billing/${memberItem.id}`}
+                    className="btn btn-primary"
+                  >
+                    Billing
+                  </NavLink>
+                )}
               </div>
               <div
                 className={
@@ -1493,10 +1516,10 @@ export const MemberView = ({
                   </NavLink>
                 )}
               </div>
-              <div
+              {/*<div
                 className={
-                  memberItem.values['Billing Payment Type'] === 'Cash' ||
-                  memberItem.values['Non Paying'] === 'YES' ||
+                  (memberItem.values['Billing Payment Type'] === 'Cash' &&
+                  memberItem.values['Non Paying'] !== 'YES') ||
                   memberItem.values['Billing Customer Id'] === undefined ||
                   memberItem.values['Billing Customer Id'] === '' ||
                   memberItem.values['Billing Customer Id'] === null
@@ -1511,13 +1534,16 @@ export const MemberView = ({
                     to={`/Billing/${memberItem.id}`}
                     className="btn btn-primary"
                   >
-                    Billing
+                    XBilling
                   </NavLink>
                 )}
-              </div>
+                </div>*/}
               <div
                 className={
-                  isBillingParent(memberItem) ? 'billingInfo show' : 'hide'
+                  memberItem.values['Non Paying'] !== 'YES' &&
+                  isBillingParent(memberItem)
+                    ? 'billingInfo show'
+                    : 'hide'
                 }
               >
                 <SwitchBillingParent
@@ -1536,6 +1562,7 @@ export const MemberView = ({
               <div
                 className={
                   memberItem.values['Billing Payment Type'] !== 'Cash' &&
+                  memberItem.values['Non Paying'] !== 'YES' &&
                   (memberItem.values['Billing Customer Id'] === undefined ||
                     memberItem.values['Billing Customer Id'] === '' ||
                     memberItem.values['Billing Customer Id'] === null)
@@ -1552,53 +1579,58 @@ export const MemberView = ({
                 />
               </div>
               {Utils.getAttributeValue(space, 'Billing Company') ===
-                'PaySmart' && (
-                <div
-                  style={{
-                    display: Utils.isMemberOf(profile, 'Billing')
-                      ? 'block'
-                      : 'none',
-                  }}
-                >
-                  <br />
-                  <button
-                    type="button"
-                    className={'btn btn-primary'}
-                    onClick={e => syncBilling()}
+                'PaySmart' &&
+                memberItem.values['Non Paying'] !== 'YES' &&
+                memberItem.values['Billing Payment Type'] !== 'Cash' && (
+                  <div
+                    style={{
+                      display: Utils.isMemberOf(profile, 'Billing')
+                        ? 'block'
+                        : 'none',
+                    }}
                   >
-                    Sync Billing Info
-                  </button>
-                  <input
-                    type="text"
-                    name="customerBillingId"
-                    id="customerBillingId"
-                  />
-                  <label htmlFor="customerBillingId">Billing Id</label>
-                </div>
-              )}
+                    <br />
+                    <button
+                      type="button"
+                      className={'btn btn-primary'}
+                      onClick={e => syncBilling()}
+                    >
+                      Sync Billing Info
+                    </button>
+                    <input
+                      type="text"
+                      name="customerBillingId"
+                      id="customerBillingId"
+                    />
+                    <label htmlFor="customerBillingId">Billing Id</label>
+                  </div>
+                )}
               {Utils.getAttributeValue(space, 'Billing Company') ===
-                'PaySmart' && (
-                <div
-                  style={{
-                    display: Utils.isMemberOf(profile, 'Billing')
-                      ? 'block'
-                      : 'none',
-                  }}
-                >
-                  <br />
-                  <button
-                    type="button"
-                    className={'btn btn-primary'}
-                    onClick={e => clearBillingInfo()}
+                'PaySmart' &&
+                memberItem.values['Non Paying'] !== 'YES' &&
+                memberItem.values['Billing Payment Type'] !== 'Cash' && (
+                  <div
+                    style={{
+                      display: Utils.isMemberOf(profile, 'Billing')
+                        ? 'block'
+                        : 'none',
+                    }}
                   >
-                    CLEAR Billing Info
-                  </button>
-                </div>
-              )}
+                    <br />
+                    <button
+                      type="button"
+                      className={'btn btn-primary'}
+                      onClick={e => clearBillingInfo()}
+                    >
+                      CLEAR Billing Info
+                    </button>
+                  </div>
+                )}
               {Utils.getAttributeValue(space, 'Billing Company') ===
                 'Bambora' &&
                 memberItem.values['Billing User'] === 'YES' &&
                 memberItem.values['Non Paying'] !== 'YES' &&
+                memberItem.values['Billing Payment Type'] !== 'Cash' &&
                 (memberItem.values['Biller Migrated'] === null ||
                   memberItem.values['Biller Migrated'] === undefined ||
                   memberItem.values['Biller Migrated'] !== 'YES') && (
@@ -1646,6 +1678,100 @@ export const MemberView = ({
               >
                 Notes
               </label>
+            </div>
+          </div>
+          <div className="row">
+            <div id="notesDiv" className="">
+              <div className="card-header ">
+                <ul
+                  className="nav nav-tabs card-header-tabs contact-methods"
+                  role="tablist"
+                >
+                  <li className="nav-item label">Method:</li>
+                  <li className="nav-item icon phone">
+                    <a
+                      className="nav-link active"
+                      title="Phone Contact"
+                      data-toggle="tab"
+                      href="#method"
+                      id="phone_tab"
+                      role="tab"
+                      aria-controls="contact_method"
+                      aria-selected="true"
+                      onClick={() => handleContactMethodChange('phone')}
+                    >
+                      <img
+                        src={phone}
+                        alt="Phone Call"
+                        style={{ border: 'none' }}
+                      />
+                    </a>
+                  </li>
+                  <li className="nav-item icon email">
+                    <a
+                      className="nav-link"
+                      title="Email Contact"
+                      data-toggle="tab"
+                      href="#method"
+                      id="mail_tab"
+                      role="tab"
+                      aria-controls="contact_method"
+                      onClick={() => handleContactMethodChange('email')}
+                    >
+                      <img src={mail} alt="Email" style={{ border: 'none' }} />
+                    </a>
+                  </li>
+                  <li className="nav-item icon sms">
+                    <a
+                      className="nav-link"
+                      title="SMS Contact"
+                      data-toggle="tab"
+                      href="#method"
+                      id="sms_tab"
+                      role="tab"
+                      aria-controls="contact_method"
+                      onClick={() => handleContactMethodChange('sms')}
+                    >
+                      <img src={sms} alt="SMS" style={{ border: 'none' }} />
+                    </a>
+                  </li>
+                  <li className="nav-item icon person">
+                    <a
+                      className="nav-link"
+                      title="In Person Contact"
+                      data-toggle="tab"
+                      href="#method"
+                      id="person_tab"
+                      role="tab"
+                      aria-controls="contact_method"
+                      onClick={() => handleContactMethodChange('in_person')}
+                    >
+                      <img
+                        src={in_person}
+                        alt="In Person"
+                        style={{ border: 'none' }}
+                      />
+                    </a>
+                  </li>
+                </ul>
+                <ul
+                  className="nav nav-tabs card-header-tabs pull-left contact-method-select"
+                  role="tablist"
+                >
+                  <li className="nav-item label">{contactLabel}</li>
+                  <li className="nav-item date">
+                    <Datetime
+                      className="float-right"
+                      dateFormat="L"
+                      onChange={handleDateChange}
+                      defaultValue={moment()}
+                    />
+                    {contactDate === 'Invalid date' && (
+                      <span className="invaliddate">Invalid Date</span>
+                    )}
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
           <div className="row">
@@ -1781,6 +1907,13 @@ export const MemberViewContainer = compose(
   withProps(({ memberItem }) => {}),
   withState('isAssigning', 'setIsAssigning', false),
   withState('isDirty', 'setIsDirty', false),
+  withState(
+    'contactDate',
+    'setContactDate',
+    moment().format(contact_date_format),
+  ),
+  withState('contactMethod', 'setContactMethod', ''),
+  withState('contactLabel', 'setContactLabel', ''),
   withState('showNewCustomers', 'setShowNewCustomers', false),
   withState('showCallScriptModal', 'setShowCallScriptModal', false),
   withState('showBamboraActivate', 'setShowBamboraActivate', false),
@@ -1796,6 +1929,32 @@ export const MemberViewContainer = compose(
     false,
   ),
   withHandlers({
+    handleDateChange: ({ setContactDate }) => date => {
+      setContactDate(moment(date).format(contact_date_format));
+    },
+    handleContactMethodChange: ({
+      setContactMethod,
+      setContactLabel,
+    }) => method => {
+      var label = method;
+      switch (method) {
+        case 'phone':
+          label = 'Phone Call';
+          break;
+        case 'email':
+          label = 'Email';
+          break;
+        case 'sms':
+          label = 'SMS';
+          break;
+        case 'in_person':
+          label = 'In Person';
+          break;
+        default:
+      }
+      setContactMethod(method);
+      setContactLabel(label);
+    },
     switchBillingMember: ({
       memberItem,
       setIsDirty,
@@ -1964,6 +2123,8 @@ export const MemberViewContainer = compose(
       setIsDirty,
       profile,
       allMembers,
+      contactDate,
+      contactMethod,
     }) => () => {
       let note = $('#memberNote').val();
       if (!note) {
@@ -1979,7 +2140,8 @@ export const MemberViewContainer = compose(
 
       notesHistory.push({
         note: note,
-        contactDate: moment().format(contact_date_format),
+        contactDate: contactDate,
+        contactMethod: contactMethod,
         submitter: profile.displayName,
       });
       memberItem.values['Notes History'] = notesHistory;

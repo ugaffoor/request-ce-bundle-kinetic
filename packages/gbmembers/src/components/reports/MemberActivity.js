@@ -172,6 +172,7 @@ export class MemberActivityReport extends Component {
     this.notesColumns = [
       { title: 'Submitter', field: 'submitter' },
       { title: 'Date', field: 'contactDate', type: 'date' },
+      { title: 'Contact Method', field: 'contactMethod' },
       { title: 'Note', field: 'note' },
     ];
     this.emailsSentColumns = [

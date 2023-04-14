@@ -2666,20 +2666,22 @@ export function* addCashPayment(action) {
       include: SUBMISSION_INCLUDES,
     });
     if (action.payload.completeCashPayment) {
-      action.payload.completeCashPayment();
+      action.payload.completeCashPayment(action.payload.updateMember);
     }
-    // Set next this.props.billingInfo.nextBillingDate
-    var values = {};
-    values['Billing Start Date'] = action.payload.nextBillingDate.format(
-      'YYYY-MM-DD',
-    );
-    var mItem = {};
-    mItem['values'] = values;
-    action.payload.updateMember({
-      id: action.payload.memberItem['id'],
-      memberItem: mItem,
-      fromBilling: true,
-    });
+    if (action.payload.nextBillingDate) {
+      // Set next this.props.billingInfo.nextBillingDate
+      var values = {};
+      values['Billing Start Date'] = action.payload.nextBillingDate.format(
+        'YYYY-MM-DD',
+      );
+      var mItem = {};
+      mItem['values'] = values;
+      action.payload.updateMember({
+        id: action.payload.memberItem['id'],
+        memberItem: mItem,
+        fromBilling: true,
+      });
+    }
   } catch (error) {
     console.log('Error in addCashPayment: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));

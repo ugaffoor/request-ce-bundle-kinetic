@@ -31,6 +31,7 @@ import { SetStatusModalContainer } from './SetStatusModalContainer';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
 import 'react-day-picker/lib/style.css';
 import enAU from 'moment/locale/en-au';
+import enCA from 'moment/locale/en-ca';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { I18n } from '../../../../app/src/I18nProvider';
 import Barcode from 'react-barcode';
@@ -604,7 +605,13 @@ export const MemberEdit = ({
                           ref={input => (this.input = input)}
                           defaultValue={memberItem.values['Payment']}
                           onChange={e =>
-                            handleChange(memberItem, 'Payment', e, setIsDirty)
+                            handleChange(
+                              memberItem,
+                              'Payment',
+                              e,
+                              setIsDirty,
+                              memberChanges,
+                            )
                           }
                         />
                       </div>

@@ -63,37 +63,73 @@ export const reducer = (state = State(), { type, payload }) => {
     case types.FETCH_NEW_EMAIL_CAMPAIGN:
       return state.set('newEmailCampaignLoading', true);
     case types.SET_NEW_EMAIL_CAMPAIGN: {
-      return state.set('newEmailCampaignLoading', false).set('newEmailCampaign', payload);
+      return state
+        .set('newEmailCampaignLoading', false)
+        .set('newEmailCampaign', payload);
     }
     case types.FETCH_EMAIL_CAMPAIGN: {
       return state.set('emailCampaignLoading', true);
     }
     case types.SET_EMAIL_CAMPAIGN: {
-      return state.set('emailCampaignLoading', false).set('emailCampaignItem', payload);
+      return state
+        .set('emailCampaignLoading', false)
+        .set('emailCampaignItem', payload);
     }
     case types.FETCH_EMAIL_CAMPAIGNS: {
       return state.set('emailCampaignsLoading', true);
     }
     case types.SET_EMAIL_CAMPAIGNS: {
-      return state.set('allEmailCampaigns', payload).set('emailCampaignsLoading', false);
+      var allEmailCampaigns = state.get('allEmailCampaigns');
+      if (!payload.initial) {
+        allEmailCampaigns.submissions = allEmailCampaigns.submissions.concat(
+          payload.submissions,
+        );
+      }
+      return state
+        .set('allEmailCampaigns', {
+          submissions: payload.initial
+            ? payload.submissions
+            : allEmailCampaigns.submissions,
+          nextPageToken:
+            payload.nextPageToken === null ? undefined : payload.nextPageToken,
+        })
+        .set('emailCampaignsLoading', false);
     }
 
     case types.FETCH_NEW_SMS_CAMPAIGN:
       return state.set('newSmsCampaignLoading', true);
     case types.SET_NEW_SMS_CAMPAIGN: {
-      return state.set('newSmsCampaignLoading', false).set('newSmsCampaign', payload);
+      return state
+        .set('newSmsCampaignLoading', false)
+        .set('newSmsCampaign', payload);
     }
     case types.FETCH_SMS_CAMPAIGN: {
       return state.set('smsCampaignLoading', true);
     }
     case types.SET_SMS_CAMPAIGN: {
-      return state.set('smsCampaignLoading', false).set('smsCampaignItem', payload);
+      return state
+        .set('smsCampaignLoading', false)
+        .set('smsCampaignItem', payload);
     }
     case types.FETCH_SMS_CAMPAIGNS: {
       return state.set('smsCampaignsLoading', true);
     }
     case types.SET_SMS_CAMPAIGNS: {
-      return state.set('allSmsCampaigns', payload).set('smsCampaignsLoading', false);
+      var allSmsCampaigns = state.get('allSmsCampaigns');
+      if (!payload.initial) {
+        allSmsCampaigns.submissions = allSmsCampaigns.submissions.concat(
+          payload.submissions,
+        );
+      }
+      return state
+        .set('allSmsCampaigns', {
+          submissions: payload.initial
+            ? payload.submissions
+            : allSmsCampaigns.submissions,
+          nextPageToken:
+            payload.nextPageToken === null ? undefined : payload.nextPageToken,
+        })
+        .set('smsCampaignsLoading', false);
     }
     default:
       return state;

@@ -322,8 +322,14 @@ export class Statistics extends Component {
         let oldestDate = undefined;
 
         var statusHistorySorted = statusHistory.sort(function(stat1, stat2) {
-          var date1 = moment(stat1.date);
-          var date2 = moment(stat2.date);
+          var date1 = moment(stat1.date, [
+            'dd MMM DD YYYY hh:mm:ss Z',
+            'YYYY-MM-DD hh:mm:ss Z',
+          ]);
+          var date2 = moment(stat2.date, [
+            'dd MMM DD YYYY hh:mm:ss Z',
+            'YYYY-MM-DD hh:mm:ss Z',
+          ]);
 
           try {
             if (date1.isBefore(date2)) return 1;
@@ -335,7 +341,10 @@ export class Statistics extends Component {
         });
 
         if (statusHistorySorted.length > 0) {
-          moment(statusHistorySorted[statusHistorySorted.length - 1].date);
+          moment(statusHistorySorted[statusHistorySorted.length - 1].date, [
+            'dd MMM DD YYYY hh:mm:ss Z',
+            'YYYY-MM-DD hh:mm:ss Z',
+          ]);
         }
         if (oldestDate !== undefined && day.isSameOrBefore(oldestDate)) {
           if (
@@ -366,15 +375,34 @@ export class Statistics extends Component {
         } else {
           // Locate the Status of Member on this date
           for (var idx = statusHistorySorted.length - 1; idx >= 0; idx--) {
-            let currentDate = moment(statusHistorySorted[idx].date);
+            let currentDate = moment(statusHistorySorted[idx].date, [
+              'dd MMM DD YYYY hh:mm:ss Z',
+              'YYYY-MM-DD hh:mm:ss Z',
+            ]);
             let currentStatus = statusHistorySorted[idx].status;
             let nextStatus = undefined;
             let nextDate = undefined;
 
             if (idx > 0) {
               nextStatus = statusHistorySorted[idx - 1].status;
-              nextDate = moment(statusHistorySorted[idx - 1].date);
+              nextDate = moment(statusHistorySorted[idx - 1].date, [
+                'dd MMM DD YYYY hh:mm:ss Z',
+                'YYYY-MM-DD hh:mm:ss Z',
+              ]);
             }
+            if (
+              nextDate !== undefined &&
+              day.isSame(moment('2022-04-30', 'YYYY-MM-DD'), 'day')
+            )
+              console.log(
+                ',id:' +
+                  member.id +
+                  ',nextStatus:' +
+                  nextStatus +
+                  ',nextDate:' +
+                  nextDate.format('YYYY-MM-DD') +
+                  ',',
+              );
 
             if (
               day.isSameOrAfter(currentDate, 'day') &&
@@ -419,8 +447,14 @@ export class Statistics extends Component {
       } else {
         var statusHistory = JSON.parse(member['values']['Status History']);
         var statusHistorySorted = statusHistory.sort(function(stat1, stat2) {
-          var date1 = moment(stat1.date);
-          var date2 = moment(stat2.date);
+          var date1 = moment(stat1.date, [
+            'dd MMM DD YYYY hh:mm:ss Z',
+            'YYYY-MM-DD hh:mm:ss Z',
+          ]);
+          var date2 = moment(stat2.date, [
+            'dd MMM DD YYYY hh:mm:ss Z',
+            'YYYY-MM-DD hh:mm:ss Z',
+          ]);
 
           try {
             if (date1.isBefore(date2)) return 1;
@@ -433,14 +467,20 @@ export class Statistics extends Component {
 
         // Locate the Status of Member on this date
         for (var idx = statusHistorySorted.length - 1; idx >= 0; idx--) {
-          let currentDate = moment(statusHistorySorted[idx].date);
+          let currentDate = moment(statusHistorySorted[idx].date, [
+            'dd MMM DD YYYY hh:mm:ss Z',
+            'YYYY-MM-DD hh:mm:ss Z',
+          ]);
           let currentStatus = statusHistorySorted[idx].status;
           let nextStatus = undefined;
           let nextDate = undefined;
 
           if (idx > 0) {
             nextStatus = statusHistorySorted[idx - 1].status;
-            nextDate = moment(statusHistorySorted[idx - 1].date);
+            nextDate = moment(statusHistorySorted[idx - 1].date, [
+              'dd MMM DD YYYY hh:mm:ss Z',
+              'YYYY-MM-DD hh:mm:ss Z',
+            ]);
           }
 
           if (
@@ -501,9 +541,12 @@ export class Statistics extends Component {
       ).endOf('month');
       var beginOfMonth =
         i === 0 ? 0 : this.getActiveMembers(allMembers, firstDayOfMonth);
+      //      console.log("XXX getActiveMembers day:"+firstDayOfMonth.format("YYYY-MM-DD")+" beginOfMonth:"+beginOfMonth);
+
       var beginOfMonthFrozen =
         i === 0 ? 0 : this.getFrozenMembers(allMembers, firstDayOfMonth);
       var endOfMonth = this.getActiveMembers(allMembers, lastDayOfMonth);
+      //      console.log("XXX getActiveMembers day:"+lastDayOfMonth.format("YYYY-MM-DD")+" endOfMonth:"+endOfMonth);
       var endOfMonthFrozen = this.getFrozenMembers(allMembers, lastDayOfMonth);
       var newMembers = this.getNewMembers(
         allMembers,
@@ -722,7 +765,6 @@ export class Statistics extends Component {
 
     members.forEach(member => {
       let memberStatus = memberStatusInDates(member, fromDate, toDate);
-
       if (memberStatus === 'Frozen' || memberStatus === 'Active') {
         active[active.length] = member;
       }

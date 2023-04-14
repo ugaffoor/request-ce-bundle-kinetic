@@ -891,8 +891,13 @@ export class MemberFinancialReport extends Component {
 
     //    if (fromDate.month()>=moment().month() && toDate.month()>=moment().month()) {
     var concernedDate = moment(fromDate).subtract(1, 'month');
-    if (moment(paymentHistory[0].debitDate).isAfter(concernedDate)) {
+    if (
+      paymentHistory.length > 0 &&
+      moment(paymentHistory[0].debitDate).isAfter(concernedDate)
+    ) {
       concernedDate = moment(paymentHistory[0].debitDate).subtract(1, 'month');
+    } else if (moment(fromDate).isAfter(moment())) {
+      concernedDate = moment().subtract(1, 'month');
     }
     var concernedMembers = [];
 
@@ -1008,10 +1013,10 @@ export class MemberFinancialReport extends Component {
           if (toDate.isAfter(moment())) {
             var count = 1;
             while (
-              (nextBillingDate.isAfter(fromDate) ||
-                nextBillingDate.isSame(fromDate)) &&
-              (nextBillingDate.isBefore(toDate) ||
-                nextBillingDate.isSame(toDate))
+              (nextBillingDate.isAfter(fromDate, 'day') ||
+                nextBillingDate.isSame(fromDate, 'day')) &&
+              (nextBillingDate.isBefore(toDate, 'day') ||
+                nextBillingDate.isSame(toDate, 'day'))
             ) {
               // Need to check if a Cancellation or Freeze is valid
               // nextBillingDate must not be after and Cancellation start dates
@@ -1281,7 +1286,10 @@ export class MemberFinancialReport extends Component {
           .minute(0)
           .second(0)
           .millisecond(0),
-        repToDate: this.state.repToDate.hour(23).minute(59),
+        repToDate: this.state.repToDate
+          .hour(23)
+          .minute(59)
+          .second(59),
       });
       this.refreshData(this.state.repFromDate, this.state.repToDate);
     }
@@ -1323,7 +1331,11 @@ export class MemberFinancialReport extends Component {
           .add(1, 'months')
           .subtract(1, 'days');
       }
-      toDate.hour(23).minute(59);
+      toDate
+        .hour(23)
+        .minute(59)
+        .minute(59)
+        .second(59);
       this.setState({
         isShowCustom: false,
         repFromDate: fromDate,
@@ -1365,7 +1377,11 @@ export class MemberFinancialReport extends Component {
           .add(2, 'months')
           .subtract(1, 'days');
       }
-      toDate.hour(23).minute(59);
+      toDate
+        .hour(23)
+        .minute(59)
+        .minute(59)
+        .second(59);
       $('.dateSettings button[active=true]').attr('active', 'false');
       $(e.target).attr('active', 'true');
       this.setState({
@@ -1398,7 +1414,11 @@ export class MemberFinancialReport extends Component {
       if (repBillingPeriod === 'monthly') {
         toDate.date(1).subtract(1, 'days');
       }
-      toDate.hour(23).minute(59);
+      toDate
+        .hour(23)
+        .minute(59)
+        .minute(59)
+        .second(59);
       $('.dateSettings button[active=true]').attr('active', 'false');
       $(e.target).attr('active', 'true');
       this.setState({

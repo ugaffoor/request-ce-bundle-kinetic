@@ -49,7 +49,7 @@ export class EmailCampaignsList extends Component {
   constructor(props) {
     super(props);
 
-    let emailCampaigns = this.getData(this.props.emailCampaigns);
+    let emailCampaigns = this.getData(this.props.emailCampaigns.submissions);
     this._columns = this.getColumns();
     this.getNestedTableData = this.getNestedTableData.bind(this);
     this._nestedTableColumns = this.getNestedTableColumns();
@@ -64,7 +64,8 @@ export class EmailCampaignsList extends Component {
   UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.emailCampaigns) {
       this.setState({
-        emailCampaigns: this.getData(nextProps.emailCampaigns),
+        emailCampaigns: this.getData(nextProps.emailCampaigns.submissions),
+        emailNextPageToken: nextProps.emailCampaigns.nextPageToken,
       });
     }
   }
@@ -459,6 +460,22 @@ export class EmailCampaignsList extends Component {
                 );
               }}
             />
+            {
+              <a
+                onClick={e => {
+                  console.log('Show More..');
+                  this.props.fetchEmailCampaigns({
+                    setEmailCampaigns: this.props.setEmailCampaigns,
+                    nextPageToken: this.state.emailNextPageToken,
+                  });
+                }}
+                className="btn btn-primary showMore"
+                disabled={this.state.emailNextPageToken === undefined}
+                style={{ marginLeft: '10px', color: 'white' }}
+              >
+                Show More
+              </a>
+            }
           </div>
         </div>
       </div>
@@ -469,7 +486,7 @@ export class EmailCampaignsList extends Component {
 export class SmsCampaignsList extends Component {
   constructor(props) {
     super(props);
-    let smsCampaigns = this.getData(this.props.smsCampaigns);
+    let smsCampaigns = this.getData(this.props.smsCampaigns.submissions);
     this._columns = this.getColumns();
     this.getNestedTableData = this.getNestedTableData.bind(this);
     this._getNestedTableColumns = this.getNestedTableColumns;
@@ -482,7 +499,8 @@ export class SmsCampaignsList extends Component {
   UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.smsCampaigns) {
       this.setState({
-        smsCampaigns: this.getData(nextProps.smsCampaigns),
+        smsCampaigns: this.getData(nextProps.smsCampaigns.submissions),
+        smsNextPageToken: nextProps.smsCampaigns.nextPageToken,
       });
     }
   }
@@ -490,6 +508,7 @@ export class SmsCampaignsList extends Component {
   UNSAFE_componentWillMount() {
     this.props.fetchSmsCampaigns({
       setSmsCampaigns: this.props.setSmsCampaigns,
+      nextPageToken: undefined,
     });
   }
 
@@ -867,6 +886,22 @@ export class SmsCampaignsList extends Component {
                 );
               }}
             />
+            {
+              <a
+                onClick={e => {
+                  console.log('Show More..');
+                  this.props.fetchSmsCampaigns({
+                    setSmsCampaigns: this.props.setSmsCampaigns,
+                    nextPageToken: this.state.smsNextPageToken,
+                  });
+                }}
+                className="btn btn-primary showMore"
+                disabled={this.state.smsNextPageToken === undefined}
+                style={{ marginLeft: '10px', color: 'white' }}
+              >
+                Show More
+              </a>
+            }
           </div>
         </div>
       </div>
@@ -1061,6 +1096,8 @@ export const CampaignView = ({
   emailCampaigns,
   emailCampaignsLoading,
   smsCampaigns,
+  fetchEmailCampaigns,
+  setEmailCampaigns,
   fetchSmsCampaigns,
   setSmsCampaigns,
   smsCampaignLoading,
@@ -1071,45 +1108,45 @@ export const CampaignView = ({
   individualSMSLoading,
   getIndividualSMS,
   setIndividualSMS,
-}) =>
-  emailCampaignsLoading ? (
-    <ReactSpinner />
-  ) : (
-    <div className="container-fluid leads">
-      <StatusMessagesContainer />
-      <div className="">
-        <div className="leadContents">
-          <CreateCampaign allLeads={allLeads} leadsLoading={leadsLoading} />
-        </div>
-        <div className="taskContents">
-          <EmailCampaignsList
-            emailCampaigns={emailCampaigns}
-            allMembers={allMembers}
-            allLeads={allLeads}
-          />
-        </div>
-        <div className="taskContents">
-          <SmsCampaignsList
-            smsCampaigns={smsCampaigns}
-            fetchSmsCampaigns={fetchSmsCampaigns}
-            setSmsCampaigns={setSmsCampaigns}
-            allMembers={allMembers}
-            allLeads={allLeads}
-          />
-        </div>
-        <div className="taskContents">
-          <IndividualSmsList
-            individualSMSLoading={individualSMSLoading}
-            individualSMS={individualSMS}
-            getIndividualSMS={getIndividualSMS}
-            setIndividualSMS={setIndividualSMS}
-            allMembers={allMembers}
-            allLeads={allLeads}
-          />
-        </div>
+}) => (
+  <div className="container-fluid leads">
+    <StatusMessagesContainer />
+    <div className="">
+      <div className="leadContents">
+        <CreateCampaign allLeads={allLeads} leadsLoading={leadsLoading} />
+      </div>
+      <div className="taskContents">
+        <EmailCampaignsList
+          emailCampaignsLoading={emailCampaignsLoading}
+          fetchEmailCampaigns={fetchEmailCampaigns}
+          setEmailCampaigns={setEmailCampaigns}
+          emailCampaigns={emailCampaigns}
+          allMembers={allMembers}
+          allLeads={allLeads}
+        />
+      </div>
+      <div className="taskContents">
+        <SmsCampaignsList
+          smsCampaigns={smsCampaigns}
+          fetchSmsCampaigns={fetchSmsCampaigns}
+          setSmsCampaigns={setSmsCampaigns}
+          allMembers={allMembers}
+          allLeads={allLeads}
+        />
+      </div>
+      <div className="taskContents">
+        <IndividualSmsList
+          individualSMSLoading={individualSMSLoading}
+          individualSMS={individualSMS}
+          getIndividualSMS={getIndividualSMS}
+          setIndividualSMS={setIndividualSMS}
+          allMembers={allMembers}
+          allLeads={allLeads}
+        />
       </div>
     </div>
-  );
+  </div>
+);
 
 export const CampaignContainer = compose(
   connect(mapStateToProps, mapDispatchToProps),
@@ -1131,9 +1168,11 @@ export const CampaignContainer = compose(
       }
       this.props.fetchEmailCampaigns({
         setEmailCampaigns: this.props.setEmailCampaigns,
+        nextPageToken: undefined,
       });
       this.props.getIndividualSMS({
         setIndividualSMS: this.props.setIndividualSMS,
+        nextPageToken: undefined,
       });
     },
     UNSAFE_componentWillReceiveProps(nextProps) {

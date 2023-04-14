@@ -401,6 +401,10 @@ export function getBeltSVG(belt) {
         <SVGInline svg={Grey_White_Belt_4_White_StripesIcon} className="icon" />
       );
 
+    case 'Grey / Black Belt Stripe':
+      return (
+        <SVGInline svg={Grey_Black_Belt_No_StripesIcon} className="icon" />
+      );
     case 'Grey / Black Belt No Stripes':
       return (
         <SVGInline svg={Grey_Black_Belt_No_StripesIcon} className="icon" />
@@ -1014,7 +1018,7 @@ export function handleDateChange() {
     value.trim() === ''
       ? ''
       : moment(value, 'L', this.dayPickerProps.locale).format('YYYY-MM-DD');
-  if (value.trim() !== '' && dateValue === 'Invalid Date') return;
+  if (value.trim() !== '' && dateValue === 'Invalid date') return;
   if (value.trim() === '') dateValue = '';
   if (this.setIsDirty !== undefined) this.setIsDirty(true);
   if (this.memberChanges) {
@@ -1265,11 +1269,14 @@ export function memberStatusInDates(member, fromDate, toDate, returnStatus) {
 
     let oldestDate = moment(
       statusHistorySorted[statusHistorySorted.length - 1].date,
+      ['dd MMM DD YYYY hh:mm:ss Z', 'YYYY-MM-DD hh:mm:ss Z'],
     );
     let oldestStatus =
       statusHistorySorted[statusHistorySorted.length - 1].status;
-
-    if (oldestDate.isBetween(fromDate, toDate)) {
+    if (
+      oldestDate.isSameOrAfter(fromDate, 'day') &&
+      oldestDate.isSameOrBefore(toDate, 'day')
+    ) {
       return oldestStatus;
       /*      // Looking for New Members
       if (
@@ -1293,21 +1300,25 @@ export function memberStatusInDates(member, fromDate, toDate, returnStatus) {
         }
       } */
     }
+
     for (var i = statusHistorySorted.length - 1; i >= 0; i--) {
       if (
-        (moment(new Date(statusHistorySorted[i]['date'])).isSameOrAfter(
-          fromDate,
+        moment(statusHistorySorted[i]['date'], [
+          'dd MMM DD YYYY hh:mm:ss Z',
+          'YYYY-MM-DD hh:mm:ss Z',
+        ]).isSameOrAfter(fromDate, 'day') &&
+        moment(statusHistorySorted[i]['date'], [
+          'dd MMM DD YYYY hh:mm:ss Z',
+          'YYYY-MM-DD hh:mm:ss Z',
+        ]).isSameOrBefore(
+          toDate,
           'day',
-        ) &&
-          moment(new Date(statusHistorySorted[i]['date'])).isSameOrBefore(
-            toDate,
-            'day',
-          )) ||
+        ) /* ||
         (fromDate.isSame(toDate, 'day') &&
-          fromDate.isAfter(
+          fromDate.isSameOrAfter(
             moment(new Date(statusHistorySorted[i]['date'])),
             'day',
-          ))
+          )) */
       ) {
         if (statusHistorySorted[i]['status'] === 'Active') {
           return 'Active';

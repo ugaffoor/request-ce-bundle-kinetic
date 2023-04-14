@@ -1116,7 +1116,8 @@ export const MemberNewContainer = compose(
         $('#suburb').val(nextProps.leadItem.values['Suburb']);
         handleDynamicChange(nextProps.memberItem, 'Suburb', 'suburb');
         $('#state').val(
-          nextProps.leadItem.values['State'] !== undefined
+          nextProps.leadItem.values['State'] !== undefined &&
+            nextProps.leadItem.values['State'] !== null
             ? nextProps.leadItem.values['State'].toUpperCase()
             : '',
         );
