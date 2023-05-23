@@ -341,7 +341,7 @@ export class LeadsOriginChart extends Component {
     return this.props.leadsByDateLoading ? (
       <div style={{ margin: '10px' }}>
         <p>Loading Leads Origins ...</p>
-        <ReactSpinner />{' '}
+        {/*    <ReactSpinner />{' '}  */}
       </div>
     ) : (
       <span>

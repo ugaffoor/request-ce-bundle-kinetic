@@ -214,7 +214,10 @@ export const actions = {
 
 export const State = Record({
   allMembers: [],
+  users: [],
+  memberInitialLoadComplete: false,
   memberLastFetchTime: undefined,
+  membersNextPageToken: undefined,
   currentMember: {},
   currentMemberAdditional: {},
   newMember: {},
@@ -326,12 +329,16 @@ export const reducer = (state = State(), { type, payload }) => {
       return state.set('newMemberLoading', true);
     case types.SET_MEMBERS: {
       var allMembers = state.get('allMembers');
+      var users = state.get('users');
 
+      if (payload.users !== undefined) {
+        users = payload.users;
+      }
       let attentionRequired = false;
       var members = [];
       for (var k = 0; k < payload.members.length; k++) {
         setMemberPromotionValues(payload.members[k], payload.belts);
-        payload.members[k].user = payload.users.find(
+        payload.members[k].user = users.find(
           user =>
             payload.members[k].values['Member ID'] !== null &&
             user.username.toLowerCase() ===
@@ -363,7 +370,10 @@ export const reducer = (state = State(), { type, payload }) => {
       return state
         .set('membersLoading', false)
         .set('allMembers', allMembers)
+        .set('users', users)
+        .set('memberInitialLoadComplete', true)
         .set('memberLastFetchTime', moment().format('YYYY-MM-DDTHH:mm:ssZ'))
+        .set('membersNextPageToken', payload.nextPageToken)
         .set('memberAttentionRequired', attentionRequired);
     }
     case types.UPDATE_ALL_MEMBERS: {

@@ -65,6 +65,10 @@ import { loadStripeTerminal } from '@stripe/terminal-js/pure';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
+  memberInitialLoadComplete: state.member.members.memberInitialLoadComplete,
+  membersNextPageToken: state.member.members.membersNextPageToken,
+  memberLastFetchTime: state.member.members.memberLastFetchTime,
+  membersLoading: state.member.members.membersLoading,
   allLeads: state.member.leads.allLeads,
   leadsLoading: state.member.leads.leadsLoading,
   posAutoCreateCardProcessing: state.member.pos.posAutoCreateCardProcessing,
@@ -107,6 +111,7 @@ const mapDispatchToProps = {
   savePOSSavePurchasedItem: actions.savePOSSavePurchasedItem,
   decrementPOSStock: actions.decrementPOSStock,
   fetchLeads: leadsActions.fetchLeads,
+  fetchMembers: memberActions.fetchMembers,
   savePOSStock: actions.savePOSStock,
   setSidebarDisplayType: appActions.setSidebarDisplayType,
   updateMember: memberActions.updateMember,
@@ -4478,6 +4483,11 @@ export const ProShopContainer = compose(
       this.props.fetchPOSBarcodes();
       this.props.fetchPOSDiscounts();
       this.props.fetchPOSCheckout({ username: this.props.profile.username });
+      this.props.fetchMembers({
+        membersNextPageToken: this.props.membersNextPageToken,
+        memberInitialLoadComplete: this.props.memberInitialLoadComplete,
+        memberLastFetchTime: this.props.memberLastFetchTime,
+      });
 
       if (
         getAttributeValue(this.props.space, 'POS System') === 'Bambora' &&

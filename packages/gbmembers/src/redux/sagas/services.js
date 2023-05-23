@@ -13,7 +13,11 @@ export function* fetchServicesByDate(action) {
     .sortBy('submittedAt')
     .sortDirection('DESC')
     .limit(1000)
-    .includes(['details', 'values', 'form']);
+    .includes([
+      'details',
+      'values[Student First Name],values[Student Last Name],values[Members],values[Payment Required],values[Term End Date]',
+      'form',
+    ]);
 
   if (action.payload !== undefined) {
     searchBuilder.startDate(action.payload.fromDate.toDate());

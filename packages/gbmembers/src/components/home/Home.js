@@ -36,6 +36,9 @@ const mapStateToProps = state => ({
   memberItem: state.member.members.currentMember,
   membersLoading: state.member.members.membersLoading,
   allMembers: state.member.members.allMembers,
+  memberInitialLoadComplete: state.member.members.memberInitialLoadComplete,
+  membersNextPageToken: state.member.members.membersNextPageToken,
+  memberLastFetchTime: state.member.members.memberLastFetchTime,
   billingPayments: state.member.members.billingPayments,
   billingPaymentsLoading: state.member.members.billingPaymentsLoading,
   billingCompany: state.member.app.billingCompany,
@@ -43,7 +46,6 @@ const mapStateToProps = state => ({
   profile: state.member.app.profile,
   space: state.member.app.space,
   leadsByDate: state.member.leads.leadsByDate,
-  leadsLoading: state.member.leads.leadsLoading,
   leadsByDateLoading: state.member.leads.leadsByDateLoading,
   fetchingAttendancesByDate: state.member.attendance.fetchingAttendancesByDate,
   attendancesByDate: state.member.attendance.attendancesByDate,
@@ -62,6 +64,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = {
+  fetchMembers: actions.fetchMembers,
   fetchBillingPayments: actions.fetchBillingPayments,
   fetchLeadsByDate: leadsActions.fetchLeadsByDate,
   fetchAttendancesByDate: attendanceActions.fetchAttendancesByDate,
@@ -119,6 +122,10 @@ export const HomeView = ({
   setOverdues,
   overdues,
   overduesLoading,
+  memberInitialLoadComplete,
+  membersNextPageToken,
+  memberLastFetchTime,
+  fetchMembers,
 }) => (
   <div className="dashboard">
     <StatusMessagesContainer />
@@ -143,6 +150,10 @@ export const HomeView = ({
       overduesLoading={overduesLoading}
       monthlyStatistics={monthlyStatistics}
       monthlyStatisticsLoading={monthlyStatisticsLoading}
+      memberInitialLoadComplete={memberInitialLoadComplete}
+      membersNextPageToken={membersNextPageToken}
+      memberLastFetchTime={memberLastFetchTime}
+      fetchMembers={fetchMembers}
     />
     {getAttributeValue(space, 'Billing Company') === 'Bambora' && (
       <div className="homeOverdues">
@@ -327,7 +338,7 @@ export const HomeContainer = compose(
           .endOf('month')
           .format('YYYY-MM-DD');
       }
-      fetchBillingPayments({
+      /*      fetchBillingPayments({
         paymentType: 'SUCCESSFUL',
         paymentMethod: 'ALL',
         paymentSource: 'ALL',
@@ -338,7 +349,7 @@ export const HomeContainer = compose(
         internalPaymentType: 'client_successful',
         addNotification: addNotification,
         setSystemError: setSystemError,
-      });
+      });*/
     },
     datesChanged: () => (setFromDate, setToDate, fromDate, toDate) => {
       console.log('datesChanged');

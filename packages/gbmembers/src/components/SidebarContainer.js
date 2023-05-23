@@ -18,6 +18,8 @@ const mapStateToProps = state => ({
   supportUrl: state.member.app.supportUrl,
   sidebarDisplayType: state.member.app.sidebarDisplayType,
   allMembers: state.member.members.allMembers,
+  memberInitialLoadComplete: state.member.members.memberInitialLoadComplete,
+  membersNextPageToken: state.member.members.membersNextPageToken,
   memberLastFetchTime: state.member.members.memberLastFetchTime,
   allLeads: state.member.leads.allLeads,
   currentFilter: state.member.members.currentFilter,
@@ -57,6 +59,8 @@ export const SidebarContainer = compose(
       setFilterType,
       setListName,
       setFilterValue,
+      membersNextPageToken,
+      memberInitialLoadComplete,
       memberLastFetchTime,
     }) => () => {
       let filterValue = $('.membersFilters').val();
@@ -66,11 +70,19 @@ export const SidebarContainer = compose(
         .attr('type');
       if (filterType === 'filter') {
         setMemberFilter($('.membersFilters').val());
-        fetchMembers({ memberLastFetchTime: memberLastFetchTime });
+        fetchMembers({
+          membersNextPageToken: membersNextPageToken,
+          memberInitialLoadComplete: memberInitialLoadComplete,
+          memberLastFetchTime: memberLastFetchTime,
+        });
         setFilterType('filter');
       } else if (filterType === 'list') {
         setMemberFilter('All Members');
-        fetchMembers({ memberLastFetchTime: memberLastFetchTime });
+        fetchMembers({
+          membersNextPageToken: membersNextPageToken,
+          memberInitialLoadComplete: memberInitialLoadComplete,
+          memberLastFetchTime: memberLastFetchTime,
+        });
         setFilterType('list');
         setListName($('.membersFilters').val());
       }
@@ -116,6 +128,8 @@ export const SidebarContainer = compose(
   lifecycle({
     UNSAFE_componentWillMount() {
       this.props.fetchMembers({
+        membersNextPageToken: this.props.membersNextPageToken,
+        memberInitialLoadComplete: this.props.memberInitialLoadComplete,
         memberLastFetchTime: this.props.memberLastFetchTime,
       });
     },

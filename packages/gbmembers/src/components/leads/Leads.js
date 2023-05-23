@@ -57,6 +57,10 @@ const mapStateToProps = state => ({
   allLeads: state.member.leads.allLeads,
   leadLastFetchTime: state.member.leads.leadLastFetchTime,
   allMembers: state.member.members.allMembers,
+  membersLoading: state.member.members.membersLoading,
+  leadsLoading: state.member.leads.leadsLoading,
+  memberInitialLoadComplete: state.member.members.memberInitialLoadComplete,
+  membersNextPageToken: state.member.members.membersNextPageToken,
   memberLastFetchTime: state.member.members.memberLastFetchTime,
   profile: state.member.kinops.profile,
   space: state.member.app.space,
@@ -1452,7 +1456,7 @@ export class LeadsConversionChart extends Component {
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
-    if (nextProps.allLeads) {
+    if (nextProps.allLeads && nextProps.allMembers) {
       this.setState({
         data: this.getData(
           nextProps.allLeads,
@@ -2085,6 +2089,8 @@ export const LeadsView = ({
   profile,
   space,
   leadLists,
+  membersLoading,
+  leadsLoading,
 }) => (
   <div className="container-fluid leads">
     <StatusMessagesContainer />
@@ -2121,6 +2127,8 @@ function tick(mythis) {
     leadLastFetchTime: mythis.props.leadLastFetchTime,
   });
   mythis.props.fetchMembers({
+    membersNextPageToken: mythis.props.membersNextPageToken,
+    memberInitialLoadComplete: mythis.props.memberInitialLoadComplete,
     memberLastFetchTime: mythis.props.memberLastFetchTime,
   });
 }
@@ -2152,6 +2160,8 @@ export const LeadsContainer = compose(
         leadLastFetchTime: this.props.leadLastFetchTime,
       });
       this.props.fetchMembers({
+        membersNextPageToken: this.props.membersNextPageToken,
+        memberInitialLoadComplete: this.props.memberInitialLoadComplete,
         memberLastFetchTime: this.props.memberLastFetchTime,
       });
       let timer = setInterval(tick, 60 * 1000 * 2, this); // refresh every 2 minutes

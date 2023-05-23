@@ -44,6 +44,9 @@ import { Map } from 'immutable';
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
   membersLoading: state.member.members.membersLoading,
+  memberInitialLoadComplete: state.member.members.memberInitialLoadComplete,
+  membersNextPageToken: state.member.members.membersNextPageToken,
+  memberLastFetchTime: state.member.members.memberLastFetchTime,
   programs: state.member.app.programs,
   additionalPrograms: state.member.app.additionalPrograms,
   classAttendances: state.member.attendance.classAttendances,
@@ -2733,7 +2736,11 @@ export const AttendanceContainer = compose(
         this.props.fetchClassSchedules();
       }
       if (this.props.isKiosk) {
-        this.props.fetchMembers();
+        this.props.fetchMembers({
+          membersNextPageToken: this.props.membersNextPageToken,
+          memberInitialLoadComplete: this.props.memberInitialLoadComplete,
+          memberLastFetchTime: this.props.memberLastFetchTime,
+        });
       }
       this.props.setSidebarDisplayType('members');
     },

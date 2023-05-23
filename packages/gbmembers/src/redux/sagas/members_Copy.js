@@ -56,9 +56,51 @@ export function* fetchMembers(action) {
 
     if (!action.payload.memberInitialLoadComplete) {
       let searchCurrent = new CoreAPI.SubmissionSearch()
-        //  .includes(['details', 'values[Member ID],values[First Name],values[Last Name],values[Status],values[Gender],values[DOB],values[Ranking Program],values[Ranking Belt],values[Status History],values[History],values[Billing Parent Member],values[Billing User],values[Non Paying],values[Lead Submission ID],values[Billing Customer Id],values[Billing Customer Reference],values[Billing Payment Period],values[Billing Start Date],values[Billing User],values[Billing Migrated],values[Attendance Count],values[Last Promotion],values[Resume Date],values[Is New Reply Received],values[Billing Payment Type],values[Alternate Barcode],values[Covid19 Waiver],values[Student Covid Check],values[Membership Cost],values[Billing Cash Term Start Date],values[Billing Cash Term End Date],values[Family Fee Details],values[Billing User],values[Date Joined],values[Opt-Out],values[Additional Program 1],values[Additional Program 2],values[Member Type]'])
-        //    .includes(['details', 'values[Member ID],values[First Name],values[Last Name],values[Status],values[Gender],values[Date Joined],values[DOB],values[Ranking Program],values[Ranking Belt],values[Status History],values[Billing Parent Member],values[Billing User],values[Non Paying],values[Billing Customer Id],values[Billing Customer Reference],values[Billing Migrated],values[Lead Submission ID],values[Billing Payment Period]'])
-        .includes(['details', 'values'])
+        //          .includes(['details', 'values[Member ID],values[First Name],values[Last Name],values[Status],values[Gender],values[DOB],values[Ranking Program],values[Ranking Belt],values[Status History],values[History],values[Billing Parent Member],values[Billing User],values[Non Paying],values[Lead Submission ID],values[Billing Customer Id],values[Billing Customer Reference],values[Billing Payment Period],values[Billing Start Date],values[Billing User],values[Billing Migrated],values[Attendance Count],values[Last Promotion],values[Resume Date],values[Is New Reply Received],values[Billing Payment Type],values[Alternate Barcode],values[Photo],values[Covid19 Waiver],values[Student Covid Check],values[Membership Cost],values[Billing Cash Term Start Date],values[Billing Cash Term End Date],values[Family Fee Details],values[Billing User],values[Date Joined],values[Opt-Out]'])
+        .includes([
+          'details',
+          'values[Member ID],values[First Name],values[Last Name],values[Status],values[Gender],values[DOB],values[Ranking Program],values[Ranking Belt],values[Status History],values[Billing Parent Member],values[Billing User],values[Non Paying],values[Billing Customer Id],values[Billing Customer Reference],values[Billing Migrated]',
+        ])
+        //        .includes(['details', 'values'])
+        .limit(1000);
+      if (memberLastFetchTime !== undefined) {
+        searchCurrent = searchCurrent.startDate(
+          moment(memberLastFetchTime).toDate(),
+        );
+      } else {
+        /*        searchCurrent = searchCurrent.startDate(
+          moment().subtract(13,"months").toDate(),
+        );*/
+        // searchCurrent = searchCurrent.eq('values[Status]', 'Active')
+      }
+      searchCurrent = searchCurrent.in('values[Status]', [
+        'Pending Cancellation',
+        'Pending Freeze',
+        'Active',
+      ]);
+      searchCurrent = searchCurrent.build();
+
+      const [submissions] = yield all([
+        call(CoreAPI.searchSubmissions, {
+          form: 'member',
+          kapp: 'gbmembers',
+          search: searchCurrent,
+        }),
+      ]);
+      nextPageTokenValue = 'INITIAL';
+      allSubmissions = allSubmissions.concat(submissions.submissions);
+    }
+
+    if (
+      action.payload.memberInitialLoadComplete &&
+      action.payload.membersNextPageToken === 'INITIAL'
+    ) {
+      let searchCurrent = new CoreAPI.SubmissionSearch()
+        .includes([
+          'details',
+          'values[Member ID],values[First Name],values[Last Name],values[Status],values[Status History],values[Billing Parent Member],values[Billing User],values[Non Paying],values[Billing Customer Id],values[Billing Customer Reference],values[Billing Migrated]',
+        ])
+        //.includes(['details', 'values'])
         .limit(1000)
         .build();
 
@@ -74,9 +116,11 @@ export function* fetchMembers(action) {
 
       while (nextPageTokenValue) {
         let search2 = new CoreAPI.SubmissionSearch()
-          //  .includes(['details', 'values[Member ID],values[First Name],values[Last Name],values[Status],values[Gender],values[DOB],values[Ranking Program],values[Ranking Belt],values[Status History],values[History],values[Billing Parent Member],values[Billing User],values[Non Paying],values[Lead Submission ID],values[Billing Customer Id],values[Billing Customer Reference],values[Billing Payment Period],values[Billing Start Date],values[Billing User],values[Billing Migrated],values[Attendance Count],values[Last Promotion],values[Resume Date],values[Is New Reply Received],values[Billing Payment Type],values[Alternate Barcode],values[Covid19 Waiver],values[Student Covid Check],values[Membership Cost],values[Billing Cash Term Start Date],values[Billing Cash Term End Date],values[Family Fee Details],values[Billing User],values[Date Joined],values[Opt-Out],values[Additional Program 1],values[Additional Program 2],values[Member Type]'])
-          //  .includes(['details', 'values[Member ID],values[First Name],values[Last Name],values[Status],values[Gender],values[Date Joined],values[DOB],values[Ranking Program],values[Ranking Belt],values[Status History],values[Billing Parent Member],values[Billing User],values[Non Paying],values[Billing Customer Id],values[Billing Customer Reference],values[Billing Migrated],values[Lead Submission ID],values[Billing Payment Period]'])
-          .includes(['details', 'values'])
+          .includes([
+            'details',
+            'values[Member ID],values[First Name],values[Last Name],values[Status],values[Status History],values[Billing Parent Member],values[Billing User],values[Non Paying],values[Billing Customer Id],values[Billing Customer Reference],values[Billing Migrated]',
+          ])
+          //.includes(['details', 'values'])
           .limit(1000)
           .pageToken(nextPageTokenValue)
           .build();
@@ -95,51 +139,15 @@ export function* fetchMembers(action) {
 
     if (
       action.payload.memberInitialLoadComplete &&
-      action.payload.membersNextPageToken === 'LOAD_COMPLETE'
-    ) {
-      /*      let searchCurrent = new CoreAPI.SubmissionSearch()
-        .includes(['details', 'values'])
-        .limit(1000)
-        .build();
-
-        const [submissions] = yield all([
-          call(CoreAPI.searchSubmissions, {
-            form: 'member',
-            kapp: 'gbmembers',
-            search: searchCurrent,
-          }),
-        ]);
-        nextPageTokenValue=submissions.nextPageToken;
-        allSubmissions = allSubmissions.concat(submissions.submissions);
-
-        while (nextPageTokenValue) {
-          let search2 = new CoreAPI.SubmissionSearch()
-            .includes(['details', 'values'])
-            .limit(1000)
-            .pageToken(nextPageTokenValue)
-            .build();
-
-          const [submissions] = yield all([
-            call(CoreAPI.searchSubmissions, {
-              form: 'member',
-              kapp: 'gbmembers',
-              search: search2,
-            }),
-          ]);
-          allSubmissions = allSubmissions.concat(submissions.submissions);
-          nextPageTokenValue=submissions.nextPageToken;
-        } */
-      nextPageTokenValue = 'COMPLETE_LOADED';
-    }
-
-    if (
-      action.payload.memberInitialLoadComplete &&
-      action.payload.membersNextPageToken !== 'LOAD_COMPLETE' &&
+      action.payload.membersNextPageToken !== 'INITIAL' &&
       memberLastFetchTime !== undefined
     ) {
       let searchCurrent = new CoreAPI.SubmissionSearch()
-        //  .includes(['details', 'values[Member ID],values[First Name],values[Last Name],values[Status],values[Status History],values[Billing Parent Member],values[Billing User],values[Non Paying],values[Billing Customer Id],values[Billing Customer Reference],values[Billing Migrated]'])
-        .includes(['details', 'values'])
+        .includes([
+          'details',
+          'values[Member ID],values[First Name],values[Last Name],values[Status],values[Status History],values[Billing Parent Member],values[Billing User],values[Non Paying],values[Billing Customer Id],values[Billing Customer Reference],values[Billing Migrated]',
+        ])
+        //.includes(['details', 'values'])
         .limit(1000);
       searchCurrent = searchCurrent.startDate(
         moment(memberLastFetchTime).toDate(),
@@ -302,7 +310,16 @@ export function* fetchCurrentMember(action) {
           nextBillingDate = moment(
             submission.submission.values['Billing Start Date'],
             'YYYY-MM-DD',
-          ).add(periodVal, period);
+          ).add(
+            moment().diff(
+              moment(
+                submission.submission.values['Billing Start Date'],
+                'YYYY-MM-DD',
+              ),
+              period,
+            ) + periodVal,
+            period,
+          );
         }
         if (billingPeriod === 'Fortnightly') {
           var days = moment().diff(
@@ -1747,7 +1764,6 @@ export function* activateBiller(action) {
     action.payload.memberItem.values['Billing Customer Reference'];
   args.space = appSettings.spaceSlug;
   args.billingService = appSettings.billingCompany;
-  args.orderNumber = action.payload.orderNumber;
   args.payment = action.payload.payment;
   args.schedulePeriodType = action.payload.period;
   args.startDate = action.payload.startDate;

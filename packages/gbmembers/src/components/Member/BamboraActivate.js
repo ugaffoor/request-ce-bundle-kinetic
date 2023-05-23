@@ -350,6 +350,7 @@ const enhance = compose(
         memberItem,
         updateMember,
         billerActivated,
+        orderNumber: memberItem.values['Billing Customer Id'],
         startDate: startDate.format('YYYY-MM-DD'),
         scheduleDate: getScheduledDate(startDate, period).format('YYYY-MM-DD'),
         period,

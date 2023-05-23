@@ -140,7 +140,11 @@ export class Leads extends React.Component {
             this.selectTable = r;
           }}
           data={data}
-          showPagination={false}
+          showPagination={true}
+          defaultPageSize={150}
+          pageSizeOptions={[150, 500, 1000]}
+          defaultPage={0}
+          usePagination
           minRows="0"
           filterable
           filtered={this.state.filtered}
@@ -267,7 +271,6 @@ export class Leads extends React.Component {
               },
             },
           ]}
-          defaultPageSize={1000}
           className="-striped -highlight"
         />
       </div>

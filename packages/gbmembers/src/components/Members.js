@@ -39,7 +39,7 @@ export class Members extends React.Component {
     var data = this.getData(
       this.props.space,
       nextProps.allMembers,
-      this.props.currentFilter,
+      nextProps.currentFilter,
     );
     this.setState({
       data: data,
@@ -186,7 +186,10 @@ export class Members extends React.Component {
             this.selectTable = r;
           }}
           data={data}
-          showPagination={false}
+          showPagination={true}
+          defaultPageSize={150}
+          pageSizeOptions={[150, 500, 1000]}
+          defaultPage={0}
           minRows="0"
           filterable
           filtered={this.state.filtered}
@@ -338,7 +341,6 @@ export class Members extends React.Component {
               },
             },
           ]}
-          defaultPageSize={1000}
           className="-striped -highlight"
         />
       </div>

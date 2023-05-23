@@ -104,14 +104,46 @@ export class MemberFinancialStats extends Component {
       !nextProps.SUCCESSFULpaymentHistoryLoading &&
       !nextProps.servicesLoading
     ) {
-      //      if (getAttributeValue(nextProps.space, 'Billing Company') === 'Bambora') {
-      this.updateBillingDates(
-        nextProps.billingCustomers,
-        nextProps.SUCCESSFULpaymentHistory,
-        this.state.fromDate,
-        this.state.toDate,
-      );
-      //      }
+      if (getAttributeValue(nextProps.space, 'Billing Company') === 'Bambora') {
+        this.updateBillingDates(
+          nextProps.billingCustomers,
+          nextProps.SUCCESSFULpaymentHistory,
+          this.state.fromDate,
+          this.state.toDate,
+        );
+      }
+
+      var cancellationRequests = [];
+      nextProps.services.forEach((service, i) => {
+        if (
+          service.form.slug === 'bambora-member-cancellation' ||
+          service.form.slug === 'paysmart-member-registration' ||
+          service.form.slug === 'stripe-member-registration'
+        ) {
+          cancellationRequests.push(service);
+        }
+      });
+
+      var freezeRequests = [];
+      nextProps.services.forEach((service, i) => {
+        if (
+          service.form.slug === 'bambora-membership-freeze' ||
+          service.form.slug === 'membership-freeze' ||
+          service.form.slug === 'stripe-membership-freeze'
+        ) {
+          freezeRequests.push(service);
+        }
+      });
+      var resumeFreezeRequests = [];
+      nextProps.services.forEach((service, i) => {
+        if (
+          service.form.slug === 'bambora-resume-frozen-member' ||
+          service.form.slug === 'paysmart-resume-frozen-member' ||
+          service.form.slug === 'stripe-resume-frozen-member'
+        ) {
+          resumeFreezeRequests.push(service);
+        }
+      });
 
       let memberData = this.getMemberData(
         nextProps.members,
@@ -120,6 +152,9 @@ export class MemberFinancialStats extends Component {
         nextProps.FAILEDpaymentHistory,
         nextProps.SUCCESSFULpaymentHistory,
         nextProps.services,
+        cancellationRequests,
+        freezeRequests,
+        resumeFreezeRequests,
         this.state.fromDate,
         this.state.toDate,
         this.state.billingPeriod,
@@ -370,6 +405,8 @@ export class MemberFinancialStats extends Component {
         varDailyCost = varAmount / 2 / 7;
       } else if (paymentPeriod === 'Monthly') {
         varDailyCost = (varAmount * 12) / 52 / 7;
+      } else if (paymentPeriod === '6 Months') {
+        varDailyCost = (varAmount * 2) / 52 / 7;
       } else if (paymentPeriod === 'Yearly') {
         varDailyCost = varAmount / 52 / 7;
       }
@@ -423,6 +460,9 @@ export class MemberFinancialStats extends Component {
       periodCount = 2;
     } else if (paymentPeriod === 'Monthly') {
       period = 'months';
+    } else if (paymentPeriod === '6 Months') {
+      period = 'months';
+      periodCount = 6;
     } else if (paymentPeriod === 'Yearly') {
       period = 'years';
     }
@@ -487,11 +527,108 @@ export class MemberFinancialStats extends Component {
 
     return total - varTotal;
   }
+  noCancellationRequests(cancellationRequests, member, nextBillingDate) {
+    var datePrior = false;
+    if (member.status === 'Pending Cancellation') {
+      /*      cancellationRequests.forEach((request, i) => {
+        if (member.id === request.values['Members']) {
+          var startDate = moment(
+            request.values['The last debit will be taken on'],
+            'YYYY-MM-DD',
+          );
+          if (startDate.isSameOrBefore(nextBillingDate)) {
+            datePrior = true;
+          }
+        }
+      }); */
+      datePrior = true;
+    }
+    return datePrior;
+  }
+  noFreezeRequests(
+    freezeRequests,
+    resumeFreezeRequests,
+    member,
+    nextBillingDate,
+  ) {
+    var datePrior = false;
+    var status = '';
+    if (member !== undefined && member.values !== undefined) {
+      status = memberStatusInDates(
+        member,
+        nextBillingDate.startOf('day'),
+        nextBillingDate.endOf('day'),
+        true,
+      );
+    } else {
+      status = member.status;
+    }
+    if (status === 'Pending Freeze' || status === 'Frozen') {
+      freezeRequests.forEach((request, i) => {
+        if (member.id === request.values['Members']) {
+          var resumeDate = undefined;
+          if (
+            request.values['Date Payments Resume'] !== undefined &&
+            request.values['Date Payments Resume'] !== null
+          ) {
+            resumeDate = moment(
+              request.values['Date Payments Resume'],
+              'YYYY-MM-DD',
+            );
+          }
+          if (
+            resumeDate !== undefined &&
+            resumeDate.isSameOrAfter(nextBillingDate)
+          ) {
+            datePrior = true;
+          }
+        }
+      });
+    }
 
+    if (datePrior) {
+      // Check
+    }
+    return datePrior;
+  }
+  getPayment(member, paymentHistory, debitDate, fromDate, toDate) {
+    if (debitDate.isAfter(moment(), 'day')) return undefined;
+    var checkDate = moment(debitDate).add(10, 'days');
+    var idx = paymentHistory.findIndex(item => {
+      return (
+        member.values['Billing Customer Reference'] ===
+          item.yourSystemReference &&
+        moment(item.debitDate, 'YYYY-MM-DD').isBetween(debitDate, checkDate)
+      );
+    });
+
+    if (idx !== -1) {
+      return paymentHistory[idx].paymentAmount;
+    }
+    return undefined;
+  }
+  getTotalPayment(member, paymentHistory, fromDate, toDate) {
+    var payments = paymentHistory.filter(item => {
+      return (
+        member.values['Billing Customer Reference'] ===
+          item.yourSystemReference &&
+        moment(item.debitDate, 'YYYY-MM-DD').isBetween(fromDate, toDate)
+      );
+    });
+    var total = 0;
+    payments.forEach(item => {
+      total = total + item.paymentAmount;
+    });
+    return total;
+  }
   getMemberCost(
     member,
     billingCustomers,
+    paymentHistory,
     variationCustomers,
+    cancellationRequests,
+    freezeRequests,
+    resumeFreezeRequests,
     fromDate,
     toDate,
   ) {
@@ -519,6 +656,7 @@ export class MemberFinancialStats extends Component {
     let billing = billingCustomers[billingIdx];
     let varCost = 0;
 
+    /*    
     let variationIdx = variationCustomers.findIndex(
       element => element.customerId === member.values['Billing Customer Id'],
     );
@@ -547,6 +685,8 @@ export class MemberFinancialStats extends Component {
           varDailyCost = varAmount / 2 / 7;
         } else if (paymentPeriod === 'Monthly') {
           varDailyCost = (varAmount * 12) / 52 / 7;
+        } else if (paymentPeriod === '6 Months') {
+          varDailyCost = (varAmount * 2) / 52 / 7;
         } else if (paymentPeriod === 'Yearly') {
           varDailyCost = varAmount / 365;
         }
@@ -554,6 +694,8 @@ export class MemberFinancialStats extends Component {
         varCost = varDays * varDailyCost;
       }
     }
+*/
+
     let paymentPeriod = billing.billingPeriod;
     cost = billing.billingAmount;
     /*    
@@ -588,19 +730,63 @@ export class MemberFinancialStats extends Component {
       periodCount = 2;
     } else if (paymentPeriod === 'Monthly') {
       period = 'months';
+    } else if (paymentPeriod === '6 Months') {
+      period = 'months';
+      periodCount = 6;
     } else if (paymentPeriod === 'Yearly') {
       period = 'years';
     }
-    var total = cost;
+    var total = 0;
     let startDate = moment(billing.contractStartDate);
     while (startDate.isBefore(fromDate)) {
       startDate = startDate.add(period, periodCount);
     }
 
-    var nextBillingDate = startDate.add(period, periodCount);
-    while (nextBillingDate.isBefore(toDate)) {
-      total = total + cost;
-      nextBillingDate = nextBillingDate.add(period, periodCount);
+    if (toDate.isAfter(moment())) {
+      var payment = this.getPayment(
+        member,
+        paymentHistory,
+        startDate,
+        fromDate,
+        toDate,
+      );
+      total = payment === undefined ? cost : payment;
+      var nextBillingDate = startDate.add(period, periodCount);
+      while (nextBillingDate.isBefore(toDate)) {
+        payment = this.getPayment(
+          member,
+          paymentHistory,
+          nextBillingDate,
+          fromDate,
+          toDate,
+        );
+        if (payment !== undefined) {
+          total = total + payment;
+        } else if (
+          !this.noCancellationRequests(
+            cancellationRequests,
+            member,
+            nextBillingDate,
+          ) &&
+          !this.noFreezeRequests(
+            freezeRequests,
+            resumeFreezeRequests,
+            member.member !== undefined ? member.member : member,
+            nextBillingDate,
+          )
+        ) {
+          total = total + cost;
+        }
+        nextBillingDate = nextBillingDate.add(period, periodCount);
+      }
+    } else {
+      var payment = this.getTotalPayment(
+        member,
+        paymentHistory,
+        fromDate,
+        toDate,
+      );
+      total = payment === undefined ? 0 : payment;
     }
     return total;
   }
@@ -674,6 +860,8 @@ export class MemberFinancialStats extends Component {
             varWeeklyCost = varAmount / 2;
           } else if (paymentPeriod === 'Monthly') {
             varWeeklyCost = (varAmount * 12) / 52;
+          } else if (paymentPeriod === '6 Months') {
+            varWeeklyCost = (varAmount * 2) / 52;
           } else if (paymentPeriod === 'Yearly') {
             varWeeklyCost = varAmount / 52;
           }
@@ -692,6 +880,8 @@ export class MemberFinancialStats extends Component {
         weeklyCost = billing.billingAmount / 2;
       } else if (paymentPeriod === 'Monthly') {
         weeklyCost = (billing.billingAmount * 12) / 52;
+      } else if (paymentPeriod === '6 Months') {
+        weeklyCost = (billing.billingAmount * 6) / 52;
       } else if (paymentPeriod === 'Yearly') {
         weeklyCost = billing.billingAmount / 52;
       }
@@ -789,10 +979,23 @@ export class MemberFinancialStats extends Component {
     FAILEDpaymentHistory,
     SUCCESSFULpaymentHistory,
     services,
+    cancellationRequests,
+    freezeRequests,
+    resumeFreezeRequests,
     fromDate,
     toDate,
     billingPeriod,
   ) {
+    if (SUCCESSFULpaymentHistory !== undefined) {
+      SUCCESSFULpaymentHistory = SUCCESSFULpaymentHistory.sort(function(a, b) {
+        if (a.debitDate < b.debitDate) {
+          return -1;
+        } else if (a.debitDate > b.debitDate) {
+          return 1;
+        }
+        return 0;
+      });
+    }
     if (!members || members.length <= 0) {
       return {
         billings: { members: [], value: 0, billingValue: 0 },
@@ -885,7 +1088,11 @@ export class MemberFinancialStats extends Component {
           unfrozenValue += this.getMemberCost(
             member,
             billingCustomers,
+            SUCCESSFULpaymentHistory,
             variationCustomers,
+            cancellationRequests,
+            freezeRequests,
+            resumeFreezeRequests,
             fromDate,
             toDate,
           );
@@ -902,7 +1109,11 @@ export class MemberFinancialStats extends Component {
           restoredValue += this.getMemberCost(
             member,
             billingCustomers,
+            SUCCESSFULpaymentHistory,
             variationCustomers,
+            cancellationRequests,
+            freezeRequests,
+            resumeFreezeRequests,
             fromDate,
             toDate,
           );
@@ -924,7 +1135,11 @@ export class MemberFinancialStats extends Component {
           newMembersValue += this.getMemberCost(
             member,
             billingCustomers,
+            SUCCESSFULpaymentHistory,
             variationCustomers,
+            cancellationRequests,
+            freezeRequests,
+            resumeFreezeRequests,
             fromDate,
             toDate,
           );
@@ -999,7 +1214,11 @@ export class MemberFinancialStats extends Component {
               activeMembersValue += this.getMemberCost(
                 member,
                 billingCustomers,
+                SUCCESSFULpaymentHistory,
                 variationCustomers,
+                cancellationRequests,
+                freezeRequests,
+                resumeFreezeRequests,
                 fromDate,
                 toDate,
               );
@@ -1026,7 +1245,11 @@ export class MemberFinancialStats extends Component {
           frozenValue += this.getMemberCost(
             member,
             billingCustomers,
+            SUCCESSFULpaymentHistory,
             variationCustomers,
+            cancellationRequests,
+            freezeRequests,
+            resumeFreezeRequests,
             fromDate,
             toDate,
           );
@@ -1050,7 +1273,11 @@ export class MemberFinancialStats extends Component {
           pendingFrozenValue += this.getMemberCost(
             member,
             billingCustomers,
+            SUCCESSFULpaymentHistory,
             variationCustomers,
+            cancellationRequests,
+            freezeRequests,
+            resumeFreezeRequests,
             fromDate,
             toDate,
           );
@@ -1074,7 +1301,11 @@ export class MemberFinancialStats extends Component {
           cancellationsValue += this.getMemberCost(
             member,
             billingCustomers,
+            SUCCESSFULpaymentHistory,
             variationCustomers,
+            cancellationRequests,
+            freezeRequests,
+            resumeFreezeRequests,
             fromDate,
             toDate,
           );
@@ -1098,7 +1329,11 @@ export class MemberFinancialStats extends Component {
           pendingCancellationsValue += this.getMemberCost(
             member,
             billingCustomers,
+            SUCCESSFULpaymentHistory,
             variationCustomers,
+            cancellationRequests,
+            freezeRequests,
+            resumeFreezeRequests,
             fromDate,
             toDate,
           );
@@ -1143,7 +1378,11 @@ export class MemberFinancialStats extends Component {
           var cost = this.getMemberCost(
             member,
             billingCustomers,
+            SUCCESSFULpaymentHistory,
             variationCustomers,
+            cancellationRequests,
+            freezeRequests,
+            resumeFreezeRequests,
             fromDate,
             toDate,
           );
@@ -1157,6 +1396,10 @@ export class MemberFinancialStats extends Component {
             toDate,
           );
           accountHoldersBillingValue += billing;
+          var scheduledPayment = this.getScheduledPayment(
+            member,
+            billingCustomers,
+          );
           console.log(
             member.values['First Name'] +
               ' ' +
@@ -1165,6 +1408,10 @@ export class MemberFinancialStats extends Component {
               member.values['Billing Customer Reference'] +
               ',' +
               member.values['Billing Start Date'] +
+              ',' +
+              member.values['Billing Payment Period'] +
+              ',' +
+              scheduledPayment +
               ',' +
               Number(cost).toFixed(2) +
               ',' +
@@ -1199,7 +1446,11 @@ export class MemberFinancialStats extends Component {
           totalActiveMembersValue += this.getMemberCost(
             member,
             billingCustomers,
+            SUCCESSFULpaymentHistory,
             variationCustomers,
+            cancellationRequests,
+            freezeRequests,
+            resumeFreezeRequests,
             fromDate,
             newToDate,
           );

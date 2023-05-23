@@ -45,6 +45,8 @@ const mapStateToProps = state => ({
   membershipTypes: state.member.app.membershipTypes,
   newMemberLoading: state.member.members.newMemberLoading,
   allMembers: state.member.members.allMembers,
+  memberInitialLoadComplete: state.member.members.memberInitialLoadComplete,
+  membersNextPageToken: state.member.members.membersNextPageToken,
   memberLastFetchTime: state.member.members.memberLastFetchTime,
   allLeads: state.member.leads.allLeads,
   leadItem: state.member.leads.currentLead,
@@ -78,6 +80,8 @@ export function handleNameChange(memberItem, event) {
     .replace(/`/g, '')
     .replace(/\./g, '')
     .replace(/,/g, '')
+    .replace(/\(/g, '')
+    .replace(/\)/g, '')
     .substring(0, 30);
 
   $('#username').val(memberItem.values['Member ID']);
@@ -963,6 +967,8 @@ export const MemberNewContainer = compose(
       leadItem,
       updateLead,
       match,
+      membersNextPageToken,
+      memberInitialLoadComplete,
       memberLastFetchTime,
     }) => () => {
       $('#duplicateUserInfo')
@@ -1033,6 +1039,8 @@ export const MemberNewContainer = compose(
         createMember({
           memberItem,
           history: memberItem.history,
+          membersNextPageToken: membersNextPageToken,
+          memberInitialLoadComplete: memberInitialLoadComplete,
           memberLastFetchTime: memberLastFetchTime,
           fetchMembers: memberItem.fetchMembers,
           allLeads: allLeads,

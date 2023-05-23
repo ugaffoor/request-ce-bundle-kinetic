@@ -49,6 +49,8 @@ export class Statistics extends Component {
     this._getLeadIntroRowTableColumns = this.getLeadIntroRowTableColumns();
     this._getMemberRowTableColumns = this.getMemberRowTableColumns();
 
+    this.loadRententionRate = this.loadRententionRate.bind(this);
+
     this.setIsAssigning = this.props.setIsAssigning;
     this.datesChanged = this.props.datesChanged;
     this.setFromDate = this.props.setFromDate;
@@ -94,64 +96,83 @@ export class Statistics extends Component {
       showRententionRates: false,
       retentionRate: retentionRateData,
       twelveMonthRetentionRate: twelveMonthRetentionRateData,
+      retentionLoaded:
+        twelveMonthRetentionRateData === undefined ? false : true,
+      retentionLoading: false,
     };
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
     if (
-      getAttributeValue(this.props.space, 'Billing Company') === 'PaySmart' &&
-      !nextProps.overduesLoading
+      !nextProps.leadsByDateLoading &&
+      !nextProps.membersLoading &&
+      !nextProps.monthlyStatisticsLoading
     ) {
-      let leads = nextProps.leadsByDate;
-      let leadData = this.getData(
-        leads,
-        nextProps.allMembers,
-        this.state.fromDate,
-        this.state.toDate,
-        this.state.LCTViewSwitch,
-      );
-      let memberData = this.getMemberData(
-        nextProps.allMembers,
-        this.state.fromDate,
-        this.state.toDate,
-        nextProps.overdues,
-      );
-      this.setState({
-        leads,
-        allMembers: nextProps.allMembers,
-        leadData,
-        memberData,
-      });
-    } else if (
-      getAttributeValue(this.props.space, 'Billing Company') !== 'PaySmart'
-    ) {
-      let leads = nextProps.leadsByDate;
-      let leadData = this.getData(
-        leads,
-        nextProps.allMembers,
-        this.state.fromDate,
-        this.state.toDate,
-        this.state.LCTViewSwitch,
-      );
-      let memberData = this.getMemberData(
-        nextProps.allMembers,
-        this.state.fromDate,
-        this.state.toDate,
-      );
-      this.setState({
-        leads,
-        allMembers: nextProps.allMembers,
-        leadData,
-        memberData,
-      });
+      if (
+        getAttributeValue(this.props.space, 'Billing Company') === 'PaySmart' &&
+        !nextProps.overduesLoading
+      ) {
+        let leads = nextProps.leadsByDate;
+        let leadData = this.getData(
+          leads,
+          nextProps.allMembers,
+          this.state.fromDate,
+          this.state.toDate,
+          this.state.LCTViewSwitch,
+        );
+        let memberData = this.getMemberData(
+          nextProps.allMembers,
+          this.state.fromDate,
+          this.state.toDate,
+          nextProps.overdues,
+        );
+        this.setState({
+          leads,
+          allMembers: nextProps.allMembers,
+          leadData,
+          memberData,
+        });
+      } else if (
+        getAttributeValue(this.props.space, 'Billing Company') !== 'PaySmart'
+      ) {
+        let leads = nextProps.leadsByDate;
+        let leadData = this.getData(
+          leads,
+          nextProps.allMembers,
+          this.state.fromDate,
+          this.state.toDate,
+          this.state.LCTViewSwitch,
+        );
+        let memberData = this.getMemberData(
+          nextProps.allMembers,
+          this.state.fromDate,
+          this.state.toDate,
+        );
+        this.setState({
+          leads,
+          allMembers: nextProps.allMembers,
+          leadData,
+          memberData,
+        });
+      }
+    }
+  }
+
+  UNSAFE_componentWillMount() {
+    if (this.props.leadsByDate.length === 0) {
+      this.props.fetchLeadsByDate();
     }
 
     if (
-      !nextProps.monthlyStatisticsLoading &&
-      !nextProps.membersLoading &&
-      twelveMonthRetentionRateData === undefined
+      getAttributeValue(this.props.space, 'Billing Company') === 'PaySmart' &&
+      this.props.overdues.length === 0
     ) {
-      var monthlyStatisticsSorted = nextProps.monthlyStatistics.sort(function(
+      this.props.getOverdues();
+    }
+  }
+  loadRententionRate() {
+    if (twelveMonthRetentionRateData === undefined) {
+      /*      var monthlyStatisticsSorted = this.props.monthlyStatistics.sort(function(
         stat1,
         stat2,
       ) {
@@ -170,14 +191,26 @@ export class Statistics extends Component {
           return 0;
         }
         return 0;
+      }); */
+      // Find oldest Member Month up to 12 months
+      let oldestMonth = moment();
+      this.props.allMembers.forEach(member => {
+        var createdAt = moment(member['createdAt']);
+        if (createdAt.isBefore(oldestMonth)) {
+          oldestMonth = createdAt;
+        }
       });
+
+      if (moment().diff(oldestMonth, 'months') > 12) {
+        oldestMonth = moment().subtract(12, 'months');
+      }
       retentionRateData = this.getRetentionRate(
-        nextProps.allMembers,
-        monthlyStatisticsSorted,
+        this.props.allMembers,
+        oldestMonth,
       );
       twelveMonthRetentionRateData = this.getTwelveMonthRetentionRate(
-        nextProps.allMembers,
-        monthlyStatisticsSorted,
+        this.props.allMembers,
+        oldestMonth,
       );
       /*      apsData = this.getAPSRate(
         nextProps.allMembers,
@@ -188,20 +221,9 @@ export class Statistics extends Component {
         apsData: apsData,
         retentionRate: retentionRateData,
         twelveMonthRetentionRate: twelveMonthRetentionRateData,
+        retentionLoaded: true,
+        retentionLoading: false,
       });
-    }
-  }
-
-  UNSAFE_componentWillMount() {
-    if (this.props.leadsByDate.length === 0) {
-      this.props.fetchLeadsByDate();
-    }
-
-    if (
-      getAttributeValue(this.props.space, 'Billing Company') === 'PaySmart' &&
-      this.props.overdues.length === 0
-    ) {
-      this.props.getOverdues();
     }
   }
   getAPSRate(allMembers, monthlyStatistics) {
@@ -215,30 +237,6 @@ export class Statistics extends Component {
       var endOfMonth = this.getActiveMembers(allMembers, lastDayOfMonth);
 
       return parseFloat(billingAmount) / endOfMonth;
-    } else {
-      return 0;
-    }
-  }
-  getRetentionRate(allMembers, monthlyStatistics) {
-    if (monthlyStatistics.length > 1) {
-      let prevMonth = monthlyStatistics[monthlyStatistics.length - 2];
-      let month = monthlyStatistics[monthlyStatistics.length - 1];
-      let firstDayOfMonth = moment(
-        month.values['Year'] + '-' + month.values['Month'] + '-01',
-      );
-      let lastDayOfMonth = moment(
-        month.values['Year'] + '-' + month.values['Month'] + '-01',
-      ).endOf('month');
-
-      let newMembers = this.getNewMembers(
-        allMembers,
-        firstDayOfMonth,
-        lastDayOfMonth,
-      );
-      var beginOfMonth = this.getActiveMembers(allMembers, firstDayOfMonth);
-      var endOfMonth = this.getActiveMembers(allMembers, lastDayOfMonth);
-
-      return (endOfMonth - newMembers) / beginOfMonth;
     } else {
       return 0;
     }
@@ -390,19 +388,6 @@ export class Statistics extends Component {
                 'YYYY-MM-DD hh:mm:ss Z',
               ]);
             }
-            if (
-              nextDate !== undefined &&
-              day.isSame(moment('2022-04-30', 'YYYY-MM-DD'), 'day')
-            )
-              console.log(
-                ',id:' +
-                  member.id +
-                  ',nextStatus:' +
-                  nextStatus +
-                  ',nextDate:' +
-                  nextDate.format('YYYY-MM-DD') +
-                  ',',
-              );
 
             if (
               day.isSameOrAfter(currentDate, 'day') &&
@@ -509,7 +494,27 @@ export class Statistics extends Component {
 
     return frozenMembers;
   }
-  getTwelveMonthRetentionRate(allMembers, monthlyStatistics) {
+  getRetentionRate(allMembers, oldestMonth) {
+    if (moment().diff(oldestMonth, 'months') >= 1) {
+      let month = moment().subtract(1, 'month');
+      let firstDayOfMonth = moment(month).startOf('month');
+      let lastDayOfMonth = moment(month).endOf('month');
+
+      let newMembers = this.getNewMembers(
+        allMembers,
+        firstDayOfMonth,
+        lastDayOfMonth,
+      );
+      var beginOfMonth = this.getActiveMembers(allMembers, firstDayOfMonth);
+      var endOfMonth = this.getActiveMembers(allMembers, lastDayOfMonth);
+
+      var rate = (endOfMonth - newMembers) / beginOfMonth;
+      return rate > 1 ? 1 : rate;
+    } else {
+      return 0;
+    }
+  }
+  getTwelveMonthRetentionRate(allMembers, oldestMonth) {
     var twelveMonthRates = [];
     var rententionRate = 0;
     var newMembersTotal = 0;
@@ -517,28 +522,15 @@ export class Statistics extends Component {
     var periodStartCount = 0;
     var periodEndCount = 0;
     var retentionTotalMonths =
-      monthlyStatistics.length > 12 ? 12 : monthlyStatistics.length - 1;
-    for (
-      var i =
-        monthlyStatistics.length > 12 ? (i = monthlyStatistics.length - 12) : 0;
-      i < monthlyStatistics.length;
-      i++
-    ) {
-      if (i === 0) continue;
-      var firstDayOfMonth = moment(
-        monthlyStatistics[i].values['Year'] +
-          '-' +
-          monthlyStatistics[i].values['Month'] +
-          '-01',
-        'YYYY-MM-DD',
-      );
-      var lastDayOfMonth = moment(
-        monthlyStatistics[i].values['Year'] +
-          '-' +
-          monthlyStatistics[i].values['Month'] +
-          '-01',
-        'YYYY-MM-DD',
-      ).endOf('month');
+      moment().diff(oldestMonth, 'months') > 12
+        ? 12
+        : moment().diff(oldestMonth, 'months');
+
+    for (var i = retentionTotalMonths; i > 0; i--) {
+      //if (i === 0) continue;
+      var periodMonth = moment().subtract(i, 'months');
+      var firstDayOfMonth = moment(periodMonth).startOf('month');
+      var lastDayOfMonth = moment(periodMonth).endOf('month');
       var beginOfMonth =
         i === 0 ? 0 : this.getActiveMembers(allMembers, firstDayOfMonth);
       //      console.log("XXX getActiveMembers day:"+firstDayOfMonth.format("YYYY-MM-DD")+" beginOfMonth:"+beginOfMonth);
@@ -561,27 +553,23 @@ export class Statistics extends Component {
       retentionTotal =
         retentionTotal + (endOfMonth - newMembers) / parseInt(beginOfMonth);
 
+      var rate = (endOfMonth - newMembers) / parseInt(beginOfMonth);
+      rate = rate > 1 ? 1 : rate;
       twelveMonthRates.push({
-        month: moment()
-          .month(parseInt(monthlyStatistics[i].values['Month']))
-          .subtract(1, 'months')
-          .format('MMMM'),
+        month: periodMonth.format('MMMM'),
         beginOfMonth: beginOfMonth,
         beginOfMonthFrozen: beginOfMonthFrozen,
         endOfMonth: endOfMonth,
         endOfMonthFrozen: endOfMonthFrozen,
         newMembers: newMembers,
-        rententionRate: (
-          (endOfMonth - newMembers) /
-          parseInt(beginOfMonth)
-        ).toLocaleString(undefined, {
+        rententionRate: rate.toLocaleString(undefined, {
           style: 'percent',
           minimumFractionDigits: 2,
         }),
       });
     }
 
-    if (monthlyStatistics.length > 1) {
+    if (i === 0) {
       periodEndCount = endOfMonth;
     }
     return {
@@ -1501,7 +1489,7 @@ export class Statistics extends Component {
     return this.props.leadsByDateLoading ? (
       <div style={{ margin: '10px' }}>
         <p>Loading Statistics ...</p>
-        <ReactSpinner />{' '}
+        {/*        <ReactSpinner />{' '} */}
       </div>
     ) : (
       <span>
@@ -2250,25 +2238,39 @@ export class Statistics extends Component {
                   <div className="label">Retention Rate</div>
                   <div
                     className="value"
-                    onClick={e =>
-                      this.setState({
-                        showNewLeads: false,
-                        showScheduledLeads: false,
-                        showIntroLeads: false,
-                        showConvertedLeads: false,
-                        showCancellationsMembers: false,
-                        showPendingCancellationsMembers: false,
-                        showFrozenMembers: false,
-                        showPendingFrozenMembers: false,
-                        showOverdueMembers: false,
-                        showRententionRates: true,
-                      })
-                    }
+                    onClick={e => {
+                      if (!this.state.retentionLoaded) {
+                        this.setState({
+                          retentionLoaded: false,
+                          retentionLoading: true,
+                        });
+
+                        setTimeout(function() {
+                          compThis.loadRententionRate();
+                        }, 100);
+                      } else {
+                        this.setState({
+                          showNewLeads: false,
+                          showScheduledLeads: false,
+                          showIntroLeads: false,
+                          showConvertedLeads: false,
+                          showCancellationsMembers: false,
+                          showPendingCancellationsMembers: false,
+                          showFrozenMembers: false,
+                          showPendingFrozenMembers: false,
+                          showOverdueMembers: false,
+                          showRententionRates: true,
+                        });
+                      }
+                    }}
                   >
-                    {this.props.monthlyStatisticsLoading ? (
-                      <span>Loading</span>
+                    {this.props.monthlyStatisticsLoading ||
+                    this.state.retentionLoading ? (
+                      <span className="rentention">Loading...</span>
+                    ) : !this.state.retentionLoaded ? (
+                      <span className="rentention">Load Now</span>
                     ) : (
-                      <span>
+                      <span className="rentention">
                         {this.state.retentionRate.toLocaleString(undefined, {
                           style: 'percent',
                           minimumFractionDigits: 2,

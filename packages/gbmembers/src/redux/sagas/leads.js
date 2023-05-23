@@ -33,6 +33,7 @@ export function* fetchLeads(action) {
       .eq('values[Lead State]', 'Open')
       .sortBy('updatedAt')
       .sortDirection('DESC')
+      //.includes(['details', 'values[Lead State],values[Status],values[Status History],values[Source],values[Date],values[Date Created],values[Date Created],values[Last Name],values[Gender],values[Email],values[Additional Email],values[Phone Number],values[Additional Phone Number]'])
       .includes(['details', 'values'])
       .limit(1000);
     if (leadLastFetchTime !== undefined) {
@@ -54,6 +55,7 @@ export function* fetchLeads(action) {
         .eq('values[Lead State]', 'Open')
         .sortBy('updatedAt')
         .sortDirection('DESC')
+        //.includes(['details', 'values[Lead State],values[Status],values[Status History],values[Source],values[Date],values[Date Created],values[Date Created],values[Last Name],values[Gender],values[Email],values[Additional Email],values[Phone Number],values[Additional Phone Number]'])
         .includes(['details', 'values'])
         .pageToken(nextPageToken)
         .limit(1000)
@@ -82,6 +84,7 @@ export function* fetchLeadsByDate(action) {
     let allSubmissions = [];
 
     const search = new CoreAPI.SubmissionSearch()
+      //.includes(['details', 'values[Lead State],values[Status],values[Status History],values[Source],values[Date],values[Date Created],values[Date Created],values[Last Name],values[Gender],values[Email],values[Additional Email],values[Phone Number],values[Additional Phone Number]'])
       .includes(['details', 'values'])
       .sortBy('updatedAt')
       .sortDirection('DESC')
@@ -97,6 +100,7 @@ export function* fetchLeadsByDate(action) {
 
     while (nextPageToken) {
       var search2 = new CoreAPI.SubmissionSearch()
+        //.includes(['details', 'values[Lead State],values[Status],values[Status History],values[Source],values[Date],values[Date Created],values[Date Created],values[Last Name],values[Gender],values[Email],values[Additional Email],values[Phone Number],values[Additional Phone Number]'])
         .includes(['details', 'values'])
         .sortBy('updatedAt')
         .sortDirection('DESC')
