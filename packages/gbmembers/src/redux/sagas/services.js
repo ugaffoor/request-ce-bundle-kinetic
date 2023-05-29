@@ -3,6 +3,7 @@ import { CoreAPI } from 'react-kinetic-core';
 
 import { actions, types } from '../modules/services';
 import { actions as systemErrorActions } from '../modules/systemError';
+import { actions as errorActions, NOTICE_TYPES } from '../modules/errors';
 import moment from 'moment';
 
 export function* fetchServicesByDate(action) {
@@ -39,7 +40,22 @@ export function* fetchServicesByDate(action) {
     yield put(actions.setServices(submissions));
   }
 }
+export function* sendReceipt(action) {
+  try {
+    const { submission } = yield call(CoreAPI.createSubmission, {
+      datastore: true,
+      formSlug: 'receipt-sender',
+      values: action.payload.values,
+    });
+    console.log('sendReceipt');
+    yield put(errorActions.addSuccess('Email Receipt Sent', 'Send Receipt'));
+  } catch (error) {
+    console.log('Error in sendReceipt: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
 
 export function* watchServices() {
   yield takeEvery(types.FETCH_SERVICESBYDATE, fetchServicesByDate);
+  yield takeEvery(types.SEND_RECEIPT, sendReceipt);
 }

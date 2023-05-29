@@ -53,6 +53,7 @@ import { MemberAttendanceContainer } from './MemberAttendance';
 import { actions as posActions } from '../../redux/modules/pos';
 import { actions as campaignActions } from '../../redux/modules/campaigns';
 import { actions as attendanceActions } from '../../redux/modules/attendance';
+import { actions as serviceActions } from '../../redux/modules/services';
 import { actions as appActions } from '../../redux/modules/memberApp';
 import {
   ResponsiveContainer,
@@ -125,7 +126,8 @@ const mapDispatchToProps = {
   updatePOSOrder: posActions.updatePOSOrder,
   incrementPOSStock: posActions.incrementPOSStock,
   deletePOSPurchasedItem: posActions.deletePOSPurchasedItem,
-  fetchMembers: actions.fetchMembers,
+  updatePOSOrder: posActions.updatePOSOrder,
+  sendReceipt: serviceActions.sendReceipt,
   fetchMemberAttendances: attendanceActions.fetchMemberAttendances,
   createMemberUserAccount: actions.createMemberUserAccount,
   getAttributeValue: getAttributeValue,
@@ -899,6 +901,7 @@ export const MemberView = ({
   cancelAdditionalService,
   currency,
   updateMember,
+  sendReceipt,
   refundPayment,
   refundPOSPayment,
   refundPOSTransactionInProgress,
@@ -909,6 +912,8 @@ export const MemberView = ({
   handleDateChange,
   setContactDate,
   contactDate,
+  addNotification,
+  setSystemError,
 }) =>
   initialLoad ? (
     <div className="loading">
@@ -1879,6 +1884,9 @@ export const MemberView = ({
                   }
                   space={space}
                   profile={profile}
+                  sendReceipt={sendReceipt}
+                  addNotification={addNotification}
+                  setSystemError={setSystemError}
                 />
               </div>
               <div>

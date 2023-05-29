@@ -4,11 +4,13 @@ import { namespace, withPayload } from '../../utils';
 export const types = {
   FETCH_SERVICESBYDATE: namespace('services', 'FETCH_SERVICESBYDATE'),
   SET_SERVICES: namespace('services', 'SET_SERVICES'),
+  SEND_RECEIPT: namespace('services', 'SEND_RECEIPT'),
 };
 
 export const actions = {
   fetchServicesByDate: withPayload(types.FETCH_SERVICESBYDATE),
   setServices: withPayload(types.SET_SERVICES),
+  sendReceipt: withPayload(types.SEND_RECEIPT),
 };
 
 export const State = Record({

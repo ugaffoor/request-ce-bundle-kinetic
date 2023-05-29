@@ -2,10 +2,14 @@ import React, { Component } from 'react';
 import ReactTable from 'react-table';
 import { email_received_date_format } from '../leads/LeadsUtils';
 import moment from 'moment';
+import mail from '../../images/mail.png';
+import { confirm } from '../helpers/Confirmation';
 
 export class Requests extends Component {
   constructor(props) {
     super(props);
+
+    this.formatEmailCell = this.formatEmailCell.bind(this);
     const data = this.props.requestContent;
     this._columns = this.getColumns();
 
@@ -23,6 +27,38 @@ export class Requests extends Component {
   }
 
   UNSAFE_componentWillMount() {}
+  formatEmailCell(cellInfo) {
+    return cellInfo.original['Form'] === 'Bambora Member Registration' ? (
+      <span
+        className="deleteFile"
+        onClick={async e => {
+          if (
+            await confirm(
+              <span>
+                <span>Are you sure you want to send a receipt email?</span>
+              </span>,
+            )
+          ) {
+            var request = cellInfo.original['url'];
+            var id = request.split('/')[request.split('/').length - 2];
+            var values = {};
+            values['Form Slug'] = 'Bambora Member Registration';
+            values['Submission ID'] = id;
+
+            this.props.sendReceipt({
+              values: values,
+              addNotification: this.props.addNotification,
+              setSystemError: this.props.setSystemError,
+            });
+          }
+        }}
+      >
+        <img src={mail} alt="Email" />
+      </span>
+    ) : (
+      <div />
+    );
+  }
 
   getColumns() {
     return [
@@ -35,6 +71,11 @@ export class Requests extends Component {
       {
         accessor: 'url',
         Cell: props => <a href={props.value}>Review</a>,
+      },
+      {
+        accessor: 'emailReceipt',
+        Header: '',
+        Cell: this.formatEmailCell,
       },
     ];
   }
