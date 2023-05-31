@@ -530,6 +530,7 @@ export class SelfCheckin extends Component {
       memberAlreadyCheckedIn: false,
       classTime: classTime,
       className: attendanceThis.props.classSchedules.get(scheduleIdx).program,
+      classTitle: attendanceThis.props.classSchedules.get(scheduleIdx).title,
       allowedPrograms: JSON.parse(
         attendanceThis.props.classSchedules.get(scheduleIdx).allowedPrograms !==
           undefined
@@ -1073,8 +1074,11 @@ export class SelfCheckin extends Component {
                       </div>
                     ) : (
                       <div className="classBookings">
-                        {attendanceThis.props.classBookings.map(
-                          (booking, index) => (
+                        {attendanceThis.props.classBookings
+                          .filter(booking => {
+                            return booking.title === this.state.classTitle;
+                          })
+                          .map((booking, index) => (
                             <span
                               key={index}
                               className={'memberCell'}
@@ -1121,8 +1125,7 @@ export class SelfCheckin extends Component {
                                 </span>
                               </span>
                             </span>
-                          ),
-                        )}
+                          ))}
                       </div>
                     )}
                   </div>
@@ -2057,6 +2060,8 @@ export class AttendanceDetail extends Component {
                           classTime: moment(
                             this.props.classSchedules.get(scheduleIdx).start,
                           ).format('HH:mm'),
+                          classTitle: this.props.classSchedules.get(scheduleIdx)
+                            .title,
                         });
                         $('#changeToManual').focus();
                         $('#checkinMember').focus();
@@ -2162,55 +2167,65 @@ export class AttendanceDetail extends Component {
                       </div>
                     ) : (
                       <div className="classBookings">
-                        {this.props.classBookings.map((booking, index) => (
-                          <span
-                            key={index}
-                            className={'memberCell'}
-                            id={booking.id}
-                          >
-                            <span className="top">
-                              {booking.photo === undefined ? (
-                                <span className="noPhoto">
-                                  {booking.firstName[0]}
-                                  {booking.lastName[0]}
+                        {this.props.classBookings
+                          .filter(booking => {
+                            return booking.title === this.state.classTitle;
+                          })
+                          .map((booking, index) => (
+                            <span
+                              key={index}
+                              className={'memberCell'}
+                              id={booking.id}
+                            >
+                              <span className="top">
+                                {booking.photo === undefined ? (
+                                  <span className="noPhoto">
+                                    {booking.firstName[0]}
+                                    {booking.lastName[0]}
+                                  </span>
+                                ) : (
+                                  <img
+                                    src={booking.photo}
+                                    alt="Member Photograph"
+                                    className="photo"
+                                  />
+                                )}
+                                <span className="memberInfo">
+                                  <h4 className="memberName">
+                                    {booking.firstName} {booking.lastName}
+                                  </h4>
+                                  <span
+                                    className="checkinBooking"
+                                    onClick={e => this.checkinBooking(booking)}
+                                  >
+                                    <SVGInline
+                                      svg={tickIcon}
+                                      className="icon"
+                                    />
+                                  </span>
+                                  <span
+                                    className="noshowBooking"
+                                    onClick={e => this.noShowBooking(booking)}
+                                  >
+                                    <SVGInline
+                                      svg={crossIcon}
+                                      className="icon"
+                                    />
+                                  </span>
                                 </span>
-                              ) : (
-                                <img
-                                  src={booking.photo}
-                                  alt="Member Photograph"
-                                  className="photo"
-                                />
-                              )}
-                              <span className="memberInfo">
-                                <h4 className="memberName">
-                                  {booking.firstName} {booking.lastName}
-                                </h4>
-                                <span
-                                  className="checkinBooking"
-                                  onClick={e => this.checkinBooking(booking)}
-                                >
-                                  <SVGInline svg={tickIcon} className="icon" />
-                                </span>
-                                <span
-                                  className="noshowBooking"
-                                  onClick={e => this.noShowBooking(booking)}
-                                >
-                                  <SVGInline svg={crossIcon} className="icon" />
+                              </span>
+                              <span className="bottom">
+                                <span className="ranking">
+                                  <div className="program">
+                                    {getProgramSVG(booking.rankingProgram)}
+                                  </div>
+                                  <div className="belt">
+                                    {getBeltSVG(booking.rankingBelt)}
+                                  </div>
                                 </span>
                               </span>
                             </span>
-                            <span className="bottom">
-                              <span className="ranking">
-                                <div className="program">
-                                  {getProgramSVG(booking.rankingProgram)}
-                                </div>
-                                <div className="belt">
-                                  {getBeltSVG(booking.rankingBelt)}
-                                </div>
-                              </span>
-                            </span>
-                          </span>
-                        ))}
+                          ))}
                       </div>
                     )}
                   </div>
