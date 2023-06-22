@@ -34,6 +34,7 @@ import helpIcon from '../../images/help.svg?raw';
 
 const mapStateToProps = state => ({
   members: state.member.members.allMembers,
+  membersLoading: state.member.members.membersLoading,
   profile: state.member.app.profile,
   leads: state.member.leads.allLeads,
   leadsLoading: state.member.leads.leadsLoading,
@@ -142,6 +143,7 @@ export class MemberFinancialReport extends Component {
       !nextProps.additionalServicesLoading &&
       !nextProps.cashPaymentsByDateLoading &&
       !nextProps.leadsLoading &&
+      !nextProps.membersLoading &&
       !nextProps.servicesLoading
     ) {
       this.failedPaymentHistory = [];
@@ -334,6 +336,8 @@ export class MemberFinancialReport extends Component {
         this.state.repFromDate,
         this.state.repToDate,
         this.state.repBillingPeriod,
+        nextProps.leadsLoading,
+        nextProps.membersLoading,
       );
       this.setState({
         allMembers: nextProps.members,
@@ -688,8 +692,14 @@ export class MemberFinancialReport extends Component {
     fromDate,
     toDate,
     repBillingPeriod,
+    leadsLoading,
+    membersLoading,
   ) {
-    if (!members || members.length <= 0) {
+    if (
+      (leadsLoading === undefined || leadsLoading) &&
+      (membersLoading === undefined || membersLoading)
+    ) {
+      //    if (!members || members.length <= 0) {
       return {
         accountHolders: { members: [], value: 0 },
         additionalServices: { members: [], value: 0 },

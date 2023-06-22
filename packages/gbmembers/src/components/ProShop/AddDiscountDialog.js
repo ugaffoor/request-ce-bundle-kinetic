@@ -76,7 +76,10 @@ export class AddDiscountDialog extends Component {
                           ? (discount.values['Value'] !== null
                               ? discount.values['Value']
                               : '') + '%'
-                          : '$' +
+                          : new Intl.NumberFormat('en-US', {
+                              style: 'currency',
+                              currency: this.props.currency,
+                            }).formatToParts(0)[0].value +
                             (discount.values['Value'] !== null
                               ? discount.values['Value']
                               : '')}

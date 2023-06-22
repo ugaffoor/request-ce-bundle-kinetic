@@ -2973,7 +2973,10 @@ class Checkout extends Component {
                         'discountType'
                       ] === 'Percentage'
                         ? '%'
-                        : '$'}
+                        : new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: this.props.currency,
+                          }).formatToParts(0)[0].value}
                     </span>
                     <NumberFormat
                       ref={input => (this.input = input)}

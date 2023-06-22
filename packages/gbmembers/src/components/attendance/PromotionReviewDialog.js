@@ -37,7 +37,11 @@ export class WeekAttendances extends Component {
                 'h:mm A',
               )}
             </div>
-            <div className="class">{attendance.values['Class']}</div>
+            <div className="class">
+              {attendance.values['Class'] !== undefined
+                ? attendance.values['Class']
+                : attendance.values['Ranking Program']}
+            </div>
             <div className="status">
               {attendance.values['Attendance Status']}
             </div>
@@ -95,8 +99,9 @@ export class PromotionReviewDialog extends Component {
       let week = date.diff(lastPromotionDate, 'weeks');
       this.totalClasses++;
       if (
-        attendance.values['Class'].toUpperCase() === 'NO-GI' ||
-        attendance.values['Class'].toUpperCase() === 'NOGI'
+        attendance.values['Class'] !== undefined &&
+        (attendance.values['Class'].toUpperCase() === 'NO-GI' ||
+          attendance.values['Class'].toUpperCase() === 'NOGI')
       )
         this.nogiClasses++;
       let attendances = attendanceMap.get(week);

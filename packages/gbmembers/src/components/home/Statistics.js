@@ -296,6 +296,7 @@ export class Statistics extends Component {
             ).isSameOrBefore(day, 'day') &&
             member['values']['Status'] === 'Active'
           ) {
+            //console.log(day+","+member['values']['First Name']+" "+member['values']['Last Name'])
             activeMembers = activeMembers + 1;
             if (day.month() === 13) {
               console.log(
@@ -399,6 +400,7 @@ export class Statistics extends Component {
                 currentStatus === 'Pending Freeze' ||
                 currentStatus === 'Pending Cancellation'
               ) {
+                //console.log(day+","+member['values']['First Name']+" "+member['values']['Last Name'])
                 activeMembers = activeMembers + 1;
                 if (day.month() === 13) {
                   console.log(

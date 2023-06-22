@@ -279,6 +279,9 @@ export function* fetchCurrentMember(action) {
         } else if (billingPeriod === '6 Months') {
           period = 'months';
           periodVal = 6;
+        } else if (billingPeriod === '4 Months') {
+          period = 'months';
+          periodVal = 4;
         } else if (billingPeriod === 'Yearly') {
           period = 'years';
           periodVal = 1;

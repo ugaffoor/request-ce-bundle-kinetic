@@ -254,6 +254,9 @@ export class AttendancePerDay extends Component {
           case 'GB3':
             type = 'Adult';
             break;
+          case 'GBF':
+            type = 'Adult';
+            break;
           default:
             type = 'Kids';
         }

@@ -105,6 +105,8 @@ export class BamboraActivate extends Component {
         return startDate.add(1, 'months');
       case 'Quarterly':
         return startDate.add(3, 'months');
+      case '4 Months':
+        return startDate.add(4, 'months');
       case '6 Months':
         return startDate.add(6, 'months');
       case 'Yearly':

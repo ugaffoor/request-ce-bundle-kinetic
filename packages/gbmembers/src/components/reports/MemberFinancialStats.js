@@ -460,6 +460,12 @@ export class MemberFinancialStats extends Component {
       periodCount = 2;
     } else if (paymentPeriod === 'Monthly') {
       period = 'months';
+    } else if (paymentPeriod === 'Quarterly') {
+      period = 'months';
+      periodCount = 3;
+    } else if (paymentPeriod === '4 Months') {
+      period = 'months';
+      periodCount = 4;
     } else if (paymentPeriod === '6 Months') {
       period = 'months';
       periodCount = 6;
@@ -730,6 +736,12 @@ export class MemberFinancialStats extends Component {
       periodCount = 2;
     } else if (paymentPeriod === 'Monthly') {
       period = 'months';
+    } else if (paymentPeriod === 'Quarterly') {
+      period = 'months';
+      periodCount = 3;
+    } else if (paymentPeriod === '4 Months') {
+      period = 'months';
+      periodCount = 4;
     } else if (paymentPeriod === '6 Months') {
       period = 'months';
       periodCount = 6;
@@ -860,6 +872,10 @@ export class MemberFinancialStats extends Component {
             varWeeklyCost = varAmount / 2;
           } else if (paymentPeriod === 'Monthly') {
             varWeeklyCost = (varAmount * 12) / 52;
+          } else if (paymentPeriod === 'Quarterly') {
+            varWeeklyCost = (varAmount * 4) / 52;
+          } else if (paymentPeriod === '4 Months') {
+            varWeeklyCost = (varAmount * 3) / 52;
           } else if (paymentPeriod === '6 Months') {
             varWeeklyCost = (varAmount * 2) / 52;
           } else if (paymentPeriod === 'Yearly') {
@@ -880,6 +896,8 @@ export class MemberFinancialStats extends Component {
         weeklyCost = billing.billingAmount / 2;
       } else if (paymentPeriod === 'Monthly') {
         weeklyCost = (billing.billingAmount * 12) / 52;
+      } else if (paymentPeriod === '4 Months') {
+        weeklyCost = (billing.billingAmount * 4) / 52;
       } else if (paymentPeriod === '6 Months') {
         weeklyCost = (billing.billingAmount * 6) / 52;
       } else if (paymentPeriod === 'Yearly') {
