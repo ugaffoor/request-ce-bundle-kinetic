@@ -389,10 +389,10 @@ export class RecordStockDialog extends Component {
                             {this.state.posStockSaving ? (
                               <ScaleLoader
                                 className="processing"
-                                height="35"
-                                width="16"
-                                radius="2"
-                                margin="4"
+                                height="35px"
+                                width="16px"
+                                radius="2px"
+                                margin="4px"
                                 color="#b6b1b1"
                               />
                             ) : (
@@ -424,10 +424,10 @@ export class RecordStockDialog extends Component {
                             {this.state.posStockSaving ? (
                               <ScaleLoader
                                 className="processing"
-                                height="35"
-                                width="16"
-                                radius="2"
-                                margin="4"
+                                height="35px"
+                                width="16px"
+                                radius="2px"
+                                margin="4px"
                                 color="#b6b1b1"
                               />
                             ) : (

@@ -23,6 +23,8 @@ import SVGInline from 'react-svg-inline';
 import crossIcon from '../../images/cross.svg?raw';
 import ReactToPrint from 'react-to-print';
 import printerIcon from '../../images/Print.svg?raw';
+import downloadIcon from '../../images/download.svg?raw';
+import { CSVLink } from 'react-csv';
 
 const mapStateToProps = state => ({
   members: state.member.members.allMembers,
@@ -102,6 +104,7 @@ export class PurchaseItemsReport extends Component {
       repPeriod: 'monthly',
       repViewPeriod: 'this_period',
       showRepAccountHolders: false,
+      personViewMode: false,
     };
   }
 
@@ -134,6 +137,8 @@ export class PurchaseItemsReport extends Component {
         costTotal,
         profitTotal,
         discountsTotal,
+        posPurchaseItems: this.posPurchaseItems,
+        posProducts: this.props.posProducts,
       });
     }
   }
@@ -304,6 +309,156 @@ export class PurchaseItemsReport extends Component {
       });
     return data;
   }
+  getDataByPerson(posPurchaseItems, posProducts) {
+    if (!posPurchaseItems || posPurchaseItems.length <= 0) {
+      return [];
+    }
+    var data = [];
+    posPurchaseItems.forEach((item, i) => {
+      var idx = data.findIndex(
+        dataItem =>
+          dataItem.key ===
+          item.values['Product Name'] +
+            (item.values['Size'] !== undefined ? item.values['Size'] : ''),
+      );
+      var price = this.getItemPrice(item, posProducts);
+      var colour = this.getItemColour(item, posProducts);
+      var cost = this.getItemCost(item, posProducts);
+      var profit = this.getItemProfit(posProducts, item, cost, price);
+
+      data[data.length] = {
+        key:
+          item.values['Person Name'] +
+          (item.values['Product Name'] !== undefined
+            ? item.values['Product Name']
+            : ''),
+        person: item.values['Person Name'],
+        name: item.values['Product Name'],
+        size: item.values['Size'],
+        colour: colour,
+        quantity: Number.parseInt(item.values['Quantity']),
+        value: Number.parseInt(item.values['Quantity']) * price,
+        cost: Number.parseInt(item.values['Quantity']) * cost,
+        profit: Number.parseInt(item.values['Quantity']) * profit,
+      };
+    });
+
+    data
+      .sort((a, b) => {
+        if (a.name < b.name) {
+          return -1;
+        } else if (a.name > b.name) {
+          return 1;
+        }
+        return 0;
+      })
+      .sort((a, b) => {
+        if (a.person < b.person) {
+          return -1;
+        } else if (a.person > b.person) {
+          return 1;
+        }
+        return 0;
+      })
+      .map(item => {
+        return {
+          person: item.person,
+          name: item.name,
+          size: item.size,
+          colour: item.colour,
+          quantity: item.quantity,
+          value: item.value,
+          cost: item.cost,
+        };
+      });
+    return data;
+  }
+
+  getDownloadData() {
+    let data = this.state.data;
+
+    let header = [];
+    header.push('Product');
+    header.push('Size');
+    header.push('Colour');
+    header.push('Quantity');
+    header.push('Cost');
+    header.push('Value');
+    header.push('Profit');
+
+    let download = [];
+    download.push(header.flatten());
+
+    data.forEach(element => {
+      let row = [];
+      row.push(element['name']);
+      row.push(element['size']);
+      row.push(element['colour']);
+      row.push(element['quantity']);
+      row.push(
+        element['cost'] !== undefined
+          ? parseFloat(element['cost']).toFixed(2)
+          : '',
+      );
+      row.push(
+        element['value'] !== undefined
+          ? parseFloat(element['value']).toFixed(2)
+          : '',
+      );
+      row.push(
+        element['profit'] !== undefined
+          ? parseFloat(element['profit']).toFixed(2)
+          : '',
+      );
+      download.push(row.flatten());
+    });
+
+    return download;
+  }
+  getDownloadDataByPerson() {
+    let data = this.state.data;
+
+    let header = [];
+    header.push('Person');
+    header.push('Product');
+    header.push('Size');
+    header.push('Colour');
+    header.push('Quantity');
+    header.push('Cost');
+    header.push('Value');
+    header.push('Profit');
+
+    let download = [];
+    download.push(header.flatten());
+
+    data.forEach(element => {
+      let row = [];
+      row.push(element['person']);
+      row.push(element['name']);
+      row.push(element['size']);
+      row.push(element['colour']);
+      row.push(element['quantity']);
+      row.push(
+        element['cost'] !== undefined
+          ? parseFloat(element['cost']).toFixed(2)
+          : '',
+      );
+      row.push(
+        element['value'] !== undefined
+          ? parseFloat(element['value']).toFixed(2)
+          : '',
+      );
+      row.push(
+        element['profit'] !== undefined
+          ? parseFloat(element['profit']).toFixed(2)
+          : '',
+      );
+      download.push(row.flatten());
+    });
+
+    return download;
+  }
+
   handleInputChange(event) {
     this.setState({
       [event.target.name]: moment(event.target.value),
@@ -448,7 +603,7 @@ export class PurchaseItemsReport extends Component {
     const columns = [
       {
         accessor: 'name',
-        Header: 'Name',
+        Header: 'Product',
         width: 300,
       },
       {
@@ -575,7 +730,142 @@ export class PurchaseItemsReport extends Component {
     ];
     return columns;
   }
-
+  getColumnsByPerson() {
+    const columns = [
+      {
+        accessor: 'person',
+        Header: 'Person',
+        width: 200,
+      },
+      {
+        accessor: 'name',
+        Header: 'Product',
+        width: 300,
+      },
+      {
+        accessor: 'size',
+        Header: 'Size',
+        width: 100,
+      },
+      {
+        accessor: 'colour',
+        Header: 'Colour',
+        width: 100,
+      },
+      {
+        accessor: 'quantity',
+        Header: 'Quantity',
+        width: 100,
+      },
+      {
+        accessor: 'cost',
+        Header: 'Cost',
+        width: 150,
+        Cell: props => {
+          return props.original.cost === undefined ? (
+            <div />
+          ) : (
+            <div className="dollarValue">
+              {new Intl.NumberFormat(this.locale, {
+                style: 'currency',
+                currency: this.currency,
+              }).format(props.original.cost)}
+            </div>
+          );
+        },
+        Footer: (
+          <span>
+            <strong>Total: </strong>
+            {this.state !== undefined
+              ? new Intl.NumberFormat(this.locale, {
+                  style: 'currency',
+                  currency: this.currency,
+                }).format(this.state.costTotal)
+              : 0}
+          </span>
+        ),
+      },
+      {
+        accessor: 'value',
+        Header: 'Value',
+        width: 150,
+        Cell: props => {
+          return props.original.value === undefined ? (
+            <div />
+          ) : (
+            <div className="dollarValue">
+              {new Intl.NumberFormat(this.locale, {
+                style: 'currency',
+                currency: this.currency,
+              }).format(props.original.value)}
+            </div>
+          );
+        },
+        Footer: (
+          <span>
+            <strong>Total: </strong>
+            {this.state !== undefined
+              ? new Intl.NumberFormat(this.locale, {
+                  style: 'currency',
+                  currency: this.currency,
+                }).format(this.state.total)
+              : 0}
+          </span>
+        ),
+      },
+      {
+        accessor: 'profit',
+        Header: 'Profit',
+        width: 150,
+        Cell: props => {
+          return props.original.profit === undefined ? (
+            <div />
+          ) : (
+            <div className="dollarValue">
+              {new Intl.NumberFormat(this.locale, {
+                style: 'currency',
+                currency: this.currency,
+              }).format(props.original.profit)}
+            </div>
+          );
+        },
+        Footer: (
+          <span className="totalsDetail">
+            <span>
+              <strong>Total: </strong>
+              {this.state !== undefined
+                ? new Intl.NumberFormat(this.locale, {
+                    style: 'currency',
+                    currency: this.currency,
+                  }).format(this.state.profitTotal)
+                : 0}
+            </span>
+            <br />
+            <span>
+              <strong>Discounts: </strong>
+              {this.state !== undefined
+                ? new Intl.NumberFormat(this.locale, {
+                    style: 'currency',
+                    currency: this.currency,
+                  }).format(this.state.discountsTotal)
+                : 0}
+            </span>
+            <br />
+            <span>
+              <strong>Profit: </strong>
+              {this.state !== undefined
+                ? new Intl.NumberFormat(this.locale, {
+                    style: 'currency',
+                    currency: this.currency,
+                  }).format(this.state.profitTotal - this.state.discountsTotal)
+                : 0}
+            </span>
+          </span>
+        ),
+      },
+    ];
+    return columns;
+  }
   render() {
     return (
       <span className="purchaseItemsReport">
@@ -748,15 +1038,61 @@ export class PurchaseItemsReport extends Component {
           <div className="purchaseItemsReport">Loading information ...</div>
         ) : (
           <div className="purchaseItemsReport">
-            <ReactToPrint
-              trigger={() => (
-                <SVGInline svg={printerIcon} className="icon tablePrint" />
-              )}
-              content={() => this.tableComponentRef}
-            />
+            <div className="reportIcons">
+              <ReactToPrint
+                trigger={() => (
+                  <SVGInline svg={printerIcon} className="icon tablePrint" />
+                )}
+                content={() => this.tableComponentRef}
+              />
+              <CSVLink
+                className="downloadbtn"
+                filename="purchaseItems.csv"
+                data={
+                  this.state.personViewMode
+                    ? this.getDownloadDataByPerson()
+                    : this.getDownloadData()
+                }
+              >
+                <SVGInline svg={downloadIcon} className="icon tableDownload" />
+              </CSVLink>
+              <div className="personView">
+                <label htmlFor="personMode">Show By Person</label>
+                <div className="checkboxFilter">
+                  <input
+                    id="personViewMode"
+                    type="checkbox"
+                    value="0"
+                    onChange={e => {
+                      var newMode = !this.state.personViewMode;
+
+                      var data = this.getData(
+                        this.state.posPurchaseItems,
+                        this.state.posProducts,
+                      );
+                      var columns = this.getColumns();
+                      if (newMode) {
+                        data = this.getDataByPerson(
+                          this.state.posPurchaseItems,
+                          this.state.posProducts,
+                        );
+                        columns = this.getColumnsByPerson();
+                      }
+                      this.setState({
+                        personViewMode: newMode,
+                        data: data,
+                        columns: columns,
+                      });
+                    }}
+                  />
+                  <label htmlFor="personViewMode"></label>
+                </div>
+                {}
+              </div>
+            </div>
             <ReactTable
               ref={el => (this.tableComponentRef = el)}
-              columns={this.getColumns()}
+              columns={this.state.columns}
               data={this.state.data}
               className="-striped -highlight"
               defaultPageSize={

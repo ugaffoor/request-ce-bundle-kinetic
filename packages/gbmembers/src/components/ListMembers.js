@@ -76,7 +76,11 @@ export class ListMembers extends React.Component {
       return [];
     }
 
-    let members = matchesMemberFilter(allMembers, selectedList.filters);
+    let members = matchesMemberFilter(
+      allMembers,
+      selectedList.filters,
+      selectedList.excluded,
+    );
 
     let data = members.map(member => {
       return {

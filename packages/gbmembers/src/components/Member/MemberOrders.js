@@ -226,6 +226,7 @@ export class MemberOrders extends Component {
                   refund: order['Refund'],
                   subtotal: order['SubTotal'],
                   salestax: order['Sales Tax'],
+                  salestax2: order['Sales Tax 2'],
                   discount: order['Discount'],
                   auth_code: order['Auth Code'],
                   transaction_id: order['Transaction ID'],
@@ -266,6 +267,7 @@ export class MemberOrders extends Component {
                                 subtotal={this.state.subtotal}
                                 discount={this.state.discount}
                                 salestax={this.state.salestax}
+                                salestax2={this.state.salestax2}
                                 number={this.state.cardNumber}
                                 auth_code={this.state.auth_code}
                                 transaction_id={this.state.transaction_id}
@@ -350,10 +352,24 @@ export class MemberOrders extends Component {
                             <div className="productLine">
                               <div className="quantity"></div>
                               <div className="name">
-                                {getAttributeValue(
+                                {this.state.salestax2 === undefined &&
+                                getAttributeValue(
                                   this.props.space,
-                                  'POS Sales Tax Label',
-                                ) === undefined ? (
+                                  'POS Sales Tax Label 2',
+                                ) !== undefined ? (
+                                  getAttributeValue(
+                                    this.props.space,
+                                    'POS Sales Tax Label',
+                                  ) +
+                                  ' + ' +
+                                  getAttributeValue(
+                                    this.props.space,
+                                    'POS Sales Tax Label 2',
+                                  )
+                                ) : getAttributeValue(
+                                    this.props.space,
+                                    'POS Sales Tax Label',
+                                  ) === undefined ? (
                                   <I18n>SALES TAX</I18n>
                                 ) : (
                                   getAttributeValue(
@@ -368,6 +384,33 @@ export class MemberOrders extends Component {
                                     style: 'currency',
                                     currency: this.currency,
                                   }).format(this.state.salestax)}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        {this.state.salestax2 !== undefined &&
+                          this.state.salestax2 > 0 && (
+                            <div className="productLine">
+                              <div className="quantity"></div>
+                              <div className="name">
+                                {getAttributeValue(
+                                  this.props.space,
+                                  'POS Sales Tax Label 2',
+                                ) === undefined ? (
+                                  <I18n>SALES TAX 2</I18n>
+                                ) : (
+                                  getAttributeValue(
+                                    this.props.space,
+                                    'POS Sales Tax Label 2',
+                                  )
+                                )}
+                              </div>
+                              <div className="price">
+                                <span className="price">
+                                  {new Intl.NumberFormat(this.locale, {
+                                    style: 'currency',
+                                    currency: this.currency,
+                                  }).format(this.state.salestax2)}
                                 </span>
                               </div>
                             </div>

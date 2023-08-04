@@ -4,6 +4,7 @@ import moment from 'moment';
 import {
   getJson,
   memberStatusInDates,
+  memberPreviousStatus,
   getLocalePreference,
 } from '../Member/MemberUtils';
 import $ from 'jquery';
@@ -93,6 +94,7 @@ export class Statistics extends Component {
       showFrozenMembers: false,
       showPendingFrozenMembers: false,
       showOverdueMembers: false,
+      showNewMembers: false,
       showRententionRates: false,
       retentionRate: retentionRateData,
       twelveMonthRetentionRate: twelveMonthRetentionRateData,
@@ -739,6 +741,7 @@ export class Statistics extends Component {
     if (!members || members.length <= 0) {
       return {
         active: [],
+        newmembers: [],
         cancellations: [],
         pendingCancellations: [],
         frozen: [],
@@ -747,6 +750,7 @@ export class Statistics extends Component {
       };
     }
     let active = [];
+    let newmembers = [];
     let cancellations = [];
     let pendingCancellations = [];
     let frozen = [];
@@ -755,8 +759,25 @@ export class Statistics extends Component {
 
     members.forEach(member => {
       let memberStatus = memberStatusInDates(member, fromDate, toDate);
-      if (memberStatus === 'Frozen' || memberStatus === 'Active') {
-        active[active.length] = member;
+      if (memberStatus === 'Active') {
+        var previousStatus = memberPreviousStatus(member, fromDate, toDate);
+        if (previousStatus === 'Inactive') {
+          newmembers[newmembers.length] = member;
+        } else if (
+          previousStatus === '' &&
+          (member['values']['Lead Submission ID'] === undefined ||
+            member['values']['Lead Submission ID'] === '') &&
+          moment(member['values']['Date Joined'], 'YYYY-MM-DD').isSameOrAfter(
+            fromDate,
+            'day',
+          ) &&
+            moment(
+              member['values']['Date Joined'],
+              'YYYY-MM-DD',
+            ).isSameOrBefore(toDate, 'day')
+        ) {
+          newmembers[newmembers.length] = member;
+        }
       }
       if (memberStatus === 'Inactive') {
         cancellations[cancellations.length] = member;
@@ -774,7 +795,19 @@ export class Statistics extends Component {
         pendingFrozen[pendingFrozen.length] = member;
       }
     });
-
+    members.forEach(member => {
+      let memberStatus = memberStatusInDates(member, fromDate, toDate, true);
+      if (
+        memberStatus === 'Active' ||
+        memberStatus === 'Pending Freeze' ||
+        memberStatus === 'Pending Cancellation'
+      ) {
+        active[active.length] = member;
+      }
+      if (memberStatus === 'Frozen') {
+        active[active.length] = member;
+      }
+    });
     if (overdueRecords !== undefined) {
       overdueRecords.forEach(payment => {
         var member = members.find(
@@ -791,6 +824,7 @@ export class Statistics extends Component {
     }
     return {
       active: active,
+      newmembers: newmembers,
       cancellations: cancellations,
       pendingCancellations: pendingCancellations,
       frozen: frozen,
@@ -1445,8 +1479,9 @@ export class Statistics extends Component {
       return 'Pending Cancellations';
     if (this.state.showFrozenMembers) return 'Frozen';
     if (this.state.showPendingFrozenMembers) return 'Pending Frozen';
-    if (this.state.showConvertedLeads) return 'New Students';
+    if (this.state.showConvertedLeads) return 'Converted Leads';
     if (this.state.showOverdueMembers) return 'Overdue';
+    if (this.state.showNewMembers) return 'New Members';
   }
   getMemberTableColumns(row) {
     return [
@@ -1735,6 +1770,7 @@ export class Statistics extends Component {
                       showFrozenMembers: false,
                       showPendingFrozenMembers: false,
                       showOverdueMembers: false,
+                      showNewMembers: false,
                       showRententionRates: false,
                     })
                   }
@@ -1790,6 +1826,7 @@ export class Statistics extends Component {
                       showFrozenMembers: false,
                       showPendingFrozenMembers: false,
                       showOverdueMembers: false,
+                      showNewMembers: false,
                       showRententionRates: false,
                     })
                   }
@@ -1869,6 +1906,7 @@ export class Statistics extends Component {
                       showFrozenMembers: false,
                       showPendingFrozenMembers: false,
                       showOverdueMembers: false,
+                      showNewMembers: false,
                       showRententionRates: false,
                     })
                   }
@@ -1934,7 +1972,7 @@ export class Statistics extends Component {
             </div>
             <div className="statItem">
               <div className="info">
-                <div className="label">New Students</div>
+                <div className="label">Converted Leads</div>
                 <div
                   className="value"
                   onClick={e =>
@@ -1948,6 +1986,7 @@ export class Statistics extends Component {
                       showFrozenMembers: false,
                       showPendingFrozenMembers: false,
                       showOverdueMembers: false,
+                      showNewMembers: false,
                       showRententionRates: false,
                     })
                   }
@@ -2031,6 +2070,7 @@ export class Statistics extends Component {
                       showFrozenMembers: false,
                       showPendingFrozenMembers: false,
                       showOverdueMembers: false,
+                      showNewMembers: false,
                       showRententionRates: false,
                     })
                   }
@@ -2077,6 +2117,7 @@ export class Statistics extends Component {
                       showFrozenMembers: false,
                       showPendingFrozenMembers: false,
                       showOverdueMembers: false,
+                      showNewMembers: false,
                       showRententionRates: false,
                     })
                   }
@@ -2123,6 +2164,7 @@ export class Statistics extends Component {
                       showFrozenMembers: true,
                       showPendingFrozenMembers: false,
                       showOverdueMembers: false,
+                      showNewMembers: false,
                       showRententionRates: false,
                     })
                   }
@@ -2167,6 +2209,7 @@ export class Statistics extends Component {
                       showFrozenMembers: false,
                       showPendingFrozenMembers: true,
                       showOverdueMembers: false,
+                      showNewMembers: false,
                       showRententionRates: false,
                     })
                   }
@@ -2227,12 +2270,63 @@ export class Statistics extends Component {
                   {this.state.leadData.convertedTotal !== undefined &&
                     this.state.memberData.cancellations !== undefined && (
                       <span>
-                        {this.state.leadData.convertedTotal.length -
+                        {this.state.leadData.convertedTotal.length +
+                          this.state.memberData.newmembers.length -
                           this.state.memberData.cancellations.length}
                       </span>
                     )}
                 </div>
               </div>
+            </div>
+            <div className="statItem">
+              <div className="info">
+                <div className="label">New Members</div>
+                <div
+                  className="value"
+                  onClick={e =>
+                    this.setState({
+                      showNewLeads: false,
+                      showScheduledLeads: false,
+                      showIntroLeads: false,
+                      showConvertedLeads: false,
+                      showCancellationsMembers: false,
+                      showPendingCancellationsMembers: false,
+                      showFrozenMembers: false,
+                      showPendingFrozenMembers: false,
+                      showOverdueMembers: false,
+                      showNewMembers: true,
+                      showRententionRates: false,
+                    })
+                  }
+                >
+                  {this.state.memberData.newmembers.length +
+                    this.state.leadData.convertedTotal.length}
+                </div>
+              </div>
+              {this.state.showNewMembers && (
+                <div className="members">
+                  <span
+                    className="closeMembers"
+                    onClick={e =>
+                      this.setState({
+                        showNewMembers: false,
+                      })
+                    }
+                  >
+                    <SVGInline svg={crossIcon} className="icon" />
+                  </span>
+                  <ReactTable
+                    columns={this.getMemberTableColumns()}
+                    data={this.getMemberTableData(
+                      this.state.memberData.newmembers.concat(
+                        this.state.leadData.convertedTotal,
+                      ),
+                    )}
+                    defaultPageSize={1}
+                    showPagination={false}
+                  />
+                </div>
+              )}
             </div>
             {
               <div className="statItem">
@@ -2261,6 +2355,7 @@ export class Statistics extends Component {
                           showFrozenMembers: false,
                           showPendingFrozenMembers: false,
                           showOverdueMembers: false,
+                          showNewMembers: false,
                           showRententionRates: true,
                         });
                       }
@@ -2446,6 +2541,7 @@ export class Statistics extends Component {
                         showFrozenMembers: false,
                         showPendingFrozenMembers: false,
                         showOverdueMembers: true,
+                        showNewMembers: false,
                         showRententionRates: false,
                       })
                     }

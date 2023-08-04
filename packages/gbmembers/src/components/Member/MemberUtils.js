@@ -1278,27 +1278,6 @@ export function memberStatusInDates(member, fromDate, toDate, returnStatus) {
       oldestDate.isSameOrBefore(toDate, 'day')
     ) {
       return oldestStatus;
-      /*      // Looking for New Members
-      if (
-        member['values']['Date Joined'] !== undefined &&
-        member['values']['Date Joined'] !== null &&
-        member['values']['Date Joined'] !== ''
-      ) {
-        if (
-          moment(member['values']['Date Joined'], 'YYYY-MM-DD').isSameOrAfter(
-            fromDate,
-            'day',
-          ) &&
-          moment(member['values']['Date Joined'], 'YYYY-MM-DD').isSameOrBefore(
-            toDate,
-            'day',
-          )
-        ) {
-          return returnStatus
-          ? member['values']['Status']
-          : 'Active';
-        }
-      } */
     }
 
     for (var i = statusHistorySorted.length - 1; i >= 0; i--) {

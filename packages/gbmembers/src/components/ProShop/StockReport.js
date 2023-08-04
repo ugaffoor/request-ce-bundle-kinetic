@@ -7,6 +7,8 @@ import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import ReactToPrint from 'react-to-print';
 import SVGInline from 'react-svg-inline';
 import printerIcon from '../../images/Print.svg?raw';
+import downloadIcon from '../../images/download.svg?raw';
+import { CSVLink } from 'react-csv';
 
 export class StockReport extends Component {
   constructor(props) {
@@ -110,6 +112,45 @@ export class StockReport extends Component {
       });
     return data;
   }
+
+  getDownloadData() {
+    let data = this.state.data;
+
+    let header = [];
+    header.push('Name');
+    header.push('Sku');
+    header.push('Size');
+    header.push('Colour');
+    header.push('Quantity');
+    header.push('Unit Price');
+    header.push('Total');
+
+    let download = [];
+    download.push(header.flatten());
+
+    data.forEach(element => {
+      let row = [];
+      row.push(element['name']);
+      row.push(element['sku']);
+      row.push(element['size']);
+      row.push(element['colour']);
+      row.push(element['quantity']);
+      row.push(
+        element['price'] !== undefined
+          ? parseFloat(element['price']).toFixed(2)
+          : '',
+      );
+      row.push(
+        element['price'] !== undefined
+          ? parseFloat(element['quantity'] * element['price']).toFixed(2)
+          : '',
+      );
+      download.push(row.flatten());
+    });
+
+    return download;
+  }
+
   getColourLabel() {
     return K.translate('Colour');
   }
@@ -165,10 +206,12 @@ export class StockReport extends Component {
         Header: 'Unit Price',
         width: 100,
         Cell: props => {
-          return new Intl.NumberFormat(this.locale, {
-            style: 'currency',
-            currency: this.currency,
-          }).format(props.original.price);
+          return props.original.price !== undefined
+            ? new Intl.NumberFormat(this.locale, {
+                style: 'currency',
+                currency: this.currency,
+              }).format(props.original.price)
+            : '';
         },
       },
       {
@@ -176,10 +219,12 @@ export class StockReport extends Component {
         Header: 'Total',
         width: 100,
         Cell: props => {
-          return new Intl.NumberFormat(this.locale, {
-            style: 'currency',
-            currency: this.currency,
-          }).format(props.original.price * props.original.quantity);
+          return props.original.price !== undefined
+            ? new Intl.NumberFormat(this.locale, {
+                style: 'currency',
+                currency: this.currency,
+              }).format(props.original.price * props.original.quantity)
+            : '';
         },
       },
     ];
@@ -194,12 +239,21 @@ export class StockReport extends Component {
           className="page-header"
           style={{ textAlign: 'center', marginBottom: '3%' }}
         >
-          <ReactToPrint
-            trigger={() => (
-              <SVGInline svg={printerIcon} className="icon tablePrint" />
-            )}
-            content={() => this.tableComponentRef}
-          />
+          <div className="reportIcons">
+            <ReactToPrint
+              trigger={() => (
+                <SVGInline svg={printerIcon} className="icon tablePrint" />
+              )}
+              content={() => this.tableComponentRef}
+            />
+            <CSVLink
+              className="downloadbtn"
+              filename="stock.csv"
+              data={this.getDownloadData()}
+            >
+              <SVGInline svg={downloadIcon} className="icon tableDownload" />
+            </CSVLink>
+          </div>
           <div className="showStockView">
             <label htmlFor="stockViewMode">Show Empty Stock</label>
             <div className="checkboxFilter">

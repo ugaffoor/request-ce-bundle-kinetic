@@ -51,6 +51,7 @@ export class ReceiptToPrint extends React.Component {
       refund: this.props.refund,
       subtotal: this.props.subtotal,
       salestax: this.props.salestax,
+      salestax2: this.props.salestax2,
       discount: this.props.discount,
       number: '...' + this.props.number.substring(this.props.number.length - 4),
       auth_code: this.props.auth_code,
@@ -220,8 +221,15 @@ export class ReceiptToPrint extends React.Component {
         ) : (
           <span className="salestax">
             <div className="label">
-              {getAttributeValue(this.props.space, 'POS Sales Tax Label') ===
-              undefined ? (
+              {(this.state.salestax2 === undefined ||
+                this.state.salestax2 === '0') &&
+              getAttributeValue(this.props.space, 'POS Sales Tax Label 2') !==
+                undefined ? (
+                getAttributeValue(this.props.space, 'POS Sales Tax Label') +
+                ' + ' +
+                getAttributeValue(this.props.space, 'POS Sales Tax Label 2')
+              ) : getAttributeValue(this.props.space, 'POS Sales Tax Label') ===
+                undefined ? (
                 <I18n>SALES TAX</I18n>
               ) : (
                 getAttributeValue(this.props.space, 'POS Sales Tax Label')
@@ -232,6 +240,26 @@ export class ReceiptToPrint extends React.Component {
                 style: 'currency',
                 currency: this.props.currency,
               }).format(this.state.salestax)}
+            </div>
+          </span>
+        )}
+        {this.state.salestax2 === '0' || this.state.salestax2 === undefined ? (
+          <div />
+        ) : (
+          <span className="salestax">
+            <div className="label">
+              {getAttributeValue(this.props.space, 'POS Sales Tax Label 2') ===
+              undefined ? (
+                <I18n>SALES TAX 2</I18n>
+              ) : (
+                getAttributeValue(this.props.space, 'POS Sales Tax Label 2')
+              )}
+            </div>
+            <div className="value">
+              {new Intl.NumberFormat(this.props.locale, {
+                style: 'currency',
+                currency: this.props.currency,
+              }).format(this.state.salestax2)}
             </div>
           </span>
         )}

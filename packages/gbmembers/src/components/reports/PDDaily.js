@@ -117,43 +117,80 @@ export class PDDailyReport extends Component {
     newSalesWeek.set('friday', 0);
     newSalesWeek.set('saturday', 0);
     newSalesWeek.set('sunday', 0);
+    let phone = new Map();
+    phone.set('label', 'Phone Calls');
+    phone.set('monday', 0);
+    phone.set('tuesday', 0);
+    phone.set('wednesday', 0);
+    phone.set('thursday', 0);
+    phone.set('friday', 0);
+    phone.set('saturday', 0);
+    phone.set('sunday', 0);
+    let emails = new Map();
+    emails.set('label', 'Emails');
+    emails.set('monday', 0);
+    emails.set('tuesday', 0);
+    emails.set('wednesday', 0);
+    emails.set('thursday', 0);
+    emails.set('friday', 0);
+    emails.set('saturday', 0);
+    emails.set('sunday', 0);
+    let sms = new Map();
+    sms.set('label', 'SMS');
+    sms.set('monday', 0);
+    sms.set('tuesday', 0);
+    sms.set('wednesday', 0);
+    sms.set('thursday', 0);
+    sms.set('friday', 0);
+    sms.set('saturday', 0);
+    sms.set('sunday', 0);
+    let inperson = new Map();
+    inperson.set('label', 'In Person');
+    inperson.set('monday', 0);
+    inperson.set('tuesday', 0);
+    inperson.set('wednesday', 0);
+    inperson.set('thursday', 0);
+    inperson.set('friday', 0);
+    inperson.set('saturday', 0);
+    inperson.set('sunday', 0);
 
     leads.forEach(lead => {
-      if (moment(lead['updatedAt']).isBetween(startOfWeek, endOfWeek)) {
-        if (moment(lead['createdAt']).isBetween(startOfWeek, endOfWeek)) {
-          switch (moment(lead['createdAt']).day()) {
-            case 1:
-              newLeads.set('monday', newLeads.get('monday') + 1);
-              break;
-            case 2:
-              newLeads.set('tuesday', newLeads.get('tuesday') + 1);
-              break;
-            case 3:
-              newLeads.set('wednesday', newLeads.get('wednesday') + 1);
-              break;
-            case 4:
-              newLeads.set('thursday', newLeads.get('thursday') + 1);
-              break;
-            case 5:
-              newLeads.set('friday', newLeads.get('friday') + 1);
-              break;
-            case 6:
-              newLeads.set('saturday', newLeads.get('saturday') + 1);
-              break;
-            case 0:
-              newLeads.set('sunday', newLeads.get('sunday') + 1);
-              break;
-            default:
-              console.log('Something is wrong');
-          }
+      if (moment(lead['createdAt']).isBetween(startOfWeek, endOfWeek)) {
+        switch (moment(lead['createdAt']).day()) {
+          case 1:
+            newLeads.set('monday', newLeads.get('monday') + 1);
+            break;
+          case 2:
+            newLeads.set('tuesday', newLeads.get('tuesday') + 1);
+            break;
+          case 3:
+            newLeads.set('wednesday', newLeads.get('wednesday') + 1);
+            break;
+          case 4:
+            newLeads.set('thursday', newLeads.get('thursday') + 1);
+            break;
+          case 5:
+            newLeads.set('friday', newLeads.get('friday') + 1);
+            break;
+          case 6:
+            newLeads.set('saturday', newLeads.get('saturday') + 1);
+            break;
+          case 0:
+            newLeads.set('sunday', newLeads.get('sunday') + 1);
+            break;
+          default:
+            console.log('Something is wrong');
         }
-        var history =
-          lead.values['History'] !== undefined
-            ? getJson(lead.values['History'])
-            : {};
-        for (var i = 0; i < history.length; i++) {
+      }
+      var history =
+        lead.values['History'] !== undefined
+          ? getJson(lead.values['History'])
+          : {};
+      for (var i = 0; i < history.length; i++) {
+        var contactDate = moment(history[i]['contactDate']);
+        if (contactDate.isBetween(startOfWeek, endOfWeek)) {
           if (history[i]['contactMethod'] === 'intro_class') {
-            switch (moment(history[i]['contactDate']).day()) {
+            switch (contactDate.day()) {
               case 1:
                 intros.set('monday', intros.get('monday') + 1);
                 break;
@@ -180,9 +217,12 @@ export class PDDailyReport extends Component {
             }
           }
         }
-        for (i = 0; i < history.length; i++) {
+      }
+      for (i = 0; i < history.length; i++) {
+        var contactDate = moment(history[i]['contactDate']);
+        if (contactDate.isBetween(startOfWeek, endOfWeek)) {
           if (history[i]['contactMethod'] === 'attended_class') {
-            switch (moment(history[i]['contactDate']).day()) {
+            switch (contactDate.day()) {
               case 1:
                 taught.set('monday', taught.get('monday') + 1);
                 break;
@@ -209,9 +249,12 @@ export class PDDailyReport extends Component {
             }
           }
         }
-        for (i = 0; i < history.length; i++) {
+      }
+      for (i = 0; i < history.length; i++) {
+        var contactDate = moment(history[i]['contactDate']);
+        if (contactDate.isBetween(startOfWeek, endOfWeek)) {
           if (history[i]['contactMethod'] === 'noshow_class') {
-            switch (moment(history[i]['contactDate']).day()) {
+            switch (contactDate.day()) {
               case 1:
                 noshow.set('monday', taught.get('monday') + 1);
                 break;
@@ -238,37 +281,167 @@ export class PDDailyReport extends Component {
             }
           }
         }
-        if (
-          moment(lead['updatedAt']).isBetween(startOfWeek, endOfWeek) &&
-          lead.values['Lead State'] === 'Converted'
-        ) {
-          switch (moment(lead['updatedAt']).day()) {
-            case 1:
-              enrollment.set('monday', enrollment.get('monday') + 1);
-              break;
-            case 2:
-              enrollment.set('tuesday', enrollment.get('tuesday') + 1);
-              break;
-            case 3:
-              enrollment.set('wednesday', enrollment.get('wednesday') + 1);
-              break;
-            case 4:
-              enrollment.set('thursday', enrollment.get('thursday') + 1);
-              break;
-            case 5:
-              enrollment.set('friday', enrollment.get('friday') + 1);
-              break;
-            case 6:
-              enrollment.set('saturday', enrollment.get('saturday') + 1);
-              break;
-            case 0:
-              enrollment.set('sunday', enrollment.get('sunday') + 1);
-              break;
-            default:
-              console.log('Something is wrong');
+      }
+      if (
+        moment(lead['updatedAt']).isBetween(startOfWeek, endOfWeek) &&
+        lead.values['Lead State'] === 'Converted'
+      ) {
+        switch (moment(lead['updatedAt']).day()) {
+          case 1:
+            enrollment.set('monday', enrollment.get('monday') + 1);
+            break;
+          case 2:
+            enrollment.set('tuesday', enrollment.get('tuesday') + 1);
+            break;
+          case 3:
+            enrollment.set('wednesday', enrollment.get('wednesday') + 1);
+            break;
+          case 4:
+            enrollment.set('thursday', enrollment.get('thursday') + 1);
+            break;
+          case 5:
+            enrollment.set('friday', enrollment.get('friday') + 1);
+            break;
+          case 6:
+            enrollment.set('saturday', enrollment.get('saturday') + 1);
+            break;
+          case 0:
+            enrollment.set('sunday', enrollment.get('sunday') + 1);
+            break;
+          default:
+            console.log('Something is wrong');
+        }
+      }
+      for (i = 0; i < history.length; i++) {
+        var contactDate = moment(history[i]['contactDate']);
+        if (contactDate.isBetween(startOfWeek, endOfWeek)) {
+          if (history[i]['contactMethod'] === 'phone') {
+            switch (contactDate.day()) {
+              case 1:
+                phone.set('monday', phone.get('monday') + 1);
+                break;
+              case 2:
+                phone.set('tuesday', phone.get('tuesday') + 1);
+                break;
+              case 3:
+                phone.set('wednesday', phone.get('wednesday') + 1);
+                break;
+              case 4:
+                phone.set('thursday', phone.get('thursday') + 1);
+                break;
+              case 5:
+                phone.set('friday', phone.get('friday') + 1);
+                break;
+              case 6:
+                phone.set('saturday', phone.get('saturday') + 1);
+                break;
+              case 0:
+                phone.set('sunday', phone.get('sunday') + 1);
+                break;
+              default:
+                console.log('Something is wrong');
+            }
           }
         }
       }
+      for (i = 0; i < history.length; i++) {
+        var contactDate = moment(history[i]['contactDate']);
+        if (contactDate.isBetween(startOfWeek, endOfWeek)) {
+          if (history[i]['contactMethod'] === 'email') {
+            switch (contactDate.day()) {
+              case 1:
+                emails.set('monday', emails.get('monday') + 1);
+                break;
+              case 2:
+                emails.set('tuesday', emails.get('tuesday') + 1);
+                break;
+              case 3:
+                emails.set('wednesday', emails.get('wednesday') + 1);
+                break;
+              case 4:
+                emails.set('thursday', emails.get('thursday') + 1);
+                break;
+              case 5:
+                emails.set('friday', emails.get('friday') + 1);
+                break;
+              case 6:
+                emails.set('saturday', emails.get('saturday') + 1);
+                break;
+              case 0:
+                emails.set('sunday', emails.get('sunday') + 1);
+                break;
+              default:
+                console.log('Something is wrong');
+            }
+          }
+        }
+      }
+      for (i = 0; i < history.length; i++) {
+        var contactDate = moment(history[i]['contactDate']);
+        if (contactDate.isBetween(startOfWeek, endOfWeek)) {
+          if (history[i]['contactMethod'] === 'sms') {
+            switch (contactDate.day()) {
+              case 1:
+                sms.set('monday', sms.get('monday') + 1);
+                break;
+              case 2:
+                sms.set('tuesday', sms.get('tuesday') + 1);
+                break;
+              case 3:
+                sms.set('wednesday', sms.get('wednesday') + 1);
+                break;
+              case 4:
+                sms.set('thursday', sms.get('thursday') + 1);
+                break;
+              case 5:
+                sms.set('friday', sms.get('friday') + 1);
+                break;
+              case 6:
+                sms.set('saturday', sms.get('saturday') + 1);
+                break;
+              case 0:
+                sms.set('sunday', sms.get('sunday') + 1);
+                break;
+              default:
+                console.log('Something is wrong');
+            }
+          }
+        }
+      }
+      for (i = 0; i < history.length; i++) {
+        var contactDate = moment(history[i]['contactDate']);
+        if (contactDate.isBetween(startOfWeek, endOfWeek)) {
+          if (history[i]['contactMethod'] === 'in_person') {
+            switch (contactDate.day()) {
+              case 1:
+                inperson.set('monday', inperson.get('monday') + 1);
+                break;
+              case 2:
+                inperson.set('tuesday', inperson.get('tuesday') + 1);
+                break;
+              case 3:
+                inperson.set('wednesday', inperson.get('wednesday') + 1);
+                break;
+              case 4:
+                inperson.set('thursday', inperson.get('thursday') + 1);
+                break;
+              case 5:
+                inperson.set('friday', inperson.get('friday') + 1);
+                break;
+              case 6:
+                inperson.set('saturday', inperson.get('saturday') + 1);
+                break;
+              case 0:
+                inperson.set('sunday', inperson.get('sunday') + 1);
+                break;
+              default:
+                console.log('Something is wrong');
+            }
+          }
+        }
+      }
+
+      //      }
     });
 
     leadsData.push({
@@ -378,6 +551,168 @@ export class PDDailyReport extends Component {
       total: (newSales.get("monday")+newSales.get("tuesday")+newSales.get("wednesday")+newSales.get("thursday")+newSales.get("friday")+newSales.get("saturday")+newSales.get("sunday")),
     });
 */
+    leadsData.push({
+      label: phone.get('label'),
+      monday: phone.get('monday'),
+      tuesday: phone.get('tuesday'),
+      wednesday: phone.get('wednesday'),
+      thursday: phone.get('thursday'),
+      friday: phone.get('friday'),
+      saturday: phone.get('saturday'),
+      sunday: phone.get('sunday'),
+      total:
+        phone.get('monday') +
+        phone.get('tuesday') +
+        phone.get('wednesday') +
+        phone.get('thursday') +
+        phone.get('friday') +
+        phone.get('saturday') +
+        phone.get('sunday'),
+    });
+    leadsData.push({
+      label: emails.get('label'),
+      monday: emails.get('monday'),
+      tuesday: emails.get('tuesday'),
+      wednesday: emails.get('wednesday'),
+      thursday: emails.get('thursday'),
+      friday: emails.get('friday'),
+      saturday: emails.get('saturday'),
+      sunday: emails.get('sunday'),
+      total:
+        emails.get('monday') +
+        emails.get('tuesday') +
+        emails.get('wednesday') +
+        emails.get('thursday') +
+        emails.get('friday') +
+        emails.get('saturday') +
+        emails.get('sunday'),
+    });
+    leadsData.push({
+      label: sms.get('label'),
+      monday: sms.get('monday'),
+      tuesday: sms.get('tuesday'),
+      wednesday: sms.get('wednesday'),
+      thursday: sms.get('thursday'),
+      friday: sms.get('friday'),
+      saturday: sms.get('saturday'),
+      sunday: sms.get('sunday'),
+      total:
+        sms.get('monday') +
+        sms.get('tuesday') +
+        sms.get('wednesday') +
+        sms.get('thursday') +
+        sms.get('friday') +
+        sms.get('saturday') +
+        sms.get('sunday'),
+    });
+    leadsData.push({
+      label: inperson.get('label'),
+      monday: inperson.get('monday'),
+      tuesday: inperson.get('tuesday'),
+      wednesday: inperson.get('wednesday'),
+      thursday: inperson.get('thursday'),
+      friday: inperson.get('friday'),
+      saturday: inperson.get('saturday'),
+      sunday: inperson.get('sunday'),
+      total:
+        inperson.get('monday') +
+        inperson.get('tuesday') +
+        inperson.get('wednesday') +
+        inperson.get('thursday') +
+        inperson.get('friday') +
+        inperson.get('saturday') +
+        inperson.get('sunday'),
+    });
+
+    var mondayTotal =
+      parseInt(newLeads.get('monday')) +
+      parseInt(intros.get('monday')) +
+      parseInt(taught.get('monday')) +
+      parseInt(noshow.get('monday')) +
+      parseInt(enrollment.get('monday')) +
+      parseInt(phone.get('monday')) +
+      parseInt(emails.get('monday')) +
+      parseInt(sms.get('monday')) +
+      parseInt(inperson.get('monday'));
+    var tuesdayTotal =
+      parseInt(newLeads.get('tuesday')) +
+      parseInt(intros.get('tuesday')) +
+      parseInt(taught.get('tuesday')) +
+      parseInt(noshow.get('tuesday')) +
+      parseInt(enrollment.get('tuesday')) +
+      parseInt(phone.get('tuesday')) +
+      parseInt(emails.get('tuesday')) +
+      parseInt(sms.get('tuesday')) +
+      parseInt(inperson.get('tuesday'));
+    var wednesdayTotal =
+      parseInt(newLeads.get('wednesday')) +
+      parseInt(intros.get('wednesday')) +
+      parseInt(taught.get('wednesday')) +
+      parseInt(noshow.get('wednesday')) +
+      parseInt(enrollment.get('wednesday')) +
+      parseInt(phone.get('wednesday')) +
+      parseInt(emails.get('wednesday')) +
+      parseInt(sms.get('wednesday')) +
+      parseInt(inperson.get('wednesday'));
+    var thursdayTotal =
+      parseInt(newLeads.get('thursday')) +
+      parseInt(intros.get('thursday')) +
+      parseInt(taught.get('thursday')) +
+      parseInt(noshow.get('thursday')) +
+      parseInt(enrollment.get('thursday')) +
+      parseInt(phone.get('thursday')) +
+      parseInt(emails.get('thursday')) +
+      parseInt(sms.get('thursday')) +
+      parseInt(inperson.get('thursday'));
+    var fridayTotal =
+      parseInt(newLeads.get('friday')) +
+      parseInt(intros.get('friday')) +
+      parseInt(taught.get('friday')) +
+      parseInt(noshow.get('friday')) +
+      parseInt(enrollment.get('friday')) +
+      parseInt(phone.get('friday')) +
+      parseInt(emails.get('friday')) +
+      parseInt(sms.get('friday')) +
+      parseInt(inperson.get('friday'));
+    var saturdayTotal =
+      parseInt(newLeads.get('saturday')) +
+      parseInt(intros.get('saturday')) +
+      parseInt(taught.get('saturday')) +
+      parseInt(noshow.get('saturday')) +
+      parseInt(enrollment.get('saturday')) +
+      parseInt(phone.get('saturday')) +
+      parseInt(emails.get('saturday')) +
+      parseInt(sms.get('saturday')) +
+      parseInt(inperson.get('saturday'));
+    var sundayTotal =
+      parseInt(newLeads.get('sunday')) +
+      parseInt(intros.get('sunday')) +
+      parseInt(taught.get('sunday')) +
+      parseInt(noshow.get('sunday')) +
+      parseInt(enrollment.get('sunday')) +
+      parseInt(phone.get('sunday')) +
+      parseInt(emails.get('sunday')) +
+      parseInt(sms.get('sunday')) +
+      parseInt(inperson.get('sunday'));
+
+    leadsData.push({
+      label: 'Total',
+      monday: mondayTotal,
+      tuesday: tuesdayTotal,
+      wednesday: wednesdayTotal,
+      thursday: thursdayTotal,
+      friday: fridayTotal,
+      saturday: saturdayTotal,
+      sunday: sundayTotal,
+      total:
+        mondayTotal +
+        tuesdayTotal +
+        wednesdayTotal +
+        thursdayTotal +
+        fridayTotal +
+        saturdayTotal +
+        sundayTotal,
+    });
     return leadsData;
   }
 

@@ -276,12 +276,12 @@ export function* fetchCurrentMember(action) {
         } else if (billingPeriod === 'Quarterly') {
           period = 'months';
           periodVal = 3;
-        } else if (billingPeriod === '6 Months') {
-          period = 'months';
-          periodVal = 6;
         } else if (billingPeriod === '4 Months') {
           period = 'months';
           periodVal = 4;
+        } else if (billingPeriod === '6 Months') {
+          period = 'months';
+          periodVal = 6;
         } else if (billingPeriod === 'Yearly') {
           period = 'years';
           periodVal = 1;
@@ -366,6 +366,22 @@ export function* fetchCurrentMemberAdditional(action) {
       .include(['details', 'values'])
       .limit(1000)
       .build();
+
+    var mIdx = action.payload.allMembers.findIndex(
+      member => action.payload.id === member.id,
+    );
+
+    const LEAD_POS_SEARCH = new CoreAPI.SubmissionSearch(true)
+      .index('values[Person ID]')
+      .eq(
+        'values[Person ID]',
+        mIdx !== -1
+          ? action.payload.allMembers[mIdx].values['Lead Submission ID']
+          : 'XX',
+      )
+      .include(['details', 'values'])
+      .limit(1000)
+      .build();
     const MEMBER_FILES_SEARCH = new CoreAPI.SubmissionSearch(true)
       .index('values[Member ID]')
       .eq('values[Member ID]', action.payload.id)
@@ -387,6 +403,7 @@ export function* fetchCurrentMemberAdditional(action) {
       memberActivities,
       memberFilesSubmissions,
       posOrderSubmissions,
+      posLeadOrderSubmissions,
       posPurchasedItems,
     ] = yield all([
       call(CoreAPI.searchSubmissions, {
@@ -402,6 +419,11 @@ export function* fetchCurrentMemberAdditional(action) {
       call(CoreAPI.searchSubmissions, {
         form: 'pos-order',
         search: MEMBER_POS_SEARCH,
+        datastore: true,
+      }),
+      call(CoreAPI.searchSubmissions, {
+        form: 'pos-order',
+        search: LEAD_POS_SEARCH,
         datastore: true,
       }),
       call(CoreAPI.searchSubmissions, {
@@ -488,6 +510,11 @@ export function* fetchCurrentMemberAdditional(action) {
       var len = posOrders.length;
       posOrders[len] = posOrderSubmissions.submissions[i].values;
       posOrders[len]['id'] = posOrderSubmissions.submissions[i]['id'];
+    }
+    for (let i = 0; i < posLeadOrderSubmissions.submissions.length; i++) {
+      var len = posOrders.length;
+      posOrders[len] = posLeadOrderSubmissions.submissions[i].values;
+      posOrders[len]['id'] = posLeadOrderSubmissions.submissions[i]['id'];
     }
     posOrders = posOrders.sort((a, b) => {
       if (a['Date time processed'] < b['Date time processed']) {

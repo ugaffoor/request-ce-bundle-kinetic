@@ -23,6 +23,8 @@ import SVGInline from 'react-svg-inline';
 import crossIcon from '../../images/cross.svg?raw';
 import ReactToPrint from 'react-to-print';
 import printerIcon from '../../images/Print.svg?raw';
+import downloadIcon from '../../images/download.svg?raw';
+import { CSVLink } from 'react-csv';
 
 const mapStateToProps = state => ({
   members: state.member.members.allMembers,
@@ -53,7 +55,9 @@ export class OrdersReport extends Component {
     compThis = this;
     this.getColumns = this.getColumns.bind(this);
     this.getSalesTaxLabel = this.getSalesTaxLabel.bind(this);
+    this.getSalesTaxLabel2 = this.getSalesTaxLabel2.bind(this);
     this.getPersonType = this.getPersonType.bind(this);
+    this.getDownloadData = this.getDownloadData.bind(this);
 
     this.locale =
       this.props.profile.preferredLocale === null
@@ -90,6 +94,7 @@ export class OrdersReport extends Component {
       total: 0,
       discountTotal: 0,
       salestaxTotal: 0,
+      salestax2Total: 0,
       refundTotal: 0,
       repFromDate,
       repToDate,
@@ -152,11 +157,13 @@ export class OrdersReport extends Component {
       var total = 0;
       var discountTotal = 0;
       var salestaxTotal = 0;
+      var salestax2Total = 0;
       var refundTotal = 0;
       data.forEach((item, i) => {
         total += item.total;
         discountTotal += item.discount;
         salestaxTotal += item.salestax;
+        salestax2Total += item.salestax2;
         refundTotal += item.refund;
       });
 
@@ -166,6 +173,7 @@ export class OrdersReport extends Component {
         total,
         discountTotal,
         salestaxTotal,
+        salestax2Total,
         refundTotal,
       });
     }
@@ -206,6 +214,21 @@ export class OrdersReport extends Component {
       return Number.parseFloat(item.values['Total']);
     }
   }
+  getDate(dateVal) {
+    var dt =
+      dateVal !== undefined
+        ? moment(dateVal, 'YYYY-MM-DDTHH:mm:ssZ').format('YYYY-MM-DD')
+        : '';
+
+    if (dt === 'Invalid date') {
+      dt =
+        dateVal !== undefined
+          ? moment(dateVal, 'YYYY-MM-DDTHH:mm:sssZ').format('YYYY-MM-DD')
+          : '';
+    }
+    return dt;
+  }
+
   getData(posOrders, posProducts) {
     if (!posOrders || posOrders.length <= 0) {
       return [];
@@ -234,13 +257,7 @@ export class OrdersReport extends Component {
 
       data[data.length] = {
         key: item.values['Person ID'],
-        date:
-          item.values['Date time processed'] !== undefined
-            ? moment(
-                item.values['Date time processed'],
-                'YYYY-MM-DDTHH:mm:sssZ',
-              ).format('L HH:mm')
-            : '',
+        date: this.getDate(item.values['Date time processed']),
         name: item.values['Person Name'],
         total: this.getTotalValue(item),
         discount:
@@ -253,6 +270,11 @@ export class OrdersReport extends Component {
           item.values['Sales Tax'] !== null
             ? Number.parseFloat(item.values['Sales Tax'])
             : 0,
+        salestax2:
+          item.values['Sales Tax 2'] !== undefined &&
+          item.values['Sales Tax 2'] !== null
+            ? Number.parseFloat(item.values['Sales Tax 2'])
+            : 0,
         refund:
           item.values['Refund'] !== undefined && item.values['Refund'] !== null
             ? Number.parseFloat(item.values['Refund'])
@@ -261,46 +283,15 @@ export class OrdersReport extends Component {
           item.values['Payment Type'] === 'cash' ? 'Cash' : 'Credit Card',
         products: products,
       };
-      /*  } else {
-        data[idx].total =
-          data[idx].total + (item.values['Status']==="Ordered" ? Number.parseInt(item.values['Total']) : 0);
-        data[idx].discount =
-          data[idx].discount + (item.values['Status']==="Ordered" ? Number.parseInt(item.values['Discount']) : 0);
-        data[idx].salestax =
-          data[idx].salestax + (item.values['Status']==="Ordered" ?  Number.parseInt(item.values['Sales Tax']) : 0);
-        data[idx].paymenttype = item.values['Payment Type']==="cash" ? "Cash" : "Credit Card";
-        products=JSON.parse(item.values['POS Checkout JSON'])['Checkout Items'].products;
-        changeProds=item.values['Status']==="Ordered" ?  (products !== undefined ? products : [])
-          : (products !== undefined
-                    ? products.forEach((prod, i) => {
-                        prod['name']=prod['name']+"(Refunded)";
-                        prod['status']='refunded'
-                      })
-                      : []
-            );
-        if (products!==undefined && products.length>0){
-          products.forEach((prod, i) => {
-            data[idx].products.push(prod);
-          });
-        }
-        console.log(data[idx].products.length);
-
-      } */
     });
 
     data
       .sort((a, b) => {
-        if (a.name < b.name) {
+        let aDate = moment(a.date, 'YYYY-MM-DD');
+        let bDate = moment(b.date, 'YYYY-MM-DD');
+        if (aDate.isBefore(bDate)) {
           return -1;
-        } else if (a.name > b.name) {
-          return 1;
-        }
-        return 0;
-      })
-      .sort((a, b) => {
-        if (a.total < b.total) {
-          return -1;
-        } else if (a.total > b.total) {
+        } else if (aDate.isAfter(bDate)) {
           return 1;
         }
         return 0;
@@ -313,6 +304,107 @@ export class OrdersReport extends Component {
       });
     return data;
   }
+
+  getDownloadData() {
+    let data = this.state.data;
+
+    let header = [];
+    header.push('Date');
+    header.push('Name');
+    header.push('Total');
+    header.push('Discount');
+    header.push(this.getSalesTaxLabel());
+    if (
+      getAttributeValue(this.props.space, 'POS Sales Tax Label 2') !== undefined
+    ) {
+      header.push(this.getSalesTaxLabel2());
+    }
+    header.push('Refund');
+    header.push('Payment Type');
+    header.push('Product');
+    header.push('Size');
+    header.push('Colour');
+    header.push('Price');
+    header.push('Quantity');
+
+    let download = [];
+    download.push(header.flatten());
+
+    let header2 = [];
+    header2.push('');
+    header2.push('Product');
+    header2.push('Size');
+    header2.push('Colour');
+    header2.push('Price');
+    header2.push('Quantity');
+    //    download.push(header2.flatten());
+
+    data.forEach(element => {
+      let row = [];
+      row.push(moment(element['date'], 'L'));
+      row.push(element['name']);
+      row.push(
+        element['total'] !== undefined
+          ? parseFloat(element['total']).toFixed(2)
+          : '',
+      );
+      row.push(
+        element['discount'] !== undefined
+          ? parseFloat(element['discount']).toFixed(2)
+          : '',
+      );
+      row.push(
+        element['salestax'] !== undefined
+          ? parseFloat(element['salestax']).toFixed(2)
+          : '',
+      );
+      if (
+        getAttributeValue(this.props.space, 'POS Sales Tax Label 2') !==
+        undefined
+      ) {
+        row.push(element['salestax2'].toFixed(2));
+      }
+      row.push(
+        element['refund'] !== undefined
+          ? parseFloat(element['refund']).toFixed(2)
+          : '',
+      );
+      row.push(element['paymenttype']);
+      if (element.products.length > 0) {
+        row.push(element.products[0]['name']);
+        row.push(element.products[0]['size']);
+        row.push(element.products[0]['colour']);
+        row.push(element.products[0]['price']);
+        row.push(element.products[0]['quantity']);
+      }
+
+      download.push(row.flatten());
+
+      if (element.products.length > 1) {
+        element.products.forEach((prod, idx) => {
+          if (idx > 0) {
+            let pRow = [];
+            pRow.push('');
+            pRow.push('');
+            pRow.push('');
+            pRow.push('');
+            pRow.push('');
+            pRow.push('');
+            pRow.push('');
+            pRow.push(prod['name']);
+            pRow.push(prod['size']);
+            pRow.push(prod['colour']);
+            pRow.push(prod['price']);
+            pRow.push(prod['quantity']);
+            download.push(pRow.flatten());
+          }
+        });
+      }
+    });
+
+    return download;
+  }
+
   handleInputChange(event) {
     this.setState({
       [event.target.name]: moment(event.target.value),
@@ -460,6 +552,14 @@ export class OrdersReport extends Component {
       getAttributeValue(this.props.space, 'POS Sales Tax Label')
     );
   }
+  getSalesTaxLabel2() {
+    return getAttributeValue(this.props.space, 'POS Sales Tax Label 2') ===
+      undefined ? (
+      <I18n>SALES TAX 2</I18n>
+    ) : (
+      getAttributeValue(this.props.space, 'POS Sales Tax Label 2')
+    );
+  }
   getPersonType(id) {
     if (this.props.members.findIndex(member => member['id'] === id) !== -1)
       return 'Member';
@@ -467,45 +567,137 @@ export class OrdersReport extends Component {
     return 'Lead';
   }
   getColumns() {
-    const columns = [
-      {
-        Header: 'Date',
-        accessor: 'date',
+    const columns = [];
+    columns.push({
+      Header: 'Date',
+      accessor: 'date',
+      Cell: props => {
+        return moment(props.original.date).format('L');
       },
-      {
-        accessor: 'name',
-        Header: 'Name',
-        width: 300,
-        Cell: props => {
-          return props.original.key === undefined ? (
-            <div />
-          ) : (
-            <NavLink
-              to={
-                this.getPersonType(props.original.key) === 'Member'
-                  ? `/Member/${props.original.key}`
-                  : `/LeadDetail/${props.original.key}`
-              }
-              className=""
-            >
-              {props.original.name}
-            </NavLink>
-          );
-        },
+    });
+    columns.push({
+      accessor: 'name',
+      Header: 'Name',
+      width: 300,
+      Cell: props => {
+        return props.original.key === undefined ? (
+          <div />
+        ) : (
+          <NavLink
+            to={
+              this.getPersonType(props.original.key) === 'Member'
+                ? `/Member/${props.original.key}`
+                : `/LeadDetail/${props.original.key}`
+            }
+            className=""
+          >
+            {props.original.name}
+          </NavLink>
+        );
       },
-      {
-        accessor: 'total',
-        Header: 'Total',
+    });
+    columns.push({
+      accessor: 'total',
+      Header: 'Total',
+      width: 150,
+      Cell: props => {
+        return props.original.total === undefined ? (
+          <div />
+        ) : (
+          <div className="dollarValue">
+            {new Intl.NumberFormat(this.locale, {
+              style: 'currency',
+              currency: this.currency,
+            }).format(props.original.total)}
+          </div>
+        );
+      },
+      Footer: (
+        <span>
+          <strong>Total: </strong>
+          {this.state !== undefined
+            ? new Intl.NumberFormat(this.locale, {
+                style: 'currency',
+                currency: this.currency,
+              }).format(this.state.total)
+            : 0}
+        </span>
+      ),
+    });
+    columns.push({
+      accessor: 'discount',
+      Header: 'Discount',
+      width: 150,
+      Cell: props => {
+        return props.original.discount === undefined ? (
+          <div />
+        ) : (
+          <div className="dollarValue">
+            {new Intl.NumberFormat(this.locale, {
+              style: 'currency',
+              currency: this.currency,
+            }).format(props.original.discount)}
+          </div>
+        );
+      },
+      Footer: (
+        <span>
+          <strong>Total: </strong>
+          {this.state !== undefined
+            ? new Intl.NumberFormat(this.locale, {
+                style: 'currency',
+                currency: this.currency,
+              }).format(this.state.discountTotal)
+            : 0}
+        </span>
+      ),
+    });
+    columns.push({
+      accessor: 'salestax',
+      Header: this.getSalesTaxLabel(),
+      width: 150,
+      Cell: props => {
+        return props.original.salestax === undefined ? (
+          <div />
+        ) : (
+          <div className="dollarValue">
+            {new Intl.NumberFormat(this.locale, {
+              style: 'currency',
+              currency: this.currency,
+            }).format(props.original.salestax)}
+          </div>
+        );
+      },
+      Footer: (
+        <span>
+          <strong>Total: </strong>
+          {this.state !== undefined
+            ? new Intl.NumberFormat(this.locale, {
+                style: 'currency',
+                currency: this.currency,
+              }).format(this.state.salestaxTotal)
+            : 0}
+        </span>
+      ),
+    });
+    if (
+      getAttributeValue(this.props.space, 'POS Sales Tax Label 2') !== undefined
+    ) {
+      columns.push({
+        accessor: 'salestax2',
+        Header: this.getSalesTaxLabel2(),
+        className: 'hidden',
         width: 150,
         Cell: props => {
-          return props.original.total === undefined ? (
+          return props.original.salestax2 === undefined ||
+            props.original.salestax2 === '0' ? (
             <div />
           ) : (
             <div className="dollarValue">
               {new Intl.NumberFormat(this.locale, {
                 style: 'currency',
                 currency: this.currency,
-              }).format(props.original.total)}
+              }).format(props.original.salestax2)}
             </div>
           );
         },
@@ -516,101 +708,46 @@ export class OrdersReport extends Component {
               ? new Intl.NumberFormat(this.locale, {
                   style: 'currency',
                   currency: this.currency,
-                }).format(this.state.total)
+                }).format(this.state.salestax2Total)
               : 0}
           </span>
         ),
+      });
+    }
+    columns.push({
+      accessor: 'refund',
+      Header: 'Refund',
+      width: 150,
+      Cell: props => {
+        return props.original.refund === undefined ? (
+          <div />
+        ) : (
+          <div className="dollarValue">
+            {new Intl.NumberFormat(this.locale, {
+              style: 'currency',
+              currency: this.currency,
+            }).format(props.original.refund)}
+          </div>
+        );
       },
-      {
-        accessor: 'discount',
-        Header: 'Discount',
-        width: 150,
-        Cell: props => {
-          return props.original.discount === undefined ? (
-            <div />
-          ) : (
-            <div className="dollarValue">
-              {new Intl.NumberFormat(this.locale, {
+      Footer: (
+        <span>
+          <strong>Total: </strong>
+          {this.state !== undefined
+            ? new Intl.NumberFormat(this.locale, {
                 style: 'currency',
                 currency: this.currency,
-              }).format(props.original.discount)}
-            </div>
-          );
-        },
-        Footer: (
-          <span>
-            <strong>Total: </strong>
-            {this.state !== undefined
-              ? new Intl.NumberFormat(this.locale, {
-                  style: 'currency',
-                  currency: this.currency,
-                }).format(this.state.discountTotal)
-              : 0}
-          </span>
-        ),
-      },
-      {
-        accessor: 'salestax',
-        Header: this.getSalesTaxLabel(),
-        width: 150,
-        Cell: props => {
-          return props.original.salestax === undefined ? (
-            <div />
-          ) : (
-            <div className="dollarValue">
-              {new Intl.NumberFormat(this.locale, {
-                style: 'currency',
-                currency: this.currency,
-              }).format(props.original.salestax)}
-            </div>
-          );
-        },
-        Footer: (
-          <span>
-            <strong>Total: </strong>
-            {this.state !== undefined
-              ? new Intl.NumberFormat(this.locale, {
-                  style: 'currency',
-                  currency: this.currency,
-                }).format(this.state.salestaxTotal)
-              : 0}
-          </span>
-        ),
-      },
-      {
-        accessor: 'refund',
-        Header: 'Refund',
-        width: 150,
-        Cell: props => {
-          return props.original.refund === undefined ? (
-            <div />
-          ) : (
-            <div className="dollarValue">
-              {new Intl.NumberFormat(this.locale, {
-                style: 'currency',
-                currency: this.currency,
-              }).format(props.original.refund)}
-            </div>
-          );
-        },
-        Footer: (
-          <span>
-            <strong>Total: </strong>
-            {this.state !== undefined
-              ? new Intl.NumberFormat(this.locale, {
-                  style: 'currency',
-                  currency: this.currency,
-                }).format(this.state.refundTotal)
-              : 0}
-          </span>
-        ),
-      },
-      {
-        accessor: 'paymenttype',
-        Header: 'Payment Type',
-        width: 150,
-      },
-    ];
+              }).format(this.state.refundTotal)
+            : 0}
+        </span>
+      ),
+    });
+    columns.push({
+      accessor: 'paymenttype',
+      Header: 'Payment Type',
+      width: 150,
+    });
+
     return columns;
   }
 
@@ -786,12 +923,21 @@ export class OrdersReport extends Component {
           <div className="purchaseItemsReport">Loading information ...</div>
         ) : (
           <div className="purchaseItemsReport">
-            <ReactToPrint
-              trigger={() => (
-                <SVGInline svg={printerIcon} className="icon tablePrint" />
-              )}
-              content={() => this.tableComponentRef}
-            />
+            <div className="reportIcons">
+              <ReactToPrint
+                trigger={() => (
+                  <SVGInline svg={printerIcon} className="icon tablePrint" />
+                )}
+                content={() => this.tableComponentRef}
+              />
+              <CSVLink
+                className="downloadbtn"
+                filename="orders.csv"
+                data={this.getDownloadData()}
+              >
+                <SVGInline svg={downloadIcon} className="icon tableDownload" />
+              </CSVLink>
+            </div>
             <ReactTable
               ref={el => (this.tableComponentRef = el)}
               columns={this.getColumns()}

@@ -19,7 +19,11 @@ export const Layout = ({
     className={
       /Safari/.test(navigator.userAgent) &&
       /Apple Computer/.test(navigator.vendor)
-        ? 'layout isSafari'
+        ? isKiosk
+          ? 'layout isSafari isKiosk'
+          : 'layout isSafari '
+        : isKiosk
+        ? 'layout isKiosk'
         : 'layout'
     }
   >

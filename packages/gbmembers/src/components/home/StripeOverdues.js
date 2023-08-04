@@ -198,6 +198,9 @@ export class StripeOverdues extends Component {
             ? moment(successfulPayments[sidx].debitDate, 'YYYY-MM-DD HH:mm:ss')
             : moment(member.values['Billing Start Date'], 'YYYY-MM-DD'),
         debitDate: payment.debitDate,
+        nextAttemptDate: payment.nextAttemptDate,
+        attemptCount: payment.attemptCount,
+        bankReason: payment.bankFailedReason,
         memberGUID: member !== undefined ? member.id : '',
         name: member.values['First Name'] + ' ' + member.values['Last Name'],
       };
@@ -221,14 +224,23 @@ export class StripeOverdues extends Component {
         },
       },
       {
-        accessor: 'successDate',
-        Header: 'Last Success Date',
-        width: 150,
-        Cell: props => moment(props.value, ezidebit_date_format).format('L'),
+        accessor: 'bankReason',
+        Header: 'Reason',
+        width: 250,
       },
       {
         accessor: 'debitDate',
         Header: 'Last Failed Date',
+        width: 150,
+        Cell: props => moment(props.value, ezidebit_date_format).format('L'),
+      },
+      {
+        accessor: 'attemptCount',
+        Header: 'Attempts',
+      },
+      {
+        accessor: 'nextAttemptDate',
+        Header: 'Next Attempt',
         width: 150,
         Cell: props => moment(props.value, ezidebit_date_format).format('L'),
       },

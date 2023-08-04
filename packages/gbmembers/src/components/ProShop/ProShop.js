@@ -60,6 +60,7 @@ import {
   useStripe,
   useElements,
   confirmCardPayment,
+  paymentIntents,
 } from '@stripe/react-stripe-js';
 import { loadStripeTerminal } from '@stripe/terminal-js/pure';
 
@@ -197,6 +198,8 @@ class PayNow extends Component {
     var subtotal = 0;
     var discount = 0;
     var total = 0;
+    var grossTotal = 0;
+
     if (this.props.posCheckout['Checkout Items']['products'] !== undefined) {
       this.props.posCheckout['Checkout Items']['products'].forEach(
         (product, i) => {
@@ -241,8 +244,12 @@ class PayNow extends Component {
         total = subtotal - discount;
       }
     }
+    grossTotal = total;
     if (this.props.salestax !== 0) {
-      total = parseFloat((total + this.props.salestax).toFixed(2));
+      total = total + this.props.salestax;
+    }
+    if (this.props.salestax2 !== 0) {
+      total = total + this.props.salestax2;
     }
 
     total = parseFloat(total.toFixed(2));
@@ -395,6 +402,7 @@ class PayNow extends Component {
       this.props.subtotal,
       this.props.discount,
       this.props.salestax,
+      this.props.salestax2,
       this.props.total,
     );
   }
@@ -725,20 +733,75 @@ class PayNow extends Component {
         datetime: moment(),
       });
     } else {
-      posThis.setState({
-        status: '1',
-        status_message: payload.paymentIntent.status,
-        errors: '',
-        auth_code: '',
-        transaction_id: payload.paymentIntent.id,
-        processingComplete: true,
-        processing: false,
-        datetime: moment(),
-      });
-
-      posThis.completeCheckout();
+      posThis.completeStripePayment(
+        payload.paymentIntent.id,
+        posThis,
+        posThis.props.currency,
+      );
     }
   };
+
+  completeStripePayment = async (id, posThis, currency) => {
+    var chargeId = '';
+
+    var posSystem = getAttributeValue(this.props.space, 'POS System');
+    var posServiceURL = getAttributeValue(this.props.space, 'POS Service URL');
+    var spaceSlug = this.props.spaceSlug;
+
+    var data = JSON.stringify({
+      space: spaceSlug,
+      billingService: posSystem,
+      currency: currency,
+      id: id,
+    });
+
+    var config = {
+      method: 'post',
+      url: posServiceURL.replace('processPOS', 'fetchPaymentIntent'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: data,
+    };
+    await axios(config)
+      .then(function(response) {
+        chargeId = response.data.data.chargeId;
+      })
+      .catch(err => {
+        var error = 'Connection Error';
+        if (err.response) {
+          // client received an error response (5xx, 4xx)
+          error = err.response;
+        } else if (err.request) {
+          // client never received a response, or request never left
+          error = err.request;
+        }
+        posThis.setState({
+          status: '10',
+          status_message: 'System Error',
+          errors: error,
+          auth_code: '',
+          transaction_id: '',
+          processingComplete: true,
+          processing: false,
+          datetime: moment(),
+        });
+        console.log(error);
+      });
+
+    posThis.setState({
+      status: '1',
+      status_message: 'Successful',
+      errors: '',
+      auth_code: '',
+      transaction_id: chargeId,
+      processingComplete: true,
+      processing: false,
+      datetime: moment(),
+    });
+    posThis.completeCheckout();
+  };
+
   processBamboraPayment(
     posServiceURL,
     spaceSlug,
@@ -2295,12 +2358,12 @@ class PayNow extends Component {
                         this.props.space,
                         'POS Stripe Publishable Key',
                       ),
-                      /*                      {
+                      {
                         stripeAccount: getAttributeValue(
                           this.props.space,
                           'Stripe Account ID',
                         ),
-                      }, */
+                      },
                     )}
                   >
                     <StripePaymentCapture />
@@ -2337,6 +2400,7 @@ class PayNow extends Component {
                 total={this.props.total}
                 subtotal={this.props.subtotal}
                 salestax={this.props.salestax}
+                salestax2={this.props.salestax2}
                 discount={this.props.discount}
                 number={this.state.number}
                 auth_code={this.state.auth_code}
@@ -2489,13 +2553,20 @@ class Checkout extends Component {
     var subtotal = 0;
     var discount = 0;
     var salestax = 0;
+    var salestax2 = 0;
     var total = 0;
+    var grossTotal = 0;
     posThis = this;
 
     salestax = parseFloat(
       getAttributeValue(this.props.space, 'POS Sales Tax') === undefined
         ? 0
         : getAttributeValue(this.props.space, 'POS Sales Tax'),
+    );
+    salestax2 = parseFloat(
+      getAttributeValue(this.props.space, 'POS Sales Tax 2') === undefined
+        ? 0
+        : getAttributeValue(this.props.space, 'POS Sales Tax 2'),
     );
 
     if (this.props.posCheckout['Checkout Items']['products'] !== undefined) {
@@ -2541,9 +2612,14 @@ class Checkout extends Component {
         total = subtotal - discount;
       }
     }
+    grossTotal = total;
     if (salestax !== 0) {
-      salestax = parseFloat((total * salestax).toFixed(2));
+      salestax = parseFloat((grossTotal * salestax).toFixed(2));
       total = total + salestax;
+    }
+    if (salestax2 !== 0) {
+      salestax2 = parseFloat((grossTotal * salestax2).toFixed(2));
+      total = total + salestax2;
     }
     total = parseFloat(total.toFixed(2));
 
@@ -2554,6 +2630,7 @@ class Checkout extends Component {
       subtotal: subtotal,
       discount: discount,
       salestax: salestax,
+      salestax2: salestax2,
       total: total,
       showAddDiscountDialog: false,
       showPayNow: false,
@@ -2575,7 +2652,9 @@ class Checkout extends Component {
     var subtotal = 0;
     var discount = 0;
     var salestax = 0;
+    var salestax2 = 0;
     var total = 0;
+    var grossTotal = 0;
 
     if (this.state.salestax === 0) {
     } else {
@@ -2583,6 +2662,14 @@ class Checkout extends Component {
         getAttributeValue(this.props.space, 'POS Sales Tax') === undefined
           ? 0
           : getAttributeValue(this.props.space, 'POS Sales Tax'),
+      );
+    }
+    if (this.state.salestax2 === 0) {
+    } else {
+      salestax2 = parseFloat(
+        getAttributeValue(this.props.space, 'POS Sales Tax 2') === undefined
+          ? 0
+          : getAttributeValue(this.props.space, 'POS Sales Tax 2'),
       );
     }
 
@@ -2627,9 +2714,14 @@ class Checkout extends Component {
         total = subtotal - discount;
       }
     }
+    grossTotal = total;
     if (salestax !== 0) {
-      salestax = parseFloat((total * salestax).toFixed(2));
+      salestax = parseFloat((grossTotal * salestax).toFixed(2));
       total = total + salestax;
+    }
+    if (salestax2 !== 0) {
+      salestax2 = parseFloat((grossTotal * salestax2).toFixed(2));
+      total = total + salestax2;
     }
     total = parseFloat(total.toFixed(2));
 
@@ -2637,6 +2729,7 @@ class Checkout extends Component {
       subtotal: subtotal,
       discount: discount,
       salestax: salestax,
+      salestax2: salestax2,
       total: total,
     });
   }
@@ -2663,6 +2756,7 @@ class Checkout extends Component {
             subtotal={this.state.subtotal}
             discount={this.state.discount}
             salestax={this.state.salestax}
+            salestax2={this.state.salestax2}
             fetchPOSCards={this.props.fetchPOSCards}
             setPOSCards={this.props.setPOSCards}
             posCardsLoading={this.props.posCardsLoading}
@@ -3092,6 +3186,74 @@ class Checkout extends Component {
                       var total = this.state.total - this.state.salestax;
                       this.setState({
                         salestax: 0,
+                        total: total,
+                      });
+                    }
+                  }}
+                />
+              </span>
+            )}
+            {this.state.salestax2 === 0 ? (
+              <div />
+            ) : (
+              <span className="salestax">
+                <div className="label">
+                  {getAttributeValue(
+                    this.props.space,
+                    'POS Sales Tax Label 2',
+                  ) === undefined ? (
+                    <I18n>SALES TAX 2</I18n>
+                  ) : (
+                    getAttributeValue(this.props.space, 'POS Sales Tax Label 2')
+                  )}
+                </div>
+                <div className="value">
+                  {new Intl.NumberFormat(this.props.locale, {
+                    style: 'currency',
+                    currency: this.props.currency,
+                  }).format(this.state.salestax2)}
+                </div>
+                <SVGInline
+                  svg={binIcon}
+                  className="icon delete"
+                  onClick={async e => {
+                    var cancelButton = $(e.target);
+                    if (
+                      await confirm(
+                        <span>
+                          <span>
+                            Are you sure you want to REMOVE the{' '}
+                            {getAttributeValue(
+                              this.props.space,
+                              'POS Sales Tax Label 2',
+                            ) === undefined ? (
+                              <span>SALES TAX 2</span>
+                            ) : (
+                              getAttributeValue(
+                                this.props.space,
+                                'POS Sales Tax Label 2',
+                              )
+                            )}
+                            ?
+                          </span>
+                          <table>
+                            <tbody>
+                              <tr>
+                                <td>
+                                  {$(e.target)
+                                    .parents('.discountLine')
+                                    .children('.type')
+                                    .html()}
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </span>,
+                      )
+                    ) {
+                      var total = this.state.total - this.state.salestax2;
+                      this.setState({
+                        salestax2: 0,
                         total: total,
                       });
                     }
@@ -4190,6 +4352,7 @@ export const ProShopContainer = compose(
       subtotal,
       discount,
       salestax,
+      salestax2,
       total,
     ) => {
       console.log('completePOSCheckout:' + posCheckout);
@@ -4205,6 +4368,7 @@ export const ProShopContainer = compose(
         subtotal: subtotal,
         discount: discount,
         salestax: salestax,
+        salestax2: salestax2,
         total: total,
         datetime: datetime,
         auth_code: auth_code,

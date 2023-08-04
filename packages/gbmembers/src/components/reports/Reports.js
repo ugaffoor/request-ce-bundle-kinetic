@@ -7,6 +7,7 @@ import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as reportingActions } from '../../redux/modules/reporting';
 import { actions as leadsActions } from '../../redux/modules/leads';
 import { actions as servicesActions } from '../../redux/modules/services';
+import { actions as posActions } from '../../redux/modules/pos';
 import 'react-tabulator/lib/styles.css'; // default theme
 import 'react-tabulator/css/bootstrap/tabulator_bootstrap.min.css'; // use Theme(s)
 import { actions as appActions } from '../../redux/modules/memberApp';
@@ -27,6 +28,7 @@ import { PaysmartFailedPayments } from './PaysmartFailedPayments';
 import { BamboraFailedPayments } from './BamboraFailedPayments';
 import { StripeFailedPayments } from './StripeFailedPayments';
 import { PaysmartOverdues } from './PaysmartOverdues';
+import { StripeBillingTransactions } from './StripeBillingTransactions';
 import { AdditionalServicesReportContainer } from './AdditionalServicesReport';
 import { ResumingMembers } from './ResumingMembers';
 import { actions } from '../../redux/modules/members';
@@ -64,6 +66,8 @@ const mapStateToProps = state => ({
   variationCustomersLoading: state.member.members.variationCustomersLoading,
   customerRefunds: state.member.members.customerRefunds,
   customerRefundsLoading: state.member.members.customerRefundsLoading,
+  posOrdersLoading: state.member.pos.posOrdersLoading,
+  posOrders: state.member.pos.posOrders,
   FAILEDpaymentHistory: state.member.members.FAILEDpaymentHistory,
   FAILEDpaymentHistoryLoading: state.member.members.FAILEDpaymentHistoryLoading,
   SUCCESSFULpaymentHistory: state.member.members.SUCCESSFULpaymentHistory,
@@ -102,6 +106,7 @@ const mapDispatchToProps = {
   setBillingCustomers: actions.setBillingCustomers,
   setSidebarDisplayType: appActions.setSidebarDisplayType,
   fetchAttendancesByDate: attendanceActions.fetchAttendancesByDate,
+  fetchPOSOrders: posActions.fetchPOSOrders,
 };
 
 export const ReportsView = ({
@@ -161,6 +166,8 @@ export const ReportsView = ({
   getVariationCustomers,
   customerRefunds,
   customerRefundsLoading,
+  posOrders,
+  posOrdersLoading,
   getCustomerRefunds,
   showVariationsReport,
   setShowVariationsReport,
@@ -178,6 +185,8 @@ export const ReportsView = ({
   getSuccessfulPayments,
   showOverduesReport,
   setShowOverduesReport,
+  showStripeBillingTransactions,
+  setShowStripeBillingTransactions,
   getOverdues,
   showAdditionalServicesReport,
   setShowAdditionalServicesReport,
@@ -202,6 +211,7 @@ export const ReportsView = ({
   fetchAttendancesByDate,
   fetchingAttendancesByDate,
   attendancesByDate,
+  fetchPOSOrders,
 }) => (
   <div className="reports">
     {!membersLoading && (
@@ -848,6 +858,60 @@ export const ReportsView = ({
             )}
           </div>
         )}
+        {Utils.getAttributeValue(space, 'Billing Company') !== 'Stripe' ||
+        !Utils.isMemberOf(profile, 'Billing') ? (
+          <div />
+        ) : (
+          <div
+            style={{ margin: '20px 0px 0px 10px' }}
+            id="stripe-billing-transactions"
+          >
+            <div className="row">
+              <button
+                type="button"
+                className="btn btn-primary report-btn-default"
+                disabled={!dummyFormLoaded}
+                onClick={e => {
+                  setShowStripeBillingTransactions(
+                    showStripeBillingTransactions ? false : true,
+                  );
+                  document
+                    .getElementById('stripe-billing-transactions')
+                    .scrollIntoView();
+                }}
+              >
+                {showStripeBillingTransactions
+                  ? 'Hide Stripe Billing Transactions'
+                  : 'Show Stripe Billing Transactions'}
+              </button>
+            </div>
+            {!showStripeBillingTransactions ? null : (
+              <div className="row">
+                <div>
+                  <StripeBillingTransactions
+                    allMembers={members}
+                    profile={profile}
+                    space={space}
+                    fetchCustomerRefunds={fetchCustomerRefunds}
+                    setCustomerRefunds={setCustomerRefunds}
+                    fetchPaymentHistory={fetchPaymentHistory}
+                    setPaymentHistory={setPaymentHistory}
+                    SUCCESSFULpaymentHistory={SUCCESSFULpaymentHistory}
+                    SUCCESSFULpaymentHistoryLoading={
+                      SUCCESSFULpaymentHistoryLoading
+                    }
+                    fetchPOSOrders={fetchPOSOrders}
+                    posOrdersLoading={posOrdersLoading}
+                    posOrders={posOrders}
+                    customerRefunds={customerRefunds}
+                    customerRefundsLoading={customerRefundsLoading}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         <CoreForm
           kapp="gbmembers"
           form="dummy-form"
@@ -876,6 +940,11 @@ export const ReportsContainer = compose(
   withState('showDescrepenciesReport', 'setShowDescrepenciesReport', false),
   withState('showFailedPaymentsReport', 'setShowFailedPaymentsReport', false),
   withState('showOverduesReport', 'setShowOverduesReport', false),
+  withState(
+    'showStripeBillingTransactions',
+    'setShowStripeBillingTransactions',
+    false,
+  ),
   withState(
     'showAdditionalServicesReport',
     'setShowAdditionalServicesReport',

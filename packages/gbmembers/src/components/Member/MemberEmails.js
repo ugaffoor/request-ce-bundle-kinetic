@@ -15,7 +15,7 @@ export class MemberEmails extends Component {
     const data = this.getData(this.props.memberItem);
     this._columns = this.getColumns();
     this.getCampaign = this.getCampaign.bind(this);
-    let attachments = '';
+    let attachments = [];
 
     this.substituteFields = this.substituteFields.bind(this);
     this.state = {
@@ -26,15 +26,19 @@ export class MemberEmails extends Component {
 
   UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.memberItem) {
-      let attachments = '';
+      let attachments = [];
 
       if (nextProps.campaignItem.values['Attachments'] !== undefined) {
         JSON.parse(nextProps.campaignItem.values['Attachments']).forEach(
           attachment => {
-            attachments +=
-              decodeURI(
-                attachment.split('/')[attachment.split('/').length - 1],
-              ) + ' ';
+            let name = decodeURI(
+              attachment.split('/')[attachment.split('/').length - 1],
+            );
+            let url = attachment;
+            while (url[0] === '/') {
+              url = url.substring(1);
+            }
+            attachments.push({ name: name, url: url });
           },
         );
       }
@@ -206,7 +210,11 @@ export class MemberEmails extends Component {
                             </div>
                             <div className="col-sm-8">
                               {this.props.campaignItem !== undefined
-                                ? this.state.attachments
+                                ? this.state.attachments.map((entry, index) => (
+                                    <a target="_blank" href={entry.url}>
+                                      {entry.name}
+                                    </a>
+                                  ))
                                 : ''}
                             </div>
                           </div>

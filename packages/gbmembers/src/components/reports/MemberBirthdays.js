@@ -4,7 +4,9 @@ import { KappNavLink as NavLink } from 'common';
 import moment from 'moment';
 import ReactToPrint from 'react-to-print';
 import printerIcon from '../../images/Print.svg?raw';
+import downloadIcon from '../../images/download.svg?raw';
 import SVGInline from 'react-svg-inline';
+import { CSVLink } from 'react-csv';
 
 export class MemberBirthdays extends Component {
   constructor(props) {
@@ -110,6 +112,24 @@ export class MemberBirthdays extends Component {
     return columns;
   }
 
+  getDownloadData() {
+    let data = this.getData(this.props.allMembers, parseInt(this.state.week));
+
+    let download = [['Name', 'Birthday', 'Age', 'Status']];
+
+    data.forEach(element => {
+      let row = [];
+      row.push(
+        element['name'],
+        moment(element['dob']).format('Do MMM'),
+        moment().year() - moment(element['dob']).year(),
+        element['status'],
+      );
+      download.push(row);
+    });
+
+    return download;
+  }
   render() {
     const { data, columns } = this.state;
     return (
@@ -153,6 +173,13 @@ export class MemberBirthdays extends Component {
           )}
           content={() => this.tableComponentRef}
         />
+        <CSVLink
+          className="downloadbtn"
+          filename="birthdays.csv"
+          data={this.getDownloadData()}
+        >
+          <SVGInline svg={downloadIcon} className="icon tableDownload" />
+        </CSVLink>
         <ReactTable
           ref={el => (this.tableComponentRef = el)}
           columns={columns}

@@ -389,6 +389,7 @@ export function* savePOSCheckout(action) {
     values['SubTotal'] = action.payload['subtotal'];
     values['Discount'] = action.payload['discount'];
     values['Sales Tax'] = action.payload['salestax'];
+    values['Sales Tax 2'] = action.payload['salestax2'];
     values['Total'] = action.payload['total'];
     values['Transaction ID'] = action.payload['transaction_id'];
     values['POS Checkout JSON'] = action.payload['posCheckout'];

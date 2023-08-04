@@ -2510,6 +2510,7 @@ export const MemberViewContainer = compose(
       this.props.fetchCurrentMemberAdditional({
         id: this.props.match.params.id,
         billingService: getAttributeValue(this.props.space, 'Billing Company'),
+        allMembers: this.props.allMembers,
       });
 
       let currency = getAttributeValue(this.props.space, 'Currency');
@@ -2542,6 +2543,7 @@ export const MemberViewContainer = compose(
             this.props.space,
             'Billing Company',
           ),
+          allMembers: nextProps.allMembers,
         });
         this.props.setShowChangeStatusModal(false);
       }

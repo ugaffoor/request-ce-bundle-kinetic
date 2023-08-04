@@ -1173,6 +1173,31 @@ export class MemberFinancialReport extends Component {
         ) {
           posPeople[posPeople.length] = members[idx];
         }
+      } else {
+        idx = leads.findIndex(item => item.id === pos.values['Person ID']);
+        if (idx !== -1) {
+          if (
+            posPeople.findIndex(item => item.id === pos.values['Person ID']) ===
+            -1
+          ) {
+            posPeople[posPeople.length] = leads[idx];
+          }
+        } else {
+          var idx = members.findIndex(
+            item =>
+              item.values['Lead Submission ID'] === pos.values['Person ID'],
+          );
+          if (idx !== -1) {
+            if (
+              posPeople.findIndex(
+                item =>
+                  item.values['Lead Submission ID'] === pos.values['Person ID'],
+              ) === -1
+            ) {
+              posPeople[posPeople.length] = members[idx];
+            }
+          }
+        }
       }
       //      }
       if (
@@ -1448,10 +1473,13 @@ export class MemberFinancialReport extends Component {
       });
     }
   }
-  getMemberPOS(members, member, posOrders) {
+  getMemberPOS(members, person, posOrders) {
     var pos = 0;
     posOrders.forEach((order, i) => {
-      if (order.values['Person ID'] === member['id']) {
+      if (
+        order.values['Person ID'] === person['id'] ||
+        order.values['Person ID'] === person.values['Lead Submission ID']
+      ) {
         pos += Number.parseFloat(order.values['Total']);
       }
     });

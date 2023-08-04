@@ -189,127 +189,139 @@ export const removeExcludedMembers = (allMembers, excluded) => {
   });
   return members;
 };
-export const matchesMemberFilter = (allMembers, filters) => {
-  let members = allMembers.filter(member => {
-    let match = true;
-    let startDate = null,
-      endDate = null;
+export const matchesMemberFilter = (allMembers, filters, excluded) => {
+  let members = allMembers
+    .filter(member => {
+      let match = true;
+      if (excluded !== undefined && excluded.includes(member.id)) {
+        return false;
+      }
+      return match;
+    })
+    .filter(member => {
+      let match = true;
+      let startDate = null,
+        endDate = null;
 
-    for (var i = 0; i < filters.length; i++) {
-      let keys = Object.keys(filters[i]);
-      if (keys[0] === 'specificMembersFilter') {
-        if ($.inArray(member.id, filters[i][keys[0]].specificMembers) < 0) {
-          match = false;
-        }
-      } else if (keys[0] === 'joiningDateFilter') {
-        startDate =
-          filters[i][keys[0]].startDate !== undefined
-            ? moment(filters[i][keys[0]].startDate, 'YYYY-MM-DD').startOf('day')
-            : undefined;
-        endDate =
-          filters[i][keys[0]].endDate !== undefined
-            ? moment(filters[i][keys[0]].endDate, 'YYYY-MM-DD').endOf('day')
-            : undefined;
-        if (
-          startDate !== undefined &&
-          endDate === undefined &&
-          !moment(member.values['Date Joined'], 'YYYY-MM-DD').isSameOrAfter(
-            startDate,
-          )
-        ) {
-          match = false;
-        } else if (
-          endDate !== undefined &&
-          startDate === undefined &&
-          !moment(member.values['Date Joined'], 'YYYY-MM-DD').isSameOrBefore(
-            endDate,
-          )
-        ) {
-          match = false;
-        } else if (
-          startDate !== undefined &&
-          endDate !== undefined &&
-          !(
-            moment(member.values['Date Joined'], 'YYYY-MM-DD').isSameOrAfter(
+      for (var i = 0; i < filters.length; i++) {
+        let keys = Object.keys(filters[i]);
+        if (keys[0] === 'specificMembersFilter') {
+          if ($.inArray(member.id, filters[i][keys[0]].specificMembers) < 0) {
+            match = false;
+          }
+        } else if (keys[0] === 'joiningDateFilter') {
+          startDate =
+            filters[i][keys[0]].startDate !== undefined
+              ? moment(filters[i][keys[0]].startDate, 'YYYY-MM-DD').startOf(
+                  'day',
+                )
+              : undefined;
+          endDate =
+            filters[i][keys[0]].endDate !== undefined
+              ? moment(filters[i][keys[0]].endDate, 'YYYY-MM-DD').endOf('day')
+              : undefined;
+          if (
+            startDate !== undefined &&
+            endDate === undefined &&
+            !moment(member.values['Date Joined'], 'YYYY-MM-DD').isSameOrAfter(
               startDate,
-            ) &&
-            moment(member.values['Date Joined'], 'YYYY-MM-DD').isSameOrBefore(
+            )
+          ) {
+            match = false;
+          } else if (
+            endDate !== undefined &&
+            startDate === undefined &&
+            !moment(member.values['Date Joined'], 'YYYY-MM-DD').isSameOrBefore(
               endDate,
             )
-          )
-        ) {
-          match = false;
-        }
-      } else if (keys[0] === 'genderFilter') {
-        if (member.values['Gender'] !== filters[i][keys[0]].gender) {
-          match = false;
-        }
-      } else if (keys[0] === 'ageFilter') {
-        let years = moment().diff(member.values['DOB'], 'years');
-        if (
-          !(
-            years >= filters[i][keys[0]].fromAge &&
-            years <= filters[i][keys[0]].toAge
-          )
-        ) {
-          match = false;
-        }
-      } else if (keys[0] === 'statusFilter') {
-        if (
-          $.inArray(member.values['Status'], filters[i][keys[0]].status) < 0
-        ) {
-          match = false;
-        }
-      } else if (keys[0] === 'programFilter') {
-        if (
-          $.inArray(
-            member.values['Ranking Program'],
-            filters[i][keys[0]].programs,
-          ) < 0
-        ) {
-          match = false;
-        }
-      } else if (keys[0] === 'beltFilter') {
-        if (
-          $.inArray(member.values['Ranking Belt'], filters[i][keys[0]].belts) <
-          0
-        ) {
-          match = false;
-        }
-      } else if (keys[0] === 'additionalProgram1Filter') {
-        if (
-          $.inArray(
-            member.values['Additional Program 1'],
-            filters[i][keys[0]].programs,
-          ) < 0
-        ) {
-          match = false;
-        }
-      } else if (keys[0] === 'additionalProgram2Filter') {
-        if (
-          $.inArray(
-            member.values['Additional Program 2'],
-            filters[i][keys[0]].programs,
-          ) < 0
-        ) {
-          match = false;
-        }
-      } else if (keys[0] === 'memberTypeFilter') {
-        if (member.values['Member Type'] !== filters[i][keys[0]].memberType) {
-          match = false;
-        }
-      } else if (keys[0] === 'billingMemberFilter') {
-        if (!member.values['Billing Customer Id']) {
-          match = false;
-        }
-      } else if (keys[0] === 'nonPayingFilter') {
-        if (member.values['Non Paying'] !== 'YES') {
-          match = false;
+          ) {
+            match = false;
+          } else if (
+            startDate !== undefined &&
+            endDate !== undefined &&
+            !(
+              moment(member.values['Date Joined'], 'YYYY-MM-DD').isSameOrAfter(
+                startDate,
+              ) &&
+              moment(member.values['Date Joined'], 'YYYY-MM-DD').isSameOrBefore(
+                endDate,
+              )
+            )
+          ) {
+            match = false;
+          }
+        } else if (keys[0] === 'genderFilter') {
+          if (member.values['Gender'] !== filters[i][keys[0]].gender) {
+            match = false;
+          }
+        } else if (keys[0] === 'ageFilter') {
+          let years = moment().diff(member.values['DOB'], 'years');
+          if (
+            !(
+              years >= filters[i][keys[0]].fromAge &&
+              years <= filters[i][keys[0]].toAge
+            )
+          ) {
+            match = false;
+          }
+        } else if (keys[0] === 'statusFilter') {
+          if (
+            $.inArray(member.values['Status'], filters[i][keys[0]].status) < 0
+          ) {
+            match = false;
+          }
+        } else if (keys[0] === 'programFilter') {
+          if (
+            $.inArray(
+              member.values['Ranking Program'],
+              filters[i][keys[0]].programs,
+            ) < 0
+          ) {
+            match = false;
+          }
+        } else if (keys[0] === 'beltFilter') {
+          if (
+            $.inArray(
+              member.values['Ranking Belt'],
+              filters[i][keys[0]].belts,
+            ) < 0
+          ) {
+            match = false;
+          }
+        } else if (keys[0] === 'additionalProgram1Filter') {
+          if (
+            $.inArray(
+              member.values['Additional Program 1'],
+              filters[i][keys[0]].programs,
+            ) < 0
+          ) {
+            match = false;
+          }
+        } else if (keys[0] === 'additionalProgram2Filter') {
+          if (
+            $.inArray(
+              member.values['Additional Program 2'],
+              filters[i][keys[0]].programs,
+            ) < 0
+          ) {
+            match = false;
+          }
+        } else if (keys[0] === 'memberTypeFilter') {
+          if (member.values['Member Type'] !== filters[i][keys[0]].memberType) {
+            match = false;
+          }
+        } else if (keys[0] === 'billingMemberFilter') {
+          if (!member.values['Billing Customer Id']) {
+            match = false;
+          }
+        } else if (keys[0] === 'nonPayingFilter') {
+          if (member.values['Non Paying'] !== 'YES') {
+            match = false;
+          }
         }
       }
-    }
-    return match;
-  });
+      return match;
+    });
   return members;
 };
 export const removeExcludedLeads = (allLeads, excluded) => {

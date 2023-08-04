@@ -28,10 +28,34 @@
   @media (min-width: 810px) {
     top: 176px !important;
   }
+  @media (min-width: 1024px) {
+    top: 206px !important;
+  }
   @media (min-width: 1585px) {
     top: 128px !important;
   }
 }
+.isKiosk .sidebarMain {
+  @media (min-width: 692px) {
+    top: 122px !important;
+  }
+  @media (min-width: 768px) {
+    top: 128px !important;
+  }
+  @media (min-width: 810px) {
+    top: 176px !important;
+  }
+  @media (min-width: 992px) {
+    top: 159px !important;
+  }
+  @media (min-width: 1024px) {
+    top: 203px !important;
+  }
+  @media (min-width: 1585px) {
+    top: 128px !important;
+  }
+}
+
 .sidebar-content {
   z-index: 200 !important;
 }

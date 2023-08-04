@@ -13,8 +13,21 @@
       }
     }
   }
+  .personView {
+    margin-left: 200px;
+    label {
+      float: left;
+      margin-right: 20px;
+    }
+    .checkboxFilter {
+      float: left;
+      clear: none;
+    }
+  }
 }
-
+.downloadbtn {
+  float: left;
+}
 .stockReport {
   .tablePrint {
     cursor: pointer;
@@ -312,6 +325,17 @@
   .barcodeIcon-svg {
     width: 50px;
     height: 30px;
+  }
+
+  .reportIcons {
+    float: left;
+    .tablePrint,
+    .downloadbtn {
+      float: left;
+    }
+  }
+  .ReactTable {
+    clear: left;
   }
 }
 .recordStockDialog {

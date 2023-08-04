@@ -405,6 +405,10 @@ export class MemberFinancialStats extends Component {
         varDailyCost = varAmount / 2 / 7;
       } else if (paymentPeriod === 'Monthly') {
         varDailyCost = (varAmount * 12) / 52 / 7;
+      } else if (paymentPeriod === 'Quarterly') {
+        varDailyCost = (varAmount * 4) / 52 / 7;
+      } else if (paymentPeriod === '4 Months') {
+        varDailyCost = (varAmount * 3) / 52 / 7;
       } else if (paymentPeriod === '6 Months') {
         varDailyCost = (varAmount * 2) / 52 / 7;
       } else if (paymentPeriod === 'Yearly') {
@@ -896,6 +900,8 @@ export class MemberFinancialStats extends Component {
         weeklyCost = billing.billingAmount / 2;
       } else if (paymentPeriod === 'Monthly') {
         weeklyCost = (billing.billingAmount * 12) / 52;
+      } else if (paymentPeriod === 'Quarterly') {
+        weeklyCost = (billing.billingAmount * 3) / 52;
       } else if (paymentPeriod === '4 Months') {
         weeklyCost = (billing.billingAmount * 4) / 52;
       } else if (paymentPeriod === '6 Months') {
