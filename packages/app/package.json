@@ -1,6 +1,6 @@
 {
   "name": "app",
-  "version": "2.3.49",
+  "version": "2.3.57",
   "main": "./src/index.js",
   "scripts": {
     "start": "react-app-rewired start --scripts-version kinops-react-scripts",

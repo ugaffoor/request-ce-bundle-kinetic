@@ -73,12 +73,12 @@ export class StripeBillingTransactions extends Component {
   }
   UNSAFE_componentWillReceiveProps(nextProps) {
     if (
-      !nextProps.SUCCESSFULpaymentHistoryLoading &&
+      !nextProps.CHARGESpaymentHistoryLoading &&
       !nextProps.posOrdersLoading &&
       !nextProps.customerRefundsLoading
     ) {
       let data = this.getData(
-        nextProps.SUCCESSFULpaymentHistory,
+        nextProps.CHARGESpaymentHistory,
         nextProps.posOrders,
         nextProps.customerRefunds,
       );
@@ -122,6 +122,20 @@ export class StripeBillingTransactions extends Component {
       addNotification: this.props.addNotification,
       setSystemError: this.props.setSystemError,
     });
+    this.props.fetchPaymentHistory({
+      paymentType: 'CHARGES',
+      paymentMethod: 'ALL',
+      paymentSource: 'ALL',
+      dateField: 'PAYMENT',
+      dateFrom: dateFrom,
+      dateTo: moment()
+        .add(1, 'days')
+        .format('YYYY-MM-DD'),
+      setPaymentHistory: this.props.setPaymentHistory,
+      internalPaymentType: 'pos_charges',
+      addNotification: this.props.addNotification,
+      setSystemError: this.props.setSystemError,
+    });
     this.props.fetchPOSOrders({
       dateFrom: moment(startDate),
       dateTo: moment(),
@@ -140,6 +154,7 @@ export class StripeBillingTransactions extends Component {
   }
   getDate(dateVal) {
     // return dateVal.substring(0,10); Used to emulate results as being run in UK
+    dateVal = dateVal.replace(' ', 'T').concat('T');
     var dt =
       dateVal !== undefined
         ? moment(dateVal, 'YYYY-MM-DDTHH:mm:ssZ').format('YYYY-MM-DD')
@@ -154,48 +169,42 @@ export class StripeBillingTransactions extends Component {
     return dt;
   }
 
-  getData(paymentHistory, posOrders, customerRefunds) {
+  getData(posPaymentHistory, posOrders, customerRefunds) {
     let dataMap = new Map();
 
-    paymentHistory.forEach((payment, idx) => {
+    posPaymentHistory.forEach((payment, idx) => {
       let date = this.getDate(payment['debitDate']);
       let item = dataMap.get(date);
-      let amount = payment['paymentAmount'].toFixed(2);
+      let amount = parseFloat(payment['paymentAmount'].toFixed(2));
+      let fee = -parseFloat(payment['transactionFeeClient'].toFixed(2));
       //console.log(","+payment['debitDate']+","+date+","+amount+",");
       if (item === undefined) {
-        dataMap.set(date, { fees: amount });
+        if (payment['yourGeneralReference'] === null) {
+          dataMap.set(date, { pos: amount, fees: fee });
+        } else {
+          dataMap.set(date, { membership: amount, fees: fee });
+        }
       } else {
-        item.fees = item.fees + amount;
+        if (payment['yourGeneralReference'] === null) {
+          if (item.pos === undefined) {
+            item.pos = amount;
+          } else {
+            item.pos = item.pos + amount;
+          }
+        } else {
+          if (item.membership === undefined) {
+            item.membership = amount;
+          } else {
+            item.membership = item.membership + amount;
+          }
+        }
+        item.fees = item.fees + fee;
         dataMap.set(date, item);
       }
     });
 
     posOrders.forEach((order, idx) => {
-      if (
-        order['values']['Payment Type'] === 'capture' ||
-        order['values']['Payment Type'] === 'creditcard'
-      ) {
-        let date = this.getDate(order['values']['Date time processed']);
-        let item = dataMap.get(date);
-        let amount = parseFloat(order['values']['Total']);
-        let refund = parseFloat(
-          order['values']['Refund'] !== undefined
-            ? order['values']['Refund']
-            : 0,
-        );
-        //console.log(","+order['values']['Date time processed']+","+date+","+amount+","+order['values']['Transaction ID']);
-        amount = amount - refund;
-        if (item === undefined) {
-          dataMap.set(date, { pos: amount });
-        } else {
-          if (item.pos !== undefined) {
-            item.pos = item.pos + amount;
-          } else {
-            item.pos = amount;
-          }
-          dataMap.set(date, item);
-        }
-      } else if (order['values']['Payment Type'] === 'cash') {
+      if (order['values']['Payment Type'] === 'cash') {
         let date = this.getDate(order['values']['Date time processed']);
         let amount = parseFloat(order['values']['Total']);
         let refund = parseFloat(
@@ -220,20 +229,28 @@ export class StripeBillingTransactions extends Component {
 
     let data = [];
     dataMap.forEach((value, key) => {
-      let feesRow = [];
-      if (value.fees !== undefined) {
-        feesRow.push({
+      let membershipRow = [];
+      if (value.membership !== undefined) {
+        membershipRow.push({
           date: key,
-          description: 'Total value of fees',
-          value: value.fees,
+          description: 'Total value of Memberships',
+          value: value.membership,
         });
       }
       let posRow = [];
       if (value.pos !== undefined) {
         posRow.push({
           date: key,
-          description: 'Total card sales for day',
+          description: 'Total value of POS',
           value: value.pos,
+        });
+      }
+      let feesRow = [];
+      if (value.fees !== undefined && !isNaN(value.fees)) {
+        feesRow.push({
+          date: key,
+          description: 'Total value of Fees',
+          value: value.fees,
         });
       }
       let cashRow = [];
@@ -244,11 +261,14 @@ export class StripeBillingTransactions extends Component {
           value: value.cash,
         });
       }
-      if (feesRow.length > 0) {
-        data.push(feesRow.flatten()[0]);
+      if (membershipRow.length > 0) {
+        data.push(membershipRow.flatten()[0]);
       }
       if (posRow.length > 0) {
         data.push(posRow.flatten()[0]);
+      }
+      if (feesRow.length > 0) {
+        data.push(feesRow.flatten()[0]);
       }
       if (cashRow.length > 0) {
         data.push(cashRow.flatten()[0]);
@@ -297,7 +317,7 @@ export class StripeBillingTransactions extends Component {
 
   getDownloadData() {
     let data = this.getData(
-      this.props.SUCCESSFULpaymentHistory,
+      this.props.CHARGESpaymentHistory,
       this.props.posOrders,
       this.props.customerRefunds,
     );

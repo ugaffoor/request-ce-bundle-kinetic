@@ -11,7 +11,7 @@ import { LoginModal } from './authentication/LoginModal';
 import { LiveChatWidget, EventHandlerPayload } from '@livechat/widget-react';
 import { getAttributeValue } from '../lib/react-kinops-components/src/utils';
 
-export const App = ({ loading, isKiosk, space }) => (
+export const App = ({ loading, isKiosk, space, profile }) => (
   <div>
     <Helmet>
       <meta
@@ -30,6 +30,7 @@ export const App = ({ loading, isKiosk, space }) => (
             license={getAttributeValue(space, 'LiveChat License')} //"14790045"
             visibility="minimized"
             customerName={getAttributeValue(space, 'School Name')}
+            customerEmail={profile.customerEmail}
           />
         )}
         <LayoutContainer

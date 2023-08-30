@@ -1488,7 +1488,7 @@ export class PaymentHistory extends Component {
     const columns = [];
     if (getAttributeValue(this.props.space, 'Billing Company') === 'Bambora') {
       columns.push({
-        accessor: 'paymentReference',
+        accessor: 'paymentSource',
         Header: 'Type',
         Cell: props => {
           return props.value !== undefined && props.value !== ''

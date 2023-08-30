@@ -88,8 +88,28 @@ export class BamboraOverdues extends Component {
       }
       return 0;
     });
+    let attemptsMap = new Map();
     var uniqueFailed = [];
     failedPayments.forEach((failed, i) => {
+      var idx = successfulPayments.findIndex(successful => {
+        return (
+          failed.yourSystemReference === successful.yourSystemReference &&
+          moment(successful.debitDate, 'YYYY-MM-DD HH:mm:SS').isAfter(
+            moment(failed.debitDate, 'YYYY-MM-DD HH:mm:SS'),
+          )
+        );
+      });
+
+      if (idx === -1) {
+        if (attemptsMap.get(failed.yourSystemReference) === undefined) {
+          attemptsMap.set(failed.yourSystemReference, 1);
+        } else {
+          let count = attemptsMap.get(failed.yourSystemReference);
+          if (count < 5) {
+            attemptsMap.set(failed.yourSystemReference, count + 1);
+          }
+        }
+      }
       var idx = uniqueFailed.findIndex(
         unique => unique.yourSystemReference === failed.yourSystemReference,
       );
@@ -184,6 +204,7 @@ export class BamboraOverdues extends Component {
         debitDate: payment.debitDate,
         memberGUID: member !== undefined ? member.id : '',
         name: member.values['First Name'] + ' ' + member.values['Last Name'],
+        attemptCount: attemptsMap.get(payment.yourSystemReference),
       };
     });
 
@@ -215,6 +236,10 @@ export class BamboraOverdues extends Component {
         Header: 'Last Failed Date',
         width: 150,
         Cell: props => moment(props.value, ezidebit_date_format).format('L'),
+      },
+      {
+        accessor: 'attemptCount',
+        Header: 'Attempts',
       },
       {
         accessor: 'paymentAmount',
@@ -308,6 +333,13 @@ export class BamboraOverdues extends Component {
               />
             </div>
             <h6>Overdue Payments</h6>
+            <span>
+              When the payment attempts reach 5, the Bambora account is
+              automatically placed On Hold and will no longer make any futher
+              attempts for payment.
+            </span>
+            <br></br>
+            <span>A payment attempt is made every second day.</span>
           </div>
         </div>
         <ReactTable

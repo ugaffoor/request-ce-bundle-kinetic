@@ -73,6 +73,9 @@ const mapStateToProps = state => ({
   SUCCESSFULpaymentHistory: state.member.members.SUCCESSFULpaymentHistory,
   SUCCESSFULpaymentHistoryLoading:
     state.member.members.SUCCESSFULpaymentHistoryLoading,
+  CHARGESpaymentHistory: state.member.members.CHARGESpaymentHistory,
+  CHARGESpaymentHistoryLoading:
+    state.member.members.CHARGESpaymentHistoryLoading,
   overdues: state.member.members.overdues,
   overduesLoading: state.member.members.overduesLoading,
   space: state.member.app.space,
@@ -177,6 +180,8 @@ export const ReportsView = ({
   FAILEDpaymentHistoryLoading,
   SUCCESSFULpaymentHistory,
   SUCCESSFULpaymentHistoryLoading,
+  CHARGESpaymentHistory,
+  CHARGESpaymentHistoryLoading,
   overdues,
   overduesLoading,
   showFailedPaymentsReport,
@@ -900,6 +905,8 @@ export const ReportsView = ({
                     SUCCESSFULpaymentHistoryLoading={
                       SUCCESSFULpaymentHistoryLoading
                     }
+                    CHARGESpaymentHistory={CHARGESpaymentHistory}
+                    CHARGESpaymentHistoryLoading={CHARGESpaymentHistoryLoading}
                     fetchPOSOrders={fetchPOSOrders}
                     posOrdersLoading={posOrdersLoading}
                     posOrders={posOrders}

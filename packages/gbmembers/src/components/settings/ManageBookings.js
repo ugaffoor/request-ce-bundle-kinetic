@@ -584,6 +584,7 @@ export class ManageBookings extends Component {
                     });
                     this.setState({
                       program: e.target.value,
+                      title: schedule.get(0).title,
                       allowedPrograms:
                         schedule.size !== 0
                           ? schedule.get(0).allowedPrograms
@@ -766,6 +767,7 @@ export class ManageBookings extends Component {
                     let values = {};
                     values['Status'] = 'Booked';
                     values['Program'] = this.state.program;
+                    values['Title'] = this.state.title;
                     values['Class Date'] = this.state.classDate;
                     values['Class Time'] = this.state.classTime;
                     values['Member ID'] = this.state.memberID;

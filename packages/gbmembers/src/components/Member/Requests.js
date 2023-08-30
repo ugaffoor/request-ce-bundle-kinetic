@@ -5,11 +5,17 @@ import moment from 'moment';
 import mail from '../../images/mail.png';
 import { confirm } from '../helpers/Confirmation';
 
+var compThis = undefined;
+
 export class Requests extends Component {
   constructor(props) {
     super(props);
 
     this.formatEmailCell = this.formatEmailCell.bind(this);
+    this.getData = this.getData.bind(this);
+    this.getDate = this.getDate.bind(this);
+    compThis = this;
+
     const data = this.props.requestContent;
     this._columns = this.getColumns();
 
@@ -80,6 +86,17 @@ export class Requests extends Component {
     ];
   }
 
+  getDate(dateVal) {
+    var dt =
+      dateVal !== undefined ? moment(dateVal, 'YYYY-MM-DDTHH:mm:ssZ') : '';
+
+    if (dt === 'Invalid date') {
+      dt =
+        dateVal !== undefined ? moment(dateVal, 'YYYY-MM-DDTHH:mm:sssZ') : '';
+    }
+    return dt;
+  }
+
   getData(requestContent) {
     let requests = requestContent;
     if (!requests || requests.length === 0) {
@@ -90,15 +107,15 @@ export class Requests extends Component {
 
     return requests.sort(function(request1, request2) {
       if (
-        moment(request1['Date'], email_received_date_format).isAfter(
-          moment(request2['Date'], email_received_date_format),
-        )
+        compThis
+          .getDate(request1['Date'])
+          .isAfter(compThis.getDate(request2['Date']))
       ) {
         return -1;
       } else if (
-        moment(request1['Date'], email_received_date_format).isBefore(
-          moment(request2['Date'], email_received_date_format),
-        )
+        compThis
+          .getDate(request1['Date'])
+          .isBefore(compThis.getDate(request2['Date']))
       ) {
         return 1;
       }

@@ -11,6 +11,7 @@ const mapStateToProps = state => ({
   loading: state.member.app.loading || state.member.kinops.loading,
   isKiosk: selectors.selectHasRoleKiosk(state),
   space: state.member.kinops.space,
+  profile: state.member.kinops.profile,
 });
 
 const mapDispatchToProps = {

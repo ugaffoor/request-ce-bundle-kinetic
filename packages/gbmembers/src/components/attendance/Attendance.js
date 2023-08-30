@@ -1850,7 +1850,10 @@ export class AttendanceDetail extends Component {
     }
 
     var overdueIdx = this.state.overdueMembers.findIndex(
-      member => member.memberGUID === memberItem.id,
+      member =>
+        member.memberGUID === memberItem.id &&
+        memberItem.values['Billing Customer Id'] !== null &&
+        memberItem.values['Billing Customer Id'] !== '',
     );
     if (overdueIdx !== -1) {
       memberItem.overdueAmount = this.state.overdueMembers[

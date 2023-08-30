@@ -533,17 +533,28 @@ export class SmsCampaignsList extends Component {
       return [];
     }
 
-    const data = smsCampaigns.map(campaign => {
-      return {
-        _id: campaign['id'],
-        content: campaign.values['SMS Content'],
-        sentDate: moment(
-          campaign.values['Sent Date'],
-          email_received_date_format,
-        ).format('L h:mm A'),
-        recipients: campaign.values['Recipients'],
-      };
-    });
+    const data = smsCampaigns
+      .sort((a, b) => {
+        let aDate = moment(a.values['Sent Date'], email_received_date_format);
+        let bDate = moment(b.values['Sent Date'], email_received_date_format);
+        if (aDate.isBefore(bDate)) {
+          return 1;
+        } else if (aDate.isAfter(bDate)) {
+          return -1;
+        }
+        return 0;
+      })
+      .map(campaign => {
+        return {
+          _id: campaign['id'],
+          content: campaign.values['SMS Content'],
+          sentDate: moment(
+            campaign.values['Sent Date'],
+            email_received_date_format,
+          ).format('L h:mm A'),
+          recipients: campaign.values['Recipients'],
+        };
+      });
     return data;
   }
   getRecipientColumns = () => {
@@ -978,15 +989,26 @@ export class IndividualSmsList extends Component {
       return [];
     }
 
-    const data = individualSms.map(sms => {
-      return {
-        content: sms['Content'],
-        sentDate: moment(sms['Date'], email_received_date_format).format(
-          'L h:mm A',
-        ),
-        to: sms['id'] + ',' + sms['To'] + ',' + sms['Type'],
-      };
-    });
+    const data = individualSms
+      .sort((a, b) => {
+        let aDate = moment(a['Date'], email_received_date_format);
+        let bDate = moment(b['Date'], email_received_date_format);
+        if (aDate.isBefore(bDate)) {
+          return 1;
+        } else if (aDate.isAfter(bDate)) {
+          return -1;
+        }
+        return 0;
+      })
+      .map(sms => {
+        return {
+          content: sms['Content'],
+          sentDate: moment(sms['Date'], email_received_date_format).format(
+            'L h:mm A',
+          ),
+          to: sms['id'] + ',' + sms['To'] + ',' + sms['Type'],
+        };
+      });
     return data;
   }
 

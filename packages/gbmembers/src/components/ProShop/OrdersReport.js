@@ -370,7 +370,7 @@ export class OrdersReport extends Component {
           : '',
       );
       row.push(element['paymenttype']);
-      if (element.products.length > 0) {
+      if (element.products !== undefined && element.products.length > 0) {
         row.push(element.products[0]['name']);
         row.push(element.products[0]['size']);
         row.push(element.products[0]['colour']);
@@ -380,7 +380,7 @@ export class OrdersReport extends Component {
 
       download.push(row.flatten());
 
-      if (element.products.length > 1) {
+      if (element.products !== undefined && element.products.length > 1) {
         element.products.forEach((prod, idx) => {
           if (idx > 0) {
             let pRow = [];
@@ -968,6 +968,7 @@ export class OrdersReport extends Component {
                     columns={this.productColumns}
                     TheadComponent={() => null}
                     defaultPageSize={
+                      row.original.products !== undefined &&
                       row.original.products.length > 0
                         ? row.original.products.length
                         : 2
