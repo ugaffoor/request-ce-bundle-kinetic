@@ -422,7 +422,7 @@ export class SMSModal extends Component {
                     <textarea
                       className="form-control custom-control"
                       rows="3"
-                      maxlength="765"
+                      maxLength="765"
                       style={{ resize: 'none' }}
                       id="sms_text"
                       value={this.state.smsText}

@@ -63,7 +63,7 @@ export class MemberEmails extends Component {
         className: 'emailSentSubject',
         style: { whiteSpace: 'unset' },
       },
-      { accessor: 'Sent Date', Header: 'Sent Date' },
+      { accessor: 'Sent Date Formatted', Header: 'Sent Date' },
     ];
   }
 
@@ -93,7 +93,7 @@ export class MemberEmails extends Component {
     });
 
     emails.forEach(email => {
-      email['Sent Date'] = moment(
+      email['Sent Date Formatted'] = moment(
         email['Sent Date'],
         email_sent_date_format,
       ).format('L HH:mm');
@@ -200,7 +200,9 @@ export class MemberEmails extends Component {
                             </div>
                             <div className="col-sm-8">
                               {this.props.campaignItem !== undefined
-                                ? this.props.campaignItem.values['Sent Date']
+                                ? this.props.campaignItem.values[
+                                    'Sent Date Formatted'
+                                  ]
                                 : ''}
                             </div>
                           </div>

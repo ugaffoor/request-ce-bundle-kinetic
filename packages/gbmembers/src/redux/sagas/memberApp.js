@@ -120,6 +120,7 @@ export function* fetchMemberAppSettingsTask() {
     });
     beltsMap = beltsMap.set(
       beltSubmissions[i].values['Program Order'] +
+        '-' +
         beltSubmissions[i].values['Belt Order'],
       {
         programOrder: beltSubmissions[i].values['Program Order'],

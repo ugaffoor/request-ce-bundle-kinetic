@@ -69,7 +69,7 @@ export const Content = ({ isKiosk }) => (
       component={EmailCampaignContainer}
     />
     <Route
-      path="/NewSmsCampaign/:submissionType?/:submissionId?"
+      path="/NewSmsCampaign/:submissionType?/:submissionId?/:replyType?"
       component={SmsCampaignContainer}
     />
     <Route path="/ddrTemplates" component={DDRTemplatesContainer} />

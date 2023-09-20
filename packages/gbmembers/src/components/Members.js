@@ -6,6 +6,8 @@ import { KappNavLink as NavLink } from 'common';
 import SVGInline from 'react-svg-inline';
 import attentionRequired from '../images/flag.svg?raw';
 import noBilling from '../images/credit-card.svg?raw';
+import cancelling from '../images/crying.svg?raw';
+import freezing from '../images/snowflake-o.svg?raw';
 import { getAttributeValue } from '../lib/react-kinops-components/src/utils';
 
 var membersThis;
@@ -140,6 +142,22 @@ export class Members extends React.Component {
         {cellInfo.original['Last Name']}
         &nbsp;
         {cellInfo.original['First Name']}
+        <SVGInline
+          svg={cancelling}
+          className={
+            cellInfo.original['Status'] === 'Pending Cancellation'
+              ? 'cancelling icon'
+              : 'cancelling icon hide'
+          }
+        />
+        <SVGInline
+          svg={freezing}
+          className={
+            cellInfo.original['Status'] === 'Pending Freeze'
+              ? 'freezing icon'
+              : 'freezing icon hide'
+          }
+        />
       </NavLink>
     );
   }
@@ -233,6 +251,32 @@ export class Members extends React.Component {
                     : this.selectTable !== undefined
                     ? this.selectTable.state.sortedData.length
                     : data.length}
+                  <span className="cancelling">
+                    <SVGInline svg={cancelling} className={' icon'} />
+                    {this.state.pendingCancellationsCount !== undefined
+                      ? this.state.pendingCancellationsCount
+                      : this.selectTable !== undefined
+                      ? this.selectTable.state.data.filter(member => {
+                          return member['Status'] === 'Pending Cancellation';
+                        }).length
+                      : data.filter(member => {
+                          console.log(member);
+                          return member['Status'] === 'Pending Cancellation';
+                        }).length}
+                  </span>
+                  <span className="freezing">
+                    <SVGInline svg={freezing} className={'icon'} />
+                    {this.state.pendingFreezeCount !== undefined
+                      ? this.state.pendingFreezeCount
+                      : this.selectTable !== undefined
+                      ? this.selectTable.state.data.filter(member => {
+                          return member['Status'] === 'Pending Freeze';
+                        }).length
+                      : data.filter(member => {
+                          console.log(member);
+                          return member['Status'] === 'Pending Freeze';
+                        }).length}
+                  </span>
                 </span>
               ),
             },
@@ -334,9 +378,22 @@ export class Members extends React.Component {
                             .toLowerCase()
                             .includes(filter.value.toLowerCase()));
                 });
-                setTimeout(function() {
-                  membersThis.setState({ filteredCount: filteredRows.length });
-                }, 100);
+                if (membersThis.state.filteredCount !== filteredRows.length) {
+                  let pendingCancellations = filteredRows.filter(
+                    member =>
+                      member._original['Status'] === 'Pending Cancellation',
+                  ).length;
+                  let pendingFreeze = filteredRows.filter(
+                    member => member._original['Status'] === 'Pending Freeze',
+                  ).length;
+                  setTimeout(function() {
+                    membersThis.setState({
+                      filteredCount: filteredRows.length,
+                      pendingCancellationsCount: pendingCancellations,
+                      pendingFreezeCount: pendingFreeze,
+                    });
+                  }, 100);
+                }
                 return filteredRows;
               },
             },

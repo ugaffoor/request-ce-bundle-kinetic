@@ -17,6 +17,7 @@ import { actions as leadsActions } from '../../redux/modules/leads';
 import { actions as membersActions } from '../../redux/modules/members';
 import { actions as campaignActions } from '../../redux/modules/campaigns';
 import { actions as dataStoreActions } from '../../redux/modules/settingsDatastore';
+import { actions as attendanceActions } from '../../redux/modules/attendance';
 import {
   removeExcludedMembers,
   matchesMemberFilter,
@@ -53,6 +54,7 @@ const mapStateToProps = state => ({
   emailTemplateCategories: state.member.datastore.emailTemplateCategories,
   emailTemplates: state.member.datastore.emailTemplates,
   emailTemplatesLoading: state.member.datastore.emailTemplatesLoading,
+  classAttendances: state.member.attendance.classAttendances,
 });
 const mapDispatchToProps = {
   createCampaign: actions.createEmailCampaign,
@@ -63,6 +65,7 @@ const mapDispatchToProps = {
   fetchEmailTemplates: dataStoreActions.fetchEmailTemplates,
   fetchEmailCampaign: campaignActions.fetchEmailCampaign,
   setSidebarDisplayType: appActions.setSidebarDisplayType,
+  fetchClassAttendances: attendanceActions.fetchClassAttendances,
 };
 
 const util = require('util');
@@ -88,7 +91,10 @@ export class NewEmailCampaign extends Component {
     this.createCampaign = this.createCampaign.bind(this);
     this.getSelectOptions = this.getSelectOptions.bind(this);
 
-    if (this.props.submissionId != null) {
+    if (
+      this.props.submissionId != null &&
+      this.props.submissionType === 'member'
+    ) {
       this.currentMember = this.props.allMembers.find(
         member => member['id'] === this.props.submissionId,
       );
@@ -392,8 +398,19 @@ export class NewEmailCampaign extends Component {
 
     $('#saveButton').prop('disabled', true);
     let recipientIds = [];
-    if (this.props.submissionId) {
+    if (this.props.submissionId && this.props.submissionType !== 'class') {
       recipientIds = [this.props.submissionId];
+    } else if (this.props.submissionType === 'class') {
+      this.props.classAttendances
+        .filter(checkin => {
+          return (
+            checkin.values['Class Time'] === this.props.submissionId &&
+            checkin.values['Class'] === this.props.replyType
+          );
+        })
+        .map((checkin, index) => {
+          recipientIds.push(checkin.memberItem.id);
+        });
     } else {
       this.state.selectedOption.forEach(option => {
         recipientIds.push(...option.members);
@@ -430,7 +447,7 @@ export class NewEmailCampaign extends Component {
       /class="ql-align-justify"/g,
       'style="text-align: justify;"',
     );
-    if (this.props.submissionId) {
+    if (this.props.submissionId && this.props.submissionType !== 'class') {
       body +=
         "<div id='__gbmembers-" +
         this.props.submissionType +
@@ -525,17 +542,21 @@ export class NewEmailCampaign extends Component {
         <div
           className="row"
           style={{
-            height: '100px',
+            paddingBottom: '2%',
             backgroundColor: '#f7f7f7',
             paddingTop: '2%',
           }}
         >
           <div className="col-md-4" style={{ textAlign: 'right' }}>
             You are currently sending this email to{' '}
-            {this.props.submissionType === 'member' ? 'Members' : 'Leads'}
+            {this.props.submissionType === 'member' ||
+            this.props.submissionType === 'class'
+              ? 'Members'
+              : 'Leads'}
           </div>
           <div className="col-md-4">
-            {this.props.submissionId ? (
+            {this.props.submissionId &&
+            this.props.submissionType !== 'class' ? (
               <input
                 type="text"
                 readOnly
@@ -568,7 +589,7 @@ export class NewEmailCampaign extends Component {
                 controlShouldRenderValue={true}
                 isMulti={true}
               />
-            ) : (
+            ) : this.props.submissionType === 'lead' ? (
               <Select
                 value={this.state.selectedLeadOption}
                 onChange={this.handleLeadRecipientChange}
@@ -579,10 +600,33 @@ export class NewEmailCampaign extends Component {
                 controlShouldRenderValue={true}
                 isMulti={true}
               />
+            ) : (
+              <div className="classInfo">
+                that attended class <b>{this.props.replyType}</b> at{' '}
+                <b>
+                  {moment(this.props.submissionId, 'hh:mm').format('h:mm A')}
+                </b>
+              </div>
             )}
           </div>
           <div className="col-md-3">&nbsp;</div>
         </div>
+        {this.props.submissionType === 'class' && (
+          <div className="row classEmails">
+            {this.props.classAttendances
+              .filter(checkin => {
+                return (
+                  checkin.values['Class Time'] === this.props.submissionId &&
+                  checkin.values['Class'] === this.props.replyType
+                );
+              })
+              .map((checkin, index) => (
+                <span key={index} className="memberEmail" id={checkin.id}>
+                  {checkin.memberItem.values['Email']}
+                </span>
+              ))}
+          </div>
+        )}
         <div className="row">
           <div className="col-md-10 details">
             <span className="line options">
@@ -802,6 +846,7 @@ export const NewEmailCampaignView = ({
   emailTemplatesLoading,
   replyType,
   campaignId,
+  classAttendances,
 }) =>
   newCampaignLoading ? (
     <div />
@@ -834,6 +879,7 @@ export const NewEmailCampaignView = ({
         emailTemplatesLoading={emailTemplatesLoading}
         replyType={replyType}
         campaignId={campaignId}
+        classAttendances={classAttendances}
       />
     </div>
   );

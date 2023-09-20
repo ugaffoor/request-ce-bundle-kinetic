@@ -19,3 +19,35 @@
 .leadContents a.btn.btn-primary {
   padding: 6px;
 }
+
+.new_campaign {
+  .classInfo {
+    margin-left: -24px;
+  }
+}
+.classEmails {
+  padding-bottom: 4px;
+  background-color: rgb(247, 247, 247);
+  display: flex;
+  flex-wrap: wrap;
+  .memberEmail {
+    padding-right: 4px;
+    padding-left: 4px;
+  }
+}
+.classSMS {
+  padding-bottom: 4px;
+  background-color: rgb(247, 247, 247);
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: -20px;
+  .memberSMS {
+    padding-right: 4px;
+    padding-left: 4px;
+  }
+}
+.new_smscampaign {
+  .classInfo {
+    margin-left: -10px;
+  }
+}

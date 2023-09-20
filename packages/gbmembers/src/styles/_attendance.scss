@@ -771,6 +771,13 @@ i.fa.fa-usd.overdue {
   }
   .classAttendancesLabel {
     margin-left: 40px;
+    margin-bottom: 4px;
+    .sendButtons {
+      float: right;
+      .btn {
+        margin-right: 10px;
+      }
+    }
   }
   .checkinFilter {
     float: left;

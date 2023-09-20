@@ -2497,6 +2497,38 @@ export class AttendanceDetail extends Component {
                     }).length
                   }
                   )
+                  <div className="sendButtons">
+                    <NavLink
+                      to={`/NewEmailCampaign/class/${this.state.classTime}/${this.state.className}`}
+                      className="btn btn-primary"
+                      disabled={
+                        this.props.classAttendances.filter(checkin => {
+                          return (
+                            checkin.values['Class Time'] ===
+                              this.state.classTime &&
+                            checkin.values['Class'] === this.state.className
+                          );
+                        }).length === 0
+                      }
+                    >
+                      Email Send
+                    </NavLink>
+                    <NavLink
+                      to={`/NewSmsCampaign/class/${this.state.classTime}/${this.state.className}`}
+                      className="btn btn-primary"
+                      disabled={
+                        this.props.classAttendances.filter(checkin => {
+                          return (
+                            checkin.values['Class Time'] ===
+                              this.state.classTime &&
+                            checkin.values['Class'] === this.state.className
+                          );
+                        }).length === 0
+                      }
+                    >
+                      SMS Send
+                    </NavLink>
+                  </div>
                 </h4>
                 {this.props.fetchingClassAttendances ? (
                   <h4>Loading Class Attendances....</h4>

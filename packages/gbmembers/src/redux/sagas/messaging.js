@@ -151,7 +151,7 @@ export function* sendBulkSms(action) {
               myThis: action.payload.myThis,
             });
           }
-          action.payload.fetchMembers();
+          //action.payload.fetchMembers();
         }
         if (action.payload.target === 'Lead') {
           for (let i = 0; i < args.toNumbers.length; i++) {

@@ -71,6 +71,16 @@
   .icon-svg .primary-fill {
     fill: white;
   }
+  .cancelling .icon-svg path {
+    fill: rgb(229, 196, 196) !important;
+  }
+  .freezing .icon-svg path {
+    fill: rgb(96, 96, 237) !important;
+  }
+  .ReactTable .rt-thead .rt-th.-sort-asc,
+  .ReactTable .rt-thead .rt-td.-sort-as {
+    box-shadow: none !important;
+  }
 }
 .sidebar.leads {
   border-right: 1px solid #bdbdbd;

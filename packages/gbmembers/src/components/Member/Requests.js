@@ -34,7 +34,8 @@ export class Requests extends Component {
 
   UNSAFE_componentWillMount() {}
   formatEmailCell(cellInfo) {
-    return cellInfo.original['Form'] === 'Bambora Member Registration' ? (
+    return cellInfo.original['Form'] === 'Bambora Member Registration' ||
+      cellInfo.original['Form'] === 'PaySmart Member Registration' ? (
       <span
         className="deleteFile"
         onClick={async e => {
@@ -48,7 +49,7 @@ export class Requests extends Component {
             var request = cellInfo.original['url'];
             var id = request.split('/')[request.split('/').length - 2];
             var values = {};
-            values['Form Slug'] = 'Bambora Member Registration';
+            values['Form Slug'] = cellInfo.original['Form'];
             values['Submission ID'] = id;
 
             this.props.sendReceipt({
