@@ -13,7 +13,6 @@ import * as selectors from '../redux/selectors';
 import { actions } from '../redux/modules/journeyevents';
 
 export const mapStateToProps = state => ({
-  loading: state.app.loading,
   space: state.app.space,
   profile: state.app.profile,
   // Selectors

@@ -260,7 +260,6 @@ export class Members extends React.Component {
                           return member['Status'] === 'Pending Cancellation';
                         }).length
                       : data.filter(member => {
-                          console.log(member);
                           return member['Status'] === 'Pending Cancellation';
                         }).length}
                   </span>
@@ -273,7 +272,6 @@ export class Members extends React.Component {
                           return member['Status'] === 'Pending Freeze';
                         }).length
                       : data.filter(member => {
-                          console.log(member);
                           return member['Status'] === 'Pending Freeze';
                         }).length}
                   </span>

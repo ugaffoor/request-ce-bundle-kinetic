@@ -1,10 +1,11 @@
 {
   "name": "app",
-  "version": "2.3.61",
+  "version": "2.3.00",
   "main": "./src/index.js",
   "scripts": {
+    "generate-meta-tag": "node ./node_modules/react-cache-buster/dist/generate-meta-tag.js",
     "start": "react-app-rewired start --scripts-version kinops-react-scripts",
-    "build": "react-app-rewired build --scripts-version kinops-react-scripts",
+    "build": "generate-meta-tag && react-app-rewired build --scripts-version kinops-react-scripts",
     "test": "react-app-rewired test --scripts-version kinops-react-scripts --env=jsdom",
     "eject": "react-scripts eject"
   },

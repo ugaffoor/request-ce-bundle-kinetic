@@ -124,7 +124,21 @@ export function* fetchAppTask({ payload }) {
         }),
       );
     }
-    yield put(loadingActions.setLoading(false));
+
+    const metaJSONLocation =
+      profile.space.attributesMap &&
+      profile.space.attributesMap &&
+      profile.space.attributesMap['Meta JSON Location'] &&
+      profile.space.attributesMap['Meta JSON Location'].length > 0
+        ? profile.space.attributesMap['Meta JSON Location'][0]
+        : '.';
+
+    yield put(
+      loadingActions.setLoading({
+        loading: false,
+        metaJSONLocation: metaJSONLocation,
+      }),
+    );
   } else {
     window.alert(
       `You must be running Kinetic Request v${MINIMUM_CE_VERSION} or later in order to use this app. You are currently running v${version}.`,

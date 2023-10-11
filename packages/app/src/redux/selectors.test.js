@@ -21,7 +21,7 @@ describe('selectors', () => {
     });
 
     it('returns null when loading', () => {
-      state.app.loading = true;
+      state.app.loading.loading = true;
       expect(selectCurrentKapp(state)).toBeNull();
     });
 

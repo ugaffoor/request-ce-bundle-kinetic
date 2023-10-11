@@ -174,7 +174,8 @@ class PayNow extends Component {
     super(props);
     posThis = this;
     this.processPayment = this.processPayment.bind(this);
-    //    this.saveCardForLater = this.saveCardForLater.bind(this);
+    this.saveCardForLater = this.saveCardForLater.bind(this);
+    this.updateProfileCard = this.updateProfileCard.bind(this);
 
     axios
       .get('https://api.ipify.org/')
@@ -481,21 +482,17 @@ class PayNow extends Component {
         console.log(error);
       });
   };
-  updateProfileCard = async (
-    posServiceURL,
-    spaceSlug,
-    posSystem,
-    profileId,
-    result,
-    name,
-  ) => {
-    if (posThis.state.cardToken === result['token']) return;
+  updateProfileCard = async () => {
+    //  if (posThis.state.cardToken === result['token']) return;
+    var posSystem = getAttributeValue(this.props.space, 'POS System');
+    var posServiceURL = getAttributeValue(this.props.space, 'POS Service URL');
+
     var data = JSON.stringify({
-      space: spaceSlug,
+      space: this.props.spaceSlug,
       billingService: posSystem,
-      profileId: profileId,
-      token: result['token'],
-      name: name,
+      profileId: this.state.posProfileID,
+      token: this.state.cardToken,
+      name: this.state.name,
       cardId: '1',
     });
 
@@ -507,27 +504,21 @@ class PayNow extends Component {
       },
       data: data,
     };
+    posThis = this;
     await axios(config)
       .then(function(response) {
         var data = JSON.parse(response.data.data);
         if (data.status === 1) {
-          posThis.setState({
-            cardToken: result['token'],
-            cvc: 'XXX',
-            expiry: result['expiryMonth'] + '/' + result['expiryYear'],
-            number: result['last4'],
-            name: posThis.state.name,
-          });
           updatingCard = false;
           posThis.props.fetchPOSCards({
-            profileId: profileId,
+            profileId: posThis.state.posProfileID,
             setPOSCards: posThis.props.setPOSCards,
           });
         } else {
           posThis.setState({
-            status: data.status,
-            status_message: data.status_message,
-            errors: data.status_message,
+            status: data.error,
+            status_message: data.errorMessage,
+            errors: data.errorMessage,
             auth_code: '',
             transaction_id: '',
             processingComplete: true,
@@ -934,9 +925,21 @@ class PayNow extends Component {
         formElem.append(
           "<div class='col-xs-2 text-center'><button id='pay-button' type='submit' class='verifyBtn btn-primary disabled' disabled='true'>Verify</button></div>",
         );
-        //        formElem.append(
-        //          "<div class='col-xs-2 text-center'><button id='save-to-profile' type='submit' class='btn btn-primary disabled' disabled='true'>Save for Later</button></div>",
-        //        );
+
+        if (
+          (this.payThis.state.posProfileID === undefined ||
+            this.payThis.state.posProfileID === null) &&
+          this.payThis.state.personType === 'Member' &&
+          this.payThis.state.payment !== 'updateCreditCard'
+        ) {
+          formElem.append(
+            "<div class='col-xs-2 text-center'><button id='save-to-profile' type='submit' class='btn btn-primary disabled' disabled='true'>Save for Later</button></div>",
+          );
+        } /* else {
+            formElem.append(
+              "<div class='col-xs-2 text-center'><button id='update-profile-card' type='submit' class='btn btn-primary disabled' disabled='true'>Update Saved Card</button></div>",
+            );  
+          }*/
         $('.card-container .row').append(formElem);
         customCheckoutController.createInputs();
         customCheckoutController.addListeners();
@@ -1044,9 +1047,20 @@ class PayNow extends Component {
           self.setPayButton(false);
         });
         // listen for submit button
-        //        document
-        //          .getElementById('save-to-profile')
-        //          .addEventListener('click', payThis.saveCardForLater);
+        if (
+          (payThis.state.posProfileID === undefined ||
+            payThis.state.posProfileID === null) &&
+          payThis.state.personType === 'Member' &&
+          payThis.state.payment !== 'updateCreditCard'
+        ) {
+          document
+            .getElementById('save-to-profile')
+            .addEventListener('click', payThis.saveCardForLater);
+        } /* else {
+          document
+            .getElementById('update-profile-card')
+            .addEventListener('click', payThis.updateProfileCard);
+        }*/
       },
       onSubmit: function(event) {
         var self = this;
@@ -1221,7 +1235,22 @@ class PayNow extends Component {
           var saveButton = document.getElementById('save-to-profile');
           saveButton.disabled = true;
           $(saveButton).addClass('disabled');
-        } */
+        } 
+*/
+        if (
+          payThis.state.posProfileID !== undefined &&
+          payThis.state.posProfileID !== null &&
+          payThis.state.personType === 'Member'
+        ) {
+          //          var saveButton = document.getElementById('update-profile-card');
+          //          saveButton.disabled = false;
+          //          $(saveButton).removeClass('disabled');
+        } else {
+          var saveButton = document.getElementById('save-to-profile');
+          saveButton.disabled = false;
+          $(saveButton).removeClass('disabled');
+        }
+
         payThis.setState({
           status: '',
         });

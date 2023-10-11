@@ -14,7 +14,7 @@ export const selectDiscussionsEnabled = state =>
 
 // Get Current Kapp
 export const selectCurrentKapp = state =>
-  !state.app.loading && state.app.config.kappSlug
+  !state.app.loading.loading && state.app.config.kappSlug
     ? state.app.kapps.find(kapp => kapp.slug === state.app.config.kappSlug) ||
       null
     : null;

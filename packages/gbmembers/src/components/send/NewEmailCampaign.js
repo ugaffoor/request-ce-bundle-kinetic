@@ -237,8 +237,10 @@ export class NewEmailCampaign extends Component {
       template.values['Email JSON'] !== undefined &&
       template.values['Email JSON'] !== null
     ) {
-      emailEditorRef.loadDesign(JSON.parse(template.values['Email JSON']));
-      emailEditorRef.exportHtml(function(data) {
+      emailEditorRef.editor.loadDesign(
+        JSON.parse(template.values['Email JSON']),
+      );
+      emailEditorRef.editor.exportHtml(function(data) {
         var html = data.html; // design html
 
         // Save the json, or html here
@@ -249,8 +251,8 @@ export class NewEmailCampaign extends Component {
         '##CONTENT##',
         editorThis.escapeJSON(template.values['Email Content']),
       );
-      emailEditorRef.loadDesign(JSON.parse(templateStr));
-      emailEditorRef.exportHtml(function(data) {
+      emailEditorRef.editor.loadDesign(JSON.parse(templateStr));
+      emailEditorRef.editor.exportHtml(function(data) {
         var html = data.html; // design html
 
         // Save the json, or html here
@@ -501,16 +503,22 @@ export class NewEmailCampaign extends Component {
   }
   onLoadEmailTemplate() {
     setTimeout(function() {
-      emailEditorRef.addEventListener('design:updated', function(updates) {
-        // Design is updated by the user
-        emailEditorRef.exportHtml(function(data) {
-          var json = data.design; // design json
-          var html = data.html; // design html
+      if (emailEditorRef !== undefined) {
+        emailEditorRef.editor.addEventListener('design:updated', function(
+          updates,
+        ) {
+          // Design is updated by the user
+          emailEditorRef.editor.exportHtml(function(data) {
+            var json = data.design; // design json
+            var html = data.html; // design html
 
-          // Save the json, or html here
-          editorThis.setState({ text: html });
+            // Save the json, or html here
+            editorThis.setState({ text: html });
+          });
         });
-      });
+      } else {
+        onLoadEmailTemplate();
+      }
     }, 1000);
   }
   handleTinyEditorChange = (content, editor) => {

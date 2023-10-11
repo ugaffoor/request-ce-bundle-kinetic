@@ -287,8 +287,7 @@ function onLoadEmailTemplate() {
     });
     if ($("[name='Email JSON']").val() !== '') {
       emailEditorRef.loadDesign(JSON.parse($("[name='Email JSON']").val()));
-    }
-    if ($("[name='Email Content']").val() !== '') {
+    } else if ($("[name='Email Content']").val() !== '') {
       var template = BLANK_TEMPLATE.replace(
         '##CONTENT##',
         escapeJSON($("[name='Email Content']").val()),

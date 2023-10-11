@@ -20,60 +20,78 @@ import { App as RegistrationsApp } from 'registrations/src/App';
 import { App as QueueApp } from 'queue/src/App';
 import { App as SpaceApp } from 'space/src/App';
 import { AppContainer as MemberApp } from 'gbmembers/src/components/AppContainer';
+import CacheBuster from 'react-cache-buster';
+import { version } from './components/package.json';
+//import Favicon from "react-favicon";
+
+const isProduction = process.env.NODE_ENV === 'production';
+
+//<Favicon url="https://us-gbfms-files.s3.us-east-2.amazonaws.com/favicon.ico" />
 
 export const AppComponent = props =>
   !props.loading && (
-    <Fragment>
-      <ToastsContainer />
-      <LoginModal />
-      <ModalFormContainer />
-      {!props.headerHidden ? (
-        <Fragment>
-          <HeaderContainer
-            hasSidebar={!props.sidebarHidden}
-            toggleSidebarOpen={props.toggleSidebarOpen}
-          />
+    <CacheBuster
+      currentVersion={version}
+      isEnabled={isProduction} //If false, the library is disabled.
+      isVerboseMode={true} //If true, the library writes verbose logs to console.
+      loadingComponent={
+        <div>Clearing cache and loading a new release, please wait...</div>
+      } //If not pass, nothing appears at the time of new version check.
+      metaFileDirectory={props.metaJSONLocation} //If public assets are hosted somewhere other than root on your server.
+    >
+      <Fragment>
+        <ToastsContainer />
+        <LoginModal />
+        <ModalFormContainer />
+        {!props.headerHidden ? (
+          <Fragment>
+            <HeaderContainer
+              hasSidebar={!props.sidebarHidden}
+              toggleSidebarOpen={props.toggleSidebarOpen}
+            />
+            <props.AppProvider
+              render={({ main, sidebar, header }) =>
+                !props.sidebarHidden && sidebar ? (
+                  <Sidebar
+                    sidebar={sidebar}
+                    shadow={false}
+                    open={props.sidebarOpen && props.layoutSize === 'small'}
+                    docked={props.sidebarOpen && props.layoutSize !== 'small'}
+                    onSetOpen={props.setSidebarOpen}
+                    rootClassName="sidebar-layout-wrapper"
+                    sidebarClassName={`sidebar-container ${
+                      true ? 'drawer' : 'overlay'
+                    }`}
+                    contentClassName={`main-container ${
+                      props.sidebarOpen ? 'open' : 'closed'
+                    }`}
+                  >
+                    {main}
+                  </Sidebar>
+                ) : (
+                  <div className="main-container main-container--no-sidebar">
+                    {main}
+                  </div>
+                )
+              }
+            />
+          </Fragment>
+        ) : (
           <props.AppProvider
-            render={({ main, sidebar, header }) =>
-              !props.sidebarHidden && sidebar ? (
-                <Sidebar
-                  sidebar={sidebar}
-                  shadow={false}
-                  open={props.sidebarOpen && props.layoutSize === 'small'}
-                  docked={props.sidebarOpen && props.layoutSize !== 'small'}
-                  onSetOpen={props.setSidebarOpen}
-                  rootClassName="sidebar-layout-wrapper"
-                  sidebarClassName={`sidebar-container ${
-                    true ? 'drawer' : 'overlay'
-                  }`}
-                  contentClassName={`main-container ${
-                    props.sidebarOpen ? 'open' : 'closed'
-                  }`}
-                >
-                  {main}
-                </Sidebar>
-              ) : (
-                <div className="main-container main-container--no-sidebar">
-                  {main}
-                </div>
-              )
-            }
+            render={({ main }) => (
+              <div className="main-container main-container--no-header">
+                {main}
+              </div>
+            )}
           />
-        </Fragment>
-      ) : (
-        <props.AppProvider
-          render={({ main }) => (
-            <div className="main-container main-container--no-header">
-              {main}
-            </div>
-          )}
-        />
-      )}
-    </Fragment>
+        )}
+      </Fragment>
+    </CacheBuster>
   );
 
 export const mapStateToProps = state => ({
-  loading: state.app.loading,
+  loading: state.app.loading.loading,
+  metaJSONLocation: state.app.loading.metaJSONLocation,
   kapps: state.app.kapps,
   sidebarOpen: state.app.layout.sidebarOpen,
   suppressedSidebarOpen: state.app.layout.suppressedSidebarOpen,
@@ -133,6 +151,8 @@ export const App = compose(
       sidebarOpen,
       headerHidden,
       sidebarHidden,
+      loading: props.loading,
+      metaJSONLocation: props.metaJSONLocation,
     };
   }),
   withHandlers({

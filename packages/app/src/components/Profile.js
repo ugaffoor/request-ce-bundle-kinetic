@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Dropdown, DropdownToggle, DropdownMenu } from 'reactstrap';
 import { bundle } from 'react-kinetic-core';
 import { I18n } from '../I18nProvider';
-import { version } from '../../package.json';
+import { version } from './package.json';
 
 export const Profile = ({
   profile,

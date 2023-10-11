@@ -1,4 +1,5 @@
 import * as Utils from 'common/src/utils';
+import { Record } from 'immutable';
 const { namespace, withPayload } = Utils;
 
 export const types = {
@@ -10,11 +11,17 @@ export const actions = {
   loadApp: withPayload(types.LOAD_APP),
   setLoading: withPayload(types.SET_LOADING),
 };
+const State = Record({
+  metaJSONLocation: '.',
+  loading: true,
+});
 
-export const reducer = (state = true, { type, payload }) => {
+export const reducer = (state = State(), { type, payload }) => {
   switch (type) {
     case types.SET_LOADING:
-      return payload;
+      return state
+        .set('loading', payload.loading)
+        .set('metaJSONLocation', payload.metaJSONLocation);
     default:
       return state;
   }
