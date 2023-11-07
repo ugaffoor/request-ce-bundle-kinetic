@@ -1,11 +1,41 @@
+.sidebarMain.viewingKiosk {
+  top: 0 !important;
+}
 .selfCheckSetPIN {
   clear: left;
   float: right;
 }
 .countdown {
   .details {
-    width: 300px;
+    width: 600px;
     float: left;
+    .className {
+      margin: 10px;
+      float: left;
+    }
+    img {
+      width: 100px;
+      height: 100px;
+      float: left;
+      border-style: solid;
+      border-color: #d5d5d5;
+    }
+    .noPhoto {
+      width: 100px;
+      height: 100px;
+      float: left;
+      border-style: solid;
+      border-color: #d5d5d5;
+      text-align: center;
+      margin: 0 auto;
+      background-color: #f8f8f8;
+      background-size: cover;
+      background-position: 50%;
+      background-repeat: no-repeat;
+      position: relative;
+      line-height: 85px;
+      font-size: 40px;
+    }
   }
   .time {
     float: left;
@@ -895,6 +925,70 @@ i.fa.fa-usd.overdue {
   }
   .class {
     min-width: 287px;
+  }
+}
+.member-option {
+  height: 120px;
+  .memberInfo {
+    padding-left: 6px;
+    float: left;
+    .waiverIncomplete {
+      color: red;
+    }
+    .grading {
+      float: left;
+      clear: left;
+      width: 100%;
+      margin-top: 10px;
+      margin-left: 0;
+      @media (min-width: 415px) {
+        margin-left: 120px;
+        width: 500px;
+      }
+    }
+    .info {
+      float: left;
+      margin-left: 0;
+      @media (min-width: 415px) {
+        margin-left: 20px;
+      }
+      .noProgramSetLabel,
+      .alreadyCheckedinLabel {
+        color: red;
+      }
+      .frozenMemberLabel {
+        color: blue;
+      }
+      h4 {
+        width: 90%;
+        @media (min-width: 321px) {
+          width: unset;
+        }
+      }
+    }
+    img {
+      width: 100px;
+      height: 100px;
+      float: left;
+      border-style: solid;
+      border-color: #d5d5d5;
+    }
+    .noPhoto {
+      width: 100px;
+      height: 100px;
+      float: left;
+      border-style: solid;
+      border-color: #d5d5d5;
+      text-align: center;
+      margin: 0 auto;
+      background-color: #f8f8f8;
+      background-size: cover;
+      background-position: 50%;
+      background-repeat: no-repeat;
+      position: relative;
+      line-height: 85px;
+      font-size: 40px;
+    }
   }
 }
 .checkinSection {

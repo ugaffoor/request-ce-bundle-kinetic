@@ -1895,6 +1895,7 @@ export const MemberView = ({
                   allMembers={allMembers}
                   space={space}
                   profile={profile}
+                  sendReceipt={sendReceipt}
                   snippets={snippets}
                   refundPOSPayment={refundPOSPayment}
                   refundPOSTransactionInProgress={
@@ -2210,6 +2211,7 @@ export const MemberViewContainer = compose(
       addNotification,
       setSystemError,
       setIsDirty,
+      space,
     }) => billingId => {
       let billingRef = null;
       if (billingId) {
@@ -2234,6 +2236,10 @@ export const MemberViewContainer = compose(
         fetchMembers: fetchMembers,
         addNotification: addNotification,
         setSystemError: setSystemError,
+        useSubAccount:
+          getAttributeValue(space, 'PaySmart SubAccount') === 'YES'
+            ? true
+            : false,
       });
       setTimeout(function() {
         setIsDirty(false);
@@ -2278,6 +2284,9 @@ export const MemberViewContainer = compose(
       values['Billing Payment Period'] = null;
       values['Payment Schedule'] = null;
       values['Membership Cost'] = null;
+      if (memberItem.values['useSubAccount'] === 'YES') {
+        values['useSubAccount'] = null;
+      }
       values['Billing Changes'] = changes;
       updateMember({
         id: memberItem.id,

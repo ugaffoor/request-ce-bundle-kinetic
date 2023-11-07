@@ -63,6 +63,8 @@ import {
   paymentIntents,
 } from '@stripe/react-stripe-js';
 import { loadStripeTerminal } from '@stripe/terminal-js/pure';
+import mail from '../../images/mail.png';
+import { actions as serviceActions } from '../../redux/modules/services';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -88,6 +90,7 @@ const mapStateToProps = state => ({
   space: state.member.app.space,
   spaceSlug: state.member.app.spaceSlug,
   posCheckout: state.member.pos.posCheckout,
+  posSaved: state.member.pos.posSaved,
   posCheckoutLoading: state.member.pos.posCheckoutLoading,
   posStockSaving: state.member.pos.posStockSaving,
   kapp: state.member.app.kapp,
@@ -120,6 +123,7 @@ const mapDispatchToProps = {
   setSystemError: errorActions.setSystemError,
   fetchPaymentHistory: memberActions.fetchPaymentHistory,
   setPaymentHistory: memberActions.setPaymentHistory,
+  sendReceipt: serviceActions.sendReceipt,
 };
 var StripeTerminal = undefined;
 var terminal = undefined;
@@ -2440,17 +2444,56 @@ class PayNow extends Component {
                 name={this.state.name}
                 ref={el => (this.componentRef = el)}
               />
-              <span className="printReceipt">
-                <ReactToPrint
-                  trigger={() => (
-                    <SVGInline
-                      svg={printerIcon}
-                      className="icon barcodePrint"
-                    />
-                  )}
-                  content={() => this.componentRef}
-                  pageStyle="@page {size: a4 portrait;margin: 0;}"
-                />
+              <span className="buttons">
+                <span className="printReceipt">
+                  <ReactToPrint
+                    trigger={() => (
+                      <SVGInline
+                        svg={printerIcon}
+                        className="icon barcodePrint"
+                      />
+                    )}
+                    content={() => this.componentRef}
+                    pageStyle="@page {size: a4 portrait;margin: 0;}"
+                  />
+                </span>
+                <span
+                  className="emailReceipt"
+                  onClick={async e => {
+                    if (
+                      await confirm(
+                        <span>
+                          <span>
+                            Are you sure you want to send a purchase receipt
+                            email?
+                          </span>
+                        </span>,
+                      )
+                    ) {
+                      var values = {};
+                      values['Form Slug'] = 'pos-order';
+                      values['Submission ID'] = this.props.posSaved.posOrderID;
+                      values['Currency Symbol'] = new Intl.NumberFormat(
+                        this.props.locale,
+                        {
+                          style: 'currency',
+                          currency: this.props.currency,
+                        },
+                      )
+                        .format('0')
+                        .replace(/\d+(?:\.?\d+)?/g, '')
+                        .trim();
+
+                      this.props.sendReceipt({
+                        values: values,
+                        addNotification: this.props.addNotification,
+                        setSystemError: this.props.setSystemError,
+                      });
+                    }
+                  }}
+                >
+                  <img src={mail} alt="Email" />
+                </span>
               </span>
             </span>
           )}
@@ -2790,6 +2833,8 @@ class Checkout extends Component {
             setPOSCards={this.props.setPOSCards}
             posCardsLoading={this.props.posCardsLoading}
             posCards={this.props.posCards}
+            posSaved={this.props.posSaved}
+            sendReceipt={this.props.sendReceipt}
             updatePOSCheckout={this.props.updatePOSCheckout}
             fetchPOSCheckout={this.props.fetchPOSCheckout}
             completePOSCheckout={this.props.completePOSCheckout}
@@ -2810,6 +2855,7 @@ class Checkout extends Component {
             setCreateCard={this.props.setCreateCard}
             posAutoCreateCardProcessing={this.props.posAutoCreateCardProcessing}
             addNotification={this.props.addNotification}
+            setSystemError={this.props.setSystemError}
           />
         ) : (
           <span>
@@ -3815,6 +3861,8 @@ export class ProShop extends Component {
                 setPOSCards={this.props.setPOSCards}
                 posCardsLoading={this.props.posCardsLoading}
                 posCards={this.props.posCards}
+                posSaved={this.props.posSaved}
+                sendReceipt={this.props.sendReceipt}
                 updatePOSCheckout={this.props.updatePOSCheckout}
                 fetchPOSCheckout={this.props.fetchPOSCheckout}
                 completePOSCheckout={this.props.completePOSCheckout}
@@ -3836,6 +3884,7 @@ export class ProShop extends Component {
                   this.props.posAutoCreateCardProcessing
                 }
                 addNotification={this.props.addNotification}
+                setSystemError={this.props.setSystemError}
               />
             ) : this.state.showSettings ? (
               <SettingsContainer
@@ -4275,6 +4324,8 @@ export const ProShopView = ({
   posDiscounts,
   posDiscountsLoading,
   posCheckout,
+  posSaved,
+  sendReceipt,
   posCheckoutLoading,
   addProduct,
   updatePOSCheckout,
@@ -4305,6 +4356,7 @@ export const ProShopView = ({
   setCreateCard,
   posAutoCreateCardProcessing,
   addNotification,
+  setSystemError,
 }) => (
   <ProShop
     profile={profile}
@@ -4320,6 +4372,8 @@ export const ProShopView = ({
     posDiscounts={posDiscounts}
     posDiscountsLoading={posDiscountsLoading}
     posCheckout={posCheckout}
+    posSaved={posSaved}
+    sendReceipt={sendReceipt}
     posCheckoutLoading={posCheckoutLoading}
     space={space}
     kapp={kapp}
@@ -4349,6 +4403,7 @@ export const ProShopView = ({
     setCreateCard={setCreateCard}
     posAutoCreateCardProcessing={posAutoCreateCardProcessing}
     addNotification={addNotification}
+    setSystemError={setSystemError}
   />
 );
 
@@ -4702,6 +4757,10 @@ export const ProShopContainer = compose(
           internalPaymentType: 'client_successful',
           addNotification: this.props.addNotification,
           setSystemError: this.props.setSystemError,
+          useSubAccount:
+            getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
+              ? true
+              : false,
         });
       }
     },

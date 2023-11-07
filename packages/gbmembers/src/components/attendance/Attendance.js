@@ -110,12 +110,16 @@ const SelfCheckinMode = (attendanceThis, attendanceAdded) => {
               verifyPIN: true,
               isFullscreenMode: true,
             });
-            if (document.fullscreenEnabled) {
-              fullscreenHandle.enter();
-            } else {
-              console.log('This browser is not able to use Fullscreen mode');
-              $('.fullscreen').addClass('fullscreen-enabled');
-            }
+            //      if (document.fullscreenEnabled) {
+            //        fullscreenHandle.enter();
+            //      } else {
+            console.log('This browser is not able to use Fullscreen mode');
+            $('.fullscreen').addClass('fullscreen-enabled');
+            $('.navbar').hide();
+            $('.nav-header').hide();
+            $('.sidebarMain').addClass('viewingKiosk');
+            //alert("No Fullscreen");
+            //          }
           }}
         >
           Start Self Checkin
@@ -253,6 +257,7 @@ export class SelfCheckin extends Component {
     super(props);
     this.attendanceThis = this.props.attendanceThis;
     this.selectSelfCheckinMember = this.selectSelfCheckinMember.bind(this);
+    this.selectedSelfCheckInMember = this.selectedSelfCheckInMember.bind(this);
     this.doShowSelfCheckinAttendance = this.doShowSelfCheckinAttendance.bind(
       this,
     );
@@ -330,12 +335,21 @@ export class SelfCheckin extends Component {
       return (
         <span className="countdown">
           <div className="details">
-            <div className="name">
-              {attendanceThis.props.attendanceAdded.name}
-            </div>
-            <div className="className">
+            {this.state.memberItem.values['Photo'] === undefined ? (
+              <span className="noPhoto">
+                {this.state.memberItem.values['First Name'][0]}
+                {this.state.memberItem.values['Last Name'][0]}
+              </span>
+            ) : (
+              <img
+                src={this.state.memberItem.values['Photo']}
+                alt="Member Photograph"
+                className="photo"
+              />
+            )}
+            <h4 className="className">
               {attendanceThis.props.attendanceAdded.class}
-            </div>
+            </h4>
           </div>
           <div className="time">{seconds}</div>
           <button
@@ -486,10 +500,6 @@ export class SelfCheckin extends Component {
 
   getClassAllowedMembers() {
     let membersVals = [];
-    membersVals.push({
-      label: '',
-      value: '',
-    });
     attendanceThis.props.allMembers.forEach(member => {
       if (
         member.values['Status'] !== 'Inactive' &&
@@ -499,8 +509,9 @@ export class SelfCheckin extends Component {
         ) !== -1
       ) {
         membersVals.push({
-          label: member.values['Last Name'] + ' ' + member.values['First Name'],
+          label: member.values['First Name'] + ' ' + member.values['Last Name'],
           value: member.id,
+          member: member,
         });
       }
     });
@@ -608,6 +619,55 @@ export class SelfCheckin extends Component {
       $('#checkinMember').focus();
     }, 500);
   }
+  selectedSelfCheckInMember(memberItem) {
+    if (this.state.memberAlreadyCheckedIn) {
+      for (let j = 0; j < attendanceThis.props.classAttendances.length; j++) {
+        attendanceThis.props.classAttendances[j].memberAlreadyCheckedIn = false;
+      }
+      this.setState({ memberAlreadyCheckedIn: false });
+    }
+
+    var memberAlreadyCheckedIn = false;
+    for (let j = 0; j < attendanceThis.props.classAttendances.length; j++) {
+      if (
+        attendanceThis.props.classAttendances[j].values['Member GUID'] ===
+          memberItem.id &&
+        attendanceThis.props.classAttendances[j].values['Class Time'] ===
+          this.state.classTime &&
+        attendanceThis.props.classAttendances[j].values['Class'] ===
+          this.state.className
+      ) {
+        this.setState({ memberAlreadyCheckedIn: true });
+        attendanceThis.props.classAttendances[j].memberAlreadyCheckedIn = true;
+        memberAlreadyCheckedIn = true;
+        break;
+      }
+    }
+
+    if (!memberAlreadyCheckedIn) {
+      let attendance = {
+        attendanceStatus: 'Full Class',
+      };
+      this.setState({
+        memberItem: memberItem,
+        checkinClassMember: true,
+      });
+      attendanceThis.props.checkinMember(
+        attendanceThis.props.createAttendance,
+        attendance,
+        attendanceThis.props.additionalPrograms,
+        memberItem,
+        this.state.className,
+        this.state.classDate,
+        this.state.classTime,
+        'Full Class',
+        attendanceThis.props.classAttendances,
+        attendanceThis.props.allMembers,
+        attendanceThis.props.updateMember,
+      );
+      console.log('selectedSelfCheckInMember');
+    }
+  }
   selfCheckInMember() {
     let attendance = {
       attendanceStatus: this.state.attendanceStatus,
@@ -674,7 +734,6 @@ export class SelfCheckin extends Component {
       attendanceStatus: 'Full Class',
     };
     this.setState({
-      memberItem: undefined,
       checkinClassMember: true,
     });
     if (!memberAlreadyCheckedIn) {
@@ -873,6 +932,10 @@ export class SelfCheckin extends Component {
                           verifyPIN: false,
                           isFullscreenMode: false,
                         });
+                        $('.navbar').show();
+                        $('.nav-header').show();
+                        $('.sidebarMain').removeClass('viewingKiosk');
+
                         this.props.fullscreenHandle.exit();
                       } else {
                         this.setState({
@@ -959,20 +1022,66 @@ export class SelfCheckin extends Component {
                         className="hide-columns-container"
                         classNamePrefix="hide-columns"
                         placeholder="Select Member"
+                        styles={{
+                          option: base => ({
+                            ...base,
+                            width: '100%',
+                            height: '120px',
+                          }),
+                          input: base => ({
+                            ...base,
+                            width: '400px',
+                          }),
+                        }}
                         value={
                           this.memberItem === undefined
                             ? ''
                             : this.memberItem.id
                         }
+                        formatOptionLabel={value => (
+                          <div className="member-option">
+                            {value.member !== undefined ? (
+                              <div className="memberInfo">
+                                {value.member.values['Photo'] === undefined ? (
+                                  <span className="noPhoto">
+                                    {value.member.values['First Name'][0]}
+                                    {value.member.values['Last Name'][0]}
+                                  </span>
+                                ) : (
+                                  <img
+                                    src={value.member.values['Photo']}
+                                    alt="Member Photograph"
+                                    className="photo"
+                                  />
+                                )}
+                                <div className="info">
+                                  <h4>
+                                    {value.member.values['First Name']}{' '}
+                                    {value.member.values['Last Name']}: <br />
+                                    <b>
+                                      {value.member.values['Ranking Program']}
+                                    </b>
+                                    -
+                                    <i>{value.member.values['Ranking Belt']}</i>
+                                  </h4>
+                                </div>
+                              </div>
+                            ) : (
+                              <div />
+                            )}
+                          </div>
+                        )}
                         onChange={e => {
-                          this.selectSelfCheckinMember(e);
+                          this.setState({ attendanceAdded: undefined });
+                          this.selectedSelfCheckInMember(e.member);
                         }}
                         style={{ width: '300px' }}
                       />
                     </div>
                   </div>
                 )}
-                {this.state.memberItem === undefined ? (
+                {this.state.memberItem !== undefined ||
+                this.state.memberItem === undefined ? (
                   <div />
                 ) : (
                   <div className="memberInfo">
@@ -1295,6 +1404,10 @@ export class AttendanceDetail extends Component {
           internalPaymentType: 'client_failed',
           addNotification: this.props.addNotification,
           setSystemError: this.props.setSystemError,
+          useSubAccount:
+            getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
+              ? true
+              : false,
         });
 
         this.props.fetchPaymentHistory({
@@ -1310,6 +1423,10 @@ export class AttendanceDetail extends Component {
           internalPaymentType: 'client_successful',
           addNotification: this.props.addNotification,
           setSystemError: this.props.setSystemError,
+          useSubAccount:
+            getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
+              ? true
+              : false,
         });
       } else {
         if (

@@ -10,10 +10,14 @@ import ReactToPrint from 'react-to-print';
 import SVGInline from 'react-svg-inline';
 import { I18n } from '../../../../app/src/I18nProvider';
 import { confirmWithAmount } from './ConfirmWithAmount';
+import mail from '../../images/mail.png';
+import { confirm } from '../helpers/Confirmation';
 
 export class MemberOrders extends Component {
   constructor(props) {
     super(props);
+    this.formatEmailCell = this.formatEmailCell.bind(this);
+
     const data = this.getData(this.props.memberItem);
     this._columns = this.getColumns(
       getAttributeValue(this.props.space, 'POS System'),
@@ -40,7 +44,43 @@ export class MemberOrders extends Component {
   }
 
   UNSAFE_componentWillMount() {}
+  formatEmailCell(cellInfo) {
+    return (
+      <span
+        className="deleteFile"
+        onClick={async e => {
+          if (
+            await confirm(
+              <span>
+                <span>
+                  Are you sure you want to send a purchase receipt email?
+                </span>
+              </span>,
+            )
+          ) {
+            var values = {};
+            values['Form Slug'] = 'pos-order';
+            values['Submission ID'] = cellInfo.original['id'];
+            values['Currency Symbol'] = new Intl.NumberFormat(this.locale, {
+              style: 'currency',
+              currency: this.currency,
+            })
+              .format('0')
+              .replace(/\d+(?:\.?\d+)?/g, '')
+              .trim();
 
+            this.props.sendReceipt({
+              values: values,
+              addNotification: this.props.addNotification,
+              setSystemError: this.props.setSystemError,
+            });
+          }
+        }}
+      >
+        <img src={mail} alt="Email" />
+      </span>
+    );
+  }
   isPaymentRefunded(order, id) {
     return order['Status'] === 'Refunded'
       ? true
@@ -151,6 +191,11 @@ export class MemberOrders extends Component {
           ) : (
             ''
           ),
+      },
+      {
+        accessor: 'emailReceipt',
+        Header: '',
+        Cell: this.formatEmailCell,
       },
     ];
   }

@@ -223,12 +223,7 @@ export class ReceiptToPrint extends React.Component {
             <div className="label">
               {(this.state.salestax2 === undefined ||
                 this.state.salestax2 === '0') &&
-              getAttributeValue(this.props.space, 'POS Sales Tax Label 2') !==
-                undefined ? (
-                getAttributeValue(this.props.space, 'POS Sales Tax Label') +
-                ' + ' +
-                getAttributeValue(this.props.space, 'POS Sales Tax Label 2')
-              ) : getAttributeValue(this.props.space, 'POS Sales Tax Label') ===
+              getAttributeValue(this.props.space, 'POS Sales Tax Label') ===
                 undefined ? (
                 <I18n>SALES TAX</I18n>
               ) : (

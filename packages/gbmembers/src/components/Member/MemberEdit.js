@@ -430,6 +430,28 @@ export const MemberEdit = ({
                     </span>
                     <span className="line">
                       <div>
+                        <label htmlFor="useSubAccount">Use Sub Account</label>
+                        <input
+                          type="text"
+                          name="useSubAccount"
+                          id="useSubAccount"
+                          size="30"
+                          ref={input => (this.input = input)}
+                          defaultValue={memberItem.values['useSubAccount']}
+                          onChange={e =>
+                            handleChange(
+                              memberItem,
+                              'useSubAccount',
+                              e,
+                              setIsDirty,
+                              memberChanges,
+                            )
+                          }
+                        />
+                      </div>
+                    </span>
+                    <span className="line">
+                      <div>
                         <label htmlFor="ccExpiryMonth">
                           Credit Card Expiry Month
                         </label>

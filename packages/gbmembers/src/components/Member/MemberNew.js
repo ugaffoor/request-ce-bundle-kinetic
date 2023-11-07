@@ -74,14 +74,7 @@ export function handleNameChange(memberItem, event) {
     (firstName !== undefined ? firstName.toLowerCase() : '') +
     (lastName !== undefined ? lastName.toLowerCase() : '')
   )
-    .replace(/ /g, '')
-    .replace(/'/g, '')
-    .replace(/"/g, '')
-    .replace(/`/g, '')
-    .replace(/\./g, '')
-    .replace(/,/g, '')
-    .replace(/\(/g, '')
-    .replace(/\)/g, '')
+    .replace(/[^\x00-\x7F]|['"`\.,\(\)]/g, '')
     .substring(0, 30);
 
   $('#username').val(memberItem.values['Member ID']);

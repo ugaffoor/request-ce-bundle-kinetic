@@ -36,6 +36,7 @@ import { actions as attendanceActions } from '../../redux/modules/attendance';
 import moment from 'moment';
 import { Utils } from 'common';
 import { CoreForm } from 'react-kinetic-core';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const mapStateToProps = state => ({
   reports: state.member.reporting.activityReport,
@@ -663,6 +664,7 @@ export const ReportsView = ({
                     billingCustomers={billingCustomers}
                     fetchBillingCustomers={fetchBillingCustomers}
                     setBillingCustomers={setBillingCustomers}
+                    space={space}
                   />
                 </div>
               </div>
@@ -1053,6 +1055,7 @@ export const ReportsContainer = compose(
       setPaymentHistory,
       addNotification,
       setSystemError,
+      space,
     }) => () => {
       fetchPaymentHistory({
         paymentType: 'FAILED',
@@ -1067,6 +1070,10 @@ export const ReportsContainer = compose(
         internalPaymentType: 'client_failed',
         addNotification: addNotification,
         setSystemError: setSystemError,
+        useSubAccount:
+          getAttributeValue(space, 'PaySmart SubAccount') === 'YES'
+            ? true
+            : false,
       });
     },
     getSuccessfulPayments: ({
@@ -1074,6 +1081,7 @@ export const ReportsContainer = compose(
       setPaymentHistory,
       addNotification,
       setSystemError,
+      space,
     }) => () => {
       fetchPaymentHistory({
         paymentType: 'SUCCESSFUL',
@@ -1088,6 +1096,10 @@ export const ReportsContainer = compose(
         internalPaymentType: 'client_successful',
         addNotification: addNotification,
         setSystemError: setSystemError,
+        useSubAccount:
+          getAttributeValue(space, 'PaySmart SubAccount') === 'YES'
+            ? true
+            : false,
       });
     },
     getOverdues: ({
@@ -1095,11 +1107,16 @@ export const ReportsContainer = compose(
       setOverdues,
       addNotification,
       setSystemError,
+      space,
     }) => () => {
       fetchOverdues({
         setOverdues: setOverdues,
         addNotification: addNotification,
         setSystemError: setSystemError,
+        useSubAccount:
+          getAttributeValue(space, 'PaySmart SubAccount') === 'YES'
+            ? true
+            : false,
       });
     },
     getAdditionalServices: ({

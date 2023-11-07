@@ -176,6 +176,10 @@ export class MemberFinancialStats extends Component {
       this.props.fetchBillingCustomers({
         setBillingCustomers: this.props.setBillingCustomers,
         allMembers: this.props.members,
+        useSubAccount:
+          getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
+            ? true
+            : false,
       });
     }
     this.props.fetchVariationCustomers({
@@ -211,6 +215,10 @@ export class MemberFinancialStats extends Component {
         internalPaymentType: 'client_successful',
         addNotification: this.props.addNotification,
         setSystemError: this.props.setSystemError,
+        useSubAccount:
+          getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
+            ? true
+            : false,
       });
       this.props.fetchPaymentHistory({
         paymentType: 'FAILED',
@@ -225,6 +233,10 @@ export class MemberFinancialStats extends Component {
         internalPaymentType: 'client_failed',
         addNotification: this.props.addNotification,
         setSystemError: this.props.setSystemError,
+        useSubAccount:
+          getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
+            ? true
+            : false,
       });
       var servicesFromDate = moment(this.state.fromDate);
       this.props.fetchServicesByDate({
@@ -1833,6 +1845,10 @@ export class MemberFinancialStats extends Component {
       internalPaymentType: 'client_failed',
       addNotification: this.props.addNotification,
       setSystemError: this.props.setSystemError,
+      useSubAccount:
+        getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
+          ? true
+          : false,
     });
     var dateFrom = moment(fromDate).format('YYYY-MM-DD');
     //    if (getAttributeValue(this.props.space, 'Billing Company') === 'Bambora') {
@@ -1851,6 +1867,10 @@ export class MemberFinancialStats extends Component {
       internalPaymentType: 'client_successful',
       addNotification: this.props.addNotification,
       setSystemError: this.props.setSystemError,
+      useSubAccount:
+        getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
+          ? true
+          : false,
     });
     this.setState({
       isShowCustom: false,

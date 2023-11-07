@@ -22,6 +22,7 @@ import { ManageBookings } from './ManageBookings';
 import { RecurringBookings as ManageRecurringBookings } from './RecurringBookings';
 import { confirm } from '../helpers/Confirmation';
 import { actions as appActions } from '../../redux/modules/memberApp';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const mapStateToProps = state => ({
   memberItem: state.member.members.currentMember,
@@ -334,6 +335,10 @@ export const SettingsView = ({
                   createBillingMembers,
                   fetchMembers,
                   allMembers,
+                  useSubAccount:
+                    getAttributeValue(space, 'PaySmart SubAccount') === 'YES'
+                      ? true
+                      : false,
                 });
               }
             }}
@@ -373,6 +378,10 @@ export const SettingsView = ({
                   syncBillingMembers,
                   fetchMembers,
                   allMembers,
+                  useSubAccount:
+                    getAttributeValue(space, 'PaySmart SubAccount') === 'YES'
+                      ? true
+                      : false,
                 });
               }
             }}

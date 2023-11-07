@@ -459,15 +459,22 @@
       margin-right: 0 !important;
     }
   }
-  .printReceipt {
-    display: flex;
-    width: 800px;
-    margin-left: auto;
-    .barcodePrint {
+  .buttons {
+    .printReceipt {
+      margin-left: 45%;
+      .barcodePrint {
+        cursor: pointer;
+        .icon-svg {
+          width: 4rem;
+          height: 4rem;
+        }
+      }
+    }
+    .emailReceipt {
+      margin-left: 20px;
       cursor: pointer;
-      .icon-svg {
-        width: 4rem;
-        height: 4rem;
+      img {
+        height: 50px;
       }
     }
   }

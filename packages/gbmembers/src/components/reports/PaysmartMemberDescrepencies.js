@@ -3,6 +3,7 @@ import ReactTable from 'react-table';
 import ReactToPrint from 'react-to-print';
 import SVGInline from 'react-svg-inline';
 import printerIcon from '../../images/Print.svg?raw';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 export class PaysmartMemberDescrepencies extends Component {
   constructor(props) {
@@ -26,6 +27,10 @@ export class PaysmartMemberDescrepencies extends Component {
   UNSAFE_componentWillMount() {
     this.props.fetchBillingCustomers({
       setBillingCustomers: this.props.setBillingCustomers,
+      useSubAccount:
+        getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
+          ? true
+          : false,
     });
   }
 
@@ -65,6 +70,7 @@ export class PaysmartMemberDescrepencies extends Component {
     });
     members.forEach(member => {
       if (
+        member.values['Status'] !== 'Casual' &&
         member.values['Non Paying'] !== 'YES' &&
         member.values['Status'] !== 'Inactive' &&
         (member.values['Membership Cost'] === undefined ||

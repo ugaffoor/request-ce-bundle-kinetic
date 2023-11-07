@@ -35,6 +35,7 @@ export const types = {
   SAVE_POS_ORDER: namespace('pos', 'SAVE_POS_ORDER'),
   DELETE_POS_PURSCHASED_ITEM: namespace('pos', 'DELETE_POS_PURSCHASED_ITEM'),
   SAVE_POS_PURSCHASED_ITEM: namespace('pos', 'SAVE_POS_PURSCHASED_ITEM'),
+  SET_POS_SAVE: namespace('pos', 'SET_POS_SAVE'),
   SET_DUMMY: namespace('pos', 'SET_DUMMY'),
 };
 
@@ -98,6 +99,8 @@ export const State = Record({
   posDiscountsLoading: true,
   posCheckout: {},
   posSaving: false,
+  posSaved: {},
+  posOrderID: '',
   posStockSaving: false,
   posOrderUpdated: false,
   error: null,
@@ -169,7 +172,9 @@ export const reducer = (state = State(), { type, payload }) => {
       return state.set('posCheckoutLoading', false).set('posCheckout', payload);
     }
     case types.SET_POS_SAVE: {
-      return state.set('posSaving', false).set('posSave', payload);
+      return state
+        .set('posSaving', false)
+        .set('posSaved', { payload: payload.payload, posOrderID: payload.id });
     }
     case types.SAVE_POS_STOCK: {
       return state.set('posStockSaving', true);

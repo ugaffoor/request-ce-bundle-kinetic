@@ -289,6 +289,10 @@ export const HomeContainer = compose(
         internalPaymentType: 'client_failed',
         addNotification: addNotification,
         setSystemError: setSystemError,
+        useSubAccount:
+          getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
+            ? true
+            : false,
       });
     },
     getSuccessfulPayments: ({
@@ -310,6 +314,10 @@ export const HomeContainer = compose(
         internalPaymentType: 'client_successful',
         addNotification: addNotification,
         setSystemError: setSystemError,
+        useSubAccount:
+          getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
+            ? true
+            : false,
       });
     },
     getBillingPayments: ({

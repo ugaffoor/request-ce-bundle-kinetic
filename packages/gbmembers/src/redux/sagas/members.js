@@ -710,9 +710,15 @@ export function* createMember(action) {
 
 export function* deleteMember(action) {
   try {
-    const { submission } = yield call(CoreAPI.deleteSubmission, {
+    var values = {
+      Status: 'Deleted',
+    };
+
+    const { submission } = yield call(CoreAPI.updateSubmission, {
       id: action.payload.memberItem.id,
+      values: values,
     });
+
     if (action.payload.history)
       action.payload.history.push('/kapps/gbmembers/Home');
     let mIdx = action.payload.allMembers.findIndex(
@@ -764,6 +770,7 @@ export function* fetchBillingInfo(action) {
       customerId: action.payload.billingRef,
       space: appSettings.spaceSlug,
       billingService: appSettings.billingCompany,
+      useSubAccount: action.payload.useSubAccount,
     };
     axios
       .post(appSettings.kineticBillingServerUrl + getBillingInfoUrl, args)
@@ -862,6 +869,7 @@ export function* syncBillingCustomer(action) {
     customerId: action.payload.billingRef,
     space: appSettings.spaceSlug,
     billingService: appSettings.billingCompany,
+    useSubAccount: action.payload.useSubAccount,
   };
   console.log('action:' + action.payload);
   axios
@@ -958,6 +966,9 @@ export function* syncBillingCustomer(action) {
           action.payload.memberItem.values['Status History'] = history;
         }
         //        action.payload.memberItem.values['DDR Status'] = 'Pending';
+        if (result.data.data.fromSubAccount) {
+          action.payload.memberItem.values['useSubAccount'] = 'YES';
+        }
 
         let changes = getBillingChanges(action.payload.memberItem);
         changes.push({
@@ -1105,6 +1116,7 @@ export function* fetchPaymentHistory(action) {
     dateField: action.payload.dateField,
     customerId: action.payload.billingRef,
     internalPaymentType: action.payload.internalPaymentType,
+    useSubAccount: action.payload.useSubAccount,
   };
   console.log('action:' + action.payload);
   axios
@@ -1173,6 +1185,7 @@ export function* fetchOverdues(action) {
   var args = {
     space: appSettings.spaceSlug,
     billingService: appSettings.billingCompany,
+    useSubAccount: action.payload.useSubAccount,
   };
   console.log('action:' + action.payload);
   axios
@@ -2232,6 +2245,7 @@ export function* fetchCustomerRefunds(action) {
   args.dateFrom = action.payload.dateFrom;
   args.dateTo = action.payload.dateTo;
   args.timezoneOffset = action.payload.timezoneOffset;
+  args.useSubAccount = action.payload.useSubAccount;
   axios
     .post(appSettings.kineticBillingServerUrl + getRefundsUrl, args)
     .then(result => {
@@ -2262,6 +2276,8 @@ export function* fetchBillingCustomers(action) {
   args.space = appSettings.spaceSlug;
   args.billingService = appSettings.billingCompany;
   args.active = true;
+  args.useSubAccount = action.payload.useSubAccount;
+
   if (appSettings.billingCompany === 'Bambora') {
     let billingCustomers = [];
     action.payload.allMembers.forEach((member, i) => {
@@ -2333,6 +2349,7 @@ export function* fetchBillingCustomers(action) {
                   fetchMembers: action.payload.fetchMembers,
                   appSettings: appSettings,
                   allMembers: action.payload.allMembers,
+                  useSubAccount: action.payload.useSubAccount,
                 });
               } else if (action.payload.syncBillingMembers !== undefined) {
                 action.payload.syncBillingMembers({
@@ -2343,6 +2360,7 @@ export function* fetchBillingCustomers(action) {
                   fetchMembers: action.payload.fetchMembers,
                   appSettings: appSettings,
                   allMembers: action.payload.allMembers,
+                  useSubAccount: action.payload.useSubAccount,
                 });
               } else if (action.payload.setBillingCustomers) {
                 action.payload.setBillingCustomers({
@@ -2369,6 +2387,7 @@ export function* createBillingMembers(action) {
   let newMemberAdded = false;
   let newMembers = [];
   let threeMonths = moment().subtract(3, 'months');
+  let loadCount = 0;
   for (let i = 0; i < action.payload.customers.length; i++) {
     let customer = action.payload.customers[i];
     if (customer.dateArchived > 0) {
@@ -2387,6 +2406,8 @@ export function* createBillingMembers(action) {
         continue;
       }
     }
+    if (!customer.fromSubAccount || loadCount > 2) continue;
+    loadCount++;
     const MEMBER_SEARCH = new CoreAPI.SubmissionSearch(true)
       .eq('values[Billing Customer Id]', customer.customerId)
       .include('details,values')
@@ -2421,11 +2442,19 @@ export function* createBillingMembers(action) {
       //Ignore
       console.log('Not importing Inactive member');
     } else if (!submissions || submissions.length <= 0) {
-      let memberId =
-        customer.firstName.charAt(0).toLowerCase() +
+      let memberId = (
+        (customer.firstName !== undefined
+          ? customer.firstName.toLowerCase()
+          : '') +
+        (customer.lastName !== undefined ? customer.lastName.toLowerCase() : '')
+      )
+        .replace(/[^\x00-\x7F]|['"`\.,\(\)]/g, '')
+        .substring(0, 30);
+
+      /*        customer.firstName.charAt(0).toLowerCase() +
         customer.firstName.slice(1) +
         customer.lastName.charAt(0).toLowerCase() +
-        customer.lastName.slice(1);
+        customer.lastName.slice(1); */
 
       let memberidInc = 0;
       action.payload.allMembers.forEach(member => {
@@ -2463,9 +2492,17 @@ export function* createBillingMembers(action) {
       };
       memberItem.values['Membership Cost'] = customer.billingAmount;
       memberItem.values['DDR Status'] = 'Pending';
-
+      if (customer.fromSubAccount) {
+        memberItem.values['useSubAccount'] = 'YES';
+      }
       newMembers[newMembers.length] = memberItem;
-      yield put(actions.createMember({ memberItem, showNotification: false }));
+      yield put(
+        actions.createMember({
+          memberItem,
+          showNotification: false,
+          memberInitialLoadComplete: true,
+        }),
+      );
       newMemberAdded = true;
     } else if (submissions && submissions.length === 1) {
       memberItem.values = submissions[0].values;
@@ -2530,6 +2567,12 @@ export function* createBillingMembers(action) {
           memberItem.values['Date Joined'] = customer.contractStartDate;
           changeMade = true;
         }
+        if (customer.fromSubAccount) {
+          memberItem.values['useSubAccount'] = 'YES';
+        } else {
+          memberItem.values['useSubAccount'] = null;
+        }
+
         if (changeMade) {
           memberItem.id = submissions[0].id;
           yield put(

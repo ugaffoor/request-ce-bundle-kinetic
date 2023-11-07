@@ -40,7 +40,7 @@ export class ChangeStatusModal extends Component {
     ) {
       if (familyMembers !== null && familyMembers !== undefined) {
         var dependants = JSON.parse(familyMembers);
-        if (dependants.length === 1) {
+        if (dependants.length === 0 || dependants.length === 1) {
           return true;
         }
       } else {
@@ -130,11 +130,19 @@ export class ChangeStatusModal extends Component {
                                   Switch the Billing Member to one of the
                                   dependant members.
                                 </li>
-                                <li>
-                                  Complete the {this.props.billingCompany} Setup
-                                  Biller Details(Family) form to remove
-                                  dependant members from billing.
-                                </li>
+                                {this.props.billingCompany === 'Bambora' ? (
+                                  <li>
+                                    Complete the {this.props.billingCompany}{' '}
+                                    Submit Billing Changes form to remove
+                                    dependant members from billing.
+                                  </li>
+                                ) : (
+                                  <li>
+                                    Complete the {this.props.billingCompany}{' '}
+                                    Setup Biller Details(Family) form to remove
+                                    dependant members from billing.
+                                  </li>
+                                )}
                                 <li>
                                   Set this student's status to Frozen(Edit
                                   member details), after completing the above
@@ -208,28 +216,53 @@ export class ChangeStatusModal extends Component {
                                   </span>
                                   <br />
                                   <ol>
-                                    <li>
-                                      Click{' '}
-                                      <NavLink
-                                        to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-setup-biller-details?id=${
-                                          this.props.memberItem.values[
-                                            'Billing Parent Member'
-                                          ]
-                                        }`}
-                                        kappSlug={'services'}
-                                        className={'nav-link icon-wrapper'}
-                                        activeClassName="active"
-                                        style={{ display: 'inline' }}
-                                      >
-                                        {' '}
-                                        here{' '}
-                                      </NavLink>{' '}
-                                      to complete {
-                                        this.props.billingCompany
-                                      }{' '}
-                                      Setup Biller Details(Family) form to add
-                                      this student to billing.
-                                    </li>
+                                    {this.props.billingCompany === 'Bambora' ? (
+                                      <li>
+                                        Click{' '}
+                                        <NavLink
+                                          to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-submit-billing-changes?id=${
+                                            this.props.memberItem.values[
+                                              'Billing Parent Member'
+                                            ]
+                                          }`}
+                                          kappSlug={'services'}
+                                          className={'nav-link icon-wrapper'}
+                                          activeClassName="active"
+                                          style={{ display: 'inline' }}
+                                        >
+                                          {' '}
+                                          here{' '}
+                                        </NavLink>{' '}
+                                        to complete {
+                                          this.props.billingCompany
+                                        }{' '}
+                                        Submit Billing Changes form to add this
+                                        student to billing.
+                                      </li>
+                                    ) : (
+                                      <li>
+                                        Click{' '}
+                                        <NavLink
+                                          to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-setup-biller-details?id=${
+                                            this.props.memberItem.values[
+                                              'Billing Parent Member'
+                                            ]
+                                          }`}
+                                          kappSlug={'services'}
+                                          className={'nav-link icon-wrapper'}
+                                          activeClassName="active"
+                                          style={{ display: 'inline' }}
+                                        >
+                                          {' '}
+                                          here{' '}
+                                        </NavLink>{' '}
+                                        to complete {
+                                          this.props.billingCompany
+                                        }{' '}
+                                        Setup Biller Details(Family) form to add
+                                        this student to billing.
+                                      </li>
+                                    )}
                                     <li>
                                       Set this student's status to Active(Edit
                                       member details), after completing the
@@ -309,11 +342,19 @@ export class ChangeStatusModal extends Component {
                                       </b>
                                       .
                                     </li>
-                                    <li>
-                                      Complete the {this.props.billingCompany}{' '}
-                                      Setup Biller Details(Family) form to
-                                      remove other members from billing.
-                                    </li>
+                                    {this.props.billingCompany === 'Bambora' ? (
+                                      <li>
+                                        Complete the {this.props.billingCompany}{' '}
+                                        Submit Billing Changes form to remove
+                                        other members from billing.
+                                      </li>
+                                    ) : (
+                                      <li>
+                                        Complete the {this.props.billingCompany}{' '}
+                                        Setup Biller Details(Family) form to
+                                        remove other members from billing.
+                                      </li>
+                                    )}
                                     <li>
                                       Complete a Resume Membership Frozen form.
                                     </li>
@@ -419,11 +460,19 @@ export class ChangeStatusModal extends Component {
                                   Switch the Billing Member to one of the
                                   dependant members.
                                 </li>
-                                <li>
-                                  Complete the {this.props.billingCompany} Setup
-                                  Biller Details(Family) form to remove this
-                                  student from billing.
-                                </li>
+                                {this.props.billingCompany === 'Bambora' ? (
+                                  <li>
+                                    Complete the {this.props.billingCompany}{' '}
+                                    Submit Billing Changes form to remove this
+                                    student from billing.
+                                  </li>
+                                ) : (
+                                  <li>
+                                    Complete the {this.props.billingCompany}{' '}
+                                    Setup Biller Details(Family) form to remove
+                                    this student from billing.
+                                  </li>
+                                )}
                                 <li>
                                   Set this student's status to Frozen(Edit
                                   member details), after completing the above
@@ -483,26 +532,49 @@ export class ChangeStatusModal extends Component {
                               </span>
                               <br />
                               <ol>
-                                <li>
-                                  Click{' '}
-                                  <NavLink
-                                    to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-setup-biller-details?id=${
-                                      this.props.memberItem.values[
-                                        'Billing Parent Member'
-                                      ]
-                                    }`}
-                                    kappSlug={'services'}
-                                    className={'nav-link icon-wrapper'}
-                                    activeClassName="active"
-                                    style={{ display: 'inline' }}
-                                  >
-                                    {' '}
-                                    here{' '}
-                                  </NavLink>{' '}
-                                  to complete {this.props.billingCompany} Setup
-                                  Biller Details(Family) form to remove this
-                                  student from billing.
-                                </li>
+                                {this.props.billingCompany === 'Bambora' ? (
+                                  <li>
+                                    Click{' '}
+                                    <NavLink
+                                      to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-submit-billing-changes?id=${
+                                        this.props.memberItem.values[
+                                          'Billing Parent Member'
+                                        ]
+                                      }`}
+                                      kappSlug={'services'}
+                                      className={'nav-link icon-wrapper'}
+                                      activeClassName="active"
+                                      style={{ display: 'inline' }}
+                                    >
+                                      {' '}
+                                      here{' '}
+                                    </NavLink>{' '}
+                                    to complete {this.props.billingCompany}{' '}
+                                    Submit Billing Changes form to remove this
+                                    student from billing.
+                                  </li>
+                                ) : (
+                                  <li>
+                                    Click{' '}
+                                    <NavLink
+                                      to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-setup-biller-details?id=${
+                                        this.props.memberItem.values[
+                                          'Billing Parent Member'
+                                        ]
+                                      }`}
+                                      kappSlug={'services'}
+                                      className={'nav-link icon-wrapper'}
+                                      activeClassName="active"
+                                      style={{ display: 'inline' }}
+                                    >
+                                      {' '}
+                                      here{' '}
+                                    </NavLink>{' '}
+                                    to complete {this.props.billingCompany}{' '}
+                                    Setup Biller Details(Family) form to remove
+                                    this student from billing.
+                                  </li>
+                                )}
                                 <li>
                                   Set this student's status to Frozen(Edit
                                   member details), after completing the above
@@ -639,11 +711,19 @@ export class ChangeStatusModal extends Component {
                                   Switch the Billing Member to one of the
                                   dependant members.
                                 </li>
-                                <li>
-                                  Complete the {this.props.billingCompany} Setup
-                                  Biller Details(Family) form to remove this
-                                  student from billing.
-                                </li>
+                                {this.props.billingCompany === 'Bambora' ? (
+                                  <li>
+                                    Complete the {this.props.billingCompany}{' '}
+                                    Submit Billing Changes form to remove this
+                                    student from billing.
+                                  </li>
+                                ) : (
+                                  <li>
+                                    Complete the {this.props.billingCompany}{' '}
+                                    Setup Biller Details(Family) form to remove
+                                    this student from billing.
+                                  </li>
+                                )}
                                 <li>
                                   Set this student's status to Inactive(Edit
                                   member details), after completing the above
@@ -706,26 +786,49 @@ export class ChangeStatusModal extends Component {
                               </span>
                               <br />
                               <ol>
-                                <li>
-                                  Click{' '}
-                                  <NavLink
-                                    to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-setup-biller-details?id=${
-                                      this.props.memberItem.values[
-                                        'Billing Parent Member'
-                                      ]
-                                    }`}
-                                    kappSlug={'services'}
-                                    className={'nav-link icon-wrapper'}
-                                    activeClassName="active"
-                                    style={{ display: 'inline' }}
-                                  >
-                                    {' '}
-                                    here{' '}
-                                  </NavLink>{' '}
-                                  to complete {this.props.billingCompany} Setup
-                                  Biller Details(Family) form to remove this
-                                  student from billing.
-                                </li>
+                                {this.props.billingCompany === 'Bambora' ? (
+                                  <li>
+                                    Click{' '}
+                                    <NavLink
+                                      to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-submit-billing-changes?id=${
+                                        this.props.memberItem.values[
+                                          'Billing Parent Member'
+                                        ]
+                                      }`}
+                                      kappSlug={'services'}
+                                      className={'nav-link icon-wrapper'}
+                                      activeClassName="active"
+                                      style={{ display: 'inline' }}
+                                    >
+                                      {' '}
+                                      here{' '}
+                                    </NavLink>{' '}
+                                    to complete {this.props.billingCompany}{' '}
+                                    Submit Billing Changes form to remove this
+                                    student from billing.
+                                  </li>
+                                ) : (
+                                  <li>
+                                    Click{' '}
+                                    <NavLink
+                                      to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-setup-biller-details?id=${
+                                        this.props.memberItem.values[
+                                          'Billing Parent Member'
+                                        ]
+                                      }`}
+                                      kappSlug={'services'}
+                                      className={'nav-link icon-wrapper'}
+                                      activeClassName="active"
+                                      style={{ display: 'inline' }}
+                                    >
+                                      {' '}
+                                      here{' '}
+                                    </NavLink>{' '}
+                                    to complete {this.props.billingCompany}{' '}
+                                    Setup Biller Details(Family) form to remove
+                                    this student from billing.
+                                  </li>
+                                )}
                                 <li>
                                   Set this student's status to Inactive(Edit
                                   member details), after completing the above

@@ -356,6 +356,10 @@ export class MemberFinancialReport extends Component {
         allMembers: this.props.members,
         setSystemError: this.props.setSystemError,
         addNotification: this.props.addNotification,
+        useSubAccount:
+          getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
+            ? true
+            : false,
       });
     }
     var dateFrom = moment(this.state.repFromDate).format('YYYY-MM-DD');
@@ -375,6 +379,10 @@ export class MemberFinancialReport extends Component {
       internalPaymentType: 'client_successful',
       addNotification: this.props.addNotification,
       setSystemError: this.props.setSystemError,
+      useSubAccount:
+        getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
+          ? true
+          : false,
     });
     this.props.fetchPaymentHistory({
       paymentType: 'FINFAILED',
@@ -389,6 +397,10 @@ export class MemberFinancialReport extends Component {
       internalPaymentType: 'client_failed',
       addNotification: this.props.addNotification,
       setSystemError: this.props.setSystemError,
+      useSubAccount:
+        getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
+          ? true
+          : false,
     });
     this.props.fetchPOSOrders({
       dateFrom: this.state.repFromDate,
@@ -422,6 +434,10 @@ export class MemberFinancialReport extends Component {
       setCustomerRefunds: this.props.setCustomerRefunds,
       setSystemError: this.props.setSystemError,
       addNotification: this.props.addNotification,
+      useSubAccount:
+        getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
+          ? true
+          : false,
       /*      timezoneOffset: getTimezoneOff(), */
     });
     this.props.fetchCashPaymentsByDate({
@@ -514,6 +530,10 @@ export class MemberFinancialReport extends Component {
       internalPaymentType: 'client_successful',
       addNotification: this.props.addNotification,
       setSystemError: this.props.setSystemError,
+      useSubAccount:
+        getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
+          ? true
+          : false,
     });
     this.props.fetchPaymentHistory({
       paymentType: 'FINFAILED',
@@ -528,6 +548,10 @@ export class MemberFinancialReport extends Component {
       internalPaymentType: 'client_failed',
       addNotification: this.props.addNotification,
       setSystemError: this.props.setSystemError,
+      useSubAccount:
+        getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
+          ? true
+          : false,
     });
     this.props.fetchPOSOrders({
       dateFrom: fromDate,
@@ -550,6 +574,10 @@ export class MemberFinancialReport extends Component {
       setCustomerRefunds: this.props.setCustomerRefunds,
       setSystemError: this.props.setSystemError,
       addNotification: this.props.addNotification,
+      useSubAccount:
+        getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
+          ? true
+          : false,
       /*     timezoneOffset: getTimezoneOff(),*/
     });
     this.props.fetchCashPaymentsByDate({

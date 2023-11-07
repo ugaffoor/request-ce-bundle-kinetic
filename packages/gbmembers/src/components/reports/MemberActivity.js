@@ -92,6 +92,10 @@ export class MemberActivityReport extends Component {
       { title: 'Cash Term Start Date', field: 'cashStartDate' },
       { title: 'Cash Term End Date', field: 'cashEndDate' },
       { title: 'Billing User', field: 'billingUser' },
+      getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES' && {
+        title: 'Use Sub Account',
+        field: 'useSubAccount',
+      },
       { title: 'Biller Migrated', field: 'billerMigrated' },
       { title: 'Biller ID', field: 'billerId' },
       { title: 'Non Paying', field: 'nonPaying' },
@@ -231,6 +235,10 @@ export class MemberActivityReport extends Component {
       { label: 'Cash Term Start Date', value: 'cashStartDate' },
       { label: 'Cash Term End Date', value: 'cashEndDate' },
       { label: 'Billing User', value: 'billingUser' },
+      getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES' && {
+        label: 'Use Sub Account',
+        value: 'useSubAccount',
+      },
       { label: 'Biller Migrated', value: 'billerMigrated' },
       { label: 'Biller ID', value: 'billerId' },
       { label: 'Non Paying', value: 'nonPaying' },
@@ -304,6 +312,8 @@ export class MemberActivityReport extends Component {
         label: 'Billing Columns',
         options: [
           { label: 'Billing User', value: 'billingUser' },
+          getAttributeValue(this.props.space, 'PaySmart SubAccount') ===
+            'YES' && { label: 'Use Sub Account', value: 'useSubAccount' },
           { label: 'Biller Migrated', value: 'billerMigrated' },
           { label: 'Biller ID', value: 'billerId' },
           { label: 'Non Paying', value: 'nonPaying' },
@@ -362,6 +372,10 @@ export class MemberActivityReport extends Component {
       { label: 'Additional Program 1', value: 'additionalProgram1' },
       { label: 'Additional Program 2', value: 'additionalProgram2' },
       { label: 'Billing User', value: 'billingUser' },
+      getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES' && {
+        label: 'Use Sub Account',
+        value: 'useSubAccount',
+      },
       { label: 'Biller Migrated', value: 'billerMigrated' },
       { label: 'Biller ID', value: 'billerId' },
       { label: 'Non Paying', value: 'nonPaying' },
@@ -403,6 +417,7 @@ export class MemberActivityReport extends Component {
       paymentPeriod: this.props.paymentPeriods,
       paymentType: ['Credit Card', 'Bank Account', 'Cash'],
       billingUser: ['YES'],
+      useSubAccount: ['YES'],
       billingMigrated: ['YES'],
       nonPaying: ['YES'],
       accountCreated: ['YES', 'NO'],
@@ -418,6 +433,7 @@ export class MemberActivityReport extends Component {
       ),
       belt: [...new Set(this.props.belts.map(belt => belt.belt))],
     };
+
     this.filterIds = {};
 
     this.state = {
@@ -1152,6 +1168,7 @@ export class MemberActivityReport extends Component {
             ? moment(member.values['Billing Cash Term End Date']).format('L')
             : '',
         billingUser: member.values['Billing User'] === 'YES' ? 'YES' : 'NO',
+        useSubAccount: member.values['useSubAccount'] === 'YES' ? 'YES' : '',
         //        billerMigrated: member.values['Biller Migrated'] === 'YES' ? 'YES' : '',
         billerMigrated: member.values['Biller Migrated'],
         billerId: member.values['Billing Customer Reference'],

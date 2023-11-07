@@ -402,7 +402,9 @@ export function* savePOSCheckout(action) {
 
     console.log('savePOSCheckout');
 
-    yield put(actions.setPOSSave(action.payload));
+    yield put(
+      actions.setPOSSave({ id: submission.id, payload: action.payload }),
+    );
   } catch (error) {
     console.log('Error in updatePOSCheckout: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));

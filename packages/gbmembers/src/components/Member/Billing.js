@@ -2232,6 +2232,26 @@ export class BillingInfo extends Component {
                     </div>
                   ) : (
                     <span>
+                      {getAttributeValue(
+                        this.props.space,
+                        'Billing Company',
+                      ) === 'Bambora' && (
+                        <div>
+                          <NavLink
+                            to={`/categories/bambora-billing/bambora-submit-billing-changes?id=${this.props.memberItem.id}`}
+                            kappSlug={'services'}
+                            className={'nav-link icon-wrapper btn btn-primary'}
+                            activeClassName="active"
+                            style={{
+                              display: 'inline',
+                              paddingTop: '4px',
+                              paddingBottom: '4px',
+                            }}
+                          >
+                            Update Billing Details
+                          </NavLink>
+                        </div>
+                      )}
                       <table
                         className={
                           this.props.billingInfo.customerBillingId !== undefined
@@ -2244,6 +2264,13 @@ export class BillingInfo extends Component {
                             <th width="30%">Item</th>
                             <th width="70%">Value</th>
                           </tr>
+                          {this.props.memberItem.values['useSubAccount'] ===
+                            'YES' && (
+                            <tr>
+                              <td>Sub Account:</td>
+                              <td>YES</td>
+                            </tr>
+                          )}
                           {getAttributeValue(
                             this.props.space,
                             'Billing Company',
@@ -3077,6 +3104,8 @@ export const BillingContainer = compose(
         internalPaymentType: 'customer',
         addNotification: addNotification,
         setSystemError: setSystemError,
+        useSubAccount:
+          memberItem.values['useSubAccount'] === 'YES' ? true : false,
       });
     },
     addCashPaymentValue: ({
@@ -3182,6 +3211,8 @@ export const BillingContainer = compose(
               setBillingInfo: this.props.setBillingInfo,
               addNotification: this.props.addNotification,
               setSystemError: this.props.setSystemError,
+              useSubAccount:
+                member.values['useSubAccount'] === 'YES' ? true : false,
             });
           }
         }

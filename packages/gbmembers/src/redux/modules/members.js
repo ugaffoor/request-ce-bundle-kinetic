@@ -339,14 +339,16 @@ export const reducer = (state = State(), { type, payload }) => {
       let attentionRequired = false;
       var members = [];
       for (var k = 0; k < payload.members.length; k++) {
-        setMemberPromotionValues(payload.members[k], payload.belts);
-        payload.members[k].user = users.find(
-          user =>
-            payload.members[k].values['Member ID'] !== null &&
-            user.username.toLowerCase() ===
-              payload.members[k].values['Member ID'].toLowerCase(),
-        );
-        members[members.length] = payload.members[k];
+        if (payload.members[k].values['Status'] !== 'Deleted') {
+          setMemberPromotionValues(payload.members[k], payload.belts);
+          payload.members[k].user = users.find(
+            user =>
+              payload.members[k].values['Member ID'] !== null &&
+              user.username.toLowerCase() ===
+                payload.members[k].values['Member ID'].toLowerCase(),
+          );
+          members[members.length] = payload.members[k];
+        }
       }
 
       if (allMembers.length === 0) {
