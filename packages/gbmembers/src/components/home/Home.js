@@ -167,6 +167,7 @@ export const HomeView = ({
               getSuccessfulPayments={getSuccessfulPayments}
               successfulPaymentHistory={SUCCESSFULpaymentHistory}
               SUCCESSFULpaymentHistoryLoading={SUCCESSFULpaymentHistoryLoading}
+              currency={currency}
               space={space}
               locale={locale}
               profile={profile}
@@ -252,7 +253,18 @@ export const HomeView = ({
 export const HomeContainer = compose(
   connect(mapStateToProps, mapDispatchToProps),
   withProps(({ memberItem, space, profile }) => {
-    return {};
+    let currency = getAttributeValue(space, 'Currency');
+    if (currency === undefined) currency = 'USD';
+
+    let locale =
+      profile.preferredLocale === null
+        ? space.defaultLocale
+        : profile.preferredLocale;
+
+    return {
+      currency: currency,
+      locale: locale,
+    };
   }),
   withState('isAssigning', 'setIsAssigning', false),
   withState('fromDate', 'setFromDate', moment().subtract(7, 'days')),
@@ -275,6 +287,7 @@ export const HomeContainer = compose(
       setPaymentHistory,
       addNotification,
       setSystemError,
+      space,
     }) => () => {
       fetchPaymentHistory({
         paymentType: 'FAILED',
@@ -290,7 +303,7 @@ export const HomeContainer = compose(
         addNotification: addNotification,
         setSystemError: setSystemError,
         useSubAccount:
-          getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
+          getAttributeValue(space, 'PaySmart SubAccount') === 'YES'
             ? true
             : false,
       });
@@ -300,6 +313,7 @@ export const HomeContainer = compose(
       setPaymentHistory,
       addNotification,
       setSystemError,
+      space,
     }) => () => {
       fetchPaymentHistory({
         paymentType: 'SUCCESSFUL',
@@ -315,7 +329,7 @@ export const HomeContainer = compose(
         addNotification: addNotification,
         setSystemError: setSystemError,
         useSubAccount:
-          getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
+          getAttributeValue(space, 'PaySmart SubAccount') === 'YES'
             ? true
             : false,
       });
@@ -389,19 +403,6 @@ export const HomeContainer = compose(
       if (this.props.monthlyStatistics.length === 0) {
         this.props.fetchMonthlyStatistics();
       }
-
-      let currency = getAttributeValue(this.props.space, 'Currency');
-      if (currency === undefined) currency = 'USD';
-
-      this.locale =
-        this.props.profile.preferredLocale === null
-          ? this.props.space.defaultLocale
-          : this.props.profile.preferredLocale;
-
-      this.setState({
-        currency: currency,
-        locale: this.locale,
-      });
     },
     UNSAFE_componentWillUnmount() {},
   }),

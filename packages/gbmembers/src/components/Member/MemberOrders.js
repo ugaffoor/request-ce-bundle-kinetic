@@ -47,7 +47,7 @@ export class MemberOrders extends Component {
   formatEmailCell(cellInfo) {
     return (
       <span
-        className="deleteFile"
+        className="registrationEmail"
         onClick={async e => {
           if (
             await confirm(
@@ -78,6 +78,13 @@ export class MemberOrders extends Component {
         }}
       >
         <img src={mail} alt="Email" />
+        {cellInfo.original['receiptSender'] !== undefined && (
+          <span className="sendTimes" placeholder="Send Receipt Times">
+            {cellInfo.original['receiptSender'].map(date => (
+              <span className="sendTime">{date.format('L hh:mmA')}</span>
+            ))}
+          </span>
+        )}
       </span>
     );
   }

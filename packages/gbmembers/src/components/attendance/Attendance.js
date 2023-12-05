@@ -1627,7 +1627,7 @@ export class AttendanceDetail extends Component {
       return {
         _id: payment.paymentID,
         paymentAmount: payment.paymentAmount,
-        overdueAmount: overdueAmount,
+        overdueAmount: parseFloat(overdueAmount).toFixed(2),
         successDate: getLastBillingStartDate(member, successfulPayments),
         debitDate: payment.debitDate,
         memberGUID: member !== undefined ? member.id : '',
@@ -1973,9 +1973,9 @@ export class AttendanceDetail extends Component {
         memberItem.values['Billing Customer Id'] !== '',
     );
     if (overdueIdx !== -1) {
-      memberItem.overdueAmount = this.state.overdueMembers[
-        overdueIdx
-      ].overdueAmount;
+      memberItem.overdueAmount = parseFloat(
+        this.state.overdueMembers[overdueIdx].overdueAmount,
+      ).toFixed(2);
       this.setState({
         overdueMember: true,
       });
@@ -2550,7 +2550,9 @@ export class AttendanceDetail extends Component {
                                 '/#/kapps/services/categories/bambora-billing/bambora-change-credit-card-details?id=' +
                                 this.state.memberItem.id +
                                 '&overdue=' +
-                                this.state.memberItem.overdueAmount;
+                                parseFloat(
+                                  this.state.memberItem.overdueAmount,
+                                ).toFixed(2);
                             }}
                           >
                             <i className="fa fa-usd overdue"></i>
@@ -2599,9 +2601,9 @@ export class AttendanceDetail extends Component {
                         );
                         if (overdueIdx !== -1) {
                           checkin.overdueMember = true;
-                          checkin.overdueAmount = this.state.overdueMembers[
-                            overdueIdx
-                          ].overdueAmount;
+                          checkin.overdueAmount = parseFloat(
+                            this.state.overdueMembers[overdueIdx].overdueAmount,
+                          ).toFixed(2);
                         }
                         var mIdx = this.props.allMembers.findIndex(
                           member => member.id === checkin.values['Member GUID'],

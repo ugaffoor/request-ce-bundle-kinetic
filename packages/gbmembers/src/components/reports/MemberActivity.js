@@ -22,6 +22,7 @@ import MomentLocaleUtils, {
 } from 'react-day-picker/moment';
 import { getLocalePreference } from '../Member/MemberUtils';
 import { I18n } from '../../../../app/src/I18nProvider';
+import { Utils } from 'common';
 
 export const contact_date_format = 'YYYY-MM-DD HH:mm';
 
@@ -308,12 +309,21 @@ export class MemberActivityReport extends Component {
           { label: 'Cash Term End Date', value: 'cashEndDate' },
         ],
       },
-      {
+    ];
+    if (Utils.isMemberOf(this.props.profile, 'Billing')) {
+      if (
+        getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
+      ) {
+        this.columnsToHide[1].options.push({
+          label: 'Use Sub Account',
+          value: 'useSubAccount',
+        });
+      }
+
+      this.columnsToHide.push({
         label: 'Billing Columns',
         options: [
           { label: 'Billing User', value: 'billingUser' },
-          getAttributeValue(this.props.space, 'PaySmart SubAccount') ===
-            'YES' && { label: 'Use Sub Account', value: 'useSubAccount' },
           { label: 'Biller Migrated', value: 'billerMigrated' },
           { label: 'Biller ID', value: 'billerId' },
           { label: 'Non Paying', value: 'nonPaying' },
@@ -327,8 +337,8 @@ export class MemberActivityReport extends Component {
           { label: 'Payment Type', value: 'paymentType' },
           { label: 'Family Members', value: 'familyMembers' },
         ],
-      },
-    ];
+      });
+    }
 
     this.addedFiltersColumns = [
       { title: 'Filter Column', field: 'filterColumn' },
@@ -1168,7 +1178,8 @@ export class MemberActivityReport extends Component {
             ? moment(member.values['Billing Cash Term End Date']).format('L')
             : '',
         billingUser: member.values['Billing User'] === 'YES' ? 'YES' : 'NO',
-        useSubAccount: member.values['useSubAccount'] === 'YES' ? 'YES' : '',
+        useSubAccount:
+          member.values['useSubAccount'] === 'YES' ? 'YES' : undefined,
         //        billerMigrated: member.values['Biller Migrated'] === 'YES' ? 'YES' : '',
         billerMigrated: member.values['Biller Migrated'],
         billerId: member.values['Billing Customer Reference'],

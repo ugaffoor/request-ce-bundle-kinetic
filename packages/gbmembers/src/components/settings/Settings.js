@@ -46,6 +46,9 @@ const mapStateToProps = state => ({
   programs: state.member.app.programs,
   additionalPrograms: state.member.app.additionalPrograms,
   space: state.member.app.space,
+  memberInitialLoadComplete: state.member.members.memberInitialLoadComplete,
+  membersNextPageToken: state.member.members.membersNextPageToken,
+  memberLastFetchTime: state.member.members.memberLastFetchTime,
 });
 
 const mapDispatchToProps = {
@@ -152,6 +155,9 @@ export const SettingsView = ({
   importingBilling,
   synchingBilling,
   fetchMembers,
+  memberInitialLoadComplete,
+  membersNextPageToken,
+  memberLastFetchTime,
   printMemberBarcodes,
   printingBarcodes,
   setPrintingBarcodes,
@@ -334,6 +340,9 @@ export const SettingsView = ({
                   setBillingCustomers,
                   createBillingMembers,
                   fetchMembers,
+                  membersNextPageToken,
+                  memberInitialLoadComplete,
+                  memberLastFetchTime,
                   allMembers,
                   useSubAccount:
                     getAttributeValue(space, 'PaySmart SubAccount') === 'YES'

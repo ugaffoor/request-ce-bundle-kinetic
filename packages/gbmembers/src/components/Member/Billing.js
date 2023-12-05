@@ -113,7 +113,6 @@ const mapDispatchToProps = {
   refundTransactionComplete: actions.refundTransactionComplete,
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
-  fetchDdrStatus: actions.fetchDdrStatus,
   fetchActionRequests: actions.fetchActionRequests,
   setActionRequests: actions.setActionRequests,
   setSidebarDisplayType: appActions.setSidebarDisplayType,
@@ -1679,6 +1678,18 @@ export class PaymentHistory extends Component {
           pageSize={data.length > 0 ? data.length : 2}
           showPagination={false}
         />
+        {
+          <a
+            onClick={e => {
+              console.log('Show More..');
+              this.props.getPaymentHistory();
+            }}
+            className="btn btn-primary showMore"
+            style={{ marginLeft: '10px', color: 'white' }}
+          >
+            Show More
+          </a>
+        }
       </div>
     );
   }
@@ -2562,6 +2573,7 @@ export class BillingInfo extends Component {
             <div style={{ width: '90vw', marginTop: '10px' }}>
               {this.state.showPaymentHistory && (
                 <PaymentHistory
+                  getPaymentHistory={this.props.getPaymentHistory}
                   paymentHistory={this.props.paymentHistory}
                   paymentHistoryLoading={this.props.paymentHistoryLoading}
                   billingThis={this}
@@ -2863,6 +2875,7 @@ export const BillingContainer = compose(
   withState('isValidInput', 'setIsValidInput', true),
   withState('errorMessage', 'setErrorMessage', ''),
   withState('doPaySmartRegistration', 'setDoPaySmartRegistration', false),
+  withState('lastHistoryDate', 'setLastHistoryDate', null),
   withHandlers({
     completeMemberRegistration: ({
       memberItem,
@@ -3079,6 +3092,8 @@ export const BillingContainer = compose(
       setPaymentHistory,
       addNotification,
       setSystemError,
+      lastHistoryDate,
+      setLastHistoryDate,
     }) => () => {
       fetchPaymentHistory({
         billingRef:
@@ -3093,7 +3108,7 @@ export const BillingContainer = compose(
         dateField: 'PAYMENT',
         dateFrom: moment
           .utc()
-          .subtract(1, 'years')
+          .subtract(2, 'years')
           .format('YYYY-MM-DD'),
         dateTo: moment
           .utc()
@@ -3107,6 +3122,7 @@ export const BillingContainer = compose(
         useSubAccount:
           memberItem.values['useSubAccount'] === 'YES' ? true : false,
       });
+      //      setLastHistoryDate(lastHistoryDate===null ? moment.utc() : lastHistoryDate.utc().subtract(1, 'years'));
     },
     addCashPaymentValue: ({
       addCashPayment,
@@ -3153,6 +3169,8 @@ export const BillingContainer = compose(
       args.setSystemError = setSystemError;
       args.billingThis = billingThis;
       args.refundTransactionComplete = refundTransactionComplete;
+      args.useSubAccount =
+        memberItem.values['useSubAccount'] === 'YES' ? true : false;
 
       refundTransaction(args);
     },

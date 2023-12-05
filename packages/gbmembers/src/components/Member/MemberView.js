@@ -1884,6 +1884,8 @@ export const MemberView = ({
                   }
                   space={space}
                   profile={profile}
+                  locale={locale}
+                  currency={currency}
                   sendReceipt={sendReceipt}
                   addNotification={addNotification}
                   setSystemError={setSystemError}

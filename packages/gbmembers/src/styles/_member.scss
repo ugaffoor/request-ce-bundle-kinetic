@@ -271,6 +271,9 @@
     background-color: $darkgray;
     border-color: $darkgray;
   }
+  .sendTime {
+    margin-left: 4px;
+  }
   .deleteNote {
     .icon-svg {
       height: 1rem;
@@ -1677,5 +1680,21 @@ iframe#printf {
     margin-top: 0mm;
     margin-left: 146mm;
     min-width: 200px;
+  }
+}
+.additionalDetails {
+  .registrationEmail {
+    cursor: pointer;
+    img {
+      float: left;
+    }
+    .sendTimes {
+      display: flex;
+      flex-direction: column;
+      .sendTime {
+        margin-left: 4px;
+        font-size: 12px;
+      }
+    }
   }
 }

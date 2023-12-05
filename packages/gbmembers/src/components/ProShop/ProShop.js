@@ -1251,8 +1251,10 @@ class PayNow extends Component {
           //          $(saveButton).removeClass('disabled');
         } else {
           var saveButton = document.getElementById('save-to-profile');
-          saveButton.disabled = false;
-          $(saveButton).removeClass('disabled');
+          if (saveButton !== null) {
+            saveButton.disabled = false;
+            $(saveButton).removeClass('disabled');
+          }
         }
 
         payThis.setState({

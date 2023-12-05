@@ -107,10 +107,6 @@ export class StripeBillingTransactions extends Component {
       internalPaymentType: 'client_successful',
       addNotification: this.props.addNotification,
       setSystemError: this.props.setSystemError,
-      useSubAccount:
-        getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
-          ? true
-          : false,
     });
     this.props.fetchPaymentHistory({
       paymentType: 'FAILED',
@@ -125,10 +121,6 @@ export class StripeBillingTransactions extends Component {
       internalPaymentType: 'client_failed',
       addNotification: this.props.addNotification,
       setSystemError: this.props.setSystemError,
-      useSubAccount:
-        getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
-          ? true
-          : false,
     });
     this.props.fetchPaymentHistory({
       paymentType: 'CHARGES',
@@ -143,10 +135,6 @@ export class StripeBillingTransactions extends Component {
       internalPaymentType: 'pos_charges',
       addNotification: this.props.addNotification,
       setSystemError: this.props.setSystemError,
-      useSubAccount:
-        getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
-          ? true
-          : false,
     });
     this.props.fetchPOSOrders({
       dateFrom: moment(startDate),
@@ -161,10 +149,6 @@ export class StripeBillingTransactions extends Component {
       setCustomerRefunds: this.props.setCustomerRefunds,
       setSystemError: this.props.setSystemError,
       addNotification: this.props.addNotification,
-      useSubAccount:
-        getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
-          ? true
-          : false,
       /*      timezoneOffset: getTimezoneOff(), */
     });
   }

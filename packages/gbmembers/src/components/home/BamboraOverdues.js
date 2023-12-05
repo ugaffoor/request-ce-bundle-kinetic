@@ -31,14 +31,6 @@ export class BamboraOverdues extends Component {
         : this.props.profile.preferredLocale,
     );
 
-    this.currency = getAttributeValue(this.props.space, 'Currency');
-    if (this.currency === undefined) this.currency = 'USD';
-    if (this.currency === undefined) {
-      this.currencySymbol = '$';
-    } else {
-      this.currencySymbol = getCurrency(this.currency)['symbol'];
-    }
-
     this.state = {
       data,
       total: 0,
@@ -250,9 +242,9 @@ export class BamboraOverdues extends Component {
             <div />
           ) : (
             <div className="dollarValue">
-              {new Intl.NumberFormat(this.locale, {
+              {new Intl.NumberFormat(this.props.locale, {
                 style: 'currency',
-                currency: this.currency,
+                currency: this.props.currency,
               }).format(props.value)}
             </div>
           );
@@ -267,9 +259,9 @@ export class BamboraOverdues extends Component {
             <div />
           ) : (
             <div className="dollarValue">
-              {new Intl.NumberFormat(this.locale, {
+              {new Intl.NumberFormat(this.props.locale, {
                 style: 'currency',
-                currency: this.currency,
+                currency: this.props.currency,
               }).format(props.value)}
             </div>
           );
@@ -278,9 +270,9 @@ export class BamboraOverdues extends Component {
           <span>
             <strong>Total: </strong>
             {this.state !== undefined
-              ? new Intl.NumberFormat(this.locale, {
+              ? new Intl.NumberFormat(this.props.locale, {
                   style: 'currency',
-                  currency: this.currency,
+                  currency: this.props.currency,
                 }).format(this.state.total)
               : 0}
           </span>

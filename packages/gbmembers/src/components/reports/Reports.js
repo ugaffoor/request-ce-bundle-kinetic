@@ -979,6 +979,7 @@ export const ReportsContainer = compose(
       setInactiveCustomersCount,
       addNotification,
       setSystemError,
+      space,
     }) => (dateRange, fromDate, toDate) => {
       if (!dateRange) {
         dateRange = 'last_30_days';
@@ -1036,6 +1037,10 @@ export const ReportsContainer = compose(
         setInactiveCustomersCount: setInactiveCustomersCount,
         setSystemError: setSystemError,
         addNotification: addNotification,
+        useSubAccount:
+          getAttributeValue(space, 'PaySmart SubAccount') === 'YES'
+            ? true
+            : false,
       });
     },
     getVariationCustomers: ({

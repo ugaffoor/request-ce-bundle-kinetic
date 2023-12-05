@@ -501,10 +501,6 @@ export function* fetchCurrentMemberAdditional(action) {
         promotionContent[promotionContent.length] = content;
       }
     }
-    let memberFiles = [];
-    for (let i = 0; i < memberFilesSubmissions.submissions.length; i++) {
-      memberFiles[memberFiles.length] = memberFilesSubmissions.submissions[i];
-    }
     let posOrders = [];
     for (let i = 0; i < posOrderSubmissions.submissions.length; i++) {
       var len = posOrders.length;
@@ -525,6 +521,70 @@ export function* fetchCurrentMemberAdditional(action) {
       }
       return 0;
     });
+
+    let receiptSubmissionIDs = [];
+    for (let i = 0; i < requestContent.length; i++) {
+      let id = requestContent[i].url.split('/')[
+        requestContent[i].url.split('/').length - 2
+      ];
+      receiptSubmissionIDs[receiptSubmissionIDs.length] = id;
+    }
+    for (let i = 0; i < posOrderSubmissions.submissions.length; i++) {
+      let id = posOrderSubmissions.submissions[i].id;
+      receiptSubmissionIDs[receiptSubmissionIDs.length] = id;
+    }
+
+    const RECEIPT_SENDER_SEARCH = new CoreAPI.SubmissionSearch(true)
+      .index('values[Submission ID]')
+      .in('values[Submission ID]', receiptSubmissionIDs)
+      .include(['details', 'values'])
+      .limit(1000)
+      .build();
+    const [receiptSenderSubmissions] = yield all([
+      call(CoreAPI.searchSubmissions, {
+        form: 'receipt-sender',
+        search: RECEIPT_SENDER_SEARCH,
+        datastore: true,
+      }),
+    ]);
+
+    for (let i = 0; i < requestContent.length; i++) {
+      var id = requestContent[i].url.split('/')[
+        requestContent[i].url.split('/').length - 2
+      ];
+      for (let x = 0; x < receiptSenderSubmissions.submissions.length; x++) {
+        if (
+          receiptSenderSubmissions.submissions[x].values['Submission ID'] === id
+        ) {
+          if (requestContent[i].receiptSender === undefined) {
+            requestContent[i].receiptSender = [];
+          }
+          requestContent[i].receiptSender[
+            requestContent[i].receiptSender.length
+          ] = moment(receiptSenderSubmissions.submissions[x].createdAt);
+        }
+      }
+    }
+    for (let i = 0; i < posOrders.length; i++) {
+      let id = posOrders[i].id;
+      for (let x = 0; x < receiptSenderSubmissions.submissions.length; x++) {
+        if (
+          receiptSenderSubmissions.submissions[x].values['Submission ID'] === id
+        ) {
+          if (posOrders[i].receiptSender === undefined) {
+            posOrders[i].receiptSender = [];
+          }
+          posOrders[i].receiptSender[
+            posOrders[i].receiptSender.length
+          ] = moment(receiptSenderSubmissions.submissions[x].createdAt);
+        }
+      }
+    }
+
+    let memberFiles = [];
+    for (let i = 0; i < memberFilesSubmissions.submissions.length; i++) {
+      memberFiles[memberFiles.length] = memberFilesSubmissions.submissions[i];
+    }
     let posItems = [];
     for (let i = 0; i < posPurchasedItems.submissions.length; i++) {
       len = posItems.length;
@@ -2142,45 +2202,6 @@ export function* refundCashTransaction(action) {
     });
   }
 }
-export function* fetchDdrStatus(action) {
-  const appSettings = yield select(getAppSettings);
-  let args = {};
-  args.space = appSettings.spaceSlug;
-  args.billingService = appSettings.billingCompany;
-  args.customerId = action.payload.memberItem.values['Billing Customer Id'];
-  axios
-    .post(appSettings.kineticBillingServerUrl + ddrStatusUrl, args)
-    .then(result => {
-      if (result.data.error && result.data.error > 0) {
-        console.log('fetchDdrStatus Error: ' + result.data.errorMessage);
-        action.payload.addNotification(
-          NOTICE_TYPES.ERROR,
-          result.data.errorMessage,
-          'Get DDR Status',
-        );
-      } else {
-        if (
-          !action.payload.memberItem.values['DDR Status'] ||
-          action.payload.memberItem.values['DDR Status'] !==
-            result.data.data.ddrStatus
-        ) {
-          action.payload.memberItem.values['DDR Status'] =
-            result.data.data.ddrStatus;
-          action.payload.updateMember({
-            id: action.payload.memberItem['id'],
-            memberItem: action.payload.memberItem,
-            fetchMember: action.payload.fetchMember,
-            fetchMembers: action.payload.fetchMembers,
-            mythis: action.payload.myThis,
-          });
-        }
-      }
-    })
-    .catch(error => {
-      console.log(util.inspect(error));
-      action.payload.setSystemError(error);
-    });
-}
 
 export function* fetchActionRequests(action) {
   const appSettings = yield select(getAppSettings);
@@ -2349,6 +2370,10 @@ export function* fetchBillingCustomers(action) {
                   fetchMembers: action.payload.fetchMembers,
                   appSettings: appSettings,
                   allMembers: action.payload.allMembers,
+                  membersNextPageToken: action.payload.membersNextPageToken,
+                  memberInitialLoadComplete:
+                    action.payload.memberInitialLoadComplete,
+                  memberLastFetchTime: action.payload.memberLastFetchTime,
                   useSubAccount: action.payload.useSubAccount,
                 });
               } else if (action.payload.syncBillingMembers !== undefined) {
@@ -2387,7 +2412,7 @@ export function* createBillingMembers(action) {
   let newMemberAdded = false;
   let newMembers = [];
   let threeMonths = moment().subtract(3, 'months');
-  let loadCount = 0;
+  //  let loadCount = 0;
   for (let i = 0; i < action.payload.customers.length; i++) {
     let customer = action.payload.customers[i];
     if (customer.dateArchived > 0) {
@@ -2406,8 +2431,8 @@ export function* createBillingMembers(action) {
         continue;
       }
     }
-    if (!customer.fromSubAccount || loadCount > 2) continue;
-    loadCount++;
+    //    if (!customer.fromSubAccount || loadCount > 4) continue;
+    //    loadCount++;
     const MEMBER_SEARCH = new CoreAPI.SubmissionSearch(true)
       .eq('values[Billing Customer Id]', customer.customerId)
       .include('details,values')
@@ -2697,6 +2722,7 @@ export function* fetchInactiveCustomersCount(action) {
   args.billingService = appSettings.billingCompany;
   args.fromDate = action.payload.fromDate;
   args.toDate = action.payload.toDate;
+  args.useSubAccount = action.payload.useSubAccount;
 
   axios
     .post(
@@ -2912,7 +2938,6 @@ export function* watchMembers() {
   yield takeEvery(types.REFUND_CASH_TRANSACTION, refundCashTransaction);
   yield takeEvery(types.SYNC_BILLING_CUSTOMER, syncBillingCustomer);
   yield takeEvery(types.FETCH_NEW_CUSTOMERS, fetchNewCustomers);
-  yield takeEvery(types.FETCH_DDR_STATUS, fetchDdrStatus);
   yield takeEvery(types.FETCH_ACTION_REQUESTS, fetchActionRequests);
   yield takeEvery(types.FETCH_VARIATION_CUSTOMERS, fetchVariationCustomers);
   yield takeEvery(types.FETCH_CUSTOMER_REFUNDS, fetchCustomerRefunds);

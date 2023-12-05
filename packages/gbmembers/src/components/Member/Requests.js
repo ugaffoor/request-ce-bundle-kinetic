@@ -35,9 +35,10 @@ export class Requests extends Component {
   UNSAFE_componentWillMount() {}
   formatEmailCell(cellInfo) {
     return cellInfo.original['Form'] === 'Bambora Member Registration' ||
-      cellInfo.original['Form'] === 'PaySmart Member Registration' ? (
+      cellInfo.original['Form'] === 'PaySmart Member Registration' ||
+      cellInfo.original['Form'] === 'Stripe Member Registration' ? (
       <span
-        className="deleteFile"
+        className="registrationEmail"
         onClick={async e => {
           if (
             await confirm(
@@ -51,6 +52,16 @@ export class Requests extends Component {
             var values = {};
             values['Form Slug'] = cellInfo.original['Form'];
             values['Submission ID'] = id;
+            values['Currency Symbol'] = new Intl.NumberFormat(
+              this.props.locale,
+              {
+                style: 'currency',
+                currency: this.props.currency,
+              },
+            )
+              .format('0')
+              .replace(/\d+(?:\.?\d+)?/g, '')
+              .trim();
 
             this.props.sendReceipt({
               values: values,
@@ -61,6 +72,13 @@ export class Requests extends Component {
         }}
       >
         <img src={mail} alt="Email" />
+        {cellInfo.original['receiptSender'] !== undefined && (
+          <span className="sendTimes" placeholder="Send Receipt Times">
+            {cellInfo.original['receiptSender'].map(date => (
+              <span className="sendTime">{date.format('L hh:mmA')}</span>
+            ))}
+          </span>
+        )}
       </span>
     ) : (
       <div />
