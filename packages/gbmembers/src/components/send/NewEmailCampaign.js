@@ -188,7 +188,7 @@ export class NewEmailCampaign extends Component {
   }
 
   UNSAFE_componentWillMount() {
-    if (isMobile || isTablet) {
+    if (isMobile) {
       this.editorStore = createEditorStore();
     }
   }
@@ -470,7 +470,7 @@ export class NewEmailCampaign extends Component {
   }
 
   preview() {
-    if (isMobile || isTablet) {
+    if (isMobile) {
       this.setState({
         text: $('.emailEditor .mce-content-body').html(),
       });
@@ -654,7 +654,7 @@ export class NewEmailCampaign extends Component {
                     if (isBrowser) {
                       this.selectEmailTemplate(e);
                     }
-                    if (isMobile || isTablet) {
+                    if (isMobile) {
                       this.selectEmailTemplateMobile(e);
                     }
                   }}
@@ -762,13 +762,9 @@ export class NewEmailCampaign extends Component {
                 />
               </MobileView>
               <TabletView>
-                <TinyMCEComponent
-                  value={this.state.text}
-                  isActive={true}
-                  editorStore={this.editorStore}
-                  init={{
-                    menubar: false,
-                  }}
+                <EmailEditor
+                  ref={editor => (emailEditorRef = editor)}
+                  onLoad={this.onLoadEmailTemplate}
                 />
               </TabletView>
             </span>

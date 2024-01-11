@@ -1092,7 +1092,11 @@ export class PurchaseItemsReport extends Component {
             </div>
             <ReactTable
               ref={el => (this.tableComponentRef = el)}
-              columns={this.state.columns}
+              columns={
+                this.state.personViewMode
+                  ? this.getColumnsByPerson()
+                  : this.getColumns()
+              }
               data={this.state.data}
               className="-striped -highlight"
               defaultPageSize={

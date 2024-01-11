@@ -23,6 +23,7 @@ import {
   handleDateChange,
   getDateValue,
   getLocalePreference,
+  handleCountryChange,
 } from './MemberUtils';
 import { StatusMessagesContainer } from '../StatusMessages';
 import moment from 'moment';
@@ -74,7 +75,7 @@ export function handleNameChange(memberItem, event) {
     (firstName !== undefined ? firstName.toLowerCase() : '') +
     (lastName !== undefined ? lastName.toLowerCase() : '')
   )
-    .replace(/[^\x00-\x7F]|['"`\.,\(\)]/g, '')
+    .replace(/[^\x00-\x7F]|['"`\.,\(\)\W]/g, '')
     .substring(0, 30);
 
   $('#username').val(memberItem.values['Member ID']);
@@ -93,6 +94,7 @@ export const MemberNew = ({
   newMemberLoading,
   profile,
   space,
+  states,
 }) =>
   newMemberLoading ? (
     <div />
@@ -266,6 +268,35 @@ export const MemberNew = ({
                     onChange={e => handleChange(memberItem, 'Suburb', e)}
                   />
                 </div>
+                {getAttributeValue(space, 'School States', '') ===
+                  undefined && (
+                  <div>
+                    <label htmlFor="country">Country</label>
+                    <select
+                      name="country"
+                      id="country"
+                      required
+                      ref={input => (this.input = input)}
+                      defaultValue={''}
+                      onChange={e =>
+                        handleCountryChange(memberItem, 'Country', e)
+                      }
+                    >
+                      <option value="" />
+                      {getAttributeValue(space, 'Countries', '') ===
+                      undefined ? (
+                        <option value=""></option>
+                      ) : (
+                        getAttributeValue(space, 'Countries', '')
+                          .split(',')
+                          .map(country => {
+                            return <option value={country}>{country}</option>;
+                          })
+                      )}
+                    </select>
+                    <div className="droparrow" />
+                  </div>
+                )}
                 <div className="state">
                   <label
                     htmlFor="State"
@@ -278,22 +309,46 @@ export const MemberNew = ({
                   >
                     State
                   </label>
-                  <select
-                    name="state"
-                    id="state"
-                    required
-                    ref={input => (this.input = input)}
-                    defaultValue={''}
-                    onChange={e => handleChange(memberItem, 'State', e)}
-                  >
-                    <option value="" />
-                    {getAttributeValue(space, 'School States', '')
-                      .split(',')
-                      .map(state => {
-                        return <option value={state}>{state}</option>;
-                      })}
-                  </select>
-                  <div className="droparrow" />
+                  {getAttributeValue(space, 'School States', '') ===
+                    undefined && (
+                    <span>
+                      <select
+                        name="state"
+                        id="state"
+                        required
+                        ref={input => (this.input = input)}
+                        defaultValue={''}
+                        onChange={e => handleChange(memberItem, 'State', e)}
+                      >
+                        <option value="" />
+                        {states.split(',').map(state => {
+                          return <option value={state}>{state}</option>;
+                        })}
+                      </select>
+                      <div className="droparrow" />
+                    </span>
+                  )}
+                  {getAttributeValue(space, 'School States', '') !==
+                    undefined && (
+                    <span>
+                      <select
+                        name="state"
+                        id="state"
+                        required
+                        ref={input => (this.input = input)}
+                        defaultValue={''}
+                        onChange={e => handleChange(memberItem, 'State', e)}
+                      >
+                        <option value="" />
+                        {getAttributeValue(space, 'School States', '')
+                          .split(',')
+                          .map(state => {
+                            return <option value={state}>{state}</option>;
+                          })}
+                      </select>
+                      <div className="droparrow" />
+                    </span>
+                  )}
                 </div>
                 <div className="postcode">
                   <label
@@ -829,6 +884,536 @@ export const MemberNew = ({
                 </div>
               </span>
               <span className="line">
+                <span>Main Benefits to Train</span>
+              </span>
+              <span className="line benefits">
+                <span className="optionItem">
+                  <label htmlFor="excercise" style={{ minWidth: 'auto' }}>
+                    excercise
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="mainbenefits"
+                    id="excercise"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="excercise"
+                    checked={
+                      memberItem.values['Main Benefits'] !== undefined
+                        ? memberItem.values['Main Benefits'].includes(
+                            'excercise',
+                          )
+                        : false
+                    }
+                    onChange={e => {
+                      if (memberItem.values['Main Benefits'] === undefined)
+                        memberItem.values['Main Benefits'] = new Array();
+                      if (
+                        memberItem.values['Main Benefits'].includes('excercise')
+                      ) {
+                        e.target.value = '';
+                        memberItem.values['Main Benefits'] = memberItem.values[
+                          'Main Benefits'
+                        ].filter(elem => elem !== 'excercise');
+                      } else {
+                        e.target.value = 'excercise';
+                        memberItem.values['Main Benefits'].push('excercise');
+                      }
+                      handleChange(memberItem, 'Main Benefits', e);
+                    }}
+                  />
+                </span>
+                <span className="optionItem">
+                  <label htmlFor="discipline" style={{ minWidth: 'auto' }}>
+                    discipline
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="mainbenefits"
+                    id="discipline"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="discipline"
+                    checked={
+                      memberItem.values['Main Benefits'] !== undefined
+                        ? memberItem.values['Main Benefits'].includes(
+                            'discipline',
+                          )
+                        : false
+                    }
+                    onChange={e => {
+                      if (memberItem.values['Main Benefits'] === undefined)
+                        memberItem.values['Main Benefits'] = new Array();
+                      if (
+                        memberItem.values['Main Benefits'].includes(
+                          'discipline',
+                        )
+                      ) {
+                        e.target.value = '';
+                        memberItem.values['Main Benefits'] = memberItem.values[
+                          'Main Benefits'
+                        ].filter(elem => elem !== 'discipline');
+                      } else {
+                        e.target.value = 'discipline';
+                        memberItem.values['Main Benefits'].push('discipline');
+                      }
+                      handleChange(memberItem, 'Main Benefits', e);
+                    }}
+                  />
+                </span>
+                <span className="optionItem">
+                  <label htmlFor="selfdefense" style={{ minWidth: 'auto' }}>
+                    self defense
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="mainbenefits"
+                    id="selfdefense"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="self defense"
+                    checked={
+                      memberItem.values['Main Benefits'] !== undefined
+                        ? memberItem.values['Main Benefits'].includes(
+                            'self defense',
+                          )
+                        : false
+                    }
+                    onChange={e => {
+                      if (memberItem.values['Main Benefits'] === undefined)
+                        memberItem.values['Main Benefits'] = new Array();
+                      if (
+                        memberItem.values['Main Benefits'].includes(
+                          'self defense',
+                        )
+                      ) {
+                        e.target.value = '';
+                        memberItem.values['Main Benefits'] = memberItem.values[
+                          'Main Benefits'
+                        ].filter(elem => elem !== 'self defense');
+                      } else {
+                        e.target.value = 'self defense';
+                        memberItem.values['Main Benefits'].push('self defense');
+                      }
+                      handleChange(memberItem, 'Main Benefits', e);
+                    }}
+                  />
+                </span>
+                <span className="optionItem">
+                  <label htmlFor="reducestress" style={{ minWidth: 'auto' }}>
+                    reduce stress
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="mainbenefits"
+                    id="reducestress"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="reduce stress"
+                    checked={
+                      memberItem.values['Main Benefits'] !== undefined
+                        ? memberItem.values['Main Benefits'].includes(
+                            'reduce stress',
+                          )
+                        : false
+                    }
+                    onChange={e => {
+                      if (memberItem.values['Main Benefits'] === undefined)
+                        memberItem.values['Main Benefits'] = new Array();
+                      if (
+                        memberItem.values['Main Benefits'].includes(
+                          'reduce stress',
+                        )
+                      ) {
+                        e.target.value = '';
+                        memberItem.values['Main Benefits'] = memberItem.values[
+                          'Main Benefits'
+                        ].filter(elem => elem !== 'reduce stress');
+                      } else {
+                        e.target.value = 'reduce stress';
+                        memberItem.values['Main Benefits'].push(
+                          'reduce stress',
+                        );
+                      }
+                      handleChange(memberItem, 'Main Benefits', e);
+                    }}
+                  />
+                </span>
+                <span className="optionItem">
+                  <label htmlFor="respect" style={{ minWidth: 'auto' }}>
+                    respect
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="mainbenefits"
+                    id="respect"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="respect"
+                    checked={
+                      memberItem.values['Main Benefits'] !== undefined
+                        ? memberItem.values['Main Benefits'].includes('respect')
+                        : false
+                    }
+                    onChange={e => {
+                      if (memberItem.values['Main Benefits'] === undefined)
+                        memberItem.values['Main Benefits'] = new Array();
+                      if (
+                        memberItem.values['Main Benefits'].includes('respect')
+                      ) {
+                        e.target.value = '';
+                        memberItem.values['Main Benefits'] = memberItem.values[
+                          'Main Benefits'
+                        ].filter(elem => elem !== 'respect');
+                      } else {
+                        e.target.value = 'respect';
+                        memberItem.values['Main Benefits'].push('respect');
+                      }
+                      handleChange(memberItem, 'Main Benefits', e);
+                    }}
+                  />
+                </span>
+                <span className="optionItem">
+                  <label htmlFor="selfconfidence" style={{ minWidth: 'auto' }}>
+                    self confidence
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="mainbenefits"
+                    id="selfconfidence"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="self confidence"
+                    checked={
+                      memberItem.values['Main Benefits'] !== undefined
+                        ? memberItem.values['Main Benefits'].includes(
+                            'self confidence',
+                          )
+                        : false
+                    }
+                    onChange={e => {
+                      if (memberItem.values['Main Benefits'] === undefined)
+                        memberItem.values['Main Benefits'] = new Array();
+                      if (
+                        memberItem.values['Main Benefits'].includes(
+                          'self confidence',
+                        )
+                      ) {
+                        e.target.value = '';
+                        memberItem.values['Main Benefits'] = memberItem.values[
+                          'Main Benefits'
+                        ].filter(elem => elem !== 'self confidence');
+                      } else {
+                        e.target.value = 'self confidence';
+                        memberItem.values['Main Benefits'].push(
+                          'self confidence',
+                        );
+                      }
+                      handleChange(memberItem, 'Main Benefits', e);
+                    }}
+                  />
+                </span>
+                <span className="optionItem">
+                  <label htmlFor="concentration" style={{ minWidth: 'auto' }}>
+                    concentration
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="mainbenefits"
+                    id="concentration"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="concentration"
+                    checked={
+                      memberItem.values['Main Benefits'] !== undefined
+                        ? memberItem.values['Main Benefits'].includes(
+                            'concentration',
+                          )
+                        : false
+                    }
+                    onChange={e => {
+                      if (memberItem.values['Main Benefits'] === undefined)
+                        memberItem.values['Main Benefits'] = new Array();
+                      if (
+                        memberItem.values['Main Benefits'].includes(
+                          'concentration',
+                        )
+                      ) {
+                        e.target.value = '';
+                        memberItem.values['Main Benefits'] = memberItem.values[
+                          'Main Benefits'
+                        ].filter(elem => elem !== 'concentration');
+                      } else {
+                        e.target.value = 'concentration';
+                        memberItem.values['Main Benefits'].push(
+                          'concentration',
+                        );
+                      }
+                      handleChange(memberItem, 'Main Benefits', e);
+                    }}
+                  />
+                </span>
+                <span className="optionItem">
+                  <label htmlFor="coordination" style={{ minWidth: 'auto' }}>
+                    coordination
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="mainbenefits"
+                    id="coordination"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="coordination"
+                    checked={
+                      memberItem.values['Main Benefits'] !== undefined
+                        ? memberItem.values['Main Benefits'].includes(
+                            'coordination',
+                          )
+                        : false
+                    }
+                    onChange={e => {
+                      if (memberItem.values['Main Benefits'] === undefined)
+                        memberItem.values['Main Benefits'] = new Array();
+                      if (
+                        memberItem.values['Main Benefits'].includes(
+                          'coordination',
+                        )
+                      ) {
+                        e.target.value = '';
+                        memberItem.values['Main Benefits'] = memberItem.values[
+                          'Main Benefits'
+                        ].filter(elem => elem !== 'coordination');
+                      } else {
+                        e.target.value = 'coordination';
+                        memberItem.values['Main Benefits'].push('coordination');
+                      }
+                      handleChange(memberItem, 'Main Benefits', e);
+                    }}
+                  />
+                </span>
+                <span className="optionItem">
+                  <label htmlFor="balance" style={{ minWidth: 'auto' }}>
+                    balance
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="mainbenefits"
+                    id="balance"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="balance"
+                    checked={
+                      memberItem.values['Main Benefits'] !== undefined
+                        ? memberItem.values['Main Benefits'].includes('balance')
+                        : false
+                    }
+                    onChange={e => {
+                      if (memberItem.values['Main Benefits'] === undefined)
+                        memberItem.values['Main Benefits'] = new Array();
+                      if (
+                        memberItem.values['Main Benefits'].includes('balance')
+                      ) {
+                        e.target.value = '';
+                        memberItem.values['Main Benefits'] = memberItem.values[
+                          'Main Benefits'
+                        ].filter(elem => elem !== 'balance');
+                      } else {
+                        e.target.value = 'balance';
+                        memberItem.values['Main Benefits'].push('balance');
+                      }
+                      handleChange(memberItem, 'Main Benefits', e);
+                    }}
+                  />
+                </span>
+                <span className="optionItem">
+                  <label
+                    htmlFor="characterdevelopment"
+                    style={{ minWidth: 'auto' }}
+                  >
+                    character development
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="mainbenefits"
+                    id="characterdevelopment"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="character development"
+                    checked={
+                      memberItem.values['Main Benefits'] !== undefined
+                        ? memberItem.values['Main Benefits'].includes(
+                            'character development',
+                          )
+                        : false
+                    }
+                    onChange={e => {
+                      if (memberItem.values['Main Benefits'] === undefined)
+                        memberItem.values['Main Benefits'] = new Array();
+                      if (
+                        memberItem.values['Main Benefits'].includes(
+                          'character development',
+                        )
+                      ) {
+                        e.target.value = '';
+                        memberItem.values['Main Benefits'] = memberItem.values[
+                          'Main Benefits'
+                        ].filter(elem => elem !== 'character development');
+                      } else {
+                        e.target.value = 'character development';
+                        memberItem.values['Main Benefits'].push(
+                          'character development',
+                        );
+                      }
+                      handleChange(memberItem, 'Main Benefits', e);
+                    }}
+                  />
+                </span>
+                <span className="optionItem">
+                  <label htmlFor="focus" style={{ minWidth: 'auto' }}>
+                    focus
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="mainbenefits"
+                    id="focus"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="focus"
+                    checked={
+                      memberItem.values['Main Benefits'] !== undefined
+                        ? memberItem.values['Main Benefits'].includes('focus')
+                        : false
+                    }
+                    onChange={e => {
+                      if (memberItem.values['Main Benefits'] === undefined)
+                        memberItem.values['Main Benefits'] = new Array();
+                      if (
+                        memberItem.values['Main Benefits'].includes('focus')
+                      ) {
+                        e.target.value = '';
+                        memberItem.values['Main Benefits'] = memberItem.values[
+                          'Main Benefits'
+                        ].filter(elem => elem !== 'focus');
+                      } else {
+                        e.target.value = 'focus';
+                        memberItem.values['Main Benefits'].push('focus');
+                      }
+                      handleChange(memberItem, 'Main Benefits', e);
+                    }}
+                  />
+                </span>
+                <span className="optionItem">
+                  <label htmlFor="fun" style={{ minWidth: 'auto' }}>
+                    fun
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="mainbenefits"
+                    id="fun"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="fun"
+                    checked={
+                      memberItem.values['Main Benefits'] !== undefined
+                        ? memberItem.values['Main Benefits'].includes('fun')
+                        : false
+                    }
+                    onChange={e => {
+                      if (memberItem.values['Main Benefits'] === undefined)
+                        memberItem.values['Main Benefits'] = new Array();
+                      if (memberItem.values['Main Benefits'].includes('fun')) {
+                        e.target.value = '';
+                        memberItem.values['Main Benefits'] = memberItem.values[
+                          'Main Benefits'
+                        ].filter(elem => elem !== 'fun');
+                      } else {
+                        e.target.value = 'fun';
+                        memberItem.values['Main Benefits'].push('fun');
+                      }
+                      handleChange(memberItem, 'Main Benefits', e);
+                    }}
+                  />
+                </span>
+                <span className="optionItem">
+                  <label htmlFor="competition" style={{ minWidth: 'auto' }}>
+                    competition
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="mainbenefits"
+                    id="competition"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="competition"
+                    checked={
+                      memberItem.values['Main Benefits'] !== undefined
+                        ? memberItem.values['Main Benefits'].includes(
+                            'competition',
+                          )
+                        : false
+                    }
+                    onChange={e => {
+                      if (memberItem.values['Main Benefits'] === undefined)
+                        memberItem.values['Main Benefits'] = new Array();
+                      if (
+                        memberItem.values['Main Benefits'].includes(
+                          'competition',
+                        )
+                      ) {
+                        e.target.value = '';
+                        memberItem.values['Main Benefits'] = memberItem.values[
+                          'Main Benefits'
+                        ].filter(elem => elem !== 'competition');
+                      } else {
+                        e.target.value = 'competition';
+                        memberItem.values['Main Benefits'].push('competition');
+                      }
+                      handleChange(memberItem, 'Main Benefits', e);
+                    }}
+                  />
+                </span>
+                <span className="optionItem">
+                  <label htmlFor="ArtofJiuJitsu" style={{ minWidth: 'auto' }}>
+                    Art of Jiu Jitsu
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="mainbenefits"
+                    id="ArtofJiuJitsu"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="Art of Jiu Jitsu"
+                    checked={
+                      memberItem.values['Main Benefits'] !== undefined
+                        ? memberItem.values['Main Benefits'].includes(
+                            'Art of Jiu Jitsu',
+                          )
+                        : false
+                    }
+                    onChange={e => {
+                      if (memberItem.values['Main Benefits'] === undefined)
+                        memberItem.values['Main Benefits'] = new Array();
+                      if (
+                        memberItem.values['Main Benefits'].includes(
+                          'Art of Jiu Jitsu',
+                        )
+                      ) {
+                        e.target.value = '';
+                        memberItem.values['Main Benefits'] = memberItem.values[
+                          'Main Benefits'
+                        ].filter(elem => elem !== 'Art of Jiu Jitsu');
+                      } else {
+                        e.target.value = 'Art of Jiu Jitsu';
+                        memberItem.values['Main Benefits'].push(
+                          'Art of Jiu Jitsu',
+                        );
+                      }
+                      handleChange(memberItem, 'Main Benefits', e);
+                    }}
+                  />
+                </span>
+              </span>
+              <span className="line">
                 <div>
                   <label htmlFor="additionalprogram1">
                     Additional Program 1
@@ -951,7 +1536,7 @@ export const MemberNewContainer = compose(
   withProps(({ memberItem, createMember }) => {
     return {};
   }),
-  withState('isDirty', 'setIsDirty', false),
+  withState('states', 'setStates', ''),
   withHandlers({
     saveMember: ({
       memberItem,
@@ -1198,6 +1783,76 @@ export const MemberNewContainer = compose(
         );
         $('#covid19').val(nextProps.leadItem.values['GB Waiver']);
         handleDynamicChange(nextProps.memberItem, 'Covid19 Waiver', 'covid19');
+
+        if (nextProps.leadItem.values['Main Benefits'] !== undefined) {
+          nextProps.memberItem.values['Main Benefits'] =
+            nextProps.leadItem.values['Main Benefits'];
+
+          $('#excercise').prop(
+            'checked',
+            nextProps.leadItem.values['Main Benefits'].includes('excercise'),
+          );
+          $('#discipline').prop(
+            'checked',
+            nextProps.leadItem.values['Main Benefits'].includes('discipline'),
+          );
+          $('#selfdefense').prop(
+            'checked',
+            nextProps.leadItem.values['Main Benefits'].includes('selfdefense'),
+          );
+          $('#reducestress').prop(
+            'checked',
+            nextProps.leadItem.values['Main Benefits'].includes('reducestress'),
+          );
+          $('#respect').prop(
+            'checked',
+            nextProps.leadItem.values['Main Benefits'].includes('respect'),
+          );
+          $('#selfconfidence').prop(
+            'checked',
+            nextProps.leadItem.values['Main Benefits'].includes(
+              'selfconfidence',
+            ),
+          );
+          $('#concentration').prop(
+            'checked',
+            nextProps.leadItem.values['Main Benefits'].includes(
+              'concentration',
+            ),
+          );
+          $('#coordination').prop(
+            'checked',
+            nextProps.leadItem.values['Main Benefits'].includes('coordination'),
+          );
+          $('#balance').prop(
+            'checked',
+            nextProps.leadItem.values['Main Benefits'].includes('balance'),
+          );
+          $('#characterdevelopment').prop(
+            'checked',
+            nextProps.leadItem.values['Main Benefits'].includes(
+              'characterdevelopment',
+            ),
+          );
+          $('#focus').prop(
+            'checked',
+            nextProps.leadItem.values['Main Benefits'].includes('focus'),
+          );
+          $('#fun').prop(
+            'checked',
+            nextProps.leadItem.values['Main Benefits'].includes('fun'),
+          );
+          $('#competition').prop(
+            'checked',
+            nextProps.leadItem.values['Main Benefits'].includes('competition'),
+          );
+          $('#ArtofJiuJitsu').prop(
+            'checked',
+            nextProps.leadItem.values['Main Benefits'].includes(
+              'ArtofJiuJitsu',
+            ),
+          );
+        }
       } else {
         convertedLeadBirthday = undefined;
         convertedLeadPostcode = undefined;

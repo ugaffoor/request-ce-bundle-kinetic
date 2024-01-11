@@ -49,7 +49,7 @@
 }
 .card1,
 .card2 {
-  background-size: cover;
+  background-size: contain;
   background-repeat: no-repeat;
   width: 240mm;
   height: 330mm;
@@ -72,7 +72,8 @@
     }
   }
   .attendanceCard,
-  .visitorCard {
+  .visitorCard,
+  .coachCard {
     .card1 {
       margin-top: 0mm;
     }
@@ -98,7 +99,8 @@
 @page {
   size: a5 landscape;
   .attendanceCard.US,
-  .visitorCard.US {
+  .visitorCard.US,
+  .coachCard.US {
     size: letter landscape;
   }
 }
@@ -106,6 +108,9 @@
 .card1.Athlete,
 .card1.Elite_Athlete {
   background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/barrafit_attendance_card32022-P1.png);
+}
+.card1.coachCard {
+  background-image: url(https://gbfms-files.s3.ap-southeast-2.amazonaws.com/CoachCard2023-P1.png);
 }
 .card1.visitorCard {
   background-image: url(https://gbfms-files.s3.ap-southeast-2.amazonaws.com/VisitorCard2020.png);
@@ -141,6 +146,9 @@
   background-image: url(https://gbfms-files.s3-ap-southeast-2.amazonaws.com/Kids_Competition_Team-P1.png);
 }
 
+.card2.coachCard {
+  background-image: url(https://gbfms-files.s3.ap-southeast-2.amazonaws.com/CoachCard2023_P2.png);
+}
 .card2.BarraFIT,
 .card2.Athlete,
 .card2.Elite_Athlete {
@@ -178,6 +186,9 @@
 }
 
 .US {
+  .card1.coachCard {
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/CoachCard2023-P1.png);
+  }
   .card1.visitorCard {
     background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/VisitorCard2022.png);
   }
@@ -216,6 +227,9 @@
     background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/CompetitionTeam2022_P1.png);
   }
 
+  .card2.coachCard {
+    background-image: url(https://us-gbfms-files.s3.us-east-2.amazonaws.com/CoachCard2023_P2.png);
+  }
   .card2.Combo_GBF___BarraFIT,
   .card2.Combo_GB1___BarraFIT,
   .card2.GB1 {
@@ -651,7 +665,8 @@
         .memberBarcode {
           float: left;
         }
-        .visitorCard {
+        .visitorCard,
+        .coachCard {
           float: left;
           margin-right: 9px;
         }
@@ -682,7 +697,8 @@
       float: left;
     }
     .barcodePrint-svg,
-    .visitorCardPrint-svg {
+    .visitorCardPrint-svg,
+    .coachCardPrint-svg {
       margin-top: 10px;
       cursor: pointer;
     }
@@ -846,6 +862,29 @@
         min-width: unset;
       }
     }
+    input[type='checkbox'] {
+      margin-top: 8px !important;
+      margin-right: 20px !important;
+    }
+    .benefits {
+      background-color: #f3f0f0;
+      border-radius: 5px;
+      padding: 4px;
+      flex-wrap: wrap;
+      .optionItem {
+        display: flex;
+        flex-direction: row;
+        width: auto;
+        label {
+          float: none !important;
+          cursor: pointer;
+        }
+        input {
+          float: none !important;
+          cursor: pointer;
+        }
+      }
+    }
   }
   .DayPickerInput input {
     float: none !important;
@@ -993,6 +1032,9 @@
       }
       .hide {
         display: none;
+      }
+      .setupFee {
+        background-color: #f8f5f5;
       }
     }
     margin: 10px;
@@ -1263,6 +1305,121 @@ iframe#printf {
     p {
       font-size: 28px;
     }
+  }
+}
+
+.coachCard {
+  .card1 {
+    width: 240mm;
+    height: 330mm;
+  }
+  .schoolName {
+    margin-top: 642px;
+    margin-left: 568px;
+    transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
+    p {
+      font-size: 26px;
+    }
+  }
+  .memberName {
+    margin-top: 19px;
+    margin-left: 292px;
+    color: black;
+    transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
+    p {
+      font-size: 36px;
+    }
+  }
+  .photoDiv {
+    height: 162px;
+    width: 174px;
+    margin-left: 173mm;
+    margin-top: -140.5mm;
+    line-height: 95px;
+    background-color: transparent;
+    float: left;
+    .noPhotoDiv {
+      width: 120px;
+      height: 120px;
+      padding: 20px;
+      margin-left: 145px;
+      margin-bottom: 23px;
+      margin-top: 38px;
+      font-size: 54px;
+      transform-origin: 0 0;
+      transform: rotate(90deg);
+      -webkit-transform: rotate(90deg);
+      -moz-transform: rotate(90deg);
+      -ms-transform: rotate(90deg);
+      -o-transform: rotate(90deg);
+      filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
+      position: absolute;
+      background-color: #f1f1f0;
+    }
+    .photoImg {
+      margin-left: 0px;
+      margin-top: 5px;
+      height: 100%;
+      width: 100%;
+      transform: rotate(90deg);
+      -webkit-transform: rotate(90deg);
+      -moz-transform: rotate(90deg);
+      -ms-transform: rotate(90deg);
+      -o-transform: rotate(90deg);
+      filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
+      float: left;
+    }
+  }
+}
+.coachCard.US {
+  .card1 {
+    width: 600px;
+    height: 960px;
+    /*    width: 127mm;
+    height: 203.2mm;*/
+  }
+  .schoolName {
+    margin-top: 354px;
+    margin-left: 466px;
+  }
+  .photoDiv {
+    margin-left: 119mm;
+    margin-top: -87.5mm;
+    height: 106px;
+    width: 106px;
+    .noPhotoDiv {
+      width: 113px;
+      height: 112px;
+      margin-left: 109px;
+      margin-top: 0px;
+    }
+  }
+  .memberName {
+    margin-top: 36px;
+    margin-left: 258px;
+    width: 300px;
+    color: black;
+    p {
+      font-size: 28px;
+    }
+  }
+}
+.coachCard.US {
+  .card2 {
+    width: 600px;
+    height: 960px;
+    /*    width: 127mm;
+    height: 203.2mm;*/
   }
 }
 

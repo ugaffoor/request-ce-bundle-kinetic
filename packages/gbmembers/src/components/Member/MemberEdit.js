@@ -21,6 +21,7 @@ import {
   handleDateChange,
   getDateValue,
   getLocalePreference,
+  handleCountryChange,
 } from './MemberUtils';
 import moment from 'moment';
 import { contact_date_format } from '../leads/LeadsUtils';
@@ -63,6 +64,7 @@ const mapDispatchToProps = {
   updateLead: leadActions.updateLead,
   setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
+var myThis;
 
 export function getJson(input) {
   if (input === undefined || input === null) {
@@ -189,6 +191,7 @@ export const MemberEdit = ({
   editAdmin,
   setEditAdmin,
   space,
+  states,
 }) =>
   currentMemberLoading ? (
     <div />
@@ -538,6 +541,54 @@ export const MemberEdit = ({
                             handleChange(
                               memberItem,
                               'Billing Customer Reference',
+                              e,
+                              setIsDirty,
+                              memberChanges,
+                            )
+                          }
+                        />
+                      </div>
+                    </span>
+                    <span className="line">
+                      <div>
+                        <label htmlFor="billingId">Billing Setup Fee Id</label>
+                        <input
+                          type="text"
+                          name="billingId"
+                          id="billingId"
+                          size="30"
+                          ref={input => (this.input = input)}
+                          defaultValue={
+                            memberItem.values['Billing Setup Fee Id']
+                          }
+                          onChange={e =>
+                            handleChange(
+                              memberItem,
+                              'Billing Setup Fee Id',
+                              e,
+                              setIsDirty,
+                              memberChanges,
+                            )
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="billingId">
+                          Billing Setup Fee Type
+                        </label>
+                        <input
+                          type="text"
+                          name="billingId"
+                          id="billingId"
+                          size="30"
+                          ref={input => (this.input = input)}
+                          defaultValue={
+                            memberItem.values['Billing Setup Fee Type']
+                          }
+                          onChange={e =>
+                            handleChange(
+                              memberItem,
+                              'Billing Setup Fee Type',
                               e,
                               setIsDirty,
                               memberChanges,
@@ -1078,6 +1129,36 @@ export const MemberEdit = ({
                   }
                 />
               </div>
+              {getAttributeValue(space, 'School States', '') === undefined && (
+                <div>
+                  <label htmlFor="country">Country</label>
+                  <select
+                    name="country"
+                    id="country"
+                    required
+                    ref={input => (this.input = input)}
+                    defaultValue={memberItem.values['Country']}
+                    onChange={e => {
+                      memberItem.myThis = myThis;
+                      handleCountryChange(
+                        memberItem,
+                        'Country',
+                        e,
+                        setIsDirty,
+                        memberChanges,
+                      );
+                    }}
+                  >
+                    <option value="" />
+                    {getAttributeValue(space, 'Countries', '')
+                      .split(',')
+                      .map(country => {
+                        return <option value={country}>{country}</option>;
+                      })}
+                  </select>
+                  <div className="droparrow" />
+                </div>
+              )}
               <div className="state">
                 <label
                   htmlFor="State"
@@ -1087,30 +1168,68 @@ export const MemberEdit = ({
                 >
                   State
                 </label>
-                <select
-                  name="state"
-                  id="state"
-                  required
-                  ref={input => (this.input = input)}
-                  defaultValue={memberItem.values['State']}
-                  onChange={e =>
-                    handleChange(
-                      memberItem,
-                      'State',
-                      e,
-                      setIsDirty,
-                      memberChanges,
-                    )
-                  }
-                >
-                  <option value="" />
-                  {getAttributeValue(space, 'School States', '')
-                    .split(',')
-                    .map(state => {
-                      return <option value={state}>{state}</option>;
-                    })}
-                </select>
-                <div className="droparrow" />
+                {getAttributeValue(space, 'School States', '') ===
+                  undefined && (
+                  <span>
+                    <select
+                      name="state"
+                      id="state"
+                      required
+                      ref={input => (this.input = input)}
+                      defaultValue={memberItem.values['State']}
+                      onChange={e =>
+                        handleChange(
+                          memberItem,
+                          'State',
+                          e,
+                          setIsDirty,
+                          memberChanges,
+                        )
+                      }
+                    >
+                      <option value="" />
+                      {states === '' ? (
+                        <option value={memberItem.values['State']}>
+                          {memberItem.values['State']}
+                        </option>
+                      ) : (
+                        states.split(',').map(state => {
+                          return <option value={state}>{state}</option>;
+                        })
+                      )}
+                    </select>
+                    <div className="droparrow" />
+                  </span>
+                )}
+                {getAttributeValue(space, 'School States', '') !==
+                  undefined && (
+                  <span>
+                    <select
+                      name="state"
+                      id="state"
+                      required
+                      ref={input => (this.input = input)}
+                      defaultValue={memberItem.values['State']}
+                      onChange={e =>
+                        handleChange(
+                          memberItem,
+                          'State',
+                          e,
+                          setIsDirty,
+                          memberChanges,
+                        )
+                      }
+                    >
+                      <option value="" />
+                      {getAttributeValue(space, 'School States', '')
+                        .split(',')
+                        .map(state => {
+                          return <option value={state}>{state}</option>;
+                        })}
+                    </select>
+                    <div className="droparrow" />
+                  </span>
+                )}
               </div>
               <div className="postcode">
                 <label
@@ -1749,6 +1868,608 @@ export const MemberEdit = ({
               </div>
             </span>
             <span className="line">
+              <span>Main Benefits to Train</span>
+            </span>
+            <span className="line benefits">
+              <span className="optionItem">
+                <label htmlFor="excercise" style={{ minWidth: 'auto' }}>
+                  excercise
+                </label>
+                <input
+                  type="checkbox"
+                  name="mainbenefits"
+                  id="excercise"
+                  style={{ clear: 'none', margin: '4px' }}
+                  ref={input => (this.input = input)}
+                  value="excercise"
+                  checked={
+                    memberItem.values['Main Benefits'] !== undefined
+                      ? memberItem.values['Main Benefits'].includes('excercise')
+                      : false
+                  }
+                  onChange={e => {
+                    if (memberItem.values['Main Benefits'] === undefined)
+                      memberItem.values['Main Benefits'] = new Array();
+                    if (
+                      memberItem.values['Main Benefits'].includes('excercise')
+                    ) {
+                      e.target.value = '';
+                      memberItem.values['Main Benefits'] = memberItem.values[
+                        'Main Benefits'
+                      ].filter(elem => elem !== 'excercise');
+                    } else {
+                      e.target.value = 'excercise';
+                      memberItem.values['Main Benefits'].push('excercise');
+                    }
+                    handleChange(
+                      memberItem,
+                      'Main Benefits',
+                      e,
+                      setIsDirty,
+                      memberChanges,
+                    );
+                  }}
+                />
+              </span>
+              <span className="optionItem">
+                <label htmlFor="discipline" style={{ minWidth: 'auto' }}>
+                  discipline
+                </label>
+                <input
+                  type="checkbox"
+                  name="mainbenefits"
+                  id="discipline"
+                  style={{ clear: 'none', margin: '4px' }}
+                  ref={input => (this.input = input)}
+                  value="discipline"
+                  checked={
+                    memberItem.values['Main Benefits'] !== undefined
+                      ? memberItem.values['Main Benefits'].includes(
+                          'discipline',
+                        )
+                      : false
+                  }
+                  onChange={e => {
+                    if (memberItem.values['Main Benefits'] === undefined)
+                      memberItem.values['Main Benefits'] = new Array();
+                    if (
+                      memberItem.values['Main Benefits'].includes('discipline')
+                    ) {
+                      e.target.value = '';
+                      memberItem.values['Main Benefits'] = memberItem.values[
+                        'Main Benefits'
+                      ].filter(elem => elem !== 'discipline');
+                    } else {
+                      e.target.value = 'discipline';
+                      memberItem.values['Main Benefits'].push('discipline');
+                    }
+                    handleChange(
+                      memberItem,
+                      'Main Benefits',
+                      e,
+                      setIsDirty,
+                      memberChanges,
+                    );
+                  }}
+                />
+              </span>
+              <span className="optionItem">
+                <label htmlFor="selfdefense" style={{ minWidth: 'auto' }}>
+                  self defense
+                </label>
+                <input
+                  type="checkbox"
+                  name="mainbenefits"
+                  id="selfdefense"
+                  style={{ clear: 'none', margin: '4px' }}
+                  ref={input => (this.input = input)}
+                  value="self defense"
+                  checked={
+                    memberItem.values['Main Benefits'] !== undefined
+                      ? memberItem.values['Main Benefits'].includes(
+                          'self defense',
+                        )
+                      : false
+                  }
+                  onChange={e => {
+                    if (memberItem.values['Main Benefits'] === undefined)
+                      memberItem.values['Main Benefits'] = new Array();
+                    if (
+                      memberItem.values['Main Benefits'].includes(
+                        'self defense',
+                      )
+                    ) {
+                      e.target.value = '';
+                      memberItem.values['Main Benefits'] = memberItem.values[
+                        'Main Benefits'
+                      ].filter(elem => elem !== 'self defense');
+                    } else {
+                      e.target.value = 'self defense';
+                      memberItem.values['Main Benefits'].push('self defense');
+                    }
+                    handleChange(
+                      memberItem,
+                      'Main Benefits',
+                      e,
+                      setIsDirty,
+                      memberChanges,
+                    );
+                  }}
+                />
+              </span>
+              <span className="optionItem">
+                <label htmlFor="reducestress" style={{ minWidth: 'auto' }}>
+                  reduce stress
+                </label>
+                <input
+                  type="checkbox"
+                  name="mainbenefits"
+                  id="reducestress"
+                  style={{ clear: 'none', margin: '4px' }}
+                  ref={input => (this.input = input)}
+                  value="reduce stress"
+                  checked={
+                    memberItem.values['Main Benefits'] !== undefined
+                      ? memberItem.values['Main Benefits'].includes(
+                          'reduce stress',
+                        )
+                      : false
+                  }
+                  onChange={e => {
+                    if (memberItem.values['Main Benefits'] === undefined)
+                      memberItem.values['Main Benefits'] = new Array();
+                    if (
+                      memberItem.values['Main Benefits'].includes(
+                        'reduce stress',
+                      )
+                    ) {
+                      e.target.value = '';
+                      memberItem.values['Main Benefits'] = memberItem.values[
+                        'Main Benefits'
+                      ].filter(elem => elem !== 'reduce stress');
+                    } else {
+                      e.target.value = 'reduce stress';
+                      memberItem.values['Main Benefits'].push('reduce stress');
+                    }
+                    handleChange(
+                      memberItem,
+                      'Main Benefits',
+                      e,
+                      setIsDirty,
+                      memberChanges,
+                    );
+                  }}
+                />
+              </span>
+              <span className="optionItem">
+                <label htmlFor="respect" style={{ minWidth: 'auto' }}>
+                  respect
+                </label>
+                <input
+                  type="checkbox"
+                  name="mainbenefits"
+                  id="respect"
+                  style={{ clear: 'none', margin: '4px' }}
+                  ref={input => (this.input = input)}
+                  value="respect"
+                  checked={
+                    memberItem.values['Main Benefits'] !== undefined
+                      ? memberItem.values['Main Benefits'].includes('respect')
+                      : false
+                  }
+                  onChange={e => {
+                    if (memberItem.values['Main Benefits'] === undefined)
+                      memberItem.values['Main Benefits'] = new Array();
+                    if (
+                      memberItem.values['Main Benefits'].includes('respect')
+                    ) {
+                      e.target.value = '';
+                      memberItem.values['Main Benefits'] = memberItem.values[
+                        'Main Benefits'
+                      ].filter(elem => elem !== 'respect');
+                    } else {
+                      e.target.value = 'respect';
+                      memberItem.values['Main Benefits'].push('respect');
+                    }
+                    handleChange(
+                      memberItem,
+                      'Main Benefits',
+                      e,
+                      setIsDirty,
+                      memberChanges,
+                    );
+                  }}
+                />
+              </span>
+              <span className="optionItem">
+                <label htmlFor="selfconfidence" style={{ minWidth: 'auto' }}>
+                  self confidence
+                </label>
+                <input
+                  type="checkbox"
+                  name="mainbenefits"
+                  id="selfconfidence"
+                  style={{ clear: 'none', margin: '4px' }}
+                  ref={input => (this.input = input)}
+                  value="self confidence"
+                  checked={
+                    memberItem.values['Main Benefits'] !== undefined
+                      ? memberItem.values['Main Benefits'].includes(
+                          'self confidence',
+                        )
+                      : false
+                  }
+                  onChange={e => {
+                    if (memberItem.values['Main Benefits'] === undefined)
+                      memberItem.values['Main Benefits'] = new Array();
+                    if (
+                      memberItem.values['Main Benefits'].includes(
+                        'self confidence',
+                      )
+                    ) {
+                      e.target.value = '';
+                      memberItem.values['Main Benefits'] = memberItem.values[
+                        'Main Benefits'
+                      ].filter(elem => elem !== 'self confidence');
+                    } else {
+                      e.target.value = 'self confidence';
+                      memberItem.values['Main Benefits'].push(
+                        'self confidence',
+                      );
+                    }
+                    handleChange(
+                      memberItem,
+                      'Main Benefits',
+                      e,
+                      setIsDirty,
+                      memberChanges,
+                    );
+                  }}
+                />
+              </span>
+              <span className="optionItem">
+                <label htmlFor="concentration" style={{ minWidth: 'auto' }}>
+                  concentration
+                </label>
+                <input
+                  type="checkbox"
+                  name="mainbenefits"
+                  id="concentration"
+                  style={{ clear: 'none', margin: '4px' }}
+                  ref={input => (this.input = input)}
+                  value="concentration"
+                  checked={
+                    memberItem.values['Main Benefits'] !== undefined
+                      ? memberItem.values['Main Benefits'].includes(
+                          'concentration',
+                        )
+                      : false
+                  }
+                  onChange={e => {
+                    if (memberItem.values['Main Benefits'] === undefined)
+                      memberItem.values['Main Benefits'] = new Array();
+                    if (
+                      memberItem.values['Main Benefits'].includes(
+                        'concentration',
+                      )
+                    ) {
+                      e.target.value = '';
+                      memberItem.values['Main Benefits'] = memberItem.values[
+                        'Main Benefits'
+                      ].filter(elem => elem !== 'concentration');
+                    } else {
+                      e.target.value = 'concentration';
+                      memberItem.values['Main Benefits'].push('concentration');
+                    }
+                    handleChange(
+                      memberItem,
+                      'Main Benefits',
+                      e,
+                      setIsDirty,
+                      memberChanges,
+                    );
+                  }}
+                />
+              </span>
+              <span className="optionItem">
+                <label htmlFor="coordination" style={{ minWidth: 'auto' }}>
+                  coordination
+                </label>
+                <input
+                  type="checkbox"
+                  name="mainbenefits"
+                  id="coordination"
+                  style={{ clear: 'none', margin: '4px' }}
+                  ref={input => (this.input = input)}
+                  value="coordination"
+                  checked={
+                    memberItem.values['Main Benefits'] !== undefined
+                      ? memberItem.values['Main Benefits'].includes(
+                          'coordination',
+                        )
+                      : false
+                  }
+                  onChange={e => {
+                    if (memberItem.values['Main Benefits'] === undefined)
+                      memberItem.values['Main Benefits'] = new Array();
+                    if (
+                      memberItem.values['Main Benefits'].includes(
+                        'coordination',
+                      )
+                    ) {
+                      e.target.value = '';
+                      memberItem.values['Main Benefits'] = memberItem.values[
+                        'Main Benefits'
+                      ].filter(elem => elem !== 'coordination');
+                    } else {
+                      e.target.value = 'coordination';
+                      memberItem.values['Main Benefits'].push('coordination');
+                    }
+                    handleChange(
+                      memberItem,
+                      'Main Benefits',
+                      e,
+                      setIsDirty,
+                      memberChanges,
+                    );
+                  }}
+                />
+              </span>
+              <span className="optionItem">
+                <label htmlFor="balance" style={{ minWidth: 'auto' }}>
+                  balance
+                </label>
+                <input
+                  type="checkbox"
+                  name="mainbenefits"
+                  id="balance"
+                  style={{ clear: 'none', margin: '4px' }}
+                  ref={input => (this.input = input)}
+                  value="balance"
+                  checked={
+                    memberItem.values['Main Benefits'] !== undefined
+                      ? memberItem.values['Main Benefits'].includes('balance')
+                      : false
+                  }
+                  onChange={e => {
+                    if (memberItem.values['Main Benefits'] === undefined)
+                      memberItem.values['Main Benefits'] = new Array();
+                    if (
+                      memberItem.values['Main Benefits'].includes('balance')
+                    ) {
+                      e.target.value = '';
+                      memberItem.values['Main Benefits'] = memberItem.values[
+                        'Main Benefits'
+                      ].filter(elem => elem !== 'balance');
+                    } else {
+                      e.target.value = 'balance';
+                      memberItem.values['Main Benefits'].push('balance');
+                    }
+                    handleChange(
+                      memberItem,
+                      'Main Benefits',
+                      e,
+                      setIsDirty,
+                      memberChanges,
+                    );
+                  }}
+                />
+              </span>
+              <span className="optionItem">
+                <label
+                  htmlFor="characterdevelopment"
+                  style={{ minWidth: 'auto' }}
+                >
+                  character development
+                </label>
+                <input
+                  type="checkbox"
+                  name="mainbenefits"
+                  id="characterdevelopment"
+                  style={{ clear: 'none', margin: '4px' }}
+                  ref={input => (this.input = input)}
+                  value="character development"
+                  checked={
+                    memberItem.values['Main Benefits'] !== undefined
+                      ? memberItem.values['Main Benefits'].includes(
+                          'character development',
+                        )
+                      : false
+                  }
+                  onChange={e => {
+                    if (memberItem.values['Main Benefits'] === undefined)
+                      memberItem.values['Main Benefits'] = new Array();
+                    if (
+                      memberItem.values['Main Benefits'].includes(
+                        'character development',
+                      )
+                    ) {
+                      e.target.value = '';
+                      memberItem.values['Main Benefits'] = memberItem.values[
+                        'Main Benefits'
+                      ].filter(elem => elem !== 'character development');
+                    } else {
+                      e.target.value = 'character development';
+                      memberItem.values['Main Benefits'].push(
+                        'character development',
+                      );
+                    }
+                    handleChange(
+                      memberItem,
+                      'Main Benefits',
+                      e,
+                      setIsDirty,
+                      memberChanges,
+                    );
+                  }}
+                />
+              </span>
+              <span className="optionItem">
+                <label htmlFor="focus" style={{ minWidth: 'auto' }}>
+                  focus
+                </label>
+                <input
+                  type="checkbox"
+                  name="mainbenefits"
+                  id="focus"
+                  style={{ clear: 'none', margin: '4px' }}
+                  ref={input => (this.input = input)}
+                  value="focus"
+                  checked={
+                    memberItem.values['Main Benefits'] !== undefined
+                      ? memberItem.values['Main Benefits'].includes('focus')
+                      : false
+                  }
+                  onChange={e => {
+                    if (memberItem.values['Main Benefits'] === undefined)
+                      memberItem.values['Main Benefits'] = new Array();
+                    if (memberItem.values['Main Benefits'].includes('focus')) {
+                      e.target.value = '';
+                      memberItem.values['Main Benefits'] = memberItem.values[
+                        'Main Benefits'
+                      ].filter(elem => elem !== 'focus');
+                    } else {
+                      e.target.value = 'focus';
+                      memberItem.values['Main Benefits'].push('focus');
+                    }
+                    handleChange(
+                      memberItem,
+                      'Main Benefits',
+                      e,
+                      setIsDirty,
+                      memberChanges,
+                    );
+                  }}
+                />
+              </span>
+              <span className="optionItem">
+                <label htmlFor="fun" style={{ minWidth: 'auto' }}>
+                  fun
+                </label>
+                <input
+                  type="checkbox"
+                  name="mainbenefits"
+                  id="fun"
+                  style={{ clear: 'none', margin: '4px' }}
+                  ref={input => (this.input = input)}
+                  value="fun"
+                  checked={
+                    memberItem.values['Main Benefits'] !== undefined
+                      ? memberItem.values['Main Benefits'].includes('fun')
+                      : false
+                  }
+                  onChange={e => {
+                    if (memberItem.values['Main Benefits'] === undefined)
+                      memberItem.values['Main Benefits'] = new Array();
+                    if (memberItem.values['Main Benefits'].includes('fun')) {
+                      e.target.value = '';
+                      memberItem.values['Main Benefits'] = memberItem.values[
+                        'Main Benefits'
+                      ].filter(elem => elem !== 'fun');
+                    } else {
+                      e.target.value = 'fun';
+                      memberItem.values['Main Benefits'].push('fun');
+                    }
+                    handleChange(
+                      memberItem,
+                      'Main Benefits',
+                      e,
+                      setIsDirty,
+                      memberChanges,
+                    );
+                  }}
+                />
+              </span>
+              <span className="optionItem">
+                <label htmlFor="competition" style={{ minWidth: 'auto' }}>
+                  competition
+                </label>
+                <input
+                  type="checkbox"
+                  name="mainbenefits"
+                  id="competition"
+                  style={{ clear: 'none', margin: '4px' }}
+                  ref={input => (this.input = input)}
+                  value="competition"
+                  checked={
+                    memberItem.values['Main Benefits'] !== undefined
+                      ? memberItem.values['Main Benefits'].includes(
+                          'competition',
+                        )
+                      : false
+                  }
+                  onChange={e => {
+                    if (memberItem.values['Main Benefits'] === undefined)
+                      memberItem.values['Main Benefits'] = new Array();
+                    if (
+                      memberItem.values['Main Benefits'].includes('competition')
+                    ) {
+                      e.target.value = '';
+                      memberItem.values['Main Benefits'] = memberItem.values[
+                        'Main Benefits'
+                      ].filter(elem => elem !== 'competition');
+                    } else {
+                      e.target.value = 'competition';
+                      memberItem.values['Main Benefits'].push('competition');
+                    }
+                    handleChange(
+                      memberItem,
+                      'Main Benefits',
+                      e,
+                      setIsDirty,
+                      memberChanges,
+                    );
+                  }}
+                />
+              </span>
+              <span className="optionItem">
+                <label htmlFor="ArtofJiuJitsu" style={{ minWidth: 'auto' }}>
+                  Art of Jiu Jitsu
+                </label>
+                <input
+                  type="checkbox"
+                  name="mainbenefits"
+                  id="ArtofJiuJitsu"
+                  style={{ clear: 'none', margin: '4px' }}
+                  ref={input => (this.input = input)}
+                  value="Art of Jiu Jitsu"
+                  checked={
+                    memberItem.values['Main Benefits'] !== undefined
+                      ? memberItem.values['Main Benefits'].includes(
+                          'Art of Jiu Jitsu',
+                        )
+                      : false
+                  }
+                  onChange={e => {
+                    if (memberItem.values['Main Benefits'] === undefined)
+                      memberItem.values['Main Benefits'] = new Array();
+                    if (
+                      memberItem.values['Main Benefits'].includes(
+                        'Art of Jiu Jitsu',
+                      )
+                    ) {
+                      e.target.value = '';
+                      memberItem.values['Main Benefits'] = memberItem.values[
+                        'Main Benefits'
+                      ].filter(elem => elem !== 'Art of Jiu Jitsu');
+                    } else {
+                      e.target.value = 'Art of Jiu Jitsu';
+                      memberItem.values['Main Benefits'].push(
+                        'Art of Jiu Jitsu',
+                      );
+                    }
+                    handleChange(
+                      memberItem,
+                      'Main Benefits',
+                      e,
+                      setIsDirty,
+                      memberChanges,
+                    );
+                  }}
+                />
+              </span>
+            </span>
+            <span className="line">
               <div>
                 <label htmlFor="additionalprogram1">Additional Program 1</label>
                 <select
@@ -1943,6 +2664,7 @@ export const MemberEditContainer = compose(
   withState('showSetStatusModal', 'setShowSetStatusModal', false),
   withState('editUserName', 'setEditUserName', false),
   withState('editAdmin', 'setEditAdmin', false),
+  withState('states', 'setStates', ''),
   withHandlers({
     deleteMemberCall: ({
       memberItem,
@@ -2109,6 +2831,8 @@ export const MemberEditContainer = compose(
       });
     },
     UNSAFE_componentWillReceiveProps(nextProps) {
+      myThis = this;
+
       if (this.props.pathname !== nextProps.pathname) {
         this.props.fetchCurrentMember({
           id: this.props.match.params.id,

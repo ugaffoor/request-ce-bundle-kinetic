@@ -946,6 +946,572 @@ export class LeadNew extends Component {
                 )}
               </span>
               <span className="line">
+                <span>Main Benefits to Train</span>
+              </span>
+              <span className="line benefits">
+                <span className="optionItem">
+                  <label htmlFor="excercise" style={{ minWidth: 'auto' }}>
+                    excercise
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="mainbenefits"
+                    id="excercise"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="excercise"
+                    onChange={e => {
+                      if (
+                        this.props.leadItem.values['Main Benefits'] ===
+                        undefined
+                      )
+                        this.props.leadItem.values[
+                          'Main Benefits'
+                        ] = new Array();
+                      if (
+                        this.props.leadItem.values['Main Benefits'].includes(
+                          'excercise',
+                        )
+                      ) {
+                        e.target.value = '';
+                        this.props.leadItem.values[
+                          'Main Benefits'
+                        ] = this.props.leadItem.values['Main Benefits'].filter(
+                          elem => elem !== 'excercise',
+                        );
+                      } else {
+                        e.target.value = 'excercise';
+                        this.props.leadItem.values['Main Benefits'].push(
+                          'excercise',
+                        );
+                      }
+                      handleChange(this.props.leadItem, 'Main Benefits', e);
+                    }}
+                  />
+                </span>
+                <span className="optionItem">
+                  <label htmlFor="discipline" style={{ minWidth: 'auto' }}>
+                    discipline
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="mainbenefits"
+                    id="discipline"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="discipline"
+                    onChange={e => {
+                      if (
+                        this.props.leadItem.values['Main Benefits'] ===
+                        undefined
+                      )
+                        this.props.leadItem.values[
+                          'Main Benefits'
+                        ] = new Array();
+                      if (
+                        this.props.leadItem.values['Main Benefits'].includes(
+                          'discipline',
+                        )
+                      ) {
+                        e.target.value = '';
+                        this.props.leadItem.values[
+                          'Main Benefits'
+                        ] = this.props.leadItem.values['Main Benefits'].filter(
+                          elem => elem !== 'discipline',
+                        );
+                      } else {
+                        e.target.value = 'discipline';
+                        this.props.leadItem.values['Main Benefits'].push(
+                          'discipline',
+                        );
+                      }
+                      handleChange(this.props.leadItem, 'Main Benefits', e);
+                    }}
+                  />
+                </span>
+                <span className="optionItem">
+                  <label htmlFor="selfdefense" style={{ minWidth: 'auto' }}>
+                    self defense
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="mainbenefits"
+                    id="selfdefense"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="self defense"
+                    onChange={e => {
+                      if (
+                        this.props.leadItem.values['Main Benefits'] ===
+                        undefined
+                      )
+                        this.props.leadItem.values[
+                          'Main Benefits'
+                        ] = new Array();
+                      if (
+                        this.props.leadItem.values['Main Benefits'].includes(
+                          'self defense',
+                        )
+                      ) {
+                        e.target.value = '';
+                        this.props.leadItem.values[
+                          'Main Benefits'
+                        ] = this.props.leadItem.values['Main Benefits'].filter(
+                          elem => elem !== 'self defense',
+                        );
+                      } else {
+                        e.target.value = 'self defense';
+                        this.props.leadItem.values['Main Benefits'].push(
+                          'self defense',
+                        );
+                      }
+                      handleChange(this.props.leadItem, 'Main Benefits', e);
+                    }}
+                  />
+                </span>
+                <span className="optionItem">
+                  <label htmlFor="reducestress" style={{ minWidth: 'auto' }}>
+                    reduce stress
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="mainbenefits"
+                    id="reducestress"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="reduce stress"
+                    onChange={e => {
+                      if (
+                        this.props.leadItem.values['Main Benefits'] ===
+                        undefined
+                      )
+                        this.props.leadItem.values[
+                          'Main Benefits'
+                        ] = new Array();
+                      if (
+                        this.props.leadItem.values['Main Benefits'].includes(
+                          'reduce stress',
+                        )
+                      ) {
+                        e.target.value = '';
+                        this.props.leadItem.values[
+                          'Main Benefits'
+                        ] = this.props.leadItem.values['Main Benefits'].filter(
+                          elem => elem !== 'reduce stress',
+                        );
+                      } else {
+                        e.target.value = 'reduce stress';
+                        this.props.leadItem.values['Main Benefits'].push(
+                          'reduce stress',
+                        );
+                      }
+                      handleChange(this.props.leadItem, 'Main Benefits', e);
+                    }}
+                  />
+                </span>
+                <span className="optionItem">
+                  <label htmlFor="respect" style={{ minWidth: 'auto' }}>
+                    respect
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="mainbenefits"
+                    id="respect"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="respect"
+                    onChange={e => {
+                      if (
+                        this.props.leadItem.values['Main Benefits'] ===
+                        undefined
+                      )
+                        this.props.leadItem.values[
+                          'Main Benefits'
+                        ] = new Array();
+                      if (
+                        this.props.leadItem.values['Main Benefits'].includes(
+                          'respect',
+                        )
+                      ) {
+                        e.target.value = '';
+                        this.props.leadItem.values[
+                          'Main Benefits'
+                        ] = this.props.leadItem.values['Main Benefits'].filter(
+                          elem => elem !== 'respect',
+                        );
+                      } else {
+                        e.target.value = 'respect';
+                        this.props.leadItem.values['Main Benefits'].push(
+                          'respect',
+                        );
+                      }
+                      handleChange(this.props.leadItem, 'Main Benefits', e);
+                    }}
+                  />
+                </span>
+                <span className="optionItem">
+                  <label htmlFor="selfconfidence" style={{ minWidth: 'auto' }}>
+                    self confidence
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="mainbenefits"
+                    id="selfconfidence"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="self confidence"
+                    onChange={e => {
+                      if (
+                        this.props.leadItem.values['Main Benefits'] ===
+                        undefined
+                      )
+                        this.props.leadItem.values[
+                          'Main Benefits'
+                        ] = new Array();
+                      if (
+                        this.props.leadItem.values['Main Benefits'].includes(
+                          'self confidence',
+                        )
+                      ) {
+                        e.target.value = '';
+                        this.props.leadItem.values[
+                          'Main Benefits'
+                        ] = this.props.leadItem.values['Main Benefits'].filter(
+                          elem => elem !== 'self confidence',
+                        );
+                      } else {
+                        e.target.value = 'self confidence';
+                        this.props.leadItem.values['Main Benefits'].push(
+                          'self confidence',
+                        );
+                      }
+                      handleChange(this.props.leadItem, 'Main Benefits', e);
+                    }}
+                  />
+                </span>
+                <span className="optionItem">
+                  <label htmlFor="concentration" style={{ minWidth: 'auto' }}>
+                    concentration
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="mainbenefits"
+                    id="concentration"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="concentration"
+                    onChange={e => {
+                      if (
+                        this.props.leadItem.values['Main Benefits'] ===
+                        undefined
+                      )
+                        this.props.leadItem.values[
+                          'Main Benefits'
+                        ] = new Array();
+                      if (
+                        this.props.leadItem.values['Main Benefits'].includes(
+                          'concentration',
+                        )
+                      ) {
+                        e.target.value = '';
+                        this.props.leadItem.values[
+                          'Main Benefits'
+                        ] = this.props.leadItem.values['Main Benefits'].filter(
+                          elem => elem !== 'concentration',
+                        );
+                      } else {
+                        e.target.value = 'concentration';
+                        this.props.leadItem.values['Main Benefits'].push(
+                          'concentration',
+                        );
+                      }
+                      handleChange(this.props.leadItem, 'Main Benefits', e);
+                    }}
+                  />
+                </span>
+                <span className="optionItem">
+                  <label htmlFor="coordination" style={{ minWidth: 'auto' }}>
+                    coordination
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="mainbenefits"
+                    id="coordination"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="coordination"
+                    onChange={e => {
+                      if (
+                        this.props.leadItem.values['Main Benefits'] ===
+                        undefined
+                      )
+                        this.props.leadItem.values[
+                          'Main Benefits'
+                        ] = new Array();
+                      if (
+                        this.props.leadItem.values['Main Benefits'].includes(
+                          'coordination',
+                        )
+                      ) {
+                        e.target.value = '';
+                        this.props.leadItem.values[
+                          'Main Benefits'
+                        ] = this.props.leadItem.values['Main Benefits'].filter(
+                          elem => elem !== 'coordination',
+                        );
+                      } else {
+                        e.target.value = 'coordination';
+                        this.props.leadItem.values['Main Benefits'].push(
+                          'coordination',
+                        );
+                      }
+                      handleChange(this.props.leadItem, 'Main Benefits', e);
+                    }}
+                  />
+                </span>
+                <span className="optionItem">
+                  <label htmlFor="balance" style={{ minWidth: 'auto' }}>
+                    balance
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="mainbenefits"
+                    id="balance"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="balance"
+                    onChange={e => {
+                      if (
+                        this.props.leadItem.values['Main Benefits'] ===
+                        undefined
+                      )
+                        this.props.leadItem.values[
+                          'Main Benefits'
+                        ] = new Array();
+                      if (
+                        this.props.leadItem.values['Main Benefits'].includes(
+                          'balance',
+                        )
+                      ) {
+                        e.target.value = '';
+                        this.props.leadItem.values[
+                          'Main Benefits'
+                        ] = this.props.leadItem.values['Main Benefits'].filter(
+                          elem => elem !== 'balance',
+                        );
+                      } else {
+                        e.target.value = 'balance';
+                        this.props.leadItem.values['Main Benefits'].push(
+                          'balance',
+                        );
+                      }
+                      handleChange(this.props.leadItem, 'Main Benefits', e);
+                    }}
+                  />
+                </span>
+                <span className="optionItem">
+                  <label
+                    htmlFor="characterdevelopment"
+                    style={{ minWidth: 'auto' }}
+                  >
+                    character development
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="mainbenefits"
+                    id="characterdevelopment"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="character development"
+                    onChange={e => {
+                      if (
+                        this.props.leadItem.values['Main Benefits'] ===
+                        undefined
+                      )
+                        this.props.leadItem.values[
+                          'Main Benefits'
+                        ] = new Array();
+                      if (
+                        this.props.leadItem.values['Main Benefits'].includes(
+                          'character development',
+                        )
+                      ) {
+                        e.target.value = '';
+                        this.props.leadItem.values[
+                          'Main Benefits'
+                        ] = this.props.leadItem.values['Main Benefits'].filter(
+                          elem => elem !== 'character development',
+                        );
+                      } else {
+                        e.target.value = 'character development';
+                        this.props.leadItem.values['Main Benefits'].push(
+                          'character development',
+                        );
+                      }
+                      handleChange(this.props.leadItem, 'Main Benefits', e);
+                    }}
+                  />
+                </span>
+                <span className="optionItem">
+                  <label htmlFor="focus" style={{ minWidth: 'auto' }}>
+                    focus
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="mainbenefits"
+                    id="focus"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="focus"
+                    onChange={e => {
+                      if (
+                        this.props.leadItem.values['Main Benefits'] ===
+                        undefined
+                      )
+                        this.props.leadItem.values[
+                          'Main Benefits'
+                        ] = new Array();
+                      if (
+                        this.props.leadItem.values['Main Benefits'].includes(
+                          'focus',
+                        )
+                      ) {
+                        e.target.value = '';
+                        this.props.leadItem.values[
+                          'Main Benefits'
+                        ] = this.props.leadItem.values['Main Benefits'].filter(
+                          elem => elem !== 'focus',
+                        );
+                      } else {
+                        e.target.value = 'focus';
+                        this.props.leadItem.values['Main Benefits'].push(
+                          'focus',
+                        );
+                      }
+                      handleChange(this.props.leadItem, 'Main Benefits', e);
+                    }}
+                  />
+                </span>
+                <span className="optionItem">
+                  <label htmlFor="fun" style={{ minWidth: 'auto' }}>
+                    fun
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="mainbenefits"
+                    id="fun"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="fun"
+                    onChange={e => {
+                      if (
+                        this.props.leadItem.values['Main Benefits'] ===
+                        undefined
+                      )
+                        this.props.leadItem.values[
+                          'Main Benefits'
+                        ] = new Array();
+                      if (
+                        this.props.leadItem.values['Main Benefits'].includes(
+                          'fun',
+                        )
+                      ) {
+                        e.target.value = '';
+                        this.props.leadItem.values[
+                          'Main Benefits'
+                        ] = this.props.leadItem.values['Main Benefits'].filter(
+                          elem => elem !== 'fun',
+                        );
+                      } else {
+                        e.target.value = 'fun';
+                        this.props.leadItem.values['Main Benefits'].push('fun');
+                      }
+                      handleChange(this.props.leadItem, 'Main Benefits', e);
+                    }}
+                  />
+                </span>
+                <span className="optionItem">
+                  <label htmlFor="competition" style={{ minWidth: 'auto' }}>
+                    competition
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="mainbenefits"
+                    id="competition"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="competition"
+                    onChange={e => {
+                      if (
+                        this.props.leadItem.values['Main Benefits'] ===
+                        undefined
+                      )
+                        this.props.leadItem.values[
+                          'Main Benefits'
+                        ] = new Array();
+                      if (
+                        this.props.leadItem.values['Main Benefits'].includes(
+                          'competition',
+                        )
+                      ) {
+                        e.target.value = '';
+                        this.props.leadItem.values[
+                          'Main Benefits'
+                        ] = this.props.leadItem.values['Main Benefits'].filter(
+                          elem => elem !== 'competition',
+                        );
+                      } else {
+                        e.target.value = 'competition';
+                        this.props.leadItem.values['Main Benefits'].push(
+                          'competition',
+                        );
+                      }
+                      handleChange(this.props.leadItem, 'Main Benefits', e);
+                    }}
+                  />
+                </span>
+                <span className="optionItem">
+                  <label htmlFor="ArtofJiuJitsu" style={{ minWidth: 'auto' }}>
+                    Art of Jiu Jitsu
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="mainbenefits"
+                    id="ArtofJiuJitsu"
+                    style={{ clear: 'none', margin: '4px' }}
+                    ref={input => (this.input = input)}
+                    value="Art of Jiu Jitsu"
+                    onChange={e => {
+                      if (
+                        this.props.leadItem.values['Main Benefits'] ===
+                        undefined
+                      )
+                        this.props.leadItem.values[
+                          'Main Benefits'
+                        ] = new Array();
+                      if (
+                        this.props.leadItem.values['Main Benefits'].includes(
+                          'Art of Jiu Jitsu',
+                        )
+                      ) {
+                        e.target.value = '';
+                        this.props.leadItem.values[
+                          'Main Benefits'
+                        ] = this.props.leadItem.values['Main Benefits'].filter(
+                          elem => elem !== 'Art of Jiu Jitsu',
+                        );
+                      } else {
+                        e.target.value = 'Art of Jiu Jitsu';
+                        this.props.leadItem.values['Main Benefits'].push(
+                          'Art of Jiu Jitsu',
+                        );
+                      }
+                      handleChange(this.props.leadItem, 'Main Benefits', e);
+                    }}
+                  />
+                </span>
+              </span>
+              <span className="line">
                 <div>
                   <label htmlFor="program">Interest in Program</label>
                   <select

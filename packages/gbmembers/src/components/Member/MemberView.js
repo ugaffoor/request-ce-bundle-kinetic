@@ -845,6 +845,52 @@ class VisitorCardToPrint extends React.Component {
     );
   }
 }
+class CoachCardToPrint extends React.Component {
+  render() {
+    return (
+      <div
+        className={
+          'coachCard ' +
+          (getAttributeValue(this.props.space, 'Card Region') === undefined
+            ? ''
+            : getAttributeValue(this.props.space, 'Card Region'))
+        }
+      >
+        <div id="coachCard_p1" className={'card1 coachCard'}>
+          <div className={'schoolName'}>
+            <p>{getAttributeValue(this.props.space, 'School Name')}</p>
+          </div>
+          <div className={'memberName'}>
+            <p>
+              {this.props.memberItem.values['First Name']}{' '}
+              {this.props.memberItem.values['Last Name']}
+            </p>
+          </div>
+          <div className="photoDiv">
+            {this.props.memberItem.values['Photo'] === undefined &&
+            this.props.memberItem.values['First Name'] !== undefined ? (
+              <span className="noPhotoDiv">
+                <span className="name">
+                  {this.props.memberItem.values['First Name'][0]}
+                  {this.props.memberItem.values['Last Name'][0]}
+                </span>
+              </span>
+            ) : (
+              <img
+                src={this.props.memberItem.values['Photo']}
+                alt="Member Photograph"
+                className="photoImg"
+              />
+            )}
+          </div>
+        </div>
+        <div className={'filler'}></div>
+        <PageBreakWrapper>&nbsp;</PageBreakWrapper>
+        <div id="coachCard_p2" className={'card2 coachCard'}></div>
+      </div>
+    );
+  }
+}
 
 export const MemberView = ({
   memberItem,
@@ -1358,6 +1404,25 @@ export const MemberView = ({
                     content={() => this.visitorCardComponentRef}
                   />
                 </div>
+                {memberItem['values']['Member Type'] !== undefined &&
+                  memberItem['values']['Member Type'] !== null &&
+                  memberItem['values']['Member Type'].indexOf('Coach') !==
+                    -1 && (
+                    <div className="emergency">
+                      <div className="coachCard">
+                        <p>Coach Card</p>
+                      </div>
+                      <ReactToPrint
+                        trigger={() => (
+                          <SVGInline
+                            svg={printerIcon}
+                            className="icon coachCardPrint"
+                          />
+                        )}
+                        content={() => this.coachCardComponentRef}
+                      />
+                    </div>
+                  )}
               </span>
             </div>
           </div>
@@ -1385,6 +1450,13 @@ export const MemberView = ({
           <div style={{ display: 'none' }}>
             <VisitorCardToPrint
               ref={el => (this.visitorCardComponentRef = el)}
+              memberItem={memberItem}
+              space={space}
+            />
+          </div>
+          <div style={{ display: 'none' }}>
+            <CoachCardToPrint
+              ref={el => (this.coachCardComponentRef = el)}
               memberItem={memberItem}
               space={space}
             />
@@ -1493,9 +1565,12 @@ export const MemberView = ({
                 className={
                   memberItem.values['Billing Payment Type'] !== 'Cash' &&
                   memberItem.values['Non Paying'] !== 'YES' &&
-                  memberItem.values['Billing Customer Id'] !== undefined &&
-                  memberItem.values['Billing Customer Id'] !== '' &&
-                  memberItem.values['Billing Customer Id'] !== null
+                  ((memberItem.values['Billing Customer Id'] !== undefined &&
+                    memberItem.values['Billing Customer Id'] !== '' &&
+                    memberItem.values['Billing Customer Id'] !== null) ||
+                    (memberItem.values['Billing Setup Fee Id'] !== undefined &&
+                      memberItem.values['Billing Setup Fee Id'] !== '' &&
+                      memberItem.values['Billing Setup Fee Id'] !== null))
                     ? 'billingInfo show'
                     : 'hide'
                 }
@@ -1521,28 +1596,6 @@ export const MemberView = ({
                   </NavLink>
                 )}
               </div>
-              {/*<div
-                className={
-                  (memberItem.values['Billing Payment Type'] === 'Cash' &&
-                  memberItem.values['Non Paying'] !== 'YES') ||
-                  memberItem.values['Billing Customer Id'] === undefined ||
-                  memberItem.values['Billing Customer Id'] === '' ||
-                  memberItem.values['Billing Customer Id'] === null
-                    ? 'billingInfo show'
-                    : 'hide'
-                }
-              >
-                {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
-                  <div />
-                ) : (
-                  <NavLink
-                    to={`/Billing/${memberItem.id}`}
-                    className="btn btn-primary"
-                  >
-                    XBilling
-                  </NavLink>
-                )}
-                </div>*/}
               <div
                 className={
                   memberItem.values['Non Paying'] !== 'YES' &&

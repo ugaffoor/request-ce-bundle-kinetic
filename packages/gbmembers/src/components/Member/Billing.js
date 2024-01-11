@@ -65,17 +65,21 @@ const ReactDataGrid = require('react-data-grid');
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   memberItem: state.member.members.currentMember,
-  billingInfo: state.member.members.billingInfo,
   posCards: state.member.pos.posCards,
   posCardsLoading: state.member.pos.posCardsLoading,
   members: state.member.members.allMembers,
+  billingInfo: state.member.members.billingInfo,
   billingInfoLoading: state.member.members.billingInfoLoading,
+  setupBillingInfo: state.member.members.setupBillingInfo,
+  setupBillingInfoLoading: state.member.members.setupBillingInfoLoading,
   completeMemberBilling: state.member.members.completeMemberBilling,
   currentMemberLoading: state.member.members.currentMemberLoading,
   allMembers: state.member.members.allMembers,
   membershipFees: state.member.app.membershipFees,
   paymentHistory: state.member.members.ALLpaymentHistory,
   paymentHistoryLoading: state.member.members.ALLpaymentHistoryLoading,
+  setupPaymentHistory: state.member.members.SETUPpaymentHistory,
+  setupPaymentHistoryLoading: state.member.members.SETUPpaymentHistoryLoading,
   refundTransactionInProgress: state.member.members.refundTransactionInProgress,
   refundTransactionID: state.member.members.refundTransactionID,
   familyMembers: state.member.members.familyMembers,
@@ -96,9 +100,11 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = {
   fetchCurrentMember: actions.fetchCurrentMember,
-  fetchBillingInfo: actions.fetchBillingInfo,
   fetchBillingInfoAfterRegistration: actions.fetchBillingInfoAfterRegistration,
+  fetchBillingInfo: actions.fetchBillingInfo,
   setBillingInfo: actions.setBillingInfo,
+  fetchSetupBillingInfo: actions.fetchBillingInfo,
+  setSetupBillingInfo: actions.setSetupBillingInfo,
   setCurrentMember: actions.setCurrentMember,
   clearPOSCards: posActions.clearPOSCards,
   fetchPOSCards: posActions.fetchPOSCards,
@@ -107,6 +113,7 @@ const mapDispatchToProps = {
   editPaymentAmount: actions.editPaymentAmount,
   fetchPaymentHistory: actions.fetchPaymentHistory,
   setPaymentHistory: actions.setPaymentHistory,
+  setPaymentHistoryLoaded: actions.setPaymentHistoryLoaded,
   fetchFamilyMembers: actions.fetchFamilyMembers,
   setFamilyMembers: actions.setFamilyMembers,
   refundTransaction: actions.refundTransaction,
@@ -1385,7 +1392,11 @@ export class PaymentHistory extends Component {
     this.refundPayment = this.refundPayment.bind(this);
     this.paymentHistory = this.props.paymentHistory;
     this.memberCashPayments = this.props.memberCashPayments;
-    let data = this.getData(this.paymentHistory, this.memberCashPayments);
+    let data = this.getData(
+      this.paymentHistory,
+      this.memberCashPayments,
+      this.props.setupPaymentHistory,
+    );
     let columns = this.getColumns();
     this.rowRecieptsRefs = new Map();
     this.state = {
@@ -1395,18 +1406,23 @@ export class PaymentHistory extends Component {
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
-    if (nextProps.paymentHistory && !nextProps.memberCashPaymentsLoading) {
+    if (
+      !nextProps.paymentHistoryLoading &&
+      !nextProps.setupPaymentHistoryLoading &&
+      !nextProps.memberCashPaymentsLoading
+    ) {
       this.paymentHistory = nextProps.paymentHistory;
       this.setState({
         data: this.getData(
           nextProps.paymentHistory,
           nextProps.memberCashPayments,
+          nextProps.setupPaymentHistory,
         ),
       });
     }
   }
 
-  getData(payments, memberCashPayments) {
+  getData(payments, memberCashPayments, setupfees) {
     var successfulPayments = [];
     payments.forEach((payment, i) => {
       if (payment.paymentStatus !== 'Refund') {
@@ -1424,6 +1440,25 @@ export class PaymentHistory extends Component {
         }
       }
     });
+
+    if (setupfees !== undefined) {
+      setupfees.forEach((payment, i) => {
+        if (payment.paymentStatus !== 'Refund') {
+          successfulPayments[successfulPayments.length] = payment;
+        }
+      });
+
+      setupfees.forEach((payment, i) => {
+        if (payment.paymentStatus === 'Refund') {
+          var idx = successfulPayments.findIndex(item => {
+            return item.paymentID === payment.yourSystemReference;
+          });
+          if (idx !== -1) {
+            successfulPayments[idx].refundAmount = payment.paymentAmount;
+          }
+        }
+      });
+    }
     memberCashPayments.forEach((payment, i) => {
       successfulPayments[successfulPayments.length] = {
         paymentAmount: payment.values['Amount'],
@@ -2223,9 +2258,15 @@ export class BillingInfo extends Component {
         <span className="line">
           {this.props.memberItem.values['Billing Payment Type'] !== 'Cash' &&
             this.props.memberItem.values['Non Paying'] !== 'YES' &&
-            this.props.memberItem.values['Billing Customer Id'] !== undefined &&
-            this.props.memberItem.values['Billing Customer Id'] !== null &&
-            this.props.memberItem.values['Billing Customer Id'] !== '' && (
+            ((this.props.memberItem.values['Billing Customer Id'] !==
+              undefined &&
+              this.props.memberItem.values['Billing Customer Id'] !== null &&
+              this.props.memberItem.values['Billing Customer Id'] !== '') ||
+              (this.props.memberItem.values['Billing Setup Fee Id'] !==
+                undefined &&
+                this.props.memberItem.values['Billing Setup Fee Id'] !== null &&
+                this.props.memberItem.values['Billing Setup Fee Id'] !==
+                  '')) && (
               <span>
                 <div title="Billing Info" className="billingInfo">
                   {!this.props.isValidInput ? (
@@ -2236,7 +2277,20 @@ export class BillingInfo extends Component {
                     ''
                   )}
                   <hr />
-                  {this.props.billingInfoLoading === true ? (
+                  {(this.props.memberItem.values['Billing Customer Id'] !==
+                    undefined &&
+                    this.props.memberItem.values['Billing Customer Id'] !==
+                      null &&
+                    this.props.memberItem.values['Billing Customer Id'] !==
+                      '' &&
+                    this.props.billingInfoLoading === true) ||
+                  (this.props.memberItem.values['Billing Setup Fee Id'] !==
+                    undefined &&
+                    this.props.memberItem.values['Billing Setup Fee Id'] !==
+                      null &&
+                    this.props.memberItem.values['Billing Setup Fee Id'] !==
+                      '' &&
+                    this.props.setupBillingInfoLoading === true) ? (
                     <div>
                       <p>Loading Billing Information</p>
                       <ReactSpinner />
@@ -2265,7 +2319,10 @@ export class BillingInfo extends Component {
                       )}
                       <table
                         className={
-                          this.props.billingInfo.customerBillingId !== undefined
+                          this.props.billingInfo.customerBillingId !==
+                            undefined ||
+                          this.props.setupBillingInfo.customerBillingId !==
+                            undefined
                             ? 'show'
                             : 'hide'
                         }
@@ -2275,6 +2332,126 @@ export class BillingInfo extends Component {
                             <th width="30%">Item</th>
                             <th width="70%">Value</th>
                           </tr>
+                          {this.props.memberItem.values[
+                            'Billing Setup Fee Id'
+                          ] && (
+                            <tr className="setupFee">
+                              <td>Setup Fee ID:</td>
+                              <td>
+                                {
+                                  this.props.memberItem.values[
+                                    'Billing Setup Fee Id'
+                                  ]
+                                }
+                              </td>
+                            </tr>
+                          )}
+                          {this.props.memberItem.values[
+                            'Billing Setup Fee Type'
+                          ] && (
+                            <tr className="setupFee">
+                              <td>Setup Fee Type:</td>
+                              <td>
+                                {
+                                  this.props.memberItem.values[
+                                    'Billing Setup Fee Type'
+                                  ]
+                                }
+                              </td>
+                            </tr>
+                          )}
+                          {this.props.memberItem.values[
+                            'Billing Setup Fee Id'
+                          ] && (
+                            <tr className="setupFee">
+                              <td>Setup Billing Status:</td>
+                              {getAttributeValue(
+                                this.props.space,
+                                'Billing Company',
+                              ) === 'PaySmart' && (
+                                <td>
+                                  {this.props.setupBillingInfo.statusCode}-
+                                  {
+                                    this.props.setupBillingInfo
+                                      .statusDescription
+                                  }
+                                </td>
+                              )}
+                              {getAttributeValue(
+                                this.props.space,
+                                'Billing Company',
+                              ) !== 'PaySmart' && (
+                                <td>
+                                  {this.props.setupBillingInfo.statusCode}
+                                </td>
+                              )}
+                            </tr>
+                          )}
+                          {this.props.memberItem.values[
+                            'Billing Setup Fee Id'
+                          ] &&
+                            (this.props.setupBillingInfo.statusCode ===
+                              'Active' ||
+                              this.props.setupBillingInfo.statusCode ===
+                                'Pending Freeze' ||
+                              this.props.setupBillingInfo.statusCode ===
+                                'Pending Cancellation' ||
+                              this.props.setupBillingInfo.statusCode === '0') &&
+                            this.props.setupBillingInfo.nextBillingDate && (
+                              <tr className="setupFee">
+                                <td>Setup Next Billing Date:</td>
+                                <td>
+                                  {typeof this.props.setupBillingInfo
+                                    .nextBillingDate === 'string'
+                                    ? moment(
+                                        this.props.setupBillingInfo
+                                          .nextBillingDate,
+                                        'DD-MM-YYYY',
+                                      ).format('L')
+                                    : this.props.setupBillingInfo.nextBillingDate.format(
+                                        'L',
+                                      )}
+                                </td>
+                              </tr>
+                            )}
+                          {this.props.memberItem.values[
+                            'Billing Setup Fee Id'
+                          ] &&
+                            (this.props.setupBillingInfo.statusCode ===
+                              'Frozen' ||
+                              this.props.setupBillingInfo.statusCode ===
+                                '2') && (
+                              <tr className="setupFee">
+                                <td>Setup Next Billing Date:</td>
+                                <td>
+                                  {this.props.memberItem.values[
+                                    'Resume Date'
+                                  ] == null
+                                    ? 'Until Further Notice'
+                                    : this.props.memberItem.values[
+                                        'Resume Date'
+                                      ]}
+                                </td>
+                              </tr>
+                            )}
+                          {this.props.memberItem.values[
+                            'Billing Setup Fee Id'
+                          ] &&
+                            this.props.setupBillingInfo
+                              .paymentAmountInCents && (
+                              <tr className="setupFee">
+                                <td>Setup Payment Amount:</td>
+                                <td>
+                                  {new Intl.NumberFormat(this.props.locale, {
+                                    style: 'currency',
+                                    currency: this.props.currency,
+                                  }).format(
+                                    this.props.setupBillingInfo
+                                      .paymentAmountInCents / 100,
+                                  )}
+                                </td>
+                              </tr>
+                            )}
                           {this.props.memberItem.values['useSubAccount'] ===
                             'YES' && (
                             <tr>
@@ -2553,22 +2730,27 @@ export class BillingInfo extends Component {
             )}
         </span>
         <div className="line">
-          {this.props.memberItem.values['Billing Customer Id'] !== null &&
-            this.props.memberItem.values['Billing Customer Id'] !== undefined &&
-            this.props.memberItem.values['Billing Customer Id'] !== '' && (
-              <span className="line">
-                <div style={{ marginTop: '10px' }}>
-                  <button
-                    type="button"
-                    id="showHidePaymentHistory"
-                    className={'btn btn-primary'}
-                    onClick={e => this.showHidePaymentHistory()}
-                  >
-                    {this.state.paymentHistoryBtnLabel}
-                  </button>
-                </div>
-              </span>
-            )}
+          {((this.props.memberItem.values['Billing Customer Id'] !==
+            undefined &&
+            this.props.memberItem.values['Billing Customer Id'] !== null &&
+            this.props.memberItem.values['Billing Customer Id'] !== '') ||
+            (this.props.memberItem.values['Billing Setup Fee Id'] !==
+              undefined &&
+              this.props.memberItem.values['Billing Setup Fee Id'] !== null &&
+              this.props.memberItem.values['Billing Setup Fee Id'] !== '')) && (
+            <span className="line">
+              <div style={{ marginTop: '10px' }}>
+                <button
+                  type="button"
+                  id="showHidePaymentHistory"
+                  className={'btn btn-primary'}
+                  onClick={e => this.showHidePaymentHistory()}
+                >
+                  {this.state.paymentHistoryBtnLabel}
+                </button>
+              </div>
+            </span>
+          )}
           <span className="line">
             <div style={{ width: '90vw', marginTop: '10px' }}>
               {this.state.showPaymentHistory && (
@@ -2576,6 +2758,10 @@ export class BillingInfo extends Component {
                   getPaymentHistory={this.props.getPaymentHistory}
                   paymentHistory={this.props.paymentHistory}
                   paymentHistoryLoading={this.props.paymentHistoryLoading}
+                  setupPaymentHistory={this.props.setupPaymentHistory}
+                  setupPaymentHistoryLoading={
+                    this.props.setupPaymentHistoryLoading
+                  }
                   billingThis={this}
                   refundPayment={this.props.refundPayment}
                   refundTransactionInProgress={
@@ -2620,7 +2806,6 @@ export class BillingInfo extends Component {
 
 export const Billing = ({
   memberItem,
-  billingInfo,
   isDirty,
   setIsDirty,
   isRegistered,
@@ -2629,13 +2814,18 @@ export const Billing = ({
   setDoRegistration,
   isAddMember,
   setIsAddMember,
-  billingInfoLoading,
   completeMemberBilling,
   currentMemberLoading,
   completeMemberRegistration,
+  billingInfo,
   fetchBillingInfo,
-  fetchBillingInfoAfterRegistration,
   setBillingInfo,
+  billingInfoLoading,
+  setupBillingInfo,
+  fetchSetupBillingInfo,
+  setSetupBillingInfo,
+  setupBillingInfoLoading,
+  fetchBillingInfoAfterRegistration,
   fetchPOSCards,
   setPOSCards,
   posCards,
@@ -2656,6 +2846,8 @@ export const Billing = ({
   getPaymentHistory,
   paymentHistory,
   paymentHistoryLoading,
+  setupPaymentHistory,
+  setupPaymentHistoryLoading,
   billingDDRUrl,
   billingWidgetUrl,
   billingCompany,
@@ -2693,6 +2885,8 @@ export const Billing = ({
             <BillingInfo
               billingInfo={billingInfo}
               billingInfoLoading={billingInfoLoading}
+              setupBillingInfo={setupBillingInfo}
+              setupBillingInfoLoading={setupBillingInfoLoading}
               memberItem={memberItem}
               removeBillingMember={removeBillingMember}
               myThis={memberItem.myThis}
@@ -2709,6 +2903,8 @@ export const Billing = ({
               getPaymentHistory={getPaymentHistory}
               paymentHistory={paymentHistory}
               paymentHistoryLoading={paymentHistoryLoading}
+              setupPaymentHistory={setupPaymentHistory}
+              setupPaymentHistoryLoading={setupPaymentHistoryLoading}
               fetchPOSCards={fetchPOSCards}
               setPOSCards={setPOSCards}
               posCards={posCards}
@@ -3090,38 +3286,90 @@ export const BillingContainer = compose(
       space,
       fetchPaymentHistory,
       setPaymentHistory,
+      setPaymentHistoryLoaded,
       addNotification,
       setSystemError,
       lastHistoryDate,
       setLastHistoryDate,
     }) => () => {
-      fetchPaymentHistory({
-        billingRef:
-          memberItem.values['Billing Customer Id'] !== null &&
-          memberItem.values['Billing Customer Id'] !== undefined &&
-          memberItem.values['Billing Customer Id'] !== ''
-            ? memberItem.values['Billing Customer Id']
-            : memberItem.values['Member ID'],
-        paymentType: 'ALL',
-        paymentMethod: 'ALL',
-        paymentSource: 'ALL',
-        dateField: 'PAYMENT',
-        dateFrom: moment
-          .utc()
-          .subtract(2, 'years')
-          .format('YYYY-MM-DD'),
-        dateTo: moment
-          .utc()
-          .add(1, 'days')
-          .format('YYYY-MM-DD'),
-        history: memberItem.myThis.props.history,
-        setPaymentHistory: memberItem.myThis.props.setPaymentHistory,
-        internalPaymentType: 'customer',
-        addNotification: addNotification,
-        setSystemError: setSystemError,
-        useSubAccount:
-          memberItem.values['useSubAccount'] === 'YES' ? true : false,
-      });
+      if (
+        memberItem.values['Billing Customer Id'] !== null &&
+        memberItem.values['Billing Customer Id'] !== undefined &&
+        memberItem.values['Billing Customer Id'] !== ''
+      ) {
+        fetchPaymentHistory({
+          billingRef:
+            memberItem.values['Billing Customer Id'] !== null &&
+            memberItem.values['Billing Customer Id'] !== undefined &&
+            memberItem.values['Billing Customer Id'] !== ''
+              ? memberItem.values['Billing Customer Id']
+              : memberItem.values['Member ID'],
+          paymentType: 'ALL',
+          paymentMethod: 'ALL',
+          paymentSource: 'ALL',
+          dateField: 'PAYMENT',
+          dateFrom: moment
+            .utc()
+            .subtract(2, 'years')
+            .format('YYYY-MM-DD'),
+          dateTo: moment
+            .utc()
+            .add(1, 'days')
+            .format('YYYY-MM-DD'),
+          history: memberItem.myThis.props.history,
+          setPaymentHistory: memberItem.myThis.props.setPaymentHistory,
+          internalPaymentType: 'customer',
+          addNotification: addNotification,
+          setSystemError: setSystemError,
+          useSubAccount:
+            memberItem.values['useSubAccount'] === 'YES' ? true : false,
+        });
+      } else {
+        setPaymentHistoryLoaded({
+          setPaymentHistory: memberItem.myThis.props.setPaymentHistory,
+          data: [],
+          paymentType: 'ALL',
+        });
+      }
+      if (
+        memberItem.values['Billing Setup Fee Id'] !== null &&
+        memberItem.values['Billing Setup Fee Id'] !== undefined &&
+        memberItem.values['Billing Setup Fee Id'] !== ''
+      ) {
+        fetchPaymentHistory({
+          billingRef:
+            memberItem.values['Billing Setup Fee Id'] !== null &&
+            memberItem.values['Billing Setup Fee Id'] !== undefined &&
+            memberItem.values['Billing Setup Fee Id'] !== ''
+              ? memberItem.values['Billing Setup Fee Id']
+              : memberItem.values['Member ID'],
+          paymentType: 'SETUP',
+          paymentMethod: 'ALL',
+          paymentSource: 'ALL',
+          dateField: 'PAYMENT',
+          dateFrom: moment
+            .utc()
+            .subtract(2, 'years')
+            .format('YYYY-MM-DD'),
+          dateTo: moment
+            .utc()
+            .add(1, 'days')
+            .format('YYYY-MM-DD'),
+          history: memberItem.myThis.props.history,
+          setPaymentHistory: memberItem.myThis.props.setPaymentHistory,
+          internalPaymentType: 'customer',
+          addNotification: addNotification,
+          setSystemError: setSystemError,
+          useSubAccount:
+            memberItem.values['useSubAccount'] === 'YES' ? true : false,
+        });
+      } else {
+        setPaymentHistoryLoaded({
+          setPaymentHistory: memberItem.myThis.props.setPaymentHistory,
+          data: [],
+          paymentType: 'SETUP',
+        });
+      }
       //      setLastHistoryDate(lastHistoryDate===null ? moment.utc() : lastHistoryDate.utc().subtract(1, 'years'));
     },
     addCashPaymentValue: ({
@@ -3221,12 +3469,32 @@ export const BillingContainer = compose(
             this.props.clearPOSCards();
           }
         } else {
-          if (member.values['Billing Customer Id']) {
+          if (
+            member.values['Billing Customer Id'] !== undefined &&
+            member.values['Billing Customer Id'] !== null &&
+            member.values['Billing Customer Id'] !== ''
+          ) {
             this.props.fetchBillingInfo({
               billingRef: member.values['Billing Customer Id'],
               history: this.props.history,
               myThis: this,
               setBillingInfo: this.props.setBillingInfo,
+              addNotification: this.props.addNotification,
+              setSystemError: this.props.setSystemError,
+              useSubAccount:
+                member.values['useSubAccount'] === 'YES' ? true : false,
+            });
+          }
+          if (
+            member.values['Billing Setup Fee Id'] !== undefined &&
+            member.values['Billing Setup Fee Id'] !== null &&
+            member.values['Billing Setup Fee Id'] !== ''
+          ) {
+            this.props.fetchSetupBillingInfo({
+              billingRef: member.values['Billing Setup Fee Id'],
+              history: this.props.history,
+              myThis: this,
+              setBillingInfo: this.props.setSetupBillingInfo,
               addNotification: this.props.addNotification,
               setSystemError: this.props.setSystemError,
               useSubAccount:
@@ -3293,6 +3561,20 @@ export const BillingContainer = compose(
               addNotification: this.props.addNotification,
               setSystemError: this.props.setSystemError,
             });
+            if (
+              member.values['Billing Setup Fee Id'] !== undefined &&
+              member.values['Billing Setup Fee Id'] !== null &&
+              member.values['Billing Setup Fee Id'] !== ''
+            ) {
+              this.props.fetchSetupBillingInfo({
+                billingRef: member.values['Billing Setup Fee Id'],
+                history: this.props.history,
+                myThis: this,
+                setBillingInfo: this.props.setSetupBillingInfo,
+                addNotification: this.props.addNotification,
+                setSystemError: this.props.setSystemError,
+              });
+            }
           }
           this.props.fetchCurrentMember({
             id: this.props.match.params['id'],

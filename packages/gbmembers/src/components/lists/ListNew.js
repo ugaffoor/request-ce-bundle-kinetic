@@ -885,7 +885,7 @@ export class ListNewHome extends Component {
                       ref="specificMembersDiv"
                     >
                       <label htmlFor="specificMembers">
-                        Specific Members(Only Active)&nbsp;
+                        Specific Members(Except Inactive)&nbsp;
                       </label>
                       <select
                         className="form-control"
@@ -896,7 +896,7 @@ export class ListNewHome extends Component {
                       >
                         {this.props.allMembers
                           .filter(
-                            member => member.values['Status'] === 'Active',
+                            member => member.values['Status'] !== 'Inactive',
                           )
                           .map(member => (
                             <option key={member.id} value={member.id}>

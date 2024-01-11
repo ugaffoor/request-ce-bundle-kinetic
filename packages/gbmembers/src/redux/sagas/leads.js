@@ -235,6 +235,8 @@ export function* fetchCurrentLead(action) {
     submission.submission.requestContent = requestContent;
     submission.submission.posOrders = posOrders;
     submission.submission.posItems = posItems;
+    submission.submission.myThis = action.payload.myThis;
+
     yield put(actions.setCurrentLead(submission.submission));
   } catch (error) {
     console.log('Error in fetchCurrentLead: ' + util.inspect(error));

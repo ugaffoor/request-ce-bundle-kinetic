@@ -16,7 +16,7 @@ export function* fetchServicesByDate(action) {
     .limit(1000)
     .includes([
       'details',
-      'values[Student First Name],values[Student Last Name],values[Members],values[Payment Required],values[Term End Date]',
+      'values[First Name],values[Last Name],values[Student First Name],values[Student Last Name],values[Members],values[Payment Required],values[Term End Date]',
       'form',
     ]);
 

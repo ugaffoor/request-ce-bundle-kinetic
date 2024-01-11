@@ -33,16 +33,22 @@ export const types = {
   CANCEL_ADDITIONAL_SERVICE: namespace('members', 'CANCEL_ADDITIONAL_SERVICE'),
   FETCH_NEW_MEMBER: namespace('members', 'FETCH_NEW_MEMBER'),
   SET_NEW_MEMBER: namespace('members', 'SET_NEW_MEMBER'),
+  SET_BILLING_INFO: namespace('members', 'SET_BILLING_INFO'),
   FETCH_BILLING_INFO: namespace('members', 'FETCH_BILLING_INFO'),
+  SET_SETUP_BILLING_INFO: namespace('members', 'SET_SETUP_BILLING_INFO'),
+  FETCH_SETUP_BILLING_INFO: namespace('members', 'FETCH_SETUP_BILLING_INFO'),
   FETCH_BILLING_INFO_AFTER_REGISTRATION: namespace(
     'members',
     'FETCH_BILLING_INFO_AFTER_REGISTRATION',
   ),
-  SET_BILLING_INFO: namespace('members', 'SET_BILLING_INFO'),
   SET_DUMMY: namespace('members', 'SET_DUMMY'),
   EDIT_PAYMENT_AMOUNT: namespace('members', 'EDIT_PAYMENT_AMOUNT'),
   FETCH_PAYMENT_HISTORY: namespace('members', 'FETCH_PAYMENT_HISTORY'),
   SET_PAYMENT_HISTORY: namespace('members', 'SET_PAYMENT_HISTORY'),
+  SET_PAYMENT_HISTORY_LOADED: namespace(
+    'members',
+    'SET_PAYMENT_HISTORY_LOADED',
+  ),
   FETCH_OVERDUES: namespace('members', 'FETCH_OVERDUES'),
   SET_OVERDUES: namespace('members', 'SET_OVERDUES'),
   FETCH_ADDITIONAL_SERVICES: namespace('members', 'FETCH_ADDITIONAL_SERVICES'),
@@ -143,15 +149,18 @@ export const actions = {
   cancelAdditionalService: withPayload(types.CANCEL_ADDITIONAL_SERVICE),
   fetchNewMember: withPayload(types.FETCH_NEW_MEMBER),
   setNewMember: withPayload(types.SET_NEW_MEMBER),
-  fetchBillingInfo: withPayload(types.FETCH_BILLING_INFO),
   fetchBillingInfoAfterRegistration: withPayload(
     types.FETCH_BILLING_INFO_AFTER_REGISTRATION,
   ),
+  fetchBillingInfo: withPayload(types.FETCH_BILLING_INFO),
   setBillingInfo: withPayload(types.SET_BILLING_INFO),
+  fetchSetupBillingInfo: withPayload(types.FETCH_SETUP_BILLING_INFO),
+  setSetupBillingInfo: withPayload(types.SET_SETUP_BILLING_INFO),
   setDummy: withPayload(types.SET_DUMMY),
   editPaymentAmount: withPayload(types.EDIT_PAYMENT_AMOUNT),
   fetchPaymentHistory: withPayload(types.FETCH_PAYMENT_HISTORY),
   setPaymentHistory: withPayload(types.SET_PAYMENT_HISTORY),
+  setPaymentHistoryLoaded: withPayload(types.SET_PAYMENT_HISTORY_LOADED),
   fetchOverdues: withPayload(types.FETCH_OVERDUES),
   setOverdues: withPayload(types.SET_OVERDUES),
   fetchAdditionalServices: withPayload(types.FETCH_ADDITIONAL_SERVICES),
@@ -227,16 +236,19 @@ export const State = Record({
   memberUpdating: true,
   activatingBiller: false,
   activatingBillerCompleted: false,
-  billingInfoLoading: true,
   completeMemberBilling: false,
   currentFilter: 'Active Members',
   billingInfo: {},
+  billingInfoLoading: true,
+  setupBillingInfo: {},
+  setupBillingInfoLoading: true,
   ALLpaymentHistory: [],
   FAILEDpaymentHistory: [],
   SUCCESSFULpaymentHistory: [],
   CHARGESpaymentHistory: [],
   FINFAILEDpaymentHistory: [],
   FINSUCCESSFULpaymentHistory: [],
+  SETUPpaymentHistory: [],
   overdues: [],
   additionalServices: [],
   billingPayments: [],
@@ -247,6 +259,7 @@ export const State = Record({
   CHARGESpaymentHistoryLoading: true,
   FINFAILEDpaymentHistoryLoading: true,
   FINSUCCESSFULpaymentHistoryLoading: true,
+  SETUPpaymentHistoryLoading: true,
   overduesLoading: true,
   additionalServicesLoading: true,
   processedAndScheduledPayments: {},
@@ -323,8 +336,28 @@ export const reducer = (state = State(), { type, payload }) => {
       return state.set('currentMemberAdditionalLoading', true);
     case types.FETCH_BILLING_INFO:
       return state
+        .set('billingInfo', {})
         .set('billingInfoLoading', true)
         .set('completeMemberBilling', false);
+    case types.SET_BILLING_INFO: {
+      if (
+        (state.currentMember.values['Billing Customer Id'] === null ||
+          state.currentMember.values['Billing Customer Id'] === undefined) &&
+        payload.customerBillingId !== undefined
+      )
+        state.currentMember.values['Billing Customer Id'] =
+          payload.customerBillingId;
+      return state.set('billingInfoLoading', false).set('billingInfo', payload);
+    }
+    case types.FETCH_SETUP_BILLING_INFO:
+      return state
+        .set('setupBillingInfo', {})
+        .set('setupBillingInfoLoading', true);
+    case types.SET_SETUP_BILLING_INFO: {
+      return state
+        .set('setupBillingInfoLoading', false)
+        .set('setupBillingInfo', payload);
+    }
     case types.FETCH_NEW_MEMBER:
       return state.set('newMemberLoading', true);
     case types.SET_MEMBERS: {
@@ -463,16 +496,6 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('currentMemberAdditional', payload)
         .set('currentMember', state.currentMember);
     }
-    case types.SET_BILLING_INFO: {
-      if (
-        (state.currentMember.values['Billing Customer Id'] === null ||
-          state.currentMember.values['Billing Customer Id'] === undefined) &&
-        payload.customerBillingId !== undefined
-      )
-        state.currentMember.values['Billing Customer Id'] =
-          payload.customerBillingId;
-      return state.set('billingInfoLoading', false).set('billingInfo', payload);
-    }
     case types.SET_NEW_MEMBER: {
       return state.set('newMemberLoading', false).set('newMember', payload);
     }
@@ -486,6 +509,11 @@ export const reducer = (state = State(), { type, payload }) => {
       return state
         .set(payload.paymentType + 'paymentHistoryLoading', false)
         .set(payload.paymentType + 'paymentHistory', paymentHistory);
+    }
+    case types.SET_PAYMENT_HISTORY_LOADED: {
+      return state
+        .set(payload.paymentType + 'paymentHistoryLoading', false)
+        .set(payload.paymentType + 'paymentHistory', payload.data);
     }
     case types.SET_OVERDUES: {
       return state.set('overduesLoading', false).set('overdues', payload);

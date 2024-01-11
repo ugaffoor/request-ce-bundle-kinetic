@@ -266,58 +266,11 @@ export class SelfCheckin extends Component {
     this.getClassAllowedMembers = this.getClassAllowedMembers.bind(this);
     this.renderer = this.renderer.bind(this);
     this.cancelCheckinUndo = this.cancelCheckinUndo.bind(this);
+    this.loadAttendanceData = this.loadAttendanceData.bind(this);
 
     this.tick = this.tick.bind(this);
 
-    attendanceThis.props.fetchClassAttendances({
-      classDate: moment().format('YYYY-MM-DD'),
-    });
-    var classScheduleDateDay = moment().day() === 0 ? 7 : moment().day();
-    var schedules = attendanceThis.props.classSchedules.filter(schedule => {
-      var scheduleDay =
-        moment(schedule.start).day() === 0 ? 7 : moment(schedule.start).day();
-
-      if (classScheduleDateDay === scheduleDay) {
-        return (
-          moment(schedule.start).isAfter(moment()) ||
-          moment(schedule.end).isAfter(moment())
-        );
-      }
-      return false;
-    });
-    var classTime =
-      schedules.size > 0
-        ? moment(schedules.get(0).start).format('HH:mm')
-        : undefined;
-
-    if (schedules.size > 0) {
-      this.doShowSelfCheckinAttendance(
-        attendanceThis,
-        moment()
-          .set({ hour: moment().get('hour'), minute: 0, second: 0 })
-          .format('L hh:mm A'),
-        schedules.get(0).id,
-      );
-    }
-    this.state = {
-      currentClassScheduleId: schedules.size > 0 ? schedules.get(0).id : '',
-      showingFullScreen: false,
-      verifyPIN: false,
-      memberItem: undefined,
-      classDate: moment()
-        .set({ hour: moment().get('hour'), minute: 0, second: 0 })
-        .format('L hh:mm A'),
-      classScheduleDateDay: classScheduleDateDay,
-      classTime: classTime,
-      className: schedules.size > 0 ? schedules.get(0).program : '',
-      allowedPrograms:
-        schedules.size > 0 ? JSON.parse(schedules.get(0).allowedPrograms) : [],
-      currentSchedules: schedules,
-      attendanceAdded: undefined,
-      checkinClassMember: false,
-      addedBooking: undefined,
-      invalidMemberClass: undefined,
-    };
+    this.state = this.loadAttendanceData();
   }
   renderer = ({ hours, minutes, seconds, completed }) => {
     if (completed) {
@@ -366,7 +319,57 @@ export class SelfCheckin extends Component {
       );
     }
   };
+  loadAttendanceData() {
+    attendanceThis.props.fetchClassAttendances({
+      classDate: moment().format('YYYY-MM-DD'),
+    });
+    var classScheduleDateDay = moment().day() === 0 ? 7 : moment().day();
+    var schedules = attendanceThis.props.classSchedules.filter(schedule => {
+      var scheduleDay =
+        moment(schedule.start).day() === 0 ? 7 : moment(schedule.start).day();
 
+      if (classScheduleDateDay === scheduleDay) {
+        return (
+          moment(schedule.start).isAfter(moment()) ||
+          moment(schedule.end).isAfter(moment())
+        );
+      }
+      return false;
+    });
+    var classTime =
+      schedules.size > 0
+        ? moment(schedules.get(0).start).format('HH:mm')
+        : undefined;
+
+    if (schedules.size > 0) {
+      this.doShowSelfCheckinAttendance(
+        attendanceThis,
+        moment()
+          .set({ hour: moment().get('hour'), minute: 0, second: 0 })
+          .format('L hh:mm A'),
+        schedules.get(0).id,
+      );
+    }
+    return {
+      currentClassScheduleId: schedules.size > 0 ? schedules.get(0).id : '',
+      showingFullScreen: false,
+      verifyPIN: false,
+      memberItem: undefined,
+      classDate: moment()
+        .set({ hour: moment().get('hour'), minute: 0, second: 0 })
+        .format('L hh:mm A'),
+      classScheduleDateDay: classScheduleDateDay,
+      classTime: classTime,
+      className: schedules.size > 0 ? schedules.get(0).program : '',
+      allowedPrograms:
+        schedules.size > 0 ? JSON.parse(schedules.get(0).allowedPrograms) : [],
+      currentSchedules: schedules,
+      attendanceAdded: undefined,
+      checkinClassMember: false,
+      addedBooking: undefined,
+      invalidMemberClass: undefined,
+    };
+  }
   cancelCheckinUndo() {
     attendanceThis.props.deleteAttendance({
       attendance: this.state.attendanceAdded,
@@ -404,7 +407,10 @@ export class SelfCheckin extends Component {
   }
   tick() {
     console.log('Self Checkin Ticking ...' + this);
-    var classDate = moment(this.state.classDate, 'L hh:mm A');
+
+    this.setState(this.loadAttendanceData());
+    //    var classDate = moment(this.state.classDate, 'L hh:mm A');
+    var classDate = moment();
     classDate
       .hour(0)
       .minute(0)
@@ -491,7 +497,7 @@ export class SelfCheckin extends Component {
     }
   }
   componentDidMount() {
-    let timer = setInterval(this.tick, 60 * 1000 * 1, this); // refresh every 15 minutes
+    let timer = setInterval(this.tick, 60 * 1000 * 5, this); // refresh every 5 minutes
     this.setState({ timer: timer });
   }
   componentWillUnmount() {

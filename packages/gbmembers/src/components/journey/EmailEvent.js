@@ -189,7 +189,7 @@ export class EmailEvent extends Component {
   UNSAFE_componentWillReceiveProps(nextProps) {}
 
   UNSAFE_componentWillMount() {
-    if (isMobile || isTablet) {
+    if (isMobile) {
       this.editorStore = createEditorStore();
     }
   }
@@ -233,7 +233,7 @@ export class EmailEvent extends Component {
 
   createCampaign() {
     var content = this.state.text;
-    if (isMobile || isTablet) {
+    if (isMobile) {
       content = $('.emailEditor .mce-content-body').html();
     }
 
@@ -454,24 +454,22 @@ export class EmailEvent extends Component {
                     onLoad={this.onLoadEmail}
                   />
                 </BrowserView>
-                <MobileView>
-                  <TinyMCEComponent
-                    value={this.state.text}
-                    isActive={true}
-                    editorStore={this.editorStore}
-                    init={{
-                      menubar: false,
-                    }}
-                  />
-                </MobileView>
+                {!isTablet && (
+                  <MobileView>
+                    <TinyMCEComponent
+                      value={this.state.text}
+                      isActive={true}
+                      editorStore={this.editorStore}
+                      init={{
+                        menubar: false,
+                      }}
+                    />
+                  </MobileView>
+                )}
                 <TabletView>
-                  <TinyMCEComponent
-                    value={this.state.text}
-                    isActive={true}
-                    editorStore={this.editorStore}
-                    init={{
-                      menubar: false,
-                    }}
+                  <EmailEditor
+                    ref={editor => (emailEditorRef = editor)}
+                    onLoad={this.onLoadEmail}
                   />
                 </TabletView>
               </span>

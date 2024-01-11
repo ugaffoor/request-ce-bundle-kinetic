@@ -349,6 +349,10 @@ export function* fetchCurrentMember(action) {
           cardOnFileID: submission.submission.values['POS Profile ID'],
           paymentAmountInCents:
             parseFloat(submission.submission.values['Payment'], 2) * 100,
+          billingSetupFeeId:
+            submission.submission.values['Billing Setup Fee Id'],
+          billingSetupFeeType:
+            submission.submission.values['Billing Setup Fee Type'],
         }),
       );
     }
@@ -949,8 +953,6 @@ export function* syncBillingCustomer(action) {
           result.data.data.customerReference;
         action.payload.memberItem.values['Billing Customer Id'] =
           result.data.data.customerBillingId;
-        //        action.payload.memberItem.values['Billing Safe Id'] =
-        //          result.data.data.safeId;
         action.payload.memberItem.values['Billing User'] = 'YES';
         action.payload.memberItem.values['Billing Payment Type'] =
           result.data.data.paymentMethod;
@@ -1239,7 +1241,13 @@ export function* fetchPaymentHistory(action) {
     });
   yield put(actions.setDummy());
 }
-
+export function* setPaymentHistoryLoaded(action) {
+  action.payload.setPaymentHistory({
+    paymentType: action.payload.paymentType,
+    data: action.payload.data,
+  });
+  yield put(actions.setDummy());
+}
 export function* fetchOverdues(action) {
   const appSettings = yield select(getAppSettings);
   var args = {
@@ -2917,6 +2925,7 @@ export function* watchMembers() {
   yield takeEvery(types.EDIT_PAYMENT_AMOUNT, editPaymentAmount);
   yield takeEvery(types.FETCH_MEMBER_PROMOTIONS, fetchMemberPromotions);
   yield takeEvery(types.FETCH_PAYMENT_HISTORY, fetchPaymentHistory);
+  yield takeEvery(types.SET_PAYMENT_HISTORY_LOADED, setPaymentHistoryLoaded);
   yield takeEvery(types.FETCH_OVERDUES, fetchOverdues);
   yield takeEvery(types.FETCH_ADDITIONAL_SERVICES, fetchAdditionalServices);
   yield takeEvery(

@@ -199,8 +199,10 @@ export function handleDateChange() {
 }
 export function handleChange(leadItem, key, event, setIsDirty) {
   if (setIsDirty !== undefined) setIsDirty(true);
-  leadItem.values[key] =
-    event.target !== undefined ? event.target.value : event.value;
+  if (!Array.isArray(leadItem.values[key])) {
+    leadItem.values[key] =
+      event.target !== undefined ? event.target.value : event.value;
+  }
 
   if ($(event.target).attr('required')) {
     var val = leadItem.values[key];
@@ -216,8 +218,7 @@ export function handleChange(leadItem, key, event, setIsDirty) {
     }
   }
   //A hack to for a redraw of Ranking Belts menu
-  //if (leadItem.myThis!==undefined)
-  //leadItem.myThis.setState({test:0});
+  if (leadItem.myThis !== undefined) leadItem.myThis.setState({ test: 0 });
 }
 
 export function handleMultiSelectChange(leadItem, key, element, setIsDirty) {

@@ -3,6 +3,7 @@ import $ from 'jquery';
 import moment from 'moment';
 import { contact_date_format } from '../leads/LeadsUtils';
 import SVGInline from 'react-svg-inline';
+import axios from 'axios';
 import gb1Icon from '../../images/GB1.svg?raw';
 import gb2Icon from '../../images/GB2.svg?raw';
 import gb3Icon from '../../images/GB3.svg?raw';
@@ -1080,8 +1081,9 @@ export function handleChange(
     memberChange.date = moment().format(contact_date_format);
   }
   //console.log("key = " + key + ", changes = " + JSON.stringify(memberChanges));
-  memberItem.values[key] = event.target.value;
-
+  if (!Array.isArray(memberItem.values[key])) {
+    memberItem.values[key] = event.target.value.trim();
+  }
   if ($(event.target).attr('required')) {
     var val = memberItem.values[key].trim();
     if (val === undefined || val === null || val === '') {
@@ -1126,7 +1128,9 @@ export function handleProgramChange(memberItem, key, event) {
 }
 export function handleDynamicChange(memberItem, key, elementId, setIsDirty) {
   if (setIsDirty !== undefined) setIsDirty(true);
-  memberItem.values[key] = $('#' + elementId).val();
+  if (!Array.isArray(memberItem.values[key])) {
+    memberItem.values[key] = $('#' + elementId).val();
+  }
 
   if ($('#' + elementId).attr('required')) {
     var val = memberItem.values[key];
@@ -1575,4 +1579,87 @@ export function setMemberPromotionValues(member, belts) {
   member.statusIndicator = statusIndicator;
 
   return member;
+}
+const handleErrors = error => {
+  if (error instanceof Error && !error.response) {
+    // When the error is an Error object an exception was thrown in the process.
+    // so we'll just 'convert' it to a 400 error to be handled downstream.
+    return { serverError: { status: 400, statusText: error.message } };
+  }
+
+  // Destructure out the information needed.
+  const { data, status, statusText } = error.response;
+  if (status === 400 && typeof data === 'object') {
+    // If the errors returned are from server-side validations or constraints.
+    return data.errors ? { errors: data.errors } : data;
+  }
+
+  // For all other server-side errors.
+  return { serverError: { status, statusText, error: data && data.error } };
+};
+
+export function handleCountryChange(
+  memberItem,
+  key,
+  event,
+  setIsDirty,
+  memberChanges,
+) {
+  if (setIsDirty !== undefined) setIsDirty(true);
+  if (memberChanges) {
+    let memberChange = memberChanges.find(change => change.field === key);
+    if (!memberChange) {
+      memberChange = { field: key, from: memberItem.values[key] };
+      memberChanges.push(memberChange);
+    }
+    memberChange.to = event.target.value;
+    memberChange.date = moment().format(contact_date_format);
+  }
+  //console.log("key = " + key + ", changes = " + JSON.stringify(memberChanges));
+  if (!Array.isArray(memberItem.values[key])) {
+    memberItem.values[key] = event.target.value;
+  }
+
+  if ($(event.target).attr('required')) {
+    var val = memberItem.values[key];
+    if (val === undefined || val === null || val === '') {
+      $(event.target)
+        .siblings('label')
+        .attr('required', 'required');
+    } else {
+      $(event.target)
+        .siblings('label')
+        .removeAttr('required');
+      $(event.target).css('border-color', '');
+    }
+  }
+
+  var states = '';
+  let promise = axios.post(
+    `https://countriesnow.space/api/v0.1/countries/states`,
+    {
+      country: event.target.value,
+    },
+  );
+
+  promise = promise.then(response => {
+    if (response.data.data.states) {
+      response.data.data.states.forEach(state => {
+        if (states.length > 0) {
+          states = states + ',';
+        }
+        states = states + state.name;
+      });
+    }
+    if (memberItem.myThis !== undefined)
+      memberItem.myThis.setState({ states: states });
+    return states;
+  });
+
+  promise = promise.catch(handleErrors);
+
+  //Commenting out following code since we are using uncontrolled components calling setState on value change (and consequently on every keypress)
+  //is not required and not desirable. It will result in lifecycle methods like componentWillReceiveProps, componentDidUpdate etc being called
+  //on every keypress
+  //A hack to for a redraw of Ranking Belts menu
 }

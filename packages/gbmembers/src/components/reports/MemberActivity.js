@@ -311,15 +311,6 @@ export class MemberActivityReport extends Component {
       },
     ];
     if (Utils.isMemberOf(this.props.profile, 'Billing')) {
-      if (
-        getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
-      ) {
-        this.columnsToHide[1].options.push({
-          label: 'Use Sub Account',
-          value: 'useSubAccount',
-        });
-      }
-
       this.columnsToHide.push({
         label: 'Billing Columns',
         options: [
@@ -338,6 +329,14 @@ export class MemberActivityReport extends Component {
           { label: 'Family Members', value: 'familyMembers' },
         ],
       });
+      if (
+        getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
+      ) {
+        this.columnsToHide[1].options.push({
+          label: 'Use Sub Account',
+          value: 'useSubAccount',
+        });
+      }
     }
 
     this.addedFiltersColumns = [
