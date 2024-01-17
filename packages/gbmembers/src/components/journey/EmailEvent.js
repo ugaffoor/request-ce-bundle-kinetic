@@ -233,7 +233,7 @@ export class EmailEvent extends Component {
 
   createCampaign() {
     var content = this.state.text;
-    if (isMobile) {
+    if (isMobile && !isTablet) {
       content = $('.emailEditor .mce-content-body').html();
     }
 
