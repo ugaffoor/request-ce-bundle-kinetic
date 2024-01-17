@@ -50,6 +50,7 @@ import MomentLocaleUtils, {
   parseDate,
 } from 'react-day-picker/moment';
 import { matchesLeadFilter } from '../../utils/utils';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -2115,10 +2116,11 @@ export const LeadsView = ({
         space={space}
       />
     </div>
-    <div>
-      <SourceReference3Chart allLeads={allLeads} />
-    </div>
-    <div>{/*      <SourceReferenceChart allLeads={allLeads} /> */}</div>
+    {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+      <div>
+        <SourceReference3Chart allLeads={allLeads} />
+      </div>
+    )}
   </div>
 );
 function tick(mythis) {

@@ -3,6 +3,7 @@ import $ from 'jquery';
 import moment from 'moment';
 import { contact_date_format } from '../leads/LeadsUtils';
 import SVGInline from 'react-svg-inline';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import axios from 'axios';
 import gb1Icon from '../../images/GB1.svg?raw';
 import gb2Icon from '../../images/GB2.svg?raw';
@@ -1633,7 +1634,10 @@ export function handleCountryChange(
       $(event.target).css('border-color', '');
     }
   }
-
+  var billingSystem = getAttributeValue(
+    memberItem.myThis.props.space,
+    'Billing Company',
+  );
   var states = '';
   let promise = axios.post(
     `https://countriesnow.space/api/v0.1/countries/states`,
@@ -1648,7 +1652,9 @@ export function handleCountryChange(
         if (states.length > 0) {
           states = states + ',';
         }
-        states = states + state.name;
+        states =
+          states +
+          (billingSystem === 'Bambora' ? state.state_code : state.name);
       });
     }
     if (memberItem.myThis !== undefined)
@@ -1662,4 +1668,96 @@ export function handleCountryChange(
   //is not required and not desirable. It will result in lifecycle methods like componentWillReceiveProps, componentDidUpdate etc being called
   //on every keypress
   //A hack to for a redraw of Ranking Belts menu
+}
+export function getPhoneNumberFormat(country) {
+  var format = '';
+  switch (country) {
+    case 'France':
+      format = '+33 # ## ## ## ##';
+      break;
+    case 'Germany':
+      format = '+49 ### ### ####';
+      break;
+    case 'Spain':
+      format = '+34 ### ### ###';
+      break;
+    case 'Portugal':
+      format = '+351 ### ### ###';
+      break;
+    case 'Netherlands':
+      format = '+31 ## #### ####';
+      break;
+    case 'Belgium':
+      format = '+32 # ### ## ##';
+      break;
+    case 'Sweden':
+      format = '+46 ### ### ####';
+      break;
+    case 'Norway':
+      format = '+47 ### ## ###';
+      break;
+    case 'Switzerland':
+      format = '+41 ## ### ## ##';
+      break;
+    case 'Austria':
+      format = '+43 ### #####';
+      break;
+    case 'Denmark':
+      format = '+45 ## ## ## ##';
+      break;
+    case 'Finland':
+      format = '+358 # ### ####';
+      break;
+    case 'Iceland':
+      format = '+354 ### ####';
+      break;
+    case 'Ireland':
+      format = '+353 # ### ####';
+      break;
+    case 'Greece':
+      format = '+30 ### ### ####';
+      break;
+    case 'Hungary':
+      format = '+36 ## ### ###';
+      break;
+    case 'Poland':
+      format = '+48 ### ### ###';
+      break;
+    case 'Romania':
+      format = '+40 ### ### ###';
+      break;
+    case 'Czech Republic':
+      format = '+420 ### ### ###';
+      break;
+    case 'Slovakia':
+      format = '+421 ### ### ###';
+      break;
+    case 'Croatia':
+      format = '+385 ## ### ####';
+      break;
+    case 'Bulgaria':
+      format = '+359 ## ### ###';
+      break;
+    case 'Estonia':
+      format = '+372 #### ####';
+      break;
+    case 'Latvia':
+      format = '+371 ## ### ###';
+      break;
+    case 'Lithuania':
+      format = '+370 ### #####';
+      break;
+    case 'Luxembourg':
+      format = '+352 ### ###';
+      break;
+    case 'Malta':
+      format = '+356 #### ####';
+      break;
+    case 'Slovenia':
+      format = '+386 # #### ####';
+      break;
+    default:
+      format = '# ## ## ## ##';
+  }
+  return format;
 }

@@ -71,6 +71,7 @@ import {
   getBeltSVG,
   isBillingParent,
   isNewMember,
+  getPhoneNumberFormat,
 } from './MemberUtils';
 import ReactToPrint from 'react-to-print';
 import css from 'css';
@@ -1043,19 +1044,26 @@ export const MemberView = ({
                           getAttributeValue(space, 'PhoneNumber Format') !==
                           undefined
                             ? getAttributeValue(space, 'PhoneNumber Format')
+                            : space.slug === 'europe'
+                            ? getPhoneNumberFormat(memberItem.values['Country'])
                             : '####-###-###'
                         }
                       />
                     </a>
                   </span>
                 </div>
-                <div className="iconItem">
-                  <SVGInline svg={dobIcon} className="icon" />
-                  <span className="value">
-                    {moment(memberItem.values['DOB'], 'YYYY-MM-DD').format('L')}{' '}
-                    ({moment().diff(memberItem.values['DOB'], 'years')} yrs old)
-                  </span>
-                </div>
+                {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+                  <div className="iconItem">
+                    <SVGInline svg={dobIcon} className="icon" />
+                    <span className="value">
+                      {moment(memberItem.values['DOB'], 'YYYY-MM-DD').format(
+                        'L',
+                      )}{' '}
+                      ({moment().diff(memberItem.values['DOB'], 'years')} yrs
+                      old)
+                    </span>
+                  </div>
+                )}
                 <div className="iconItem">
                   <SVGInline svg={aidIcon} className="icon" />
                   <span className="value">
@@ -1069,6 +1077,8 @@ export const MemberView = ({
                         getAttributeValue(space, 'PhoneNumber Format') !==
                         undefined
                           ? getAttributeValue(space, 'PhoneNumber Format')
+                          : space.slug === 'europe'
+                          ? getPhoneNumberFormat(memberItem.values['Country'])
                           : '####-###-###'
                       }
                     />
@@ -1079,16 +1089,18 @@ export const MemberView = ({
                     </span>
                   </span>
                 </div>
-                <div className="iconItem">
-                  <SVGInline svg={waiverIcon} className="icon" />
-                  <span className="value">
-                    {memberItem.values['Covid19 Waiver'] === null ||
-                    memberItem.values['Covid19 Waiver'] === undefined ||
-                    memberItem.values['Covid19 Waiver'] === ''
-                      ? 'Incomplete'
-                      : memberItem.values['Covid19 Waiver']}
-                  </span>
-                </div>
+                {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+                  <div className="iconItem">
+                    <SVGInline svg={waiverIcon} className="icon" />
+                    <span className="value">
+                      {memberItem.values['Covid19 Waiver'] === null ||
+                      memberItem.values['Covid19 Waiver'] === undefined ||
+                      memberItem.values['Covid19 Waiver'] === ''
+                        ? 'Incomplete'
+                        : memberItem.values['Covid19 Waiver']}
+                    </span>
+                  </div>
+                )}
                 {Utils.getAttributeValue(space, 'Covid Check Required') ===
                   'TRUE' && (
                   <div className="iconItem">
@@ -1200,65 +1212,77 @@ export const MemberView = ({
                   ></div>
                 </div>
                 <span className="buttons">
-                  {!Utils.isMemberOf(profile, 'Role::Program Managers') ||
-                  (Utils.getAttributeValue(space, 'Billing Company') !==
-                    'Bambora' &&
-                    Utils.getAttributeValue(space, 'Billing Company') !==
-                      'Stripe') ? (
-                    <div />
-                  ) : isNewMember(memberItem) ? (
+                  {getAttributeValue(space, 'Franchisor') !== 'YES' && (
                     <span>
-                      {Utils.getAttributeValue(space, 'Billing Company') ===
-                        'Bambora' && (
-                        <a
-                          href={
-                            Utils.getAttributeValue(space, 'Web Server Url') +
-                            '/#/kapps/services/categories/bambora-billing/bambora-member-registration?id=' +
-                            memberItem.id
-                          }
-                          className="btn btn-primary"
-                          style={{ marginLeft: '10px', color: 'white' }}
-                        >
-                          Register
-                        </a>
-                      )}
-                      {Utils.getAttributeValue(space, 'Billing Company') ===
-                        'Stripe' && (
-                        <a
-                          href={
-                            Utils.getAttributeValue(space, 'Web Server Url') +
-                            '/#/kapps/services/categories/stripe-billing/stripe-member-registration?id=' +
-                            memberItem.id
-                          }
-                          className="btn btn-primary"
-                          style={{ marginLeft: '10px', color: 'white' }}
-                        >
-                          Register
-                        </a>
-                      )}
-                    </span>
-                  ) : (
-                    <span>
-                      <a
-                        onClick={e => setShowChangeStatusModal(true)}
-                        className="btn btn-primary"
-                        style={{ marginLeft: '10px', color: 'white' }}
-                      >
-                        Change Status
-                      </a>
-                      {showChangeStatusModal && (
-                        <ChangeStatusModalContainer
-                          memberItem={memberItem}
-                          allMembers={allMembers}
-                          target="Member"
-                          space={space}
-                          profile={profile}
-                          setShowChangeStatusModal={setShowChangeStatusModal}
-                          billingCompany={Utils.getAttributeValue(
-                            space,
-                            'Billing Company',
+                      {!Utils.isMemberOf(profile, 'Role::Program Managers') ||
+                      (Utils.getAttributeValue(space, 'Billing Company') !==
+                        'Bambora' &&
+                        Utils.getAttributeValue(space, 'Billing Company') !==
+                          'Stripe') ? (
+                        <div />
+                      ) : isNewMember(memberItem) ? (
+                        <span>
+                          {Utils.getAttributeValue(space, 'Billing Company') ===
+                            'Bambora' && (
+                            <a
+                              href={
+                                Utils.getAttributeValue(
+                                  space,
+                                  'Web Server Url',
+                                ) +
+                                '/#/kapps/services/categories/bambora-billing/bambora-member-registration?id=' +
+                                memberItem.id
+                              }
+                              className="btn btn-primary"
+                              style={{ marginLeft: '10px', color: 'white' }}
+                            >
+                              Register
+                            </a>
                           )}
-                        />
+                          {Utils.getAttributeValue(space, 'Billing Company') ===
+                            'Stripe' && (
+                            <a
+                              href={
+                                Utils.getAttributeValue(
+                                  space,
+                                  'Web Server Url',
+                                ) +
+                                '/#/kapps/services/categories/stripe-billing/stripe-member-registration?id=' +
+                                memberItem.id
+                              }
+                              className="btn btn-primary"
+                              style={{ marginLeft: '10px', color: 'white' }}
+                            >
+                              Register
+                            </a>
+                          )}
+                        </span>
+                      ) : (
+                        <span>
+                          <a
+                            onClick={e => setShowChangeStatusModal(true)}
+                            className="btn btn-primary"
+                            style={{ marginLeft: '10px', color: 'white' }}
+                          >
+                            Change Status
+                          </a>
+                          {showChangeStatusModal && (
+                            <ChangeStatusModalContainer
+                              memberItem={memberItem}
+                              allMembers={allMembers}
+                              target="Member"
+                              space={space}
+                              profile={profile}
+                              setShowChangeStatusModal={
+                                setShowChangeStatusModal
+                              }
+                              billingCompany={Utils.getAttributeValue(
+                                space,
+                                'Billing Company',
+                              )}
+                            />
+                          )}
+                        </span>
                       )}
                     </span>
                   )}
@@ -1295,115 +1319,124 @@ export const MemberView = ({
                       Edit
                     </NavLink>
                   )}
-                  <span>
-                    {memberItem.values['Status'] === 'Inactive' ||
-                    memberItem.values['Status'] === 'Frozen' ? (
-                      <div />
-                    ) : (
-                      <span>
-                        {memberItem.user === undefined ? (
-                          <button
-                            className="btn btn-primary"
-                            style={{ textTransform: 'unset' }}
-                            onClick={async e => {
-                              console.log(
-                                e.currentTarget.getAttribute('noteDate') +
-                                  ' ' +
-                                  e.currentTarget.getAttribute('noteType'),
-                              );
-                              if (
-                                await confirm(
-                                  <span>
+                  {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+                    <span>
+                      {memberItem.values['Status'] === 'Inactive' ||
+                      memberItem.values['Status'] === 'Frozen' ? (
+                        <div />
+                      ) : (
+                        <span>
+                          {memberItem.user === undefined ? (
+                            <button
+                              className="btn btn-primary"
+                              style={{ textTransform: 'unset' }}
+                              onClick={async e => {
+                                console.log(
+                                  e.currentTarget.getAttribute('noteDate') +
+                                    ' ' +
+                                    e.currentTarget.getAttribute('noteType'),
+                                );
+                                if (
+                                  await confirm(
                                     <span>
-                                      Are your sure you want to CREATE a User
-                                      Account?
-                                    </span>
-                                    <table>
-                                      <tbody>
-                                        <tr>
-                                          <td>User Name:</td>
-                                          <td>
-                                            {memberItem.values['Member ID']}
-                                          </td>
-                                        </tr>
-                                      </tbody>
-                                    </table>
-                                  </span>,
-                                )
-                              ) {
-                                createUserAccount();
-                              }
-                            }}
-                          >
-                            {creatingUserAccount
-                              ? 'Creating...'
-                              : 'Create Account as ' +
-                                memberItem.values['Member ID']}
-                          </button>
-                        ) : (
-                          <div className="username">
-                            <div className="label">Username:</div>{' '}
-                            <div className="value">
-                              {memberItem.user.username}
+                                      <span>
+                                        Are your sure you want to CREATE a User
+                                        Account?
+                                      </span>
+                                      <table>
+                                        <tbody>
+                                          <tr>
+                                            <td>User Name:</td>
+                                            <td>
+                                              {memberItem.values['Member ID']}
+                                            </td>
+                                          </tr>
+                                        </tbody>
+                                      </table>
+                                    </span>,
+                                  )
+                                ) {
+                                  createUserAccount();
+                                }
+                              }}
+                            >
+                              {creatingUserAccount
+                                ? 'Creating...'
+                                : 'Create Account as ' +
+                                  memberItem.values['Member ID']}
+                            </button>
+                          ) : (
+                            <div className="username">
+                              <div className="label">Username:</div>{' '}
+                              <div className="value">
+                                {memberItem.user.username}
+                              </div>
                             </div>
-                          </div>
-                        )}
-                      </span>
-                    )}
-                  </span>
-                  <div
-                    type="button"
-                    className="attentionRequired"
-                    onClick={e => {
-                      updateAttentionRequired();
-                    }}
-                  >
-                    <SVGInline
-                      svg={attentionRequired}
-                      className={'attention icon'}
-                    />
-                  </div>
+                          )}
+                        </span>
+                      )}
+                    </span>
+                  )}
+                  {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+                    <div
+                      type="button"
+                      className="attentionRequired"
+                      onClick={e => {
+                        updateAttentionRequired();
+                      }}
+                    >
+                      <SVGInline
+                        svg={attentionRequired}
+                        className={'attention icon'}
+                      />
+                    </div>
+                  )}
                 </span>
-                <div className="emergency">
-                  <div className="memberBarcode">
-                    <Barcode
-                      value={
-                        memberItem.values['Alternate Barcode'] === undefined ||
-                        memberItem.values['Alternate Barcode'] === '' ||
-                        memberItem.values['Alternate Barcode'] === null
-                          ? memberItem.id.split('-')[4].substring(6, 12)
-                          : memberItem.values['Alternate Barcode']
-                      }
-                      width={1.3}
-                      height={30}
-                      displayValue={false}
-                      type={'CODE128'}
+                {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+                  <div className="emergency">
+                    <div className="memberBarcode">
+                      <Barcode
+                        value={
+                          memberItem.values['Alternate Barcode'] ===
+                            undefined ||
+                          memberItem.values['Alternate Barcode'] === '' ||
+                          memberItem.values['Alternate Barcode'] === null
+                            ? memberItem.id.split('-')[4].substring(6, 12)
+                            : memberItem.values['Alternate Barcode']
+                        }
+                        width={1.3}
+                        height={30}
+                        displayValue={false}
+                        type={'CODE128'}
+                      />
+                    </div>
+                    <ReactToPrint
+                      trigger={() => (
+                        <SVGInline
+                          svg={printerIcon}
+                          className="icon barcodePrint"
+                        />
+                      )}
+                      content={() => this.componentRef}
                     />
                   </div>
-                  <ReactToPrint
-                    trigger={() => (
-                      <SVGInline
-                        svg={printerIcon}
-                        className="icon barcodePrint"
-                      />
-                    )}
-                    content={() => this.componentRef}
-                  />
-                </div>
-                <div className="emergency">
-                  <div className="visitorCard">
-                    <p>Visitor Card</p>
+                )}
+                {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+                  <div className="emergency">
+                    <div className="visitorCard">
+                      <p>Visitor Card</p>
+                    </div>
+                    <ReactToPrint
+                      trigger={() => (
+                        <SVGInline
+                          svg={printerIcon}
+                          className="icon visitorCardPrint"
+                        />
+                      )}
+                      content={() => this.visitorCardComponentRef}
+                    />
                   </div>
-                  <ReactToPrint
-                    trigger={() => (
-                      <SVGInline
-                        svg={printerIcon}
-                        className="icon visitorCardPrint"
-                      />
-                    )}
-                    content={() => this.visitorCardComponentRef}
-                  />
-                </div>
+                )}
                 {memberItem['values']['Member Type'] !== undefined &&
                   memberItem['values']['Member Type'] !== null &&
                   memberItem['values']['Member Type'].indexOf('Coach') !==
@@ -1462,58 +1495,61 @@ export const MemberView = ({
             />
           </div>
           <div className="userDetails2">
-            <div className="ranking">
-              <h4>
-                Rank (Member since:{' '}
-                {moment(memberItem.values['Date Joined'], 'YYYY-MM-DD').format(
-                  'MMM Do YYYY',
-                )}
-                )
-              </h4>
-              <div className="program">
-                <p>{memberItem.values['Ranking Program']}</p>
-                <span placeholder="View Attendance">
-                  <SVGInline
-                    svg={statsBarIcon}
-                    className="icon statsbar"
-                    onClick={e => setShowAttendanceDialog(true)}
-                  />
-                </span>
-                {showAttendanceDialog && (
-                  <AttendanceDialogContainer
-                    setShowAttendanceDialog={setShowAttendanceDialog}
-                    memberItem={memberItem}
-                    space={space}
-                    profile={profile}
-                  />
+            {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+              <div className="ranking">
+                <h4>
+                  Rank (Member since:{' '}
+                  {moment(
+                    memberItem.values['Date Joined'],
+                    'YYYY-MM-DD',
+                  ).format('MMM Do YYYY')}
+                  )
+                </h4>
+                <div className="program">
+                  <p>{memberItem.values['Ranking Program']}</p>
+                  <span placeholder="View Attendance">
+                    <SVGInline
+                      svg={statsBarIcon}
+                      className="icon statsbar"
+                      onClick={e => setShowAttendanceDialog(true)}
+                    />
+                  </span>
+                  {showAttendanceDialog && (
+                    <AttendanceDialogContainer
+                      setShowAttendanceDialog={setShowAttendanceDialog}
+                      memberItem={memberItem}
+                      space={space}
+                      profile={profile}
+                    />
+                  )}
+                </div>
+                {memberItem.values['Last Promotion'] === undefined ? (
+                  <div className="nolastPromotion">
+                    {' '}
+                    No Last promotion date set
+                  </div>
+                ) : (
+                  <div className="beltProgress">
+                    <p>
+                      <b>{memberItem.values['Ranking Belt']}</b> SINCE{' '}
+                      <b>
+                        {moment(
+                          memberItem.values['Last Promotion'],
+                          'YYYY-MM-DD',
+                        ).format('L')}
+                      </b>
+                    </p>
+                    <GradingStatus
+                      setIsDirty={setIsDirty}
+                      memberItem={memberItem}
+                      belts={belts}
+                      allMembers={allMembers}
+                    />
+                    <div></div>
+                  </div>
                 )}
               </div>
-              {memberItem.values['Last Promotion'] === undefined ? (
-                <div className="nolastPromotion">
-                  {' '}
-                  No Last promotion date set
-                </div>
-              ) : (
-                <div className="beltProgress">
-                  <p>
-                    <b>{memberItem.values['Ranking Belt']}</b> SINCE{' '}
-                    <b>
-                      {moment(
-                        memberItem.values['Last Promotion'],
-                        'YYYY-MM-DD',
-                      ).format('L')}
-                    </b>
-                  </p>
-                  <GradingStatus
-                    setIsDirty={setIsDirty}
-                    memberItem={memberItem}
-                    belts={belts}
-                    allMembers={allMembers}
-                  />
-                  <div></div>
-                </div>
-              )}
-            </div>
+            )}
             <div className="billing">
               <h4>Billing</h4>
               <div
@@ -1882,17 +1918,19 @@ export const MemberView = ({
               </div>
               <div>
                 {Utils.getAttributeValue(space, 'Billing Company') ===
-                  'Bambora' && (
-                  <MemberAdditionalServices
-                    memberItem={memberItem}
-                    allMembers={allMembers}
-                    space={space}
-                    profile={profile}
-                    cancelAdditionalService={cancelAdditionalService}
-                    locale={locale}
-                    currency={currency}
-                  />
-                )}
+                  'Bambora' ||
+                  (Utils.getAttributeValue(space, 'Billing Company') ===
+                    'Stripe' && (
+                    <MemberAdditionalServices
+                      memberItem={memberItem}
+                      allMembers={allMembers}
+                      space={space}
+                      profile={profile}
+                      cancelAdditionalService={cancelAdditionalService}
+                      locale={locale}
+                      currency={currency}
+                    />
+                  ))}
               </div>
               <div>
                 <MemberFiles

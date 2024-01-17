@@ -1,11 +1,31 @@
 import $ from 'jquery';
 import moment from 'moment';
+import axios from 'axios';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 export const contact_date_format = 'YYYY-MM-DD HH:mm';
 export const reminder_date_format = 'YYYY-MM-DD';
 export const gmt_format = 'YYYY-MM-DDTHH:mm:ss'; // Must manually add Z to result.
 export const email_sent_date_format = 'DD-MM-YYYY HH:mm';
 export const email_received_date_format = 'DD-MM-YYYY HH:mm';
+
+const handleErrors = error => {
+  if (error instanceof Error && !error.response) {
+    // When the error is an Error object an exception was thrown in the process.
+    // so we'll just 'convert' it to a 400 error to be handled downstream.
+    return { serverError: { status: 400, statusText: error.message } };
+  }
+
+  // Destructure out the information needed.
+  const { data, status, statusText } = error.response;
+  if (status === 400 && typeof data === 'object') {
+    // If the errors returned are from server-side validations or constraints.
+    return data.errors ? { errors: data.errors } : data;
+  }
+
+  // For all other server-side errors.
+  return { serverError: { status, statusText, error: data && data.error } };
+};
 
 export function getTimezone(profileTimezone, spaceTimezone) {
   var timezone =
@@ -317,4 +337,60 @@ export function getReminderDate(input) {
   if (input === 'Never') {
     return undefined;
   }
+}
+export function handleCountryChange(leadItem, key, event, setIsDirty) {
+  if (setIsDirty !== undefined) setIsDirty(true);
+  //console.log("key = " + key + ", changes = " + JSON.stringify(memberChanges));
+  if (!Array.isArray(leadItem.values[key])) {
+    leadItem.values[key] = event.target.value;
+  }
+
+  if ($(event.target).attr('required')) {
+    var val = leadItem.values[key];
+    if (val === undefined || val === null || val === '') {
+      $(event.target)
+        .siblings('label')
+        .attr('required', 'required');
+    } else {
+      $(event.target)
+        .siblings('label')
+        .removeAttr('required');
+      $(event.target).css('border-color', '');
+    }
+  }
+
+  var billingSystem = getAttributeValue(
+    leadItem.myThis.props.space,
+    'Billing Company',
+  );
+  var states = '';
+  let promise = axios.post(
+    `https://countriesnow.space/api/v0.1/countries/states`,
+    {
+      country: event.target.value,
+    },
+  );
+
+  promise = promise.then(response => {
+    if (response.data.data.states) {
+      response.data.data.states.forEach(state => {
+        if (states.length > 0) {
+          states = states + ',';
+        }
+        states =
+          states +
+          (billingSystem === 'Bambora' ? state.state_code : state.name);
+      });
+    }
+    if (leadItem.myThis !== undefined)
+      leadItem.myThis.setState({ states: states });
+    return states;
+  });
+
+  promise = promise.catch(handleErrors);
+
+  //Commenting out following code since we are using uncontrolled components calling setState on value change (and consequently on every keypress)
+  //is not required and not desirable. It will result in lifecycle methods like componentWillReceiveProps, componentDidUpdate etc being called
+  //on every keypress
+  //A hack to for a redraw of Ranking Belts menu
 }

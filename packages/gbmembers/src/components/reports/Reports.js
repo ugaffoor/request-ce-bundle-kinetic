@@ -260,85 +260,91 @@ export const ReportsView = ({
             </div>
           )}
         </div>
-        <div style={{ margin: '20px 0px 0px 10px' }} id="birthdays-report">
-          <div className="row">
-            <button
-              type="button"
-              className="btn btn-primary report-btn-default"
-              disabled={!dummyFormLoaded}
-              onClick={e => {
-                setBirthdaysReport(showBirthdaysReport ? false : true);
-              }}
-            >
-              {showBirthdaysReport
-                ? 'Hide Birthdays Due'
-                : 'Show Birthdays Due'}
-            </button>
-          </div>
-          {!showBirthdaysReport ? null : (
+        {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+          <div style={{ margin: '20px 0px 0px 10px' }} id="birthdays-report">
             <div className="row">
-              <div className="birthdaysReport">
-                <MemberBirthdays allMembers={members} />
-              </div>
+              <button
+                type="button"
+                className="btn btn-primary report-btn-default"
+                disabled={!dummyFormLoaded}
+                onClick={e => {
+                  setBirthdaysReport(showBirthdaysReport ? false : true);
+                }}
+              >
+                {showBirthdaysReport
+                  ? 'Hide Birthdays Due'
+                  : 'Show Birthdays Due'}
+              </button>
             </div>
-          )}
-        </div>
-        <div style={{ margin: '20px 0px 0px 10px' }} id="attendance-report">
-          <div className="row">
-            <button
-              type="button"
-              className="btn btn-primary report-btn-default"
-              disabled={!dummyFormLoaded}
-              onClick={e => {
-                setShowLastAttendance(showLastAttendance ? false : true);
-              }}
-            >
-              {showLastAttendance
-                ? 'Hide Last Attendance'
-                : 'Show Last Attendance'}
-            </button>
+            {!showBirthdaysReport ? null : (
+              <div className="row">
+                <div className="birthdaysReport">
+                  <MemberBirthdays allMembers={members} />
+                </div>
+              </div>
+            )}
           </div>
-          {!showLastAttendance ? null : (
+        )}
+        {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+          <div style={{ margin: '20px 0px 0px 10px' }} id="attendance-report">
             <div className="row">
-              <div className="attendanceReport">
-                <MemberLastAttendance allMembers={members} />
-              </div>
+              <button
+                type="button"
+                className="btn btn-primary report-btn-default"
+                disabled={!dummyFormLoaded}
+                onClick={e => {
+                  setShowLastAttendance(showLastAttendance ? false : true);
+                }}
+              >
+                {showLastAttendance
+                  ? 'Hide Last Attendance'
+                  : 'Show Last Attendance'}
+              </button>
             </div>
-          )}
-        </div>
-        <div
-          style={{ margin: '20px 0px 0px 10px' }}
-          id="most-attendance-report"
-        >
-          <div className="row">
-            <button
-              type="button"
-              className="btn btn-primary report-btn-default"
-              disabled={!dummyFormLoaded}
-              onClick={e => {
-                setShowMostAttendance(showMostAttendance ? false : true);
-              }}
-            >
-              {showMostAttendance
-                ? 'Hide Most Attendance'
-                : 'Show Most Attendance'}
-            </button>
+            {!showLastAttendance ? null : (
+              <div className="row">
+                <div className="attendanceReport">
+                  <MemberLastAttendance allMembers={members} />
+                </div>
+              </div>
+            )}
           </div>
-          {!showMostAttendance ? null : (
+        )}
+        {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+          <div
+            style={{ margin: '20px 0px 0px 10px' }}
+            id="most-attendance-report"
+          >
             <div className="row">
-              <div className="attendanceReport">
-                <MemberMostAttendance
-                  allMembers={members}
-                  fetchAttendancesByDate={fetchAttendancesByDate}
-                  fetchingAttendancesByDate={fetchingAttendancesByDate}
-                  attendancesByDate={attendancesByDate}
-                  space={space}
-                  profile={profile}
-                />
-              </div>
+              <button
+                type="button"
+                className="btn btn-primary report-btn-default"
+                disabled={!dummyFormLoaded}
+                onClick={e => {
+                  setShowMostAttendance(showMostAttendance ? false : true);
+                }}
+              >
+                {showMostAttendance
+                  ? 'Hide Most Attendance'
+                  : 'Show Most Attendance'}
+              </button>
             </div>
-          )}
-        </div>
+            {!showMostAttendance ? null : (
+              <div className="row">
+                <div className="attendanceReport">
+                  <MemberMostAttendance
+                    allMembers={members}
+                    fetchAttendancesByDate={fetchAttendancesByDate}
+                    fetchingAttendancesByDate={fetchingAttendancesByDate}
+                    attendancesByDate={attendancesByDate}
+                    space={space}
+                    profile={profile}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
         {!Utils.isMemberOf(profile, 'Billing') ? (
           <div />
         ) : (
@@ -483,34 +489,36 @@ export const ReportsView = ({
             </div>
           )}
         </div>
-        <div style={{ margin: '20px 0px 0px 10px' }} id="pddaily-report">
-          <div className="row">
-            <button
-              type="button"
-              className="btn btn-primary report-btn-default"
-              disabled={!dummyFormLoaded}
-              onClick={e => {
-                setShowPDDailyReport(showPDDailyReport ? false : true);
-                document.getElementById('pddaily-report').scrollIntoView();
-              }}
-            >
-              {showLeadActivityReport
-                ? 'Hide PD Daily Report'
-                : 'Show PD Daily Report'}
-            </button>
-          </div>
-          {!showPDDailyReport ? null : (
+        {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+          <div style={{ margin: '20px 0px 0px 10px' }} id="pddaily-report">
             <div className="row">
-              <PDDailyReport
-                fetchLeadsByDate={fetchLeadsByDate}
-                leadsByDate={leadsByDate}
-                leadsByDateLoading={leadsByDateLoading}
-                profile={profile}
-                space={space}
-              />
+              <button
+                type="button"
+                className="btn btn-primary report-btn-default"
+                disabled={!dummyFormLoaded}
+                onClick={e => {
+                  setShowPDDailyReport(showPDDailyReport ? false : true);
+                  document.getElementById('pddaily-report').scrollIntoView();
+                }}
+              >
+                {showLeadActivityReport
+                  ? 'Hide PD Daily Report'
+                  : 'Show PD Daily Report'}
+              </button>
             </div>
-          )}
-        </div>
+            {!showPDDailyReport ? null : (
+              <div className="row">
+                <PDDailyReport
+                  fetchLeadsByDate={fetchLeadsByDate}
+                  leadsByDate={leadsByDate}
+                  leadsByDateLoading={leadsByDateLoading}
+                  profile={profile}
+                  space={space}
+                />
+              </div>
+            )}
+          </div>
+        )}
         <div style={{ margin: '20px 0px 0px 10px' }} id="services-report">
           <div className="row">
             <button
@@ -539,28 +547,30 @@ export const ReportsView = ({
             </div>
           )}
         </div>
-        <div style={{ margin: '20px 0px 0px 10px' }} id="resuming-report">
-          <div className="row">
-            <button
-              type="button"
-              className="btn btn-primary report-btn-default"
-              disabled={!dummyFormLoaded}
-              onClick={e => {
-                setResumingReport(showResumingReport ? false : true);
-                document.getElementById('resuming-report').scrollIntoView();
-              }}
-            >
-              {showResumingReport
-                ? 'Hide Resuming Members Report'
-                : 'Show Resuming Members Report'}
-            </button>
-          </div>
-          {!showResumingReport ? null : (
+        {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+          <div style={{ margin: '20px 0px 0px 10px' }} id="resuming-report">
             <div className="row">
-              <ResumingMembers allMembers={members} />
+              <button
+                type="button"
+                className="btn btn-primary report-btn-default"
+                disabled={!dummyFormLoaded}
+                onClick={e => {
+                  setResumingReport(showResumingReport ? false : true);
+                  document.getElementById('resuming-report').scrollIntoView();
+                }}
+              >
+                {showResumingReport
+                  ? 'Hide Resuming Members Report'
+                  : 'Show Resuming Members Report'}
+              </button>
             </div>
-          )}
-        </div>
+            {!showResumingReport ? null : (
+              <div className="row">
+                <ResumingMembers allMembers={members} />
+              </div>
+            )}
+          </div>
+        )}
         {Utils.getAttributeValue(space, 'Billing Company') !== 'PaySmart' ||
         !Utils.isMemberOf(profile, 'Billing') ? (
           <div />

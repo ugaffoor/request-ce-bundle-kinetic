@@ -13,6 +13,7 @@ import settingsIcon from '../images/Settings.svg?raw';
 import reportsIcon from '../images/Reports.svg?raw';
 import proShopIcon from '../images/proShop.svg?raw';
 import attentionRequired from '../images/flag.svg?raw';
+import { getAttributeValue } from '../lib/react-kinops-components/src/utils';
 
 import { Utils } from 'common';
 
@@ -24,6 +25,7 @@ export const Header = ({
   leadAttentionRequired,
   memberAttentionRequired,
   isKiosk,
+  space,
 }) => (
   <Navbar color="faded" light className="fixed-top">
     {!isKiosk ? (
@@ -47,17 +49,19 @@ export const Header = ({
             />
           </NavLink>
         </NavItem>
-        <NavItem className="attendanceNavItem">
-          <NavLink
-            to="/Attendance"
-            className="nav-link icon-wrapper"
-            strict
-            activeClassName="active"
-          >
-            <SVGInline svg={attendanceIcon} className="icon" />
-            <span className="appName">ATTENDANCE</span>
-          </NavLink>
-        </NavItem>
+        {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+          <NavItem className="attendanceNavItem">
+            <NavLink
+              to="/Attendance"
+              className="nav-link icon-wrapper"
+              strict
+              activeClassName="active"
+            >
+              <SVGInline svg={attendanceIcon} className="icon" />
+              <span className="appName">ATTENDANCE</span>
+            </NavLink>
+          </NavItem>
+        )}
         <NavItem className="leadsNavItem">
           <NavLink
             to="/Leads"
@@ -86,17 +90,19 @@ export const Header = ({
             <span className="appName">SEND</span>
           </NavLink>
         </NavItem>
-        <NavItem className="gradingNavItem">
-          <NavLink
-            to="/Grading"
-            className="nav-link icon-wrapper"
-            strict
-            activeClassName="active"
-          >
-            <SVGInline svg={gradingIcon} className="icon" />
-            <span className="appName">GRADING</span>
-          </NavLink>
-        </NavItem>
+        {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+          <NavItem className="gradingNavItem">
+            <NavLink
+              to="/Grading"
+              className="nav-link icon-wrapper"
+              strict
+              activeClassName="active"
+            >
+              <SVGInline svg={gradingIcon} className="icon" />
+              <span className="appName">GRADING</span>
+            </NavLink>
+          </NavItem>
+        )}
         {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
           <div />
         ) : (

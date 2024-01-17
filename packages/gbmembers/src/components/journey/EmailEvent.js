@@ -203,13 +203,16 @@ export class EmailEvent extends Component {
   onLoadEmail() {
     setTimeout(
       function(editorThis) {
+        //console.log("onLoadEmail 1");
         if (emailEditorRef === null) return;
+        //console.log("onLoadEmail 2");
 
         emailEditorRef.loadDesign(
           JSON.parse(editorThis.props.emailTemplate['Email JSON']),
         );
         emailEditorRef.exportHtml(function(data) {
           var html = data.html; // design html
+          //console.log("onLoadEmail 3");
 
           // Save the json, or html here
           editorThis.setState({ text: html });
@@ -220,6 +223,7 @@ export class EmailEvent extends Component {
           emailEditorRef.exportHtml(function(data) {
             var json = data.design; // design json
             var html = data.html; // design html
+            //console.log("onLoadEmail 4");
 
             // Save the json, or html here
             editorThis.setState({ text: html });
@@ -233,7 +237,10 @@ export class EmailEvent extends Component {
 
   createCampaign() {
     var content = this.state.text;
-    if (isMobile) {
+    //    console.log("createCampaign 1"+this.state.subject);
+    //    console.log("createCampaign 2"+this.state.text);
+
+    if (isMobile && !isTablet) {
       content = $('.emailEditor .mce-content-body').html();
     }
 

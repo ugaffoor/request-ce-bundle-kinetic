@@ -203,7 +203,8 @@ export const SettingsView = ({
   <div className="settings">
     <StatusMessagesContainer />
     <div className="buttons column" style={{ marginLeft: '10px' }}>
-      {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
+      {!Utils.isMemberOf(profile, 'Role::Program Managers') ||
+      getAttributeValue(space, 'Franchisor') === 'YES' ? (
         <div />
       ) : (
         <div className="col-xs-3">
@@ -235,7 +236,8 @@ export const SettingsView = ({
       ) : (
         <div />
       )}
-      {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
+      {!Utils.isMemberOf(profile, 'Role::Program Managers') ||
+      getAttributeValue(space, 'Franchisor') === 'YES' ? (
         <div />
       ) : (
         <div className="col-xs-3">
@@ -278,7 +280,8 @@ export const SettingsView = ({
       ) : (
         <div />
       )}
-      {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
+      {!Utils.isMemberOf(profile, 'Role::Program Managers') ||
+      getAttributeValue(space, 'Franchisor') === 'YES' ? (
         <div />
       ) : (
         <div className="col-xs-3">
@@ -406,21 +409,23 @@ export const SettingsView = ({
           <span />
         )}
       </div>
-      <div className="col-xs-3">
-        <button
-          type="button"
-          id="printMemberbarcodes"
-          className={'btn btn-primary'}
-          onClick={e =>
-            printMemberBarcodes({
-              allMembers,
-              setPrintingBarcodes,
-            })
-          }
-        >
-          Show Member barcodes
-        </button>
-      </div>
+      {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+        <div className="col-xs-3">
+          <button
+            type="button"
+            id="printMemberbarcodes"
+            className={'btn btn-primary'}
+            onClick={e =>
+              printMemberBarcodes({
+                allMembers,
+                setPrintingBarcodes,
+              })
+            }
+          >
+            Show Member barcodes
+          </button>
+        </div>
+      )}
       {!printingBarcodes ? (
         <div />
       ) : (
