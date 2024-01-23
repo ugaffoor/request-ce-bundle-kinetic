@@ -1691,7 +1691,7 @@ export const MemberNewContainer = compose(
             nextProps.leadItem.values['First Name'] +
             nextProps.leadItem.values['Last Name']
           )
-            .replace(/ /g, '')
+            .replace(/[^\x00-\x7F]|['"`\.,\(\)\W]/g, '')
             .substring(0, 30),
         );
         handleDynamicChange(nextProps.memberItem, 'Member ID', 'username');
