@@ -1382,8 +1382,9 @@ export const MemberEdit = ({
                   format={
                     getAttributeValue(space, 'PhoneNumber Format') !== undefined
                       ? getAttributeValue(space, 'PhoneNumber Format')
-                      : space.slug === 'europe'
-                      ? getPhoneNumberFormat(memberItem.values['Country'])
+                      : space.slug === 'europe' ||
+                        space.slug === 'unitedkingdom'
+                      ? getPhoneNumberFormat(memberItem)
                       : '####-###-###'
                   }
                   mask="_"
@@ -1408,8 +1409,9 @@ export const MemberEdit = ({
                   format={
                     getAttributeValue(space, 'PhoneNumber Format') !== undefined
                       ? getAttributeValue(space, 'PhoneNumber Format')
-                      : space.slug === 'europe'
-                      ? getPhoneNumberFormat(memberItem.values['Country'])
+                      : space.slug === 'europe' ||
+                        space.slug === 'unitedkingdom'
+                      ? getPhoneNumberFormat(memberItem)
                       : '####-###-###'
                   }
                   mask="_"
@@ -1625,8 +1627,9 @@ export const MemberEdit = ({
                   format={
                     getAttributeValue(space, 'PhoneNumber Format') !== undefined
                       ? getAttributeValue(space, 'PhoneNumber Format')
-                      : space.slug === 'europe'
-                      ? getPhoneNumberFormat(memberItem.values['Country'])
+                      : space.slug === 'europe' ||
+                        space.slug === 'unitedkingdom'
+                      ? getPhoneNumberFormat(memberItem)
                       : '####-###-###'
                   }
                   mask="_"

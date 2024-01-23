@@ -487,8 +487,9 @@ export const MemberNew = ({
                       getAttributeValue(space, 'PhoneNumber Format') !==
                       undefined
                         ? getAttributeValue(space, 'PhoneNumber Format')
-                        : space.slug === 'europe'
-                        ? getPhoneNumberFormat(memberItem.values['Country'])
+                        : space.slug === 'europe' ||
+                          space.slug === 'unitedkingdom'
+                        ? getPhoneNumberFormat(memberItem)
                         : '####-###-###'
                     }
                     mask="_"
@@ -517,8 +518,9 @@ export const MemberNew = ({
                       getAttributeValue(space, 'PhoneNumber Format') !==
                       undefined
                         ? getAttributeValue(space, 'PhoneNumber Format')
-                        : space.slug === 'europe'
-                        ? getPhoneNumberFormat(memberItem.values['Country'])
+                        : space.slug === 'europe' ||
+                          space.slug === 'unitedkingdom'
+                        ? getPhoneNumberFormat(memberItem)
                         : '####-###-###'
                     }
                     mask="_"
@@ -730,8 +732,9 @@ export const MemberNew = ({
                       getAttributeValue(space, 'PhoneNumber Format') !==
                       undefined
                         ? getAttributeValue(space, 'PhoneNumber Format')
-                        : space.slug === 'europe'
-                        ? getPhoneNumberFormat(memberItem.values['Country'])
+                        : space.slug === 'europe' ||
+                          space.slug === 'unitedkingdom'
+                        ? getPhoneNumberFormat(memberItem)
                         : '####-###-###'
                     }
                     mask="_"
@@ -1788,7 +1791,7 @@ export const MemberNewContainer = compose(
             nextProps.leadItem.values['First Name'] +
             nextProps.leadItem.values['Last Name']
           )
-            .replace(/ /g, '')
+            .replace(/[^\x00-\x7F]|['"`\.,\(\)\W]/g, '')
             .substring(0, 30),
         );
         handleDynamicChange(nextProps.memberItem, 'Member ID', 'username');

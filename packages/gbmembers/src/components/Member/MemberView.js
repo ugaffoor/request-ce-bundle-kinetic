@@ -1044,8 +1044,9 @@ export const MemberView = ({
                           getAttributeValue(space, 'PhoneNumber Format') !==
                           undefined
                             ? getAttributeValue(space, 'PhoneNumber Format')
-                            : space.slug === 'europe'
-                            ? getPhoneNumberFormat(memberItem.values['Country'])
+                            : space.slug === 'europe' ||
+                              space.slug === 'unitedkingdom'
+                            ? getPhoneNumberFormat(memberItem)
                             : '####-###-###'
                         }
                       />
@@ -1077,8 +1078,9 @@ export const MemberView = ({
                         getAttributeValue(space, 'PhoneNumber Format') !==
                         undefined
                           ? getAttributeValue(space, 'PhoneNumber Format')
-                          : space.slug === 'europe'
-                          ? getPhoneNumberFormat(memberItem.values['Country'])
+                          : space.slug === 'europe' ||
+                            space.slug === 'unitedkingdom'
+                          ? getPhoneNumberFormat(memberItem)
                           : '####-###-###'
                       }
                     />

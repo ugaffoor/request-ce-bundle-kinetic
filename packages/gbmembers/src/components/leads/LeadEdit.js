@@ -803,10 +803,9 @@ export class LeadEdit extends Component {
                             this.props.space,
                             'PhoneNumber Format',
                           )
-                        : this.props.space.slug === 'europe'
-                        ? getPhoneNumberFormat(
-                            this.props.leadItem.values['Country'],
-                          )
+                        : this.props.space.slug === 'europe' ||
+                          this.props.space.slug === 'unitedkingdom'
+                        ? getPhoneNumberFormat(this.props.leadItem)
                         : '####-###-###'
                     }
                     mask="_"
@@ -836,10 +835,9 @@ export class LeadEdit extends Component {
                             this.props.space,
                             'PhoneNumber Format',
                           )
-                        : this.props.space.slug === 'europe'
-                        ? getPhoneNumberFormat(
-                            this.props.leadItem.values['Country'],
-                          )
+                        : this.props.space.slug === 'europe' ||
+                          this.props.space.slug === 'unitedkingdom'
+                        ? getPhoneNumberFormat(this.props.leadItem)
                         : '####-###-###'
                     }
                     mask="_"
@@ -1095,10 +1093,9 @@ export class LeadEdit extends Component {
                               this.props.space,
                               'PhoneNumber Format',
                             )
-                          : this.props.space.slug === 'europe'
-                          ? getPhoneNumberFormat(
-                              this.props.leadItem.values['Country'],
-                            )
+                          : this.props.space.slug === 'europe' ||
+                            this.props.space.slug === 'unitedkingdom'
+                          ? getPhoneNumberFormat(this.props.leadItem)
                           : '####-###-###'
                       }
                       mask="_"

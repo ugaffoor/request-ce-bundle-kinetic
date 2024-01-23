@@ -1669,7 +1669,9 @@ export function handleCountryChange(
   //on every keypress
   //A hack to for a redraw of Ranking Belts menu
 }
-export function getPhoneNumberFormat(country) {
+export function getPhoneNumberFormat(record) {
+  var country = record.values['Country'];
+  var state = record.values['State'];
   var format = '';
   switch (country) {
     case 'France':
@@ -1710,9 +1712,6 @@ export function getPhoneNumberFormat(country) {
       break;
     case 'Iceland':
       format = '+354 ### ####';
-      break;
-    case 'Ireland':
-      format = '+353 # ### ####';
       break;
     case 'Greece':
       format = '+30 ### ### ####';
@@ -1756,8 +1755,24 @@ export function getPhoneNumberFormat(country) {
     case 'Slovenia':
       format = '+386 # #### ####';
       break;
+    case 'United Kingdom':
+      format = '## ### ######';
+      break;
+    case 'Ireland':
+      format = '0## ### ####';
+      break;
     default:
       format = '# ## ## ## ##';
+  }
+  if (
+    state === 'Antrim' ||
+    state === 'Armagh' ||
+    state === 'Down' ||
+    state === 'Fermanagh' ||
+    state === 'Londonderry' ||
+    state === 'Tyrone'
+  ) {
+    format = '0## ### ####';
   }
   return format;
 }
