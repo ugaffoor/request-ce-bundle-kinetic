@@ -1178,6 +1178,7 @@ export function* fetchPaymentHistory(action) {
     dateField: action.payload.dateField,
     customerId: action.payload.billingRef,
     internalPaymentType: action.payload.internalPaymentType,
+    timezone: action.payload.timezone,
     useSubAccount: action.payload.useSubAccount,
   };
   console.log('action:' + action.payload);
@@ -1201,6 +1202,7 @@ export function* fetchPaymentHistory(action) {
           args.dateTo = action.payload.dateTo;
           args.customerId = action.payload.billingRef;
           args.timezoneOffset = null;
+          args.timezone = action.payload.timezone;
 
           axios
             .post(appSettings.kineticBillingServerUrl + getRefundsUrl, args)
@@ -1254,6 +1256,7 @@ export function* fetchOverdues(action) {
     space: appSettings.spaceSlug,
     billingService: appSettings.billingCompany,
     useSubAccount: action.payload.useSubAccount,
+    timezone: action.payload.timezone,
   };
   console.log('action:' + action.payload);
   axios
@@ -2275,6 +2278,8 @@ export function* fetchCustomerRefunds(action) {
   args.dateTo = action.payload.dateTo;
   args.timezoneOffset = action.payload.timezoneOffset;
   args.useSubAccount = action.payload.useSubAccount;
+  args.timezone = action.payload.timezone;
+
   axios
     .post(appSettings.kineticBillingServerUrl + getRefundsUrl, args)
     .then(result => {

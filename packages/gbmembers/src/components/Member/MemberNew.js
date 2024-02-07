@@ -24,6 +24,7 @@ import {
   getDateValue,
   getLocalePreference,
   handleCountryChange,
+  getPhoneNumberFormat,
 } from './MemberUtils';
 import { StatusMessagesContainer } from '../StatusMessages';
 import moment from 'moment';
@@ -117,15 +118,28 @@ export const MemberNew = ({
                         : false
                     }
                   >
-                    First Name
+                    {getAttributeValue(space, 'Franchisor') === 'YES' ? (
+                      <span>&nbsp;</span>
+                    ) : (
+                      'First Name'
+                    )}
                   </label>
                   <input
                     type="text"
                     name="firstName"
                     id="firstName"
+                    disabled={
+                      getAttributeValue(space, 'Franchisor') === 'YES'
+                        ? true
+                        : false
+                    }
                     required
                     ref={input => (this.input = input)}
-                    defaultValue={''}
+                    defaultValue={
+                      getAttributeValue(space, 'Franchisor') === 'YES'
+                        ? 'GB'
+                        : ''
+                    }
                     onChange={e => handleChange(memberItem, 'First Name', e)}
                     onBlur={e => handleNameChange(memberItem, e)}
                   />
@@ -139,7 +153,9 @@ export const MemberNew = ({
                         : false
                     }
                   >
-                    Last Name
+                    {getAttributeValue(space, 'Franchisor') === 'YES'
+                      ? 'School Name'
+                      : 'Last Name'}
                   </label>
                   <input
                     type="text"
@@ -152,40 +168,44 @@ export const MemberNew = ({
                     onBlur={e => handleNameChange(memberItem, e)}
                   />
                 </div>
-                <div>
-                  <label
-                    htmlFor="gender"
-                    required={
-                      memberItem.values['Gender'] === undefined ? true : false
-                    }
-                  >
-                    Gender
-                  </label>
-                  <select
-                    name="gender"
-                    id="gender"
-                    required
-                    ref={input => (this.input = input)}
-                    defaultValue={''}
-                    onChange={e => handleChange(memberItem, 'Gender', e)}
-                  >
-                    <option value="" />
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    {getAttributeValue(space, 'Additional Gender Options') ===
-                      'YES' && (
-                      <option value="Prefer not to answer">
-                        Prefer not to answer
-                      </option>
-                    )}
-                    {getAttributeValue(space, 'Additional Gender Options') ===
-                      'YES' && <option value="Other">Other</option>}
-                  </select>
-                  <div className="droparrow" />
-                </div>
-                <span id="photoForm">
-                  <PhotoForm memberItem={memberItem} />
-                </span>
+                {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+                  <div>
+                    <label
+                      htmlFor="gender"
+                      required={
+                        memberItem.values['Gender'] === undefined ? true : false
+                      }
+                    >
+                      Gender
+                    </label>
+                    <select
+                      name="gender"
+                      id="gender"
+                      required
+                      ref={input => (this.input = input)}
+                      defaultValue={''}
+                      onChange={e => handleChange(memberItem, 'Gender', e)}
+                    >
+                      <option value="" />
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      {getAttributeValue(space, 'Additional Gender Options') ===
+                        'YES' && (
+                        <option value="Prefer not to answer">
+                          Prefer not to answer
+                        </option>
+                      )}
+                      {getAttributeValue(space, 'Additional Gender Options') ===
+                        'YES' && <option value="Other">Other</option>}
+                    </select>
+                    <div className="droparrow" />
+                  </div>
+                )}
+                {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+                  <span id="photoForm">
+                    <PhotoForm memberItem={memberItem} />
+                  </span>
+                )}
               </span>
               <span className="line">
                 <div>
@@ -467,6 +487,9 @@ export const MemberNew = ({
                       getAttributeValue(space, 'PhoneNumber Format') !==
                       undefined
                         ? getAttributeValue(space, 'PhoneNumber Format')
+                        : space.slug === 'europe' ||
+                          space.slug === 'unitedkingdom'
+                        ? getPhoneNumberFormat(memberItem)
                         : '####-###-###'
                     }
                     mask="_"
@@ -495,6 +518,9 @@ export const MemberNew = ({
                       getAttributeValue(space, 'PhoneNumber Format') !==
                       undefined
                         ? getAttributeValue(space, 'PhoneNumber Format')
+                        : space.slug === 'europe' ||
+                          space.slug === 'unitedkingdom'
+                        ? getPhoneNumberFormat(memberItem)
                         : '####-###-###'
                     }
                     mask="_"
@@ -545,81 +571,89 @@ export const MemberNew = ({
                     }}
                   />
                 </div>
-                <div>
-                  <label
-                    id="birthday"
-                    htmlFor="birthday"
-                    required={
-                      (memberItem.values['DOB'] === undefined ||
-                        memberItem.values['DOB'] === '') &&
-                      convertedLeadBirthday === undefined
-                        ? true
-                        : false
-                    }
-                  >
-                    Birthday
-                  </label>
-                  <DayPickerInput
-                    name="birthday"
-                    id="birthday"
-                    placeholder={moment(new Date())
-                      .locale(getLocalePreference(space, profile))
-                      .localeData()
-                      .longDateFormat('L')
-                      .toLowerCase()}
-                    formatDate={formatDate}
-                    parseDate={parseDate}
-                    fieldName="DOB"
-                    value={
-                      convertedLeadBirthday !== undefined
-                        ? memberItem.values['DOB'] === ''
-                          ? getDateValue(convertedLeadBirthday)
-                          : getDateValue(memberItem.values['DOB'])
-                        : ''
-                    }
-                    memberItem={memberItem}
-                    onDayPickerHide={handleDateChange}
-                    dayPickerProps={{
-                      locale: getLocalePreference(space, profile),
-                      localeUtils: MomentLocaleUtils,
-                    }}
-                  />
-                </div>
+                {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+                  <div>
+                    <label
+                      id="birthday"
+                      htmlFor="birthday"
+                      required={
+                        (memberItem.values['DOB'] === undefined ||
+                          memberItem.values['DOB'] === '') &&
+                        convertedLeadBirthday === undefined
+                          ? true
+                          : false
+                      }
+                    >
+                      Birthday
+                    </label>
+                    <DayPickerInput
+                      name="birthday"
+                      id="birthday"
+                      placeholder={moment(new Date())
+                        .locale(getLocalePreference(space, profile))
+                        .localeData()
+                        .longDateFormat('L')
+                        .toLowerCase()}
+                      formatDate={formatDate}
+                      parseDate={parseDate}
+                      fieldName="DOB"
+                      value={
+                        convertedLeadBirthday !== undefined
+                          ? memberItem.values['DOB'] === ''
+                            ? getDateValue(convertedLeadBirthday)
+                            : getDateValue(memberItem.values['DOB'])
+                          : ''
+                      }
+                      memberItem={memberItem}
+                      onDayPickerHide={handleDateChange}
+                      dayPickerProps={{
+                        locale: getLocalePreference(space, profile),
+                        localeUtils: MomentLocaleUtils,
+                      }}
+                    />
+                  </div>
+                )}
               </span>
               <span className="line">
-                <div>
-                  <label
-                    htmlFor="membertype"
-                    required={
-                      memberItem.values['Member Type'] === undefined ||
-                      memberItem.values['Member Type'] === ''
-                        ? true
-                        : false
-                    }
-                  >
-                    Member Type
-                  </label>
-                  <select
-                    name="membertype"
-                    id="membertype"
-                    required
-                    ref={input => (this.input = input)}
-                    defaultValue={''}
-                    onChange={e => handleChange(memberItem, 'Member Type', e)}
-                  >
-                    <option value="" />
-                    {membershipTypes.map(type => (
-                      <option key={type.type} value={type.type}>
-                        {type.type}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="droparrow" />
-                </div>
+                {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+                  <div>
+                    <label
+                      htmlFor="membertype"
+                      required={
+                        memberItem.values['Member Type'] === undefined ||
+                        memberItem.values['Member Type'] === ''
+                          ? true
+                          : false
+                      }
+                    >
+                      Member Type
+                    </label>
+                    <select
+                      name="membertype"
+                      id="membertype"
+                      required
+                      ref={input => (this.input = input)}
+                      defaultValue={''}
+                      onChange={e => handleChange(memberItem, 'Member Type', e)}
+                    >
+                      <option value="" />
+                      {membershipTypes.map(type => (
+                        <option key={type.type} value={type.type}>
+                          {type.type}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="droparrow" />
+                  </div>
+                )}
               </span>
             </div>
             <div className="section2">
-              <h1>Emergency Contact Information</h1>
+              {getAttributeValue(space, 'Franchisor') !== 'YES' ? (
+                <h1>Emergency Contact Information</h1>
+              ) : (
+                <h1>Contact Information</h1>
+              )}
               <hr />
               <span className="line">
                 <div>
@@ -646,35 +680,37 @@ export const MemberNew = ({
                     }
                   />
                 </div>
-                <div>
-                  <label
-                    htmlFor="relationship"
-                    required={
-                      memberItem.values['Emergency Contact Relationship'] ===
-                      undefined
-                        ? true
-                        : false
-                    }
-                  >
-                    Relationship
-                  </label>
-                  <input
-                    type="text"
-                    size="40"
-                    name="relationship"
-                    required
-                    id="relationship"
-                    ref={input => (this.input = input)}
-                    defaultValue={''}
-                    onChange={e =>
-                      handleChange(
-                        memberItem,
-                        'Emergency Contact Relationship',
-                        e,
-                      )
-                    }
-                  />
-                </div>
+                {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+                  <div>
+                    <label
+                      htmlFor="relationship"
+                      required={
+                        memberItem.values['Emergency Contact Relationship'] ===
+                        undefined
+                          ? true
+                          : false
+                      }
+                    >
+                      Relationship
+                    </label>
+                    <input
+                      type="text"
+                      size="40"
+                      name="relationship"
+                      required
+                      id="relationship"
+                      ref={input => (this.input = input)}
+                      defaultValue={''}
+                      onChange={e =>
+                        handleChange(
+                          memberItem,
+                          'Emergency Contact Relationship',
+                          e,
+                        )
+                      }
+                    />
+                  </div>
+                )}
               </span>
               <span className="line">
                 <div>
@@ -696,6 +732,9 @@ export const MemberNew = ({
                       getAttributeValue(space, 'PhoneNumber Format') !==
                       undefined
                         ? getAttributeValue(space, 'PhoneNumber Format')
+                        : space.slug === 'europe' ||
+                          space.slug === 'unitedkingdom'
+                        ? getPhoneNumberFormat(memberItem)
                         : '####-###-###'
                     }
                     mask="_"
@@ -716,792 +755,853 @@ export const MemberNew = ({
                     }
                   />
                 </div>
-                <div>
-                  <label htmlFor="alergies">Medical / Allergies</label>
-                  <input
-                    type="text"
-                    size="40"
-                    name="alergies"
-                    id="alergies"
-                    ref={input => (this.input = input)}
-                    defaultValue={''}
-                    onChange={e =>
-                      handleChange(memberItem, 'Medical Allergies', e)
-                    }
-                  />
-                </div>
+                {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+                  <div>
+                    <label htmlFor="alergies">Medical / Allergies</label>
+                    <input
+                      type="text"
+                      size="40"
+                      name="alergies"
+                      id="alergies"
+                      ref={input => (this.input = input)}
+                      defaultValue={''}
+                      onChange={e =>
+                        handleChange(memberItem, 'Medical Allergies', e)
+                      }
+                    />
+                  </div>
+                )}
               </span>
             </div>
-            <div className="section3">
-              <h1>Ranking</h1>
-              <hr />
-              <span className="line">
-                <div>
-                  <label
-                    htmlFor="program"
-                    required={
-                      memberItem.values['Ranking Program'] === undefined
-                        ? true
-                        : false
-                    }
-                  >
-                    Program
-                  </label>
-                  <select
-                    name="program"
-                    id="program"
-                    ref={input => (this.input = input)}
-                    defaultValue={''}
-                    onChange={e =>
-                      handleProgramChange(memberItem, 'Ranking Program', e)
-                    }
-                  >
-                    <option value="" />
-                    {programs.map(program => (
-                      <option key={program.program} value={program.program}>
-                        {program.program}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="droparrow" />
-                </div>
-                <div>
-                  <label
-                    htmlFor="belt"
-                    required={
-                      memberItem.values['Ranking Belt'] === undefined
-                        ? true
-                        : false
-                    }
-                  >
-                    Belt
-                  </label>
-                  <select
-                    name="belt"
-                    id="belt"
-                    ref={input => (this.input = input)}
-                    defaultValue={''}
-                    onChange={e => handleChange(memberItem, 'Ranking Belt', e)}
-                  >
-                    <option value="" />
-                    {belts.map(
-                      belt =>
-                        belt.program ===
-                          memberItem.values['Ranking Program'] && (
-                          <option key={belt.belt} value={belt.belt}>
-                            {belt.belt}
-                          </option>
-                        ),
-                    )}
-                  </select>
-                  <div className="droparrow" />
-                </div>
-              </span>
-              <span className="line">
-                <div className="field">
-                  <label
-                    id="lastPromotion"
-                    htmlFor="lastPromotion"
-                    required={
-                      memberItem.values['Last Promotion'] === undefined
-                        ? true
-                        : false
-                    }
-                  >
-                    Last Promotion
-                  </label>
-                  <DayPickerInput
-                    name="lastPromotion"
-                    id="lastPromotion"
-                    required
-                    placeholder={moment(new Date())
-                      .locale(getLocalePreference(space, profile))
-                      .localeData()
-                      .longDateFormat('L')
-                      .toLowerCase()}
-                    formatDate={formatDate}
-                    parseDate={parseDate}
-                    fieldName="Last Promotion"
-                    memberItem={memberItem}
-                    onDayPickerHide={handleDateChange}
-                    dayPickerProps={{
-                      locale: getLocalePreference(space, profile),
-                      localeUtils: MomentLocaleUtils,
-                    }}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="attendanceCount">Attendance Count</label>
-                  <input
-                    type="number"
-                    name="attendanceCount"
-                    id="attendanceCount"
-                    style={{ width: '130px' }}
-                    ref={input => (this.input = input)}
-                    defaultValue={''}
-                    onChange={e =>
-                      handleChange(memberItem, 'Attendance Count', e)
-                    }
-                  />
-                </div>
-              </span>
-              <span className="line">
-                <div className="field">
-                  <label htmlFor="maxWeeklyClasses">Max Weekly Classes</label>
-                  <input
-                    type="number"
-                    name="maxWeeklyClasses"
-                    id="maxWeeklyClasses"
-                    ref={input => (this.input = input)}
-                    defaultValue={''}
-                    onChange={e =>
-                      handleChange(memberItem, 'Max Weekly Classes', e)
-                    }
-                  />
-                </div>
-              </span>
-            </div>
-            <div className="section3">
-              <h1>Other Information</h1>
-              <hr />
-              <span className="line">
-                <div>
-                  <label htmlFor="nopaying" style={{ minWidth: '100px' }}>
-                    Non Paying
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="nonpaying"
-                    id="nonpaying"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="YES"
-                    checked={
-                      memberItem.values['Non Paying'] === 'YES' ? true : false
-                    }
-                    onChange={e => handleChange(memberItem, 'Non Paying', e)}
-                  />
-                </div>
-              </span>
-              <span className="line">
-                <span>Main Benefits to Train</span>
-              </span>
-              <span className="line benefits">
-                <span className="optionItem">
-                  <label htmlFor="excercise" style={{ minWidth: 'auto' }}>
-                    excercise
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="mainbenefits"
-                    id="excercise"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="excercise"
-                    checked={
-                      memberItem.values['Main Benefits'] !== undefined
-                        ? memberItem.values['Main Benefits'].includes(
+            {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+              <div className="section3">
+                <h1>Ranking</h1>
+                <hr />
+                <span className="line">
+                  <div>
+                    <label
+                      htmlFor="program"
+                      required={
+                        memberItem.values['Ranking Program'] === undefined
+                          ? true
+                          : false
+                      }
+                    >
+                      Program
+                    </label>
+                    <select
+                      name="program"
+                      id="program"
+                      ref={input => (this.input = input)}
+                      defaultValue={''}
+                      onChange={e =>
+                        handleProgramChange(memberItem, 'Ranking Program', e)
+                      }
+                    >
+                      <option value="" />
+                      {programs.map(program => (
+                        <option key={program.program} value={program.program}>
+                          {program.program}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="droparrow" />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="belt"
+                      required={
+                        memberItem.values['Ranking Belt'] === undefined
+                          ? true
+                          : false
+                      }
+                    >
+                      Belt
+                    </label>
+                    <select
+                      name="belt"
+                      id="belt"
+                      ref={input => (this.input = input)}
+                      defaultValue={''}
+                      onChange={e =>
+                        handleChange(memberItem, 'Ranking Belt', e)
+                      }
+                    >
+                      <option value="" />
+                      {belts.map(
+                        belt =>
+                          belt.program ===
+                            memberItem.values['Ranking Program'] && (
+                            <option key={belt.belt} value={belt.belt}>
+                              {belt.belt}
+                            </option>
+                          ),
+                      )}
+                    </select>
+                    <div className="droparrow" />
+                  </div>
+                </span>
+                <span className="line">
+                  <div className="field">
+                    <label
+                      id="lastPromotion"
+                      htmlFor="lastPromotion"
+                      required={
+                        memberItem.values['Last Promotion'] === undefined
+                          ? true
+                          : false
+                      }
+                    >
+                      Last Promotion
+                    </label>
+                    <DayPickerInput
+                      name="lastPromotion"
+                      id="lastPromotion"
+                      required
+                      placeholder={moment(new Date())
+                        .locale(getLocalePreference(space, profile))
+                        .localeData()
+                        .longDateFormat('L')
+                        .toLowerCase()}
+                      formatDate={formatDate}
+                      parseDate={parseDate}
+                      fieldName="Last Promotion"
+                      memberItem={memberItem}
+                      onDayPickerHide={handleDateChange}
+                      dayPickerProps={{
+                        locale: getLocalePreference(space, profile),
+                        localeUtils: MomentLocaleUtils,
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="attendanceCount">Attendance Count</label>
+                    <input
+                      type="number"
+                      name="attendanceCount"
+                      id="attendanceCount"
+                      style={{ width: '130px' }}
+                      ref={input => (this.input = input)}
+                      defaultValue={''}
+                      onChange={e =>
+                        handleChange(memberItem, 'Attendance Count', e)
+                      }
+                    />
+                  </div>
+                </span>
+                <span className="line">
+                  <div className="field">
+                    <label htmlFor="maxWeeklyClasses">Max Weekly Classes</label>
+                    <input
+                      type="number"
+                      name="maxWeeklyClasses"
+                      id="maxWeeklyClasses"
+                      ref={input => (this.input = input)}
+                      defaultValue={''}
+                      onChange={e =>
+                        handleChange(memberItem, 'Max Weekly Classes', e)
+                      }
+                    />
+                  </div>
+                </span>
+              </div>
+            )}
+            {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+              <div className="section3">
+                <h1>Other Information</h1>
+                <hr />
+                <span className="line">
+                  <div>
+                    <label htmlFor="nopaying" style={{ minWidth: '100px' }}>
+                      Non Paying
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="nonpaying"
+                      id="nonpaying"
+                      style={{ clear: 'none', margin: '4px' }}
+                      ref={input => (this.input = input)}
+                      value="YES"
+                      checked={
+                        memberItem.values['Non Paying'] === 'YES' ? true : false
+                      }
+                      onChange={e => handleChange(memberItem, 'Non Paying', e)}
+                    />
+                  </div>
+                </span>
+                <span className="line">
+                  <span>Main Benefits to Train</span>
+                </span>
+                <span className="line benefits">
+                  <span className="optionItem">
+                    <label htmlFor="excercise" style={{ minWidth: 'auto' }}>
+                      excercise
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="mainbenefits"
+                      id="excercise"
+                      style={{ clear: 'none', margin: '4px' }}
+                      ref={input => (this.input = input)}
+                      value="excercise"
+                      checked={
+                        memberItem.values['Main Benefits'] !== undefined
+                          ? memberItem.values['Main Benefits'].includes(
+                              'excercise',
+                            )
+                          : false
+                      }
+                      onChange={e => {
+                        if (memberItem.values['Main Benefits'] === undefined)
+                          memberItem.values['Main Benefits'] = new Array();
+                        if (
+                          memberItem.values['Main Benefits'].includes(
                             'excercise',
                           )
-                        : false
-                    }
-                    onChange={e => {
-                      if (memberItem.values['Main Benefits'] === undefined)
-                        memberItem.values['Main Benefits'] = new Array();
-                      if (
-                        memberItem.values['Main Benefits'].includes('excercise')
-                      ) {
-                        e.target.value = '';
-                        memberItem.values['Main Benefits'] = memberItem.values[
-                          'Main Benefits'
-                        ].filter(elem => elem !== 'excercise');
-                      } else {
-                        e.target.value = 'excercise';
-                        memberItem.values['Main Benefits'].push('excercise');
+                        ) {
+                          e.target.value = '';
+                          memberItem.values[
+                            'Main Benefits'
+                          ] = memberItem.values['Main Benefits'].filter(
+                            elem => elem !== 'excercise',
+                          );
+                        } else {
+                          e.target.value = 'excercise';
+                          memberItem.values['Main Benefits'].push('excercise');
+                        }
+                        handleChange(memberItem, 'Main Benefits', e);
+                      }}
+                    />
+                  </span>
+                  <span className="optionItem">
+                    <label htmlFor="discipline" style={{ minWidth: 'auto' }}>
+                      discipline
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="mainbenefits"
+                      id="discipline"
+                      style={{ clear: 'none', margin: '4px' }}
+                      ref={input => (this.input = input)}
+                      value="discipline"
+                      checked={
+                        memberItem.values['Main Benefits'] !== undefined
+                          ? memberItem.values['Main Benefits'].includes(
+                              'discipline',
+                            )
+                          : false
                       }
-                      handleChange(memberItem, 'Main Benefits', e);
-                    }}
-                  />
-                </span>
-                <span className="optionItem">
-                  <label htmlFor="discipline" style={{ minWidth: 'auto' }}>
-                    discipline
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="mainbenefits"
-                    id="discipline"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="discipline"
-                    checked={
-                      memberItem.values['Main Benefits'] !== undefined
-                        ? memberItem.values['Main Benefits'].includes(
+                      onChange={e => {
+                        if (memberItem.values['Main Benefits'] === undefined)
+                          memberItem.values['Main Benefits'] = new Array();
+                        if (
+                          memberItem.values['Main Benefits'].includes(
                             'discipline',
                           )
-                        : false
-                    }
-                    onChange={e => {
-                      if (memberItem.values['Main Benefits'] === undefined)
-                        memberItem.values['Main Benefits'] = new Array();
-                      if (
-                        memberItem.values['Main Benefits'].includes(
-                          'discipline',
-                        )
-                      ) {
-                        e.target.value = '';
-                        memberItem.values['Main Benefits'] = memberItem.values[
-                          'Main Benefits'
-                        ].filter(elem => elem !== 'discipline');
-                      } else {
-                        e.target.value = 'discipline';
-                        memberItem.values['Main Benefits'].push('discipline');
+                        ) {
+                          e.target.value = '';
+                          memberItem.values[
+                            'Main Benefits'
+                          ] = memberItem.values['Main Benefits'].filter(
+                            elem => elem !== 'discipline',
+                          );
+                        } else {
+                          e.target.value = 'discipline';
+                          memberItem.values['Main Benefits'].push('discipline');
+                        }
+                        handleChange(memberItem, 'Main Benefits', e);
+                      }}
+                    />
+                  </span>
+                  <span className="optionItem">
+                    <label htmlFor="selfdefense" style={{ minWidth: 'auto' }}>
+                      self defense
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="mainbenefits"
+                      id="selfdefense"
+                      style={{ clear: 'none', margin: '4px' }}
+                      ref={input => (this.input = input)}
+                      value="self defense"
+                      checked={
+                        memberItem.values['Main Benefits'] !== undefined
+                          ? memberItem.values['Main Benefits'].includes(
+                              'self defense',
+                            )
+                          : false
                       }
-                      handleChange(memberItem, 'Main Benefits', e);
-                    }}
-                  />
-                </span>
-                <span className="optionItem">
-                  <label htmlFor="selfdefense" style={{ minWidth: 'auto' }}>
-                    self defense
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="mainbenefits"
-                    id="selfdefense"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="self defense"
-                    checked={
-                      memberItem.values['Main Benefits'] !== undefined
-                        ? memberItem.values['Main Benefits'].includes(
+                      onChange={e => {
+                        if (memberItem.values['Main Benefits'] === undefined)
+                          memberItem.values['Main Benefits'] = new Array();
+                        if (
+                          memberItem.values['Main Benefits'].includes(
                             'self defense',
                           )
-                        : false
-                    }
-                    onChange={e => {
-                      if (memberItem.values['Main Benefits'] === undefined)
-                        memberItem.values['Main Benefits'] = new Array();
-                      if (
-                        memberItem.values['Main Benefits'].includes(
-                          'self defense',
-                        )
-                      ) {
-                        e.target.value = '';
-                        memberItem.values['Main Benefits'] = memberItem.values[
-                          'Main Benefits'
-                        ].filter(elem => elem !== 'self defense');
-                      } else {
-                        e.target.value = 'self defense';
-                        memberItem.values['Main Benefits'].push('self defense');
+                        ) {
+                          e.target.value = '';
+                          memberItem.values[
+                            'Main Benefits'
+                          ] = memberItem.values['Main Benefits'].filter(
+                            elem => elem !== 'self defense',
+                          );
+                        } else {
+                          e.target.value = 'self defense';
+                          memberItem.values['Main Benefits'].push(
+                            'self defense',
+                          );
+                        }
+                        handleChange(memberItem, 'Main Benefits', e);
+                      }}
+                    />
+                  </span>
+                  <span className="optionItem">
+                    <label htmlFor="reducestress" style={{ minWidth: 'auto' }}>
+                      reduce stress
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="mainbenefits"
+                      id="reducestress"
+                      style={{ clear: 'none', margin: '4px' }}
+                      ref={input => (this.input = input)}
+                      value="reduce stress"
+                      checked={
+                        memberItem.values['Main Benefits'] !== undefined
+                          ? memberItem.values['Main Benefits'].includes(
+                              'reduce stress',
+                            )
+                          : false
                       }
-                      handleChange(memberItem, 'Main Benefits', e);
-                    }}
-                  />
-                </span>
-                <span className="optionItem">
-                  <label htmlFor="reducestress" style={{ minWidth: 'auto' }}>
-                    reduce stress
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="mainbenefits"
-                    id="reducestress"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="reduce stress"
-                    checked={
-                      memberItem.values['Main Benefits'] !== undefined
-                        ? memberItem.values['Main Benefits'].includes(
+                      onChange={e => {
+                        if (memberItem.values['Main Benefits'] === undefined)
+                          memberItem.values['Main Benefits'] = new Array();
+                        if (
+                          memberItem.values['Main Benefits'].includes(
                             'reduce stress',
                           )
-                        : false
-                    }
-                    onChange={e => {
-                      if (memberItem.values['Main Benefits'] === undefined)
-                        memberItem.values['Main Benefits'] = new Array();
-                      if (
-                        memberItem.values['Main Benefits'].includes(
-                          'reduce stress',
-                        )
-                      ) {
-                        e.target.value = '';
-                        memberItem.values['Main Benefits'] = memberItem.values[
-                          'Main Benefits'
-                        ].filter(elem => elem !== 'reduce stress');
-                      } else {
-                        e.target.value = 'reduce stress';
-                        memberItem.values['Main Benefits'].push(
-                          'reduce stress',
-                        );
+                        ) {
+                          e.target.value = '';
+                          memberItem.values[
+                            'Main Benefits'
+                          ] = memberItem.values['Main Benefits'].filter(
+                            elem => elem !== 'reduce stress',
+                          );
+                        } else {
+                          e.target.value = 'reduce stress';
+                          memberItem.values['Main Benefits'].push(
+                            'reduce stress',
+                          );
+                        }
+                        handleChange(memberItem, 'Main Benefits', e);
+                      }}
+                    />
+                  </span>
+                  <span className="optionItem">
+                    <label htmlFor="respect" style={{ minWidth: 'auto' }}>
+                      respect
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="mainbenefits"
+                      id="respect"
+                      style={{ clear: 'none', margin: '4px' }}
+                      ref={input => (this.input = input)}
+                      value="respect"
+                      checked={
+                        memberItem.values['Main Benefits'] !== undefined
+                          ? memberItem.values['Main Benefits'].includes(
+                              'respect',
+                            )
+                          : false
                       }
-                      handleChange(memberItem, 'Main Benefits', e);
-                    }}
-                  />
-                </span>
-                <span className="optionItem">
-                  <label htmlFor="respect" style={{ minWidth: 'auto' }}>
-                    respect
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="mainbenefits"
-                    id="respect"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="respect"
-                    checked={
-                      memberItem.values['Main Benefits'] !== undefined
-                        ? memberItem.values['Main Benefits'].includes('respect')
-                        : false
-                    }
-                    onChange={e => {
-                      if (memberItem.values['Main Benefits'] === undefined)
-                        memberItem.values['Main Benefits'] = new Array();
-                      if (
-                        memberItem.values['Main Benefits'].includes('respect')
-                      ) {
-                        e.target.value = '';
-                        memberItem.values['Main Benefits'] = memberItem.values[
-                          'Main Benefits'
-                        ].filter(elem => elem !== 'respect');
-                      } else {
-                        e.target.value = 'respect';
-                        memberItem.values['Main Benefits'].push('respect');
+                      onChange={e => {
+                        if (memberItem.values['Main Benefits'] === undefined)
+                          memberItem.values['Main Benefits'] = new Array();
+                        if (
+                          memberItem.values['Main Benefits'].includes('respect')
+                        ) {
+                          e.target.value = '';
+                          memberItem.values[
+                            'Main Benefits'
+                          ] = memberItem.values['Main Benefits'].filter(
+                            elem => elem !== 'respect',
+                          );
+                        } else {
+                          e.target.value = 'respect';
+                          memberItem.values['Main Benefits'].push('respect');
+                        }
+                        handleChange(memberItem, 'Main Benefits', e);
+                      }}
+                    />
+                  </span>
+                  <span className="optionItem">
+                    <label
+                      htmlFor="selfconfidence"
+                      style={{ minWidth: 'auto' }}
+                    >
+                      self confidence
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="mainbenefits"
+                      id="selfconfidence"
+                      style={{ clear: 'none', margin: '4px' }}
+                      ref={input => (this.input = input)}
+                      value="self confidence"
+                      checked={
+                        memberItem.values['Main Benefits'] !== undefined
+                          ? memberItem.values['Main Benefits'].includes(
+                              'self confidence',
+                            )
+                          : false
                       }
-                      handleChange(memberItem, 'Main Benefits', e);
-                    }}
-                  />
-                </span>
-                <span className="optionItem">
-                  <label htmlFor="selfconfidence" style={{ minWidth: 'auto' }}>
-                    self confidence
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="mainbenefits"
-                    id="selfconfidence"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="self confidence"
-                    checked={
-                      memberItem.values['Main Benefits'] !== undefined
-                        ? memberItem.values['Main Benefits'].includes(
+                      onChange={e => {
+                        if (memberItem.values['Main Benefits'] === undefined)
+                          memberItem.values['Main Benefits'] = new Array();
+                        if (
+                          memberItem.values['Main Benefits'].includes(
                             'self confidence',
                           )
-                        : false
-                    }
-                    onChange={e => {
-                      if (memberItem.values['Main Benefits'] === undefined)
-                        memberItem.values['Main Benefits'] = new Array();
-                      if (
-                        memberItem.values['Main Benefits'].includes(
-                          'self confidence',
-                        )
-                      ) {
-                        e.target.value = '';
-                        memberItem.values['Main Benefits'] = memberItem.values[
-                          'Main Benefits'
-                        ].filter(elem => elem !== 'self confidence');
-                      } else {
-                        e.target.value = 'self confidence';
-                        memberItem.values['Main Benefits'].push(
-                          'self confidence',
-                        );
+                        ) {
+                          e.target.value = '';
+                          memberItem.values[
+                            'Main Benefits'
+                          ] = memberItem.values['Main Benefits'].filter(
+                            elem => elem !== 'self confidence',
+                          );
+                        } else {
+                          e.target.value = 'self confidence';
+                          memberItem.values['Main Benefits'].push(
+                            'self confidence',
+                          );
+                        }
+                        handleChange(memberItem, 'Main Benefits', e);
+                      }}
+                    />
+                  </span>
+                  <span className="optionItem">
+                    <label htmlFor="concentration" style={{ minWidth: 'auto' }}>
+                      concentration
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="mainbenefits"
+                      id="concentration"
+                      style={{ clear: 'none', margin: '4px' }}
+                      ref={input => (this.input = input)}
+                      value="concentration"
+                      checked={
+                        memberItem.values['Main Benefits'] !== undefined
+                          ? memberItem.values['Main Benefits'].includes(
+                              'concentration',
+                            )
+                          : false
                       }
-                      handleChange(memberItem, 'Main Benefits', e);
-                    }}
-                  />
-                </span>
-                <span className="optionItem">
-                  <label htmlFor="concentration" style={{ minWidth: 'auto' }}>
-                    concentration
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="mainbenefits"
-                    id="concentration"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="concentration"
-                    checked={
-                      memberItem.values['Main Benefits'] !== undefined
-                        ? memberItem.values['Main Benefits'].includes(
+                      onChange={e => {
+                        if (memberItem.values['Main Benefits'] === undefined)
+                          memberItem.values['Main Benefits'] = new Array();
+                        if (
+                          memberItem.values['Main Benefits'].includes(
                             'concentration',
                           )
-                        : false
-                    }
-                    onChange={e => {
-                      if (memberItem.values['Main Benefits'] === undefined)
-                        memberItem.values['Main Benefits'] = new Array();
-                      if (
-                        memberItem.values['Main Benefits'].includes(
-                          'concentration',
-                        )
-                      ) {
-                        e.target.value = '';
-                        memberItem.values['Main Benefits'] = memberItem.values[
-                          'Main Benefits'
-                        ].filter(elem => elem !== 'concentration');
-                      } else {
-                        e.target.value = 'concentration';
-                        memberItem.values['Main Benefits'].push(
-                          'concentration',
-                        );
+                        ) {
+                          e.target.value = '';
+                          memberItem.values[
+                            'Main Benefits'
+                          ] = memberItem.values['Main Benefits'].filter(
+                            elem => elem !== 'concentration',
+                          );
+                        } else {
+                          e.target.value = 'concentration';
+                          memberItem.values['Main Benefits'].push(
+                            'concentration',
+                          );
+                        }
+                        handleChange(memberItem, 'Main Benefits', e);
+                      }}
+                    />
+                  </span>
+                  <span className="optionItem">
+                    <label htmlFor="coordination" style={{ minWidth: 'auto' }}>
+                      coordination
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="mainbenefits"
+                      id="coordination"
+                      style={{ clear: 'none', margin: '4px' }}
+                      ref={input => (this.input = input)}
+                      value="coordination"
+                      checked={
+                        memberItem.values['Main Benefits'] !== undefined
+                          ? memberItem.values['Main Benefits'].includes(
+                              'coordination',
+                            )
+                          : false
                       }
-                      handleChange(memberItem, 'Main Benefits', e);
-                    }}
-                  />
-                </span>
-                <span className="optionItem">
-                  <label htmlFor="coordination" style={{ minWidth: 'auto' }}>
-                    coordination
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="mainbenefits"
-                    id="coordination"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="coordination"
-                    checked={
-                      memberItem.values['Main Benefits'] !== undefined
-                        ? memberItem.values['Main Benefits'].includes(
+                      onChange={e => {
+                        if (memberItem.values['Main Benefits'] === undefined)
+                          memberItem.values['Main Benefits'] = new Array();
+                        if (
+                          memberItem.values['Main Benefits'].includes(
                             'coordination',
                           )
-                        : false
-                    }
-                    onChange={e => {
-                      if (memberItem.values['Main Benefits'] === undefined)
-                        memberItem.values['Main Benefits'] = new Array();
-                      if (
-                        memberItem.values['Main Benefits'].includes(
-                          'coordination',
-                        )
-                      ) {
-                        e.target.value = '';
-                        memberItem.values['Main Benefits'] = memberItem.values[
-                          'Main Benefits'
-                        ].filter(elem => elem !== 'coordination');
-                      } else {
-                        e.target.value = 'coordination';
-                        memberItem.values['Main Benefits'].push('coordination');
+                        ) {
+                          e.target.value = '';
+                          memberItem.values[
+                            'Main Benefits'
+                          ] = memberItem.values['Main Benefits'].filter(
+                            elem => elem !== 'coordination',
+                          );
+                        } else {
+                          e.target.value = 'coordination';
+                          memberItem.values['Main Benefits'].push(
+                            'coordination',
+                          );
+                        }
+                        handleChange(memberItem, 'Main Benefits', e);
+                      }}
+                    />
+                  </span>
+                  <span className="optionItem">
+                    <label htmlFor="balance" style={{ minWidth: 'auto' }}>
+                      balance
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="mainbenefits"
+                      id="balance"
+                      style={{ clear: 'none', margin: '4px' }}
+                      ref={input => (this.input = input)}
+                      value="balance"
+                      checked={
+                        memberItem.values['Main Benefits'] !== undefined
+                          ? memberItem.values['Main Benefits'].includes(
+                              'balance',
+                            )
+                          : false
                       }
-                      handleChange(memberItem, 'Main Benefits', e);
-                    }}
-                  />
-                </span>
-                <span className="optionItem">
-                  <label htmlFor="balance" style={{ minWidth: 'auto' }}>
-                    balance
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="mainbenefits"
-                    id="balance"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="balance"
-                    checked={
-                      memberItem.values['Main Benefits'] !== undefined
-                        ? memberItem.values['Main Benefits'].includes('balance')
-                        : false
-                    }
-                    onChange={e => {
-                      if (memberItem.values['Main Benefits'] === undefined)
-                        memberItem.values['Main Benefits'] = new Array();
-                      if (
-                        memberItem.values['Main Benefits'].includes('balance')
-                      ) {
-                        e.target.value = '';
-                        memberItem.values['Main Benefits'] = memberItem.values[
-                          'Main Benefits'
-                        ].filter(elem => elem !== 'balance');
-                      } else {
-                        e.target.value = 'balance';
-                        memberItem.values['Main Benefits'].push('balance');
+                      onChange={e => {
+                        if (memberItem.values['Main Benefits'] === undefined)
+                          memberItem.values['Main Benefits'] = new Array();
+                        if (
+                          memberItem.values['Main Benefits'].includes('balance')
+                        ) {
+                          e.target.value = '';
+                          memberItem.values[
+                            'Main Benefits'
+                          ] = memberItem.values['Main Benefits'].filter(
+                            elem => elem !== 'balance',
+                          );
+                        } else {
+                          e.target.value = 'balance';
+                          memberItem.values['Main Benefits'].push('balance');
+                        }
+                        handleChange(memberItem, 'Main Benefits', e);
+                      }}
+                    />
+                  </span>
+                  <span className="optionItem">
+                    <label
+                      htmlFor="characterdevelopment"
+                      style={{ minWidth: 'auto' }}
+                    >
+                      character development
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="mainbenefits"
+                      id="characterdevelopment"
+                      style={{ clear: 'none', margin: '4px' }}
+                      ref={input => (this.input = input)}
+                      value="character development"
+                      checked={
+                        memberItem.values['Main Benefits'] !== undefined
+                          ? memberItem.values['Main Benefits'].includes(
+                              'character development',
+                            )
+                          : false
                       }
-                      handleChange(memberItem, 'Main Benefits', e);
-                    }}
-                  />
-                </span>
-                <span className="optionItem">
-                  <label
-                    htmlFor="characterdevelopment"
-                    style={{ minWidth: 'auto' }}
-                  >
-                    character development
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="mainbenefits"
-                    id="characterdevelopment"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="character development"
-                    checked={
-                      memberItem.values['Main Benefits'] !== undefined
-                        ? memberItem.values['Main Benefits'].includes(
+                      onChange={e => {
+                        if (memberItem.values['Main Benefits'] === undefined)
+                          memberItem.values['Main Benefits'] = new Array();
+                        if (
+                          memberItem.values['Main Benefits'].includes(
                             'character development',
                           )
-                        : false
-                    }
-                    onChange={e => {
-                      if (memberItem.values['Main Benefits'] === undefined)
-                        memberItem.values['Main Benefits'] = new Array();
-                      if (
-                        memberItem.values['Main Benefits'].includes(
-                          'character development',
-                        )
-                      ) {
-                        e.target.value = '';
-                        memberItem.values['Main Benefits'] = memberItem.values[
-                          'Main Benefits'
-                        ].filter(elem => elem !== 'character development');
-                      } else {
-                        e.target.value = 'character development';
-                        memberItem.values['Main Benefits'].push(
-                          'character development',
-                        );
+                        ) {
+                          e.target.value = '';
+                          memberItem.values[
+                            'Main Benefits'
+                          ] = memberItem.values['Main Benefits'].filter(
+                            elem => elem !== 'character development',
+                          );
+                        } else {
+                          e.target.value = 'character development';
+                          memberItem.values['Main Benefits'].push(
+                            'character development',
+                          );
+                        }
+                        handleChange(memberItem, 'Main Benefits', e);
+                      }}
+                    />
+                  </span>
+                  <span className="optionItem">
+                    <label htmlFor="focus" style={{ minWidth: 'auto' }}>
+                      focus
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="mainbenefits"
+                      id="focus"
+                      style={{ clear: 'none', margin: '4px' }}
+                      ref={input => (this.input = input)}
+                      value="focus"
+                      checked={
+                        memberItem.values['Main Benefits'] !== undefined
+                          ? memberItem.values['Main Benefits'].includes('focus')
+                          : false
                       }
-                      handleChange(memberItem, 'Main Benefits', e);
-                    }}
-                  />
-                </span>
-                <span className="optionItem">
-                  <label htmlFor="focus" style={{ minWidth: 'auto' }}>
-                    focus
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="mainbenefits"
-                    id="focus"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="focus"
-                    checked={
-                      memberItem.values['Main Benefits'] !== undefined
-                        ? memberItem.values['Main Benefits'].includes('focus')
-                        : false
-                    }
-                    onChange={e => {
-                      if (memberItem.values['Main Benefits'] === undefined)
-                        memberItem.values['Main Benefits'] = new Array();
-                      if (
-                        memberItem.values['Main Benefits'].includes('focus')
-                      ) {
-                        e.target.value = '';
-                        memberItem.values['Main Benefits'] = memberItem.values[
-                          'Main Benefits'
-                        ].filter(elem => elem !== 'focus');
-                      } else {
-                        e.target.value = 'focus';
-                        memberItem.values['Main Benefits'].push('focus');
+                      onChange={e => {
+                        if (memberItem.values['Main Benefits'] === undefined)
+                          memberItem.values['Main Benefits'] = new Array();
+                        if (
+                          memberItem.values['Main Benefits'].includes('focus')
+                        ) {
+                          e.target.value = '';
+                          memberItem.values[
+                            'Main Benefits'
+                          ] = memberItem.values['Main Benefits'].filter(
+                            elem => elem !== 'focus',
+                          );
+                        } else {
+                          e.target.value = 'focus';
+                          memberItem.values['Main Benefits'].push('focus');
+                        }
+                        handleChange(memberItem, 'Main Benefits', e);
+                      }}
+                    />
+                  </span>
+                  <span className="optionItem">
+                    <label htmlFor="fun" style={{ minWidth: 'auto' }}>
+                      fun
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="mainbenefits"
+                      id="fun"
+                      style={{ clear: 'none', margin: '4px' }}
+                      ref={input => (this.input = input)}
+                      value="fun"
+                      checked={
+                        memberItem.values['Main Benefits'] !== undefined
+                          ? memberItem.values['Main Benefits'].includes('fun')
+                          : false
                       }
-                      handleChange(memberItem, 'Main Benefits', e);
-                    }}
-                  />
-                </span>
-                <span className="optionItem">
-                  <label htmlFor="fun" style={{ minWidth: 'auto' }}>
-                    fun
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="mainbenefits"
-                    id="fun"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="fun"
-                    checked={
-                      memberItem.values['Main Benefits'] !== undefined
-                        ? memberItem.values['Main Benefits'].includes('fun')
-                        : false
-                    }
-                    onChange={e => {
-                      if (memberItem.values['Main Benefits'] === undefined)
-                        memberItem.values['Main Benefits'] = new Array();
-                      if (memberItem.values['Main Benefits'].includes('fun')) {
-                        e.target.value = '';
-                        memberItem.values['Main Benefits'] = memberItem.values[
-                          'Main Benefits'
-                        ].filter(elem => elem !== 'fun');
-                      } else {
-                        e.target.value = 'fun';
-                        memberItem.values['Main Benefits'].push('fun');
+                      onChange={e => {
+                        if (memberItem.values['Main Benefits'] === undefined)
+                          memberItem.values['Main Benefits'] = new Array();
+                        if (
+                          memberItem.values['Main Benefits'].includes('fun')
+                        ) {
+                          e.target.value = '';
+                          memberItem.values[
+                            'Main Benefits'
+                          ] = memberItem.values['Main Benefits'].filter(
+                            elem => elem !== 'fun',
+                          );
+                        } else {
+                          e.target.value = 'fun';
+                          memberItem.values['Main Benefits'].push('fun');
+                        }
+                        handleChange(memberItem, 'Main Benefits', e);
+                      }}
+                    />
+                  </span>
+                  <span className="optionItem">
+                    <label htmlFor="competition" style={{ minWidth: 'auto' }}>
+                      competition
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="mainbenefits"
+                      id="competition"
+                      style={{ clear: 'none', margin: '4px' }}
+                      ref={input => (this.input = input)}
+                      value="competition"
+                      checked={
+                        memberItem.values['Main Benefits'] !== undefined
+                          ? memberItem.values['Main Benefits'].includes(
+                              'competition',
+                            )
+                          : false
                       }
-                      handleChange(memberItem, 'Main Benefits', e);
-                    }}
-                  />
-                </span>
-                <span className="optionItem">
-                  <label htmlFor="competition" style={{ minWidth: 'auto' }}>
-                    competition
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="mainbenefits"
-                    id="competition"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="competition"
-                    checked={
-                      memberItem.values['Main Benefits'] !== undefined
-                        ? memberItem.values['Main Benefits'].includes(
+                      onChange={e => {
+                        if (memberItem.values['Main Benefits'] === undefined)
+                          memberItem.values['Main Benefits'] = new Array();
+                        if (
+                          memberItem.values['Main Benefits'].includes(
                             'competition',
                           )
-                        : false
-                    }
-                    onChange={e => {
-                      if (memberItem.values['Main Benefits'] === undefined)
-                        memberItem.values['Main Benefits'] = new Array();
-                      if (
-                        memberItem.values['Main Benefits'].includes(
-                          'competition',
-                        )
-                      ) {
-                        e.target.value = '';
-                        memberItem.values['Main Benefits'] = memberItem.values[
-                          'Main Benefits'
-                        ].filter(elem => elem !== 'competition');
-                      } else {
-                        e.target.value = 'competition';
-                        memberItem.values['Main Benefits'].push('competition');
+                        ) {
+                          e.target.value = '';
+                          memberItem.values[
+                            'Main Benefits'
+                          ] = memberItem.values['Main Benefits'].filter(
+                            elem => elem !== 'competition',
+                          );
+                        } else {
+                          e.target.value = 'competition';
+                          memberItem.values['Main Benefits'].push(
+                            'competition',
+                          );
+                        }
+                        handleChange(memberItem, 'Main Benefits', e);
+                      }}
+                    />
+                  </span>
+                  <span className="optionItem">
+                    <label htmlFor="ArtofJiuJitsu" style={{ minWidth: 'auto' }}>
+                      Art of Jiu Jitsu
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="mainbenefits"
+                      id="ArtofJiuJitsu"
+                      style={{ clear: 'none', margin: '4px' }}
+                      ref={input => (this.input = input)}
+                      value="Art of Jiu Jitsu"
+                      checked={
+                        memberItem.values['Main Benefits'] !== undefined
+                          ? memberItem.values['Main Benefits'].includes(
+                              'Art of Jiu Jitsu',
+                            )
+                          : false
                       }
-                      handleChange(memberItem, 'Main Benefits', e);
-                    }}
-                  />
-                </span>
-                <span className="optionItem">
-                  <label htmlFor="ArtofJiuJitsu" style={{ minWidth: 'auto' }}>
-                    Art of Jiu Jitsu
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="mainbenefits"
-                    id="ArtofJiuJitsu"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="Art of Jiu Jitsu"
-                    checked={
-                      memberItem.values['Main Benefits'] !== undefined
-                        ? memberItem.values['Main Benefits'].includes(
+                      onChange={e => {
+                        if (memberItem.values['Main Benefits'] === undefined)
+                          memberItem.values['Main Benefits'] = new Array();
+                        if (
+                          memberItem.values['Main Benefits'].includes(
                             'Art of Jiu Jitsu',
                           )
-                        : false
-                    }
-                    onChange={e => {
-                      if (memberItem.values['Main Benefits'] === undefined)
-                        memberItem.values['Main Benefits'] = new Array();
-                      if (
-                        memberItem.values['Main Benefits'].includes(
-                          'Art of Jiu Jitsu',
-                        )
-                      ) {
-                        e.target.value = '';
-                        memberItem.values['Main Benefits'] = memberItem.values[
-                          'Main Benefits'
-                        ].filter(elem => elem !== 'Art of Jiu Jitsu');
-                      } else {
-                        e.target.value = 'Art of Jiu Jitsu';
-                        memberItem.values['Main Benefits'].push(
-                          'Art of Jiu Jitsu',
-                        );
-                      }
-                      handleChange(memberItem, 'Main Benefits', e);
-                    }}
-                  />
+                        ) {
+                          e.target.value = '';
+                          memberItem.values[
+                            'Main Benefits'
+                          ] = memberItem.values['Main Benefits'].filter(
+                            elem => elem !== 'Art of Jiu Jitsu',
+                          );
+                        } else {
+                          e.target.value = 'Art of Jiu Jitsu';
+                          memberItem.values['Main Benefits'].push(
+                            'Art of Jiu Jitsu',
+                          );
+                        }
+                        handleChange(memberItem, 'Main Benefits', e);
+                      }}
+                    />
+                  </span>
                 </span>
-              </span>
-              <span className="line">
-                <div>
-                  <label htmlFor="additionalprogram1">
-                    Additional Program 1
-                  </label>
-                  <select
-                    name="additionalprogram1"
-                    id="additionalprogram1"
-                    ref={input => (this.input = input)}
-                    defaultValue={''}
-                    onChange={e =>
-                      handleProgramChange(memberItem, 'Additional Program 1', e)
-                    }
-                  >
-                    <option value="" />
-                    {additionalPrograms.map(program => (
-                      <option key={program.program} value={program.program}>
-                        {program.program}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="droparrow" />
-                </div>
-                <div>
-                  <label htmlFor="additionalprogram2">
-                    Additional Program 2
-                  </label>
-                  <select
-                    name="additionalprogram2"
-                    id="additionalprogram2"
-                    ref={input => (this.input = input)}
-                    defaultValue={''}
-                    onChange={e =>
-                      handleProgramChange(memberItem, 'Additional Program 2', e)
-                    }
-                  >
-                    <option value="" />
-                    {additionalPrograms.map(program => (
-                      <option key={program.program} value={program.program}>
-                        {program.program}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="droparrow" />
-                </div>
-              </span>
-              <span className="line">
-                <div>
-                  <label htmlFor="covid19">Covid19 Waiver Agreement</label>
-                  <select
-                    name="covid19"
-                    id="covid19"
-                    ref={input => (this.input = input)}
-                    defaultValue={''}
-                    onChange={e =>
-                      handleChange(memberItem, 'Covid19 Waiver', e)
-                    }
-                  >
-                    <option value="" />
-                    <option value="Agreed">Agreed</option>
-                    <option value="NOT Agreed">NOT Agreed</option>
-                  </select>
-                  <div className="droparrow" />
-                </div>
-              </span>
-              <span className="line">
-                <div className="field">
-                  <label htmlFor="alternateBarcode">Alternate Barcode</label>
-                  <input
-                    type="text"
-                    name="alternateBarcode"
-                    id="alternateBarcode"
-                    ref={input => (this.input = input)}
-                    defaultValue={''}
-                    onChange={e =>
-                      handleChange(memberItem, 'Alternate Barcode', e)
-                    }
-                  />
-                </div>
-                <div className="memberBarcode">
-                  <Barcode
-                    value={''}
-                    width={1.3}
-                    height={30}
-                    displayValue={false}
-                  />
-                </div>
-              </span>
-            </div>
+                <span className="line">
+                  <div>
+                    <label htmlFor="additionalprogram1">
+                      Additional Program 1
+                    </label>
+                    <select
+                      name="additionalprogram1"
+                      id="additionalprogram1"
+                      ref={input => (this.input = input)}
+                      defaultValue={''}
+                      onChange={e =>
+                        handleProgramChange(
+                          memberItem,
+                          'Additional Program 1',
+                          e,
+                        )
+                      }
+                    >
+                      <option value="" />
+                      {additionalPrograms.map(program => (
+                        <option key={program.program} value={program.program}>
+                          {program.program}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="droparrow" />
+                  </div>
+                  <div>
+                    <label htmlFor="additionalprogram2">
+                      Additional Program 2
+                    </label>
+                    <select
+                      name="additionalprogram2"
+                      id="additionalprogram2"
+                      ref={input => (this.input = input)}
+                      defaultValue={''}
+                      onChange={e =>
+                        handleProgramChange(
+                          memberItem,
+                          'Additional Program 2',
+                          e,
+                        )
+                      }
+                    >
+                      <option value="" />
+                      {additionalPrograms.map(program => (
+                        <option key={program.program} value={program.program}>
+                          {program.program}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="droparrow" />
+                  </div>
+                </span>
+                <span className="line">
+                  <div>
+                    <label htmlFor="covid19">Covid19 Waiver Agreement</label>
+                    <select
+                      name="covid19"
+                      id="covid19"
+                      ref={input => (this.input = input)}
+                      defaultValue={''}
+                      onChange={e =>
+                        handleChange(memberItem, 'Covid19 Waiver', e)
+                      }
+                    >
+                      <option value="" />
+                      <option value="Agreed">Agreed</option>
+                      <option value="NOT Agreed">NOT Agreed</option>
+                    </select>
+                    <div className="droparrow" />
+                  </div>
+                </span>
+                <span className="line">
+                  <div className="field">
+                    <label htmlFor="alternateBarcode">Alternate Barcode</label>
+                    <input
+                      type="text"
+                      name="alternateBarcode"
+                      id="alternateBarcode"
+                      ref={input => (this.input = input)}
+                      defaultValue={''}
+                      onChange={e =>
+                        handleChange(memberItem, 'Alternate Barcode', e)
+                      }
+                    />
+                  </div>
+                  <div className="memberBarcode">
+                    <Barcode
+                      value={''}
+                      width={1.3}
+                      height={30}
+                      displayValue={false}
+                    />
+                  </div>
+                </span>
+              </div>
+            )}
             <div className="section4">
               <span className="line">
                 <span className="rightButtons">
@@ -1858,6 +1958,12 @@ export const MemberNewContainer = compose(
         convertedLeadPostcode = undefined;
         convertedLeadPhone = undefined;
         convertedLeadEmergencyPhone = undefined;
+
+        if (getAttributeValue(nextProps.space, 'Franchisor') === 'YES') {
+          $('#firstName').val('GB');
+          handleDynamicChange(nextProps.memberItem, 'First Name', 'firstName');
+          nextProps.memberItem.values['First Name'] = 'GB';
+        }
       }
     },
     componentDidMount() {

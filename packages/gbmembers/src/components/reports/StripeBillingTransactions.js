@@ -15,6 +15,7 @@ import MomentLocaleUtils, {
 } from 'react-day-picker/moment';
 import { getLocalePreference, getTimezoneOff } from '../Member/MemberUtils';
 import { MOMENT_FORMATS } from 'common/src/constants';
+import { getTimezone } from '../leads/LeadsUtils';
 
 var compThis = undefined;
 
@@ -107,6 +108,10 @@ export class StripeBillingTransactions extends Component {
       internalPaymentType: 'client_successful',
       addNotification: this.props.addNotification,
       setSystemError: this.props.setSystemError,
+      timezone: getTimezone(
+        this.props.profile.timezone,
+        this.props.space.defaultTimezone,
+      ),
     });
     this.props.fetchPaymentHistory({
       paymentType: 'FAILED',
@@ -121,6 +126,10 @@ export class StripeBillingTransactions extends Component {
       internalPaymentType: 'client_failed',
       addNotification: this.props.addNotification,
       setSystemError: this.props.setSystemError,
+      timezone: getTimezone(
+        this.props.profile.timezone,
+        this.props.space.defaultTimezone,
+      ),
     });
     this.props.fetchPaymentHistory({
       paymentType: 'CHARGES',
@@ -135,6 +144,10 @@ export class StripeBillingTransactions extends Component {
       internalPaymentType: 'pos_charges',
       addNotification: this.props.addNotification,
       setSystemError: this.props.setSystemError,
+      timezone: getTimezone(
+        this.props.profile.timezone,
+        this.props.space.defaultTimezone,
+      ),
     });
     this.props.fetchPOSOrders({
       dateFrom: moment(startDate),

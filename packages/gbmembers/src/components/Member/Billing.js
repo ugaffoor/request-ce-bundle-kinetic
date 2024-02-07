@@ -57,6 +57,7 @@ import { ReceiptToPrint } from './ReceiptToPrint';
 import ScaleLoader from 'react-spinners/ScaleLoader';
 import checkoutRightArrowIcon from '../../images/checkoutRightArrow.png?raw';
 import Helmet from 'react-helmet';
+import { getTimezone } from '../leads/LeadsUtils';
 
 <script src="../helpers/jquery.multiselect.js" />;
 
@@ -1467,7 +1468,7 @@ export class PaymentHistory extends Component {
         paymentStatus: 'Cash',
         debitDate: moment(payment.values['Date']).format('YYYY-MM-DD HH:mm:ss'),
         paymentSource: 'Cash',
-        paymentID: 'Cash',
+        paymentID: payment.handle,
       };
     });
 
@@ -1635,6 +1636,8 @@ export class PaymentHistory extends Component {
         <span className="col-sm-2 orderreceipt">
           <span style={{ display: 'none' }}>
             <MembershipReceiptToPrint
+              memberItem={this.props.memberItem}
+              familyMembers={this.props.familyMembers}
               locale={this.props.locale}
               currency={this.props.currency}
               paymentID={row.original['paymentID']}
@@ -1704,15 +1707,16 @@ export class PaymentHistory extends Component {
           )}
           content={() => this.tableComponentRef}
         />
-        <ReactTable
-          ref={el => (this.tableComponentRef = el)}
-          columns={columns}
-          data={data}
-          className="-striped -highlight paymentHistory"
-          defaultPageSize={data.length > 0 ? data.length : 2}
-          pageSize={data.length > 0 ? data.length : 2}
-          showPagination={false}
-        />
+        <div className="paymentHistoryTable">
+          <ReactTable
+            columns={columns}
+            data={data}
+            className="-striped -highlight paymentHistory"
+            defaultPageSize={data.length > 0 ? data.length : 2}
+            pageSize={data.length > 0 ? data.length : 2}
+            showPagination={false}
+          />
+        </div>
         {
           <a
             onClick={e => {
@@ -1725,6 +1729,155 @@ export class PaymentHistory extends Component {
             Show More
           </a>
         }
+
+        <span style={{ display: 'none' }}>
+          <div
+            className="printMemberBillingTransactions"
+            ref={el => (this.tableComponentRef = el)}
+          >
+            <div className="memberDetails">
+              <div className="header">
+                <img
+                  src="https://gbfms-files.s3-ap-southeast-2.amazonaws.com/GB+Name+Log.png"
+                  alt="GB Logo"
+                  className="GBLogo"
+                />
+              </div>
+              <table className="details">
+                <tr>
+                  <td colSpan={2} className="label">
+                    {getAttributeValue(this.props.space, 'School Name')}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="label">Name: </td>
+                  <td className="name">
+                    {this.props.memberItem.values['First Name']}{' '}
+                    {this.props.memberItem.values['Last Name']}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="label">Address: </td>
+                  <td className="name">
+                    {this.props.memberItem.values['Address']}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="label"></td>
+                  <td className="name">
+                    {this.props.memberItem.values['Suburb']},{' '}
+                    {this.props.memberItem.values['State']}{' '}
+                    {this.props.memberItem.values['Postcode']}
+                  </td>
+                </tr>
+              </table>
+            </div>
+            {this.props.familyMembers !== undefined &&
+              this.props.familyMembers.length > 0 && (
+                <span className="familyMembers">
+                  <table style={{ border: 1, width: '100%' }}>
+                    <thead>
+                      <td>
+                        <b>Member</b>
+                      </td>
+                      <td>
+                        <b>Program</b>
+                      </td>
+                    </thead>
+                    <tbody>
+                      {getJson(
+                        this.props.memberItem.values['Family Fee Details'],
+                      ).map((member, index) => (
+                        <tr>
+                          <td>{member.Name}</td>
+                          <td>{member.feeProgram}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <br></br>
+                </span>
+              )}
+            <div className="memberDetails">
+              <table className="transactions">
+                <thead>
+                  {getAttributeValue(this.props.space, 'Billing Company') ===
+                    'Bambora' && <th>Type</th>}
+                  {getAttributeValue(this.props.space, 'Billing Company') ===
+                    'Bambora' && <th>Transaction ID</th>}
+                  {getAttributeValue(this.props.space, 'Billing Company') ===
+                    'PaySmart' && <th>Scheduled Amount</th>}
+                  <th>Payment Amount</th>
+                  {getAttributeValue(this.props.space, 'Billing Company') ===
+                    'PaySmart' && <th>Payment Method</th>}
+                  <th>Payment Status</th>
+                  <th>Debit Date</th>
+                  <th>Refund</th>
+                </thead>
+                <tbody>
+                  {this.state.data.map((item, index) => (
+                    <tr idx={index}>
+                      {getAttributeValue(
+                        this.props.space,
+                        'Billing Company',
+                      ) === 'Bambora' && (
+                        <td>
+                          {item.paymentSource !== undefined &&
+                          item.paymentSource !== ''
+                            ? item.paymentSource
+                            : 'Membership'}
+                        </td>
+                      )}
+                      {getAttributeValue(
+                        this.props.space,
+                        'Billing Company',
+                      ) === 'Bambora' && <td>{item.paymentID}</td>}
+                      {getAttributeValue(
+                        this.props.space,
+                        'Billing Company',
+                      ) === 'PaySmart' && (
+                        <td>
+                          {new Intl.NumberFormat(this.props.locale, {
+                            style: 'currency',
+                            currency: this.props.currency,
+                          }).format(item.scheduledAmount)}
+                        </td>
+                      )}
+                      <td>
+                        {new Intl.NumberFormat(this.props.locale, {
+                          style: 'currency',
+                          currency: this.props.currency,
+                        }).format(item.paymentAmount)}
+                      </td>
+                      {getAttributeValue(
+                        this.props.space,
+                        'Billing Company',
+                      ) === 'PaySmart' && <td>{item.paymentMethod}</td>}
+                      <td>{item.paymentStatus}</td>
+                      <td>
+                        {moment(item.debitDate, ezidebit_date_format).format(
+                          'L',
+                        )}
+                      </td>
+                      {item.refundAmount !== undefined && (
+                        <td>
+                          {new Intl.NumberFormat(this.props.locale, {
+                            style: 'currency',
+                            currency: this.props.currency,
+                          }).format(
+                            item.refundAmount !== undefined
+                              ? item.refundAmount
+                              : '',
+                          )}
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </span>
       </div>
     );
   }
@@ -2769,6 +2922,7 @@ export class BillingInfo extends Component {
                   }
                   refundTransactionID={this.props.refundTransactionID}
                   memberItem={this.props.memberItem}
+                  familyMembers={this.props.familyMembers}
                   currency={this.props.currency}
                   locale={this.props.locale}
                   space={this.props.space}
@@ -3284,6 +3438,7 @@ export const BillingContainer = compose(
     getPaymentHistory: ({
       memberItem,
       space,
+      profile,
       fetchPaymentHistory,
       setPaymentHistory,
       setPaymentHistoryLoaded,
@@ -3321,6 +3476,7 @@ export const BillingContainer = compose(
           internalPaymentType: 'customer',
           addNotification: addNotification,
           setSystemError: setSystemError,
+          timezone: getTimezone(profile.timezone, space.defaultTimezone),
           useSubAccount:
             memberItem.values['useSubAccount'] === 'YES' ? true : false,
         });
@@ -3360,6 +3516,7 @@ export const BillingContainer = compose(
           internalPaymentType: 'customer',
           addNotification: addNotification,
           setSystemError: setSystemError,
+          timezone: getTimezone(profile.timezone, space.defaultTimezone),
           useSubAccount:
             memberItem.values['useSubAccount'] === 'YES' ? true : false,
         });

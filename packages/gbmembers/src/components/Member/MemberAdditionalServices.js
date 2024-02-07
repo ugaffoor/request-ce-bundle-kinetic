@@ -8,6 +8,7 @@ import { getJson } from '../Member/MemberUtils';
 import SVGInline from 'react-svg-inline';
 import { CoreForm } from 'react-kinetic-core';
 import ReactSpinner from 'react16-spinjs';
+import { Utils } from 'common';
 
 export class MemberAdditionalServices extends Component {
   constructor(props) {
@@ -274,7 +275,19 @@ export class MemberAdditionalServices extends Component {
                 )}
                 <CoreForm
                   datastore
-                  form="bambora-member-additional-services"
+                  form={
+                    Utils.getAttributeValue(
+                      this.props.space,
+                      'Billing Company',
+                    ) === 'Bambora'
+                      ? 'bambora-member-additional-services'
+                      : Utils.getAttributeValue(
+                          this.props.space,
+                          'Billing Company',
+                        ) === 'Stripe'
+                      ? 'stripe-member-additional-services'
+                      : ''
+                  }
                   values={this.state.defaultValues}
                   loaded={this.handleLoaded}
                   completed={this.appliedEditForm}

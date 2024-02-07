@@ -765,6 +765,14 @@ export class LeadsActivityReport extends Component {
       preference => preference['Preference Name'] === event.target.value,
     );
     let filters = preference['Filters'] ? preference['Filters'] : [];
+    filters.forEach(filter => {
+      if (
+        filter.filterType === 'includes' &&
+        typeof filter.filterValue === 'string'
+      ) {
+        filter.filterValue = JSON.parse(filter.filterValue);
+      }
+    });
     this.setState(
       {
         filterColumns: this.columnsToHide.filter(
@@ -797,17 +805,31 @@ export class LeadsActivityReport extends Component {
         this.leadsActivityGridref.table.clearFilter();
         filters.forEach((filter, index) => {
           if (index == 0) {
-            this.leadsActivityGridref.table.addFilter(
-              filter.filterColumn,
-              filter.filterType,
-              filter.filterValue,
-            );
+            if (filter.filterType === 'includes') {
+              this.leadsActivityGridref.table.addFilter(this.includesFilter, {
+                field: filter.filterColumn,
+                includes: filter.filterValue,
+              });
+            } else {
+              this.leadsActivityGridref.table.addFilter(
+                filter.filterColumn,
+                filter.filterType,
+                filter.filterValue,
+              );
+            }
           } else {
-            this.leadsActivityGridref.table.setFilter(
-              filter.filterColumn,
-              filter.filterType,
-              filter.filterValue,
-            );
+            if (filter.filterType === 'includes') {
+              this.leadsActivityGridref.table.addFilter(this.includesFilter, {
+                field: filter.filterColumn,
+                includes: filter.filterValue,
+              });
+            } else {
+              this.leadsActivityGridref.table.setFilter(
+                filter.filterColumn,
+                filter.filterType,
+                filter.filterValue,
+              );
+            }
           }
         });
       },

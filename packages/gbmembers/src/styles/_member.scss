@@ -1855,3 +1855,23 @@ iframe#printf {
     }
   }
 }
+@media print {
+  .printMemberBillingTransactions {
+    width: 95%;
+    .memberDetails {
+      table {
+        width: 100%;
+      }
+    }
+  }
+}
+.printMemberBillingTransactions {
+  .memberDetails {
+    .label {
+      float: left;
+    }
+    .name {
+      clear: left;
+    }
+  }
+}

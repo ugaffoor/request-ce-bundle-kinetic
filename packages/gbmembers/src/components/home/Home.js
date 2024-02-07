@@ -30,6 +30,7 @@ import { actions as attendanceActions } from '../../redux/modules/attendance';
 import { actions as monthlyStatisticsActions } from '../../redux/modules/monthlyStatistics';
 import { actions as classActions } from '../../redux/modules/classes';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
+import { getTimezone } from '../leads/LeadsUtils';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -129,124 +130,150 @@ export const HomeView = ({
 }) => (
   <div className="dashboard">
     <StatusMessagesContainer />
-    <Statistics
-      setIsAssigning={setIsAssigning}
-      setFromDate={setFromDate}
-      setToDate={setToDate}
-      fromDate={fromDate}
-      toDate={toDate}
-      datesChanged={datesChanged}
-      leadsByDate={leadsByDate}
-      fetchLeadsByDate={fetchLeadsByDate}
-      leadsByDateLoading={leadsByDateLoading}
-      allMembers={allMembers}
-      membersLoading={membersLoading}
-      profile={profile}
-      space={space}
-      currency={currency}
-      locale={locale}
-      getOverdues={getOverdues}
-      overdues={overdues}
-      overduesLoading={overduesLoading}
-      monthlyStatistics={monthlyStatistics}
-      monthlyStatisticsLoading={monthlyStatisticsLoading}
-      memberInitialLoadComplete={memberInitialLoadComplete}
-      membersNextPageToken={membersNextPageToken}
-      memberLastFetchTime={memberLastFetchTime}
-      fetchMembers={fetchMembers}
-    />
-    {getAttributeValue(space, 'Billing Company') === 'Bambora' && (
-      <div className="homeOverdues">
-        {!membersLoading && (
-          <div>
-            <BamboraOverdues
+    {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+      <Statistics
+        setIsAssigning={setIsAssigning}
+        setFromDate={setFromDate}
+        setToDate={setToDate}
+        fromDate={fromDate}
+        toDate={toDate}
+        datesChanged={datesChanged}
+        leadsByDate={leadsByDate}
+        fetchLeadsByDate={fetchLeadsByDate}
+        leadsByDateLoading={leadsByDateLoading}
+        allMembers={allMembers}
+        membersLoading={membersLoading}
+        profile={profile}
+        space={space}
+        currency={currency}
+        locale={locale}
+        getOverdues={getOverdues}
+        overdues={overdues}
+        overduesLoading={overduesLoading}
+        monthlyStatistics={monthlyStatistics}
+        monthlyStatisticsLoading={monthlyStatisticsLoading}
+        memberInitialLoadComplete={memberInitialLoadComplete}
+        membersNextPageToken={membersNextPageToken}
+        memberLastFetchTime={memberLastFetchTime}
+        fetchMembers={fetchMembers}
+      />
+    )}
+    {getAttributeValue(space, 'Franchisor') !== 'YES' &&
+      getAttributeValue(space, 'Billing Company') === 'Bambora' && (
+        <div className="homeOverdues">
+          {!membersLoading && (
+            <div>
+              <BamboraOverdues
+                allMembers={allMembers}
+                getFailedPayments={getFailedPayments}
+                paymentHistory={FAILEDpaymentHistory}
+                FAILEDpaymentHistoryLoading={FAILEDpaymentHistoryLoading}
+                getSuccessfulPayments={getSuccessfulPayments}
+                successfulPaymentHistory={SUCCESSFULpaymentHistory}
+                SUCCESSFULpaymentHistoryLoading={
+                  SUCCESSFULpaymentHistoryLoading
+                }
+                currency={currency}
+                space={space}
+                locale={locale}
+                profile={profile}
+              />
+            </div>
+          )}
+        </div>
+      )}
+    {getAttributeValue(space, 'Franchisor') !== 'YES' &&
+      getAttributeValue(space, 'Billing Company') === 'Stripe' && (
+        <div className="homeOverdues">
+          {!membersLoading && (
+            <div>
+              <StripeOverdues
+                allMembers={allMembers}
+                getFailedPayments={getFailedPayments}
+                paymentHistory={FAILEDpaymentHistory}
+                FAILEDpaymentHistoryLoading={FAILEDpaymentHistoryLoading}
+                getSuccessfulPayments={getSuccessfulPayments}
+                successfulPaymentHistory={SUCCESSFULpaymentHistory}
+                SUCCESSFULpaymentHistoryLoading={
+                  SUCCESSFULpaymentHistoryLoading
+                }
+                space={space}
+                locale={locale}
+                profile={profile}
+              />
+            </div>
+          )}
+        </div>
+      )}
+    {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+      <div className="charts">
+        <div className="chart2Column">
+          <div className="col1 chart5">
+            <ProgramsChart allMembers={allMembers} programs={programs} />
+          </div>
+          <div className="col2 chart7">
+            <AttendancePerDay
+              fromDate={fromDate}
+              toDate={toDate}
+              attendancesByDate={attendancesByDate}
+              fetchAttendancesByDate={fetchAttendancesByDate}
+              fetchingAttendancesByDate={fetchingAttendancesByDate}
+              fetchClassSchedules={fetchClassSchedules}
+              classSchedules={classSchedules}
+              fetchingClassSchedules={fetchingClassSchedules}
               allMembers={allMembers}
-              getFailedPayments={getFailedPayments}
-              paymentHistory={FAILEDpaymentHistory}
-              FAILEDpaymentHistoryLoading={FAILEDpaymentHistoryLoading}
-              getSuccessfulPayments={getSuccessfulPayments}
-              successfulPaymentHistory={SUCCESSFULpaymentHistory}
-              SUCCESSFULpaymentHistoryLoading={SUCCESSFULpaymentHistoryLoading}
-              currency={currency}
               space={space}
-              locale={locale}
-              profile={profile}
             />
+          </div>
+        </div>
+        <div className="chart2Column">
+          <div className="col1 chart4">
+            <DemographicChart allMembers={allMembers} space={space} />
+          </div>
+          <div className="col2 chart6">
+            <LeadsOriginChart
+              fromDate={fromDate}
+              toDate={toDate}
+              leadsByDate={leadsByDate}
+              fetchLeadsByDate={fetchLeadsByDate}
+              leadsByDateLoading={leadsByDateLoading}
+            />
+            {/*      <KidsChart allMembers={allMembers} /> */}
+          </div>
+        </div>
+        {!Utils.isMemberOf(profile, 'Billing') ? (
+          <div />
+        ) : (
+          <div className="chart1Column">
+            <div className="col">
+              <Finances
+                monthlyStatistics={monthlyStatistics}
+                fetchMonthlyStatistics={fetchMonthlyStatistics}
+                monthlyStatisticsLoading={monthlyStatisticsLoading}
+                currency={currency}
+                locale={locale}
+              />
+            </div>
           </div>
         )}
       </div>
     )}
-    {getAttributeValue(space, 'Billing Company') === 'Stripe' && (
-      <div className="homeOverdues">
-        {!membersLoading && (
-          <div>
-            <StripeOverdues
-              allMembers={allMembers}
-              getFailedPayments={getFailedPayments}
-              paymentHistory={FAILEDpaymentHistory}
-              FAILEDpaymentHistoryLoading={FAILEDpaymentHistoryLoading}
-              getSuccessfulPayments={getSuccessfulPayments}
-              successfulPaymentHistory={SUCCESSFULpaymentHistory}
-              SUCCESSFULpaymentHistoryLoading={SUCCESSFULpaymentHistoryLoading}
-              space={space}
-              locale={locale}
-              profile={profile}
-            />
-          </div>
-        )}
-      </div>
-    )}
-    <div className="charts">
-      <div className="chart2Column">
-        <div className="col1 chart5">
-          <ProgramsChart allMembers={allMembers} programs={programs} />
-        </div>
-        <div className="col2 chart7">
-          <AttendancePerDay
-            fromDate={fromDate}
-            toDate={toDate}
-            attendancesByDate={attendancesByDate}
-            fetchAttendancesByDate={fetchAttendancesByDate}
-            fetchingAttendancesByDate={fetchingAttendancesByDate}
-            fetchClassSchedules={fetchClassSchedules}
-            classSchedules={classSchedules}
-            fetchingClassSchedules={fetchingClassSchedules}
-            allMembers={allMembers}
-            space={space}
-          />
-        </div>
-      </div>
-      <div className="chart2Column">
-        <div className="col1 chart4">
-          <DemographicChart allMembers={allMembers} space={space} />
-        </div>
-        <div className="col2 chart6">
-          <LeadsOriginChart
-            fromDate={fromDate}
-            toDate={toDate}
-            leadsByDate={leadsByDate}
-            fetchLeadsByDate={fetchLeadsByDate}
-            leadsByDateLoading={leadsByDateLoading}
-          />
-          {/*      <KidsChart allMembers={allMembers} /> */}
-        </div>
-      </div>
-      {!Utils.isMemberOf(profile, 'Billing') ? (
-        <div />
-      ) : (
-        <div className="chart1Column">
-          <div className="col">
-            <Finances
-              monthlyStatistics={monthlyStatistics}
-              fetchMonthlyStatistics={fetchMonthlyStatistics}
-              monthlyStatisticsLoading={monthlyStatisticsLoading}
-              currency={currency}
-              locale={locale}
-            />
+    {getAttributeValue(space, 'Franchisor') === 'YES' &&
+      Utils.isMemberOf(profile, 'Billing') && (
+        <div className="charts">
+          <div className="chart1Column">
+            <div className="col">
+              <Finances
+                monthlyStatistics={monthlyStatistics}
+                fetchMonthlyStatistics={fetchMonthlyStatistics}
+                monthlyStatisticsLoading={monthlyStatisticsLoading}
+                currency={currency}
+                locale={locale}
+              />
+            </div>
           </div>
         </div>
       )}
-    </div>
   </div>
 );
 
@@ -275,11 +302,14 @@ export const HomeContainer = compose(
       setOverdues,
       addNotification,
       setSystemError,
+      space,
+      profile,
     }) => () => {
       fetchOverdues({
         setOverdues: setOverdues,
         addNotification: addNotification,
         setSystemError: setSystemError,
+        timezone: getTimezone(profile.timezone, space.defaultTimezone),
       });
     },
     getFailedPayments: ({
@@ -288,6 +318,7 @@ export const HomeContainer = compose(
       addNotification,
       setSystemError,
       space,
+      profile,
     }) => () => {
       fetchPaymentHistory({
         paymentType: 'FAILED',
@@ -302,6 +333,7 @@ export const HomeContainer = compose(
         internalPaymentType: 'client_failed',
         addNotification: addNotification,
         setSystemError: setSystemError,
+        timezone: getTimezone(profile.timezone, space.defaultTimezone),
         useSubAccount:
           getAttributeValue(space, 'PaySmart SubAccount') === 'YES'
             ? true
@@ -314,6 +346,7 @@ export const HomeContainer = compose(
       addNotification,
       setSystemError,
       space,
+      profile,
     }) => () => {
       fetchPaymentHistory({
         paymentType: 'SUCCESSFUL',
@@ -328,6 +361,7 @@ export const HomeContainer = compose(
         internalPaymentType: 'client_successful',
         addNotification: addNotification,
         setSystemError: setSystemError,
+        timezone: getTimezone(profile.timezone, space.defaultTimezone),
         useSubAccount:
           getAttributeValue(space, 'PaySmart SubAccount') === 'YES'
             ? true

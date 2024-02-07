@@ -59,13 +59,30 @@ export class SetStatusModal extends Component {
                     </label>
                   );
                 })}
+                <span>
+                  <span>
+                    Are you sure you want to continue setting the Status?
+                  </span>
+                  <br></br>
+                  <span>
+                    Please note that setting a Member's status directly will not
+                    affect Billing.
+                  </span>
+                  <br></br>
+                  <span>
+                    If you wish to adjust the Billing status or value, please
+                    submit the appropriate billing form.
+                  </span>
+                </span>
               </form>
               <button
                 type="button"
                 id="applyStatus"
                 className="btn btn-primary btn-block"
                 disabled={$('.statusOptions input:checked').length === 0}
-                onClick={e => this.applyStatus()}
+                onClick={async e => {
+                  this.applyStatus();
+                }}
               >
                 Apply Status
               </button>

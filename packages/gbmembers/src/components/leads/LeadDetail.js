@@ -30,7 +30,7 @@ import free_class from '../../images/free_class.png';
 import attended_class from '../../images/user-check.png';
 import noshow_class from '../../images/no-show.png';
 import moment from 'moment';
-import { getJson } from '../Member/MemberUtils';
+import { getJson, getPhoneNumberFormat } from '../Member/MemberUtils';
 import ReactTable from 'react-table';
 import 'react-datetime/css/react-datetime.css';
 import { StatusMessagesContainer } from '../StatusMessages';
@@ -53,6 +53,7 @@ import { confirm } from '../helpers/Confirmation';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { LeadOrders } from './LeadOrders';
 import { actions as posActions } from '../../redux/modules/pos';
+import NumberFormat from 'react-number-format';
 
 const mapStateToProps = state => ({
   profile: state.app.profile,
@@ -637,7 +638,25 @@ export class LeadDetail extends Component {
                       alt="Phone"
                       style={{ border: 'none', marginRight: '5px' }}
                     />
-                    {this.props.leadItem.values['Phone Number']}
+                    <NumberFormat
+                      displayType={'text'}
+                      format={
+                        getAttributeValue(
+                          this.props.space,
+                          'PhoneNumber Format',
+                        ) !== undefined
+                          ? getAttributeValue(
+                              this.props.space,
+                              'PhoneNumber Format',
+                            )
+                          : this.props.space.slug === 'europe' ||
+                            this.props.space.slug === 'unitedkingdom'
+                          ? getPhoneNumberFormat(this.props.leadItem)
+                          : '####-###-###'
+                      }
+                      mask="_"
+                      value={this.props.leadItem.values['Phone Number']}
+                    />
                   </div>
                 </span>
                 <span className="setStatus">

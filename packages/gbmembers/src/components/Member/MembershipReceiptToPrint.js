@@ -2,6 +2,7 @@ import React from 'react';
 import { I18n } from '../../../../app/src/I18nProvider';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import $ from 'jquery';
+import { getJson } from './MemberUtils';
 
 export class MembershipReceiptToPrint extends React.Component {
   constructor(props) {
@@ -73,6 +74,31 @@ export class MembershipReceiptToPrint extends React.Component {
             <span className="label">Date: </span>
             {this.datetime.format('Do MMM YYYY h:mmA')}
           </span>
+          {this.props.familyMembers !== undefined &&
+            this.props.familyMembers.length > 0 && (
+              <span className="familyMembers">
+                <table style={{ border: 1, width: '100%' }}>
+                  <thead>
+                    <td>
+                      <b>Member</b>
+                    </td>
+                    <td>
+                      <b>Program</b>
+                    </td>
+                  </thead>
+                  <tbody>
+                    {getJson(
+                      this.props.memberItem.values['Family Fee Details'],
+                    ).map((member, index) => (
+                      <tr>
+                        <td>{member.Name}</td>
+                        <td>{member.feeProgram}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </span>
+            )}
         </span>
         <span className="total">
           <span className="label">

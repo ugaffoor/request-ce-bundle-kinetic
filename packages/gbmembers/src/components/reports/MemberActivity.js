@@ -869,6 +869,14 @@ export class MemberActivityReport extends Component {
       preference => preference['Preference Name'] === event.target.value,
     );
     let filters = preference['Filters'] ? preference['Filters'] : [];
+    filters.forEach(filter => {
+      if (
+        filter.filterType === 'includes' &&
+        typeof filter.filterValue === 'string'
+      ) {
+        filter.filterValue = JSON.parse(filter.filterValue);
+      }
+    });
     this.setState(
       {
         filterColumns: this.filterColumns.filter(
@@ -901,17 +909,31 @@ export class MemberActivityReport extends Component {
         this.memberActivityGridref.table.clearFilter();
         filters.forEach((filter, index) => {
           if (index === 0) {
-            this.memberActivityGridref.table.addFilter(
-              filter.filterColumn,
-              filter.filterType,
-              filter.filterValue,
-            );
+            if (filter.filterType === 'includes') {
+              this.memberActivityGridref.table.addFilter(this.includesFilter, {
+                field: filter.filterColumn,
+                includes: filter.filterValue,
+              });
+            } else {
+              this.memberActivityGridref.table.addFilter(
+                filter.filterColumn,
+                filter.filterType,
+                filter.filterValue,
+              );
+            }
           } else {
-            this.memberActivityGridref.table.setFilter(
-              filter.filterColumn,
-              filter.filterType,
-              filter.filterValue,
-            );
+            if (filter.filterType === 'includes') {
+              this.memberActivityGridref.table.addFilter(this.includesFilter, {
+                field: filter.filterColumn,
+                includes: filter.filterValue,
+              });
+            } else {
+              this.memberActivityGridref.table.setFilter(
+                filter.filterColumn,
+                filter.filterType,
+                filter.filterValue,
+              );
+            }
           }
         });
       },

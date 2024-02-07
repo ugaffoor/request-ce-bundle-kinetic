@@ -667,7 +667,7 @@ export class ListNewHome extends Component {
                       <div className="form-check form-check-inline">
                         <label className="form-check-label">
                           <input
-                            type="radio"
+                            type="checkbox"
                             className="form-check-input"
                             name="gender"
                             value="Prefer not to answer"
@@ -684,7 +684,7 @@ export class ListNewHome extends Component {
                       <div className="form-check form-check-inline">
                         <label className="form-check-label">
                           <input
-                            type="radio"
+                            type="checkbox"
                             className="form-check-input"
                             name="gender"
                             value="Other"
