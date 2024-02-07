@@ -1128,6 +1128,7 @@ export const ReportsContainer = compose(
         setOverdues: setOverdues,
         addNotification: addNotification,
         setSystemError: setSystemError,
+        timezone: getTimezone(profile.timezone, space.defaultTimezone),
         useSubAccount:
           getAttributeValue(space, 'PaySmart SubAccount') === 'YES'
             ? true

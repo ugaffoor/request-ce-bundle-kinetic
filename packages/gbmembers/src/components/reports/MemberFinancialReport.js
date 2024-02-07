@@ -31,6 +31,7 @@ import crossIcon from '../../images/cross.svg?raw';
 import { actions as leadsActions } from '../../redux/modules/leads';
 import { actions as servicesActions } from '../../redux/modules/services';
 import helpIcon from '../../images/help.svg?raw';
+import { getTimezone } from '../leads/LeadsUtils';
 
 const mapStateToProps = state => ({
   members: state.member.members.allMembers,
@@ -379,6 +380,10 @@ export class MemberFinancialReport extends Component {
       internalPaymentType: 'client_successful',
       addNotification: this.props.addNotification,
       setSystemError: this.props.setSystemError,
+      timezone: getTimezone(
+        this.props.profile.timezone,
+        this.props.space.defaultTimezone,
+      ),
       useSubAccount:
         getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
           ? true
@@ -397,6 +402,10 @@ export class MemberFinancialReport extends Component {
       internalPaymentType: 'client_failed',
       addNotification: this.props.addNotification,
       setSystemError: this.props.setSystemError,
+      timezone: getTimezone(
+        this.props.profile.timezone,
+        this.props.space.defaultTimezone,
+      ),
       useSubAccount:
         getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
           ? true
@@ -434,6 +443,10 @@ export class MemberFinancialReport extends Component {
       setCustomerRefunds: this.props.setCustomerRefunds,
       setSystemError: this.props.setSystemError,
       addNotification: this.props.addNotification,
+      timezone: getTimezone(
+        this.props.profile.timezone,
+        this.props.space.defaultTimezone,
+      ),
       useSubAccount:
         getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
           ? true
@@ -530,6 +543,10 @@ export class MemberFinancialReport extends Component {
       internalPaymentType: 'client_successful',
       addNotification: this.props.addNotification,
       setSystemError: this.props.setSystemError,
+      timezone: getTimezone(
+        this.props.profile.timezone,
+        this.props.space.defaultTimezone,
+      ),
       useSubAccount:
         getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
           ? true
@@ -548,6 +565,10 @@ export class MemberFinancialReport extends Component {
       internalPaymentType: 'client_failed',
       addNotification: this.props.addNotification,
       setSystemError: this.props.setSystemError,
+      timezone: getTimezone(
+        this.props.profile.timezone,
+        this.props.space.defaultTimezone,
+      ),
       useSubAccount:
         getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
           ? true
@@ -574,6 +595,10 @@ export class MemberFinancialReport extends Component {
       setCustomerRefunds: this.props.setCustomerRefunds,
       setSystemError: this.props.setSystemError,
       addNotification: this.props.addNotification,
+      timezone: getTimezone(
+        this.props.profile.timezone,
+        this.props.space.defaultTimezone,
+      ),
       useSubAccount:
         getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
           ? true

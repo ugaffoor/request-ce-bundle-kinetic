@@ -27,6 +27,7 @@ import {
   getLastBillingStartDate,
   isBamboraFailedPayment,
 } from '../Member/MemberUtils';
+import { getTimezone } from '../leads/LeadsUtils';
 import {
   getAttributeValue,
   setAttributeValue,
@@ -1410,6 +1411,10 @@ export class AttendanceDetail extends Component {
           internalPaymentType: 'client_failed',
           addNotification: this.props.addNotification,
           setSystemError: this.props.setSystemError,
+          timezone: getTimezone(
+            this.props.profile.timezone,
+            this.props.space.defaultTimezone,
+          ),
           useSubAccount:
             getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
               ? true
@@ -1429,6 +1434,10 @@ export class AttendanceDetail extends Component {
           internalPaymentType: 'client_successful',
           addNotification: this.props.addNotification,
           setSystemError: this.props.setSystemError,
+          timezone: getTimezone(
+            this.props.profile.timezone,
+            this.props.space.defaultTimezone,
+          ),
           useSubAccount:
             getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
               ? true

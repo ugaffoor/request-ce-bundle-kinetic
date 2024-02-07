@@ -30,6 +30,7 @@ import { actions as attendanceActions } from '../../redux/modules/attendance';
 import { actions as monthlyStatisticsActions } from '../../redux/modules/monthlyStatistics';
 import { actions as classActions } from '../../redux/modules/classes';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
+import { getTimezone } from '../leads/LeadsUtils';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -301,11 +302,14 @@ export const HomeContainer = compose(
       setOverdues,
       addNotification,
       setSystemError,
+      space,
+      profile,
     }) => () => {
       fetchOverdues({
         setOverdues: setOverdues,
         addNotification: addNotification,
         setSystemError: setSystemError,
+        timezone: getTimezone(profile.timezone, space.defaultTimezone),
       });
     },
     getFailedPayments: ({
@@ -314,6 +318,7 @@ export const HomeContainer = compose(
       addNotification,
       setSystemError,
       space,
+      profile,
     }) => () => {
       fetchPaymentHistory({
         paymentType: 'FAILED',
@@ -328,6 +333,7 @@ export const HomeContainer = compose(
         internalPaymentType: 'client_failed',
         addNotification: addNotification,
         setSystemError: setSystemError,
+        timezone: getTimezone(profile.timezone, space.defaultTimezone),
         useSubAccount:
           getAttributeValue(space, 'PaySmart SubAccount') === 'YES'
             ? true
@@ -340,6 +346,7 @@ export const HomeContainer = compose(
       addNotification,
       setSystemError,
       space,
+      profile,
     }) => () => {
       fetchPaymentHistory({
         paymentType: 'SUCCESSFUL',
@@ -354,6 +361,7 @@ export const HomeContainer = compose(
         internalPaymentType: 'client_successful',
         addNotification: addNotification,
         setSystemError: setSystemError,
+        timezone: getTimezone(profile.timezone, space.defaultTimezone),
         useSubAccount:
           getAttributeValue(space, 'PaySmart SubAccount') === 'YES'
             ? true

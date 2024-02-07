@@ -386,8 +386,10 @@ export class ListEditHome extends Component {
 
     let leads = matchesLeadFilter(this.props.allLeads, filters);
 
+    var data = this.getData(leads);
     this.setState({
-      data: this.getData(leads),
+      data: data,
+      count: data.length,
       filters: filters,
     });
   }
@@ -678,7 +680,7 @@ export class ListEditHome extends Component {
                       <div className="form-check form-check-inline">
                         <label className="form-check-label">
                           <input
-                            type="radio"
+                            type="checkbox"
                             className="form-check-input"
                             name="gender"
                             value="Prefer not to answer"
@@ -695,7 +697,7 @@ export class ListEditHome extends Component {
                       <div className="form-check form-check-inline">
                         <label className="form-check-label">
                           <input
-                            type="radio"
+                            type="checkbox"
                             className="form-check-input"
                             name="gender"
                             value="Other"

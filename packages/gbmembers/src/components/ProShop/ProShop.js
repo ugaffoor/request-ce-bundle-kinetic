@@ -65,6 +65,7 @@ import {
 import { loadStripeTerminal } from '@stripe/terminal-js/pure';
 import mail from '../../images/mail.png';
 import { actions as serviceActions } from '../../redux/modules/services';
+import { getTimezone } from '../leads/LeadsUtils';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -2566,13 +2567,17 @@ class PayNow extends Component {
                       this.processPayment();
                     } else {
                       setTimeout(function() {
+                        var transId = uuid();
+                        transId = transId
+                          .substr(transId.length - 6, transId.length)
+                          .toUpperCase();
                         posThis.setState({
                           processing: false,
                           processingComplete: true,
                           status: '1',
                           errors: '',
                           auth_code: '',
-                          transaction_id: 'cash',
+                          transaction_id: 'cash-' + transId,
                           datetime: moment(),
                         });
                         posThis.completeCheckout();
@@ -4759,6 +4764,10 @@ export const ProShopContainer = compose(
           internalPaymentType: 'client_successful',
           addNotification: this.props.addNotification,
           setSystemError: this.props.setSystemError,
+          timezone: getTimezone(
+            this.props.profile.timezone,
+            this.props.space.defaultTimezone,
+          ),
           useSubAccount:
             getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
               ? true
