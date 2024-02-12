@@ -1919,20 +1919,20 @@ export const MemberView = ({
                 />
               </div>
               <div>
-                {Utils.getAttributeValue(space, 'Billing Company') ===
+                {(Utils.getAttributeValue(space, 'Billing Company') ===
                   'Bambora' ||
-                  (Utils.getAttributeValue(space, 'Billing Company') ===
-                    'Stripe' && (
-                    <MemberAdditionalServices
-                      memberItem={memberItem}
-                      allMembers={allMembers}
-                      space={space}
-                      profile={profile}
-                      cancelAdditionalService={cancelAdditionalService}
-                      locale={locale}
-                      currency={currency}
-                    />
-                  ))}
+                  Utils.getAttributeValue(space, 'Billing Company') ===
+                    'Stripe') && (
+                  <MemberAdditionalServices
+                    memberItem={memberItem}
+                    allMembers={allMembers}
+                    space={space}
+                    profile={profile}
+                    cancelAdditionalService={cancelAdditionalService}
+                    locale={locale}
+                    currency={currency}
+                  />
+                )}
               </div>
               <div>
                 <MemberFiles
