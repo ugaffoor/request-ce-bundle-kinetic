@@ -13,7 +13,7 @@ import {
 } from '../Member/MemberUtils';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
-const ezidebit_date_format = 'YYYY-MM-DD HH:mm:sss';
+const ezidebit_date_format = 'YYYY-MM-DD HH:mm:ss';
 
 export class BamboraOverdues extends Component {
   constructor(props) {
@@ -174,6 +174,17 @@ export class BamboraOverdues extends Component {
           periodCount = 2;
         } else if (paymentPeriod === 'Monthly') {
           period = 'months';
+        } else if (paymentPeriod === 'Quarterly') {
+          periodCount = 3;
+          period = 'months';
+        } else if (paymentPeriod === '4 Months') {
+          periodCount = 4;
+          period = 'months';
+        } else if (paymentPeriod === '6 Months') {
+          periodCount = 6;
+          period = 'months';
+        } else if (paymentPeriod === 'Yearly') {
+          period = 'years';
         }
         if (lastPayment.isAfter(moment())) {
           lastPayment = lastPayment.subtract(periodCount, period);
