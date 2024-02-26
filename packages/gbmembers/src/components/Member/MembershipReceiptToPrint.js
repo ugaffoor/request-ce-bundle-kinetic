@@ -45,9 +45,30 @@ export class MembershipReceiptToPrint extends React.Component {
     }
     this.receiptFooter = receiptFooter;
 
+    var subTotal = 0;
+    var adminFee = 0;
+    var feeDetails = getJson(
+      this.props.memberItem.values['Family Fee Details'],
+    );
+    feeDetails.forEach(
+      item => (subTotal = subTotal + Number.parseFloat(item.fee)),
+    );
+
+    if (getAttributeValue(this.props.space, 'Ignore Admin Fee') !== 'YES') {
+      var adminFeePerc =
+        Number.parseFloat(
+          getAttributeValue(this.props.space, 'Admin Fee Charge').replace(
+            '%',
+            '',
+          ),
+        ) / 100;
+      adminFee = subTotal * Number.parseFloat(adminFeePerc);
+    }
     this.datetime = this.props.datetime;
     this.state = {
       status: this.props.status,
+      subTotal: subTotal,
+      adminFee: adminFee,
       total: this.props.total,
       paymentID: this.props.paymentID,
     };
@@ -85,6 +106,9 @@ export class MembershipReceiptToPrint extends React.Component {
                     <td>
                       <b>Program</b>
                     </td>
+                    <td>
+                      <b>Cost</b>
+                    </td>
                   </thead>
                   <tbody>
                     {getJson(
@@ -93,6 +117,12 @@ export class MembershipReceiptToPrint extends React.Component {
                       <tr>
                         <td>{member.Name}</td>
                         <td>{member.feeProgram}</td>
+                        <td>
+                          {new Intl.NumberFormat(this.props.locale, {
+                            style: 'currency',
+                            currency: this.props.currency,
+                          }).format(member.cost)}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -100,6 +130,29 @@ export class MembershipReceiptToPrint extends React.Component {
               </span>
             )}
         </span>
+        {getAttributeValue(this.props.space, 'Billing Company') === 'Bambora' &&
+          getAttributeValue(this.props.space, 'Ignore Admin Fee') !== 'YES' && (
+            <span className="total">
+              <span className="label">
+                <I18n>
+                  {getAttributeValue(this.props.space, 'Admin Fee Label') !==
+                    undefined &&
+                  getAttributeValue(this.props.space, 'Admin Fee Label') !==
+                    '' &&
+                  getAttributeValue(this.props.space, 'Admin Fee Label') !==
+                    null
+                    ? getAttributeValue(this.props.space, 'Admin Fee Label')
+                    : 'Admin Fee'}
+                </I18n>
+              </span>
+              <span className="value">
+                {new Intl.NumberFormat(this.props.locale, {
+                  style: 'currency',
+                  currency: this.props.currency,
+                }).format(this.state.adminFee)}
+              </span>
+            </span>
+          )}
         <span className="total">
           <span className="label">
             <I18n>TOTAL</I18n>

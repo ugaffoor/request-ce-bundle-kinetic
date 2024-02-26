@@ -5,18 +5,31 @@ import { I18n } from '../I18nProvider';
 import phone from '../assets/images/phone.png';
 import mail from '../assets/images/mail.png';
 import sms from '../assets/images/sms.png';
+import binIcon from '../assets/images/bin.svg?raw';
 import moment from 'moment';
 import $ from 'jquery';
+import SVGInline from 'react-svg-inline';
+import { confirm } from './Confirmation';
 
 export const JourneyEvents = ({
   journeyevents,
   fetchJourneyEvents,
+  deleteJourneyEvents,
+  deletingJourneyEvents,
+  deletingJourneyEventsCount,
+  deletedJourneyEventIds,
   isSpaceAdmin,
   isOpen,
   toggle,
   viewBy,
   setViewBy,
+  doDelete,
+  setDoDelete,
   selectViewBy,
+  setSelectAll,
+  selectAll,
+  confirmDelete,
+  setConfirmDelete,
 }) => (
   <Dropdown isOpen={isOpen} toggle={toggle}>
     <DropdownToggle nav role="button">
@@ -37,51 +50,151 @@ export const JourneyEvents = ({
           <span className="title">
             <I18n>Journey Events</I18n>
           </span>
-          <div className="actions">
-            <a role="button" tabIndex="0" onClick={fetchJourneyEvents}>
-              <I18n>Refresh</I18n>
-            </a>
+          {!deletingJourneyEvents && !confirmDelete && (
+            <span className="deleteButton">
+              <button
+                type="button"
+                className="btn btn-primary report-btn-default"
+                onClick={e => {
+                  $('.deleteButton button').attr('active', doDelete);
+                  setDoDelete(!doDelete);
+                }}
+              >
+                Enable Delete
+              </button>
+            </span>
+          )}
+          {!deletingJourneyEvents && !confirmDelete && (
+            <div className="actions">
+              <a role="button" tabIndex="0" onClick={fetchJourneyEvents}>
+                <I18n>Refresh</I18n>
+              </a>
+            </div>
+          )}
+        </div>
+        {!deletingJourneyEvents && !confirmDelete && (
+          <div className="viewByButtons">
+            <button
+              type="button"
+              active="true"
+              className="btn btn-primary report-btn-default"
+              onClick={e => {
+                $('.viewByButtons button[active=true]').attr('active', 'false');
+                $(e.target).attr('active', 'true');
+                setViewBy('all');
+              }}
+            >
+              All
+            </button>
+            <button
+              type="button"
+              active="false"
+              className="btn btn-primary"
+              onClick={e => {
+                $('.viewByButtons button[active=true]').attr('active', 'false');
+                $(e.target).attr('active', 'true');
+                setViewBy('leads');
+              }}
+            >
+              Leads
+            </button>
+            <button
+              type="button"
+              active="false"
+              className="btn btn-primary"
+              onClick={e => {
+                $('.viewByButtons button[active=true]').attr('active', 'false');
+                $(e.target).attr('active', 'true');
+                setViewBy('members');
+              }}
+            >
+              Members
+            </button>
           </div>
-        </div>
-        <div className="viewByButtons">
-          <button
-            type="button"
-            active="true"
-            className="btn btn-primary report-btn-default"
-            onClick={e => {
-              $('.viewByButtons button[active=true]').attr('active', 'false');
-              $(e.target).attr('active', 'true');
-              setViewBy('all');
-            }}
-          >
-            All
-          </button>
-          <button
-            type="button"
-            active="false"
-            className="btn btn-primary"
-            onClick={e => {
-              $('.viewByButtons button[active=true]').attr('active', 'false');
-              $(e.target).attr('active', 'true');
-              setViewBy('leads');
-            }}
-          >
-            Leads
-          </button>
-          <button
-            type="button"
-            active="false"
-            className="btn btn-primary"
-            onClick={e => {
-              $('.viewByButtons button[active=true]').attr('active', 'false');
-              $(e.target).attr('active', 'true');
-              setViewBy('members');
-            }}
-          >
-            Members
-          </button>
-        </div>
-        <ul className="events-list">
+        )}
+        {doDelete && !deletingJourneyEvents && !confirmDelete && (
+          <div className="deleteOptions">
+            <button
+              type="button"
+              active="false"
+              className="btn btn-primary"
+              onClick={e => {
+                if (!selectAll) {
+                  $('.deleteEvent input').prop('checked', true);
+                } else {
+                  $('.deleteEvent input').prop('checked', false);
+                }
+                setSelectAll(!selectAll);
+              }}
+            >
+              {!selectAll ? 'Select All' : 'Unselect All'}
+            </button>
+            <span
+              className="deletEvents"
+              onClick={async e => {
+                setConfirmDelete(true);
+              }}
+            >
+              <SVGInline svg={binIcon} className="icon" />
+            </span>
+          </div>
+        )}
+        {confirmDelete && !deletingJourneyEvents && (
+          <div className="deleteConfirmation">
+            <h1>
+              Do you wish to delete the{' '}
+              {$('.deleteEvent input:checkbox:checked').length} alerts selected?
+            </h1>
+            <div className="buttons viewByButtons">
+              <button
+                type="button"
+                active="false"
+                className="btn "
+                onClick={e => {
+                  setConfirmDelete(false);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                active="false"
+                className="btn "
+                onClick={e => {
+                  var ids = [];
+                  $('.deleteEvent input:checkbox:checked').each(function() {
+                    ids.push(
+                      $(this)
+                        .prop('id')
+                        .replace('event-', ''),
+                    );
+                  });
+                  deleteJourneyEvents({
+                    journeyevents: journeyevents,
+                    ids: ids,
+                  });
+                }}
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        )}
+        {deletingJourneyEvents && (
+          <div className="deleteConfirmation">
+            <h1>
+              Deleting alerts, {deletingJourneyEventsCount} alerts remaining?
+            </h1>
+            <h1>Please wait...</h1>
+          </div>
+        )}
+        <ul
+          className={
+            deletingJourneyEvents || confirmDelete
+              ? 'events-list hide'
+              : 'events-list'
+          }
+        >
           {journeyevents
             .filter(journeyevent => journeyevent.values['Status'] === 'New')
             .filter(journeyevent => {
@@ -98,6 +211,9 @@ export const JourneyEvents = ({
               if (viewBy === 'all') return true;
               return false;
             })
+            .filter(
+              journeyevent => !deletedJourneyEventIds.includes(journeyevent.id),
+            )
             .map(journeyevent => (
               <li key={journeyevent.id} className="event-item">
                 <Link
@@ -140,6 +256,17 @@ export const JourneyEvents = ({
                     {moment(journeyevent['createdAt']).fromNow()}
                   </span>
                 </Link>
+                {doDelete && (
+                  <span className="deleteEvent">
+                    <input
+                      key={journeyevent.id}
+                      type="checkbox"
+                      id={`event-${journeyevent.id}`}
+                      value={journeyevent.id}
+                      onChange={e => {}}
+                    />
+                  </span>
+                )}
               </li>
             ))}
           {journeyevents.size < 1 && (

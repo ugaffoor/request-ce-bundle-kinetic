@@ -484,6 +484,7 @@ export class LeadDetail extends Component {
                     history,
                     cellInfo.original.contactMethod,
                     cellInfo.original.contactDate,
+                    cellInfo.original.note,
                   );
                 }
               }}
@@ -1209,7 +1210,7 @@ export const LeadDetailContainer = compose(
       setSystemError,
       space,
       setIsDirty,
-    }) => (newHistory, contactType, contactDate) => {
+    }) => (newHistory, contactType, contactDate, note) => {
       leadItem.values['History'] = newHistory;
 
       let calendarDeleteEvent = null;
@@ -1220,7 +1221,10 @@ export const LeadDetailContainer = compose(
           ' ' +
           leadItem.values['Last Name'] +
           ' - ' +
-          convertContactType(contactType),
+          convertContactType(contactType) +
+          (note.includes('[') && note.includes(']')
+            ? ' ' + note.substring(note.indexOf('['), note.indexOf(']') + 1)
+            : ''),
         attendeeEmail: leadItem.values['Email'],
         timeZone: getTimezone(profile.timezone, space.defaultTimezone),
       };

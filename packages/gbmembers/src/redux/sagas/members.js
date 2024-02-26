@@ -528,10 +528,15 @@ export function* fetchCurrentMemberAdditional(action) {
 
     let receiptSubmissionIDs = [];
     for (let i = 0; i < requestContent.length; i++) {
-      let id = requestContent[i].url.split('/')[
-        requestContent[i].url.split('/').length - 2
-      ];
-      receiptSubmissionIDs[receiptSubmissionIDs.length] = id;
+      if (
+        requestContent[i].Form.includes('Registration') ||
+        requestContent[i].Form.includes('Sign Up Fee')
+      ) {
+        let id = requestContent[i].url.split('/')[
+          requestContent[i].url.split('/').length - 2
+        ];
+        receiptSubmissionIDs[receiptSubmissionIDs.length] = id;
+      }
     }
     for (let i = 0; i < posOrderSubmissions.submissions.length; i++) {
       let id = posOrderSubmissions.submissions[i].id;

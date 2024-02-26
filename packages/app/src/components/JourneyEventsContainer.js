@@ -4,6 +4,7 @@ import { List } from 'immutable';
 import moment from 'moment';
 import { JourneyEvents } from './JourneyEvents';
 import { actions } from '../redux/modules/journeyevents';
+import $ from 'jquery';
 
 export const mapStateToProps = state => ({
   journeyevents: List(state.app.journeyevents.get('data'))
@@ -24,21 +25,35 @@ export const mapStateToProps = state => ({
     )
     .reverse(),
   isSpaceAdmin: state.app.profile.spaceAdmin,
+  deletingJourneyEvents: state.app.journeyevents.get('deletingJourneyEvents'),
+  deletingJourneyEventsCount: state.app.journeyevents.get(
+    'deletingJourneyEventsCount',
+  ),
+  deletedJourneyEventIds: state.app.journeyevents.get('deletedJourneyEventIds'),
 });
 
 const mapDispatchToProps = {
   fetchJourneyEvents: actions.fetchJourneyEvents,
+  deleteJourneyEvents: actions.deleteJourneyEvents,
 };
 
 function tick(mythis) {
   console.log('Ticking ...' + mythis);
-  mythis.props.fetchJourneyEvents();
+  if (
+    mythis.props.deletingJourneyEvents === false &&
+    mythis.props.deletingJourneyEvents
+  ) {
+    mythis.props.fetchJourneyEvents();
+  }
 }
 
 export const JourneyEventsContainer = compose(
   connect(mapStateToProps, mapDispatchToProps),
   withState('isOpen', 'setIsOpen', false),
   withState('viewBy', 'setViewBy', 'all'),
+  withState('doDelete', 'setDoDelete', false),
+  withState('selectAll', 'setSelectAll', false),
+  withState('confirmDelete', 'setConfirmDelete', false),
   withHandlers({
     toggle: props => () => props.setIsOpen(open => !open),
   }),
@@ -49,6 +64,17 @@ export const JourneyEventsContainer = compose(
     },
     componentWillUnmount() {
       clearInterval(this.state.timer);
+    },
+    componentWillReceiveProps(nextProps) {
+      if (
+        nextProps.deletingJourneyEvents === false &&
+        this.props.deletingJourneyEvents
+      ) {
+        this.props.setDoDelete(false);
+        $('.deleteButton button').attr('active', false);
+        this.props.setConfirmDelete(false);
+        $('.events-list').removeClass('hide');
+      }
     },
   }),
 )(JourneyEvents);

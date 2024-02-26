@@ -2717,10 +2717,20 @@ export class AttendanceDetail extends Component {
                                   </h4>
                                   <h5
                                     className={
-                                      checkin.values['Attendance Status'][0]
+                                      checkin.values['Attendance Status'] !==
+                                        null &&
+                                      checkin.values['Attendance Status']
+                                        .length > 0
+                                        ? checkin.values['Attendance Status'][0]
+                                        : ''
                                     }
                                   >
-                                    {checkin.values['Attendance Status'][0]}
+                                    {checkin.values['Attendance Status'] !==
+                                      null &&
+                                    checkin.values['Attendance Status'].length >
+                                      0
+                                      ? checkin.values['Attendance Status'][0]
+                                      : ''}
                                   </h5>
                                   {checkin.overdueMember ? (
                                     <span

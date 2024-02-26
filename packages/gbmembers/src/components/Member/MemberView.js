@@ -1321,64 +1321,62 @@ export const MemberView = ({
                       Edit
                     </NavLink>
                   )}
-                  {getAttributeValue(space, 'Franchisor') !== 'YES' && (
-                    <span>
-                      {memberItem.values['Status'] === 'Inactive' ||
-                      memberItem.values['Status'] === 'Frozen' ? (
-                        <div />
-                      ) : (
-                        <span>
-                          {memberItem.user === undefined ? (
-                            <button
-                              className="btn btn-primary"
-                              style={{ textTransform: 'unset' }}
-                              onClick={async e => {
-                                console.log(
-                                  e.currentTarget.getAttribute('noteDate') +
-                                    ' ' +
-                                    e.currentTarget.getAttribute('noteType'),
-                                );
-                                if (
-                                  await confirm(
+                  <span>
+                    {memberItem.values['Status'] === 'Inactive' ||
+                    memberItem.values['Status'] === 'Frozen' ? (
+                      <div />
+                    ) : (
+                      <span>
+                        {memberItem.user === undefined ? (
+                          <button
+                            className="btn btn-primary"
+                            style={{ textTransform: 'unset' }}
+                            onClick={async e => {
+                              console.log(
+                                e.currentTarget.getAttribute('noteDate') +
+                                  ' ' +
+                                  e.currentTarget.getAttribute('noteType'),
+                              );
+                              if (
+                                await confirm(
+                                  <span>
                                     <span>
-                                      <span>
-                                        Are your sure you want to CREATE a User
-                                        Account?
-                                      </span>
-                                      <table>
-                                        <tbody>
-                                          <tr>
-                                            <td>User Name:</td>
-                                            <td>
-                                              {memberItem.values['Member ID']}
-                                            </td>
-                                          </tr>
-                                        </tbody>
-                                      </table>
-                                    </span>,
-                                  )
-                                ) {
-                                  createUserAccount();
-                                }
-                              }}
-                            >
-                              {creatingUserAccount
-                                ? 'Creating...'
-                                : 'Create Account as ' +
-                                  memberItem.values['Member ID']}
-                            </button>
-                          ) : (
-                            <div className="username">
-                              <div className="label">Username:</div>{' '}
-                              <div className="value">
-                                {memberItem.user.username}
-                              </div>
+                                      Are your sure you want to CREATE a User
+                                      Account?
+                                    </span>
+                                    <table>
+                                      <tbody>
+                                        <tr>
+                                          <td>User Name:</td>
+                                          <td>
+                                            {memberItem.values['Member ID']}
+                                          </td>
+                                        </tr>
+                                      </tbody>
+                                    </table>
+                                  </span>,
+                                )
+                              ) {
+                                createUserAccount();
+                              }
+                            }}
+                          >
+                            {creatingUserAccount
+                              ? 'Creating...'
+                              : 'Create Account as ' +
+                                memberItem.values['Member ID']}
+                          </button>
+                        ) : (
+                          <div className="username">
+                            <div className="label">Username:</div>{' '}
+                            <div className="value">
+                              {memberItem.user.username}
                             </div>
-                          )}
-                        </span>
-                      )}
-                    </span>
-                  )}
+                          </div>
+                        )}
+                      </span>
+                    )}
+                  </span>
                   {getAttributeValue(space, 'Franchisor') !== 'YES' && (
                     <div
                       type="button"
