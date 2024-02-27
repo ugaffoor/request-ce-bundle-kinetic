@@ -543,6 +543,9 @@ export function* fetchCurrentMemberAdditional(action) {
       receiptSubmissionIDs[receiptSubmissionIDs.length] = id;
     }
 
+    if (receiptSubmissionIDs.length === 0) {
+      receiptSubmissionIDs[0] = 'XX';
+    }
     const RECEIPT_SENDER_SEARCH = new CoreAPI.SubmissionSearch(true)
       .index('values[Submission ID]')
       .in('values[Submission ID]', receiptSubmissionIDs)

@@ -1,6 +1,6 @@
 {
   "name": "request-ce-bundle-kinetic",
-  "version": "2.3.95",
+  "version": "2.3.96",
   "private": true,
   "workspaces": [
     "packages/*"
