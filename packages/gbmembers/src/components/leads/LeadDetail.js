@@ -639,7 +639,8 @@ export class LeadDetail extends Component {
                       alt="Phone"
                       style={{ border: 'none', marginRight: '5px' }}
                     />
-                    <NumberFormat
+                    <span>{this.props.leadItem.values['Phone Number']}</span>
+                    {/*<NumberFormat
                       displayType={'text'}
                       format={
                         getAttributeValue(
@@ -658,6 +659,7 @@ export class LeadDetail extends Component {
                       mask="_"
                       value={this.props.leadItem.values['Phone Number']}
                     />
+                    */}
                   </div>
                 </span>
                 <span className="setStatus">

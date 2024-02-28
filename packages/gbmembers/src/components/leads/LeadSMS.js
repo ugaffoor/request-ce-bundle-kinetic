@@ -89,7 +89,11 @@ export class LeadSMS extends Component {
       ) {
         return 1;
       }
-      if (sms1['Content'][0] === '[' && sms2['Content'][0] === '[') {
+      if (
+        sms1['Content'] !== null &&
+        sms1['Content'][0] === '[' &&
+        sms2['Content'][0] === '['
+      ) {
         var page1 = sms1['Content'].substring(1, sms1['Content'].indexOf('/'));
         var page2 = sms2['Content'].substring(1, sms2['Content'].indexOf('/'));
         if (parseInt(page1) > parseInt(page2)) {
@@ -104,18 +108,20 @@ export class LeadSMS extends Component {
     var smsResult = [];
 
     smsValues.forEach(element => {
-      var idx = smsResult.findIndex(el => el['Date'] === element['Date']);
-      if (idx === -1) {
-        if (element['Content'][0] === '[')
-          element['Content'] = element['Content'].split(']')[1].trim();
-        smsResult.push(element);
-      } else {
-        smsResult[idx]['Content'] =
-          smsResult[idx]['Content'] +
-          (element['Content'][0] === '['
-            ? element['Content'].split(']')[1]
-            : element['Content']
-          ).trim();
+      if (element['Content'] !== null) {
+        var idx = smsResult.findIndex(el => el['Date'] === element['Date']);
+        if (idx === -1) {
+          if (element['Content'][0] === '[')
+            element['Content'] = element['Content'].split(']')[1].trim();
+          smsResult.push(element);
+        } else {
+          smsResult[idx]['Content'] =
+            smsResult[idx]['Content'] +
+            (element['Content'][0] === '['
+              ? element['Content'].split(']')[1]
+              : element['Content']
+            ).trim();
+        }
       }
     });
 
