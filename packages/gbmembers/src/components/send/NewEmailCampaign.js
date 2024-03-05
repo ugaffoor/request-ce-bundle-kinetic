@@ -39,6 +39,8 @@ import { TinyMCEComponent, createEditorStore } from 'mb-react-tinymce';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { actions as appActions } from '../../redux/modules/memberApp';
 
+const Datetime = require('react-datetime');
+
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   campaignItem: state.member.campaigns.newEmailCampaign,
@@ -466,6 +468,8 @@ export class NewEmailCampaign extends Component {
       body,
       embeddedImages,
       this.props.space,
+      this.state.scheduleEmail,
+      this.state.scheduleDate,
     );
   }
 
@@ -486,6 +490,9 @@ export class NewEmailCampaign extends Component {
       this.props.setShowPreview(true);
       this.props.setShowAttachmentError(false);
     }
+    this.setState({
+      scheduleEmail: false,
+    });
   }
 
   back() {
@@ -797,22 +804,52 @@ export class NewEmailCampaign extends Component {
             )}
             {this.props.showPreview && (
               <span className="preview">
-                <button
-                  type="button"
-                  id="saveButton"
-                  className="btn btn-primary send"
-                  onClick={e => this.createCampaign()}
-                >
-                  Send
-                </button>
-                &nbsp;
-                <button
-                  type="button"
-                  className="btn btn-primary sendback"
-                  onClick={e => this.back()}
-                >
-                  Back
-                </button>
+                <span className="buttons">
+                  <button
+                    type="button"
+                    id="saveButton"
+                    className="btn btn-primary send"
+                    onClick={e => this.createCampaign()}
+                  >
+                    Send
+                  </button>
+                  &nbsp;
+                  <button
+                    type="button"
+                    className="btn btn-primary sendback"
+                    onClick={e => this.back()}
+                  >
+                    Back
+                  </button>
+                </span>
+                <div className="checkinFilter">
+                  <label htmlFor="schedule">Schedule</label>
+                  <div className="checkboxFilter">
+                    <input
+                      id="schedule"
+                      type="checkbox"
+                      value="1"
+                      onChange={e => {
+                        this.setState({
+                          scheduleEmail: !this.state.scheduleEmail,
+                        });
+                      }}
+                    />
+                    <label htmlFor="schedule"></label>
+                  </div>
+                </div>
+                {this.state.scheduleEmail && (
+                  <Datetime
+                    className="float-right"
+                    onChange={date => {
+                      this.setState({
+                        scheduleDate: date,
+                      });
+                      console.log(date);
+                    }}
+                    defaultValue={moment()}
+                  />
+                )}
               </span>
             )}
           </div>
@@ -911,15 +948,22 @@ export const EmailCampaignContainer = compose(
       body,
       embeddedImages,
       space,
+      scheduleEmail,
+      scheduleDate,
     ) => {
       campaignItem.values['From'] =
         aliasEmail === undefined ? schoolEmail : aliasEmail;
       campaignItem.values['Recipients'] = recipients;
       campaignItem.values['Subject'] = subject;
       campaignItem.values['Body'] = body;
+      campaignItem.values['Emailed Count'] = '0';
       campaignItem.values['Embedded Images'] = embeddedImages;
+
+      if (scheduleEmail) {
+        campaignItem.values['Scheduled Time'] = scheduleDate;
+      }
       campaignItem.values['Sent Date'] = moment().format(
-        email_sent_date_format,
+        'YYYY-MM-DDTHH:mm:ssZ',
       );
 
       createCampaign({ campaignItem, history: campaignItem.history });

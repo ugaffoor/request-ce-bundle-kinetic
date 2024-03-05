@@ -59,7 +59,7 @@ export function* updateEmailCampaign(action) {
     console.log('#### updating campaign ... ');
     const { submission } = yield call(CoreAPI.updateSubmission, {
       id: action.payload.id,
-      values: action.payload.campaignItem.values,
+      values: action.payload.values,
     });
     if (action.payload.history)
       action.payload.history.push('/kapps/gbmembers/Send');
@@ -124,6 +124,9 @@ export function* fetchEmailCampaigns(action) {
         'values[Sent Date]',
         'values[Opened By Members]',
         'values[Clicked By Members]',
+        'values[Scheduled Time]',
+        'values[Cancel Campaign]',
+        'values[Emailed Count]',
         'values[Attachments]',
       ])
       .limit(25);

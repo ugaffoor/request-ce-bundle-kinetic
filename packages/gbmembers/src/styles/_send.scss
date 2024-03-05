@@ -51,3 +51,23 @@
     margin-left: -10px;
   }
 }
+
+.new_campaign {
+  .preview {
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+    .checkinFilter {
+      label {
+        float: left;
+      }
+      .checkboxFilter {
+        float: left;
+      }
+    }
+  }
+}
+.cancelEmails {
+  margin-left: 4px;
+  cursor: pointer;
+}

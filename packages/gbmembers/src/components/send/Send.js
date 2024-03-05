@@ -19,6 +19,9 @@ import { StatusMessagesContainer } from '../StatusMessages';
 import { email_received_date_format } from '../leads/LeadsUtils';
 import moment from 'moment';
 import { actions as appActions } from '../../redux/modules/memberApp';
+import crossIcon from '../../images/cross.svg?raw';
+import SVGInline from 'react-svg-inline';
+import { confirm } from '../helpers/Confirmation';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -37,6 +40,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = {
   fetchEmailCampaigns: actions.fetchEmailCampaigns,
   setEmailCampaigns: actions.setEmailCampaigns,
+  updateCampaign: actions.updateEmailCampaign,
   fetchSmsCampaigns: actions.fetchSmsCampaigns,
   setSmsCampaigns: actions.setSmsCampaigns,
   getIndividualSMS: messageActions.getIndividualSMS,
@@ -44,6 +48,8 @@ const mapDispatchToProps = {
   fetchLeads: leadActions.fetchLeads,
   setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
+const email_date_format = ['DD-MM-YYYY HH:mm', 'YYYY-MM-DDTHH:mm:ssZ'];
+var myThis;
 
 export class EmailCampaignsList extends Component {
   constructor(props) {
@@ -73,7 +79,123 @@ export class EmailCampaignsList extends Component {
   getColumns = () => {
     return [
       { accessor: 'subject', Header: 'Subject', width: '90%' },
-      { accessor: 'sentDate', Header: 'Sent On', maxWidth: 150 },
+      { accessor: 'sentDate', Header: 'Sent On', maxWidth: 200 },
+      {
+        accessor: 'status',
+        Header: 'Status',
+        headerClassName: 'status_col',
+        className: 'status_col',
+        maxWidth: 300,
+        Cell: props => {
+          return (
+            <span>
+              {props.original.status['Status'] === 'Sent' && <span>Sent</span>}
+              {props.original.status['Status'] === 'Cancelling' && (
+                <span>Cancelling</span>
+              )}
+              {props.original.status['Status'] === 'Sending' && (
+                <span>
+                  Sending ({props.original.status['Emails_Sent']} of{' '}
+                  {JSON.parse(props.original.recipients).length})
+                  <span
+                    className="cancelEmails"
+                    onClick={async e => {
+                      if (
+                        await confirm(
+                          <span>
+                            <span>
+                              Are you sure you want to CANCEL the selected Email
+                              Campaign?
+                            </span>
+                            <table>
+                              <tbody>
+                                <tr>
+                                  <td>{props.original.subject}</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </span>,
+                        )
+                      ) {
+                        this.props.updateCampaign({
+                          id: props.original._id,
+                          values: { 'Cancel Campaign': 'YES' },
+                        });
+
+                        if (this.reloadTimeout !== undefined) {
+                          clearTimeout(this.reloadTimeout);
+                          this.reloadTimeout = undefined;
+                        }
+                        props.original.status['Status'] = 'Cancelling';
+                        this.setState({ dummy: true });
+                        setTimeout(function() {
+                          myThis.props.fetchEmailCampaigns({
+                            setEmailCampaigns: myThis.props.setEmailCampaigns,
+                          });
+                        }, 1000 * 5);
+                      }
+                    }}
+                  >
+                    <SVGInline svg={crossIcon} className="icon" />
+                  </span>
+                </span>
+              )}
+              {props.original.status['Status'] === 'Cancelled' && (
+                <span>Cancelled ({props.original.status['Emails_Sent']})</span>
+              )}
+              {props.original.status['Status'] === 'Scheduled' && (
+                <span>
+                  Scheduled ({props.original.status['Scheduled_Time']})
+                  <span
+                    className="cancelEmails"
+                    onClick={async e => {
+                      if (
+                        await confirm(
+                          <span>
+                            <span>
+                              Are you sure you want to CANCEL the selected Email
+                              Campaign?
+                            </span>
+                            <table>
+                              <tbody>
+                                <tr>
+                                  <td>{props.original.subject}</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </span>,
+                        )
+                      ) {
+                        this.props.updateCampaign({
+                          id: props.original._id,
+                          values: { 'Cancel Campaign': 'YES' },
+                        });
+
+                        if (this.reloadTimeout !== undefined) {
+                          clearTimeout(this.reloadTimeout);
+                          this.reloadTimeout = undefined;
+                        }
+                        props.original.status['Status'] = 'Cancelling';
+                        this.setState({ dummy: true });
+                        setTimeout(function() {
+                          myThis.props.fetchEmailCampaigns({
+                            setEmailCampaigns: myThis.props.setEmailCampaigns,
+                          });
+                        }, 1000 * 5);
+                      }
+                    }}
+                  >
+                    <SVGInline svg={crossIcon} className="icon" />
+                  </span>
+                </span>
+              )}
+              {props.original.status['Status'] === 'Completed' && (
+                <span>Sent ({props.original.status['Emails_Sent']})</span>
+              )}
+            </span>
+          );
+        },
+      },
       {
         accessor: 'recipients',
         Header: 'Recipients',
@@ -116,15 +238,22 @@ export class EmailCampaignsList extends Component {
     if (!emailCampaigns) {
       return [];
     }
-
+    myThis = this;
+    var hasInProgress = false;
     const data = emailCampaigns.map(campaign => {
+      let status = this.getEmailStatus(campaign);
+      if (status['Status'] === 'Scheduled' || status['Status'] === 'Sending') {
+        hasInProgress = true;
+      }
+
       return {
         _id: campaign['id'],
         subject: campaign.values['Subject'],
         sentDate: moment(
           campaign.values['Sent Date'],
-          email_received_date_format,
+          email_date_format,
         ).format('L h:mm A'),
+        status: status,
         recipients: campaign.values['Recipients'],
         body: campaign.values['Body'],
         opened: campaign.values['Opened By Members'],
@@ -132,7 +261,60 @@ export class EmailCampaignsList extends Component {
         attachments: campaign.values['Attachments'],
       };
     });
+    if (hasInProgress && this.reloadTimeout === undefined) {
+      console.log('ReloadTimeout set');
+      this.reloadTimeout = setTimeout(function() {
+        myThis.reloadTimeout = undefined;
+        myThis.props.fetchEmailCampaigns({
+          setEmailCampaigns: myThis.props.setEmailCampaigns,
+        });
+      }, 1000 * 60);
+    }
     return data;
+  }
+  getEmailStatus(campaign) {
+    var status = { Status: 'Sent' };
+    if (campaign.values['Cancel Campaign'] === 'YES') {
+      return {
+        Status: 'Cancelled',
+        Emails_Sent: campaign.values['Emailed Count'],
+      };
+    }
+
+    var recipients = JSON.parse(campaign.values['Recipients']);
+    if (
+      Number.parseInt(campaign.values['Emailed Count']) === recipients.length
+    ) {
+      return {
+        Status: 'Completed',
+        Emails_Sent: campaign.values['Emailed Count'],
+      };
+    }
+
+    if (
+      campaign.values['Scheduled Time'] !== null &&
+      campaign.values['Scheduled Time'] !== undefined &&
+      campaign.values['Scheduled Time'] !== ''
+    ) {
+      return {
+        Status: 'Scheduled',
+        Scheduled_Time: moment(campaign.values['Scheduled Time']).format(
+          'L hh:mmA',
+        ),
+      };
+    }
+
+    if (
+      campaign.values['Emailed Count'] !== undefined &&
+      Number.parseInt(campaign.values['Emailed Count']) !== recipients.length
+    ) {
+      return {
+        Status: 'Sending',
+        Emails_Sent: campaign.values['Emailed Count'],
+      };
+    }
+
+    return status;
   }
   getRecipientColumns = () => {
     return [
@@ -1120,6 +1302,7 @@ export const CampaignView = ({
   smsCampaigns,
   fetchEmailCampaigns,
   setEmailCampaigns,
+  updateCampaign,
   fetchSmsCampaigns,
   setSmsCampaigns,
   smsCampaignLoading,
@@ -1143,6 +1326,7 @@ export const CampaignView = ({
           fetchEmailCampaigns={fetchEmailCampaigns}
           setEmailCampaigns={setEmailCampaigns}
           emailCampaigns={emailCampaigns}
+          updateCampaign={updateCampaign}
           allMembers={allMembers}
           allLeads={allLeads}
         />
