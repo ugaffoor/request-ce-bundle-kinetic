@@ -92,6 +92,7 @@ export class NewEmailCampaign extends Component {
     this.handleSubjectChange = this.handleSubjectChange.bind(this);
     this.createCampaign = this.createCampaign.bind(this);
     this.getSelectOptions = this.getSelectOptions.bind(this);
+    this.validScheduledDate = this.validScheduledDate.bind(this);
 
     if (
       this.props.submissionId != null &&
@@ -532,6 +533,11 @@ export class NewEmailCampaign extends Component {
     console.log('Content was updated:', content);
   };
 
+  validScheduledDate(current) {
+    if (current.isBefore(moment())) return false;
+    return true;
+  }
+
   render() {
     return (
       <div className="new_campaign" style={{ marginTop: '2%' }}>
@@ -841,6 +847,7 @@ export class NewEmailCampaign extends Component {
                 {this.state.scheduleEmail && (
                   <Datetime
                     className="float-right"
+                    isValidDate={this.validScheduledDate}
                     onChange={date => {
                       this.setState({
                         scheduleDate: date,

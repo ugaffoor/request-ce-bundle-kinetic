@@ -268,7 +268,7 @@ export class EmailCampaignsList extends Component {
         myThis.props.fetchEmailCampaigns({
           setEmailCampaigns: myThis.props.setEmailCampaigns,
         });
-      }, 1000 * 60);
+      }, 1000 * 30);
     }
     return data;
   }
@@ -292,6 +292,17 @@ export class EmailCampaignsList extends Component {
     }
 
     if (
+      campaign.values['Emailed Count'] !== undefined &&
+      campaign.values['Emailed Count'] !== '0' &&
+      Number.parseInt(campaign.values['Emailed Count']) !== recipients.length
+    ) {
+      return {
+        Status: 'Sending',
+        Emails_Sent: campaign.values['Emailed Count'],
+      };
+    }
+
+    if (
       campaign.values['Scheduled Time'] !== null &&
       campaign.values['Scheduled Time'] !== undefined &&
       campaign.values['Scheduled Time'] !== ''
@@ -301,16 +312,6 @@ export class EmailCampaignsList extends Component {
         Scheduled_Time: moment(campaign.values['Scheduled Time']).format(
           'L hh:mmA',
         ),
-      };
-    }
-
-    if (
-      campaign.values['Emailed Count'] !== undefined &&
-      Number.parseInt(campaign.values['Emailed Count']) !== recipients.length
-    ) {
-      return {
-        Status: 'Sending',
-        Emails_Sent: campaign.values['Emailed Count'],
       };
     }
 

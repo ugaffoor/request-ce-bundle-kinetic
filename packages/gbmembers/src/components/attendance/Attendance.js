@@ -2798,6 +2798,7 @@ export class AttendanceDetail extends Component {
 
 export const AttendanceView = ({
   allMembers,
+  membersLoading,
   programs,
   additionalPrograms,
   checkinMember,
@@ -2830,6 +2831,7 @@ export const AttendanceView = ({
 }) => (
   <AttendanceDetail
     allMembers={allMembers}
+    membersLoading={membersLoading}
     programs={programs}
     additionalPrograms={additionalPrograms}
     checkinMember={checkinMember}
