@@ -415,12 +415,12 @@ export const HomeContainer = compose(
   }),
   lifecycle({
     UNSAFE_componentWillReceiveProps(nextProps) {
-      this.props.setSidebarDisplayType('members');
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);
     },
     componentDidMount() {
+      this.props.setSidebarDisplayType('members');
       if (
         Utils.isMemberOf(this.props.profile, 'Billing') &&
         getAttributeValue(this.props.space, 'Billing Company') !== 'No Billing'

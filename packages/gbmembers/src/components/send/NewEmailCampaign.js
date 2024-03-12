@@ -512,6 +512,13 @@ export class NewEmailCampaign extends Component {
   onLoadEmailTemplate() {
     setTimeout(function() {
       if (emailEditorRef !== undefined) {
+        emailEditorRef.editor.addEventListener('design:loaded', () => {
+          if (editorThis.state.text === '') {
+            emailEditorRef.editor.setBodyValues({
+              backgroundColor: '#FFFFFF',
+            });
+          }
+        });
         emailEditorRef.editor.addEventListener('design:updated', function(
           updates,
         ) {
