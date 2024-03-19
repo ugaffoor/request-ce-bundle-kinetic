@@ -511,7 +511,7 @@ export class NewEmailCampaign extends Component {
   }
   onLoadEmailTemplate() {
     setTimeout(function() {
-      if (emailEditorRef !== undefined) {
+      if (emailEditorRef !== undefined && emailEditorRef !== null) {
         emailEditorRef.editor.addEventListener('design:loaded', () => {
           if (editorThis.state.text === '') {
             emailEditorRef.editor.setBodyValues({
@@ -974,7 +974,9 @@ export const EmailCampaignContainer = compose(
       campaignItem.values['Embedded Images'] = embeddedImages;
 
       if (scheduleEmail) {
-        campaignItem.values['Scheduled Time'] = scheduleDate;
+        campaignItem.values['Scheduled Time'] = scheduleDate.format(
+          'YYYY-MM-DDTHH:mm:ssZ',
+        );
       }
       campaignItem.values['Sent Date'] = moment().format(
         'YYYY-MM-DDTHH:mm:ssZ',

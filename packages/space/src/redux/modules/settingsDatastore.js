@@ -23,6 +23,7 @@ export const BRIDGE_MODEL_INCLUDES =
   'attributes, ' +
   'qualifications,qualifications.parameters,' +
   'mappings,mappings.attributes,mappings.qualifications';
+export const PROFILE_INCLUDES = 'attributes,profileAttributes';
 
 export const SUBMISSION_SYSTEM_PROPS = [
   ColumnConfig({
@@ -365,7 +366,9 @@ export const reducer = (state = State(), { type, payload }) => {
             'Datastore Hidden',
             'false',
           ).toLowerCase();
-          const isHidden = hiddenAttr === 'true' || hiddenAttr === 'yes';
+          const isHidden = !payload.isSpaceAdmin
+            ? hiddenAttr === 'true' || hiddenAttr === 'yes'
+            : false;
           const canManage = payload.manageableForms.includes(form.slug);
           return DatastoreForm({ ...form, canManage, isHidden });
         }),

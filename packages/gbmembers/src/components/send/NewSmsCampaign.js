@@ -33,6 +33,8 @@ import { actions as attendanceActions } from '../../redux/modules/attendance';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import ReactSpinner from 'react16-spinjs';
 
+const Datetime = require('react-datetime');
+
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   campaignItem: state.member.campaigns.newSmsCampaign,
@@ -51,7 +53,7 @@ const mapStateToProps = state => ({
   classAttendances: state.member.attendance.classAttendances,
 });
 const mapDispatchToProps = {
-  createCampaign: actions.createSmsCampaign,
+  createSmsCampaign: actions.createSmsCampaign,
   fetchNewCampaign: actions.fetchNewSmsCampaign,
   updateCampaign: actions.updateSmsCampaign,
   sendSms: messagingActions.sendBulkSms,
@@ -77,6 +79,7 @@ export class NewSmsCampaign extends Component {
     this.createCampaign = this.createCampaign.bind(this);
     this.getSelectOptions = this.getSelectOptions.bind(this);
     this.selectSMSTemplate = this.selectSMSTemplate.bind(this);
+    this.validScheduledDate = this.validScheduledDate.bind(this);
 
     let classOptions = [];
     if (this.props.submissionType === 'class') {
@@ -98,6 +101,7 @@ export class NewSmsCampaign extends Component {
           ? this.getSelectLeadOptions(this.props.leadLists, this.props.allLeads)
           : [],
       selectedLeadOption: [],
+      scheduleSMS: false,
       classOptions: classOptions,
       selectedClassOption: classOptions,
       smsCreditsRequired: 0,
@@ -510,6 +514,8 @@ export class NewSmsCampaign extends Component {
       this.state.content,
       this.props.space,
       this.props.submissionType,
+      this.state.scheduleSMS,
+      this.state.scheduleDate,
     );
   }
 
@@ -572,6 +578,12 @@ export class NewSmsCampaign extends Component {
 
     this.determineCreditRequired(smsText);
   }
+
+  validScheduledDate(current) {
+    if (current.isBefore(moment())) return false;
+    return true;
+  }
+
   render() {
     return (
       <div className="new_smscampaign" style={{ marginTop: '2%' }}>
@@ -727,7 +739,7 @@ export class NewSmsCampaign extends Component {
                 SMS Text: NOTE, member('ID'), member('First Name'), member('Last
                 Name') substitutes don't work for campaigns
               </label>
-              <div className="input-group">
+              <div className="input-group sendsms">
                 <textarea
                   value={this.state.content}
                   onChange={this.handleSmsTextChange}
@@ -747,6 +759,35 @@ export class NewSmsCampaign extends Component {
                 >
                   Send
                 </button>
+                <div className="checkinFilter">
+                  <label htmlFor="schedule">Schedule</label>
+                  <div className="checkboxFilter">
+                    <input
+                      id="schedule"
+                      type="checkbox"
+                      value="1"
+                      onChange={e => {
+                        this.setState({
+                          scheduleSMS: !this.state.scheduleSMS,
+                        });
+                      }}
+                    />
+                    <label htmlFor="schedule"></label>
+                  </div>
+                  {this.state.scheduleSMS && (
+                    <Datetime
+                      className="float-right"
+                      isValidDate={this.validScheduledDate}
+                      onChange={date => {
+                        this.setState({
+                          scheduleDate: date,
+                        });
+                        console.log(date);
+                      }}
+                      defaultValue={moment()}
+                    />
+                  )}
+                </div>
               </div>
             </span>
           </div>
@@ -829,13 +870,22 @@ export const SmsCampaignContainer = compose(
   withHandlers({
     saveCampaign: ({
       campaignItem,
-      createCampaign,
+      createSmsCampaign,
       sendSms,
       createMemberActivities,
       createLeadActivities,
       fetchMembers,
       escapeRegExp,
-    }) => (myThis, ids, phoneNumbers, content, space, submissionType) => {
+    }) => (
+      myThis,
+      ids,
+      phoneNumbers,
+      content,
+      space,
+      submissionType,
+      scheduleSMS,
+      scheduleDate,
+    ) => {
       var matches = content.match(/\$\{.*?\('(.*?)'\)\}/g);
       if (matches !== null) {
         matches.forEach(function(value, index) {
@@ -855,12 +905,19 @@ export const SmsCampaignContainer = compose(
       campaignItem.values['From Number'] =
         space.attributes['School Telephone'][0];
       campaignItem.values['Recipients'] = ids;
+      campaignItem.values['Phone Numbers'] = phoneNumbers;
+      campaignItem.values['Target'] =
+        submissionType === 'member' || submissionType === 'class'
+          ? 'Member'
+          : 'Lead';
       campaignItem.values['SMS Content'] = content;
       campaignItem.values['Sent Date'] = moment().format(
         email_sent_date_format,
       );
-
-      createCampaign({
+      if (scheduleSMS) {
+        campaignItem.values['Scheduled Time'] = scheduleDate;
+      }
+      createSmsCampaign({
         campaignItem,
         phoneNumbers,
         target:
@@ -872,6 +929,7 @@ export const SmsCampaignContainer = compose(
         createMemberActivities,
         fetchMembers,
         createLeadActivities,
+        scheduleSMS,
       });
     },
   }),

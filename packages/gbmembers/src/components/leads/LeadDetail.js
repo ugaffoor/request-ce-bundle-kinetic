@@ -14,7 +14,6 @@ import { KappNavLink as NavLink } from 'common';
 import $ from 'jquery';
 import {
   contact_date_format,
-  email_sent_date_format,
   reminder_date_format,
   getTimezone,
 } from '../leads/LeadsUtils';
@@ -54,6 +53,8 @@ import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { LeadOrders } from './LeadOrders';
 import { actions as posActions } from '../../redux/modules/pos';
 import NumberFormat from 'react-number-format';
+
+const email_date_format = ['DD-MM-YYYY HH:mm', 'YYYY-MM-DDTHH:mm:ssZ'];
 
 const mapStateToProps = state => ({
   profile: state.app.profile,
@@ -1592,7 +1593,7 @@ class LeadEmails extends Component {
         width: 600,
         style: { whiteSpace: 'unset' },
       },
-      { accessor: 'Sent Date', Header: 'Sent Date' },
+      { accessor: 'Sent Date Formatted', Header: 'Sent Date' },
     ];
   }
 
@@ -1604,22 +1605,30 @@ class LeadEmails extends Component {
       emails = JSON.parse(emails);
     }
 
-    return emails.sort(function(email1, email2) {
+    emails = emails.sort(function(email1, email2) {
       if (
-        moment(email1['Sent Date'], email_sent_date_format).isAfter(
-          moment(email2['Sent Date'], email_sent_date_format),
+        moment(email1['Sent Date'], email_date_format).isAfter(
+          moment(email2['Sent Date'], email_date_format),
         )
       ) {
         return -1;
       } else if (
-        moment(email1['Sent Date'], email_sent_date_format).isBefore(
-          moment(email2['Sent Date'], email_sent_date_format),
+        moment(email1['Sent Date'], email_date_format).isBefore(
+          moment(email2['Sent Date'], email_date_format),
         )
       ) {
         return 1;
       }
       return 0;
     });
+
+    emails.forEach(email => {
+      email['Sent Date Formatted'] = moment(
+        email['Sent Date'],
+        email_date_format,
+      ).format('L HH:mm');
+    });
+    return emails;
   }
 
   getCampaign(campaignId) {

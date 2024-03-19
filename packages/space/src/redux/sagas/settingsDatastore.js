@@ -26,6 +26,7 @@ import {
   FORM_INCLUDES,
   SPACE_INCLUDES,
   BRIDGE_MODEL_INCLUDES,
+  PROFILE_INCLUDES,
 } from '../modules/settingsDatastore';
 import { DatastoreFormSave } from '../../records';
 
@@ -48,7 +49,13 @@ const fetchBridges = (options = {}) => {
 
 export function* fetchFormsSaga() {
   const isPlatform = yield select(state => state.app.config.isPlatform);
-  const [displayableForms, manageableForms, space, bridges] = yield all([
+  const [
+    displayableForms,
+    manageableForms,
+    profile,
+    space,
+    bridges,
+  ] = yield all([
     call(CoreAPI.fetchForms, {
       datastore: true,
       include: FORMS_INCLUDES,
@@ -56,6 +63,9 @@ export function* fetchFormsSaga() {
     call(CoreAPI.fetchForms, {
       datastore: true,
       manage: 'true',
+    }),
+    call(CoreAPI.fetchProfile, {
+      include: PROFILE_INCLUDES,
     }),
     !isPlatform
       ? call(CoreAPI.fetchSpace, {
@@ -74,6 +84,7 @@ export function* fetchFormsSaga() {
 
   yield put(
     actions.setForms({
+      isSpaceAdmin: profile.profile.spaceAdmin,
       manageableForms: manageableFormsSlugs,
       displayableForms: displayableForms.forms || [],
       bridges:

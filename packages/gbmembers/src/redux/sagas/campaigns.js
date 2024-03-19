@@ -185,23 +185,25 @@ export function* createSmsCampaign(action) {
       include: SUBMISSION_INCLUDES,
     });
 
-    //    if (action.payload.history)
-    //      action.payload.history.push('/kapps/gbmembers/Send');
-    action.payload.sendSms({
-      campaignItem: action.payload.campaignItem,
-      phoneNumbers: action.payload.phoneNumbers,
-      target: action.payload.target,
-      createMemberActivities: action.payload.createMemberActivities,
-      createLeadActivities: action.payload.createLeadActivities,
-      fetchMembers: action.payload.fetchMembers,
-      history: action.payload.history,
-    });
-    yield put(
-      errorActions.addSuccess(
-        'Campaign created successfully',
-        'Create Campaign',
-      ),
-    );
+    if (!action.payload.scheduleSMS) {
+      action.payload.sendSms({
+        campaignItem: action.payload.campaignItem,
+        phoneNumbers: action.payload.phoneNumbers,
+        target: action.payload.target,
+        createMemberActivities: action.payload.createMemberActivities,
+        createLeadActivities: action.payload.createLeadActivities,
+        fetchMembers: action.payload.fetchMembers,
+        history: action.payload.history,
+      });
+      yield put(
+        errorActions.addSuccess(
+          'Campaign created successfully',
+          'Create Campaign',
+        ),
+      );
+    } else {
+      action.payload.history.push('/kapps/gbmembers/Send');
+    }
   } catch (error) {
     console.log('Error in createCampaign: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));
@@ -212,12 +214,12 @@ export function* updateSmsCampaign(action) {
   try {
     const { submission } = yield call(CoreAPI.updateSubmission, {
       id: action.payload.id,
-      values: action.payload.campaignItem.values,
+      values: action.payload.values,
     });
     if (action.payload.history)
       action.payload.history.push('/kapps/gbmembers/Send');
     if (action.payload.fetchSmsCampaigns) action.payload.fetchSmsCampaigns();
-    if (action.payload.fetchEmailCampaign)
+    if (action.payload.fetchSmsCampaign)
       action.payload.fetchSmsCampaign({
         id: action.payload.id,
         myThis: action.payload.myThis,
@@ -270,6 +272,8 @@ export function* fetchSmsCampaigns(action) {
         'values[From Number]',
         'values[SMS Content]',
         'values[Sent Date]',
+        'values[Scheduled Time]',
+        'values[Cancel Campaign]',
       ])
       .limit(25);
 

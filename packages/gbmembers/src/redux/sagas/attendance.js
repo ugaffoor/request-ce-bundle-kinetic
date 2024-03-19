@@ -106,20 +106,24 @@ export function* fetchClassAttendances(action) {
           break;
         }
       }
-      attendance.values['Photo'] = memberItem.values['Photo'];
-      attendance.values['First Name'] = memberItem.values['First Name'];
-      attendance.values['Last Name'] = memberItem.values['Last Name'];
+      if (memberItem === undefined) {
+        attendance.values['First Name'] = 'Member Deleted';
+      } else {
+        attendance.values['Photo'] = memberItem.values['Photo'];
+        attendance.values['First Name'] = memberItem.values['First Name'];
+        attendance.values['Last Name'] = memberItem.values['Last Name'];
 
-      attendance.programOrder = memberItem.programOrder;
-      attendance.promotionSort = memberItem.promotionSort;
-      attendance.statusText = memberItem.statusText;
-      attendance.attendClasses = memberItem.attendClasses;
-      attendance.durationPeriod = memberItem.durationPeriod;
-      attendance.attendanceVal = memberItem.attendanceVal;
-      attendance.daysElapsed = memberItem.daysElapsed;
-      attendance.daysVal = memberItem.daysVal;
-      attendance.attendancePerc = memberItem.attendancePerc;
-      attendance.statusIndicator = memberItem.statusIndicator;
+        attendance.programOrder = memberItem.programOrder;
+        attendance.promotionSort = memberItem.promotionSort;
+        attendance.statusText = memberItem.statusText;
+        attendance.attendClasses = memberItem.attendClasses;
+        attendance.durationPeriod = memberItem.durationPeriod;
+        attendance.attendanceVal = memberItem.attendanceVal;
+        attendance.daysElapsed = memberItem.daysElapsed;
+        attendance.daysVal = memberItem.daysVal;
+        attendance.attendancePerc = memberItem.attendancePerc;
+        attendance.statusIndicator = memberItem.statusIndicator;
+      }
     });
 
     yield put(actions.setClassAttendances(submissions));

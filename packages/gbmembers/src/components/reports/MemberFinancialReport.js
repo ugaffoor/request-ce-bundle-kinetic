@@ -32,6 +32,8 @@ import { actions as leadsActions } from '../../redux/modules/leads';
 import { actions as servicesActions } from '../../redux/modules/services';
 import helpIcon from '../../images/help.svg?raw';
 import { getTimezone } from '../leads/LeadsUtils';
+import ReactToPrint from 'react-to-print';
+import printerIcon from '../../images/Print.svg?raw';
 
 const mapStateToProps = state => ({
   members: state.member.members.allMembers,
@@ -2370,552 +2372,543 @@ export class MemberFinancialReport extends Component {
   }
   render() {
     return (
-      <span className="financialStats">
-        {this.state.showConcernedMembers && (
-          <div className="members concernedMembers">
-            <span
-              className="closeMembers"
-              onClick={e =>
-                this.setState({
-                  showConcernedMembers: false,
-                })
-              }
-            >
-              <SVGInline svg={crossIcon} className="icon" />
-            </span>
-            <div className="concernedMembers">
-              <span className="concernedMembersHelp">
-                <table>
-                  <tbody>
-                    <tr>
-                      <td className="col1" colSpan="2">
-                        When calculating the forecast values for a period. These
-                        members have data that needs to be reviewed. The member
-                        has not been included in the forecast calculation.
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </span>
-              <div className="concernedMembersInfo">
-                <table>
-                  <tbody>
-                    <tr>
-                      <th>Name</th>
-                      <th>Last Billing Date</th>
-                    </tr>
-                    {this.state.repMemberData.concernedMembers
-                      .filter(member => {
-                        if (
-                          member.member !== undefined &&
-                          member.member.values['Billing Payment Type'] ===
-                            'Cash'
-                        ) {
-                          return false;
-                        }
-                        return true;
-                      })
-                      .map((member, index) => (
-                        <tr key={index}>
-                          <td className="left">
-                            {member.member !== undefined && (
-                              <NavLink
-                                to={`/Member/${member.member.id}`}
-                                className=""
-                              >
-                                {member['firstName'] + ' ' + member['lastName']}
-                              </NavLink>
-                            )}
-                            {member.member === undefined && (
-                              <span>
-                                {member['firstName'] + ' ' + member['lastName']}
-                              </span>
-                            )}
-                          </td>
-                          <td>{member.contractStartDate}</td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-        {this.state.showAccountHolders && (
-          <div className="members">
-            <span
-              className="closeMembers"
-              onClick={e =>
-                this.setState({
-                  showAccountHolders: false,
-                })
-              }
-            >
-              <SVGInline svg={crossIcon} className="icon" />
-            </span>
-            <ReactTable
-              columns={this.getMemberTableColumns()}
-              data={this.getMemberTableData(
-                this.state.repMemberData.accountHolders.members,
-                this.state.billingCustomers,
-              )}
-              defaultPageSize={1}
-              showPagination={false}
-            />
-          </div>
-        )}
-        {this.state.showAdditionalServices && (
-          <div className="members">
-            <span
-              className="closeMembers"
-              onClick={e =>
-                this.setState({
-                  showAdditionalServices: false,
-                })
-              }
-            >
-              <SVGInline svg={crossIcon} className="icon" />
-            </span>
-            <ReactTable
-              columns={this.getMemberTableColumns()}
-              data={this.getAdditionalServicesTableData(
-                this.state.repMemberData.additionalServices.members,
-                this.state.additionalServices,
-              )}
-              defaultPageSize={1}
-              showPagination={false}
-            />
-          </div>
-        )}
-        {this.state.showCashPayments && (
-          <div className="members">
-            <span
-              className="closeMembers"
-              onClick={e =>
-                this.setState({
-                  showCashPayments: false,
-                })
-              }
-            >
-              <SVGInline svg={crossIcon} className="icon" />
-            </span>
-            <ReactTable
-              columns={this.getMemberTableColumns()}
-              data={this.getCashPaymentsTableData(
-                this.state.repMemberData.cashPayments.members,
-                this.state.cashPayments,
-              )}
-              defaultPageSize={1}
-              showPagination={false}
-            />
-          </div>
-        )}
-        {this.state.showPOSPeople && (
-          <div className="members">
-            <span
-              className="closeMembers"
-              onClick={e =>
-                this.setState({
-                  showPOSPeople: false,
-                })
-              }
-            >
-              <SVGInline svg={crossIcon} className="icon" />
-            </span>
-            <ReactTable
-              columns={this.getMemberPOSTableColumns()}
-              data={this.getMemberPOSTableData(
-                this.state.repMemberData.posPayments.members,
-                this.state.billingCustomers,
-                this.posOrders,
-              )}
-              defaultPageSize={1}
-              showPagination={false}
-            />
-          </div>
-        )}
-        {this.state.showRefundMembers && (
-          <div className="members">
-            <span
-              className="closeMembers"
-              onClick={e =>
-                this.setState({
-                  showRefundMembers: false,
-                })
-              }
-            >
-              <SVGInline svg={crossIcon} className="icon" />
-            </span>
-            <ReactTable
-              columns={this.getMemberRefundsTableColumns()}
-              data={this.getMemberRefundsTableData(
-                this.state.repMemberData.refundMembers.members,
-                this.state.billingCustomers,
-                this.refunds,
-                this.paymentHistory,
-              )}
-              defaultPageSize={1}
-              showPagination={false}
-            />
-          </div>
-        )}
-
+      <span>
         <span className="line">
-          <div className="radioGroup">
-            <br />
-            <label htmlFor="repWeekly" className="radio">
-              <input
-                id="repWeekly"
-                name="reportPeriod"
-                type="radio"
-                value="Weekly"
-                onChange={e => {
-                  this.setState({
-                    repBillingPeriod: 'weekly',
-                    repViewPeriod: 'this_period',
-                  });
-                  this.setStatisticDates(e, 'this_period', 'weekly');
-                }}
-                defaultChecked={
-                  this.state.repBillingPeriod === 'weekly'
-                    ? 'defaultChecked'
-                    : ''
-                }
-              />
-              Weekly
-            </label>
-            <label htmlFor="repFortnightly" className="radio">
-              <input
-                id="repFortnightly"
-                name="reportPeriod"
-                type="radio"
-                value="Fortnightly"
-                onChange={e => {
-                  this.setState({
-                    repBillingPeriod: 'fortnightly',
-                    repViewPeriod: 'this_period',
-                  });
-                  this.setStatisticDates(e, 'this_period', 'fortnightly');
-                }}
-                defaultChecked={
-                  this.state.repBillingPeriod === 'fortnightly'
-                    ? 'defaultChecked'
-                    : ''
-                }
-              />
-              <I18n>Fortnightly</I18n>
-            </label>
-            <label htmlFor="repMonthly" className="radio">
-              <input
-                id="repMonthly"
-                name="reportPeriod"
-                type="radio"
-                value="Monthly"
-                onChange={e => {
-                  this.setState({
-                    repBillingPeriod: 'monthly',
-                    repViewPeriod: 'this_period',
-                  });
-                  this.setStatisticDates(e, 'this_period', 'monthly');
-                }}
-                defaultChecked={
-                  this.state.repBillingPeriod === 'monthly'
-                    ? 'defaultChecked'
-                    : ''
-                }
-              />
-              Monthly
-            </label>
-          </div>
+          <ReactToPrint
+            trigger={() => (
+              <SVGInline svg={printerIcon} className="icon tablePrint" />
+            )}
+            content={() => this.tableComponentRef}
+          />
         </span>
-
-        <div className="page-header" style={{ textAlign: 'center' }}>
-          <div className="dateSettings">
-            <button
-              type="button"
-              active="false"
-              className="btn btn-primary report-btn-default"
-              onClick={e => {
-                this.setState({
-                  repViewPeriod: 'last_period',
-                });
-                this.setStatisticDates(
-                  e,
-                  'last_period',
-                  this.state.repBillingPeriod,
-                );
-              }}
-            >
-              Last{' '}
-              {this.state.repBillingPeriod === 'weekly'
-                ? 'Week'
-                : this.state.repBillingPeriod === 'fortnightly'
-                ? 'Fortnights'
-                : 'Month'}
-            </button>
-            <button
-              type="button"
-              active="true"
-              className="btn btn-primary report-btn-default"
-              onClick={e => {
-                this.setState({
-                  repViewPeriod: 'this_period',
-                });
-                this.setStatisticDates(
-                  e,
-                  'this_period',
-                  this.state.repBillingPeriod,
-                );
-              }}
-            >
-              This{' '}
-              {this.state.repBillingPeriod === 'weekly'
-                ? 'Week'
-                : this.state.repBillingPeriod === 'fortnightly'
-                ? 'Fortnight'
-                : 'Month'}
-            </button>
-            <button
-              type="button"
-              active="false"
-              className="btn btn-primary report-btn-default"
-              onClick={e => {
-                this.setState({
-                  repViewPeriod: 'custom',
-                });
-                this.setStatisticDates(
-                  e,
-                  'custom',
-                  this.state.repBillingPeriod,
-                );
-              }}
-            >
-              Custom
-            </button>
-          </div>
-          {this.state.isShowCustom && (
-            <div
-              className="stat_customDatesContainer"
-              onClose={this.handleClose}
-            >
-              <div className="attendanceByDateDiv" onClose={this.handleClose}>
-                <div className="col-md-8">
-                  <div className="row">
-                    <div className="form-group col-xs-2 mr-1">
-                      <label htmlFor="fromDate" className="control-label">
-                        From Date
-                      </label>
-                      <DayPickerInput
-                        name="fromDate"
-                        id="fromDate"
-                        placeholder={moment(new Date())
-                          .locale(
-                            getLocalePreference(
-                              this.props.space,
-                              this.props.profile,
-                            ),
-                          )
-                          .localeData()
-                          .longDateFormat('L')
-                          .toLowerCase()}
-                        formatDate={formatDate}
-                        parseDate={parseDate}
-                        value={this.state.repFromDate.toDate()}
-                        onDayChange={function(
-                          selectedDay,
-                          modifiers,
-                          dayPickerInput,
-                        ) {
-                          compThis.setState({
-                            repFromDate: moment(selectedDay),
-                          });
-                        }}
-                        dayPickerProps={{
-                          locale: getLocalePreference(
-                            this.props.space,
-                            this.props.profile,
-                          ),
-                          localeUtils: MomentLocaleUtils,
-                        }}
-                      />
-                    </div>
-                    <div className="form-group col-xs-2 mr-1">
-                      <label htmlFor="toDate" className="control-label">
-                        To Date
-                      </label>
-                      <DayPickerInput
-                        name="toDate"
-                        id="toDate"
-                        placeholder={moment(new Date())
-                          .locale(
-                            getLocalePreference(
-                              this.props.space,
-                              this.props.profile,
-                            ),
-                          )
-                          .localeData()
-                          .longDateFormat('L')
-                          .toLowerCase()}
-                        formatDate={formatDate}
-                        parseDate={parseDate}
-                        value={this.state.repToDate.toDate()}
-                        onDayChange={function(
-                          selectedDay,
-                          modifiers,
-                          dayPickerInput,
-                        ) {
-                          compThis.setState({
-                            repToDate: moment(selectedDay),
-                          });
-                        }}
-                        dayPickerProps={{
-                          locale: getLocalePreference(
-                            this.props.space,
-                            this.props.profile,
-                          ),
-                          localeUtils: MomentLocaleUtils,
-                        }}
-                      />
-                    </div>
-                    <div className="form-group col-xs-2">
-                      <label className="control-label">&nbsp;</label>
-                      <button
-                        className="btn btn-primary form-control input-sm"
-                        onClick={e => this.handleClose()}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                    <div className="form-group col-xs-2">
-                      <label className="control-label">&nbsp;</label>
-                      <button
-                        className="btn btn-primary form-control input-sm"
-                        onClick={e => this.handleSubmit()}
-                      >
-                        Apply
-                      </button>
-                    </div>
-                  </div>
+        <span
+          className="financialStats"
+          ref={el => (this.tableComponentRef = el)}
+        >
+          {this.state.showConcernedMembers && (
+            <div className="members concernedMembers">
+              <span
+                className="closeMembers"
+                onClick={e =>
+                  this.setState({
+                    showConcernedMembers: false,
+                  })
+                }
+              >
+                <SVGInline svg={crossIcon} className="icon" />
+              </span>
+              <div className="concernedMembers">
+                <span className="concernedMembersHelp">
+                  <table>
+                    <tbody>
+                      <tr>
+                        <td className="col1" colSpan="2">
+                          When calculating the forecast values for a period.
+                          These members have data that needs to be reviewed. The
+                          member has not been included in the forecast
+                          calculation.
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </span>
+                <div className="concernedMembersInfo">
+                  <table>
+                    <tbody>
+                      <tr>
+                        <th>Name</th>
+                        <th>Last Billing Date</th>
+                      </tr>
+                      {this.state.repMemberData.concernedMembers
+                        .filter(member => {
+                          if (
+                            member.member !== undefined &&
+                            member.member.values['Billing Payment Type'] ===
+                              'Cash'
+                          ) {
+                            return false;
+                          }
+                          return true;
+                        })
+                        .map((member, index) => (
+                          <tr key={index}>
+                            <td className="left">
+                              {member.member !== undefined && (
+                                <NavLink
+                                  to={`/Member/${member.member.id}`}
+                                  className=""
+                                >
+                                  {member['firstName'] +
+                                    ' ' +
+                                    member['lastName']}
+                                </NavLink>
+                              )}
+                              {member.member === undefined && (
+                                <span>
+                                  {member['firstName'] +
+                                    ' ' +
+                                    member['lastName']}
+                                </span>
+                              )}
+                            </td>
+                            <td>{member.contractStartDate}</td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
           )}
-          <span className="label">
-            {this.state.repFromDate.format('L')} to{' '}
-            {this.state.repToDate.format('L')}
-          </span>
-        </div>
-        {this.props.billingReportCustomersLoading ||
-        this.props.FINSUCCESSFULpaymentHistoryLoading ||
-        this.props.customerRefundsLoading ||
-        this.props.servicesLoading ||
-        this.props.posOrdersLoading ? (
-          <div className="memberFinanceReport">Loading information ...</div>
-        ) : (
-          <div className="memberFinanceReport">
-            <div className="row header1">
-              <div className="column col1"></div>
-              <div className="column col2">{this.currencySymbol} Amount</div>
-              <div className="column col3">%</div>
-              <div className="column col4">
-                {getAttributeValue(
-                  this.props.space,
-                  'ProShop Sales Tax Label',
-                ) === undefined ? (
-                  <I18n>SALES TAX</I18n>
-                ) : (
-                  getAttributeValue(this.props.space, 'ProShop Sales Tax Label')
+          {this.state.showAccountHolders && (
+            <div className="members">
+              <span
+                className="closeMembers"
+                onClick={e =>
+                  this.setState({
+                    showAccountHolders: false,
+                  })
+                }
+              >
+                <SVGInline svg={crossIcon} className="icon" />
+              </span>
+              <ReactTable
+                columns={this.getMemberTableColumns()}
+                data={this.getMemberTableData(
+                  this.state.repMemberData.accountHolders.members,
+                  this.state.billingCustomers,
                 )}
-              </div>
+                defaultPageSize={1}
+                showPagination={false}
+              />
             </div>
-            <div className="row header2">
-              <div className="column col1">REVENUE</div>
-              <div className="column col2">
-                <div className="dollarValue">
-                  {new Intl.NumberFormat(this.locale, {
-                    style: 'currency',
-                    currency: this.currency,
-                  }).format(
-                    this.state.repMemberData.accountHolders.value +
-                      this.state.repMemberData.cashPayments.value +
-                      this.state.repMemberData.posPayments.value,
+          )}
+          {this.state.showAdditionalServices && (
+            <div className="members">
+              <span
+                className="closeMembers"
+                onClick={e =>
+                  this.setState({
+                    showAdditionalServices: false,
+                  })
+                }
+              >
+                <SVGInline svg={crossIcon} className="icon" />
+              </span>
+              <ReactTable
+                columns={this.getMemberTableColumns()}
+                data={this.getAdditionalServicesTableData(
+                  this.state.repMemberData.additionalServices.members,
+                  this.state.additionalServices,
+                )}
+                defaultPageSize={1}
+                showPagination={false}
+              />
+            </div>
+          )}
+          {this.state.showCashPayments && (
+            <div className="members">
+              <span
+                className="closeMembers"
+                onClick={e =>
+                  this.setState({
+                    showCashPayments: false,
+                  })
+                }
+              >
+                <SVGInline svg={crossIcon} className="icon" />
+              </span>
+              <ReactTable
+                columns={this.getMemberTableColumns()}
+                data={this.getCashPaymentsTableData(
+                  this.state.repMemberData.cashPayments.members,
+                  this.state.cashPayments,
+                )}
+                defaultPageSize={1}
+                showPagination={false}
+              />
+            </div>
+          )}
+          {this.state.showPOSPeople && (
+            <div className="members">
+              <span
+                className="closeMembers"
+                onClick={e =>
+                  this.setState({
+                    showPOSPeople: false,
+                  })
+                }
+              >
+                <SVGInline svg={crossIcon} className="icon" />
+              </span>
+              <ReactTable
+                columns={this.getMemberPOSTableColumns()}
+                data={this.getMemberPOSTableData(
+                  this.state.repMemberData.posPayments.members,
+                  this.state.billingCustomers,
+                  this.posOrders,
+                )}
+                defaultPageSize={1}
+                showPagination={false}
+              />
+            </div>
+          )}
+          {this.state.showRefundMembers && (
+            <div className="members">
+              <span
+                className="closeMembers"
+                onClick={e =>
+                  this.setState({
+                    showRefundMembers: false,
+                  })
+                }
+              >
+                <SVGInline svg={crossIcon} className="icon" />
+              </span>
+              <ReactTable
+                columns={this.getMemberRefundsTableColumns()}
+                data={this.getMemberRefundsTableData(
+                  this.state.repMemberData.refundMembers.members,
+                  this.state.billingCustomers,
+                  this.refunds,
+                  this.paymentHistory,
+                )}
+                defaultPageSize={1}
+                showPagination={false}
+              />
+            </div>
+          )}
+          <span className="line">
+            <div className="radioGroup">
+              <br />
+              <label htmlFor="repWeekly" className="radio">
+                <input
+                  id="repWeekly"
+                  name="reportPeriod"
+                  type="radio"
+                  value="Weekly"
+                  onChange={e => {
+                    this.setState({
+                      repBillingPeriod: 'weekly',
+                      repViewPeriod: 'this_period',
+                    });
+                    this.setStatisticDates(e, 'this_period', 'weekly');
+                  }}
+                  defaultChecked={
+                    this.state.repBillingPeriod === 'weekly'
+                      ? 'defaultChecked'
+                      : ''
+                  }
+                />
+                Weekly
+              </label>
+              <label htmlFor="repFortnightly" className="radio">
+                <input
+                  id="repFortnightly"
+                  name="reportPeriod"
+                  type="radio"
+                  value="Fortnightly"
+                  onChange={e => {
+                    this.setState({
+                      repBillingPeriod: 'fortnightly',
+                      repViewPeriod: 'this_period',
+                    });
+                    this.setStatisticDates(e, 'this_period', 'fortnightly');
+                  }}
+                  defaultChecked={
+                    this.state.repBillingPeriod === 'fortnightly'
+                      ? 'defaultChecked'
+                      : ''
+                  }
+                />
+                <I18n>Fortnightly</I18n>
+              </label>
+              <label htmlFor="repMonthly" className="radio">
+                <input
+                  id="repMonthly"
+                  name="reportPeriod"
+                  type="radio"
+                  value="Monthly"
+                  onChange={e => {
+                    this.setState({
+                      repBillingPeriod: 'monthly',
+                      repViewPeriod: 'this_period',
+                    });
+                    this.setStatisticDates(e, 'this_period', 'monthly');
+                  }}
+                  defaultChecked={
+                    this.state.repBillingPeriod === 'monthly'
+                      ? 'defaultChecked'
+                      : ''
+                  }
+                />
+                Monthly
+              </label>
+            </div>
+          </span>
+
+          <div className="page-header" style={{ textAlign: 'center' }}>
+            <div className="dateSettings">
+              <button
+                type="button"
+                active="false"
+                className="btn btn-primary report-btn-default"
+                onClick={e => {
+                  this.setState({
+                    repViewPeriod: 'last_period',
+                  });
+                  this.setStatisticDates(
+                    e,
+                    'last_period',
+                    this.state.repBillingPeriod,
+                  );
+                }}
+              >
+                Last{' '}
+                {this.state.repBillingPeriod === 'weekly'
+                  ? 'Week'
+                  : this.state.repBillingPeriod === 'fortnightly'
+                  ? 'Fortnights'
+                  : 'Month'}
+              </button>
+              <button
+                type="button"
+                active="true"
+                className="btn btn-primary report-btn-default"
+                onClick={e => {
+                  this.setState({
+                    repViewPeriod: 'this_period',
+                  });
+                  this.setStatisticDates(
+                    e,
+                    'this_period',
+                    this.state.repBillingPeriod,
+                  );
+                }}
+              >
+                This{' '}
+                {this.state.repBillingPeriod === 'weekly'
+                  ? 'Week'
+                  : this.state.repBillingPeriod === 'fortnightly'
+                  ? 'Fortnight'
+                  : 'Month'}
+              </button>
+              <button
+                type="button"
+                active="false"
+                className="btn btn-primary report-btn-default"
+                onClick={e => {
+                  this.setState({
+                    repViewPeriod: 'custom',
+                  });
+                  this.setStatisticDates(
+                    e,
+                    'custom',
+                    this.state.repBillingPeriod,
+                  );
+                }}
+              >
+                Custom
+              </button>
+            </div>
+            {this.state.isShowCustom && (
+              <div
+                className="stat_customDatesContainer"
+                onClose={this.handleClose}
+              >
+                <div className="attendanceByDateDiv" onClose={this.handleClose}>
+                  <div className="col-md-8">
+                    <div className="row">
+                      <div className="form-group col-xs-2 mr-1">
+                        <label htmlFor="fromDate" className="control-label">
+                          From Date
+                        </label>
+                        <DayPickerInput
+                          name="fromDate"
+                          id="fromDate"
+                          placeholder={moment(new Date())
+                            .locale(
+                              getLocalePreference(
+                                this.props.space,
+                                this.props.profile,
+                              ),
+                            )
+                            .localeData()
+                            .longDateFormat('L')
+                            .toLowerCase()}
+                          formatDate={formatDate}
+                          parseDate={parseDate}
+                          value={this.state.repFromDate.toDate()}
+                          onDayChange={function(
+                            selectedDay,
+                            modifiers,
+                            dayPickerInput,
+                          ) {
+                            compThis.setState({
+                              repFromDate: moment(selectedDay),
+                            });
+                          }}
+                          dayPickerProps={{
+                            locale: getLocalePreference(
+                              this.props.space,
+                              this.props.profile,
+                            ),
+                            localeUtils: MomentLocaleUtils,
+                          }}
+                        />
+                      </div>
+                      <div className="form-group col-xs-2 mr-1">
+                        <label htmlFor="toDate" className="control-label">
+                          To Date
+                        </label>
+                        <DayPickerInput
+                          name="toDate"
+                          id="toDate"
+                          placeholder={moment(new Date())
+                            .locale(
+                              getLocalePreference(
+                                this.props.space,
+                                this.props.profile,
+                              ),
+                            )
+                            .localeData()
+                            .longDateFormat('L')
+                            .toLowerCase()}
+                          formatDate={formatDate}
+                          parseDate={parseDate}
+                          value={this.state.repToDate.toDate()}
+                          onDayChange={function(
+                            selectedDay,
+                            modifiers,
+                            dayPickerInput,
+                          ) {
+                            compThis.setState({
+                              repToDate: moment(selectedDay),
+                            });
+                          }}
+                          dayPickerProps={{
+                            locale: getLocalePreference(
+                              this.props.space,
+                              this.props.profile,
+                            ),
+                            localeUtils: MomentLocaleUtils,
+                          }}
+                        />
+                      </div>
+                      <div className="form-group col-xs-2">
+                        <label className="control-label">&nbsp;</label>
+                        <button
+                          className="btn btn-primary form-control input-sm"
+                          onClick={e => this.handleClose()}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                      <div className="form-group col-xs-2">
+                        <label className="control-label">&nbsp;</label>
+                        <button
+                          className="btn btn-primary form-control input-sm"
+                          onClick={e => this.handleSubmit()}
+                        >
+                          Apply
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            <span className="label">
+              {this.state.repFromDate.format('L')} to{' '}
+              {this.state.repToDate.format('L')}
+            </span>
+          </div>
+          {this.props.billingReportCustomersLoading ||
+          this.props.FINSUCCESSFULpaymentHistoryLoading ||
+          this.props.customerRefundsLoading ||
+          this.props.servicesLoading ||
+          this.props.posOrdersLoading ? (
+            <div className="memberFinanceReport">Loading information ...</div>
+          ) : (
+            <div className="memberFinanceReport">
+              <div className="row header1">
+                <div className="column col1"></div>
+                <div className="column col2">{this.currencySymbol} Amount</div>
+                <div className="column col3">%</div>
+                <div className="column col4">
+                  {getAttributeValue(
+                    this.props.space,
+                    'ProShop Sales Tax Label',
+                  ) === undefined ? (
+                    <I18n>SALES TAX</I18n>
+                  ) : (
+                    getAttributeValue(
+                      this.props.space,
+                      'ProShop Sales Tax Label',
+                    )
                   )}
                 </div>
               </div>
-              <div className="column col3"></div>
-              <div className="column col4"></div>
-            </div>
-            <div className="row header4">
-              <div className="column col1">Membership</div>
-              <div className="column col2">
-                <div
-                  className="dollarValue membersLink"
-                  onClick={e =>
-                    this.setState({
-                      showAccountHolders: true,
-                      showAdditionalServices: false,
-                      showCashPayments: false,
-                      showPOSPeople: false,
-                      showRefundMembers: false,
-                    })
-                  }
-                >
-                  {new Intl.NumberFormat(this.locale, {
-                    style: 'currency',
-                    currency: this.currency,
-                  }).format(this.state.repMemberData.accountHolders.value)}
+              <div className="row header2">
+                <div className="column col1">REVENUE</div>
+                <div className="column col2">
+                  <div className="dollarValue">
+                    {new Intl.NumberFormat(this.locale, {
+                      style: 'currency',
+                      currency: this.currency,
+                    }).format(
+                      this.state.repMemberData.accountHolders.value +
+                        this.state.repMemberData.cashPayments.value +
+                        this.state.repMemberData.posPayments.value,
+                    )}
+                  </div>
                 </div>
+                <div className="column col3"></div>
+                <div className="column col4"></div>
               </div>
-              <div className="column col3">
-                <div className="percentValue">
-                  {(
-                    (this.state.repMemberData.accountHolders.value /
-                      (this.state.repMemberData.accountHolders.value +
-                        this.state.repMemberData.posPayments.value)) *
-                    100
-                  ).toFixed(2)}
-                  %
-                </div>
-              </div>
-              <div className="column col4"></div>
-            </div>
-            <div className="row header4">
-              <div className="column col1">Membership Cash Payments</div>
-              <div className="column col2">
-                <div
-                  className="dollarValue membersLink"
-                  onClick={e =>
-                    this.setState({
-                      showAdditionalServices: false,
-                      showCashPayments: true,
-                      showAccountHolders: false,
-                      showPOSPeople: false,
-                      showRefundMembers: false,
-                    })
-                  }
-                >
-                  {new Intl.NumberFormat(this.locale, {
-                    style: 'currency',
-                    currency: this.currency,
-                  }).format(this.state.repMemberData.cashPayments.value)}
-                </div>
-              </div>
-              <div className="column col3">
-                <div className="percentValue"></div>
-              </div>
-              <div className="column col4"></div>
-            </div>
-            {getAttributeValue(this.props.space, 'Billing Company') ===
-              'Bambora' && (
               <div className="row header4">
-                <div className="column col1">Additional Services</div>
+                <div className="column col1">Membership</div>
                 <div className="column col2">
                   <div
                     className="dollarValue membersLink"
                     onClick={e =>
                       this.setState({
-                        showAdditionalServices: true,
+                        showAccountHolders: true,
+                        showAdditionalServices: false,
                         showCashPayments: false,
+                        showPOSPeople: false,
+                        showRefundMembers: false,
+                      })
+                    }
+                  >
+                    {new Intl.NumberFormat(this.locale, {
+                      style: 'currency',
+                      currency: this.currency,
+                    }).format(this.state.repMemberData.accountHolders.value)}
+                  </div>
+                </div>
+                <div className="column col3">
+                  <div className="percentValue">
+                    {(
+                      (this.state.repMemberData.accountHolders.value /
+                        (this.state.repMemberData.accountHolders.value +
+                          this.state.repMemberData.posPayments.value)) *
+                      100
+                    ).toFixed(2)}
+                    %
+                  </div>
+                </div>
+                <div className="column col4"></div>
+              </div>
+              <div className="row header4">
+                <div className="column col1">Membership Cash Payments</div>
+                <div className="column col2">
+                  <div
+                    className="dollarValue membersLink"
+                    onClick={e =>
+                      this.setState({
+                        showAdditionalServices: false,
+                        showCashPayments: true,
                         showAccountHolders: false,
                         showPOSPeople: false,
                         showRefundMembers: false,
@@ -2925,9 +2918,7 @@ export class MemberFinancialReport extends Component {
                     {new Intl.NumberFormat(this.locale, {
                       style: 'currency',
                       currency: this.currency,
-                    }).format(
-                      this.state.repMemberData.additionalServices.value,
-                    )}
+                    }).format(this.state.repMemberData.cashPayments.value)}
                   </div>
                 </div>
                 <div className="column col3">
@@ -2935,173 +2926,204 @@ export class MemberFinancialReport extends Component {
                 </div>
                 <div className="column col4"></div>
               </div>
-            )}
-            <div className="row header5">
-              <div className="column col1">ProShop</div>
-              <div className="column col2">
-                <div
-                  className="dollarValue  membersLink"
-                  onClick={e =>
-                    this.setState({
-                      showAccountHolders: false,
-                      showAdditionalServices: false,
-                      showCashPayments: false,
-                      showPOSPeople: true,
-                      showRefundMembers: false,
-                    })
-                  }
-                >
-                  {new Intl.NumberFormat(this.locale, {
-                    style: 'currency',
-                    currency: this.currency,
-                  }).format(this.state.repMemberData.posPayments.value)}
+              {getAttributeValue(this.props.space, 'Billing Company') ===
+                'Bambora' && (
+                <div className="row header4">
+                  <div className="column col1">Additional Services</div>
+                  <div className="column col2">
+                    <div
+                      className="dollarValue membersLink"
+                      onClick={e =>
+                        this.setState({
+                          showAdditionalServices: true,
+                          showCashPayments: false,
+                          showAccountHolders: false,
+                          showPOSPeople: false,
+                          showRefundMembers: false,
+                        })
+                      }
+                    >
+                      {new Intl.NumberFormat(this.locale, {
+                        style: 'currency',
+                        currency: this.currency,
+                      }).format(
+                        this.state.repMemberData.additionalServices.value,
+                      )}
+                    </div>
+                  </div>
+                  <div className="column col3">
+                    <div className="percentValue"></div>
+                  </div>
+                  <div className="column col4"></div>
+                </div>
+              )}
+              <div className="row header5">
+                <div className="column col1">ProShop</div>
+                <div className="column col2">
+                  <div
+                    className="dollarValue  membersLink"
+                    onClick={e =>
+                      this.setState({
+                        showAccountHolders: false,
+                        showAdditionalServices: false,
+                        showCashPayments: false,
+                        showPOSPeople: true,
+                        showRefundMembers: false,
+                      })
+                    }
+                  >
+                    {new Intl.NumberFormat(this.locale, {
+                      style: 'currency',
+                      currency: this.currency,
+                    }).format(this.state.repMemberData.posPayments.value)}
+                  </div>
+                </div>
+                <div className="column col3">
+                  <div className="percentValue">
+                    {(
+                      (this.state.repMemberData.posPayments.value /
+                        (this.state.repMemberData.accountHolders.value +
+                          this.state.repMemberData.posPayments.value)) *
+                      100
+                    ).toFixed(2)}
+                    %
+                  </div>
+                </div>
+                <div className="column col4">
+                  <div className="dollarValue">
+                    {new Intl.NumberFormat(this.locale, {
+                      style: 'currency',
+                      currency: this.currency,
+                    }).format(this.state.repMemberData.salesTax.value)}
+                  </div>
                 </div>
               </div>
-              <div className="column col3">
-                <div className="percentValue">
-                  {(
-                    (this.state.repMemberData.posPayments.value /
-                      (this.state.repMemberData.accountHolders.value +
-                        this.state.repMemberData.posPayments.value)) *
-                    100
-                  ).toFixed(2)}
-                  %
+              <div className="row header6">
+                <div className="column col1">Refunds</div>
+                <div className="column col2">
+                  <div
+                    className="dollarValue  membersLink"
+                    onClick={e =>
+                      this.setState({
+                        showAccountHolders: false,
+                        showAdditionalServices: false,
+                        showCashPayments: false,
+                        showPOSPeople: false,
+                        showRefundMembers: true,
+                      })
+                    }
+                  >
+                    {new Intl.NumberFormat(this.locale, {
+                      style: 'currency',
+                      currency: this.currency,
+                    }).format(this.state.repMemberData.refundMembers.value)}
+                  </div>
                 </div>
+                <div className="column col3"></div>
+                <div className="column col4"></div>
               </div>
-              <div className="column col4">
-                <div className="dollarValue">
-                  {new Intl.NumberFormat(this.locale, {
-                    style: 'currency',
-                    currency: this.currency,
-                  }).format(this.state.repMemberData.salesTax.value)}
+              <div className="row header7">
+                <div className="column col1">TOTAL</div>
+                <div className="column col2">
+                  <div className="dollarValue">
+                    {new Intl.NumberFormat(this.locale, {
+                      style: 'currency',
+                      currency: this.currency,
+                    }).format(
+                      this.state.repMemberData.accountHolders.value +
+                        this.state.repMemberData.cashPayments.value +
+                        this.state.repMemberData.additionalServices.value +
+                        this.state.repMemberData.posPayments.value -
+                        this.state.repMemberData.refundMembers.value,
+                    )}
+                  </div>
                 </div>
+                <div className="column col3"></div>
+                <div className="column col4"></div>
+              </div>
+              <div className="row header8">
+                <div className="column col1">
+                  Membership-Refunds+ProShop+Forecast
+                </div>
+                <div className="column col2">
+                  <div className="dollarValue">
+                    {new Intl.NumberFormat(this.locale, {
+                      style: 'currency',
+                      currency: this.currency,
+                    }).format(
+                      this.state.repMemberData.accountHolders.value +
+                        this.state.repMemberData.cashPayments.value +
+                        this.state.repMemberData.posPayments.value +
+                        this.state.repMemberData.forecastHolders.value -
+                        this.state.repMemberData.refundMembers.value,
+                    )}
+                  </div>
+                </div>
+                <div className="column col3"></div>
+                <div className="column col4"></div>
+              </div>
+              <div className="row header9">
+                <div className="column col1">
+                  Forecast
+                  <SVGInline
+                    svg={helpIcon}
+                    className="icon help"
+                    onClick={e => {
+                      this.setState({
+                        showConcernedMembers: true,
+                      });
+                    }}
+                  />
+                </div>
+                <div className="column col2">
+                  <div className="dollarValue">
+                    {new Intl.NumberFormat(this.locale, {
+                      style: 'currency',
+                      currency: this.currency,
+                    }).format(this.state.repMemberData.forecastHolders.value)}
+                  </div>
+                </div>
+                <div className="column col3"></div>
+                <div className="column col4"></div>
+              </div>
+              <div className="row header10">
+                <div className="column col1">Membership+Forecast</div>
+                <div className="column col2">
+                  <div className="dollarValue">
+                    {new Intl.NumberFormat(this.locale, {
+                      style: 'currency',
+                      currency: this.currency,
+                    }).format(
+                      this.state.repMemberData.accountHolders.value +
+                        this.state.repMemberData.cashPayments.value +
+                        this.state.repMemberData.forecastHolders.value,
+                    )}
+                  </div>
+                </div>
+                <div className="column col3"></div>
+                <div className="column col4"></div>
+              </div>
+              <div className="row header10">
+                <div className="column col1">Membership+Forecast-Refunds</div>
+                <div className="column col2">
+                  <div className="dollarValue">
+                    {new Intl.NumberFormat(this.locale, {
+                      style: 'currency',
+                      currency: this.currency,
+                    }).format(
+                      this.state.repMemberData.accountHolders.value +
+                        this.state.repMemberData.cashPayments.value +
+                        this.state.repMemberData.forecastHolders.value -
+                        this.state.repMemberData.refundMembers.value,
+                    )}
+                  </div>
+                </div>
+                <div className="column col3"></div>
+                <div className="column col4"></div>
               </div>
             </div>
-            <div className="row header6">
-              <div className="column col1">Refunds</div>
-              <div className="column col2">
-                <div
-                  className="dollarValue  membersLink"
-                  onClick={e =>
-                    this.setState({
-                      showAccountHolders: false,
-                      showAdditionalServices: false,
-                      showCashPayments: false,
-                      showPOSPeople: false,
-                      showRefundMembers: true,
-                    })
-                  }
-                >
-                  {new Intl.NumberFormat(this.locale, {
-                    style: 'currency',
-                    currency: this.currency,
-                  }).format(this.state.repMemberData.refundMembers.value)}
-                </div>
-              </div>
-              <div className="column col3"></div>
-              <div className="column col4"></div>
-            </div>
-            <div className="row header7">
-              <div className="column col1">TOTAL</div>
-              <div className="column col2">
-                <div className="dollarValue">
-                  {new Intl.NumberFormat(this.locale, {
-                    style: 'currency',
-                    currency: this.currency,
-                  }).format(
-                    this.state.repMemberData.accountHolders.value +
-                      this.state.repMemberData.cashPayments.value +
-                      this.state.repMemberData.additionalServices.value +
-                      this.state.repMemberData.posPayments.value -
-                      this.state.repMemberData.refundMembers.value,
-                  )}
-                </div>
-              </div>
-              <div className="column col3"></div>
-              <div className="column col4"></div>
-            </div>
-            <div className="row header8">
-              <div className="column col1">
-                Membership-Refunds+ProShop+Forecast
-              </div>
-              <div className="column col2">
-                <div className="dollarValue">
-                  {new Intl.NumberFormat(this.locale, {
-                    style: 'currency',
-                    currency: this.currency,
-                  }).format(
-                    this.state.repMemberData.accountHolders.value +
-                      this.state.repMemberData.cashPayments.value +
-                      this.state.repMemberData.posPayments.value +
-                      this.state.repMemberData.forecastHolders.value -
-                      this.state.repMemberData.refundMembers.value,
-                  )}
-                </div>
-              </div>
-              <div className="column col3"></div>
-              <div className="column col4"></div>
-            </div>
-            <div className="row header9">
-              <div className="column col1">
-                Forecast
-                <SVGInline
-                  svg={helpIcon}
-                  className="icon help"
-                  onClick={e => {
-                    this.setState({
-                      showConcernedMembers: true,
-                    });
-                  }}
-                />
-              </div>
-              <div className="column col2">
-                <div className="dollarValue">
-                  {new Intl.NumberFormat(this.locale, {
-                    style: 'currency',
-                    currency: this.currency,
-                  }).format(this.state.repMemberData.forecastHolders.value)}
-                </div>
-              </div>
-              <div className="column col3"></div>
-              <div className="column col4"></div>
-            </div>
-            <div className="row header10">
-              <div className="column col1">Membership+Forecast</div>
-              <div className="column col2">
-                <div className="dollarValue">
-                  {new Intl.NumberFormat(this.locale, {
-                    style: 'currency',
-                    currency: this.currency,
-                  }).format(
-                    this.state.repMemberData.accountHolders.value +
-                      this.state.repMemberData.cashPayments.value +
-                      this.state.repMemberData.forecastHolders.value,
-                  )}
-                </div>
-              </div>
-              <div className="column col3"></div>
-              <div className="column col4"></div>
-            </div>
-            <div className="row header10">
-              <div className="column col1">Membership+Forecast-Refunds</div>
-              <div className="column col2">
-                <div className="dollarValue">
-                  {new Intl.NumberFormat(this.locale, {
-                    style: 'currency',
-                    currency: this.currency,
-                  }).format(
-                    this.state.repMemberData.accountHolders.value +
-                      this.state.repMemberData.cashPayments.value +
-                      this.state.repMemberData.forecastHolders.value -
-                      this.state.repMemberData.refundMembers.value,
-                  )}
-                </div>
-              </div>
-              <div className="column col3"></div>
-              <div className="column col4"></div>
-            </div>
-          </div>
-        )}
+          )}
+        </span>
       </span>
     );
   }

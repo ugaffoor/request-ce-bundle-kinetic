@@ -43,6 +43,7 @@ const mapDispatchToProps = {
   updateCampaign: actions.updateEmailCampaign,
   fetchSmsCampaigns: actions.fetchSmsCampaigns,
   setSmsCampaigns: actions.setSmsCampaigns,
+  updateSmsCampaign: actions.updateSmsCampaign,
   getIndividualSMS: messageActions.getIndividualSMS,
   setIndividualSMS: messageActions.setIndividualSMS,
   fetchLeads: leadActions.fetchLeads,
@@ -50,6 +51,7 @@ const mapDispatchToProps = {
 };
 const email_date_format = ['DD-MM-YYYY HH:mm', 'YYYY-MM-DDTHH:mm:ssZ'];
 var myThis;
+var mySMSThis;
 
 export class EmailCampaignsList extends Component {
   constructor(props) {
@@ -268,7 +270,7 @@ export class EmailCampaignsList extends Component {
         myThis.props.fetchEmailCampaigns({
           setEmailCampaigns: myThis.props.setEmailCampaigns,
         });
-      }, 1000 * 30);
+      }, 1000 * 30); // 30 seconds
     }
     return data;
   }
@@ -698,7 +700,82 @@ export class SmsCampaignsList extends Component {
   getColumns = () => {
     return [
       { accessor: 'content', Header: 'Content', width: '90%' },
-      { accessor: 'sentDate', Header: 'Sent On', maxWidth: 150 },
+      {
+        accessor: 'sentDate',
+        Header: 'Sent On',
+        maxWidth: 270,
+        Cell: props => {
+          let sentTime = moment(props.original.sentDate, email_date_format);
+          let scheduleTime =
+            props.original.scheduledTime === '' ||
+            props.original.scheduledTime === undefined
+              ? undefined
+              : moment(props.original.scheduledTime, email_date_format);
+          return (
+            <span>
+              {scheduleTime === undefined && (
+                <span>
+                  {moment(props.original.sentDate, email_date_format).format(
+                    'L h:mm A',
+                  )}
+                </span>
+              )}
+              {props.original.cancelled === 'YES' && <span>Cancelled</span>}
+              {scheduleTime !== undefined && sentTime.isAfter(scheduleTime) && (
+                <span>Sent {sentTime.format('L h:mm A')} </span>
+              )}
+              {scheduleTime !== undefined &&
+                scheduleTime.isAfter(sentTime) &&
+                props.original.cancelled !== 'YES' && (
+                  <span>
+                    Scheduled {scheduleTime.format('L h:mm A')}
+                    <span
+                      className="cancelEmails"
+                      onClick={async e => {
+                        if (
+                          await confirm(
+                            <span>
+                              <span>
+                                Are you sure you want to CANCEL the selected SMS
+                                Campaign?
+                              </span>
+                              <table>
+                                <tbody>
+                                  <tr>
+                                    <td>{props.original.content}</td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </span>,
+                          )
+                        ) {
+                          this.props.updateSmsCampaign({
+                            id: props.original._id,
+                            values: { 'Cancel Campaign': 'YES' },
+                          });
+
+                          if (this.reloadSmsTimeout !== undefined) {
+                            clearTimeout(this.reloadSmsTimeout);
+                            this.reloadSmsTimeout = undefined;
+                          }
+                          props.original['Cancel Campaign'] = 'Cancelled';
+                          this.setState({ dummy: true });
+                          setTimeout(function() {
+                            mySMSThis.props.fetchSmsCampaigns({
+                              setSmsCampaigns: mySMSThis.props.setSmsCampaigns,
+                            });
+                          }, 1000 * 5);
+                        }
+                      }}
+                    >
+                      <SVGInline svg={crossIcon} className="icon" />
+                    </span>
+                  </span>
+                )}
+            </span>
+          );
+        },
+      },
       {
         accessor: 'recipients',
         Header: 'Recipients',
@@ -715,11 +792,13 @@ export class SmsCampaignsList extends Component {
     if (!smsCampaigns) {
       return [];
     }
+    mySMSThis = this;
+    var hasInProgress = false;
 
     const data = smsCampaigns
       .sort((a, b) => {
-        let aDate = moment(a.values['Sent Date'], email_received_date_format);
-        let bDate = moment(b.values['Sent Date'], email_received_date_format);
+        let aDate = moment(a.values['Sent Date'], email_date_format);
+        let bDate = moment(b.values['Sent Date'], email_date_format);
         if (aDate.isBefore(bDate)) {
           return 1;
         } else if (aDate.isAfter(bDate)) {
@@ -728,16 +807,39 @@ export class SmsCampaignsList extends Component {
         return 0;
       })
       .map(campaign => {
+        let sentTime = moment(campaign.values['Sent Date'], email_date_format);
+        let scheduleTime =
+          campaign.values['Scheduled Time'] === '' ||
+          campaign.values['Scheduled Time'] === undefined
+            ? undefined
+            : moment(campaign.values['Scheduled Time'], email_date_format);
+        if (
+          scheduleTime !== undefined &&
+          scheduleTime.isAfter(sentTime) &&
+          campaign.values['Cancel Campaign'] !== 'YES'
+        ) {
+          hasInProgress = true;
+        }
         return {
           _id: campaign['id'],
           content: campaign.values['SMS Content'],
-          sentDate: moment(
-            campaign.values['Sent Date'],
-            email_received_date_format,
-          ).format('L h:mm A'),
+          sentDate: campaign.values['Sent Date'],
+          scheduledTime: campaign.values['Scheduled Time'],
+          cancelled: campaign.values['Cancel Campaign'],
           recipients: campaign.values['Recipients'],
         };
       });
+
+    if (hasInProgress && this.reloadSmsTimeout === undefined) {
+      console.log('ReloadSmsTimeout set');
+      this.reloadSmsTimeout = setTimeout(function() {
+        mySMSThis.reloadSmsTimeout = undefined;
+        mySMSThis.props.fetchSmsCampaigns({
+          setSmsCampaigns: mySMSThis.props.setSmsCampaigns,
+        });
+      }, 1000 * 300); // 5 minutes
+    }
+
     return data;
   }
   getRecipientColumns = () => {
@@ -1306,6 +1408,7 @@ export const CampaignView = ({
   updateCampaign,
   fetchSmsCampaigns,
   setSmsCampaigns,
+  updateSmsCampaign,
   smsCampaignLoading,
   allMembers,
   allLeads,
@@ -1337,6 +1440,7 @@ export const CampaignView = ({
           smsCampaigns={smsCampaigns}
           fetchSmsCampaigns={fetchSmsCampaigns}
           setSmsCampaigns={setSmsCampaigns}
+          updateSmsCampaign={updateSmsCampaign}
           allMembers={allMembers}
           allLeads={allLeads}
         />

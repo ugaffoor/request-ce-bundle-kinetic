@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import ReactTable from 'react-table';
 import moment from 'moment';
-import { email_sent_date_format } from '../leads/LeadsUtils';
+
+const email_date_format = ['DD-MM-YYYY HH:mm', 'YYYY-MM-DDTHH:mm:ssZ'];
 
 export class MemberEmails extends Component {
   constructor(props) {
@@ -77,14 +78,14 @@ export class MemberEmails extends Component {
 
     emails = emails.sort(function(email1, email2) {
       if (
-        moment(email1['Sent Date'], email_sent_date_format).isAfter(
-          moment(email2['Sent Date'], email_sent_date_format),
+        moment(email1['Sent Date'], email_date_format).isAfter(
+          moment(email2['Sent Date'], email_date_format),
         )
       ) {
         return -1;
       } else if (
-        moment(email1['Sent Date'], email_sent_date_format).isBefore(
-          moment(email2['Sent Date'], email_sent_date_format),
+        moment(email1['Sent Date'], email_date_format).isBefore(
+          moment(email2['Sent Date'], email_date_format),
         )
       ) {
         return 1;
@@ -95,7 +96,7 @@ export class MemberEmails extends Component {
     emails.forEach(email => {
       email['Sent Date Formatted'] = moment(
         email['Sent Date'],
-        email_sent_date_format,
+        email_date_format,
       ).format('L HH:mm');
     });
     return emails;

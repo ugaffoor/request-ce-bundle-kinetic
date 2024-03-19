@@ -80,6 +80,7 @@ export const DatastoreRouter = ({ match, loading, validVersion, version }) =>
   );
 
 export const mapStateToProps = state => ({
+  isSpaceAdmin: state.app.profile.spaceAdmin,
   loading: state.space.settingsDatastore.loading,
   version: state.app.config.version,
   validVersion: semver.satisfies(

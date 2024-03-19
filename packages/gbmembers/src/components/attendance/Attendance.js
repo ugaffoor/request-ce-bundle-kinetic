@@ -2679,7 +2679,9 @@ export class AttendanceDetail extends Component {
                             return (
                               checkin.values['Class Time'] ===
                                 this.state.classTime &&
-                              checkin.values['Class'] === this.state.className
+                              checkin.values['Class'] ===
+                                this.state.className &&
+                              checkin.values['First Name'] !== 'Member Deleted'
                             );
                           })
                           .map((checkin, index) => (
