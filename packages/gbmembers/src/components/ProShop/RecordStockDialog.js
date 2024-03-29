@@ -74,12 +74,29 @@ export class RecordStockDialog extends Component {
       });
       if (idx !== -1) {
         console.log('SKU Found:' + skuValue);
+        Object.keys(this.state).map(key => {
+          if (key.indexOf('qty') !== -1) {
+            console.log('key:' + key);
+            this.setState({
+              [key]: 0,
+            });
+          }
+          if (key.indexOf('sizeSelected') !== -1) {
+            console.log('key:' + key);
+            this.setState({
+              [key]: undefined,
+            });
+          }
+          return true;
+        });
+        $('.sizeElement input').prop('checked', false);
+
         this.setState({
           scanned: true,
           productCodeValue: skuValue,
           ['sizeSelected' + this.props.products[idx]['id']]: sizeVal,
           productScanned: this.props.products[idx]['id'] + sizeVal,
-          productNameValue: '',
+          productNameValue: this.props.products[idx]['values']['Name'],
         });
       } else {
         this.setState({

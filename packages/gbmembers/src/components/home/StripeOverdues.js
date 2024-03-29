@@ -5,7 +5,11 @@ import { KappNavLink as NavLink } from 'common';
 import ReactToPrint from 'react-to-print';
 import printerIcon from '../../images/Print.svg?raw';
 import SVGInline from 'react-svg-inline';
-import { getCurrency } from '../Member/MemberUtils';
+import {
+  getCurrency,
+  validOverdue,
+  getLastBillingStartDate,
+} from '../Member/MemberUtils';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const ezidebit_date_format = 'YYYY-MM-DD HH:mm:sss';
@@ -120,12 +124,7 @@ export class StripeOverdues extends Component {
       );
       if (idx !== -1) {
         if (
-          (this.props.allMembers[idx].values['Status'] === 'Active' ||
-            this.props.allMembers[idx].values['Status'] === 'Casual' ||
-            this.props.allMembers[idx].values['Status'] === 'Penging Freeze' ||
-            this.props.allMembers[idx].values['Status'] ===
-              'Pending Cancellation') &&
-          payment.debitDate !== null
+          validOverdue(this.props.allMembers[idx], successfulPayments, payment)
         ) {
           uniqueHistory[uniqueHistory.length] = payment;
         }
@@ -151,7 +150,7 @@ export class StripeOverdues extends Component {
         member = this.props.allMembers[idx];
       }
       var lastPayment;
-      if (sidx !== -1) {
+      /*      if (sidx !== -1) {
         lastPayment = moment(
           successfulPayments[sidx].debitDate,
           'YYYY-MM-DD HH:mm:ss',
@@ -159,7 +158,14 @@ export class StripeOverdues extends Component {
       }
       if (lastPayment === undefined) {
         lastPayment = moment(member.values['Billing Start Date'], 'YYYY-MM-DD');
+      } */
+      if (idx !== -1) {
+        lastPayment = getLastBillingStartDate(
+          this.props.allMembers[idx],
+          successfulPayments,
+        );
       }
+
       let nowDate = moment();
       var overdueAmount = 0;
       if (member !== undefined) {

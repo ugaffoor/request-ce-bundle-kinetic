@@ -169,10 +169,16 @@ export class MemberFinancialReport extends Component {
 
         // only keep period payments
         if (
-          moment(item.debitDate, 'YYYY-MM-DD HH:mm:ss').isBetween(
+          (moment(item.debitDate, 'YYYY-MM-DD HH:mm:ss').isBetween(
             this.state.repFromDate,
             this.state.repToDate,
-          ) &&
+          ) ||
+            moment(item.debitDate, 'YYYY-MM-DD HH:mm:ss').isSame(
+              this.state.repFromDate,
+            ) ||
+            moment(item.debitDate, 'YYYY-MM-DD HH:mm:ss').isSame(
+              this.state.repToDate,
+            )) &&
           !isRefunded
         ) {
           this.paymentHistory[this.paymentHistory.length] = item;
@@ -781,6 +787,8 @@ export class MemberFinancialReport extends Component {
     let refundPOSValue = 0;
     let cashPayments = [];
     let cashPaymentsValue = 0;
+    let allTransactionRecords = [];
+
     paymentHistory.forEach(payment => {
       var member = this.isRecurringPayment(payment, members);
       var additionalServiceMember = undefined;
@@ -796,6 +804,14 @@ export class MemberFinancialReport extends Component {
           accountHolders[accountHolders.length] = member;
         }
         accountHoldersValue += payment.paymentAmount;
+        allTransactionRecords.push({
+          type: 'Membership',
+          date: payment.debitDate,
+          name: member.values['First Name'] + ' ' + member.values['Last Name'],
+          billingID: member.values['Billing Customer Reference'],
+          paymentID: payment.paymentID,
+          payment: Number(payment.paymentAmount).toFixed(2),
+        });
         console.log(
           '1 ' +
             member.values['First Name'] +
@@ -831,6 +847,19 @@ export class MemberFinancialReport extends Component {
             additionalServices[idx]['Service Charge'] + payment.paymentAmount;
         }
         additionalServicesValue += payment.paymentAmount;
+        allTransactionRecords.push({
+          type: 'Additional Services',
+          date: payment.debitDate,
+          name:
+            additionalServiceMember.values['First Name'] +
+            ' ' +
+            additionalServiceMember.values['Last Name'],
+          billingID:
+            additionalServiceMember.values['Billing Customer Reference'],
+          paymentID: payment.paymentID,
+          payment: Number(payment.paymentAmount).toFixed(2),
+        });
+
         console.log(
           '1 ' +
             additionalServiceMember.values['First Name'] +
@@ -896,6 +925,14 @@ export class MemberFinancialReport extends Component {
               };
               accountHoldersValue += payment.paymentAmount;
             }
+            allTransactionRecords.push({
+              type: 'Orphaned',
+              date: payment.debitDate,
+              name: 'Unknown',
+              billingID: '',
+              paymentID: payment.paymentID,
+              payment: Number(payment.paymentAmount).toFixed(2),
+            });
             console.log(
               'ORPHANED,' +
                 Number(payment.paymentAmount).toFixed(2) +
@@ -918,10 +955,10 @@ export class MemberFinancialReport extends Component {
       var pIdx = cashPayments.findIndex(
         item => item.member.id === registration.values['Members'],
       );
+      var mIdx = members.findIndex(
+        member => member.id === registration.values['Members'],
+      );
       if (pIdx === -1) {
-        var mIdx = members.findIndex(
-          member => member.id === registration.values['Members'],
-        );
         cashPayments[cashPayments.length] = {
           member: members[mIdx],
           amount: Number(registration.values['Payment Required']),
@@ -935,6 +972,15 @@ export class MemberFinancialReport extends Component {
           registration.values['Term End Date'],
         );
       }
+      allTransactionRecords.push({
+        type: 'Cash Membership',
+        endPeriod: moment(registration.values['Term End Date']),
+        name:
+          members[mIdx].values['First Name'] +
+          ' ' +
+          members[mIdx].values['Last Name'],
+        amount: Number(registration.values['Payment Required']).toFixed(2),
+      });
       cashPaymentsValue += Number(registration.values['Payment Required']);
     });
     cashPaymentsByDate.forEach((payment, i) => {
@@ -952,6 +998,15 @@ export class MemberFinancialReport extends Component {
         cashPayments[pIdx].amount += Number(payment.values['Amount']);
       }
       cashPaymentsValue += Number(payment.values['Amount']);
+      allTransactionRecords.push({
+        type: 'Cash Payments',
+        date: moment(payment.values['Date']),
+        name:
+          members[mIdx].values['First Name'] +
+          ' ' +
+          members[mIdx].values['Last Name'],
+        amount: Number(payment.values['Amount']).toFixed(2),
+      });
     });
 
     //    if (fromDate.month()>=moment().month() && toDate.month()>=moment().month()) {
@@ -1269,6 +1324,7 @@ export class MemberFinancialReport extends Component {
         members,
         person,
         posOrders,
+        allTransactionRecords,
       );
     });
 
@@ -1301,6 +1357,15 @@ export class MemberFinancialReport extends Component {
         } else {
           refundMembers[mIdx]['refundValue'] += refund.paymentAmount;
         }
+        allTransactionRecords.push({
+          type: 'Refunds',
+          date: refund.debitDate,
+          name:
+            members[mIdx].values['First Name'] +
+            ' ' +
+            members[mIdx].values['Last Name'],
+          amount: Number(refund.paymentAmount).toFixed(2),
+        });
       } else {
         var pIdx = fullPaymentHistory.findIndex(
           payment => payment.paymentID === refund.yourSystemReference,
@@ -1325,6 +1390,15 @@ export class MemberFinancialReport extends Component {
             } else {
               refundMembers[rIdx]['refundValue'] += refund.paymentAmount;
             }
+            allTransactionRecords.push({
+              type: 'Refunds',
+              date: refund.debitDate,
+              name:
+                members[mIdx].values['First Name'] +
+                ' ' +
+                members[mIdx].values['Last Name'],
+              amount: Number(refund.paymentAmount).toFixed(2),
+            });
           }
         }
       }
@@ -1355,6 +1429,7 @@ export class MemberFinancialReport extends Component {
         value: cashPaymentsValue,
       },
       concernedMembers: concernedMembers,
+      allTransactionRecords: allTransactionRecords,
     };
   }
 
@@ -1528,7 +1603,7 @@ export class MemberFinancialReport extends Component {
       });
     }
   }
-  getMemberPOS(members, person, posOrders) {
+  getMemberPOS(members, person, posOrders, allTransactionRecords) {
     var pos = 0;
     posOrders.forEach((order, i) => {
       if (
@@ -1536,6 +1611,14 @@ export class MemberFinancialReport extends Component {
         order.values['Person ID'] === person.values['Lead Submission ID']
       ) {
         pos += Number.parseFloat(order.values['Total']);
+        if (allTransactionRecords !== undefined) {
+          allTransactionRecords.push({
+            type: 'POS',
+            date: moment(order.values['Date time processed']),
+            name: order.values['Person Name'],
+            amount: Number(order.values['Total']).toFixed(2),
+          });
+        }
       }
     });
     return pos;
@@ -2370,16 +2453,188 @@ export class MemberFinancialReport extends Component {
       },
     ];
   }
+  downLoadDataAsCsv(allTransactionRecords) {
+    let memberships = [];
+    let additionalServices = [];
+    let cashPayments = [];
+    let refunds = [];
+    let pos = [];
+
+    allTransactionRecords.forEach(transaction => {
+      if (transaction['type'] === 'Membership') {
+        memberships.push(transaction);
+      } else if (transaction['type'] === 'Orphaned') {
+        memberships.push(transaction);
+      } else if (transaction['type'] === 'Additional Services') {
+        additionalServices.push(transaction);
+      } else if (transaction['type'] === 'Cash Membership') {
+        cashPayments.push(transaction);
+      } else if (transaction['type'] === 'Cash Payments') {
+        cashPayments.push(transaction);
+      } else if (transaction['type'] === 'Refunds') {
+        refunds.push(transaction);
+      } else if (transaction['type'] === 'POS') {
+        pos.push(transaction);
+      }
+    });
+
+    memberships = memberships.sort(function(a, b) {
+      if (moment(a.date).isBefore(moment(b.date))) {
+        return -1;
+      } else if (moment(a.date).isAfter(moment(b.date))) {
+        return 1;
+      }
+      return 0;
+    });
+
+    memberships = memberships.sort(function(a, b) {
+      if (a.name > b.name) {
+        return -1;
+      } else if (a.name < b.name) {
+        return 1;
+      }
+      return 0;
+    });
+
+    let fileDownload = require('js-file-download');
+    let csvData =
+      'Type, Date/End Period, Name, Billing ID, Payment ID, Payment\n';
+    let membershipTotal = 0;
+    memberships.forEach(transaction => {
+      membershipTotal += Number(transaction.payment);
+      csvData = csvData.concat(
+        '"' +
+          transaction['type'] +
+          '","' +
+          moment(transaction['date']).format('L HH:MM A') +
+          '","' +
+          transaction['name'] +
+          '","' +
+          transaction['billingID'] +
+          '","' +
+          transaction['paymentID'] +
+          '","' +
+          transaction['payment'] +
+          '","' +
+          '"\n',
+      );
+    });
+    csvData = csvData.concat(
+      '"Memberships Total","","","","","' + membershipTotal + '","' + '"\n',
+    );
+
+    let additionalServicesTotal = 0;
+    additionalServices.forEach(transaction => {
+      additionalServicesTotal += Number(transaction.payment);
+      csvData = csvData.concat(
+        '"' +
+          transaction['type'] +
+          '","' +
+          moment(transaction['date']).format('L HH:MM A') +
+          '","' +
+          transaction['name'] +
+          '","' +
+          transaction['billingID'] +
+          '","' +
+          transaction['paymentID'] +
+          '","' +
+          transaction['payment'] +
+          '","' +
+          '"\n',
+      );
+    });
+    csvData = csvData.concat(
+      '"Additional Services Total","","","","","' +
+        additionalServicesTotal +
+        '","' +
+        '"\n',
+    );
+
+    let cashPaymentsTotal = 0;
+    cashPayments.forEach(transaction => {
+      cashPaymentsTotal += Number(transaction.amount);
+      csvData = csvData.concat(
+        '"' +
+          transaction['type'] +
+          '","' +
+          moment(transaction['date']).format('L HH:MM A') +
+          '","' +
+          transaction['name'] +
+          '","","' +
+          '","' +
+          transaction['amount'] +
+          '","' +
+          '"\n',
+      );
+    });
+    csvData = csvData.concat(
+      '"Cash Payments Total","","","","","' + cashPaymentsTotal + '","' + '"\n',
+    );
+
+    let refundsTotal = 0;
+    refunds.forEach(transaction => {
+      refundsTotal += Number(transaction.amount);
+      csvData = csvData.concat(
+        '"' +
+          transaction['type'] +
+          '","' +
+          moment(transaction['date']).format('L HH:MM A') +
+          '","' +
+          transaction['name'] +
+          '","","' +
+          '","' +
+          transaction['amount'] +
+          '","' +
+          '"\n',
+      );
+    });
+    csvData = csvData.concat(
+      '"Refunds Total","","","","","' + refundsTotal + '","' + '"\n',
+    );
+
+    let posTotal = 0;
+    pos.forEach(transaction => {
+      posTotal += Number(transaction.amount);
+      csvData = csvData.concat(
+        '"' +
+          transaction['type'] +
+          '","' +
+          moment(transaction['date']).format('L HH:MM A') +
+          '","' +
+          transaction['name'] +
+          '","","' +
+          '","' +
+          transaction['amount'] +
+          '","' +
+          '"\n',
+      );
+    });
+    csvData = csvData.concat(
+      '"POS Total","","","","","' + posTotal + '","' + '"\n',
+    );
+
+    fileDownload(csvData, 'transactions.csv');
+  }
   render() {
     return (
       <span>
-        <span className="line">
+        <span className="line financialReportActions">
           <ReactToPrint
             trigger={() => (
               <SVGInline svg={printerIcon} className="icon tablePrint" />
             )}
             content={() => this.tableComponentRef}
           />
+          <button
+            className="downloadCSV"
+            onClick={e =>
+              this.downLoadDataAsCsv(
+                this.state.repMemberData.allTransactionRecords,
+              )
+            }
+          >
+            <i className="fa fa-download"></i> Download Data as CSV
+          </button>
         </span>
         <span
           className="financialStats"

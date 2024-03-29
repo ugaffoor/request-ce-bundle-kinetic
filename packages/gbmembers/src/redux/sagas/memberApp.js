@@ -33,8 +33,8 @@ export const selectReportPreferences = ({ member }) =>
   member.app.reportPreferences;
 
 export const PROGRAMBELTS_SEARCH = new CoreAPI.SubmissionSearch(true)
-  .in('values[Program Order]', ['1', '2', '3', '4', '5', '6', '7'])
-  .index('values[Program Order]')
+  //  .in('values[Program Order]', ['1', '2', '3', '4', '5', '6', '7'])
+  //  .index('values[Program Order]')
   .include('details,values')
   .limit(1000)
   .build();
@@ -82,35 +82,52 @@ export function* fetchMemberAppSettingsTask() {
     kapps: { kapps },
     space: { space },
     profile: { profile },
-    submissions: { submissions },
   } = yield all({
     space: call(CoreAPI.fetchSpace, { include: 'details,attributes' }),
     kapps: call(CoreAPI.fetchKapps, { include: 'attributes' }),
     profile: call(CoreAPI.fetchProfile, {
       include: PROFILE_INCLUDES,
     }),
-    submissions: call(CoreAPI.searchSubmissions, {
-      datastore: true,
-      form: 'program-belts',
-      search: PROGRAMBELTS_SEARCH,
-    }),
   });
   var kapp = undefined;
   kapps.forEach(function(k) {
     if (k.slug === 'gbmembers') kapp = k;
   });
-  const submissions2 = yield all({
-    submissions: call(CoreAPI.searchSubmissions, {
-      datastore: true,
-      form: 'program-belts',
-      search: PROGRAMBELTS_SEARCH2,
-    }),
-  });
+
   var beltSubmissions = [];
+  let nextBeltPageTokenValue;
+
+  const beltSearch = new CoreAPI.SubmissionSearch(true)
+    .includes(['values'])
+    .limit(1000)
+    .build();
+
+  const { submissions, nextPageToken } = yield call(CoreAPI.searchSubmissions, {
+    datastore: true,
+    form: 'program-belts',
+    search: beltSearch,
+  });
+  nextBeltPageTokenValue = nextPageToken;
   beltSubmissions = beltSubmissions.concat(submissions);
-  beltSubmissions = beltSubmissions.concat(
-    submissions2.submissions.submissions,
-  );
+
+  while (nextBeltPageTokenValue) {
+    let beltSearch2 = new CoreAPI.SubmissionSearch(true)
+      .includes(['values'])
+      .limit(1000)
+      .pageToken(nextBeltPageTokenValue)
+      .build();
+
+    const [submissions2, nextPageToken] = yield all([
+      call(CoreAPI.searchSubmissions, {
+        datastore: true,
+        form: 'program-belts',
+        search: beltSearch2,
+      }),
+    ]);
+    beltSubmissions = beltSubmissions.concat(submissions2.submissions);
+    nextBeltPageTokenValue = submissions2.nextPageToken;
+  }
+
   var programsMap = OrderedMap();
   var beltsMap = OrderedMap();
   for (var i = 0; i < beltSubmissions.length; i++) {

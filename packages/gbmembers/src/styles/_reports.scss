@@ -1,3 +1,13 @@
+.financialReportActions {
+  .downloadCSV {
+    padding: 2px 5px;
+    background: #4d5059;
+    color: #fff;
+    font-weight: 700;
+    border-radius: 0.4rem;
+    margin: 4px;
+  }
+}
 .lastExportedEndDate {
   width: 100%;
   input {

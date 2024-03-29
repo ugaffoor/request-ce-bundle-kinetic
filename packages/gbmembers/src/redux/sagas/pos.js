@@ -131,6 +131,7 @@ export function* fetchPOSProducts(action) {
 export function* fetchPOSBarcodes(action) {
   try {
     let allSubmissions = [];
+    let nextPageTokenValue;
 
     const search = new CoreAPI.SubmissionSearch(true)
       .includes(['values'])
@@ -145,15 +146,17 @@ export function* fetchPOSBarcodes(action) {
         search,
       },
     );
+    nextPageTokenValue = nextPageToken;
     allSubmissions = allSubmissions.concat(submissions);
-    if (nextPageToken) {
-      const search2 = new CoreAPI.SubmissionSearch(true)
+
+    while (nextPageTokenValue) {
+      let search2 = new CoreAPI.SubmissionSearch(true)
         .includes(['values'])
         .limit(1000)
-        .pageToken(nextPageToken)
+        .pageToken(nextPageTokenValue)
         .build();
 
-      const [submissions2] = yield all([
+      const [submissions2, nextPageToken] = yield all([
         call(CoreAPI.searchSubmissions, {
           datastore: true,
           form: 'pos-barcodes',
@@ -161,6 +164,7 @@ export function* fetchPOSBarcodes(action) {
         }),
       ]);
       allSubmissions = allSubmissions.concat(submissions2.submissions);
+      nextPageTokenValue = submissions2.nextPageToken;
     }
     yield put(actions.setPOSBarcodes(allSubmissions));
   } catch (error) {

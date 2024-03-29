@@ -9,6 +9,7 @@ import SVGInline from 'react-svg-inline';
 import { CoreForm } from 'react-kinetic-core';
 import ReactSpinner from 'react16-spinjs';
 import { Utils } from 'common';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 export class MemberAdditionalServices extends Component {
   constructor(props) {
@@ -71,6 +72,31 @@ export class MemberAdditionalServices extends Component {
       }
     } else {
       dependantBillerProfileID = memberItem.values['POS Profile ID'];
+      if (getAttributeValue(this.props.space, 'Franchisor') === 'YES') {
+        if (
+          memberItem.values['Billing Customer Id'] !== undefined ||
+          memberItem.values['Billing Customer Id'] !== null ||
+          memberItem.values['Billing Customer Id'] !== ''
+        ) {
+          dependantBillerProfileID = memberItem.values['Billing Customer Id'];
+        } else if (
+          memberItem.values['Billing Customer Id'] === undefined ||
+          memberItem.values['Billing Customer Id'] === null ||
+          memberItem.values['Billing Customer Id'] === ''
+        ) {
+          dependantBillerProfileID = memberItem.values['Billing Setup Fee Id'];
+        }
+      } else if (
+        getAttributeValue(this.props.space, 'Billing Company') === 'Stripe'
+      ) {
+        if (
+          memberItem.values['Billing Customer Id'] !== undefined ||
+          memberItem.values['Billing Customer Id'] !== null ||
+          memberItem.values['Billing Customer Id'] !== ''
+        ) {
+          dependantBillerProfileID = memberItem.values['Billing Customer Id'];
+        }
+      }
     }
     return dependantBillerProfileID;
   }
