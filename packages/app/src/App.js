@@ -23,6 +23,7 @@ import { AppContainer as MemberApp } from 'gbmembers/src/components/AppContainer
 import CacheBuster from 'react-cache-buster';
 import { version } from './components/package.json';
 //import Favicon from "react-favicon";
+import { Helmet } from 'react-helmet';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -39,6 +40,15 @@ export const AppComponent = props =>
       } //If not pass, nothing appears at the time of new version check.
       metaFileDirectory={props.metaJSONLocation} //If public assets are hosted somewhere other than root on your server.
     >
+      <Helmet>
+        {
+          <link
+            rel="icon"
+            href="https://us-gbfms-files.s3.us-east-2.amazonaws.com/favicon.ico"
+            type="image/x-icon"
+          ></link>
+        }
+      </Helmet>
       <Fragment>
         <ToastsContainer />
         <LoginModal />

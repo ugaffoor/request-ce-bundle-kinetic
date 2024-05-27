@@ -32,6 +32,7 @@ const mapStateToProps = state => ({
   leadLists: state.member.app.leadLists,
   belts: state.member.app.belts,
   leadStatusValues: state.member.app.leadStatusValues,
+  leadSourceValues: state.member.app.leadSourceValues,
   profile: state.member.app.profile,
   space: state.member.app.space,
 });
@@ -51,6 +52,7 @@ export const ListNewView = ({
   leadLists,
   addNewList,
   leadStatusValues,
+  leadSourceValues,
   profile,
   space,
 }) => (
@@ -65,6 +67,7 @@ export const ListNewView = ({
       leadLists={leadLists}
       addNewList={addNewList}
       leadStatusValues={leadStatusValues}
+      leadSourceValues={leadSourceValues}
       profile={profile}
       space={space}
     />
@@ -132,6 +135,12 @@ export class ListNewHome extends Component {
         .find('select')
         .multiselect({
           texts: { placeholder: 'Select Program' },
+        });
+    this.refs.leadReferredDiv &&
+      $(this.refs.leadReferredDiv)
+        .find('select')
+        .multiselect({
+          texts: { placeholder: 'Select Lead Referred' },
         });
     this.refs.specificLeadsDiv &&
       $(this.refs.specificLeadsDiv)
@@ -219,6 +228,7 @@ export class ListNewHome extends Component {
         },
       },
       { accessor: 'Status', Header: 'Status' },
+      { accessor: 'Source', Header: 'Referred via' },
       { accessor: 'Gender', Header: 'Gender' },
       { accessor: 'Interest in Program', Header: 'Program' },
       { accessor: 'Source Reference 1', Header: 'Source 1' },
@@ -277,6 +287,12 @@ export class ListNewHome extends Component {
 
     if ($('#program').val() && $('#program').val().length > 0) {
       filters.push({ programFilter: { programs: $('#program').val() } });
+    }
+
+    if ($('#leadReferred').val() && $('#leadReferred').val().length > 0) {
+      filters.push({
+        leadReferredFilter: { leadReferred: $('#leadReferred').val() },
+      });
     }
 
     if ($('#sourceReference1').val()) {
@@ -623,6 +639,42 @@ export class ListNewHome extends Component {
                             {program.program}
                           </option>
                         ))}
+                      </select>
+                      <div className="droparrow" />
+                    </div>
+                  </fieldset>
+                </div>
+              </div>
+              <div className="row">
+                <div className="col">
+                  <fieldset
+                    className="scheduler-border"
+                    style={{ position: 'relative' }}
+                  >
+                    <legend className="scheduler-border">
+                      Lead referred via
+                    </legend>
+                    <div
+                      className="form-group form-inline"
+                      ref="leadReferredDiv"
+                    >
+                      <label htmlFor="leadReferred">
+                        Lead referred via&nbsp;
+                      </label>
+                      <select
+                        className="form-control"
+                        multiple
+                        id="leadReferred"
+                        ref={input => (this.input = input)}
+                        style={{ height: 'auto' }}
+                      >
+                        {this.props.leadSourceValues.map((value, index) => {
+                          return (
+                            <option key={value} value={value}>
+                              {value}
+                            </option>
+                          );
+                        })}
                       </select>
                       <div className="droparrow" />
                     </div>

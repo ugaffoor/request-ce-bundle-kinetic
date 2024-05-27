@@ -223,6 +223,8 @@ export const State = Record({
   allMembers: [],
   users: [],
   memberInitialLoadComplete: false,
+  memberNotesLoaded: false,
+  memberNotesLoading: false,
   memberLastFetchTime: undefined,
   membersNextPageToken: undefined,
   currentMember: {},
@@ -316,7 +318,9 @@ export const reducer = (state = State(), { type, payload }) => {
           value: payload.value,
         });
     case types.FETCH_MEMBERS:
-      return state.set('membersLoading', true);
+      return state
+        .set('membersLoading', true)
+        .set('memberNotesLoading', payload.loadMemberNotes ? true : false);
     case types.FETCH_CURRENT_MEMBER:
       var currentMemberAdditional = {
         emailsReceived: [],
@@ -362,6 +366,7 @@ export const reducer = (state = State(), { type, payload }) => {
       return state.set('newMemberLoading', true);
     case types.SET_MEMBERS: {
       var allMembers = state.get('allMembers');
+      var memberNotesLoaded = state.get('memberNotesLoaded');
       var users = state.get('users');
 
       if (payload.users !== undefined) {
@@ -390,6 +395,9 @@ export const reducer = (state = State(), { type, payload }) => {
             member => member.id === members[k].id,
           );
           if (mIdx !== -1) {
+            if (allMembers[mIdx].promotionContent !== undefined) {
+              members[k].promotionContent = allMembers[mIdx].promotionContent;
+            }
             allMembers[mIdx] = members[k];
           } else {
             allMembers.push(members[k]);
@@ -409,7 +417,12 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('memberInitialLoadComplete', true)
         .set('memberLastFetchTime', moment().format('YYYY-MM-DDTHH:mm:ssZ'))
         .set('membersNextPageToken', payload.nextPageToken)
-        .set('memberAttentionRequired', attentionRequired);
+        .set('memberAttentionRequired', attentionRequired)
+        .set('memberNotesLoading', false)
+        .set(
+          'memberNotesLoaded',
+          memberNotesLoaded || payload.loadMemberNotes ? true : false,
+        );
     }
     case types.UPDATE_ALL_MEMBERS: {
       return state
@@ -471,6 +484,7 @@ export const reducer = (state = State(), { type, payload }) => {
         mIdx = allMembers.findIndex(member => member.id === payload.member.id);
         if (mIdx !== -1) {
           payload.member.user = allMembers[mIdx].user;
+          allMembers[mIdx] = payload.member;
         }
       } else {
         payload.member.user = payload.user.user;

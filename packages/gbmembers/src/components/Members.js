@@ -23,6 +23,7 @@ export class Members extends React.Component {
     };
     this.toggleSidebarOpen = props.toggleSidebarOpen;
     this.filterAll = this.filterAll.bind(this);
+    this.renderCell = this.renderCell.bind(this);
 
     membersThis = this;
   }
@@ -112,6 +113,22 @@ export class Members extends React.Component {
     return 0;
   }
 
+  isLongNameClass(original) {
+    if ((original['First Name'] + original['Last Name']).length >= 30) {
+      return ' extraLongName';
+    } else if ((original['First Name'] + original['Last Name']).length >= 25) {
+      return ' longName';
+    } else if (
+      ((original['First Name'] + original['Last Name']).length >= 23 &&
+        original.orphan) ||
+      original['Status'] === 'Pending Cancellation' ||
+      original['Status'] === 'Pending Freeze'
+    ) {
+      return ' longName';
+    }
+
+    return '';
+  }
   renderCell(cellInfo) {
     return (
       <NavLink
@@ -121,7 +138,8 @@ export class Members extends React.Component {
           ' nav-link icon-wrapper' +
           (cellInfo.original['Is New Reply Received'] === 'true'
             ? ' newReplyReceived'
-            : '')
+            : '') +
+          this.isLongNameClass(cellInfo.original)
         }
         activeClassName="active"
       >

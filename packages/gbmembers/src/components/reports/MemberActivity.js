@@ -53,7 +53,20 @@ export class MemberActivityReport extends Component {
     }
 
     this.columns = [
-      { title: 'Last Modified Date', field: 'lastModifiedDate' },
+      {
+        title: 'Last Modified Date',
+        field: 'lastModifiedDate',
+        sorter: function(a, b, aRow, bRow, column, dir, sorterParams) {
+          a = moment(a);
+          b = moment(b);
+          if (dir === 'asc') {
+            return b.isAfter(a) ? 1 : -1;
+          } else if (dir === 'desc') {
+            return a.isAfter(b) ? -1 : 1;
+          }
+          return 0;
+        },
+      },
       {
         title: 'Name',
         field: 'name',
@@ -101,7 +114,6 @@ export class MemberActivityReport extends Component {
       { title: 'Biller ID', field: 'billerId' },
       { title: 'Non Paying', field: 'nonPaying' },
       { title: 'Account Created', field: 'accountCreated' },
-      { title: 'Covid19 Waiver', field: 'covid19Waiver' },
       { title: 'Opt-Out', field: 'optout' },
       { title: 'Barcode', field: 'barcode' },
       {
@@ -236,15 +248,10 @@ export class MemberActivityReport extends Component {
       { label: 'Cash Term Start Date', value: 'cashStartDate' },
       { label: 'Cash Term End Date', value: 'cashEndDate' },
       { label: 'Billing User', value: 'billingUser' },
-      getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES' && {
-        label: 'Use Sub Account',
-        value: 'useSubAccount',
-      },
       { label: 'Biller Migrated', value: 'billerMigrated' },
       { label: 'Biller ID', value: 'billerId' },
       { label: 'Non Paying', value: 'nonPaying' },
       { label: 'Account Created', value: 'accountCreated' },
-      { label: 'Covid19 Waiver', value: 'covid19Waiver' },
       { label: 'Opt-Out', value: 'optout' },
       { label: 'Barcode', value: 'barcode' },
       { label: 'Cost', value: 'cost', key: 'cost' },
@@ -260,6 +267,13 @@ export class MemberActivityReport extends Component {
       { label: 'Events', value: 'events' },
       { label: 'Notes', value: 'history' },
     ];
+    if (getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES') {
+      this.hiddenColumns.push({
+        label: 'Use Sub Account',
+        value: 'useSubAccount',
+      });
+    }
+
     this.columnsToHide = [
       {
         label: 'Member Columns',
@@ -282,7 +296,6 @@ export class MemberActivityReport extends Component {
           { label: 'Program', value: 'program' },
           { label: 'Fee Program', value: 'feeProgram' },
           { label: 'Account Created', value: 'accountCreated' },
-          { label: 'Covid19 Waiver', value: 'covid19Waiver' },
           { label: 'Opt-Out', value: 'optout' },
           { label: 'Barcode', value: 'barcode' },
           { label: 'Belt', value: 'belt' },
@@ -381,15 +394,10 @@ export class MemberActivityReport extends Component {
       { label: 'Additional Program 1', value: 'additionalProgram1' },
       { label: 'Additional Program 2', value: 'additionalProgram2' },
       { label: 'Billing User', value: 'billingUser' },
-      getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES' && {
-        label: 'Use Sub Account',
-        value: 'useSubAccount',
-      },
       { label: 'Biller Migrated', value: 'billerMigrated' },
       { label: 'Biller ID', value: 'billerId' },
       { label: 'Non Paying', value: 'nonPaying' },
       { label: 'Account Created', value: 'accountCreated' },
-      { label: 'Covid19 Waiver', value: 'covid19Waiver' },
       { label: 'Opt-Out', value: 'optout' },
       { label: 'Barcode', value: 'barcode' },
       { label: 'Notes', value: 'history' },
@@ -404,6 +412,12 @@ export class MemberActivityReport extends Component {
       { label: 'SMS Sent', value: 'smsSent' },
       { label: 'SMS Received', value: 'smsReceived' },
     ];
+    if (getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES') {
+      this.filterColumns.push({
+        label: 'Use Sub Account',
+        value: 'useSubAccount',
+      });
+    }
 
     this.memberPreferences = this.getTablePreferences(
       this.props.reportPreferences,
@@ -430,7 +444,6 @@ export class MemberActivityReport extends Component {
       billingMigrated: ['YES'],
       nonPaying: ['YES'],
       accountCreated: ['YES', 'NO'],
-      covid19Waiver: ['Agreed', 'NOT Agreed', ''],
       optout: ['YES'],
       memberType: this.props.membershipTypes.map(type => type.type),
       program: this.props.programs.map(program => program.program),
@@ -458,6 +471,7 @@ export class MemberActivityReport extends Component {
       includesValue: [],
       filterStartDate: undefined,
       filterEndDate: undefined,
+      memberNotesLoaded: false,
     };
   }
 
@@ -466,6 +480,12 @@ export class MemberActivityReport extends Component {
       let preferences = this.getTablePreferences(nextProps.reportPreferences);
       this.setState({
         preferences: preferences.preferences,
+      });
+    }
+    if (nextProps.memberNotesLoaded !== this.props.memberNotesLoaded) {
+      this.activityData = this.getGridData(this.props.members);
+      this.setState({
+        dummy: true,
       });
     }
   }
@@ -1206,7 +1226,6 @@ export class MemberActivityReport extends Component {
         billerId: member.values['Billing Customer Reference'],
         nonPaying: member.values['Non Paying'] === 'YES' ? 'YES' : '',
         accountCreated: member.user !== undefined ? 'YES' : 'NO',
-        covid19Waiver: member.values['Covid19 Waiver'],
         optout: member.values['Opt-Out'] === 'YES' ? 'YES' : '',
         barcode:
           member.values['Alternate Barcode'] !== '' &&
@@ -1708,6 +1727,14 @@ export class MemberActivityReport extends Component {
     );
   }
 
+  loadMemberNotes() {
+    this.props.fetchMembers({
+      membersNextPageToken: this.props.membersNextPageToken,
+      memberInitialLoadComplete: this.props.memberInitialLoadComplete,
+      memberLastFetchTime: this.props.memberLastFetchTime,
+      loadMemberNotes: true,
+    });
+  }
   onColumnDropdownChange = options => {
     this.filterColumns.forEach(column => {
       this.memberActivityGridref.table.hideColumn(column.value);
@@ -2030,6 +2057,14 @@ export class MemberActivityReport extends Component {
                   onClick={e => this.downLoadTableAsCsv(e)}
                 >
                   <i className="fa fa-download"></i> Download Data as CSV
+                </button>
+                <span className="vl"></span>
+                <button name="download" onClick={e => this.loadMemberNotes(e)}>
+                  {this.props.memberNotesLoaded
+                    ? 'Member Notes Loaded'
+                    : this.props.memberNotesLoading
+                    ? 'Loading Member Notes'
+                    : 'Load Member Notes'}
                 </button>
               </div>
             </div>

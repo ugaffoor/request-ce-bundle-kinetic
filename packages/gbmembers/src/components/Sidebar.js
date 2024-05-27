@@ -18,6 +18,7 @@ export const Sidebar = ({
   handleNewPersonalFilter,
   allMembers,
   allLeads,
+  memberInitialLoadComplete,
   membersLoading,
   leadsLoading,
   memberUpdating,
@@ -106,18 +107,13 @@ export const Sidebar = ({
           ))}
         </select>
         <div className="droparrow" />
-        {filterType === 'filter' && membersLoading ? (
-          <div />
-        ) : (
-          filterType === 'filter' &&
-          (memberUpdating || !memberUpdating) && (
-            <Members
-              allMembers={allMembers}
-              currentFilter={currentFilter}
-              actions={actions}
-              space={space}
-            />
-          )
+        {filterType === 'filter' && true && (
+          <Members
+            allMembers={allMembers}
+            currentFilter={currentFilter}
+            actions={actions}
+            space={space}
+          />
         )}
         {filterType === 'list' && (
           <ListMembers

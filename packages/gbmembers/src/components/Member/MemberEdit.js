@@ -34,6 +34,7 @@ import DayPickerInput from 'react-day-picker/DayPickerInput';
 import 'react-day-picker/lib/style.css';
 import enAU from 'moment/locale/en-au';
 import enCA from 'moment/locale/en-ca';
+import enGB from 'moment/locale/en-gb';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { I18n } from '../../../../app/src/I18nProvider';
 import Barcode from 'react-barcode';
@@ -2580,7 +2581,7 @@ export const MemberEdit = ({
                   <div className="droparrow" />
                 </div>{' '}
               </span>
-              <span className="line">
+              {/*              <span className="line">
                 <div>
                   <label htmlFor="covid19">Covid19 Waiver Agreement</label>
                   <select
@@ -2605,6 +2606,7 @@ export const MemberEdit = ({
                   <div className="droparrow" />
                 </div>
               </span>
+                  */}
               <span className="line">
                 <div className="field">
                   <label htmlFor="alternateBarcode">Alternate Barcode</label>
@@ -2775,7 +2777,8 @@ export const MemberEditContainer = compose(
         if (
           allMembers[i].values['Member ID'] ===
             memberItem.values['Member ID'] &&
-          allMembers[i].id !== memberItem.id
+          allMembers[i].id !== memberItem.id &&
+          memberItem.values['Status'] === 'Active'
         ) {
           duplicateUser = true;
         }

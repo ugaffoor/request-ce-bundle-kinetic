@@ -295,9 +295,11 @@ export class AddProductToCheckoutDialog extends Component {
                                 var id = e.target.id.replace('sizes', '');
                                 var idx = selected.findIndex(
                                   element =>
-                                    element.indexOf(e.target.value) !== -1,
+                                    id + '_' + e.target.value === element,
                                 );
-                                selected = selected.splice(idx + 1, 1);
+                                if (idx !== -1) {
+                                  selected = selected.splice(idx + 1, 1);
+                                }
 
                                 selected[selected.length] =
                                   id + '_' + e.target.value;

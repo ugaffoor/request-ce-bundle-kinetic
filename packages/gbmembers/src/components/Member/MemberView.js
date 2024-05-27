@@ -1091,7 +1091,7 @@ export const MemberView = ({
                     </span>
                   </span>
                 </div>
-                {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+                {/*getAttributeValue(space, 'Franchisor') !== 'YES' && (
                   <div className="iconItem">
                     <SVGInline svg={waiverIcon} className="icon" />
                     <span className="value">
@@ -1102,8 +1102,8 @@ export const MemberView = ({
                         : memberItem.values['Covid19 Waiver']}
                     </span>
                   </div>
-                )}
-                {Utils.getAttributeValue(space, 'Covid Check Required') ===
+                )*/}
+                {/*Utils.getAttributeValue(space, 'Covid Check Required') ===
                   'TRUE' && (
                   <div className="iconItem">
                     <label htmlFor="studentcovidcheck">
@@ -1134,8 +1134,8 @@ export const MemberView = ({
                       <label htmlFor="studentcovidcheck"></label>
                     </div>
                   </div>
-                )}
-                {Utils.getAttributeValue(space, 'Covid Check Required') ===
+                      )*/}
+                {/*Utils.getAttributeValue(space, 'Covid Check Required') ===
                   'TRUE' && (
                   <div className="iconItem">
                     <label htmlFor="mothercovidcheck">Mother Covid Check</label>
@@ -1164,8 +1164,8 @@ export const MemberView = ({
                       <label for="mothercovidcheck"></label>
                     </div>
                   </div>
-                )}
-                {Utils.getAttributeValue(space, 'Covid Check Required') ===
+                )*/}
+                {/*Utils.getAttributeValue(space, 'Covid Check Required') ===
                   'TRUE' && (
                   <div className="iconItem">
                     <label htmlFor="fathercovidcheck">Father Covid Check</label>
@@ -1194,7 +1194,7 @@ export const MemberView = ({
                       <label for="fathercovidcheck"></label>
                     </div>
                   </div>
-                )}
+                )*/}
               </span>
               <span className="details2">
                 <div className="status">

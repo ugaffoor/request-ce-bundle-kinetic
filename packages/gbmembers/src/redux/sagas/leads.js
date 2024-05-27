@@ -30,7 +30,7 @@ export function* fetchLeads(action) {
         ? action.payload.leadLastFetchTime
         : undefined;
     let searchCurrent = new CoreAPI.SubmissionSearch()
-      .eq('values[Lead State]', 'Open')
+      .in('values[Lead State]', ['Open', 'Converted'])
       .sortBy('updatedAt')
       .sortDirection('DESC')
       //.includes(['details', 'values[Lead State],values[Status],values[Status History],values[Source],values[Date],values[Date Created],values[Date Created],values[Last Name],values[Gender],values[Email],values[Additional Email],values[Phone Number],values[Additional Phone Number]'])
@@ -283,7 +283,14 @@ export function* updateCurrentLead(action) {
       });
     console.log('updateCurrentLead # ' + submission);
     yield put(
-      errorActions.addSuccess('Lead updated successfully', 'Update Lead'),
+      errorActions.addSuccess(
+        'Lead ' +
+          action.payload.leadItem.values['First Name'] +
+          ' ' +
+          action.payload.leadItem.values['Last Name'] +
+          ' updated successfully',
+        'Update Lead',
+      ),
     );
     yield put(
       actions.leadSaved({

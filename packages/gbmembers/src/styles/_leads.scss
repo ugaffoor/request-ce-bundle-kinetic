@@ -1,3 +1,9 @@
+.followUp {
+  .bulkSkipLeads {
+    display: flex;
+    flex-direction: column;
+  }
+}
 .notesTable {
   .ReactTable {
     .notesCell {
@@ -67,6 +73,18 @@
   }
   .pageHeader {
     margin-left: 30px;
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    .bulkSkipButton {
+      margin-top: 1.8rem;
+      margin-left: 78%;
+      .selectBulkSkip {
+        button {
+          margin-right: 6px;
+        }
+      }
+    }
   }
   .taskContents {
     flex: 0 0 100%;

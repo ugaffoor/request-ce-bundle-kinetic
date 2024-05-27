@@ -161,7 +161,7 @@ export const HomeView = ({
     {getAttributeValue(space, 'Franchisor') !== 'YES' &&
       getAttributeValue(space, 'Billing Company') === 'Bambora' && (
         <div className="homeOverdues">
-          {!membersLoading && (
+          {memberInitialLoadComplete && (
             <div>
               <BamboraOverdues
                 allMembers={allMembers}
@@ -185,10 +185,11 @@ export const HomeView = ({
     {getAttributeValue(space, 'Franchisor') !== 'YES' &&
       getAttributeValue(space, 'Billing Company') === 'Stripe' && (
         <div className="homeOverdues">
-          {!membersLoading && (
+          {memberInitialLoadComplete && (
             <div>
               <StripeOverdues
                 allMembers={allMembers}
+                membersLoading={membersLoading}
                 getFailedPayments={getFailedPayments}
                 paymentHistory={FAILEDpaymentHistory}
                 FAILEDpaymentHistoryLoading={FAILEDpaymentHistoryLoading}

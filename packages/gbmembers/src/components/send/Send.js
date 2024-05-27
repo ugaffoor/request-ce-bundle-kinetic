@@ -70,12 +70,10 @@ export class EmailCampaignsList extends Component {
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
-    if (nextProps.emailCampaigns) {
-      this.setState({
-        emailCampaigns: this.getData(nextProps.emailCampaigns.submissions),
-        emailNextPageToken: nextProps.emailCampaigns.nextPageToken,
-      });
-    }
+    this.setState({
+      emailCampaigns: this.getData(nextProps.emailCampaigns.submissions),
+      emailNextPageToken: nextProps.emailCampaigns.nextPageToken,
+    });
   }
 
   getColumns = () => {
@@ -682,12 +680,10 @@ export class SmsCampaignsList extends Component {
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
-    if (nextProps.smsCampaigns) {
-      this.setState({
-        smsCampaigns: this.getData(nextProps.smsCampaigns.submissions),
-        smsNextPageToken: nextProps.smsCampaigns.nextPageToken,
-      });
-    }
+    this.setState({
+      smsCampaigns: this.getData(nextProps.smsCampaigns.submissions),
+      smsNextPageToken: nextProps.smsCampaigns.nextPageToken,
+    });
   }
 
   UNSAFE_componentWillMount() {

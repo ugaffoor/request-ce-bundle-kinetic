@@ -21,9 +21,12 @@ const mapStateToProps = state => ({
   profile: state.member.kinops.profile,
   space: state.member.app.space,
   currentLeadLoading: state.member.leads.currentLeadLoading,
+  allLeads: state.member.leads.allLeads,
+  bulkSkipIds: state.member.leads.bulkSkipIds,
 });
 const mapDispatchToProps = {
   fetchLead: actions.fetchCurrentLead,
+  setCurrentLead: actions.setCurrentLead,
   updateLead: actions.updateLead,
   fetchLeads: actions.fetchLeads,
   setSidebarDisplayType: appActions.setSidebarDisplayType,
@@ -83,6 +86,9 @@ export class FollowUpDate extends Component {
     if (!this.state.reminderDateString) {
       return;
     }
+    $('#reminderDateString').attr('disabled', 'disabled');
+    $('#setReminder').attr('disabled', 'disabled');
+
     if (this.state.reminderDateString === 'Custom') {
       if (!this.state.reminderDate) {
         return;
@@ -97,26 +103,43 @@ export class FollowUpDate extends Component {
     return (
       <div className="container-fluid">
         <StatusMessagesContainer />
-        <div className="row">
+        <div className="row followUp">
           <div className="col-md-5" style={{ marginTop: '20px' }}>
             <div className="row">
               <div
                 className="col float-right text-right text-nowrap"
                 style={{ marginBottom: '10px' }}
               >
-                <b>Set a reminder to follow up with&nbsp;</b>
-                <span
-                  style={{
-                    fontWeight: 'bold',
-                    fontStyle: 'normal',
-                    fontSize: '24px',
-                    color: '#333333',
-                  }}
-                >
-                  {this.props.leadItem.values['First Name']}
-                  &nbsp;
-                  {this.props.leadItem.values['Last Name']}
-                </span>
+                <b>Set a reminder to follow up for&nbsp;</b>
+                {this.props.leadItem.bulkSkipLeads === undefined ? (
+                  <span
+                    style={{
+                      fontWeight: 'bold',
+                      fontStyle: 'normal',
+                      fontSize: '24px',
+                      color: '#333333',
+                    }}
+                  >
+                    {this.props.leadItem.values['First Name']}
+                    &nbsp;
+                    {this.props.leadItem.values['Last Name']}
+                  </span>
+                ) : (
+                  <span className="bulkSkipLeads">
+                    {this.props.leadItem.bulkSkipLeads.map((lead, index) => (
+                      <span
+                        style={{
+                          fontWeight: 'bold',
+                          fontStyle: 'normal',
+                          fontSize: '24px',
+                          color: '#333333',
+                        }}
+                      >
+                        {lead.values['First Name']} {lead.values['Last Name']}
+                      </span>
+                    ))}
+                  </span>
+                )}
               </div>
             </div>
             <div className="row">
@@ -198,6 +221,7 @@ export const FollowUpView = ({
   currentLeadLoading,
   profile,
   space,
+  history,
 }) =>
   currentLeadLoading ? (
     <div />
@@ -207,6 +231,7 @@ export const FollowUpView = ({
       saveLead={saveLead}
       profile={profile}
       space={space}
+      history={history}
     />
   );
 
@@ -216,39 +241,82 @@ export const FollowUpContainer = compose(
     return {};
   }),
   withHandlers({
-    saveLead: ({ leadItem, updateLead, fetchLeads }) => reminderDate => {
+    saveLead: ({
+      leadItem,
+      updateLead,
+      fetchLeads,
+      history,
+      allLeads,
+    }) => reminderDate => {
       //console.log("### reminder date = " + reminderDate);
-      if (reminderDate) {
-        leadItem.values['Reminder Date'] =
-          moment(new Date(reminderDate))
-            .utc()
-            .format(gmt_format) + 'Z';
+
+      if (leadItem.bulkSkipLeads === undefined) {
+        if (reminderDate) {
+          leadItem.values['Reminder Date'] =
+            moment(new Date(reminderDate))
+              .utc()
+              .format(gmt_format) + 'Z';
+        } else {
+          leadItem.values['Reminder Date'] = '';
+        }
+        updateLead({
+          id: leadItem['id'],
+          leadItem: leadItem,
+          history: leadItem.history,
+          showLead: true,
+          allLeads,
+        });
       } else {
-        leadItem.values['Reminder Date'] = '';
+        let leadsCount = leadItem.bulkSkipLeads.length;
+        leadItem.bulkSkipLeads.forEach((lead, idx) => {
+          if (reminderDate) {
+            lead.values['Reminder Date'] =
+              moment(new Date(reminderDate))
+                .utc()
+                .format(gmt_format) + 'Z';
+          } else {
+            lead.values['Reminder Date'] = '';
+          }
+          updateLead({
+            id: lead['id'],
+            leadItem: lead,
+            history: idx === leadsCount - 1 ? history : undefined,
+            allLeads,
+          });
+        });
       }
-      updateLead({
-        id: leadItem['id'],
-        leadItem: leadItem,
-        history: leadItem.history,
-        showLead: true,
-      });
     },
   }),
   lifecycle({
     UNSAFE_componentWillMount() {
-      this.props.fetchLead({
-        id: this.props.match.params['id'],
-        myThis: this,
-        history: this.props.history,
-      });
-    },
-    UNSAFE_componentWillReceiveProps(nextProps) {
-      if (this.props.pathname !== nextProps.pathname) {
+      if (this.props.match.params['id'] === 'bulkSkip') {
+        let bulkSkipLeads = [];
+
+        this.props.bulkSkipIds.forEach(id => {
+          let leadItem = this.props.allLeads.find(lead => lead.id === id);
+          bulkSkipLeads.push(leadItem);
+        });
+        let currentLead = { bulkSkipLeads: bulkSkipLeads };
+        this.props.setCurrentLead(currentLead);
+      } else {
         this.props.fetchLead({
           id: this.props.match.params['id'],
           myThis: this,
           history: this.props.history,
         });
+      }
+    },
+    UNSAFE_componentWillReceiveProps(nextProps) {
+      if (this.props.pathname !== nextProps.pathname) {
+        if (this.props.match.params['id'] === 'bulkSkip') {
+          this.props.setCurrentLead(null);
+        } else {
+          this.props.fetchLead({
+            id: this.props.match.params['id'],
+            myThis: this,
+            history: this.props.history,
+          });
+        }
       }
     },
     componentDidMount() {

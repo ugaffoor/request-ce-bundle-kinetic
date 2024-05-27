@@ -56,9 +56,51 @@ export function* fetchMembers(action) {
 
     if (!action.payload.memberInitialLoadComplete) {
       let searchCurrent = new CoreAPI.SubmissionSearch()
-        //  .includes(['details', 'values[Member ID],values[First Name],values[Last Name],values[Status],values[Gender],values[DOB],values[Ranking Program],values[Ranking Belt],values[Status History],values[History],values[Billing Parent Member],values[Billing User],values[Non Paying],values[Lead Submission ID],values[Billing Customer Id],values[Billing Customer Reference],values[Billing Payment Period],values[Billing Start Date],values[Billing User],values[Billing Migrated],values[Attendance Count],values[Last Promotion],values[Resume Date],values[Is New Reply Received],values[Billing Payment Type],values[Alternate Barcode],values[Covid19 Waiver],values[Student Covid Check],values[Membership Cost],values[Billing Cash Term Start Date],values[Billing Cash Term End Date],values[Family Fee Details],values[Billing User],values[Date Joined],values[Opt-Out],values[Additional Program 1],values[Additional Program 2],values[Member Type]'])
+        .includes([
+          'details',
+          'values[Member ID],values[Status],values[Status History],values[First Name],values[Last Name],values[Gender]' +
+            ',values[Email],values[Additional Email],values[Phone Number],values[Additional Phone Number],values[Last Promotion],values[Photo]' +
+            ',values[Alternate Barcode],values[Address],values[Suburb],values[Country],values[State]' +
+            ',values[Postcode],values[Date Joined],values[DOB],values[Member Type]' +
+            ',values[Opt-Out],values[Emergency Contact Name],values[Emergency Contact Phone],values[Emergency Contact Relationship]' +
+            ',values[Medical Allergies],values[Ranking Program],values[Ranking Belt],values[Attendance Count]' +
+            ',values[Additional Program 1],values[Additional Program 2],values[Non Paying]' +
+            ',values[Billing Customer Reference],values[Billing Parent Member]' +
+            ',values[Billing User],values[Billing Customer Id],values[Billing Setup Fee Id],values[Billing Start Date]' +
+            ',values[Billing Payment Period],values[Billing Payment Type],values[Billing Cash Term Start Date]' +
+            ',values[Billing Cash Term End Date],values[Credit Card Expiry Year],values[Credit Card Expiry Month],values[Billing Members]' +
+            ',values[Billing Family Members],values[Biller Migrated],values[Payment]' +
+            ',values[Membership Cost],values[Family Fee Details],values[Resume Date]' +
+            ',values[Last Attendance Date],values[Is New Reply Received]' +
+            ',values[useSubAccount],values[POS Profile ID],values[Fee Program]' +
+            ',values[Emails Sent Count],values[Max Weekly Classes],values[Reminder Date]' +
+            ',values[Emails Received Count],values[Is New Reply Received],values[SMS Sent Count],values[SMS Received Count]' +
+            ',values[Payment Method],values[Lead Submission ID]' +
+            ',values[Billing Period],values[Admin Fee],values[Last Payment Date]',
+        ])
+
+        /*        
+        .includes(['details', ''+
+        ',values[Next Schedule Promotion]'+
+        ',values[Billing Setup Fee Type]'+
+        ',values[Billing First Name],values[Billing Last Name],values[Billing Email]'+
+        ',values[Billing Phone Number],values[Billing Address],values[Billing Suburb],values[Billing State]'+
+        ',values[Billing Postcode]'+
+        ',values[Credit Card Expiry Year],values[Credit Card Expiry Month],values[Billing Members]'+
+        ',values[Family Member Order]'+
+        ',values[Payment Schedule]'+
+        ',values[Refunded Payments],values[DDR Status],values[Membership TAX 1]'+
+        ',values[Membership TAX 2],values[Membership TAX 3],values[Main Benefits]'+
+        ',values[First Payment]'+
+        ',values[Setup Fee]'+
+        ',values[Lead Source]'+
+        ',values[Lead History],values[Member Changes],values[Billing Changes]'+
+        ',values[Mother Covid Check],values[Father Covid Check]'])
+*/
+
         //    .includes(['details', 'values[Member ID],values[First Name],values[Last Name],values[Status],values[Gender],values[Date Joined],values[DOB],values[Ranking Program],values[Ranking Belt],values[Status History],values[Billing Parent Member],values[Billing User],values[Non Paying],values[Billing Customer Id],values[Billing Customer Reference],values[Billing Migrated],values[Lead Submission ID],values[Billing Payment Period]'])
-        .includes(['details', 'values'])
+        //.includes(['details', 'values'])
+        .sortBy('updatedAt')
         .limit(1000)
         .build();
 
@@ -74,9 +116,32 @@ export function* fetchMembers(action) {
 
       while (nextPageTokenValue) {
         let search2 = new CoreAPI.SubmissionSearch()
-          //  .includes(['details', 'values[Member ID],values[First Name],values[Last Name],values[Status],values[Gender],values[DOB],values[Ranking Program],values[Ranking Belt],values[Status History],values[History],values[Billing Parent Member],values[Billing User],values[Non Paying],values[Lead Submission ID],values[Billing Customer Id],values[Billing Customer Reference],values[Billing Payment Period],values[Billing Start Date],values[Billing User],values[Billing Migrated],values[Attendance Count],values[Last Promotion],values[Resume Date],values[Is New Reply Received],values[Billing Payment Type],values[Alternate Barcode],values[Covid19 Waiver],values[Student Covid Check],values[Membership Cost],values[Billing Cash Term Start Date],values[Billing Cash Term End Date],values[Family Fee Details],values[Billing User],values[Date Joined],values[Opt-Out],values[Additional Program 1],values[Additional Program 2],values[Member Type]'])
+          .includes([
+            'details',
+            'values[Member ID],values[Status],values[Status History],values[First Name],values[Last Name],values[Gender]' +
+              ',values[Email],values[Additional Email],values[Phone Number],values[Additional Phone Number],values[Last Promotion],values[Photo]' +
+              ',values[Alternate Barcode],values[Address],values[Suburb],values[Country],values[State]' +
+              ',values[Postcode],values[Date Joined],values[DOB],values[Member Type]' +
+              ',values[Opt-Out],values[Emergency Contact Name],values[Emergency Contact Phone],values[Emergency Contact Relationship]' +
+              ',values[Medical Allergies],values[Ranking Program],values[Ranking Belt],values[Attendance Count]' +
+              ',values[Additional Program 1],values[Additional Program 2],values[Non Paying]' +
+              ',values[Billing Customer Reference],values[Billing Parent Member]' +
+              ',values[Billing User],values[Billing Customer Id],values[Billing Setup Fee Id],values[Billing Start Date]' +
+              ',values[Billing Payment Period],values[Billing Payment Type],values[Billing Cash Term Start Date]' +
+              ',values[Billing Cash Term End Date],values[Credit Card Expiry Year],values[Credit Card Expiry Month],values[Billing Members]' +
+              ',values[Billing Family Members],values[Biller Migrated],values[Payment]' +
+              ',values[Membership Cost],values[Family Fee Details],values[Resume Date]' +
+              ',values[Last Attendance Date],values[Is New Reply Received]' +
+              ',values[useSubAccount],values[POS Profile ID],values[Fee Program]' +
+              ',values[Emails Sent Count],values[Max Weekly Classes],values[Reminder Date]' +
+              ',values[Emails Received Count],values[Is New Reply Received],values[SMS Sent Count],values[SMS Received Count]' +
+              ',values[Payment Method],values[Lead Submission ID]' +
+              ',values[Billing Period],values[Admin Fee],values[Last Payment Date]',
+          ])
+
           //  .includes(['details', 'values[Member ID],values[First Name],values[Last Name],values[Status],values[Gender],values[Date Joined],values[DOB],values[Ranking Program],values[Ranking Belt],values[Status History],values[Billing Parent Member],values[Billing User],values[Non Paying],values[Billing Customer Id],values[Billing Customer Reference],values[Billing Migrated],values[Lead Submission ID],values[Billing Payment Period]'])
-          .includes(['details', 'values'])
+          //    .includes(['details', 'values'])
+          .sortBy('updatedAt')
           .limit(1000)
           .pageToken(nextPageTokenValue)
           .build();
@@ -95,51 +160,13 @@ export function* fetchMembers(action) {
 
     if (
       action.payload.memberInitialLoadComplete &&
-      action.payload.membersNextPageToken === 'LOAD_COMPLETE'
-    ) {
-      /*      let searchCurrent = new CoreAPI.SubmissionSearch()
-        .includes(['details', 'values'])
-        .limit(1000)
-        .build();
-
-        const [submissions] = yield all([
-          call(CoreAPI.searchSubmissions, {
-            form: 'member',
-            kapp: 'gbmembers',
-            search: searchCurrent,
-          }),
-        ]);
-        nextPageTokenValue=submissions.nextPageToken;
-        allSubmissions = allSubmissions.concat(submissions.submissions);
-
-        while (nextPageTokenValue) {
-          let search2 = new CoreAPI.SubmissionSearch()
-            .includes(['details', 'values'])
-            .limit(1000)
-            .pageToken(nextPageTokenValue)
-            .build();
-
-          const [submissions] = yield all([
-            call(CoreAPI.searchSubmissions, {
-              form: 'member',
-              kapp: 'gbmembers',
-              search: search2,
-            }),
-          ]);
-          allSubmissions = allSubmissions.concat(submissions.submissions);
-          nextPageTokenValue=submissions.nextPageToken;
-        } */
-      nextPageTokenValue = 'COMPLETE_LOADED';
-    }
-
-    if (
-      action.payload.memberInitialLoadComplete &&
-      action.payload.membersNextPageToken !== 'LOAD_COMPLETE' &&
-      memberLastFetchTime !== undefined
+      memberLastFetchTime !== undefined &&
+      !action.payload.loadMemberNotes
     ) {
       let searchCurrent = new CoreAPI.SubmissionSearch()
         //  .includes(['details', 'values[Member ID],values[First Name],values[Last Name],values[Status],values[Status History],values[Billing Parent Member],values[Billing User],values[Non Paying],values[Billing Customer Id],values[Billing Customer Reference],values[Billing Migrated]'])
         .includes(['details', 'values'])
+        .sortBy('updatedAt')
         .limit(1000);
       searchCurrent = searchCurrent.startDate(
         moment(memberLastFetchTime).toDate(),
@@ -157,6 +184,46 @@ export function* fetchMembers(action) {
       nextPageTokenValue = 'LAST_FETCH';
     }
 
+    if (
+      action.payload.memberInitialLoadComplete &&
+      action.payload.loadMemberNotes
+    ) {
+      let searchCurrent = new CoreAPI.SubmissionSearch()
+        .includes(['details', 'values'])
+        .sortBy('updatedAt')
+        .limit(1000)
+        .build();
+
+      const [submissions] = yield all([
+        call(CoreAPI.searchSubmissions, {
+          form: 'member',
+          kapp: 'gbmembers',
+          search: searchCurrent,
+        }),
+      ]);
+      nextPageTokenValue = submissions.nextPageToken;
+      allSubmissions = allSubmissions.concat(submissions.submissions);
+
+      while (nextPageTokenValue) {
+        let search2 = new CoreAPI.SubmissionSearch()
+          .includes(['details', 'values'])
+          .sortBy('updatedAt')
+          .limit(1000)
+          .pageToken(nextPageTokenValue)
+          .build();
+
+        const [submissions] = yield all([
+          call(CoreAPI.searchSubmissions, {
+            form: 'member',
+            kapp: 'gbmembers',
+            search: search2,
+          }),
+        ]);
+        allSubmissions = allSubmissions.concat(submissions.submissions);
+        nextPageTokenValue = submissions.nextPageToken;
+      }
+    }
+
     let usersResult;
     if (!action.payload.memberInitialLoadComplete) {
       const [users] = yield all([
@@ -172,6 +239,10 @@ export function* fetchMembers(action) {
       belts: appSettings.belts,
       users: usersResult,
       nextPageToken: nextPageTokenValue,
+      loadMemberNotes:
+        action.payload.loadMemberNotes !== undefined
+          ? action.payload.loadMemberNotes
+          : false,
     };
     yield put(actions.setMembers(memberInfo));
   } catch (error) {
@@ -540,7 +611,9 @@ export function* fetchCurrentMemberAdditional(action) {
     }
     for (let i = 0; i < posOrderSubmissions.submissions.length; i++) {
       let id = posOrderSubmissions.submissions[i].id;
-      receiptSubmissionIDs[receiptSubmissionIDs.length] = id;
+      if (receiptSubmissionIDs.length < 30) {
+        receiptSubmissionIDs[receiptSubmissionIDs.length] = id;
+      }
     }
 
     if (receiptSubmissionIDs.length === 0) {

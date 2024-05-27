@@ -57,11 +57,11 @@ export const HeaderContainer = compose(
   }),
   lifecycle({
     constructor() {
-      this.props.fetchCurrentMember({
+      /*      this.props.fetchCurrentMember({
         id: this.props.match.params.id,
         history: this.props.history,
         fetchMembers: this.props.fetchMembers,
-      });
+      }); */
     },
     UNSAFE_componentWillMount() {
       let timer = setInterval(eventsTick, 10 * 1000 * 60, this); // refresh every 1 hour

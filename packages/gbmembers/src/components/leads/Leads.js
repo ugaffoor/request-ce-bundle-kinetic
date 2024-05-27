@@ -63,6 +63,8 @@ const mapStateToProps = state => ({
   memberInitialLoadComplete: state.member.members.memberInitialLoadComplete,
   membersNextPageToken: state.member.members.membersNextPageToken,
   memberLastFetchTime: state.member.members.memberLastFetchTime,
+  memberNotesLoading: state.member.members.memberNotesLoading,
+  memberNotesLoaded: state.member.members.memberNotesLoaded,
   profile: state.member.kinops.profile,
   space: state.member.app.space,
   leadLists: state.member.app.leadLists,
@@ -73,6 +75,7 @@ const mapDispatchToProps = {
   updateLead: actions.updateLead,
   fetchLeads: actions.fetchLeads,
   fetchMembers: memberActions.fetchMembers,
+  setBulkSkipIds: actions.setBulkSkipIds,
   setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
 const date_format = ['YYYY-MM-DD', 'YYYY-MM-DDTHH:mm:ssZ'];
@@ -134,6 +137,7 @@ export class TasksDetail extends Component {
     let tasks = this.getLeadTasksData(this.props.allLeads, 'Todays Tasks');
     this._columns = this.getLeadColumns();
     let showTasksSelectValue = 'Todays Tasks';
+    this.setBulkLeadIds = this.setBulkLeadIds.bind(this);
 
     let memberTasksData = this.getMemberTasksData(
       this.props.allMembers,
@@ -150,6 +154,9 @@ export class TasksDetail extends Component {
       leadSearchValue,
       attentionRequiredOnly,
       filters: [],
+      bulkSkip: false,
+      selectAll: false,
+      bulkSkipIds: [],
     };
   }
 
@@ -557,14 +564,27 @@ export class TasksDetail extends Component {
       {
         accessor: '$skip',
         width: 100,
-        Cell: row => (
-          <NavLink
-            to={`/FollowUp/${row.original['_id']}`}
-            className="btn btn-primary"
-          >
-            Skip
-          </NavLink>
-        ),
+        Cell: row =>
+          !this.state.bulkSkip ? (
+            <NavLink
+              to={`/FollowUp/${row.original['_id']}`}
+              className="btn btn-primary"
+            >
+              Skip
+            </NavLink>
+          ) : (
+            <span className="skipLead">
+              <input
+                key={row.original['_id']}
+                type="checkbox"
+                id={`${row.original['_id']}`}
+                value={row.original['_id']}
+                onChange={e => {
+                  this.setBulkLeadIds();
+                }}
+              />
+            </span>
+          ),
       },
     ];
   };
@@ -795,7 +815,12 @@ export class TasksDetail extends Component {
       .format('MMM')
       .toUpperCase();
   }
+  setBulkLeadIds() {
+    let ids = [];
 
+    $('.skipLead :checked').each((idx, elem) => ids.push($(elem).prop('id')));
+    this.setState({ bulkSkipIds: ids });
+  }
   render() {
     let tasks = this.state.tasks;
     let memberTasks = this.state.memberTasksData;
@@ -947,6 +972,55 @@ export class TasksDetail extends Component {
         <div className="row">
           <div className="pageHeader">
             <h3>Lead Tasks</h3>
+            <span className="bulkSkipButton">
+              <button
+                type="button"
+                className="btn btn-primary report-btn-default"
+                onClick={e => {
+                  $('.bulkSkipButton button').attr(
+                    'active',
+                    this.state.bulkSkip,
+                  );
+                  this.setState({ bulkSkip: !this.state.bulkSkip });
+                }}
+              >
+                {this.state.bulkSkip ? 'Disable Bulk Skip' : 'Enable Bulk Skip'}
+              </button>
+              {this.state.bulkSkip && (
+                <div className="selectBulkSkip">
+                  <button
+                    type="button"
+                    active="false"
+                    className="btn btn-primary"
+                    onClick={e => {
+                      if (!this.state.selectAll) {
+                        $('.skipLead input').prop('checked', true);
+                      } else {
+                        $('.skipLead input').prop('checked', false);
+                      }
+                      this.setState({ selectAll: !this.state.selectAll });
+                      this.setBulkLeadIds();
+                    }}
+                  >
+                    {!this.state.selectAll ? 'Select All' : 'Unselect All'}
+                  </button>
+                  <span
+                    className="selectBulkSkip"
+                    onClick={async e => {
+                      this.props.setBulkSkipIds(this.state.bulkSkipIds);
+                    }}
+                  >
+                    <NavLink
+                      to="/FollowUp/bulkSkip"
+                      state={{ leadIDs: this.state.bulkSkipIds }}
+                      className="btn btn-primary"
+                    >
+                      Skip
+                    </NavLink>
+                  </span>
+                </div>
+              )}
+            </span>
           </div>
         </div>
         <div id="tasksListGrid1" className="row" style={{ marginTop: '10px' }}>
@@ -2090,19 +2164,24 @@ export const LeadsView = ({
   profile,
   space,
   leadLists,
-  membersLoading,
+  memberNotesLoaded,
   leadsLoading,
+  setBulkSkipIds,
 }) => (
   <div className="container-fluid leads">
     <StatusMessagesContainer />
     <div className="row">
       <div className="taskContents">
-        <TasksDetail
-          allLeads={allLeads}
-          saveLead={saveLead}
-          allMembers={allMembers}
-          leadLists={leadLists}
-        />
+        {!memberNotesLoaded && <span>....Loading Lead and Member Tasks</span>}
+        {memberNotesLoaded && (
+          <TasksDetail
+            allLeads={allLeads}
+            saveLead={saveLead}
+            allMembers={allMembers}
+            leadLists={leadLists}
+            setBulkSkipIds={setBulkSkipIds}
+          />
+        )}
       </div>
     </div>
     <div>
@@ -2161,15 +2240,27 @@ export const LeadsContainer = compose(
       this.props.fetchLeads({
         leadLastFetchTime: this.props.leadLastFetchTime,
       });
-      this.props.fetchMembers({
-        membersNextPageToken: this.props.membersNextPageToken,
-        memberInitialLoadComplete: this.props.memberInitialLoadComplete,
-        memberLastFetchTime: this.props.memberLastFetchTime,
-      });
-      let timer = setInterval(tick, 60 * 1000 * 2, this); // refresh every 2 minutes
-      this.setState({ timer: timer });
+      if (!this.props.memberNotesLoaded && !this.props.membersLoading) {
+        this.props.fetchMembers({
+          membersNextPageToken: this.props.membersNextPageToken,
+          memberInitialLoadComplete: this.props.memberInitialLoadComplete,
+          memberLastFetchTime: this.props.memberLastFetchTime,
+          loadMemberNotes: true,
+        });
+      }
+      //      let timer = setInterval(tick, 60 * 1000 * 2, this); // refresh every 2 minutes
+      //      this.setState({ timer: timer });
     },
-    UNSAFE_componentWillReceiveProps(nextProps) {},
+    UNSAFE_componentWillReceiveProps(nextProps) {
+      if (!nextProps.memberNotesLoaded && !nextProps.membersLoading) {
+        this.props.fetchMembers({
+          membersNextPageToken: nextProps.membersNextPageToken,
+          memberInitialLoadComplete: nextProps.memberInitialLoadComplete,
+          memberLastFetchTime: nextProps.memberLastFetchTime,
+          loadMemberNotes: true,
+        });
+      }
+    },
     componentDidMount() {
       this.props.setSidebarDisplayType('leads');
       $('.content')
@@ -2177,7 +2268,7 @@ export const LeadsContainer = compose(
         .scrollIntoView(true);
     },
     componentWillUnmount() {
-      clearInterval(this.state.timer);
+      //      clearInterval(this.state.timer);
     },
   }),
 )(LeadsView);

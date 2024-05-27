@@ -257,12 +257,33 @@ export const matchesMemberFilter = (allMembers, filters, excluded) => {
         } else if (keys[0] === 'ageFilter') {
           let years = moment().diff(member.values['DOB'], 'years');
           if (
-            !(
-              years >= filters[i][keys[0]].fromAge &&
-              years <= filters[i][keys[0]].toAge
-            )
+            filters[i][keys[0]].fromAge !== undefined &&
+            filters[i][keys[0]].toAge !== ''
           ) {
-            match = false;
+            if (
+              !(
+                years >= filters[i][keys[0]].fromAge &&
+                years <= filters[i][keys[0]].toAge
+              )
+            ) {
+              match = false;
+            }
+          }
+          if (
+            filters[i][keys[0]].fromAge !== undefined &&
+            filters[i][keys[0]].toAge === ''
+          ) {
+            if (!(years >= filters[i][keys[0]].fromAge)) {
+              match = false;
+            }
+          }
+          if (
+            filters[i][keys[0]].fromAge === undefined &&
+            filters[i][keys[0]].toAge !== ''
+          ) {
+            if (!(years <= filters[i][keys[0]].toAge)) {
+              match = false;
+            }
           }
         } else if (keys[0] === 'statusFilter') {
           if (
@@ -382,6 +403,12 @@ export const matchesLeadFilter = (allLeads, filters) => {
             lead.values['Interest in Program'],
             filters[i][keys[0]].programs,
           ) < 0
+        ) {
+          match = false;
+        }
+      } else if (keys[0] === 'leadReferredFilter') {
+        if (
+          $.inArray(lead.values['Source'], filters[i][keys[0]].leadReferred) < 0
         ) {
           match = false;
         }

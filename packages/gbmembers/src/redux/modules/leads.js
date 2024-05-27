@@ -18,6 +18,7 @@ export const types = {
   LEAD_DELETED: namespace('leads', 'LEAD_DELETED'),
   FETCH_NEW_LEAD: namespace('leads', 'FETCH_NEW_LEAD'),
   SET_NEW_LEAD: namespace('leads', 'SET_NEW_LEAD'),
+  SET_BULK_SKIP_IDS: namespace('leads', 'SET_BULK_SKIP_IDS'),
 };
 
 export const actions = {
@@ -35,6 +36,7 @@ export const actions = {
   leadDeleted: withPayload(types.LEAD_DELETED),
   fetchNewLead: withPayload(types.FETCH_NEW_LEAD),
   setNewLead: withPayload(types.SET_NEW_LEAD),
+  setBulkSkipIds: withPayload(types.SET_BULK_SKIP_IDS),
 };
 
 export const State = Record({
@@ -49,6 +51,7 @@ export const State = Record({
   leadsLoading: true,
   leadsByDateLoading: true,
   leadAttentionRequired: false,
+  bulkSkipIds: [],
 });
 
 export const reducer = (state = State(), { type, payload }) => {
@@ -118,7 +121,7 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('leadAttentionRequired', attentionRequired);
     }
     case types.SET_LEADS_BY_DATE: {
-      let attentionRequired = false;
+      /*      let attentionRequired = false;
       if (
         payload.findIndex(
           lead =>
@@ -127,11 +130,8 @@ export const reducer = (state = State(), { type, payload }) => {
         ) !== -1
       ) {
         attentionRequired = true;
-      }
-      return state
-        .set('leadsByDateLoading', false)
-        .set('leadsByDate', payload)
-        .set('leadAttentionRequired', attentionRequired);
+      } */
+      return state.set('leadsByDateLoading', false).set('leadsByDate', payload);
     }
     case types.SET_CURRENT_LEAD: {
       return state.set('currentLeadLoading', false).set('currentLead', payload);
@@ -176,6 +176,9 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('allLeads', allLeads)
         .set('leadsByDate', leadsByDate)
         .set('leadAttentionRequired', attentionRequired);
+    }
+    case types.SET_BULK_SKIP_IDS: {
+      return state.set('bulkSkipIds', payload);
     }
     default:
       return state;

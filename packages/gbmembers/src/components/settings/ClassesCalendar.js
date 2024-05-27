@@ -9,14 +9,14 @@ import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const DragAndDropCalendar = withDragAndDrop(Calendar);
 
-moment.locale('en', {
+/*moment.locale('en_ca', {
   week: {
     dow: 1,
     doy: 1,
   },
 });
+*/
 const localizer = momentLocalizer(moment); // or globalizeLocalizer
-
 function convertCalendarDate(dateVal) {
   var dayOfWeek = dateVal.split('-')[0];
   var hour = dateVal.split('-')[1].split(':')[0];
@@ -73,7 +73,16 @@ export class ClassesCalendar extends Component {
     this.moveEvent = this.moveEvent.bind(this);
   }
   UNSAFE_componentWillReceiveProps(nextProps) {}
-  UNSAFE_componentWillMount() {}
+  UNSAFE_componentWillMount() {
+    moment.locale(moment.locale(), {
+      week: {
+        dow: 1,
+        doy: 1,
+      },
+    });
+
+    console.log(moment);
+  }
   cancelDialog = () => {
     this.setState({ showClassDialog: false });
   };

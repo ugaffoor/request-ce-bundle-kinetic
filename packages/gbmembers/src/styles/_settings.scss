@@ -235,6 +235,13 @@
     }
   }
 }
+@media print {
+  #memberBarcodes {
+    .filterMemberName {
+      display: none;
+    }
+  }
+}
 .pageBreak,
 .pageBreak + .barCode,
 .pageBreak + .barCode + .barCode,

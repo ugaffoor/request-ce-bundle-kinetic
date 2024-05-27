@@ -2032,8 +2032,9 @@ export class AttendanceDetail extends Component {
         {this.props.fetchingClassSchedules ||
         (getAttributeValue(this.props.space, 'Billing Company') === 'Bambora' &&
           (this.props.FAILEDpaymentHistoryLoading ||
-            this.props.SUCCESSFULpaymentHistoryLoading)) ||
-        this.props.membersLoading ? (
+            this.props
+              .SUCCESSFULpaymentHistoryLoading)) /*||
+        this.props.membersLoading*/ ? (
           <div>Loading...</div>
         ) : (
           <div className="attendanceSection">
@@ -2515,7 +2516,7 @@ export class AttendanceDetail extends Component {
                             Check-in Member
                           </button>
                         </div>
-                        {this.state.memberItem.values['Covid19 Waiver'] ===
+                        {/*this.state.memberItem.values['Covid19 Waiver'] ===
                           null ||
                         this.state.memberItem.values['Covid19 Waiver'] ===
                           undefined ||
@@ -2526,16 +2527,16 @@ export class AttendanceDetail extends Component {
                           </div>
                         ) : (
                           <div />
-                        )}
-                        {this.state.memberItem.values['Covid19 Waiver'] ===
+                        )*/}
+                        {/*this.state.memberItem.values['Covid19 Waiver'] ===
                         'NOT Agreed' ? (
                           <div className="waiverIncomplete">
                             Waiver NOT Agreed
                           </div>
                         ) : (
                           <div />
-                        )}
-                        {Utils.getAttributeValue(
+                        )*/}
+                        {/*Utils.getAttributeValue(
                           this.props.space,
                           'Covid Check Required',
                         ) === 'TRUE' && (
@@ -2556,7 +2557,7 @@ export class AttendanceDetail extends Component {
                               <div />
                             )}
                           </div>
-                        )}
+                        )*/}
                         {this.state.overdueMember ? (
                           <span
                             className="overdue"
@@ -2708,15 +2709,23 @@ export class AttendanceDetail extends Component {
                                   />
                                 )}
                                 <span className="memberInfo">
-                                  <h4 className="memberName">
-                                    <NavLink
-                                      to={`/Member/${checkin.values['Member GUID']}`}
-                                      className=""
-                                    >
+                                  {this.props.isKiosk && (
+                                    <h4 className="memberName">
                                       {checkin.values['First Name']}{' '}
                                       {checkin.values['Last Name']}
-                                    </NavLink>
-                                  </h4>
+                                    </h4>
+                                  )}
+                                  {!this.props.isKiosk && (
+                                    <h4 className="memberName">
+                                      <NavLink
+                                        to={`/Member/${checkin.values['Member GUID']}`}
+                                        className=""
+                                      >
+                                        {checkin.values['First Name']}{' '}
+                                        {checkin.values['Last Name']}
+                                      </NavLink>
+                                    </h4>
+                                  )}
                                   <h5
                                     className={
                                       checkin.values['Attendance Status'] !==
@@ -2830,6 +2839,7 @@ export const AttendanceView = ({
   SUCCESSFULpaymentHistory,
   SUCCESSFULpaymentHistoryLoading,
   attendanceAdded,
+  isKiosk,
 }) => (
   <AttendanceDetail
     allMembers={allMembers}
@@ -2863,6 +2873,7 @@ export const AttendanceView = ({
     SUCCESSFULpaymentHistory={SUCCESSFULpaymentHistory}
     SUCCESSFULpaymentHistoryLoading={SUCCESSFULpaymentHistoryLoading}
     attendanceAdded={attendanceAdded}
+    isKiosk={isKiosk}
   />
 );
 export const AttendanceContainer = compose(

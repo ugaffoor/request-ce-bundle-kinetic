@@ -60,11 +60,8 @@ export class MemberAdditionalServices extends Component {
     ) {
       var parentMember = undefined;
       for (let i = 0; i < allMembers.length; i++) {
-        if (
-          this.props.allMembers[i].id ===
-          memberItem.values['Billing Parent Member']
-        ) {
-          parentMember = this.props.allMembers[i];
+        if (allMembers[i].id === memberItem.values['Billing Parent Member']) {
+          parentMember = allMembers[i];
         }
       }
       if (parentMember !== undefined) {

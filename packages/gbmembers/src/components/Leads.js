@@ -19,6 +19,7 @@ export class Leads extends React.Component {
     };
     this.toggleSidebarOpen = props.toggleSidebarOpen;
     this.filterAll = this.filterAll.bind(this);
+    this.renderCell = this.renderCell.bind(this);
 
     leadsThis = this;
   }
@@ -68,6 +69,13 @@ export class Leads extends React.Component {
     }
     return 0;
   }
+  isLongNameClass(original) {
+    if ((original['First Name'] + original['Last Name']).length >= 25) {
+      return ' longName';
+    }
+
+    return '';
+  }
 
   renderCell(cellInfo) {
     return (
@@ -78,7 +86,8 @@ export class Leads extends React.Component {
           ' nav-link icon-wrapper' +
           (cellInfo.original['Is New Reply Received'] === 'true'
             ? ' newReplyReceived'
-            : '')
+            : '') +
+          this.isLongNameClass(cellInfo.original)
         }
         activeClassName="active"
       >
@@ -264,9 +273,11 @@ export class Leads extends React.Component {
                             .toLowerCase()
                             .includes(filter.value.toLowerCase()));
                 });
-                setTimeout(function() {
-                  leadsThis.setState({ filteredCount: filteredRows.length });
-                }, 100);
+                if (leadsThis.state.filteredCount !== filteredRows.length) {
+                  setTimeout(function() {
+                    leadsThis.setState({ filteredCount: filteredRows.length });
+                  }, 100);
+                }
                 return filteredRows;
               },
             },

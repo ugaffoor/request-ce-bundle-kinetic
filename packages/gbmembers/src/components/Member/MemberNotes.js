@@ -428,6 +428,7 @@ export const MemberNotesContainer = compose(
       updateMember,
       fetchCurrentMember,
       fetchMembers,
+      history,
     }) => newHistory => {
       let notesHistory = memberItem.values['Notes History'];
       if (notesHistory) {
@@ -447,8 +448,8 @@ export const MemberNotesContainer = compose(
         id: memberItem['id'],
         memberItem: memberItem,
         values,
-        fetchMember: fetchCurrentMember,
-        fetchMembers: fetchMembers,
+        history: history,
+        fromTasks: true,
         myThis: this,
       });
     },
@@ -485,6 +486,7 @@ export const MemberNotesContainer = compose(
       this.props.fetchCurrentMemberAdditional({
         id: this.props.match.params.id,
         billingService: getAttributeValue(this.props.space, 'Billing Company'),
+        allMembers: this.props.allMembers,
       });
     },
     UNSAFE_componentWillReceiveProps(nextProps) {
@@ -505,6 +507,7 @@ export const MemberNotesContainer = compose(
             this.props.space,
             'Billing Company',
           ),
+          allMembers: this.props.allMembers,
         });
       }
       if (

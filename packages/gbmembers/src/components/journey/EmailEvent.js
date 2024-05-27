@@ -46,6 +46,8 @@ const mapStateToProps = state => ({
   allLeads: state.member.leads.allLeads,
   allMembers: state.member.members.allMembers,
   membersLoading: state.member.members.membersLoading,
+  memberItem: state.member.members.currentMember,
+  currentMemberLoading: state.member.members.currentMemberLoading,
   leadsLoading: state.member.leads.leadsLoading,
   events: state.app.journeyevents.data,
   profile: state.member.kinops.profile,
@@ -57,6 +59,7 @@ const mapDispatchToProps = {
   deleteJourneyEvent: dataStoreActions.deleteJourneyEvent,
   resetJourneyEvent: dataStoreActions.resetJourneyEvent,
   fetchLeads: leadsActions.fetchLeads,
+  fetchCurrentMember: membersActions.fetchCurrentMember,
   updateMember: membersActions.updateMember,
   updateLead: leadsActions.updateLead,
   setJourneyEvents: eventsActions.setJourneyEvents,
@@ -395,7 +398,7 @@ export class EmailEvent extends Component {
                   await confirm(
                     <span>
                       <span>
-                        Are your sure you want to DELETE this Email Event?
+                        Are you sure you want to DELETE this Email Event?
                       </span>
                       <table>
                         <tbody>
@@ -524,6 +527,8 @@ export const EmailEventView = ({
   setJourneyEvents,
   deleteJourneyEvent,
   profile,
+  memberItem,
+  currentMemberLoading,
 }) =>
   journeyEventLoading ||
   journeyEvent === undefined ||
@@ -590,6 +595,7 @@ export const EmailEventContainer = compose(
       updateLead,
       profile,
       journeyEvent,
+      memberItem,
       events,
     }) => (subject, recipients, body, embeddedImages, space) => {
       var campaignItem = {
@@ -618,7 +624,7 @@ export const EmailEventContainer = compose(
       });
 
       if (journeyEvent.submission.values['Record Type'] === 'Member') {
-        var notesHistory = journeyEvent.memberItem.values['Notes History'];
+        var notesHistory = memberItem.values['Notes History'];
         if (!notesHistory) {
           notesHistory = [];
         } else if (typeof notesHistory !== 'object') {
@@ -634,12 +640,12 @@ export const EmailEventContainer = compose(
           contactDate: moment().format(contact_date_format),
           submitter: profile.displayName,
         });
-        journeyEvent.memberItem.values['Notes History'] = notesHistory;
+        memberItem.values['Notes History'] = notesHistory;
         let values = {};
         values['Notes History'] = notesHistory;
         updateMember({
-          id: journeyEvent.memberItem['id'],
-          memberItem: journeyEvent.memberItem,
+          id: memberItem['id'],
+          memberItem: memberItem,
           values: values,
         });
       } else if (journeyEvent.submission.values['Record Type'] === 'Lead') {

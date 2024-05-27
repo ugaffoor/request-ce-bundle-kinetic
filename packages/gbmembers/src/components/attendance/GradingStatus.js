@@ -19,19 +19,21 @@ export class GradingStatus extends Component {
     };
   }
   UNSAFE_componentWillReceiveProps(nextProps) {
-    let statusIndicator = nextProps.memberItem.statusIndicator;
-    let statusText = nextProps.memberItem.statusText;
+    if (!this.state.showPromotionDialog) {
+      let statusIndicator = nextProps.memberItem.statusIndicator;
+      let statusText = nextProps.memberItem.statusText;
 
-    let percentageStyle = {
-      width: nextProps.memberItem.attendancePerc + '%',
-    };
-    let showPromotionDialog = false;
-    this.setState({
-      statusIndicator: statusIndicator,
-      percentageStyle: percentageStyle,
-      statusText: statusText,
-      showPromotionDialog: showPromotionDialog,
-    });
+      let percentageStyle = {
+        width: nextProps.memberItem.attendancePerc + '%',
+      };
+      let showPromotionDialog = false;
+      this.setState({
+        statusIndicator: statusIndicator,
+        percentageStyle: percentageStyle,
+        statusText: statusText,
+        showPromotionDialog: showPromotionDialog,
+      });
+    }
   }
   componentDidMount() {}
   setShowPromotionDialog(gradingStatusThis, show) {

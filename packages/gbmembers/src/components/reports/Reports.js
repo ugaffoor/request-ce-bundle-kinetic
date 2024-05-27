@@ -49,6 +49,8 @@ const mapStateToProps = state => ({
   leads: state.member.leads.allLeads,
   leadsByDate: state.member.leads.leadsByDate,
   membersLoading: state.member.members.membersLoading,
+  memberNotesLoaded: state.member.members.memberNotesLoaded,
+  memberNotesLoading: state.member.members.memberNotesLoading,
   leadsLoading: state.member.leads.leadsLoading,
   leadsByDateLoading: state.member.leads.leadsByDateLoading,
   reportPreferences: state.member.app.reportPreferences,
@@ -120,7 +122,13 @@ export const ReportsView = ({
   leads,
   leadsByDate,
   profile,
+  fetchMembers,
   membersLoading,
+  memberInitialLoadComplete,
+  membersNextPageToken,
+  memberLastFetchTime,
+  memberNotesLoaded,
+  memberNotesLoading,
   fetchServicesByDate,
   services,
   servicesLoading,
@@ -220,7 +228,7 @@ export const ReportsView = ({
   fetchPOSOrders,
 }) => (
   <div className="reports">
-    {!membersLoading && (
+    {memberInitialLoadComplete && (
       <div>
         <StatusMessagesContainer />
         <div style={{ margin: '10px' }}>
@@ -256,6 +264,12 @@ export const ReportsView = ({
                 space={space}
                 triggers={triggers}
                 profile={profile}
+                fetchMembers={fetchMembers}
+                membersNextPageToken={membersNextPageToken}
+                memberInitialLoadComplete={memberInitialLoadComplete}
+                memberLastFetchTime={memberLastFetchTime}
+                memberNotesLoaded={memberNotesLoaded}
+                memberNotesLoading={memberNotesLoading}
               />
             </div>
           )}
@@ -1160,13 +1174,13 @@ export const ReportsContainer = compose(
           ? this.props.space.defaultLocale
           : this.props.profile.preferredLocale,
       );
-      if (this.props.membersNextPageToken !== 'COMPLETE_LOADED') {
+      /*      if (this.props.memberInitialLoadComplete) {
         this.props.fetchMembers({
           membersNextPageToken: 'LOAD_COMPLETE',
           memberInitialLoadComplete: this.props.memberInitialLoadComplete,
           memberLastFetchTime: this.props.memberLastFetchTime,
-        });
-      }
+        }); 
+      } */
     },
     componentDidMount() {
       this.props.setSidebarDisplayType('members');

@@ -1361,9 +1361,9 @@ export class MemberFinancialReport extends Component {
           type: 'Refunds',
           date: refund.debitDate,
           name:
-            members[mIdx].values['First Name'] +
+            members[idx].values['First Name'] +
             ' ' +
-            members[mIdx].values['Last Name'],
+            members[idx].values['Last Name'],
           amount: Number(refund.paymentAmount).toFixed(2),
         });
       } else {

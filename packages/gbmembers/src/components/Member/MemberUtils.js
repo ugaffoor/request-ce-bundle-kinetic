@@ -1494,12 +1494,17 @@ export function getLastBillingStartDate(member, successfulPayments) {
     member.values['Billing Start Date'],
     'YYYY-MM-DD',
   );
-  if (resumeDate.isAfter(billingStartDate)) {
+  if (
+    member.values['Status'] !== 'Active' &&
+    resumeDate.isAfter(billingStartDate)
+  ) {
     billingStartDate = resumeDate;
   }
   var idx = successfulPayments.findIndex(successful => {
     return (
-      member.values['Member ID'] === successful.yourSystemReference &&
+      (member.values['Member ID'] === successful.yourSystemReference ||
+        member.values['Billing Customer Reference'] ===
+          successful.yourSystemReference) &&
       moment(successful.debitDate, 'YYYY-MM-DD HH:mm:SS').isAfter(
         billingStartDate,
       )

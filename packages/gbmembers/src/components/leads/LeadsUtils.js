@@ -57,7 +57,8 @@ export function substituteFields(text, person, space, profile, journeyEvent) {
     text = text.replace(/member\('First Name'\)/g, person.values['First Name']);
     text = text.replace(/member\('Last Name'\)/g, person.values['Last Name']);
   }
-  var matches = text.match(/\$\{.*?\('(.*?)'\)\}/g);
+  //  var matches = text.match(/\$\{.*?\('(.*?)'\)\}/g);
+  var matches = text.match(/\$\{.*?\}/g);
   var self = this;
   if (matches !== null) {
     matches.forEach(function(value, index) {

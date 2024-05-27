@@ -134,6 +134,15 @@
     .-btn {
       color: white !important;
     }
+
+    .longName {
+      font-size: 0.8vmax;
+      font-size: 14px;
+    }
+    .extraLongName {
+      font-size: 0.6vmax;
+      font-size: 12px;
+    }
   }
   .ReactTable input {
     border-radius: 0.4rem !important;

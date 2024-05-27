@@ -267,7 +267,10 @@ export class LeadNew extends Component {
                   <label
                     htmlFor="firstName"
                     required={
-                      this.props.leadItem.values['First Name'] === undefined
+                      getAttributeValue(this.props.space, 'Franchisor') ===
+                      'YES'
+                        ? false
+                        : this.props.leadItem.values['First Name'] === undefined
                         ? true
                         : false
                     }
@@ -296,7 +299,6 @@ export class LeadNew extends Component {
                         : true
                     }
                     ref={input => (this.input = input)}
-                    value={this.props.leadItem.values['First Name']}
                     defaultValue={
                       getAttributeValue(this.props.space, 'Franchisor') ===
                       'YES'
@@ -1781,14 +1783,21 @@ export class LeadNew extends Component {
               )}
               <span className="line">
                 <div style={{ width: '60%' }}>
-                  <label htmlFor="note" required>
+                  <label
+                    htmlFor="note"
+                    required={
+                      this.state.reminderDateString === 'Never' ? false : true
+                    }
+                  >
                     Contact Note
                   </label>
                   <textarea
                     name="note"
                     id="note"
                     style={{ width: '100%' }}
-                    required
+                    required={
+                      this.state.reminderDateString === 'Never' ? false : true
+                    }
                     onChange={e => this.handleChange('note', e)}
                   />
                 </div>
@@ -1945,31 +1954,33 @@ export const LeadNewContainer = compose(
         this.props.fetchNewLead({
           myThis: this,
           history: this.props.history,
-          fetchLeads: this.props.fetchLeads,
+          //fetchLeads: this.props.fetchLeads,
         });
-      }
-      $('.leadEditDetails input').val('');
-      $('.leadEditDetails select').val('');
-      $(
-        '.leadEditDetails input[required],.leadEditDetails select[required]',
-      ).each(function() {
-        if (
-          $(this).val() === undefined ||
-          $(this).val() === null ||
-          $(this).val() === ''
-        ) {
-          $(this)
-            .siblings('label')
-            .attr('required', 'required');
+        $('.leadEditDetails input').val('');
+        $('.leadEditDetails select').val('');
+        $(
+          '.leadEditDetails input[required],.leadEditDetails select[required]',
+        ).each(function() {
+          if (
+            $(this).val() === undefined ||
+            $(this).val() === null ||
+            $(this).val() === ''
+          ) {
+            $(this)
+              .siblings('label')
+              .attr('required', 'required');
+          } else {
+            $(this)
+              .siblings('label')
+              .removeAttr('required');
+            $(this).css('border-color', '');
+          }
+        });
+        if (getAttributeValue(this.props.space, 'Franchisor') === 'YES') {
+          nextProps.leadItem.values['First Name'] = 'GB';
         } else {
-          $(this)
-            .siblings('label')
-            .removeAttr('required');
-          $(this).css('border-color', '');
+          nextProps.leadItem.values['First Name'] = '';
         }
-      });
-      if (getAttributeValue(this.props.space, 'Franchisor') === 'YES') {
-        nextProps.leadItem.values['First Name'] = 'GB';
       }
     },
     componentDidMount() {

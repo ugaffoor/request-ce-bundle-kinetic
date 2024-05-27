@@ -47,8 +47,34 @@ export class LeadsActivityReport extends Component {
     this.handleEventsCellClick = this.handleEventsCellClick.bind(this);
 
     this.columns = [
-      { title: 'Created Date', field: 'createdDate' },
-      { title: 'Last Modified Date', field: 'lastModifiedDate' },
+      {
+        title: 'Created Date',
+        field: 'createdDate',
+        sorter: function(a, b, aRow, bRow, column, dir, sorterParams) {
+          a = moment(a);
+          b = moment(b);
+          if (dir === 'asc') {
+            return b.isAfter(a) ? 1 : -1;
+          } else if (dir === 'desc') {
+            return a.isAfter(b) ? -1 : 1;
+          }
+          return 0;
+        },
+      },
+      {
+        title: 'Last Modified Date',
+        field: 'lastModifiedDate',
+        sorter: function(a, b, aRow, bRow, column, dir, sorterParams) {
+          a = moment(a);
+          b = moment(b);
+          if (dir === 'asc') {
+            return b.isAfter(a) ? 1 : -1;
+          } else if (dir === 'desc') {
+            return a.isAfter(b) ? -1 : 1;
+          }
+          return 0;
+        },
+      },
       {
         title: 'Name',
         field: 'name',
@@ -71,7 +97,35 @@ export class LeadsActivityReport extends Component {
       { title: 'Source Reference 3', field: 'sourceReference3' },
       { title: 'Source Reference 4', field: 'sourceReference4' },
       { title: 'Source Reference 5', field: 'sourceReference5' },
-      { title: 'Reminder Date', field: 'reminderDate' },
+      {
+        title: 'Reminder Date',
+        field: 'reminderDate',
+        sorter: function(a, b, aRow, bRow, column, dir, sorterParams) {
+          if (dir === 'asc' && b !== '' && a !== '') {
+            a = moment(a);
+            b = moment(b);
+            return b.isAfter(a) ? 1 : -1;
+          } else if (dir === 'desc' && b !== '' && a !== '') {
+            a = moment(a);
+            b = moment(b);
+            return a.isAfter(b) ? -1 : 1;
+          }
+
+          if (dir === 'asc' && b === '' && a === '') {
+            return 0;
+          } else if (dir === 'asc' && a === '' && b !== '') {
+            return 1;
+          } else if (dir === 'asc' && a !== '' && b === '') {
+            return -1;
+          } else if (dir === 'desc' && a !== '' && b === '') {
+            return -1;
+          } else if (dir === 'desc' && a === '' && b !== '') {
+            return -1;
+          }
+
+          return 0;
+        },
+      },
       { title: 'Days Since Last Contact', field: 'daysSinceLastContact' },
       { title: 'Last Contact Date', field: 'lastContactDate' },
       {
@@ -254,11 +308,12 @@ export class LeadsActivityReport extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    let data = this.getGridData(nextProps.leads);
-    this.setState({
-      activityData: data,
-    });
-
+    if (nextProps.leads.length > 0 && this.props.leads.length === 0) {
+      let data = this.getGridData(nextProps.leads);
+      this.setState({
+        activityData: data,
+      });
+    }
     if (!this.props.reportPreferences.equals(nextProps.reportPreferences)) {
       let preferences = this.getTablePreferences(nextProps.reportPreferences);
       this.setState({
@@ -1660,7 +1715,7 @@ export class LeadsActivityReport extends Component {
       downloadReady: (fileContents, blob) => blob,
       layout: 'fitColumns',
     };
-    return this.props.leadsLoading ? (
+    return this.props.leadsLoading && this.props.leads.length === 0 ? (
       <div style={{ margin: '10px' }}>
         <p>Loading leads activity report ...</p>
         <ReactSpinner />{' '}

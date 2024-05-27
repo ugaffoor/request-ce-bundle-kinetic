@@ -1,4 +1,4 @@
-import { select, call, put, takeEvery } from 'redux-saga/effects';
+import { select, call, put, all, takeEvery } from 'redux-saga/effects';
 import { CoreAPI } from 'react-kinetic-core';
 import $ from 'jquery';
 
@@ -118,48 +118,93 @@ export function* fetchJourneyEvent(action) {
     submission: submission,
   };
 
-  if (submission.values['Contact Type'] === 'Email') {
-    const search = new CoreAPI.SubmissionSearch(true)
+  console.log(
+    "submission.values['Record Type']:" + submission.values['Record Type'],
+  );
+  if (
+    submission.values['Record Type'] === 'Member' &&
+    submission.values['Contact Type'] === 'SMS'
+  ) {
+    let searchSMS = new CoreAPI.SubmissionSearch(true)
       .includes(['details', 'values'])
       .index('values[Template Name]')
       .eq('values[Template Name]', submission.values['Template Name'])
       .limit(1000)
       .build();
 
-    const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
-      datastore: true,
-      form: 'email-templates',
-      search,
-    });
-    if (submissions.length > 0) {
-      journeyEvent['emailTemplate'] = submissions[0].values;
-    } else {
-      journeyEvent['emailTemplate'] = 'NOT_FOUND';
-    }
-  }
+    let [memberSubmissionSMS, submissionsSMS] = yield all([
+      call(CoreAPI.fetchSubmission, {
+        id: submission.values['Record ID'],
+        include: 'details,values[Notes History]',
+      }),
+      call(CoreAPI.searchSubmissions, {
+        datastore: true,
+        form: 'sms-templates',
+        search: searchSMS,
+      }),
+    ]);
 
-  if (submission.values['Contact Type'] === 'SMS') {
-    const search = new CoreAPI.SubmissionSearch(true)
-      .includes(['details', 'values'])
-      .index('values[Template Name]')
-      .eq('values[Template Name]', submission.values['Template Name'])
-      .limit(1000)
-      .build();
+    let idxSMS = action.payload.members.findIndex(
+      element => element['id'] === submission.values['Record ID'],
+    );
+    console.log('member idxSMS:' + idxSMS);
+    action.payload.members[idxSMS].values['Notes History'] =
+      memberSubmissionSMS.submission.values['Notes History'] === undefined
+        ? ''
+        : memberSubmissionSMS.submission.values['Notes History'];
+    journeyEvent['memberItem'] = action.payload.members[idxSMS];
 
-    const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
-      datastore: true,
-      form: 'sms-templates',
-      search,
-    });
-    if (submissions.length > 0) {
-      journeyEvent['smsTemplate'] = submissions[0].values;
+    if (submissionsSMS.submissions.length > 0) {
+      journeyEvent['smsTemplate'] = submissionsSMS.submissions[0].values;
     } else {
       journeyEvent['smsTemplate'] = 'NOT_FOUND';
     }
   }
 
-  if (submission.values['Contact Type'] === 'Call') {
-    const search = new CoreAPI.SubmissionSearch(true)
+  if (
+    submission.values['Record Type'] === 'Member' &&
+    submission.values['Contact Type'] === 'Email'
+  ) {
+    let searchEmail = new CoreAPI.SubmissionSearch(true)
+      .includes(['details', 'values'])
+      .index('values[Template Name]')
+      .eq('values[Template Name]', submission.values['Template Name'])
+      .limit(1000)
+      .build();
+
+    let [memberSubmissionEmail, submissionsEmail] = yield all([
+      call(CoreAPI.fetchSubmission, {
+        id: submission.values['Record ID'],
+        include: 'details,values[Notes History]',
+      }),
+      call(CoreAPI.searchSubmissions, {
+        datastore: true,
+        form: 'email-templates',
+        search: searchEmail,
+      }),
+    ]);
+
+    let idxEmail = action.payload.members.findIndex(
+      element => element['id'] === submission.values['Record ID'],
+    );
+    console.log('member idxEmail:' + idxEmail);
+    action.payload.members[idxEmail].values['Notes History'] =
+      memberSubmissionEmail.submission.values['Notes History'] === undefined
+        ? ''
+        : memberSubmissionEmail.submission.values['Notes History'];
+    journeyEvent['memberItem'] = action.payload.members[idxEmail];
+
+    if (submissionsEmail.submissions.length > 0) {
+      journeyEvent['emailTemplate'] = submissionsEmail.submissions[0].values;
+    } else {
+      journeyEvent['emailTemplate'] = 'NOT_FOUND';
+    }
+  }
+  if (
+    submission.values['Record Type'] === 'Member' &&
+    submission.values['Contact Type'] === 'Call'
+  ) {
+    let searchCall = new CoreAPI.SubmissionSearch(true)
       .includes(['details', 'values'])
       .index('values[Target],values[Script Name]')
       .eq('values[Target]', submission.values['Record Type'] + 's')
@@ -167,28 +212,111 @@ export function* fetchJourneyEvent(action) {
       .limit(1000)
       .build();
 
-    const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
-      datastore: true,
-      form: 'call-scripts',
-      search,
-    });
-    if (submissions.length > 0) {
-      journeyEvent['callTemplate'] = submissions[0].values;
+    let [memberSubmissionCall, submissionsCall] = yield all([
+      call(CoreAPI.fetchSubmission, {
+        id: submission.values['Record ID'],
+        include: 'details,values[Notes History]',
+      }),
+      call(CoreAPI.searchSubmissions, {
+        datastore: true,
+        form: 'call-scripts',
+        search: searchCall,
+      }),
+    ]);
+
+    let idxCall = action.payload.members.findIndex(
+      element => element['id'] === submission.values['Record ID'],
+    );
+    console.log('member idxCall:' + idxCall);
+    action.payload.members[idxCall].values['Notes History'] =
+      memberSubmissionCall.submission.values['Notes History'] === undefined
+        ? ''
+        : memberSubmissionCall.submission.values['Notes History'];
+    journeyEvent['memberItem'] = action.payload.members[idxCall];
+
+    if (submissionsCall.submissions.length > 0) {
+      journeyEvent['callTemplate'] = submissionsCall.submissions[0].values;
+    } else {
+      journeyEvent['callTemplate'] = 'NOT_FOUND';
+    }
+  }
+  if (
+    submission.values['Record Type'] === 'Lead' &&
+    submission.values['Contact Type'] === 'Email'
+  ) {
+    let searchLeadEmail = new CoreAPI.SubmissionSearch(true)
+      .includes(['details', 'values'])
+      .index('values[Template Name]')
+      .eq('values[Template Name]', submission.values['Template Name'])
+      .limit(1000)
+      .build();
+
+    let [submissionsLeadEmail] = yield all([
+      call(CoreAPI.searchSubmissions, {
+        datastore: true,
+        form: 'email-templates',
+        search: searchLeadEmail,
+      }),
+    ]);
+    if (submissionsLeadEmail.submissions.length > 0) {
+      journeyEvent['emailTemplate'] =
+        submissionsLeadEmail.submissions[0].values;
+    } else {
+      journeyEvent['emailTemplate'] = 'NOT_FOUND';
+    }
+  }
+
+  if (
+    submission.values['Record Type'] === 'Lead' &&
+    submission.values['Contact Type'] === 'SMS'
+  ) {
+    let searchLeadSMS = new CoreAPI.SubmissionSearch(true)
+      .includes(['details', 'values'])
+      .index('values[Template Name]')
+      .eq('values[Template Name]', submission.values['Template Name'])
+      .limit(1000)
+      .build();
+
+    let [submissionsLeadSMS] = yield all([
+      call(CoreAPI.searchSubmissions, {
+        datastore: true,
+        form: 'sms-templates',
+        search: searchLeadSMS,
+      }),
+    ]);
+    if (submissionsLeadSMS.submissions.length > 0) {
+      journeyEvent['smsTemplate'] = submissionsLeadSMS.submissions[0].values;
+    } else {
+      journeyEvent['smsTemplate'] = 'NOT_FOUND';
+    }
+  }
+
+  if (
+    submission.values['Record Type'] === 'Lead' &&
+    submission.values['Contact Type'] === 'Call'
+  ) {
+    let searchLeadCall = new CoreAPI.SubmissionSearch(true)
+      .includes(['details', 'values'])
+      .index('values[Target],values[Script Name]')
+      .eq('values[Target]', submission.values['Record Type'] + 's')
+      .eq('values[Script Name]', submission.values['Template Name'])
+      .limit(1000)
+      .build();
+
+    let [submissionsLeadCall] = yield all([
+      call(CoreAPI.searchSubmissions, {
+        datastore: true,
+        form: 'call-scripts',
+        search: searchLeadCall,
+      }),
+    ]);
+    if (submissionsLeadCall.submissions.length > 0) {
+      journeyEvent['callTemplate'] = submissionsLeadCall.submissions[0].values;
     } else {
       journeyEvent['callTemplate'] = 'NOT_FOUND';
     }
   }
 
-  console.log(
-    "submission.values['Record Type']:" + submission.values['Record Type'],
-  );
-  if (submission.values['Record Type'] === 'Member') {
-    let idx = action.payload.members.findIndex(
-      element => element['id'] === submission.values['Record ID'],
-    );
-    console.log('member idx:' + idx);
-    journeyEvent['memberItem'] = action.payload.members[idx];
-  }
   if (submission.values['Record Type'] === 'Lead') {
     let idx = action.payload.leads.findIndex(function(element) {
       console.log(element['id'] + '===' + submission.values['Record ID']);

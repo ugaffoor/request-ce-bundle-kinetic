@@ -53,14 +53,14 @@ export class StripeOverdues extends Component {
   UNSAFE_componentWillReceiveProps(nextProps) {
     if (
       !nextProps.FAILEDpaymentHistoryLoading &&
-      !nextProps.SUCCESSFULpaymentHistory
+      !nextProps.SUCCESSFULpaymentHistoryLoading
     ) {
       this.paymentHistory = nextProps.paymentHistory;
       this.successfulPaymentHistory = nextProps.successfulPaymentHistory;
 
       var data = this.getData(
-        this.paymentHistory,
-        this.successfulPaymentHistory,
+        nextProps.paymentHistory,
+        nextProps.successfulPaymentHistory,
       );
       var totalOverdue = 0;
       data.forEach((item, i) => {
@@ -160,10 +160,7 @@ export class StripeOverdues extends Component {
         lastPayment = moment(member.values['Billing Start Date'], 'YYYY-MM-DD');
       } */
       if (idx !== -1) {
-        lastPayment = getLastBillingStartDate(
-          this.props.allMembers[idx],
-          successfulPayments,
-        );
+        lastPayment = getLastBillingStartDate(member, successfulPayments);
       }
 
       let nowDate = moment();

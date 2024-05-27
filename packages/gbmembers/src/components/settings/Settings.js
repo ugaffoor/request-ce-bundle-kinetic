@@ -77,67 +77,116 @@ const mapDispatchToProps = {
   createStatistic: actions.createStatistic,
   setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
+var myThis;
 
 class ComponentToPrint extends React.Component {
+  constructor(props) {
+    super(props);
+    myThis = this;
+
+    this.setState({
+      filterName: '',
+    });
+  }
   render() {
     return (
       <div id="memberBarcodes">
-        {this.props.allMembers
-          .filter(member => member.values['Status'] !== 'Inactive')
-          .sort(function(a, b) {
-            return a.values['Date Joined'] > b.values['Date Joined']
-              ? -1
-              : b.values['Date Joined'] > a.values['Date Joined']
-              ? 1
-              : 0;
-          })
-          .map((member, index) =>
-            index !== 0 && index % 65 === 0 ? (
-              <div className="barCode pageBreak" key={index}>
-                <Barcode
-                  value={
-                    member.values['Alternate Barcode'] === undefined ||
-                    member.values['Alternate Barcode'] === '' ||
-                    member.values['Alternate Barcode'] === null
-                      ? member.id.split('-')[4].substring(6, 12)
-                      : member.values['Alternate Barcode']
-                  }
-                  width={1.3}
-                  height={36}
-                  text={
-                    member.values['First Name'].substring(0, 3) +
-                    ' ' +
-                    member.values['Last Name']
-                  }
-                  type={'CODE128'}
-                  font={'monospace'}
-                  textAlign={'center'}
-                  textPosition={'bottom'}
-                  textMargin={2}
-                  fontSize={8}
-                />
-              </div>
-            ) : (
-              <span className="barCode" key={index}>
-                <Barcode
-                  value={member.id.split('-')[4].substring(6, 12)}
-                  width={1.3}
-                  height={36}
-                  text={
-                    member.values['First Name'].substring(0, 3) +
-                    ' ' +
-                    member.values['Last Name']
-                  }
-                  type={'CODE128'}
-                  font={'monospace'}
-                  textAlign={'center'}
-                  textPosition={'bottom'}
-                  textMargin={2}
-                  fontSize={8}
-                />
-              </span>
-            ),
-          )}
+        <div className="filterMemberName">
+          <label htmlFor="filter">Member Name</label>
+          <input
+            id="filter"
+            name="filter"
+            type="text"
+            ref={input => (this.input = input)}
+            className="form-control form-control-sm"
+            onChange={e => {
+              myThis.setState({
+                filterName: e.target.value,
+              });
+            }}
+          />
+        </div>
+        <span>
+          {this.props.allMembers
+            .filter(member => {
+              if (
+                myThis.state !== undefined &&
+                myThis.state !== null &&
+                myThis.state.filterName !== ''
+              ) {
+                var name =
+                  member.values['First Name'] +
+                  ' ' +
+                  member.values['Last Name'];
+                if (
+                  name
+                    .toLocaleLowerCase()
+                    .indexOf(myThis.state.filterName.toLocaleLowerCase()) !==
+                    -1 &&
+                  member.values['Status'] !== 'Inactive'
+                ) {
+                  return true;
+                }
+              } else if (member.values['Status'] !== 'Inactive') {
+                return true;
+              }
+              return false;
+            })
+            .sort(function(a, b) {
+              return a.values['Date Joined'] > b.values['Date Joined']
+                ? -1
+                : b.values['Date Joined'] > a.values['Date Joined']
+                ? 1
+                : 0;
+            })
+            .map((member, index) =>
+              index !== 0 && index % 65 === 0 ? (
+                <div className="barCode pageBreak" key={index}>
+                  <Barcode
+                    value={
+                      member.values['Alternate Barcode'] === undefined ||
+                      member.values['Alternate Barcode'] === '' ||
+                      member.values['Alternate Barcode'] === null
+                        ? member.id.split('-')[4].substring(6, 12)
+                        : member.values['Alternate Barcode']
+                    }
+                    width={1.3}
+                    height={36}
+                    text={
+                      member.values['First Name'].substring(0, 3) +
+                      ' ' +
+                      member.values['Last Name']
+                    }
+                    type={'CODE128'}
+                    font={'monospace'}
+                    textAlign={'center'}
+                    textPosition={'bottom'}
+                    textMargin={2}
+                    fontSize={8}
+                  />
+                </div>
+              ) : (
+                <span className="barCode" key={index}>
+                  <Barcode
+                    value={member.id.split('-')[4].substring(6, 12)}
+                    width={1.3}
+                    height={36}
+                    text={
+                      member.values['First Name'].substring(0, 3) +
+                      ' ' +
+                      member.values['Last Name']
+                    }
+                    type={'CODE128'}
+                    font={'monospace'}
+                    textAlign={'center'}
+                    textPosition={'bottom'}
+                    textMargin={2}
+                    fontSize={8}
+                  />
+                </span>
+              ),
+            )}
+        </span>
       </div>
     );
   }
@@ -431,7 +480,12 @@ export const SettingsView = ({
       ) : (
         <div id="memberBarcodesSection" className="col-xs-3">
           <ReactToPrint
-            trigger={() => <button>Print Barcodes!</button>}
+            trigger={() => (
+              <span>
+                <button>Print Barcodes!</button>
+                <br></br>
+              </span>
+            )}
             content={() => this.componentRef}
             copyStyles={true}
           />
