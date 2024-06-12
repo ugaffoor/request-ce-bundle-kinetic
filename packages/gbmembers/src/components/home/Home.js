@@ -62,6 +62,8 @@ const mapStateToProps = state => ({
     state.member.members.SUCCESSFULpaymentHistoryLoading,
   overdues: state.member.members.overdues,
   overduesLoading: state.member.members.overduesLoading,
+  cashPaymentsByDate: state.member.members.cashPaymentsByDate,
+  cashPaymentsByDateLoading: state.member.members.cashPaymentsByDateLoading,
 });
 
 const mapDispatchToProps = {
@@ -79,6 +81,7 @@ const mapDispatchToProps = {
   setPaymentHistory: actions.setPaymentHistory,
   fetchOverdues: actions.fetchOverdues,
   setOverdues: actions.setOverdues,
+  fetchCashPaymentsByDate: actions.fetchCashPaymentsByDate,
 };
 
 export const HomeView = ({
@@ -123,6 +126,9 @@ export const HomeView = ({
   setOverdues,
   overdues,
   overduesLoading,
+  fetchCashPaymentsByDate,
+  cashPaymentsByDate,
+  cashPaymentsByDateLoading,
   memberInitialLoadComplete,
   membersNextPageToken,
   memberLastFetchTime,
@@ -173,6 +179,9 @@ export const HomeView = ({
                 SUCCESSFULpaymentHistoryLoading={
                   SUCCESSFULpaymentHistoryLoading
                 }
+                fetchCashPaymentsByDate={fetchCashPaymentsByDate}
+                cashPaymentsByDate={cashPaymentsByDate}
+                cashPaymentsByDateLoading={cashPaymentsByDateLoading}
                 currency={currency}
                 space={space}
                 locale={locale}

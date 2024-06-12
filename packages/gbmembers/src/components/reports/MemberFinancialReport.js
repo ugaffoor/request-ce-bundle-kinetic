@@ -531,6 +531,16 @@ export class MemberFinancialReport extends Component {
     if (idx !== -1) return members[idx];
     return undefined;
   }
+  isSelfSignUpRegistrationPayment(payment, members) {
+    if (payment['paymentSource'] !== 'Member Registration Fee')
+      return undefined;
+    var idx = members.findIndex(
+      member => member.values['Member ID'] === payment['yourSystemReference'],
+    );
+
+    if (idx !== -1) return members[idx];
+    return undefined;
+  }
   refreshData(fromDate, toDate) {
     this.paymentHistory = [];
 
@@ -792,13 +802,20 @@ export class MemberFinancialReport extends Component {
     paymentHistory.forEach(payment => {
       var member = this.isRecurringPayment(payment, members);
       var additionalServiceMember = undefined;
+      var selfSignUpRegistrationMember = undefined;
+
       if (member === undefined) {
         additionalServiceMember = this.isAdditionalServicePayment(
           payment,
           members,
         );
       }
-      if (member !== undefined) {
+      selfSignUpRegistrationMember = this.isSelfSignUpRegistrationPayment(
+        payment,
+        members,
+      );
+
+      if (member !== undefined && selfSignUpRegistrationMember === undefined) {
         // Needed for Bambora
         if (accountHolders.findIndex(item => item.id === member.id) === -1) {
           accountHolders[accountHolders.length] = member;
@@ -873,6 +890,48 @@ export class MemberFinancialReport extends Component {
             payment.paymentID +
             ',' +
             payment.debitDate,
+        );
+      } else if (selfSignUpRegistrationMember !== undefined) {
+        // Needed for Bambora
+        if (
+          accountHolders.findIndex(
+            item => item.id === selfSignUpRegistrationMember.id,
+          ) === -1
+        ) {
+          selfSignUpRegistrationMember.selfSignUpFeeMember = true;
+          selfSignUpRegistrationMember.selfSignUpRegistrationFee = Number(
+            payment.paymentAmount,
+          ).toFixed(2);
+          accountHolders[accountHolders.length] = selfSignUpRegistrationMember;
+        }
+        accountHoldersValue += payment.paymentAmount;
+        allTransactionRecords.push({
+          type: 'selfSignUpRegistrationFee',
+          date: payment.debitDate,
+          name:
+            selfSignUpRegistrationMember.values['First Name'] +
+            ' ' +
+            selfSignUpRegistrationMember.values['Last Name'],
+          billingID:
+            selfSignUpRegistrationMember.values['Billing Customer Reference'],
+          paymentID: payment.paymentID,
+          payment: Number(payment.paymentAmount).toFixed(2),
+        });
+        console.log(
+          '1 ' +
+            selfSignUpRegistrationMember.values['First Name'] +
+            ' ' +
+            selfSignUpRegistrationMember.values['Last Name'] +
+            ' - ' +
+            selfSignUpRegistrationMember.values['Billing Customer Reference'] +
+            ',' +
+            Number(payment.paymentAmount).toFixed(2) +
+            ',' +
+            payment.paymentID +
+            ',' +
+            payment.debitDate +
+            ',' +
+            accountHoldersValue,
         );
       } else if (
         getAttributeValue(this.props.space, 'POS System') === 'Bambora'
@@ -1679,6 +1738,10 @@ export class MemberFinancialReport extends Component {
     return name;
   }
   getMemberFee(members, member) {
+    if (member.selfSignUpFeeMember) {
+      return member.selfSignUpRegistrationFee;
+    }
+
     if (
       member.values['Non Paying'] !== null &&
       member.values['Non Paying'] !== undefined &&
@@ -1722,6 +1785,9 @@ export class MemberFinancialReport extends Component {
     return '';
   }
   getMemberPeriod(members, member) {
+    if (member.selfSignUpFeeMember) {
+      return 'Member Registration Fee';
+    }
     if (
       member.values['Billing Parent Member'] !== null &&
       member.values['Billing Parent Member'] !== undefined
@@ -1863,6 +1929,10 @@ export class MemberFinancialReport extends Component {
     return members_col;
   }
   getScheduledPayment(member, billingCustomers) {
+    if (member.selfSignUpFeeMember) {
+      return member.selfSignUpRegistrationFee;
+    }
+
     if (
       member.values['Billing User'] !== null &&
       member.values['Billing User'] !== undefined &&
@@ -2455,6 +2525,7 @@ export class MemberFinancialReport extends Component {
   }
   downLoadDataAsCsv(allTransactionRecords) {
     let memberships = [];
+    let selfSignUpRegistrationFees = [];
     let additionalServices = [];
     let cashPayments = [];
     let refunds = [];
@@ -2463,6 +2534,8 @@ export class MemberFinancialReport extends Component {
     allTransactionRecords.forEach(transaction => {
       if (transaction['type'] === 'Membership') {
         memberships.push(transaction);
+      } else if (transaction['type'] === 'selfSignUpRegistrationFee') {
+        selfSignUpRegistrationFees.push(transaction);
       } else if (transaction['type'] === 'Orphaned') {
         memberships.push(transaction);
       } else if (transaction['type'] === 'Additional Services') {
@@ -2523,6 +2596,34 @@ export class MemberFinancialReport extends Component {
       '"Memberships Total","","","","","' + membershipTotal + '","' + '"\n',
     );
 
+    if (selfSignUpRegistrationFees.length > 0) {
+      let selfSignUpRegistrationFeesTotal = 0;
+      selfSignUpRegistrationFees.forEach(transaction => {
+        selfSignUpRegistrationFeesTotal += Number(transaction.payment);
+        csvData = csvData.concat(
+          '"' +
+            'Self Signup Registration Fee' +
+            '","' +
+            moment(transaction['date']).format('L HH:MM A') +
+            '","' +
+            transaction['name'] +
+            '","' +
+            transaction['billingID'] +
+            '","' +
+            transaction['paymentID'] +
+            '","' +
+            transaction['payment'] +
+            '","' +
+            '"\n',
+        );
+      });
+      csvData = csvData.concat(
+        '"Self Signup Registration Fee Total","","","","","' +
+          selfSignUpRegistrationFeesTotal +
+          '","' +
+          '"\n',
+      );
+    }
     let additionalServicesTotal = 0;
     additionalServices.forEach(transaction => {
       additionalServicesTotal += Number(transaction.payment);

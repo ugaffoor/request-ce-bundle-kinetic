@@ -20,8 +20,13 @@ export class BamboraOverdues extends Component {
     super(props);
     this.paymentHistory = this.props.paymentHistory;
     this.successfulPaymentHistory = this.props.successfulPaymentHistory;
+    this.cashPaymentsByDate = this.props.cashPaymentsByDate;
     this.getColumns = this.getColumns.bind(this);
-    let data = this.getData(this.paymentHistory, this.successfulPaymentHistory);
+    let data = this.getData(
+      this.paymentHistory,
+      this.successfulPaymentHistory,
+      this.cashPaymentsByDate,
+    );
     let columns = this.getColumns();
     this.locale = this.props.locale;
 
@@ -41,19 +46,28 @@ export class BamboraOverdues extends Component {
   componentDidMount() {
     this.props.getFailedPayments();
     this.props.getSuccessfulPayments();
+    this.props.fetchCashPaymentsByDate({
+      dateFrom: moment()
+        .subtract(6, 'months')
+        .format('YYYY-MM-DD'),
+      dateTo: moment().format('YYYY-MM-DD'),
+    });
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
     if (
       !nextProps.FAILEDpaymentHistoryLoading &&
-      !nextProps.SUCCESSFULpaymentHistory
+      !nextProps.SUCCESSFULpaymentHistory &&
+      !nextProps.cashPaymentsByDateLoading
     ) {
       this.paymentHistory = nextProps.paymentHistory;
       this.successfulPaymentHistory = nextProps.successfulPaymentHistory;
+      this.cashPaymentsByDate = nextProps.cashPaymentsByDate;
 
       var data = this.getData(
         this.paymentHistory,
         this.successfulPaymentHistory,
+        this.cashPaymentsByDate,
       );
       var totalOverdue = 0;
       data.forEach((item, i) => {
@@ -67,7 +81,7 @@ export class BamboraOverdues extends Component {
     }
   }
 
-  getData(failedPayments, successfulPayments) {
+  getData(failedPayments, successfulPayments, cashPaymentsByDate) {
     failedPayments = failedPayments.filter(payment =>
       isBamboraFailedPayment(payment),
     );
@@ -198,7 +212,20 @@ export class BamboraOverdues extends Component {
         if (overdueAmount === 0) {
           overdueAmount = payment.paymentAmount;
         }
+        // Deduct any cash payment made since lastPayment
+        if (overdueAmount > 0) {
+          lastPayment = getLastBillingStartDate(member, successfulPayments);
+          cashPaymentsByDate.map(cash => {
+            if (
+              cash.values['Member GUID'] === member.id &&
+              moment(cash.values['Date']).isAfter(lastPayment)
+            ) {
+              overdueAmount = overdueAmount - parseFloat(cash.values['Amount']);
+            }
+          });
+        }
       }
+
       return {
         _id: payment.paymentID,
         paymentAmount: payment.paymentAmount,

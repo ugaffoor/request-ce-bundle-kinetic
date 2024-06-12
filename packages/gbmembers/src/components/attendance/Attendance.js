@@ -859,7 +859,7 @@ export class SelfCheckin extends Component {
       attendanceStatus: 'Full Class',
     };
     this.setState({
-      memberItem: undefined,
+      memberItem: memberItem,
       checkinClassMember: true,
       invalidMemberClass: undefined,
     });
@@ -978,6 +978,15 @@ export class SelfCheckin extends Component {
                 Exit Self Checkin
               </button>
               <div className="checkinAttendance checkinSection">
+                {/*    <input
+                    type="text"
+                    name="testScanning"
+                    id="testScanning"
+                    onChange={e => {
+                      this.selfCheckinHandleScan(e.target.value)
+                    }}
+                  />
+                  */}
                 <div className="dayClasses">
                   {attendanceThis
                     .getDayClasses(

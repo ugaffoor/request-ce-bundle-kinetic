@@ -88,6 +88,7 @@ export function handleNameChange(memberItem, event) {
   //Remove/add the 'required' attribute by calling handleDynamicChange
   handleDynamicChange(memberItem, 'Member ID', 'username');
 }
+var myThis;
 
 export const MemberNew = ({
   memberItem,
@@ -379,8 +380,8 @@ export const MemberNew = ({
                   <label
                     htmlFor="postcode"
                     required={
-                      memberItem.values['Postcode'] === undefined ||
-                      memberItem.values['Postcode'] === ''
+                      memberItem.values['Postcode'] === undefined &&
+                      convertedLeadPostcode === undefined
                         ? true
                         : false
                     }
@@ -423,6 +424,8 @@ export const MemberNew = ({
                           ? memberItem.values['Postcode'] === ''
                             ? convertedLeadPostcode
                             : memberItem.values['Postcode']
+                          : memberItem.values['Postcode'] !== ''
+                          ? memberItem.values['Postcode']
                           : ''
                       }
                       onValueChange={(values, e) =>
@@ -507,6 +510,8 @@ export const MemberNew = ({
                         ? memberItem.values['Phone Number'] === ''
                           ? convertedLeadPhone
                           : memberItem.values['Phone Number']
+                        : memberItem.values['Phone Number'] !== ''
+                        ? memberItem.values['Phone Number']
                         : ''
                     }
                     onValueChange={(values, e) =>
@@ -539,6 +544,8 @@ export const MemberNew = ({
                         ? memberItem.values['Additional Phone Number'] === ''
                           ? convertedAdditionalLeadPhone
                           : memberItem.values['Additional Phone Number']
+                        : memberItem.values['Additional Phone Number'] !== ''
+                        ? memberItem.values['Additional Phone Number']
                         : ''
                     }
                     onValueChange={(values, e) =>
@@ -760,6 +767,8 @@ export const MemberNew = ({
                         ? memberItem.values['Emergency Contact Phone'] === ''
                           ? convertedLeadEmergencyPhone
                           : memberItem.values['Emergency Contact Phone']
+                        : memberItem.values['Emergency Contact Phone'] !== ''
+                        ? memberItem.values['Emergency Contact Phone']
                         : ''
                     }
                     onValueChange={(values, e) =>
@@ -1870,14 +1879,14 @@ export const MemberNewContainer = compose(
         convertedLeadPostcode = nextProps.leadItem.values['Postcode'];
         handleDynamicFormattedChange(
           nextProps.leadItem.values['Postcode'],
-          nextProps.memberItem,
+          this.props.memberItem,
           'Postcode',
           'postcode',
         );
         convertedLeadPhone = nextProps.leadItem.values['Phone Number'];
         handleDynamicFormattedChange(
           nextProps.leadItem.values['Phone Number'],
-          nextProps.memberItem,
+          this.props.memberItem,
           'Phone Number',
           'phonenumber',
         );
@@ -1885,7 +1894,7 @@ export const MemberNewContainer = compose(
           nextProps.leadItem.values['Additional Phone Number'];
         handleDynamicFormattedChange(
           nextProps.leadItem.values['Additional Phone Number'],
-          nextProps.memberItem,
+          this.props.memberItem,
           'Additional Phone Number',
           'additionalphonenumber',
         );
@@ -1909,7 +1918,7 @@ export const MemberNewContainer = compose(
           nextProps.leadItem.values['Emergency Contact Phone'];
         handleDynamicFormattedChange(
           nextProps.leadItem.values['Emergency Contact Phone'],
-          nextProps.memberItem,
+          this.props.memberItem,
           'Emergency Contact Phone',
           'emergencyphone',
         );
@@ -2003,6 +2012,41 @@ export const MemberNewContainer = compose(
     },
     componentDidMount() {
       this.props.setSidebarDisplayType('members');
+      myThis = this;
+      if (this.props.memberItem.values !== undefined) {
+        setTimeout(function() {
+          myThis.props.memberItem.values['Phone Number'] = '';
+          myThis.props.memberItem.values['Additional Phone Number'] = '';
+          myThis.props.memberItem.values['Emergency Contact Phone'] = '';
+          myThis.props.memberItem.values['Postcode'] = '';
+          myThis.setState({ dummy: true });
+        });
+      }
+      $('.memberEditDetails input').val('');
+      $('.memberEditDetails select').val('');
+      $(
+        '.memberEditDetails input[required],.memberEditDetails select[required]',
+      ).each(function() {
+        if (
+          $(this).val() === undefined ||
+          $(this).val() === null ||
+          $(this).val() === ''
+        ) {
+          $(this)
+            .siblings('label')
+            .attr('required', 'required');
+        } else {
+          $(this)
+            .siblings('label')
+            .removeAttr('required');
+          $(this).css('border-color', '');
+        }
+      });
+      convertedLeadBirthday = undefined;
+      convertedLeadPostcode = undefined;
+      convertedLeadPhone = undefined;
+      convertedAdditionalLeadPhone = undefined;
+      convertedLeadEmergencyPhone = undefined;
     },
     componentWillUnmount() {},
   }),

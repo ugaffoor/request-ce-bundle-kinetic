@@ -96,7 +96,8 @@ export class MembershipReceiptToPrint extends React.Component {
             {this.datetime.format('Do MMM YYYY h:mmA')}
           </span>
           {this.props.familyMembers !== undefined &&
-            this.props.familyMembers.length > 0 && (
+            this.props.familyMembers.length > 0 &&
+            this.props.payment.paymentSource !== 'Member Registration Fee' && (
               <span className="familyMembers">
                 <table style={{ border: 1, width: '100%' }}>
                   <thead>
@@ -129,9 +130,43 @@ export class MembershipReceiptToPrint extends React.Component {
                 </table>
               </span>
             )}
+          {this.props.familyMembers !== undefined &&
+            this.props.familyMembers.length > 0 &&
+            this.props.payment.paymentSource === 'Member Registration Fee' && (
+              <span className="familyMembers">
+                <table style={{ border: 1, width: '100%' }}>
+                  <thead>
+                    <td>
+                      <b>Member</b>
+                    </td>
+                    <td></td>
+                    <td>
+                      <b>Fee</b>
+                    </td>
+                  </thead>
+                  <tbody>
+                    {getJson(
+                      this.props.memberItem.values['Family Fee Details'],
+                    ).map((member, index) => (
+                      <tr>
+                        <td>{member.Name}</td>
+                        <td>Member Registration Fee</td>
+                        <td>
+                          {new Intl.NumberFormat(this.props.locale, {
+                            style: 'currency',
+                            currency: this.props.currency,
+                          }).format(this.props.payment.paymentAmount)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </span>
+            )}
         </span>
         {getAttributeValue(this.props.space, 'Billing Company') === 'Bambora' &&
-          getAttributeValue(this.props.space, 'Ignore Admin Fee') !== 'YES' && (
+          getAttributeValue(this.props.space, 'Ignore Admin Fee') !== 'YES' &&
+          this.props.payment.paymentSource !== 'Member Registration Fee' && (
             <span className="total">
               <span className="label">
                 <I18n>

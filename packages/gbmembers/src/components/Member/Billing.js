@@ -1640,6 +1640,7 @@ export class PaymentHistory extends Component {
               familyMembers={this.props.familyMembers}
               locale={this.props.locale}
               currency={this.props.currency}
+              payment={row.original}
               paymentID={row.original['paymentID']}
               status={
                 this.isPaymentRefunded(row.original.paymentID, paymentsRefunded)

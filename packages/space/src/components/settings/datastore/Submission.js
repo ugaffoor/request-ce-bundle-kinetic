@@ -274,6 +274,11 @@ var escapeJSON = function(str) {
 
 function onLoadEmailTemplate() {
   setTimeout(function() {
+    emailEditorRef.editor.addEventListener('design:loaded', () => {
+      emailEditorRef.editor.setBodyValues({
+        backgroundColor: '#FFFFFF',
+      });
+    });
     emailEditorRef.addEventListener('design:updated', function(updates) {
       // Design is updated by the user
       emailEditorRef.exportHtml(function(data) {

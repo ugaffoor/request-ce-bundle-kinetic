@@ -55,6 +55,7 @@ const mapDispatchToProps = {
   fetchLeads: leadsActions.fetchLeads,
   setSidebarDisplayType: appActions.setSidebarDisplayType,
 };
+var myThis;
 
 const Datetime = require('react-datetime');
 export class LeadNew extends Component {
@@ -533,6 +534,7 @@ export class LeadNew extends Component {
                       id="postcode"
                       mask="_"
                       ref={input => (this.input = input)}
+                      value={this.props.leadItem.values['Postcode']}
                       onValueChange={(values, e) =>
                         handleFormattedChange(
                           values,
@@ -624,6 +626,7 @@ export class LeadNew extends Component {
                     }
                     mask="_"
                     ref={input => (this.input = input)}
+                    value={this.props.leadItem.values['Phone Number']}
                     onValueChange={(values, e) =>
                       handleFormattedChange(
                         values,
@@ -637,6 +640,7 @@ export class LeadNew extends Component {
                 <div>
                   <label htmlFor="additionalPhone">Additional Phone</label>
                   <NumberFormat
+                    id="additionalPhone"
                     format={
                       getAttributeValue(
                         this.props.space,
@@ -653,6 +657,9 @@ export class LeadNew extends Component {
                     }
                     mask="_"
                     ref={input => (this.input = input)}
+                    value={
+                      this.props.leadItem.values['Additional Phone Number']
+                    }
                     onValueChange={(values, e) =>
                       handleFormattedChange(
                         values,
@@ -718,51 +725,65 @@ export class LeadNew extends Component {
                         classNamePrefix="hide-columns"
                         placeholder="Select Lead"
                         onChange={e => {
-                          handleChange(this.props.leadItem, 'ParentLead', e);
-                          this.props.leadItem.values['Parent or Guardian'] =
+                          handleChange(myThis.props.leadItem, 'ParentLead', e);
+                          myThis.props.leadItem.values['Parent or Guardian'] =
                             e.label;
 
-                          var idx = this.props.leads.findIndex(
+                          var idx = myThis.props.leads.findIndex(
                             lead => lead.id === e.value,
                           );
                           if (idx !== -1) {
                             if ($('#address').val() === '') {
                               $('#address').val(
-                                this.props.leads[idx].values['Address'],
+                                myThis.props.leads[idx].values['Address'],
                               );
-                              this.props.leadItem.values[
-                                'Address'
-                              ] = this.props.leads[idx].values['Address'];
+                              myThis.props.leadItem.values['Address'] =
+                                myThis.props.leads[idx].values['Address'];
                               $('#suburb').val(
-                                this.props.leads[idx].values['Suburb'],
+                                myThis.props.leads[idx].values['Suburb'],
                               );
-                              this.props.leadItem.values[
-                                'Suburb'
-                              ] = this.props.leads[idx].values['Suburb'];
+                              myThis.props.leadItem.values['Suburb'] =
+                                myThis.props.leads[idx].values['Suburb'];
                               $('#state').val(
-                                this.props.leads[idx].values['State'],
+                                myThis.props.leads[idx].values['State'],
                               );
-                              this.props.leadItem.values[
-                                'State'
-                              ] = this.props.leads[idx].values['State'];
+                              myThis.props.leadItem.values['State'] =
+                                myThis.props.leads[idx].values['State'];
                               $('#postcode').val(
-                                this.props.leads[idx].values['Postcode'],
+                                myThis.props.leads[idx].values['Postcode'],
                               );
-                              this.props.leadItem.values[
-                                'Postcode'
-                              ] = this.props.leads[idx].values['Postcode'];
+                              myThis.props.leadItem.values['Postcode'] =
+                                myThis.props.leads[idx].values['Postcode'];
                               $('#email').val(
-                                this.props.leads[idx].values['Email'],
+                                myThis.props.leads[idx].values['Email'],
                               );
-                              this.props.leadItem.values[
-                                'Email'
-                              ] = this.props.leads[idx].values['Email'];
+                              myThis.props.leadItem.values['Email'] =
+                                myThis.props.leads[idx].values['Email'];
+                              $('#additionalEmail').val(
+                                myThis.props.leads[idx].values[
+                                  'Additional Email'
+                                ],
+                              );
+                              myThis.props.leadItem.values['Additional Email'] =
+                                myThis.props.leads[idx].values[
+                                  'Additional Email'
+                                ];
                               $('#phone').val(
-                                this.props.leads[idx].values['Phone Number'],
+                                myThis.props.leads[idx].values['Phone Number'],
                               );
-                              this.props.leadItem.values[
-                                'Phone Number'
-                              ] = this.props.leads[idx].values['Phone Number'];
+                              myThis.props.leadItem.values['Phone Number'] =
+                                myThis.props.leads[idx].values['Phone Number'];
+                              $('#additionalphone').val(
+                                myThis.props.leads[idx].values[
+                                  'Additional Phone Number'
+                                ],
+                              );
+                              myThis.props.leadItem.values[
+                                'Additional Phone Number'
+                              ] =
+                                myThis.props.leads[idx].values[
+                                  'Additional Phone Number'
+                                ];
                             }
                           }
                         }}
@@ -779,52 +800,73 @@ export class LeadNew extends Component {
                         classNamePrefix="hide-columns"
                         placeholder="Select Member"
                         onChange={e => {
-                          handleChange(this.props.leadItem, 'ParentMember', e);
-                          this.props.leadItem.values['Parent or Guardian'] =
+                          handleChange(
+                            myThis.props.leadItem,
+                            'ParentMember',
+                            e,
+                          );
+                          myThis.props.leadItem.values['Parent or Guardian'] =
                             e.label;
-                          var idx = this.props.members.findIndex(
+                          var idx = myThis.props.members.findIndex(
                             member => member.id === e.value,
                           );
                           if (idx !== -1) {
                             if ($('#address').val() === '') {
                               $('#address').val(
-                                this.props.members[idx].values['Address'],
+                                myThis.props.members[idx].values['Address'],
                               );
-                              this.props.leadItem.values[
-                                'Address'
-                              ] = this.props.members[idx].values['Address'];
+                              myThis.props.leadItem.values['Address'] =
+                                myThis.props.members[idx].values['Address'];
                               $('#suburb').val(
-                                this.props.members[idx].values['Suburb'],
+                                myThis.props.members[idx].values['Suburb'],
                               );
-                              this.props.leadItem.values[
-                                'Suburb'
-                              ] = this.props.members[idx].values['Suburb'];
+                              myThis.props.leadItem.values['Suburb'] =
+                                myThis.props.members[idx].values['Suburb'];
                               $('#state').val(
-                                this.props.members[idx].values['State'],
+                                myThis.props.members[idx].values['State'],
                               );
-                              this.props.leadItem.values[
-                                'State'
-                              ] = this.props.members[idx].values['State'];
+                              myThis.props.leadItem.values['State'] =
+                                myThis.props.members[idx].values['State'];
                               $('#postcode').val(
-                                this.props.members[idx].values['Postcode'],
+                                myThis.props.members[idx].values['Postcode'],
                               );
-                              this.props.leadItem.values[
-                                'Postcode'
-                              ] = this.props.members[idx].values['Postcode'];
+                              myThis.props.leadItem.values['Postcode'] =
+                                myThis.props.members[idx].values['Postcode'];
                               $('#email').val(
-                                this.props.members[idx].values['Email'],
+                                myThis.props.members[idx].values['Email'],
                               );
-                              this.props.leadItem.values[
-                                'Email'
-                              ] = this.props.members[idx].values['Email'];
+                              myThis.props.leadItem.values['Email'] =
+                                myThis.props.members[idx].values['Email'];
+                              $('#additionalEmail').val(
+                                myThis.props.members[idx].values[
+                                  'Additional Email'
+                                ],
+                              );
+                              myThis.props.leadItem.values['Additional Email'] =
+                                myThis.props.members[idx].values[
+                                  'Additional Email'
+                                ];
                               $('#phone').val(
-                                this.props.members[idx].values['Phone Number'],
+                                myThis.props.members[idx].values[
+                                  'Phone Number'
+                                ],
                               );
-                              this.props.leadItem.values[
+                              myThis.props.leadItem.values[
                                 'Phone Number'
                               ] = this.props.members[idx].values[
                                 'Phone Number'
                               ];
+                              $('#additionalphone').val(
+                                myThis.props.members[idx].values[
+                                  'Additional Phone Number'
+                                ],
+                              );
+                              myThis.props.leadItem.values[
+                                'Additional Phone Number'
+                              ] =
+                                myThis.props.members[idx].values[
+                                  'Additional Phone Number'
+                                ];
                             }
                           }
                         }}
@@ -1985,9 +2027,39 @@ export const LeadNewContainer = compose(
     },
     componentDidMount() {
       this.props.setSidebarDisplayType('leads');
+      myThis = this;
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);
+
+      if (this.props.leadItem.values !== undefined) {
+        setTimeout(function() {
+          myThis.props.leadItem.values['Phone Number'] = '';
+          myThis.props.leadItem.values['Additional Phone Number'] = '';
+          myThis.props.leadItem.values['Postcode'] = '';
+          myThis.setState({ dummy: true });
+        });
+      }
+      $('.leadEditDetails input').val('');
+      $('.leadEditDetails select').val('');
+      $(
+        '.leadEditDetails input[required],.leadEditDetails select[required]',
+      ).each(function() {
+        if (
+          $(this).val() === undefined ||
+          $(this).val() === null ||
+          $(this).val() === ''
+        ) {
+          $(this)
+            .siblings('label')
+            .attr('required', 'required');
+        } else {
+          $(this)
+            .siblings('label')
+            .removeAttr('required');
+          $(this).css('border-color', '');
+        }
+      });
     },
     componentWillUnmount() {},
   }),

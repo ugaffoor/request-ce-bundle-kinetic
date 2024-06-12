@@ -43,12 +43,14 @@ export class Leads extends React.Component {
   }
 
   getData(allLeads) {
-    let data = allLeads.map(lead => {
-      return {
-        id: lead.id,
-        ...lead.values,
-      };
-    });
+    let data = allLeads
+      .filter(lead => lead.values['Status'] !== 'Converted')
+      .map(lead => {
+        return {
+          id: lead.id,
+          ...lead.values,
+        };
+      });
     return data.sort(this.compare);
   }
 
