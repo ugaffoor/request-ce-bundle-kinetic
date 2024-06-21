@@ -253,6 +253,7 @@ export function isBamboraFailedPayment(payment) {
       payment.paymentStatus === 'Invalid Card Number' ||
       payment.paymentStatus === 'Validation greater than maximum amount' ||
       payment.paymentStatus === 'BAD PROCESSING CODE' ||
+      payment.paymentStatus === 'PLEASE RETRY' ||
       payment.paymentStatus === 'EXPIRED CARD') &&
     payment.paymentSource !== 'Manual Membership Payment'
   );

@@ -2724,10 +2724,20 @@ export class BillingInfo extends Component {
                                 <td>
                                   {typeof this.props.billingInfo
                                     .nextBillingDate === 'string'
-                                    ? moment(
-                                        this.props.billingInfo.nextBillingDate,
-                                        'DD-MM-YYYY',
-                                      ).format('L')
+                                    ? getAttributeValue(
+                                        this.props.space,
+                                        'Billing Company',
+                                      ) === 'Bambora'
+                                      ? moment(
+                                          this.props.billingInfo
+                                            .nextBillingDate,
+                                          "YYYY-MM-DD'T'hh:mm:ss",
+                                        ).format('L')
+                                      : moment(
+                                          this.props.billingInfo
+                                            .nextBillingDate,
+                                          'DD-MM-YYYY',
+                                        ).format('L')
                                     : this.props.billingInfo.nextBillingDate.format(
                                         'L',
                                       )}
@@ -2764,9 +2774,12 @@ export class BillingInfo extends Component {
                             this.props.space,
                             'Billing Company',
                           ) === 'Bambora' &&
-                            this.props.billingInfo.cardOnFileID !== undefined &&
-                            this.props.billingInfo.cardOnFileID !== '' &&
-                            this.props.billingInfo.cardOnFileID !== null &&
+                            this.props.memberItem.values['POS Profile ID'] !==
+                              undefined &&
+                            this.props.memberItem.values['POS Profile ID'] !==
+                              '' &&
+                            this.props.memberItem.values['POS Profile ID'] !==
+                              null &&
                             !this.props.posCardsLoading &&
                             this.props.posCards.length > 0 && (
                               <tr>
@@ -2783,7 +2796,11 @@ export class BillingInfo extends Component {
                                       </tr>
                                       <tr>
                                         <td>
-                                          {this.props.billingInfo.cardOnFileID}
+                                          {
+                                            this.props.memberItem.values[
+                                              'POS Profile ID'
+                                            ]
+                                          }
                                         </td>
                                         <td>
                                           {this.props.posCards[0]['number']}
@@ -3479,7 +3496,11 @@ export const BillingContainer = compose(
           setSystemError: setSystemError,
           timezone: getTimezone(profile.timezone, space.defaultTimezone),
           useSubAccount:
-            memberItem.values['useSubAccount'] === 'YES' ? true : false,
+            memberItem.values['useSubAccount'] === 'YES' ||
+            (getAttributeValue(space, 'Billing Company') === 'Bambora' &&
+              getAttributeValue(space, 'PaySmart SubAccount') === 'YES')
+              ? true
+              : false,
         });
       } else {
         setPaymentHistoryLoaded({
@@ -3594,6 +3615,20 @@ export const BillingContainer = compose(
         addNotification: addNotification,
       });
     },
+    updateBamboraBillingInfo: ({
+      memberItem,
+      updateMember,
+      addNotification,
+      setSystemError,
+    }) => data => {
+      if (
+        memberItem.values['Billing Start Date'] !==
+        moment(data.nextBillingDate).format('YYYY-MM-DD')
+      ) {
+        //alert("Need to Update Member Billing Start Date");
+      }
+      console.log(data);
+    },
   }),
   lifecycle({
     constructor() {},
@@ -3626,39 +3661,60 @@ export const BillingContainer = compose(
           } else {
             this.props.clearPOSCards();
           }
-        } else {
-          if (
-            member.values['Billing Customer Id'] !== undefined &&
-            member.values['Billing Customer Id'] !== null &&
-            member.values['Billing Customer Id'] !== ''
-          ) {
-            this.props.fetchBillingInfo({
-              billingRef: member.values['Billing Customer Id'],
-              history: this.props.history,
-              myThis: this,
-              setBillingInfo: this.props.setBillingInfo,
-              addNotification: this.props.addNotification,
-              setSystemError: this.props.setSystemError,
-              useSubAccount:
-                member.values['useSubAccount'] === 'YES' ? true : false,
-            });
-          }
-          if (
-            member.values['Billing Setup Fee Id'] !== undefined &&
-            member.values['Billing Setup Fee Id'] !== null &&
-            member.values['Billing Setup Fee Id'] !== ''
-          ) {
-            this.props.fetchSetupBillingInfo({
-              billingRef: member.values['Billing Setup Fee Id'],
-              history: this.props.history,
-              myThis: this,
-              setBillingInfo: this.props.setSetupBillingInfo,
-              addNotification: this.props.addNotification,
-              setSystemError: this.props.setSystemError,
-              useSubAccount:
-                member.values['useSubAccount'] === 'YES' ? true : false,
-            });
-          }
+        }
+        if (
+          getAttributeValue(this.props.space, 'Billing Company') ===
+            'Bambora' &&
+          member.values['Billing Customer Reference'] !== undefined &&
+          member.values['Billing Customer Reference'] !== null &&
+          member.values['Billing Customer Reference'] !== ''
+        ) {
+          this.props.fetchBillingInfo({
+            billingRef: member.values['Billing Customer Reference'],
+            history: this.props.history,
+            myThis: this,
+            setBillingInfo: this.props.setBillingInfo,
+            updateBillingInfo:
+              getAttributeValue(this.props.space, 'Billing Company') ===
+              'Bambora'
+                ? this.props.updateBamboraBillingInfo
+                : undefined,
+            addNotification: this.props.addNotification,
+            setSystemError: this.props.setSystemError,
+            useSubAccount:
+              member.values['useSubAccount'] === 'YES' ? true : false,
+          });
+        } else if (
+          member.values['Billing Customer Id'] !== undefined &&
+          member.values['Billing Customer Id'] !== null &&
+          member.values['Billing Customer Id'] !== ''
+        ) {
+          this.props.fetchBillingInfo({
+            billingRef: member.values['Billing Customer Id'],
+            history: this.props.history,
+            myThis: this,
+            setBillingInfo: this.props.setBillingInfo,
+            addNotification: this.props.addNotification,
+            setSystemError: this.props.setSystemError,
+            useSubAccount:
+              member.values['useSubAccount'] === 'YES' ? true : false,
+          });
+        }
+        if (
+          member.values['Billing Setup Fee Id'] !== undefined &&
+          member.values['Billing Setup Fee Id'] !== null &&
+          member.values['Billing Setup Fee Id'] !== ''
+        ) {
+          this.props.fetchSetupBillingInfo({
+            billingRef: member.values['Billing Setup Fee Id'],
+            history: this.props.history,
+            myThis: this,
+            setBillingInfo: this.props.setSetupBillingInfo,
+            addNotification: this.props.addNotification,
+            setSystemError: this.props.setSystemError,
+            useSubAccount:
+              member.values['useSubAccount'] === 'YES' ? true : false,
+          });
         }
         this.props.fetchCurrentMember({
           id: this.props.match.params['id'],
@@ -3707,32 +3763,27 @@ export const BillingContainer = compose(
             '/kapps/gbmembers/Member/' + this.props.match.params['id'],
           );
         } else {
+          this.props.fetchBillingInfo({
+            billingRef: member.values['Billing Customer Id'],
+            history: this.props.history,
+            myThis: this,
+            setBillingInfo: this.props.setBillingInfo,
+            addNotification: this.props.addNotification,
+            setSystemError: this.props.setSystemError,
+          });
           if (
-            getAttributeValue(this.props.space, 'Billing Company') === 'Bambora'
+            member.values['Billing Setup Fee Id'] !== undefined &&
+            member.values['Billing Setup Fee Id'] !== null &&
+            member.values['Billing Setup Fee Id'] !== ''
           ) {
-          } else {
-            this.props.fetchBillingInfo({
-              billingRef: member.values['Billing Customer Id'],
+            this.props.fetchSetupBillingInfo({
+              billingRef: member.values['Billing Setup Fee Id'],
               history: this.props.history,
               myThis: this,
-              setBillingInfo: this.props.setBillingInfo,
+              setBillingInfo: this.props.setSetupBillingInfo,
               addNotification: this.props.addNotification,
               setSystemError: this.props.setSystemError,
             });
-            if (
-              member.values['Billing Setup Fee Id'] !== undefined &&
-              member.values['Billing Setup Fee Id'] !== null &&
-              member.values['Billing Setup Fee Id'] !== ''
-            ) {
-              this.props.fetchSetupBillingInfo({
-                billingRef: member.values['Billing Setup Fee Id'],
-                history: this.props.history,
-                myThis: this,
-                setBillingInfo: this.props.setSetupBillingInfo,
-                addNotification: this.props.addNotification,
-                setSystemError: this.props.setSystemError,
-              });
-            }
           }
           this.props.fetchCurrentMember({
             id: this.props.match.params['id'],

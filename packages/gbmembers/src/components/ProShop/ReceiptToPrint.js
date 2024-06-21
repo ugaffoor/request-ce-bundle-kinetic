@@ -216,7 +216,9 @@ export class ReceiptToPrint extends React.Component {
             </span>
           </span>
         )}
-        {this.state.salestax === 0 || this.state.salestax === undefined ? (
+        {this.state.salestax === 0 ||
+        this.state.salestax === '0' ||
+        this.state.salestax === undefined ? (
           <div />
         ) : (
           <span className="salestax">
@@ -238,7 +240,9 @@ export class ReceiptToPrint extends React.Component {
             </div>
           </span>
         )}
-        {this.state.salestax2 === '0' || this.state.salestax2 === undefined ? (
+        {this.state.salestax2 === 0 ||
+        this.state.salestax2 === '0' ||
+        this.state.salestax2 === undefined ? (
           <div />
         ) : (
           <span className="salestax">

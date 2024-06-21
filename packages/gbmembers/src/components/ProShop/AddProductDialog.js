@@ -43,7 +43,23 @@ export class AddProductDialog extends Component {
               values={this.state.values}
               created={function(props) {
                 console.log('Submission Update completed');
-                //                dialogThis.props.product.values=props.submission.values;
+                props.submission.stock = [];
+                if (
+                  props.submission.values['Image'] !== '' &&
+                  props.submission.values['Image'] !== null &&
+                  props.submission.values['Image'] !== undefined
+                ) {
+                  let serverName = props.submission.values[
+                    'Image'
+                  ][0].link.split('/')[1];
+                  props.submission.values[
+                    'Image URL'
+                  ] = props.submission.values['Image'][0].link.replace(
+                    '/' + serverName,
+                    '',
+                  );
+                }
+                dialogThis.props.products.push(props.submission);
                 dialogThis.handleClose();
               }}
               onLoaded={function() {

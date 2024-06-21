@@ -323,7 +323,7 @@ export function* fetchCurrentMember(action) {
       belts: appSettings.belts,
       user: fetchedUser,
     };
-    if (action.payload.billingService === 'Bambora') {
+    if (action.payload.billingService === 'XXBambora') {
       var nextStartDate = moment(
         submission.submission.values['Billing Start Date'],
         'YYYY-MM-DD',
@@ -928,6 +928,9 @@ export function* fetchBillingInfo(action) {
             'Get Billing Info',
           );
         } else {
+          if (action.payload.updateBillingInfo !== undefined) {
+            action.payload.updateBillingInfo(result.data.data);
+          }
           action.payload.setBillingInfo(result.data.data);
         }
       })

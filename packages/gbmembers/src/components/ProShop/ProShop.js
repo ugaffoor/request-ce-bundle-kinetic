@@ -181,6 +181,7 @@ class PayNow extends Component {
     this.processPayment = this.processPayment.bind(this);
     this.saveCardForLater = this.saveCardForLater.bind(this);
     this.updateProfileCard = this.updateProfileCard.bind(this);
+    this.completeCheckout = this.completeCheckout.bind(this);
 
     axios
       .get('https://api.ipify.org/')
@@ -2633,6 +2634,8 @@ class Checkout extends Component {
     var discount = 0;
     var salestax = 0;
     var salestax2 = 0;
+    var salestaxTotal = 0;
+    var salestax2Total = 0;
     var total = 0;
     var grossTotal = 0;
     posThis = this;
@@ -2651,9 +2654,18 @@ class Checkout extends Component {
     if (this.props.posCheckout['Checkout Items']['products'] !== undefined) {
       this.props.posCheckout['Checkout Items']['products'].forEach(
         (product, i) => {
-          subtotal =
-            subtotal +
+          var productCost =
             parseFloat(product['price'], 2) * parseInt(product['quantity']);
+          subtotal = subtotal + productCost;
+
+          if (salestax !== 0 && !product.excludeTaxes) {
+            var prodSalestax = parseFloat((productCost * salestax).toFixed(2));
+            salestaxTotal = salestaxTotal + prodSalestax;
+          }
+          if (salestax2 !== 0 && !product.excludeTaxes) {
+            var prodSalestax = parseFloat((productCost * salestax2).toFixed(2));
+            salestax2Total = salestax2Total + prodSalestax;
+          }
           total = subtotal;
         },
       );
@@ -2691,14 +2703,36 @@ class Checkout extends Component {
         total = subtotal - discount;
       }
     }
-    grossTotal = total;
-    if (salestax !== 0) {
-      salestax = parseFloat((grossTotal * salestax).toFixed(2));
-      total = total + salestax;
+
+    if (discount !== 0) {
+      salestaxTotal = 0;
+      salestax2Total = 0;
+
+      this.props.posCheckout['Checkout Items']['products'].forEach(
+        (product, i) => {
+          let productCost =
+            parseFloat(product['price'], 2) * parseInt(product['quantity']);
+          let prodRatio = productCost / subtotal;
+          let prodDiscount = discount * prodRatio;
+          productCost = productCost - prodDiscount;
+
+          if (salestax !== 0 && !product.excludeTaxes) {
+            var prodSalestax = parseFloat((productCost * salestax).toFixed(2));
+            salestaxTotal = salestaxTotal + prodSalestax;
+          }
+          if (salestax2 !== 0 && !product.excludeTaxes) {
+            var prodSalestax = parseFloat((productCost * salestax2).toFixed(2));
+            salestax2Total = salestax2Total + prodSalestax;
+          }
+        },
+      );
     }
-    if (salestax2 !== 0) {
-      salestax2 = parseFloat((grossTotal * salestax2).toFixed(2));
-      total = total + salestax2;
+    grossTotal = total;
+    if (salestaxTotal !== 0) {
+      total = total + salestaxTotal;
+    }
+    if (salestax2Total !== 0) {
+      total = total + salestax2Total;
     }
     total = parseFloat(total.toFixed(2));
 
@@ -2708,8 +2742,8 @@ class Checkout extends Component {
     this.state = {
       subtotal: subtotal,
       discount: discount,
-      salestax: salestax,
-      salestax2: salestax2,
+      salestax: salestaxTotal,
+      salestax2: salestax2Total,
       total: total,
       showAddDiscountDialog: false,
       showPayNow: false,
@@ -2732,6 +2766,8 @@ class Checkout extends Component {
     var discount = 0;
     var salestax = 0;
     var salestax2 = 0;
+    var salestaxTotal = 0;
+    var salestax2Total = 0;
     var total = 0;
     var grossTotal = 0;
 
@@ -2755,9 +2791,20 @@ class Checkout extends Component {
     if (nextProps.posCheckout['Checkout Items']['products'] !== undefined) {
       nextProps.posCheckout['Checkout Items']['products'].forEach(
         (product, i) => {
+          var productCost =
+            parseFloat(product['price'], 2) * parseInt(product['quantity']);
           subtotal =
             subtotal +
             parseFloat(product['price'], 2) * parseInt(product['quantity']);
+
+          if (salestax !== 0 && !product.excludeTaxes) {
+            var prodSalestax = parseFloat((productCost * salestax).toFixed(2));
+            salestaxTotal = salestaxTotal + prodSalestax;
+          }
+          if (salestax2 !== 0 && !product.excludeTaxes) {
+            var prodSalestax = parseFloat((productCost * salestax2).toFixed(2));
+            salestax2Total = salestax2Total + prodSalestax;
+          }
           total = subtotal;
         },
       );
@@ -2793,22 +2840,46 @@ class Checkout extends Component {
         total = subtotal - discount;
       }
     }
+
+    if (discount !== 0) {
+      salestaxTotal = 0;
+      salestax2Total = 0;
+
+      this.props.posCheckout['Checkout Items']['products'].forEach(
+        (product, i) => {
+          let productCost =
+            parseFloat(product['price'], 2) * parseInt(product['quantity']);
+          let prodRatio = productCost / subtotal;
+          let prodDiscount = discount * prodRatio;
+          productCost = productCost - prodDiscount;
+
+          if (salestax !== 0 && !product.excludeTaxes) {
+            var prodSalestax = parseFloat((productCost * salestax).toFixed(2));
+            salestaxTotal = salestaxTotal + prodSalestax;
+          }
+          if (salestax2 !== 0 && !product.excludeTaxes) {
+            var prodSalestax = parseFloat((productCost * salestax2).toFixed(2));
+            salestax2Total = salestax2Total + prodSalestax;
+          }
+        },
+      );
+    }
+
     grossTotal = total;
-    if (salestax !== 0) {
-      salestax = parseFloat((grossTotal * salestax).toFixed(2));
-      total = total + salestax;
+    if (salestaxTotal !== 0) {
+      total = total + salestaxTotal;
     }
-    if (salestax2 !== 0) {
-      salestax2 = parseFloat((grossTotal * salestax2).toFixed(2));
-      total = total + salestax2;
+    if (salestax2Total !== 0) {
+      total = total + salestax2Total;
     }
+
     total = parseFloat(total.toFixed(2));
 
     this.setState({
       subtotal: subtotal,
       discount: discount,
-      salestax: salestax,
-      salestax2: salestax2,
+      salestax: salestaxTotal,
+      salestax2: salestax2Total,
       total: total,
     });
   }
@@ -2945,9 +3016,15 @@ class Checkout extends Component {
                                       </span>,
                                     )
                                   ) {
-                                    console.log('sds');
+                                    console.log(
+                                      'Deleting:' +
+                                        $(e.target)
+                                          .parents('.lineItem')
+                                          .attr('product-id'),
+                                    );
 
                                     this.props.removeProduct(
+                                      this,
                                       cancelButton
                                         .parents('.lineItem')
                                         .attr('product-id'),
@@ -3020,6 +3097,7 @@ class Checkout extends Component {
                                     console.log('sds');
 
                                     this.props.removeProduct(
+                                      this,
                                       cancelButton
                                         .parents('.lineItem')
                                         .attr('product-id'),
@@ -3092,6 +3170,7 @@ class Checkout extends Component {
                                       console.log('sds');
 
                                       this.props.removeProduct(
+                                        this,
                                         cancelButton
                                           .parents('.lineItem')
                                           .attr('product-id'),
@@ -4071,6 +4150,7 @@ export class ProShop extends Component {
                   {this.state.showAddProductDialog && (
                     <AddProductDialogContainer
                       setShowAddProductDialog={this.setShowAddProductDialog}
+                      products={this.props.posProducts}
                       productType={this.props.productType}
                       locale={this.props.locale}
                       currency={this.props.currency}
@@ -4565,6 +4645,12 @@ export const ProShopContainer = compose(
               ? product.values['Discount']
               : product.values['Price'],
           quantity: quantity,
+          excludeTaxes:
+            product.values['Exclude Taxes'] !== undefined &&
+            product.values['Exclude Taxes'].length > 0 &&
+            product.values['Exclude Taxes'][0] === 'Exclude Taxes'
+              ? true
+              : false,
         };
       } else if (product.values['Product Type'] === 'Package') {
         var stockItems = [];
@@ -4586,11 +4672,18 @@ export const ProShopContainer = compose(
               ? product.values['Discount']
               : product.values['Price'],
           quantity: quantity,
+          excludeTaxes:
+            product.values['Exclude Taxes'] !== undefined &&
+            product.values['Exclude Taxes'].length > 0 &&
+            product.values['Exclude Taxes'][0] === 'Exclude Taxes'
+              ? true
+              : false,
           packageStock: stockItems,
         };
       } else {
         products[products.length] = {
           productType: product.values['Product Type'],
+          productID: product.id,
           name: product.values['Name'],
           price:
             product.values['Discount'] !== null ||
@@ -4598,6 +4691,12 @@ export const ProShopContainer = compose(
               ? product.values['Discount']
               : product.values['Price'],
           quantity: quantity,
+          excludeTaxes:
+            product.values['Exclude Taxes'] !== undefined &&
+            product.values['Exclude Taxes'].length > 0 &&
+            product.values['Exclude Taxes'][0] === 'Exclude Taxes'
+              ? true
+              : false,
         };
       }
       posCheckout['Checkout Items']['products'] = products;
@@ -4609,7 +4708,7 @@ export const ProShopContainer = compose(
       posCheckout,
       fetchPOSCheckout,
       profile,
-    }) => (product, stock, quantity) => {
+    }) => (myThis, product, stock, quantity) => {
       console.log('remove product from basket:' + posCheckout);
       var products =
         posCheckout['Checkout Items']['products'] !== undefined
@@ -4621,6 +4720,7 @@ export const ProShopContainer = compose(
       console.log(products);
       posCheckout['Checkout Items']['products'] = products;
       updatePOSCheckout(posCheckout);
+      myThis.setState({ dummy: true });
       fetchPOSCheckout({ username: profile.username });
     },
     addDiscount: ({

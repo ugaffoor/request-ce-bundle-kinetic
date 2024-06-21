@@ -1084,9 +1084,9 @@ export class MemberFinancialReport extends Component {
       //Set id value of members
       members.forEach((item, i) => {
         if (
-          (item.values['Member ID'] === member.memberId ||
-            item.values['Member ID'] === member.customerId) &&
-          item.values['Status'] === 'Active'
+          item.values['Member ID'] === member.memberId ||
+          item.values['Member ID'] === member.customerId ||
+          item.values['Billing Customer Id'] === member.customerId
         ) {
           member.id = item.id;
           member.status = item.values['Status'];
@@ -2523,7 +2523,7 @@ export class MemberFinancialReport extends Component {
       },
     ];
   }
-  downLoadDataAsCsv(allTransactionRecords) {
+  downLoadDataAsCsv(allTransactionRecords, forecastHolders) {
     let memberships = [];
     let selfSignUpRegistrationFees = [];
     let additionalServices = [];
@@ -2593,7 +2593,10 @@ export class MemberFinancialReport extends Component {
       );
     });
     csvData = csvData.concat(
-      '"Memberships Total","","","","","' + membershipTotal + '","' + '"\n',
+      '"Memberships Total","","","","","' +
+        membershipTotal.toFixed(2) +
+        '","' +
+        '"\n',
     );
 
     if (selfSignUpRegistrationFees.length > 0) {
@@ -2647,6 +2650,46 @@ export class MemberFinancialReport extends Component {
     csvData = csvData.concat(
       '"Additional Services Total","","","","","' +
         additionalServicesTotal +
+        '","' +
+        '"\n',
+    );
+
+    let forecastTotal = forecastHolders.value;
+    forecastHolders.members.forEach(forecast => {
+      csvData = csvData.concat(
+        '"' +
+          (forecast.member !== undefined
+            ? 'Membership Forecast'
+            : 'Additional Service Forecast') +
+          '","","' +
+          (forecast.member !== undefined
+            ? forecast.member.values['First Name'] +
+              ' ' +
+              forecast.member.values['Last Name']
+            : forecast.values !== undefined
+            ? forecast.values['Student First Name'] +
+              ' ' +
+              forecast.values['Student Last Name']
+            : forecast.firstName + ' ' + forecast.lastName) +
+          '","' +
+          (forecast.member !== undefined
+            ? forecast.billingId !== undefined
+              ? forecast.billingId
+              : forecast.customerId
+            : '') +
+          '","","' +
+          (forecast.member !== undefined
+            ? forecast.billingAmount
+            : forecast.values !== undefined
+            ? forecast.values['Fee'].toFixed(2)
+            : forecast.billingAmount) +
+          '","' +
+          '"\n',
+      );
+    });
+    csvData = csvData.concat(
+      '"Forecast Payments Total","","","","","' +
+        forecastTotal.toFixed(2) +
         '","' +
         '"\n',
     );
@@ -2711,7 +2754,7 @@ export class MemberFinancialReport extends Component {
       );
     });
     csvData = csvData.concat(
-      '"POS Total","","","","","' + posTotal + '","' + '"\n',
+      '"POS Total","","","","","' + posTotal.toFixed(2) + '","' + '"\n',
     );
 
     fileDownload(csvData, 'transactions.csv');
@@ -2731,6 +2774,7 @@ export class MemberFinancialReport extends Component {
             onClick={e =>
               this.downLoadDataAsCsv(
                 this.state.repMemberData.allTransactionRecords,
+                this.state.repMemberData.forecastHolders,
               )
             }
           >
