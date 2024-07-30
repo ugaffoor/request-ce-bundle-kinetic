@@ -65,7 +65,7 @@ export function* fetchMembers(action) {
             ',values[Opt-Out],values[Emergency Contact Name],values[Emergency Contact Phone],values[Emergency Contact Relationship]' +
             ',values[Medical Allergies],values[Ranking Program],values[Ranking Belt],values[Attendance Count]' +
             ',values[Additional Program 1],values[Additional Program 2],values[Non Paying]' +
-            ',values[Billing Customer Reference],values[Billing Parent Member]' +
+            ',values[Billing Customer Reference],values[Billing Parent Member],values[Lead Source]' +
             ',values[Billing User],values[Billing Customer Id],values[Billing Setup Fee Id],values[Billing Start Date]' +
             ',values[Billing Payment Period],values[Billing Payment Type],values[Billing Cash Term Start Date]' +
             ',values[Billing Cash Term End Date],values[Credit Card Expiry Year],values[Credit Card Expiry Month],values[Billing Members]' +
@@ -93,7 +93,6 @@ export function* fetchMembers(action) {
         ',values[Membership TAX 2],values[Membership TAX 3],values[Main Benefits]'+
         ',values[First Payment]'+
         ',values[Setup Fee]'+
-        ',values[Lead Source]'+
         ',values[Lead History],values[Member Changes],values[Billing Changes]'+
         ',values[Mother Covid Check],values[Father Covid Check]'])
 */
@@ -125,7 +124,7 @@ export function* fetchMembers(action) {
               ',values[Opt-Out],values[Emergency Contact Name],values[Emergency Contact Phone],values[Emergency Contact Relationship]' +
               ',values[Medical Allergies],values[Ranking Program],values[Ranking Belt],values[Attendance Count]' +
               ',values[Additional Program 1],values[Additional Program 2],values[Non Paying]' +
-              ',values[Billing Customer Reference],values[Billing Parent Member]' +
+              ',values[Billing Customer Reference],values[Billing Parent Member],values[Lead Source]' +
               ',values[Billing User],values[Billing Customer Id],values[Billing Setup Fee Id],values[Billing Start Date]' +
               ',values[Billing Payment Period],values[Billing Payment Type],values[Billing Cash Term Start Date]' +
               ',values[Billing Cash Term End Date],values[Credit Card Expiry Year],values[Credit Card Expiry Month],values[Billing Members]' +
@@ -601,7 +600,8 @@ export function* fetchCurrentMemberAdditional(action) {
     for (let i = 0; i < requestContent.length; i++) {
       if (
         requestContent[i].Form.includes('Registration') ||
-        requestContent[i].Form.includes('Sign Up Fee')
+        requestContent[i].Form.includes('Sign Up Fee') ||
+        requestContent[i].Form.includes('Member Self Sign Up')
       ) {
         let id = requestContent[i].url.split('/')[
           requestContent[i].url.split('/').length - 2

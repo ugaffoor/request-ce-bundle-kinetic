@@ -410,19 +410,33 @@ export const reducer = (state = State(), { type, payload }) => {
           attentionRequired = true;
         }
       }
-      return state
-        .set('membersLoading', false)
-        .set('allMembers', allMembers)
-        .set('users', users)
-        .set('memberInitialLoadComplete', true)
-        .set('memberLastFetchTime', moment().format('YYYY-MM-DDTHH:mm:ssZ'))
-        .set('membersNextPageToken', payload.nextPageToken)
-        .set('memberAttentionRequired', attentionRequired)
-        .set('memberNotesLoading', false)
-        .set(
-          'memberNotesLoaded',
-          memberNotesLoaded || payload.loadMemberNotes ? true : false,
-        );
+      if (payload.members.length > 0) {
+        return state
+          .set('membersLoading', false)
+          .set('allMembers', allMembers)
+          .set('users', users)
+          .set('memberInitialLoadComplete', true)
+          .set('memberLastFetchTime', moment().format('YYYY-MM-DDTHH:mm:ssZ'))
+          .set('membersNextPageToken', payload.nextPageToken)
+          .set('memberAttentionRequired', attentionRequired)
+          .set('memberNotesLoading', false)
+          .set(
+            'memberNotesLoaded',
+            memberNotesLoaded || payload.loadMemberNotes ? true : false,
+          );
+      } else {
+        return state
+          .set('membersLoading', false)
+          .set('memberInitialLoadComplete', true)
+          .set('memberLastFetchTime', moment().format('YYYY-MM-DDTHH:mm:ssZ'))
+          .set('membersNextPageToken', payload.nextPageToken)
+          .set('memberAttentionRequired', attentionRequired)
+          .set('memberNotesLoading', false)
+          .set(
+            'memberNotesLoaded',
+            memberNotesLoaded || payload.loadMemberNotes ? true : false,
+          );
+      }
     }
     case types.UPDATE_ALL_MEMBERS: {
       return state

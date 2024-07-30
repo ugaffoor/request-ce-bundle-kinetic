@@ -1394,43 +1394,43 @@ export const LeadDetailContainer = compose(
         calendarEvent.startDateTime = rfcStartDateTime;
         calendarEvent.endDateTime = rfcEndDateTime;
 
-        var leadIdx = journeyTriggers.findIndex(
-          element =>
-            element['values']['Record Type'] === 'Lead' &&
-            element['values']['Lead Condition'] === 'Intro Class Scheduled' &&
-            element['values']['Lead Condition Duration'] === '0',
-        );
-        if (newHistory.contactMethod === 'intro_class' && leadIdx !== -1) {
-          console.log('Creating Journey Event');
-          var trigger = journeyTriggers.get(leadIdx);
-          var values = {};
-          values['Status'] = 'New';
-          values['Trigger ID'] = trigger['id'];
-          values['Record Type'] = trigger['values']['Record Type'];
-          values['Trigger Date'] = moment().format('YYYY-MM-DD');
-          values['Event Source Date'] = startDateTime.format('YYYY-MM-DD');
-          values['Record ID'] = leadItem['id'];
-          values['Record Name'] =
-            leadItem['values']['First Name'] +
-            ' ' +
-            leadItem['values']['Last Name'];
-          values['Action'] = trigger['values']['Action'];
-          values['Contact Type'] = trigger['values']['Contact Type'];
-          values['Template Name'] = trigger['values']['Template Name'];
+        if (newHistory.contactMethod === 'intro_class') {
+          var triggers = journeyTriggers.filter(
+            trigger =>
+              trigger['values']['Record Type'] === 'Lead' &&
+              trigger['values']['Lead Condition'] === 'Intro Class Scheduled' &&
+              trigger['values']['Lead Condition Duration'] === '0',
+          );
+          triggers.forEach(trigger => {
+            console.log('Creating Journey Event');
+            var values = {};
+            values['Status'] = 'New';
+            values['Trigger ID'] = trigger['id'];
+            values['Record Type'] = trigger['values']['Record Type'];
+            values['Trigger Date'] = moment().format('YYYY-MM-DD');
+            values['Event Source Date'] = startDateTime.format('YYYY-MM-DD');
+            values['Record ID'] = leadItem['id'];
+            values['Record Name'] =
+              leadItem['values']['First Name'] +
+              ' ' +
+              leadItem['values']['Last Name'];
+            values['Action'] = trigger['values']['Action'];
+            values['Contact Type'] = trigger['values']['Contact Type'];
+            values['Template Name'] = trigger['values']['Template Name'];
 
-          createJourneyEvent({ values });
+            createJourneyEvent({ values });
+          });
         }
       }
       if (newHistory.contactMethod === 'noshow_class') {
-        var leadIdx = journeyTriggers.findIndex(
-          element =>
-            element['values']['Record Type'] === 'Lead' &&
-            element['values']['Lead Condition'] === 'Intro No Show' &&
-            element['values']['Lead Condition Duration'] === '0',
+        var triggers = journeyTriggers.filter(
+          trigger =>
+            trigger['values']['Record Type'] === 'Lead' &&
+            trigger['values']['Lead Condition'] === 'Intro No Show' &&
+            trigger['values']['Lead Condition Duration'] === '0',
         );
-        if (newHistory.contactMethod === 'noshow_class' && leadIdx !== -1) {
+        triggers.forEach(trigger => {
           console.log('Creating Journey Event');
-          var trigger = journeyTriggers.get(leadIdx);
           var values = {};
           values['Status'] = 'New';
           values['Trigger ID'] = trigger['id'];
@@ -1447,7 +1447,7 @@ export const LeadDetailContainer = compose(
           values['Template Name'] = trigger['values']['Template Name'];
 
           createJourneyEvent({ values });
-        }
+        });
       }
       /* Leave for now, need to allow selection of Trial Classes
       if (newHistory.contactMethod === 'intro_class') {

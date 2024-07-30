@@ -54,8 +54,15 @@ export class LeadsOriginChart extends Component {
   };
   constructor(props) {
     super(props);
-    let fromDate = this.props.fromDate;
-    let toDate = this.props.toDate;
+
+    moment.locale(
+      this.props.profile.preferredLocale === null
+        ? this.props.space.defaultLocale
+        : this.props.profile.preferredLocale,
+    );
+
+    let fromDate = moment(new Date(this.props.fromDate));
+    let toDate = moment(new Date(this.props.toDate));
     let leads = this.props.leadsByDate;
     this.state = {
       fromDate: fromDate,
@@ -84,12 +91,12 @@ export class LeadsOriginChart extends Component {
       });
     }
     if (
-      nextProps.fromDate !== this.state.fromDate ||
-      nextProps.toDate !== this.state.toDate
+      nextProps.fromDate !== this.props.fromDate ||
+      nextProps.toDate !== this.props.toDate
     ) {
       this.setState({
-        fromDate: nextProps.fromDate,
-        toDate: nextProps.toDate,
+        fromDate: moment(new Date(nextProps.fromDate)),
+        toDate: moment(new Date(nextProps.toDate)),
       });
       this.setState({
         data: this.getData(nextProps.leadsByDate),
@@ -347,7 +354,10 @@ export class LeadsOriginChart extends Component {
       <span>
         <div className="page-header leadsOrigin">
           <span className="header">
-            <span className="label">Leads Conversion</span>
+            <span className="label">
+              Leads Conversion {this.state.fromDate.format('L')} to{' '}
+              {this.state.toDate.format('L')}
+            </span>
           </span>
         </div>
         {this.state.showLeads && (

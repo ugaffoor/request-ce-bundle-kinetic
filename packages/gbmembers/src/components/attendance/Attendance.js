@@ -52,6 +52,10 @@ const mapStateToProps = state => ({
   additionalPrograms: state.member.app.additionalPrograms,
   classAttendances: state.member.attendance.classAttendances,
   fetchingClassAttendances: state.member.attendance.fetchingClassAttendances,
+  memberClassAttendancesByDate:
+    state.member.attendance.memberClassAttendancesByDate,
+  fetchingMemberClassAttendancesByDate:
+    state.member.attendance.fetchingMemberClassAttendancesByDate,
   attendanceAdded: state.member.attendance.attendanceAdded,
   classBookings: state.member.classes.classBookings,
   fetchingClassBookings: state.member.classes.fetchingClassBookings,
@@ -73,6 +77,8 @@ const mapDispatchToProps = {
   fetchClassAttendances: attendanceActions.fetchClassAttendances,
   fetchClassBookings: classActions.fetchClassBookings,
   fetchClassSchedules: classActions.fetchClassSchedules,
+  fetchMemberClassAttendancesByDate:
+    attendanceActions.fetchMemberClassAttendancesByDate,
   createAttendance: attendanceActions.createAttendance,
   deleteAttendance: attendanceActions.deleteAttendance,
   setClassAttendances: attendanceActions.setClassAttendances,
@@ -136,6 +142,14 @@ const SelfCheckinMode = (attendanceThis, attendanceAdded) => {
               attendanceThis.attendanceThis.props.attendanceAdded
             }
             fullscreenHandle={fullscreenHandle}
+            fetchingMemberClassAttendancesByDate={
+              attendanceThis.attendanceThis.props
+                .fetchingMemberClassAttendancesByDate
+            }
+            fetchMemberClassAttendancesByDate={
+              attendanceThis.attendanceThis.props
+                .fetchMemberClassAttendancesByDate
+            }
           />
         )}
       </FullScreen>
@@ -268,6 +282,9 @@ export class SelfCheckin extends Component {
     this.renderer = this.renderer.bind(this);
     this.cancelCheckinUndo = this.cancelCheckinUndo.bind(this);
     this.loadAttendanceData = this.loadAttendanceData.bind(this);
+    this.verifyMemberMaxClassesComplete = this.verifyMemberMaxClassesComplete.bind(
+      this,
+    );
 
     this.tick = this.tick.bind(this);
 
@@ -443,6 +460,7 @@ export class SelfCheckin extends Component {
           .format('L hh:mm A'),
         classTime: classTime,
         currentClassScheduleId: schedules.size > 0 ? schedules.get(0).id : '',
+        verifyMemberMaxClasses: false,
       });
     } else if (classDate.isSame(today)) {
       var classScheduleDateDay = moment().day() === 0 ? 7 : moment().day();
@@ -482,6 +500,7 @@ export class SelfCheckin extends Component {
               ? JSON.parse(schedules.get(0).allowedPrograms)
               : [],
           currentSchedules: schedules,
+          verifyMemberMaxClasses: false,
         });
       }
     }
@@ -499,12 +518,50 @@ export class SelfCheckin extends Component {
   }
   componentDidMount() {
     let timer = setInterval(this.tick, 60 * 1000 * 5, this); // refresh every 5 minutes
+    //    let timer = setInterval(this.tick, 20 * 1000, this); // refresh every 20 seconds
     this.setState({ timer: timer });
   }
   componentWillUnmount() {
     clearInterval(this.state.timer);
   }
 
+  verifyMemberMaxClassesComplete(memberItem, classes) {
+    if (parseInt(memberItem.values['Max Weekly Classes']) <= classes.length) {
+      this.setState({
+        memberItem: memberItem,
+        verifyMemberMaxClasses: false,
+        memberMaxClassesExceeded: true,
+      });
+    } else {
+      this.setState({
+        verifyMemberMaxClasses: false,
+        memberMaxClassesExceeded: false,
+        checkinClassMember: true,
+      });
+      let attendance = {
+        attendanceStatus: 'Full Class',
+      };
+      attendanceThis.props.checkinMember(
+        attendanceThis.props.createAttendance,
+        attendance,
+        attendanceThis.props.additionalPrograms,
+        memberItem,
+        this.state.className,
+        this.state.classDate,
+        this.state.classTime,
+        'Full Class',
+        attendanceThis.props.classAttendances,
+        attendanceThis.props.allMembers,
+        attendanceThis.props.updateMember,
+      );
+      attendanceThis.props.setClassAttendances(
+        attendanceThis.props.classAttendances,
+      );
+      setTimeout(function() {
+        $('#checkinMember').focus();
+      }, 500);
+    }
+  }
   getClassAllowedMembers() {
     let membersVals = [];
     attendanceThis.props.allMembers.forEach(member => {
@@ -652,27 +709,48 @@ export class SelfCheckin extends Component {
     }
 
     if (!memberAlreadyCheckedIn) {
-      let attendance = {
-        attendanceStatus: 'Full Class',
-      };
-      this.setState({
-        memberItem: memberItem,
-        checkinClassMember: true,
-      });
-      attendanceThis.props.checkinMember(
-        attendanceThis.props.createAttendance,
-        attendance,
-        attendanceThis.props.additionalPrograms,
-        memberItem,
-        this.state.className,
-        this.state.classDate,
-        this.state.classTime,
-        'Full Class',
-        attendanceThis.props.classAttendances,
-        attendanceThis.props.allMembers,
-        attendanceThis.props.updateMember,
-      );
-      console.log('selectedSelfCheckInMember');
+      if (
+        memberItem.values['Max Weekly Classes'] !== undefined &&
+        memberItem.values['Max Weekly Classes'] !== '' &&
+        parseInt(memberItem.values['Max Weekly Classes']) > 0
+      ) {
+        var now = moment();
+        var monday = now.clone().weekday(1);
+        var sunday = now.clone().weekday(7);
+        this.setState({
+          memberItem: memberItem,
+          verifyMemberMaxClasses: true,
+          memberMaxClassesExceeded: false,
+        });
+        attendanceThis.props.fetchMemberClassAttendancesByDate({
+          memberItem: memberItem,
+          fromDate: monday.format('YYYY-MM-DD'),
+          toDate: sunday.format('YYYY-MM-DD'),
+          verifyMemberMaxClassesComplete: this.verifyMemberMaxClassesComplete,
+        });
+      } else {
+        let attendance = {
+          attendanceStatus: 'Full Class',
+        };
+        this.setState({
+          memberItem: memberItem,
+          checkinClassMember: true,
+        });
+        attendanceThis.props.checkinMember(
+          attendanceThis.props.createAttendance,
+          attendance,
+          attendanceThis.props.additionalPrograms,
+          memberItem,
+          this.state.className,
+          this.state.classDate,
+          this.state.classTime,
+          'Full Class',
+          attendanceThis.props.classAttendances,
+          attendanceThis.props.allMembers,
+          attendanceThis.props.updateMember,
+        );
+        console.log('selectedSelfCheckInMember');
+      }
     }
   }
   selfCheckInMember() {
@@ -800,6 +878,7 @@ export class SelfCheckin extends Component {
       attendanceStatus: 'Full Class',
       attendanceAdded: undefined,
       checkinClassMember: true,
+      memberMaxClassesExceeded: false,
     });
     var memberItem;
     for (let i = 0; i < attendanceThis.props.allMembers.length; i++) {
@@ -832,16 +911,18 @@ export class SelfCheckin extends Component {
       }
     }
     var memberAlreadyCheckedIn = false;
-    var validClassessAllowed =
-      this.state.allowedPrograms.findIndex(
-        program => program.value === memberItem.values['Ranking Program'],
-      ) !== -1;
-
+    var validClassessAllowed = false;
+    if (memberItem !== undefined) {
+      validClassessAllowed =
+        this.state.allowedPrograms.findIndex(
+          program => program.value === memberItem.values['Ranking Program'],
+        ) !== -1;
+    }
     for (let i = 0; i < attendanceThis.props.classAttendances.length; i++) {
       if (
-        this.state.memberItem !== undefined &&
+        memberItem !== undefined &&
         attendanceThis.props.classAttendances[i].values['Member ID'] ===
-          this.state.memberItem.values['Member ID'] &&
+          memberItem.values['Member ID'] &&
         attendanceThis.props.classAttendances[i].values['Class Time'] ===
           this.state.classTime &&
         attendanceThis.props.classAttendances[i].values['Class'] ===
@@ -863,26 +944,51 @@ export class SelfCheckin extends Component {
       checkinClassMember: true,
       invalidMemberClass: undefined,
     });
-    if (!memberAlreadyCheckedIn && validClassessAllowed) {
-      attendanceThis.props.checkinMember(
-        attendanceThis.props.createAttendance,
-        attendance,
-        attendanceThis.props.additionalPrograms,
-        memberItem,
-        this.state.className,
-        this.state.classDate,
-        this.state.classTime,
-        'Full Class',
-        attendanceThis.props.classAttendances,
-        attendanceThis.props.allMembers,
-        attendanceThis.props.updateMember,
-      );
-      attendanceThis.props.setClassAttendances(
-        attendanceThis.props.classAttendances,
-      );
-      setTimeout(function() {
-        $('#checkinMember').focus();
-      }, 500);
+    if (
+      memberItem !== undefined &&
+      !memberAlreadyCheckedIn &&
+      validClassessAllowed
+    ) {
+      if (
+        memberItem.values['Max Weekly Classes'] !== undefined &&
+        memberItem.values['Max Weekly Classes'] !== '' &&
+        parseInt(memberItem.values['Max Weekly Classes']) > 0
+      ) {
+        var now = moment();
+        var monday = now.clone().weekday(1);
+        var sunday = now.clone().weekday(7);
+        this.setState({
+          memberItem: memberItem,
+          verifyMemberMaxClasses: true,
+          memberMaxClassesExceeded: false,
+        });
+        attendanceThis.props.fetchMemberClassAttendancesByDate({
+          memberItem: memberItem,
+          fromDate: monday.format('YYYY-MM-DD'),
+          toDate: sunday.format('YYYY-MM-DD'),
+          verifyMemberMaxClassesComplete: this.verifyMemberMaxClassesComplete,
+        });
+      } else {
+        attendanceThis.props.checkinMember(
+          attendanceThis.props.createAttendance,
+          attendance,
+          attendanceThis.props.additionalPrograms,
+          memberItem,
+          this.state.className,
+          this.state.classDate,
+          this.state.classTime,
+          'Full Class',
+          attendanceThis.props.classAttendances,
+          attendanceThis.props.allMembers,
+          attendanceThis.props.updateMember,
+        );
+        attendanceThis.props.setClassAttendances(
+          attendanceThis.props.classAttendances,
+        );
+        setTimeout(function() {
+          $('#checkinMember').focus();
+        }, 500);
+      }
     } else if (!validClassessAllowed) {
       this.setState({
         invalidMemberClass: true,
@@ -1185,6 +1291,26 @@ export class SelfCheckin extends Component {
                       Invalid Member Program - Not valid for current class
                       selection.{' '}
                     </h4>
+                  )}
+                {this.state.verifyMemberMaxClasses &&
+                  this.state.memberItem !== undefined && (
+                    <div className="verifyingMaxClasses">
+                      Verifying Max Classes limit for Member:
+                      {this.state.memberItem.values['First Name'] +
+                        ' ' +
+                        this.state.memberItem.values['Last Name']}
+                    </div>
+                  )}
+                {this.state.memberMaxClassesExceeded &&
+                  this.state.memberItem !== undefined && (
+                    <div className="exceededMaxClasses">
+                      You have already attended your week class limit of (
+                      {this.state.memberItem.values['Max Weekly Classes']}) for
+                      member{' '}
+                      {this.state.memberItem.values['First Name'] +
+                        ' ' +
+                        this.state.memberItem.values['Last Name']}
+                    </div>
                   )}
               </div>
               <div className="classBookingSection">
@@ -2078,6 +2204,12 @@ export class AttendanceDetail extends Component {
               space={this.props.space}
               attendanceThis={this}
               attendanceAdded={this.props.attendanceAdded}
+              fetchingMemberClassAttendancesByDate={
+                this.props.fetchingMemberClassAttendancesByDate
+              }
+              fetchMemberClassAttendancesByDate={
+                this.props.fetchMemberClassAttendancesByDate
+              }
             />
             <SelfCheckinSetPIN
               profile={this.props.profile}
@@ -2849,6 +2981,8 @@ export const AttendanceView = ({
   SUCCESSFULpaymentHistoryLoading,
   attendanceAdded,
   isKiosk,
+  fetchingMemberClassAttendancesByDate,
+  fetchMemberClassAttendancesByDate,
 }) => (
   <AttendanceDetail
     allMembers={allMembers}
@@ -2883,6 +3017,8 @@ export const AttendanceView = ({
     SUCCESSFULpaymentHistoryLoading={SUCCESSFULpaymentHistoryLoading}
     attendanceAdded={attendanceAdded}
     isKiosk={isKiosk}
+    fetchingMemberClassAttendancesByDate={fetchingMemberClassAttendancesByDate}
+    fetchMemberClassAttendancesByDate={fetchMemberClassAttendancesByDate}
   />
 );
 export const AttendanceContainer = compose(

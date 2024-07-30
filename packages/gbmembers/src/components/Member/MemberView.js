@@ -1678,7 +1678,10 @@ export const MemberView = ({
                 memberItem.values['Billing Payment Type'] !== 'Cash' && (
                   <div
                     style={{
-                      display: Utils.isMemberOf(profile, 'Billing')
+                      display: Utils.isMemberOf(
+                        profile,
+                        'Role::Program Managers',
+                      )
                         ? 'block'
                         : 'none',
                     }}
@@ -1705,7 +1708,10 @@ export const MemberView = ({
                 memberItem.values['Billing Payment Type'] !== 'Cash' && (
                   <div
                     style={{
-                      display: Utils.isMemberOf(profile, 'Billing')
+                      display: Utils.isMemberOf(
+                        profile,
+                        'Role::Program Managers',
+                      )
                         ? 'block'
                         : 'none',
                     }}

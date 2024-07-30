@@ -38,8 +38,15 @@ export class AttendancePerDay extends Component {
   };
   constructor(props) {
     super(props);
-    let fromDate = this.props.fromDate;
-    let toDate = this.props.toDate;
+
+    moment.locale(
+      this.props.profile.preferredLocale === null
+        ? this.props.space.defaultLocale
+        : this.props.profile.preferredLocale,
+    );
+
+    let fromDate = moment(new Date(this.props.fromDate));
+    let toDate = moment(new Date(this.props.toDate));
     let attendances = this.props.attendancesByDate;
     let data = this.getData(attendances, this.props.allMembers, false);
     this.attendanceOnClick = this.attendanceOnClick.bind(this);
@@ -127,12 +134,12 @@ export class AttendancePerDay extends Component {
       });
     }
     if (
-      nextProps.fromDate !== this.state.fromDate ||
-      nextProps.toDate !== this.state.toDate
+      nextProps.fromDate !== this.props.fromDate ||
+      nextProps.toDate !== this.props.toDate
     ) {
       this.setState({
-        fromDate: nextProps.fromDate,
-        toDate: nextProps.toDate,
+        fromDate: moment(new Date(nextProps.fromDate)),
+        toDate: moment(new Date(nextProps.toDate)),
       });
       this.props.fetchAttendancesByDate({
         fromDate: nextProps.fromDate,
@@ -624,7 +631,10 @@ export class AttendancePerDay extends Component {
       <span>
         <div className="page-header attendancePerDay">
           <span className="header">
-            <span className="label">Attendances</span>
+            <span className="label">
+              Attendances {this.state.fromDate.format('L')} to{' '}
+              {this.state.toDate.format('L')}
+            </span>
           </span>
         </div>
         {this.state.showAttendances && (

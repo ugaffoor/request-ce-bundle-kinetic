@@ -75,7 +75,41 @@ export function* fetchAttendancesByDate(action) {
 
     yield put(actions.setAttendancesByDate(allSubmissions));
   } catch (error) {
-    console.log('Error in fetchClassAttendances: ' + util.inspect(error));
+    console.log('Error in fetchAttendancesByDate: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
+export function* fetchMemberClassAttendancesByDate(action) {
+  try {
+    let dtFrom = moment(action.payload.fromDate);
+    let dtTo = moment(action.payload.toDate);
+    let allSubmissions = [];
+
+    const search = new CoreAPI.SubmissionSearch(true)
+      .eq('values[Member GUID]', action.payload.memberItem.id)
+      .gteq('values[Class Date]', dtFrom.format('YYYY-MM-DD'))
+      .lteq('values[Class Date]', dtTo.format('YYYY-MM-DD'))
+      .index('values[Member GUID],values[Class Date]')
+      .includes(['details', 'values'])
+      .limit(1000)
+      .build();
+
+    var { submissions } = yield call(CoreAPI.searchSubmissions, {
+      form: 'member-attendance',
+      datastore: true,
+      search,
+    });
+    allSubmissions = allSubmissions.concat(submissions);
+    if (action.payload.verifyMemberMaxClassesComplete)
+      action.payload.verifyMemberMaxClassesComplete(
+        action.payload.memberItem,
+        allSubmissions,
+      );
+    yield put(actions.setAttendancesByDate(allSubmissions));
+  } catch (error) {
+    console.log(
+      'Error in fetchMemberAttendancesByDate: ' + util.inspect(error),
+    );
     yield put(errorActions.setSystemError(error));
   }
 }
@@ -334,4 +368,8 @@ export function* watchAttendance() {
   yield takeEvery(types.FETCH_CLASS_ATTENDANCES, fetchClassAttendances);
   yield takeEvery(types.FETCH_MEMBER_ATTENDANCES, fetchMemberAttendances);
   yield takeEvery(types.FETCH_ATTENDANCES_BY_DATE, fetchAttendancesByDate);
+  yield takeEvery(
+    types.FETCH_MEMBER_CLASS_ATTENDANCES_BY_DATE,
+    fetchMemberClassAttendancesByDate,
+  );
 }

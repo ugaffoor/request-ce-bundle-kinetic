@@ -2307,6 +2307,20 @@ export class BillingInfo extends Component {
                   Renew with new details
                 </a>
               )}
+              {getAttributeValue(this.props.space, 'Billing Company') ===
+                'Stripe' && (
+                <a
+                  href={
+                    getAttributeValue(this.props.space, 'Web Server Url') +
+                    '/#/kapps/services/categories/stripe-registration/cash-member-registration?id=' +
+                    this.props.memberItem.id
+                  }
+                  className="btn btn-primary"
+                  style={{ marginLeft: '10px', color: 'white' }}
+                >
+                  Renew with new details
+                </a>
+              )}
             </div>
           )}
         {this.props.memberItem.values['Billing Payment Type'] === 'Cash' &&

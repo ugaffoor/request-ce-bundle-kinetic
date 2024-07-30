@@ -14,6 +14,14 @@ export const types = {
     'FETCH_ATTENDANCES_BY_DATE',
   ),
   SET_ATTENDANCES_BY_DATE: namespace('attendance', 'SET_ATTENDANCES_BY_DATE'),
+  FETCH_MEMBER_CLASS_ATTENDANCES_BY_DATE: namespace(
+    'attendance',
+    'FETCH_MEMBER_CLASS_ATTENDANCES_BY_DATE',
+  ),
+  SET_MEMBER_CLASS_ATTENDANCES_BY_DATE: namespace(
+    'attendance',
+    'SET_MEMBER_CLASS_ATTENDANCES_BY_DATE',
+  ),
 };
 
 export const actions = {
@@ -26,6 +34,12 @@ export const actions = {
   setMemberAttendances: withPayload(types.SET_MEMBER_ATTENDANCES),
   fetchAttendancesByDate: withPayload(types.FETCH_ATTENDANCES_BY_DATE),
   setAttendancesByDate: withPayload(types.SET_ATTENDANCES_BY_DATE),
+  fetchMemberClassAttendancesByDate: withPayload(
+    types.FETCH_MEMBER_CLASS_ATTENDANCES_BY_DATE,
+  ),
+  setMemberClassAttendancesByDate: withPayload(
+    types.SET_MEMBER_CLASS_ATTENDANCES_BY_DATE,
+  ),
 };
 
 export const State = Record({
@@ -37,6 +51,8 @@ export const State = Record({
   fetchingAttendancesByDate: true,
   attendancesByDate: List(),
   attendanceAdded: {},
+  memberClassAttendancesByDate: List(),
+  fetchingMemberClassAttendancesByDate: false,
 });
 
 export const reducer = (state = State(), { type, payload }) => {
@@ -83,6 +99,19 @@ export const reducer = (state = State(), { type, payload }) => {
       return state
         .set('fetchingAttendancesByDate', false)
         .set('attendancesByDate', attendances);
+    }
+    case types.FETCH_MEMBER_CLASS_ATTENDANCES_BY_DATE:
+      return state.set('fetchingMemberClassAttendancesByDate', true);
+    case types.SET_MEMBER_CLASS_ATTENDANCES_BY_DATE: {
+      var classAttendances = [];
+
+      for (var k = 0; k < payload.length; k++) {
+        classAttendances[classAttendances.length] = payload[k];
+      }
+
+      return state
+        .set('fetchingMemberClassAttendancesByDate', false)
+        .set('memberClassAttendancesByDate', classAttendances);
     }
     default:
       return state;

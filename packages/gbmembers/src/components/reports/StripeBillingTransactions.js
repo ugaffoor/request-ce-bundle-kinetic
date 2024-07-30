@@ -41,9 +41,16 @@ export class StripeBillingTransactions extends Component {
     this.getData = this.getData.bind(this);
     let data = [];
     let columns = this.getColumns();
+
+    this.getCashData = this.getCashData.bind(this);
+    let cashData = [];
+    let cashColumns = this.getColumns();
+
     this.state = {
       data,
       columns,
+      cashData,
+      cashColumns,
       week: '1',
       startDate: undefined,
       lastExportedEndDate: lastExportedEndDate,
@@ -84,8 +91,15 @@ export class StripeBillingTransactions extends Component {
         nextProps.customerRefunds,
       );
 
+      let cashData = this.getCashData(
+        nextProps.CHARGESpaymentHistory,
+        nextProps.posOrders,
+        nextProps.customerRefunds,
+      );
+
       this.setState({
         data: data,
+        cashData: cashData,
       });
     }
   }
@@ -216,30 +230,6 @@ export class StripeBillingTransactions extends Component {
       }
     });
 
-    posOrders.forEach((order, idx) => {
-      if (order['values']['Payment Type'] === 'cash') {
-        let date = this.getDate(order['values']['Date time processed']);
-        let amount = parseFloat(order['values']['Total']);
-        let refund = parseFloat(
-          order['values']['Refund'] !== undefined
-            ? order['values']['Refund']
-            : 0,
-        );
-        amount = amount - refund;
-        let item = dataMap.get(date);
-        if (item === undefined) {
-          dataMap.set(date, { cash: amount });
-        } else {
-          if (item.cash !== undefined) {
-            item.cash = item.cash + amount;
-          } else {
-            item.cash = amount;
-          }
-          dataMap.set(date, item);
-        }
-      }
-    });
-
     let data = [];
     dataMap.forEach((value, key) => {
       let membershipRow = [];
@@ -266,14 +256,6 @@ export class StripeBillingTransactions extends Component {
           value: value.fees,
         });
       }
-      let cashRow = [];
-      if (value.cash !== undefined) {
-        cashRow.push({
-          date: key,
-          description: 'Total value of Cash',
-          value: value.cash,
-        });
-      }
       if (membershipRow.length > 0) {
         data.push(membershipRow.flatten()[0]);
       }
@@ -282,6 +264,58 @@ export class StripeBillingTransactions extends Component {
       }
       if (feesRow.length > 0) {
         data.push(feesRow.flatten()[0]);
+      }
+    });
+
+    data = data.sort((a, b) => {
+      let aDate = moment(a.date, 'YYYY-MM-DD');
+      let bDate = moment(b.date, 'YYYY-MM-DD');
+      if (aDate.isBefore(bDate)) {
+        return -1;
+      } else if (aDate.isAfter(bDate)) {
+        return 1;
+      }
+      return 0;
+    });
+    return data;
+  }
+
+  getCashData(posPaymentHistory, posOrders, customerRefunds) {
+    let dataMap = new Map();
+
+    posOrders.forEach((order, idx) => {
+      if (order['values']['Payment Type'] === 'cash') {
+        let date = this.getDate(order['values']['Date time processed']);
+        let amount = parseFloat(order['values']['Total']);
+        let refund = parseFloat(
+          order['values']['Refund'] !== undefined
+            ? order['values']['Refund']
+            : 0,
+        );
+        amount = amount - refund;
+        let item = dataMap.get(date);
+        if (item === undefined) {
+          dataMap.set(date, { cash: amount });
+        } else {
+          if (item.cash !== undefined) {
+            item.cash = item.cash + amount;
+          } else {
+            item.cash = amount;
+          }
+          dataMap.set(date, item);
+        }
+      }
+    });
+
+    let data = [];
+    dataMap.forEach((value, key) => {
+      let cashRow = [];
+      if (value.cash !== undefined) {
+        cashRow.push({
+          date: key,
+          description: 'Total value of Cash',
+          value: value.cash,
+        });
       }
       if (cashRow.length > 0) {
         data.push(cashRow.flatten()[0]);
@@ -358,8 +392,40 @@ export class StripeBillingTransactions extends Component {
     }
     return download;
   }
+
+  getDownloadCashData() {
+    let data = this.getCashData(
+      this.props.CHARGESpaymentHistory,
+      this.props.posOrders,
+      this.props.customerRefunds,
+    );
+
+    let download = [['Date', 'Description', 'Value']];
+    let lastDate;
+    data.forEach(element => {
+      let row = [];
+      row.push(
+        moment(element['date']).format('L'),
+        element['description'],
+        parseFloat(element['value']).toFixed(2),
+      );
+      download.push(row);
+      if (
+        lastDate === undefined ||
+        lastDate.isBefore(moment(element['date']), 'day')
+      ) {
+        lastDate = moment(element['date']);
+      }
+    });
+
+    if (lastDate !== undefined) {
+      this.setCookie('lastExportedEndDate', lastDate.format('YYYY-MM-DD'), 365);
+    }
+    return download;
+  }
+
   render() {
-    const { data, columns } = this.state;
+    const { data, columns, cashData, cashColumns } = this.state;
     return (
       <span>
         <hr />
@@ -431,6 +497,28 @@ export class StripeBillingTransactions extends Component {
           showPagination={false}
         />
         <br />
+        <ReactToPrint
+          trigger={() => (
+            <SVGInline svg={printerIcon} className="icon tablePrint" />
+          )}
+          content={() => this.tableCashComponentRef}
+        />
+        <CSVLink
+          className="downloadbtn"
+          filename={moment().format('L') + '-cash-billing-transactions.csv'}
+          data={this.getDownloadCashData()}
+        >
+          <SVGInline svg={downloadIcon} className="icon tableDownload" />
+        </CSVLink>
+        <ReactTable
+          ref={el => (this.tableCashComponentRef = el)}
+          columns={cashColumns}
+          data={cashData}
+          className="-striped -highlight"
+          defaultPageSize={cashData.length > 0 ? cashData.length : 2}
+          pageSize={cashData.length > 0 ? cashData.length : 2}
+          showPagination={false}
+        />
       </span>
     );
   }

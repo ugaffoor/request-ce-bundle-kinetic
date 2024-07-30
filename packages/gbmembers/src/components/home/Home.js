@@ -233,6 +233,8 @@ export const HomeView = ({
               fetchingClassSchedules={fetchingClassSchedules}
               allMembers={allMembers}
               space={space}
+              locale={locale}
+              profile={profile}
             />
           </div>
         </div>
@@ -247,6 +249,9 @@ export const HomeView = ({
               leadsByDate={leadsByDate}
               fetchLeadsByDate={fetchLeadsByDate}
               leadsByDateLoading={leadsByDateLoading}
+              space={space}
+              locale={locale}
+              profile={profile}
             />
             {/*      <KidsChart allMembers={allMembers} /> */}
           </div>
@@ -304,7 +309,7 @@ export const HomeContainer = compose(
     };
   }),
   withState('isAssigning', 'setIsAssigning', false),
-  withState('fromDate', 'setFromDate', moment().subtract(7, 'days')),
+  withState('fromDate', 'setFromDate', moment().subtract(6, 'days')),
   withState('toDate', 'setToDate', moment()),
   withHandlers({
     getOverdues: ({

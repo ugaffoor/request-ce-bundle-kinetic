@@ -37,6 +37,7 @@ export class Requests extends Component {
     return cellInfo.original['Form'] === 'Bambora Member Registration' ||
       cellInfo.original['Form'] === 'PaySmart Member Registration' ||
       cellInfo.original['Form'] === 'Cash Member Registration' ||
+      cellInfo.original['Form'] === 'Member Self Sign Up' ||
       cellInfo.original['Form'] === 'Stripe Member Registration' ? (
       <span
         className="registrationEmail"

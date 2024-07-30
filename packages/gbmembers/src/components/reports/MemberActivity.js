@@ -44,6 +44,7 @@ export class MemberActivityReport extends Component {
     this.activityData = this.getGridData(this.props.members);
     this.handleCellClick = this.handleCellClick.bind(this);
     this.handleEventsCellClick = this.handleEventsCellClick.bind(this);
+    this.getLeadSources = this.getLeadSources.bind(this);
 
     let currency = getAttributeValue(this.props.space, 'Currency');
     if (currency === undefined) {
@@ -99,6 +100,7 @@ export class MemberActivityReport extends Component {
       { title: 'Medical Allergies', field: 'medicalAllergies' },
       { title: 'Additional Program 1', field: 'additionalProgram1' },
       { title: 'Additional Program 2', field: 'additionalProgram2' },
+      { title: 'Max Weekly Classes', field: 'maxWeeklyClasses' },
       { title: 'Date Joined', field: 'dateJoined' },
       { title: 'Days Since Joined', field: 'daysSinceJoined' },
       { title: 'Last Attendance Date', field: 'lastAttendanceDate' },
@@ -106,6 +108,7 @@ export class MemberActivityReport extends Component {
       { title: 'Cash Term Start Date', field: 'cashStartDate' },
       { title: 'Cash Term End Date', field: 'cashEndDate' },
       { title: 'Billing User', field: 'billingUser' },
+      { title: 'Lead Source', field: 'leadSource' },
       getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES' && {
         title: 'Use Sub Account',
         field: 'useSubAccount',
@@ -241,6 +244,7 @@ export class MemberActivityReport extends Component {
       { title: 'Medical Allergies', value: 'medicalAllergies' },
       { label: 'Additional Program 1', value: 'additionalProgram1' },
       { label: 'Additional Program 2', value: 'additionalProgram2' },
+      { label: 'Max Weekly Classes', value: 'maxWeeklyClasses' },
       { label: 'Date Joined', value: 'dateJoined' },
       { label: 'Days Since Joined', value: 'daysSinceJoined' },
       { label: 'Last Attendance Date', value: 'lastAttendanceDate' },
@@ -248,6 +252,7 @@ export class MemberActivityReport extends Component {
       { label: 'Cash Term Start Date', value: 'cashStartDate' },
       { label: 'Cash Term End Date', value: 'cashEndDate' },
       { label: 'Billing User', value: 'billingUser' },
+      { label: 'Lead Source', value: 'leadSource' },
       { label: 'Biller Migrated', value: 'billerMigrated' },
       { label: 'Biller ID', value: 'billerId' },
       { label: 'Non Paying', value: 'nonPaying' },
@@ -308,6 +313,8 @@ export class MemberActivityReport extends Component {
           { label: 'Medical Allergies', value: 'medicalAllergies' },
           { label: 'Additional Program 1', value: 'additionalProgram1' },
           { label: 'Additional Program 2', value: 'additionalProgram2' },
+          { label: 'Max Weekly Classes', value: 'maxWeeklyClasses' },
+          { label: 'Lead Source', value: 'leadSource' },
           { label: 'Notes', value: 'history' },
           { label: 'Events', value: 'events' },
           { label: 'Emails Sent', value: 'emailsSent' },
@@ -393,6 +400,8 @@ export class MemberActivityReport extends Component {
       { label: 'Medical Allergies', value: 'medicalAllergies' },
       { label: 'Additional Program 1', value: 'additionalProgram1' },
       { label: 'Additional Program 2', value: 'additionalProgram2' },
+      { label: 'Max Weekly Classes', value: 'maxWeeklyClasses' },
+      { label: 'Lead Source', value: 'leadSource' },
       { label: 'Billing User', value: 'billingUser' },
       { label: 'Biller Migrated', value: 'billerMigrated' },
       { label: 'Biller ID', value: 'billerId' },
@@ -453,6 +462,7 @@ export class MemberActivityReport extends Component {
       additionalProgram2: this.props.additionalPrograms.map(
         program => program.program,
       ),
+      leadSource: this.getLeadSources(),
       belt: [...new Set(this.props.belts.map(belt => belt.belt))],
     };
 
@@ -489,7 +499,21 @@ export class MemberActivityReport extends Component {
       });
     }
   }
+  getLeadSources = () => {
+    var leadSources = [];
 
+    this.props.members.forEach(function(member) {
+      if (
+        member.values['Lead Source'] !== undefined &&
+        member.values['Lead Source'] !== ''
+      ) {
+        if (!leadSources.includes(member.values['Lead Source'])) {
+          leadSources.push(member.values['Lead Source']);
+        }
+      }
+    });
+    return leadSources;
+  };
   averageCostCalc = (values, data, calcParams) => {
     //values - array of column values
     //data - all table data
@@ -1193,6 +1217,8 @@ export class MemberActivityReport extends Component {
         medicalAllergies: member.values['Medical Allergies'],
         additionalProgram1: member.values['Additional Program 1'],
         additionalProgram2: member.values['Additional Program 2'],
+        maxWeeklyClasses: member.values['Max Weekly Classes'],
+        leadSource: member.values['Lead Source'],
         dateJoined:
           member.values['Date Joined'] !== undefined
             ? moment(member.values['Date Joined']).format('L')

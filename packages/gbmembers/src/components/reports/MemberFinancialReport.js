@@ -169,19 +169,39 @@ export class MemberFinancialReport extends Component {
 
         // only keep period payments
         if (
-          (moment(item.debitDate, 'YYYY-MM-DD HH:mm:ss').isBetween(
-            this.state.repFromDate,
-            this.state.repToDate,
-          ) ||
-            moment(item.debitDate, 'YYYY-MM-DD HH:mm:ss').isSame(
-              this.state.repFromDate,
-            ) ||
-            moment(item.debitDate, 'YYYY-MM-DD HH:mm:ss').isSame(
-              this.state.repToDate,
-            )) &&
-          !isRefunded
+          getAttributeValue(this.props.space, 'Billing Company') === 'Bambora'
         ) {
-          this.paymentHistory[this.paymentHistory.length] = item;
+          if (
+            (moment(item.debitDate, "YYYY-MM-DD'T'HH:mm:ssZ").isBetween(
+              this.state.repFromDate,
+              this.state.repToDate,
+            ) ||
+              moment(item.debitDate, "YYYY-MM-DD'T'HH:mm:ssZ").isSame(
+                this.state.repFromDate,
+              ) ||
+              moment(item.debitDate, "YYYY-MM-DD'T'HH:mm:ssZ").isSame(
+                this.state.repToDate,
+              )) &&
+            !isRefunded
+          ) {
+            this.paymentHistory[this.paymentHistory.length] = item;
+          }
+        } else {
+          if (
+            (moment(item.debitDate, 'YYYY-MM-DD HH:mm:ss').isBetween(
+              this.state.repFromDate,
+              this.state.repToDate,
+            ) ||
+              moment(item.debitDate, 'YYYY-MM-DD HH:mm:ss').isSame(
+                this.state.repFromDate,
+              ) ||
+              moment(item.debitDate, 'YYYY-MM-DD HH:mm:ss').isSame(
+                this.state.repToDate,
+              )) &&
+            !isRefunded
+          ) {
+            this.paymentHistory[this.paymentHistory.length] = item;
+          }
         }
       });
       this.paymentHistory = this.paymentHistory.sort(function(a, b) {
@@ -462,8 +482,8 @@ export class MemberFinancialReport extends Component {
       /*      timezoneOffset: getTimezoneOff(), */
     });
     this.props.fetchCashPaymentsByDate({
-      dateFrom: this.state.repFromDate.format('YYYY-MM-DD'),
-      dateTo: this.state.repToDate.format('YYYY-MM-DD'),
+      dateFrom: this.state.repFromDate.format('YYYY-MM-DD') + 'T00:00:00.000Z',
+      dateTo: this.state.repToDate.format('YYYY-MM-DD') + 'T23:59:59.000Z',
     });
     var servicesFromDate = moment(this.state.repFromDate);
     this.props.fetchServicesByDate({
@@ -624,8 +644,8 @@ export class MemberFinancialReport extends Component {
       /*     timezoneOffset: getTimezoneOff(),*/
     });
     this.props.fetchCashPaymentsByDate({
-      dateFrom: fromDate.format('YYYY-MM-DD'),
-      dateTo: toDate.format('YYYY-MM-DD'),
+      dateFrom: fromDate.format('YYYY-MM-DD') + 'T00:00:00.000Z',
+      dateTo: toDate.format('YYYY-MM-DD') + 'T23:59:59.000Z',
     });
     var servicesFromDate = moment(fromDate);
     this.props.fetchServicesByDate({
@@ -943,12 +963,17 @@ export class MemberFinancialReport extends Component {
         if (idx !== -1) {
           order = posOrders[idx];
           idx = members.findIndex(
-            item => item.id === order.values['Person ID'],
+            item =>
+              item.id === order.values['Person ID'] ||
+              item.values['Lead Submission ID'] === order.values['Person ID'],
           );
           if (idx !== -1) {
             if (
               posPeople.findIndex(
-                item => item.id === order.values['Person ID'],
+                item =>
+                  item.id === order.values['Person ID'] ||
+                  item.values['Lead Submission ID'] ===
+                    order.values['Person ID'],
               ) === -1
             ) {
               posPeople[posPeople.length] = members[idx];
@@ -983,25 +1008,25 @@ export class MemberFinancialReport extends Component {
                 fee: payment.paymentAmount,
               };
               accountHoldersValue += payment.paymentAmount;
+              allTransactionRecords.push({
+                type: 'Orphaned',
+                date: payment.debitDate,
+                name: 'Unknown',
+                billingID: '',
+                paymentID: payment.paymentID,
+                payment: Number(payment.paymentAmount).toFixed(2),
+              });
+              console.log(
+                'ORPHANED,' +
+                  Number(payment.paymentAmount).toFixed(2) +
+                  ',' +
+                  payment.paymentID +
+                  ',' +
+                  payment.debitDate +
+                  ',' +
+                  accountHoldersValue,
+              );
             }
-            allTransactionRecords.push({
-              type: 'Orphaned',
-              date: payment.debitDate,
-              name: 'Unknown',
-              billingID: '',
-              paymentID: payment.paymentID,
-              payment: Number(payment.paymentAmount).toFixed(2),
-            });
-            console.log(
-              'ORPHANED,' +
-                Number(payment.paymentAmount).toFixed(2) +
-                ',' +
-                payment.paymentID +
-                ',' +
-                payment.debitDate +
-                ',' +
-                accountHoldersValue,
-            );
           }
         }
         /*      if (payment.paymentStatus === 'APPROVAL') {
@@ -1334,11 +1359,18 @@ export class MemberFinancialReport extends Component {
     let salesTaxValue = 0;
     posOrders.forEach(pos => {
       //      if (getAttributeValue(this.props.space, 'POS System') === 'Square') {
-      var idx = members.findIndex(item => item.id === pos.values['Person ID']);
+      var idx = members.findIndex(
+        item =>
+          item.id === pos.values['Person ID'] ||
+          item.values['Lead Submission ID'] === pos.values['Person ID'],
+      );
       if (idx !== -1) {
         if (
-          posPeople.findIndex(item => item.id === pos.values['Person ID']) ===
-          -1
+          posPeople.findIndex(
+            item =>
+              item.id === pos.values['Person ID'] ||
+              item.values['Lead Submission ID'] === pos.values['Person ID'],
+          ) === -1
         ) {
           posPeople[posPeople.length] = members[idx];
         }
