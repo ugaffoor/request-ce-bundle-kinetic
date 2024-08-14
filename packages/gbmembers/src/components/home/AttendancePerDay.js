@@ -6,6 +6,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
+  ReferenceArea,
   Tooltip,
   Legend,
   LabelList,
@@ -90,6 +91,10 @@ export class AttendancePerDay extends Component {
 
     this.state = {
       data: data,
+      refAreaLeft: '',
+      refAreaRight: '',
+      left: 'dataMin',
+      right: 'dataMax',
       dateRange: 'this_week',
       fromDate: fromDate,
       toDate: toDate,
@@ -102,7 +107,7 @@ export class AttendancePerDay extends Component {
     };
   }
   UNSAFE_componentWillReceiveProps(nextProps) {
-    if (nextProps.classSchedules) {
+    if (nextProps.classSchedules !== this.props.classSchedules) {
       this.classSchedules = nextProps.classSchedules;
       var isBarraFIT = false;
       this.classSchedules.forEach((schedule, i) => {
@@ -115,7 +120,7 @@ export class AttendancePerDay extends Component {
         isBarraFIT: isBarraFIT,
       });
     }
-    if (nextProps.attendancesByDate) {
+    if (nextProps.attendancesByDate !== this.props.attendancesByDate) {
       this.setState({
         data: this.getData(
           nextProps.attendancesByDate,
@@ -395,7 +400,7 @@ export class AttendancePerDay extends Component {
   }
 
   toolTipLabelFormatter(label) {
-    return 'Date: ' + label;
+    return 'Date: ' + moment(label).format('L');
   }
   attendanceOnClick(e) {
     console.log(e.attendances.length);
@@ -621,8 +626,49 @@ export class AttendancePerDay extends Component {
       },
     ];
   };
-  render() {
+  zoom() {
+    let { refAreaLeft, refAreaRight } = this.state;
     const { data } = this.state;
+
+    if (refAreaLeft === refAreaRight || refAreaRight === '') {
+      this.setState(() => ({
+        refAreaLeft: '',
+        refAreaRight: '',
+      }));
+      return;
+    }
+
+    // xAxis domain
+    if (refAreaLeft > refAreaRight)
+      [refAreaLeft, refAreaRight] = [refAreaRight, refAreaLeft];
+
+    this.setState(() => ({
+      refAreaLeft: '',
+      refAreaRight: '',
+      data: data.slice(
+        data.findIndex(item => item['date'] === refAreaLeft),
+        data.findIndex(item => item['date'] === refAreaRight) + 1,
+      ),
+      left: refAreaLeft,
+      right: refAreaRight,
+    }));
+  }
+  zoomOut() {
+    const { data } = this.state;
+    this.setState(() => ({
+      data: this.getData(
+        this.props.attendancesByDate,
+        this.props.allMembers,
+        this.state.isBarraFIT,
+      ),
+      refAreaLeft: '',
+      refAreaRight: '',
+      left: 'dataMin',
+      right: 'dataMax',
+    }));
+  }
+  render() {
+    const { data, refAreaLeft, refAreaRight, left, right } = this.state;
     return this.props.fetchingAttendancesByDate ? (
       <div className="attendancesLoading">
         <p>Loading Attendances ...</p>
@@ -635,6 +681,13 @@ export class AttendancePerDay extends Component {
               Attendances {this.state.fromDate.format('L')} to{' '}
               {this.state.toDate.format('L')}
             </span>
+            <button
+              type="button"
+              className="btn zoom"
+              onClick={this.zoomOut.bind(this)}
+            >
+              Zoom Out
+            </button>
           </span>
         </div>
         {this.state.showAttendances && (
@@ -709,16 +762,28 @@ export class AttendancePerDay extends Component {
                 height={370}
                 data={data}
                 margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                onMouseDown={e => this.setState({ refAreaLeft: e.activeLabel })}
+                onMouseMove={e =>
+                  this.state.refAreaLeft &&
+                  this.setState({ refAreaRight: e.activeLabel })
+                }
+                // eslint-disable-next-line react/jsx-no-bind
+                onMouseUp={this.zoom.bind(this)}
               >
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" tickFormatter={this.xAxisTickFormatter} />
-                <YAxis tickFormatter={this.yAxisTickFormatter} />
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={this.xAxisTickFormatter}
+                  domain={[left, right]}
+                />
+                <YAxis yAxisId="1" tickFormatter={this.yAxisTickFormatter} />
                 <Tooltip
                   labelFormatter={this.toolTipLabelFormatter}
                   formatter={this.toolTipFormatter}
                 />
                 <Legend content={this.renderCusomizedLegend} />
                 <Bar
+                  yAxisId="1"
                   dataKey={this.state.isBarraFIT ? 'jiujitsu' : 'adults'}
                   fill="#0070c0"
                   style={{ cursor: 'pointer' }}
@@ -727,6 +792,7 @@ export class AttendancePerDay extends Component {
                   <LabelList content={this.renderAttendancesCustomizedLabel} />
                 </Bar>
                 <Bar
+                  yAxisId="1"
                   dataKey={this.state.isBarraFIT ? 'barraFIT' : 'kids'}
                   fill="#92d050"
                   style={{ cursor: 'pointer' }}
@@ -734,6 +800,14 @@ export class AttendancePerDay extends Component {
                 >
                   <LabelList content={this.renderAttendancesCustomizedLabel} />
                 </Bar>
+                {refAreaLeft && refAreaRight ? (
+                  <ReferenceArea
+                    yAxisId="1"
+                    x1={refAreaLeft}
+                    x2={refAreaRight}
+                    strokeOpacity={0.3}
+                  />
+                ) : null}
               </BarChart>
             </ResponsiveContainer>
           </div>

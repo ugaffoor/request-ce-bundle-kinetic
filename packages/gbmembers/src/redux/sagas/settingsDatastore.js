@@ -432,6 +432,32 @@ export function* deleteTrialBooking(action) {
     yield put(errorActions.setSystemError(error));
   }
 }
+export function* updateSpaceAttribute(action) {
+  try {
+    const { submission, error, statusCode } = yield call(
+      CoreAPI.createSubmission,
+      {
+        formSlug: 'space-attribute-update',
+        values: action.payload.values,
+        datastore: true,
+      },
+    );
+    if (statusCode === undefined) {
+      console.log('create record for space-attribute-update');
+      yield put(
+        errorActions.addSuccess(
+          'Attribute value updated',
+          action.payload.values['Attribute Name'] + ' updated',
+        ),
+      );
+    } else {
+      yield put(errorActions.addError('Attribute value updated', error));
+    }
+  } catch (error) {
+    console.log('Error in updateSpaceAttribute: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
 export function* watchSettingsDatastore() {
   console.log('watchSettingsDatastore');
   yield takeEvery(types.FETCH_CALL_SCRIPTS, fetchCallScripts);
@@ -445,4 +471,5 @@ export function* watchSettingsDatastore() {
   yield takeEvery(types.DELETE_JOURNEY_EVENT, deleteJourneyEvent);
   yield takeEvery(types.CREATE_TRIAL_BOOKING, createTrialBooking);
   yield takeEvery(types.DELETE_TRIAL_BOOKING, deleteTrialBooking);
+  yield takeEvery(types.UPDATE_SPACE_ATTRIBUTE, updateSpaceAttribute);
 }

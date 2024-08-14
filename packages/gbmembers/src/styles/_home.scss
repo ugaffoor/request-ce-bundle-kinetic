@@ -18,13 +18,32 @@
     }
   }
 }
+.dashboard {
+  .chart1Column {
+    .zoom {
+      float: right;
+      border-radius: 5px;
+      background-color: #bdbdbd;
+    }
+  }
+  .chart2Column {
+    .zoom {
+      float: right;
+      border-radius: 5px;
+      background-color: #bdbdbd;
+      margin-right: 10px;
+    }
+  }
+}
 .homeOverdues {
   float: left;
   clear: left;
 }
 .dashboard {
-  height: 3100px;
-  @media (min-width: 321px) {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  /*  @media (min-width: 321px) {
     height: 3400px;
   }
   @media (min-width: 544px) {
@@ -32,7 +51,7 @@
   }
   @media (min-width: 768px) {
     height: 2000px;
-  }
+  } */
   .page-header {
     text-align: left;
     .dateSettings {
@@ -82,7 +101,7 @@
         margin-bottom: 5px;
         font-size: 18px;
         .header {
-          display: flex;
+          /*display: flex; */
         }
         select#dateRange {
           width: 22%;

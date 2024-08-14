@@ -24,6 +24,7 @@ export const types = {
   DELETE_JOURNEY_EVENT: namespace('datastore', 'DELETE_JOURNEY_EVENT'),
   CREATE_TRIAL_BOOKING: namespace('datastore', 'CREATE_TRIAL_BOOKING'),
   DELETE_TRIAL_BOOKING: namespace('datastore', 'DELETE_TRIAL_BOOKING'),
+  UPDATE_SPACE_ATTRIBUTE: namespace('datastore', 'UPDATE_SPACE_ATTRIBUTE'),
 };
 
 export const actions = {
@@ -45,6 +46,7 @@ export const actions = {
   deleteJourneyEvent: withPayload(types.DELETE_JOURNEY_EVENT),
   createTrialBooking: withPayload(types.CREATE_TRIAL_BOOKING),
   deleteTrialBooking: withPayload(types.DELETE_TRIAL_BOOKING),
+  updateSpaceAttribute: withPayload(types.UPDATE_SPACE_ATTRIBUTE),
 };
 
 export const State = Record({
@@ -60,6 +62,7 @@ export const State = Record({
   journeyEventLoading: true,
   journeyEvent: null,
   error: null,
+  updatingAttribute: false,
 });
 
 export const reducer = (state = State(), { type, payload }) => {
@@ -175,6 +178,8 @@ export const reducer = (state = State(), { type, payload }) => {
       return state.set('journeyEventLoading', true);
     case types.SET_JOURNEY_EVENT_ERROR:
       return state.set('journeyEventLoading', false).set('error', payload);
+    case types.UPDATE_SPACE_ATTRIBUTE:
+      return state.set('updatingAttribute', true);
     default:
       return state;
   }

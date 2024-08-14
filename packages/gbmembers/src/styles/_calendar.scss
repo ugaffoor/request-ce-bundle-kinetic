@@ -5,6 +5,29 @@
     margin: 0;
   }
 }
+.gridSizes {
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 5px;
+  border-color: #cdcbcb;
+  padding: 4px;
+  display: flex;
+  label {
+    display: flex;
+    margin-right: 10px;
+    margin-bottom: 0;
+    margin-top: 5px;
+  }
+  input[type='radio'] {
+    width: 1.5em;
+    height: 1.5rem;
+    accent-color: #4e4c4c;
+  }
+  .value {
+    margin-left: 10px;
+  }
+}
+
 .classDialog {
   display: inline-grid;
   .datesValue {

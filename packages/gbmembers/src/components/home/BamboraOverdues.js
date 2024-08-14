@@ -270,6 +270,7 @@ export class BamboraOverdues extends Component {
       {
         accessor: 'attemptCount',
         Header: 'Attempts',
+        width: 100,
       },
       {
         accessor: 'paymentAmount',

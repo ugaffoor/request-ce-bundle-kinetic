@@ -9,8 +9,10 @@ import checkoutLeftArrowIcon from '../../images/checkoutLeftArrow.png?raw';
 import { StockReport } from './StockReport';
 import { PurchaseItemsReportContainer } from './PurchaseItemsReport';
 import { OrdersReportContainer } from './OrdersReport';
+import { POSTaxSettingsContainer } from './POSTaxSettings';
 import { actions } from '../../redux/modules/pos';
 import { CoreForm } from 'react-kinetic-core';
+import { Utils } from 'common';
 
 const mapStateToProps = state => ({
   members: state.member.members.allMembers,
@@ -138,6 +140,35 @@ export class Settings extends Component {
               </div>
             )}
           </div>
+          {!Utils.isMemberOf(this.props.profile, 'Role::Data Admin') ? (
+            <div />
+          ) : (
+            <div style={{ margin: '20px 0px 0px 10px' }} id="pos-tax-settings">
+              <div className="row">
+                <button
+                  type="button"
+                  className="btn btn-primary report-btn-default"
+                  disabled={!this.props.dummyFormLoaded}
+                  onClick={e => {
+                    this.props.setShowPOSTaxSettings(
+                      this.props.showPOSTaxSettings ? false : true,
+                    );
+                  }}
+                >
+                  {this.props.showPOSTaxSettings
+                    ? 'Hide POS Tax Settings'
+                    : 'Show POS Tax Settings'}
+                </button>
+              </div>
+              {!this.props.showPOSTaxSettings ? null : (
+                <div className="row">
+                  <div className="posTaxSettings">
+                    <POSTaxSettingsContainer profile={this.props.profile} />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </span>
         <CoreForm
           kapp="gbmembers"
@@ -157,6 +188,7 @@ const enhance = compose(
   withState('showStockReport', 'setShowStockReport', false),
   withState('showPurchaseItemsReport', 'setShowPurchaseItemsReport', false),
   withState('showOrdersReport', 'setShowOrdersReport', false),
+  withState('showPOSTaxSettings', 'setShowPOSTaxSettings', false),
   withState('dummyFormLoaded', 'setDummyFormLoaded', false),
   withHandlers({
     singleSetDummyFormLoaded: () => (dummyFormLoaded, setDummyFormLoaded) => {

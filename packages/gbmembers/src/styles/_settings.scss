@@ -1,3 +1,47 @@
+.schoolSettings {
+  margin-left: 30px;
+  .tax1LabelHelp,
+  .tax1Help,
+  .tax2LabelHelp,
+  .tax2Help {
+    display: none;
+  }
+  .schoolSettingsSection {
+    display: flex;
+    flex-direction: column;
+    span {
+      margin-bottom: 2px;
+    }
+    .schoolDetails,
+    .membershipTaxes {
+      background-color: #fdfafa;
+      padding: 10px;
+      border-radius: 5px;
+      border-style: solid;
+      border-width: 1px;
+      border-color: #ebe8e8;
+      display: inline-grid;
+      h6 {
+        margin-top: 0px;
+        margin-bottom: 4px;
+        border-bottom-style: solid;
+        border-bottom-width: 1px;
+        border-bottom-color: #c9c5c5;
+        padding-bottom: 4px;
+      }
+    }
+    label {
+      display: inline-flex;
+      margin-bottom: 0px;
+    }
+    .value {
+      width: 300px;
+    }
+  }
+  .help {
+    cursor: pointer;
+  }
+}
 .scheduleCalendar {
   .rbc-current-time-indicator {
     background-color: unset;

@@ -953,9 +953,9 @@ export class MemberFinancialReport extends Component {
             ',' +
             accountHoldersValue,
         );
-      } else if (
+      } /*if (
         getAttributeValue(this.props.space, 'POS System') === 'Bambora'
-      ) {
+      ) */ else {
         var order;
         var idx = posOrders.findIndex(
           item => item.values['Transaction ID'] === payment.paymentID,
@@ -996,7 +996,8 @@ export class MemberFinancialReport extends Component {
           if (payment.paymentStatus !== 'Refund') {
             if (
               payment.paymentAmount !== 0 &&
-              payment.paymentSource.indexOf('POS') === -1
+              (payment.paymentSource === null ||
+                payment.paymentSource.indexOf('POS') === -1)
             ) {
               // Needed for Bambora
               accountHolders[accountHolders.length] = {
@@ -2713,7 +2714,7 @@ export class MemberFinancialReport extends Component {
           (forecast.member !== undefined
             ? forecast.billingAmount
             : forecast.values !== undefined
-            ? forecast.values['Fee'].toFixed(2)
+            ? Number(forecast.values['Fee']).toFixed(2)
             : forecast.billingAmount) +
           '","' +
           '"\n',

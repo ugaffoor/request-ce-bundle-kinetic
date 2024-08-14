@@ -20,9 +20,11 @@ import moment from 'moment';
 import { ClassesCalendar } from './ClassesCalendar';
 import { ManageBookings } from './ManageBookings';
 import { RecurringBookings as ManageRecurringBookings } from './RecurringBookings';
+import { SchoolSettingsContainer } from './SchoolSettings';
 import { confirm } from '../helpers/Confirmation';
 import { actions as appActions } from '../../redux/modules/memberApp';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
+import { actions as dataStoreActions } from '../../redux/modules/settingsDatastore';
 
 const mapStateToProps = state => ({
   memberItem: state.member.members.currentMember,
@@ -49,6 +51,7 @@ const mapStateToProps = state => ({
   memberInitialLoadComplete: state.member.members.memberInitialLoadComplete,
   membersNextPageToken: state.member.members.membersNextPageToken,
   memberLastFetchTime: state.member.members.memberLastFetchTime,
+  updatingAttribute: state.member.datastore.updatingAttribute,
 });
 
 const mapDispatchToProps = {
@@ -76,6 +79,7 @@ const mapDispatchToProps = {
   createBillingStatistics: actions.createBillingStatistics,
   createStatistic: actions.createStatistic,
   setSidebarDisplayType: appActions.setSidebarDisplayType,
+  updateSpaceAttribute: dataStoreActions.updateSpaceAttribute,
 };
 var myThis;
 
@@ -225,6 +229,8 @@ export const SettingsView = ({
   setShowClassBookings,
   showRecurringBookings,
   setShowRecurringBookings,
+  showSchoolSettings,
+  setShowSchoolSettings,
   classSchedules,
   fetchClassSchedules,
   fetchingClassSchedules,
@@ -248,6 +254,8 @@ export const SettingsView = ({
   addedRecurring,
   deleteRecurring,
   space,
+  updatingAttribute,
+  updateSpaceAttribute,
 }) => (
   <div className="settings">
     <StatusMessagesContainer />
@@ -281,6 +289,9 @@ export const SettingsView = ({
           editClass={editClass}
           deleteClass={deleteClass}
           space={space}
+          profile={profile}
+          updatingAttribute={updatingAttribute}
+          updateSpaceAttribute={updateSpaceAttribute}
         ></ClassesCalendar>
       ) : (
         <div />
@@ -540,18 +551,31 @@ export const SettingsView = ({
           <span />
         )}
       </div>
-    </div>
-    {/*
-    <div>
-      {belts.map(
-        belt =>
-              <span>
-                <p>{belt.belt}</p>
-                {getBeltSVG(belt.belt)}
-            </span>
+      {!Utils.isMemberOf(profile, 'Role::Data Admin') ? (
+        <div />
+      ) : (
+        <div className="col-xs-3" id="school-settings">
+          <button
+            type="button"
+            className="btn btn-primary report-btn-default"
+            onClick={e => {
+              setShowSchoolSettings(showSchoolSettings ? false : true);
+            }}
+          >
+            {showSchoolSettings
+              ? 'Hide School Settings'
+              : 'Show School Settings'}
+          </button>
+          {!showSchoolSettings ? null : (
+            <div className="row">
+              <div className="schoolSettings">
+                <SchoolSettingsContainer profile={profile} />
+              </div>
+            </div>
+          )}
+        </div>
       )}
     </div>
-  */}
   </div>
 );
 
@@ -564,6 +588,7 @@ export const SettingsContainer = compose(
   withState('showClassCalendar', 'setShowClassCalendar', false),
   withState('showClassBookings', 'setShowClassBookings', false),
   withState('showRecurringBookings', 'setShowRecurringBookings', false),
+  withState('showSchoolSettings', 'setShowSchoolSettings', false),
   withHandlers({
     printMemberBarcodes: ({ allMembers, setPrintingBarcodes }) => () => {
       console.log('Printing:' + allMembers.length);

@@ -1,3 +1,27 @@
+.posTaxSettings {
+  margin-left: 30px;
+  background-color: #fdfafa;
+  padding: 10px;
+  border-radius: 5px;
+  .salesTaxLabelHelp,
+  .salesTaxHelp,
+  .salesTax2LabelHelp,
+  .salesTax2Help,
+  .salesTotalLabelHelp {
+    display: none;
+  }
+  .posTaxSettingsSection {
+    label {
+      display: inline-flex;
+    }
+    .value {
+      width: 300px;
+    }
+  }
+  .help {
+    cursor: pointer;
+  }
+}
 .dollarValue.refunded {
   text-decoration: line-through;
 }

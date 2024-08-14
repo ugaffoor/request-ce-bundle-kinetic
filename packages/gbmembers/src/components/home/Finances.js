@@ -7,6 +7,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  ReferenceArea,
   Legend,
   LabelList,
 } from 'recharts';
@@ -23,13 +24,23 @@ export class Finances extends Component {
 
     this.state = {
       data: data,
+      top: this.getMinValue(props.monthlyStatistics),
+      bottom: this.getMaxValue(props.monthlyStatistics),
+      refAreaLeft: '',
+      refAreaRight: '',
+      left: 'dataMin',
+      right: 'dataMax',
     };
   }
   UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.monthlyStatistics) {
-      this.setState({
-        data: this.getData(nextProps.monthlyStatistics),
-      });
+      if (nextProps.monthlyStatistics !== this.props.monthlyStatistics) {
+        this.setState({
+          data: this.getData(nextProps.monthlyStatistics),
+          top: this.getMinValue(nextProps.monthlyStatistics),
+          bottom: this.getMaxValue(nextProps.monthlyStatistics),
+        });
+      }
     }
   }
   UNSAFE_componentWillMount() {
@@ -168,22 +179,83 @@ export class Finances extends Component {
       <span className="tooltipHeader">{moment(label).format('MMM YYYY')}</span>
     );
   }
+  zoom() {
+    let { refAreaLeft, refAreaRight } = this.state;
+    const { data } = this.state;
+
+    if (refAreaLeft === refAreaRight || refAreaRight === '') {
+      this.setState(() => ({
+        refAreaLeft: '',
+        refAreaRight: '',
+      }));
+      return;
+    }
+
+    // xAxis domain
+    if (refAreaLeft > refAreaRight)
+      [refAreaLeft, refAreaRight] = [refAreaRight, refAreaLeft];
+
+    this.setState(() => ({
+      refAreaLeft: '',
+      refAreaRight: '',
+      data: data.slice(
+        data.findIndex(item => item['date'] === refAreaLeft),
+        data.findIndex(item => item['date'] === refAreaRight) + 1,
+      ),
+      left: refAreaLeft,
+      right: refAreaRight,
+    }));
+  }
+  zoomOut() {
+    const { data } = this.state;
+    this.setState(() => ({
+      data: this.getData(this.props.monthlyStatistics),
+      refAreaLeft: '',
+      refAreaRight: '',
+      left: 'dataMin',
+      right: 'dataMax',
+    }));
+  }
 
   render() {
-    const { data } = this.state;
+    const {
+      data,
+      refAreaLeft,
+      refAreaRight,
+      left,
+      right,
+      top,
+      bottom,
+    } = this.state;
     return this.props.monthlyStatisticsLoading ? (
       <div className="financesLoading">
         <p>Loading Finances ...</p>
       </div>
     ) : (
       <span>
-        <div className="page-header">Finances</div>
+        <div className="page-header">
+          Finances{' '}
+          <button
+            type="button"
+            className="btn zoom"
+            onClick={this.zoomOut.bind(this)}
+          >
+            Zoom Out
+          </button>
+        </div>
         <div className="finances">
           <ResponsiveContainer minHeight={570}>
             <LineChart
               width={600}
               height={570}
               data={data}
+              onMouseDown={e => this.setState({ refAreaLeft: e.activeLabel })}
+              onMouseMove={e =>
+                this.state.refAreaLeft &&
+                this.setState({ refAreaRight: e.activeLabel })
+              }
+              // eslint-disable-next-line react/jsx-no-bind
+              onMouseUp={this.zoom.bind(this)}
               margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
@@ -191,15 +263,14 @@ export class Finances extends Component {
                 dataKey="date"
                 tickFormatter={this.xAxisTickFormatter}
                 padding={{ left: 30, right: 30 }}
+                domain={[left, right]}
               />
               <YAxis
                 tickFormatter={this.yAxisTickFormatter}
+                yAxisId="1"
                 padding={{ top: 30 }}
                 type="number"
-                domain={[
-                  this.getMinValue(this.props.monthlyStatistics),
-                  this.getMaxValue(this.props.monthlyStatistics),
-                ]}
+                domain={[top, bottom]}
               />
               <Tooltip
                 labelFormatter={this.financeToolTipLabelFormatter}
@@ -207,12 +278,21 @@ export class Finances extends Component {
               />
               <Legend />
               <Line
+                yAxisId="1"
                 dataKey="Income"
                 stroke="darkorange"
                 fill="darkorange"
                 dot={<this.CustomizedDot />}
                 isAnimationActive={false}
               />
+              {refAreaLeft && refAreaRight ? (
+                <ReferenceArea
+                  yAxisId="1"
+                  x1={refAreaLeft}
+                  x2={refAreaRight}
+                  strokeOpacity={0.3}
+                />
+              ) : null}
             </LineChart>
           </ResponsiveContainer>
         </div>

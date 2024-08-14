@@ -5,7 +5,12 @@ import { ClassDialogContainer } from './ClassDialog';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import { v4 as uuidv4 } from 'uuid';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.scss';
-import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
+import {
+  getAttributeValue,
+  setAttributeValue,
+} from '../../lib/react-kinops-components/src/utils';
+import { I18n } from '../../../../app/src/I18nProvider';
+import { StatusMessagesContainer } from '../StatusMessages';
 
 const DragAndDropCalendar = withDragAndDrop(Calendar);
 
@@ -59,6 +64,8 @@ export class ClassesCalendar extends Component {
     this.newClass = this.props.newClass.bind(this);
     this.deleteEvent = this.deleteEvent.bind(this);
     this.applyDates = this.applyDates.bind(this);
+    this.adjustSlotSize = this.adjustSlotSize.bind(this);
+
     this.programs = this.props.programs;
     this.additionalPrograms = this.props.additionalPrograms;
     this.space = this.props.space;
@@ -69,6 +76,12 @@ export class ClassesCalendar extends Component {
     this.state = {
       showClassDialog: false,
       events: this.props.classSchedules.toArray(),
+      stepValue: parseInt(
+        getAttributeValue(this.space, 'Calendar Time Slots', '15'),
+      ),
+      origStepValue: parseInt(
+        getAttributeValue(this.space, 'Calendar Time Slots', '15'),
+      ),
     };
     this.moveEvent = this.moveEvent.bind(this);
   }
@@ -339,6 +352,11 @@ export class ClassesCalendar extends Component {
       );
     }
   };
+  adjustSlotSize(value) {
+    this.setState({
+      stepValue: parseInt(value),
+    });
+  }
   render() {
     let formats = {
       weekdayFormat: (date, culture, localizer) => {
@@ -349,6 +367,7 @@ export class ClassesCalendar extends Component {
     };
     return (
       <span className="scheduleCalendar">
+        <StatusMessagesContainer />
         {this.state.showClassDialog && (
           <ClassDialogContainer
             event={this.state.event}
@@ -370,40 +389,118 @@ export class ClassesCalendar extends Component {
             deleteEvent={this.deleteEvent}
           />
         )}
-        <DragAndDropCalendar
-          selectable
-          localizer={localizer}
-          events={this.state.events}
-          step={parseInt(
-            getAttributeValue(this.space, 'Calendar Time Slots', '15'),
-          )}
-          defaultView={Views.WEEK}
-          views={['week']}
-          onDoubleClickEvent={event => this.handleSelectEvent(event)}
-          onSelectSlot={this.handleSelect}
-          eventPropGetter={this.customEventPropGetter}
-          components={{
-            event: Event,
-            week: {
-              event: EventWeek,
-            },
-          }}
-          onEventDrop={this.moveEvent}
-          resizable
-          onEventResize={this.resizeEvent}
-          onDragStart={console.log}
-          formats={formats}
-          min={moment()
-            .hour(5)
-            .minute(0)
-            .second(0)
-            .toDate()}
-          max={moment()
-            .hour(22)
-            .minute(0)
-            .second(0)
-            .toDate()}
-        />
+        <div class="calendarSection">
+          {
+            <div class="gridSizes">
+              <label htmlFor="5minutes">
+                <input
+                  type="radio"
+                  id="5minutes"
+                  value="5"
+                  name="slotSize"
+                  checked={this.state.stepValue === 5}
+                  onChange={e => {
+                    this.adjustSlotSize(e.target.value);
+                  }}
+                />
+                <span class="value">
+                  <I18n>5 Minutes</I18n>
+                </span>
+              </label>
+              <label htmlFor="10minutes">
+                <input
+                  type="radio"
+                  id="10minutes"
+                  value="10"
+                  name="slotSize"
+                  checked={this.state.stepValue === 10}
+                  onChange={e => {
+                    this.adjustSlotSize(e.target.value);
+                  }}
+                />
+                <span class="value">
+                  <I18n>10 Minutes</I18n>
+                </span>
+              </label>
+              <label htmlFor="15minutes">
+                <input
+                  type="radio"
+                  id="15minutes"
+                  value="15"
+                  name="slotSize"
+                  checked={this.state.stepValue === 15}
+                  onChange={e => {
+                    this.adjustSlotSize(e.target.value);
+                  }}
+                />
+                <span class="value">
+                  <I18n>15 Minutes</I18n>
+                </span>
+              </label>
+              <button
+                type="button"
+                id="saveSlotChanges"
+                disabled={this.state.stepValue === this.state.origStepValue}
+                className="btn btn-primary"
+                onClick={e => {
+                  var values = {};
+                  values['Status'] = 'New';
+                  values['Attribute Name'] = 'Calendar Time Slots';
+                  values['Original Value'] = this.state.origStepValue;
+                  values['New Value'] = this.state.stepValue;
+                  values['Updated By'] = this.props.profile.username;
+
+                  this.setState({
+                    origStepValue: this.state.stepValue,
+                  });
+
+                  this.props.updateSpaceAttribute({
+                    values,
+                  });
+                  setAttributeValue(
+                    this.space,
+                    'Calendar Time Slots',
+                    this.state.stepValue,
+                  );
+                }}
+              >
+                Save
+              </button>
+            </div>
+          }
+          <DragAndDropCalendar
+            selectable
+            localizer={localizer}
+            events={this.state.events}
+            step={this.state.stepValue}
+            defaultView={Views.WEEK}
+            views={['week']}
+            onDoubleClickEvent={event => this.handleSelectEvent(event)}
+            onSelectSlot={this.handleSelect}
+            eventPropGetter={this.customEventPropGetter}
+            components={{
+              event: Event,
+              week: {
+                event: EventWeek,
+              },
+            }}
+            onEventDrop={this.moveEvent}
+            resizable
+            onEventResize={this.resizeEvent}
+            onDragStart={console.log}
+            formats={formats}
+            min={moment()
+              .hour(5)
+              .minute(0)
+              .second(0)
+              .toDate()}
+            max={moment()
+              .hour(22)
+              .minute(0)
+              .second(0)
+              .toDate()}
+          />
+        </div>
       </span>
     );
   }
