@@ -733,6 +733,7 @@ export class LeadDetail extends Component {
                     this.props.leadItem.values['Reminder Date'] !== null
                       ? moment(
                           this.props.leadItem.values['Reminder Date'],
+                          'YYYY-MM-DDTHH:mm:ssZ',
                         ).format('L')
                       : 'None'}
                   </NavLink>

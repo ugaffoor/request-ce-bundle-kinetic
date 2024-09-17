@@ -348,6 +348,7 @@ export const ReportsView = ({
                 <div className="attendanceReport">
                   <MemberMostAttendance
                     allMembers={members}
+                    programs={programs}
                     fetchAttendancesByDate={fetchAttendancesByDate}
                     fetchingAttendancesByDate={fetchingAttendancesByDate}
                     attendancesByDate={attendancesByDate}

@@ -32,9 +32,6 @@ import { StatusMessagesContainer } from '../StatusMessages';
 import { SetStatusModalContainer } from './SetStatusModalContainer';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
 import 'react-day-picker/lib/style.css';
-import enAU from 'moment/locale/en-au';
-import enCA from 'moment/locale/en-ca';
-import enGB from 'moment/locale/en-gb';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { I18n } from '../../../../app/src/I18nProvider';
 import Barcode from 'react-barcode';
@@ -1925,14 +1922,18 @@ export const MemberEdit = ({
                     ref={input => (this.input = input)}
                     value="excercise"
                     checked={
-                      memberItem.values['Main Benefits'] !== undefined
+                      memberItem.values['Main Benefits'] !== undefined &&
+                      memberItem.values['Main Benefits'] !== null
                         ? memberItem.values['Main Benefits'].includes(
                             'excercise',
                           )
                         : false
                     }
                     onChange={e => {
-                      if (memberItem.values['Main Benefits'] === undefined)
+                      if (
+                        memberItem.values['Main Benefits'] === undefined ||
+                        memberItem.values['Main Benefits'] === null
+                      )
                         memberItem.values['Main Benefits'] = new Array();
                       if (
                         memberItem.values['Main Benefits'].includes('excercise')
@@ -1967,14 +1968,18 @@ export const MemberEdit = ({
                     ref={input => (this.input = input)}
                     value="discipline"
                     checked={
-                      memberItem.values['Main Benefits'] !== undefined
+                      memberItem.values['Main Benefits'] !== undefined &&
+                      memberItem.values['Main Benefits'] !== null
                         ? memberItem.values['Main Benefits'].includes(
                             'discipline',
                           )
                         : false
                     }
                     onChange={e => {
-                      if (memberItem.values['Main Benefits'] === undefined)
+                      if (
+                        memberItem.values['Main Benefits'] === undefined ||
+                        memberItem.values['Main Benefits'] === null
+                      )
                         memberItem.values['Main Benefits'] = new Array();
                       if (
                         memberItem.values['Main Benefits'].includes(
@@ -2011,14 +2016,18 @@ export const MemberEdit = ({
                     ref={input => (this.input = input)}
                     value="self defense"
                     checked={
-                      memberItem.values['Main Benefits'] !== undefined
+                      memberItem.values['Main Benefits'] !== undefined &&
+                      memberItem.values['Main Benefits'] !== null
                         ? memberItem.values['Main Benefits'].includes(
                             'self defense',
                           )
                         : false
                     }
                     onChange={e => {
-                      if (memberItem.values['Main Benefits'] === undefined)
+                      if (
+                        memberItem.values['Main Benefits'] === undefined ||
+                        memberItem.values['Main Benefits'] === null
+                      )
                         memberItem.values['Main Benefits'] = new Array();
                       if (
                         memberItem.values['Main Benefits'].includes(
@@ -2055,14 +2064,18 @@ export const MemberEdit = ({
                     ref={input => (this.input = input)}
                     value="reduce stress"
                     checked={
-                      memberItem.values['Main Benefits'] !== undefined
+                      memberItem.values['Main Benefits'] !== undefined &&
+                      memberItem.values['Main Benefits'] !== null
                         ? memberItem.values['Main Benefits'].includes(
                             'reduce stress',
                           )
                         : false
                     }
                     onChange={e => {
-                      if (memberItem.values['Main Benefits'] === undefined)
+                      if (
+                        memberItem.values['Main Benefits'] === undefined ||
+                        memberItem.values['Main Benefits'] === null
+                      )
                         memberItem.values['Main Benefits'] = new Array();
                       if (
                         memberItem.values['Main Benefits'].includes(
@@ -2101,12 +2114,16 @@ export const MemberEdit = ({
                     ref={input => (this.input = input)}
                     value="respect"
                     checked={
-                      memberItem.values['Main Benefits'] !== undefined
+                      memberItem.values['Main Benefits'] !== undefined &&
+                      memberItem.values['Main Benefits'] !== null
                         ? memberItem.values['Main Benefits'].includes('respect')
                         : false
                     }
                     onChange={e => {
-                      if (memberItem.values['Main Benefits'] === undefined)
+                      if (
+                        memberItem.values['Main Benefits'] === undefined ||
+                        memberItem.values['Main Benefits'] === null
+                      )
                         memberItem.values['Main Benefits'] = new Array();
                       if (
                         memberItem.values['Main Benefits'].includes('respect')
@@ -2141,14 +2158,18 @@ export const MemberEdit = ({
                     ref={input => (this.input = input)}
                     value="self confidence"
                     checked={
-                      memberItem.values['Main Benefits'] !== undefined
+                      memberItem.values['Main Benefits'] !== undefined &&
+                      memberItem.values['Main Benefits'] !== null
                         ? memberItem.values['Main Benefits'].includes(
                             'self confidence',
                           )
                         : false
                     }
                     onChange={e => {
-                      if (memberItem.values['Main Benefits'] === undefined)
+                      if (
+                        memberItem.values['Main Benefits'] === undefined ||
+                        memberItem.values['Main Benefits'] === null
+                      )
                         memberItem.values['Main Benefits'] = new Array();
                       if (
                         memberItem.values['Main Benefits'].includes(
@@ -2187,14 +2208,18 @@ export const MemberEdit = ({
                     ref={input => (this.input = input)}
                     value="concentration"
                     checked={
-                      memberItem.values['Main Benefits'] !== undefined
+                      memberItem.values['Main Benefits'] !== undefined &&
+                      memberItem.values['Main Benefits'] !== null
                         ? memberItem.values['Main Benefits'].includes(
                             'concentration',
                           )
                         : false
                     }
                     onChange={e => {
-                      if (memberItem.values['Main Benefits'] === undefined)
+                      if (
+                        memberItem.values['Main Benefits'] === undefined ||
+                        memberItem.values['Main Benefits'] === null
+                      )
                         memberItem.values['Main Benefits'] = new Array();
                       if (
                         memberItem.values['Main Benefits'].includes(
@@ -2233,14 +2258,18 @@ export const MemberEdit = ({
                     ref={input => (this.input = input)}
                     value="coordination"
                     checked={
-                      memberItem.values['Main Benefits'] !== undefined
+                      memberItem.values['Main Benefits'] !== undefined &&
+                      memberItem.values['Main Benefits'] !== null
                         ? memberItem.values['Main Benefits'].includes(
                             'coordination',
                           )
                         : false
                     }
                     onChange={e => {
-                      if (memberItem.values['Main Benefits'] === undefined)
+                      if (
+                        memberItem.values['Main Benefits'] === undefined ||
+                        memberItem.values['Main Benefits'] === null
+                      )
                         memberItem.values['Main Benefits'] = new Array();
                       if (
                         memberItem.values['Main Benefits'].includes(
@@ -2277,12 +2306,16 @@ export const MemberEdit = ({
                     ref={input => (this.input = input)}
                     value="balance"
                     checked={
-                      memberItem.values['Main Benefits'] !== undefined
+                      memberItem.values['Main Benefits'] !== undefined &&
+                      memberItem.values['Main Benefits'] !== null
                         ? memberItem.values['Main Benefits'].includes('balance')
                         : false
                     }
                     onChange={e => {
-                      if (memberItem.values['Main Benefits'] === undefined)
+                      if (
+                        memberItem.values['Main Benefits'] === undefined ||
+                        memberItem.values['Main Benefits'] === null
+                      )
                         memberItem.values['Main Benefits'] = new Array();
                       if (
                         memberItem.values['Main Benefits'].includes('balance')
@@ -2320,14 +2353,18 @@ export const MemberEdit = ({
                     ref={input => (this.input = input)}
                     value="character development"
                     checked={
-                      memberItem.values['Main Benefits'] !== undefined
+                      memberItem.values['Main Benefits'] !== undefined &&
+                      memberItem.values['Main Benefits'] !== null
                         ? memberItem.values['Main Benefits'].includes(
                             'character development',
                           )
                         : false
                     }
                     onChange={e => {
-                      if (memberItem.values['Main Benefits'] === undefined)
+                      if (
+                        memberItem.values['Main Benefits'] === undefined ||
+                        memberItem.values['Main Benefits'] === null
+                      )
                         memberItem.values['Main Benefits'] = new Array();
                       if (
                         memberItem.values['Main Benefits'].includes(
@@ -2366,12 +2403,16 @@ export const MemberEdit = ({
                     ref={input => (this.input = input)}
                     value="focus"
                     checked={
-                      memberItem.values['Main Benefits'] !== undefined
+                      memberItem.values['Main Benefits'] !== undefined &&
+                      memberItem.values['Main Benefits'] !== null
                         ? memberItem.values['Main Benefits'].includes('focus')
                         : false
                     }
                     onChange={e => {
-                      if (memberItem.values['Main Benefits'] === undefined)
+                      if (
+                        memberItem.values['Main Benefits'] === undefined ||
+                        memberItem.values['Main Benefits'] === null
+                      )
                         memberItem.values['Main Benefits'] = new Array();
                       if (
                         memberItem.values['Main Benefits'].includes('focus')
@@ -2406,12 +2447,16 @@ export const MemberEdit = ({
                     ref={input => (this.input = input)}
                     value="fun"
                     checked={
-                      memberItem.values['Main Benefits'] !== undefined
+                      memberItem.values['Main Benefits'] !== undefined &&
+                      memberItem.values['Main Benefits'] !== null
                         ? memberItem.values['Main Benefits'].includes('fun')
                         : false
                     }
                     onChange={e => {
-                      if (memberItem.values['Main Benefits'] === undefined)
+                      if (
+                        memberItem.values['Main Benefits'] === undefined ||
+                        memberItem.values['Main Benefits'] === null
+                      )
                         memberItem.values['Main Benefits'] = new Array();
                       if (memberItem.values['Main Benefits'].includes('fun')) {
                         e.target.value = '';
@@ -2444,14 +2489,18 @@ export const MemberEdit = ({
                     ref={input => (this.input = input)}
                     value="competition"
                     checked={
-                      memberItem.values['Main Benefits'] !== undefined
+                      memberItem.values['Main Benefits'] !== undefined &&
+                      memberItem.values['Main Benefits'] !== null
                         ? memberItem.values['Main Benefits'].includes(
                             'competition',
                           )
                         : false
                     }
                     onChange={e => {
-                      if (memberItem.values['Main Benefits'] === undefined)
+                      if (
+                        memberItem.values['Main Benefits'] === undefined ||
+                        memberItem.values['Main Benefits'] === null
+                      )
                         memberItem.values['Main Benefits'] = new Array();
                       if (
                         memberItem.values['Main Benefits'].includes(
@@ -2488,14 +2537,18 @@ export const MemberEdit = ({
                     ref={input => (this.input = input)}
                     value="Art of Jiu Jitsu"
                     checked={
-                      memberItem.values['Main Benefits'] !== undefined
+                      memberItem.values['Main Benefits'] !== undefined &&
+                      memberItem.values['Main Benefits'] !== null
                         ? memberItem.values['Main Benefits'].includes(
                             'Art of Jiu Jitsu',
                           )
                         : false
                     }
                     onChange={e => {
-                      if (memberItem.values['Main Benefits'] === undefined)
+                      if (
+                        memberItem.values['Main Benefits'] === undefined ||
+                        memberItem.values['Main Benefits'] === null
+                      )
                         memberItem.values['Main Benefits'] = new Array();
                       if (
                         memberItem.values['Main Benefits'].includes(

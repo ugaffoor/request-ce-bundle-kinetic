@@ -3,6 +3,8 @@ import ReactTable from 'react-table';
 import moment from 'moment';
 import { email_sent_date_format } from '../leads/LeadsUtils';
 
+const email_date_format = ['DD-MM-YYYY HH:mm', 'YYYY-MM-DDTHH:mm:ssZ'];
+
 export class LeadSMS extends Component {
   constructor(props) {
     super(props);
@@ -55,23 +57,16 @@ export class LeadSMS extends Component {
     let smsValues = [];
     sms.forEach(value => {
       let content = JSON.parse(value.values['Content']);
-      var dtStr =
+      var dt =
         value.values['Direction'] === 'Outbound'
           ? content['Sent Date']
-          : /*content['Received Date']*/ value['createdAt'];
-      var dt = moment(dtStr, [
-        'L HH:mm',
-        'DD-MM-YYYY HH:mm',
-        'YYYY-MM-DDThh:mm:ss.SSSZ',
-      ]);
-      /*      if (dtStr.indexOf("Z")!==-1){
-        dt = dt.add(moment().utcOffset() * 60, 'seconds');
-      } */
+          : /*content['Received Date'];*/ value['createdAt'];
 
-      var dt = moment(value['createdAt']);
+      dt = moment(dt, email_date_format);
+
       smsValues[smsValues.length] = {
         Direction: value.values['Direction'],
-        Date: dt.format('L hh:mm A'),
+        Date: dt.format('L h:mm A'),
         Content: content['Content'],
       };
     });

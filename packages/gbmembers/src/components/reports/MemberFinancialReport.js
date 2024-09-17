@@ -1125,10 +1125,12 @@ export class MemberFinancialReport extends Component {
         status = memberStatusInDates(member.member, fromDate, toDate, true);
       }
       if (
-        status === 'Active' ||
-        status === 'Pending Freeze' ||
-        status === 'Pending Cancellation' /*&&
-        failedIdx === -1*/
+        (status === 'Active' ||
+          status === 'Pending Freeze' ||
+          status === 'Pending Cancellation') &&
+        (member.member.values['Non Paying'] === null ||
+          member.member.values['Non Paying'] === undefined ||
+          member.member.values['Non Paying'] === '')
       ) {
         // Find latest payment date
         var idx = fullPaymentHistory.findIndex(item => {

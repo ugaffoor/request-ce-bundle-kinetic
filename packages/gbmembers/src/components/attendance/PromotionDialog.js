@@ -15,6 +15,8 @@ import MomentLocaleUtils, {
   parseDate,
 } from 'react-day-picker/moment';
 import { getLocalePreference } from '../Member/MemberUtils';
+import { Utils } from 'common';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const mapStateToProps = state => ({
   programs: state.member.app.programs,
@@ -252,20 +254,29 @@ export class PromotionDialog extends Component {
                   {this.state.statusText}
                   {this.state.statusIndicator !== 'ready' ? 'TO GRADE' : ''}
                 </span>
-                <button
-                  type="button"
-                  className="promote btn btn-primary"
-                  onClick={e => this.togglePromote()}
-                >
-                  PROMOTE{' '}
-                  <i
-                    className={
-                      this.state.showPromote
-                        ? 'fa fa-arrow-circle-up'
-                        : 'fa fa-arrow-circle-down'
-                    }
-                  ></i>
-                </button>
+                {(Utils.isMemberOf(
+                  this.props.profile,
+                  'Role::Program Managers',
+                ) ||
+                  getAttributeValue(
+                    this.props.space,
+                    'Allow Coach Promotions',
+                  ) === 'YES') && (
+                  <button
+                    type="button"
+                    className="promote btn btn-primary"
+                    onClick={e => this.togglePromote()}
+                  >
+                    PROMOTE{' '}
+                    <i
+                      className={
+                        this.state.showPromote
+                          ? 'fa fa-arrow-circle-up'
+                          : 'fa fa-arrow-circle-down'
+                      }
+                    ></i>
+                  </button>
+                )}
               </div>
             </div>
             {!this.state.showPromote ? (

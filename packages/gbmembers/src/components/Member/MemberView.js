@@ -2551,7 +2551,7 @@ export const MemberViewContainer = compose(
       args.deletePOSPurchasedItem = deletePOSPurchasedItem;
       args.refundPOSTransactionComplete = refundPOSTransactionComplete;
 
-      if (paymentId === 'cash') {
+      if (paymentId.indexOf('cash') === 0) {
         refundCashTransaction(args);
       } else {
         refundPOSTransaction(args);

@@ -31,10 +31,12 @@ export class MemberMostAttendance extends Component {
       period,
       dateRange,
       this.props.allMembers,
+      'GB1',
     );
     this.state = {
       fromDate: fromDate.format('YYYY-MM-DD'),
       toDate: toDate.format('YYYY-MM-DD'),
+      program: 'GB1',
       data,
       period,
       dateRange,
@@ -49,6 +51,7 @@ export class MemberMostAttendance extends Component {
         this.state.period,
         this.state.dateRange,
         this.props.allMembers,
+        this.state.program,
       );
       this.setState({
         data,
@@ -63,7 +66,7 @@ export class MemberMostAttendance extends Component {
     });
   }
 
-  getData(attendances, periodParam, dateRange, allMembers) {
+  getData(attendances, periodParam, dateRange, allMembers, program) {
     if (!attendances || attendances.size === 0) {
       return [];
     }
@@ -87,41 +90,36 @@ export class MemberMostAttendance extends Component {
       }
     });
 
-    let highestByProgram = new Map();
+    let programMembers = [];
     attendanceMap.forEach((value, key, map) => {
       var id = key.split('###')[0];
-      var program = key.split('###')[1];
 
       let mIdx = allMembers.findIndex(member => member.id === id);
       if (
         mIdx !== -1 &&
         (allMembers[mIdx].values['Status'] === 'Active' ||
           allMembers[mIdx].values['Status'] === 'Pending Freeze' ||
-          allMembers[mIdx].values['Status'] === 'Pending Cancellation')
+          allMembers[mIdx].values['Status'] === 'Pending Cancellation') &&
+        allMembers[mIdx].values['Ranking Program'] === program
       ) {
-        var programCount = highestByProgram.get(program);
-        if (programCount === undefined) {
-          highestByProgram.set(program, { id: id, count: value.count });
-        } else {
-          if (value.count > programCount.count) {
-            highestByProgram.set(program, { id: id, count: value.count });
-          }
-        }
+        programMembers.push({ member: allMembers[mIdx], count: value.count });
       }
     });
 
     var data = [];
-    highestByProgram.forEach((value, key, map) => {
-      var member = allMembers.find(member => member.id === value.id);
-      if (member !== undefined) {
+    programMembers
+      .sort((a, b) => (a.count < b.count ? 1 : b.count < a.count ? -1 : 0))
+      .forEach(value => {
         data.push({
-          program: key,
-          id: value.id,
-          name: member.values['First Name'] + ' ' + member.values['Last Name'],
+          program: value.member.values['Ranking Program'],
+          id: value.member.id,
+          name:
+            value.member.values['First Name'] +
+            ' ' +
+            value.member.values['Last Name'],
           count: value.count,
         });
-      }
-    });
+      });
 
     return data;
   }
@@ -228,165 +226,206 @@ export class MemberMostAttendance extends Component {
         >
           <h6>Member Most Attendances</h6>
         </div>
-        <div className="dateRange">
-          <div
-            className={
-              this.state.dateRange !== 'custom' ? 'custom' : 'selection'
-            }
-          >
-            <div className="">
-              <label htmlFor="dateRange" className="control-label">
-                Date Range
-              </label>
-              <select
-                name="dateRange"
-                id="dateRange"
-                className="form-control input-sm"
-                value={this.state.dateRange}
-                onChange={e => this.handleDateChange(e)}
-              >
-                <option value="last_30_days">
-                  Last 30 Days:{' '}
-                  {moment()
-                    .subtract('30', 'days')
-                    .format('MMM D, YYYY')}{' '}
-                  - {moment().format('MMM D, YYYY')}
-                </option>
-                <option value="last_month">
-                  Last Month:{' '}
-                  {moment()
-                    .subtract(1, 'months')
-                    .startOf('month')
-                    .format('MMM D, YYYY')}{' '}
-                  -{' '}
-                  {moment()
-                    .subtract(1, 'months')
-                    .endOf('month')
-                    .format('MMM D, YYYY')}
-                </option>
-                <option value="last_3_months">
-                  Last 3 Months:{' '}
-                  {moment()
-                    .subtract(3, 'months')
-                    .startOf('month')
-                    .format('MMM D, YYYY')}{' '}
-                  -{' '}
-                  {moment()
-                    .subtract(1, 'months')
-                    .endOf('month')
-                    .format('MMM D, YYYY')}
-                </option>
-                <option value="last_6_months">
-                  Last 6 Months:{' '}
-                  {moment()
-                    .subtract(6, 'months')
-                    .startOf('month')
-                    .format('MMM D, YYYY')}{' '}
-                  -{' '}
-                  {moment()
-                    .subtract(1, 'months')
-                    .endOf('month')
-                    .format('MMM D, YYYY')}
-                </option>
-                <option value="last_year">
-                  Last Year:{' '}
-                  {moment()
-                    .subtract(1, 'years')
-                    .startOf('month')
-                    .format('MMM D, YYYY')}{' '}
-                  -{' '}
-                  {moment()
-                    .subtract(1, 'years')
-                    .endOf('month')
-                    .format('MMM D, YYYY')}
-                </option>
-                <option value="custom">Custom</option>
-              </select>
-              <div className="droparrow" />
+        <div className="filters">
+          <div className="dateRange">
+            <div
+              className={
+                this.state.dateRange !== 'custom' ? 'custom' : 'selection'
+              }
+            >
+              <div className="">
+                <label htmlFor="dateRange" className="control-label">
+                  Date Range
+                </label>
+                <select
+                  name="dateRange"
+                  id="dateRange"
+                  className="form-control input-sm"
+                  value={this.state.dateRange}
+                  onChange={e => this.handleDateChange(e)}
+                >
+                  <option value="last_30_days">
+                    Last 30 Days:{' '}
+                    {moment()
+                      .subtract('30', 'days')
+                      .format('MMM D, YYYY')}{' '}
+                    - {moment().format('MMM D, YYYY')}
+                  </option>
+                  <option value="last_month">
+                    Last Month:{' '}
+                    {moment()
+                      .subtract(1, 'months')
+                      .startOf('month')
+                      .format('MMM D, YYYY')}{' '}
+                    -{' '}
+                    {moment()
+                      .subtract(1, 'months')
+                      .endOf('month')
+                      .format('MMM D, YYYY')}
+                  </option>
+                  <option value="last_3_months">
+                    Last 3 Months:{' '}
+                    {moment()
+                      .subtract(3, 'months')
+                      .startOf('month')
+                      .format('MMM D, YYYY')}{' '}
+                    -{' '}
+                    {moment()
+                      .subtract(1, 'months')
+                      .endOf('month')
+                      .format('MMM D, YYYY')}
+                  </option>
+                  <option value="last_6_months">
+                    Last 6 Months:{' '}
+                    {moment()
+                      .subtract(6, 'months')
+                      .startOf('month')
+                      .format('MMM D, YYYY')}{' '}
+                    -{' '}
+                    {moment()
+                      .subtract(1, 'months')
+                      .endOf('month')
+                      .format('MMM D, YYYY')}
+                  </option>
+                  <option value="last_year">
+                    Last Year:{' '}
+                    {moment()
+                      .subtract(1, 'years')
+                      .startOf('month')
+                      .format('MMM D, YYYY')}{' '}
+                    -{' '}
+                    {moment()
+                      .subtract(1, 'years')
+                      .endOf('month')
+                      .format('MMM D, YYYY')}
+                  </option>
+                  <option value="custom">Custom</option>
+                </select>
+                <div className="droparrow" />
+              </div>
             </div>
+            {this.state.dateRange === 'custom' && (
+              <div className="customDates">
+                <div className="form-group">
+                  <label htmlFor="fromDate" className="control-label">
+                    From Date
+                  </label>
+                  <DayPickerInput
+                    name="fromDate"
+                    id="fromDate"
+                    placeholder={moment(new Date())
+                      .locale(
+                        getLocalePreference(
+                          this.props.space,
+                          this.props.profile,
+                        ),
+                      )
+                      .localeData()
+                      .longDateFormat('L')
+                      .toLowerCase()}
+                    formatDate={formatDate}
+                    parseDate={parseDate}
+                    value={moment(this.state.fromDate, 'YYYY-MM-DD').toDate()}
+                    onDayChange={function(
+                      selectedDay,
+                      modifiers,
+                      dayPickerInput,
+                    ) {
+                      compThis.setState({
+                        fromDate: moment(selectedDay).format('YYYY-MM-DD'),
+                      });
+                    }}
+                    dayPickerProps={{
+                      locale: getLocalePreference(
+                        this.props.space,
+                        this.props.profile,
+                      ),
+                      localeUtils: MomentLocaleUtils,
+                    }}
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="toDate" className="control-label">
+                    To Date
+                  </label>
+                  <DayPickerInput
+                    name="toDate"
+                    id="toDate"
+                    placeholder={moment(new Date())
+                      .locale(
+                        getLocalePreference(
+                          this.props.space,
+                          this.props.profile,
+                        ),
+                      )
+                      .localeData()
+                      .longDateFormat('L')
+                      .toLowerCase()}
+                    formatDate={formatDate}
+                    parseDate={parseDate}
+                    value={moment(this.state.toDate, 'YYYY-MM-DD').toDate()}
+                    onDayChange={function(
+                      selectedDay,
+                      modifiers,
+                      dayPickerInput,
+                    ) {
+                      compThis.setState({
+                        toDate: moment(selectedDay).format('YYYY-MM-DD'),
+                      });
+                    }}
+                    dayPickerProps={{
+                      locale: getLocalePreference(
+                        this.props.space,
+                        this.props.profile,
+                      ),
+                      localeUtils: MomentLocaleUtils,
+                    }}
+                  />
+                </div>
+                <button
+                  className="btn btn-primary customButton"
+                  onClick={e =>
+                    this.applyCustomDates(
+                      this.state.fromDate,
+                      this.state.toDate,
+                    )
+                  }
+                >
+                  Go
+                </button>
+              </div>
+            )}
           </div>
-          {this.state.dateRange === 'custom' && (
-            <div className="customDates">
-              <div className="form-group">
-                <label htmlFor="fromDate" className="control-label">
-                  From Date
-                </label>
-                <DayPickerInput
-                  name="fromDate"
-                  id="fromDate"
-                  placeholder={moment(new Date())
-                    .locale(
-                      getLocalePreference(this.props.space, this.props.profile),
-                    )
-                    .localeData()
-                    .longDateFormat('L')
-                    .toLowerCase()}
-                  formatDate={formatDate}
-                  parseDate={parseDate}
-                  value={moment(this.state.fromDate, 'YYYY-MM-DD').toDate()}
-                  onDayChange={function(
-                    selectedDay,
-                    modifiers,
-                    dayPickerInput,
-                  ) {
-                    compThis.setState({
-                      fromDate: moment(selectedDay).format('YYYY-MM-DD'),
-                    });
-                  }}
-                  dayPickerProps={{
-                    locale: getLocalePreference(
-                      this.props.space,
-                      this.props.profile,
-                    ),
-                    localeUtils: MomentLocaleUtils,
-                  }}
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="toDate" className="control-label">
-                  To Date
-                </label>
-                <DayPickerInput
-                  name="toDate"
-                  id="toDate"
-                  placeholder={moment(new Date())
-                    .locale(
-                      getLocalePreference(this.props.space, this.props.profile),
-                    )
-                    .localeData()
-                    .longDateFormat('L')
-                    .toLowerCase()}
-                  formatDate={formatDate}
-                  parseDate={parseDate}
-                  value={moment(this.state.toDate, 'YYYY-MM-DD').toDate()}
-                  onDayChange={function(
-                    selectedDay,
-                    modifiers,
-                    dayPickerInput,
-                  ) {
-                    compThis.setState({
-                      toDate: moment(selectedDay).format('YYYY-MM-DD'),
-                    });
-                  }}
-                  dayPickerProps={{
-                    locale: getLocalePreference(
-                      this.props.space,
-                      this.props.profile,
-                    ),
-                    localeUtils: MomentLocaleUtils,
-                  }}
-                />
-              </div>
-              <button
-                className="btn btn-primary customButton"
-                onClick={e =>
-                  this.applyCustomDates(this.state.fromDate, this.state.toDate)
-                }
-              >
-                Go
-              </button>
-            </div>
-          )}
+          <div className="programs">
+            <label htmlFor="program">Program</label>
+            <select
+              name="program"
+              id="program"
+              ref={input => (this.input = input)}
+              value={this.state.program}
+              onChange={e => {
+                const data = this.getData(
+                  this.props.attendancesByDate,
+                  this.state.period,
+                  this.state.dateRange,
+                  this.props.allMembers,
+                  e.target.value,
+                );
+                this.setState({
+                  data,
+                  program: e.target.value,
+                });
+              }}
+            >
+              <option value="" />
+              {this.props.programs.map(program => (
+                <option key={program.program} value={program.program}>
+                  {program.program}
+                </option>
+              ))}
+            </select>
+            <div className="droparrow" />
+          </div>
         </div>
         <ReactToPrint
           trigger={() => (

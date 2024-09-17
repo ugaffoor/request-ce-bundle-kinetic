@@ -517,7 +517,6 @@ export class LeadEdit extends Component {
                     <select
                       name="country"
                       id="country"
-                      required
                       ref={input => (this.input = input)}
                       defaultValue={this.props.leadItem.values['Country']}
                       onChange={e => {
@@ -545,23 +544,13 @@ export class LeadEdit extends Component {
                   </div>
                 )}
                 <div className="state">
-                  <label
-                    htmlFor="State"
-                    required={
-                      this.props.leadItem.values['State'] === undefined
-                        ? true
-                        : false
-                    }
-                  >
-                    State
-                  </label>
+                  <label htmlFor="State">State</label>
                   {getAttributeValue(this.props.space, 'School States', '') ===
                     undefined && (
                     <span>
                       <select
                         name="state"
                         id="state"
-                        required
                         ref={input => (this.input = input)}
                         defaultValue={this.props.leadItem.values['State']}
                         onChange={e =>
@@ -605,7 +594,6 @@ export class LeadEdit extends Component {
                       <select
                         name="state"
                         id="state"
-                        required
                         ref={input => (this.input = input)}
                         defaultValue={this.props.leadItem.values['State']}
                         onChange={e =>
@@ -676,7 +664,6 @@ export class LeadEdit extends Component {
                           : '####'
                       }
                       mask="_"
-                      required
                       ref={input => (this.input = input)}
                       value={this.props.leadItem.values['Postcode']}
                       onValueChange={(values, e) =>
@@ -2052,7 +2039,7 @@ export class LeadEdit extends Component {
                     />
                   </div>
                   <div>
-                    <label htmlFor="sourceReference3">Source Reference 3</label>
+                    <label htmlFor="sourceReference3">Kids/Adults</label>
                     <select
                       name="sourceReference3"
                       id="sourceReference3"

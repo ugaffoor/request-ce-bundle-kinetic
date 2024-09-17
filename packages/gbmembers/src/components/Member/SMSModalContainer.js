@@ -48,6 +48,7 @@ const mapDispatchToProps = {
   setSystemError: errorActions.setSystemError,
   fetchSMSTemplates: dataStoreActions.fetchSMSTemplates,
 };
+const email_date_format = ['DD-MM-YYYY HH:mm', 'YYYY-MM-DDTHH:mm:ssZ'];
 
 const util = require('util');
 export class SMSModal extends Component {
@@ -204,14 +205,10 @@ export class SMSModal extends Component {
           ? content['Sent Date']
           : /*content['Received Date'];*/ value['createdAt'];
 
-      dt = moment(dt, [
-        'L HH:mm',
-        'DD-MM-YYYY HH:mm',
-        'YYYY-MM-DDThh:mm:ss.SSSZ',
-      ]);
+      dt = moment(dt, email_date_format);
       //      dt = dt.add(moment().utcOffset() * 60, 'seconds');
 
-      dt = moment(value['createdAt']);
+      //dt = moment(value['createdAt']);
 
       smsValues[smsValues.length] = {
         Direction: value.values['Direction'],

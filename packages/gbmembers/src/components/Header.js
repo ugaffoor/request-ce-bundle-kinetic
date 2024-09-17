@@ -27,7 +27,11 @@ export const Header = ({
   isKiosk,
   space,
 }) => (
-  <Navbar color="faded" light className="fixed-top">
+  <Navbar
+    color="faded"
+    light
+    className={`fixed-top ${isKiosk ? 'isKiosk' : ''}`}
+  >
     {!isKiosk ? (
       <Nav className="nav-header apps">
         <NavItem className="homeNavItem">

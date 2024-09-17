@@ -486,10 +486,14 @@ export class NewEmailCampaign extends Component {
         .css('display') === 'inline-block'
     ) {
       this.props.setShowAttachmentError(true);
+    }
+    if (this.state.text.indexOf('data:image') !== -1) {
+      this.props.setShowImageIssue(true);
     } else {
       this.props.setShowEditor(false);
       this.props.setShowPreview(true);
       this.props.setShowAttachmentError(false);
+      this.props.setShowImageIssue(false);
     }
     this.setState({
       scheduleEmail: false,
@@ -815,6 +819,13 @@ export class NewEmailCampaign extends Component {
                 Submit your Attachment or remove to continue
               </span>
             )}
+            {this.props.showImageIssue && (
+              <span className="imageWarning">
+                Something is wrong, you have added an Image(s) that has embedded
+                content. Please remove and add the Image(s) again and ensure it
+                is uploaded first.
+              </span>
+            )}
             {this.props.showPreview && (
               <span className="preview">
                 <span className="buttons">
@@ -886,6 +897,8 @@ export const NewEmailCampaignView = ({
   setShowEditor,
   showAttachmentError,
   setShowAttachmentError,
+  showImageIssue,
+  setShowImageIssue,
   showPreview,
   setShowPreview,
   updateCampaign,
@@ -918,6 +931,8 @@ export const NewEmailCampaignView = ({
         showEditor={showEditor}
         showAttachmentError={showAttachmentError}
         setShowAttachmentError={setShowAttachmentError}
+        showImageIssue={showImageIssue}
+        setShowImageIssue={setShowImageIssue}
         setShowEditor={setShowEditor}
         showPreview={showPreview}
         setShowPreview={setShowPreview}
@@ -952,6 +967,7 @@ export const EmailCampaignContainer = compose(
   withState('isDirty', 'setIsDirty', false),
   withState('showEditor', 'setShowEditor', true),
   withState('showAttachmentError', 'setShowAttachmentError', false),
+  withState('showImageIssue', 'setShowImageIssue', false),
   withState('showPreview', 'setShowPreview', false),
   withHandlers({
     saveCampaign: ({ campaignItem, createCampaign }) => (

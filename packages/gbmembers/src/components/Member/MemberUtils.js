@@ -205,6 +205,15 @@ var currencies = {
     code: 'AUD',
     name_plural: 'Australian dollars',
   },
+  NZD: {
+    symbol: '$',
+    name: 'New Zealand Dollar',
+    symbol_native: '$',
+    decimal_digits: 2,
+    rounding: 0,
+    code: 'NZD',
+    name_plural: 'New Zealand dollars',
+  },
   USD: {
     symbol: '$',
     name: 'US Dollar',
@@ -1105,6 +1114,29 @@ export function handleChange(
   //A hack to for a redraw of Ranking Belts menu
   if (memberItem.myThis !== undefined) memberItem.myThis.setState({ test: 0 });
 }
+export function handleNewChange(memberItem, key, event) {
+  if (!Array.isArray(memberItem.values[key])) {
+    memberItem.values[key] = event.target.value;
+  }
+  if ($(event.target).attr('required')) {
+    var val = memberItem.values[key];
+    if (val === undefined || val === null || val === '') {
+      $(event.target)
+        .siblings('label')
+        .attr('required', 'required');
+    } else {
+      $(event.target)
+        .siblings('label')
+        .removeAttr('required');
+      $(event.target).css('border-color', '');
+    }
+  }
+  //Commenting out following code since we are using uncontrolled components calling setState on value change (and consequently on every keypress)
+  //is not required and not desirable. It will result in lifecycle methods like componentWillReceiveProps, componentDidUpdate etc being called
+  //on every keypress
+  //A hack to for a redraw of Ranking Belts menu
+  if (memberItem.myThis !== undefined) memberItem.myThis.setState({ test: 0 });
+}
 
 export function handleProgramChange(memberItem, key, event) {
   memberItem.values[key] = event.target.value;
@@ -1496,7 +1528,7 @@ export function getLastBillingStartDate(member, successfulPayments) {
     'YYYY-MM-DD',
   );
   if (
-    member.values['Status'] !== 'Active' &&
+    /*member.values['Status'] !== 'Active' && */
     resumeDate.isAfter(billingStartDate)
   ) {
     billingStartDate = resumeDate;

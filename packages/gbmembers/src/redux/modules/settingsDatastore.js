@@ -25,6 +25,14 @@ export const types = {
   CREATE_TRIAL_BOOKING: namespace('datastore', 'CREATE_TRIAL_BOOKING'),
   DELETE_TRIAL_BOOKING: namespace('datastore', 'DELETE_TRIAL_BOOKING'),
   UPDATE_SPACE_ATTRIBUTE: namespace('datastore', 'UPDATE_SPACE_ATTRIBUTE'),
+  FETCH_UPDATE_SPACE_ATTRIBUTES: namespace(
+    'datastore',
+    'FETCH_UPDATE_SPACE_ATTRIBUTES',
+  ),
+  SET_UPDATE_SPACE_ATTRIBUTES: namespace(
+    'datastore',
+    'SET_UPDATE_SPACE_ATTRIBUTES',
+  ),
 };
 
 export const actions = {
@@ -47,6 +55,8 @@ export const actions = {
   createTrialBooking: withPayload(types.CREATE_TRIAL_BOOKING),
   deleteTrialBooking: withPayload(types.DELETE_TRIAL_BOOKING),
   updateSpaceAttribute: withPayload(types.UPDATE_SPACE_ATTRIBUTE),
+  fetchUpdateSpaceAttributes: withPayload(types.FETCH_UPDATE_SPACE_ATTRIBUTES),
+  setUpdateSpaceAttributes: withPayload(types.SET_UPDATE_SPACE_ATTRIBUTES),
 };
 
 export const State = Record({
@@ -63,6 +73,8 @@ export const State = Record({
   journeyEvent: null,
   error: null,
   updatingAttribute: false,
+  updateSpaceAttributes: [],
+  updateSpaceAttributesLoading: true,
 });
 
 export const reducer = (state = State(), { type, payload }) => {
@@ -180,6 +192,20 @@ export const reducer = (state = State(), { type, payload }) => {
       return state.set('journeyEventLoading', false).set('error', payload);
     case types.UPDATE_SPACE_ATTRIBUTE:
       return state.set('updatingAttribute', true);
+    case types.FETCH_UPDATE_SPACE_ATTRIBUTES:
+      return state.set('updateSpaceAttributesLoading', true);
+    case types.SET_UPDATE_SPACE_ATTRIBUTES:
+      payload.submissions = payload.submissions.sort(function(a, b) {
+        return a.createdAt > b.createdAt
+          ? -1
+          : b.createdAt > a.createdAt
+          ? 1
+          : 0;
+      });
+
+      return state
+        .set('updateSpaceAttributesLoading', false)
+        .set('updateSpaceAttributes', payload);
     default:
       return state;
   }

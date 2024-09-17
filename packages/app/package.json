@@ -37,7 +37,9 @@
     "redux": "^3.7.2",
     "redux-saga": "^0.16.0",
     "semver": "^5.5.0",
-    "typeface-open-sans": "^0.0.54"
+    "typeface-open-sans": "^0.0.54",
+    "cheerio-select":"2.1.0",
+    "cheerio":"1.0.0-rc.3"
   },
   "devDependencies": {
     "enzyme": "^3.3.0",

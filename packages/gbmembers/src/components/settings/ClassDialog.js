@@ -189,13 +189,19 @@ export class ClassDialog extends Component {
       };
     }
   }
-  getProgramOptions(programs) {
+  getProgramOptions(programs, additionalPrograms) {
     if (programs === undefined) {
       return [];
     }
     let options = [];
 
     programs.forEach(program => {
+      options.push({
+        value: program.program,
+        label: program.program,
+      });
+    });
+    additionalPrograms.forEach(program => {
       options.push({
         value: program.program,
         label: program.program,
@@ -388,7 +394,10 @@ export class ClassDialog extends Component {
                       : this.state.allowedPrograms
                   }
                   onChange={this.handleAllowedProgramsChange}
-                  options={this.getProgramOptions(this.programs)}
+                  options={this.getProgramOptions(
+                    this.programs,
+                    this.props.additionalPrograms,
+                  )}
                   closeMenuOnSelect={false}
                   hideSelectedOptions={false}
                   controlShouldRenderValue={true}

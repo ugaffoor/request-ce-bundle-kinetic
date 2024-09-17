@@ -572,6 +572,7 @@ export class MemberActivityReport extends Component {
       if (
         filterColumn === 'createdDate' ||
         filterColumn === 'lastModifiedDate' ||
+        filterColumn === 'dateJoined' ||
         filterColumn === 'lastPaymentDate' ||
         filterColumn === 'lastAttendanceDate'
       ) {
@@ -595,6 +596,7 @@ export class MemberActivityReport extends Component {
       if (
         filterColumn === 'createdDate' ||
         filterColumn === 'lastModifiedDate' ||
+        filterColumn === 'dateJoined' ||
         filterColumn === 'lastPaymentDate' ||
         filterColumn === 'lastAttendanceDate'
       ) {
@@ -641,6 +643,7 @@ export class MemberActivityReport extends Component {
     if (
       filterColumn !== 'createdDate' &&
       filterColumn !== 'lastModifiedDate' &&
+      filterColumn !== 'dateJoined' &&
       filterColumn !== 'lastPaymentDate' &&
       filterColumn !== 'lastAttendanceDate'
     ) {
@@ -661,6 +664,7 @@ export class MemberActivityReport extends Component {
     if (
       filterColumn === 'createdDate' ||
       filterColumn === 'lastModifiedDate' ||
+      filterColumn === 'dateJoined' ||
       filterColumn === 'lastPaymentDate' ||
       filterColumn === 'lastAttendanceDate'
     ) {
@@ -816,6 +820,7 @@ export class MemberActivityReport extends Component {
       type === 'includes' &&
       !event.target.value === 'createdDate' &&
       !event.target.value === 'lastModifiedDate' &&
+      !event.target.value === 'dateJoined' &&
       !event.target.value === 'lastPaymentDate' &&
       !event.target.value === 'lastAttendanceDate'
     ) {
@@ -830,6 +835,7 @@ export class MemberActivityReport extends Component {
     if (
       event.target.value === 'createdDate' ||
       event.target.value === 'lastModifiedDate' ||
+      event.target.value === 'dateJoined' ||
       event.target.value === 'lastPaymentDate' ||
       event.target.value === 'lastAttendanceDate'
     ) {

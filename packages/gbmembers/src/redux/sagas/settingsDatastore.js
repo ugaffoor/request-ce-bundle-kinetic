@@ -458,6 +458,45 @@ export function* updateSpaceAttribute(action) {
     yield put(errorActions.setSystemError(error));
   }
 }
+export function* fetchUpdateSpaceAttributes(action) {
+  try {
+    let search = new CoreAPI.SubmissionSearch(true)
+      .includes(['details', 'values'])
+      .index('values[Attribute Name]')
+      .in('values[Attribute Name]', action.payload.attributeNames)
+      .limit(1000);
+    if (
+      action.payload.nextPageToken !== undefined &&
+      action.payload.nextPageToken !== null
+    ) {
+      search = search.pageToken(action.payload.nextPageToken);
+    }
+
+    search = search.build();
+
+    const { submissions, nextPageToken } = yield call(
+      CoreAPI.searchSubmissions,
+      {
+        datastore: true,
+        form: 'space-attribute-update',
+        search,
+      },
+    );
+    console.log(
+      '#### fetchUpdateSpaceAttributes nextPageToken:' + nextPageToken,
+    );
+    yield put(
+      actions.setUpdateSpaceAttributes({
+        submissions,
+        nextPageToken,
+        initial: action.payload.nextPageToken === undefined ? true : false,
+      }),
+    );
+  } catch (error) {
+    console.log('Error in fetchCampaigns: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
 export function* watchSettingsDatastore() {
   console.log('watchSettingsDatastore');
   yield takeEvery(types.FETCH_CALL_SCRIPTS, fetchCallScripts);
@@ -472,4 +511,8 @@ export function* watchSettingsDatastore() {
   yield takeEvery(types.CREATE_TRIAL_BOOKING, createTrialBooking);
   yield takeEvery(types.DELETE_TRIAL_BOOKING, deleteTrialBooking);
   yield takeEvery(types.UPDATE_SPACE_ATTRIBUTE, updateSpaceAttribute);
+  yield takeEvery(
+    types.FETCH_UPDATE_SPACE_ATTRIBUTES,
+    fetchUpdateSpaceAttributes,
+  );
 }

@@ -264,7 +264,7 @@ export class TasksDetail extends Component {
       return [];
     }
 
-    const date_format = 'YYYY-MM-DD';
+    const date_format = 'YYYY-MM-DDTHH:mm:ssZ';
     let leads = [];
 
     if (duration === 'Todays Tasks') {
@@ -278,11 +278,11 @@ export class TasksDetail extends Component {
             if (
               moment(lead.values['Reminder Date'], date_format).isBefore(
                 today,
-                'd',
+                'day',
               ) ||
               moment(lead.values['Reminder Date'], date_format).isSame(
                 today,
-                'd',
+                'day',
               )
             ) {
               var latestHistory = getLatestHistory(lead.values['History']);
@@ -319,7 +319,7 @@ export class TasksDetail extends Component {
             if (
               moment(lead.values['Reminder Date'], date_format).isBefore(
                 startDate,
-                'd',
+                'day',
               ) ||
               moment(lead.values['Reminder Date'], date_format).isBetween(
                 startDate,
@@ -362,7 +362,7 @@ export class TasksDetail extends Component {
             if (
               moment(lead.values['Reminder Date'], date_format).isBefore(
                 startDate,
-                'd',
+                'day',
               ) ||
               moment(lead.values['Reminder Date'], date_format).isBetween(
                 startDate,

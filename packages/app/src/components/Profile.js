@@ -15,6 +15,7 @@ export const Profile = ({
   isOpen,
   toggle,
   isGuest,
+  isKiosk,
   space,
 }) => (
   <Dropdown isOpen={isOpen} toggle={toggle}>
@@ -40,9 +41,15 @@ export const Profile = ({
       </div>
       <div className="profile-links">
         <div className="dropdown-divider" />
-        <Link to="/settings/profile" className="dropdown-item" onClick={toggle}>
-          <I18n>Profile</I18n>
-        </Link>
+        {!isKiosk && (
+          <Link
+            to="/settings/profile"
+            className="dropdown-item"
+            onClick={toggle}
+          >
+            <I18n>Profile</I18n>
+          </Link>
+        )}
         {/*profile.spaceAdmin && (
           <a
             role="button"

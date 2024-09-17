@@ -1,5 +1,6 @@
 .posTaxSettings {
   margin-left: 30px;
+  font-size: 14px;
   background-color: #fdfafa;
   padding: 10px;
   border-radius: 5px;
@@ -11,11 +12,33 @@
     display: none;
   }
   .posTaxSettingsSection {
-    label {
+    span {
+      margin-bottom: 2px;
+      margin-right: 6px;
+    }
+    .lineItems {
       display: inline-flex;
+      margin-bottom: 0px;
     }
     .value {
       width: 300px;
+    }
+    .settingsHeader {
+      display: flex;
+      flex-direction: row;
+      border-bottom-style: solid;
+      border-bottom-width: 1px;
+      border-bottom-color: #c9c5c5;
+      height: 20px;
+      h6 {
+        width: 80%;
+        border: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .line {
+        margin-top: -12px;
+      }
     }
   }
   .help {

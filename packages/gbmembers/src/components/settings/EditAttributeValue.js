@@ -7,19 +7,181 @@ import helpIcon from '../../images/help.svg?raw';
 import SVGInline from 'react-svg-inline';
 import NumberFormat from 'react-number-format';
 import { I18n } from 'app/src/I18nProvider';
+import Creatable from 'react-select';
+import MomentLocaleUtils, {
+  formatDate,
+  parseDate,
+} from 'react-day-picker/moment';
+import DayPickerInput from 'react-day-picker/DayPickerInput';
+import DayPicker, { DateUtils } from 'react-day-picker/DayPicker';
+import 'react-day-picker/lib/style.css';
+import { getLocalePreference } from '../Member/MemberUtils';
+import $ from 'jquery';
+
+const components = {
+  DropdownIndicator: null,
+};
 
 export class EditAttributeValue extends Component {
   constructor(props) {
     super(props);
+    this.toggleArrayValue = this.toggleArrayValue.bind(this);
+    this.handleKeyDown = this.handleKeyDown.bind(this);
+    this.handleDatesSelection = this.handleDatesSelection.bind(this);
+    this.handleDateSelected = this.handleDateSelected.bind(this);
+
+    var value =
+      getAttributeValue(this.props.space, this.props.attributeName) !==
+      undefined
+        ? getAttributeValue(this.props.space, this.props.attributeName)
+        : '';
+    var origValue =
+      getAttributeValue(this.props.space, this.props.attributeName) !==
+      undefined
+        ? getAttributeValue(this.props.space, this.props.attributeName)
+        : '';
+
+    var optionsValue = [];
+    var percentageTextValue = '';
+    var datesSelected = [];
+
+    if (this.props.inputType === 'EditList') {
+      let values =
+        getAttributeValue(this.props.space, this.props.attributeName) !==
+        undefined
+          ? getAttributeValue(this.props.space, this.props.attributeName).split(
+              ';',
+            )
+          : [];
+      values.forEach(item => {
+        if (item.trim() !== '')
+          optionsValue.push({ label: item.trim(), value: item.trim() });
+      });
+      console.log(values);
+    }
+    if (this.props.inputType === 'PercentageText') {
+      let value = getAttributeValue(this.props.space, this.props.attributeName);
+      if (value !== '') {
+        value = value.replace('%', '');
+        value = parseFloat(value) / 100;
+        percentageTextValue = value;
+      }
+    }
+    if (
+      this.props.inputType === 'Date' ||
+      this.props.inputType === 'MultipleDates'
+    ) {
+      if (value === undefined) {
+        value = '';
+        origValue = '';
+      } else {
+        var valueItems = value.split(',');
+        valueItems.forEach(date => {
+          if (moment(date, 'YYYY-MM-DD').isAfter(moment())) {
+            datesSelected.push(moment(date, 'YYYY-MM-DD').toDate());
+          }
+        });
+        // Reset value and origValue
+        value = '';
+        datesSelected.forEach(date => {
+          if (value.length > 0) {
+            value = value + ',';
+          }
+          value = value + moment(date).format('YYYY-MM-DD');
+        });
+        origValue = value;
+      }
+    }
     this.state = {
-      value: getAttributeValue(this.props.space, this.props.attributeName),
-      origValue: getAttributeValue(this.props.space, this.props.attributeName),
+      value: value,
+      origValue: origValue,
+      optionsValue,
+      newValue: '',
+      inputValue: '',
+      percentageTextValue,
+      datesSelected: datesSelected,
     };
+  }
+  handleKeyDown(event) {
+    switch (event.key) {
+      case 'Enter':
+      case 'Tab':
+        let optionsValue = [
+          ...this.state.optionsValue,
+          { label: this.state.inputValue, value: this.state.inputValue },
+        ];
+        let value = '';
+        optionsValue.forEach(item => {
+          if (value !== '') {
+            value = value + ';';
+          }
+          value = value + item.value;
+        });
+        this.setState({
+          optionsValue: optionsValue,
+          inputValue: '',
+          value: value,
+        });
+
+        event.preventDefault();
+    }
+  }
+  toggleArrayValue(attrValue, value) {
+    if (attrValue.indexOf(value) === -1) {
+      if (attrValue.length > 0) {
+        attrValue = attrValue + ',' + value;
+      } else {
+        attrValue = value;
+      }
+    } else {
+      var items = attrValue.split(',');
+      attrValue = '';
+      items.forEach(item => {
+        if (item !== value) {
+          if (attrValue.length > 0) {
+            attrValue = attrValue + ',';
+          }
+          attrValue = attrValue + item;
+        }
+      });
+    }
+    this.setState({
+      value: attrValue,
+    });
+  }
+  handleDateSelected(selectedDay, modifiers, dayPickerInput) {
+    var value = selectedDay;
+    this.setState({
+      value: value !== undefined ? moment(value).format('YYYY-MM-DD') : '',
+    });
+  }
+  handleDatesSelection(day, { selected }) {
+    const datesSelected = this.state.datesSelected.concat();
+    if (selected) {
+      const selectedIndex = datesSelected.findIndex(selectedDay =>
+        DateUtils.isSameDay(selectedDay, day),
+      );
+      datesSelected.splice(selectedIndex, 1);
+    } else {
+      datesSelected.push(day);
+    }
+    var value = '';
+    datesSelected.forEach(date => {
+      if (value.length > 0) {
+        value = value + ',';
+      }
+      value = value + moment(date).format('YYYY-MM-DD');
+    });
+
+    this.setState({
+      datesSelected,
+      value,
+    });
   }
   render() {
     return (
       <div className="attributeLine">
-        <label htmlFor={this.props.attributeID + 'Attribute'}>
+        <div className="lineItems">
           <span className="value">
             <I18n>{this.props.labelName}</I18n>
           </span>
@@ -60,6 +222,46 @@ export class EditAttributeValue extends Component {
               }}
             />
           )}
+          {this.props.inputType === 'PercentageText' && (
+            <NumberFormat
+              id={this.props.attributeID + 'Attribute'}
+              value={
+                this.state.percentageTextValue != ''
+                  ? this.state.percentageTextValue * 100
+                  : ''
+              }
+              style={{ width: `${this.props.width}` }}
+              ref={input => (this.input = input)}
+              suffix="%"
+              decimalScale={2}
+              onChange={e => {
+                this.setState({
+                  percentageTextValue: parseFloat(e.target.value) / 100,
+                  value: e.target.value,
+                });
+              }}
+            />
+          )}
+          {this.props.inputType === 'adminFee' && (
+            <span className="ignoreAdminFee">
+              <input
+                type="checkbox"
+                id={this.props.attributeID + 'Attribute'}
+                value="YES"
+                checked={this.state.value === 'YES' ? true : false}
+                name={this.props.attributeID + 'Attribute'}
+                onChange={e => {
+                  this.setState({
+                    value: e.target.checked ? 'YES' : undefined,
+                  });
+                  this.props.ignoreAdminFee(e.target.checked);
+                }}
+              />
+              <label htmlFor={this.props.attributeID + 'Attribute'}>
+                Ignore Admin Fee
+              </label>
+            </span>
+          )}
           {this.props.inputType === 'Phone' && (
             <NumberFormat
               id={this.props.attributeID + 'Attribute'}
@@ -79,7 +281,193 @@ export class EditAttributeValue extends Component {
               }}
             />
           )}
-        </label>
+          {this.props.inputType === 'paymentFrequencies' && (
+            <span className="paymentFrequencies">
+              <input
+                type="checkbox"
+                id={this.props.attributeID + 'Attribute' + 'Weekly'}
+                value="Weekly"
+                checked={
+                  this.state.value.indexOf('Weekly') !== -1 ? true : false
+                }
+                name={this.props.attributeID + 'Attribute' + 'Weekly'}
+                onChange={e => {
+                  this.toggleArrayValue(this.state.value, e.target.value);
+                }}
+              />
+              <label htmlFor={this.props.attributeID + 'Attribute' + 'Weekly'}>
+                Weekly
+              </label>
+              <input
+                type="checkbox"
+                id={this.props.attributeID + 'Attribute' + 'Fortnightly'}
+                value="Fortnightly"
+                checked={
+                  this.state.value.indexOf('Fortnightly') !== -1 ? true : false
+                }
+                name={this.props.attributeID + 'Attribute' + 'Fortnightly'}
+                onChange={e => {
+                  this.toggleArrayValue(this.state.value, e.target.value);
+                }}
+              />
+              <label
+                htmlFor={this.props.attributeID + 'Attribute' + 'Fortnightly'}
+              >
+                <I18n>Fortnightly</I18n>
+              </label>
+              <input
+                type="checkbox"
+                id={this.props.attributeID + 'Attribute' + 'Monthly'}
+                value="Monthly"
+                checked={
+                  this.state.value.indexOf('Monthly') !== -1 ? true : false
+                }
+                name={this.props.attributeID + 'Attribute' + 'Monthly'}
+                onChange={e => {
+                  this.toggleArrayValue(this.state.value, e.target.value);
+                }}
+              />
+              <label htmlFor={this.props.attributeID + 'Attribute' + 'Monthly'}>
+                <I18n>Monthly</I18n>
+              </label>
+              <input
+                type="checkbox"
+                id={this.props.attributeID + 'Attribute' + 'Quarterly'}
+                value="Quarterly"
+                checked={
+                  this.state.value.indexOf('Quarterly') !== -1 ? true : false
+                }
+                name={this.props.attributeID + 'Attribute' + 'Quarterly'}
+                onChange={e => {
+                  this.toggleArrayValue(this.state.value, e.target.value);
+                }}
+              />
+              <label
+                htmlFor={this.props.attributeID + 'Attribute' + 'Quarterly'}
+              >
+                <I18n>Quarterly</I18n>
+              </label>
+              {getAttributeValue(this.props.space, 'Billing Company') ===
+                'Bambora' && (
+                <span>
+                  <input
+                    type="checkbox"
+                    id={this.props.attributeID + 'Attribute' + '6 Months'}
+                    value="6 Months"
+                    checked={
+                      this.state.value.indexOf('6 Months') !== -1 ? true : false
+                    }
+                    name={this.props.attributeID + 'Attribute' + '6 Months'}
+                    onChange={e => {
+                      this.toggleArrayValue(this.state.value, e.target.value);
+                    }}
+                  />
+                  <label
+                    htmlFor={this.props.attributeID + 'Attribute' + '6 Months'}
+                  >
+                    <I18n>6 Months</I18n>
+                  </label>
+                </span>
+              )}
+              {getAttributeValue(this.props.space, 'Billing Company') ===
+                'Bambora' && (
+                <span>
+                  <input
+                    type="checkbox"
+                    id={this.props.attributeID + 'Attribute' + 'Yearly'}
+                    value="Yearly"
+                    checked={
+                      this.state.value.indexOf('Yearly') !== -1 ? true : false
+                    }
+                    name={this.props.attributeID + 'Attribute' + 'Yearly'}
+                    onChange={e => {
+                      this.toggleArrayValue(this.state.value, e.target.value);
+                    }}
+                  />
+                  <label
+                    htmlFor={this.props.attributeID + 'Attribute' + 'Yearly'}
+                  >
+                    <I18n>Yearly</I18n>
+                  </label>
+                </span>
+              )}
+            </span>
+          )}
+          {this.props.inputType === 'EditList' && (
+            <Creatable
+              components={components}
+              inputValue={this.state.inputValue}
+              isClearable
+              isMulti
+              menuIsOpen={false}
+              placeholder="Type something and press enter..."
+              value={this.state.optionsValue}
+              onChange={newValue => {
+                let value = '';
+                newValue.forEach(item => {
+                  if (value !== '') {
+                    value = value + ';';
+                  }
+                  value = value + item.value;
+                });
+
+                this.setState({
+                  optionsValue: newValue,
+                  value: value,
+                });
+              }}
+              onInputChange={newValue =>
+                this.setState({ inputValue: newValue })
+              }
+              onKeyDown={this.handleKeyDown}
+              styles={{
+                input: base => ({
+                  ...base,
+                  width: '400px',
+                  maxWidth: '400px',
+                }),
+              }}
+            />
+          )}
+          {this.props.inputType === 'Date' && (
+            <DayPickerInput
+              name={this.props.attributeID + 'Attribute'}
+              id={this.props.attributeID + 'Attribute'}
+              placeholder={moment(new Date())
+                .locale(
+                  getLocalePreference(this.props.space, this.props.profile),
+                )
+                .localeData()
+                .longDateFormat('L')
+                .toLowerCase()}
+              formatDate={formatDate}
+              parseDate={parseDate}
+              value={this.state.value}
+              onDayChange={this.handleDateSelected}
+              dayPickerProps={{
+                locale: getLocalePreference(
+                  this.props.space,
+                  this.props.profile,
+                ),
+                localeUtils: MomentLocaleUtils,
+              }}
+            />
+          )}
+          {this.props.inputType === 'MultipleDates' && (
+            <DayPicker
+              name={this.props.attributeID + 'Attribute'}
+              id={this.props.attributeID + 'Attribute'}
+              mode="multiple"
+              selectedDays={this.state.datesSelected}
+              onDayClick={this.handleDatesSelection}
+              disabledDays={[
+                {
+                  before: new Date(),
+                },
+              ]}
+            />
+          )}
+        </div>
         <button
           type="button"
           disabled={this.state.value === this.state.origValue}

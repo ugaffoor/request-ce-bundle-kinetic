@@ -112,39 +112,45 @@ export const Header = ({
         )}
       </div>
       <div className="nav-item-right">
-        <Dropdown
-          id="header-kapp-dropdown"
-          isOpen={kappDropdownOpen}
-          toggle={kappDropdownToggle}
-        >
-          <DropdownToggle nav role="button">
-            <i className="fa fa-fw fa-th" />
-          </DropdownToggle>
-          <DropdownMenu>
-            <Link className="dropdown-item" to="/" onClick={kappDropdownToggle}>
-              <span className="fa fa-fw fa-home" />
-              Home
-            </Link>
-            <DropdownItem divider />
-            {predefinedKapps.map(thisKapp => (
-              <BuildKappLink
-                kapp={thisKapp}
-                key={thisKapp.slug}
+        {!isKiosk && (
+          <Dropdown
+            id="header-kapp-dropdown"
+            isOpen={kappDropdownOpen}
+            toggle={kappDropdownToggle}
+          >
+            <DropdownToggle nav role="button">
+              <i className="fa fa-fw fa-th" />
+            </DropdownToggle>
+            <DropdownMenu>
+              <Link
+                className="dropdown-item"
+                to="/"
                 onClick={kappDropdownToggle}
-              />
-            ))}
-            {additionalKapps.map(thisKapp => (
-              <BuildKappLink
-                kapp={thisKapp}
-                key={thisKapp.slug}
-                onClick={kappDropdownToggle}
-              />
-            ))}
-          </DropdownMenu>
-        </Dropdown>
+              >
+                <span className="fa fa-fw fa-home" />
+                Home
+              </Link>
+              <DropdownItem divider />
+              {predefinedKapps.map(thisKapp => (
+                <BuildKappLink
+                  kapp={thisKapp}
+                  key={thisKapp.slug}
+                  onClick={kappDropdownToggle}
+                />
+              ))}
+              {additionalKapps.map(thisKapp => (
+                <BuildKappLink
+                  kapp={thisKapp}
+                  key={thisKapp.slug}
+                  onClick={kappDropdownToggle}
+                />
+              ))}
+            </DropdownMenu>
+          </Dropdown>
+        )}
         {!isGuest && !isKiosk && <HelpContainer />}
         {!isGuest && !isKiosk && <JourneyEventsContainer />}
-        <ProfileContainer space={space} />
+        <ProfileContainer space={space} isKiosk={isKiosk} />
       </div>
     </Nav>
   </Navbar>

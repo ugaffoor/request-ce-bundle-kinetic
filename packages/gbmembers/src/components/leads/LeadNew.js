@@ -414,7 +414,6 @@ export class LeadNew extends Component {
                     <select
                       name="country"
                       id="country"
-                      required
                       ref={input => (this.input = input)}
                       defaultValue={''}
                       onChange={e =>
@@ -437,17 +436,7 @@ export class LeadNew extends Component {
                   </div>
                 )}
                 <div className="state">
-                  <label
-                    htmlFor="State"
-                    required={
-                      this.props.leadItem.values['State'] === undefined ||
-                      this.props.leadItem.values['State'] === ''
-                        ? true
-                        : false
-                    }
-                  >
-                    State
-                  </label>
+                  <label htmlFor="State">State</label>
                   {getAttributeValue(this.props.space, 'School States', '') ===
                     undefined && (
                     <span>
@@ -1764,7 +1753,7 @@ export class LeadNew extends Component {
                     />
                   </div>
                   <div>
-                    <label htmlFor="sourceReference3">Source Reference 3</label>
+                    <label htmlFor="sourceReference3">Kids/Adults</label>
                     <select
                       name="sourceReference3"
                       id="sourceReference3"

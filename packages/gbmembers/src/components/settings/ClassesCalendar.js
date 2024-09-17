@@ -11,6 +11,7 @@ import {
 } from '../../lib/react-kinops-components/src/utils';
 import { I18n } from '../../../../app/src/I18nProvider';
 import { StatusMessagesContainer } from '../StatusMessages';
+import { Utils } from 'common';
 
 const DragAndDropCalendar = withDragAndDrop(Calendar);
 
@@ -390,7 +391,9 @@ export class ClassesCalendar extends Component {
           />
         )}
         <div class="calendarSection">
-          {
+          {!Utils.isMemberOf(this.props.profile, 'Role::Data Admin') ? (
+            <div />
+          ) : (
             <div class="gridSizes">
               <label htmlFor="5minutes">
                 <input
@@ -467,7 +470,7 @@ export class ClassesCalendar extends Component {
                 Save
               </button>
             </div>
-          }
+          )}
           <DragAndDropCalendar
             selectable
             localizer={localizer}

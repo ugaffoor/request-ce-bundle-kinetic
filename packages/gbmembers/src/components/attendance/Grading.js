@@ -195,6 +195,12 @@ export class GradingDetail extends Component {
         <div className="membersGradingSection">
           <div className="memberGrading">
             {this.props.allMembers
+              .filter(
+                member =>
+                  member.values['Status'] === 'Active' ||
+                  member.values['Status'] === 'Pending Freeze' ||
+                  member.values['Status'] === 'Pending Cancellation',
+              )
               .filter(member => {
                 if (this.state.classAttendances !== undefined) {
                   let attendee = this.state.classAttendances.find(
