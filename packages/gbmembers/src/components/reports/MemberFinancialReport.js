@@ -551,11 +551,25 @@ export class MemberFinancialReport extends Component {
     if (idx !== -1) return members[idx];
     return undefined;
   }
-  isSelfSignUpRegistrationPayment(payment, members) {
+  isRegistrationFeePayment(payment, members) {
     if (payment['paymentSource'] !== 'Member Registration Fee')
       return undefined;
     var idx = members.findIndex(
       member => member.values['Member ID'] === payment['yourSystemReference'],
+    );
+
+    if (idx !== -1) return members[idx];
+    return undefined;
+  }
+  isCashRegistrationFeePayment(registration, members) {
+    if (
+      registration.values['Registration Fee'] === undefined ||
+      registration.values['Registration Fee'] === '' ||
+      registration.values['Registration Fee'] === null
+    )
+      return undefined;
+    var idx = members.findIndex(
+      member => member.id === registration.values['Members'],
     );
 
     if (idx !== -1) return members[idx];
@@ -793,6 +807,7 @@ export class MemberFinancialReport extends Component {
       //    if (!members || members.length <= 0) {
       return {
         accountHolders: { members: [], value: 0 },
+        registrationFeeMembers: { members: [], value: 0 },
         additionalServices: { members: [], value: 0 },
         cashPayments: { members: [], value: 0 },
         forecastHolders: { members: [], value: 0 },
@@ -805,6 +820,8 @@ export class MemberFinancialReport extends Component {
     // billingAmount, repBillingPeriod
     let accountHolders = [];
     let accountHoldersValue = 0;
+    let registrationFeeMembers = [];
+    let registrationFeeMembersValue = 0;
     let additionalServices = [];
     let additionalServicesValue = 0;
     let forecastHolders = [];
@@ -818,11 +835,51 @@ export class MemberFinancialReport extends Component {
     let cashPayments = [];
     let cashPaymentsValue = 0;
     let allTransactionRecords = [];
+    let adminFeePerc = Number(
+      getAttributeValue(this.props.space, 'Admin Fee Charge') !== undefined &&
+        getAttributeValue(this.props.space, 'Admin Fee Charge') !== null &&
+        getAttributeValue(this.props.space, 'Admin Fee Charge') !== ''
+        ? Number(
+            getAttributeValue(this.props.space, 'Admin Fee Charge').replace(
+              '%',
+              '',
+            ),
+          ) / 100
+        : 0,
+    );
+    let tax1Percentage = Number(
+      getAttributeValue(this.props.space, 'TAX 1 Value') !== undefined &&
+        getAttributeValue(this.props.space, 'TAX 1 Value') !== null &&
+        getAttributeValue(this.props.space, 'TAX 1 Value') !== ''
+        ? Number(getAttributeValue(this.props.space, 'TAX 1 Value'))
+        : 0,
+    );
+    let tax2Percentage = Number(
+      getAttributeValue(this.props.space, 'TAX 2 Value') !== undefined &&
+        getAttributeValue(this.props.space, 'TAX 2 Value') !== null &&
+        getAttributeValue(this.props.space, 'TAX 2 Value') !== ''
+        ? Number(getAttributeValue(this.props.space, 'TAX 2 Value'))
+        : 0,
+    );
+    let posTax1Percentage = Number(
+      getAttributeValue(this.props.space, 'POS Sales Tax') !== undefined &&
+        getAttributeValue(this.props.space, 'POS Sales Tax') !== null &&
+        getAttributeValue(this.props.space, 'POS Sales Tax') !== ''
+        ? Number(getAttributeValue(this.props.space, 'POS Sales Tax'))
+        : 0,
+    );
+    let posTax2Percentage = Number(
+      getAttributeValue(this.props.space, 'POS Sales Tax 2') !== undefined &&
+        getAttributeValue(this.props.space, 'POS Sales Tax 2') !== null &&
+        getAttributeValue(this.props.space, 'POS Sales Tax 2') !== ''
+        ? Number(getAttributeValue(this.props.space, 'POS Sales Tax 2'))
+        : 0,
+    );
 
     paymentHistory.forEach(payment => {
       var member = this.isRecurringPayment(payment, members);
       var additionalServiceMember = undefined;
-      var selfSignUpRegistrationMember = undefined;
+      var registrationFeeMember = undefined;
 
       if (member === undefined) {
         additionalServiceMember = this.isAdditionalServicePayment(
@@ -830,17 +887,23 @@ export class MemberFinancialReport extends Component {
           members,
         );
       }
-      selfSignUpRegistrationMember = this.isSelfSignUpRegistrationPayment(
-        payment,
-        members,
-      );
+      registrationFeeMember = this.isRegistrationFeePayment(payment, members);
 
-      if (member !== undefined && selfSignUpRegistrationMember === undefined) {
+      if (member !== undefined && registrationFeeMember === undefined) {
         // Needed for Bambora
         if (accountHolders.findIndex(item => item.id === member.id) === -1) {
           accountHolders[accountHolders.length] = member;
         }
         accountHoldersValue += payment.paymentAmount;
+        var showTaxes =
+          tax1Percentage !== 0 || tax2Percentage !== 0 ? true : false;
+        var feeTotal = 0;
+        if (showTaxes) {
+          feeTotal =
+            Number(payment.paymentAmount) /
+            (1 + adminFeePerc + tax1Percentage + tax2Percentage);
+        }
+
         allTransactionRecords.push({
           type: 'Membership',
           date: payment.debitDate,
@@ -848,6 +911,14 @@ export class MemberFinancialReport extends Component {
           billingID: member.values['Billing Customer Reference'],
           paymentID: payment.paymentID,
           payment: Number(payment.paymentAmount).toFixed(2),
+          tax1:
+            tax1Percentage !== 0
+              ? Number(feeTotal * tax1Percentage).toFixed(2)
+              : 0,
+          tax2:
+            tax2Percentage !== 0
+              ? Number(feeTotal * tax2Percentage).toFixed(2)
+              : 0,
         });
         console.log(
           '1 ' +
@@ -911,39 +982,40 @@ export class MemberFinancialReport extends Component {
             ',' +
             payment.debitDate,
         );
-      } else if (selfSignUpRegistrationMember !== undefined) {
+      } else if (registrationFeeMember !== undefined) {
         // Needed for Bambora
         if (
-          accountHolders.findIndex(
-            item => item.id === selfSignUpRegistrationMember.id,
+          registrationFeeMembers.findIndex(
+            item => item.id === registrationFeeMember.id,
           ) === -1
         ) {
-          selfSignUpRegistrationMember.selfSignUpFeeMember = true;
-          selfSignUpRegistrationMember.selfSignUpRegistrationFee = Number(
+          registrationFeeMember.registrationFeeMember = true;
+          registrationFeeMember.memberRegistrationFee = Number(
             payment.paymentAmount,
           ).toFixed(2);
-          accountHolders[accountHolders.length] = selfSignUpRegistrationMember;
+          registrationFeeMembers[
+            registrationFeeMembers.length
+          ] = registrationFeeMember;
         }
-        accountHoldersValue += payment.paymentAmount;
+        registrationFeeMembersValue += payment.paymentAmount;
         allTransactionRecords.push({
-          type: 'selfSignUpRegistrationFee',
+          type: 'memberRegistrationFee',
           date: payment.debitDate,
           name:
-            selfSignUpRegistrationMember.values['First Name'] +
+            registrationFeeMember.values['First Name'] +
             ' ' +
-            selfSignUpRegistrationMember.values['Last Name'],
-          billingID:
-            selfSignUpRegistrationMember.values['Billing Customer Reference'],
+            registrationFeeMember.values['Last Name'],
+          billingID: registrationFeeMember.values['Billing Customer Reference'],
           paymentID: payment.paymentID,
           payment: Number(payment.paymentAmount).toFixed(2),
         });
         console.log(
           '1 ' +
-            selfSignUpRegistrationMember.values['First Name'] +
+            registrationFeeMember.values['First Name'] +
             ' ' +
-            selfSignUpRegistrationMember.values['Last Name'] +
+            registrationFeeMember.values['Last Name'] +
             ' - ' +
-            selfSignUpRegistrationMember.values['Billing Customer Reference'] +
+            registrationFeeMember.values['Billing Customer Reference'] +
             ',' +
             Number(payment.paymentAmount).toFixed(2) +
             ',' +
@@ -951,7 +1023,7 @@ export class MemberFinancialReport extends Component {
             ',' +
             payment.debitDate +
             ',' +
-            accountHoldersValue,
+            registrationFeeMembersValue,
         );
       } /*if (
         getAttributeValue(this.props.space, 'POS System') === 'Bambora'
@@ -1016,6 +1088,8 @@ export class MemberFinancialReport extends Component {
                 billingID: '',
                 paymentID: payment.paymentID,
                 payment: Number(payment.paymentAmount).toFixed(2),
+                tax1: 0,
+                tax2: 0,
               });
               console.log(
                 'ORPHANED,' +
@@ -1060,6 +1134,7 @@ export class MemberFinancialReport extends Component {
       allTransactionRecords.push({
         type: 'Cash Membership',
         endPeriod: moment(registration.values['Term End Date']),
+        date: moment(registration.values['Term Date']),
         name:
           members[mIdx].values['First Name'] +
           ' ' +
@@ -1067,6 +1142,57 @@ export class MemberFinancialReport extends Component {
         amount: Number(registration.values['Payment Required']).toFixed(2),
       });
       cashPaymentsValue += Number(registration.values['Payment Required']);
+
+      let registrationFeeMember = this.isCashRegistrationFeePayment(
+        registration,
+        members,
+      );
+      if (registrationFeeMember !== undefined) {
+        if (
+          registrationFeeMembers.findIndex(
+            item => item.id === registrationFeeMember.id,
+          ) === -1
+        ) {
+          registrationFeeMember.registrationFeeMember = true;
+          registrationFeeMember.cashRegistrationFeeMember = true;
+          registrationFeeMember.memberRegistrationFee = Number(
+            registration.values['Registration Fee'],
+          ).toFixed(2);
+          registrationFeeMembers[
+            registrationFeeMembers.length
+          ] = registrationFeeMember;
+        }
+        registrationFeeMembersValue += Number(
+          registration.values['Registration Fee'],
+        );
+        allTransactionRecords.push({
+          type: 'memberRegistrationFee',
+          date: registration.createdAt,
+          name:
+            registrationFeeMember.values['First Name'] +
+            ' ' +
+            registrationFeeMember.values['Last Name'],
+          billingID: 'Cash',
+          paymentID: 'Cash',
+          payment: Number(registration.values['Registration Fee']).toFixed(2),
+        });
+        console.log(
+          '1 ' +
+            registrationFeeMember.values['First Name'] +
+            ' ' +
+            registrationFeeMember.values['Last Name'] +
+            ' - ' +
+            'Cash' +
+            ',' +
+            Number(registration.values['Registration Fee']).toFixed(2) +
+            ',' +
+            'Cash' +
+            ',' +
+            registration.createdAt +
+            ',' +
+            'Cash',
+        );
+      }
     });
     cashPaymentsByDate.forEach((payment, i) => {
       var mIdx = members.findIndex(
@@ -1419,6 +1545,9 @@ export class MemberFinancialReport extends Component {
         person,
         posOrders,
         allTransactionRecords,
+        adminFeePerc,
+        posTax1Percentage,
+        posTax2Percentage,
       );
     });
 
@@ -1507,6 +1636,10 @@ export class MemberFinancialReport extends Component {
 
     return {
       accountHolders: { members: accountHolders, value: accountHoldersValue },
+      registrationFeeMembers: {
+        members: registrationFeeMembers,
+        value: registrationFeeMembersValue,
+      },
       additionalServices: {
         members: additionalServices,
         value: additionalServicesValue,
@@ -1697,20 +1830,45 @@ export class MemberFinancialReport extends Component {
       });
     }
   }
-  getMemberPOS(members, person, posOrders, allTransactionRecords) {
+  getMemberPOS(
+    members,
+    person,
+    posOrders,
+    allTransactionRecords,
+    adminFeePerc,
+    posTax1Percentage,
+    posTax2Percentage,
+  ) {
     var pos = 0;
     posOrders.forEach((order, i) => {
       if (
         order.values['Person ID'] === person['id'] ||
         order.values['Person ID'] === person.values['Lead Submission ID']
       ) {
-        pos += Number.parseFloat(order.values['Total']);
+        var paymentAmount = Number.parseFloat(order.values['Total']);
+        pos += paymentAmount;
+        var showTaxes =
+          posTax1Percentage !== 0 || posTax2Percentage !== 0 ? true : false;
+        var feeTotal = 0;
+        if (showTaxes) {
+          feeTotal =
+            Number(paymentAmount) / (1 + posTax1Percentage + posTax2Percentage);
+        }
+
         if (allTransactionRecords !== undefined) {
           allTransactionRecords.push({
             type: 'POS',
             date: moment(order.values['Date time processed']),
             name: order.values['Person Name'],
             amount: Number(order.values['Total']).toFixed(2),
+            tax1:
+              posTax1Percentage !== 0
+                ? Number(feeTotal * posTax1Percentage).toFixed(2)
+                : 0,
+            tax2:
+              posTax2Percentage !== 0
+                ? Number(feeTotal * posTax2Percentage).toFixed(2)
+                : 0,
           });
         }
       }
@@ -1772,9 +1930,9 @@ export class MemberFinancialReport extends Component {
 
     return name;
   }
-  getMemberFee(members, member) {
-    if (member.selfSignUpFeeMember) {
-      return member.selfSignUpRegistrationFee;
+  getMemberFee(members, member, forRegistrationFee) {
+    if (forRegistrationFee && member.registrationFeeMember) {
+      return member.memberRegistrationFee;
     }
 
     if (
@@ -1819,9 +1977,11 @@ export class MemberFinancialReport extends Component {
       return member.values['Membership Cost'];
     return '';
   }
-  getMemberPeriod(members, member) {
-    if (member.selfSignUpFeeMember) {
-      return 'Member Registration Fee';
+  getMemberPeriod(members, member, forRegistrationFee) {
+    if (forRegistrationFee && member.registrationFeeMember) {
+      return member.cashRegistrationFeeMember
+        ? 'Cash Registration Fee'
+        : 'Registration Fee';
     }
     if (
       member.values['Billing Parent Member'] !== null &&
@@ -1846,7 +2006,7 @@ export class MemberFinancialReport extends Component {
       return member.values['Billing Payment Period'];
     return '';
   }
-  getMembers(allMembers, members, billingCustomers, col) {
+  getMembers(allMembers, members, billingCustomers, col, forRegistrationFee) {
     var members_col = [];
 
     for (var i = col - 1; i < members.length; i = i + 2) {
@@ -1858,15 +2018,19 @@ export class MemberFinancialReport extends Component {
           members[i].values['First Name'],
         fee:
           members[i].id !== 'Orphan'
-            ? this.getMemberFee(allMembers, members[i])
+            ? this.getMemberFee(allMembers, members[i], forRegistrationFee)
             : members[i].fee,
         cost:
           members[i].id !== 'Orphan'
-            ? this.getScheduledPayment(members[i], billingCustomers)
+            ? this.getScheduledPayment(
+                members[i],
+                billingCustomers,
+                forRegistrationFee,
+              )
             : members[i].fee,
         period:
           members[i].id !== 'Orphan'
-            ? this.getMemberPeriod(allMembers, members[i])
+            ? this.getMemberPeriod(allMembers, members[i], forRegistrationFee)
             : 'Unknown',
       };
     }
@@ -1963,9 +2127,9 @@ export class MemberFinancialReport extends Component {
 
     return members_col;
   }
-  getScheduledPayment(member, billingCustomers) {
-    if (member.selfSignUpFeeMember) {
-      return member.selfSignUpRegistrationFee;
+  getScheduledPayment(member, billingCustomers, forRegistrationFee) {
+    if (forRegistrationFee && member.registrationFeeMember) {
+      return member.memberRegistrationFee;
     }
 
     if (
@@ -1985,7 +2149,7 @@ export class MemberFinancialReport extends Component {
     return 0;
   }
 
-  getMemberTableData(members, billingCustomers) {
+  getMemberTableData(members, billingCustomers, forRegistrationFee) {
     members.sort(function(a, b) {
       if (a.values['Last Name'] < b.values['Last Name']) {
         return -1;
@@ -2000,12 +2164,14 @@ export class MemberFinancialReport extends Component {
       members,
       billingCustomers,
       1,
+      forRegistrationFee,
     );
     let members_col2 = this.getMembers(
       this.state.allMembers,
       members,
       billingCustomers,
       2,
+      forRegistrationFee,
     );
 
     return [
@@ -2454,6 +2620,7 @@ export class MemberFinancialReport extends Component {
   };
   getMemberTableHeaderName() {
     if (this.state.showAccountHolders) return 'Memberships';
+    if (this.state.showRegistrationFeeMembers) return 'Registration Fees';
     if (this.state.showAdditionalServices) return 'Additional Services';
     if (this.state.showCashPayments) return 'Cash Payments';
     if (this.state.showPOSPeople) return 'ProShop Member/Lead';
@@ -2560,7 +2727,7 @@ export class MemberFinancialReport extends Component {
   }
   downLoadDataAsCsv(allTransactionRecords, forecastHolders) {
     let memberships = [];
-    let selfSignUpRegistrationFees = [];
+    let memberRegistrationFees = [];
     let additionalServices = [];
     let cashPayments = [];
     let refunds = [];
@@ -2569,8 +2736,8 @@ export class MemberFinancialReport extends Component {
     allTransactionRecords.forEach(transaction => {
       if (transaction['type'] === 'Membership') {
         memberships.push(transaction);
-      } else if (transaction['type'] === 'selfSignUpRegistrationFee') {
-        selfSignUpRegistrationFees.push(transaction);
+      } else if (transaction['type'] === 'memberRegistrationFee') {
+        memberRegistrationFees.push(transaction);
       } else if (transaction['type'] === 'Orphaned') {
         memberships.push(transaction);
       } else if (transaction['type'] === 'Additional Services') {
@@ -2603,13 +2770,50 @@ export class MemberFinancialReport extends Component {
       }
       return 0;
     });
+    let tax1Label =
+      getAttributeValue(this.props.space, 'TAX 1 Label') !== undefined &&
+      getAttributeValue(this.props.space, 'TAX 1 Label') !== null &&
+      getAttributeValue(this.props.space, 'TAX 1 Label') !== ''
+        ? getAttributeValue(this.props.space, 'TAX 1 Label')
+        : '';
+    let tax2Label =
+      getAttributeValue(this.props.space, 'TAX 2 Label') !== undefined &&
+      getAttributeValue(this.props.space, 'TAX 2 Label') !== null &&
+      getAttributeValue(this.props.space, 'TAX 2 Label') !== ''
+        ? getAttributeValue(this.props.space, 'TAX 2 Label')
+        : '';
+    let posTax1Label =
+      getAttributeValue(this.props.space, 'POS Sales Tax Label') !==
+        undefined &&
+      getAttributeValue(this.props.space, 'POS Sales Tax Label') !== null &&
+      getAttributeValue(this.props.space, 'POS Sales Tax Label') !== ''
+        ? getAttributeValue(this.props.space, 'POS Sales Tax Label')
+        : '';
+    let posTax2Label =
+      getAttributeValue(this.props.space, 'POS Sales Tax Label 2') !==
+        undefined &&
+      getAttributeValue(this.props.space, 'POS Sales Tax Label 2') !== null &&
+      getAttributeValue(this.props.space, 'POS Sales Tax Label 2') !== ''
+        ? getAttributeValue(this.props.space, 'POS Sales Tax Label 2')
+        : '';
+
+    if (tax1Label === '') tax1Label = posTax1Label;
+    if (tax2Label === '') tax2Label = posTax2Label;
 
     let fileDownload = require('js-file-download');
     let csvData =
-      'Type, Date/End Period, Name, Billing ID, Payment ID, Payment\n';
+      'Type, Date/End Period, Name, Billing ID, Payment ID, Payment, ' +
+      tax1Label +
+      ',' +
+      tax2Label +
+      '\n';
     let membershipTotal = 0;
+    let tax1Total = 0;
+    let tax2Total = 0;
     memberships.forEach(transaction => {
       membershipTotal += Number(transaction.payment);
+      tax1Total += Number(transaction['tax1']);
+      tax2Total += Number(transaction['tax2']);
       csvData = csvData.concat(
         '"' +
           transaction['type'] +
@@ -2624,6 +2828,10 @@ export class MemberFinancialReport extends Component {
           '","' +
           transaction['payment'] +
           '","' +
+          transaction['tax1'] +
+          '","' +
+          transaction['tax2'] +
+          '","' +
           '"\n',
       );
     });
@@ -2631,16 +2839,19 @@ export class MemberFinancialReport extends Component {
       '"Memberships Total","","","","","' +
         membershipTotal.toFixed(2) +
         '","' +
+        tax1Total.toFixed(2) +
+        '","' +
+        tax2Total.toFixed(2) +
         '"\n',
     );
 
-    if (selfSignUpRegistrationFees.length > 0) {
-      let selfSignUpRegistrationFeesTotal = 0;
-      selfSignUpRegistrationFees.forEach(transaction => {
-        selfSignUpRegistrationFeesTotal += Number(transaction.payment);
+    if (memberRegistrationFees.length > 0) {
+      let memberRegistrationFeesTotal = 0;
+      memberRegistrationFees.forEach(transaction => {
+        memberRegistrationFeesTotal += Number(transaction.payment);
         csvData = csvData.concat(
           '"' +
-            'Self Signup Registration Fee' +
+            'Member Registration Fee' +
             '","' +
             moment(transaction['date']).format('L HH:MM A') +
             '","' +
@@ -2656,8 +2867,8 @@ export class MemberFinancialReport extends Component {
         );
       });
       csvData = csvData.concat(
-        '"Self Signup Registration Fee Total","","","","","' +
-          selfSignUpRegistrationFeesTotal +
+        '"Member Registration Fee Total","","","","","' +
+          memberRegistrationFeesTotal +
           '","' +
           '"\n',
       );
@@ -2772,8 +2983,12 @@ export class MemberFinancialReport extends Component {
     );
 
     let posTotal = 0;
+    tax1Total = 0;
+    tax2Total = 0;
     pos.forEach(transaction => {
       posTotal += Number(transaction.amount);
+      tax1Total += Number(transaction['tax1']);
+      tax2Total += Number(transaction['tax2']);
       csvData = csvData.concat(
         '"' +
           transaction['type'] +
@@ -2785,11 +3000,21 @@ export class MemberFinancialReport extends Component {
           '","' +
           transaction['amount'] +
           '","' +
+          transaction['tax1'] +
+          '","' +
+          transaction['tax2'] +
+          '","' +
           '"\n',
       );
     });
     csvData = csvData.concat(
-      '"POS Total","","","","","' + posTotal.toFixed(2) + '","' + '"\n',
+      '"POS Total","","","","","' +
+        posTotal.toFixed(2) +
+        '","' +
+        tax1Total.toFixed(2) +
+        '","' +
+        tax2Total.toFixed(2) +
+        '"\n',
     );
 
     fileDownload(csvData, 'transactions.csv');
@@ -2912,6 +3137,30 @@ export class MemberFinancialReport extends Component {
                 data={this.getMemberTableData(
                   this.state.repMemberData.accountHolders.members,
                   this.state.billingCustomers,
+                )}
+                defaultPageSize={1}
+                showPagination={false}
+              />
+            </div>
+          )}
+          {this.state.showRegistrationFeeMembers && (
+            <div className="members">
+              <span
+                className="closeMembers"
+                onClick={e =>
+                  this.setState({
+                    showRegistrationFeeMembers: false,
+                  })
+                }
+              >
+                <SVGInline svg={crossIcon} className="icon" />
+              </span>
+              <ReactTable
+                columns={this.getMemberTableColumns()}
+                data={this.getMemberTableData(
+                  this.state.repMemberData.registrationFeeMembers.members,
+                  this.state.billingCustomers,
+                  true,
                 )}
                 defaultPageSize={1}
                 showPagination={false}
@@ -3293,6 +3542,7 @@ export class MemberFinancialReport extends Component {
                       currency: this.currency,
                     }).format(
                       this.state.repMemberData.accountHolders.value +
+                        this.state.repMemberData.registrationFeeMembers.value +
                         this.state.repMemberData.cashPayments.value +
                         this.state.repMemberData.posPayments.value,
                     )}
@@ -3309,6 +3559,7 @@ export class MemberFinancialReport extends Component {
                     onClick={e =>
                       this.setState({
                         showAccountHolders: true,
+                        showRegistrationFeeMembers: false,
                         showAdditionalServices: false,
                         showCashPayments: false,
                         showPOSPeople: false,
@@ -3327,6 +3578,10 @@ export class MemberFinancialReport extends Component {
                     {(
                       (this.state.repMemberData.accountHolders.value /
                         (this.state.repMemberData.accountHolders.value +
+                          this.state.repMemberData.registrationFeeMembers
+                            .value +
+                          this.state.repMemberData.cashPayments.value +
+                          this.state.repMemberData.additionalServices.value +
                           this.state.repMemberData.posPayments.value)) *
                       100
                     ).toFixed(2)}
@@ -3345,6 +3600,7 @@ export class MemberFinancialReport extends Component {
                         showAdditionalServices: false,
                         showCashPayments: true,
                         showAccountHolders: false,
+                        showRegistrationFeeMembers: false,
                         showPOSPeople: false,
                         showRefundMembers: false,
                       })
@@ -3357,10 +3613,66 @@ export class MemberFinancialReport extends Component {
                   </div>
                 </div>
                 <div className="column col3">
-                  <div className="percentValue"></div>
+                  <div className="percentValue">
+                    {(
+                      (this.state.repMemberData.cashPayments.value /
+                        (this.state.repMemberData.accountHolders.value +
+                          this.state.repMemberData.registrationFeeMembers
+                            .value +
+                          this.state.repMemberData.cashPayments.value +
+                          this.state.repMemberData.additionalServices.value +
+                          this.state.repMemberData.posPayments.value)) *
+                      100
+                    ).toFixed(2)}
+                    %
+                  </div>
                 </div>
                 <div className="column col4"></div>
               </div>
+              {getAttributeValue(this.props.space, 'Billing Company') ===
+                'Bambora' && (
+                <div className="row header4">
+                  <div className="column col1">Registration Fees</div>
+                  <div className="column col2">
+                    <div
+                      className="dollarValue membersLink"
+                      onClick={e =>
+                        this.setState({
+                          showAdditionalServices: false,
+                          showCashPayments: false,
+                          showAccountHolders: false,
+                          showRegistrationFeeMembers: true,
+                          showPOSPeople: false,
+                          showRefundMembers: false,
+                        })
+                      }
+                    >
+                      {new Intl.NumberFormat(this.locale, {
+                        style: 'currency',
+                        currency: this.currency,
+                      }).format(
+                        this.state.repMemberData.registrationFeeMembers.value,
+                      )}
+                    </div>
+                  </div>
+                  <div className="column col3">
+                    <div className="percentValue">
+                      {(
+                        (this.state.repMemberData.registrationFeeMembers.value /
+                          (this.state.repMemberData.accountHolders.value +
+                            this.state.repMemberData.registrationFeeMembers
+                              .value +
+                            this.state.repMemberData.cashPayments.value +
+                            this.state.repMemberData.additionalServices.value +
+                            this.state.repMemberData.posPayments.value)) *
+                        100
+                      ).toFixed(2)}
+                      %
+                    </div>
+                  </div>
+                  <div className="column col4"></div>
+                </div>
+              )}
               {getAttributeValue(this.props.space, 'Billing Company') ===
                 'Bambora' && (
                 <div className="row header4">
@@ -3373,6 +3685,7 @@ export class MemberFinancialReport extends Component {
                           showAdditionalServices: true,
                           showCashPayments: false,
                           showAccountHolders: false,
+                          showRegistrationFeeMembers: false,
                           showPOSPeople: false,
                           showRefundMembers: false,
                         })
@@ -3387,7 +3700,19 @@ export class MemberFinancialReport extends Component {
                     </div>
                   </div>
                   <div className="column col3">
-                    <div className="percentValue"></div>
+                    <div className="percentValue">
+                      {(
+                        (this.state.repMemberData.additionalServices.value /
+                          (this.state.repMemberData.accountHolders.value +
+                            this.state.repMemberData.registrationFeeMembers
+                              .value +
+                            this.state.repMemberData.cashPayments.value +
+                            this.state.repMemberData.additionalServices.value +
+                            this.state.repMemberData.posPayments.value)) *
+                        100
+                      ).toFixed(2)}
+                      %
+                    </div>
                   </div>
                   <div className="column col4"></div>
                 </div>
@@ -3400,6 +3725,7 @@ export class MemberFinancialReport extends Component {
                     onClick={e =>
                       this.setState({
                         showAccountHolders: false,
+                        showRegistrationFeeMembers: false,
                         showAdditionalServices: false,
                         showCashPayments: false,
                         showPOSPeople: true,
@@ -3418,6 +3744,10 @@ export class MemberFinancialReport extends Component {
                     {(
                       (this.state.repMemberData.posPayments.value /
                         (this.state.repMemberData.accountHolders.value +
+                          this.state.repMemberData.registrationFeeMembers
+                            .value +
+                          this.state.repMemberData.cashPayments.value +
+                          this.state.repMemberData.additionalServices.value +
                           this.state.repMemberData.posPayments.value)) *
                       100
                     ).toFixed(2)}
@@ -3441,6 +3771,7 @@ export class MemberFinancialReport extends Component {
                     onClick={e =>
                       this.setState({
                         showAccountHolders: false,
+                        showRegistrationFeeMembers: false,
                         showAdditionalServices: false,
                         showCashPayments: false,
                         showPOSPeople: false,
@@ -3466,6 +3797,7 @@ export class MemberFinancialReport extends Component {
                       currency: this.currency,
                     }).format(
                       this.state.repMemberData.accountHolders.value +
+                        this.state.repMemberData.registrationFeeMembers.value +
                         this.state.repMemberData.cashPayments.value +
                         this.state.repMemberData.additionalServices.value +
                         this.state.repMemberData.posPayments.value -
@@ -3477,9 +3809,18 @@ export class MemberFinancialReport extends Component {
                 <div className="column col4"></div>
               </div>
               <div className="row header8">
-                <div className="column col1">
-                  Membership-Refunds+ProShop+Forecast
-                </div>
+                {getAttributeValue(this.props.space, 'Billing Company') ===
+                  'Bambora' && (
+                  <div className="column col1">
+                    Membership+Registration Fees-Refunds+ProShop+Forecast
+                  </div>
+                )}
+                {getAttributeValue(this.props.space, 'Billing Company') !==
+                  'Bambora' && (
+                  <div className="column col1">
+                    Membership-Refunds+ProShop+Forecast
+                  </div>
+                )}
                 <div className="column col2">
                   <div className="dollarValue">
                     {new Intl.NumberFormat(this.locale, {
@@ -3487,6 +3828,7 @@ export class MemberFinancialReport extends Component {
                       currency: this.currency,
                     }).format(
                       this.state.repMemberData.accountHolders.value +
+                        this.state.repMemberData.registrationFeeMembers.value +
                         this.state.repMemberData.cashPayments.value +
                         this.state.repMemberData.posPayments.value +
                         this.state.repMemberData.forecastHolders.value -
@@ -3522,7 +3864,16 @@ export class MemberFinancialReport extends Component {
                 <div className="column col4"></div>
               </div>
               <div className="row header10">
-                <div className="column col1">Membership+Forecast</div>
+                {getAttributeValue(this.props.space, 'Billing Company') ===
+                  'Bambora' && (
+                  <div className="column col1">
+                    Membership+Registration Fees+Forecast
+                  </div>
+                )}
+                {getAttributeValue(this.props.space, 'Billing Company') !==
+                  'Bambora' && (
+                  <div className="column col1">Membership+Forecast</div>
+                )}
                 <div className="column col2">
                   <div className="dollarValue">
                     {new Intl.NumberFormat(this.locale, {
@@ -3530,6 +3881,7 @@ export class MemberFinancialReport extends Component {
                       currency: this.currency,
                     }).format(
                       this.state.repMemberData.accountHolders.value +
+                        this.state.repMemberData.registrationFeeMembers.value +
                         this.state.repMemberData.cashPayments.value +
                         this.state.repMemberData.forecastHolders.value,
                     )}
@@ -3539,7 +3891,16 @@ export class MemberFinancialReport extends Component {
                 <div className="column col4"></div>
               </div>
               <div className="row header10">
-                <div className="column col1">Membership+Forecast-Refunds</div>
+                {getAttributeValue(this.props.space, 'Billing Company') ===
+                  'Bambora' && (
+                  <div className="column col1">
+                    Membership+Registration Fees+Forecast-Refunds
+                  </div>
+                )}
+                {getAttributeValue(this.props.space, 'Billing Company') !==
+                  'Bambora' && (
+                  <div className="column col1">Membership+Forecast-Refunds</div>
+                )}
                 <div className="column col2">
                   <div className="dollarValue">
                     {new Intl.NumberFormat(this.locale, {
@@ -3547,6 +3908,7 @@ export class MemberFinancialReport extends Component {
                       currency: this.currency,
                     }).format(
                       this.state.repMemberData.accountHolders.value +
+                        this.state.repMemberData.registrationFeeMembers.value +
                         this.state.repMemberData.cashPayments.value +
                         this.state.repMemberData.forecastHolders.value -
                         this.state.repMemberData.refundMembers.value,

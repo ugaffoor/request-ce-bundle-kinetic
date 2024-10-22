@@ -164,7 +164,9 @@ export class MembershipReceiptToPrint extends React.Component {
               </span>
             )}
         </span>
-        {getAttributeValue(this.props.space, 'Billing Company') === 'Bambora' &&
+        {this.props.paymentMethod !== 'Cash' &&
+          getAttributeValue(this.props.space, 'Billing Company') ===
+            'Bambora' &&
           getAttributeValue(this.props.space, 'Ignore Admin Fee') !== 'YES' &&
           this.props.payment.paymentSource !== 'Member Registration Fee' && (
             <span className="total">

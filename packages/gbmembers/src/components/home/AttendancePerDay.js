@@ -190,6 +190,7 @@ export class AttendancePerDay extends Component {
     var schedule = classSchedules.find(schedule => {
       return (
         schedule.program === classInfo.program &&
+        schedule.title === classInfo.title &&
         moment(schedule.start).day() ===
           moment(classInfo.classDate, 'YYYY-MM-DD').day() &&
         moment(schedule.start).format('HH:mm') === classInfo.classTime
@@ -203,6 +204,7 @@ export class AttendancePerDay extends Component {
     var schedule = classSchedules.find(
       schedule =>
         schedule.program === classInfo.program &&
+        schedule.title === classInfo.title &&
         moment(schedule.start).day() ===
           moment(classInfo.classDate, 'ddd Do MMM').day() &&
         moment(schedule.start).format('LT') === classInfo.classTime,
@@ -281,6 +283,7 @@ export class AttendancePerDay extends Component {
             ];
       dayAttendances.push({
         attendanceStatus: attendance.values['Attendance Status'],
+        title: attendance.values['Title'],
         class: attendance.values['Class'],
         classDate: attendance.values['Class Date'],
         classTime: attendance.values['Class Time'],
@@ -452,6 +455,9 @@ export class AttendancePerDay extends Component {
         moment(schedule.start).day() ===
           moment(attendance.classDate, 'YYYY-MM-DD').day() &&
         moment(schedule.start).format('HH:mm') === attendance.classTime &&
+        (schedule.title === undefined ||
+          schedule.title === '' ||
+          schedule.title === attendance.title) &&
         schedule.program === attendance.class
       );
     });
@@ -479,7 +485,7 @@ export class AttendancePerDay extends Component {
         attendance.classTime +
         '-' +
         (classSchedule !== undefined
-          ? classSchedule.program
+          ? classSchedule.program + classSchedule.title
           : attendance.program);
       var membersArr = [];
       var member = allMembers.find(

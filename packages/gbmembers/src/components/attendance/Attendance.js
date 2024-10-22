@@ -378,6 +378,7 @@ export class SelfCheckin extends Component {
         .format('L hh:mm A'),
       classScheduleDateDay: classScheduleDateDay,
       classTime: classTime,
+      classTitle: schedules.size > 0 ? schedules.get(0).title : '',
       className: schedules.size > 0 ? schedules.get(0).program : '',
       allowedPrograms:
         schedules.size > 0 ? JSON.parse(schedules.get(0).allowedPrograms) : [],
@@ -493,6 +494,7 @@ export class SelfCheckin extends Component {
         });
         this.setState({
           classTime: classTime,
+          classTitle: schedules.size > 0 ? schedules.get(0).title : '',
           className: schedules.size > 0 ? schedules.get(0).program : '',
           currentClassScheduleId: schedules.size > 0 ? schedules.get(0).id : '',
           allowedPrograms:
@@ -526,7 +528,7 @@ export class SelfCheckin extends Component {
   }
 
   verifyMemberMaxClassesComplete(memberItem, classes) {
-    if (parseInt(memberItem.values['Max Weekly Classes']) <= classes.length) {
+    if (parseInt(memberItem.values['Max Weekly Classes']) >= classes.length) {
       this.setState({
         memberItem: memberItem,
         verifyMemberMaxClasses: false,
@@ -546,6 +548,7 @@ export class SelfCheckin extends Component {
         attendance,
         attendanceThis.props.additionalPrograms,
         memberItem,
+        this.state.classTitle,
         this.state.className,
         this.state.classDate,
         this.state.classTime,
@@ -604,8 +607,8 @@ export class SelfCheckin extends Component {
       memberItem: undefined,
       memberAlreadyCheckedIn: false,
       classTime: classTime,
-      className: attendanceThis.props.classSchedules.get(scheduleIdx).program,
       classTitle: attendanceThis.props.classSchedules.get(scheduleIdx).title,
+      className: attendanceThis.props.classSchedules.get(scheduleIdx).program,
       allowedPrograms: JSON.parse(
         attendanceThis.props.classSchedules.get(scheduleIdx).allowedPrograms !==
           undefined
@@ -741,6 +744,7 @@ export class SelfCheckin extends Component {
           attendance,
           attendanceThis.props.additionalPrograms,
           memberItem,
+          this.state.classTitle,
           this.state.className,
           this.state.classDate,
           this.state.classTime,
@@ -766,6 +770,7 @@ export class SelfCheckin extends Component {
       attendance,
       attendanceThis.props.additionalPrograms,
       this.state.memberItem,
+      this.state.classTitle,
       this.state.className,
       this.state.classDate,
       this.state.classTime,
@@ -805,6 +810,8 @@ export class SelfCheckin extends Component {
           booking.memberGUID &&
         attendanceThis.props.classAttendances[j].values['Class Time'] ===
           this.state.classTime &&
+        attendanceThis.props.classAttendances[j].values['Title'] ===
+          this.state.classTitle &&
         attendanceThis.props.classAttendances[j].values['Class'] ===
           this.state.className
       ) {
@@ -827,6 +834,7 @@ export class SelfCheckin extends Component {
         attendance,
         attendanceThis.props.additionalPrograms,
         memberItem,
+        this.state.classTitle,
         this.state.className,
         this.state.classDate,
         this.state.classTime,
@@ -925,6 +933,8 @@ export class SelfCheckin extends Component {
           memberItem.values['Member ID'] &&
         attendanceThis.props.classAttendances[i].values['Class Time'] ===
           this.state.classTime &&
+        attendanceThis.props.classAttendances[i].values['Title'] ===
+          this.state.classTitle &&
         attendanceThis.props.classAttendances[i].values['Class'] ===
           this.state.className
       ) {
@@ -974,6 +984,7 @@ export class SelfCheckin extends Component {
           attendance,
           attendanceThis.props.additionalPrograms,
           memberItem,
+          this.state.classTitle,
           this.state.className,
           this.state.classDate,
           this.state.classTime,
@@ -1247,7 +1258,7 @@ export class SelfCheckin extends Component {
                         -<i>{this.state.memberItem.values['Ranking Belt']}</i>
                       </h4>
                       <h4>
-                        For class <b>{this.state.className}</b> at{' '}
+                        For class <b>{this.state.classTitle}</b> at{' '}
                         <b>
                           {moment(this.state.classDate, 'L hh:mm A').format(
                             'L',
@@ -1389,6 +1400,9 @@ export class SelfCheckin extends Component {
                     attendanceThis.props.classAttendances.filter(checkin => {
                       var result =
                         checkin.values['Class Time'] === this.state.classTime &&
+                        (checkin.values['Title'] === undefined ||
+                          checkin.values['Title'] === '' ||
+                          checkin.values['Title'] === this.state.classTitle) &&
                         checkin.values['Class'] === this.state.className;
 
                       if (result) {
@@ -1420,6 +1434,10 @@ export class SelfCheckin extends Component {
                             return (
                               checkin.values['Class Time'] ===
                                 this.state.classTime &&
+                              (checkin.values['Title'] === undefined ||
+                                checkin.values['Title'] === '' ||
+                                checkin.values['Title'] ===
+                                  this.state.classTitle) &&
                               checkin.values['Class'] === this.state.className
                             );
                           })
@@ -1498,6 +1516,9 @@ export class AttendanceDetail extends Component {
 
     this.getBamboraOverdues = this.getBamboraOverdues.bind(this);
     this.getDayClasses = this.getDayClasses.bind(this);
+    this.verifyMemberMaxClassesComplete = this.verifyMemberMaxClassesComplete.bind(
+      this,
+    );
 
     let className = this.props.programs.get(0).program;
     let classDate = moment()
@@ -1803,10 +1824,16 @@ export class AttendanceDetail extends Component {
     data = data.toLowerCase();
     console.log('Scanned ClassName00:' + data);
     console.log('Scanned ClassName11:' + this.state.className);
-    this.setState({ memberItem: undefined });
-    this.setState({ memberAlreadyCheckedIn: false });
-    this.setState({ noProgramSet: false });
-    this.setState({ attendanceStatus: 'Full Class' });
+    this.setState({
+      memberItem: undefined,
+      memberAlreadyCheckedIn: false,
+      noProgramSet: false,
+      attendanceStatus: 'Full Class',
+      memberMaxClassesExceeded: false,
+      verifyMemberMaxClasses: false,
+    });
+
+    let memberItem;
 
     for (let i = 0; i < this.props.allMembers.length; i++) {
       if (
@@ -1822,6 +1849,7 @@ export class AttendanceDetail extends Component {
             ].toLowerCase() === data
           : false)
       ) {
+        memberItem = this.props.allMembers[i];
         this.setState({ memberItem: this.props.allMembers[i] });
         if (
           this.props.allMembers[i].values['Ranking Program'] === undefined ||
@@ -1834,11 +1862,13 @@ export class AttendanceDetail extends Component {
     }
     for (let i = 0; i < this.props.classAttendances.length; i++) {
       if (
-        this.state.memberItem !== undefined &&
+        memberItem !== undefined &&
         this.props.classAttendances[i].values['Member ID'] ===
-          this.state.memberItem.values['Member ID'] &&
+          memberItem.values['Member ID'] &&
         this.props.classAttendances[i].values['Class Time'] ===
           this.state.classTime &&
+        this.props.classAttendances[i].values['Title'] ===
+          this.state.classTitle &&
         this.props.classAttendances[i].values['Class'] === this.state.className
       ) {
         this.setState({ memberAlreadyCheckedIn: true });
@@ -1848,9 +1878,30 @@ export class AttendanceDetail extends Component {
       }
     }
 
-    //    if (this.state.memberAlreadyCheckedIn){
+    if (!this.state.memberAlreadyCheckedIn) {
+      if (
+        memberItem.values['Max Weekly Classes'] !== undefined &&
+        memberItem.values['Max Weekly Classes'] !== null &&
+        memberItem.values['Max Weekly Classes'] !== '' &&
+        parseInt(memberItem.values['Max Weekly Classes']) !== 0
+      ) {
+        var now = moment();
+        var monday = now.clone().weekday(1);
+        var sunday = now.clone().weekday(7);
+        this.setState({
+          verifyMemberMaxClasses: true,
+          memberMaxClassesExceeded: false,
+        });
+        attendanceThis.props.fetchMemberClassAttendancesByDate({
+          memberItem: memberItem,
+          fromDate: monday.format('YYYY-MM-DD'),
+          toDate: sunday.format('YYYY-MM-DD'),
+          verifyMemberMaxClassesComplete: this.verifyMemberMaxClassesComplete,
+        });
+      }
+    }
+
     this.props.setClassAttendances(this.props.classAttendances);
-    //    }
     setTimeout(function() {
       $('#checkinMember').focus();
     }, 500);
@@ -1858,8 +1909,9 @@ export class AttendanceDetail extends Component {
     console.log('Scanned ClassName:' + this.state.className);
   }
 
-  doShowAttendance(classDate, classTime, className) {
+  doShowAttendance(classDate, classTime, classTitle, className) {
     this.setState({
+      classTitle: classTitle,
       className: className,
       memberItem: undefined,
     });
@@ -1867,6 +1919,7 @@ export class AttendanceDetail extends Component {
       moment(classDate).format('L hh:mm A') !==
         moment(this.state.classDate).format('L hh:mm A') ||
       classTime !== this.state.classTime ||
+      this.state.classTitle !== classTitle ||
       this.state.className !== className
     ) {
       this.props.fetchClassBookings({
@@ -1894,6 +1947,7 @@ export class AttendanceDetail extends Component {
       attendance,
       this.props.additionalPrograms,
       this.state.memberItem,
+      this.state.classTitle,
       this.state.className,
       this.state.classDate,
       this.state.classTime,
@@ -1949,6 +2003,7 @@ export class AttendanceDetail extends Component {
         attendance,
         this.props.additionalPrograms,
         memberItem,
+        this.state.classTitle,
         this.state.className,
         this.state.classDate,
         this.state.classTime,
@@ -2019,6 +2074,11 @@ export class AttendanceDetail extends Component {
   selectNewMember() {
     this.setState({
       memberItem: undefined,
+      memberAlreadyCheckedIn: false,
+      noProgramSet: false,
+      attendanceStatus: 'Full Class',
+      memberMaxClassesExceeded: false,
+      verifyMemberMaxClasses: false,
     });
   }
   switchToScan() {
@@ -2079,13 +2139,35 @@ export class AttendanceDetail extends Component {
       );
     return classes;
   }
+  verifyMemberMaxClassesComplete(memberItem, classes) {
+    if (classes.length >= parseInt(memberItem.values['Max Weekly Classes'])) {
+      this.setState({
+        memberItem: memberItem,
+        verifyMemberMaxClasses: false,
+        memberMaxClassesExceeded: true,
+      });
+    } else {
+      this.setState({
+        verifyMemberMaxClasses: false,
+        memberMaxClassesExceeded: false,
+      });
+    }
+    setTimeout(function() {
+      $('#checkinMember').focus();
+    }, 500);
+  }
+
   selectMember(e) {
     let id = e.value;
-    this.setState({ memberItem: undefined });
-    this.setState({ memberAlreadyCheckedIn: false });
-    this.setState({ noProgramSet: false });
-    this.setState({ overdueMember: false });
-    this.setState({ attendanceStatus: 'Full Class' });
+    this.setState({
+      memberItem: undefined,
+      memberAlreadyCheckedIn: false,
+      noProgramSet: false,
+      overdueMember: false,
+      attendanceStatus: 'Full Class',
+      memberMaxClassesExceeded: false,
+      verifyMemberMaxClasses: false,
+    });
 
     let memberItem;
     for (let i = 0; i < this.props.allMembers.length; i++) {
@@ -2101,6 +2183,7 @@ export class AttendanceDetail extends Component {
         break;
       }
     }
+    let verifyingMaxClasses = false;
     for (let i = 0; i < this.props.classAttendances.length; i++) {
       if (
         this.props.classAttendances[i].values['Member ID'] ===
@@ -2113,6 +2196,30 @@ export class AttendanceDetail extends Component {
         this.props.classAttendances[i].memberAlreadyCheckedIn = true;
       } else {
         this.props.classAttendances[i].memberAlreadyCheckedIn = false;
+
+        if (
+          memberItem.values['Max Weekly Classes'] !== undefined &&
+          memberItem.values['Max Weekly Classes'] !== null &&
+          memberItem.values['Max Weekly Classes'] !== '' &&
+          parseInt(memberItem.values['Max Weekly Classes']) !== 0 &&
+          !verifyingMaxClasses
+        ) {
+          var now = moment();
+          var monday = now.clone().weekday(1);
+          var sunday = now.clone().weekday(7);
+          this.setState({
+            memberItem: memberItem,
+            verifyMemberMaxClasses: true,
+            memberMaxClassesExceeded: false,
+          });
+          attendanceThis.props.fetchMemberClassAttendancesByDate({
+            memberItem: memberItem,
+            fromDate: monday.format('YYYY-MM-DD'),
+            toDate: sunday.format('YYYY-MM-DD'),
+            verifyMemberMaxClassesComplete: this.verifyMemberMaxClassesComplete,
+          });
+          verifyingMaxClasses = true;
+        }
       }
     }
 
@@ -2293,6 +2400,7 @@ export class AttendanceDetail extends Component {
                           dt.format('L hh:mm A'),
                           dt.format('hh:mm'),
                           undefined,
+                          undefined,
                         );
                         $(
                           '.classSection .hide-columns__single-value span',
@@ -2348,6 +2456,7 @@ export class AttendanceDetail extends Component {
                           moment(
                             this.props.classSchedules.get(scheduleIdx).start,
                           ).format('HH:mm'),
+                          this.props.classSchedules.get(scheduleIdx).title,
                           this.props.classSchedules.get(scheduleIdx).program,
                         );
                       }}
@@ -2394,6 +2503,7 @@ export class AttendanceDetail extends Component {
                         this.doShowAttendance(
                           dt.format('L hh:mm A'),
                           dt.format('hh:mm'),
+                          this.state.classTitle,
                           this.state.className,
                         );
                         this.setState({
@@ -2413,7 +2523,8 @@ export class AttendanceDetail extends Component {
                         this.doShowAttendance(
                           this.state.classDate,
                           this.state.classTime,
-                          e.target.value,
+                          e.target.value.split('###')[1],
+                          e.target.value.split('###')[0],
                         );
                       }}
                     >
@@ -2421,7 +2532,10 @@ export class AttendanceDetail extends Component {
                       {this.props.programs
                         .concat(this.props.additionalPrograms)
                         .map(program => (
-                          <option key={program.program} value={program.program}>
+                          <option
+                            key={program.program + '###' + program.title}
+                            value={program.program}
+                          >
                             {program.program}
                           </option>
                         ))}
@@ -2509,6 +2623,16 @@ export class AttendanceDetail extends Component {
                 )}
               </div>
             )}
+            {/*    <input
+                    type="text"
+                    name="testScanning"
+                    id="testScanning"
+                    onChange={e => {
+                      this.handleScan(e.target.value)
+                    }}
+                  />
+                  */}
+
             {this.state.classTime !== undefined && (
               <div className="checkinSection">
                 {this.state.memberItem === undefined &&
@@ -2586,6 +2710,16 @@ export class AttendanceDetail extends Component {
                       ) : (
                         <div />
                       )}
+                      {!this.state.memberAlreadyCheckedIn &&
+                        this.state.memberMaxClassesExceeded &&
+                        this.state.memberItem !== undefined && (
+                          <div className="exceededMaxClasses">
+                            This member has already attended their Max weekly
+                            class limit of (
+                            {this.state.memberItem.values['Max Weekly Classes']}
+                            )
+                          </div>
+                        )}
                       {this.state.noProgramSet ? (
                         <h2 className="noProgramSetLabel">
                           Member does not have a Program or Belt value set
@@ -2651,6 +2785,7 @@ export class AttendanceDetail extends Component {
                           <button
                             type="button"
                             id="checkinMember"
+                            disabled={this.state.verifyMemberMaxClasses}
                             className="btn btn-primary btn-block"
                             onClick={e => this.checkInMember()}
                           >
@@ -2749,6 +2884,9 @@ export class AttendanceDetail extends Component {
                     this.props.classAttendances.filter(checkin => {
                       var result =
                         checkin.values['Class Time'] === this.state.classTime &&
+                        (checkin.values['Title'] === undefined ||
+                          checkin.values['Title'] === '' ||
+                          checkin.values['Title'] === this.state.classTitle) &&
                         checkin.values['Class'] === this.state.className;
 
                       if (result) {
@@ -2775,13 +2913,17 @@ export class AttendanceDetail extends Component {
                   )
                   <div className="sendButtons">
                     <NavLink
-                      to={`/NewEmailCampaign/class/${this.state.classTime}/${this.state.className}`}
+                      to={`/NewEmailCampaign/class/${this.state.classTime}/${this.state.className}/${this.state.classTitle}/`}
                       className="btn btn-primary"
                       disabled={
                         this.props.classAttendances.filter(checkin => {
                           return (
                             checkin.values['Class Time'] ===
                               this.state.classTime &&
+                            (checkin.values['Title'] === undefined ||
+                              checkin.values['Title'] === '' ||
+                              checkin.values['Title'] ===
+                                this.state.classTitle) &&
                             checkin.values['Class'] === this.state.className
                           );
                         }).length === 0
@@ -2790,13 +2932,17 @@ export class AttendanceDetail extends Component {
                       Email Send
                     </NavLink>
                     <NavLink
-                      to={`/NewSmsCampaign/class/${this.state.classTime}/${this.state.className}`}
+                      to={`/NewSmsCampaign/class/${this.state.classTime}/${this.state.className}/${this.state.classTitle}/`}
                       className="btn btn-primary"
                       disabled={
                         this.props.classAttendances.filter(checkin => {
                           return (
                             checkin.values['Class Time'] ===
                               this.state.classTime &&
+                            (checkin.values['Title'] === undefined ||
+                              checkin.values['Title'] === '' ||
+                              checkin.values['Title'] ===
+                                this.state.classTitle) &&
                             checkin.values['Class'] === this.state.className
                           );
                         }).length === 0
@@ -2821,6 +2967,10 @@ export class AttendanceDetail extends Component {
                             return (
                               checkin.values['Class Time'] ===
                                 this.state.classTime &&
+                              (checkin.values['Title'] === undefined ||
+                                checkin.values['Title'] === '' ||
+                                checkin.values['Title'] ===
+                                  this.state.classTitle) &&
                               checkin.values['Class'] ===
                                 this.state.className &&
                               checkin.values['First Name'] !== 'Member Deleted'
@@ -3025,23 +3175,12 @@ export const AttendanceContainer = compose(
   connect(mapStateToProps, mapDispatchToProps),
   withProps(props => {}),
   withHandlers({
-    checkinMember: ({
+    checkinMember: ({}) => (
       createAttendance,
       attendance,
       additionalPrograms,
       memberItem,
-      className,
-      classDate,
-      classTime,
-      attendanceStatus,
-      classAttendances,
-      allMembers,
-      updateMember,
-    }) => (
-      createAttendance,
-      attendance,
-      additionalPrograms,
-      memberItem,
+      classTitle,
       className,
       classDate,
       classTime,
@@ -3057,6 +3196,7 @@ export const AttendanceContainer = compose(
       values['Status'] = 'Active';
       values['Ranking Program'] = memberItem.values['Ranking Program'];
       values['Ranking Belt'] = memberItem.values['Ranking Belt'];
+      values['Title'] = classTitle;
       values['Class'] = className;
       let dt = moment(classDate, 'L hh:mm A');
       values['Class Date'] = moment(dt).format('YYYY-MM-DD');

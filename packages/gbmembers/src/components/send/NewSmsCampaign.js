@@ -87,6 +87,7 @@ export class NewSmsCampaign extends Component {
         this.props.classAttendances,
         this.props.submissionId,
         this.props.replyType,
+        this.props.campaignId,
       );
     }
     this.state = {
@@ -262,7 +263,7 @@ export class NewSmsCampaign extends Component {
     return options;
   }
 
-  getSelectClassOptions(classAttendances, classTime, className) {
+  getSelectClassOptions(classAttendances, classTime, className, classTitle) {
     let options = [];
     let activeMemberIds = [];
     let activeMemberPhoneNumbers = [];
@@ -270,6 +271,8 @@ export class NewSmsCampaign extends Component {
     var classCheckins = classAttendances.filter(checkin => {
       return (
         checkin.values['Class Time'] === classTime &&
+        (checkin.values['Title'] === undefined ||
+          checkin.values['Title'] === classTitle) &&
         checkin.values['Class'] === className
       );
     });
@@ -425,6 +428,8 @@ export class NewSmsCampaign extends Component {
         .filter(checkin => {
           return (
             checkin.values['Class Time'] === this.props.submissionId &&
+            (checkin.values['Title'] === undefined ||
+              checkin.values['Title'] === this.props.campaignId) &&
             checkin.values['Class'] === this.props.replyType
           );
         })
@@ -625,7 +630,14 @@ export class NewSmsCampaign extends Component {
               />
             ) : (
               <div className="classInfo">
-                that attended class <b>{this.props.replyType}</b> at{' '}
+                that attended class{' '}
+                <b>
+                  {this.props.replyType}
+                  {this.props.campaignId !== undefined
+                    ? '-' + this.props.campaignId
+                    : ''}
+                </b>{' '}
+                at{' '}
                 <b>
                   {moment(this.props.submissionId, 'hh:mm').format('h:mm A')}
                 </b>
@@ -735,7 +747,7 @@ export class NewSmsCampaign extends Component {
         <div className="row">
           <div className="col-md-10" style={{ height: '1000px' }}>
             <span className="line">
-              <label htmlFor="sms_text">
+              <label className="note" htmlFor="sms_text">
                 SMS Text: NOTE, member('ID'), member('First Name'), member('Last
                 Name') substitutes don't work for campaigns
               </label>
@@ -814,6 +826,7 @@ export const NewSmsCampaignView = ({
   submissionType,
   submissionId,
   replyType,
+  campaignId,
   smsAccountCreditLoading,
   smsAccountCredit,
   getAccountCredit,
@@ -844,6 +857,7 @@ export const NewSmsCampaignView = ({
         submissionType={submissionType}
         submissionId={submissionId}
         replyType={replyType}
+        campaignId={campaignId}
         smsAccountCreditLoading={smsAccountCreditLoading}
         smsAccountCredit={smsAccountCredit}
         getAccountCredit={getAccountCredit}
@@ -864,6 +878,7 @@ export const SmsCampaignContainer = compose(
       submissionId: match.params.submissionId,
       submissionType: match.params.submissionType,
       replyType: match.params.replyType,
+      campaignId: match.params.campaignId,
     };
   }),
   withState('isDirty', 'setIsDirty', false),

@@ -801,7 +801,7 @@ export class MemberActivityReport extends Component {
   dateRangeFilter = (data, params) => {
     let startDate = params.startDate;
     let endDate = params.endDate;
-    let dateVal = moment(data[params.field], 'DD-MM-YYYY HH:mm');
+    let dateVal = moment(data[params.field], 'L');
     return (
       dateVal.isSameOrAfter(startDate, 'day') &&
       dateVal.isSameOrBefore(endDate, 'day')

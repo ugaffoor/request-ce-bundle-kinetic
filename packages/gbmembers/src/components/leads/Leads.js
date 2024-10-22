@@ -274,7 +274,10 @@ export class TasksDetail extends Component {
           lead.values['Status'] !== 'Converted' &&
           lead.values['Status'] !== 'Deleted'
         ) {
-          if (lead.values['Reminder Date'] !== undefined) {
+          if (
+            lead.values['Reminder Date'] !== undefined &&
+            moment(lead.values['Reminder Date']).isValid()
+          ) {
             if (
               moment(lead.values['Reminder Date'], date_format).isBefore(
                 today,
@@ -305,7 +308,7 @@ export class TasksDetail extends Component {
         }
       });
     } else if (duration === 'This Weeks Tasks') {
-      const startDate = moment().startOf('day');
+      const startDate = moment().startOf('week');
       const endDate = startDate
         .clone()
         .add(1, 'weeks')
@@ -315,11 +318,14 @@ export class TasksDetail extends Component {
           lead.values['Status'] !== 'Converted' &&
           lead.values['Status'] !== 'Deleted'
         ) {
-          if (lead.values['Reminder Date'] !== undefined) {
+          if (
+            lead.values['Reminder Date'] !== undefined &&
+            moment(lead.values['Reminder Date']).isValid()
+          ) {
             if (
               moment(lead.values['Reminder Date'], date_format).isBefore(
-                startDate,
-                'day',
+                endDate,
+                'd',
               ) ||
               moment(lead.values['Reminder Date'], date_format).isBetween(
                 startDate,
@@ -358,10 +364,13 @@ export class TasksDetail extends Component {
           lead.values['Status'] !== 'Converted' &&
           lead.values['Status'] !== 'Deleted'
         ) {
-          if (lead.values['Reminder Date']) {
+          if (
+            lead.values['Reminder Date'] !== undefined &&
+            moment(lead.values['Reminder Date']).isValid()
+          ) {
             if (
               moment(lead.values['Reminder Date'], date_format).isBefore(
-                startDate,
+                endDate,
                 'day',
               ) ||
               moment(lead.values['Reminder Date'], date_format).isBetween(

@@ -599,7 +599,11 @@ export class AttendanceDialog extends Component {
                               ).format('h:mm A')}
                             </td>
                             <td className="class">
-                              {attendance.values['Class']}
+                              {attendance.values['Class'] +
+                                (attendance.values['Title'] !== undefined &&
+                                attendance.values['Title'] !== ''
+                                  ? '-' + attendance.values['Title']
+                                  : '')}
                             </td>
                             <td className="status">
                               {attendance.values['Attendance Status']}

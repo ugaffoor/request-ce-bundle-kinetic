@@ -1642,6 +1642,7 @@ export class PaymentHistory extends Component {
               currency={this.props.currency}
               payment={row.original}
               paymentID={row.original['paymentID']}
+              paymentMethod={row.original['paymentMethod']}
               status={
                 this.isPaymentRefunded(row.original.paymentID, paymentsRefunded)
                   ? 'Refunded'
@@ -2915,14 +2916,14 @@ export class BillingInfo extends Component {
             )}
         </span>
         <div className="line">
-          {((this.props.memberItem.values['Billing Customer Id'] !==
+          {true /*(this.props.memberItem.values['Billing Customer Id'] !==
             undefined &&
             this.props.memberItem.values['Billing Customer Id'] !== null &&
             this.props.memberItem.values['Billing Customer Id'] !== '') ||
             (this.props.memberItem.values['Billing Setup Fee Id'] !==
               undefined &&
               this.props.memberItem.values['Billing Setup Fee Id'] !== null &&
-              this.props.memberItem.values['Billing Setup Fee Id'] !== '')) && (
+          this.props.memberItem.values['Billing Setup Fee Id'] !== '')*/ && (
             <span className="line">
               <div style={{ marginTop: '10px' }}>
                 <button

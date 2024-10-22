@@ -8,6 +8,8 @@ import moment from 'moment';
 import reactCSS from 'reactcss';
 import { SketchPicker } from 'react-color';
 import Select from 'react-select';
+import helpIcon from '../../images/help.svg?raw';
+import SVGInline from 'react-svg-inline';
 
 const mapStateToProps = state => ({});
 const mapDispatchToProps = {
@@ -54,6 +56,7 @@ export class ClassDialog extends Component {
       this.state.textColor.hex,
       this.state.allowedPrograms,
       this.state.cancellationCutoff,
+      this.state.bookingCutoff,
       this.state.coaches,
       this.state.acceptTrials,
       this.state.trialLimit,
@@ -70,6 +73,7 @@ export class ClassDialog extends Component {
       textColor: undefined,
       allowedPrograms: undefined,
       cancellationCutoff: undefined,
+      bookingCutoff: undefined,
       acceptTrials: undefined,
       trialLimit: undefined,
       studentType: undefined,
@@ -162,6 +166,7 @@ export class ClassDialog extends Component {
         allowedPrograms: this.props.event.allowedPrograms,
         coaches: this.props.event.coaches,
         cancellationCutoff: this.props.event.cancellationCutoff,
+        bookingCutoff: this.props.event.bookingCutoff,
         displayColorPicker: false,
         acceptTrials: this.props.event.acceptTrials,
         trialLimit: this.props.event.trialLimit,
@@ -182,6 +187,7 @@ export class ClassDialog extends Component {
         allowedPrograms: [],
         coaches: undefined,
         cancellationCutoff: undefined,
+        bookingCutoff: undefined,
         acceptTrials: undefined,
         trialLimit: undefined,
         studentType: undefined,
@@ -317,6 +323,13 @@ export class ClassDialog extends Component {
               <div className="cancellationCutoffDiv form-group">
                 <label htmlFor="cancellationCutoff">
                   Cancellation Cutoff (hours)
+                  <SVGInline
+                    svg={helpIcon}
+                    className="icon help"
+                    onClick={e => {
+                      $('.cancellationCutoffHelp').toggle('');
+                    }}
+                  />
                 </label>
                 <input
                   type="number"
@@ -327,6 +340,49 @@ export class ClassDialog extends Component {
                     this.setState({ cancellationCutoff: e.target.value });
                   }}
                 />
+                <span
+                  className={'cancellationCutoffHelp'}
+                  style={{ display: 'none' }}
+                >
+                  <ul>
+                    <li>
+                      A class booking cannot be canceled if there are fewer than
+                      X hours remaining before the class starts.
+                    </li>
+                  </ul>
+                </span>
+              </div>
+              <div className="bookingCutoffDiv form-group">
+                <label htmlFor="bookingCutoff">
+                  Booking Cutoff (hours)
+                  <SVGInline
+                    svg={helpIcon}
+                    className="icon help"
+                    onClick={e => {
+                      $('.bookingCutoffHelp').toggle('');
+                    }}
+                  />
+                </label>
+                <input
+                  type="number"
+                  name="bookingCutoff"
+                  id="bookingCutoff"
+                  defaultValue={this.state.bookingCutoff}
+                  onChange={e => {
+                    this.setState({ bookingCutoff: e.target.value });
+                  }}
+                />
+                <span
+                  className={'bookingCutoffHelp'}
+                  style={{ display: 'none' }}
+                >
+                  <ul>
+                    <li>
+                      A class cannot be booked if there are fewer than X hours
+                      remaining before the class starts.
+                    </li>
+                  </ul>
+                </span>
               </div>
               <div className="colorChoice">
                 <label htmlFor="colorValue">Colour</label>

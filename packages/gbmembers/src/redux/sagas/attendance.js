@@ -245,7 +245,8 @@ export function* createAttendance(action) {
       )
     ) {
       let attendanceCount =
-        memberItem.values['Attendance Count'] !== undefined
+        memberItem.values['Attendance Count'] !== undefined &&
+        memberItem.values['Attendance Count'] !== null
           ? parseFloat(
               parseFloat(memberItem.values['Attendance Count']).toFixed(2),
             )

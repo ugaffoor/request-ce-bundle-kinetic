@@ -1,5 +1,17 @@
 @charset "UTF-8";
 
+.calendarSection {
+  .attributeLine {
+    .lineItems {
+      display: inline-flex;
+      margin-bottom: 0px;
+      .noToggleValue {
+        margin-left: 10px;
+        margin-right: 10px;
+      }
+    }
+  }
+}
 .rbc-event-content {
   p {
     margin: 0;
@@ -54,6 +66,10 @@
   input#maxStudents,
   input#trialLimit,
   input#cancellationCutoff {
+    width: 15%;
+    margin-left: 10px;
+  }
+  input#bookingCutoff {
     width: 15%;
     margin-left: 10px;
   }

@@ -1786,8 +1786,8 @@ export const MemberNewContainer = compose(
         DOB: '',
         'Ranking Program': '',
         'Ranking Belt': '',
-        'Last Promotion': '',
-        'Attendance Count': '',
+        'Last Promotion': moment().format('YYYY-MM-DD'),
+        'Attendance Count': '0',
         'Max Weekly Classes': '',
         'Medical Allergies': '',
         'Main Benefits': [],
@@ -1885,6 +1885,7 @@ export const MemberNewContainer = compose(
             this.props.allLeads[idx].values['Main Benefits'] !== undefined
               ? this.props.allLeads[idx].values['Main Benefits']
               : '';
+          values['Attendance Count'] = '0';
         }
       }
       if (getAttributeValue(this.props.space, 'Franchisor') === 'YES') {
@@ -1922,8 +1923,8 @@ export const MemberNewContainer = compose(
           DOB: '',
           'Ranking Program': '',
           'Ranking Belt': '',
-          'Last Promotion': '',
-          'Attendance Count': '',
+          'Last Promotion': moment().format('YYYY-MM-DD'),
+          'Attendance Count': '0',
           'Max Weekly Classes': '',
           'Medical Allergies': '',
           'Main Benefits': [],
@@ -2021,6 +2022,7 @@ export const MemberNewContainer = compose(
               this.props.allLeads[idx].values['Main Benefits'] !== undefined
                 ? this.props.allLeads[idx].values['Main Benefits']
                 : '';
+            values['Attendance Count'] = '0';
           }
         }
         if (getAttributeValue(nextProps.space, 'Franchisor') === 'YES') {

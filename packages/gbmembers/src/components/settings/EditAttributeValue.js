@@ -207,6 +207,21 @@ export class EditAttributeValue extends Component {
               }}
             />
           )}
+          {this.props.inputType === 'Integer' && (
+            <input
+              type="number"
+              id={this.props.attributeID + 'Attribute'}
+              defaultValue={this.state.origValue}
+              name={this.props.attributeID + 'Attribute'}
+              style={{ width: `${this.props.width}` }}
+              disabled={this.props.disabled ? true : false}
+              onChange={e => {
+                this.setState({
+                  value: e.target.value,
+                });
+              }}
+            />
+          )}
           {this.props.inputType === 'Percentage' && (
             <NumberFormat
               id={this.props.attributeID + 'Attribute'}
@@ -262,6 +277,22 @@ export class EditAttributeValue extends Component {
               </label>
             </span>
           )}
+          {this.props.inputType === 'noToggleValue' && (
+            <span className="noToggleValue">
+              <input
+                type="checkbox"
+                id={this.props.attributeID + 'Attribute'}
+                value="YES"
+                checked={this.state.value === 'NO' ? true : false}
+                name={this.props.attributeID + 'Attribute'}
+                onChange={e => {
+                  this.setState({
+                    value: e.target.checked ? 'NO' : undefined,
+                  });
+                }}
+              />
+            </span>
+          )}
           {this.props.inputType === 'Phone' && (
             <NumberFormat
               id={this.props.attributeID + 'Attribute'}
@@ -276,7 +307,7 @@ export class EditAttributeValue extends Component {
               value={this.state.value}
               onChange={e => {
                 this.setState({
-                  value: e.target.value,
+                  value: e.target.value.replaceAll('-', ''),
                 });
               }}
             />

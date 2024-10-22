@@ -12,6 +12,7 @@ import {
 import { I18n } from '../../../../app/src/I18nProvider';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { Utils } from 'common';
+import { EditAttributeValue } from './EditAttributeValue';
 
 const DragAndDropCalendar = withDragAndDrop(Calendar);
 
@@ -133,6 +134,7 @@ export class ClassesCalendar extends Component {
     textColour,
     allowedPrograms,
     cancellationCutoff,
+    bookingCutoff,
     coaches,
     acceptTrials,
     trialLimit,
@@ -155,6 +157,7 @@ export class ClassesCalendar extends Component {
       values['Allowed Programs'] = allowedPrograms;
       values['Coaches'] = coaches;
       values['Cancellation Cutoff'] = cancellationCutoff;
+      values['Booking Cutoff'] = bookingCutoff;
       values['Accept Trial Bookings'] = acceptTrials;
       values['Trial Limit'] = trialLimit;
       values['Trial Type'] = studentType;
@@ -175,6 +178,7 @@ export class ClassesCalendar extends Component {
             allowedPrograms,
             coaches,
             cancellationCutoff,
+            bookingCutoff,
             acceptTrials,
             trialLimit,
             studentType,
@@ -199,6 +203,7 @@ export class ClassesCalendar extends Component {
         events[idx].allowedPrograms = allowedPrograms;
         events[idx].coaches = coaches;
         events[idx].cancellationCutoff = cancellationCutoff;
+        events[idx].bookingCutoff = bookingCutoff;
         events[idx].acceptTrials = acceptTrials;
         events[idx].trialLimit = trialLimit;
         events[idx].studentType = studentType;
@@ -221,6 +226,7 @@ export class ClassesCalendar extends Component {
       values['Allowed Programs'] = allowedPrograms;
       values['Coaches'] = coaches;
       values['Cancellation Cutoff'] = cancellationCutoff;
+      values['Booking Cutoff'] = bookingCutoff;
       values['Accept Trial Bookings'] = acceptTrials;
       values['Trial Limit'] = trialLimit;
       values['Trial Type'] = studentType;
@@ -246,6 +252,7 @@ export class ClassesCalendar extends Component {
         scheduledClass.allowedPrograms = allowedPrograms;
         scheduledClass.coaches = coaches;
         scheduledClass.cancellationCutoff = cancellationCutoff;
+        scheduledClass.bookingCutoff = bookingCutoff;
         scheduledClass.acceptTrials = acceptTrials;
         scheduledClass.trialLimit = trialLimit;
         scheduledClass.studentType = studentType;
@@ -381,6 +388,7 @@ export class ClassesCalendar extends Component {
             allowedPrograms={this.allowedPrograms}
             coaches={this.coaches}
             cancellationCutoff={this.cancellationCutoff}
+            bookingCutoff={this.bookingCutoff}
             acceptTrials={this.acceptTrials}
             trialLimit={this.trialLimit}
             studentType={this.studentType}
@@ -394,82 +402,105 @@ export class ClassesCalendar extends Component {
           {!Utils.isMemberOf(this.props.profile, 'Role::Data Admin') ? (
             <div />
           ) : (
-            <div class="gridSizes">
-              <label htmlFor="5minutes">
-                <input
-                  type="radio"
-                  id="5minutes"
-                  value="5"
-                  name="slotSize"
-                  checked={this.state.stepValue === 5}
-                  onChange={e => {
-                    this.adjustSlotSize(e.target.value);
-                  }}
-                />
-                <span class="value">
-                  <I18n>5 Minutes</I18n>
-                </span>
-              </label>
-              <label htmlFor="10minutes">
-                <input
-                  type="radio"
-                  id="10minutes"
-                  value="10"
-                  name="slotSize"
-                  checked={this.state.stepValue === 10}
-                  onChange={e => {
-                    this.adjustSlotSize(e.target.value);
-                  }}
-                />
-                <span class="value">
-                  <I18n>10 Minutes</I18n>
-                </span>
-              </label>
-              <label htmlFor="15minutes">
-                <input
-                  type="radio"
-                  id="15minutes"
-                  value="15"
-                  name="slotSize"
-                  checked={this.state.stepValue === 15}
-                  onChange={e => {
-                    this.adjustSlotSize(e.target.value);
-                  }}
-                />
-                <span class="value">
-                  <I18n>15 Minutes</I18n>
-                </span>
-              </label>
-              <button
-                type="button"
-                id="saveSlotChanges"
-                disabled={this.state.stepValue === this.state.origStepValue}
-                className="btn btn-primary"
-                onClick={e => {
-                  var values = {};
-                  values['Status'] = 'New';
-                  values['Attribute Name'] = 'Calendar Time Slots';
-                  values['Original Value'] = this.state.origStepValue;
-                  values['New Value'] = this.state.stepValue;
-                  values['Updated By'] = this.props.profile.username;
+            <span>
+              <EditAttributeValue
+                attributeID="advanceClassBookingCutoff"
+                attributeName="Advance Class Booking Cutoff"
+                inputType="Integer"
+                width="40px"
+                labelName="Advance Class Booking Cutoff"
+                helpText="Number of days that a student is allowed to book in advance."
+                updateSpaceAttribute={this.props.updateSpaceAttribute}
+                space={this.space}
+                profile={this.props.profile}
+              />
+              <EditAttributeValue
+                attributeID="hideSpotsRemaing"
+                attributeName="Show Class Spots Remaining"
+                inputType="noToggleValue"
+                labelName="Hide Spots Remaing Text"
+                helpText="Hide the Spots Remaining text and use 'Available'."
+                updateSpaceAttribute={this.props.updateSpaceAttribute}
+                space={this.space}
+                profile={this.props.profile}
+              />
+              <div class="gridSizes">
+                <label htmlFor="5minutes">
+                  <input
+                    type="radio"
+                    id="5minutes"
+                    value="5"
+                    name="slotSize"
+                    checked={this.state.stepValue === 5}
+                    onChange={e => {
+                      this.adjustSlotSize(e.target.value);
+                    }}
+                  />
+                  <span class="value">
+                    <I18n>5 Minutes</I18n>
+                  </span>
+                </label>
+                <label htmlFor="10minutes">
+                  <input
+                    type="radio"
+                    id="10minutes"
+                    value="10"
+                    name="slotSize"
+                    checked={this.state.stepValue === 10}
+                    onChange={e => {
+                      this.adjustSlotSize(e.target.value);
+                    }}
+                  />
+                  <span class="value">
+                    <I18n>10 Minutes</I18n>
+                  </span>
+                </label>
+                <label htmlFor="15minutes">
+                  <input
+                    type="radio"
+                    id="15minutes"
+                    value="15"
+                    name="slotSize"
+                    checked={this.state.stepValue === 15}
+                    onChange={e => {
+                      this.adjustSlotSize(e.target.value);
+                    }}
+                  />
+                  <span class="value">
+                    <I18n>15 Minutes</I18n>
+                  </span>
+                </label>
+                <button
+                  type="button"
+                  id="saveSlotChanges"
+                  disabled={this.state.stepValue === this.state.origStepValue}
+                  className="btn btn-primary"
+                  onClick={e => {
+                    var values = {};
+                    values['Status'] = 'New';
+                    values['Attribute Name'] = 'Calendar Time Slots';
+                    values['Original Value'] = this.state.origStepValue;
+                    values['New Value'] = this.state.stepValue;
+                    values['Updated By'] = this.props.profile.username;
 
-                  this.setState({
-                    origStepValue: this.state.stepValue,
-                  });
+                    this.setState({
+                      origStepValue: this.state.stepValue,
+                    });
 
-                  this.props.updateSpaceAttribute({
-                    values,
-                  });
-                  setAttributeValue(
-                    this.space,
-                    'Calendar Time Slots',
-                    this.state.stepValue,
-                  );
-                }}
-              >
-                Save
-              </button>
-            </div>
+                    this.props.updateSpaceAttribute({
+                      values,
+                    });
+                    setAttributeValue(
+                      this.space,
+                      'Calendar Time Slots',
+                      this.state.stepValue,
+                    );
+                  }}
+                >
+                  Save
+                </button>
+              </div>
+            </span>
           )}
           <DragAndDropCalendar
             selectable

@@ -496,6 +496,7 @@ class PayNow extends Component {
     var data = JSON.stringify({
       space: this.props.spaceSlug,
       billingService: posSystem,
+      country: getAttributeValue(this.props.space, 'School Country Code'),
       profileId: this.state.posProfileID,
       token: this.state.cardToken,
       name: this.state.name,

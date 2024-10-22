@@ -410,6 +410,8 @@ export class NewEmailCampaign extends Component {
         .filter(checkin => {
           return (
             checkin.values['Class Time'] === this.props.submissionId &&
+            (checkin.values['Title'] === undefined ||
+              checkin.values['Title'] === this.props.campaignId) &&
             checkin.values['Class'] === this.props.replyType
           );
         })
@@ -649,6 +651,8 @@ export class NewEmailCampaign extends Component {
               .filter(checkin => {
                 return (
                   checkin.values['Class Time'] === this.props.submissionId &&
+                  (checkin.values['Title'] === undefined ||
+                    checkin.values['Title'] === this.props.campaignId) &&
                   checkin.values['Class'] === this.props.replyType
                 );
               })

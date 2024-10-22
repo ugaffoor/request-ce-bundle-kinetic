@@ -59,6 +59,7 @@ export function* fetchClassSchedules(action) {
             classSchedulesSubmissions[i].values['Allowed Programs'],
           cancellationCutoff:
             classSchedulesSubmissions[i].values['Cancellation Cutoff'],
+          bookingCutoff: classSchedulesSubmissions[i].values['Booking Cutoff'],
           coaches: classSchedulesSubmissions[i].values['Coaches'],
           acceptTrials:
             classSchedulesSubmissions[i].values['Accept Trial Bookings'],

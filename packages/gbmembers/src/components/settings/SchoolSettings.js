@@ -428,6 +428,54 @@ export class SchoolSettings extends Component {
             />
           </span>
         )}
+        {getAttributeValue(this.props.space, 'Billing Company') ===
+          'Bambora' && (
+          <span className="detailsSection">
+            <h6>POS Taxes</h6>
+            <EditAttributeValue
+              attributeID="posTax1Label"
+              attributeName="POS Sales Tax Label"
+              inputType="Text"
+              labelName="POS Tax Label"
+              helpText="Label applied to the POS Tax value .<br/>Eg, GST 5%"
+              updateSpaceAttribute={this.props.updateSpaceAttribute}
+              space={this.space}
+              profile={this.props.profile}
+            />
+            <EditAttributeValue
+              attributeID="posTax1Value"
+              attributeName="POS Sales Tax"
+              inputType="Percentage"
+              width="60px"
+              labelName="POS Tax Percentage"
+              helpText="POS Tax percentage value applied to products."
+              updateSpaceAttribute={this.props.updateSpaceAttribute}
+              space={this.space}
+              profile={this.props.profile}
+            />
+            <EditAttributeValue
+              attributeID="posTax2Label"
+              attributeName="POS Sales Tax Label 2"
+              inputType="Text"
+              labelName="POS Tax Label 2"
+              helpText="Label applied to the POS Tax value .<br/>Eg, HST 13%"
+              updateSpaceAttribute={this.props.updateSpaceAttribute}
+              space={this.space}
+              profile={this.props.profile}
+            />
+            <EditAttributeValue
+              attributeID="posTax2Value"
+              attributeName="POS Sales Tax 2"
+              inputType="Percentage"
+              width="60px"
+              labelName="POS Tax 2 Percentage"
+              helpText="POS Tax 2 percentage value applied to products."
+              updateSpaceAttribute={this.props.updateSpaceAttribute}
+              space={this.space}
+              profile={this.props.profile}
+            />
+          </span>
+        )}
         <span className="detailsSection">
           <h6>Website Contact Details</h6>
           <EditAttributeValue
@@ -470,6 +518,17 @@ export class SchoolSettings extends Component {
             width="400px"
             labelName="School Closed Dates"
             helpText="Dates to now allow Trial Bookings, as part of the Calendar widget(Trial Bookings)."
+            updateSpaceAttribute={this.props.updateSpaceAttribute}
+            space={this.space}
+            profile={this.props.profile}
+          />
+          <EditAttributeValue
+            attributeID="thankyouURL"
+            attributeName="Trial Booking Thank you URL"
+            inputType="Text"
+            width="400px"
+            labelName="Calendar Widget Thank you URL"
+            helpText="A fully qualified URL for your website that is loading the Calendar widget.<br>This allows you to provide a custom thank you that may also contain Google(or other) tracking code."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
             space={this.space}
             profile={this.props.profile}
