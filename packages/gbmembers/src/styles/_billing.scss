@@ -139,6 +139,11 @@
       margin-left: auto;
       margin-right: auto;
       flex-direction: column;
+      .savedCards {
+        width: 60%;
+      }
+    }
+    .radioGroup {
       .label {
         font-size: 26px;
         font-family: 'AdiHaus DIN Medium';
@@ -146,10 +151,8 @@
       input {
         margin: 10px;
       }
-      .savedCards {
-        width: 60%;
-      }
     }
+
     .creditCard {
       display: flex;
       width: 800px;

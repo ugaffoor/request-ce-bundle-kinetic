@@ -1026,6 +1026,9 @@
   }
   .userDetails {
     .billingInfo {
+      .updateButtons div {
+        width: auto !important;
+      }
       width: 100% !important;
       .show {
         display: block;

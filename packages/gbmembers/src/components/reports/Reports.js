@@ -62,6 +62,7 @@ const mapStateToProps = state => ({
   programs: state.member.app.programs,
   additionalPrograms: state.member.app.additionalPrograms,
   belts: state.member.app.belts,
+  beltSizes: state.member.app.beltSizes,
   membershipTypes: state.member.app.membershipTypes,
   inactiveCustomersCount: state.member.members.inactiveCustomersCount,
   inactiveCustomersLoading: state.member.members.inactiveCustomersLoading,
@@ -169,6 +170,7 @@ export const ReportsView = ({
   programs,
   additionalPrograms,
   belts,
+  beltSizes,
   membershipTypes,
   inactiveCustomersCount,
   getInactiveCustomersCount,
@@ -260,6 +262,7 @@ export const ReportsView = ({
                 programs={programs}
                 additionalPrograms={additionalPrograms}
                 belts={belts}
+                beltSizes={beltSizes}
                 membershipTypes={membershipTypes}
                 space={space}
                 triggers={triggers}

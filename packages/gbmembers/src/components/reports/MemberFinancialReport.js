@@ -552,13 +552,16 @@ export class MemberFinancialReport extends Component {
     return undefined;
   }
   isRegistrationFeePayment(payment, members) {
-    if (payment['paymentSource'] !== 'Member Registration Fee')
-      return undefined;
-    var idx = members.findIndex(
-      member => member.values['Member ID'] === payment['yourSystemReference'],
-    );
+    if (
+      payment['paymentSource'] === 'Member Registration Fee' ||
+      payment['paymentSource'] === 'Manual Registration Fee'
+    ) {
+      var idx = members.findIndex(
+        member => member.values['Member ID'] === payment['yourSystemReference'],
+      );
 
-    if (idx !== -1) return members[idx];
+      if (idx !== -1) return members[idx];
+    }
     return undefined;
   }
   isCashRegistrationFeePayment(registration, members) {

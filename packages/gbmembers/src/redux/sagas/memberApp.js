@@ -189,6 +189,19 @@ export function* fetchMemberAppSettingsTask() {
 
   var belts = beltsMap.toList();
 
+  var beltSizesValue = getAttributeValue(
+    'Member Belt Size',
+    '',
+    kapp,
+    space,
+  )[0];
+  var beltSizes =
+    beltSizesValue !== undefined &&
+    beltSizesValue !== null &&
+    beltSizesValue !== ''
+      ? beltSizesValue.split(',')
+      : [];
+
   const memberTypes = yield all({
     submissions: call(CoreAPI.searchSubmissions, {
       datastore: true,
@@ -358,6 +371,7 @@ export function* fetchMemberAppSettingsTask() {
     space,
     programs,
     belts,
+    beltSizes,
     membershipTypes,
     membershipFees,
     additionalPrograms,

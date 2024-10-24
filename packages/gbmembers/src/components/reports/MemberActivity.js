@@ -91,6 +91,7 @@ export class MemberActivityReport extends Component {
       { title: 'Member Type', field: 'memberType' },
       { title: 'Program', field: 'program' },
       { title: 'Belt', field: 'belt' },
+      { title: 'Belt Size', field: 'beltSize' },
       { title: 'Emergency Contact Name', field: 'emergencyContactName' },
       { title: 'Emergency Contact Phone', field: 'emergencyContactPhone' },
       {
@@ -235,6 +236,7 @@ export class MemberActivityReport extends Component {
       { label: 'Member Type', value: 'memberType' },
       { label: 'Program', value: 'program' },
       { label: 'Belt', value: 'belt' },
+      { label: 'Belt Size', value: 'beltSize' },
       { title: 'Emergency Contact Name', value: 'emergencyContactName' },
       { title: 'Emergency Contact Phone', value: 'emergencyContactPhone' },
       {
@@ -304,6 +306,7 @@ export class MemberActivityReport extends Component {
           { label: 'Opt-Out', value: 'optout' },
           { label: 'Barcode', value: 'barcode' },
           { label: 'Belt', value: 'belt' },
+          { label: 'Belt Size', value: 'beltSize' },
           { label: 'Emergency Contact Name', value: 'emergencyContactName' },
           { label: 'Emergency Contact Phone', value: 'emergencyContactPhone' },
           {
@@ -391,6 +394,7 @@ export class MemberActivityReport extends Component {
       { label: 'Program', value: 'program' },
       { label: 'Fee Program', value: 'feeProgram' },
       { label: 'Belt', value: 'belt' },
+      { label: 'Belt Size', value: 'beltSize' },
       { label: 'Emergency Contact Name', value: 'emergencyContactName' },
       { label: 'Emergency Contact Phone', value: 'emergencyContactPhone' },
       {
@@ -464,6 +468,7 @@ export class MemberActivityReport extends Component {
       ),
       leadSource: this.getLeadSources(),
       belt: [...new Set(this.props.belts.map(belt => belt.belt))],
+      beltSize: [...new Set(this.props.beltSizes.map(size => size))],
     };
 
     this.filterIds = {};
@@ -1216,6 +1221,7 @@ export class MemberActivityReport extends Component {
         program: member.values['Ranking Program'],
         feeProgram: this.getFeeProgram(members, member),
         belt: member.values['Ranking Belt'],
+        beltSize: member.values['Belt Size'],
         emergencyContactName: member.values['Emergency Contact Name'],
         emergencyContactPhone: member.values['Emergency Contact Phone'],
         emergencyContactRelationship:

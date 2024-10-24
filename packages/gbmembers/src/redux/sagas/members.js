@@ -63,7 +63,7 @@ export function* fetchMembers(action) {
             ',values[Alternate Barcode],values[Address],values[Suburb],values[Country],values[State]' +
             ',values[Postcode],values[Date Joined],values[DOB],values[Member Type]' +
             ',values[Opt-Out],values[Emergency Contact Name],values[Emergency Contact Phone],values[Emergency Contact Relationship]' +
-            ',values[Medical Allergies],values[Ranking Program],values[Ranking Belt],values[Attendance Count]' +
+            ',values[Medical Allergies],values[Ranking Program],values[Ranking Belt],values[Belt Size],values[Attendance Count]' +
             ',values[Additional Program 1],values[Additional Program 2],values[Non Paying]' +
             ',values[Billing Customer Reference],values[Billing Parent Member],values[Lead Source]' +
             ',values[Billing User],values[Billing Customer Id],values[Billing Setup Fee Id],values[Billing Start Date]' +
@@ -122,7 +122,7 @@ export function* fetchMembers(action) {
               ',values[Alternate Barcode],values[Address],values[Suburb],values[Country],values[State]' +
               ',values[Postcode],values[Date Joined],values[DOB],values[Member Type]' +
               ',values[Opt-Out],values[Emergency Contact Name],values[Emergency Contact Phone],values[Emergency Contact Relationship]' +
-              ',values[Medical Allergies],values[Ranking Program],values[Ranking Belt],values[Attendance Count]' +
+              ',values[Medical Allergies],values[Ranking Program],values[Ranking Belt],values[Belt Size],values[Attendance Count]' +
               ',values[Additional Program 1],values[Additional Program 2],values[Non Paying]' +
               ',values[Billing Customer Reference],values[Billing Parent Member],values[Lead Source]' +
               ',values[Billing User],values[Billing Customer Id],values[Billing Setup Fee Id],values[Billing Start Date]' +

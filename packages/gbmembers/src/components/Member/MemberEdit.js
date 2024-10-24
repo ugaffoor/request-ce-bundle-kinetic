@@ -48,6 +48,7 @@ const mapStateToProps = state => ({
   programs: state.member.app.programs,
   additionalPrograms: state.member.app.additionalPrograms,
   belts: state.member.app.belts,
+  beltSizes: state.member.app.beltSizes,
   membershipTypes: state.member.app.membershipTypes,
   currentMemberLoading: state.member.members.currentMemberLoading,
   profile: state.member.kinops.profile,
@@ -176,6 +177,7 @@ export const MemberEdit = ({
   programs,
   additionalPrograms,
   belts,
+  beltSizes,
   membershipTypes,
   currentMemberLoading,
   profile,
@@ -1834,6 +1836,34 @@ export const MemberEdit = ({
                       )
                     }
                   />
+                </div>
+              </span>
+              <span className="line">
+                <div>
+                  <label htmlFor="beltSize">Belt Size</label>
+                  <select
+                    name="beltSize"
+                    id="beltSize"
+                    ref={input => (this.input = input)}
+                    value={memberItem.values['Belt Size']}
+                    onChange={e =>
+                      handleChange(
+                        memberItem,
+                        'Belt Size',
+                        e,
+                        setIsDirty,
+                        memberChanges,
+                      )
+                    }
+                  >
+                    <option value="" />
+                    {beltSizes.map(size => (
+                      <option key={size} value={size}>
+                        {size}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="droparrow" />
                 </div>
               </span>
             </div>

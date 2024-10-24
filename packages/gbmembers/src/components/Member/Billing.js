@@ -58,6 +58,7 @@ import ScaleLoader from 'react-spinners/ScaleLoader';
 import checkoutRightArrowIcon from '../../images/checkoutRightArrow.png?raw';
 import Helmet from 'react-helmet';
 import { getTimezone } from '../leads/LeadsUtils';
+import { isBamboraFailedPayment } from '../Member/MemberUtils';
 
 <script src="../helpers/jquery.multiselect.js" />;
 
@@ -282,6 +283,7 @@ class PayNow extends Component {
       province: this.props.memberItem.values['State'],
       phoneNumber: this.props.memberItem.values['Phone Number'],
       email: this.props.memberItem.values['Email'],
+      feeType: 'Membership Fee',
     };
     this.handleScriptInject = this.handleScriptInject.bind(this);
   }
@@ -323,7 +325,10 @@ class PayNow extends Component {
       country: this.state.country === undefined ? 'US' : this.state.country,
       phoneNumber: this.state.phoneNumber,
       email: this.state.email,
-      description: 'Manual Membership Payment',
+      description:
+        this.state.feeType === 'Membership Fee'
+          ? 'Manual Membership Payment'
+          : 'Manual Registration Fee',
     });
 
     var config = {
@@ -741,6 +746,41 @@ class PayNow extends Component {
           {!this.state.processingComplete ||
           (this.state.status !== '1' && this.state.status !== '') ? (
             <span className="capturePayment">
+              <span className="totalRow">
+                <div className="radioGroup">
+                  <label htmlFor="membershipFeeType" className="radio">
+                    <input
+                      id="membershipFeeType"
+                      name="feeType"
+                      type="radio"
+                      checked={this.state.feeType === 'Membership Fee'}
+                      value="Membership Fee"
+                      onChange={e => {
+                        this.setState({
+                          feeType: 'Membership Fee',
+                        });
+                      }}
+                      onClick={async e => {}}
+                    />
+                    Membership Fee
+                  </label>
+                  <label htmlFor="registrationFeeType" className="radio">
+                    <input
+                      id="registrationFeeType"
+                      name="feeType"
+                      type="radio"
+                      checked={this.state.feeType === 'Registration Fee'}
+                      onChange={e => {
+                        this.setState({
+                          feeType: 'Registration Fee',
+                        });
+                      }}
+                      onClick={async e => {}}
+                    />
+                    Registration Fee
+                  </label>
+                </div>
+              </span>
               <span className="totalRow">
                 <span className="total">
                   <div className="label">Membership Amount</div>
@@ -1503,6 +1543,7 @@ export class PaymentHistory extends Component {
         paymentSource: payment.paymentSource,
         paymentReference: payment.paymentReference,
         paymentID: payment.paymentID,
+        payment: payment,
       };
     });
     return dataResult;
@@ -2466,26 +2507,52 @@ export class BillingInfo extends Component {
                     </div>
                   ) : (
                     <span>
-                      {getAttributeValue(
-                        this.props.space,
-                        'Billing Company',
-                      ) === 'Bambora' && (
-                        <div>
-                          <NavLink
-                            to={`/categories/bambora-billing/bambora-submit-billing-changes?id=${this.props.memberItem.id}`}
-                            kappSlug={'services'}
-                            className={'nav-link icon-wrapper btn btn-primary'}
-                            activeClassName="active"
-                            style={{
-                              display: 'inline',
-                              paddingTop: '4px',
-                              paddingBottom: '4px',
-                            }}
-                          >
-                            Update Billing Details
-                          </NavLink>
-                        </div>
-                      )}
+                      <span className="line updateButtons">
+                        {getAttributeValue(
+                          this.props.space,
+                          'Billing Company',
+                        ) === 'Bambora' && (
+                          <div>
+                            <NavLink
+                              to={`/categories/bambora-billing/bambora-submit-billing-changes?id=${this.props.memberItem.id}`}
+                              kappSlug={'services'}
+                              className={
+                                'nav-link icon-wrapper btn btn-primary'
+                              }
+                              activeClassName="active"
+                              style={{
+                                display: 'inline',
+                                paddingTop: '4px',
+                                paddingBottom: '4px',
+                              }}
+                            >
+                              Update Billing Details
+                            </NavLink>
+                          </div>
+                        )}
+                        {getAttributeValue(
+                          this.props.space,
+                          'Billing Company',
+                        ) === 'Bambora' && (
+                          <div>
+                            <NavLink
+                              to={`/categories/bambora-billing/bambora-change-credit-card-details?id=${this.props.memberItem.id}`}
+                              kappSlug={'services'}
+                              className={
+                                'nav-link icon-wrapper btn btn-primary'
+                              }
+                              activeClassName="active"
+                              style={{
+                                display: 'inline',
+                                paddingTop: '4px',
+                                paddingBottom: '4px',
+                              }}
+                            >
+                              Update Credit Card
+                            </NavLink>
+                          </div>
+                        )}
+                      </span>
                       <table
                         className={
                           this.props.billingInfo.customerBillingId !==

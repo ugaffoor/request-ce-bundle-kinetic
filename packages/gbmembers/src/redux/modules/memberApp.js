@@ -63,6 +63,7 @@ export const State = Record({
   programs: List(),
   additionalPrograms: List(),
   belts: List(),
+  beltSizes: [],
   membershipTypes: List(),
   membershipFees: List(),
   snippets: List(),
@@ -151,6 +152,7 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('programs', List(payload.programs))
         .set('additionalPrograms', List(payload.additionalPrograms))
         .set('belts', List(payload.belts))
+        .set('beltSizes', List(payload.beltSizes))
         .set('membershipTypes', List(payload.membershipTypes))
         .set('membershipFees', List(payload.membershipFees))
         .set('snippets', List(payload.snippets))
