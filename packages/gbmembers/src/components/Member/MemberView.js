@@ -2104,6 +2104,7 @@ export const MemberViewContainer = compose(
         oldBiller.values['Credit Card Expiry Year'];
       newBiller.values['Credit Card Expiry Month'] =
         oldBiller.values['Credit Card Expiry Month'];
+      newBiller.values['POS Profile ID'] = oldBiller.values['POS Profile ID'];
       newBiller.values['Billing Cash Term Start Date'] =
         oldBiller.values['Billing Cash Term Start Date'];
       newBiller.values['Billing Cash Term End Date'] =

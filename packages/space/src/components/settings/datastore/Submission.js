@@ -75,6 +75,7 @@ const DatastoreSubmissionComponent = ({
   values,
   submission,
   isEditing,
+  isSpaceAdmin,
   formKey,
   discussionsEnabled,
 }) => (
@@ -89,24 +90,26 @@ const DatastoreSubmissionComponent = ({
       <div className="page-panel page-panel--three-fifths page-panel--space-datastore-submission page-panel--scrollable">
         <div className="page-title">
           <div className="page-title__wrapper">
-            <h3>
-              <Link to="/">
-                <I18n>home</I18n>
-              </Link>{' '}
-              /{` `}
-              <Link to="/settings">
-                <I18n>settings</I18n>
-              </Link>{' '}
-              /{` `}
-              <Link to={`/settings/datastore/`}>
-                <I18n>datastore</I18n>
-              </Link>{' '}
-              /{` `}
-              <Link to={`/settings/datastore/${form.slug}/`}>
-                <I18n>{form.name}</I18n>
-              </Link>{' '}
-              /
-            </h3>
+            {isSpaceAdmin && (
+              <h3>
+                <Link to="/">
+                  <I18n>home</I18n>
+                </Link>{' '}
+                /{` `}
+                <Link to="/settings">
+                  <I18n>settings</I18n>
+                </Link>{' '}
+                /{` `}
+                <Link to={`/settings/datastore/`}>
+                  <I18n>datastore</I18n>
+                </Link>{' '}
+                /{` `}
+                <Link to={`/settings/datastore/${form.slug}/`}>
+                  <I18n>{form.name}</I18n>
+                </Link>{' '}
+                /
+              </h3>
+            )}
             <h1>
               {submissionId ? (
                 submission ? (

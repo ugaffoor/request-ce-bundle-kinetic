@@ -1,0 +1,119 @@
+.journeyTriggersContent {
+  .block {
+    background-color: #4d5059;
+    margin: 0.5%;
+    border-radius: 8px;
+    float: left;
+    padding: 10px;
+    color: white;
+    .title {
+      font-size: 36px;
+    }
+  }
+  .block:hover {
+    background-color: #898686;
+    cursor: pointer;
+  }
+}
+.journeyTriggersContent {
+  .block,
+  .group {
+    background-color: #4d5059;
+    margin: 0.5%;
+    border-radius: 8px;
+    float: left;
+    padding: 10px;
+    color: white;
+    .title {
+      font-size: 36px;
+    }
+  }
+  .block:hover,
+  .group:hover {
+    background-color: #898686;
+    cursor: pointer;
+  }
+}
+
+.journeyTriggersContent {
+  .blockGroups {
+    display: flex;
+    flex-direction: column;
+    .back.fa.fa-chevron-left {
+      font-size: 36px;
+      margin: 20px;
+      cursor: pointer;
+    }
+    .group {
+      max-width: 600px;
+      background-color: #4d5059;
+      margin: 0.5%;
+      border-radius: 8px;
+      float: left;
+      padding: 10px;
+      color: white;
+      display: flex;
+      .fa {
+        font-size: 52px;
+      }
+      .title {
+        font-size: 36px;
+      }
+      .details {
+        margin-left: 10px;
+      }
+    }
+    .group:hover {
+      background-color: #898686;
+      cursor: pointer;
+    }
+  }
+}
+
+.journeyTriggersContent {
+  .blockTriggers {
+    display: flex;
+    flex-direction: column;
+    .back.fa.fa-chevron-left {
+      font-size: 36px;
+      margin: 20px;
+      cursor: pointer;
+    }
+    .group {
+      max-width: 1000px;
+      background-color: #f7f7f7;
+      margin: 0.5%;
+      border-radius: 8px;
+      float: left;
+      padding: 10px;
+      color: black;
+      display: flex;
+      flex-direction: column;
+      .fa {
+        font-size: 52px;
+      }
+      .title {
+        font-size: 36px;
+      }
+      .header {
+        display: flex;
+        border-bottom-style: solid;
+        border-bottom-width: 1px;
+        border-bottom-color: #9a9696;
+        padding-bottom: 4px;
+        .details {
+          margin-left: 10px;
+        }
+      }
+      .groupActions {
+        display: flex;
+        .actionCell {
+          margin: 10px;
+          img {
+            margin-right: 10px;
+          }
+        }
+      }
+    }
+  }
+}

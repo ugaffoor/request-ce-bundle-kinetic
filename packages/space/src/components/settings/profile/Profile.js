@@ -33,6 +33,7 @@ export const EditProfileComponent = ({
   locales,
   timezones,
   isGuest,
+  isSpaceAdmin,
 }) => (
   <div className="page-container page-container--panels page-container--space-profile-edit">
     <PageTitle parts={['Edit Profile']} />
@@ -41,16 +42,18 @@ export const EditProfileComponent = ({
         <div className="page-panel page-panel--three-fifths page-panel--scrollable page-panel--space-profile-edit">
           <div className="page-title">
             <div className="page-title__wrapper">
-              <h3>
-                <Link to="/">
-                  <I18n>home</I18n>
-                </Link>{' '}
-                /{' '}
-                <Link to="/settings">
-                  <I18n>settings</I18n>
-                </Link>{' '}
-                /{' '}
-              </h3>
+              {isSpaceAdmin && (
+                <h3>
+                  <Link to="/">
+                    <I18n>home</I18n>
+                  </Link>{' '}
+                  /{' '}
+                  <Link to="/settings">
+                    <I18n>settings</I18n>
+                  </Link>{' '}
+                  /{' '}
+                </h3>
+              )}
               <h1>
                 <I18n>Edit Profile</I18n>
               </h1>
@@ -237,7 +240,7 @@ export const EditProfileComponent = ({
               </div>
             </form>
           </section>
-          {!isGuest && (
+          {/*!isGuest && (
             <section>
               <h2 className="section__title">User Attributes</h2>
               <div className="user-attributes-wrapper">
@@ -309,7 +312,7 @@ export const EditProfileComponent = ({
                 </table>
               </div>
             </section>
-          )}
+          )*/}
           {!isGuest && (
             <div>
               <section>
@@ -447,6 +450,7 @@ const openChangeManagerForm = ({ spaceAttributes, openForm }) => config => {
 const mapStateToProps = state => ({
   loading: state.space.profiles.loading,
   profile: state.space.profiles.profile,
+  isSpaceAdmin: state.app.profile.spaceAdmin,
   error: state.space.profiles.error,
   editingPassword: state.space.profiles.isChangePasswordVisible,
   department:

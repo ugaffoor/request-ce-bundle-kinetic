@@ -40,6 +40,7 @@ export const Header = ({
   hasSidebar,
   toggleSidebarOpen,
   isGuest,
+  isSpaceAdmin,
   hasAccessToManagement,
   hasAccessToSupport,
   currentKapp,
@@ -69,10 +70,12 @@ export const Header = ({
             {currentKapp.name}
           </DropdownToggle>
           <DropdownMenu>
-            <DropdownItem tag="a" href={bundle.spaceLocation()}>
-              <span className="fa fa-fw fa-home" />
-              Home
-            </DropdownItem>
+            {isSpaceAdmin && (
+              <DropdownItem tag="a" href={bundle.spaceLocation()}>
+                <span className="fa fa-fw fa-home" />
+                Home
+              </DropdownItem>
+            )}
             <DropdownItem divider />
             {predefinedKapps.map(thisKapp => (
               <BuildKappLink kapp={thisKapp} key={thisKapp.slug} />
@@ -105,17 +108,19 @@ export const Header = ({
       <CompanyLogoContainer />
     </Nav>
     <Nav className="nav-header apps">
-      <NavItem>
-        <NavLink
-          to="/Home"
-          className="nav-link icon-wrapper"
-          strict
-          activeClassName="active"
-        >
-          <SVGInline svg={homeIcon} className="icon" />
-          <span className="appName">Dashboard</span>
-        </NavLink>
-      </NavItem>
+      {isSpaceAdmin && (
+        <NavItem>
+          <NavLink
+            to="/Home"
+            className="nav-link icon-wrapper"
+            strict
+            activeClassName="active"
+          >
+            <SVGInline svg={homeIcon} className="icon" />
+            <span className="appName">Dashboard</span>
+          </NavLink>
+        </NavItem>
+      )}
       <NavItem>
         <NavLink
           to="/Attendance"

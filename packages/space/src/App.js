@@ -15,6 +15,7 @@ import { Discussion } from './components/discussion/Discussion';
 import { Home } from './components/home/Home';
 import { Notifications } from './components/notifications/Notifications';
 import { ViewProfile } from './components/profile/ViewProfile';
+import { JourneyTriggers } from './components/settings/journeytriggers/JourneyTriggers';
 import { TeamContainer } from './components/teams/TeamContainer';
 import { TeamsContainer } from './components/teams/TeamsContainer';
 import { IsolatedForm } from './components/shared/IsolatedForm';
@@ -58,6 +59,11 @@ export const AppComponent = props => {
             <Route path="/alerts/:id" exact component={AlertForm} />
             <Route path="/discussions/:id" exact component={Discussion} />
             <Route path="/profile/:username" exact component={ViewProfile} />
+            <Route
+              path="/settings/journeytriggers"
+              exact
+              component={JourneyTriggers}
+            />
             <Route path="/settings" component={Settings} />
             <Route path="/teams" exact component={TeamsContainer} />
             <Route path="/teams/:slug" exact component={TeamContainer} />

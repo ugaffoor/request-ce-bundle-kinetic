@@ -26,6 +26,7 @@ const SubmissionSearchComponent = ({
   openModal,
   optionsOpen,
   setOptionsOpen,
+  isSpaceAdmin,
 }) => (
   <I18n context={`datastore.forms.${form.slug}`}>
     {!loading ? (
@@ -34,20 +35,22 @@ const SubmissionSearchComponent = ({
         <div className="page-panel page-panel--scrollable page-panel--datastore-content">
           <div className="page-title">
             <div className="page-title__wrapper">
-              <h3>
-                <Link to="/">
-                  <I18n>home</I18n>
-                </Link>{' '}
-                /{` `}
-                <Link to="/settings">
-                  <I18n>settings</I18n>
-                </Link>{' '}
-                /{` `}
-                <Link to={`/settings/datastore/`}>
-                  <I18n>datastore</I18n>
-                </Link>{' '}
-                /{` `}
-              </h3>
+              {isSpaceAdmin && (
+                <h3>
+                  <Link to="/">
+                    <I18n>home</I18n>
+                  </Link>{' '}
+                  /{` `}
+                  <Link to="/settings">
+                    <I18n>settings</I18n>
+                  </Link>{' '}
+                  /{` `}
+                  <Link to={`/settings/datastore/`}>
+                    <I18n>datastore</I18n>
+                  </Link>{' '}
+                  /{` `}
+                </h3>
+              )}
               <h1>
                 <I18n>{form.name}</I18n>
               </h1>
@@ -111,6 +114,7 @@ export const mapStateToProps = state => ({
   form: state.space.settingsDatastore.currentForm,
   simpleSearchActive: state.space.settingsDatastore.simpleSearchActive,
   submissions: state.space.settingsDatastore.submissions,
+  isSpaceAdmin: state.app.profile.spaceAdmin,
 });
 
 export const mapDispatchToProps = {

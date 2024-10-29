@@ -56,6 +56,7 @@ export const Header = ({
   kappDropdownOpen,
   kappDropdownToggle,
   isKiosk,
+  isSpaceAdmin,
   space,
 }) => (
   <Navbar color="faded" light fixed="top">
@@ -76,26 +77,28 @@ export const Header = ({
           </NavLink>
         </NavItem>
       )}
-      <NavItem>
-        <KappLink className="nav-link" to="/">
-          {dropdownIcon(currentKapp) === 'svg-gb-icon' ||
-          (currentKapp !== null && currentKapp.slug === 'services') ? (
-            <span>
-              <SVGInline svg={gbIcon} className="icon svg-gb-icon" />
-            </span>
+      {isSpaceAdmin && (
+        <NavItem>
+          <KappLink className="nav-link" to="/">
+            {dropdownIcon(currentKapp) === 'svg-gb-icon' ||
+            (currentKapp !== null && currentKapp.slug === 'services') ? (
+              <span>
+                <SVGInline svg={gbIcon} className="icon svg-gb-icon" />
+              </span>
+            ) : (
+              <span>
+                <span className={`fa fa-fw ${dropdownIcon(currentKapp)}`} />
+                <span>&nbsp; {dropdownTitleName(currentKapp)}</span>
+              </span>
+            )}
+          </KappLink>
+          {currentKapp !== null && currentKapp.slug === 'services' ? (
+            <span className="headerLabel">Services</span>
           ) : (
-            <span>
-              <span className={`fa fa-fw ${dropdownIcon(currentKapp)}`} />
-              <span>&nbsp; {dropdownTitleName(currentKapp)}</span>
-            </span>
+            ''
           )}
-        </KappLink>
-        {currentKapp !== null && currentKapp.slug === 'services' ? (
-          <span className="headerLabel">Services</span>
-        ) : (
-          ''
-        )}
-      </NavItem>
+        </NavItem>
+      )}
       <div className="nav-item-centre">
         {Utils.getAttributeValue(space, 'BarraFIT') === 'TRUE' ? (
           <img
@@ -124,11 +127,11 @@ export const Header = ({
             <DropdownMenu>
               <Link
                 className="dropdown-item"
-                to="/"
+                to="/settings/profile"
                 onClick={kappDropdownToggle}
               >
-                <span className="fa fa-fw fa-home" />
-                Home
+                <span className="fa fa-fw fa-cog" />
+                Settings
               </Link>
               <DropdownItem divider />
               {predefinedKapps.map(thisKapp => (

@@ -46,6 +46,7 @@ const FormListComponent = ({
   match,
   toggleDropdown,
   openDropdown,
+  isSpaceAdmin,
 }) => {
   return (
     <div className="page-container page-container--panels page-container--datastore">
@@ -53,16 +54,18 @@ const FormListComponent = ({
       <div className="page-panel page-panel--two-thirds page-panel--scrollable page-panel--datastore-content">
         <div className="page-title">
           <div className="page-title__wrapper">
-            <h3>
-              <Link to="/">
-                <I18n>home</I18n>
-              </Link>{' '}
-              /{` `}
-              <Link to="/settings">
-                <I18n>settings</I18n>
-              </Link>{' '}
-              /{` `}
-            </h3>
+            {isSpaceAdmin && (
+              <h3>
+                <Link to="/">
+                  <I18n>home</I18n>
+                </Link>{' '}
+                /{` `}
+                <Link to="/settings">
+                  <I18n>settings</I18n>
+                </Link>{' '}
+                /{` `}
+              </h3>
+            )}
             <h1>
               <I18n>Datastore Forms</I18n>
             </h1>
@@ -71,7 +74,6 @@ const FormListComponent = ({
             <I18n>New Datastore Form</I18n>
           </Link>
         </div>
-
         <div className="forms-list-wrapper">
           {loading ? (
             <h3>
@@ -144,7 +146,7 @@ const FormListComponent = ({
                               >
                                 <I18n>New Record</I18n>
                               </DropdownItem>
-                              {canManage && (
+                              {isSpaceAdmin && (
                                 <DropdownItem
                                   tag={Link}
                                   to={`${match.path}/${form.slug}/settings`}
@@ -193,6 +195,7 @@ const FormListComponent = ({
 export const mapStateToProps = state => ({
   loading: state.space.settingsDatastore.loading,
   datastoreForms: state.space.settingsDatastore.forms.filter(f => !f.isHidden),
+  isSpaceAdmin: state.app.profile.spaceAdmin,
 });
 
 export const mapDispatchToProps = {

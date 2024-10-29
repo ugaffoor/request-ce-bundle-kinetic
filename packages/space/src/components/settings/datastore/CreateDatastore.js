@@ -20,26 +20,29 @@ const CreateDatastoreComponent = ({
   handleSave,
   handleNameChange,
   match,
+  isSpaceAdmin,
 }) => (
   <div className="page-container page-container--panels page-container--datastore">
     <PageTitle parts={['New Form', 'Datastore']} />
     <div className="page-panel page-panel--two-thirds page-panel--scrollable page-panel--datastore-content">
       <div className="page-title">
         <div className="page-title__wrapper">
-          <h3>
-            <Link to="/">
-              <I18n>home</I18n>
-            </Link>{' '}
-            /{` `}
-            <Link to="/settings">
-              <I18n>settings</I18n>
-            </Link>{' '}
-            /{` `}
-            <Link to={`/settings/datastore/`}>
-              <I18n>datastore</I18n>
-            </Link>{' '}
-            /{` `}
-          </h3>
+          {isSpaceAdmin && (
+            <h3>
+              <Link to="/">
+                <I18n>home</I18n>
+              </Link>{' '}
+              /{` `}
+              <Link to="/settings">
+                <I18n>settings</I18n>
+              </Link>{' '}
+              /{` `}
+              <Link to={`/settings/datastore/`}>
+                <I18n>datastore</I18n>
+              </Link>{' '}
+              /{` `}
+            </h3>
+          )}
           <h1>
             <I18n>New Datastore Form</I18n>
           </h1>

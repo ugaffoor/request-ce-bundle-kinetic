@@ -28,6 +28,8 @@
   flex: 1 1 100%;
   flex-direction: column;
   min-height: $page-height;
+  margin-top: 8px;
+  border-top: 1px solid #d5d5d5;
 }
 
 .page-container {

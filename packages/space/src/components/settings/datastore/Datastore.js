@@ -15,20 +15,22 @@ const DatastoreError = () => (
     <I18n>Error loading Datastore</I18n>
   </h1>
 );
-const DatastoreVersionError = ({ version }) => (
+const DatastoreVersionError = ({ version, isSpaceAdmin }) => (
   <div className="page-panel page-panel--scrollable">
     <div className="page-title">
       <div className="page-title__wrapper">
-        <h3>
-          <Link to="/">
-            <I18n>home</I18n>
-          </Link>{' '}
-          /{` `}
-          <Link to="/settings">
-            <I18n>settings</I18n>
-          </Link>{' '}
-          /{` `}
-        </h3>
+        {isSpaceAdmin && (
+          <h3>
+            <Link to="/">
+              <I18n>home</I18n>
+            </Link>{' '}
+            /{` `}
+            <Link to="/settings">
+              <I18n>settings</I18n>
+            </Link>{' '}
+            /{` `}
+          </h3>
+        )}
         <h1>
           <I18n>Invalid CE Version</I18n>
         </h1>
@@ -41,9 +43,15 @@ const DatastoreVersionError = ({ version }) => (
   </div>
 );
 
-export const DatastoreRouter = ({ match, loading, validVersion, version }) =>
+export const DatastoreRouter = ({
+  match,
+  loading,
+  validVersion,
+  version,
+  isSpaceAdmin,
+}) =>
   !validVersion ? (
-    <DatastoreVersionError version={version} />
+    <DatastoreVersionError version={version} isSpaceAdmin />
   ) : (
     !loading && (
       <Switch>
