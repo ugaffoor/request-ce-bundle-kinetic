@@ -341,7 +341,7 @@ export class OrdersReport extends Component {
 
     data.forEach(element => {
       let row = [];
-      row.push(moment(element['date'], 'L'));
+      row.push(moment(element['date'], 'YYYY-MM-DD').format('L'));
       row.push(element['name']);
       row.push(
         element['total'] !== undefined
