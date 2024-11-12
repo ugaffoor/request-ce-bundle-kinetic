@@ -718,8 +718,8 @@ export class SelfCheckin extends Component {
         parseInt(memberItem.values['Max Weekly Classes']) > 0
       ) {
         var now = moment();
-        var monday = now.clone().weekday(1);
-        var sunday = now.clone().weekday(7);
+        var monday = now.clone().weekday(0);
+        var sunday = now.clone().weekday(6);
         this.setState({
           memberItem: memberItem,
           verifyMemberMaxClasses: true,
@@ -965,8 +965,8 @@ export class SelfCheckin extends Component {
         parseInt(memberItem.values['Max Weekly Classes']) > 0
       ) {
         var now = moment();
-        var monday = now.clone().weekday(1);
-        var sunday = now.clone().weekday(7);
+        var monday = now.clone().weekday(0);
+        var sunday = now.clone().weekday(6);
         this.setState({
           memberItem: memberItem,
           verifyMemberMaxClasses: true,
@@ -1886,8 +1886,8 @@ export class AttendanceDetail extends Component {
         parseInt(memberItem.values['Max Weekly Classes']) !== 0
       ) {
         var now = moment();
-        var monday = now.clone().weekday(1);
-        var sunday = now.clone().weekday(7);
+        var monday = now.clone().weekday(0);
+        var sunday = now.clone().weekday(6);
         this.setState({
           verifyMemberMaxClasses: true,
           memberMaxClassesExceeded: false,
@@ -2196,31 +2196,31 @@ export class AttendanceDetail extends Component {
         this.props.classAttendances[i].memberAlreadyCheckedIn = true;
       } else {
         this.props.classAttendances[i].memberAlreadyCheckedIn = false;
-
-        if (
-          memberItem.values['Max Weekly Classes'] !== undefined &&
-          memberItem.values['Max Weekly Classes'] !== null &&
-          memberItem.values['Max Weekly Classes'] !== '' &&
-          parseInt(memberItem.values['Max Weekly Classes']) !== 0 &&
-          !verifyingMaxClasses
-        ) {
-          var now = moment();
-          var monday = now.clone().weekday(1);
-          var sunday = now.clone().weekday(7);
-          this.setState({
-            memberItem: memberItem,
-            verifyMemberMaxClasses: true,
-            memberMaxClassesExceeded: false,
-          });
-          attendanceThis.props.fetchMemberClassAttendancesByDate({
-            memberItem: memberItem,
-            fromDate: monday.format('YYYY-MM-DD'),
-            toDate: sunday.format('YYYY-MM-DD'),
-            verifyMemberMaxClassesComplete: this.verifyMemberMaxClassesComplete,
-          });
-          verifyingMaxClasses = true;
-        }
       }
+    }
+
+    if (
+      memberItem.values['Max Weekly Classes'] !== undefined &&
+      memberItem.values['Max Weekly Classes'] !== null &&
+      memberItem.values['Max Weekly Classes'] !== '' &&
+      parseInt(memberItem.values['Max Weekly Classes']) !== 0 &&
+      !verifyingMaxClasses
+    ) {
+      var now = moment();
+      var monday = now.clone().weekday(0);
+      var sunday = now.clone().weekday(6);
+      this.setState({
+        memberItem: memberItem,
+        verifyMemberMaxClasses: true,
+        memberMaxClassesExceeded: false,
+      });
+      attendanceThis.props.fetchMemberClassAttendancesByDate({
+        memberItem: memberItem,
+        fromDate: monday.format('YYYY-MM-DD'),
+        toDate: sunday.format('YYYY-MM-DD'),
+        verifyMemberMaxClassesComplete: this.verifyMemberMaxClassesComplete,
+      });
+      verifyingMaxClasses = true;
     }
 
     var overdueIdx = this.state.overdueMembers.findIndex(

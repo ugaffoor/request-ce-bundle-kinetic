@@ -1,6 +1,7 @@
 import { Record } from 'immutable';
 
 import { namespace, withPayload } from '../../utils';
+import moment from 'moment';
 
 export const types = {
   CREATE_EMAIL_CAMPAIGN: namespace('campaigns', 'CREATE_EMAIL_CAMPAIGN'),
@@ -48,6 +49,7 @@ export const State = Record({
   allEmailCampaigns: [],
   newEmailCampaignLoading: true,
   emailCampaignsLoading: true,
+  emailCampaignsLoadingTimestamp: moment().subtract(1, 'days'),
   emailCampaignLoading: true,
 
   newSmsCampaign: {},
@@ -55,6 +57,7 @@ export const State = Record({
   allSmsCampaigns: [],
   newSmsCampaignLoading: true,
   smsCampaignsLoading: true,
+  smsCampaignsLoadingTimestamp: moment().subtract(1, 'days'),
   smsCampaignLoading: true,
 });
 
@@ -93,7 +96,8 @@ export const reducer = (state = State(), { type, payload }) => {
           nextPageToken:
             payload.nextPageToken === null ? undefined : payload.nextPageToken,
         })
-        .set('emailCampaignsLoading', false);
+        .set('emailCampaignsLoading', false)
+        .set('emailCampaignsLoadingTimestamp', moment());
     }
 
     case types.FETCH_NEW_SMS_CAMPAIGN:
@@ -129,7 +133,8 @@ export const reducer = (state = State(), { type, payload }) => {
           nextPageToken:
             payload.nextPageToken === null ? undefined : payload.nextPageToken,
         })
-        .set('smsCampaignsLoading', false);
+        .set('smsCampaignsLoading', false)
+        .set('smsCampaignsLoadingTimestamp', moment());
     }
     default:
       return state;

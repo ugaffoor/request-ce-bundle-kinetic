@@ -28,8 +28,12 @@ const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   emailCampaigns: state.member.campaigns.allEmailCampaigns,
   emailCampaignsLoading: state.member.campaigns.emailCampaignsLoading,
+  emailCampaignsLoadingTimestamp:
+    state.member.campaigns.emailCampaignsLoadingTimestamp,
   smsCampaigns: state.member.campaigns.allSmsCampaigns,
   smsCampaignsLoading: state.member.campaigns.smsCampaignsLoading,
+  smsCampaignsLoadingTimestamp:
+    state.member.campaigns.smsCampaignsLoadingTimestamp,
   individualSMS: state.member.messaging.individualSMS,
   individualSMSLoading: state.member.messaging.individualSMSLoading,
   allLeads: state.member.leads.allLeads,
@@ -70,10 +74,19 @@ export class EmailCampaignsList extends Component {
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
-    this.setState({
-      emailCampaigns: this.getData(nextProps.emailCampaigns.submissions),
-      emailNextPageToken: nextProps.emailCampaigns.nextPageToken,
-    });
+    if (
+      !nextProps.emailCampaignsLoading &&
+      !nextProps.emailCampaignsLoadingTimestamp.isSame(
+        this.props.emailCampaignsLoadingTimestamp,
+      )
+    ) {
+      this.setState({
+        emailCampaigns: this.getData(nextProps.emailCampaigns.submissions),
+        emailNextPageToken: nextProps.emailCampaigns.nextPageToken,
+        emailCampaignsLoadingTimestamp:
+          nextProps.emailCampaignsLoadingTimestamp,
+      });
+    }
   }
 
   getColumns = () => {
@@ -268,7 +281,7 @@ export class EmailCampaignsList extends Component {
         myThis.props.fetchEmailCampaigns({
           setEmailCampaigns: myThis.props.setEmailCampaigns,
         });
-      }, 1000 * 30); // 30 seconds
+      }, 1000 * 300); // 5 minutes
     }
     return data;
   }
@@ -630,6 +643,7 @@ export class EmailCampaignsList extends Component {
                 borderLeft: '0 !important',
               }}
               ref="campaignsListGrid"
+              collapseOnDataChange={false}
               SubComponent={row => {
                 return (
                   <div style={{ padding: '20px' }}>
@@ -680,10 +694,18 @@ export class SmsCampaignsList extends Component {
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
-    this.setState({
-      smsCampaigns: this.getData(nextProps.smsCampaigns.submissions),
-      smsNextPageToken: nextProps.smsCampaigns.nextPageToken,
-    });
+    if (
+      !nextProps.smsCampaignsLoading &&
+      !nextProps.smsCampaignsLoadingTimestamp.isSame(
+        this.props.smsCampaignsLoadingTimestamp,
+      )
+    ) {
+      this.setState({
+        smsCampaigns: this.getData(nextProps.smsCampaigns.submissions),
+        smsNextPageToken: nextProps.smsCampaigns.nextPageToken,
+        smsCampaignsLoadingTimestamp: nextProps.smsCampaignsLoadingTimestamp,
+      });
+    }
   }
 
   UNSAFE_componentWillMount() {
@@ -1164,6 +1186,7 @@ export class SmsCampaignsList extends Component {
                 /*height: '500px',*/
                 borderLeft: '0 !important',
               }}
+              collapseOnDataChange={false}
               ref="smsCampaignsListGrid"
               SubComponent={row => {
                 return (
@@ -1398,6 +1421,7 @@ export class CreateCampaign extends Component {
 export const CampaignView = ({
   emailCampaigns,
   emailCampaignsLoading,
+  emailCampaignsLoadingTimestamp,
   smsCampaigns,
   fetchEmailCampaigns,
   setEmailCampaigns,
@@ -1405,7 +1429,8 @@ export const CampaignView = ({
   fetchSmsCampaigns,
   setSmsCampaigns,
   updateSmsCampaign,
-  smsCampaignLoading,
+  smsCampaignsLoading,
+  smsCampaignsLoadingTimestamp,
   allMembers,
   allLeads,
   leadsLoading,
@@ -1423,6 +1448,7 @@ export const CampaignView = ({
       <div className="taskContents">
         <EmailCampaignsList
           emailCampaignsLoading={emailCampaignsLoading}
+          emailCampaignsLoadingTimestamp={emailCampaignsLoadingTimestamp}
           fetchEmailCampaigns={fetchEmailCampaigns}
           setEmailCampaigns={setEmailCampaigns}
           emailCampaigns={emailCampaigns}
@@ -1433,6 +1459,8 @@ export const CampaignView = ({
       </div>
       <div className="taskContents">
         <SmsCampaignsList
+          smsCampaignsLoading={smsCampaignsLoading}
+          smsCampaignsLoadingTimestamp={smsCampaignsLoadingTimestamp}
           smsCampaigns={smsCampaigns}
           fetchSmsCampaigns={fetchSmsCampaigns}
           setSmsCampaigns={setSmsCampaigns}

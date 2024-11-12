@@ -22,6 +22,7 @@ import { IsolatedForm } from './components/shared/IsolatedForm';
 import { FormList } from './components/default_kapp/FormList';
 import { I18n } from '../../app/src/I18nProvider';
 import './assets/styles/master.scss';
+import { NotificationsContainer } from 'gbmembers/src/components/notifications/NotificationsContainer';
 
 export const AppComponent = props => {
   if (props.loading) {
@@ -51,6 +52,7 @@ export const AppComponent = props => {
     main: (
       <I18n>
         <Notifications />
+        <NotificationsContainer />
         <main className="package-layout package-layout--space">
           <Switch>
             <Route path="/" exact component={Home} />

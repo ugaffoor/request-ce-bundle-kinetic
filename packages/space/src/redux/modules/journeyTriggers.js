@@ -6,18 +6,21 @@ export const State = Record({
   journeyGroups: List(),
   journeyTriggers: List(),
   journeyInfoLoading: false,
+  journeyTriggerUpdating: false,
 });
 
 export const types = {
   FETCH_JOURNEY_INFO: namespace('journey', 'FETCH_JOURNEY_INFO'),
   SET_JOURNEY_INFO: namespace('journey', 'SET_JOURNEY_INFO'),
   UPDATE_JOURNEY_TRIGGER: namespace('journey', 'UPDATE_JOURNEY_TRIGGER'),
+  DELETE_TRIGGER: namespace('journey', 'DELETE_TRIGGER'),
 };
 
 export const actions = {
   fetchJourneyInfo: noPayload(types.FETCH_JOURNEY_INFO),
   setJourneyInfo: withPayload(types.SET_JOURNEY_INFO),
   updateJourneyTrigger: withPayload(types.UPDATE_JOURNEY_TRIGGER),
+  deleteTrigger: withPayload(types.DELETE_TRIGGER),
 };
 
 export const reducer = (state = State(), { type, payload }) => {
@@ -29,8 +32,6 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('journeyInfoLoading', false)
         .set('journeyGroups', payload.groups)
         .set('journeyTriggers', payload.triggers);
-    case types.UPDATE_JOURNEY_TRIGGER:
-      return state.set('userLoading', true);
     default:
       return state;
   }
