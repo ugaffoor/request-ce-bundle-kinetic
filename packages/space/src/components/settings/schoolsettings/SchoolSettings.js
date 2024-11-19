@@ -1,26 +1,19 @@
-import React, { Component } from 'react';
-import $ from 'jquery';
-import { compose } from 'recompose';
+import React, { Component, Fragment } from 'react';
 import { connect } from 'react-redux';
-import { actions as dataStoreActions } from '../../redux/modules/settingsDatastore';
-import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
-import { EditAttributeValue } from './EditAttributeValue';
+import { compose, lifecycle, withHandlers, withState } from 'recompose';
+import { StatusMessagesContainer } from 'gbmembers/src/components/StatusMessages';
+import { Utils } from 'common';
+import { confirm } from 'gbmembers/src/components/helpers/Confirmation';
+import { actions } from 'gbmembers/src/redux/modules/members';
+import { actions as appActions } from 'gbmembers/src/redux/modules/memberApp';
+import { actions as errorActions } from '../../../redux/modules/errors';
+import { actions as dataStoreActions } from 'gbmembers/src/redux/modules/settingsDatastore';
+import moment from 'moment';
+import { EditAttributeValue } from 'gbmembers/src/utils/EditAttributeValue';
 import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
 import ReactTable from 'react-table';
 import 'react-table/react-table.css';
-
-const mapStateToProps = state => ({
-  space: state.member.app.space,
-  updatingAttribute: state.member.datastore.updatingAttribute,
-  updateSpaceAttributes: state.member.datastore.updateSpaceAttributes,
-  updateSpaceAttributesLoading:
-    state.member.datastore.updateSpaceAttributesLoading,
-});
-
-const mapDispatchToProps = {
-  updateSpaceAttribute: dataStoreActions.updateSpaceAttribute,
-  fetchUpdateSpaceAttributes: dataStoreActions.fetchUpdateSpaceAttributes,
-};
+import { Loading } from 'common';
 
 class SettingsAudit extends Component {
   handleClick = () => this.setState({ isShowingModal: true });
@@ -121,10 +114,9 @@ class SettingsAudit extends Component {
   }
 }
 
-export class SchoolSettings extends Component {
+class SchoolAttributes extends Component {
   constructor(props) {
     super(props);
-    this.space = this.props.space;
     this.ignoreAdminFee = this.ignoreAdminFee.bind(this);
     this.setShowSettingsAudit = this.setShowSettingsAudit.bind(this);
     let attributeNames = [
@@ -155,7 +147,8 @@ export class SchoolSettings extends Component {
       attributeNames,
       showSettingsAudit: false,
       ignoreAdminFee:
-        getAttributeValue(this.props.space, this.props.attributeName) === 'YES'
+        Utils.getAttributeValue(this.props.space, this.props.attributeName) ===
+        'YES'
           ? true
           : false,
     };
@@ -209,7 +202,7 @@ export class SchoolSettings extends Component {
             labelName="School Legal Name"
             helpText="School Legal Name, this appears in the Member Registration agreement."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
-            space={this.space}
+            space={this.props.space}
             profile={this.props.profile}
           />
           <EditAttributeValue
@@ -220,7 +213,7 @@ export class SchoolSettings extends Component {
             labelName="School Address"
             helpText="School Address, this appears in emails and memberhip agreements."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
-            space={this.space}
+            space={this.props.space}
             profile={this.props.profile}
           />
           <EditAttributeValue
@@ -231,10 +224,10 @@ export class SchoolSettings extends Component {
             labelName="School Telephone"
             helpText="School Telephone, this appears in emails, SMS and memberhip agreements."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
-            space={this.space}
+            space={this.props.space}
             profile={this.props.profile}
           />
-          {getAttributeValue(this.props.space, 'Billing Company') ===
+          {Utils.getAttributeValue(this.props.space, 'Billing Company') ===
             'PaySmart' && (
             <EditAttributeValue
               attributeID="schoolACN"
@@ -244,7 +237,7 @@ export class SchoolSettings extends Component {
               labelName="School Australian Company Number"
               helpText="School ACN, this appears in Terms and Conditions."
               updateSpaceAttribute={this.props.updateSpaceAttribute}
-              space={this.space}
+              space={this.props.space}
               profile={this.props.profile}
             />
           )}
@@ -256,7 +249,7 @@ export class SchoolSettings extends Component {
             labelName="School Website"
             helpText="School Website, this appears in emails if configured."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
-            space={this.space}
+            space={this.props.space}
             profile={this.props.profile}
           />
           <EditAttributeValue
@@ -267,10 +260,10 @@ export class SchoolSettings extends Component {
             labelName="School Schedule URL"
             helpText="School Schedule URL, this appears in emails if configured."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
-            space={this.space}
+            space={this.props.space}
             profile={this.props.profile}
           />
-          {getAttributeValue(this.props.space, 'Billing Company') ===
+          {Utils.getAttributeValue(this.props.space, 'Billing Company') ===
             'PaySmart' && (
             <EditAttributeValue
               attributeID="abn"
@@ -280,11 +273,11 @@ export class SchoolSettings extends Component {
               labelName="Australian Business Number(ABN)"
               helpText="School Australian Business Number(ABN), this appears in waivers and membership agreements."
               updateSpaceAttribute={this.props.updateSpaceAttribute}
-              space={this.space}
+              space={this.props.space}
               profile={this.props.profile}
             />
           )}
-          {getAttributeValue(this.props.space, 'Billing Company') ===
+          {Utils.getAttributeValue(this.props.space, 'Billing Company') ===
             'PaySmart' && (
             <EditAttributeValue
               attributeID="abc"
@@ -294,7 +287,7 @@ export class SchoolSettings extends Component {
               labelName="Australian Company Number(ACN)"
               helpText="School Australian Company Number(ACN), this appears in waivers and membership agreements."
               updateSpaceAttribute={this.props.updateSpaceAttribute}
-              space={this.space}
+              space={this.props.space}
               profile={this.props.profile}
             />
           )}
@@ -310,7 +303,7 @@ export class SchoolSettings extends Component {
             disabled={true}
             helpText="School email used for all out going emailing and incoming email if configured.<br/>If this email needs to be changed, please contact support."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
-            space={this.space}
+            space={this.props.space}
             profile={this.props.profile}
           />
           <EditAttributeValue
@@ -321,13 +314,13 @@ export class SchoolSettings extends Component {
             labelName="Email from name"
             helpText="Alias name used for the schools email, such as, Gracie Barra Scottsdale"
             updateSpaceAttribute={this.props.updateSpaceAttribute}
-            space={this.space}
+            space={this.props.space}
             profile={this.props.profile}
           />
         </span>
         <span className="detailsSection">
           <h6>Billing</h6>
-          {getAttributeValue(this.props.space, 'Billing Company') ===
+          {Utils.getAttributeValue(this.props.space, 'Billing Company') ===
             'Bambora' && (
             <span className="adminFee">
               <EditAttributeValue
@@ -338,7 +331,7 @@ export class SchoolSettings extends Component {
                 ignoreAdminFee={this.ignoreAdminFee}
                 helpText="If checked no Admin Fee will be charged."
                 updateSpaceAttribute={this.props.updateSpaceAttribute}
-                space={this.space}
+                space={this.props.space}
                 profile={this.props.profile}
               />
               {!this.state.ignoreAdminFee && (
@@ -350,7 +343,7 @@ export class SchoolSettings extends Component {
                     labelName="Admin Fee Label"
                     helpText="Label applied to the Admin Fee being charged, if blank the default is 'Admin Fee'.<br>Note, this setting change will only affect new submissions, not existing acounts."
                     updateSpaceAttribute={this.props.updateSpaceAttribute}
-                    space={this.space}
+                    space={this.props.space}
                     profile={this.props.profile}
                   />
                   <EditAttributeValue
@@ -361,7 +354,7 @@ export class SchoolSettings extends Component {
                     labelName="Admin Fee Charge"
                     helpText="Membership School Admin Fee, this will be charged for all Membership fees."
                     updateSpaceAttribute={this.props.updateSpaceAttribute}
-                    space={this.space}
+                    space={this.props.space}
                     profile={this.props.profile}
                   />
                 </span>
@@ -376,11 +369,11 @@ export class SchoolSettings extends Component {
             labelName="Payment Frequencies"
             helpText="Payment Frequencies used for Billing, these options allow the Program Fee configuration."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
-            space={this.space}
+            space={this.props.space}
             profile={this.props.profile}
           />
         </span>
-        {getAttributeValue(this.props.space, 'Billing Company') ===
+        {Utils.getAttributeValue(this.props.space, 'Billing Company') ===
           'Bambora' && (
           <span className="detailsSection">
             <h6>Membership Taxes</h6>
@@ -391,7 +384,7 @@ export class SchoolSettings extends Component {
               labelName="Membership Tax Label"
               helpText="Label applied to the Membership Tax value (apply Membership Tax Percentage value also).<br/>Eg, GST 5%"
               updateSpaceAttribute={this.props.updateSpaceAttribute}
-              space={this.space}
+              space={this.props.space}
               profile={this.props.profile}
             />
             <EditAttributeValue
@@ -402,7 +395,7 @@ export class SchoolSettings extends Component {
               labelName="Membership Tax Percentage"
               helpText="Membership Tax percentage value applied for all Memberships.<br>A new value will only be applied to a new form submission."
               updateSpaceAttribute={this.props.updateSpaceAttribute}
-              space={this.space}
+              space={this.props.space}
               profile={this.props.profile}
             />
             <EditAttributeValue
@@ -412,7 +405,7 @@ export class SchoolSettings extends Component {
               labelName="Membership Tax 2 Label"
               helpText="Label applied to the Membership Tax 2 value (apply Membership Tax 2 Percentage value also).<br/>Eg, GST 5%, HST 7%"
               updateSpaceAttribute={this.props.updateSpaceAttribute}
-              space={this.space}
+              space={this.props.space}
               profile={this.props.profile}
             />
             <EditAttributeValue
@@ -423,12 +416,12 @@ export class SchoolSettings extends Component {
               labelName="Membership Tax 2 Percentage"
               helpText="Membership Tax 2 percentage value applied for all Memberships.<br>A new value will only be applied to a new form submission."
               updateSpaceAttribute={this.props.updateSpaceAttribute}
-              space={this.space}
+              space={this.props.space}
               profile={this.props.profile}
             />
           </span>
         )}
-        {getAttributeValue(this.props.space, 'Billing Company') ===
+        {Utils.getAttributeValue(this.props.space, 'Billing Company') ===
           'Bambora' && (
           <span className="detailsSection">
             <h6>POS Taxes</h6>
@@ -439,7 +432,7 @@ export class SchoolSettings extends Component {
               labelName="POS Tax Label"
               helpText="Label applied to the POS Tax value .<br/>Eg, GST 5%"
               updateSpaceAttribute={this.props.updateSpaceAttribute}
-              space={this.space}
+              space={this.props.space}
               profile={this.props.profile}
             />
             <EditAttributeValue
@@ -450,7 +443,7 @@ export class SchoolSettings extends Component {
               labelName="POS Tax Percentage"
               helpText="POS Tax percentage value applied to products."
               updateSpaceAttribute={this.props.updateSpaceAttribute}
-              space={this.space}
+              space={this.props.space}
               profile={this.props.profile}
             />
             <EditAttributeValue
@@ -460,7 +453,7 @@ export class SchoolSettings extends Component {
               labelName="POS Tax Label 2"
               helpText="Label applied to the POS Tax value .<br/>Eg, HST 13%"
               updateSpaceAttribute={this.props.updateSpaceAttribute}
-              space={this.space}
+              space={this.props.space}
               profile={this.props.profile}
             />
             <EditAttributeValue
@@ -471,7 +464,7 @@ export class SchoolSettings extends Component {
               labelName="POS Tax 2 Percentage"
               helpText="POS Tax 2 percentage value applied to products."
               updateSpaceAttribute={this.props.updateSpaceAttribute}
-              space={this.space}
+              space={this.props.space}
               profile={this.props.profile}
             />
           </span>
@@ -486,7 +479,7 @@ export class SchoolSettings extends Component {
             labelName="School Start Date"
             helpText="The School Start Date that trial bookings are allowed from, as part of the Calendar widget(Trial Bookings)."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
-            space={this.space}
+            space={this.props.space}
             profile={this.props.profile}
           />
           <EditAttributeValue
@@ -497,7 +490,7 @@ export class SchoolSettings extends Component {
             labelName="About Us Choices"
             helpText="About Us Choices are used in the 'Get in Touch' form as part of the Calendar widget.<br>To enter a new value, enter value then press the Enter or Tab key."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
-            space={this.space}
+            space={this.props.space}
             profile={this.props.profile}
           />
           <EditAttributeValue
@@ -508,7 +501,7 @@ export class SchoolSettings extends Component {
             labelName="Interested In Choices"
             helpText="Interested In Choices are used in the 'Get in Touch' form as part of the Calendar widget.<br>To enter a new value, enter value then press the Enter or Tab key."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
-            space={this.space}
+            space={this.props.space}
             profile={this.props.profile}
           />
           <EditAttributeValue
@@ -519,7 +512,7 @@ export class SchoolSettings extends Component {
             labelName="School Closed Dates"
             helpText="Dates to now allow Trial Bookings, as part of the Calendar widget(Trial Bookings)."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
-            space={this.space}
+            space={this.props.space}
             profile={this.props.profile}
           />
           <EditAttributeValue
@@ -530,7 +523,7 @@ export class SchoolSettings extends Component {
             labelName="Calendar Widget Thank you URL"
             helpText="A fully qualified URL for your website that is loading the Calendar widget.<br>This allows you to provide a custom thank you that may also contain Google(or other) tracking code."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
-            space={this.space}
+            space={this.props.space}
             profile={this.props.profile}
           />
         </span>
@@ -538,6 +531,249 @@ export class SchoolSettings extends Component {
     );
   }
 }
+const SchoolSettingsComponent = ({
+  allMembers,
+  fetchBillingCustomers,
+  setBillingCustomers,
+  createBillingMembers,
+  syncBillingMembers,
+  billingCustomersLoading,
+  importingBilling,
+  synchingBilling,
+  fetchMembers,
+  memberInitialLoadComplete,
+  membersNextPageToken,
+  memberLastFetchTime,
+  profile,
+  billingPaymentsLoading,
+  fetchBillingPayments,
+  createBillingStatistics,
+  createStatistic,
+  addNotification,
+  setSystemError,
+  updateSpaceAttribute,
+  fetchUpdateSpaceAttributes,
+  updatingAttribute,
+  updateSpaceAttributes,
+  updateSpaceAttributesLoading,
+  space,
+  loading,
+}) => (
+  <div>
+    {loading ? (
+      <Loading text="GB Members loading ..." />
+    ) : (
+      <div className="schoolSettingsPage">
+        <StatusMessagesContainer />
+        <div className="buttons column" style={{ marginLeft: '10px' }}>
+          {!Utils.isMemberOf(profile, 'Role::Data Admin') ? (
+            <div />
+          ) : (
+            <div className="schoolSettings">
+              <SchoolAttributes
+                space={space}
+                profile={profile}
+                updateSpaceAttribute={updateSpaceAttribute}
+                fetchUpdateSpaceAttributes={fetchUpdateSpaceAttributes}
+                updatingAttribute={updatingAttribute}
+                updateSpaceAttributes={updateSpaceAttributes}
+                updateSpaceAttributesLoading={updateSpaceAttributesLoading}
+              />
+            </div>
+          )}
+        </div>
+        {!Utils.isMemberOf(profile, 'Billing') ||
+        Utils.getAttributeValue(space, 'Billing Company') !== 'PaySmart' ? (
+          <div />
+        ) : (
+          <div className="col-xs-3">
+            <button
+              type="button"
+              id="loadBillingCustomers"
+              className={'btn btn-primary'}
+              onClick={async e => {
+                if (
+                  await confirm(
+                    <span>
+                      <span>
+                        Are your sure you want to Import the Billing Member?
+                      </span>
+                    </span>,
+                  )
+                ) {
+                  fetchBillingCustomers({
+                    setBillingCustomers,
+                    createBillingMembers,
+                    fetchMembers,
+                    membersNextPageToken,
+                    memberInitialLoadComplete,
+                    memberLastFetchTime,
+                    allMembers,
+                    useSubAccount:
+                      Utils.getAttributeValue(space, 'PaySmart SubAccount') ===
+                      'YES'
+                        ? true
+                        : false,
+                  });
+                }
+              }}
+            >
+              Import Billing Members
+            </button>
+          </div>
+        )}
+        <div className="col-xs-3">
+          {billingCustomersLoading && importingBilling ? (
+            <p>Importing billing customers ....</p>
+          ) : (
+            <span />
+          )}
+        </div>
+        {!Utils.isMemberOf(profile, 'Billing') ||
+        Utils.getAttributeValue(space, 'Billing Company') !== 'PaySmart' ? (
+          <div />
+        ) : (
+          <div className="col-xs-3">
+            <button
+              type="button"
+              id="syncBillingCustomers"
+              className={'btn btn-primary'}
+              onClick={async e => {
+                if (
+                  await confirm(
+                    <span>
+                      <span>
+                        Are your sure you want to Sync the Billing Members?
+                      </span>
+                    </span>,
+                  )
+                ) {
+                  fetchBillingCustomers({
+                    setBillingCustomers,
+                    syncBillingMembers,
+                    fetchMembers,
+                    allMembers,
+                    useSubAccount:
+                      Utils.getAttributeValue(space, 'PaySmart SubAccount') ===
+                      'YES'
+                        ? true
+                        : false,
+                  });
+                }
+              }}
+            >
+              Sync Billing Members
+            </button>
+          </div>
+        )}
+        <div className="col-xs-3">
+          {billingCustomersLoading && synchingBilling ? (
+            <p>Synching billing customers ....</p>
+          ) : (
+            <span />
+          )}
+        </div>
 
-const enhance = compose(connect(mapStateToProps, mapDispatchToProps));
-export const SchoolSettingsContainer = enhance(SchoolSettings);
+        {profile.username !== 'unus.gaffoor@kineticdata.com' ? (
+          <div />
+        ) : (
+          <div className="col-xs-3">
+            <button
+              type="button"
+              id="loadBillingPayments"
+              className={'btn btn-primary'}
+              onClick={e => {
+                let startDate, endDate;
+                startDate = moment()
+                  .subtract(12, 'months')
+                  .startOf('month')
+                  .format('YYYY-MM-DD');
+                endDate = moment()
+                  .subtract(1, 'months')
+                  .endOf('month')
+                  .format('YYYY-MM-DD');
+
+                fetchBillingPayments({
+                  paymentType: 'SUCCESSFUL',
+                  paymentMethod: 'ALL',
+                  paymentSource: 'ALL',
+                  dateField: 'PAYMENT',
+                  dateFrom: startDate,
+                  dateTo: endDate,
+                  createBillingStatistics: createBillingStatistics,
+                  createStatistic: createStatistic,
+                  internalPaymentType: 'client_successful',
+                  addNotification: addNotification,
+                  setSystemError: setSystemError,
+                });
+              }}
+            >
+              Import Billing History(1 year)
+            </button>
+          </div>
+        )}
+        <div className="col-xs-3">
+          {billingPaymentsLoading ? (
+            <p>Importing billing payments ....</p>
+          ) : (
+            <span />
+          )}
+        </div>
+      </div>
+    )}
+  </div>
+);
+
+export const mapStateToProps = state => {
+  return {
+    loading: state.member.app.loading,
+    memberItem: state.member.members.currentMember,
+    allMembers: state.member.members.allMembers,
+    billingCompany: state.member.app.billingCompany,
+    billingCustomersLoading: state.member.members.billingCustomersLoading,
+    importingBilling: state.member.members.importingBilling,
+    synchingBilling: state.member.members.synchingBilling,
+    profile: state.app.profile,
+    belts: state.member.app.belts,
+    programs: state.member.app.programs,
+    additionalPrograms: state.member.app.additionalPrograms,
+    space: state.member.app.space,
+    memberInitialLoadComplete: state.member.members.memberInitialLoadComplete,
+    membersNextPageToken: state.member.members.membersNextPageToken,
+    memberLastFetchTime: state.member.members.memberLastFetchTime,
+    updatingAttribute: state.member.datastore.updatingAttribute,
+    updatingAttribute: state.member.datastore.updatingAttribute,
+    updateSpaceAttributes: state.member.datastore.updateSpaceAttributes,
+    updateSpaceAttributesLoading:
+      state.member.datastore.updateSpaceAttributesLoading,
+  };
+};
+
+export const mapDispatchToProps = {
+  loadAppSettings: appActions.loadAppSettings,
+  fetchCurrentMember: actions.fetchCurrentMember,
+  fetchMembers: actions.fetchMembers,
+  addNotification: errorActions.addNotification,
+  setSystemError: errorActions.setSystemError,
+  fetchBillingCustomers: actions.fetchBillingCustomers,
+  setBillingCustomers: actions.setBillingCustomers,
+  createBillingMembers: actions.createBillingMembers,
+  syncBillingMembers: actions.syncBillingMembers,
+  fetchBillingPayments: actions.fetchBillingPayments,
+  createBillingStatistics: actions.createBillingStatistics,
+  createStatistic: actions.createStatistic,
+  setSidebarDisplayType: appActions.setSidebarDisplayType,
+  updateSpaceAttribute: dataStoreActions.updateSpaceAttribute,
+  fetchUpdateSpaceAttributes: dataStoreActions.fetchUpdateSpaceAttributes,
+};
+
+export const SchoolSettings = compose(
+  connect(mapStateToProps, mapDispatchToProps),
+  withHandlers({}),
+  lifecycle({
+    UNSAFE_componentWillMount() {
+      this.props.loadAppSettings();
+    },
+    UNSAFE_componentWillReceiveProps(nextProps) {},
+  }),
+)(SchoolSettingsComponent);

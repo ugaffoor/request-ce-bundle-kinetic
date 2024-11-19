@@ -231,6 +231,11 @@ export function* updateBooking(action) {
     });
 
     console.log('updateBooking');
+    yield put(
+      actions.updateBookingComplete({
+        id: action.payload.id,
+      }),
+    );
   } catch (error) {
     console.log('Error in updateBooking: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));
@@ -271,6 +276,11 @@ export function* deleteBooking(action) {
     });
 
     console.log('deleteBooking');
+    yield put(
+      actions.deleteBookingComplete({
+        id: action.payload.id,
+      }),
+    );
   } catch (error) {
     console.log('Error in deleteBooking: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));
@@ -374,6 +384,13 @@ export function* deleteRecurring(action) {
       id: action.payload.id,
       datastore: true,
     });
+
+    yield put(
+      actions.deleteRecurringComplete({
+        id: action.payload.id,
+        recurringBookings: action.payload.recurringBookings,
+      }),
+    );
 
     console.log('deleteRecurring');
   } catch (error) {

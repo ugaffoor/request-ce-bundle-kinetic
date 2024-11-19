@@ -1011,6 +1011,16 @@ export class TriggerTypeBlocks extends Component {
             />
             {this.props.journeyGroups
               .filter(group => group.values['Journey Type'] === this.props.type)
+              .sort(function(a, b) {
+                if (parseInt(a.values['Order']) < parseInt(b.values['Order'])) {
+                  return -1;
+                } else if (
+                  parseInt(a.values['Order']) > parseInt(b.values['Order'])
+                ) {
+                  return 1;
+                }
+                return 0;
+              })
               .map((group, idx) => (
                 <div
                   className="group"
@@ -1075,6 +1085,8 @@ const JourneyTriggersComponent = ({
   journeyGroups,
   journeyTriggers,
   allLeads,
+  leadsLoading,
+  membersLoading,
   allMembers,
   handleLoaded,
   handleNewLoaded,
@@ -1148,6 +1160,7 @@ const JourneyTriggersComponent = ({
                 journeyGroups={journeyGroups}
                 journeyTriggers={journeyTriggers}
                 updateJourneyTrigger={updateJourneyTrigger}
+                deleteTrigger={deleteTrigger}
                 setHideMemberBlock={setHideMemberBlock}
                 setHideLeadBlock={setHideLeadBlock}
                 setHideActivityBlock={setHideActivityBlock}
@@ -1163,6 +1176,7 @@ const JourneyTriggersComponent = ({
           {!hideActivityBlock && (
             <div
               className="journeyTriggersContent"
+              disabled={!leadsLoading && !membersLoading}
               onClick={e => {
                 setHideMemberBlock(true);
                 setHideLeadBlock(true);
@@ -1202,7 +1216,12 @@ export const mapStateToProps = state => {
     journeyGroups: state.space.journeyTriggers.journeyGroups,
     journeyTriggers: state.space.journeyTriggers.journeyTriggers,
     allLeads: state.member.leads.allLeads,
+    leadsLoading: state.member.leads.leadsLoading,
     allMembers: state.member.members.allMembers,
+    membersLoading: state.member.members.membersLoading,
+    memberInitialLoadComplete: state.member.members.memberInitialLoadComplete,
+    membersNextPageToken: state.member.members.membersNextPageToken,
+    memberLastFetchTime: state.member.members.memberLastFetchTime,
   };
 };
 
@@ -1210,6 +1229,8 @@ export const mapDispatchToProps = {
   fetchJourneyInfo: actions.fetchJourneyInfo,
   updateJourneyTrigger: actions.updateJourneyTrigger,
   deleteTrigger: actions.deleteTrigger,
+  fetchMembers: memberActions.fetchMembers,
+  fetchLeads: leadActions.fetchLeads,
 };
 
 export const JourneyTriggers = compose(
@@ -1228,6 +1249,14 @@ export const JourneyTriggers = compose(
   lifecycle({
     UNSAFE_componentWillMount() {
       this.props.fetchJourneyInfo();
+      this.props.fetchMembers({
+        membersNextPageToken: this.props.membersNextPageToken,
+        memberInitialLoadComplete: this.props.memberInitialLoadComplete,
+        memberLastFetchTime: this.props.memberLastFetchTime,
+      });
+      if (this.props.allLeads.length === 0) {
+        this.props.fetchLeads();
+      }
     },
     UNSAFE_componentWillReceiveProps(nextProps) {},
   }),

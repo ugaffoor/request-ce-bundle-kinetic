@@ -73,6 +73,16 @@ export const SidebarComponent = ({
                 <span className="fa fa-fw fa-angle-right" />
               </NavLink>
             )}
+            {Utils.isMemberOf(profile, 'Role::Data Admin') && (
+              <NavLink
+                to="/settings/schoolsettings"
+                className="nav-link"
+                activeClassName="active"
+              >
+                <I18n>School Settings</I18n>
+                <span className="fa fa-fw fa-angle-right" />
+              </NavLink>
+            )}
             {showNotifications && (
               <NavLink
                 to="/settings/notifications"

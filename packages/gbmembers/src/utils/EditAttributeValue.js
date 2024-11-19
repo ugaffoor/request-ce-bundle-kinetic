@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import {
   getAttributeValue,
   setAttributeValue,
-} from '../../lib/react-kinops-components/src/utils';
-import helpIcon from '../../images/help.svg?raw';
+} from '../lib/react-kinops-components/src/utils';
+import helpIcon from '../images/help.svg?raw';
 import SVGInline from 'react-svg-inline';
 import NumberFormat from 'react-number-format';
 import { I18n } from 'app/src/I18nProvider';
@@ -15,7 +15,7 @@ import MomentLocaleUtils, {
 import DayPickerInput from 'react-day-picker/DayPickerInput';
 import DayPicker, { DateUtils } from 'react-day-picker/DayPicker';
 import 'react-day-picker/lib/style.css';
-import { getLocalePreference } from '../Member/MemberUtils';
+import { getLocalePreference } from '../components/Member/MemberUtils';
 import $ from 'jquery';
 
 const components = {

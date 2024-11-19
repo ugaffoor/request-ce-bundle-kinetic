@@ -159,6 +159,7 @@
         .newTrigger {
           border-radius: 5px;
           padding: 2px;
+          color: #55c655;
         }
         .newTrigger:hover {
           background-color: #898686;
@@ -266,4 +267,74 @@ i.fa.fa-usd.overdue {
 }
 .triggerStatusFilter input[type='checkbox']:checked + label {
   left: 30px;
+}
+
+.triggerActivity {
+  display: flex;
+  flex-direction: column;
+  .back.fa.fa-chevron-left {
+    font-size: 36px;
+    margin: 20px;
+    margin-left: 0;
+    width: 30px;
+    cursor: pointer;
+  }
+  .back.fa.fa-chevron-left:hover {
+    color: #898686;
+  }
+  .header {
+    display: flex;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-color: #9a9696;
+    padding-bottom: 4px;
+    .details {
+      margin-left: 10px;
+    }
+    .fa {
+      font-size: 52px;
+    }
+    .title {
+      font-size: 36px;
+    }
+  }
+  .searchOptions {
+    display: flex;
+    flex-direction: column;
+    background-color: #e9e7e7;
+    .triggerConditionSelect {
+      width: 700px;
+      margin: 4px;
+      display: flex;
+      button {
+        height: 26px;
+        margin-top: 6px;
+        margin-left: 9px;
+      }
+    }
+    .memberSelect {
+      width: 400px;
+      margin: 4px;
+      display: flex;
+      button {
+        height: 26px;
+        margin-top: 6px;
+        margin-left: 9px;
+      }
+    }
+    .leadSelect {
+      width: 400px;
+      margin: 4px;
+      display: flex;
+      button {
+        height: 26px;
+        margin-top: 6px;
+        margin-left: 9px;
+      }
+    }
+    .searchButton {
+      width: 100px;
+      margin: 4px;
+    }
+  }
 }

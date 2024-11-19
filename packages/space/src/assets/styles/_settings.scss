@@ -22,3 +22,106 @@
     }
   }
 }
+
+.schoolSettingsPage {
+  .settingsAudit {
+    top: 233px !important;
+    width: 80% !important;
+    left: 50px !important;
+    .rt-td {
+      white-space: inherit !important;
+    }
+    @media (min-width: 544px) {
+      top: 120px !important;
+      width: 70% !important;
+      left: 417px !important;
+    }
+  }
+  .schoolSettings {
+    font-size: 14px;
+    margin-left: -7px;
+    margin-top: 4px;
+    margin-right: 2px;
+    .tax1LabelHelp,
+    .tax1Help,
+    .tax2LabelHelp,
+    .tax2Help {
+      display: none;
+    }
+    .schoolSettingsSection {
+      display: flex;
+      flex-direction: column;
+      .value span,
+      .SVGInline span {
+        margin-bottom: 2px;
+        margin-right: 6px;
+      }
+      .DayPicker-Day--holidays {
+        background-color: pink;
+      }
+      .detailsSection {
+        background-color: #fdfafa;
+        padding: 10px;
+        border-radius: 5px;
+        border-style: solid;
+        border-width: 1px;
+        border-color: #ebe8e8;
+        display: inline-grid;
+        h6 {
+          margin-top: 0px;
+          margin-bottom: 4px;
+          border-bottom-style: solid;
+          border-bottom-width: 1px;
+          border-bottom-color: #c9c5c5;
+          padding-bottom: 4px;
+          font-style: italic;
+          font-weight: bold;
+          font-size: 16px;
+        }
+        .settingsHeader {
+          display: flex;
+          flex-direction: row;
+          border-bottom-style: solid;
+          border-bottom-width: 1px;
+          border-bottom-color: #c9c5c5;
+          height: 20px;
+          h6 {
+            width: 80%;
+            border: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          .line {
+            margin-top: -7px;
+          }
+        }
+      }
+      .lineItems {
+        display: inline-flex;
+        margin-bottom: 0px;
+      }
+      .value {
+        width: 300px;
+      }
+      .paymentFrequencies label {
+        margin-right: 10px;
+        margin-left: 4px;
+      }
+      .ignoreAdminFee {
+        label {
+          margin-left: 6px;
+        }
+      }
+    }
+    .help {
+      cursor: pointer;
+    }
+    .css-1pcexqc-container {
+      max-width: 400px;
+    }
+  }
+  .col-xs-3 {
+    margin-left: 4px;
+    margin-top: 4px;
+  }
+}

@@ -2,8 +2,60 @@
   top: 0 !important;
 }
 .selfCheckSetPIN {
-  clear: left;
-  float: right;
+  width: 400px;
+  #setPIN {
+    width: 185px;
+  }
+}
+.attendanceSettings {
+  display: flex;
+  flex-direction: column;
+  .topRow {
+    display: flex;
+    flex-wrap: wrap;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    .name {
+      text-transform: uppercase;
+      font-size: 45px;
+      font-family: 'AdiHaus DIN Medium';
+    }
+    .continueAttendance {
+      margin-left: auto;
+      background-color: #2ac940;
+      height: 40px;
+      border-radius: 10px;
+      color: white;
+      margin-top: 15px;
+      cursor: pointer;
+      img {
+        margin: 4px;
+        height: 32px;
+      }
+    }
+    .returnAttendance {
+      text-transform: uppercase;
+      font-family: 'AdiHaus DIN Medium';
+      padding-top: 5px;
+      margin-right: 4px;
+      margin-top: 12px;
+    }
+  }
+  .details {
+    display: flex;
+    flex-direction: column;
+    margin-top: 30px;
+    margin-right: auto;
+    width: 100%;
+    .attributeLine {
+      button {
+        margin: 6px;
+      }
+    }
+    #memberBarcodesSection {
+      padding-top: 20px;
+    }
+  }
 }
 .exceededMaxClasses {
   color: red;
@@ -90,11 +142,6 @@
     height: auto;
     border: unset;
   }
-}
-.startSelfCheckin {
-  clear: left;
-  float: right;
-  margin-top: -38px;
 }
 .selfCheckinMode {
   .invalidClass {
@@ -800,6 +847,37 @@ i.fa.fa-usd.overdue {
 .attendanceSection {
   min-height: 2000px;
   clear: left;
+  .options {
+    display: inline-flex;
+    flex-direction: row;
+    width: 100%;
+    .checkinFilter {
+      margin-left: 22px;
+      width: 100%;
+      label {
+        float: left;
+        font-weight: bolder;
+      }
+      .checkboxFilter {
+        float: left;
+        clear: none;
+        margin-left: 10px;
+      }
+    }
+    .selfCheckin {
+      width: 200px;
+    }
+    .settings {
+      width: 30px;
+      margin-left: 20px;
+      cursor: pointer;
+      .icon-svg {
+        height: 2rem;
+        width: 2rem;
+      }
+    }
+  }
+
   .readyToScan {
     margin: 40px;
   }
@@ -811,20 +889,6 @@ i.fa.fa-usd.overdue {
       .btn {
         margin-right: 10px;
       }
-    }
-  }
-  .checkinFilter {
-    float: left;
-    flex-flow: row;
-    margin-left: 22px;
-    label {
-      float: left;
-      font-weight: bolder;
-    }
-    .checkboxFilter {
-      float: left;
-      clear: none;
-      margin-left: 10px;
     }
   }
 }

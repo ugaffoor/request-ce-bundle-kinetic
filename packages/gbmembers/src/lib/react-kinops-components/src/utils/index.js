@@ -30,9 +30,8 @@ export const getAttributeValue = ({ attributes }, attrName, defaultValue) => {
 export const setAttributeValue = ({ attributes }, attrName, attrValue) => {
   if (isarray(attributes)) {
     if (attributes.filter(a => a.name === attrName).map(a => a.values[0])) {
-      attributes
-        .filter(a => a.name === attrName)
-        .map(a => a.values[0])[0] = attrValue;
+      let idx = attributes.findIndex(a => a.name === attrName);
+      attributes[idx].values[0] = attrValue;
     } else {
       attributes[attributes.length] = { name: attrName, values: [attrValue] };
     }

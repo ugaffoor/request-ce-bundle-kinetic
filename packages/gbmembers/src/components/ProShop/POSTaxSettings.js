@@ -4,7 +4,7 @@ import { compose } from 'recompose';
 import { connect } from 'react-redux';
 import { actions as dataStoreActions } from '../../redux/modules/settingsDatastore';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
-import { EditAttributeValue } from '../settings/EditAttributeValue';
+import { EditAttributeValue } from '../../utils/EditAttributeValue';
 import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
 import ReactTable from 'react-table';
 import 'react-table/react-table.css';

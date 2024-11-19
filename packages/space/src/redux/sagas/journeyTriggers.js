@@ -18,6 +18,61 @@ export const JOURNEY_TRIGGERS_SEARCH = new CoreAPI.SubmissionSearch(true)
   .limit(1000)
   .build();
 
+export function* fetchJourneyEvents(action) {
+  var search = undefined;
+  if (
+    action.payload.triggerID !== null &&
+    action.payload.memberID === null &&
+    action.payload.leadID === null
+  ) {
+    search = new CoreAPI.SubmissionSearch(true)
+      .eq('values[Trigger ID]', action.payload.triggerID)
+      .index('values[Trigger ID]')
+      .includes(['details', 'values'])
+      .limit(50)
+      .build();
+  } else if (
+    action.payload.triggerID !== null &&
+    action.payload.memberID !== null &&
+    action.payload.leadID === null
+  ) {
+    search = new CoreAPI.SubmissionSearch(true)
+      .eq('values[Record ID]', action.payload.memberID)
+      .eq('values[Trigger ID]', action.payload.triggerID)
+      .index('values[Record ID],values[Trigger ID]')
+      .includes(['details', 'values'])
+      .limit(50)
+      .build();
+  } else if (
+    action.payload.triggerID !== null &&
+    action.payload.memberID === null &&
+    action.payload.leadID !== null
+  ) {
+    search = new CoreAPI.SubmissionSearch(true)
+      .eq('values[Record ID]', action.payload.leadID)
+      .eq('values[Trigger ID]', action.payload.triggerID)
+      .index('values[Record ID],values[Trigger ID]')
+      .includes(['details', 'values'])
+      .limit(50)
+      .build();
+  }
+  const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
+    form: 'journey-event',
+    search: search,
+    datastore: true,
+  });
+
+  if (serverError) {
+    yield put(errorActions.addError(serverError));
+  } else {
+    yield put(
+      actions.setJourneyEvents({
+        events: submissions,
+      }),
+    );
+  }
+}
+
 export function* fetchJourneyInfo() {
   const { groups, triggers } = yield all({
     groups: call(CoreAPI.searchSubmissions, {
@@ -105,4 +160,5 @@ export function* watchJourneyTriggers() {
   yield takeEvery(types.FETCH_JOURNEY_INFO, fetchJourneyInfo);
   yield takeEvery(types.UPDATE_JOURNEY_TRIGGER, updateJourneyTrigger);
   yield takeEvery(types.DELETE_TRIGGER, deleteTrigger);
+  yield takeEvery(types.FETCH_JOURNEY_EVENTS, fetchJourneyEvents);
 }

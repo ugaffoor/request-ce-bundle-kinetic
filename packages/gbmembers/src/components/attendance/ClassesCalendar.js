@@ -12,7 +12,7 @@ import {
 import { I18n } from '../../../../app/src/I18nProvider';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { Utils } from 'common';
-import { EditAttributeValue } from './EditAttributeValue';
+import { EditAttributeValue } from '../../utils/EditAttributeValue';
 
 const DragAndDropCalendar = withDragAndDrop(Calendar);
 
