@@ -528,7 +528,7 @@ export class SelfCheckin extends Component {
   }
 
   verifyMemberMaxClassesComplete(memberItem, classes) {
-    if (parseInt(memberItem.values['Max Weekly Classes']) >= classes.length) {
+    if (classes.length >= parseInt(memberItem.values['Max Weekly Classes'])) {
       this.setState({
         memberItem: memberItem,
         verifyMemberMaxClasses: false,
