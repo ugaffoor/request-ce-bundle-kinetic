@@ -29,6 +29,7 @@ export function* fetchJourneyEvents(action) {
       .eq('values[Trigger ID]', action.payload.triggerID)
       .index('values[Trigger ID]')
       .includes(['details', 'values'])
+      .sortDirection('DESC')
       .limit(50)
       .build();
   } else if (
@@ -41,6 +42,7 @@ export function* fetchJourneyEvents(action) {
       .eq('values[Trigger ID]', action.payload.triggerID)
       .index('values[Record ID],values[Trigger ID]')
       .includes(['details', 'values'])
+      .sortDirection('DESC')
       .limit(50)
       .build();
   } else if (
@@ -53,6 +55,31 @@ export function* fetchJourneyEvents(action) {
       .eq('values[Trigger ID]', action.payload.triggerID)
       .index('values[Record ID],values[Trigger ID]')
       .includes(['details', 'values'])
+      .sortDirection('DESC')
+      .limit(50)
+      .build();
+  } else if (
+    action.payload.triggerID == null &&
+    action.payload.memberID !== null &&
+    action.payload.leadID == null
+  ) {
+    search = new CoreAPI.SubmissionSearch(true)
+      .eq('values[Record ID]', action.payload.memberID.value)
+      .index('values[Record ID]')
+      .includes(['details', 'values'])
+      .sortDirection('DESC')
+      .limit(50)
+      .build();
+  } else if (
+    action.payload.triggerID == null &&
+    action.payload.memberID === null &&
+    action.payload.leadID !== null
+  ) {
+    search = new CoreAPI.SubmissionSearch(true)
+      .eq('values[Record ID]', action.payload.leadID.value)
+      .index('values[Record ID]')
+      .includes(['details', 'values'])
+      .sortDirection('DESC')
       .limit(50)
       .build();
   }

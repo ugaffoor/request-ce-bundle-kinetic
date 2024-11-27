@@ -284,9 +284,6 @@ i.fa.fa-usd.overdue {
   }
   .header {
     display: flex;
-    border-bottom-style: solid;
-    border-bottom-width: 1px;
-    border-bottom-color: #9a9696;
     padding-bottom: 4px;
     .details {
       margin-left: 10px;
@@ -297,6 +294,9 @@ i.fa.fa-usd.overdue {
     .title {
       font-size: 36px;
     }
+  }
+  .loadingWrapper {
+    min-height: 100px;
   }
   .searchOptions {
     display: flex;
@@ -335,6 +335,25 @@ i.fa.fa-usd.overdue {
     .searchButton {
       width: 100px;
       margin: 4px;
+    }
+  }
+  .triggerResults {
+    background-color: #f8f5f5;
+    margin-top: 2px;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    .eventRow.odd {
+      background-color: white;
+    }
+    .tableHeader {
+      background-color: #dbd8d8;
+    }
+    .eventRow:hover {
+      background-color: #f3ecec !important;
+    }
+    td.personName:hover {
+      text-decoration: underline;
+      cursor: pointer;
     }
   }
 }

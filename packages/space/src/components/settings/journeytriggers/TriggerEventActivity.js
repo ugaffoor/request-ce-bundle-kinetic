@@ -1,17 +1,30 @@
 import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
 import { compose, withHandlers } from 'recompose';
 import Select from 'react-select';
 import { Button } from 'reactstrap';
 import { I18n } from '../../../../../app/src/I18nProvider';
 import { actions } from '../../../redux/modules/journeyTriggers';
+import { actions as leadActions } from 'gbmembers/src/redux/modules/leads';
+import { actions as memberActions } from 'gbmembers/src/redux/modules/members';
+import { Loading } from 'common';
+import { MemberEvents } from './MemberEvents';
+import { LeadEvents } from './LeadEvents';
+import { getJson } from 'gbmembers/src/components/Member/MemberUtils';
+import ReactTooltip from 'react-tooltip';
 
+export const contact_date_format = 'YYYY-MM-DD HH:mm';
 const globals = import('common/globals');
+const journey_events_url =
+  'app/api/v1/datastore/forms/journey-event/submissions?include=details,values&index=values[Record ID]&limit=1000';
 
 const mapStateToProps = state => {
   return {
     journeyEventsLoading: state.space.journeyTriggers.journeyEventsLoading,
     journeyEvents: state.space.journeyTriggers.journeyEvents,
+    allLeads: state.member.leads.allLeads,
+    allMembers: state.member.members.allMembers,
   };
 };
 const mapDispatchToProps = {
@@ -19,6 +32,333 @@ const mapDispatchToProps = {
 };
 var compThis = undefined;
 const util = require('util');
+
+export class TriggerResults extends Component {
+  constructor(props) {
+    super(props);
+
+    this.getEventConditionDuration = this.getEventConditionDuration.bind(this);
+    this.getEventCondition = this.getEventCondition.bind(this);
+
+    this.state = {};
+  }
+
+  getEventConditionDuration(triggerID) {
+    let trigger = this.props.journeyTriggers.find(
+      trigger => trigger.id === triggerID,
+    );
+    if (trigger !== undefined) {
+      return trigger.values['Record Type'] === 'Member'
+        ? trigger.values['Member Condition Duration']
+        : trigger.values['Lead Condition Duration'];
+    }
+    return '';
+  }
+  getEventCondition(triggerID) {
+    let trigger = this.props.journeyTriggers.find(
+      trigger => trigger.id === triggerID,
+    );
+    if (trigger !== undefined) {
+      return trigger.values['Record Type'] === 'Member'
+        ? trigger.values['Member Condition']
+        : trigger.values['Lead Condition'];
+    }
+    return 'unknown';
+  }
+  lastConditionValue = (histJson, note) => {
+    return 'Note';
+  };
+
+  fetchDatastoreData = (url, record, triggers, recordType) => {
+    return fetch(url)
+      .then(res => res.json())
+      .then(
+        result => {
+          var events = result.submissions ? result.submissions : [];
+          var memberTriggers = triggers.filter(
+            trigger => trigger.values['Record Type'] === recordType,
+          );
+
+          var histJson = getJson(
+            recordType === 'Member'
+              ? record.values['Notes History']
+              : record.values['History'],
+          );
+          if (
+            histJson.length > 0 &&
+            typeof histJson[0] === 'string' &&
+            histJson[0].indexOf('. User Comment:') !== -1
+          ) {
+            histJson[0] = histJson[0].replace('[{', '{').replace('}]', '}');
+            histJson[0] = getJson(histJson[0].replace(/\n/g, ' '));
+          }
+          var data = [];
+
+          events.forEach((event, i) => {
+            let trigger =
+              recordType === 'Member'
+                ? triggers.find(
+                    trigger => trigger.id === event.values['Trigger ID'],
+                  )
+                : triggers.find(
+                    trigger => trigger.id === event.values['Trigger ID'],
+                  );
+            data[data.length] = {
+              id: event.id,
+              Date: moment(event['createdAt']).format(contact_date_format),
+              Status: event.values['Status'],
+              'Contact Type': event.values['Contact Type'],
+              Note: event.values['Template Name'],
+              Condition:
+                recordType === 'Member'
+                  ? trigger !== undefined
+                    ? trigger.values['Member Condition']
+                    : 'Trigger Deleted'
+                  : trigger !== undefined
+                  ? trigger.values['Lead Condition']
+                  : 'Trigger Deleted',
+              Duration:
+                recordType === 'Member'
+                  ? trigger !== undefined
+                    ? trigger.values['Member Condition Duration']
+                    : 'Trigger Deleted'
+                  : trigger !== undefined
+                  ? trigger.values['Lead Condition Duration']
+                  : 'Trigger Deleted',
+            };
+          });
+          memberTriggers.forEach((trigger, i) => {
+            if (
+              events.findIndex(
+                event => event.values['Trigger ID'] === trigger.id,
+              ) === -1
+            ) {
+              data[data.length] = {
+                id: trigger.id,
+                Date: moment(record['createdAt'])
+                  .add(
+                    recordType === 'Member'
+                      ? trigger.values['Member Condition Duration']
+                      : trigger.values['Lead Condition Duration'],
+                    'days',
+                  )
+                  .format(contact_date_format),
+                Status: 'Defined',
+                'Contact Type': trigger.values['Contact Type'],
+                Note: trigger.values['Template Name'],
+                Condition:
+                  recordType === 'Member'
+                    ? trigger.values['Member Condition']
+                    : trigger.values['Lead Condition'],
+                Duration:
+                  recordType === 'Member'
+                    ? trigger.values['Member Condition Duration']
+                    : trigger.values['Lead Condition Duration'],
+              };
+            }
+          });
+
+          histJson.slice().forEach((note, i) => {
+            if (note['note'].indexOf('Journey Event:') === -1) {
+              data[data.length] = {
+                id: 'note_' + i,
+                Date: moment(note['contactDate']).format(contact_date_format),
+                Status: 'Manual',
+                'Contact Type': note['contactMethod'],
+                Note: note['note'],
+                Condition: this.lastConditionValue(histJson, note),
+              };
+            }
+          });
+
+          let sortedData = data.sort(function(a, b) {
+            if (
+              moment(a['Date'], contact_date_format).isBefore(
+                moment(b['Date'], contact_date_format),
+              )
+            )
+              return -1;
+            if (
+              moment(a['Date'], contact_date_format).isAfter(
+                moment(b['Date'], contact_date_format),
+              )
+            )
+              return 1;
+            return 0;
+          });
+
+          var dataMap = new Map();
+          sortedData.forEach((item, i) => {
+            var events = dataMap.get(item['Condition']);
+            if (events === undefined) {
+              events = [];
+            }
+            events[events.length] = item;
+            dataMap.set(item['Condition'], events);
+          });
+
+          return dataMap;
+        },
+        error => {
+          console.log('error: ' + util.inspect(error));
+          return [];
+        },
+      );
+  };
+  UNSAFE_componentWillReceiveProps(nextProps) {}
+  componentDidMount() {}
+  render() {
+    return this.props.journeyEventsLoading ? (
+      <Loading text="Loading Results..." />
+    ) : (
+      <div className="triggerResults">
+        <table>
+          <thead>
+            <tr className="tableHeader">
+              <th width="100">Created</th>
+              <th width="100">Updated</th>
+              <th width="80">Status</th>
+              <th width="300">Member/Lead</th>
+              <th width="10"></th>
+              <th width="300">Condition</th>
+              <th width="500">Template Name</th>
+              <th></th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {this.props.journeyEvents.map((event, tIdx) => (
+              <tr
+                className={tIdx % 2 === 0 ? 'eventRow even' : 'eventRow odd'}
+                id={event.values['Record ID']}
+                key={tIdx}
+              >
+                <td>
+                  {moment(event.createdAt, 'YYYY-MM-DDTHH:mm:ssZ').format('L')}
+                </td>
+                <td>
+                  {moment(event.updatedAt, 'YYYY-MM-DDTHH:mm:ssZ').format('L')}
+                </td>
+                <td>{event.values['Status']}</td>
+                <td
+                  className="personName"
+                  recordId={event.values['Record ID']}
+                  recordType={event.values['Record Type']}
+                  onClick={e => {
+                    var recordId = $(e.target).attr('recordId');
+
+                    if ($('.eventsDetail' + recordId).length === 0) {
+                      var rowEl = document.createElement('tr');
+                      $(rowEl).addClass('eventsDetail' + recordId);
+                      var tdEl = document.createElement('td');
+                      $(tdEl).attr('colspan', '9');
+                      $(tdEl).html(
+                        "<div class='loading'>Loading please wait...</div>",
+                      );
+                      rowEl.appendChild(tdEl);
+                      var trEl = $(e.target).parent('tr');
+                      trEl[0].insertAdjacentElement('afterend', rowEl);
+
+                      var url =
+                        journey_events_url +
+                        '&q=values[Record ID]="' +
+                        recordId +
+                        '"';
+                      var fetchEvents = this.fetchDatastoreData(
+                        url,
+                        event.values['Record Type'] === 'Member'
+                          ? this.props.allMembers[
+                              this.props.allMembers.findIndex(
+                                member => member.id === recordId,
+                              )
+                            ]
+                          : this.props.allLeads[
+                              this.props.allLeads.findIndex(
+                                lead => lead.id === recordId,
+                              )
+                            ],
+                        this.props.journeyTriggers,
+                        event.values['Record Type'],
+                      );
+
+                      if (event.values['Record Type'] === 'Member') {
+                        fetchEvents.then(events => {
+                          ReactDOM.render(
+                            <MemberEvents
+                              events={events}
+                              memberItem={
+                                this.props.allMembers[
+                                  this.props.allMembers.findIndex(
+                                    member => member.id === recordId,
+                                  )
+                                ]
+                              }
+                            />,
+                            tdEl,
+                          );
+                        });
+                      } else {
+                        fetchEvents.then(events => {
+                          ReactDOM.render(
+                            <LeadEvents
+                              events={events}
+                              leadItem={
+                                this.props.allLeads[
+                                  this.props.allLeads.findIndex(
+                                    lead => lead.id === recordId,
+                                  )
+                                ]
+                              }
+                            />,
+                            tdEl,
+                          );
+                        });
+                      }
+                    } else if (
+                      $('.eventsDetail' + recordId).length === 1 &&
+                      $('.eventsDetail' + recordId + ':hidden').length === 1
+                    ) {
+                      $('.eventsDetail' + recordId).show();
+                    } else {
+                      $('.eventsDetail' + recordId).hide();
+                    }
+                  }}
+                >
+                  {event.values['Record Name']}
+                </td>
+                <td>
+                  {this.getEventConditionDuration(event.values['Trigger ID'])}
+                </td>
+                <td>{this.getEventCondition(event.values['Trigger ID'])}</td>
+                <td>{event.values['Template Name']}</td>
+                <td>
+                  <span
+                    className={
+                      event.values['Action'] === 'Alert'
+                        ? 'fa fa-fw fa-bell'
+                        : 'fa fa-fw fa-bolt'
+                    }
+                  />
+                </td>
+                <td>
+                  <span
+                    className={
+                      event.values['Contact Type'] === 'Call'
+                        ? 'fa fa-fw fa-phone'
+                        : event.values['Contact Type'] === 'SMS'
+                        ? 'fa fa-fw fa-comment-o'
+                        : 'fa fa-fw fa-envelope-o'
+                    }
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+}
 
 export class TriggerEventActivity extends Component {
   constructor(props) {
@@ -29,9 +369,9 @@ export class TriggerEventActivity extends Component {
     this.disableSearch = this.disableSearch.bind(this);
 
     this.state = {
-      triggerID: null,
-      memberID: null,
-      leadID: null,
+      triggerSelected: null,
+      memberSelected: null,
+      leadSelected: null,
     };
   }
   UNSAFE_componentWillReceiveProps(nextProps) {}
@@ -87,7 +427,7 @@ export class TriggerEventActivity extends Component {
         lead.values['Status'] !== 'Deleted'
       ) {
         leadsVals.push({
-          label: lead.values['First Name'] + ' ' + lead.values['First Name'],
+          label: lead.values['Last Name'] + ' ' + lead.values['First Name'],
           value: lead.id,
         });
       }
@@ -105,6 +445,7 @@ export class TriggerEventActivity extends Component {
   disableSearch() {
     let ret = true;
 
+    if (this.state.triggerSelected !== null) ret = false;
     if (this.state.recordType !== undefined) ret = false;
     if (
       this.state.memberSelected !== null &&
@@ -256,6 +597,7 @@ export class TriggerEventActivity extends Component {
               onClick={() => {
                 this.setState({
                   triggerSelected: null,
+                  recordType: undefined,
                 });
               }}
             >
@@ -278,6 +620,7 @@ export class TriggerEventActivity extends Component {
                 this.setState({
                   memberSelected: value.value === '' ? null : value,
                 });
+                ReactTooltip.rebuild();
               }}
               style={{ width: '300px' }}
             />
@@ -330,7 +673,10 @@ export class TriggerEventActivity extends Component {
             disabled={this.disableSearch()}
             onClick={() => {
               this.props.fetchJourneyEvents({
-                triggerID: this.state.triggerSelected.id,
+                triggerID:
+                  this.state.triggerSelected !== null
+                    ? this.state.triggerSelected.id
+                    : null,
                 memberID: this.state.memberSelected,
                 leadID: this.state.leadSelected,
               });
@@ -339,6 +685,13 @@ export class TriggerEventActivity extends Component {
             <I18n>Search</I18n>
           </Button>
         </div>
+        <TriggerResults
+          journeyEventsLoading={this.props.journeyEventsLoading}
+          journeyEvents={this.props.journeyEvents}
+          allLeads={this.props.allLeads}
+          allMembers={this.props.allMembers}
+          journeyTriggers={this.props.journeyTriggers}
+        />
       </div>
     );
   }

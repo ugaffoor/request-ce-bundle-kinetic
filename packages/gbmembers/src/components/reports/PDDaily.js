@@ -127,7 +127,7 @@ export class PDDailyReport extends Component {
     phone.set('saturday', 0);
     phone.set('sunday', 0);
     let emails = new Map();
-    emails.set('label', 'Emails');
+    emails.set('label', 'Email Notes');
     emails.set('monday', 0);
     emails.set('tuesday', 0);
     emails.set('wednesday', 0);
@@ -135,8 +135,17 @@ export class PDDailyReport extends Component {
     emails.set('friday', 0);
     emails.set('saturday', 0);
     emails.set('sunday', 0);
+    let emailSent = new Map();
+    emailSent.set('label', 'Email Sent');
+    emailSent.set('monday', 0);
+    emailSent.set('tuesday', 0);
+    emailSent.set('wednesday', 0);
+    emailSent.set('thursday', 0);
+    emailSent.set('friday', 0);
+    emailSent.set('saturday', 0);
+    emailSent.set('sunday', 0);
     let sms = new Map();
-    sms.set('label', 'SMS');
+    sms.set('label', 'SMS Notes');
     sms.set('monday', 0);
     sms.set('tuesday', 0);
     sms.set('wednesday', 0);
@@ -144,6 +153,15 @@ export class PDDailyReport extends Component {
     sms.set('friday', 0);
     sms.set('saturday', 0);
     sms.set('sunday', 0);
+    let smsSent = new Map();
+    smsSent.set('label', 'SMS Sent');
+    smsSent.set('monday', 0);
+    smsSent.set('tuesday', 0);
+    smsSent.set('wednesday', 0);
+    smsSent.set('thursday', 0);
+    smsSent.set('friday', 0);
+    smsSent.set('saturday', 0);
+    smsSent.set('sunday', 0);
     let inperson = new Map();
     inperson.set('label', 'In Person');
     inperson.set('monday', 0);
@@ -159,24 +177,122 @@ export class PDDailyReport extends Component {
         switch (moment(lead['createdAt']).day()) {
           case 1:
             newLeads.set('monday', newLeads.get('monday') + 1);
+            if (
+              lead.values['SMS Sent Count'] !== undefined &&
+              lead.values['SMS Sent Count'] !== null &&
+              lead.values['SMS Sent Count'] !== ''
+            ) {
+              smsSent.set('monday', smsSent.get('monday') + 1);
+            }
+            if (
+              lead.values['Email Sent Count'] !== undefined &&
+              lead.values['Email Sent Count'] !== null &&
+              lead.values['Email Sent Count'] !== ''
+            ) {
+              emailSent.set('monday', emailSent.get('monday') + 1);
+            }
             break;
           case 2:
             newLeads.set('tuesday', newLeads.get('tuesday') + 1);
+            if (
+              lead.values['SMS Sent Count'] !== undefined &&
+              lead.values['SMS Sent Count'] !== null &&
+              lead.values['SMS Sent Count'] !== ''
+            ) {
+              smsSent.set('tuesday', smsSent.get('tuesday') + 1);
+            }
+            if (
+              lead.values['Email Sent Count'] !== undefined &&
+              lead.values['Email Sent Count'] !== null &&
+              lead.values['Email Sent Count'] !== ''
+            ) {
+              emailSent.set('tuesday', emailSent.get('tuesday') + 1);
+            }
             break;
           case 3:
             newLeads.set('wednesday', newLeads.get('wednesday') + 1);
+            if (
+              lead.values['SMS Sent Count'] !== undefined &&
+              lead.values['SMS Sent Count'] !== null &&
+              lead.values['SMS Sent Count'] !== ''
+            ) {
+              smsSent.set('wednesday', smsSent.get('wednesday') + 1);
+            }
+            if (
+              lead.values['Email Sent Count'] !== undefined &&
+              lead.values['Email Sent Count'] !== null &&
+              lead.values['Email Sent Count'] !== ''
+            ) {
+              emailSent.set('wednesday', emailSent.get('wednesday') + 1);
+            }
             break;
           case 4:
             newLeads.set('thursday', newLeads.get('thursday') + 1);
+            if (
+              lead.values['SMS Sent Count'] !== undefined &&
+              lead.values['SMS Sent Count'] !== null &&
+              lead.values['SMS Sent Count'] !== ''
+            ) {
+              smsSent.set('thursday', smsSent.get('thursday') + 1);
+            }
+            if (
+              lead.values['Email Sent Count'] !== undefined &&
+              lead.values['Email Sent Count'] !== null &&
+              lead.values['Email Sent Count'] !== ''
+            ) {
+              emailSent.set('thursday', emailSent.get('thursday') + 1);
+            }
             break;
           case 5:
             newLeads.set('friday', newLeads.get('friday') + 1);
+            if (
+              lead.values['SMS Sent Count'] !== undefined &&
+              lead.values['SMS Sent Count'] !== null &&
+              lead.values['SMS Sent Count'] !== ''
+            ) {
+              smsSent.set('friday', smsSent.get('friday') + 1);
+            }
+            if (
+              lead.values['Email Sent Count'] !== undefined &&
+              lead.values['Email Sent Count'] !== null &&
+              lead.values['Email Sent Count'] !== ''
+            ) {
+              emailSent.set('friday', emailSent.get('friday') + 1);
+            }
             break;
           case 6:
             newLeads.set('saturday', newLeads.get('saturday') + 1);
+            if (
+              lead.values['SMS Sent Count'] !== undefined &&
+              lead.values['SMS Sent Count'] !== null &&
+              lead.values['SMS Sent Count'] !== ''
+            ) {
+              smsSent.set('saturday', smsSent.get('saturday') + 1);
+            }
+            if (
+              lead.values['Email Sent Count'] !== undefined &&
+              lead.values['Email Sent Count'] !== null &&
+              lead.values['Email Sent Count'] !== ''
+            ) {
+              emailSent.set('saturday', emailSent.get('saturday') + 1);
+            }
             break;
           case 0:
             newLeads.set('sunday', newLeads.get('sunday') + 1);
+            if (
+              lead.values['SMS Sent Count'] !== undefined &&
+              lead.values['SMS Sent Count'] !== null &&
+              lead.values['SMS Sent Count'] !== ''
+            ) {
+              smsSent.set('sunday', smsSent.get('sunday') + 1);
+            }
+            if (
+              lead.values['Email Sent Count'] !== undefined &&
+              lead.values['Email Sent Count'] !== null &&
+              lead.values['Email Sent Count'] !== ''
+            ) {
+              emailSent.set('sunday', emailSent.get('sunday') + 1);
+            }
             break;
           default:
             console.log('Something is wrong');
@@ -462,6 +578,42 @@ export class PDDailyReport extends Component {
         newLeads.get('saturday') +
         newLeads.get('sunday'),
     });
+    leadsData.push({
+      label: emailSent.get('label'),
+      monday: emailSent.get('monday'),
+      tuesday: emailSent.get('tuesday'),
+      wednesday: emailSent.get('wednesday'),
+      thursday: emailSent.get('thursday'),
+      friday: emailSent.get('friday'),
+      saturday: emailSent.get('saturday'),
+      sunday: emailSent.get('sunday'),
+      total:
+        emailSent.get('monday') +
+        emailSent.get('tuesday') +
+        emailSent.get('wednesday') +
+        emailSent.get('thursday') +
+        emailSent.get('friday') +
+        emailSent.get('saturday') +
+        emailSent.get('sunday'),
+    });
+    leadsData.push({
+      label: smsSent.get('label'),
+      monday: smsSent.get('monday'),
+      tuesday: smsSent.get('tuesday'),
+      wednesday: smsSent.get('wednesday'),
+      thursday: smsSent.get('thursday'),
+      friday: smsSent.get('friday'),
+      saturday: smsSent.get('saturday'),
+      sunday: smsSent.get('sunday'),
+      total:
+        smsSent.get('monday') +
+        smsSent.get('tuesday') +
+        smsSent.get('wednesday') +
+        smsSent.get('thursday') +
+        smsSent.get('friday') +
+        smsSent.get('saturday') +
+        smsSent.get('sunday'),
+    });
 
     leadsData.push({
       label: intros.get('label'),
@@ -632,7 +784,9 @@ export class PDDailyReport extends Component {
       parseInt(enrollment.get('monday')) +
       parseInt(phone.get('monday')) +
       parseInt(emails.get('monday')) +
+      parseInt(emailSent.get('monday')) +
       parseInt(sms.get('monday')) +
+      parseInt(smsSent.get('monday')) +
       parseInt(inperson.get('monday'));
     var tuesdayTotal =
       parseInt(newLeads.get('tuesday')) +
@@ -642,7 +796,9 @@ export class PDDailyReport extends Component {
       parseInt(enrollment.get('tuesday')) +
       parseInt(phone.get('tuesday')) +
       parseInt(emails.get('tuesday')) +
+      parseInt(emailSent.get('tuesday')) +
       parseInt(sms.get('tuesday')) +
+      parseInt(smsSent.get('tuesday')) +
       parseInt(inperson.get('tuesday'));
     var wednesdayTotal =
       parseInt(newLeads.get('wednesday')) +
@@ -652,7 +808,9 @@ export class PDDailyReport extends Component {
       parseInt(enrollment.get('wednesday')) +
       parseInt(phone.get('wednesday')) +
       parseInt(emails.get('wednesday')) +
+      parseInt(emailSent.get('wednesday')) +
       parseInt(sms.get('wednesday')) +
+      parseInt(smsSent.get('wednesday')) +
       parseInt(inperson.get('wednesday'));
     var thursdayTotal =
       parseInt(newLeads.get('thursday')) +
@@ -662,7 +820,9 @@ export class PDDailyReport extends Component {
       parseInt(enrollment.get('thursday')) +
       parseInt(phone.get('thursday')) +
       parseInt(emails.get('thursday')) +
+      parseInt(emailSent.get('thursday')) +
       parseInt(sms.get('thursday')) +
+      parseInt(smsSent.get('thursday')) +
       parseInt(inperson.get('thursday'));
     var fridayTotal =
       parseInt(newLeads.get('friday')) +
@@ -672,7 +832,9 @@ export class PDDailyReport extends Component {
       parseInt(enrollment.get('friday')) +
       parseInt(phone.get('friday')) +
       parseInt(emails.get('friday')) +
+      parseInt(emailSent.get('friday')) +
       parseInt(sms.get('friday')) +
+      parseInt(smsSent.get('friday')) +
       parseInt(inperson.get('friday'));
     var saturdayTotal =
       parseInt(newLeads.get('saturday')) +
@@ -682,7 +844,9 @@ export class PDDailyReport extends Component {
       parseInt(enrollment.get('saturday')) +
       parseInt(phone.get('saturday')) +
       parseInt(emails.get('saturday')) +
+      parseInt(emailSent.get('saturday')) +
       parseInt(sms.get('saturday')) +
+      parseInt(smsSent.get('saturday')) +
       parseInt(inperson.get('saturday'));
     var sundayTotal =
       parseInt(newLeads.get('sunday')) +
@@ -692,7 +856,9 @@ export class PDDailyReport extends Component {
       parseInt(enrollment.get('sunday')) +
       parseInt(phone.get('sunday')) +
       parseInt(emails.get('sunday')) +
+      parseInt(emailSent.get('sunday')) +
       parseInt(sms.get('sunday')) +
+      parseInt(smsSent.get('sunday')) +
       parseInt(inperson.get('sunday'));
 
     leadsData.push({

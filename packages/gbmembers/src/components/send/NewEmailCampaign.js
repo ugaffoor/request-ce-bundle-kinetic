@@ -105,9 +105,12 @@ export class NewEmailCampaign extends Component {
       this.currentMember = this.props.allMembers.find(
         member => member['id'] === this.props.submissionId,
       );
-      enablePreview = true;
     }
-    if (this.props.submissionType === 'class') {
+
+    if (
+      this.props.submissionType === 'class' ||
+      this.props.submissionId != null
+    ) {
       enablePreview = true;
     }
     this.state = {
@@ -131,6 +134,7 @@ export class NewEmailCampaign extends Component {
       isMenuOpen: false,
       selectMember: false,
       enablePreview: enablePreview,
+      selectedSpecificMembers: [],
     };
     editorThis = this;
   }

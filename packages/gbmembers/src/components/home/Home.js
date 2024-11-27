@@ -191,30 +191,27 @@ export const HomeView = ({
           )}
         </div>
       )}
-    {getAttributeValue(space, 'Franchisor') !== 'YES' &&
-      getAttributeValue(space, 'Billing Company') === 'Stripe' && (
-        <div className="homeOverdues">
-          {memberInitialLoadComplete && (
-            <div>
-              <StripeOverdues
-                allMembers={allMembers}
-                membersLoading={membersLoading}
-                getFailedPayments={getFailedPayments}
-                paymentHistory={FAILEDpaymentHistory}
-                FAILEDpaymentHistoryLoading={FAILEDpaymentHistoryLoading}
-                getSuccessfulPayments={getSuccessfulPayments}
-                successfulPaymentHistory={SUCCESSFULpaymentHistory}
-                SUCCESSFULpaymentHistoryLoading={
-                  SUCCESSFULpaymentHistoryLoading
-                }
-                space={space}
-                locale={locale}
-                profile={profile}
-              />
-            </div>
-          )}
-        </div>
-      )}
+    {getAttributeValue(space, 'Billing Company') === 'Stripe' && (
+      <div className="homeOverdues">
+        {memberInitialLoadComplete && (
+          <div>
+            <StripeOverdues
+              allMembers={allMembers}
+              membersLoading={membersLoading}
+              getFailedPayments={getFailedPayments}
+              paymentHistory={FAILEDpaymentHistory}
+              FAILEDpaymentHistoryLoading={FAILEDpaymentHistoryLoading}
+              getSuccessfulPayments={getSuccessfulPayments}
+              successfulPaymentHistory={SUCCESSFULpaymentHistory}
+              SUCCESSFULpaymentHistoryLoading={SUCCESSFULpaymentHistoryLoading}
+              space={space}
+              locale={locale}
+              profile={profile}
+            />
+          </div>
+        )}
+      </div>
+    )}
     {getAttributeValue(space, 'Franchisor') !== 'YES' && (
       <div className="charts">
         <div className="chart2Column">
