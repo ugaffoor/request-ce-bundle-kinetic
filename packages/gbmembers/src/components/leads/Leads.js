@@ -1685,12 +1685,18 @@ export class LeadsConversionChart extends Component {
 
     if (this.fieldName === 'fromDate') {
       this.leadsThis.setState({
-        fromDate: moment(dateValue).format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+        fromDate:
+          moment(dateValue)
+            .hour(12)
+            .format('YYYY-MM-DDTHH:mm:ss') + 'Z',
       });
     }
     if (this.fieldName === 'toDate') {
       this.leadsThis.setState({
-        toDate: moment(dateValue).format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+        toDate:
+          moment(dateValue)
+            .hour(12)
+            .format('YYYY-MM-DDTHH:mm:ss') + 'Z',
       });
     }
   }

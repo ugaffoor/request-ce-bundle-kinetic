@@ -74,23 +74,25 @@ export class MemberViewNotes extends Component {
       histories = JSON.parse(histories);
     }
 
-    return histories.sort(function(history1, history2) {
-      if (
-        moment(history1.contactDate, contact_date_format).isAfter(
-          moment(history2.contactDate, contact_date_format),
-        )
-      ) {
-        return -1;
-      }
-      if (
-        moment(history1.contactDate, contact_date_format).isBefore(
-          moment(history2.contactDate, contact_date_format),
-        )
-      ) {
-        return 1;
-      }
-      return 0;
-    });
+    return histories
+      .filter(note => !note.note.includes('Journey Event:'))
+      .sort(function(history1, history2) {
+        if (
+          moment(history1.contactDate, contact_date_format).isAfter(
+            moment(history2.contactDate, contact_date_format),
+          )
+        ) {
+          return -1;
+        }
+        if (
+          moment(history1.contactDate, contact_date_format).isBefore(
+            moment(history2.contactDate, contact_date_format),
+          )
+        ) {
+          return 1;
+        }
+        return 0;
+      });
   }
   formatContactMethodCell(row) {
     if (row.original.contactMethod === 'phone') {

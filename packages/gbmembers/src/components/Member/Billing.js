@@ -1583,7 +1583,10 @@ export class PaymentHistory extends Component {
       });
     }
 
-    if (getAttributeValue(this.props.space, 'Billing Company') === 'PaySmart') {
+    if (
+      getAttributeValue(this.props.space, 'Billing Company') === 'PaySmart' ||
+      getAttributeValue(this.props.space, 'Billing Company') === 'Stripe'
+    ) {
       columns.push({
         accessor: 'scheduledAmount',
         Header: 'Scheduled Amount',

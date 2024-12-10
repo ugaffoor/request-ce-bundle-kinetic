@@ -59,7 +59,10 @@ export class FollowUpDate extends Component {
     if (value.trim() === '') dateValue = '';
 
     this.followUpThis.setState({
-      reminderDate: moment(dateValue).format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      reminderDate:
+        moment(dateValue)
+          .hour(12)
+          .format('YYYY-MM-DDTHH:mm:ss') + 'Z',
     });
   }
   handleChange(key, element) {

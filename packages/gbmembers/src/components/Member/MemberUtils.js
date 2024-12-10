@@ -1537,6 +1537,8 @@ export function getLastBillingStartDate(member, successfulPayments) {
     return (
       (member.values['Member ID'] === successful.yourSystemReference ||
         member.values['Billing Customer Reference'] ===
+          successful.yourSystemReference ||
+        member.values['Billing Setup Fee Id'] ===
           successful.yourSystemReference) &&
       moment(successful.debitDate, 'YYYY-MM-DD HH:mm:SS').isAfter(
         billingStartDate,
