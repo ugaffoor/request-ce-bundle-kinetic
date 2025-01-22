@@ -112,6 +112,13 @@
           margin-left: 6px;
         }
       }
+      .waiverHiddenItems {
+        display: flex;
+        flex-direction: column;
+        label {
+          margin-left: 10px;
+        }
+      }
     }
     .help {
       cursor: pointer;

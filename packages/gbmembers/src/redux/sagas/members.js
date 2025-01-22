@@ -1306,6 +1306,8 @@ export function* fetchPaymentHistory(action) {
                 action.payload.setPaymentHistory({
                   paymentType: action.payload.paymentType,
                   data: result.data.data.concat(paymentsData),
+                  dateFrom: action.payload.dateFrom,
+                  dateTo: action.payload.dateTo,
                 });
               }
             })
@@ -1317,6 +1319,8 @@ export function* fetchPaymentHistory(action) {
           action.payload.setPaymentHistory({
             paymentType: action.payload.paymentType,
             data: result.data.data,
+            dateFrom: action.payload.dateFrom,
+            dateTo: action.payload.dateTo,
           });
         }
       }

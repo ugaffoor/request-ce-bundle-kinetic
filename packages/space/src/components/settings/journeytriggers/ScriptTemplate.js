@@ -10,12 +10,7 @@ import ReactQuill, { Quill } from 'react-quill';
 const globals = import('common/globals');
 
 export const handleLoaded = props => form => {
-  if (form.slug() === 'call-scripts') {
-    form
-      .getFieldByName('Target')
-      .value(compThis.props.target === 'Member' ? 'Members' : 'Leads');
-    form.getFieldByName('Target').hide();
-  }
+  form.getFieldByName('Target').hide();
 
   compThis.setState({
     loadingForm: false,
@@ -59,6 +54,7 @@ function onCallScriptFormLoaded() {
 export class ScriptEditor extends Component {
   constructor(props) {
     super(props);
+
     this.reactQuillRef = null;
     this.handleChange = this.handleChange.bind(this);
     this.state = {
@@ -196,6 +192,10 @@ export class ScriptTemplate extends Component {
                   updated={this.handleUpdated}
                   error={this.handleError}
                   globals={globals}
+                  values={{
+                    Target:
+                      this.props.target === 'Member' ? 'Members' : 'Leads',
+                  }}
                 />
               ) : (
                 <CoreForm
@@ -205,6 +205,10 @@ export class ScriptTemplate extends Component {
                   onCreated={this.handleCreated}
                   error={this.handleError}
                   globals={globals}
+                  values={{
+                    Target:
+                      this.props.target === 'Member' ? 'Members' : 'Leads',
+                  }}
                 />
               )}
             </Fragment>

@@ -51,8 +51,8 @@ export class LeadsActivityReport extends Component {
         title: 'Created Date',
         field: 'createdDate',
         sorter: function(a, b, aRow, bRow, column, dir, sorterParams) {
-          a = moment(a);
-          b = moment(b);
+          a = moment(a, 'L HH:mm');
+          b = moment(b, 'L HH:mm');
           if (dir === 'asc') {
             return b.isAfter(a) ? 1 : -1;
           } else if (dir === 'desc') {
@@ -65,8 +65,8 @@ export class LeadsActivityReport extends Component {
         title: 'Last Modified Date',
         field: 'lastModifiedDate',
         sorter: function(a, b, aRow, bRow, column, dir, sorterParams) {
-          a = moment(a);
-          b = moment(b);
+          a = moment(a, 'L HH:mm');
+          b = moment(b, 'L HH:mm');
           if (dir === 'asc') {
             return b.isAfter(a) ? 1 : -1;
           } else if (dir === 'desc') {
@@ -91,23 +91,23 @@ export class LeadsActivityReport extends Component {
       { title: 'State', field: 'state' },
       { title: 'Age (Years)', field: 'age' },
       { title: 'Opt-Out', field: 'optout' },
-      { title: 'Source', field: 'source' },
-      { title: 'Source Reference 1', field: 'sourceReference1' },
-      { title: 'Source Reference 2', field: 'sourceReference2' },
-      { title: 'Kids/Adults', field: 'sourceReference3' },
-      { title: 'Source Reference 4', field: 'sourceReference4' },
-      { title: 'Source Reference 5', field: 'sourceReference5' },
+      { title: K.translate('Source'), field: 'source' },
+      { title: K.translate('Source Reference 1'), field: 'sourceReference1' },
+      { title: K.translate('Source Reference 2'), field: 'sourceReference2' },
+      { title: K.translate('Kids/Adults'), field: 'sourceReference3' },
+      { title: K.translate('Source Reference 4'), field: 'sourceReference4' },
+      { title: K.translate('Source Reference 5'), field: 'sourceReference5' },
       {
         title: 'Reminder Date',
         field: 'reminderDate',
         sorter: function(a, b, aRow, bRow, column, dir, sorterParams) {
           if (dir === 'asc' && b !== '' && a !== '') {
-            a = moment(a);
-            b = moment(b);
+            a = moment(a, 'L');
+            b = moment(b, 'L');
             return b.isAfter(a) ? 1 : -1;
           } else if (dir === 'desc' && b !== '' && a !== '') {
-            a = moment(a);
-            b = moment(b);
+            a = moment(a, 'L');
+            b = moment(b, 'L');
             return a.isAfter(b) ? -1 : 1;
           }
 
@@ -204,12 +204,12 @@ export class LeadsActivityReport extends Component {
       { label: 'State', value: 'state' },
       { label: 'Age (Years)', value: 'age' },
       { label: 'Opt-Out', value: 'optout' },
-      { label: 'Source', value: 'source' },
-      { label: 'Source Reference 1', value: 'sourceReference1' },
-      { label: 'Source Reference 2', value: 'sourceReference2' },
-      { label: 'Kids/Adults', value: 'sourceReference3' },
-      { label: 'Source Reference 4', value: 'sourceReference4' },
-      { label: 'Source Reference 5', value: 'sourceReference5' },
+      { label: K.translate('Source'), value: 'source' },
+      { label: K.translate('Source Reference 1'), value: 'sourceReference1' },
+      { label: K.translate('Source Reference 2'), value: 'sourceReference2' },
+      { label: K.translate('Kids/Adults'), value: 'sourceReference3' },
+      { label: K.translate('Source Reference 4'), value: 'sourceReference4' },
+      { label: K.translate('Source Reference 5'), value: 'sourceReference5' },
       { label: 'Reminder Date', value: 'reminderDate', dataType: 'date' },
       { label: 'Days Since Last Contact', value: 'daysSinceLastContact' },
       {
@@ -235,12 +235,12 @@ export class LeadsActivityReport extends Component {
       { label: 'State', value: 'state' },
       { label: 'Age (Years)', value: 'age' },
       { label: 'Opt-Out', value: 'optout' },
-      { label: 'Source', value: 'source' },
-      { label: 'Source Reference 1', value: 'sourceReference1' },
-      { label: 'Source Reference 2', value: 'sourceReference2' },
-      { label: 'Kids/Adults', value: 'sourceReference3' },
-      { label: 'Source Reference 4', value: 'sourceReference4' },
-      { label: 'Source Reference 5', value: 'sourceReference5' },
+      { label: K.translate('Source'), value: 'source' },
+      { label: K.translate('Source Reference 1'), value: 'sourceReference1' },
+      { label: K.translate('Source Reference 2'), value: 'sourceReference2' },
+      { label: K.translate('Kids/Adults'), value: 'sourceReference3' },
+      { label: K.translate('Source Reference 4'), value: 'sourceReference4' },
+      { label: K.translate('Source Reference 5'), value: 'sourceReference5' },
       { label: 'Reminder Date', value: 'reminderDate', dataType: 'date' },
       { label: 'Days Since Last Contact', value: 'daysSinceLastContact' },
       {
@@ -1709,7 +1709,7 @@ export class LeadsActivityReport extends Component {
       height: 450,
       pagination: 'local',
       paginationSize: 10,
-      paginationSizeSelector: [10, 20, 50, 100, 1000],
+      paginationSizeSelector: [10, 20, 50, 100, 1000, 10000],
       tooltipsHeader: true,
       downloadDataFormatter: data => data,
       downloadReady: (fileContents, blob) => blob,

@@ -261,6 +261,8 @@ export const State = Record({
   CHARGESpaymentHistoryLoading: true,
   FINFAILEDpaymentHistoryLoading: true,
   FINSUCCESSFULpaymentHistoryLoading: true,
+  FINSUCCESSFULdateFrom: '',
+  FINSUCCESSFULdateTo: '',
   SETUPpaymentHistoryLoading: true,
   overduesLoading: true,
   additionalServicesLoading: true,
@@ -535,6 +537,8 @@ export const reducer = (state = State(), { type, payload }) => {
       });
 
       return state
+        .set(payload.paymentType + 'dateFrom', payload.dateFrom)
+        .set(payload.paymentType + 'dateTo', payload.dateTo)
         .set(payload.paymentType + 'paymentHistoryLoading', false)
         .set(payload.paymentType + 'paymentHistory', paymentHistory);
     }

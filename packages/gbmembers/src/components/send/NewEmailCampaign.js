@@ -898,6 +898,7 @@ export class NewEmailCampaign extends Component {
                 <EmailEditor
                   ref={editor => (emailEditorRef = editor)}
                   onLoad={this.onLoadEmailTemplate}
+                  minHeight={'850px'}
                 />
               </BrowserView>
               <MobileView>
@@ -914,6 +915,7 @@ export class NewEmailCampaign extends Component {
                 <EmailEditor
                   ref={editor => (emailEditorRef = editor)}
                   onLoad={this.onLoadEmailTemplate}
+                  minHeight={'850px'}
                 />
               </TabletView>
             </span>

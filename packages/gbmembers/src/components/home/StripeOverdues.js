@@ -120,7 +120,8 @@ export class StripeOverdues extends Component {
       var idx = this.props.allMembers.findIndex(
         member =>
           member.values['Billing Customer Reference'] ===
-          payment.yourSystemReference,
+            payment.yourSystemReference ||
+          member.values['Billing Setup Fee Id'] === payment.yourSystemReference,
       );
       if (idx !== -1) {
         if (
@@ -143,7 +144,8 @@ export class StripeOverdues extends Component {
       var idx = this.props.allMembers.findIndex(
         member =>
           member.values['Billing Customer Reference'] ===
-          payment.yourSystemReference,
+            payment.yourSystemReference ||
+          member.values['Billing Setup Fee Id'] === payment.yourSystemReference,
       );
       var member = undefined;
       if (idx !== -1) {
@@ -201,7 +203,10 @@ export class StripeOverdues extends Component {
             ? moment(successfulPayments[sidx].debitDate, 'YYYY-MM-DD HH:mm:ss')
             : moment(member.values['Billing Start Date'], 'YYYY-MM-DD'),
         debitDate: payment.debitDate,
-        nextAttemptDate: payment.nextAttemptDate,
+        nextAttemptDate:
+          payment.nextAttemptDate !== null
+            ? payment.nextAttemptDate
+            : 'No more retries',
         attemptCount: payment.attemptCount,
         bankReason: payment.bankFailedReason,
         memberGUID: member !== undefined ? member.id : '',
@@ -245,7 +250,10 @@ export class StripeOverdues extends Component {
         accessor: 'nextAttemptDate',
         Header: 'Next Attempt',
         width: 150,
-        Cell: props => moment(props.value, ezidebit_date_format).format('L'),
+        Cell: props =>
+          props.value !== 'No more retries'
+            ? moment(props.value, ezidebit_date_format).format('L')
+            : props.value,
       },
       {
         accessor: 'paymentAmount',

@@ -114,19 +114,21 @@ export const AppComponent = props => {
   });
 };
 
-export const mapStateToProps = state => ({
-  loading: state.space.spaceApp.appLoading,
-  kapps: state.app.kapps
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .filter(kapp => kapp.slug !== 'admin'),
-  teams: Utils.getTeams(state.app.profile).sort((a, b) =>
-    a.name.localeCompare(b.name),
-  ),
-  isSpaceAdmin: state.app.profile.spaceAdmin,
-  isGuest: selectors.selectIsGuest(state),
-  pathname: state.router.location.pathname,
-  settingsBackPath: state.space.spaceApp.settingsBackPath || '/',
-});
+export const mapStateToProps = state => {
+  return {
+    loading: state.space.spaceApp.appLoading,
+    kapps: state.app.kapps
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .filter(kapp => kapp.slug !== 'admin'),
+    teams: Utils.getTeams(state.app.profile).sort((a, b) =>
+      a.name.localeCompare(b.name),
+    ),
+    isSpaceAdmin: state.app.profile.spaceAdmin,
+    isGuest: selectors.selectIsGuest(state),
+    pathname: state.router.location.pathname,
+    settingsBackPath: state.space.spaceApp.settingsBackPath || '/',
+  };
+};
 const mapDispatchToProps = {
   fetchSettings: actions.fetchAppSettings,
   setSettingsBackPath: actions.setSettingsBackPath,

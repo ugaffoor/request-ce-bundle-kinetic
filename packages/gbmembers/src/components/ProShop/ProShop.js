@@ -1920,11 +1920,14 @@ class PayNow extends Component {
                   </div>
                 </span>
               </span>
-              {this.props.posAutoCreateCardProcessing ? (
+              {getAttributeValue(this.props.space, 'POS System') ===
+                'Bambora' && this.props.posAutoCreateCardProcessing ? (
                 <span className="paymentType">
                   <div className="label">Auto Creating Saved Card...</div>
                 </span>
-              ) : this.state.posProfileID !== undefined &&
+              ) : getAttributeValue(this.props.space, 'POS System') ===
+                  'Bambora' &&
+                this.state.posProfileID !== undefined &&
                 this.state.posProfileID !== null &&
                 this.state.posProfileID !== '' ? (
                 this.props.posCardsLoading ? (
@@ -3891,6 +3894,7 @@ export class ProShop extends Component {
         sizes.forEach((size, i) => {
           if (
             productSku + size === skuValue ||
+            productSku.substr(0, productSku.length - 1) + size === skuValue ||
             (size === 'ALL' && productSku === skuValue)
           ) {
             matched = true;
@@ -4838,8 +4842,12 @@ export const ProShopContainer = compose(
   lifecycle({
     componentWillMount() {
       this.props.fetchPOSCategories();
-      this.props.fetchPOSProducts();
-      this.props.fetchPOSBarcodes();
+      if (this.props.posProducts.length === 0) {
+        this.props.fetchPOSProducts();
+      }
+      if (this.props.posBarcodes.length === 0) {
+        this.props.fetchPOSBarcodes();
+      }
       this.props.fetchPOSDiscounts();
       this.props.fetchPOSCheckout({ username: this.props.profile.username });
       this.props.fetchMembers({

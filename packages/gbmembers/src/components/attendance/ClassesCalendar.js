@@ -95,7 +95,6 @@ export class ClassesCalendar extends Component {
         doy: 1,
       },
     });
-
     console.log(moment);
   }
   cancelDialog = () => {
@@ -190,6 +189,23 @@ export class ClassesCalendar extends Component {
 
       this.newClass({
         values: values,
+        classEvent: {
+          title,
+          program,
+          maxStudents,
+          start: convertCalendarDate(values['Start']),
+          end: convertCalendarDate(values['End']),
+          colour,
+          textColour,
+          allowedPrograms,
+          coaches,
+          cancellationCutoff,
+          bookingCutoff,
+          acceptTrials,
+          trialLimit,
+          studentType,
+          ageInfo,
+        },
       });
     } else {
       this.setState((prevState, props) => {
@@ -398,7 +414,7 @@ export class ClassesCalendar extends Component {
             deleteEvent={this.deleteEvent}
           />
         )}
-        <div class="calendarSection">
+        <div className="calendarSection">
           {!Utils.isMemberOf(this.props.profile, 'Role::Data Admin') ? (
             <div />
           ) : (

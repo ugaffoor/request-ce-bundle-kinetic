@@ -81,6 +81,7 @@ function onEmailTemplateFormLoaded() {
     <EmailEditor
       ref={editor => (emailEditorRef = editor)}
       onLoad={onLoadEmailTemplate}
+      minHeight={'850px'}
       options={[
         ('setLinkTypes': {
           name: 'static_google_link',

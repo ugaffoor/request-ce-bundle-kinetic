@@ -159,6 +159,8 @@ export class AttendancePerDay extends Component {
     });
     if (this.props.classSchedules.size === 0) {
       this.props.fetchClassSchedules();
+    } else {
+      this.classSchedules = this.props.classSchedules;
     }
   }
   getProgramBackgroundColor(program) {

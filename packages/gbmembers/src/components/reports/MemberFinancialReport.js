@@ -47,6 +47,8 @@ const mapStateToProps = state => ({
   paymentHistory: state.member.members.FINSUCCESSFULpaymentHistory,
   FINSUCCESSFULpaymentHistoryLoading:
     state.member.members.FINSUCCESSFULpaymentHistoryLoading,
+  FINSUCCESSFULdateFrom: state.member.members.FINSUCCESSFULdateFrom,
+  FINSUCCESSFULdateTo: state.member.members.FINSUCCESSFULdateTo,
   space: state.member.app.space,
   billingReportCustomersLoading: state.member.members.billingCustomersLoading,
   billingCustomers: state.member.members.billingCustomers,
@@ -147,7 +149,9 @@ export class MemberFinancialReport extends Component {
       !nextProps.cashPaymentsByDateLoading &&
       !nextProps.leadsLoading &&
       !nextProps.membersLoading &&
-      !nextProps.servicesLoading
+      !nextProps.servicesLoading /*&&
+      (nextProps.FINSUCCESSFULdateFrom !== this.props.FINSUCCESSFULdateFrom ||
+      nextProps.FINSUCCESSFULdateTo !== this.props.FINSUCCESSFULdateTo)*/
     ) {
       this.failedPaymentHistory = [];
       nextProps.FINFAILEDpaymentHistory.forEach((item, i) => {
@@ -1853,25 +1857,63 @@ export class MemberFinancialReport extends Component {
         var showTaxes =
           posTax1Percentage !== 0 || posTax2Percentage !== 0 ? true : false;
         var feeTotal = 0;
+        var hasTax1 =
+          order.values['Sales Tax'] !== undefined &&
+          order.values['Sales Tax'] !== null &&
+          order.values['Sales Tax'] !== '' &&
+          Number.parseFloat(order.values['Sales Tax']) > 0
+            ? true
+            : false;
+
+        var hasTax2 =
+          order.values['Sales Tax 2'] !== undefined &&
+          order.values['Sales Tax 2'] !== null &&
+          order.values['Sales Tax 2'] !== '' &&
+          Number.parseFloat(order.values['Sales Tax 2']) > 0
+            ? true
+            : false;
         if (showTaxes) {
           feeTotal =
             Number(paymentAmount) / (1 + posTax1Percentage + posTax2Percentage);
-        }
 
+          // When Tax1 is removed
+          if (
+            order.values['Sales Tax'] !== undefined &&
+            order.values['Sales Tax'] !== null &&
+            order.values['Sales Tax'] !== '' &&
+            Number.parseFloat(order.values['Sales Tax']) === 0
+          ) {
+            posTax1Percentage = 0;
+          }
+          // When Tax2 is removed
+          if (
+            order.values['Sales Tax 2'] !== undefined &&
+            order.values['Sales Tax 2'] !== null &&
+            order.values['Sales Tax 2'] !== '' &&
+            Number.parseFloat(order.values['Sales Tax 2']) === 0
+          ) {
+            posTax2Percentage = 0;
+          }
+        }
         if (allTransactionRecords !== undefined) {
           allTransactionRecords.push({
             type: 'POS',
-            date: moment(order.values['Date time processed']),
+            date: moment(
+              order.values['Date time processed'],
+              'YYYY-MM-DDTHH:mm:S',
+            ),
             name: order.values['Person Name'],
             amount: Number(order.values['Total']).toFixed(2),
-            tax1:
-              posTax1Percentage !== 0
-                ? Number(feeTotal * posTax1Percentage).toFixed(2)
-                : 0,
-            tax2:
-              posTax2Percentage !== 0
-                ? Number(feeTotal * posTax2Percentage).toFixed(2)
-                : 0,
+            tax1: hasTax1
+              ? Number.parseFloat(order.values['Sales Tax'])
+              : posTax1Percentage !== 0
+              ? Number(feeTotal * posTax1Percentage).toFixed(2)
+              : 0,
+            tax2: hasTax2
+              ? Number.parseFloat(order.values['Sales Tax 2'])
+              : posTax2Percentage !== 0
+              ? Number(feeTotal * posTax2Percentage).toFixed(2)
+              : 0,
           });
         }
       }

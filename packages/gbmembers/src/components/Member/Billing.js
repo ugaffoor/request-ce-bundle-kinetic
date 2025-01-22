@@ -1583,7 +1583,10 @@ export class PaymentHistory extends Component {
       });
     }
 
-    if (getAttributeValue(this.props.space, 'Billing Company') === 'PaySmart') {
+    if (
+      getAttributeValue(this.props.space, 'Billing Company') === 'PaySmart' ||
+      getAttributeValue(this.props.space, 'Billing Company') === 'Stripe'
+    ) {
       columns.push({
         accessor: 'scheduledAmount',
         Header: 'Scheduled Amount',
@@ -2520,6 +2523,10 @@ export class BillingInfo extends Component {
                                 'nav-link icon-wrapper btn btn-primary'
                               }
                               activeClassName="active"
+                              disabled={
+                                this.props.memberItem.values['Status'] !==
+                                'Active'
+                              }
                               style={{
                                 display: 'inline',
                                 paddingTop: '4px',

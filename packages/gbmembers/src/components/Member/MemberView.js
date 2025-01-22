@@ -1733,7 +1733,11 @@ export const MemberView = ({
                 memberItem.values['Billing Payment Type'] !== 'Cash' &&
                 (memberItem.values['Biller Migrated'] === null ||
                   memberItem.values['Biller Migrated'] === undefined ||
-                  memberItem.values['Biller Migrated'] !== 'YES') && (
+                  memberItem.values['Biller Migrated'] !== 'YES') &&
+                  (memberItem.values['Billing Customer Reference'] === null ||
+                    memberItem.values['Billing Customer Reference'] ===
+                      undefined ||
+                    memberItem.values['Billing Customer Reference'] === '') && (
                   <div>
                     <button
                       onClick={e => setShowBamboraActivate(true)}

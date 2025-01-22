@@ -65,7 +65,7 @@ export class MemberSMS extends Component {
       let content = JSON.parse(value.values['Content']);
       var dt =
         value.values['Direction'] === 'Outbound'
-          ? content['Sent Date']
+          ? /*content['Sent Date']*/ value['createdAt']
           : /*content['Received Date'];*/ value['createdAt'];
 
       dt = moment(dt, email_date_format);

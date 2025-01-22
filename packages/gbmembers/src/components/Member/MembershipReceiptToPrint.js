@@ -57,7 +57,7 @@ export class MembershipReceiptToPrint extends React.Component {
     if (getAttributeValue(this.props.space, 'Ignore Admin Fee') !== 'YES') {
       var adminFeePerc =
         Number.parseFloat(
-          getAttributeValue(this.props.space, 'Admin Fee Charge').replace(
+          getAttributeValue(this.props.space, 'Admin Fee Charge', '').replace(
             '%',
             '',
           ),

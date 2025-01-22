@@ -424,6 +424,7 @@ export class TriggerForm extends Component {
         )}
         {this.state.showScriptDialog && (
           <ScriptTemplateContainer
+            target={this.props.targetType}
             setShowScriptDialog={this.setShowScriptDialog}
             scriptTemplateID={this.state.scriptTemplateID}
             updateTriggerDetails={this.updateTriggerDetails}
@@ -745,6 +746,7 @@ export class BlockTriggers extends Component {
       newTrigger: false,
       newTriggerRecordCondition: undefined,
       group: group,
+      triggerTypes: triggerTypes,
       triggerEvents: triggerEvents,
       confirmClose: false,
     };
@@ -823,7 +825,7 @@ export class BlockTriggers extends Component {
         {this.state.showBlock && (
           <div className="group">
             <div className="triggers">
-              {[...this.state.triggerEvents.keys()].map((condition, idx) => (
+              {this.state.triggerTypes.map((condition, idx) => (
                 <span key={idx}>
                   <div className="triggerType">
                     <div className="typeName">{condition}</div>
@@ -845,83 +847,89 @@ export class BlockTriggers extends Component {
                   <div className="triggerConditions">
                     <table>
                       <tbody>
-                        {this.state.triggerEvents
-                          .get(condition)
-                          .map((trigger, tIdx) => (
-                            <tr
-                              className={
-                                tIdx % 2 === 0
-                                  ? 'eventRow even'
-                                  : 'eventRow odd'
-                              }
-                              key={tIdx}
-                            >
-                              <td width="5%">
-                                {this.props.type === 'Member'
-                                  ? trigger.values['Member Condition Duration']
-                                  : trigger.values['Lead Condition Duration']}
-                              </td>
-                              <td width="80%">
-                                {trigger.values['Template Name']}
-                              </td>
-                              <td width="40">
-                                <span
-                                  className={
-                                    trigger.values['Action'] === 'Alert'
-                                      ? 'fa fa-fw fa-bell'
-                                      : 'fa fa-fw fa-bolt'
-                                  }
-                                />
-                              </td>
-                              <td width="40">
-                                <span
-                                  className={
-                                    trigger.values['Contact Type'] === 'Call'
-                                      ? 'fa fa-fw fa-phone'
-                                      : trigger.values['Contact Type'] === 'SMS'
-                                      ? 'fa fa-fw fa-comment-o'
-                                      : 'fa fa-fw fa-envelope-o'
-                                  }
-                                />
-                              </td>
-                              <td>
-                                <TriggerStatus
-                                  trigger={trigger}
-                                  status={trigger.values['Status']}
-                                  updateJourneyTrigger={
-                                    this.props.updateJourneyTrigger
-                                  }
-                                />
-                              </td>
-                              <td width="40">
-                                <TriggerDelete
-                                  id={`trash-${trigger.id}`}
-                                  trigger={trigger}
-                                  deleteTrigger={this.props.deleteTrigger}
-                                  journeyTriggers={this.props.journeyTriggers}
-                                  triggerEvents={this.state.triggerEvents}
-                                />
-                              </td>
-                              <td width="40">
-                                <span
-                                  className="edit fa fa-fw fa-edit"
-                                  id={trigger.id}
-                                  onClick={e => {
-                                    this.setState({
-                                      showBlock: false,
-                                      editingTrigger: true,
-                                      editingTriggerRecord: this.props.journeyTriggers.find(
-                                        trigger =>
-                                          trigger.id === $(e.target).prop('id'),
-                                      ),
-                                      newTrigger: false,
-                                      newTriggerRecordCondition: undefined,
-                                    });
-                                  }}
-                                />
-                              </td>
-                            </tr>
-                          ))}
+                        {this.state.triggerEvents.get(condition) !==
+                          undefined &&
+                          this.state.triggerEvents
+                            .get(condition)
+                            .map((trigger, tIdx) => (
+                              <tr
+                                className={
+                                  tIdx % 2 === 0
+                                    ? 'eventRow even'
+                                    : 'eventRow odd'
+                                }
+                                key={tIdx}
+                              >
+                                <td width="5%">
+                                  {this.props.type === 'Member'
+                                    ? trigger.values[
+                                        'Member Condition Duration'
+                                      ]
+                                    : trigger.values['Lead Condition Duration']}
+                                </td>
+                                <td width="80%">
+                                  {trigger.values['Template Name']}
+                                </td>
+                                <td width="40">
+                                  <span
+                                    className={
+                                      trigger.values['Action'] === 'Alert'
+                                        ? 'fa fa-fw fa-bell'
+                                        : 'fa fa-fw fa-bolt'
+                                    }
+                                  />
+                                </td>
+                                <td width="40">
+                                  <span
+                                    className={
+                                      trigger.values['Contact Type'] === 'Call'
+                                        ? 'fa fa-fw fa-phone'
+                                        : trigger.values['Contact Type'] ===
+                                          'SMS'
+                                        ? 'fa fa-fw fa-comment-o'
+                                        : 'fa fa-fw fa-envelope-o'
+                                    }
+                                  />
+                                </td>
+                                <td>
+                                  <TriggerStatus
+                                    trigger={trigger}
+                                    status={trigger.values['Status']}
+                                    updateJourneyTrigger={
+                                      this.props.updateJourneyTrigger
+                                    }
+                                  />
+                                </td>
+                                <td width="40">
+                                  <TriggerDelete
+                                    id={`trash-${trigger.id}`}
+                                    trigger={trigger}
+                                    deleteTrigger={this.props.deleteTrigger}
+                                    journeyTriggers={this.props.journeyTriggers}
+                                    triggerEvents={this.state.triggerEvents}
+                                  />
+                                </td>
+                                <td width="40">
+                                  <span
+                                    className="edit fa fa-fw fa-edit"
+                                    id={trigger.id}
+                                    onClick={e => {
+                                      this.setState({
+                                        showBlock: false,
+                                        editingTrigger: true,
+                                        editingTriggerRecord: this.props.journeyTriggers.find(
+                                          trigger =>
+                                            trigger.id ===
+                                            $(e.target).prop('id'),
+                                        ),
+                                        newTrigger: false,
+                                        newTriggerRecordCondition: undefined,
+                                      });
+                                    }}
+                                  />
+                                </td>
+                              </tr>
+                            ))}
                       </tbody>
                     </table>
                   </div>
@@ -933,6 +941,7 @@ export class BlockTriggers extends Component {
         {this.state.editingTrigger && (
           <TriggerForm
             id={this.state.editingTriggerRecord.id}
+            targetType={this.props.type}
             journeyTriggers={this.props.journeyTriggers}
             handleLoaded={this.props.handleLoaded}
             handleUpdated={this.props.handleUpdated}

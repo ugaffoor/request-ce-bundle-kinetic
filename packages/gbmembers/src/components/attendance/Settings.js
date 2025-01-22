@@ -34,6 +34,7 @@ const mapStateToProps = state => ({
   recurringBookings: state.member.classes.recurringBookings,
   addedRecurring: state.member.classes.addedRecurring,
   fetchingRecurringBookings: state.member.classes.fetchingRecurringBookings,
+  fetchingClassSchedules: state.member.classes.fetchingClassSchedules,
 });
 const mapDispatchToProps = {
   fetchLeads: leadsActions.fetchLeads,
@@ -51,6 +52,7 @@ const mapDispatchToProps = {
   editClass: classActions.editClass,
   deleteClass: classActions.deleteClass,
   updateSpaceAttribute: dataStoreActions.updateSpaceAttribute,
+  fetchClassSchedules: classActions.fetchClassSchedules,
 };
 
 var myThis;

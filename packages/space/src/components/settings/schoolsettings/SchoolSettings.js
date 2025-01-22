@@ -203,6 +203,7 @@ class SchoolAttributes extends Component {
             helpText="School Legal Name, this appears in the Member Registration agreement."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
             space={this.props.space}
+            appSpace={this.props.appSpace}
             profile={this.props.profile}
           />
           <EditAttributeValue
@@ -214,6 +215,7 @@ class SchoolAttributes extends Component {
             helpText="School Address, this appears in emails and memberhip agreements."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
             space={this.props.space}
+            appSpace={this.props.appSpace}
             profile={this.props.profile}
           />
           <EditAttributeValue
@@ -225,6 +227,7 @@ class SchoolAttributes extends Component {
             helpText="School Telephone, this appears in emails, SMS and memberhip agreements."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
             space={this.props.space}
+            appSpace={this.props.appSpace}
             profile={this.props.profile}
           />
           {Utils.getAttributeValue(this.props.space, 'Billing Company') ===
@@ -238,6 +241,7 @@ class SchoolAttributes extends Component {
               helpText="School ACN, this appears in Terms and Conditions."
               updateSpaceAttribute={this.props.updateSpaceAttribute}
               space={this.props.space}
+              appSpace={this.props.appSpace}
               profile={this.props.profile}
             />
           )}
@@ -250,6 +254,7 @@ class SchoolAttributes extends Component {
             helpText="School Website, this appears in emails if configured."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
             space={this.props.space}
+            appSpace={this.props.appSpace}
             profile={this.props.profile}
           />
           <EditAttributeValue
@@ -261,6 +266,7 @@ class SchoolAttributes extends Component {
             helpText="School Schedule URL, this appears in emails if configured."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
             space={this.props.space}
+            appSpace={this.props.appSpace}
             profile={this.props.profile}
           />
           {Utils.getAttributeValue(this.props.space, 'Billing Company') ===
@@ -274,6 +280,7 @@ class SchoolAttributes extends Component {
               helpText="School Australian Business Number(ABN), this appears in waivers and membership agreements."
               updateSpaceAttribute={this.props.updateSpaceAttribute}
               space={this.props.space}
+              appSpace={this.props.appSpace}
               profile={this.props.profile}
             />
           )}
@@ -288,6 +295,7 @@ class SchoolAttributes extends Component {
               helpText="School Australian Company Number(ACN), this appears in waivers and membership agreements."
               updateSpaceAttribute={this.props.updateSpaceAttribute}
               space={this.props.space}
+              appSpace={this.props.appSpace}
               profile={this.props.profile}
             />
           )}
@@ -304,6 +312,7 @@ class SchoolAttributes extends Component {
             helpText="School email used for all out going emailing and incoming email if configured.<br/>If this email needs to be changed, please contact support."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
             space={this.props.space}
+            appSpace={this.props.appSpace}
             profile={this.props.profile}
           />
           <EditAttributeValue
@@ -315,6 +324,7 @@ class SchoolAttributes extends Component {
             helpText="Alias name used for the schools email, such as, Gracie Barra Scottsdale"
             updateSpaceAttribute={this.props.updateSpaceAttribute}
             space={this.props.space}
+            appSpace={this.props.appSpace}
             profile={this.props.profile}
           />
         </span>
@@ -332,6 +342,7 @@ class SchoolAttributes extends Component {
                 helpText="If checked no Admin Fee will be charged."
                 updateSpaceAttribute={this.props.updateSpaceAttribute}
                 space={this.props.space}
+                appSpace={this.props.appSpace}
                 profile={this.props.profile}
               />
               {!this.state.ignoreAdminFee && (
@@ -344,6 +355,7 @@ class SchoolAttributes extends Component {
                     helpText="Label applied to the Admin Fee being charged, if blank the default is 'Admin Fee'.<br>Note, this setting change will only affect new submissions, not existing acounts."
                     updateSpaceAttribute={this.props.updateSpaceAttribute}
                     space={this.props.space}
+                    appSpace={this.props.appSpace}
                     profile={this.props.profile}
                   />
                   <EditAttributeValue
@@ -355,6 +367,7 @@ class SchoolAttributes extends Component {
                     helpText="Membership School Admin Fee, this will be charged for all Membership fees."
                     updateSpaceAttribute={this.props.updateSpaceAttribute}
                     space={this.props.space}
+                    appSpace={this.props.appSpace}
                     profile={this.props.profile}
                   />
                 </span>
@@ -370,6 +383,7 @@ class SchoolAttributes extends Component {
             helpText="Payment Frequencies used for Billing, these options allow the Program Fee configuration."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
             space={this.props.space}
+            appSpace={this.props.appSpace}
             profile={this.props.profile}
           />
         </span>
@@ -385,6 +399,7 @@ class SchoolAttributes extends Component {
               helpText="Label applied to the Membership Tax value (apply Membership Tax Percentage value also).<br/>Eg, GST 5%"
               updateSpaceAttribute={this.props.updateSpaceAttribute}
               space={this.props.space}
+              appSpace={this.props.appSpace}
               profile={this.props.profile}
             />
             <EditAttributeValue
@@ -396,6 +411,7 @@ class SchoolAttributes extends Component {
               helpText="Membership Tax percentage value applied for all Memberships.<br>A new value will only be applied to a new form submission."
               updateSpaceAttribute={this.props.updateSpaceAttribute}
               space={this.props.space}
+              appSpace={this.props.appSpace}
               profile={this.props.profile}
             />
             <EditAttributeValue
@@ -406,6 +422,7 @@ class SchoolAttributes extends Component {
               helpText="Label applied to the Membership Tax 2 value (apply Membership Tax 2 Percentage value also).<br/>Eg, GST 5%, HST 7%"
               updateSpaceAttribute={this.props.updateSpaceAttribute}
               space={this.props.space}
+              appSpace={this.props.appSpace}
               profile={this.props.profile}
             />
             <EditAttributeValue
@@ -417,6 +434,7 @@ class SchoolAttributes extends Component {
               helpText="Membership Tax 2 percentage value applied for all Memberships.<br>A new value will only be applied to a new form submission."
               updateSpaceAttribute={this.props.updateSpaceAttribute}
               space={this.props.space}
+              appSpace={this.props.appSpace}
               profile={this.props.profile}
             />
           </span>
@@ -433,6 +451,7 @@ class SchoolAttributes extends Component {
               helpText="Label applied to the POS Tax value .<br/>Eg, GST 5%"
               updateSpaceAttribute={this.props.updateSpaceAttribute}
               space={this.props.space}
+              appSpace={this.props.appSpace}
               profile={this.props.profile}
             />
             <EditAttributeValue
@@ -465,6 +484,7 @@ class SchoolAttributes extends Component {
               helpText="POS Tax 2 percentage value applied to products."
               updateSpaceAttribute={this.props.updateSpaceAttribute}
               space={this.props.space}
+              appSpace={this.props.appSpace}
               profile={this.props.profile}
             />
           </span>
@@ -480,6 +500,7 @@ class SchoolAttributes extends Component {
             helpText="The School Start Date that trial bookings are allowed from, as part of the Calendar widget(Trial Bookings)."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
             space={this.props.space}
+            appSpace={this.props.appSpace}
             profile={this.props.profile}
           />
           <EditAttributeValue
@@ -491,6 +512,7 @@ class SchoolAttributes extends Component {
             helpText="About Us Choices are used in the 'Get in Touch' form as part of the Calendar widget.<br>To enter a new value, enter value then press the Enter or Tab key."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
             space={this.props.space}
+            appSpace={this.props.appSpace}
             profile={this.props.profile}
           />
           <EditAttributeValue
@@ -502,6 +524,7 @@ class SchoolAttributes extends Component {
             helpText="Interested In Choices are used in the 'Get in Touch' form as part of the Calendar widget.<br>To enter a new value, enter value then press the Enter or Tab key."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
             space={this.props.space}
+            appSpace={this.props.appSpace}
             profile={this.props.profile}
           />
           <EditAttributeValue
@@ -513,6 +536,7 @@ class SchoolAttributes extends Component {
             helpText="Dates to now allow Trial Bookings, as part of the Calendar widget(Trial Bookings)."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
             space={this.props.space}
+            appSpace={this.props.appSpace}
             profile={this.props.profile}
           />
           <EditAttributeValue
@@ -524,6 +548,22 @@ class SchoolAttributes extends Component {
             helpText="A fully qualified URL for your website that is loading the Calendar widget.<br>This allows you to provide a custom thank you that may also contain Google(or other) tracking code."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
             space={this.props.space}
+            appSpace={this.props.appSpace}
+            profile={this.props.profile}
+          />
+        </span>
+        <span className="detailsSection">
+          <h6>Leads</h6>
+          <EditAttributeValue
+            attributeID="waiverHiddenItems"
+            attributeName="Waiver Hidden Items"
+            inputType="waiverHiddenItems"
+            width=""
+            labelName="Waiver Hide Items"
+            helpText="Select marketing display and questions to hide on the Lead Registration/Waiver forms"
+            updateSpaceAttribute={this.props.updateSpaceAttribute}
+            space={this.props.space}
+            appSpace={this.props.appSpace}
             profile={this.props.profile}
           />
         </span>
@@ -557,11 +597,12 @@ const SchoolSettingsComponent = ({
   updateSpaceAttributes,
   updateSpaceAttributesLoading,
   space,
+  appSpace,
   loading,
 }) => (
   <div>
     {loading ? (
-      <Loading text="GB Members loading ..." />
+      <Loading text="School Settings loading ..." />
     ) : (
       <div className="schoolSettingsPage">
         <StatusMessagesContainer />
@@ -572,6 +613,7 @@ const SchoolSettingsComponent = ({
             <div className="schoolSettings">
               <SchoolAttributes
                 space={space}
+                appSpace={appSpace}
                 profile={profile}
                 updateSpaceAttribute={updateSpaceAttribute}
                 fetchUpdateSpaceAttributes={fetchUpdateSpaceAttributes}
@@ -738,6 +780,7 @@ export const mapStateToProps = state => {
     programs: state.member.app.programs,
     additionalPrograms: state.member.app.additionalPrograms,
     space: state.member.app.space,
+    appSpace: state.app.space,
     memberInitialLoadComplete: state.member.members.memberInitialLoadComplete,
     membersNextPageToken: state.member.members.membersNextPageToken,
     memberLastFetchTime: state.member.members.memberLastFetchTime,

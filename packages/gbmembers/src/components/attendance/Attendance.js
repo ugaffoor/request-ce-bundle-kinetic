@@ -36,6 +36,7 @@ import * as selectors from '../../lib/react-kinops-components/src/redux/kinopsSe
 import { FullScreen, useFullScreenHandle } from 'react-full-screen';
 import settingsIcon from '../../images/Settings.svg?raw';
 import { SettingsContainer } from './Settings';
+import { Utils } from 'common';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -2220,15 +2221,17 @@ export class AttendanceDetail extends Component {
                   this.props.fetchMemberClassAttendancesByDate
                 }
               />
-              <div className="settings">
-                <SVGInline
-                  svg={settingsIcon}
-                  className="icon"
-                  onClick={e => {
-                    this.setShowSettings(true);
-                  }}
-                />
-              </div>
+              {Utils.isMemberOf(this.props.profile, 'Role::Data Admin') && (
+                <div className="settings">
+                  <SVGInline
+                    svg={settingsIcon}
+                    className="icon"
+                    onClick={e => {
+                      this.setShowSettings(true);
+                    }}
+                  />
+                </div>
+              )}
             </div>
             {this.state.verifyPIN && (
               <div className="verifyPINBase">

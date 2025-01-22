@@ -85,6 +85,9 @@ export class LeadEdit extends Component {
     }
     this.state = {
       parentGuardian,
+      sourceDefault: this.props.leadItem.values['Source'],
+      sourceReference4Default: this.props.leadItem.values['Source Reference 4'],
+      sourceReference5Default: this.props.leadItem.values['Source Reference 5'],
     };
   }
   getAllLeads() {
@@ -271,7 +274,7 @@ export class LeadEdit extends Component {
                         : false
                     }
                   >
-                    Lead referred via:
+                    <I18n>Lead referred via:</I18n>
                   </label>
                   <select
                     name="source"
@@ -296,6 +299,16 @@ export class LeadEdit extends Component {
                         </option>
                       );
                     })}
+                    {!this.props.leadSourceValues.includes(
+                      this.state.sourceDefault,
+                    ) && (
+                      <option
+                        key={this.state.sourceDefault}
+                        value={this.state.sourceDefault}
+                      >
+                        {this.state.sourceDefault}
+                      </option>
+                    )}
                   </select>
                   <div className="droparrow" />
                 </div>
@@ -1997,7 +2010,9 @@ export class LeadEdit extends Component {
               {getAttributeValue(this.props.space, 'Franchisor') !== 'YES' && (
                 <span className="line">
                   <div>
-                    <label htmlFor="sourceReference1">Source Reference 1</label>
+                    <label htmlFor="sourceReference1">
+                      <I18n>Source Reference 1</I18n>
+                    </label>
                     <input
                       type="text"
                       name="sourceReference1"
@@ -2018,7 +2033,9 @@ export class LeadEdit extends Component {
                     />
                   </div>
                   <div>
-                    <label htmlFor="sourceReference2">Source Reference 2</label>
+                    <label htmlFor="sourceReference2">
+                      <I18n>Source Reference 2</I18n>
+                    </label>
                     <input
                       type="text"
                       name="sourceReference2"
@@ -2039,7 +2056,9 @@ export class LeadEdit extends Component {
                     />
                   </div>
                   <div>
-                    <label htmlFor="sourceReference3">Kids/Adults</label>
+                    <label htmlFor="sourceReference3">
+                      <I18n>Kids/Adults</I18n>
+                    </label>
                     <select
                       name="sourceReference3"
                       id="sourceReference3"
@@ -2068,12 +2087,13 @@ export class LeadEdit extends Component {
                 {getAttributeValue(this.props.space, 'Franchisor') !==
                   'YES' && (
                   <div>
-                    <label htmlFor="sourceReference2">Source Reference 4</label>
-                    <input
-                      type="text"
+                    <label htmlFor="sourceReference4">
+                      <I18n>Source Reference 4</I18n>
+                    </label>
+                    <select
                       name="sourceReference4"
                       id="sourceReference4"
-                      size="20"
+                      className="form-group"
                       ref={input => (this.input = input)}
                       defaultValue={
                         this.props.leadItem.values['Source Reference 4']
@@ -2086,18 +2106,43 @@ export class LeadEdit extends Component {
                           this.setIsDirty,
                         )
                       }
-                    />
+                    >
+                      <option value="" />
+                      {getAttributeValue(this.props.space, 'About Us Choices')
+                        .split(';')
+                        .map((value, index) => {
+                          return (
+                            value !== '' && (
+                              <option key={value} value={value}>
+                                {value}
+                              </option>
+                            )
+                          );
+                        })}
+                      {!getAttributeValue(this.props.space, 'About Us Choices')
+                        .split(';')
+                        .includes(this.state.sourceReference4Default) && (
+                        <option
+                          key={this.state.sourceReference4Default}
+                          value={this.state.sourceReference4Default}
+                        >
+                          {this.state.sourceReference4Default}
+                        </option>
+                      )}
+                    </select>
+                    <span className="droparrow" />
                   </div>
                 )}
                 {getAttributeValue(this.props.space, 'Franchisor') !==
                   'YES' && (
                   <div>
-                    <label htmlFor="sourceReference2">Source Reference 5</label>
-                    <input
-                      type="text"
+                    <label htmlFor="sourceReference5">
+                      <I18n>Source Reference 5</I18n>
+                    </label>
+                    <select
                       name="sourceReference5"
                       id="sourceReference5"
-                      size="20"
+                      className="form-group"
                       ref={input => (this.input = input)}
                       defaultValue={
                         this.props.leadItem.values['Source Reference 5']
@@ -2110,7 +2155,37 @@ export class LeadEdit extends Component {
                           this.setIsDirty,
                         )
                       }
-                    />
+                    >
+                      <option value="" />
+                      {getAttributeValue(
+                        this.props.space,
+                        'Interested In Choices',
+                      )
+                        .split(';')
+                        .map((value, index) => {
+                          return (
+                            value !== '' && (
+                              <option key={value} value={value}>
+                                {value}
+                              </option>
+                            )
+                          );
+                        })}
+                      {!getAttributeValue(
+                        this.props.space,
+                        'Interested In Choices',
+                      )
+                        .split(';')
+                        .includes(this.state.sourceReference5Default) && (
+                        <option
+                          key={this.state.sourceReference5Default}
+                          value={this.state.sourceReference5Default}
+                        >
+                          {this.state.sourceReference5Default}
+                        </option>
+                      )}
+                    </select>
+                    <span className="droparrow" />
                   </div>
                 )}
               </span>

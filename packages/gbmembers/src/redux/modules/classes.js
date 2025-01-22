@@ -4,8 +4,10 @@ import moment from 'moment';
 
 export const types = {
   NEW_CLASS: namespace('classes', 'NEW_CLASS'),
+  NEW_CLASS_ADDED: namespace('classes', 'NEW_CLASS_ADDED'),
   EDIT_CLASS: namespace('classes', 'EDIT_CLASS'),
   DELETE_CLASS: namespace('classes', 'DELETE_CLASS'),
+  CLASS_DELETED: namespace('classes', 'CLASS_DELETED'),
   FETCH_CLASS_SCHEDULES: namespace('classes', 'FETCH_CLASS_SCHEDULES'),
   SET_CLASS_SCHEDULES: namespace('classes', 'SET_CLASS_SCHEDULES'),
   FETCH_CLASS_BOOKINGS: namespace('classes', 'FETCH_CLASS_BOOKINGS'),
@@ -35,8 +37,10 @@ export const types = {
 
 export const actions = {
   newClass: withPayload(types.NEW_CLASS),
+  newClassAdded: withPayload(types.NEW_CLASS_ADDED),
   editClass: withPayload(types.EDIT_CLASS),
   deleteClass: withPayload(types.DELETE_CLASS),
+  classDeleted: withPayload(types.CLASS_DELETED),
   fetchClassSchedules: withPayload(types.FETCH_CLASS_SCHEDULES),
   setClassSchedules: withPayload(types.SET_CLASS_SCHEDULES),
   fetchClassBookings: withPayload(types.FETCH_CLASS_BOOKINGS),
@@ -195,6 +199,17 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('fetchingRecurringBookings', false)
         .set('recurringBookings', payload.recurringBookings)
         .set('addedRecurring', {});
+    }
+    case types.NEW_CLASS_ADDED: {
+      var classSchedules = state.get('classSchedules').push(payload.classEvent);
+      return state.set('classSchedules', classSchedules);
+    }
+    case types.CLASS_DELETED: {
+      var classSchedules = state.get('classSchedules');
+
+      var idx = classSchedules.findIndex(element => element.id === payload.id);
+      classSchedules = classSchedules.splice(idx, 1);
+      return state.set('classSchedules', classSchedules);
     }
     default:
       return state;

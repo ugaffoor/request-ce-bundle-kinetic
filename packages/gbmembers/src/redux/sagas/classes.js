@@ -188,6 +188,14 @@ export function* newClass(action) {
       include: SUBMISSION_INCLUDES,
     });
     console.log('submission:' + submission);
+    action.payload.classEvent.id = submission.id;
+    action.payload.classEvent.classID = submission.id;
+    yield put(
+      actions.newClassAdded({
+        values: action.payload.values,
+        classEvent: action.payload.classEvent,
+      }),
+    );
   } catch (error) {
     console.log('Error in createClass: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));
@@ -215,6 +223,12 @@ export function* deleteClass(action) {
       id: action.payload.id,
       datastore: true,
     });
+
+    yield put(
+      actions.classDeleted({
+        id: action.payload.id,
+      }),
+    );
 
     console.log('deleteClass');
   } catch (error) {

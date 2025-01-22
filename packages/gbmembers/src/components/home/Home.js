@@ -366,7 +366,7 @@ export const HomeContainer = compose(
         paymentSource: 'ALL',
         dateField: 'PAYMENT',
         dateFrom: moment()
-          .subtract(2, 'month')
+          .subtract(3, 'month')
           .format('YYYY-MM-DD'),
         dateTo: moment().format('YYYY-MM-DD'),
         setPaymentHistory: setPaymentHistory,
