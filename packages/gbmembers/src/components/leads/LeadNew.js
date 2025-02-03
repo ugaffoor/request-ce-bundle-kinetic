@@ -35,6 +35,7 @@ import MomentLocaleUtils, {
 } from 'react-day-picker/moment';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { I18n } from '../../../../app/src/I18nProvider';
+import Autocomplete from 'react-google-autocomplete';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -377,6 +378,72 @@ export class LeadNew extends Component {
                   </div>
                 )}
               </span>
+              {getAttributeValue(this.props.space, 'Franchisor') !== 'YES' && (
+                <span className="line">
+                  <Autocomplete
+                    apiKey={'AIzaSyA-tujnpf8Jy33hVaJ_9GtRdMgHw4jvnwo'}
+                    placeholder="Lookup Address"
+                    style={{
+                      width: '400px',
+                      borderTop: 'none',
+                      borderRight: 'none',
+                      borderWidth: '1px',
+                      borderLeftStyle: 'dashed',
+                      borderBottomStyle: 'dashed',
+                      backgroundColor: '#f1eeee',
+                    }}
+                    onPlaceSelected={place => {
+                      this.props.leadItem.values['Address'] = '';
+                      for (
+                        var i = 0;
+                        i < place.address_components.length;
+                        i++
+                      ) {
+                        var addressType = place.address_components[i].types[0];
+
+                        if (addressType === 'street_number') {
+                          this.props.leadItem.values['Address'] =
+                            place.address_components[i]['long_name'];
+                          $('#address').val(
+                            this.props.leadItem.values['Address'],
+                          );
+                        }
+                        if (addressType === 'route') {
+                          this.props.leadItem.values['Address'] =
+                            this.props.leadItem.values['Address'] +
+                            ' ' +
+                            place.address_components[i]['long_name'];
+                          $('#address').val(
+                            this.props.leadItem.values['Address'],
+                          );
+                        }
+                        if (addressType === 'locality') {
+                          this.props.leadItem.values['Suburb'] =
+                            place.address_components[i]['long_name'];
+                          $('#suburb').val(
+                            this.props.leadItem.values['Suburb'],
+                          );
+                        }
+                        if (addressType === 'administrative_area_level_1') {
+                          this.props.leadItem.values['State'] =
+                            place.address_components[i]['short_name'];
+                          $('#state').val(this.props.leadItem.values['State']);
+                        }
+                        if (addressType === 'postal_code') {
+                          this.props.leadItem.values['Postcode'] =
+                            place.address_components[i]['short_name'];
+                          $('#postcode').val(
+                            this.props.leadItem.values['Postcode'],
+                          );
+                        }
+                      }
+                    }}
+                    options={{
+                      types: ['geocode'],
+                    }}
+                  />
+                </span>
+              )}
               <span className="line">
                 <div>
                   <label htmlFor="address">Address</label>

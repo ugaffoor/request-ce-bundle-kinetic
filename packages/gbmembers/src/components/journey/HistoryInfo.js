@@ -73,7 +73,7 @@ export class HistoryInfo extends Component {
                           : ''}
                       </span>
                       <span className="lastContact">
-                        {item['note'].length > 60
+                        {item['note'] !== undefined && item['note'].length > 60
                           ? item['note'].substring(0, 60) + '...'
                           : item['note']}
                       </span>

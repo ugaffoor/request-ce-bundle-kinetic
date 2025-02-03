@@ -48,6 +48,7 @@ import { RecentNotificationsContainer } from '../notifications/RecentNotificatio
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { actions as appActions } from '../../redux/modules/memberApp';
 import { actions as posActions } from '../../redux/modules/pos';
+import { actions as servicesActions } from '../../redux/modules/services';
 import printerIcon from '../../images/Print.svg?raw';
 import { MembershipReceiptToPrint } from './MembershipReceiptToPrint';
 import ReactToPrint from 'react-to-print';
@@ -98,6 +99,8 @@ const mapStateToProps = state => ({
   snippets: state.member.app.snippets,
   memberCashPayments: state.member.members.memberCashPayments,
   memberCashPaymentsLoading: state.member.members.memberCashPaymentsLoading,
+  membershipServices: state.member.services.membershipServices,
+  membershipServicesLoading: state.member.services.membershipServicesLoading,
 });
 
 const mapDispatchToProps = {
@@ -127,6 +130,8 @@ const mapDispatchToProps = {
   setSidebarDisplayType: appActions.setSidebarDisplayType,
   addCashPayment: actions.addCashPayment,
   fetchMemberCashPayments: actions.fetchMemberCashPayments,
+  fetchBillingChangeByBillingReference:
+    servicesActions.fetchBillingChangeByBillingReference,
 };
 
 const ezidebit_date_format = 'YYYY-MM-DD HH:mm:ss';
@@ -1450,20 +1455,29 @@ export class PaymentHistory extends Component {
     if (
       !nextProps.paymentHistoryLoading &&
       !nextProps.setupPaymentHistoryLoading &&
-      !nextProps.memberCashPaymentsLoading
+      !nextProps.memberCashPaymentsLoading &&
+      !nextProps.membershipServicesLoading
     ) {
       this.paymentHistory = nextProps.paymentHistory;
       this.setState({
         data: this.getData(
+          this.props.memberItem,
           nextProps.paymentHistory,
           nextProps.memberCashPayments,
           nextProps.setupPaymentHistory,
+          nextProps.membershipServices,
         ),
       });
     }
   }
 
-  getData(payments, memberCashPayments, setupfees) {
+  getData(
+    memberItem,
+    payments,
+    memberCashPayments,
+    setupfees,
+    membershipServices,
+  ) {
     var successfulPayments = [];
     payments.forEach((payment, i) => {
       if (payment.paymentStatus !== 'Refund') {
@@ -1676,45 +1690,53 @@ export class PaymentHistory extends Component {
     columns.push({
       headerClassName: 'print',
       className: 'print',
-      Cell: row => (
-        <span className="col-sm-2 orderreceipt">
-          <span style={{ display: 'none' }}>
-            <MembershipReceiptToPrint
-              memberItem={this.props.memberItem}
-              familyMembers={this.props.familyMembers}
-              locale={this.props.locale}
-              currency={this.props.currency}
-              payment={row.original}
-              paymentID={row.original['paymentID']}
-              paymentMethod={row.original['paymentMethod']}
-              status={
-                this.isPaymentRefunded(row.original.paymentID, paymentsRefunded)
-                  ? 'Refunded'
-                  : 'Approved'
-              }
-              total={row.original.paymentAmount}
-              datetime={moment(row.original.debitDate, 'YYYY-MM-DD HH:mm:SS')}
-              space={this.props.space}
-              snippets={this.props.snippets}
-              name={
-                this.props.memberItem.values['First Name'] +
-                ' ' +
-                this.props.memberItem.values['Last Name']
-              }
-              ref={el => this.rowRecieptsRefs.set(row.original._id, el)}
-            />
+      Cell: row =>
+        (row.original.paymentStatus === 'S' ||
+          row.original.paymentStatus === 'paid' ||
+          row.original.paymentStatus === 'Settled' ||
+          row.original.paymentStatus === 'Approved') && (
+          <span className="col-sm-2 orderreceipt">
+            <span style={{ display: 'none' }}>
+              <MembershipReceiptToPrint
+                memberItem={this.props.memberItem}
+                membershipServices={this.props.membershipServices}
+                familyMembers={this.props.familyMembers}
+                locale={this.props.locale}
+                currency={this.props.currency}
+                payment={row.original}
+                paymentID={row.original['paymentID']}
+                paymentMethod={row.original['paymentMethod']}
+                status={
+                  this.isPaymentRefunded(
+                    row.original.paymentID,
+                    paymentsRefunded,
+                  )
+                    ? 'Refunded'
+                    : 'Approved'
+                }
+                total={row.original.paymentAmount}
+                datetime={moment(row.original.debitDate, 'YYYY-MM-DD HH:mm:SS')}
+                space={this.props.space}
+                snippets={this.props.snippets}
+                name={
+                  this.props.memberItem.values['First Name'] +
+                  ' ' +
+                  this.props.memberItem.values['Last Name']
+                }
+                ref={el => this.rowRecieptsRefs.set(row.original._id, el)}
+              />
+            </span>
+            <span className="printReceipt">
+              <ReactToPrint
+                trigger={() => (
+                  <SVGInline svg={printerIcon} className="icon barcodePrint" />
+                )}
+                content={() => this.rowRecieptsRefs.get(row.original._id)}
+                pageStyle="@page {size: a4 portrait;margin: 0;}"
+              />
+            </span>
           </span>
-          <span className="printReceipt">
-            <ReactToPrint
-              trigger={() => (
-                <SVGInline svg={printerIcon} className="icon barcodePrint" />
-              )}
-              content={() => this.rowRecieptsRefs.get(row.original._id)}
-              pageStyle="@page {size: a4 portrait;margin: 0;}"
-            />
-          </span>
-        </span>
-      ),
+        ),
     });
     return columns;
   }
@@ -2133,6 +2155,11 @@ export class BillingInfo extends Component {
       this.getPaymentHistory();
       this.props.fetchMemberCashPayments({
         id: this.props.memberItem.id,
+      });
+      this.props.fetchBillingChangeByBillingReference({
+        franchisor: getAttributeValue(this.props.space, 'Franchisor'),
+        billingCompany: getAttributeValue(this.props.space, 'Billing Company'),
+        billingCustomerRef: this.props.memberItem.values['Billing Customer Id'],
       });
     }
 
@@ -3038,6 +3065,10 @@ export class BillingInfo extends Component {
                   memberCashPaymentsLoading={
                     this.props.memberCashPaymentsLoading
                   }
+                  membershipServices={this.props.membershipServices}
+                  membershipServicesLoading={
+                    this.props.membershipServicesLoading
+                  }
                 />
               )}
             </div>
@@ -3131,6 +3162,9 @@ export const Billing = ({
   memberCashPayments,
   memberCashPaymentsLoading,
   fetchMemberCashPayments,
+  membershipServices,
+  membershipServicesLoading,
+  fetchBillingChangeByBillingReference,
 }) =>
   currentMemberLoading ? (
     <div />
@@ -3190,6 +3224,11 @@ export const Billing = ({
               memberCashPayments={memberCashPayments}
               memberCashPaymentsLoading={memberCashPaymentsLoading}
               fetchMemberCashPayments={fetchMemberCashPayments}
+              membershipServices={membershipServices}
+              membershipServicesLoading={membershipServicesLoading}
+              fetchBillingChangeByBillingReference={
+                fetchBillingChangeByBillingReference
+              }
             />
           )}
           {/*(memberItem.values['Billing Customer Id'] === null ||

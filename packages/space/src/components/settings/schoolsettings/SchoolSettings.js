@@ -386,6 +386,18 @@ class SchoolAttributes extends Component {
             appSpace={this.props.appSpace}
             profile={this.props.profile}
           />
+          <EditAttributeValue
+            attributeID="cancellationDuration"
+            attributeName="Cancellation Duration"
+            inputType="Integer"
+            width="40px"
+            labelName="Cancellation Duration"
+            helpText="Number of days a Cancellation notification is expected to be provided, this will display in the Terms and Conditions"
+            updateSpaceAttribute={this.props.updateSpaceAttribute}
+            space={this.props.space}
+            appSpace={this.props.appSpace}
+            profile={this.props.profile}
+          />
         </span>
         {Utils.getAttributeValue(this.props.space, 'Billing Company') ===
           'Bambora' && (
@@ -546,6 +558,18 @@ class SchoolAttributes extends Component {
             width="400px"
             labelName="Calendar Widget Thank you URL"
             helpText="A fully qualified URL for your website that is loading the Calendar widget.<br>This allows you to provide a custom thank you that may also contain Google(or other) tracking code."
+            updateSpaceAttribute={this.props.updateSpaceAttribute}
+            space={this.props.space}
+            appSpace={this.props.appSpace}
+            profile={this.props.profile}
+          />
+          <EditAttributeValue
+            attributeID="trialCalendarName"
+            attributeName="Trial Calendar Name"
+            inputType="Text"
+            width="400px"
+            labelName="Trial Calendar Name"
+            helpText="This Trial Calendar Name an be used to seperate Trial Bookings from the Primary calendar events."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
             space={this.props.space}
             appSpace={this.props.appSpace}

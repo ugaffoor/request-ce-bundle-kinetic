@@ -308,6 +308,7 @@ export function* updateCurrentLead(action) {
         startDateTime: action.payload.calendarEvent.startDateTime,
         endDateTime: action.payload.calendarEvent.endDateTime,
         timeZone: action.payload.calendarEvent.timeZone,
+        calendarName: action.payload.calendarEvent.calendarName,
       };
       axios
         .post(
@@ -353,6 +354,7 @@ export function* updateCurrentLead(action) {
         attendeeEmail: action.payload.calendarDeleteEvent.attendeeEmail,
         startDateTime: action.payload.calendarDeleteEvent.startDateTime,
         timeZone: action.payload.calendarDeleteEvent.timeZone,
+        calendarName: action.payload.calendarDeleteEvent.calendarName,
       };
       axios
         .post(

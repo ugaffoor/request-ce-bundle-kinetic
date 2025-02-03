@@ -35,11 +35,14 @@ import 'react-day-picker/lib/style.css';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { I18n } from '../../../../app/src/I18nProvider';
 import Barcode from 'react-barcode';
+import Autocomplete from 'react-google-autocomplete';
 
 import MomentLocaleUtils, {
   formatDate,
   parseDate,
 } from 'react-day-picker/moment';
+
+var myThis;
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -250,7 +253,7 @@ export const MemberEdit = ({
                     className="userNameField"
                     required
                     ref={input => (this.input = input)}
-                    defaultValue={memberItem.values['Member ID']}
+                    value={memberItem.values['Member ID']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -296,7 +299,7 @@ export const MemberEdit = ({
                       : false
                   }
                   ref={input => (this.input = input)}
-                  defaultValue={memberItem.values['First Name']}
+                  value={memberItem.values['First Name']}
                   onChange={e =>
                     handleChange(
                       memberItem,
@@ -325,7 +328,7 @@ export const MemberEdit = ({
                   id="lastNames"
                   required
                   ref={input => (this.input = input)}
-                  defaultValue={memberItem.values['Last Name']}
+                  value={memberItem.values['Last Name']}
                   onChange={e =>
                     handleChange(
                       memberItem,
@@ -352,7 +355,7 @@ export const MemberEdit = ({
                     id="gender"
                     required
                     ref={input => (this.input = input)}
-                    defaultValue={memberItem.values['Gender']}
+                    value={memberItem.values['Gender']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -414,7 +417,7 @@ export const MemberEdit = ({
                           id="billingUser"
                           size="30"
                           ref={input => (this.input = input)}
-                          defaultValue={memberItem.values['Billing User']}
+                          value={memberItem.values['Billing User']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -434,7 +437,7 @@ export const MemberEdit = ({
                           id="migrated"
                           size="30"
                           ref={input => (this.input = input)}
-                          defaultValue={memberItem.values['Biller Migrated']}
+                          value={memberItem.values['Biller Migrated']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -456,7 +459,7 @@ export const MemberEdit = ({
                           id="useSubAccount"
                           size="30"
                           ref={input => (this.input = input)}
-                          defaultValue={memberItem.values['useSubAccount']}
+                          value={memberItem.values['useSubAccount']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -480,9 +483,7 @@ export const MemberEdit = ({
                           id="ccExpiryMonth"
                           size="30"
                           ref={input => (this.input = input)}
-                          defaultValue={
-                            memberItem.values['Credit Card Expiry Month']
-                          }
+                          value={memberItem.values['Credit Card Expiry Month']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -504,9 +505,7 @@ export const MemberEdit = ({
                           id="ccExpiryYear"
                           size="30"
                           ref={input => (this.input = input)}
-                          defaultValue={
-                            memberItem.values['Credit Card Expiry Year']
-                          }
+                          value={memberItem.values['Credit Card Expiry Year']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -528,9 +527,7 @@ export const MemberEdit = ({
                           id="billingId"
                           size="30"
                           ref={input => (this.input = input)}
-                          defaultValue={
-                            memberItem.values['Billing Customer Id']
-                          }
+                          value={memberItem.values['Billing Customer Id']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -550,7 +547,7 @@ export const MemberEdit = ({
                           id="billingRef"
                           size="30"
                           ref={input => (this.input = input)}
-                          defaultValue={
+                          value={
                             memberItem.values['Billing Customer Reference']
                           }
                           onChange={e =>
@@ -574,9 +571,7 @@ export const MemberEdit = ({
                           id="billingId"
                           size="30"
                           ref={input => (this.input = input)}
-                          defaultValue={
-                            memberItem.values['Billing Setup Fee Id']
-                          }
+                          value={memberItem.values['Billing Setup Fee Id']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -598,9 +593,7 @@ export const MemberEdit = ({
                           id="billingId"
                           size="30"
                           ref={input => (this.input = input)}
-                          defaultValue={
-                            memberItem.values['Billing Setup Fee Type']
-                          }
+                          value={memberItem.values['Billing Setup Fee Type']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -624,9 +617,7 @@ export const MemberEdit = ({
                           id="billingPaymentType"
                           size="30"
                           ref={input => (this.input = input)}
-                          defaultValue={
-                            memberItem.values['Billing Payment Type']
-                          }
+                          value={memberItem.values['Billing Payment Type']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -648,9 +639,7 @@ export const MemberEdit = ({
                           id="billingPaymentPeriod"
                           size="30"
                           ref={input => (this.input = input)}
-                          defaultValue={
-                            memberItem.values['Billing Payment Period']
-                          }
+                          value={memberItem.values['Billing Payment Period']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -670,7 +659,7 @@ export const MemberEdit = ({
                           id="billingPeriod"
                           size="30"
                           ref={input => (this.input = input)}
-                          defaultValue={memberItem.values['Billing Period']}
+                          value={memberItem.values['Billing Period']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -692,7 +681,7 @@ export const MemberEdit = ({
                           id="billingPayment"
                           size="30"
                           ref={input => (this.input = input)}
-                          defaultValue={memberItem.values['Payment']}
+                          value={memberItem.values['Payment']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -712,7 +701,7 @@ export const MemberEdit = ({
                           id="membershipCost"
                           size="30"
                           ref={input => (this.input = input)}
-                          defaultValue={memberItem.values['Membership Cost']}
+                          value={memberItem.values['Membership Cost']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -736,7 +725,7 @@ export const MemberEdit = ({
                           id="billingStartDate"
                           size="30"
                           ref={input => (this.input = input)}
-                          defaultValue={memberItem.values['Billing Start Date']}
+                          value={memberItem.values['Billing Start Date']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -758,9 +747,7 @@ export const MemberEdit = ({
                           id="billingParentMember"
                           size="30"
                           ref={input => (this.input = input)}
-                          defaultValue={
-                            memberItem.values['Billing Parent Member']
-                          }
+                          value={memberItem.values['Billing Parent Member']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -784,9 +771,7 @@ export const MemberEdit = ({
                           id="billingFamilyMembers"
                           size="90"
                           ref={input => (this.input = input)}
-                          defaultValue={
-                            memberItem.values['Billing Family Members']
-                          }
+                          value={memberItem.values['Billing Family Members']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -808,7 +793,7 @@ export const MemberEdit = ({
                           id="resumeDate"
                           size="30"
                           ref={input => (this.input = input)}
-                          defaultValue={memberItem.values['Resume Date']}
+                          value={memberItem.values['Resume Date']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -830,7 +815,7 @@ export const MemberEdit = ({
                           id="posProfileID"
                           size="30"
                           ref={input => (this.input = input)}
-                          defaultValue={memberItem.values['POS Profile ID']}
+                          value={memberItem.values['POS Profile ID']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -852,9 +837,7 @@ export const MemberEdit = ({
                           id="registeredWithCard"
                           size="30"
                           ref={input => (this.input = input)}
-                          defaultValue={
-                            memberItem.values['Registered with Card']
-                          }
+                          value={memberItem.values['Registered with Card']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -878,9 +861,7 @@ export const MemberEdit = ({
                           id="emailsReceivedCount"
                           size="30"
                           ref={input => (this.input = input)}
-                          defaultValue={
-                            memberItem.values['Emails Received Count']
-                          }
+                          value={memberItem.values['Emails Received Count']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -902,7 +883,7 @@ export const MemberEdit = ({
                           id="leadSubmissionID"
                           size="30"
                           ref={input => (this.input = input)}
-                          defaultValue={memberItem.values['Lead Submission ID']}
+                          value={memberItem.values['Lead Submission ID']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -924,7 +905,7 @@ export const MemberEdit = ({
                           id="statusHistory"
                           size="50"
                           ref={input => (this.input = input)}
-                          defaultValue={memberItem.values['Status History']}
+                          value={memberItem.values['Status History']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -946,7 +927,7 @@ export const MemberEdit = ({
                           id="notesHistory"
                           size="50"
                           ref={input => (this.input = input)}
-                          defaultValue={memberItem.values['Notes History']}
+                          value={memberItem.values['Notes History']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -968,7 +949,7 @@ export const MemberEdit = ({
                           id="photo"
                           size="50"
                           ref={input => (this.input = input)}
-                          defaultValue={memberItem.values['Photo']}
+                          value={memberItem.values['Photo']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -992,9 +973,7 @@ export const MemberEdit = ({
                           id="lastAttendanceDate"
                           size="50"
                           ref={input => (this.input = input)}
-                          defaultValue={
-                            memberItem.values['Last Attendance Date']
-                          }
+                          value={memberItem.values['Last Attendance Date']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -1018,7 +997,7 @@ export const MemberEdit = ({
                           id="refundedHistory"
                           size="50"
                           ref={input => (this.input = input)}
-                          defaultValue={memberItem.values['Refunded Payments']}
+                          value={memberItem.values['Refunded Payments']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -1042,7 +1021,7 @@ export const MemberEdit = ({
                           id="cashStart"
                           size="50"
                           ref={input => (this.input = input)}
-                          defaultValue={
+                          value={
                             memberItem.values['Billing Cash Term Start Date']
                           }
                           onChange={e =>
@@ -1066,7 +1045,7 @@ export const MemberEdit = ({
                           id="cashEnd"
                           size="50"
                           ref={input => (this.input = input)}
-                          defaultValue={
+                          value={
                             memberItem.values['Billing Cash Term End Date']
                           }
                           onChange={e =>
@@ -1085,8 +1064,90 @@ export const MemberEdit = ({
                 )}
               </span>
             )}
+            {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+              <span className="line">
+                <Autocomplete
+                  apiKey={'AIzaSyA-tujnpf8Jy33hVaJ_9GtRdMgHw4jvnwo'}
+                  placeholder="Lookup Address"
+                  style={{
+                    width: '400px',
+                    borderTop: 'none',
+                    borderRight: 'none',
+                    borderWidth: '1px',
+                    borderLeftStyle: 'dashed',
+                    borderBottomStyle: 'dashed',
+                    backgroundColor: '#f1eeee',
+                  }}
+                  onPlaceSelected={place => {
+                    memberItem.values['Address'] = '';
+                    for (var i = 0; i < place.address_components.length; i++) {
+                      var addressType = place.address_components[i].types[0];
 
-            {}
+                      if (addressType === 'street_number') {
+                        var newValue = place.address_components[i]['long_name'];
+                        handleChange(
+                          memberItem,
+                          'Address',
+                          { target: { value: newValue } },
+                          setIsDirty,
+                          memberChanges,
+                        );
+                      }
+                      if (addressType === 'route') {
+                        var newValue =
+                          memberItem.values['Address'] +
+                          ' ' +
+                          place.address_components[i]['long_name'];
+                        handleChange(
+                          memberItem,
+                          'Address',
+                          { target: { value: newValue } },
+                          setIsDirty,
+                          memberChanges,
+                        );
+                      }
+                      if (addressType === 'locality') {
+                        var newValue = place.address_components[i]['long_name'];
+                        handleChange(
+                          memberItem,
+                          'Suburb',
+                          { target: { value: newValue } },
+                          setIsDirty,
+                          memberChanges,
+                        );
+                      }
+                      if (addressType === 'administrative_area_level_1') {
+                        var newValue =
+                          place.address_components[i]['short_name'];
+                        handleChange(
+                          memberItem,
+                          'State',
+                          { target: { value: newValue } },
+                          setIsDirty,
+                          memberChanges,
+                        );
+                      }
+                      if (addressType === 'postal_code') {
+                        var newValue =
+                          place.address_components[i]['short_name'];
+                        handleChange(
+                          memberItem,
+                          'Postcode',
+                          { target: { value: newValue } },
+                          setIsDirty,
+                          memberChanges,
+                        );
+                      }
+                    }
+                    setIsDirty(true);
+                    myThis.setState({ dummy: true });
+                  }}
+                  options={{
+                    types: ['geocode'],
+                  }}
+                />
+              </span>
+            )}
             <span className="line">
               <div>
                 <label
@@ -1104,16 +1165,16 @@ export const MemberEdit = ({
                   size="80"
                   required
                   ref={input => (this.input = input)}
-                  defaultValue={memberItem.values['Address']}
-                  onChange={e =>
+                  value={memberItem.values['Address']}
+                  onChange={e => {
                     handleChange(
                       memberItem,
                       'Address',
                       e,
                       setIsDirty,
                       memberChanges,
-                    )
-                  }
+                    );
+                  }}
                 />
               </div>
             </span>
@@ -1133,7 +1194,7 @@ export const MemberEdit = ({
                   id="suburb"
                   required
                   ref={input => (this.input = input)}
-                  defaultValue={memberItem.values['Suburb']}
+                  value={memberItem.values['Suburb']}
                   onChange={e =>
                     handleChange(
                       memberItem,
@@ -1153,7 +1214,7 @@ export const MemberEdit = ({
                     id="country"
                     required
                     ref={input => (this.input = input)}
-                    defaultValue={memberItem.values['Country']}
+                    value={memberItem.values['Country']}
                     onChange={e => {
                       memberItem.myThis = myThis;
                       handleCountryChange(
@@ -1192,7 +1253,7 @@ export const MemberEdit = ({
                       id="state"
                       required
                       ref={input => (this.input = input)}
-                      defaultValue={memberItem.values['State']}
+                      value={memberItem.values['State']}
                       onChange={e =>
                         handleChange(
                           memberItem,
@@ -1225,7 +1286,7 @@ export const MemberEdit = ({
                       id="state"
                       required
                       ref={input => (this.input = input)}
-                      defaultValue={memberItem.values['State']}
+                      value={memberItem.values['State']}
                       onChange={e =>
                         handleChange(
                           memberItem,
@@ -1266,7 +1327,7 @@ export const MemberEdit = ({
                     size="10"
                     required
                     ref={input => (this.input = input)}
-                    defaultValue={memberItem.values['Postcode']}
+                    value={memberItem.values['Postcode']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -1317,7 +1378,7 @@ export const MemberEdit = ({
                   size="40"
                   required
                   ref={input => (this.input = input)}
-                  defaultValue={memberItem.values['Email']}
+                  value={memberItem.values['Email']}
                   onChange={e => {
                     if (e.target.value !== null)
                       e.target.value = e.target.value.trim().toLowerCase();
@@ -1344,7 +1405,7 @@ export const MemberEdit = ({
                   id="additionalEmail"
                   size="40"
                   ref={input => (this.input = input)}
-                  defaultValue={memberItem.values['Additional Email']}
+                  value={memberItem.values['Additional Email']}
                   onChange={e => {
                     if (e.target.value !== null)
                       e.target.value = e.target.value.trim().toLowerCase();
@@ -1513,7 +1574,7 @@ export const MemberEdit = ({
                     name="membertype"
                     id="membertype"
                     ref={input => (this.input = input)}
-                    defaultValue={memberItem.values['Member Type']}
+                    value={memberItem.values['Member Type']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -1562,7 +1623,7 @@ export const MemberEdit = ({
                   id="emergencyname"
                   required
                   ref={input => (this.input = input)}
-                  defaultValue={memberItem.values['Emergency Contact Name']}
+                  value={memberItem.values['Emergency Contact Name']}
                   onChange={e =>
                     handleChange(
                       memberItem,
@@ -1594,9 +1655,7 @@ export const MemberEdit = ({
                     id="relationship"
                     required
                     ref={input => (this.input = input)}
-                    defaultValue={
-                      memberItem.values['Emergency Contact Relationship']
-                    }
+                    value={memberItem.values['Emergency Contact Relationship']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -1657,7 +1716,7 @@ export const MemberEdit = ({
                     name="alergies"
                     id="alergies"
                     ref={input => (this.input = input)}
-                    defaultValue={memberItem.values['Medical Allergies']}
+                    value={memberItem.values['Medical Allergies']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -1694,7 +1753,7 @@ export const MemberEdit = ({
                     id="program"
                     required
                     ref={input => (this.input = input)}
-                    defaultValue={memberItem.values['Ranking Program']}
+                    value={memberItem.values['Ranking Program']}
                     onChange={e => {
                       handleChange(
                         memberItem,
@@ -1736,7 +1795,7 @@ export const MemberEdit = ({
                     id="belt"
                     required
                     ref={input => (this.input = input)}
-                    defaultValue={memberItem.values['Ranking Belt']}
+                    value={memberItem.values['Ranking Belt']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -1804,7 +1863,7 @@ export const MemberEdit = ({
                     name="attendanceCount"
                     id="attendanceCount"
                     ref={input => (this.input = input)}
-                    defaultValue={memberItem.values['Attendance Count']}
+                    value={memberItem.values['Attendance Count']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -1825,7 +1884,7 @@ export const MemberEdit = ({
                     name="maxWeeklyClasses"
                     id="maxWeeklyClasses"
                     ref={input => (this.input = input)}
-                    defaultValue={memberItem.values['Max Weekly Classes']}
+                    value={memberItem.values['Max Weekly Classes']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -2615,7 +2674,7 @@ export const MemberEdit = ({
                     name="additionalprogram1"
                     id="additionalprogram1"
                     ref={input => (this.input = input)}
-                    defaultValue={memberItem.values['Additional Program 1']}
+                    value={memberItem.values['Additional Program 1']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -2643,7 +2702,7 @@ export const MemberEdit = ({
                     name="additionalprogram2"
                     id="additionalprogram2"
                     ref={input => (this.input = input)}
-                    defaultValue={memberItem.values['Additional Program 2']}
+                    value={memberItem.values['Additional Program 2']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -2671,7 +2730,7 @@ export const MemberEdit = ({
                     name="covid19"
                     id="covid19"
                     ref={input => (this.input = input)}
-                    defaultValue={memberItem.values['Covid19 Waiver']}
+                    value={memberItem.values['Covid19 Waiver']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -2698,7 +2757,7 @@ export const MemberEdit = ({
                     name="alternateBarcode"
                     id="alternateBarcode"
                     ref={input => (this.input = input)}
-                    defaultValue={memberItem.values['Alternate Barcode']}
+                    value={memberItem.values['Alternate Barcode']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -2990,6 +3049,7 @@ export const MemberEditContainer = compose(
       }
     },
     componentDidMount() {
+      myThis = this;
       this.props.setSidebarDisplayType('members');
       $('.content')
         .parent('div')[0]

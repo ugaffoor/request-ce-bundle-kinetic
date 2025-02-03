@@ -729,11 +729,11 @@ export function* fetchNewMember(action) {
   };
   yield put(actions.setNewMember(member));
   console.log('fetchNewMember:' + member);
-  if (action.payload.myThis) member.myThis = action.payload.myThis;
+  /*  if (action.payload.myThis) member.myThis = action.payload.myThis;
   if (action.payload.history) member.history = action.payload.history;
   if (action.payload.fetchMembers)
     member.fetchMembers = action.payload.fetchMembers;
-  if (action.payload.allMembers) member.allMembers = action.payload.allMembers;
+  if (action.payload.allMembers) member.allMembers = action.payload.allMembers;*/
 }
 
 export function* updateCurrentMember(action) {

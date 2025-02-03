@@ -90,8 +90,8 @@ const DatastoreSubmissionComponent = ({
       <div className="page-panel page-panel--three-fifths page-panel--space-datastore-submission page-panel--scrollable">
         <div className="page-title">
           <div className="page-title__wrapper">
-            {isSpaceAdmin && (
-              <h3>
+            <h3>
+              {/*
                 <Link to="/">
                   <I18n>home</I18n>
                 </Link>{' '}
@@ -103,13 +103,12 @@ const DatastoreSubmissionComponent = ({
                 <Link to={`/settings/datastore/`}>
                   <I18n>datastore</I18n>
                 </Link>{' '}
-                /{` `}
-                <Link to={`/settings/datastore/${form.slug}/`}>
-                  <I18n>{form.name}</I18n>
-                </Link>{' '}
-                /
-              </h3>
-            )}
+                /{` `} )*/}
+              <Link to={`/settings/datastore/${form.slug}/`}>
+                <I18n>{form.name}</I18n>
+              </Link>{' '}
+              /
+            </h3>
             <h1>
               {submissionId ? (
                 submission ? (
@@ -233,6 +232,8 @@ export const handleLoaded = props => form => {
       onCallScriptFormLoaded();
     } else if (props.form.slug === 'email-templates') {
       onEmailTemplateFormLoaded(props.snippets);
+    } else if (props.form.slug === 'terms-and-conditions') {
+      onTermsFormLoaded();
     }
   } else if (props.submissionId) {
     if (props.form.slug === 'email-templates') {
@@ -240,6 +241,36 @@ export const handleLoaded = props => form => {
     }
   }
 };
+function onTermsFormLoaded() {
+  $("[data-element-name='Terms Information']").css({
+    'line-height': 0,
+    height: 0,
+    overflow: 'hidden',
+  });
+  let termsContent = $("[name='Terms Information']").val();
+  ReactDOM.render(
+    <ScriptEditor
+      text={termsContent}
+      label="Terms and Conditions"
+      elementName="Terms Information"
+    />,
+    document.getElementById('terms_editor'),
+  );
+  $("[data-element-name='Submit Button']").click(onTermsFormSubmit);
+}
+function onTermsFormSubmit() {
+  if ($("[name='Terms Information']").val().length <= 0) {
+    $('.quill').css({
+      'border-color': 'red',
+      'border-style': 'solid',
+      'border-width': '1px',
+    });
+    $('#quill_editor_label').css({ color: 'red' });
+  } else {
+    $('.quill').css({ 'border-color': '#d3dce7', 'border-style': 'none' });
+    $('#quill_editor_label').css({ color: 'rgba(34, 34, 34, 0.75)' });
+  }
+}
 
 function onCallScriptFormLoaded() {
   $("[data-element-name='Script']").css({

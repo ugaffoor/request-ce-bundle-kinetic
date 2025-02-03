@@ -1733,12 +1733,11 @@ export const MemberView = ({
                 memberItem.values['Billing Payment Type'] !== 'Cash' &&
                 (memberItem.values['Biller Migrated'] === null ||
                   memberItem.values['Biller Migrated'] === undefined ||
-                  memberItem.values['Biller Migrated'] !== 'YES') &&
-                  (memberItem.values['Billing Customer Reference'] === null ||
+                  memberItem.values['Biller Migrated'] !== 'YES') && (
+                  /*(memberItem.values['Billing Customer Reference'] === null ||
                     memberItem.values['Billing Customer Reference'] ===
                       undefined ||
-                    memberItem.values['Billing Customer Reference'] === '') && (
-                  <div>
+                    memberItem.values['Billing Customer Reference'] === '') &&*/ <div>
                     <button
                       onClick={e => setShowBamboraActivate(true)}
                       className="btn btn-primary"
@@ -1868,7 +1867,7 @@ export const MemberView = ({
                       className="float-right"
                       dateFormat="L"
                       onChange={handleDateChange}
-                      defaultValue={moment()}
+                      value={moment(contactDate, contact_date_format)}
                     />
                     {contactDate === 'Invalid date' && (
                       <span className="invaliddate">Invalid Date</span>
@@ -2659,6 +2658,7 @@ export const MemberViewContainer = compose(
           allMembers: nextProps.allMembers,
         });
         this.props.setShowChangeStatusModal(false);
+        this.props.setContactDate(moment().format(contact_date_format));
       }
       if (
         nextProps.memberItem.values &&

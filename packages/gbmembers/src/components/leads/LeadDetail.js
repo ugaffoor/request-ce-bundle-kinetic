@@ -1231,6 +1231,7 @@ export const LeadDetailContainer = compose(
             : ''),
         attendeeEmail: leadItem.values['Email'],
         timeZone: getTimezone(profile.timezone, space.defaultTimezone),
+        calendarName: getAttributeValue(space, 'Trial Calendar Name'),
       };
       let startDateTime = moment(contactDate, 'YYYY-MM-DD HH:mm');
       let rfcStartDateTime = startDateTime.utc().format('YYYY-MM-DDTHH:mm:ssZ');
@@ -1384,6 +1385,7 @@ export const LeadDetailContainer = compose(
           location: getAttributeValue(space, 'School Address'),
           attendeeEmail: leadItem.values['Email'],
           timeZone: getTimezone(profile.timezone, space.defaultTimezone),
+          calendarName: getAttributeValue(space, 'Trial Calendar Name'),
         };
 
         let startDateTime = moment(newHistory.contactDate, 'YYYY-MM-DD HH:mm');
