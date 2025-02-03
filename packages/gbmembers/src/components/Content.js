@@ -26,7 +26,6 @@ import { CampaignContainer } from './send/Send';
 import { EmailCampaignContainer } from './send/NewEmailCampaign';
 import { SmsCampaignContainer } from './send/NewSmsCampaign';
 import { DDRTemplatesContainer } from './DDRTemplates';
-import { SettingsContainer } from './settings/Settings';
 import { FormContainer } from './form/FormContainer';
 import { ReportsContainer } from './reports/Reports';
 import { EmailEventContainer } from './journey/EmailEvent';
@@ -73,7 +72,6 @@ export const Content = ({ isKiosk }) => (
       component={SmsCampaignContainer}
     />
     <Route path="/ddrTemplates" component={DDRTemplatesContainer} />
-    <Route path="/Settings" component={SettingsContainer} />
     <Route exact path="/forms/:formSlug" component={FormContainer} />
     <Route
       exact

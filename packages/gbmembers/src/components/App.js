@@ -10,6 +10,7 @@ import { HeaderContainer } from './HeaderContainer';
 import { LoginModal } from './authentication/LoginModal';
 import { LiveChatWidget, EventHandlerPayload } from '@livechat/widget-react';
 import { getAttributeValue } from '../lib/react-kinops-components/src/utils';
+import { Loading } from 'common';
 
 export const App = ({ loading, isKiosk, space, profile }) => (
   <div>
@@ -28,7 +29,7 @@ export const App = ({ loading, isKiosk, space, profile }) => (
       }
     </Helmet>
     {loading ? (
-      <div />
+      <Loading text="GB Members loading ..." />
     ) : (
       <div className="app gbmembers">
         <HeaderContainer />

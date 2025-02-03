@@ -38,6 +38,9 @@ import './tinymce.min.js';
 import { TinyMCEComponent, createEditorStore } from 'mb-react-tinymce';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { actions as appActions } from '../../redux/modules/memberApp';
+import '../helpers/jquery.multiselect.js';
+
+<script src="../helpers/jquery.multiselect.js" />;
 
 const Datetime = require('react-datetime');
 
@@ -93,6 +96,7 @@ export class NewEmailCampaign extends Component {
     this.createCampaign = this.createCampaign.bind(this);
     this.getSelectOptions = this.getSelectOptions.bind(this);
     this.validScheduledDate = this.validScheduledDate.bind(this);
+    var enablePreview = false;
 
     if (
       this.props.submissionId != null &&
@@ -103,6 +107,12 @@ export class NewEmailCampaign extends Component {
       );
     }
 
+    if (
+      this.props.submissionType === 'class' ||
+      this.props.submissionId != null
+    ) {
+      enablePreview = true;
+    }
     this.state = {
       schoolEmail: this.props.space.attributes['School Email'][0],
       aliasEmail: undefined,
@@ -122,6 +132,9 @@ export class NewEmailCampaign extends Component {
       ),
       selectedLeadOption: [],
       isMenuOpen: false,
+      selectMember: false,
+      enablePreview: enablePreview,
+      selectedSpecificMembers: [],
     };
     editorThis = this;
   }
@@ -196,7 +209,14 @@ export class NewEmailCampaign extends Component {
     }
   }
 
-  componentDidUpdate() {}
+  componentDidUpdate() {
+    $(this.refs.specificMembersDiv)
+      .find('select')
+      .multiselect({
+        texts: { placeholder: 'Select Members' },
+        search: true,
+      });
+  }
 
   escapeJSON(str) {
     return str.replace(/(["])/g, '\\$1');
@@ -380,17 +400,28 @@ export class NewEmailCampaign extends Component {
   }
 
   handleRecipientChange = selectedOption => {
-    this.setState({ selectedOption });
+    var enablePreview = false;
+    if (selectedOption.length > 0) enablePreview = true;
+    this.setState({
+      selectedOption,
+      enablePreview,
+    });
   };
   handleLeadRecipientChange = selectedLeadOption => {
-    this.setState({ selectedLeadOption });
+    var enablePreview = false;
+    if (selectedLeadOption.length > 0) enablePreview = true;
+    this.setState({
+      selectedLeadOption,
+      enablePreview,
+    });
   };
 
   createCampaign() {
     if (
       !this.props.submissionId &&
       this.state.selectedOption.length <= 0 &&
-      this.state.selectedLeadOption.length <= 0
+      this.state.selectedLeadOption.length <= 0 &&
+      this.state.selectedSpecificMembers.length <= 0
     ) {
       console.log('Recipients, subject and body is required');
       return;
@@ -418,6 +449,8 @@ export class NewEmailCampaign extends Component {
         .map((checkin, index) => {
           recipientIds.push(checkin.memberItem.id);
         });
+    } else if (this.state.selectedSpecificMembers.length > 0) {
+      recipientIds = this.state.selectedSpecificMembers;
     } else {
       this.state.selectedOption.forEach(option => {
         recipientIds.push(...option.members);
@@ -612,6 +645,61 @@ export class NewEmailCampaign extends Component {
                     : ''
                 }
               />
+            ) : this.state.selectMember ? (
+              <div className="row">
+                <div className="col">
+                  <fieldset
+                    className="scheduler-border"
+                    style={{ position: 'relative' }}
+                  >
+                    <legend className="scheduler-border">
+                      Specific Members
+                    </legend>
+                    <div
+                      className="form-group form-inline"
+                      ref="specificMembersDiv"
+                    >
+                      <label htmlFor="specificMembers">
+                        Specific Members(Except Inactive)&nbsp;
+                      </label>
+                      <select
+                        className="form-control"
+                        multiple
+                        id="specificMembers"
+                        ref={input => (this.input = input)}
+                        style={{ height: 'auto' }}
+                      >
+                        {this.props.allMembers
+                          .filter(
+                            member => member.values['Status'] !== 'Inactive',
+                          )
+                          .sort((a, b) => {
+                            if (
+                              a.values['Last Name'] + a.values['First Name'] <
+                              b.values['Last Name'] + b.values['First Name']
+                            ) {
+                              return -1;
+                            } else if (
+                              a.values['Last Name'] + a.values['First Name'] >
+                              b.values['Last Name'] + b.values['First Name']
+                            ) {
+                              return 1;
+                            }
+                            return 0;
+                          })
+                          .map(member => (
+                            <option key={member.id} value={member.id}>
+                              {member.values['Last Name'] +
+                                ' ' +
+                                member.values['First Name']}
+                            </option>
+                          ))}
+                      </select>
+                      <div className="droparrow" />
+                    </div>
+                  </fieldset>
+                </div>
+              </div>
             ) : this.props.submissionType === 'member' ? (
               <Select
                 value={this.state.selectedOption}
@@ -643,6 +731,39 @@ export class NewEmailCampaign extends Component {
               </div>
             )}
           </div>
+          {this.props.submissionId === undefined &&
+            this.props.submissionType === 'member' && (
+              <div className="col-md-4">
+                <button
+                  type="button"
+                  id="selectMembers"
+                  className="btn btn-primary"
+                  onClick={e => {
+                    if (this.state.selectMember) {
+                      this.setState({
+                        enablePreview: false,
+                      });
+                    }
+                    this.setState({
+                      selectMember: this.state.selectMember ? false : true,
+                      selectedSpecificMembers: [],
+                    });
+
+                    setTimeout(function() {
+                      $('#specificMembers').change(function() {
+                        console.log($(this).val());
+                        editorThis.setState({
+                          selectedSpecificMembers: $(this).val(),
+                          enablePreview: $(this).val().length > 0,
+                        });
+                      });
+                    }, 500);
+                  }}
+                >
+                  {!this.state.selectMember ? 'Select Members' : 'Cancel'}
+                </button>
+              </div>
+            )}
           <div className="col-md-3">&nbsp;</div>
         </div>
         {this.props.submissionType === 'class' && (
@@ -777,6 +898,7 @@ export class NewEmailCampaign extends Component {
                 <EmailEditor
                   ref={editor => (emailEditorRef = editor)}
                   onLoad={this.onLoadEmailTemplate}
+                  minHeight={'850px'}
                 />
               </BrowserView>
               <MobileView>
@@ -793,6 +915,7 @@ export class NewEmailCampaign extends Component {
                 <EmailEditor
                   ref={editor => (emailEditorRef = editor)}
                   onLoad={this.onLoadEmailTemplate}
+                  minHeight={'850px'}
                 />
               </TabletView>
             </span>
@@ -812,6 +935,7 @@ export class NewEmailCampaign extends Component {
               <button
                 type="button"
                 id="saveButton"
+                disabled={!this.state.enablePreview}
                 className="btn btn-primary preview_send"
                 onClick={e => this.preview()}
               >

@@ -9,7 +9,6 @@ import attendanceIcon from '../images/Attendance.svg?raw';
 import leadsIcon from '../images/Leads.svg?raw';
 import sendIcon from '../images/Send.svg?raw';
 import gradingIcon from '../images/Grading.svg?raw';
-import settingsIcon from '../images/Settings.svg?raw';
 import reportsIcon from '../images/Reports.svg?raw';
 import proShopIcon from '../images/proShop.svg?raw';
 import attentionRequired from '../images/flag.svg?raw';
@@ -104,21 +103,6 @@ export const Header = ({
             >
               <SVGInline svg={gradingIcon} className="icon" />
               <span className="appName">GRADING</span>
-            </NavLink>
-          </NavItem>
-        )}
-        {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
-          <div />
-        ) : (
-          <NavItem className="settingsNavItem">
-            <NavLink
-              to="/Settings"
-              className="nav-link icon-wrapper"
-              strict
-              activeClassName="active"
-            >
-              <SVGInline svg={settingsIcon} className="icon" />
-              <span className="appName">SETTINGS</span>
             </NavLink>
           </NavItem>
         )}

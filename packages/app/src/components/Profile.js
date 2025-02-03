@@ -41,45 +41,6 @@ export const Profile = ({
       </div>
       <div className="profile-links">
         <div className="dropdown-divider" />
-        {!isKiosk && (
-          <Link
-            to="/settings/profile"
-            className="dropdown-item"
-            onClick={toggle}
-          >
-            <I18n>Profile</I18n>
-          </Link>
-        )}
-        {/*profile.spaceAdmin && (
-          <a
-            role="button"
-            tabIndex="0"
-            onClick={openInviteOthersForm}
-            className="dropdown-item"
-          >
-            <I18n>Invite Others</I18n>
-          </a>
-        )*/}
-        {/*!isGuest && (
-          <a
-            role="button"
-            tabIndex="0"
-            onClick={openHelpForm}
-            className="dropdown-item"
-          >
-            <I18n>Get Help</I18n>
-          </a>
-        )*/}
-        {/*!isGuest && (
-          <a
-            role="button"
-            tabIndex="0"
-            onClick={openFeedbackForm}
-            className="dropdown-item"
-          >
-            <I18n>Give Feedback</I18n>
-          </a>
-        )*/}
         <div className="dropdown-item">Version:{version}</div>
         <div className="dropdown-divider" />
         <a

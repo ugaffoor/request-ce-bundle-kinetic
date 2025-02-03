@@ -9,6 +9,7 @@ import { watchSettingsUsers } from './sagas/settingsUsers';
 import { watchSettingsNotifications } from './sagas/settingsNotifications';
 import { watchSettingsRobots } from './sagas/settingsRobots';
 import { watchSettingsTranslations } from './sagas/settingsTranslations';
+import { watchJourneyTriggers } from './sagas/journeyTriggers';
 
 export default function* sagas() {
   yield all([
@@ -22,5 +23,6 @@ export default function* sagas() {
     watchForms(),
     watchSettingsUsers(),
     watchSettingsTranslations(),
+    watchJourneyTriggers(),
   ]);
 }

@@ -25,10 +25,12 @@ export const SidebarComponent = ({
   showSchedulers,
 }) => (
   <div className="sidebar space-sidebar">
-    <Link to={settingsBackPath} className="nav-return">
-      <span className="fa fa-fw fa-chevron-left" />
-      <I18n>Return to Home</I18n>
-    </Link>
+    {spaceAdmin && (
+      <Link to={settingsBackPath} className="nav-return">
+        <span className="fa fa-fw fa-chevron-left" />
+        <I18n>Return to Home</I18n>
+      </Link>
+    )}
     <div className="sidebar-group--content-wrapper">
       {!loading && (
         <ul className="nav flex-column sidebar-group">
@@ -58,6 +60,26 @@ export const SidebarComponent = ({
                 activeClassName="active"
               >
                 <I18n>Datastore</I18n>
+                <span className="fa fa-fw fa-angle-right" />
+              </NavLink>
+            )}
+            {Utils.isMemberOf(profile, 'Role::Data Admin') && (
+              <NavLink
+                to="/settings/journeytriggers"
+                className="nav-link"
+                activeClassName="active"
+              >
+                <I18n>Journey Triggers</I18n>
+                <span className="fa fa-fw fa-angle-right" />
+              </NavLink>
+            )}
+            {Utils.isMemberOf(profile, 'Role::Data Admin') && (
+              <NavLink
+                to="/settings/schoolsettings"
+                className="nav-link"
+                activeClassName="active"
+              >
+                <I18n>School Settings</I18n>
                 <span className="fa fa-fw fa-angle-right" />
               </NavLink>
             )}
@@ -170,7 +192,10 @@ export const mapStateToProps = state => ({
 export const Sidebar = compose(
   connect(mapStateToProps),
   withProps(props => ({
-    showDatastore: props.spaceAdmin || !props.forms.isEmpty(),
+    showDatastore:
+      (props.spaceAdmin ||
+        Utils.isMemberOf(props.profile, 'Role::Data Admin')) &&
+      !props.forms.isEmpty(),
     showNotifications: !!props.forms.find(
       form => form.slug === NOTIFICATIONS_FORM_SLUG,
     ),

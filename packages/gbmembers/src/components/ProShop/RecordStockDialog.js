@@ -64,6 +64,7 @@ export class RecordStockDialog extends Component {
         sizes.forEach((size, i) => {
           if (
             productSku + size === skuValue ||
+            productSku.substr(0, productSku.length - 1) + size === skuValue ||
             (size === 'ALL' && productSku === skuValue)
           ) {
             matched = true;

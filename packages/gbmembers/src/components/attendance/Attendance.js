@@ -28,19 +28,15 @@ import {
   isBamboraFailedPayment,
 } from '../Member/MemberUtils';
 import { getTimezone } from '../leads/LeadsUtils';
-import {
-  getAttributeValue,
-  setAttributeValue,
-} from '../../lib/react-kinops-components/src/utils';
-import { Utils } from 'common';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { KappNavLink as NavLink } from 'common';
-import { confirm } from '../helpers/Confirmation';
 import PinInput from 'w-react-pin-input';
 import Countdown from 'react-countdown';
 import * as selectors from '../../lib/react-kinops-components/src/redux/kinopsSelectors';
 import { FullScreen, useFullScreenHandle } from 'react-full-screen';
-import { CoreAPI } from 'react-kinetic-core';
-import { Map } from 'immutable';
+import settingsIcon from '../../images/Settings.svg?raw';
+import { SettingsContainer } from './Settings';
+import { Utils } from 'common';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -106,7 +102,7 @@ const SelfCheckinMode = (attendanceThis, attendanceAdded) => {
     }, 100);
   }
   return (
-    <div>
+    <div className="selfCheckin">
       <div className="startSelfCheckin">
         <button
           type="button"
@@ -132,6 +128,7 @@ const SelfCheckinMode = (attendanceThis, attendanceAdded) => {
           Start Self Checkin
         </button>
       </div>
+
       <FullScreen handle={fullscreenHandle} onChange={reportChange}>
         {attendanceThis.attendanceThis.state.isFullscreenMode && (
           <SelfCheckin
@@ -156,116 +153,6 @@ const SelfCheckinMode = (attendanceThis, attendanceAdded) => {
     </div>
   );
 };
-
-export class SelfCheckinSetPIN extends Component {
-  updateProfileValues = async profile => {
-    console.log('updateProfileValues');
-    let profileCopy = {}; //_.cloneDeep(profile);
-    profileCopy = {
-      profileAttributes: profile.profileAttributes,
-    };
-    const { space, serverError } = await CoreAPI.updateProfile({
-      profile: profileCopy,
-      include: 'attributesMap',
-    });
-  };
-
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      settingPin: false,
-    };
-  }
-  render() {
-    return (
-      <div className="selfCheckSetPIN">
-        {!this.state.settingPin && (
-          <button
-            type="button"
-            id="setPIN"
-            className="btn btn-primary btn-block"
-            onClick={async e => {
-              this.setState({
-                settingPin: true,
-              });
-            }}
-          >
-            Set Self Checkin PIN
-          </button>
-        )}
-        {this.state.settingPin && (
-          <div className="pinEntry">
-            <PinInput
-              className="pinInput"
-              length={4}
-              initialValue={
-                getAttributeValue(
-                  { attributes: this.props.profile.profileAttributes },
-                  'Kiosk PIN',
-                ) !== undefined
-                  ? getAttributeValue(
-                      { attributes: this.props.profile.profileAttributes },
-                      'Kiosk PIN',
-                    )
-                  : '0000'
-              }
-              onChange={(value, index) => {}}
-              type="numeric"
-              inputMode="number"
-              style={{ padding: '10px' }}
-              inputStyle={{ borderColor: 'red' }}
-              inputFocusStyle={{ borderColor: 'blue' }}
-              onComplete={(value, index) => {
-                this.setState({
-                  newCheckinPIN: value,
-                });
-              }}
-              autoSelect={true}
-              regexCriteria={/^[ A-Za-z0-9_@./#&+-]*$/}
-            />
-            <div className="buttons">
-              <button
-                type="button"
-                id="cancelPIN"
-                className="btn btn-primary btn-block"
-                onClick={async e => {
-                  this.setState({
-                    settingPin: false,
-                  });
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                id="applyPIN"
-                className="btn btn-primary btn-block"
-                onClick={async e => {
-                  setAttributeValue(
-                    { attributes: this.props.profile.profileAttributes },
-                    'Kiosk PIN',
-                    this.state.newCheckinPIN,
-                  );
-                  var attributes = Map();
-                  attributes = attributes.set('Kiosk PIN', [
-                    this.state.newCheckinPIN,
-                  ]);
-                  this.updateProfileValues(this.props.profile);
-                  this.setState({
-                    settingPin: false,
-                  });
-                }}
-              >
-                Apply
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-}
 
 export class SelfCheckin extends Component {
   constructor(props) {
@@ -1513,6 +1400,8 @@ export class AttendanceDetail extends Component {
     attendanceThis = this;
     this.handleScan = this.handleScan.bind(this);
     this.handleError = this.handleError.bind(this);
+    this.setShowSettings = this.setShowSettings.bind(this);
+    this.setShowAttendance = this.setShowAttendance.bind(this);
 
     this.getBamboraOverdues = this.getBamboraOverdues.bind(this);
     this.getDayClasses = this.getDayClasses.bind(this);
@@ -1616,7 +1505,8 @@ export class AttendanceDetail extends Component {
       manualSelect: false,
       className,
       classDate,
-      //      classTime,
+      showAttendance: true,
+      showSettings: false,
       attendanceStatus,
       memberItem,
       memberAlreadyCheckedIn,
@@ -1693,6 +1583,18 @@ export class AttendanceDetail extends Component {
         overduesLoaded: true,
       });
     }
+  }
+  setShowAttendance(show) {
+    this.setState({
+      showSettings: false,
+      showAttendance: show,
+    });
+  }
+  setShowSettings(show) {
+    this.setState({
+      showSettings: show,
+      showAttendance: false,
+    });
   }
 
   getBamboraOverdues(failedPayments, successfulPayments, allMembers) {
@@ -2278,50 +2180,59 @@ export class AttendanceDetail extends Component {
               .SUCCESSFULpaymentHistoryLoading)) /*||
         this.props.membersLoading*/ ? (
           <div>Loading...</div>
-        ) : (
+        ) : this.state.showAttendance ? (
           <div className="attendanceSection">
-            <div className="checkinFilter">
-              <label htmlFor="checkins">Anytime Mode</label>
-              <div className="checkboxFilter">
-                <input
-                  id="checkins"
-                  type="checkbox"
-                  value="1"
-                  onChange={e => {
-                    var classTime = this.state.useCalendarSchedule
-                      ? moment(this.state.classDate, 'L hh:mm A').format(
-                          'HH:mm',
-                        )
-                      : undefined;
-                    this.setState({
-                      useCalendarSchedule: !this.state.useCalendarSchedule,
-                      classTime,
-                      classScheduleDateDay:
-                        moment(this.state.classDate, 'L hh:mm A').day() === 0
-                          ? 7
-                          : moment(this.state.classDate, 'L hh:mm A').day(),
-                    });
-                  }}
-                />
-                <label htmlFor="checkins"></label>
+            <div className="options">
+              <div className="checkinFilter">
+                <label htmlFor="checkins">Anytime Mode</label>
+                <div className="checkboxFilter">
+                  <input
+                    id="checkins"
+                    type="checkbox"
+                    value="1"
+                    onChange={e => {
+                      var classTime = this.state.useCalendarSchedule
+                        ? moment(this.state.classDate, 'L hh:mm A').format(
+                            'HH:mm',
+                          )
+                        : undefined;
+                      this.setState({
+                        useCalendarSchedule: !this.state.useCalendarSchedule,
+                        classTime,
+                        classScheduleDateDay:
+                          moment(this.state.classDate, 'L hh:mm A').day() === 0
+                            ? 7
+                            : moment(this.state.classDate, 'L hh:mm A').day(),
+                      });
+                    }}
+                  />
+                  <label htmlFor="checkins"></label>
+                </div>
               </div>
+              <SelfCheckinMode
+                profile={this.props.profile}
+                space={this.props.space}
+                attendanceThis={this}
+                attendanceAdded={this.props.attendanceAdded}
+                fetchingMemberClassAttendancesByDate={
+                  this.props.fetchingMemberClassAttendancesByDate
+                }
+                fetchMemberClassAttendancesByDate={
+                  this.props.fetchMemberClassAttendancesByDate
+                }
+              />
+              {Utils.isMemberOf(this.props.profile, 'Role::Data Admin') && (
+                <div className="settings">
+                  <SVGInline
+                    svg={settingsIcon}
+                    className="icon"
+                    onClick={e => {
+                      this.setShowSettings(true);
+                    }}
+                  />
+                </div>
+              )}
             </div>
-            <SelfCheckinMode
-              profile={this.props.profile}
-              space={this.props.space}
-              attendanceThis={this}
-              attendanceAdded={this.props.attendanceAdded}
-              fetchingMemberClassAttendancesByDate={
-                this.props.fetchingMemberClassAttendancesByDate
-              }
-              fetchMemberClassAttendancesByDate={
-                this.props.fetchMemberClassAttendancesByDate
-              }
-            />
-            <SelfCheckinSetPIN
-              profile={this.props.profile}
-              space={this.props.space}
-            />
             {this.state.verifyPIN && (
               <div className="verifyPINBase">
                 <div className="info">
@@ -3092,6 +3003,16 @@ export class AttendanceDetail extends Component {
               />
             )}
           </div>
+        ) : this.state.showSettings ? (
+          <SettingsContainer
+            programs={this.props.programs}
+            additionalPrograms={this.props.additionalPrograms}
+            classSchedules={this.props.classSchedules}
+            setShowAttendance={this.setShowAttendance}
+            setShowSettings={this.setShowSettings}
+          />
+        ) : (
+          <span></span>
         )}
       </div>
     );

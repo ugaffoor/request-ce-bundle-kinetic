@@ -1734,7 +1734,10 @@ export const MemberView = ({
                 (memberItem.values['Biller Migrated'] === null ||
                   memberItem.values['Biller Migrated'] === undefined ||
                   memberItem.values['Biller Migrated'] !== 'YES') && (
-                  <div>
+                  /*(memberItem.values['Billing Customer Reference'] === null ||
+                    memberItem.values['Billing Customer Reference'] ===
+                      undefined ||
+                    memberItem.values['Billing Customer Reference'] === '') &&*/ <div>
                     <button
                       onClick={e => setShowBamboraActivate(true)}
                       className="btn btn-primary"
@@ -1864,7 +1867,7 @@ export const MemberView = ({
                       className="float-right"
                       dateFormat="L"
                       onChange={handleDateChange}
-                      defaultValue={moment()}
+                      value={moment(contactDate, contact_date_format)}
                     />
                     {contactDate === 'Invalid date' && (
                       <span className="invaliddate">Invalid Date</span>
@@ -2104,6 +2107,7 @@ export const MemberViewContainer = compose(
         oldBiller.values['Credit Card Expiry Year'];
       newBiller.values['Credit Card Expiry Month'] =
         oldBiller.values['Credit Card Expiry Month'];
+      newBiller.values['POS Profile ID'] = oldBiller.values['POS Profile ID'];
       newBiller.values['Billing Cash Term Start Date'] =
         oldBiller.values['Billing Cash Term Start Date'];
       newBiller.values['Billing Cash Term End Date'] =
@@ -2654,6 +2658,7 @@ export const MemberViewContainer = compose(
           allMembers: nextProps.allMembers,
         });
         this.props.setShowChangeStatusModal(false);
+        this.props.setContactDate(moment().format(contact_date_format));
       }
       if (
         nextProps.memberItem.values &&

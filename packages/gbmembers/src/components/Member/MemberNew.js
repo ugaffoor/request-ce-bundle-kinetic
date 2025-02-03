@@ -40,6 +40,7 @@ import Barcode from 'react-barcode';
 import enAU from 'moment/locale/en-au';
 import enCA from 'moment/locale/en-ca';
 import enGB from 'moment/locale/en-gb';
+import Autocomplete from 'react-google-autocomplete';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -248,6 +249,83 @@ export const MemberNew = ({
                   </p>
                 </div>
               </span>
+              {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+                <span className="line">
+                  <Autocomplete
+                    apiKey={'AIzaSyA-tujnpf8Jy33hVaJ_9GtRdMgHw4jvnwo'}
+                    placeholder="Lookup Address"
+                    style={{
+                      width: '400px',
+                      borderTop: 'none',
+                      borderRight: 'none',
+                      borderWidth: '1px',
+                      borderLeftStyle: 'dashed',
+                      borderBottomStyle: 'dashed',
+                      marginTop: '6px',
+                      backgroundColor: '#f1eeee',
+                    }}
+                    onPlaceSelected={place => {
+                      myThis.props.memberItem.values['Address'] = '';
+                      for (
+                        var i = 0;
+                        i < place.address_components.length;
+                        i++
+                      ) {
+                        var addressType = place.address_components[i].types[0];
+
+                        if (addressType === 'street_number') {
+                          let newValue =
+                            place.address_components[i]['long_name'];
+                          handleNewChange(myThis.props.memberItem, 'Address', {
+                            target: { value: newValue },
+                          });
+                          // myThis.props.memberItem.values['Address']=newValue;
+                          //                        $("#address").val(newValue);
+                        }
+                        if (addressType === 'route') {
+                          let newValue =
+                            myThis.props.memberItem.values['Address'] +
+                            ' ' +
+                            place.address_components[i]['long_name'];
+                          handleNewChange(myThis.props.memberItem, 'Address', {
+                            target: { value: newValue },
+                          });
+                          // myThis.props.memberItem.values['Address']=newValue;
+                          //                      $("#address").val(newValue);
+                        }
+                        if (addressType === 'locality') {
+                          let newValue =
+                            place.address_components[i]['long_name'];
+                          handleNewChange(myThis.props.memberItem, 'Suburb', {
+                            target: { value: newValue },
+                          });
+                          // $("#suburb").val(newValue);
+                        }
+                        if (addressType === 'administrative_area_level_1') {
+                          let newValue =
+                            place.address_components[i]['short_name'];
+                          handleNewChange(myThis.props.memberItem, 'State', {
+                            target: { value: newValue },
+                          });
+                          // $("#state").val(newValue);
+                        }
+                        if (addressType === 'postal_code') {
+                          let newValue =
+                            place.address_components[i]['short_name'];
+                          handleNewChange(myThis.props.memberItem, 'Postcode', {
+                            target: { value: newValue },
+                          });
+                          // $("#postcode").val(newValue);
+                        }
+                      }
+                      //memberItem.myThis.setState({"dummy":true});
+                    }}
+                    options={{
+                      types: ['geocode'],
+                    }}
+                  />
+                </span>
+              )}
               <span className="line">
                 <div>
                   <label
@@ -269,7 +347,9 @@ export const MemberNew = ({
                     required
                     ref={input => (this.input = input)}
                     value={memberItem.values['Address']}
-                    onChange={e => handleNewChange(memberItem, 'Address', e)}
+                    onChange={e => {
+                      handleNewChange(memberItem, 'Address', e);
+                    }}
                     onBlur={e =>
                       (memberItem.values['Address'] = e.target.value.trim())
                     }
@@ -1923,7 +2003,7 @@ export const MemberNewContainer = compose(
       this.props.setNewMember(member);
     },
     UNSAFE_componentWillReceiveProps(nextProps) {
-      if (this.props.pathname !== nextProps.pathname) {
+      /*      if (this.props.pathname !== nextProps.pathname) {
         let values = {
           'First Name': '',
           'Last Name': '',
@@ -2057,12 +2137,14 @@ export const MemberNewContainer = compose(
           values: values,
         };
         this.props.setNewMember(member);
-      }
+      }*/
     },
     componentDidMount() {
       this.props.setSidebarDisplayType('members');
       myThis = this;
     },
-    componentWillUnmount() {},
+    componentWillUnmount() {
+      this.props.fetchNewMember();
+    },
   }),
 )(MemberNew);

@@ -15,12 +15,15 @@ import { Discussion } from './components/discussion/Discussion';
 import { Home } from './components/home/Home';
 import { Notifications } from './components/notifications/Notifications';
 import { ViewProfile } from './components/profile/ViewProfile';
+import { JourneyTriggers } from './components/settings/journeytriggers/JourneyTriggers';
+import { SchoolSettings } from './components/settings/schoolsettings/SchoolSettings';
 import { TeamContainer } from './components/teams/TeamContainer';
 import { TeamsContainer } from './components/teams/TeamsContainer';
 import { IsolatedForm } from './components/shared/IsolatedForm';
 import { FormList } from './components/default_kapp/FormList';
 import { I18n } from '../../app/src/I18nProvider';
 import './assets/styles/master.scss';
+import { NotificationsContainer } from 'gbmembers/src/components/notifications/NotificationsContainer';
 
 export const AppComponent = props => {
   if (props.loading) {
@@ -50,6 +53,7 @@ export const AppComponent = props => {
     main: (
       <I18n>
         <Notifications />
+        <NotificationsContainer />
         <main className="package-layout package-layout--space">
           <Switch>
             <Route path="/" exact component={Home} />
@@ -58,6 +62,16 @@ export const AppComponent = props => {
             <Route path="/alerts/:id" exact component={AlertForm} />
             <Route path="/discussions/:id" exact component={Discussion} />
             <Route path="/profile/:username" exact component={ViewProfile} />
+            <Route
+              path="/settings/journeytriggers"
+              exact
+              component={JourneyTriggers}
+            />
+            <Route
+              path="/settings/schoolsettings"
+              exact
+              component={SchoolSettings}
+            />
             <Route path="/settings" component={Settings} />
             <Route path="/teams" exact component={TeamsContainer} />
             <Route path="/teams/:slug" exact component={TeamContainer} />
@@ -100,19 +114,21 @@ export const AppComponent = props => {
   });
 };
 
-export const mapStateToProps = state => ({
-  loading: state.space.spaceApp.appLoading,
-  kapps: state.app.kapps
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .filter(kapp => kapp.slug !== 'admin'),
-  teams: Utils.getTeams(state.app.profile).sort((a, b) =>
-    a.name.localeCompare(b.name),
-  ),
-  isSpaceAdmin: state.app.profile.spaceAdmin,
-  isGuest: selectors.selectIsGuest(state),
-  pathname: state.router.location.pathname,
-  settingsBackPath: state.space.spaceApp.settingsBackPath || '/',
-});
+export const mapStateToProps = state => {
+  return {
+    loading: state.space.spaceApp.appLoading,
+    kapps: state.app.kapps
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .filter(kapp => kapp.slug !== 'admin'),
+    teams: Utils.getTeams(state.app.profile).sort((a, b) =>
+      a.name.localeCompare(b.name),
+    ),
+    isSpaceAdmin: state.app.profile.spaceAdmin,
+    isGuest: selectors.selectIsGuest(state),
+    pathname: state.router.location.pathname,
+    settingsBackPath: state.space.spaceApp.settingsBackPath || '/',
+  };
+};
 const mapDispatchToProps = {
   fetchSettings: actions.fetchAppSettings,
   setSettingsBackPath: actions.setSettingsBackPath,

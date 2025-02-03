@@ -4,15 +4,19 @@ import moment from 'moment';
 
 export const types = {
   NEW_CLASS: namespace('classes', 'NEW_CLASS'),
+  NEW_CLASS_ADDED: namespace('classes', 'NEW_CLASS_ADDED'),
   EDIT_CLASS: namespace('classes', 'EDIT_CLASS'),
   DELETE_CLASS: namespace('classes', 'DELETE_CLASS'),
+  CLASS_DELETED: namespace('classes', 'CLASS_DELETED'),
   FETCH_CLASS_SCHEDULES: namespace('classes', 'FETCH_CLASS_SCHEDULES'),
   SET_CLASS_SCHEDULES: namespace('classes', 'SET_CLASS_SCHEDULES'),
   FETCH_CLASS_BOOKINGS: namespace('classes', 'FETCH_CLASS_BOOKINGS'),
   SET_CLASS_BOOKINGS: namespace('classes', 'SET_CLASS_BOOKINGS'),
   ADD_BOOKING: namespace('classes', 'ADD_BOOKING'),
   UPDATE_BOOKING: namespace('classes', 'UPDATE_BOOKING'),
+  UPDATE_BOOKING_COMPLETE: namespace('classes', 'UPDATE_BOOKING_COMPLETE'),
   DELETE_BOOKING: namespace('classes', 'DELETE_BOOKING'),
+  DELETE_BOOKING_COMPLETE: namespace('classes', 'DELETE_BOOKING_COMPLETE'),
   SET_ADD_BOOKING: namespace('classes', 'SET_ADD_BOOKING'),
   FETCH_CURRENT_CLASS_BOOKINGS: namespace(
     'classes',
@@ -27,20 +31,25 @@ export const types = {
   ADD_RECURRING: namespace('classes', 'ADD_RECURRING'),
   UPDATE_RECURRING: namespace('classes', 'UPDATE_RECURRING'),
   DELETE_RECURRING: namespace('classes', 'DELETE_RECURRING'),
+  DELETE_RECURRING_COMPLETE: namespace('classes', 'DELETE_RECURRING_COMPLETE'),
   SET_ADD_RECURRING: namespace('classes', 'SET_ADD_RECURRING'),
 };
 
 export const actions = {
   newClass: withPayload(types.NEW_CLASS),
+  newClassAdded: withPayload(types.NEW_CLASS_ADDED),
   editClass: withPayload(types.EDIT_CLASS),
   deleteClass: withPayload(types.DELETE_CLASS),
+  classDeleted: withPayload(types.CLASS_DELETED),
   fetchClassSchedules: withPayload(types.FETCH_CLASS_SCHEDULES),
   setClassSchedules: withPayload(types.SET_CLASS_SCHEDULES),
   fetchClassBookings: withPayload(types.FETCH_CLASS_BOOKINGS),
   setClassBookings: withPayload(types.SET_CLASS_BOOKINGS),
   addBooking: withPayload(types.ADD_BOOKING),
   updateBooking: withPayload(types.UPDATE_BOOKING),
+  updateBookingComplete: withPayload(types.UPDATE_BOOKING_COMPLETE),
   deleteBooking: withPayload(types.DELETE_BOOKING),
+  deleteBookingComplete: withPayload(types.DELETE_BOOKING_COMPLETE),
   setAddedBooking: withPayload(types.SET_ADD_BOOKING),
   fetchCurrentClassBookings: withPayload(types.FETCH_CURRENT_CLASS_BOOKINGS),
   setCurrentClassBookings: withPayload(types.SET_CURRENT_CLASS_BOOKINGS),
@@ -49,6 +58,7 @@ export const actions = {
   addRecurring: withPayload(types.ADD_RECURRING),
   updateRecurring: withPayload(types.UPDATE_RECURRING),
   deleteRecurring: withPayload(types.DELETE_RECURRING),
+  deleteRecurringComplete: withPayload(types.DELETE_RECURRING_COMPLETE),
   setAddedRecurring: withPayload(types.SET_ADD_RECURRING),
 };
 
@@ -123,6 +133,45 @@ export const reducer = (state = State(), { type, payload }) => {
     case types.SET_ADD_BOOKING: {
       return state.set('addedBooking', payload);
     }
+    case types.UPDATE_BOOKING_COMPLETE: {
+      var classBookings = state.get('currentClassBookings');
+
+      for (var i = 0; i < classBookings.length; i++) {
+        var idx = classBookings[i].bookings.findIndex(element => {
+          if (element.id === payload.id) return true;
+          return false;
+        });
+        if (idx !== -1) {
+          classBookings[i].bookings[idx].status = 'Cancelled';
+          break;
+        }
+      }
+      return state;
+    }
+    case types.DELETE_BOOKING_COMPLETE: {
+      var classBookings = state.get('currentClassBookings');
+
+      var idx = classBookings.findIndex(element => element.id === payload.id);
+      classBookings.splice(idx, 1);
+      return state;
+    }
+    case types.SET_ADD_RECURRING: {
+      var recurringBookings = state.get('recurringBookings');
+
+      return state.set('addedRecurring', payload);
+    }
+    case types.DELETE_RECURRING: {
+      return state.set('addedRecurring', {});
+    }
+    case types.DELETE_RECURRING_COMPLETE: {
+      var recurringBookings = state.get('recurringBookings');
+
+      var idx = recurringBookings.findIndex(
+        element => element.id === payload.id,
+      );
+      recurringBookings.splice(idx, 1);
+      return state.set('addedRecurring', {});
+    }
     case types.FETCH_RECURRING_BOOKINGS:
       return state.set('fetchingRecurringBookings', true);
     case types.SET_RECURRING_BOOKINGS: {
@@ -151,8 +200,16 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('recurringBookings', payload.recurringBookings)
         .set('addedRecurring', {});
     }
-    case types.SET_ADD_RECURRING: {
-      return state.set('addedRecurring', payload);
+    case types.NEW_CLASS_ADDED: {
+      var classSchedules = state.get('classSchedules').push(payload.classEvent);
+      return state.set('classSchedules', classSchedules);
+    }
+    case types.CLASS_DELETED: {
+      var classSchedules = state.get('classSchedules');
+
+      var idx = classSchedules.findIndex(element => element.id === payload.id);
+      classSchedules = classSchedules.splice(idx, 1);
+      return state.set('classSchedules', classSchedules);
     }
     default:
       return state;

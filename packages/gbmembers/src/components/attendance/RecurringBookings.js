@@ -23,7 +23,6 @@ export class RecurringBookings extends Component {
       this.rawRecurringBookings,
       this.classSchedules,
     );
-    this.deleteRecurring = this.props.deleteRecurring.bind(this);
     this.updateRecurring = this.props.updateRecurring.bind(this);
     this.addRecurring = this.props.addRecurring.bind(this);
     this.renderStatusCell = this.renderStatusCell.bind(this);
@@ -407,8 +406,9 @@ export class RecurringBookings extends Component {
                   </span>,
                 )
               ) {
-                this.deleteRecurring({
+                this.props.deleteRecurring({
                   id: cellInfo.original.id,
+                  recurringBookings: this.rawRecurringBookings,
                 });
                 for (var i = 0; i < this.recurringBookings.length; i++) {
                   var idx = this.recurringBookings[i].bookings.findIndex(
@@ -424,6 +424,7 @@ export class RecurringBookings extends Component {
                       if (element.id === cellInfo.original.id) return false;
                       return true;
                     });
+
                     this.rawRecurringBookings = this.rawRecurringBookings.filter(
                       element => {
                         if (element.id === cellInfo.original.id) return false;

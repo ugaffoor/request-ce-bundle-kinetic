@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import {
   getAttributeValue,
   setAttributeValue,
-} from '../../lib/react-kinops-components/src/utils';
-import helpIcon from '../../images/help.svg?raw';
+} from '../lib/react-kinops-components/src/utils';
+import helpIcon from '../images/help.svg?raw';
 import SVGInline from 'react-svg-inline';
 import NumberFormat from 'react-number-format';
 import { I18n } from 'app/src/I18nProvider';
@@ -15,7 +15,7 @@ import MomentLocaleUtils, {
 import DayPickerInput from 'react-day-picker/DayPickerInput';
 import DayPicker, { DateUtils } from 'react-day-picker/DayPicker';
 import 'react-day-picker/lib/style.css';
-import { getLocalePreference } from '../Member/MemberUtils';
+import { getLocalePreference } from '../components/Member/MemberUtils';
 import $ from 'jquery';
 
 const components = {
@@ -498,6 +498,299 @@ export class EditAttributeValue extends Component {
               ]}
             />
           )}
+          {this.props.inputType === 'waiverHiddenItems' && (
+            <span className="waiverHiddenItems">
+              <span className="item">
+                <input
+                  type="checkbox"
+                  id={this.props.attributeID + 'waiverHidden' + 'info_images'}
+                  value="info_images"
+                  checked={
+                    this.state.value.indexOf('info_images') !== -1
+                      ? true
+                      : false
+                  }
+                  name={this.props.attributeID + 'waiverHidden' + 'info_images'}
+                  onChange={e => {
+                    this.toggleArrayValue(this.state.value, e.target.value);
+                  }}
+                />
+                <label
+                  htmlFor={
+                    this.props.attributeID + 'waiverHidden' + 'info_images'
+                  }
+                >
+                  Information Head Images
+                </label>
+              </span>
+              <span className="item">
+                <input
+                  type="checkbox"
+                  id={this.props.attributeID + 'waiverHidden' + 'social_media'}
+                  value="social_media"
+                  checked={
+                    this.state.value.indexOf('social_media') !== -1
+                      ? true
+                      : false
+                  }
+                  name={
+                    this.props.attributeID + 'waiverHidden' + 'social_media'
+                  }
+                  onChange={e => {
+                    this.toggleArrayValue(this.state.value, e.target.value);
+                  }}
+                />
+                <label
+                  htmlFor={
+                    this.props.attributeID + 'waiverHidden' + 'social_media'
+                  }
+                >
+                  Social Media Names
+                </label>
+              </span>
+              <span className="item">
+                <input
+                  type="checkbox"
+                  id={
+                    this.props.attributeID + 'waiverHidden' + 'report_aboutus'
+                  }
+                  value="report_aboutus"
+                  checked={
+                    this.state.value.indexOf('report_aboutus') !== -1
+                      ? true
+                      : false
+                  }
+                  name={
+                    this.props.attributeID + 'waiverHidden' + 'report_aboutus'
+                  }
+                  onChange={e => {
+                    this.toggleArrayValue(this.state.value, e.target.value);
+                  }}
+                />
+                <label
+                  htmlFor={
+                    this.props.attributeID + 'waiverHidden' + 'report_aboutus'
+                  }
+                >
+                  Report Information - How did you find out about us?
+                </label>
+              </span>
+              <span className="item">
+                <input
+                  type="checkbox"
+                  id={
+                    this.props.attributeID + 'waiverHidden' + 'report_many_days'
+                  }
+                  value="report_many_days"
+                  checked={
+                    this.state.value.indexOf('report_many_days') !== -1
+                      ? true
+                      : false
+                  }
+                  name={
+                    this.props.attributeID + 'waiverHidden' + 'report_many_days'
+                  }
+                  onChange={e => {
+                    this.toggleArrayValue(this.state.value, e.target.value);
+                  }}
+                />
+                <label
+                  htmlFor={
+                    this.props.attributeID + 'waiverHidden' + 'report_many_days'
+                  }
+                >
+                  Report Information - How many days a week would you like to
+                  train?
+                </label>
+              </span>
+              <span className="item">
+                <input
+                  type="checkbox"
+                  id={this.props.attributeID + 'waiverHidden' + 'health_info'}
+                  value="health_info"
+                  checked={
+                    this.state.value.indexOf('health_info') !== -1
+                      ? true
+                      : false
+                  }
+                  name={this.props.attributeID + 'waiverHidden' + 'health_info'}
+                  onChange={e => {
+                    this.toggleArrayValue(this.state.value, e.target.value);
+                  }}
+                />
+                <label
+                  htmlFor={
+                    this.props.attributeID + 'waiverHidden' + 'health_info'
+                  }
+                >
+                  Health Information
+                </label>
+              </span>
+              <span className="item">
+                <input
+                  type="checkbox"
+                  id={
+                    this.props.attributeID +
+                    'waiverHidden' +
+                    'juijitsui_previous'
+                  }
+                  value="juijitsui_previous"
+                  checked={
+                    this.state.value.indexOf('juijitsui_previous') !== -1
+                      ? true
+                      : false
+                  }
+                  name={
+                    this.props.attributeID +
+                    'waiverHidden' +
+                    'juijitsui_previous'
+                  }
+                  onChange={e => {
+                    this.toggleArrayValue(this.state.value, e.target.value);
+                  }}
+                />
+                <label
+                  htmlFor={
+                    this.props.attributeID +
+                    'waiverHidden' +
+                    'juijitsui_previous'
+                  }
+                >
+                  Jiu Jitsu ObjectivesThis - Do you have any previous martial
+                  arts experience?
+                </label>
+              </span>
+              <span className="item">
+                <input
+                  type="checkbox"
+                  id={
+                    this.props.attributeID +
+                    'waiverHidden' +
+                    'juijitsui_current'
+                  }
+                  value="juijitsui_current"
+                  checked={
+                    this.state.value.indexOf('juijitsui_current') !== -1
+                      ? true
+                      : false
+                  }
+                  name={
+                    this.props.attributeID +
+                    'waiverHidden' +
+                    'juijitsui_current'
+                  }
+                  onChange={e => {
+                    this.toggleArrayValue(this.state.value, e.target.value);
+                  }}
+                />
+                <label
+                  htmlFor={
+                    this.props.attributeID +
+                    'waiverHidden' +
+                    'juijitsui_current'
+                  }
+                >
+                  Jiu Jitsu ObjectivesThis - Do you participate in any current
+                  sport or activity?
+                </label>
+              </span>
+              <span className="item">
+                <input
+                  type="checkbox"
+                  id={
+                    this.props.attributeID + 'waiverHidden' + 'juijitsui_long'
+                  }
+                  value="juijitsui_long"
+                  checked={
+                    this.state.value.indexOf('juijitsui_long') !== -1
+                      ? true
+                      : false
+                  }
+                  name={
+                    this.props.attributeID + 'waiverHidden' + 'juijitsui_long'
+                  }
+                  onChange={e => {
+                    this.toggleArrayValue(this.state.value, e.target.value);
+                  }}
+                />
+                <label
+                  htmlFor={
+                    this.props.attributeID + 'waiverHidden' + 'juijitsui_long'
+                  }
+                >
+                  Jiu Jitsu ObjectivesThis - How long since you have been
+                  involved in any sports activity?
+                </label>
+              </span>
+              <span className="item">
+                <input
+                  type="checkbox"
+                  id={
+                    this.props.attributeID +
+                    'waiverHidden' +
+                    'juijitsui_benefits'
+                  }
+                  value="juijitsui_benefits"
+                  checked={
+                    this.state.value.indexOf('juijitsui_benefits') !== -1
+                      ? true
+                      : false
+                  }
+                  name={
+                    this.props.attributeID +
+                    'waiverHidden' +
+                    'juijitsui_benefits'
+                  }
+                  onChange={e => {
+                    this.toggleArrayValue(this.state.value, e.target.value);
+                  }}
+                />
+                <label
+                  htmlFor={
+                    this.props.attributeID +
+                    'waiverHidden' +
+                    'juijitsui_benefits'
+                  }
+                >
+                  Jiu Jitsu ObjectivesThis - What are the three main benefits
+                  you expect to get out of your Brazilian Jiu Jitsu training?
+                </label>
+              </span>
+              <span className="item">
+                <input
+                  type="checkbox"
+                  id={
+                    this.props.attributeID +
+                    'waiverHidden' +
+                    'path_to_excellance'
+                  }
+                  value="path_to_excellance"
+                  checked={
+                    this.state.value.indexOf('path_to_excellance') !== -1
+                      ? true
+                      : false
+                  }
+                  name={
+                    this.props.attributeID +
+                    'waiverHidden' +
+                    'path_to_excellance'
+                  }
+                  onChange={e => {
+                    this.toggleArrayValue(this.state.value, e.target.value);
+                  }}
+                />
+                <label
+                  htmlFor={
+                    this.props.attributeID +
+                    'waiverHidden' +
+                    'path_to_excellance'
+                  }
+                >
+                  Path to Excellence
+                </label>
+              </span>
+            </span>
+          )}
         </div>
         <button
           type="button"
@@ -520,6 +813,11 @@ export class EditAttributeValue extends Component {
             });
             setAttributeValue(
               this.props.space,
+              this.props.attributeName,
+              this.state.value,
+            );
+            setAttributeValue(
+              this.props.appSpace,
               this.props.attributeName,
               this.state.value,
             );

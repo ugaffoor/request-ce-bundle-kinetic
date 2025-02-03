@@ -10,6 +10,7 @@ import { reducer as settingsNotifications } from './modules/settingsNotification
 import { reducer as settingsRobots } from './modules/settingsRobots';
 import { reducer as settingsUsers } from './modules/settingsUsers';
 import { reducer as settingsTranslations } from './modules/settingsTranslations';
+import { reducer as journeyTriggers } from './modules/journeyTriggers';
 
 export default {
   errors,
@@ -24,4 +25,5 @@ export default {
   teamList,
   spaceForms,
   settingsTranslations,
+  journeyTriggers,
 };

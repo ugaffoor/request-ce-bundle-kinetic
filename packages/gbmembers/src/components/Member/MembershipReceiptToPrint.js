@@ -44,12 +44,38 @@ export class MembershipReceiptToPrint extends React.Component {
       receiptFooter = undefined;
     }
     this.receiptFooter = receiptFooter;
+    var feeDetails = undefined;
 
+    // Determine the Family Members relevant at the time of this receipt
+    for (let i = 0; i < this.props.membershipServices.length; i++) {
+      if (
+        this.props.datetime.isAfter(
+          this.props.membershipServices[i].submittedAtDate,
+        ) &&
+        this.props.datetime.isSameOrAfter(
+          this.props.membershipServices[i].billingStartDate,
+        )
+      ) {
+        feeDetails = getJson(this.props.membershipServices[i].feeJSON);
+        break;
+      }
+    }
+
+    if (feeDetails === undefined) {
+      if (this.props.membershipServices.length === 0) {
+        feeDetails = getJson(
+          this.props.memberItem.values['Family Fee Details'],
+        );
+      } else {
+        feeDetails = getJson(
+          this.props.membershipServices[
+            this.props.membershipServices.length - 1
+          ].feeJSON,
+        );
+      }
+    }
     var subTotal = 0;
     var adminFee = 0;
-    var feeDetails = getJson(
-      this.props.memberItem.values['Family Fee Details'],
-    );
     feeDetails.forEach(
       item => (subTotal = subTotal + Number.parseFloat(item.fee)),
     );
@@ -57,7 +83,7 @@ export class MembershipReceiptToPrint extends React.Component {
     if (getAttributeValue(this.props.space, 'Ignore Admin Fee') !== 'YES') {
       var adminFeePerc =
         Number.parseFloat(
-          getAttributeValue(this.props.space, 'Admin Fee Charge').replace(
+          getAttributeValue(this.props.space, 'Admin Fee Charge', '').replace(
             '%',
             '',
           ),
@@ -71,6 +97,7 @@ export class MembershipReceiptToPrint extends React.Component {
       adminFee: adminFee,
       total: this.props.total,
       paymentID: this.props.paymentID,
+      feeDetails: feeDetails,
     };
   }
   escapeRegExp(str) {
@@ -112,9 +139,7 @@ export class MembershipReceiptToPrint extends React.Component {
                     </td>
                   </thead>
                   <tbody>
-                    {getJson(
-                      this.props.memberItem.values['Family Fee Details'],
-                    ).map((member, index) => (
+                    {this.state.feeDetails.map((member, index) => (
                       <tr>
                         <td>{member.Name}</td>
                         <td>{member.feeProgram}</td>
@@ -122,7 +147,7 @@ export class MembershipReceiptToPrint extends React.Component {
                           {new Intl.NumberFormat(this.props.locale, {
                             style: 'currency',
                             currency: this.props.currency,
-                          }).format(member.cost)}
+                          }).format(member.fee)}
                         </td>
                       </tr>
                     ))}
@@ -145,9 +170,7 @@ export class MembershipReceiptToPrint extends React.Component {
                     </td>
                   </thead>
                   <tbody>
-                    {getJson(
-                      this.props.memberItem.values['Family Fee Details'],
-                    ).map((member, index) => (
+                    {this.state.feeDetails.map((member, index) => (
                       <tr>
                         <td>{member.Name}</td>
                         <td>Member Registration Fee</td>

@@ -27,21 +27,33 @@ export const getAttributeValue = ({ attributes }, attrName, defaultValue) => {
   return undefined;
 };
 
-export const setAttributeValue = ({ attributes }, attrName, attrValue) => {
-  if (isarray(attributes)) {
-    if (attributes.filter(a => a.name === attrName).map(a => a.values[0])) {
-      attributes
-        .filter(a => a.name === attrName)
-        .map(a => a.values[0])[0] = attrValue;
+function updateSpaceAttribute(attrs, attrName, attrValue) {
+  if (isarray(attrs)) {
+    if (attrs.filter(a => a.name === attrName).map(a => a.values[0])) {
+      let idx = attrs.findIndex(a => a.name === attrName);
+      attrs[idx].values[0] = attrValue;
     } else {
-      attributes[attributes.length] = { name: attrName, values: [attrValue] };
+      attrs[attrs.length] = { name: attrName, values: [attrValue] };
     }
   } else {
-    if (attributes[attrName]) {
-      attributes[attrName][0] = attrValue;
+    if (attrs[attrName]) {
+      attrs[attrName][0] = attrValue;
     } else {
-      attributes[attrName] = [attrValue];
+      attrs[attrName] = [attrValue];
     }
+  }
+}
+export const setAttributeValue = (
+  { attributes, attributesMap },
+  attrName,
+  attrValue,
+) => {
+  if (attributesMap === undefined) {
+    updateSpaceAttribute(attributes, attrName, attrValue);
+  }
+
+  if (attributesMap !== undefined) {
+    updateSpaceAttribute(attributesMap, attrName, attrValue);
   }
 };
 
