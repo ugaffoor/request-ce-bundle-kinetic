@@ -15,6 +15,7 @@ const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   allMembers: state.member.members.allMembers,
   memberLists: state.member.app.memberLists,
+  space: state.member.app.space,
 });
 
 const mapDispatchToProps = {
@@ -28,10 +29,12 @@ export const ListView = ({
   memberLists,
   addNewList,
   deleteMembersList,
+  space,
 }) => (
   <div>
     <StatusMessagesContainer />
     <ListHome
+      space={space}
       allMembers={allMembers}
       memberLists={memberLists}
       addNewList={addNewList}
@@ -119,8 +122,8 @@ export class ListHome extends Component {
     return data;
   }
 
-  getListMembersData(filters) {
-    let members = matchesMemberFilter(this.props.allMembers, filters);
+  getListMembersData(space, filters) {
+    let members = matchesMemberFilter(space, this.props.allMembers, filters);
 
     let data = [];
     members.forEach(member => {
@@ -136,7 +139,10 @@ export class ListHome extends Component {
   showMembers(state, rowInfo, column) {
     return {
       onClick: (e, handleOriginal) => {
-        var listMembersData = this.getListMembersData(rowInfo.original.filters);
+        var listMembersData = this.getListMembersData(
+          this.props.space,
+          rowInfo.original.filters,
+        );
         this.setState({
           listMembersData: listMembersData,
           count: listMembersData.length,

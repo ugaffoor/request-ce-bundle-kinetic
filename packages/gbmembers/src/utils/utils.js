@@ -189,7 +189,7 @@ export const removeExcludedMembers = (allMembers, excluded) => {
   });
   return members;
 };
-export const matchesMemberFilter = (allMembers, filters, excluded) => {
+export const matchesMemberFilter = (space, allMembers, filters, excluded) => {
   let members = allMembers
     .filter(member => {
       let match = true;
@@ -337,6 +337,27 @@ export const matchesMemberFilter = (allMembers, filters, excluded) => {
           }
         } else if (keys[0] === 'nonPayingFilter') {
           if (member.values['Non Paying'] !== 'YES') {
+            match = false;
+          }
+        } else if (keys[0] === 'waiverComplianceFilter') {
+          if (
+            match &&
+            getAttributeValue(space, 'Member Waiver Compliance Date') !==
+              undefined &&
+            getAttributeValue(space, 'Member Waiver Compliance Date') !== '' &&
+            getAttributeValue(space, 'Member Waiver Compliance Date') !== null
+          ) {
+            if (
+              member.values['Waiver Complete Date'] === undefined ||
+              moment(
+                getAttributeValue(space, 'Member Waiver Compliance Date'),
+              ).isAfter(member.values['Waiver Complete Date'])
+            ) {
+              match = true;
+            } else {
+              match = false;
+            }
+          } else {
             match = false;
           }
         }

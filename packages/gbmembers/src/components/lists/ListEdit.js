@@ -114,6 +114,7 @@ export class ListEditHome extends Component {
         .get(0);
 
       let members = matchesMemberFilter(
+        this.props.space,
         this.props.allMembers,
         listToBeUpdated.filters,
       );
@@ -143,6 +144,7 @@ export class ListEditHome extends Component {
         .get(0);
       if (listToBeUpdated) {
         let members = matchesMemberFilter(
+          this.props.space,
           this.props.allMembers,
           listToBeUpdated.filters,
         );
@@ -396,13 +398,21 @@ export class ListEditHome extends Component {
       filters.push({ nonPayingFilter: true });
     }
 
+    if ($('input[name=waiverNotCompliant]:checked').val()) {
+      filters.push({ waiverComplianceFilter: true });
+    }
+
     if ($('#specificMembers').val() && $('#specificMembers').val().length > 0) {
       filters.push({
         specificMembersFilter: { specificMembers: $('#specificMembers').val() },
       });
     }
 
-    let members = matchesMemberFilter(this.props.allMembers, filters);
+    let members = matchesMemberFilter(
+      this.props.space,
+      this.props.allMembers,
+      filters,
+    );
     var data = this.getData(members);
     this.setState({
       data: data,
@@ -447,6 +457,11 @@ export class ListEditHome extends Component {
         $('input[name=billingMember][value=true]').attr('checked', 'checked');
       } else if (key === 'nonPayingFilter') {
         $('input[name=nonPaying][value=true]').attr('checked', 'checked');
+      } else if (key === 'waiverComplianceFilter') {
+        $('input[name=waiverNotCompliant][value=true]').attr(
+          'checked',
+          'checked',
+        );
       } else if (key === 'specificMembersFilter') {
         $('#specificMembers').val(filter[key].specificMembers);
       }
@@ -876,6 +891,43 @@ export class ListEditHome extends Component {
                   </fieldset>
                 </div>
               </div>
+              {getAttributeValue(
+                this.props.space,
+                'Member Waiver Compliance Date',
+              ) !== undefined &&
+                getAttributeValue(
+                  this.props.space,
+                  'Member Waiver Compliance Date',
+                ) !== '' &&
+                getAttributeValue(
+                  this.props.space,
+                  'Member Waiver Compliance Date',
+                ) !== null && (
+                  <div className="row">
+                    <div className="col">
+                      <fieldset
+                        className="scheduler-border"
+                        style={{ position: 'relative' }}
+                      >
+                        <legend className="scheduler-border">
+                          Waiver Compliance
+                        </legend>
+                        <div className="form-check form-check-inline">
+                          <label className="form-check-label">
+                            <input
+                              type="checkbox"
+                              id="waiverNotCompliant"
+                              name="waiverNotCompliant"
+                              className="form-check-input"
+                              value="true"
+                            />{' '}
+                            Waiver Not Compliant
+                          </label>
+                        </div>
+                      </fieldset>
+                    </div>
+                  </div>
+                )}
               <div className="row">
                 <div className="col">
                   <fieldset

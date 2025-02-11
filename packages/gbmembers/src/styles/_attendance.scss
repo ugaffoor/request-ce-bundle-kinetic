@@ -1108,8 +1108,18 @@ i.fa.fa-usd.overdue {
       }
       h4 {
         width: 90%;
+        margin-top: 6px;
         @media (min-width: 321px) {
           width: unset;
+        }
+      }
+      .iconItem.waiver.notValid {
+        path {
+          fill: rgba(224, 79, 79, 0.81);
+        }
+        svg {
+          width: 3rem;
+          height: 3rem;
         }
       }
     }
@@ -1214,6 +1224,11 @@ i.fa.fa-usd.overdue {
     }
   }
 }
+.selfCheckinMode .classMembers {
+  .iconItem.waiver.notValid {
+    clear: left;
+  }
+}
 .checkinMembers,
 .classMembers {
   border-top-color: #d5d5d5;
@@ -1227,6 +1242,18 @@ i.fa.fa-usd.overdue {
       clear: left;
       .bar {
         width: 100px;
+      }
+    }
+  }
+  .iconItem.waiver.notValid {
+    float: left;
+    margin-top: 15px;
+    margin-left: 10px;
+    svg {
+      height: 2rem;
+      width: 2rem;
+      path {
+        fill: red;
       }
     }
   }
@@ -1284,6 +1311,18 @@ i.fa.fa-usd.overdue {
         }
         span:hover {
           text-decoration: underline;
+        }
+      }
+      .iconItem.waiver.notValid {
+        float: left;
+        margin-top: 15px;
+        margin-left: 10px;
+        svg {
+          height: 2rem;
+          width: 2rem;
+          path {
+            fill: red;
+          }
         }
       }
     }
@@ -1355,6 +1394,7 @@ i.fa.fa-usd.overdue {
     h4 {
       float: left;
       margin-top: 4px;
+      min-width: 160px;
     }
   }
 }

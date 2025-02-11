@@ -71,7 +71,7 @@ export function* fetchMembers(action) {
             ',values[Billing Cash Term End Date],values[Credit Card Expiry Year],values[Credit Card Expiry Month],values[Billing Members]' +
             ',values[Billing Family Members],values[Biller Migrated],values[Payment]' +
             ',values[Membership Cost],values[Family Fee Details],values[Resume Date]' +
-            ',values[Last Attendance Date],values[Is New Reply Received]' +
+            ',values[Last Attendance Date],values[Is New Reply Received],values[Waiver Complete Date]' +
             ',values[useSubAccount],values[POS Profile ID],values[Fee Program]' +
             ',values[Emails Sent Count],values[Max Weekly Classes],values[Reminder Date]' +
             ',values[Emails Received Count],values[Is New Reply Received],values[SMS Sent Count],values[SMS Received Count]' +
@@ -130,7 +130,7 @@ export function* fetchMembers(action) {
               ',values[Billing Cash Term End Date],values[Credit Card Expiry Year],values[Credit Card Expiry Month],values[Billing Members]' +
               ',values[Billing Family Members],values[Biller Migrated],values[Payment]' +
               ',values[Membership Cost],values[Family Fee Details],values[Resume Date]' +
-              ',values[Last Attendance Date],values[Is New Reply Received]' +
+              ',values[Last Attendance Date],values[Is New Reply Received],values[Waiver Complete Date]' +
               ',values[useSubAccount],values[POS Profile ID],values[Fee Program]' +
               ',values[Emails Sent Count],values[Max Weekly Classes],values[Reminder Date]' +
               ',values[Emails Received Count],values[Is New Reply Received],values[SMS Sent Count],values[SMS Received Count]' +

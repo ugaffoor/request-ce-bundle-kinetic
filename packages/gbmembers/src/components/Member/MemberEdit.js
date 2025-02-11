@@ -1060,6 +1060,30 @@ export const MemberEdit = ({
                         />
                       </div>
                     </span>
+                    <span className="line">
+                      <div>
+                        <label htmlFor="waiverCompleteDate">
+                          Waiver Complete Date
+                        </label>
+                        <input
+                          type="text"
+                          name="waiverCompleteDate"
+                          id="waiverCompleteDate"
+                          size="50"
+                          ref={input => (this.input = input)}
+                          value={memberItem.values['Waiver Complete Date']}
+                          onChange={e =>
+                            handleChange(
+                              memberItem,
+                              'Waiver Complete Date',
+                              e,
+                              setIsDirty,
+                              memberChanges,
+                            )
+                          }
+                        />
+                      </div>
+                    </span>
                   </div>
                 )}
               </span>

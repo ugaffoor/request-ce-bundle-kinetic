@@ -67,10 +67,16 @@ export class EditAttributeValue extends Component {
         percentageTextValue = value;
       }
     }
-    if (
-      this.props.inputType === 'Date' ||
-      this.props.inputType === 'MultipleDates'
-    ) {
+    if (this.props.inputType === 'Date') {
+      if (value === undefined || value === '') {
+        value = '';
+        origValue = '';
+      } else {
+        value = moment(value).format('YYYY-MM-DD');
+        origValue = value;
+      }
+    }
+    if (this.props.inputType === 'MultipleDates') {
       if (value === undefined) {
         value = '';
         origValue = '';

@@ -16,6 +16,7 @@ import aidIcon from '../../images/Emergency.svg?raw';
 import printerIcon from '../../images/Print.svg?raw';
 import waiverIcon from '../../images/clipboard.svg?raw';
 import statsBarIcon from '../../images/stats-bars.svg?raw';
+import waiverCheckedIcon from '../../images/assignment_turned_in.svg?raw';
 import phone from '../../images/phone.png';
 import mail from '../../images/mail.png';
 import sms from '../../images/sms.png';
@@ -1091,6 +1092,53 @@ export const MemberView = ({
                     </span>
                   </span>
                 </div>
+                {getAttributeValue(space, 'Member Waiver Compliance Date') !==
+                  undefined &&
+                  getAttributeValue(space, 'Member Waiver Compliance Date') !==
+                    '' &&
+                  getAttributeValue(space, 'Member Waiver Compliance Date') !==
+                    null && (
+                    <span>
+                      {memberItem.values['Waiver Complete Date'] !==
+                        undefined &&
+                        memberItem.values['Waiver Complete Date'] !== '' && (
+                          <div
+                            className={
+                              moment(
+                                getAttributeValue(
+                                  space,
+                                  'Member Waiver Compliance Date',
+                                ),
+                              ).isSameOrBefore(
+                                memberItem.values['Waiver Complete Date'],
+                              )
+                                ? 'iconItem waiver valid'
+                                : 'iconItem waiver notValid'
+                            }
+                          >
+                            <SVGInline
+                              svg={waiverCheckedIcon}
+                              className="icon"
+                            />
+                            <span className="value">
+                              {moment(
+                                memberItem.values['Waiver Complete Date'],
+                              ).format('L')}
+                            </span>
+                          </div>
+                        )}
+                      {(memberItem.values['Waiver Complete Date'] ===
+                        undefined ||
+                        memberItem.values['Waiver Complete Date'] === '') && (
+                        <div className={'iconItem waiver notValid'}>
+                          <SVGInline svg={waiverCheckedIcon} className="icon" />
+                          <span className="value">
+                            Waiver Acceptance Required
+                          </span>
+                        </div>
+                      )}
+                    </span>
+                  )}
                 {/*getAttributeValue(space, 'Franchisor') !== 'YES' && (
                   <div className="iconItem">
                     <SVGInline svg={waiverIcon} className="icon" />

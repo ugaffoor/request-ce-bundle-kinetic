@@ -79,6 +79,7 @@ export class ListMembers extends React.Component {
     }
 
     let members = matchesMemberFilter(
+      space,
       allMembers,
       selectedList.filters,
       selectedList.excluded,

@@ -299,6 +299,20 @@ class SchoolAttributes extends Component {
               profile={this.props.profile}
             />
           )}
+          <EditAttributeValue
+            attributeID="waiverComplianceDate"
+            attributeName="Member Waiver Compliance Date"
+            inputType="Date"
+            width="400px"
+            labelName="Member Waiver Compliance Date"
+            helpText="This date indicates the date which all members should have completed a waiver as a Lead or a Member.
+If a new waiver is generate and all members are required to complete, this date is used to ensure a member has completed their waiver.
+Indications in the application will identify members not compliant."
+            updateSpaceAttribute={this.props.updateSpaceAttribute}
+            space={this.props.space}
+            appSpace={this.props.appSpace}
+            profile={this.props.profile}
+          />
         </span>
         <span className="detailsSection">
           <h6>Email</h6>
