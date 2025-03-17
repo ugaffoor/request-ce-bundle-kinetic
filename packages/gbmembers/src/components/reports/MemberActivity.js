@@ -92,6 +92,7 @@ export class MemberActivityReport extends Component {
       { title: 'Program', field: 'program' },
       { title: 'Belt', field: 'belt' },
       { title: 'Belt Size', field: 'beltSize' },
+      { title: 'Parent or Guardian', field: 'parentOrGuardian' },
       { title: 'Emergency Contact Name', field: 'emergencyContactName' },
       { title: 'Emergency Contact Phone', field: 'emergencyContactPhone' },
       {
@@ -238,6 +239,7 @@ export class MemberActivityReport extends Component {
       { label: 'Program', value: 'program' },
       { label: 'Belt', value: 'belt' },
       { label: 'Belt Size', value: 'beltSize' },
+      { title: 'Parent or Guardian', field: 'parentOrGuardian' },
       { title: 'Emergency Contact Name', value: 'emergencyContactName' },
       { title: 'Emergency Contact Phone', value: 'emergencyContactPhone' },
       {
@@ -309,6 +311,7 @@ export class MemberActivityReport extends Component {
           { label: 'Barcode', value: 'barcode' },
           { label: 'Belt', value: 'belt' },
           { label: 'Belt Size', value: 'beltSize' },
+          { label: 'Parent or Guardian', field: 'parentOrGuardian' },
           { label: 'Emergency Contact Name', value: 'emergencyContactName' },
           { label: 'Emergency Contact Phone', value: 'emergencyContactPhone' },
           {
@@ -399,6 +402,7 @@ export class MemberActivityReport extends Component {
       { label: 'Fee Program', value: 'feeProgram' },
       { label: 'Belt', value: 'belt' },
       { label: 'Belt Size', value: 'beltSize' },
+      { label: 'Parent or Guardian', field: 'parentOrGuardian' },
       { label: 'Emergency Contact Name', value: 'emergencyContactName' },
       { label: 'Emergency Contact Phone', value: 'emergencyContactPhone' },
       {
@@ -1244,6 +1248,7 @@ export class MemberActivityReport extends Component {
         feeProgram: this.getFeeProgram(members, member),
         belt: member.values['Ranking Belt'],
         beltSize: member.values['Belt Size'],
+        parentOrGuardian: member.values['Parent or Guardian'],
         emergencyContactName: member.values['Emergency Contact Name'],
         emergencyContactPhone: member.values['Emergency Contact Phone'],
         emergencyContactRelationship:
