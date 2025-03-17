@@ -92,7 +92,6 @@ export class MemberActivityReport extends Component {
       { title: 'Program', field: 'program' },
       { title: 'Belt', field: 'belt' },
       { title: 'Belt Size', field: 'beltSize' },
-      { title: 'Parent or Guardian', field: 'parentOrGuardian' },
       { title: 'Emergency Contact Name', field: 'emergencyContactName' },
       { title: 'Emergency Contact Phone', field: 'emergencyContactPhone' },
       {
@@ -103,147 +102,13 @@ export class MemberActivityReport extends Component {
       { title: 'Additional Program 1', field: 'additionalProgram1' },
       { title: 'Additional Program 2', field: 'additionalProgram2' },
       { title: 'Max Weekly Classes', field: 'maxWeeklyClasses' },
-      {
-        title: 'Date Joined',
-        field: 'dateJoined',
-        sorter: function(a, b, aRow, bRow, column, dir, sorterParams) {
-          if (dir === 'asc' && (a === '' || b === '')) {
-            return a === '' ? 1 : -1;
-          } else if (dir === 'desc' && (a === '' || b === '')) {
-            return b === '' ? 1 : -1;
-          }
-
-          a = moment(a);
-          b = moment(b);
-          if (dir === 'asc') {
-            return b.isAfter(a) ? 1 : -1;
-          } else if (dir === 'desc') {
-            return a.isAfter(b) ? -1 : 1;
-          }
-          return 0;
-        },
-      },
+      { title: 'Date Joined', field: 'dateJoined' },
       { title: 'Days Since Joined', field: 'daysSinceJoined' },
-      {
-        title: 'Last Attendance Date',
-        field: 'lastAttendanceDate',
-        sorter: function(a, b, aRow, bRow, column, dir, sorterParams) {
-          if (dir === 'asc' && (a === '' || b === '')) {
-            return a === '' ? 1 : -1;
-          } else if (dir === 'desc' && (a === '' || b === '')) {
-            return b === '' ? 1 : -1;
-          }
-
-          a = moment(a);
-          b = moment(b);
-          if (dir === 'asc') {
-            return b.isAfter(a) ? 1 : -1;
-          } else if (dir === 'desc') {
-            return a.isAfter(b) ? -1 : 1;
-          }
-          return 0;
-        },
-      },
-      {
-        title: 'Last Promotion Date',
-        field: 'lastPromotionDate',
-        sorter: function(a, b, aRow, bRow, column, dir, sorterParams) {
-          if (dir === 'asc' && (a === '' || b === '')) {
-            return a === '' ? 1 : -1;
-          } else if (dir === 'desc' && (a === '' || b === '')) {
-            return b === '' ? 1 : -1;
-          }
-
-          a = moment(a);
-          b = moment(b);
-          if (dir === 'asc') {
-            return b.isAfter(a) ? 1 : -1;
-          } else if (dir === 'desc') {
-            return a.isAfter(b) ? -1 : 1;
-          }
-          return 0;
-        },
-      },
-      {
-        title: 'Last Payment Date',
-        field: 'lastPaymentDate',
-        sorter: function(a, b, aRow, bRow, column, dir, sorterParams) {
-          if (dir === 'asc' && (a === '' || b === '')) {
-            return a === '' ? 1 : -1;
-          } else if (dir === 'desc' && (a === '' || b === '')) {
-            return b === '' ? 1 : -1;
-          }
-
-          a = moment(a);
-          b = moment(b);
-          if (dir === 'asc') {
-            return b.isAfter(a) ? 1 : -1;
-          } else if (dir === 'desc') {
-            return a.isAfter(b) ? -1 : 1;
-          }
-          return 0;
-        },
-      },
-      {
-        title: 'Cash Term Start Date',
-        field: 'cashStartDate',
-        sorter: function(a, b, aRow, bRow, column, dir, sorterParams) {
-          if (dir === 'asc' && (a === '' || b === '')) {
-            return a === '' ? 1 : -1;
-          } else if (dir === 'desc' && (a === '' || b === '')) {
-            return b === '' ? 1 : -1;
-          }
-
-          a = moment(a);
-          b = moment(b);
-          if (dir === 'asc') {
-            return b.isAfter(a) ? 1 : -1;
-          } else if (dir === 'desc') {
-            return a.isAfter(b) ? -1 : 1;
-          }
-          return 0;
-        },
-      },
-      {
-        title: 'Cash Term End Date',
-        field: 'cashEndDate',
-        sorter: function(a, b, aRow, bRow, column, dir, sorterParams) {
-          if (dir === 'asc' && (a === '' || b === '')) {
-            return a === '' ? 1 : -1;
-          } else if (dir === 'desc' && (a === '' || b === '')) {
-            return b === '' ? 1 : -1;
-          }
-
-          a = moment(a);
-          b = moment(b);
-          if (dir === 'asc') {
-            return b.isAfter(a) ? 1 : -1;
-          } else if (dir === 'desc') {
-            return a.isAfter(b) ? -1 : 1;
-          }
-          return 0;
-        },
-      },
-      {
-        title: 'Waiver Complete Date',
-        field: 'waiverCompleteDate',
-        sorter: function(a, b, aRow, bRow, column, dir, sorterParams) {
-          if (dir === 'asc' && (a === '' || b === '')) {
-            return a === '' ? 1 : -1;
-          } else if (dir === 'desc' && (a === '' || b === '')) {
-            return b === '' ? 1 : -1;
-          }
-
-          a = moment(a);
-          b = moment(b);
-          if (dir === 'asc') {
-            return b.isAfter(a) ? 1 : -1;
-          } else if (dir === 'desc') {
-            return a.isAfter(b) ? -1 : 1;
-          }
-          return 0;
-        },
-      },
+      { title: 'Last Attendance Date', field: 'lastAttendanceDate' },
+      { title: 'Last Payment Date', field: 'lastPaymentDate' },
+      { title: 'Cash Term Start Date', field: 'cashStartDate' },
+      { title: 'Cash Term End Date', field: 'cashEndDate' },
+      { title: 'Waiver Complete Date', field: 'waiverCompleteDate' },
       { title: 'Billing User', field: 'billingUser' },
       { title: 'Lead Source', field: 'leadSource' },
       getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES' && {
@@ -373,7 +238,6 @@ export class MemberActivityReport extends Component {
       { label: 'Program', value: 'program' },
       { label: 'Belt', value: 'belt' },
       { label: 'Belt Size', value: 'beltSize' },
-      { title: 'Parent or Guardian', value: 'parentOrGuardian' },
       { title: 'Emergency Contact Name', value: 'emergencyContactName' },
       { title: 'Emergency Contact Phone', value: 'emergencyContactPhone' },
       {
@@ -387,7 +251,6 @@ export class MemberActivityReport extends Component {
       { label: 'Date Joined', value: 'dateJoined' },
       { label: 'Days Since Joined', value: 'daysSinceJoined' },
       { label: 'Last Attendance Date', value: 'lastAttendanceDate' },
-      { label: 'Last Promotion Date', value: 'lastPromotionDate' },
       { label: 'Last Payment Date', value: 'lastPaymentDate' },
       { label: 'Cash Term Start Date', value: 'cashStartDate' },
       { label: 'Cash Term End Date', value: 'cashEndDate' },
@@ -446,7 +309,6 @@ export class MemberActivityReport extends Component {
           { label: 'Barcode', value: 'barcode' },
           { label: 'Belt', value: 'belt' },
           { label: 'Belt Size', value: 'beltSize' },
-          { label: 'Parent or Guardian', value: 'parentOrGuardian' },
           { label: 'Emergency Contact Name', value: 'emergencyContactName' },
           { label: 'Emergency Contact Phone', value: 'emergencyContactPhone' },
           {
@@ -465,7 +327,6 @@ export class MemberActivityReport extends Component {
           { label: 'SMS Sent', value: 'smsSent' },
           { label: 'SMS Received', value: 'smsReceived' },
           { label: 'Last Attendance Date', value: 'lastAttendanceDate' },
-          { label: 'Last Promotion Date', value: 'lastPromotionDate' },
           { label: 'Date Joined', value: 'dateJoined' },
           { label: 'Days Since Joined', value: 'daysSinceJoined' },
           { label: 'Last Payment Date', value: 'lastPaymentDate' },
@@ -538,7 +399,6 @@ export class MemberActivityReport extends Component {
       { label: 'Fee Program', value: 'feeProgram' },
       { label: 'Belt', value: 'belt' },
       { label: 'Belt Size', value: 'beltSize' },
-      { label: 'Parent or Guardian', value: 'parentOrGuardian' },
       { label: 'Emergency Contact Name', value: 'emergencyContactName' },
       { label: 'Emergency Contact Phone', value: 'emergencyContactPhone' },
       {
@@ -724,7 +584,6 @@ export class MemberActivityReport extends Component {
         filterColumn === 'dateJoined' ||
         filterColumn === 'lastPaymentDate' ||
         filterColumn === 'lastAttendanceDate' ||
-        filterColumn === 'lastPromotionDate' ||
         filterColumn === 'cashStartDate' ||
         filterColumn === 'cashEndDate' ||
         filterColumn === 'waiverCompleteDate'
@@ -752,7 +611,6 @@ export class MemberActivityReport extends Component {
         filterColumn === 'dateJoined' ||
         filterColumn === 'lastPaymentDate' ||
         filterColumn === 'lastAttendanceDate' ||
-        filterColumn === 'lastPromotionDate' ||
         filterColumn === 'cashStartDate' ||
         filterColumn === 'cashEndDate' ||
         filterColumn === 'waiverCompleteDate'
@@ -803,7 +661,6 @@ export class MemberActivityReport extends Component {
       filterColumn !== 'dateJoined' &&
       filterColumn !== 'lastPaymentDate' &&
       filterColumn !== 'lastAttendanceDate' &&
-      filterColumn !== 'lastPromotionDate' &&
       filterColumn !== 'cashStartDate' &&
       filterColumn !== 'cashEndDate' &&
       filterColumn !== 'waiverCompleteDate'
@@ -828,7 +685,6 @@ export class MemberActivityReport extends Component {
       filterColumn === 'dateJoined' ||
       filterColumn === 'lastPaymentDate' ||
       filterColumn === 'lastAttendanceDate' ||
-      filterColumn === 'lastPromotionDate' ||
       filterColumn === 'cashStartDate' ||
       filterColumn === 'cashEndDate' ||
       filterColumn === 'waiverCompleteDate'
@@ -988,7 +844,6 @@ export class MemberActivityReport extends Component {
       !event.target.value === 'dateJoined' &&
       !event.target.value === 'lastPaymentDate' &&
       !event.target.value === 'lastAttendanceDate' &&
-      !event.target.value === 'lastPromotionDate' &&
       !event.target.value === 'cashStartDate' &&
       !event.target.value === 'cashEndDate' &&
       !event.target.value === 'waiverCompleteDate'
@@ -1007,7 +862,6 @@ export class MemberActivityReport extends Component {
       event.target.value === 'dateJoined' ||
       event.target.value === 'lastPaymentDate' ||
       event.target.value === 'lastAttendanceDate' ||
-      event.target.value === 'lastPromotionDate' ||
       event.target.value === 'cashStartDate' ||
       event.target.value === 'cashEndDate' ||
       event.target.value === 'waiverCompleteDate'
@@ -1317,9 +1171,7 @@ export class MemberActivityReport extends Component {
 
   getLastPaymentDate(member) {
     if (getAttributeValue(this.props.space, 'Billing Company') === 'Bambora') {
-      return member.values['Billing Start Date'] !== undefined &&
-        member.values['Billing Start Date'] !== '' &&
-        member.values['Billing Start Date'] !== null
+      return member.values['Billing Start Date'] !== undefined
         ? moment(member.values['Billing Start Date']).format('L')
         : '';
     } else {
@@ -1392,7 +1244,6 @@ export class MemberActivityReport extends Component {
         feeProgram: this.getFeeProgram(members, member),
         belt: member.values['Ranking Belt'],
         beltSize: member.values['Belt Size'],
-        parentOrGuardian: member.values['Parent or Guardian'],
         emergencyContactName: member.values['Emergency Contact Name'],
         emergencyContactPhone: member.values['Emergency Contact Phone'],
         emergencyContactRelationship:
@@ -1403,15 +1254,11 @@ export class MemberActivityReport extends Component {
         maxWeeklyClasses: member.values['Max Weekly Classes'],
         leadSource: member.values['Lead Source'],
         dateJoined:
-          member.values['Date Joined'] !== undefined &&
-          member.values['Date Joined'] !== '' &&
-          member.values['Date Joined'] !== null
+          member.values['Date Joined'] !== undefined
             ? moment(member.values['Date Joined']).format('L')
             : '',
         daysSinceJoined:
-          member.values['Date Joined'] !== undefined &&
-          member.values['Date Joined'] !== '' &&
-          member.values['Date Joined'] !== null
+          member.values['Date Joined'] !== undefined
             ? Math.round(
                 moment
                   .duration(moment().diff(moment(member.values['Date Joined'])))
@@ -1419,34 +1266,20 @@ export class MemberActivityReport extends Component {
               )
             : '',
         lastAttendanceDate:
-          member.values['Last Attendance Date'] !== undefined &&
-          member.values['Last Attendance Date'] !== '' &&
-          member.values['Last Attendance Date'] !== null
+          member.values['Last Attendance Date'] !== undefined
             ? moment(member.values['Last Attendance Date']).format('L')
-            : '',
-        lastPromotionDate:
-          member.values['Last Promotion'] !== undefined &&
-          member.values['Last Promotion'] !== '' &&
-          member.values['Last Promotion'] !== null
-            ? moment(member.values['Last Promotion']).format('L')
             : '',
         lastPaymentDate: this.getLastPaymentDate(member),
         cashStartDate:
-          member.values['Billing Cash Term Start Date'] !== undefined &&
-          member.values['Billing Cash Term Start Date'] !== '' &&
-          member.values['Billing Cash Term Start Date'] !== null
+          member.values['Billing Cash Term Start Date'] !== undefined
             ? moment(member.values['Billing Cash Term Start Date']).format('L')
             : '',
         cashEndDate:
-          member.values['Billing Cash Term End Date'] !== undefined &&
-          member.values['Billing Cash Term End Date'] !== '' &&
-          member.values['Billing Cash Term End Date'] !== null
+          member.values['Billing Cash Term End Date'] !== undefined
             ? moment(member.values['Billing Cash Term End Date']).format('L')
             : '',
         waiverCompleteDate:
-          member.values['Waiver Complete Date'] !== undefined &&
-          member.values['Waiver Complete Date'] !== '' &&
-          member.values['Waiver Complete Date'] !== null
+          member.values['Waiver Complete Date'] !== undefined
             ? moment(member.values['Waiver Complete Date']).format('L')
             : '',
         billingUser: member.values['Billing User'] === 'YES' ? 'YES' : 'NO',
@@ -1967,13 +1800,7 @@ export class MemberActivityReport extends Component {
     });
   }
   onColumnDropdownChange = options => {
-    /*    this.filterColumns.forEach(column => {
-      this.memberActivityGridref.table.hideColumn(column.value);
-    });*/
-    this.columnsToHide[0].options.forEach(column => {
-      this.memberActivityGridref.table.hideColumn(column.value);
-    });
-    this.columnsToHide[1].options.forEach(column => {
+    this.filterColumns.forEach(column => {
       this.memberActivityGridref.table.hideColumn(column.value);
     });
 
@@ -2144,9 +1971,6 @@ export class MemberActivityReport extends Component {
                     </option>
                     <option key="lastAttendanceDate" value="lastAttendanceDate">
                       Last Attendance Date
-                    </option>
-                    <option key="lastPromotionDate" value="lastPromotionDate">
-                      Last Promotion Date
                     </option>
                     <option key="cashStartDate" value="cashStartDate">
                       Cash Term Start Date

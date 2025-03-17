@@ -221,10 +221,6 @@ export class SelfCheckin extends Component {
           >
             Undo Checkin
           </button>
-          <span class="countdown_help">
-            No need to WAIT to continue simple scan or select another Member to
-            checkin
-          </span>
         </span>
       );
     }
@@ -463,8 +459,6 @@ export class SelfCheckin extends Component {
       if (
         member.values['Status'] !== 'Inactive' &&
         member.values['Status'] !== 'Frozen' &&
-        this.state.allowedPrograms !== undefined &&
-        this.state.allowedPrograms !== null &&
         this.state.allowedPrograms.findIndex(
           program => program.value === member.values['Ranking Program'],
         ) !== -1
@@ -1101,18 +1095,15 @@ export class SelfCheckin extends Component {
                                           value.member.values[
                                             'Waiver Complete Date'
                                           ] === '' ||
-                                          value.member.values[
-                                            'Waiver Complete Date'
-                                          ] === null ||
                                           moment(
                                             value.member.values[
                                               'Waiver Complete Date'
-                                            ],
-                                          ).isBefore(
-                                            moment(
-                                              getAttributeValue(
-                                                this.props.space,
-                                                'Member Waiver Compliance Date',
+                                            ].isBefore(
+                                              moment(
+                                                getAttributeValue(
+                                                  this.props.space,
+                                                  'Member Waiver Compliance Date',
+                                                ),
                                               ),
                                             ),
                                           )) && (
