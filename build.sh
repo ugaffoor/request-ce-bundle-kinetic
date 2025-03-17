@@ -7,6 +7,7 @@ cp ../react-cache-buster/dist/CacheBuster.modern.js node_modules/react-cache-bus
 cp ../react-cache-buster/dist/index.modern.js node_modules/react-cache-buster/dist/index.modern.js
 cp ../react-favicon/dist/index.js node_modules/react-favicon/dist/index.js
 
+export NODE_OPTIONS="--max-old-space-size=10240"
 yarn generate-meta-tag
 yarn  build
 cp ./public/meta.json ./packages/app/build/

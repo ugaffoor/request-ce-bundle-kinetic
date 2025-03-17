@@ -83,6 +83,8 @@ export class LeadEdit extends Component {
       parentGuardian = 'Member';
     } else if (this.props.leadItem.values['Parent or Guardian'] !== undefined) {
       parentGuardian = 'Other';
+    } else {
+      parentGuardian = 'Other';
     }
     this.state = {
       parentGuardian,

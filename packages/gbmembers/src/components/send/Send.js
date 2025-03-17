@@ -22,6 +22,7 @@ import { actions as appActions } from '../../redux/modules/memberApp';
 import crossIcon from '../../images/cross.svg?raw';
 import SVGInline from 'react-svg-inline';
 import { confirm } from '../helpers/Confirmation';
+import helpIcon from '../../images/help.svg?raw';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -70,6 +71,7 @@ export class EmailCampaignsList extends Component {
     this._getClickedColumns = this.getClickedColumns();
     this.state = {
       emailCampaigns,
+      scheduledOnly: false,
     };
   }
 
@@ -81,7 +83,10 @@ export class EmailCampaignsList extends Component {
       )
     ) {
       this.setState({
-        emailCampaigns: this.getData(nextProps.emailCampaigns.submissions),
+        emailCampaigns: this.getData(
+          nextProps.emailCampaigns.submissions,
+          this.state.scheduledOnly,
+        ),
         emailNextPageToken: nextProps.emailCampaigns.nextPageToken,
         emailCampaignsLoadingTimestamp:
           nextProps.emailCampaignsLoadingTimestamp,
@@ -247,13 +252,13 @@ export class EmailCampaignsList extends Component {
     ];
   };
 
-  getData(emailCampaigns) {
+  getData(emailCampaigns, scheduledOnly) {
     if (!emailCampaigns) {
       return [];
     }
     myThis = this;
     var hasInProgress = false;
-    const data = emailCampaigns.map(campaign => {
+    var data = emailCampaigns.map(campaign => {
       let status = this.getEmailStatus(campaign);
       if (status['Status'] === 'Scheduled' || status['Status'] === 'Sending') {
         hasInProgress = true;
@@ -274,6 +279,15 @@ export class EmailCampaignsList extends Component {
         attachments: campaign.values['Attachments'],
       };
     });
+
+    if (scheduledOnly) {
+      data = data.filter(campaign => {
+        if (scheduledOnly && campaign.status['Status'] === 'Scheduled') {
+          return true;
+        }
+        return false;
+      });
+    }
     if (hasInProgress && this.reloadTimeout === undefined) {
       console.log('ReloadTimeout set');
       this.reloadTimeout = setTimeout(function() {
@@ -312,6 +326,33 @@ export class EmailCampaignsList extends Component {
       return {
         Status: 'Sending',
         Emails_Sent: campaign.values['Emailed Count'],
+      };
+    }
+
+    if (
+      recipients.length === 1 &&
+      (campaign.values['Scheduled Time'] === null ||
+        campaign.values['Scheduled Time'] === undefined ||
+        campaign.values['Scheduled Time'] === '') &&
+      campaign.values['Emailed Count'] === '0'
+    ) {
+      return {
+        Status: 'Completed',
+        Emails_Sent: '1',
+      };
+    }
+
+    if (
+      recipients.length === 1 &&
+      campaign.values['Scheduled Time'] !== null &&
+      campaign.values['Scheduled Time'] !== undefined &&
+      campaign.values['Scheduled Time'] !== '' &&
+      campaign.values['Emailed Count'] === '0' &&
+      moment(campaign.values['Scheduled Time']).isBefore(moment())
+    ) {
+      return {
+        Status: 'Completed',
+        Emails_Sent: '1',
       };
     }
 
@@ -616,6 +657,45 @@ export class EmailCampaignsList extends Component {
         <div className="">
           <div className="pageHeader">
             <h3>Emails Sent</h3>
+            <div className="scheduledFilter">
+              <label htmlFor="scheduled">Show Scheduled Only</label>
+              <div className="checkboxFilter">
+                <input
+                  id="scheduled"
+                  type="checkbox"
+                  onChange={e => {
+                    let emailCampaigns = this.getData(
+                      this.props.emailCampaigns.submissions,
+                      !this.state.scheduledOnly,
+                    );
+
+                    this.setState({
+                      scheduledOnly: !this.state.scheduledOnly,
+                      emailCampaigns,
+                    });
+                  }}
+                />
+                <label htmlFor="scheduled"></label>
+              </div>
+              <SVGInline
+                svg={helpIcon}
+                className="icon help"
+                onClick={e => {
+                  $('.scheduledEmailsModeHelp').toggle('');
+                }}
+              />
+            </div>
+            <span className="scheduledEmailsModeHelp">
+              <ul>
+                <li>No - Show all Emails</li>
+                <li>
+                  Yes - Displays only emails that are still scheduled to be
+                  sent.<br></br>If you have Scheduled emails that are older than
+                  the last item displayed, click Show More to load another group
+                  of emails.
+                </li>
+              </ul>
+            </span>
           </div>
         </div>
         <div
@@ -683,13 +763,14 @@ export class EmailCampaignsList extends Component {
 export class SmsCampaignsList extends Component {
   constructor(props) {
     super(props);
-    let smsCampaigns = this.getData(this.props.smsCampaigns.submissions);
+    let smsCampaigns = this.getData(this.props.smsCampaigns.submissions, false);
     this._columns = this.getColumns();
     this.getNestedTableData = this.getNestedTableData.bind(this);
     this._getNestedTableColumns = this.getNestedTableColumns;
     this._getRecipientColumns = this.getRecipientColumns();
     this.state = {
       smsCampaigns,
+      scheduledSMSOnly: false,
     };
   }
 
@@ -701,7 +782,10 @@ export class SmsCampaignsList extends Component {
       )
     ) {
       this.setState({
-        smsCampaigns: this.getData(nextProps.smsCampaigns.submissions),
+        smsCampaigns: this.getData(
+          nextProps.smsCampaigns.submissions,
+          this.state.scheduledSMSOnly,
+        ),
         smsNextPageToken: nextProps.smsCampaigns.nextPageToken,
         smsCampaignsLoadingTimestamp: nextProps.smsCampaignsLoadingTimestamp,
       });
@@ -806,14 +890,14 @@ export class SmsCampaignsList extends Component {
     ];
   };
 
-  getData(smsCampaigns) {
+  getData(smsCampaigns, scheduledSMSOnly) {
     if (!smsCampaigns) {
       return [];
     }
     mySMSThis = this;
     var hasInProgress = false;
 
-    const data = smsCampaigns
+    var data = smsCampaigns
       .sort((a, b) => {
         let aDate = moment(a.values['Sent Date'], email_date_format);
         let bDate = moment(b.values['Sent Date'], email_date_format);
@@ -847,6 +931,22 @@ export class SmsCampaignsList extends Component {
           recipients: campaign.values['Recipients'],
         };
       });
+
+    if (scheduledSMSOnly) {
+      data = data.filter(campaign => {
+        if (
+          scheduledSMSOnly &&
+          campaign.scheduledTime !== undefined &&
+          moment(campaign.scheduledTime).isAfter(
+            moment(campaign.sentDate, email_date_format),
+          ) &&
+          campaign.cancelled !== 'YES'
+        ) {
+          return true;
+        }
+        return false;
+      });
+    }
 
     if (hasInProgress && this.reloadSmsTimeout === undefined) {
       console.log('ReloadSmsTimeout set');
@@ -1160,6 +1260,45 @@ export class SmsCampaignsList extends Component {
         <div className="row">
           <div className="pageHeader">
             <h3>SMSes Sent</h3>
+            <div className="scheduledFilter">
+              <label htmlFor="scheduledSMS">Show Scheduled Only</label>
+              <div className="checkboxFilter">
+                <input
+                  id="scheduledSMS"
+                  type="checkbox"
+                  onChange={e => {
+                    let smsCampaigns = this.getData(
+                      this.props.smsCampaigns.submissions,
+                      !this.state.scheduledSMSOnly,
+                    );
+
+                    this.setState({
+                      scheduledSMSOnly: !this.state.scheduledSMSOnly,
+                      smsCampaigns,
+                    });
+                  }}
+                />
+                <label htmlFor="scheduledSMS"></label>
+              </div>
+              <SVGInline
+                svg={helpIcon}
+                className="icon help"
+                onClick={e => {
+                  $('.scheduledSMSModeHelp').toggle('');
+                }}
+              />
+            </div>
+            <span className="scheduledSMSModeHelp">
+              <ul>
+                <li>No - Show all SMS</li>
+                <li>
+                  Yes - Displays only SMS that are still scheduled to be sent.
+                  <br></br>If you have Scheduled SMS that are older than the
+                  last item displayed, click Show More to load another group of
+                  SMS.
+                </li>
+              </ul>
+            </span>
           </div>
         </div>
         <div

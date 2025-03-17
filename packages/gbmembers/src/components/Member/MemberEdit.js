@@ -1060,6 +1060,30 @@ export const MemberEdit = ({
                         />
                       </div>
                     </span>
+                    <span className="line">
+                      <div>
+                        <label htmlFor="waiverCompleteDate">
+                          Waiver Complete Date
+                        </label>
+                        <input
+                          type="text"
+                          name="waiverCompleteDate"
+                          id="waiverCompleteDate"
+                          size="50"
+                          ref={input => (this.input = input)}
+                          value={memberItem.values['Waiver Complete Date']}
+                          onChange={e =>
+                            handleChange(
+                              memberItem,
+                              'Waiver Complete Date',
+                              e,
+                              setIsDirty,
+                              memberChanges,
+                            )
+                          }
+                        />
+                      </div>
+                    </span>
                   </div>
                 )}
               </span>
@@ -1596,6 +1620,31 @@ export const MemberEdit = ({
               )}
             </span>
           </div>
+          {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+            <div className="sectionParent">
+              <h4>Parent or Guardian</h4>
+              <span className="line">
+                <div>
+                  <label htmlFor="ParentGuardian">Parent or Guardian</label>
+                  <input
+                    type="text"
+                    name="ParentGuardian"
+                    id="ParentGuardian"
+                    ref={input => (this.input = input)}
+                    defaultValue={memberItem.values['Parent or Guardian']}
+                    onChange={e =>
+                      handleChange(
+                        memberItem,
+                        'Parent or Guardian',
+                        e,
+                        setIsDirty,
+                      )
+                    }
+                  />
+                </div>
+              </span>
+            </div>
+          )}
           <div className="section2">
             {getAttributeValue(space, 'Franchisor') !== 'YES' ? (
               <h1>Emergency Contact Information</h1>

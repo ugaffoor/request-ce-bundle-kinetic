@@ -55,6 +55,26 @@
     color: red;
   }
 }
+.pageHeader {
+  .scheduledFilter {
+    margin-left: 50%;
+    margin-top: 26px;
+    label {
+      float: left;
+      font-weight: bolder;
+    }
+    .checkboxFilter {
+      float: left;
+      clear: none;
+      margin-left: 10px;
+    }
+  }
+  .scheduledEmailsModeHelp,
+  .scheduledSMSModeHelp {
+    display: none;
+    cursor: pointer;
+  }
+}
 
 .new_campaign {
   .preview {

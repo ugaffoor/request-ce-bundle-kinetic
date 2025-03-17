@@ -56,6 +56,7 @@ const mapStateToProps = state => ({
   membersNextPageToken: state.member.members.membersNextPageToken,
   memberLastFetchTime: state.member.members.memberLastFetchTime,
   allLeads: state.member.leads.allLeads,
+  currentLead: state.member.leads.currentLead,
   profile: state.member.kinops.profile,
   space: state.member.app.space,
 });
@@ -1988,6 +1989,26 @@ export const MemberNewContainer = compose(
               ? this.props.allLeads[idx].values['Main Benefits']
               : '';
           values['Attendance Count'] = '0';
+
+          if (
+            this.props.currentLead !== undefined &&
+            this.props.currentLead.requestContent !== undefined
+          ) {
+            var waiverCompleteDate;
+
+            this.props.currentLead.requestContent.forEach(content => {
+              if (
+                content.Form === 'Adults Registration' ||
+                content.Form === 'Kids Registration' ||
+                content.Form === 'Pink Team Registration'
+              ) {
+                waiverCompleteDate = moment(content.Date).format('YYYY-MM-DD');
+              }
+            });
+            if (waiverCompleteDate !== undefined) {
+              values['Waiver Complete Date'] = waiverCompleteDate;
+            }
+          }
         }
       }
       if (getAttributeValue(this.props.space, 'Franchisor') === 'YES') {
@@ -2002,143 +2023,7 @@ export const MemberNewContainer = compose(
       };
       this.props.setNewMember(member);
     },
-    UNSAFE_componentWillReceiveProps(nextProps) {
-      /*      if (this.props.pathname !== nextProps.pathname) {
-        let values = {
-          'First Name': '',
-          'Last Name': '',
-          'Member ID': '',
-          Gender: '',
-          Address: '',
-          Postcode: '',
-          Suburb: '',
-          State: '',
-          Email: '',
-          'Additional Email': '',
-          'Phone Number': '',
-          'Additional Phone Number': '',
-          'Date Joined': '',
-          'Member Type': '',
-          'Emergency Contact Name': '',
-          'Emergency Contact Phone': '',
-          'Emergency Contact Relationship': '',
-          DOB: '',
-          'Ranking Program': '',
-          'Ranking Belt': '',
-          'Last Promotion': moment().format('YYYY-MM-DD'),
-          'Attendance Count': '0',
-          'Max Weekly Classes': '',
-          'Medical Allergies': '',
-          'Main Benefits': [],
-          'Non Paying': '',
-          'Opt-Out': '',
-          'Additional Program 1': '',
-          'Additional Program 2': '',
-          'Alternate Barcode': '',
-        };
-        if (nextProps.match.params['leadId']) {
-          let idx = this.props.allLeads.findIndex(
-            lead => lead.id === this.props.match.params['leadId'],
-          );
-          if (idx !== -1) {
-            values['First Name'] =
-              this.props.allLeads[idx].values['First Name'] !== undefined
-                ? this.props.allLeads[idx].values['First Name']
-                : '';
-            values['Last Name'] =
-              this.props.allLeads[idx].values['Last Name'] !== undefined
-                ? this.props.allLeads[idx].values['Last Name']
-                : '';
-            values['Member ID'] = getMemberID(
-              values['First Name'],
-              values['Last Name'],
-            );
-            values['Gender'] =
-              this.props.allLeads[idx].values['Gender'] !== undefined
-                ? this.props.allLeads[idx].values['Gender']
-                : '';
-            values['Address'] =
-              this.props.allLeads[idx].values['Address'] !== undefined
-                ? this.props.allLeads[idx].values['Address']
-                : '';
-            values['Suburb'] =
-              this.props.allLeads[idx].values['Suburb'] !== undefined
-                ? this.props.allLeads[idx].values['Suburb']
-                : '';
-            values['Postcode'] =
-              this.props.allLeads[idx].values['Postcode'] !== undefined
-                ? this.props.allLeads[idx].values['Postcode']
-                : '';
-            values['State'] =
-              this.props.allLeads[idx].values['State'] !== undefined
-                ? this.props.allLeads[idx].values['State']
-                : '';
-            values['Email'] =
-              this.props.allLeads[idx].values['Email'] !== undefined
-                ? this.props.allLeads[idx].values['Email']
-                : '';
-            values['Additional Email'] =
-              this.props.allLeads[idx].values['Additional Email'] !== undefined
-                ? this.props.allLeads[idx].values['Additional Email']
-                : '';
-            values['Phone Number'] =
-              this.props.allLeads[idx].values['Phone Number'] !== undefined
-                ? this.props.allLeads[idx].values['Phone Number']
-                : '';
-            values['Additional Phone Number'] =
-              this.props.allLeads[idx].values['Additional Phone Number'] !==
-              undefined
-                ? this.props.allLeads[idx].values['Additional Phone Number']
-                : '';
-            values['Emergency Contact Name'] =
-              this.props.allLeads[idx].values['Emergency Contact Name'] !==
-              undefined
-                ? this.props.allLeads[idx].values['Emergency Contact Name']
-                : '';
-            values['Emergency Contact Phone'] =
-              this.props.allLeads[idx].values['Emergency Contact Phone'] !==
-              undefined
-                ? this.props.allLeads[idx].values['Emergency Contact Phone']
-                : '';
-            values['Emergency Contact Relationship'] =
-              this.props.allLeads[idx].values[
-                'Emergency Contact Relationship'
-              ] !== undefined
-                ? this.props.allLeads[idx].values[
-                    'Emergency Contact Relationship'
-                  ]
-                : '';
-            values['DOB'] =
-              this.props.allLeads[idx].values['DOB'] !== undefined
-                ? this.props.allLeads[idx].values['DOB']
-                : '';
-            values['Medical Allergies'] =
-              this.props.allLeads[idx].values['Medical Allergies'] !== undefined
-                ? this.props.allLeads[idx].values['Medical Allergies']
-                : '';
-            values['Opt-Out'] =
-              this.props.allLeads[idx].values['Opt-Out'] !== undefined
-                ? this.props.allLeads[idx].values['Opt-Out']
-                : '';
-            values['Main Benefits'] =
-              this.props.allLeads[idx].values['Main Benefits'] !== undefined
-                ? this.props.allLeads[idx].values['Main Benefits']
-                : '';
-            values['Attendance Count'] = '0';
-          }
-        }
-        if (getAttributeValue(nextProps.space, 'Franchisor') === 'YES') {
-          values['First Name'] = 'GB';
-        }
-        var member = {
-          myThis: this,
-          history: this.props.history,
-          fetchMembers: this.props.fetchMembers,
-          values: values,
-        };
-        this.props.setNewMember(member);
-      }*/
-    },
+    UNSAFE_componentWillReceiveProps(nextProps) {},
     componentDidMount() {
       this.props.setSidebarDisplayType('members');
       myThis = this;

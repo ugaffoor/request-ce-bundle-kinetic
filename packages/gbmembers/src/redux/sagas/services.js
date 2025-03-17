@@ -361,6 +361,34 @@ export function* fetchBillingChangeByBillingReference(action) {
     yield put(errorActions.setSystemError(error));
   }
 }
+export function* fetchCashRegistrations(action) {
+  const kappSlug = 'services';
+  const searchBuilder = new CoreAPI.SubmissionSearch()
+    .coreState('Submitted')
+    .type('Service')
+    .sortBy('submittedAt')
+    .sortDirection('DESC')
+    .eq('values[Members]', action.payload.id)
+    .includes([
+      'details',
+      'values[Student First Name],values[Student Last Name],values[Members],values[Payment Required],values[Term Date],values[Term End Date],values[Payment Frequency],values[feesJSON]',
+      'form',
+    ])
+    .build();
+
+  const { submissions } = yield call(CoreAPI.searchSubmissions, {
+    form: 'cash-member-registration',
+    kapp: 'services',
+    search: searchBuilder,
+  });
+
+  const serverError = submissions.serverError;
+  if (serverError) {
+    yield put(systemErrorActions.setSystemError(serverError));
+  } else {
+    yield put(actions.setCashRegistrations(submissions));
+  }
+}
 export function* watchServices() {
   yield takeEvery(types.FETCH_SERVICESBYDATE, fetchServicesByDate);
   yield takeEvery(
@@ -368,4 +396,5 @@ export function* watchServices() {
     fetchBillingChangeByBillingReference,
   );
   yield takeEvery(types.SEND_RECEIPT, sendReceipt);
+  yield takeEvery(types.FETCH_CASH_REGISTRATIONS, fetchCashRegistrations);
 }

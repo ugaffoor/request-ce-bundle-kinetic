@@ -314,7 +314,16 @@ export class ManageBookings extends Component {
         memberGUID === undefined ||
         (memberGUID !== undefined && memberGUID === '')
       ) {
-        this.addClassBooking(bookingsDataMap, booking);
+        var idx = allMembers.findIndex(
+          member =>
+            member.id === booking.memberGUID &&
+            (member.values['Status'] === 'Active' ||
+              member.values['Status'] === 'Pending Freeze' ||
+              member.values['Status'] === 'Pending Cancellation'),
+        );
+        if (idx !== -1) {
+          this.addClassBooking(bookingsDataMap, booking);
+        }
       }
     });
     let bookingsData = [];

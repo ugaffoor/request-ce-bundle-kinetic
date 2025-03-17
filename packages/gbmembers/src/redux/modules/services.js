@@ -13,11 +13,15 @@ export const types = {
     'services',
     'SET_BILLING_CHANGES_BY_BILLINGREFERENCE',
   ),
+  FETCH_CASH_REGISTRATIONS: namespace('services', 'FETCH_CASH_REGISTRATIONS'),
+  SET_CASH_REGISTRATIONS: namespace('services', 'SET_CASH_REGISTRATIONS'),
 };
 
 export const actions = {
   fetchServicesByDate: withPayload(types.FETCH_SERVICESBYDATE),
   setServices: withPayload(types.SET_SERVICES),
+  fetchCashRegistrations: withPayload(types.FETCH_CASH_REGISTRATIONS),
+  setCashRegistrations: withPayload(types.SET_CASH_REGISTRATIONS),
   sendReceipt: withPayload(types.SEND_RECEIPT),
   fetchBillingChangeByBillingReference: withPayload(
     types.FETCH_BILLING_CHANGES_BY_BILLINGREFERENCE,
@@ -32,6 +36,8 @@ export const State = Record({
   services: List(),
   membershipServicesLoading: true,
   membershipServices: List(),
+  cashRegistrationsLoading: true,
+  cashRegistrations: List(),
 });
 
 export const reducer = (state = State(), { type, payload }) => {
@@ -55,9 +61,28 @@ export const reducer = (state = State(), { type, payload }) => {
     case types.FETCH_BILLING_CHANGES_BY_BILLINGREFERENCE:
       return state.set('membershipServicesLoading', true);
     case types.SET_BILLING_CHANGES_BY_BILLINGREFERENCE: {
+      let services = payload;
+
+      services.sort(function(a, b) {
+        if (new Date(a.submittedAtDate) < new Date(b.submittedAtDate)) {
+          return 1;
+        }
+        if (new Date(a.submittedAtDate) > new Date(b.submittedAtDate)) {
+          return -1;
+        }
+        return 0;
+      });
+
       return state
         .set('membershipServicesLoading', false)
-        .set('membershipServices', payload);
+        .set('membershipServices', services);
+    }
+    case types.FETCH_CASH_REGISTRATIONS:
+      return state.set('cashRegistrationsLoading', true);
+    case types.SET_CASH_REGISTRATIONS: {
+      return state
+        .set('cashRegistrationsLoading', false)
+        .set('cashRegistrations', payload);
     }
     default:
       return state;

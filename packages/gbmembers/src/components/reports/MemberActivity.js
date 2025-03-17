@@ -92,6 +92,7 @@ export class MemberActivityReport extends Component {
       { title: 'Program', field: 'program' },
       { title: 'Belt', field: 'belt' },
       { title: 'Belt Size', field: 'beltSize' },
+      { title: 'Parent or Guardian', field: 'parentOrGuardian' },
       { title: 'Emergency Contact Name', field: 'emergencyContactName' },
       { title: 'Emergency Contact Phone', field: 'emergencyContactPhone' },
       {
@@ -108,6 +109,7 @@ export class MemberActivityReport extends Component {
       { title: 'Last Payment Date', field: 'lastPaymentDate' },
       { title: 'Cash Term Start Date', field: 'cashStartDate' },
       { title: 'Cash Term End Date', field: 'cashEndDate' },
+      { title: 'Waiver Complete Date', field: 'waiverCompleteDate' },
       { title: 'Billing User', field: 'billingUser' },
       { title: 'Lead Source', field: 'leadSource' },
       getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES' && {
@@ -237,6 +239,7 @@ export class MemberActivityReport extends Component {
       { label: 'Program', value: 'program' },
       { label: 'Belt', value: 'belt' },
       { label: 'Belt Size', value: 'beltSize' },
+      { title: 'Parent or Guardian', field: 'parentOrGuardian' },
       { title: 'Emergency Contact Name', value: 'emergencyContactName' },
       { title: 'Emergency Contact Phone', value: 'emergencyContactPhone' },
       {
@@ -253,6 +256,7 @@ export class MemberActivityReport extends Component {
       { label: 'Last Payment Date', value: 'lastPaymentDate' },
       { label: 'Cash Term Start Date', value: 'cashStartDate' },
       { label: 'Cash Term End Date', value: 'cashEndDate' },
+      { label: 'Waiver Complete Date', value: 'waiverCompleteDate' },
       { label: 'Billing User', value: 'billingUser' },
       { label: 'Lead Source', value: 'leadSource' },
       { label: 'Biller Migrated', value: 'billerMigrated' },
@@ -307,6 +311,7 @@ export class MemberActivityReport extends Component {
           { label: 'Barcode', value: 'barcode' },
           { label: 'Belt', value: 'belt' },
           { label: 'Belt Size', value: 'beltSize' },
+          { label: 'Parent or Guardian', field: 'parentOrGuardian' },
           { label: 'Emergency Contact Name', value: 'emergencyContactName' },
           { label: 'Emergency Contact Phone', value: 'emergencyContactPhone' },
           {
@@ -330,6 +335,7 @@ export class MemberActivityReport extends Component {
           { label: 'Last Payment Date', value: 'lastPaymentDate' },
           { label: 'Cash Term Start Date', value: 'cashStartDate' },
           { label: 'Cash Term End Date', value: 'cashEndDate' },
+          { label: 'Waiver Complete Date', value: 'waiverCompleteDate' },
         ],
       },
     ];
@@ -344,6 +350,7 @@ export class MemberActivityReport extends Component {
           { label: 'Last Payment Date', value: 'lastPaymentDate' },
           { label: 'Cash Term Start Date', value: 'cashStartDate' },
           { label: 'Cash Term End Date', value: 'cashEndDate' },
+          { label: 'Waiver Complete Date', value: 'waiverCompleteDate' },
           { label: 'Cost', value: 'cost' },
           { label: 'Fee', value: 'fee' },
           { label: 'Average', value: 'average' },
@@ -395,6 +402,7 @@ export class MemberActivityReport extends Component {
       { label: 'Fee Program', value: 'feeProgram' },
       { label: 'Belt', value: 'belt' },
       { label: 'Belt Size', value: 'beltSize' },
+      { label: 'Parent or Guardian', field: 'parentOrGuardian' },
       { label: 'Emergency Contact Name', value: 'emergencyContactName' },
       { label: 'Emergency Contact Phone', value: 'emergencyContactPhone' },
       {
@@ -579,7 +587,10 @@ export class MemberActivityReport extends Component {
         filterColumn === 'lastModifiedDate' ||
         filterColumn === 'dateJoined' ||
         filterColumn === 'lastPaymentDate' ||
-        filterColumn === 'lastAttendanceDate'
+        filterColumn === 'lastAttendanceDate' ||
+        filterColumn === 'cashStartDate' ||
+        filterColumn === 'cashEndDate' ||
+        filterColumn === 'waiverCompleteDate'
       ) {
         this.memberActivityGridref.table.removeFilter(
           this.dateRangeFilter,
@@ -603,7 +614,10 @@ export class MemberActivityReport extends Component {
         filterColumn === 'lastModifiedDate' ||
         filterColumn === 'dateJoined' ||
         filterColumn === 'lastPaymentDate' ||
-        filterColumn === 'lastAttendanceDate'
+        filterColumn === 'lastAttendanceDate' ||
+        filterColumn === 'cashStartDate' ||
+        filterColumn === 'cashEndDate' ||
+        filterColumn === 'waiverCompleteDate'
       ) {
         this.memberActivityGridref.table.clearFilter(
           this.dateRangeFilter,
@@ -650,7 +664,10 @@ export class MemberActivityReport extends Component {
       filterColumn !== 'lastModifiedDate' &&
       filterColumn !== 'dateJoined' &&
       filterColumn !== 'lastPaymentDate' &&
-      filterColumn !== 'lastAttendanceDate'
+      filterColumn !== 'lastAttendanceDate' &&
+      filterColumn !== 'cashStartDate' &&
+      filterColumn !== 'cashEndDate' &&
+      filterColumn !== 'waiverCompleteDate'
     ) {
       if (!type) {
         console.log('Please select filter type');
@@ -671,7 +688,10 @@ export class MemberActivityReport extends Component {
       filterColumn === 'lastModifiedDate' ||
       filterColumn === 'dateJoined' ||
       filterColumn === 'lastPaymentDate' ||
-      filterColumn === 'lastAttendanceDate'
+      filterColumn === 'lastAttendanceDate' ||
+      filterColumn === 'cashStartDate' ||
+      filterColumn === 'cashEndDate' ||
+      filterColumn === 'waiverCompleteDate'
     ) {
       let filterId = Math.random();
       let filterParams = {
@@ -827,7 +847,10 @@ export class MemberActivityReport extends Component {
       !event.target.value === 'lastModifiedDate' &&
       !event.target.value === 'dateJoined' &&
       !event.target.value === 'lastPaymentDate' &&
-      !event.target.value === 'lastAttendanceDate'
+      !event.target.value === 'lastAttendanceDate' &&
+      !event.target.value === 'cashStartDate' &&
+      !event.target.value === 'cashEndDate' &&
+      !event.target.value === 'waiverCompleteDate'
     ) {
       let includesOptions = [];
       options.forEach(option =>
@@ -842,7 +865,10 @@ export class MemberActivityReport extends Component {
       event.target.value === 'lastModifiedDate' ||
       event.target.value === 'dateJoined' ||
       event.target.value === 'lastPaymentDate' ||
-      event.target.value === 'lastAttendanceDate'
+      event.target.value === 'lastAttendanceDate' ||
+      event.target.value === 'cashStartDate' ||
+      event.target.value === 'cashEndDate' ||
+      event.target.value === 'waiverCompleteDate'
     ) {
       $('#filter-value-container').hide();
       $('#filter-type-container').hide();
@@ -1222,6 +1248,7 @@ export class MemberActivityReport extends Component {
         feeProgram: this.getFeeProgram(members, member),
         belt: member.values['Ranking Belt'],
         beltSize: member.values['Belt Size'],
+        parentOrGuardian: member.values['Parent or Guardian'],
         emergencyContactName: member.values['Emergency Contact Name'],
         emergencyContactPhone: member.values['Emergency Contact Phone'],
         emergencyContactRelationship:
@@ -1255,6 +1282,10 @@ export class MemberActivityReport extends Component {
         cashEndDate:
           member.values['Billing Cash Term End Date'] !== undefined
             ? moment(member.values['Billing Cash Term End Date']).format('L')
+            : '',
+        waiverCompleteDate:
+          member.values['Waiver Complete Date'] !== undefined
+            ? moment(member.values['Waiver Complete Date']).format('L')
             : '',
         billingUser: member.values['Billing User'] === 'YES' ? 'YES' : 'NO',
         useSubAccount:
@@ -1951,6 +1982,9 @@ export class MemberActivityReport extends Component {
                     </option>
                     <option key="cashEndDate" value="cashEndDate">
                       Cash Term End Date
+                    </option>
+                    <option key="waiverCompleteDate" value="waiverCompleteDate">
+                      Waiver Complete Date
                     </option>
                     <option key="dateJoined" value="dateJoined">
                       Date Joined

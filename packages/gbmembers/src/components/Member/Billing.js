@@ -101,6 +101,8 @@ const mapStateToProps = state => ({
   memberCashPaymentsLoading: state.member.members.memberCashPaymentsLoading,
   membershipServices: state.member.services.membershipServices,
   membershipServicesLoading: state.member.services.membershipServicesLoading,
+  cashRegistrations: state.member.services.cashRegistrations,
+  cashRegistrationsLoading: state.member.services.cashRegistrationsLoading,
 });
 
 const mapDispatchToProps = {
@@ -132,6 +134,7 @@ const mapDispatchToProps = {
   fetchMemberCashPayments: actions.fetchMemberCashPayments,
   fetchBillingChangeByBillingReference:
     servicesActions.fetchBillingChangeByBillingReference,
+  fetchCashRegistrations: servicesActions.fetchCashRegistrations,
 };
 
 const ezidebit_date_format = 'YYYY-MM-DD HH:mm:ss';
@@ -1401,6 +1404,16 @@ export class FamilyFeeDetails extends Component {
         Cell: props => (props.value ? props.value : 'NA'),
         headerClassName: 'col-align-center',
       },
+      {
+        accessor: 'fee',
+        Header: 'Fee',
+        align: 'center',
+        Cell: props =>
+          new Intl.NumberFormat(this.props.locale, {
+            style: 'currency',
+            currency: this.props.currency,
+          }).format(props.value),
+      },
     ];
     return columns;
   }
@@ -1456,7 +1469,8 @@ export class PaymentHistory extends Component {
       !nextProps.paymentHistoryLoading &&
       !nextProps.setupPaymentHistoryLoading &&
       !nextProps.memberCashPaymentsLoading &&
-      !nextProps.membershipServicesLoading
+      !nextProps.membershipServicesLoading &&
+      !nextProps.cashRegistrationsLoading
     ) {
       this.paymentHistory = nextProps.paymentHistory;
       this.setState({
@@ -1694,12 +1708,14 @@ export class PaymentHistory extends Component {
         (row.original.paymentStatus === 'S' ||
           row.original.paymentStatus === 'paid' ||
           row.original.paymentStatus === 'Settled' ||
-          row.original.paymentStatus === 'Approved') && (
+          row.original.paymentStatus === 'Approved' ||
+          row.original.paymentStatus === 'Cash') && (
           <span className="col-sm-2 orderreceipt">
             <span style={{ display: 'none' }}>
               <MembershipReceiptToPrint
                 memberItem={this.props.memberItem}
                 membershipServices={this.props.membershipServices}
+                cashRegistrations={this.props.cashRegistrations}
                 familyMembers={this.props.familyMembers}
                 locale={this.props.locale}
                 currency={this.props.currency}
@@ -1765,7 +1781,10 @@ export class PaymentHistory extends Component {
 
   render() {
     const { data, columns } = this.state;
-    return this.props.paymentHistoryLoading ? (
+    return this.props.paymentHistoryLoading ||
+      this.props.memberCashPaymentsLoading ||
+      this.props.membershipServicesLoading ||
+      this.props.cashRegistrationsLoading ? (
       <div>Loading Payment History ...</div>
     ) : (
       <div className="purchaseItemsReport">
@@ -2156,6 +2175,10 @@ export class BillingInfo extends Component {
       this.props.fetchMemberCashPayments({
         id: this.props.memberItem.id,
       });
+      this.props.fetchCashRegistrations({
+        id: this.props.memberItem.id,
+      });
+
       this.props.fetchBillingChangeByBillingReference({
         franchisor: getAttributeValue(this.props.space, 'Franchisor'),
         billingCompany: getAttributeValue(this.props.space, 'Billing Company'),
@@ -3069,6 +3092,8 @@ export class BillingInfo extends Component {
                   membershipServicesLoading={
                     this.props.membershipServicesLoading
                   }
+                  cashRegistrations={this.props.cashRegistrations}
+                  cashRegistrationsLoading={this.props.cashRegistrationsLoading}
                 />
               )}
             </div>
@@ -3165,6 +3190,9 @@ export const Billing = ({
   membershipServices,
   membershipServicesLoading,
   fetchBillingChangeByBillingReference,
+  fetchCashRegistrations,
+  cashRegistrations,
+  cashRegistrationsLoading,
 }) =>
   currentMemberLoading ? (
     <div />
@@ -3229,6 +3257,9 @@ export const Billing = ({
               fetchBillingChangeByBillingReference={
                 fetchBillingChangeByBillingReference
               }
+              fetchCashRegistrations={fetchCashRegistrations}
+              cashRegistrations={cashRegistrations}
+              cashRegistrationsLoading={cashRegistrationsLoading}
             />
           )}
           {/*(memberItem.values['Billing Customer Id'] === null ||

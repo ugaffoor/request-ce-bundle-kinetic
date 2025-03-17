@@ -71,8 +71,8 @@ export function* fetchMembers(action) {
             ',values[Billing Cash Term End Date],values[Credit Card Expiry Year],values[Credit Card Expiry Month],values[Billing Members]' +
             ',values[Billing Family Members],values[Biller Migrated],values[Payment]' +
             ',values[Membership Cost],values[Family Fee Details],values[Resume Date]' +
-            ',values[Last Attendance Date],values[Is New Reply Received]' +
-            ',values[useSubAccount],values[POS Profile ID],values[Fee Program]' +
+            ',values[Last Attendance Date],values[Is New Reply Received],values[Waiver Complete Date]' +
+            ',values[useSubAccount],values[POS Profile ID],values[Fee Program],values[Parent or Guardian]' +
             ',values[Emails Sent Count],values[Max Weekly Classes],values[Reminder Date]' +
             ',values[Emails Received Count],values[Is New Reply Received],values[SMS Sent Count],values[SMS Received Count]' +
             ',values[Payment Method],values[Lead Submission ID]' +
@@ -130,8 +130,8 @@ export function* fetchMembers(action) {
               ',values[Billing Cash Term End Date],values[Credit Card Expiry Year],values[Credit Card Expiry Month],values[Billing Members]' +
               ',values[Billing Family Members],values[Biller Migrated],values[Payment]' +
               ',values[Membership Cost],values[Family Fee Details],values[Resume Date]' +
-              ',values[Last Attendance Date],values[Is New Reply Received]' +
-              ',values[useSubAccount],values[POS Profile ID],values[Fee Program]' +
+              ',values[Last Attendance Date],values[Is New Reply Received],values[Waiver Complete Date]' +
+              ',values[useSubAccount],values[POS Profile ID],values[Fee Program],values[Parent or Guardian]' +
               ',values[Emails Sent Count],values[Max Weekly Classes],values[Reminder Date]' +
               ',values[Emails Received Count],values[Is New Reply Received],values[SMS Sent Count],values[SMS Received Count]' +
               ',values[Payment Method],values[Lead Submission ID]' +

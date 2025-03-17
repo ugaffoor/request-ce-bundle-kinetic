@@ -210,9 +210,15 @@ class SchoolAttributes extends Component {
             attributeID="schoolAddress"
             attributeName="School Address"
             inputType="Text"
+            disabled={
+              this.props.profile.username === 'unus@uniqconsulting.com.au' ||
+              this.props.profile.username === 'software@graciebarra.com'
+                ? false
+                : true
+            }
             width="400px"
             labelName="School Address"
-            helpText="School Address, this appears in emails and memberhip agreements."
+            helpText="School Address, this appears in emails and memberhip agreements. Please contact support@graciebarra.com to edit this value."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
             space={this.props.space}
             appSpace={this.props.appSpace}
@@ -222,9 +228,15 @@ class SchoolAttributes extends Component {
             attributeID="schoolTelephone"
             attributeName="School Telephone"
             inputType="Phone"
+            disabled={
+              this.props.profile.username === 'unus@uniqconsulting.com.au' ||
+              this.props.profile.username === 'software@graciebarra.com'
+                ? false
+                : true
+            }
             width="100px"
             labelName="School Telephone"
-            helpText="School Telephone, this appears in emails, SMS and memberhip agreements."
+            helpText="School Telephone, this appears in emails, SMS and memberhip agreements. Please contact support@graciebarra.com to edit this value."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
             space={this.props.space}
             appSpace={this.props.appSpace}
@@ -299,6 +311,20 @@ class SchoolAttributes extends Component {
               profile={this.props.profile}
             />
           )}
+          <EditAttributeValue
+            attributeID="waiverComplianceDate"
+            attributeName="Member Waiver Compliance Date"
+            inputType="Date"
+            width="400px"
+            labelName="Member Waiver Compliance Date"
+            helpText="This date indicates the date which all members should have completed a waiver as a Lead or a Member.
+If a new waiver is generate and all members are required to complete, this date is used to ensure a member has completed their waiver.
+Indications in the application will identify members not compliant."
+            updateSpaceAttribute={this.props.updateSpaceAttribute}
+            space={this.props.space}
+            appSpace={this.props.appSpace}
+            profile={this.props.profile}
+          />
         </span>
         <span className="detailsSection">
           <h6>Email</h6>
