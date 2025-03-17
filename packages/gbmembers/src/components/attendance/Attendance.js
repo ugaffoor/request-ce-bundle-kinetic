@@ -14,6 +14,7 @@ import barcodeIcon from '../../images/barcode.svg?raw';
 import binIcon from '../../images/bin.svg?raw';
 import tickIcon from '../../images/tick.svg?raw';
 import crossIcon from '../../images/cross.svg?raw';
+import waiverCheckedIcon from '../../images/assignment_turned_in.svg?raw';
 import SVGInline from 'react-svg-inline';
 import Select from 'react-select';
 import { withHandlers } from 'recompose';
@@ -220,6 +221,10 @@ export class SelfCheckin extends Component {
           >
             Undo Checkin
           </button>
+          <span class="countdown_help">
+            No need to WAIT to continue simple scan or select another Member to
+            checkin
+          </span>
         </span>
       );
     }
@@ -458,6 +463,8 @@ export class SelfCheckin extends Component {
       if (
         member.values['Status'] !== 'Inactive' &&
         member.values['Status'] !== 'Frozen' &&
+        this.state.allowedPrograms !== undefined &&
+        this.state.allowedPrograms !== null &&
         this.state.allowedPrograms.findIndex(
           program => program.value === member.values['Ranking Program'],
         ) !== -1
@@ -1075,6 +1082,56 @@ export class SelfCheckin extends Component {
                                   />
                                 )}
                                 <div className="info">
+                                  {getAttributeValue(
+                                    this.props.space,
+                                    'Member Waiver Compliance Date',
+                                  ) !== undefined &&
+                                    getAttributeValue(
+                                      this.props.space,
+                                      'Member Waiver Compliance Date',
+                                    ) !== '' &&
+                                    getAttributeValue(
+                                      this.props.space,
+                                      'Member Waiver Compliance Date',
+                                    ) !== null && (
+                                      <span>
+                                        {(value.member.values[
+                                          'Waiver Complete Date'
+                                        ] === undefined ||
+                                          value.member.values[
+                                            'Waiver Complete Date'
+                                          ] === '' ||
+                                          value.member.values[
+                                            'Waiver Complete Date'
+                                          ] === null ||
+                                          moment(
+                                            value.member.values[
+                                              'Waiver Complete Date'
+                                            ],
+                                          ).isBefore(
+                                            moment(
+                                              getAttributeValue(
+                                                this.props.space,
+                                                'Member Waiver Compliance Date',
+                                              ),
+                                            ),
+                                          )) && (
+                                          <div
+                                            className={
+                                              'iconItem waiver notValid'
+                                            }
+                                          >
+                                            <SVGInline
+                                              svg={waiverCheckedIcon}
+                                              className="icon"
+                                            />
+                                            <span className="value">
+                                              Waiver Acceptance Required
+                                            </span>
+                                          </div>
+                                        )}
+                                      </span>
+                                    )}
                                   <h4>
                                     {value.member.values['First Name']}{' '}
                                     {value.member.values['Last Name']}: <br />
@@ -1261,6 +1318,43 @@ export class SelfCheckin extends Component {
                                       className="icon"
                                     />
                                   </span>
+                                  {getAttributeValue(
+                                    this.props.space,
+                                    'Member Waiver Compliance Date',
+                                  ) !== undefined &&
+                                    getAttributeValue(
+                                      this.props.space,
+                                      'Member Waiver Compliance Date',
+                                    ) !== '' &&
+                                    getAttributeValue(
+                                      this.props.space,
+                                      'Member Waiver Compliance Date',
+                                    ) !== null &&
+                                    (booking.waiverCompletedDate ===
+                                      undefined ||
+                                      booking.waiverCompletedDate === '' ||
+                                      moment(
+                                        booking.waiverCompletedDate,
+                                      ).isBefore(
+                                        moment(
+                                          getAttributeValue(
+                                            this.props.space,
+                                            'Member Waiver Compliance Date',
+                                          ),
+                                        ),
+                                      )) && (
+                                      <h5
+                                        className={'iconItem waiver notValid'}
+                                      >
+                                        <SVGInline
+                                          svg={waiverCheckedIcon}
+                                          className="icon"
+                                        />
+                                        <span className="value">
+                                          Waiver Acceptance Required
+                                        </span>
+                                      </h5>
+                                    )}
                                 </span>
                               </span>
                               <span className="bottom">
@@ -1358,6 +1452,44 @@ export class SelfCheckin extends Component {
                                       {checkin.values['Last Name']}
                                     </span>
                                   </h4>
+                                  {getAttributeValue(
+                                    this.props.space,
+                                    'Member Waiver Compliance Date',
+                                  ) !== undefined &&
+                                    getAttributeValue(
+                                      this.props.space,
+                                      'Member Waiver Compliance Date',
+                                    ) !== '' &&
+                                    getAttributeValue(
+                                      this.props.space,
+                                      'Member Waiver Compliance Date',
+                                    ) !== null &&
+                                    (checkin.values['Waiver Complete Date'] ===
+                                      undefined ||
+                                      checkin.values['Waiver Complete Date'] ===
+                                        '' ||
+                                      moment(
+                                        checkin.values['Waiver Complete Date'],
+                                      ).isBefore(
+                                        moment(
+                                          getAttributeValue(
+                                            this.props.space,
+                                            'Member Waiver Compliance Date',
+                                          ),
+                                        ),
+                                      )) && (
+                                      <h5
+                                        className={'iconItem waiver notValid'}
+                                      >
+                                        <SVGInline
+                                          svg={waiverCheckedIcon}
+                                          className="icon"
+                                        />
+                                        <span className="value">
+                                          Waiver Acceptance Required
+                                        </span>
+                                      </h5>
+                                    )}
                                 </span>
                               </span>
                               <span className="bottom">
@@ -1642,8 +1774,10 @@ export class AttendanceDetail extends Component {
       // Keep only Recurring Billing failures
       var idx = allMembers.findIndex(
         member =>
-          member.values['Member ID'] === payment.yourSystemReference ||
-          member.values['Billing Customer Id'] === payment.yourSystemReference,
+          member.values['Billing User'] === 'YES' &&
+          (member.values['Member ID'] === payment.yourSystemReference ||
+            member.values['Billing Customer Id'] ===
+              payment.yourSystemReference),
       );
       if (idx !== -1) {
         if (validOverdue(allMembers[idx], successfulPayments, payment)) {
@@ -1654,8 +1788,10 @@ export class AttendanceDetail extends Component {
     const data = uniqueHistory.map(payment => {
       var idx = allMembers.findIndex(
         member =>
-          member.values['Member ID'] === payment.yourSystemReference ||
-          member.values['Billing Customer Id'] === payment.yourSystemReference,
+          member.values['Billing User'] === 'YES' &&
+          (member.values['Member ID'] === payment.yourSystemReference ||
+            member.values['Billing Customer Id'] ===
+              payment.yourSystemReference),
       );
       var member = undefined;
       if (idx !== -1) {
@@ -2514,6 +2650,43 @@ export class AttendanceDetail extends Component {
                                       className="icon"
                                     />
                                   </span>
+                                  {getAttributeValue(
+                                    this.props.space,
+                                    'Member Waiver Compliance Date',
+                                  ) !== undefined &&
+                                    getAttributeValue(
+                                      this.props.space,
+                                      'Member Waiver Compliance Date',
+                                    ) !== '' &&
+                                    getAttributeValue(
+                                      this.props.space,
+                                      'Member Waiver Compliance Date',
+                                    ) !== null &&
+                                    (booking.waiverCompletedDate ===
+                                      undefined ||
+                                      booking.waiverCompletedDate === '' ||
+                                      moment(
+                                        booking.waiverCompletedDate,
+                                      ).isBefore(
+                                        moment(
+                                          getAttributeValue(
+                                            this.props.space,
+                                            'Member Waiver Compliance Date',
+                                          ),
+                                        ),
+                                      )) && (
+                                      <h5
+                                        className={'iconItem waiver notValid'}
+                                      >
+                                        <SVGInline
+                                          svg={waiverCheckedIcon}
+                                          className="icon"
+                                        />
+                                        <span className="value">
+                                          Waiver Acceptance Required
+                                        </span>
+                                      </h5>
+                                    )}
                                 </span>
                               </span>
                               <span className="bottom">
@@ -2607,6 +2780,49 @@ export class AttendanceDetail extends Component {
                       />
                     )}
                     <div className="info">
+                      {getAttributeValue(
+                        this.props.space,
+                        'Member Waiver Compliance Date',
+                      ) !== undefined &&
+                        getAttributeValue(
+                          this.props.space,
+                          'Member Waiver Compliance Date',
+                        ) !== '' &&
+                        getAttributeValue(
+                          this.props.space,
+                          'Member Waiver Compliance Date',
+                        ) !== null && (
+                          <span>
+                            {(this.state.memberItem.values[
+                              'Waiver Complete Date'
+                            ] === undefined ||
+                              this.state.memberItem.values[
+                                'Waiver Complete Date'
+                              ] === '' ||
+                              moment(
+                                this.state.memberItem.values[
+                                  'Waiver Complete Date'
+                                ],
+                              ).isBefore(
+                                moment(
+                                  getAttributeValue(
+                                    this.props.space,
+                                    'Member Waiver Compliance Date',
+                                  ),
+                                ),
+                              )) && (
+                              <div className={'iconItem waiver notValid'}>
+                                <SVGInline
+                                  svg={waiverCheckedIcon}
+                                  className="icon"
+                                />
+                                <span className="value">
+                                  Waiver Acceptance Required
+                                </span>
+                              </div>
+                            )}
+                          </span>
+                        )}
                       {this.state.memberItem.values['Status'] === 'Frozen' ? (
                         <h2 className="frozenMemberLabel">
                           Member is currently Frozen
@@ -2945,6 +3161,42 @@ export class AttendanceDetail extends Component {
                                       ? checkin.values['Attendance Status'][0]
                                       : ''}
                                   </h5>
+                                  {getAttributeValue(
+                                    this.props.space,
+                                    'Member Waiver Compliance Date',
+                                  ) !== undefined &&
+                                    getAttributeValue(
+                                      this.props.space,
+                                      'Member Waiver Compliance Date',
+                                    ) !== '' &&
+                                    getAttributeValue(
+                                      this.props.space,
+                                      'Member Waiver Compliance Date',
+                                    ) !== null &&
+                                    (checkin.values['Waiver Complete Date'] ===
+                                      undefined ||
+                                      checkin.values['Waiver Complete Date'] ===
+                                        '' ||
+                                      moment(
+                                        checkin.values['Waiver Complete Date'],
+                                      ).isBefore(
+                                        moment(
+                                          getAttributeValue(
+                                            this.props.space,
+                                            'Member Waiver Compliance Date',
+                                          ),
+                                        ),
+                                      )) && (
+                                      <h5
+                                        className={'iconItem waiver notValid'}
+                                        placeholder="Waiver Acceptance Required"
+                                      >
+                                        <SVGInline
+                                          svg={waiverCheckedIcon}
+                                          className="icon"
+                                        />
+                                      </h5>
+                                    )}
                                   {checkin.overdueMember ? (
                                     <span
                                       className="overdue"

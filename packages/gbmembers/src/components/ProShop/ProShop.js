@@ -3879,12 +3879,19 @@ export class ProShop extends Component {
       scannedSKU: '',
       productCodeValue: '',
     });
+    var skuValue = '';
 
     var idx = this.props.posBarcodes.findIndex((item, i) => {
       return item.values['Barcode'] === data;
     });
-    if (idx !== -1) {
-      var skuValue = this.props.posBarcodes[idx].values['SKU'];
+    if (idx === -1) {
+      // If barcode not found as Barcode, look directyl against the SKU
+      skuValue = data;
+    } else {
+      skuValue = this.props.posBarcodes[idx].values['SKU'];
+    }
+
+    if (skuValue !== '') {
       var productSKUValue = '';
       idx = this.props.posProducts.findIndex((product, i) => {
         var matched = false;

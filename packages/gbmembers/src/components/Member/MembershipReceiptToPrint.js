@@ -61,6 +61,30 @@ export class MembershipReceiptToPrint extends React.Component {
       }
     }
 
+    if (this.props.paymentMethod === 'Cash') {
+      for (let i = 0; i < this.props.cashRegistrations.length; i++) {
+        if (
+          this.props.datetime.isAfter(
+            moment(
+              this.props.cashRegistrations[i].submittedAt,
+              'YYYY-MM-HHThh:mmZ',
+            ),
+          ) &&
+          this.props.datetime.isSameOrAfter(
+            moment(
+              this.props.cashRegistrations[i]['values']['Term Date'],
+              'YYYY-MM-DD',
+            ),
+          )
+        ) {
+          feeDetails = getJson(
+            this.props.cashRegistrations[i]['values'].feesJSON,
+          );
+          break;
+        }
+      }
+    }
+
     if (feeDetails === undefined) {
       if (this.props.membershipServices.length === 0) {
         feeDetails = getJson(
@@ -186,6 +210,41 @@ export class MembershipReceiptToPrint extends React.Component {
                 </table>
               </span>
             )}
+          {(this.props.familyMembers === undefined ||
+            this.props.familyMembers.length === 0) &&
+            this.props.paymentMethod === 'Cash' &&
+            this.state.feeDetails !== undefined &&
+            this.state.feeDetails.length > 0 && (
+              <span className="familyMembers">
+                <table style={{ border: 1, width: '100%' }}>
+                  <thead>
+                    <td>
+                      <b>Member</b>
+                    </td>
+                    <td>
+                      <b>Program</b>
+                    </td>
+                    <td>
+                      <b>Cost</b>
+                    </td>
+                  </thead>
+                  <tbody>
+                    {this.state.feeDetails.map((member, index) => (
+                      <tr>
+                        <td>{member.Name}</td>
+                        <td>{member.feeProgram}</td>
+                        <td>
+                          {new Intl.NumberFormat(this.props.locale, {
+                            style: 'currency',
+                            currency: this.props.currency,
+                          }).format(member.fee)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </span>
+            )}
         </span>
         {this.props.paymentMethod !== 'Cash' &&
           getAttributeValue(this.props.space, 'Billing Company') ===
@@ -235,6 +294,7 @@ export class MembershipReceiptToPrint extends React.Component {
           <span className="transaction_id">
             <span className="label">Payment Id:</span>
             <span className="value">{this.props.paymentID}</span>
+            {this.props.paymentMethod === 'Cash' && <span>Cash</span>}
           </span>
         </span>
         <div

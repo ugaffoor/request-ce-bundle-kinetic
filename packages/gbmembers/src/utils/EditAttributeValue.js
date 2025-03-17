@@ -67,10 +67,16 @@ export class EditAttributeValue extends Component {
         percentageTextValue = value;
       }
     }
-    if (
-      this.props.inputType === 'Date' ||
-      this.props.inputType === 'MultipleDates'
-    ) {
+    if (this.props.inputType === 'Date') {
+      if (value === undefined || value === '') {
+        value = '';
+        origValue = '';
+      } else {
+        value = moment(value).format('YYYY-MM-DD');
+        origValue = value;
+      }
+    }
+    if (this.props.inputType === 'MultipleDates') {
       if (value === undefined) {
         value = '';
         origValue = '';
@@ -305,6 +311,7 @@ export class EditAttributeValue extends Component {
               mask="_"
               ref={input => (this.input = input)}
               value={this.state.value}
+              disabled={this.props.disabled ? true : false}
               onChange={e => {
                 this.setState({
                   value: e.target.value.replaceAll('-', ''),
@@ -378,6 +385,28 @@ export class EditAttributeValue extends Component {
               >
                 <I18n>Quarterly</I18n>
               </label>
+              {getAttributeValue(this.props.space, 'Billing Company') ===
+                'Bambora' && (
+                <span>
+                  <input
+                    type="checkbox"
+                    id={this.props.attributeID + 'Attribute' + '4 Months'}
+                    value="4 Months"
+                    checked={
+                      this.state.value.indexOf('4 Months') !== -1 ? true : false
+                    }
+                    name={this.props.attributeID + 'Attribute' + '4 Months'}
+                    onChange={e => {
+                      this.toggleArrayValue(this.state.value, e.target.value);
+                    }}
+                  />
+                  <label
+                    htmlFor={this.props.attributeID + 'Attribute' + '4 Months'}
+                  >
+                    <I18n>4 Months</I18n>
+                  </label>
+                </span>
+              )}
               {getAttributeValue(this.props.space, 'Billing Company') ===
                 'Bambora' && (
                 <span>

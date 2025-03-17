@@ -22,6 +22,8 @@ export class RecurringBookings extends Component {
     this.recurringBookings = this.getGridData(
       this.rawRecurringBookings,
       this.classSchedules,
+      undefined,
+      this.props.allMembers,
     );
     this.updateRecurring = this.props.updateRecurring.bind(this);
     this.addRecurring = this.props.addRecurring.bind(this);
@@ -172,6 +174,8 @@ export class RecurringBookings extends Component {
       this.recurringBookings = this.getGridData(
         this.rawRecurringBookings,
         this.classSchedules,
+        undefined,
+        this.props.allMembers,
       );
 
       var idx = this.recurringBookings.findIndex(element => {
@@ -210,6 +214,8 @@ export class RecurringBookings extends Component {
       this.recurringBookings = this.getGridData(
         this.rawRecurringBookings,
         this.classSchedules,
+        undefined,
+        this.props.allMembers,
       );
     }
   }
@@ -315,7 +321,7 @@ export class RecurringBookings extends Component {
       });
     }
   }
-  getGridData(bookings, classSchedules, memberGUID) {
+  getGridData(bookings, classSchedules, memberGUID, allMembers) {
     if (!bookings || bookings.length < 0) {
       return [];
     }
@@ -328,7 +334,16 @@ export class RecurringBookings extends Component {
         memberGUID === undefined ||
         (memberGUID !== undefined && memberGUID === '')
       ) {
-        this.addRecurringBooking(bookingsDataMap, booking);
+        var idx = allMembers.findIndex(
+          member =>
+            member.id === booking.memberGUID &&
+            (member.values['Status'] === 'Active' ||
+              member.values['Status'] === 'Pending Freeze' ||
+              member.values['Status'] === 'Pending Cancellation'),
+        );
+        if (idx !== -1) {
+          this.addRecurringBooking(bookingsDataMap, booking);
+        }
       }
     });
     let bookingsData = [];
@@ -750,6 +765,7 @@ export class RecurringBookings extends Component {
                       this.rawRecurringBookings,
                       this.classSchedules,
                       e.value === 'CLEAR' ? undefined : e.value,
+                      this.props.allMembers,
                     );
                     var rows = [];
                     if (e.value !== 'CLEAR') {

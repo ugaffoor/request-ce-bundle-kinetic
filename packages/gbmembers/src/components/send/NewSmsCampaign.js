@@ -203,7 +203,7 @@ export class NewSmsCampaign extends Component {
 
     memberLists.forEach(list => {
       let matchesFilter = removeExcludedMembers(
-        matchesMemberFilter(allMembers, list.filters),
+        matchesMemberFilter(this.props.space, allMembers, list.filters),
         list.excluded !== undefined ? list.excluded : [],
       );
       options.push({

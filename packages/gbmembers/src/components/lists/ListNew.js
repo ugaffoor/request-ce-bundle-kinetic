@@ -105,6 +105,7 @@ export class ListNewHome extends Component {
 
     this._columns = this.getColumns();
     this.getExcluded = this.getExcluded.bind(this);
+    this.applyFilters = this.applyFilters.bind(this);
     this.state = {
       data: [],
       joiningDateStart: undefined,
@@ -340,6 +341,10 @@ export class ListNewHome extends Component {
       filters.push({ nonPayingFilter: true });
     }
 
+    if ($('input[name=waiverNotCompliant]:checked').val()) {
+      filters.push({ waiverComplianceFilter: true });
+    }
+
     if ($('#specificMembers').val() && $('#specificMembers').val().length > 0) {
       filters.push({
         specificMembersFilter: { specificMembers: $('#specificMembers').val() },
@@ -474,6 +479,38 @@ export class ListNewHome extends Component {
           }
         } else if (keys[0] === 'nonPayingFilter') {
           if (member.values['Non Paying'] !== 'YES') {
+            match = false;
+          }
+        } else if (keys[0] === 'waiverComplianceFilter') {
+          if (
+            match &&
+            getAttributeValue(
+              compThis.props.space,
+              'Member Waiver Compliance Date',
+            ) !== undefined &&
+            getAttributeValue(
+              compThis.props.space,
+              'Member Waiver Compliance Date',
+            ) !== '' &&
+            getAttributeValue(
+              compThis.props.space,
+              'Member Waiver Compliance Date',
+            ) !== null
+          ) {
+            if (
+              member.values['Waiver Complete Date'] === undefined ||
+              moment(
+                getAttributeValue(
+                  compThis.props.space,
+                  'Member Waiver Compliance Date',
+                ),
+              ).isAfter(member.values['Waiver Complete Date'])
+            ) {
+              match = true;
+            } else {
+              match = false;
+            }
+          } else {
             match = false;
           }
         }
@@ -892,6 +929,43 @@ export class ListNewHome extends Component {
                   </fieldset>
                 </div>
               </div>
+              {getAttributeValue(
+                this.props.space,
+                'Member Waiver Compliance Date',
+              ) !== undefined &&
+                getAttributeValue(
+                  this.props.space,
+                  'Member Waiver Compliance Date',
+                ) !== '' &&
+                getAttributeValue(
+                  this.props.space,
+                  'Member Waiver Compliance Date',
+                ) !== null && (
+                  <div className="row">
+                    <div className="col">
+                      <fieldset
+                        className="scheduler-border"
+                        style={{ position: 'relative' }}
+                      >
+                        <legend className="scheduler-border">
+                          Waiver Compliance
+                        </legend>
+                        <div className="form-check form-check-inline">
+                          <label className="form-check-label">
+                            <input
+                              type="checkbox"
+                              id="waiverNotCompliant"
+                              name="waiverNotCompliant"
+                              className="form-check-input"
+                              value="true"
+                            />{' '}
+                            Waiver Not Compliant
+                          </label>
+                        </div>
+                      </fieldset>
+                    </div>
+                  </div>
+                )}
               <div className="row">
                 <div className="col">
                   <fieldset

@@ -369,7 +369,7 @@ export class NewEmailCampaign extends Component {
         value: list.name,
         label: list.name,
         members: removeExcludedMembers(
-          matchesMemberFilter(allMembers, list.filters),
+          matchesMemberFilter(this.props.space, allMembers, list.filters),
           list.excluded !== undefined ? list.excluded : [],
         ).map(member => member['id']),
       });

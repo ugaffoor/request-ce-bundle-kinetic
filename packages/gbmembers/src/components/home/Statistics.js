@@ -612,9 +612,11 @@ export class Statistics extends Component {
     let noshowTotal = [];
     let convertedTotal = [];
     if (LCTViewSwitch) {
+      let idx = 0;
       leads.forEach(lead => {
         if (moment(lead['createdAt']).isBetween(fromDate, toDate)) {
-          leadsTotal[leadsTotal.length] = lead;
+          leadsTotal[leadsTotal.length] = { lead: lead, idx: idx };
+          idx = idx + 1;
           //      }
           //      if (moment(lead['updatedAt']).isBetween(fromDate, toDate)) {
           var history =
@@ -629,7 +631,7 @@ export class Statistics extends Component {
               ) &&
               history[i]['contactMethod'] === 'intro_class'
             ) {
-              introsTotal[introsTotal.length] = lead;
+              introsTotal[introsTotal.length] = { lead: lead, idx: i };
             }
           }
           for (i = 0; i < history.length; i++) {
@@ -640,7 +642,7 @@ export class Statistics extends Component {
               ) &&
               history[i]['contactMethod'] === 'attended_class'
             ) {
-              attendedTotal[attendedTotal.length] = lead;
+              attendedTotal[attendedTotal.length] = { lead: lead, idx: i };
             }
           }
           for (i = 0; i < history.length; i++) {
@@ -671,9 +673,11 @@ export class Statistics extends Component {
         }
       });
     } else {
+      var idx = 0;
       leads.forEach(lead => {
         if (moment(lead['createdAt']).isBetween(fromDate, toDate)) {
-          leadsTotal[leadsTotal.length] = lead;
+          leadsTotal[leadsTotal.length] = { lead: lead, idx: idx };
+          idx = idx + 1;
         }
         //        if (moment(lead['updatedAt']).isBetween(fromDate, toDate)) {
         var history =
@@ -688,7 +692,7 @@ export class Statistics extends Component {
             ) &&
             history[i]['contactMethod'] === 'intro_class'
           ) {
-            introsTotal[introsTotal.length] = lead;
+            introsTotal[introsTotal.length] = { lead: lead, idx: i };
           }
         }
         for (i = 0; i < history.length; i++) {
@@ -699,7 +703,7 @@ export class Statistics extends Component {
             ) &&
             history[i]['contactMethod'] === 'attended_class'
           ) {
-            attendedTotal[attendedTotal.length] = lead;
+            attendedTotal[attendedTotal.length] = { lead: lead, idx: i };
           }
         }
         for (i = 0; i < history.length; i++) {
@@ -710,7 +714,7 @@ export class Statistics extends Component {
             ) &&
             history[i]['contactMethod'] === 'noshow_class'
           ) {
-            noshowTotal[noshowTotal.length] = lead;
+            noshowTotal[noshowTotal.length] = { lead: lead, idx: i };
           }
         }
         if (lead.values['Lead State'] === 'Converted') {
@@ -771,10 +775,10 @@ export class Statistics extends Component {
             fromDate,
             'day',
           ) &&
-            moment(
-              member['values']['Date Joined'],
-              'YYYY-MM-DD',
-            ).isSameOrBefore(toDate, 'day')
+          moment(member['values']['Date Joined'], 'YYYY-MM-DD').isSameOrBefore(
+            toDate,
+            'day',
+          )
         ) {
           newmembers[newmembers.length] = member;
         }
@@ -1004,29 +1008,36 @@ export class Statistics extends Component {
     for (var i = col - 1; i < leads.length; i = i + 4) {
       //if (i % (col-1) === 0){
       leads_col[leads_col.length] = {
-        leadId: leads[i].id,
-        lead: leads[i],
+        leadId: leads[i].lead.id,
+        lead: leads[i].lead,
+        idx: leads[i].idx,
         name:
-          leads[i].values['First Name'] + ' ' + leads[i].values['Last Name'],
+          leads[i].lead.values['First Name'] +
+          ' ' +
+          leads[i].lead.values['Last Name'],
       };
       //}
     }
 
     return leads_col;
   }
-  getLeadIntroInfo(lead) {
+  getLeadIntroInfo(lead, idx) {
     var info = '';
     var history =
       lead.values['History'] !== undefined
         ? getJson(lead.values['History'])
         : {};
-    for (var i = history.length - 1; i >= 0; i--) {
-      if (history[i]['contactMethod'] === 'intro_class') {
-        info = ' (' + moment(history[i]['contactDate']).format('L h:mmA') + ')';
-        break;
-      }
-    }
 
+    /*    if (idx>history.length || history[idx]['contactMethod'] !== 'intro_class'){
+      for (var i = history.length - 1; i >= 0; i--) {
+        if (history[i]['contactMethod'] === 'intro_class') {
+          info = ' (' + moment(history[i]['contactDate']).format('L h:mmA') + ')';
+          break;
+        }
+      } 
+    } else { */
+    info = ' (' + moment(history[idx]['contactDate']).format('L h:mmA') + ')';
+    //    }
     return lead.values['First Name'] + ' ' + lead.values['Last Name'] + info;
   }
   getLeadTableData(leads) {
@@ -1034,16 +1045,20 @@ export class Statistics extends Component {
       try {
         if (
           (
-            lead1.values['First Name'] + lead1.values['Last Name']
+            lead1.lead.values['First Name'] + lead1.lead.values['Last Name']
           ).toLowerCase() <
-          (lead2.values['First Name'] + lead2.values['Last Name']).toLowerCase()
+          (
+            lead2.lead.values['First Name'] + lead2.lead.values['Last Name']
+          ).toLowerCase()
         )
           return -1;
         if (
           (
-            lead1.values['First Name'] + lead1.values['Last Name']
+            lead1.lead.values['First Name'] + lead1.lead.values['Last Name']
           ).toLowerCase() >
-          (lead2.values['First Name'] + lead2.values['Last Name']).toLowerCase()
+          (
+            lead2.lead.values['First Name'] + lead2.lead.values['Last Name']
+          ).toLowerCase()
         )
           return 1;
       } catch (error) {
@@ -1159,7 +1174,10 @@ export class Statistics extends Component {
               to={`/LeadDetail/${props.original.leads_col1['leadId']}`}
               className=""
             >
-              {this.getLeadIntroInfo(props.original.leads_col1['lead'])}
+              {this.getLeadIntroInfo(
+                props.original.leads_col1['lead'],
+                props.original.leads_col1['idx'],
+              )}
             </NavLink>
           );
         },
@@ -1178,7 +1196,10 @@ export class Statistics extends Component {
               to={`/LeadDetail/${props.original.leads_col2['leadId']}`}
               className=""
             >
-              {this.getLeadIntroInfo(props.original.leads_col2['lead'])}
+              {this.getLeadIntroInfo(
+                props.original.leads_col2['lead'],
+                props.original.leads_col2['idx'],
+              )}
             </NavLink>
           );
         },

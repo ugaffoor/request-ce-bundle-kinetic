@@ -37,6 +37,7 @@ import moment from 'moment';
 import { Utils } from 'common';
 import { CoreForm } from 'react-kinetic-core';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
+import { getTimezone } from '../leads/LeadsUtils';
 
 const mapStateToProps = state => ({
   reports: state.member.reporting.activityReport,
@@ -1141,6 +1142,7 @@ export const ReportsContainer = compose(
       addNotification,
       setSystemError,
       space,
+      profile,
     }) => () => {
       fetchOverdues({
         setOverdues: setOverdues,

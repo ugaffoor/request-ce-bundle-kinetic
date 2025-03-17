@@ -146,6 +146,8 @@ export function* fetchClassAttendances(action) {
         attendance.values['Photo'] = memberItem.values['Photo'];
         attendance.values['First Name'] = memberItem.values['First Name'];
         attendance.values['Last Name'] = memberItem.values['Last Name'];
+        attendance.values['Waiver Complete Date'] =
+          memberItem.values['Waiver Complete Date'];
 
         attendance.programOrder = memberItem.programOrder;
         attendance.promotionSort = memberItem.promotionSort;
@@ -214,6 +216,8 @@ export function* createAttendance(action) {
     submission.values['Photo'] = memberItem.values['Photo'];
     submission.values['First Name'] = memberItem.values['First Name'];
     submission.values['Last Name'] = memberItem.values['Last Name'];
+    submission.values['Waiver Complete Date'] =
+      memberItem.values['Waiver Complete Date'];
 
     submission.programOrder = memberItem.programOrder;
     submission.promotionSort = memberItem.promotionSort;

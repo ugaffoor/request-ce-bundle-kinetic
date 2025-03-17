@@ -104,6 +104,9 @@ export const reducer = (state = State(), { type, payload }) => {
         booking['lastName'] = memberRec.values['Last Name'];
         booking['rankingProgram'] = memberRec.values['Ranking Program'];
         booking['rankingBelt'] = memberRec.values['Ranking Belt'];
+        booking['waiverCompletedDate'] =
+          memberRec.values['Waiver Complete Date'];
+
         console.log(booking.firstName);
       });
       return state
