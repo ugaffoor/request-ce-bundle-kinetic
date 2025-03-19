@@ -112,10 +112,6 @@ export class MemberActivityReport extends Component {
       { title: 'Waiver Complete Date', field: 'waiverCompleteDate' },
       { title: 'Billing User', field: 'billingUser' },
       { title: 'Lead Source', field: 'leadSource' },
-      getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES' && {
-        title: 'Use Sub Account',
-        field: 'useSubAccount',
-      },
       { title: 'Biller Migrated', field: 'billerMigrated' },
       { title: 'Biller ID', field: 'billerId' },
       { title: 'Non Paying', field: 'nonPaying' },
@@ -192,6 +188,13 @@ export class MemberActivityReport extends Component {
         width: 100,
       },
     ];
+    if (getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES') {
+      this.columns.push({
+        title: 'Use Sub Account',
+        field: 'useSubAccount',
+      });
+    }
+
     this.notesColumns = [
       { title: 'Submitter', field: 'submitter' },
       { title: 'Date', field: 'contactDate', type: 'date' },
@@ -239,14 +242,14 @@ export class MemberActivityReport extends Component {
       { label: 'Program', value: 'program' },
       { label: 'Belt', value: 'belt' },
       { label: 'Belt Size', value: 'beltSize' },
-      { title: 'Parent or Guardian', field: 'parentOrGuardian' },
-      { title: 'Emergency Contact Name', value: 'emergencyContactName' },
-      { title: 'Emergency Contact Phone', value: 'emergencyContactPhone' },
+      { label: 'Parent or Guardian', value: 'parentOrGuardian' },
+      { label: 'Emergency Contact Name', value: 'emergencyContactName' },
+      { label: 'Emergency Contact Phone', value: 'emergencyContactPhone' },
       {
-        title: 'Emergency Contact Relationship',
+        label: 'Emergency Contact Relationship',
         value: 'emergencyContactRelationship',
       },
-      { title: 'Medical Allergies', value: 'medicalAllergies' },
+      { label: 'Medical Allergies', value: 'medicalAllergies' },
       { label: 'Additional Program 1', value: 'additionalProgram1' },
       { label: 'Additional Program 2', value: 'additionalProgram2' },
       { label: 'Max Weekly Classes', value: 'maxWeeklyClasses' },
@@ -266,6 +269,7 @@ export class MemberActivityReport extends Component {
       { label: 'Opt-Out', value: 'optout' },
       { label: 'Barcode', value: 'barcode' },
       { label: 'Cost', value: 'cost', key: 'cost' },
+      { label: 'Fee', value: 'fee', key: 'fee' },
       { label: 'Average', value: 'average', key: 'cost' },
       { label: 'Payment Period', value: 'paymentPeriod' },
       { label: 'Payment Type', value: 'paymentType' },
@@ -311,7 +315,7 @@ export class MemberActivityReport extends Component {
           { label: 'Barcode', value: 'barcode' },
           { label: 'Belt', value: 'belt' },
           { label: 'Belt Size', value: 'beltSize' },
-          { label: 'Parent or Guardian', field: 'parentOrGuardian' },
+          { label: 'Parent or Guardian', value: 'parentOrGuardian' },
           { label: 'Emergency Contact Name', value: 'emergencyContactName' },
           { label: 'Emergency Contact Phone', value: 'emergencyContactPhone' },
           {
@@ -402,7 +406,7 @@ export class MemberActivityReport extends Component {
       { label: 'Fee Program', value: 'feeProgram' },
       { label: 'Belt', value: 'belt' },
       { label: 'Belt Size', value: 'beltSize' },
-      { label: 'Parent or Guardian', field: 'parentOrGuardian' },
+      { label: 'Parent or Guardian', value: 'parentOrGuardian' },
       { label: 'Emergency Contact Name', value: 'emergencyContactName' },
       { label: 'Emergency Contact Phone', value: 'emergencyContactPhone' },
       {
