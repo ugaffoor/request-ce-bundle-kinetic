@@ -22,6 +22,7 @@ import { LeadListContainer } from './lists/LeadList';
 import { LeadListEditContainer } from './lists/LeadListEdit';
 import { MemberNotesContainer } from './Member/MemberNotes';
 import { MemberFollowUpContainer } from './Member/MemberFollowUp';
+import { MigratingMembersContainer } from './Member/MigratingMembers';
 import { CampaignContainer } from './send/Send';
 import { EmailCampaignContainer } from './send/NewEmailCampaign';
 import { SmsCampaignContainer } from './send/NewSmsCampaign';
@@ -63,6 +64,7 @@ export const Content = ({ isKiosk }) => (
     <Route path="/MemberNotesDetail/:id" component={MemberNotesContainer} />
     <Route path="/MemberFollowUp/:id" component={MemberFollowUpContainer} />
     <Route path="/Send" component={CampaignContainer} />
+    <Route path="/MigratingMembers" component={MigratingMembersContainer} />
     <Route
       path="/NewEmailCampaign/:submissionType?/:submissionId?/:replyType?/:campaignId?"
       component={EmailCampaignContainer}
