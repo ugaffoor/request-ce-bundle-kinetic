@@ -1505,6 +1505,8 @@ export function validOverdue(member, successfulPayments, payment) {
 
   if (
     (member.values['Status'] === 'Active' ||
+      (payment.paymentSource === 'AdditionalService' &&
+        member.values['Status'] === 'Frozen') ||
       member.values['Status'] === 'Pending Freeze' ||
       member.values['Status'] === 'Pending Cancellation') &&
     payment.debitDate !== null &&
