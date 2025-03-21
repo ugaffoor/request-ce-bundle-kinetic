@@ -175,7 +175,13 @@ export class BamboraOverdues extends Component {
       }
       let nowDate = moment();
       var overdueAmount = 0;
-      if (member !== undefined) {
+      if (
+        member !== undefined &&
+        payment.paymentSource === 'AdditionalService' &&
+        member.values['Status'] === 'Frozen'
+      ) {
+        overdueAmount = payment.paymentAmount;
+      } else if (member !== undefined) {
         var paymentPeriod = member.values['Billing Payment Period'];
         var period = 'months';
         var periodCount = 1;
