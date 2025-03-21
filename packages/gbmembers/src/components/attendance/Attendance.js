@@ -1095,15 +1095,21 @@ export class SelfCheckin extends Component {
                                           value.member.values[
                                             'Waiver Complete Date'
                                           ] === '' ||
+                                          value.member.values[
+                                            'Waiver Complete Date'
+                                          ] === undefined ||
+                                          value.member.values[
+                                            'Waiver Complete Date'
+                                          ] === null ||
                                           moment(
                                             value.member.values[
                                               'Waiver Complete Date'
-                                            ].isBefore(
-                                              moment(
-                                                getAttributeValue(
-                                                  this.props.space,
-                                                  'Member Waiver Compliance Date',
-                                                ),
+                                            ],
+                                          ).isBefore(
+                                            moment(
+                                              getAttributeValue(
+                                                this.props.space,
+                                                'Member Waiver Compliance Date',
                                               ),
                                             ),
                                           )) && (

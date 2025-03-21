@@ -1,3 +1,65 @@
+.migrationSection {
+  .bar {
+    height: 22px;
+    width: 200px;
+    background-color: #434343;
+    float: left;
+    position: relative;
+    margin-right: 4px;
+    .percent {
+      height: 22px;
+      position: absolute;
+      background-color: #ffb500;
+    }
+  }
+  .memberDetails label {
+    width: 200px;
+  }
+  .buttons {
+    button {
+      margin: 10px;
+    }
+  }
+  .members {
+    background-color: #f8f5f5;
+    border-radius: 5px;
+    padding-left: 10px;
+    margin-top: 10px;
+    .memberRow {
+      display: flex;
+      padding: 10px;
+      .memberName {
+        min-width: 400px;
+        margin: 0;
+      }
+      .circle {
+        display: block;
+        width: 50px;
+        height: 50px;
+      }
+      h4.label {
+        margin-top: 10px;
+        margin-left: 20px;
+      }
+      .notMigrated {
+        background-color: rgb(238, 92, 92);
+        border-radius: 25px;
+      }
+      .migrated {
+        background-color: rgb(140, 241, 140);
+        border-radius: 25px;
+      }
+      .inProgress {
+        background-color: rgb(249, 253, 173);
+        border-radius: 25px;
+      }
+      .action {
+        margin-top: 12px;
+        margin-left: 40px;
+      }
+    }
+  }
+}
 @media print {
   .paymentHistory {
     .print {

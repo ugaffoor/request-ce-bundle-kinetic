@@ -1782,7 +1782,7 @@ export const MemberEdit = ({
           </div>
           {getAttributeValue(space, 'Franchisor') !== 'YES' && (
             <div className="section3">
-              <h1>Ranking {isDirty}</h1>
+              <h1>Ranking</h1>
               <hr />
               <span className="line">
                 <div>
