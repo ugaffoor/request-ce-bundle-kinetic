@@ -389,6 +389,29 @@ export function* fetchCashRegistrations(action) {
     yield put(actions.setCashRegistrations(submissions));
   }
 }
+export function* fetchMemberMigrations(action) {
+  const kappSlug = 'services';
+  const searchBuilder = new CoreAPI.SubmissionSearch()
+    .type('Service')
+    .includes([
+      'details',
+      'values[Student First Name],values[Student Last Name],values[Member GUID],values[The first instalment is due on],values[I promise to pay equal FREQUENCY instalments of],values[Billing Customer Reference],values[customerBillingId]',
+    ])
+    .build();
+
+  const { submissions } = yield call(CoreAPI.searchSubmissions, {
+    form: 'bambora-remote-registration',
+    kapp: 'services',
+    search: searchBuilder,
+  });
+
+  const serverError = submissions.serverError;
+  if (serverError) {
+    yield put(systemErrorActions.setSystemError(serverError));
+  } else {
+    yield put(actions.setMemberMigrations(submissions));
+  }
+}
 export function* watchServices() {
   yield takeEvery(types.FETCH_SERVICESBYDATE, fetchServicesByDate);
   yield takeEvery(
@@ -397,4 +420,5 @@ export function* watchServices() {
   );
   yield takeEvery(types.SEND_RECEIPT, sendReceipt);
   yield takeEvery(types.FETCH_CASH_REGISTRATIONS, fetchCashRegistrations);
+  yield takeEvery(types.FETCH_MEMBER_MIGRATIONS, fetchMemberMigrations);
 }

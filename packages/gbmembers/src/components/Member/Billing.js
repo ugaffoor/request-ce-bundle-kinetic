@@ -423,11 +423,15 @@ class PayNow extends Component {
     var posSystem = getAttributeValue(this.props.space, 'POS System');
     var posServiceURL = getAttributeValue(this.props.space, 'POS Service URL');
     var schoolName = getAttributeValue(this.props.space, 'School Name');
-    if (posSystem === 'Bambora') {
+    if (
+      posSystem === 'Bambora' ||
+      (posSystem === 'Square' &&
+        getAttributeValue(this.props.space, 'Billing Company') === 'Bambora')
+    ) {
       this.processBamboraPayment(
         posServiceURL,
         this.props.spaceSlug,
-        posSystem,
+        'Bambora',
         schoolName,
         this.props.memberItem.values['Billing Customer Id'],
       );

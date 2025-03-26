@@ -15,6 +15,8 @@ export const types = {
   ),
   FETCH_CASH_REGISTRATIONS: namespace('services', 'FETCH_CASH_REGISTRATIONS'),
   SET_CASH_REGISTRATIONS: namespace('services', 'SET_CASH_REGISTRATIONS'),
+  FETCH_MEMBER_MIGRATIONS: namespace('services', 'FETCH_MEMBER_MIGRATIONS'),
+  SET_MEMBER_MIGRATIONS: namespace('services', 'SET_MEMBER_MIGRATIONS'),
 };
 
 export const actions = {
@@ -22,6 +24,8 @@ export const actions = {
   setServices: withPayload(types.SET_SERVICES),
   fetchCashRegistrations: withPayload(types.FETCH_CASH_REGISTRATIONS),
   setCashRegistrations: withPayload(types.SET_CASH_REGISTRATIONS),
+  fetchMemberMigrations: withPayload(types.FETCH_MEMBER_MIGRATIONS),
+  setMemberMigrations: withPayload(types.SET_MEMBER_MIGRATIONS),
   sendReceipt: withPayload(types.SEND_RECEIPT),
   fetchBillingChangeByBillingReference: withPayload(
     types.FETCH_BILLING_CHANGES_BY_BILLINGREFERENCE,
@@ -38,6 +42,8 @@ export const State = Record({
   membershipServices: List(),
   cashRegistrationsLoading: true,
   cashRegistrations: List(),
+  memberMigrationsLoading: true,
+  memberMigrations: List(),
 });
 
 export const reducer = (state = State(), { type, payload }) => {
@@ -83,6 +89,13 @@ export const reducer = (state = State(), { type, payload }) => {
       return state
         .set('cashRegistrationsLoading', false)
         .set('cashRegistrations', payload);
+    }
+    case types.FETCH_MEMBER_MIGRATIONS:
+      return state.set('memberMigrationsLoading', true);
+    case types.SET_MEMBER_MIGRATIONS: {
+      return state
+        .set('memberMigrationsLoading', false)
+        .set('memberMigrations', payload);
     }
     default:
       return state;

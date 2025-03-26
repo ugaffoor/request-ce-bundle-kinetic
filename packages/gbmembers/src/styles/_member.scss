@@ -1,4 +1,13 @@
 .migrationSection {
+  .classSection {
+    .memberFilter {
+      margin-top: 40px;
+      margin-left: 60px;
+    }
+    input {
+      font-size: 18px;
+    }
+  }
   .bar {
     height: 22px;
     width: 200px;
@@ -50,12 +59,21 @@
         border-radius: 25px;
       }
       .inProgress {
-        background-color: rgb(249, 253, 173);
+        background-color: #ffc107;
         border-radius: 25px;
       }
       .action {
         margin-top: 12px;
         margin-left: 40px;
+      }
+      .buttonInfo {
+        display: flex;
+        flex-direction: row;
+        h5 {
+          margin-top: 0;
+          margin-bottom: 0;
+          margin-left: 20px;
+        }
       }
     }
   }
