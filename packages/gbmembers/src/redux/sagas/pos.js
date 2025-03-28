@@ -70,14 +70,37 @@ export function* fetchPOSProducts(action) {
       .limit(1000)
       .build();
 
-    const productSubmissions = yield all({
-      submissions: call(CoreAPI.searchSubmissions, {
+    const { submissions, nextPageToken } = yield call(
+      CoreAPI.searchSubmissions,
+      {
         datastore: true,
         form: 'pos-product',
         search: SEARCH_PRODUCT,
-      }),
-    });
+      },
+    );
+    let nextPageTokenValue = nextPageToken;
+    let allSubmissions = [];
+    allSubmissions.concat(submissions);
 
+    while (nextPageTokenValue) {
+      let search2 = new CoreAPI.SubmissionSearch(true)
+        .includes(['values'])
+        .limit(1000)
+        .pageToken(nextPageTokenValue)
+        .build();
+
+      const [submissions2, nextPageToken] = yield all([
+        call(CoreAPI.searchSubmissions, {
+          datastore: true,
+          form: 'pos-product',
+          search: search2,
+        }),
+      ]);
+      allSubmissions = allSubmissions.concat(submissions2.submissions);
+      nextPageTokenValue = submissions2.nextPageToken;
+    }
+
+    var products = allSubmissions;
     const stocksSubmissions = yield all({
       submissions: call(CoreAPI.searchSubmissions, {
         datastore: true,
@@ -86,7 +109,6 @@ export function* fetchPOSProducts(action) {
       }),
     });
 
-    var products = productSubmissions.submissions.submissions;
     var stocks = stocksSubmissions.submissions.submissions;
     for (var i = 0; i < products.length; i++) {
       if (products[i].stock === undefined) products[i].stock = [];
