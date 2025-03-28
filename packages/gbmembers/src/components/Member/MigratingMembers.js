@@ -48,9 +48,24 @@ export const handleLoaded = props => form => {
     migrationFormCancelEnabled: false,
   });
 };
+export const handleUpdated = props => response => {
+  if (response.submission.id) {
+    let idx = migrationThis.props.allMembers.findIndex(
+      member => member.id === response.submission.values['Member GUID'],
+    );
+    migrationThis.props.allMembers[idx].migrationForm = response.submission;
+  }
+};
 export const handleCreated = props => response => {
   console.log('handleCreated');
   $(K('form').element()).remove();
+
+  if (response.submission.id) {
+    let idx = migrationThis.props.allMembers.findIndex(
+      member => member.id === response.submission.values['Member GUID'],
+    );
+    migrationThis.props.allMembers[idx].migrationForm = response.submission;
+  }
   migrationThis.props.setStartMigration(false);
 };
 export const handleError = props => response => {
@@ -250,6 +265,7 @@ export class StartMemberMigration extends Component {
                 id="cancelButton"
                 className="btn btn-primary"
                 onClick={e => {
+                  $(K('form').element()).remove();
                   this.props.setStartMigration(false);
                 }}
               >
@@ -365,7 +381,7 @@ export class EditMemberMigration extends Component {
     migrationThis = this;
 
     this.state = {
-      id: this.props.memberItem.migrationForms[0].id,
+      id: this.props.memberItem.migrationForm.id,
       editMemberDetails: true,
       submitMigrationForm: false,
       migrationFormCancelEnabled: true,
@@ -383,6 +399,7 @@ export class EditMemberMigration extends Component {
           <Fragment>
             <CoreForm
               loaded={this.props.handleLoaded}
+              updated={this.props.handleUpdated}
               submission={this.state.id}
               review={false}
               globals={globals}
@@ -396,10 +413,11 @@ export class EditMemberMigration extends Component {
               className="btn btn-primary"
               disabled={this.state.migrationFormCancelEnabled}
               onClick={e => {
+                $(K('form').element()).remove();
                 this.props.setEditMigration(false);
               }}
             >
-              Cancel
+              Cancel / Close
             </button>
           </span>
         </div>
@@ -414,7 +432,7 @@ export class ViewMemberMigration extends Component {
     migrationThis = this;
 
     this.state = {
-      id: this.props.memberItem.migrationForms[0].id,
+      id: this.props.memberItem.migrationForm.id,
       viewMemberDetails: true,
       submitMigrationForm: false,
       migrationFormCancelEnabled: true,
@@ -521,11 +539,21 @@ export class MigrationDetail extends Component {
     return (
       member.values['Billing User'] === 'YES' &&
       member.values['Biller Migrated'] === 'YES' &&
-      member.migrationForms !== undefined && member.migrationForms.length > 0
+      member.migrationForm !== undefined
     );
   }
   getCompletedDate(member) {
-    return moment(member.migrationForms[0].submittedDate).format('L HH:mm');
+    return moment(member.migrationForm.submittedAt).format('L HH:mm');
+  }
+  getSentDate(member) {
+    return moment(member.migrationForm.values['Form Completion Sent']).format(
+      'L HH:mm',
+    );
+  }
+  getBillingDate(member) {
+    return moment(
+      member.migrationForm.values['The first instalment is due on'],
+    ).format('L');
   }
   isNotStarted(member) {
     return (
@@ -536,15 +564,25 @@ export class MigrationDetail extends Component {
       (member.values['Billing Customer Reference'] === undefined ||
         member.values['Billing Customer Reference'] === '' ||
         member.values['Billing Customer Reference'] === null) &&
-      (member.migrationForms === undefined ||
-        member.migrationForms.length === 0)
+      member.migrationForm === undefined
     );
   }
   isStarted(member) {
     return (
       member.values['Biller Migrated'] !== 'YES' &&
-      member.migrationForms !== undefined &&
-      member.migrationForms.length > 0
+      member.migrationForm !== undefined &&
+      moment(
+        member.migrationForm.values['The first instalment is due on'],
+      ).isAfter(moment())
+    );
+  }
+  isExpired(member) {
+    return (
+      member.values['Biller Migrated'] !== 'YES' &&
+      member.migrationForm !== undefined &&
+      moment(
+        member.migrationForm.values['The first instalment is due on'],
+      ).isSameOrBefore(moment())
     );
   }
   startMigration(member) {
@@ -639,6 +677,11 @@ export class MigrationDetail extends Component {
                             ) {
                               apply = true;
                             } else if (
+                              status === 'Expired' &&
+                              this.isExpired(member)
+                            ) {
+                              apply = true;
+                            } else if (
                               status === 'Not Started' &&
                               this.isNotStarted(member)
                             ) {
@@ -685,6 +728,7 @@ export class MigrationDetail extends Component {
                       <option value="All">All</option>
                       <option value="Not Started">Not Started</option>
                       <option value="In Progress">In Progress</option>
+                      <option value="Expired">Expired</option>
                       <option value="Migrated">Migrated</option>
                     </select>
                     <div className="droparrow" />
@@ -738,6 +782,9 @@ export class MigrationDetail extends Component {
                       if (this.isStarted(member)) {
                         status = 'inProgress';
                         labeltext = 'In Progress';
+                      } else if (this.isExpired(member)) {
+                        status = 'expired';
+                        labeltext = 'Expired';
                       } else if (this.isNotStarted(member)) {
                         status = 'notMigrated';
                         labeltext = 'Not Started';
@@ -766,14 +813,36 @@ export class MigrationDetail extends Component {
                               </button>
                             )}
                             {this.isStarted(member) && (
-                              <button
-                                type="button"
-                                active="false"
-                                className="btn btn-primary report-btn-default"
-                                onClick={e => this.editMigration(member)}
-                              >
-                                Edit
-                              </button>
+                              <span className="buttonInfo">
+                                <button
+                                  type="button"
+                                  active="false"
+                                  className="btn btn-primary report-btn-default"
+                                  onClick={e => this.editMigration(member)}
+                                >
+                                  Edit
+                                </button>
+                                <h5>
+                                  Sent: {this.getSentDate(member)} Billing Date:{' '}
+                                  {this.getBillingDate(member)}
+                                </h5>
+                              </span>
+                            )}
+                            {this.isExpired(member) && (
+                              <span className="buttonInfo">
+                                <button
+                                  type="button"
+                                  active="false"
+                                  className="btn btn-primary report-btn-default"
+                                  onClick={e => this.editMigration(member)}
+                                >
+                                  Edit
+                                </button>
+                                <h5>
+                                  Sent: {this.getSentDate(member)} Billing Date:{' '}
+                                  {this.getBillingDate(member)}
+                                </h5>
+                              </span>
                             )}
                             {this.isMigratedFormCompleted(member) && (
                               <span className="buttonInfo">
@@ -822,7 +891,7 @@ export class MigrationDetail extends Component {
             memberItem={this.state.migratingMember}
             setEditMigration={this.setEditMigration}
             handleLoaded={this.props.handleLoaded}
-            handleCreated={this.props.handleCreated}
+            handleUpdated={this.props.handleUpdated}
             handleError={this.props.handleError}
             updateMember={this.props.updateMember}
           />
@@ -853,6 +922,7 @@ export const MigrationMembers = ({
   belts,
   beltSizes,
   handleLoaded,
+  handleUpdated,
   handleCreated,
   handleError,
   updateMember,
@@ -867,6 +937,7 @@ export const MigrationMembers = ({
     belts={belts}
     beltSizes={beltSizes}
     handleLoaded={handleLoaded}
+    handleUpdated={handleUpdated}
     handleCreated={handleCreated}
     handleError={handleError}
     updateMember={updateMember}
@@ -881,6 +952,7 @@ export const MigratingMembersContainer = compose(
     handleCreated,
     handleError,
     handleLoaded,
+    handleUpdated,
   }),
   lifecycle({
     UNSAFE_componentWillReceiveProps(nextProps) {
@@ -893,17 +965,7 @@ export const MigratingMembersContainer = compose(
             return member.id === migration.values['Member GUID'];
           });
           if (idx !== -1) {
-            if (nextProps.allMembers[idx].migrationForms === undefined) {
-              nextProps.allMembers[idx].migrationForms = [];
-            }
-            var mIdx = nextProps.allMembers[idx].migrationForms.findIndex(
-              m => m.id === migration.id,
-            );
-            if (mIdx === -1) {
-              nextProps.allMembers[idx].migrationForms[
-                nextProps.allMembers[idx].migrationForms.length
-              ] = migration;
-            }
+            nextProps.allMembers[idx].migrationForm = migration;
           }
         });
         console.log('memberMigrations.size:' + nextProps.memberMigrations.size);

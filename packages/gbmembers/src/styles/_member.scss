@@ -18,7 +18,7 @@
     .percent {
       height: 22px;
       position: absolute;
-      background-color: #ffb500;
+      background-color: #37729d;
     }
   }
   .memberDetails label {
@@ -49,17 +49,22 @@
       h4.label {
         margin-top: 10px;
         margin-left: 20px;
+        width: 120px;
       }
       .notMigrated {
         background-color: rgb(238, 92, 92);
         border-radius: 25px;
       }
       .migrated {
-        background-color: rgb(140, 241, 140);
+        background-color: #37729d;
         border-radius: 25px;
       }
       .inProgress {
-        background-color: #ffc107;
+        background-color: #7ff46a;
+        border-radius: 25px;
+      }
+      .expired {
+        background-color: #f58c0c;
         border-radius: 25px;
       }
       .action {
