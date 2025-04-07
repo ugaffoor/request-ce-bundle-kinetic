@@ -78,9 +78,9 @@ export function* fetchPOSProducts(action) {
         search: SEARCH_PRODUCT,
       },
     );
-    let nextPageTokenValue = nextPageToken;
-    let allSubmissions = [];
-    allSubmissions.concat(submissions);
+    var nextPageTokenValue = nextPageToken;
+    var allSubmissions = [];
+    allSubmissions = allSubmissions.concat(submissions);
 
     while (nextPageTokenValue) {
       let search2 = new CoreAPI.SubmissionSearch(true)

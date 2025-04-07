@@ -43,7 +43,8 @@ export const State = Record({
   cashRegistrationsLoading: true,
   cashRegistrations: List(),
   memberMigrationsLoading: true,
-  memberMigrations: List(),
+  memberMigrations: [],
+  migrationsLastFetchTime: undefined,
 });
 
 export const reducer = (state = State(), { type, payload }) => {
@@ -91,11 +92,30 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('cashRegistrations', payload);
     }
     case types.FETCH_MEMBER_MIGRATIONS:
-      return state.set('memberMigrationsLoading', true);
+      return state.set(
+        'memberMigrationsLoading',
+        payload.migrationsLastFetchTime === undefined ? true : false,
+      );
     case types.SET_MEMBER_MIGRATIONS: {
+      var memberMigrations = state.get('memberMigrations');
+      if (memberMigrations.length === 0) {
+        memberMigrations = payload;
+      } else {
+        for (var k = 0; k < payload.length; k++) {
+          var mIdx = memberMigrations.findIndex(
+            migration => migration.id === payload[k].id,
+          );
+          if (mIdx !== -1) {
+            memberMigrations[mIdx] = payload[k];
+          } else {
+            memberMigrations.push(payload[k]);
+          }
+        }
+      }
       return state
+        .set('migrationsLastFetchTime', moment().format('YYYY-MM-DDTHH:mm:ssZ'))
         .set('memberMigrationsLoading', false)
-        .set('memberMigrations', payload);
+        .set('memberMigrations', memberMigrations);
     }
     default:
       return state;

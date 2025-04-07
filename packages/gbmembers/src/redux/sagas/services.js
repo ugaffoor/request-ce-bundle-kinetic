@@ -5,6 +5,7 @@ import { actions, types } from '../modules/services';
 import { actions as systemErrorActions } from '../modules/systemError';
 import { actions as errorActions, NOTICE_TYPES } from '../modules/errors';
 import moment from 'moment';
+const util = require('util');
 
 export function* fetchServicesByDate(action) {
   const kappSlug = 'services';
@@ -82,7 +83,16 @@ export function* fetchBillingChangeByBillingReference(action) {
           .limit(25)
           .build();
 
-        const [registrations, billingChanges] = yield all([
+        const BAMBORA_SETUP_BILLER_SEARCH = new CoreAPI.SubmissionSearch(true)
+          .eq('values[Billing Customer Id]', action.payload.billingCustomerRef)
+          .include([
+            'details',
+            'values[Member ID],values[feesJSON],values[Date Affective]',
+          ])
+          .limit(25)
+          .build();
+
+        const [registrations, billingChanges, setupBillers] = yield all([
           call(CoreAPI.searchSubmissions, {
             form: 'bambora-member-registration',
             kapp: 'services',
@@ -92,6 +102,11 @@ export function* fetchBillingChangeByBillingReference(action) {
             form: 'bambora-submit-billing-changes',
             kapp: 'services',
             search: BAMBORA_BILLING_CHANGES_SEARCH,
+          }),
+          call(CoreAPI.searchSubmissions, {
+            form: 'bambora-setup-biller-details',
+            kapp: 'services',
+            search: BAMBORA_SETUP_BILLER_SEARCH,
           }),
         ]);
 
@@ -135,6 +150,33 @@ export function* fetchBillingChangeByBillingReference(action) {
                     ),
               feeJSON: JSON.parse(
                 billingChanges.submissions[i].values['feesJSON'],
+              ),
+            });
+          }
+        }
+        for (let i = 0; i < setupBillers.submissions.length; i++) {
+          if (
+            setupBillers.submissions[i].coreState === 'Submitted' ||
+            setupBillers.submissions[i].coreState === 'Closed'
+          ) {
+            membershipServices.push({
+              submittedAtDate: moment(
+                setupBillers.submissions[i]['submittedAt'],
+              ),
+              billingStartDate:
+                setupBillers.submissions[i].values['Date Affective'] !== null
+                  ? moment(
+                      setupBillers.submissions[i].values['Date Affective'],
+                      'YYYY-MM-DD',
+                    )
+                  : moment(
+                      setupBillers.submissions[i].values[
+                        'New Billing Start Date'
+                      ],
+                      'YYYY-MM-DD',
+                    ),
+              feeJSON: JSON.parse(
+                setupBillers.submissions[i].values['feesJSON'],
               ),
             });
           }
@@ -390,26 +432,72 @@ export function* fetchCashRegistrations(action) {
   }
 }
 export function* fetchMemberMigrations(action) {
-  const kappSlug = 'services';
-  const searchBuilder = new CoreAPI.SubmissionSearch()
-    .type('Service')
-    .includes([
-      'details',
-      'values[Student First Name],values[Student Last Name],values[Member GUID],values[The first instalment is due on],values[I promise to pay equal FREQUENCY instalments of],values[Billing Customer Reference],values[customerBillingId],values[Form Completion Sent]',
-    ])
-    .build();
+  try {
+    let allSubmissions = [];
 
-  const { submissions } = yield call(CoreAPI.searchSubmissions, {
-    form: 'bambora-remote-registration',
-    kapp: 'services',
-    search: searchBuilder,
-  });
+    let migrationsLastFetchTime =
+      action.payload !== undefined &&
+      action.payload.migrationsLastFetchTime !== undefined
+        ? action.payload.migrationsLastFetchTime
+        : undefined;
 
-  const serverError = submissions.serverError;
-  if (serverError) {
-    yield put(systemErrorActions.setSystemError(serverError));
-  } else {
-    yield put(actions.setMemberMigrations(submissions));
+    let searchBuilder = new CoreAPI.SubmissionSearch()
+      .type('Service')
+      .includes([
+        'details',
+        'values[Student First Name],values[Student Last Name],values[Member GUID],values[The first instalment is due on],values[I promise to pay equal FREQUENCY instalments of],values[Billing Customer Reference],values[customerBillingId],values[Form Completion Sent]',
+      ])
+      .sortBy('updatedAt')
+      .sortDirection('DESC')
+      .limit(1000);
+
+    if (migrationsLastFetchTime !== undefined) {
+      searchBuilder = searchBuilder.startDate(
+        moment(migrationsLastFetchTime).toDate(),
+      );
+    }
+    searchBuilder = searchBuilder.build();
+
+    var { submissions, nextPageToken } = yield call(CoreAPI.searchSubmissions, {
+      form: 'bambora-remote-registration',
+      kapp: 'services',
+      search: searchBuilder,
+    });
+    allSubmissions = allSubmissions.concat(submissions);
+    while (nextPageToken) {
+      var search2 = new CoreAPI.SubmissionSearch()
+        .type('Service')
+        .includes([
+          'details',
+          'values[Student First Name],values[Student Last Name],values[Member GUID],values[The first instalment is due on],values[I promise to pay equal FREQUENCY instalments of],values[Billing Customer Reference],values[customerBillingId],values[Form Completion Sent]',
+        ])
+        .sortBy('updatedAt')
+        .sortDirection('DESC')
+        .pageToken(nextPageToken)
+        .limit(1000)
+        .build();
+
+      var { submissions, nextPageToken } = yield call(
+        CoreAPI.searchSubmissions,
+        {
+          form: 'bambora-remote-registration',
+          kapp: 'services',
+          search: search2,
+        },
+      );
+
+      allSubmissions = allSubmissions.concat(submissions);
+    }
+
+    const serverError = submissions.serverError;
+    if (serverError) {
+      yield put(systemErrorActions.setSystemError(serverError));
+    } else {
+      yield put(actions.setMemberMigrations(allSubmissions));
+    }
+  } catch (error) {
+    console.log('Error in fetchMemberMigrations: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
   }
 }
 export function* watchServices() {
