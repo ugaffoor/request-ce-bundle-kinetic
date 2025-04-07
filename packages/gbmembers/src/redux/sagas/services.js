@@ -82,7 +82,16 @@ export function* fetchBillingChangeByBillingReference(action) {
           .limit(25)
           .build();
 
-        const [registrations, billingChanges] = yield all([
+        const BAMBORA_SETUP_BILLER_SEARCH = new CoreAPI.SubmissionSearch(true)
+          .eq('values[Billing Customer Id]', action.payload.billingCustomerRef)
+          .include([
+            'details',
+            'values[Member ID],values[feesJSON],values[Date Affective]',
+          ])
+          .limit(25)
+          .build();
+
+        const [registrations, billingChanges, setupBillers] = yield all([
           call(CoreAPI.searchSubmissions, {
             form: 'bambora-member-registration',
             kapp: 'services',
@@ -92,6 +101,11 @@ export function* fetchBillingChangeByBillingReference(action) {
             form: 'bambora-submit-billing-changes',
             kapp: 'services',
             search: BAMBORA_BILLING_CHANGES_SEARCH,
+          }),
+          call(CoreAPI.searchSubmissions, {
+            form: 'bambora-setup-biller-details',
+            kapp: 'services',
+            search: BAMBORA_SETUP_BILLER_SEARCH,
           }),
         ]);
 
@@ -135,6 +149,33 @@ export function* fetchBillingChangeByBillingReference(action) {
                     ),
               feeJSON: JSON.parse(
                 billingChanges.submissions[i].values['feesJSON'],
+              ),
+            });
+          }
+        }
+        for (let i = 0; i < setupBillers.submissions.length; i++) {
+          if (
+            setupBillers.submissions[i].coreState === 'Submitted' ||
+            setupBillers.submissions[i].coreState === 'Closed'
+          ) {
+            membershipServices.push({
+              submittedAtDate: moment(
+                setupBillers.submissions[i]['submittedAt'],
+              ),
+              billingStartDate:
+                setupBillers.submissions[i].values['Date Affective'] !== null
+                  ? moment(
+                      setupBillers.submissions[i].values['Date Affective'],
+                      'YYYY-MM-DD',
+                    )
+                  : moment(
+                      setupBillers.submissions[i].values[
+                        'New Billing Start Date'
+                      ],
+                      'YYYY-MM-DD',
+                    ),
+              feeJSON: JSON.parse(
+                setupBillers.submissions[i].values['feesJSON'],
               ),
             });
           }
