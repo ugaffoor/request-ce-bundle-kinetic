@@ -21,6 +21,7 @@ import DayPickerInput from 'react-day-picker/DayPickerInput';
 import 'react-day-picker/lib/style.css';
 import { CoreForm } from 'react-kinetic-core';
 import { StatusMessagesContainer } from '../StatusMessages';
+import { Utils } from 'common';
 
 const globals = import('common/globals');
 
@@ -377,7 +378,19 @@ export class StartMemberMigration extends Component {
             </div>
             <Fragment>
               <CoreForm
-                form="bambora-remote-registration"
+                form={
+                  Utils.getAttributeValue(
+                    this.props.space,
+                    'Billing Company',
+                  ) === 'Bambora'
+                    ? 'bambora-remote-registration'
+                    : Utils.getAttributeValue(
+                        this.props.space,
+                        'Billing Company',
+                      ) === 'PaySmart'
+                    ? 'paysmart-remote-registration'
+                    : ''
+                }
                 kapp="services"
                 values={this.state.initValues}
                 loaded={this.props.handleLoaded}
