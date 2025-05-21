@@ -481,7 +481,7 @@ export class RecordStockDialog extends Component {
                   );
                 })}
           </span>
-          <BarcodeReader onError={this.handleError} onScan={this.handleScan} />
+          <BarcodeReader onError={this.handleScan} onScan={this.handleScan} />
         </ModalDialog>
       </ModalContainer>
     );

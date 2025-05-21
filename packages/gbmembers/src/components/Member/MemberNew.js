@@ -874,6 +874,7 @@ export const MemberNew = ({
                       id="program"
                       ref={input => (this.input = input)}
                       value={memberItem.values['Ranking Program']}
+                      required
                       onChange={e =>
                         handleProgramChange(memberItem, 'Ranking Program', e)
                       }
@@ -901,6 +902,7 @@ export const MemberNew = ({
                     <select
                       name="belt"
                       id="belt"
+                      required
                       ref={input => (this.input = input)}
                       value={memberItem.values['Ranking Belt']}
                       onChange={e =>

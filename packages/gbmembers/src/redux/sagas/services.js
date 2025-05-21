@@ -55,6 +55,22 @@ export function* sendReceipt(action) {
     yield put(errorActions.setSystemError(error));
   }
 }
+export function* fetchSenderReceipt(action) {
+  try {
+    const SUBMISSION_INCLUDES = 'details,values';
+    const { submission, serverError } = yield call(CoreAPI.fetchSubmission, {
+      id: action.payload.id,
+      include: SUBMISSION_INCLUDES,
+      datastore: true,
+    });
+
+    yield put(actions.setSenderReceipt(submission));
+  } catch (error) {
+    console.log('Error in fetchSenderReceipt: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
+
 export function* fetchBillingChangeByBillingReference(action) {
   try {
     var membershipServices = [];
@@ -447,11 +463,11 @@ export function* fetchMemberMigrations(action) {
         'details',
         'values[Student First Name],values[Student Last Name],values[Member GUID],values[The first instalment is due on],values[I promise to pay equal FREQUENCY instalments of],values[Billing Customer Reference],values[customerBillingId],values[Form Completion Sent]',
       ])
-      .sortBy('updatedAt')
-      .sortDirection('DESC')
       .limit(1000);
 
     if (migrationsLastFetchTime !== undefined) {
+      searchBuilder = searchBuilder.sortBy('updatedAt');
+
       searchBuilder = searchBuilder.startDate(
         moment(migrationsLastFetchTime).toDate(),
       );
@@ -459,7 +475,7 @@ export function* fetchMemberMigrations(action) {
     searchBuilder = searchBuilder.build();
 
     var { submissions, nextPageToken } = yield call(CoreAPI.searchSubmissions, {
-      form: 'bambora-remote-registration',
+      form: action.payload.billingSystem + '-remote-registration',
       kapp: 'services',
       search: searchBuilder,
     });
@@ -471,8 +487,6 @@ export function* fetchMemberMigrations(action) {
           'details',
           'values[Student First Name],values[Student Last Name],values[Member GUID],values[The first instalment is due on],values[I promise to pay equal FREQUENCY instalments of],values[Billing Customer Reference],values[customerBillingId],values[Form Completion Sent]',
         ])
-        .sortBy('updatedAt')
-        .sortDirection('DESC')
         .pageToken(nextPageToken)
         .limit(1000)
         .build();
@@ -480,7 +494,7 @@ export function* fetchMemberMigrations(action) {
       var { submissions, nextPageToken } = yield call(
         CoreAPI.searchSubmissions,
         {
-          form: 'bambora-remote-registration',
+          form: action.payload.billingSystem + '-remote-registration',
           kapp: 'services',
           search: search2,
         },
@@ -507,6 +521,7 @@ export function* watchServices() {
     fetchBillingChangeByBillingReference,
   );
   yield takeEvery(types.SEND_RECEIPT, sendReceipt);
+  yield takeEvery(types.FETCH_SENDER_RECEIPT, fetchSenderReceipt);
   yield takeEvery(types.FETCH_CASH_REGISTRATIONS, fetchCashRegistrations);
   yield takeEvery(types.FETCH_MEMBER_MIGRATIONS, fetchMemberMigrations);
 }

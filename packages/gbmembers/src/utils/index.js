@@ -15,6 +15,7 @@ export const withPayload = (type, ...names) => (...data) =>
 export const getAttributeValue = (value, defaultValue, ...sources) => {
   const best = sources.find(
     source =>
+      source !== undefined &&
       source.attributes &&
       source.attributes[value] &&
       source.attributes[value].length > 0,

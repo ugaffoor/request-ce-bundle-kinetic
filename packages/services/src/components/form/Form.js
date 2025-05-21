@@ -1,10 +1,19 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, useEffect, useRef, useState } from 'react';
+import { connect } from 'react-redux';
 import ReactDOM from 'react-dom';
 import { CoreForm } from 'react-kinetic-core';
 import { bundle } from 'react-kinetic-core';
 import SignatureCanvas from 'react-signature-canvas';
-import DateTimePicker from 'react-xdsoft-datetimepicker';
+//import DateTimePicker from 'react-xdsoft-datetimepicker';
+import DayPickerInput from 'react-day-picker/DayPickerInput';
+import DayPicker from 'react-day-picker/DayPicker';
+import 'react-day-picker/lib/style.css';
+import MomentLocaleUtils, {
+  formatDate,
+  parseDate,
+} from 'react-day-picker/moment';
 import Select, { components } from 'react-select';
+import { getLocalePreference } from 'gbmembers/src/components/Member/MemberUtils';
 import {
   KappLink as Link,
   ErrorNotFound,
@@ -13,7 +22,7 @@ import {
   PageTitle,
 } from 'common';
 import ReactQuill, { Quill } from 'react-quill';
-import moment from 'moment';
+import { actions } from 'gbmembers/src/redux/modules/memberApp';
 
 // Asynchronously import the global dependencies that are used in the embedded
 // forms. Note that we deliberately do this as a const so that it should start
@@ -39,73 +48,81 @@ export const Form = ({
   handleDelete,
   values,
   kappSlug,
-}) => (
-  <Fragment>
-    <PageTitle parts={[form ? form.name : '']} />
-    <span className="services-color-bar services-color-bar__blue-slate" />
-    <div className="page-container page-container--services-form">
-      <div className="page-title">
-        <div className="page-title__wrapper">
-          <h3>
-            <Link to="/">services</Link> /{' '}
-            {match.url.startsWith('/request') && (
-              <Link to="/requests">requests</Link>
-            )}
-            {match.url.startsWith('/request') && ' / '}
-            {match.url.startsWith('/request') && match.params.type && (
-              <Link to={`/requests/${match.params.type || ''}`}>
-                {match.params.type}
-              </Link>
-            )}
-            {match.url.startsWith('/request') && match.params.type && ' / '}
-            {category && <Link to="/categories">categories</Link>}
-            {category && ' / '}
-            {category && (
-              <Link to={`/categories/${category.slug}`}>{category.name}</Link>
-            )}
-            {category && ' / '}
-          </h3>
-          {form && <h1>{form.name}</h1>}
+  space,
+  profile,
+}) => {
+  bundle.config.widgets.space = space;
+  bundle.config.widgets.profile = profile;
+  return (
+    <Fragment>
+      <PageTitle parts={[form ? form.name : '']} />
+      <span className="services-color-bar services-color-bar__blue-slate" />
+      <div className="page-container page-container--services-form">
+        <div className="page-title">
+          <div className="page-title__wrapper">
+            <h3>
+              <Link to="/">services</Link> /{' '}
+              {match.url.startsWith('/request') && (
+                <Link to="/requests">requests</Link>
+              )}
+              {match.url.startsWith('/request') && ' / '}
+              {match.url.startsWith('/request') && match.params.type && (
+                <Link to={`/requests/${match.params.type || ''}`}>
+                  {match.params.type}
+                </Link>
+              )}
+              {match.url.startsWith('/request') && match.params.type && ' / '}
+              {category && <Link to="/categories">categories</Link>}
+              {category && ' / '}
+              {category && (
+                <Link to={`/categories/${category.slug}`}>{category.name}</Link>
+              )}
+              {category && ' / '}
+            </h3>
+            {form && <h1>{form.name}</h1>}
+          </div>
+          {submissionId && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="btn btn-outline-danger"
+            >
+              Cancel Request
+            </button>
+          )}
         </div>
-        {submissionId && (
-          <button
-            type="button"
-            onClick={handleDelete}
-            className="btn btn-outline-danger"
-          >
-            Cancel Request
-          </button>
-        )}
+        <div className="form-description">
+          {form && (
+            <p dangerouslySetInnerHTML={{ __html: form.description }}></p>
+          )}
+        </div>
+        <div className="embedded-core-form--wrapper">
+          {submissionId ? (
+            <CoreForm
+              submission={submissionId}
+              globals={globals}
+              loaded={handleLoaded}
+              completed={handleCompleted}
+            />
+          ) : (
+            <CoreForm
+              kapp={kappSlug}
+              form={form.slug}
+              globals={globals}
+              loaded={handleLoaded}
+              created={handleCreated}
+              completed={handleCompleted}
+              values={values}
+              notFoundComponent={ErrorNotFound}
+              unauthorizedComponent={ErrorUnauthorized}
+              unexpectedErrorComponent={ErrorUnexpected}
+            />
+          )}
+        </div>
       </div>
-      <div className="form-description">
-        {form && <p dangerouslySetInnerHTML={{ __html: form.description }}></p>}
-      </div>
-      <div className="embedded-core-form--wrapper">
-        {submissionId ? (
-          <CoreForm
-            submission={submissionId}
-            globals={globals}
-            loaded={handleLoaded}
-            completed={handleCompleted}
-          />
-        ) : (
-          <CoreForm
-            kapp={kappSlug}
-            form={form.slug}
-            globals={globals}
-            loaded={handleLoaded}
-            created={handleCreated}
-            completed={handleCompleted}
-            values={values}
-            notFoundComponent={ErrorNotFound}
-            unauthorizedComponent={ErrorUnauthorized}
-            unexpectedErrorComponent={ErrorUnexpected}
-          />
-        )}
-      </div>
-    </div>
-  </Fragment>
-);
+    </Fragment>
+  );
+};
 
 export class SignatureCanvasWrapper extends React.Component {
   constructor(props) {
@@ -300,14 +317,78 @@ export class QuillEditorWrapper extends React.Component {
   }
 }
 
+const isDateAllowed = (date, allowedDates) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  date.setHours(0, 0, 0, 0);
+
+  // Disallow today or any earlier date
+  if (date <= today) return true;
+
+  // Disallow all dates that are not explicitly allowed
+  const isAllowed =
+    allowedDates.length > 0
+      ? allowedDates.some(
+          allowed =>
+            allowed.getDate() === date.getDate() &&
+            allowed.getMonth() === date.getMonth() &&
+            allowed.getFullYear() === date.getFullYear(),
+        )
+      : true;
+
+  return !isAllowed; // true = disabled
+};
+const SmartOverlay = ({ classNames, children, ...props }) => {
+  const ref = useRef(null);
+  const [positionAbove, setPositionAbove] = useState(false);
+
+  useEffect(() => {
+    const inputRect = props.input.getBoundingClientRect();
+    const calendarHeight = 300; // estimated height
+    const spaceBelow = window.innerHeight - inputRect.bottom;
+    const spaceAbove = inputRect.top;
+
+    setPositionAbove(
+      spaceBelow < calendarHeight && spaceAbove > calendarHeight,
+    );
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className={classNames.overlay}
+      style={{
+        position: 'absolute',
+        left: '20px',
+        top: positionAbove ? 'auto' : '',
+        bottom: positionAbove ? 'auto' : '',
+        zIndex: 1000,
+        background: 'white',
+        boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+      }}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+};
 export class DatepickerWrapper extends React.Component {
   constructor(props) {
     super(props);
+    let allowedDates = [];
+    if (this.props.options.allowDates) {
+      this.props.options.allowDates.forEach(item => {
+        allowedDates.push(moment(item, 'DD-MM-YYYY').toDate());
+      });
+    }
     this.state = {
       options: this.props.options,
+      allowedDates,
     };
   }
-  componentDidMount() {}
+  componentDidMount() {
+    if (this.props.onGenerate !== undefined) this.props.onGenerate();
+  }
   componentDidUpdate() {
     if (
       this.state.options.allowDates.length !==
@@ -332,21 +413,43 @@ export class DatepickerWrapper extends React.Component {
       onSelectDate,
       inline,
       onGenerate,
+      options,
+      space,
+      profile,
     } = this.props;
-    return (
-      <DateTimePicker
+    return options !== undefined && options.inline ? (
+      <DayPicker
+        id={parentID}
+        mode="single"
+        formatDate={formatDate}
+        parseDate={parseDate}
         value={value}
-        value_format={value_format}
-        defaultValue={defaultValue}
-        displayDateFormat={displayDateFormat}
-        minDate={minDate}
-        options={this.state.options}
-        timepicker={timepicker}
-        datepicker={datepicker}
-        inline={inline}
-        onGenerate={onGenerate}
-        onSelectDate={onSelectDate}
-        scrollInput={false}
+        placeholder={''}
+        onDayClick={function(selectedDay, modifiers, dayPickerInput) {
+          onSelectDate(selectedDay);
+        }}
+        overlayComponent={SmartOverlay}
+        disabledDays={date => isDateAllowed(date, this.state.allowedDates)}
+      />
+    ) : (
+      <DayPickerInput
+        id={parentID}
+        formatDate={formatDate}
+        parseDate={parseDate}
+        value={value}
+        placeholder={''}
+        onDayChange={function(selectedDay, modifiers, dayPickerInput) {
+          onSelectDate(selectedDay);
+        }}
+        overlayComponent={SmartOverlay}
+        dayPickerProps={{
+          disabledDays: date => isDateAllowed(date, this.state.allowedDates),
+          locale: getLocalePreference(
+            bundle.config.widgets.space,
+            bundle.config.widgets.profile,
+          ),
+          localeUtils: MomentLocaleUtils,
+        }}
       />
     );
   }
@@ -385,6 +488,7 @@ bundle.config.widgets = {
         datepicker={datepicker}
         onGenerate={onGenerate}
         onSelectDate={onSelectDate}
+        scrollInput={false}
       />,
       element,
     );

@@ -63,6 +63,12 @@
         background-color: #7ff46a;
         border-radius: 25px;
       }
+      .inProgressSubmitted {
+        background-color: #7ff46a;
+        border-radius: 25px;
+        border-style: dashed;
+        border-color: green;
+      }
       .expired {
         background-color: #f58c0c;
         border-radius: 25px;
@@ -1114,6 +1120,9 @@
     border: 0;
   }
   .printReceipt {
+    cursor: pointer;
+  }
+  .registrationEmail {
     cursor: pointer;
   }
   .icon-svg {

@@ -864,6 +864,17 @@ export class NewEmailCampaign extends Component {
                 </CopyToClipboard>
               </div>
               <div className="copyItem">
+                <div className="copySample"> member('Parent Name')</div>
+                <CopyToClipboard
+                  text={"member('Parent Name')"}
+                  onCopy={console.log(
+                    "member('Parent Name') copied to Clipboard",
+                  )}
+                >
+                  <i className="fa fa-clipboard" aria-hidden="true"></i>
+                </CopyToClipboard>
+              </div>
+              <div className="copyItem">
                 <div className="copySample"> Email Footer (HTML only)</div>
                 <CopyToClipboard
                   text={

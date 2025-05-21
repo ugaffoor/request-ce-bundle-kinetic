@@ -1638,6 +1638,7 @@ export const MemberEdit = ({
                         'Parent or Guardian',
                         e,
                         setIsDirty,
+                        memberChanges,
                       )
                     }
                   />

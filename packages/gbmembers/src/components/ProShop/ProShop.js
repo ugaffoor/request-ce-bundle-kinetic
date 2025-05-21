@@ -4398,10 +4398,7 @@ export class ProShop extends Component {
                 </div>
               </div>
             )}
-            <BarcodeReader
-              onError={this.handleError}
-              onScan={this.handleScan}
-            />
+            <BarcodeReader onError={this.handleScan} onScan={this.handleScan} />
           </div>
         )}
       </div>

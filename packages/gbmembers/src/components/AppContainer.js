@@ -11,18 +11,20 @@ import { getAttributeValue } from '../lib/react-kinops-components/src/utils';
 
 import { App } from './App';
 
-const mapStateToProps = state => ({
-  loading: state.member.app.loading || state.member.kinops.loading,
-  isKiosk: selectors.selectHasRoleKiosk(state),
-  space: state.member.kinops.space,
-  profile: state.member.kinops.profile,
-  leadLastFetchTime: state.member.leads.leadLastFetchTime,
-  memberInitialLoadComplete: state.member.members.memberInitialLoadComplete,
-  membersNextPageToken: state.member.members.membersNextPageToken,
-  memberLastFetchTime: state.member.members.memberLastFetchTime,
-  memberNotesLoading: state.member.members.memberNotesLoading,
-  migrationsLastFetchTime: state.member.services.migrationsLastFetchTime,
-});
+const mapStateToProps = state => {
+  return {
+    loading: state.member.app.loading || state.member.kinops.loading,
+    isKiosk: selectors.selectHasRoleKiosk(state),
+    space: state.member.kinops.space,
+    profile: state.member.kinops.profile,
+    leadLastFetchTime: state.member.leads.leadLastFetchTime,
+    memberInitialLoadComplete: state.member.members.memberInitialLoadComplete,
+    membersNextPageToken: state.member.members.membersNextPageToken,
+    memberLastFetchTime: state.member.members.memberLastFetchTime,
+    memberNotesLoading: state.member.members.memberNotesLoading,
+    migrationsLastFetchTime: state.member.services.migrationsLastFetchTime,
+  };
+};
 
 const mapDispatchToProps = {
   loadApp: appActions.loadApp,
@@ -40,6 +42,10 @@ function tick(mythis) {
   });
   if (getAttributeValue(mythis.props.space, 'Migration Mode') === 'YES') {
     mythis.props.fetchMemberMigrations({
+      billingSystem: getAttributeValue(
+        mythis.props.space,
+        'Billing Company',
+      ).toLowerCase(),
       migrationsLastFetchTime: mythis.props.migrationsLastFetchTime,
     });
   }

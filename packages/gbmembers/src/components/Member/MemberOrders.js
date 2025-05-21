@@ -239,7 +239,7 @@ export class MemberOrders extends Component {
   render() {
     return (
       <div className="row posOrders">
-        <div className="col-sm-12">
+        <div className="col-sm-10">
           <span style={{ width: '100%' }}>
             <h3>Purchases</h3>
             <ReactTable

@@ -5,6 +5,8 @@ export const types = {
   FETCH_SERVICESBYDATE: namespace('services', 'FETCH_SERVICESBYDATE'),
   SET_SERVICES: namespace('services', 'SET_SERVICES'),
   SEND_RECEIPT: namespace('services', 'SEND_RECEIPT'),
+  FETCH_SENDER_RECEIPT: namespace('services', 'FETCH_SENDER_RECEIPT'),
+  SET_SENDER_RECEIPT: namespace('services', 'SET_SENDER_RECEIPT'),
   FETCH_BILLING_CHANGES_BY_BILLINGREFERENCE: namespace(
     'services',
     'FETCH_BILLING_CHANGES_BY_BILLINGREFERENCE',
@@ -27,6 +29,8 @@ export const actions = {
   fetchMemberMigrations: withPayload(types.FETCH_MEMBER_MIGRATIONS),
   setMemberMigrations: withPayload(types.SET_MEMBER_MIGRATIONS),
   sendReceipt: withPayload(types.SEND_RECEIPT),
+  fetchSenderReceipt: withPayload(types.FETCH_SENDER_RECEIPT),
+  setSenderReceipt: withPayload(types.SET_SENDER_RECEIPT),
   fetchBillingChangeByBillingReference: withPayload(
     types.FETCH_BILLING_CHANGES_BY_BILLINGREFERENCE,
   ),
@@ -36,6 +40,8 @@ export const actions = {
 };
 
 export const State = Record({
+  senderReceipt: {},
+  senderReceiptLoading: true,
   servicesLoading: true,
   services: List(),
   membershipServicesLoading: true,
@@ -49,6 +55,14 @@ export const State = Record({
 
 export const reducer = (state = State(), { type, payload }) => {
   switch (type) {
+    case types.FETCH_SENDER_RECEIPT: {
+      return state.set('senderReceiptLoading', true);
+    }
+    case types.SET_SENDER_RECEIPT: {
+      return state
+        .set('senderReceiptLoading', false)
+        .set('senderReceipt', payload);
+    }
     case types.FETCH_SERVICESBYDATE:
       return state.set('servicesLoading', true);
     case types.SET_SERVICES: {

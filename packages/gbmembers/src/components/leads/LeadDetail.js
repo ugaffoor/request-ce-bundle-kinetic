@@ -1079,6 +1079,13 @@ export class LeadDetail extends Component {
           </div>
         </div>
         <div>
+          <Requests
+            requestContent={this.props.leadItem.requestContent}
+            space={this.props.space}
+            profile={this.props.profile}
+          />
+        </div>
+        <div>
           <LeadEmails
             leadItem={this.props.leadItem}
             fetchCampaign={this.props.fetchCampaign}
@@ -1098,13 +1105,6 @@ export class LeadDetail extends Component {
         <div>
           <LeadSMS
             leadItem={this.props.leadItem}
-            space={this.props.space}
-            profile={this.props.profile}
-          />
-        </div>
-        <div>
-          <Requests
-            requestContent={this.props.leadItem.requestContent}
             space={this.props.space}
             profile={this.props.profile}
           />

@@ -86,13 +86,23 @@ export class StartMemberMigration extends Component {
     super(props);
 
     migrationThis = this;
-
+    bundle.config.widgets.space = this.props.space;
+    bundle.config.widgets.profile = this.props.profile;
     var initValues = {
       'Member GUID': this.props.memberItem.id,
     };
+    var values = {
+      'Ranking Program': this.props.memberItem.values['Ranking Program'],
+      'Ranking Belt': this.props.memberItem.values['Ranking Belt'],
+      'Last Promotion': this.props.memberItem.values['Last Promotion'],
+      'Attendance Count': this.props.memberItem.values['Attendance Count'],
+      'Max Weekly Classes': this.props.memberItem.values['Max Weekly Classes'],
+      'Belt Size': this.props.memberItem.values['Belt Size'],
+    };
     this.state = {
       memberItem: {
-        values: this.props.memberItem.values,
+        id: this.props.memberItem.id,
+        values: values,
       },
       initValues: initValues,
       editMemberDetails: true,
@@ -195,7 +205,7 @@ export class StartMemberMigration extends Component {
                     formatDate={formatDate}
                     parseDate={parseDate}
                     value={getDateValue(
-                      this.props.memberItem.values['Last Promotion'],
+                      this.state.memberItem.values['Last Promotion'],
                     )}
                     fieldName="Last Promotion"
                     memberItem={this.state.memberItem}
@@ -382,14 +392,7 @@ export class StartMemberMigration extends Component {
                   Utils.getAttributeValue(
                     this.props.space,
                     'Billing Company',
-                  ) === 'Bambora'
-                    ? 'bambora-remote-registration'
-                    : Utils.getAttributeValue(
-                        this.props.space,
-                        'Billing Company',
-                      ) === 'PaySmart'
-                    ? 'paysmart-remote-registration'
-                    : ''
+                  ).toLowerCase() + '-remote-registration'
                 }
                 kapp="services"
                 values={this.state.initValues}
@@ -715,18 +718,26 @@ export class MigrationDetail extends Component {
       (isChild && parentInProgress) ||
       (member.values['Biller Migrated'] !== 'YES' &&
         member.migrationForm !== undefined &&
-        moment(
+        (moment(
           member.migrationForm.values['The first instalment is due on'],
-        ).isAfter(moment()))
+        ).isAfter(moment()) ||
+          member.migrationForm.coreState === 'Submitted'))
+    );
+  }
+  isSubmitted(member) {
+    return (
+      member.migrationForm !== undefined &&
+      member.migrationForm.coreState === 'Submitted'
     );
   }
   isStartedMain(member) {
     return (
       member.values['Biller Migrated'] !== 'YES' &&
       member.migrationForm !== undefined &&
-      moment(
+      (moment(
         member.migrationForm.values['The first instalment is due on'],
-      ).isAfter(moment())
+      ).isAfter(moment()) ||
+        member.migrationForm.coreState === 'Submitted')
     );
   }
   isStartedChild(member) {
@@ -755,7 +766,8 @@ export class MigrationDetail extends Component {
       member.migrationForm !== undefined &&
       moment(
         member.migrationForm.values['The first instalment is due on'],
-      ).isSameOrBefore(moment())
+      ).isSameOrBefore(moment()) &&
+      member.migrationForm.coreState !== 'Submitted'
     );
   }
   startMigration(member) {
@@ -934,7 +946,9 @@ export class MigrationDetail extends Component {
                       let status = 'migrated';
                       let labeltext = 'Migrated';
                       if (this.isStarted(member)) {
-                        status = 'inProgress';
+                        status = !this.isSubmitted(member)
+                          ? 'inProgress'
+                          : 'inProgressSubmitted';
                         labeltext = 'In Progress';
                         console.log(
                           member.values['Last Name'] +
@@ -988,7 +1002,8 @@ export class MigrationDetail extends Component {
                               </button>
                             )}
                             {this.isStarted(member) &&
-                              this.isStartedMain(member) && (
+                              this.isStartedMain(member) &&
+                              !this.isSubmitted(member) && (
                                 <span className="buttonInfo">
                                   <button
                                     type="button"
@@ -1001,6 +1016,23 @@ export class MigrationDetail extends Component {
                                   <h5>
                                     Sent: {this.getSentDate(member)} Billing
                                     Date: {this.getBillingDate(member)}
+                                  </h5>
+                                </span>
+                              )}
+                            {this.isStarted(member) &&
+                              this.isStartedMain(member) &&
+                              this.isSubmitted(member) && (
+                                <span className="buttonInfo">
+                                  <button
+                                    type="button"
+                                    active="false"
+                                    className="btn btn-primary report-btn-default"
+                                    onClick={e => this.viewMigration(member)}
+                                  >
+                                    View
+                                  </button>
+                                  <h5>
+                                    Completed: {this.getCompletedDate(member)}
                                   </h5>
                                 </span>
                               )}
@@ -1168,6 +1200,10 @@ export const MigratingMembersContainer = compose(
       );
 
       this.props.fetchMemberMigrations({
+        billingSystem: Utils.getAttributeValue(
+          this.props.space,
+          'Billing Company',
+        ).toLowerCase(),
         migrationsLastFetchTime: this.props.migrationsLastFetchTime,
       });
 

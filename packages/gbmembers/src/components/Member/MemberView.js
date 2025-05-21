@@ -92,6 +92,8 @@ const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
   campaignItem: state.member.campaigns.emailCampaignItem,
   campaignLoading: state.member.campaigns.emailCampaignLoading,
+  senderReceipt: state.member.services.senderReceipt,
+  senderReceiptLoading: state.member.services.senderReceiptLoading,
   newCustomers: state.member.members.newCustomers,
   newCustomersLoading: state.member.members.newCustomersLoading,
   refundPOSTransactionInProgress:
@@ -114,6 +116,7 @@ const mapDispatchToProps = {
   cancelAdditionalService: actions.cancelAdditionalService,
   setCurrentMember: actions.setCurrentMember,
   fetchCampaign: campaignActions.fetchEmailCampaign,
+  fetchSenderReceipt: serviceActions.fetchSenderReceipt,
   syncBillingCustomer: actions.syncBillingCustomer,
   clearBillingCustomer: actions.clearBillingCustomer,
   setBillingInfo: actions.setBillingInfo,
@@ -908,6 +911,9 @@ export const MemberView = ({
   fetchCampaign,
   campaignItem,
   campaignLoading,
+  fetchSenderReceipt,
+  senderReceipt,
+  senderReceiptLoading,
   syncBilling,
   clearBillingInfo,
   newCustomers,
@@ -1998,11 +2004,32 @@ export const MemberView = ({
                 />
               </div>
               <div>
+                <Requests
+                  requestContent={
+                    memberItem.leadRequestContent === undefined
+                      ? memberItem.requestContent
+                      : memberItem.leadRequestContent.concat(
+                          memberItem.requestContent,
+                        )
+                  }
+                  space={space}
+                  profile={profile}
+                  locale={locale}
+                  currency={currency}
+                  sendReceipt={sendReceipt}
+                  addNotification={addNotification}
+                  setSystemError={setSystemError}
+                />
+              </div>
+              <div>
                 <MemberEmails
                   memberItem={memberItem}
                   fetchCampaign={fetchCampaign}
                   campaignItem={campaignItem}
                   campaignLoading={campaignLoading}
+                  fetchSenderReceipt={fetchSenderReceipt}
+                  senderReceipt={senderReceipt}
+                  senderReceiptLoading={senderReceiptLoading}
                   space={space}
                   profile={profile}
                 />
@@ -2019,24 +2046,6 @@ export const MemberView = ({
                   memberItem={memberItem}
                   space={space}
                   profile={profile}
-                />
-              </div>
-              <div>
-                <Requests
-                  requestContent={
-                    memberItem.leadRequestContent === undefined
-                      ? memberItem.requestContent
-                      : memberItem.leadRequestContent.concat(
-                          memberItem.requestContent,
-                        )
-                  }
-                  space={space}
-                  profile={profile}
-                  locale={locale}
-                  currency={currency}
-                  sendReceipt={sendReceipt}
-                  addNotification={addNotification}
-                  setSystemError={setSystemError}
                 />
               </div>
               <div>

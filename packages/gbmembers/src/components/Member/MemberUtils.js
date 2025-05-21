@@ -1006,11 +1006,20 @@ export function getBeltSVG(belt) {
   }
 }
 export function getLocalePreference(space, profile) {
-  if (profile.preferredLocale !== null)
+  if (
+    profile !== undefined &&
+    profile.preferredLocale !== undefined &&
+    profile.preferredLocale !== null
+  )
     return profile.preferredLocale.toLowerCase();
-  if (space.defaultLocale !== null) return space.defaultLocale.toLowerCase();
+  if (
+    space !== undefined &&
+    space.defaultLocale !== undefined &&
+    space.defaultLocale !== null
+  )
+    return space.defaultLocale.toLowerCase();
 
-  return 'en-au';
+  return 'en';
 }
 export function getDateValue(dateValue) {
   return dateValue === undefined || dateValue === ''

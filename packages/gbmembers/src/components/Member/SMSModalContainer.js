@@ -135,6 +135,12 @@ export class SMSModal extends Component {
         ? this.props.memberItem.values['Last Name']
         : this.props.leadItem.values['Last Name'],
     );
+    content = content.replace(
+      /member\('Parent Name'\)/g,
+      this.props.target === 'Member'
+        ? this.props.memberItem.values['Parent or Guardian']
+        : this.props.leadItem.values['Parent or Guardian'],
+    );
 
     var matches = content.match(/\$\{.*?\('(.*?)'\)\}/g);
     var self = this;

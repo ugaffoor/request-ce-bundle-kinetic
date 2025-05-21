@@ -438,7 +438,8 @@ export function* fetchCurrentMemberAdditional(action) {
       .index('values[Person ID]')
       .eq('values[Person ID]', action.payload.id)
       .include(['details', 'values'])
-      .limit(1000)
+      .sortDirection('DESC')
+      .limit(100)
       .build();
 
     var mIdx = action.payload.allMembers.findIndex(
@@ -454,7 +455,8 @@ export function* fetchCurrentMemberAdditional(action) {
           : 'XX',
       )
       .include(['details', 'values'])
-      .limit(1000)
+      .sortDirection('DESC')
+      .limit(100)
       .build();
     const MEMBER_FILES_SEARCH = new CoreAPI.SubmissionSearch(true)
       .index('values[Member ID]')
@@ -1955,6 +1957,9 @@ export function* activateBiller(action) {
   args.startDate = action.payload.startDate;
   args.scheduleDate = action.payload.scheduleDate;
   args.email = action.payload.email;
+  args.city = action.payload.city;
+  args.postcode = action.payload.postcode;
+  args.state = action.payload.state;
   args.address = action.payload.address;
   axios
     .post(appSettings.kineticBillingServerUrl + activateBillerUrl, args)

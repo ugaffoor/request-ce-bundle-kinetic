@@ -1261,6 +1261,7 @@ export class MemberFinancialReport extends Component {
         (status === 'Active' ||
           status === 'Pending Freeze' ||
           status === 'Pending Cancellation') &&
+        /*        (member.member!==undefined) &&  */
         (member.member.values['Non Paying'] === null ||
           member.member.values['Non Paying'] === undefined ||
           member.member.values['Non Paying'] === '')

@@ -108,6 +108,12 @@ export class MemberEmails extends Component {
     });
     this.props.fetchCampaign({ id: campaignId, history: this.props.history });
   }
+  getReceiptSender(paymentReceiptID) {
+    this.setState({
+      campaignLoaded: paymentReceiptID,
+    });
+    this.props.fetchSenderReceipt({ id: paymentReceiptID });
+  }
   escapeRegExp(str) {
     return str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1');
   }
@@ -154,7 +160,16 @@ export class MemberEmails extends Component {
                 let rows = [];
                 if (newExpanded[index]) {
                   rows[index] = true;
-                  this.getCampaign(this.state.data[index]['Campaign Id']);
+                  if (this.state.data[index]['Campaign Id'] !== undefined) {
+                    this.getCampaign(this.state.data[index]['Campaign Id']);
+                  }
+                  if (
+                    this.state.data[index]['paymentReceiptID'] !== undefined
+                  ) {
+                    this.getReceiptSender(
+                      this.state.data[index]['paymentReceiptID'],
+                    );
+                  }
                 }
                 this.setState({
                   expandedRows: rows,
@@ -163,88 +178,154 @@ export class MemberEmails extends Component {
               SubComponent={row => {
                 return (
                   <div style={{ padding: '20px', textAlign: 'left' }}>
-                    <div id={row.original['Campaign Id']}>
-                      {this.props.campaignLoading ? (
-                        <div>Loading... </div>
-                      ) : (
-                        <div style={{ border: 'solid 1px rgba(0,0,0,0.05)' }}>
-                          <div className="row">
-                            <div className="col-sm-2">
-                              <label>Viewed:</label>
+                    {row.original['Campaign Id'] !== undefined && (
+                      <div id={row.original['Campaign Id']}>
+                        {this.props.campaignLoading &&
+                        (this.props.campaignItem === undefined ||
+                          this.props.campaignItem.id !==
+                            this.state.campaignLoaded) ? (
+                          <div>Loading... </div>
+                        ) : (
+                          <div style={{ border: 'solid 1px rgba(0,0,0,0.05)' }}>
+                            <div className="row">
+                              <div className="col-sm-2">
+                                <label>Viewed:</label>
+                              </div>
+                              <div className="col-sm-8">
+                                {this.props.campaignItem !== undefined &&
+                                this.props.campaignItem.values[
+                                  'Opened By Members'
+                                ] !== undefined
+                                  ? this.props.campaignItem.values[
+                                      'Opened By Members'
+                                    ].indexOf(this.props.memberItem.id) !== -1
+                                    ? 'Yes'
+                                    : 'No'
+                                  : 'No'}
+                              </div>
                             </div>
-                            <div className="col-sm-8">
-                              {this.props.campaignItem !== undefined &&
-                              this.props.campaignItem.values[
-                                'Opened By Members'
-                              ] !== undefined
-                                ? this.props.campaignItem.values[
-                                    'Opened By Members'
-                                  ].indexOf(this.props.memberItem.id) !== -1
-                                  ? 'Yes'
-                                  : 'No'
-                                : 'No'}
+                            <div className="row">
+                              <div className="col-sm-2">
+                                <label>Subject:</label>
+                              </div>
+                              <div className="col-sm-8">
+                                {this.props.campaignItem !== undefined
+                                  ? this.props.campaignItem.values['Subject']
+                                  : ''}
+                              </div>
+                            </div>
+                            <div className="row">
+                              <div className="col-sm-2">
+                                <label>Sent Date:</label>
+                              </div>
+                              <div className="col-sm-8">
+                                {this.props.campaignItem !== undefined
+                                  ? this.props.campaignItem.values[
+                                      'Sent Date Formatted'
+                                    ]
+                                  : ''}
+                              </div>
+                            </div>
+                            <div className="row">
+                              <div className="col-sm-2">
+                                <label>Attachments:</label>
+                              </div>
+                              <div className="col-sm-8">
+                                {this.props.campaignItem !== undefined
+                                  ? this.state.attachments.map(
+                                      (entry, index) => (
+                                        <a target="_blank" href={entry.url}>
+                                          {entry.name}
+                                        </a>
+                                      ),
+                                    )
+                                  : ''}
+                              </div>
+                            </div>
+                            <div className="row">
+                              <div className="col-sm-2">
+                                <label>Content:</label>
+                              </div>
+                            </div>
+                            <div className="row">
+                              <div
+                                className=""
+                                style={{ border: 'solid 1px rgba(0,0,0,0.05)' }}
+                              >
+                                <span
+                                  dangerouslySetInnerHTML={{
+                                    __html: this.substituteFields(
+                                      this.props.campaignItem !== undefined
+                                        ? this.props.campaignItem.values['Body']
+                                        : '',
+                                    ),
+                                  }}
+                                />
+                              </div>
                             </div>
                           </div>
-                          <div className="row">
-                            <div className="col-sm-2">
-                              <label>Subject:</label>
+                        )}
+                      </div>
+                    )}
+                    {row.original['paymentReceiptID'] !== undefined && (
+                      <div id={row.original['paymentReceiptID']}>
+                        {this.props.senderReceiptLoading &&
+                        (this.props.senderReceipt.id === undefined ||
+                          this.props.senderReceipt.id !==
+                            this.state.campaignLoaded) ? (
+                          <div>Loading... </div>
+                        ) : (
+                          <div style={{ border: 'solid 1px rgba(0,0,0,0.05)' }}>
+                            <div className="row">
+                              <div className="col-sm-2">
+                                <label>Subject:</label>
+                              </div>
+                              <div className="col-sm-8">
+                                Member Payment Receipt
+                              </div>
                             </div>
-                            <div className="col-sm-8">
-                              {this.props.campaignItem !== undefined
-                                ? this.props.campaignItem.values['Subject']
-                                : ''}
-                            </div>
-                          </div>
-                          <div className="row">
+                            {/*                       <div className="row">
                             <div className="col-sm-2">
                               <label>Sent Date:</label>
                             </div>
                             <div className="col-sm-8">
-                              {this.props.campaignItem !== undefined
-                                ? this.props.campaignItem.values[
-                                    'Sent Date Formatted'
-                                  ]
+                              {this.props.senderReceipt !== undefined
+                                ? moment(this.props.senderReceipt.createdAt)
                                 : ''}
                             </div>
-                          </div>
-                          <div className="row">
-                            <div className="col-sm-2">
-                              <label>Attachments:</label>
+                          </div> */}
+                            <div className="row">
+                              <div className="col-sm-2">
+                                <label>Content:</label>
+                              </div>
                             </div>
-                            <div className="col-sm-8">
-                              {this.props.campaignItem !== undefined
-                                ? this.state.attachments.map((entry, index) => (
-                                    <a target="_blank" href={entry.url}>
-                                      {entry.name}
-                                    </a>
-                                  ))
-                                : ''}
-                            </div>
+                            {
+                              <div className="row">
+                                <div
+                                  className=""
+                                  style={{
+                                    border: 'solid 1px rgba(0,0,0,0.05)',
+                                  }}
+                                >
+                                  <span
+                                    dangerouslySetInnerHTML={{
+                                      __html: this.substituteFields(
+                                        this.props.senderReceipt.values !==
+                                          undefined
+                                          ? this.props.senderReceipt.values[
+                                              'Email Content'
+                                            ]
+                                          : '',
+                                      ),
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            }
                           </div>
-                          <div className="row">
-                            <div className="col-sm-2">
-                              <label>Content:</label>
-                            </div>
-                          </div>
-                          <div className="row">
-                            <div
-                              className=""
-                              style={{ border: 'solid 1px rgba(0,0,0,0.05)' }}
-                            >
-                              <span
-                                dangerouslySetInnerHTML={{
-                                  __html: this.substituteFields(
-                                    this.props.campaignItem !== undefined
-                                      ? this.props.campaignItem.values['Body']
-                                      : '',
-                                  ),
-                                }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               }}

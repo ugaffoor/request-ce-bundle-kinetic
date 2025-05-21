@@ -100,11 +100,17 @@ export class MembershipReceiptToPrint extends React.Component {
     }
     var subTotal = 0;
     var adminFee = 0;
+    var tax1 = 0;
+    var tax2 = 0;
     feeDetails.forEach(
       item => (subTotal = subTotal + Number.parseFloat(item.fee)),
     );
 
-    if (getAttributeValue(this.props.space, 'Ignore Admin Fee') !== 'YES') {
+    if (
+      getAttributeValue(this.props.space, 'Ignore Admin Fee') !== 'YES' &&
+      getAttributeValue(this.props.space, 'Admin Fee Charge') !== undefined &&
+      getAttributeValue(this.props.space, 'Admin Fee Charge') !== null
+    ) {
       var adminFeePerc =
         Number.parseFloat(
           getAttributeValue(this.props.space, 'Admin Fee Charge', '').replace(
@@ -114,11 +120,33 @@ export class MembershipReceiptToPrint extends React.Component {
         ) / 100;
       adminFee = subTotal * Number.parseFloat(adminFeePerc);
     }
+    if (
+      getAttributeValue(this.props.space, 'TAX 1 Value') !== '' &&
+      getAttributeValue(this.props.space, 'TAX 1 Value') !== null &&
+      getAttributeValue(this.props.space, 'TAX 1 Value') !== undefined
+    ) {
+      var taxPerc = Number.parseFloat(
+        getAttributeValue(this.props.space, 'TAX 1 Value', ''),
+      );
+      tax1 = subTotal * Number.parseFloat(taxPerc);
+    }
+    if (
+      getAttributeValue(this.props.space, 'TAX 2 Value') !== '' &&
+      getAttributeValue(this.props.space, 'TAX 2 Value') !== null &&
+      getAttributeValue(this.props.space, 'TAX 2 Value') !== undefined
+    ) {
+      var taxPerc = Number.parseFloat(
+        getAttributeValue(this.props.space, 'TAX 2 Value', ''),
+      );
+      tax2 = subTotal * Number.parseFloat(taxPerc);
+    }
     this.datetime = this.props.datetime;
     this.state = {
       status: this.props.status,
       subTotal: subTotal,
       adminFee: adminFee,
+      tax1: tax1,
+      tax2: tax2,
       total: this.props.total,
       paymentID: this.props.paymentID,
       feeDetails: feeDetails,
@@ -272,6 +300,58 @@ export class MembershipReceiptToPrint extends React.Component {
               </span>
             </span>
           )}
+        {this.props.paymentMethod !== 'Cash' &&
+          getAttributeValue(this.props.space, 'Billing Company') ===
+            'Bambora' &&
+          getAttributeValue(this.props.space, 'TAX 1 Value') !== '' &&
+          getAttributeValue(this.props.space, 'TAX 1 Value') !== undefined &&
+          getAttributeValue(this.props.space, 'TAX 1 Value') !== null &&
+          this.props.payment.paymentSource !== 'Member Registration Fee' && (
+            <span className="total">
+              <span className="label">
+                <I18n>
+                  {getAttributeValue(this.props.space, 'TAX 1 Label') !==
+                    undefined &&
+                  getAttributeValue(this.props.space, 'TAX 1 Label') !== '' &&
+                  getAttributeValue(this.props.space, 'TAX 1 Label') !== null
+                    ? getAttributeValue(this.props.space, 'TAX 1 Label')
+                    : 'Tax'}
+                </I18n>
+              </span>
+              <span className="value">
+                {new Intl.NumberFormat(this.props.locale, {
+                  style: 'currency',
+                  currency: this.props.currency,
+                }).format(this.state.tax1)}
+              </span>
+            </span>
+          )}
+        {this.props.paymentMethod !== 'Cash' &&
+          getAttributeValue(this.props.space, 'Billing Company') ===
+            'Bambora' &&
+          getAttributeValue(this.props.space, 'TAX 2 Value') !== '' &&
+          getAttributeValue(this.props.space, 'TAX 2 Value') !== undefined &&
+          getAttributeValue(this.props.space, 'TAX 2 Value') !== null &&
+          this.props.payment.paymentSource !== 'Member Registration Fee' && (
+            <span className="total">
+              <span className="label">
+                <I18n>
+                  {getAttributeValue(this.props.space, 'TAX 2 Label') !==
+                    undefined &&
+                  getAttributeValue(this.props.space, 'TAX 2 Label') !== '' &&
+                  getAttributeValue(this.props.space, 'TAX 2 Label') !== null
+                    ? getAttributeValue(this.props.space, 'TAX 2 Label')
+                    : 'Tax'}
+                </I18n>
+              </span>
+              <span className="value">
+                {new Intl.NumberFormat(this.props.locale, {
+                  style: 'currency',
+                  currency: this.props.currency,
+                }).format(this.state.tax2)}
+              </span>
+            </span>
+          )}
         <span className="total">
           <span className="label">
             <I18n>TOTAL</I18n>
@@ -293,7 +373,7 @@ export class MembershipReceiptToPrint extends React.Component {
         <span className="transDetails">
           <span className="transaction_id">
             <span className="label">Payment Id:</span>
-            <span className="value">{this.props.paymentID}</span>
+            <span className="">{this.props.paymentID}</span>
             {this.props.paymentMethod === 'Cash' && <span>Cash</span>}
           </span>
         </span>

@@ -126,7 +126,7 @@ export class MemberSMS extends Component {
   render() {
     return (
       <div className="row smsTable">
-        <div className="col-sm-12">
+        <div className="col-sm-10">
           <span style={{ width: '100%' }}>
             <h3>SMS</h3>
             <ReactTable

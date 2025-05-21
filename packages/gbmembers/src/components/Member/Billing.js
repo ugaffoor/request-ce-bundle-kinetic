@@ -60,6 +60,8 @@ import checkoutRightArrowIcon from '../../images/checkoutRightArrow.png?raw';
 import Helmet from 'react-helmet';
 import { getTimezone } from '../leads/LeadsUtils';
 import { isBamboraFailedPayment } from '../Member/MemberUtils';
+import mail from '../../images/mail.png';
+import { confirm } from '../helpers/Confirmation';
 
 <script src="../helpers/jquery.multiselect.js" />;
 
@@ -135,6 +137,7 @@ const mapDispatchToProps = {
   fetchBillingChangeByBillingReference:
     servicesActions.fetchBillingChangeByBillingReference,
   fetchCashRegistrations: servicesActions.fetchCashRegistrations,
+  sendReceipt: servicesActions.sendReceipt,
 };
 
 const ezidebit_date_format = 'YYYY-MM-DD HH:mm:ss';
@@ -1452,6 +1455,7 @@ export class FamilyFeeDetails extends Component {
 export class PaymentHistory extends Component {
   constructor(props) {
     super(props);
+    this.formatEmailCell = this.formatEmailCell.bind(this);
     this.refundPayment = this.refundPayment.bind(this);
     this.paymentHistory = this.props.paymentHistory;
     this.memberCashPayments = this.props.memberCashPayments;
@@ -1488,7 +1492,50 @@ export class PaymentHistory extends Component {
       });
     }
   }
+  formatEmailCell(cellInfo) {
+    return cellInfo.original.paymentStatus === 'S' ||
+      cellInfo.original.paymentStatus === 'paid' ||
+      cellInfo.original.paymentStatus === 'Settled' ||
+      cellInfo.original.paymentStatus === 'Approved' ||
+      cellInfo.original.paymentStatus === 'Cash' ? (
+      <span
+        className="registrationEmail"
+        onClick={async e => {
+          if (
+            await confirm(
+              <span>
+                <span>Are you sure you want to send a receipt email?</span>
+              </span>,
+            )
+          ) {
+            var values = {};
+            values['Form Slug'] = 'member_receipt';
+            values['Submission ID'] = this.props.memberItem.id;
+            values['Email Content'] = $(
+              '#print_' + cellInfo.original['_id'],
+            ).html();
 
+            this.props.sendReceipt({
+              values: values,
+              addNotification: this.props.addNotification,
+              setSystemError: this.props.setSystemError,
+            });
+          }
+        }}
+      >
+        <img src={mail} alt="Email" />
+        {cellInfo.original['receiptSender'] !== undefined && (
+          <span className="sendTimes" placeholder="Send Receipt Times">
+            {cellInfo.original['receiptSender'].map(date => (
+              <span className="sendTime">{date.format('L hh:mmA')}</span>
+            ))}
+          </span>
+        )}
+      </span>
+    ) : (
+      <div></div>
+    );
+  }
   getData(
     memberItem,
     payments,
@@ -1715,7 +1762,10 @@ export class PaymentHistory extends Component {
           row.original.paymentStatus === 'Approved' ||
           row.original.paymentStatus === 'Cash') && (
           <span className="col-sm-2 orderreceipt">
-            <span style={{ display: 'none' }}>
+            <span
+              style={{ display: 'none' }}
+              id={'print_' + row.original['_id']}
+            >
               <MembershipReceiptToPrint
                 memberItem={this.props.memberItem}
                 membershipServices={this.props.membershipServices}
@@ -1758,6 +1808,12 @@ export class PaymentHistory extends Component {
           </span>
         ),
     });
+    columns.push({
+      headerClassName: 'email',
+      className: 'email',
+      Cell: this.formatEmailCell,
+    });
+
     return columns;
   }
 
@@ -3098,6 +3154,9 @@ export class BillingInfo extends Component {
                   }
                   cashRegistrations={this.props.cashRegistrations}
                   cashRegistrationsLoading={this.props.cashRegistrationsLoading}
+                  sendReceipt={this.props.sendReceipt}
+                  addNotification={this.props.addNotification}
+                  setSystemError={this.props.setSystemError}
                 />
               )}
             </div>
@@ -3197,6 +3256,9 @@ export const Billing = ({
   fetchCashRegistrations,
   cashRegistrations,
   cashRegistrationsLoading,
+  sendReceipt,
+  addNotification,
+  setSystemError,
 }) =>
   currentMemberLoading ? (
     <div />
@@ -3264,6 +3326,9 @@ export const Billing = ({
               fetchCashRegistrations={fetchCashRegistrations}
               cashRegistrations={cashRegistrations}
               cashRegistrationsLoading={cashRegistrationsLoading}
+              sendReceipt={sendReceipt}
+              addNotification={addNotification}
+              setSystemError={setSystemError}
             />
           )}
           {/*(memberItem.values['Billing Customer Id'] === null ||
