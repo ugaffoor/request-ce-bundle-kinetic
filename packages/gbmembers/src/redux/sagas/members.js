@@ -75,7 +75,7 @@ export function* fetchMembers(action) {
             ',values[useSubAccount],values[POS Profile ID],values[Fee Program],values[Parent or Guardian]' +
             ',values[Emails Sent Count],values[Max Weekly Classes],values[Reminder Date]' +
             ',values[Emails Received Count],values[Is New Reply Received],values[SMS Sent Count],values[SMS Received Count]' +
-            ',values[Payment Method],values[Lead Submission ID]' +
+            ',values[Payment Method],values[Lead Submission ID],values[Send Payment Receipt]' +
             ',values[Billing Period],values[Admin Fee],values[Last Payment Date]',
         ])
 
@@ -134,7 +134,7 @@ export function* fetchMembers(action) {
               ',values[useSubAccount],values[POS Profile ID],values[Fee Program],values[Parent or Guardian]' +
               ',values[Emails Sent Count],values[Max Weekly Classes],values[Reminder Date]' +
               ',values[Emails Received Count],values[Is New Reply Received],values[SMS Sent Count],values[SMS Received Count]' +
-              ',values[Payment Method],values[Lead Submission ID]' +
+              ',values[Payment Method],values[Lead Submission ID],values[Send Payment Receipt]' +
               ',values[Billing Period],values[Admin Fee],values[Last Payment Date]',
           ])
 

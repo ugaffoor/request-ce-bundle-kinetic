@@ -1480,6 +1480,65 @@ export function memberPreviousStatus(member, fromDate, toDate) {
     return '';
   }
 }
+export function memberStatusAt(member, date) {
+  var history =
+    member.values['Status History'] !== undefined
+      ? getJson(member.values['Status History'])
+      : {};
+
+  if (history.length > 0) {
+    var statusHistorySorted = history.sort(function(stat1, stat2) {
+      var date1 = moment(stat1.date);
+      var date2 = moment(stat2.date);
+
+      try {
+        if (date1.isBefore(date2, 'day')) return -1;
+        if (date1.isAfter(date2, 'day')) return 1;
+      } catch (error) {
+        return 0;
+      }
+      return 0;
+    });
+
+    for (var i = statusHistorySorted.length - 1; i >= 0; i--) {
+      if (
+        date.isSameOrAfter(
+          moment(new Date(statusHistorySorted[i]['date'])),
+          'day',
+        )
+      ) {
+        if (i > 0) {
+          if (statusHistorySorted[i]['status'] === 'Active') {
+            return 'Active';
+          } else if (statusHistorySorted[i]['status'] === 'Inactive') {
+            return 'Inactive';
+          } else if (statusHistorySorted[i]['status'] === 'Casual') {
+            return 'Casual';
+          } else if (
+            statusHistorySorted[i]['status'] === 'Pending Cancellation'
+          ) {
+            return 'Pending Cancellation';
+          } else if (
+            statusHistorySorted[i]['status'] === 'Frozen' ||
+            statusHistorySorted[i]['status'] === 'Suspended'
+          ) {
+            return 'Frozen';
+          } else if (
+            statusHistorySorted[i]['status'] === 'Pending Freeze' ||
+            statusHistorySorted[i]['status'] === 'Pending Suspension'
+          ) {
+            return 'Pending Freeze';
+          }
+        }
+      } else {
+      }
+    }
+
+    return '';
+  } else {
+    return '';
+  }
+}
 export function isBillingParent(member) {
   var billingUser = member.values['Billing User'];
   if (billingUser === undefined || billingUser !== 'YES') return false;

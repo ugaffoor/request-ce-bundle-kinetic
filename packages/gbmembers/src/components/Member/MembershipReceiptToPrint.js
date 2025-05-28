@@ -2,7 +2,7 @@ import React from 'react';
 import { I18n } from '../../../../app/src/I18nProvider';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import $ from 'jquery';
-import { getJson } from './MemberUtils';
+import { getJson, memberStatusAt } from './MemberUtils';
 
 export class MembershipReceiptToPrint extends React.Component {
   constructor(props) {
@@ -45,6 +45,11 @@ export class MembershipReceiptToPrint extends React.Component {
     }
     this.receiptFooter = receiptFooter;
     var feeDetails = undefined;
+    var memberStatus = memberStatusAt(
+      this.props.memberItem,
+      this.props.datetime,
+    );
+    memberStatus = memberStatus === '' ? 'Active' : memberStatus;
 
     // Determine the Family Members relevant at the time of this receipt
     for (let i = 0; i < this.props.membershipServices.length; i++) {
@@ -111,38 +116,74 @@ export class MembershipReceiptToPrint extends React.Component {
       getAttributeValue(this.props.space, 'Admin Fee Charge') !== undefined &&
       getAttributeValue(this.props.space, 'Admin Fee Charge') !== null
     ) {
-      var adminFeePerc =
-        Number.parseFloat(
-          getAttributeValue(this.props.space, 'Admin Fee Charge', '').replace(
-            '%',
-            '',
-          ),
-        ) / 100;
-      adminFee = subTotal * Number.parseFloat(adminFeePerc);
+      if (
+        this.props.memberItem.values['Admin Fee'] !== undefined &&
+        this.props.memberItem.values['Admin Fee'] !== null &&
+        this.props.memberItem.values['Admin Fee'] !== '' &&
+        !this.props.memberItem.values['Admin Fee'].includes('%')
+      ) {
+        adminFee = this.props.memberItem.values['Admin Fee'];
+      } else {
+        var adminFeePerc =
+          Number.parseFloat(
+            getAttributeValue(this.props.space, 'Admin Fee Charge', '').replace(
+              '%',
+              '',
+            ),
+          ) / 100;
+        adminFee = subTotal * Number.parseFloat(adminFeePerc);
+      }
     }
     if (
       getAttributeValue(this.props.space, 'TAX 1 Value') !== '' &&
       getAttributeValue(this.props.space, 'TAX 1 Value') !== null &&
       getAttributeValue(this.props.space, 'TAX 1 Value') !== undefined
     ) {
-      var taxPerc = Number.parseFloat(
-        getAttributeValue(this.props.space, 'TAX 1 Value', ''),
-      );
-      tax1 = subTotal * Number.parseFloat(taxPerc);
+      if (memberStatus === 'Frozen') {
+        var taxPerc = Number.parseFloat(
+          getAttributeValue(this.props.space, 'TAX 1 Value', ''),
+        );
+        tax1 = Number.parseFloat(this.props.total) * Number.parseFloat(taxPerc);
+      } else if (
+        this.props.memberItem.values['Membership TAX 1'] !== undefined &&
+        this.props.memberItem.values['Membership TAX 1'] !== null &&
+        this.props.memberItem.values['Membership TAX 1'] !== ''
+      ) {
+        tax1 = this.props.memberItem.values['Membership TAX 1'];
+      } else {
+        var taxPerc = Number.parseFloat(
+          getAttributeValue(this.props.space, 'TAX 1 Value', ''),
+        );
+        tax1 = subTotal * Number.parseFloat(taxPerc);
+      }
     }
     if (
       getAttributeValue(this.props.space, 'TAX 2 Value') !== '' &&
       getAttributeValue(this.props.space, 'TAX 2 Value') !== null &&
       getAttributeValue(this.props.space, 'TAX 2 Value') !== undefined
     ) {
-      var taxPerc = Number.parseFloat(
-        getAttributeValue(this.props.space, 'TAX 2 Value', ''),
-      );
-      tax2 = subTotal * Number.parseFloat(taxPerc);
+      if (memberStatus === 'Frozen') {
+        var taxPerc = Number.parseFloat(
+          getAttributeValue(this.props.space, 'TAX 2 Value', ''),
+        );
+        tax2 = Number.parseFloat(this.props.total) * Number.parseFloat(taxPerc);
+      } else if (
+        this.props.memberItem.values['Membership TAX 2'] !== undefined &&
+        this.props.memberItem.values['Membership TAX 2'] !== null &&
+        this.props.memberItem.values['Membership TAX 2'] !== ''
+      ) {
+        tax2 = this.props.memberItem.values['Membership TAX 2'];
+      } else {
+        var taxPerc = Number.parseFloat(
+          getAttributeValue(this.props.space, 'TAX 2 Value', ''),
+        );
+        tax2 = subTotal * Number.parseFloat(taxPerc);
+      }
     }
     this.datetime = this.props.datetime;
     this.state = {
       status: this.props.status,
+      memberStatus: memberStatus,
       subTotal: subTotal,
       adminFee: adminFee,
       tax1: tax1,
@@ -278,7 +319,9 @@ export class MembershipReceiptToPrint extends React.Component {
           getAttributeValue(this.props.space, 'Billing Company') ===
             'Bambora' &&
           getAttributeValue(this.props.space, 'Ignore Admin Fee') !== 'YES' &&
-          this.props.payment.paymentSource !== 'Member Registration Fee' && (
+          this.props.payment.paymentSource !== 'Member Registration Fee' &&
+          this.state.memberStatus !== 'Frozen' &&
+          this.state.memberStatus !== 'Pending Freeze' && (
             <span className="total">
               <span className="label">
                 <I18n>

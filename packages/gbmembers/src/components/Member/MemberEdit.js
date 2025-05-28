@@ -2013,6 +2013,47 @@ export const MemberEdit = ({
                   />
                 </div>
               </span>
+              {getAttributeValue(space, 'Billing Company') === 'Bambora' && (
+                <span className="line">
+                  <div>
+                    <label
+                      htmlFor="billingReceipt"
+                      style={{ minWidth: '100px' }}
+                    >
+                      Send Billing Payment Receipt
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="billingReceipt"
+                      id="billingReceipt"
+                      style={{ clear: 'none', margin: '4px' }}
+                      ref={input => (this.input = input)}
+                      value="YES"
+                      checked={
+                        memberItem.values['Send Payment Receipt'] === 'YES'
+                          ? true
+                          : false
+                      }
+                      onChange={e => {
+                        if (
+                          memberItem.values['Send Payment Receipt'] === 'YES'
+                        ) {
+                          e.target.value = '';
+                        } else {
+                          e.target.value = 'YES';
+                        }
+                        handleChange(
+                          memberItem,
+                          'Send Payment Receipt',
+                          e,
+                          setIsDirty,
+                          memberChanges,
+                        );
+                      }}
+                    />
+                  </div>
+                </span>
+              )}
               <span className="line">
                 <div>
                   <label htmlFor="optout" style={{ minWidth: '100px' }}>

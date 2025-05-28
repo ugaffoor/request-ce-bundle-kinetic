@@ -154,10 +154,11 @@ const SelfCheckinMode = (attendanceThis, attendanceAdded) => {
     </div>
   );
 };
-
+var selfCheckinThis;
 export class SelfCheckin extends Component {
   constructor(props) {
     super(props);
+    selfCheckinThis = this;
     this.attendanceThis = this.props.attendanceThis;
     this.selectSelfCheckinMember = this.selectSelfCheckinMember.bind(this);
     this.selectedSelfCheckInMember = this.selectedSelfCheckInMember.bind(this);
@@ -933,7 +934,7 @@ export class SelfCheckin extends Component {
                             },
                             'Kiosk PIN',
                           ) ||
-                        value === '0000'
+                        value === '1966'
                       ) {
                         this.setState({
                           memberItem: undefined,
@@ -978,6 +979,12 @@ export class SelfCheckin extends Component {
                       .first()
                       .focus();
                   }, 100);
+
+                  setTimeout(function() {
+                    selfCheckinThis.setState({
+                      verifyPIN: false,
+                    });
+                  }, 20000);
                 }}
               >
                 Exit Self Checkin
@@ -1630,6 +1637,21 @@ export class AttendanceDetail extends Component {
         overduesLoaded = true;
       }
     }
+
+    if (this.props.isKiosk) {
+      setTimeout(function() {
+        $('.fullscreen').addClass('fullscreen-enabled');
+        $('.navbar').hide();
+        $('.nav-header').hide();
+        $('.sidebarMain').addClass('viewingKiosk');
+
+        attendanceThis.setState({
+          isFullscreenMode: true,
+          showingFullScreen: true,
+        });
+      }, 5000);
+    }
+
     this.state = {
       manualSelect: false,
       className,
@@ -1645,8 +1667,8 @@ export class AttendanceDetail extends Component {
       classScheduleDateDay: moment().day() === 0 ? 7 : moment().day(),
       overdueMembers,
       overduesLoaded: overduesLoaded,
-      isFullscreenMode: false,
-      showingFullScreen: false,
+      isFullscreenMode: this.props.isKiosk ? true : false,
+      showingFullScreen: this.props.isKiosk ? true : false,
       verifyPIN: false,
     };
   }
@@ -2317,30 +2339,41 @@ export class AttendanceDetail extends Component {
           <div className="attendanceSection">
             <div className="options">
               <div className="checkinFilter">
-                <label htmlFor="checkins">Anytime Mode</label>
-                <div className="checkboxFilter">
-                  <input
-                    id="checkins"
-                    type="checkbox"
-                    value="1"
-                    onChange={e => {
-                      var classTime = this.state.useCalendarSchedule
-                        ? moment(this.state.classDate, 'L hh:mm A').format(
-                            'HH:mm',
-                          )
-                        : undefined;
-                      this.setState({
-                        useCalendarSchedule: !this.state.useCalendarSchedule,
-                        classTime,
-                        classScheduleDateDay:
-                          moment(this.state.classDate, 'L hh:mm A').day() === 0
-                            ? 7
-                            : moment(this.state.classDate, 'L hh:mm A').day(),
-                      });
-                    }}
-                  />
-                  <label htmlFor="checkins"></label>
-                </div>
+                {!this.props.isKiosk && (
+                  <span>
+                    <label htmlFor="checkins">Anytime Mode</label>
+                    <div className="checkboxFilter">
+                      <input
+                        id="checkins"
+                        type="checkbox"
+                        value="1"
+                        onChange={e => {
+                          var classTime = this.state.useCalendarSchedule
+                            ? moment(this.state.classDate, 'L hh:mm A').format(
+                                'HH:mm',
+                              )
+                            : undefined;
+                          this.setState({
+                            useCalendarSchedule: !this.state
+                              .useCalendarSchedule,
+                            classTime,
+                            classScheduleDateDay:
+                              moment(
+                                this.state.classDate,
+                                'L hh:mm A',
+                              ).day() === 0
+                                ? 7
+                                : moment(
+                                    this.state.classDate,
+                                    'L hh:mm A',
+                                  ).day(),
+                          });
+                        }}
+                      />
+                      <label htmlFor="checkins"></label>
+                    </div>
+                  </span>
+                )}
               </div>
               <SelfCheckinMode
                 profile={this.props.profile}
@@ -2389,7 +2422,7 @@ export class AttendanceDetail extends Component {
                           { attributes: this.props.profile.profileAttributes },
                           'Kiosk PIN',
                         ) ||
-                      value === '0000'
+                      value === '1966'
                     ) {
                       this.setState({
                         memberItem: undefined,
@@ -2413,181 +2446,192 @@ export class AttendanceDetail extends Component {
                 )}
               </div>
             )}
-
             {this.state.useCalendarSchedule ? (
-              <div className="classSection">
-                <span className="line">
-                  <div className="sessionDate">
-                    <label htmlFor="sessionDate">DATE</label>
-                    <Datetime
-                      className="float-right"
-                      defaultValue={moment(
-                        this.state.classDate,
-                        'L hh:mm A',
-                      ).set({
-                        hour: 0,
-                        minute: 0,
-                        second: 0,
-                      })}
-                      dateFormat={moment(new Date())
-                        .locale(
-                          getLocalePreference(
-                            this.props.space,
-                            this.props.profile,
-                          ),
-                        )
-                        .localeData()
-                        .longDateFormat('L')}
-                      timeFormat={false}
-                      onBlur={dt => {
-                        this.doShowAttendance(
-                          dt.format('L hh:mm A'),
-                          dt.format('hh:mm'),
-                          undefined,
-                          undefined,
-                        );
-                        $(
-                          '.classSection .hide-columns__single-value span',
-                        ).html('');
-                        this.setState({
-                          manualSelect: true,
-                          classDate: dt.format('L hh:mm A'),
-                          classScheduleDateDay:
-                            moment(dt).day() === 0 ? 7 : moment(dt).day(),
-                        });
-                      }}
-                    />
-                  </div>
-                  <div className="class">
-                    <label htmlFor="programClass">CLASS</label>
-                    <Select
-                      closeMenuOnSelect={true}
-                      options={this.getDayClasses(
-                        this.props.classSchedules,
-                        this.state.classScheduleDateDay,
-                      )}
-                      styles={{
-                        option: base => ({
-                          ...base,
-                          width: '100%',
-                        }),
-                        input: base => ({
-                          ...base,
-                          width: '400px',
-                        }),
-                      }}
-                      className="programClass"
-                      classNamePrefix="hide-columns"
-                      placeholder="Select Class"
-                      onChange={e => {
-                        var scheduleIdx = this.props.classSchedules.findIndex(
-                          schedule => schedule.id === e.value,
-                        );
+              <span>
+                {!this.props.isKiosk && (
+                  <div className="classSection">
+                    <span className="line">
+                      <div className="sessionDate">
+                        <label htmlFor="sessionDate">DATE</label>
+                        <Datetime
+                          className="float-right"
+                          defaultValue={moment(
+                            this.state.classDate,
+                            'L hh:mm A',
+                          ).set({
+                            hour: 0,
+                            minute: 0,
+                            second: 0,
+                          })}
+                          dateFormat={moment(new Date())
+                            .locale(
+                              getLocalePreference(
+                                this.props.space,
+                                this.props.profile,
+                              ),
+                            )
+                            .localeData()
+                            .longDateFormat('L')}
+                          timeFormat={false}
+                          onBlur={dt => {
+                            this.doShowAttendance(
+                              dt.format('L hh:mm A'),
+                              dt.format('hh:mm'),
+                              undefined,
+                              undefined,
+                            );
+                            $(
+                              '.classSection .hide-columns__single-value span',
+                            ).html('');
+                            this.setState({
+                              manualSelect: true,
+                              classDate: dt.format('L hh:mm A'),
+                              classScheduleDateDay:
+                                moment(dt).day() === 0 ? 7 : moment(dt).day(),
+                            });
+                          }}
+                        />
+                      </div>
+                      <div className="class">
+                        <label htmlFor="programClass">CLASS</label>
+                        <Select
+                          closeMenuOnSelect={true}
+                          options={this.getDayClasses(
+                            this.props.classSchedules,
+                            this.state.classScheduleDateDay,
+                          )}
+                          styles={{
+                            option: base => ({
+                              ...base,
+                              width: '100%',
+                            }),
+                            input: base => ({
+                              ...base,
+                              width: '400px',
+                            }),
+                          }}
+                          className="programClass"
+                          classNamePrefix="hide-columns"
+                          placeholder="Select Class"
+                          onChange={e => {
+                            var scheduleIdx = this.props.classSchedules.findIndex(
+                              schedule => schedule.id === e.value,
+                            );
 
-                        this.setState({
-                          manualSelect: true,
-                          classTime: moment(
-                            this.props.classSchedules.get(scheduleIdx).start,
-                          ).format('HH:mm'),
-                          classTitle: this.props.classSchedules.get(scheduleIdx)
-                            .title,
-                        });
-                        $('#changeToManual').focus();
-                        $('#checkinMember').focus();
+                            this.setState({
+                              manualSelect: true,
+                              classTime: moment(
+                                this.props.classSchedules.get(scheduleIdx)
+                                  .start,
+                              ).format('HH:mm'),
+                              classTitle: this.props.classSchedules.get(
+                                scheduleIdx,
+                              ).title,
+                            });
+                            $('#changeToManual').focus();
+                            $('#checkinMember').focus();
 
-                        this.doShowAttendance(
-                          this.state.classDate,
-                          moment(
-                            this.props.classSchedules.get(scheduleIdx).start,
-                          ).format('HH:mm'),
-                          this.props.classSchedules.get(scheduleIdx).title,
-                          this.props.classSchedules.get(scheduleIdx).program,
-                        );
-                      }}
-                    />
+                            this.doShowAttendance(
+                              this.state.classDate,
+                              moment(
+                                this.props.classSchedules.get(scheduleIdx)
+                                  .start,
+                              ).format('HH:mm'),
+                              this.props.classSchedules.get(scheduleIdx).title,
+                              this.props.classSchedules.get(scheduleIdx)
+                                .program,
+                            );
+                          }}
+                        />
+                      </div>
+                    </span>
                   </div>
-                </span>
-              </div>
+                )}
+              </span>
             ) : (
-              <div className="classSection">
-                <span className="line">
-                  <div className="sessionDate">
-                    <label htmlFor="sessionDate">DATE</label>
-                    <Datetime
-                      className="float-right"
-                      defaultValue={moment(
-                        this.state.classDate,
-                        'L hh:mm A',
-                      ).set({
-                        hour: moment().get('hour'),
-                        minute: 0,
-                        second: 0,
-                      })}
-                      dateFormat={moment(new Date())
-                        .locale(
-                          getLocalePreference(
-                            this.props.space,
-                            this.props.profile,
-                          ),
-                        )
-                        .localeData()
-                        .longDateFormat('L')}
-                      timeConstraints={{
-                        minutes: {
-                          step: parseInt(
-                            getAttributeValue(
-                              this.props.space,
-                              'Calendar Time Slots',
-                              '15',
-                            ),
-                          ),
-                        },
-                      }}
-                      onBlur={dt => {
-                        this.doShowAttendance(
-                          dt.format('L hh:mm A'),
-                          dt.format('hh:mm'),
-                          this.state.classTitle,
-                          this.state.className,
-                        );
-                        this.setState({
-                          manualSelect: true,
-                          classDate: dt.format('L hh:mm A'),
-                          classTime: dt.format('HH:mm'),
-                        });
-                      }}
-                    />
+              <span>
+                {!this.props.isKiosk && (
+                  <div className="classSection">
+                    <span className="line">
+                      <div className="sessionDate">
+                        <label htmlFor="sessionDate">DATE</label>
+                        <Datetime
+                          className="float-right"
+                          defaultValue={moment(
+                            this.state.classDate,
+                            'L hh:mm A',
+                          ).set({
+                            hour: moment().get('hour'),
+                            minute: 0,
+                            second: 0,
+                          })}
+                          dateFormat={moment(new Date())
+                            .locale(
+                              getLocalePreference(
+                                this.props.space,
+                                this.props.profile,
+                              ),
+                            )
+                            .localeData()
+                            .longDateFormat('L')}
+                          timeConstraints={{
+                            minutes: {
+                              step: parseInt(
+                                getAttributeValue(
+                                  this.props.space,
+                                  'Calendar Time Slots',
+                                  '15',
+                                ),
+                              ),
+                            },
+                          }}
+                          onBlur={dt => {
+                            this.doShowAttendance(
+                              dt.format('L hh:mm A'),
+                              dt.format('hh:mm'),
+                              this.state.classTitle,
+                              this.state.className,
+                            );
+                            this.setState({
+                              manualSelect: true,
+                              classDate: dt.format('L hh:mm A'),
+                              classTime: dt.format('HH:mm'),
+                            });
+                          }}
+                        />
+                      </div>
+                      <div className="class">
+                        <label htmlFor="programClass">CLASS</label>
+                        <select
+                          name="programClass"
+                          id="programClass"
+                          onChange={e => {
+                            this.doShowAttendance(
+                              this.state.classDate,
+                              this.state.classTime,
+                              e.target.value.split('###')[1],
+                              e.target.value.split('###')[0],
+                            );
+                          }}
+                        >
+                          <option value="" />
+                          {this.props.programs
+                            .concat(this.props.additionalPrograms)
+                            .map(program => (
+                              <option
+                                key={program.program + '###' + program.title}
+                                value={program.program}
+                              >
+                                {program.program}
+                              </option>
+                            ))}
+                        </select>
+                        <div className="droparrow" />
+                      </div>
+                    </span>
                   </div>
-                  <div className="class">
-                    <label htmlFor="programClass">CLASS</label>
-                    <select
-                      name="programClass"
-                      id="programClass"
-                      onChange={e => {
-                        this.doShowAttendance(
-                          this.state.classDate,
-                          this.state.classTime,
-                          e.target.value.split('###')[1],
-                          e.target.value.split('###')[0],
-                        );
-                      }}
-                    >
-                      <option value="" />
-                      {this.props.programs
-                        .concat(this.props.additionalPrograms)
-                        .map(program => (
-                          <option
-                            key={program.program + '###' + program.title}
-                            value={program.program}
-                          >
-                            {program.program}
-                          </option>
-                        ))}
-                    </select>
-                    <div className="droparrow" />
-                  </div>
-                </span>
-              </div>
+                )}
+              </span>
             )}
             {this.state.classTime !== undefined && (
               <div className="classBookingSection">
