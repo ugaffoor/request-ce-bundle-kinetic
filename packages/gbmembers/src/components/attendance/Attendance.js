@@ -154,10 +154,11 @@ const SelfCheckinMode = (attendanceThis, attendanceAdded) => {
     </div>
   );
 };
-
+var selfCheckinThis;
 export class SelfCheckin extends Component {
   constructor(props) {
     super(props);
+    selfCheckinThis = this;
     this.attendanceThis = this.props.attendanceThis;
     this.selectSelfCheckinMember = this.selectSelfCheckinMember.bind(this);
     this.selectedSelfCheckInMember = this.selectedSelfCheckInMember.bind(this);
@@ -196,8 +197,14 @@ export class SelfCheckin extends Component {
           <div className="details">
             {this.state.memberItem.values['Photo'] === undefined ? (
               <span className="noPhoto">
-                {this.state.memberItem.values['First Name'][0]}
-                {this.state.memberItem.values['Last Name'][0]}
+                {this.state.memberItem.values['First Name'] !== undefined &&
+                this.state.memberItem.values['First Name'] !== ''
+                  ? this.state.memberItem.values['First Name'][0]
+                  : ''}
+                {this.state.memberItem.values['Last Name'] !== undefined &&
+                this.state.memberItem.values['Last Name'] !== ''
+                  ? this.state.memberItem.values['Last Name'][0]
+                  : ''}
               </span>
             ) : (
               <img
@@ -460,7 +467,10 @@ export class SelfCheckin extends Component {
         member.values['Status'] !== 'Inactive' &&
         member.values['Status'] !== 'Frozen' &&
         this.state.allowedPrograms.findIndex(
-          program => program.value === member.values['Ranking Program'],
+          program =>
+            program.value === member.values['Ranking Program'] ||
+            member.values['Additional Program 1'] === program.value ||
+            member.values['Additional Program 2'] === program.value,
         ) !== -1
       ) {
         membersVals.push({
@@ -605,20 +615,54 @@ export class SelfCheckin extends Component {
         memberItem.values['Max Weekly Classes'] !== '' &&
         parseInt(memberItem.values['Max Weekly Classes']) > 0
       ) {
-        var now = moment();
-        var monday = now.clone().weekday(0);
-        var sunday = now.clone().weekday(6);
-        this.setState({
-          memberItem: memberItem,
-          verifyMemberMaxClasses: true,
-          memberMaxClassesExceeded: false,
+        var excludeFromMaxClasses = false;
+        this.state.allowedPrograms.forEach(prog => {
+          let addProg = attendanceThis.props.additionalPrograms.findEntry(
+            add => add.program === prog.value,
+          );
+          console.log(addProg);
+          if (addProg !== undefined && addProg[1].exludeFromGrading.length > 0)
+            excludeFromMaxClasses = true;
         });
-        attendanceThis.props.fetchMemberClassAttendancesByDate({
-          memberItem: memberItem,
-          fromDate: monday.format('YYYY-MM-DD'),
-          toDate: sunday.format('YYYY-MM-DD'),
-          verifyMemberMaxClassesComplete: this.verifyMemberMaxClassesComplete,
-        });
+
+        if (!excludeFromMaxClasses) {
+          var now = moment();
+          var monday = now.clone().weekday(0);
+          var sunday = now.clone().weekday(6);
+          this.setState({
+            memberItem: memberItem,
+            verifyMemberMaxClasses: true,
+            memberMaxClassesExceeded: false,
+          });
+          attendanceThis.props.fetchMemberClassAttendancesByDate({
+            memberItem: memberItem,
+            fromDate: monday.format('YYYY-MM-DD'),
+            toDate: sunday.format('YYYY-MM-DD'),
+            verifyMemberMaxClassesComplete: this.verifyMemberMaxClassesComplete,
+          });
+        } else {
+          let attendance = {
+            attendanceStatus: 'Full Class',
+          };
+          this.setState({
+            memberItem: memberItem,
+            checkinClassMember: true,
+          });
+          attendanceThis.props.checkinMember(
+            attendanceThis.props.createAttendance,
+            attendance,
+            attendanceThis.props.additionalPrograms,
+            memberItem,
+            this.state.classTitle,
+            this.state.className,
+            this.state.classDate,
+            this.state.classTime,
+            'Full Class',
+            attendanceThis.props.classAttendances,
+            attendanceThis.props.allMembers,
+            attendanceThis.props.updateMember,
+          );
+        }
       } else {
         let attendance = {
           attendanceStatus: 'Full Class',
@@ -811,7 +855,10 @@ export class SelfCheckin extends Component {
     if (memberItem !== undefined) {
       validClassessAllowed =
         this.state.allowedPrograms.findIndex(
-          program => program.value === memberItem.values['Ranking Program'],
+          program =>
+            program.value === memberItem.values['Ranking Program'] ||
+            memberItem.values['Additional Program 1'] === program.value ||
+            memberItem.values['Additional Program 2'] === program.value,
         ) !== -1;
     }
     for (let i = 0; i < attendanceThis.props.classAttendances.length; i++) {
@@ -933,7 +980,7 @@ export class SelfCheckin extends Component {
                             },
                             'Kiosk PIN',
                           ) ||
-                        value === '0000'
+                        value === '1966'
                       ) {
                         this.setState({
                           memberItem: undefined,
@@ -978,6 +1025,12 @@ export class SelfCheckin extends Component {
                       .first()
                       .focus();
                   }, 100);
+
+                  setTimeout(function() {
+                    selfCheckinThis.setState({
+                      verifyPIN: false,
+                    });
+                  }, 20000);
                 }}
               >
                 Exit Self Checkin
@@ -991,7 +1044,7 @@ export class SelfCheckin extends Component {
                       this.selfCheckinHandleScan(e.target.value)
                     }}
                   />
-                  */}
+                 */}
                 <div className="dayClasses">
                   {attendanceThis
                     .getDayClasses(
@@ -1035,123 +1088,139 @@ export class SelfCheckin extends Component {
                       <h5>READY TO SCAN MEMBER</h5>
                       <SVGInline svg={barcodeIcon} className="icon" />
                     </div>
-                    <div className="manual">
-                      <h5>OR SELECT MEMBER</h5>
-                      <Select
-                        closeMenuOnSelect={true}
-                        options={this.getClassAllowedMembers()}
-                        className="hide-columns-container"
-                        classNamePrefix="hide-columns"
-                        placeholder="Select Member"
-                        styles={{
-                          option: base => ({
-                            ...base,
-                            width: '100%',
-                            height: '120px',
-                          }),
-                          input: base => ({
-                            ...base,
-                            width: '400px',
-                          }),
-                        }}
-                        value={
-                          this.memberItem === undefined
-                            ? ''
-                            : this.memberItem.id
-                        }
-                        formatOptionLabel={value => (
-                          <div className="member-option">
-                            {value.member !== undefined ? (
-                              <div className="memberInfo">
-                                {value.member.values['Photo'] === undefined ? (
-                                  <span className="noPhoto">
-                                    {value.member.values['First Name'][0]}
-                                    {value.member.values['Last Name'][0]}
-                                  </span>
-                                ) : (
-                                  <img
-                                    src={value.member.values['Photo']}
-                                    alt="Member Photograph"
-                                    className="photo"
-                                  />
-                                )}
-                                <div className="info">
-                                  {getAttributeValue(
-                                    this.props.space,
-                                    'Member Waiver Compliance Date',
-                                  ) !== undefined &&
-                                    getAttributeValue(
+                    {getAttributeValue(
+                      this.props.space,
+                      'Self Checkin Scan Only',
+                    ) !== 'YES' && (
+                      <div className="manual">
+                        <h5>OR SELECT MEMBER</h5>
+                        <Select
+                          closeMenuOnSelect={true}
+                          options={this.getClassAllowedMembers()}
+                          className="hide-columns-container"
+                          classNamePrefix="hide-columns"
+                          placeholder="Select Member"
+                          styles={{
+                            option: base => ({
+                              ...base,
+                              width: '100%',
+                              height: '120px',
+                            }),
+                            input: base => ({
+                              ...base,
+                              width: '400px',
+                            }),
+                          }}
+                          value={
+                            this.memberItem === undefined
+                              ? ''
+                              : this.memberItem.id
+                          }
+                          formatOptionLabel={value => (
+                            <div className="member-option">
+                              {value.member !== undefined ? (
+                                <div className="memberInfo">
+                                  {value.member.values['Photo'] ===
+                                  undefined ? (
+                                    <span className="noPhoto">
+                                      {value.member.values['First Name'] !==
+                                        undefined &&
+                                      value.member.values['First Name'] !== ''
+                                        ? value.member.values['First Name'][0]
+                                        : ''}
+                                      {value.member.values['Last Name'] !==
+                                        undefined &&
+                                      value.member.values['Last Name'] !== ''
+                                        ? value.member.values['Last Name'][0]
+                                        : ''}
+                                    </span>
+                                  ) : (
+                                    <img
+                                      src={value.member.values['Photo']}
+                                      alt="Member Photograph"
+                                      className="photo"
+                                    />
+                                  )}
+                                  <div className="info">
+                                    {getAttributeValue(
                                       this.props.space,
                                       'Member Waiver Compliance Date',
-                                    ) !== '' &&
-                                    getAttributeValue(
-                                      this.props.space,
-                                      'Member Waiver Compliance Date',
-                                    ) !== null && (
-                                      <span>
-                                        {(value.member.values[
-                                          'Waiver Complete Date'
-                                        ] === undefined ||
-                                          value.member.values[
-                                            'Waiver Complete Date'
-                                          ] === '' ||
-                                          value.member.values[
+                                    ) !== undefined &&
+                                      getAttributeValue(
+                                        this.props.space,
+                                        'Member Waiver Compliance Date',
+                                      ) !== '' &&
+                                      getAttributeValue(
+                                        this.props.space,
+                                        'Member Waiver Compliance Date',
+                                      ) !== null && (
+                                        <span>
+                                          {(value.member.values[
                                             'Waiver Complete Date'
                                           ] === undefined ||
-                                          value.member.values[
-                                            'Waiver Complete Date'
-                                          ] === null ||
-                                          moment(
                                             value.member.values[
                                               'Waiver Complete Date'
-                                            ],
-                                          ).isBefore(
+                                            ] === '' ||
+                                            value.member.values[
+                                              'Waiver Complete Date'
+                                            ] === undefined ||
+                                            value.member.values[
+                                              'Waiver Complete Date'
+                                            ] === null ||
                                             moment(
-                                              getAttributeValue(
-                                                this.props.space,
-                                                'Member Waiver Compliance Date',
+                                              value.member.values[
+                                                'Waiver Complete Date'
+                                              ],
+                                            ).isBefore(
+                                              moment(
+                                                getAttributeValue(
+                                                  this.props.space,
+                                                  'Member Waiver Compliance Date',
+                                                ),
                                               ),
-                                            ),
-                                          )) && (
-                                          <div
-                                            className={
-                                              'iconItem waiver notValid'
-                                            }
-                                          >
-                                            <SVGInline
-                                              svg={waiverCheckedIcon}
-                                              className="icon"
-                                            />
-                                            <span className="value">
-                                              Waiver Acceptance Required
-                                            </span>
-                                          </div>
-                                        )}
-                                      </span>
-                                    )}
-                                  <h4>
-                                    {value.member.values['First Name']}{' '}
-                                    {value.member.values['Last Name']}: <br />
-                                    <b>
-                                      {value.member.values['Ranking Program']}
-                                    </b>
-                                    -
-                                    <i>{value.member.values['Ranking Belt']}</i>
-                                  </h4>
+                                            )) && (
+                                            <div
+                                              className={
+                                                'iconItem waiver notValid'
+                                              }
+                                            >
+                                              <SVGInline
+                                                svg={waiverCheckedIcon}
+                                                className="icon"
+                                              />
+                                              <span className="value">
+                                                Waiver Acceptance Required
+                                              </span>
+                                            </div>
+                                          )}
+                                        </span>
+                                      )}
+                                    <h4>
+                                      {value.member.values['First Name']}{' '}
+                                      {value.member.values['Last Name']}: <br />
+                                      <b>
+                                        {value.member.values['Ranking Program']}
+                                      </b>
+                                      -
+                                      <i>
+                                        {value.member.values['Ranking Belt']}
+                                      </i>
+                                    </h4>
+                                  </div>
                                 </div>
-                              </div>
-                            ) : (
-                              <div />
-                            )}
-                          </div>
-                        )}
-                        onChange={e => {
-                          this.setState({ attendanceAdded: undefined });
-                          this.selectedSelfCheckInMember(e.member);
-                        }}
-                        style={{ width: '300px' }}
-                      />
-                    </div>
+                              ) : (
+                                <div />
+                              )}
+                            </div>
+                          )}
+                          onChange={e => {
+                            this.setState({ attendanceAdded: undefined });
+                            this.selectedSelfCheckInMember(e.member);
+                          }}
+                          style={{ width: '300px' }}
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
                 {this.state.memberItem !== undefined ||
@@ -1161,8 +1230,16 @@ export class SelfCheckin extends Component {
                   <div className="memberInfo">
                     {this.state.memberItem.values['Photo'] === undefined ? (
                       <span className="noPhoto">
-                        {this.state.memberItem.values['First Name'][0]}
-                        {this.state.memberItem.values['Last Name'][0]}
+                        {this.state.memberItem.values['First Name'] !==
+                          undefined &&
+                        this.state.memberItem.values['First Name'] !== ''
+                          ? this.state.memberItem.values['First Name'][0]
+                          : ''}
+                        {this.state.memberItem.values['Last Name'] !==
+                          undefined &&
+                        this.state.memberItem.values['Last Name'] !== ''
+                          ? this.state.memberItem.values['Last Name'][0]
+                          : ''}
                       </span>
                     ) : (
                       <img
@@ -1290,8 +1367,14 @@ export class SelfCheckin extends Component {
                               <span className="top">
                                 {booking.photo === undefined ? (
                                   <span className="noPhoto">
-                                    {booking.firstName[0]}
-                                    {booking.lastName[0]}
+                                    {booking.firstName !== undefined &&
+                                    booking.firstName !== ''
+                                      ? booking.firstName[0]
+                                      : ''}
+                                    {booking.lastName !== undefined &&
+                                    booking.lastName !== ''
+                                      ? booking.lastName[0]
+                                      : ''}
                                   </span>
                                 ) : (
                                   <img
@@ -1432,8 +1515,16 @@ export class SelfCheckin extends Component {
                               <span className="top">
                                 {checkin.values['Photo'] === undefined ? (
                                   <span className="noPhoto">
-                                    {checkin.values['First Name'][0]}
-                                    {checkin.values['Last Name'][0]}
+                                    {checkin.values['First Name'] !==
+                                      undefined &&
+                                    checkin.values['First Name'] !== ''
+                                      ? checkin.values['First Name'][0]
+                                      : ''}
+                                    {checkin.values['Last Name'] !==
+                                      undefined &&
+                                    checkin.values['Last Name'] !== ''
+                                      ? checkin.values['Last Name'][0]
+                                      : ''}
                                   </span>
                                 ) : (
                                   <img
@@ -1630,6 +1721,21 @@ export class AttendanceDetail extends Component {
         overduesLoaded = true;
       }
     }
+
+    if (this.props.isKiosk) {
+      setTimeout(function() {
+        $('.fullscreen').addClass('fullscreen-enabled');
+        $('.navbar').hide();
+        $('.nav-header').hide();
+        $('.sidebarMain').addClass('viewingKiosk');
+
+        attendanceThis.setState({
+          isFullscreenMode: true,
+          showingFullScreen: true,
+        });
+      }, 5000);
+    }
+
     this.state = {
       manualSelect: false,
       className,
@@ -1645,8 +1751,8 @@ export class AttendanceDetail extends Component {
       classScheduleDateDay: moment().day() === 0 ? 7 : moment().day(),
       overdueMembers,
       overduesLoaded: overduesLoaded,
-      isFullscreenMode: false,
-      showingFullScreen: false,
+      isFullscreenMode: this.props.isKiosk ? true : false,
+      showingFullScreen: this.props.isKiosk ? true : false,
       verifyPIN: false,
     };
   }
@@ -1913,7 +2019,7 @@ export class AttendanceDetail extends Component {
       }
     }
 
-    if (!this.state.memberAlreadyCheckedIn) {
+    if (!this.state.memberAlreadyCheckedIn && memberItem !== undefined) {
       if (
         memberItem.values['Max Weekly Classes'] !== undefined &&
         memberItem.values['Max Weekly Classes'] !== null &&
@@ -2317,30 +2423,41 @@ export class AttendanceDetail extends Component {
           <div className="attendanceSection">
             <div className="options">
               <div className="checkinFilter">
-                <label htmlFor="checkins">Anytime Mode</label>
-                <div className="checkboxFilter">
-                  <input
-                    id="checkins"
-                    type="checkbox"
-                    value="1"
-                    onChange={e => {
-                      var classTime = this.state.useCalendarSchedule
-                        ? moment(this.state.classDate, 'L hh:mm A').format(
-                            'HH:mm',
-                          )
-                        : undefined;
-                      this.setState({
-                        useCalendarSchedule: !this.state.useCalendarSchedule,
-                        classTime,
-                        classScheduleDateDay:
-                          moment(this.state.classDate, 'L hh:mm A').day() === 0
-                            ? 7
-                            : moment(this.state.classDate, 'L hh:mm A').day(),
-                      });
-                    }}
-                  />
-                  <label htmlFor="checkins"></label>
-                </div>
+                {!this.props.isKiosk && (
+                  <span>
+                    <label htmlFor="checkins">Anytime Mode</label>
+                    <div className="checkboxFilter">
+                      <input
+                        id="checkins"
+                        type="checkbox"
+                        value="1"
+                        onChange={e => {
+                          var classTime = this.state.useCalendarSchedule
+                            ? moment(this.state.classDate, 'L hh:mm A').format(
+                                'HH:mm',
+                              )
+                            : undefined;
+                          this.setState({
+                            useCalendarSchedule: !this.state
+                              .useCalendarSchedule,
+                            classTime,
+                            classScheduleDateDay:
+                              moment(
+                                this.state.classDate,
+                                'L hh:mm A',
+                              ).day() === 0
+                                ? 7
+                                : moment(
+                                    this.state.classDate,
+                                    'L hh:mm A',
+                                  ).day(),
+                          });
+                        }}
+                      />
+                      <label htmlFor="checkins"></label>
+                    </div>
+                  </span>
+                )}
               </div>
               <SelfCheckinMode
                 profile={this.props.profile}
@@ -2389,7 +2506,7 @@ export class AttendanceDetail extends Component {
                           { attributes: this.props.profile.profileAttributes },
                           'Kiosk PIN',
                         ) ||
-                      value === '0000'
+                      value === '1966'
                     ) {
                       this.setState({
                         memberItem: undefined,
@@ -2413,181 +2530,192 @@ export class AttendanceDetail extends Component {
                 )}
               </div>
             )}
-
             {this.state.useCalendarSchedule ? (
-              <div className="classSection">
-                <span className="line">
-                  <div className="sessionDate">
-                    <label htmlFor="sessionDate">DATE</label>
-                    <Datetime
-                      className="float-right"
-                      defaultValue={moment(
-                        this.state.classDate,
-                        'L hh:mm A',
-                      ).set({
-                        hour: 0,
-                        minute: 0,
-                        second: 0,
-                      })}
-                      dateFormat={moment(new Date())
-                        .locale(
-                          getLocalePreference(
-                            this.props.space,
-                            this.props.profile,
-                          ),
-                        )
-                        .localeData()
-                        .longDateFormat('L')}
-                      timeFormat={false}
-                      onBlur={dt => {
-                        this.doShowAttendance(
-                          dt.format('L hh:mm A'),
-                          dt.format('hh:mm'),
-                          undefined,
-                          undefined,
-                        );
-                        $(
-                          '.classSection .hide-columns__single-value span',
-                        ).html('');
-                        this.setState({
-                          manualSelect: true,
-                          classDate: dt.format('L hh:mm A'),
-                          classScheduleDateDay:
-                            moment(dt).day() === 0 ? 7 : moment(dt).day(),
-                        });
-                      }}
-                    />
-                  </div>
-                  <div className="class">
-                    <label htmlFor="programClass">CLASS</label>
-                    <Select
-                      closeMenuOnSelect={true}
-                      options={this.getDayClasses(
-                        this.props.classSchedules,
-                        this.state.classScheduleDateDay,
-                      )}
-                      styles={{
-                        option: base => ({
-                          ...base,
-                          width: '100%',
-                        }),
-                        input: base => ({
-                          ...base,
-                          width: '400px',
-                        }),
-                      }}
-                      className="programClass"
-                      classNamePrefix="hide-columns"
-                      placeholder="Select Class"
-                      onChange={e => {
-                        var scheduleIdx = this.props.classSchedules.findIndex(
-                          schedule => schedule.id === e.value,
-                        );
+              <span>
+                {!this.props.isKiosk && (
+                  <div className="classSection">
+                    <span className="line">
+                      <div className="sessionDate">
+                        <label htmlFor="sessionDate">DATE</label>
+                        <Datetime
+                          className="float-right"
+                          defaultValue={moment(
+                            this.state.classDate,
+                            'L hh:mm A',
+                          ).set({
+                            hour: 0,
+                            minute: 0,
+                            second: 0,
+                          })}
+                          dateFormat={moment(new Date())
+                            .locale(
+                              getLocalePreference(
+                                this.props.space,
+                                this.props.profile,
+                              ),
+                            )
+                            .localeData()
+                            .longDateFormat('L')}
+                          timeFormat={false}
+                          onBlur={dt => {
+                            this.doShowAttendance(
+                              dt.format('L hh:mm A'),
+                              dt.format('hh:mm'),
+                              undefined,
+                              undefined,
+                            );
+                            $(
+                              '.classSection .hide-columns__single-value span',
+                            ).html('');
+                            this.setState({
+                              manualSelect: true,
+                              classDate: dt.format('L hh:mm A'),
+                              classScheduleDateDay:
+                                moment(dt).day() === 0 ? 7 : moment(dt).day(),
+                            });
+                          }}
+                        />
+                      </div>
+                      <div className="class">
+                        <label htmlFor="programClass">CLASS</label>
+                        <Select
+                          closeMenuOnSelect={true}
+                          options={this.getDayClasses(
+                            this.props.classSchedules,
+                            this.state.classScheduleDateDay,
+                          )}
+                          styles={{
+                            option: base => ({
+                              ...base,
+                              width: '100%',
+                            }),
+                            input: base => ({
+                              ...base,
+                              width: '400px',
+                            }),
+                          }}
+                          className="programClass"
+                          classNamePrefix="hide-columns"
+                          placeholder="Select Class"
+                          onChange={e => {
+                            var scheduleIdx = this.props.classSchedules.findIndex(
+                              schedule => schedule.id === e.value,
+                            );
 
-                        this.setState({
-                          manualSelect: true,
-                          classTime: moment(
-                            this.props.classSchedules.get(scheduleIdx).start,
-                          ).format('HH:mm'),
-                          classTitle: this.props.classSchedules.get(scheduleIdx)
-                            .title,
-                        });
-                        $('#changeToManual').focus();
-                        $('#checkinMember').focus();
+                            this.setState({
+                              manualSelect: true,
+                              classTime: moment(
+                                this.props.classSchedules.get(scheduleIdx)
+                                  .start,
+                              ).format('HH:mm'),
+                              classTitle: this.props.classSchedules.get(
+                                scheduleIdx,
+                              ).title,
+                            });
+                            $('#changeToManual').focus();
+                            $('#checkinMember').focus();
 
-                        this.doShowAttendance(
-                          this.state.classDate,
-                          moment(
-                            this.props.classSchedules.get(scheduleIdx).start,
-                          ).format('HH:mm'),
-                          this.props.classSchedules.get(scheduleIdx).title,
-                          this.props.classSchedules.get(scheduleIdx).program,
-                        );
-                      }}
-                    />
+                            this.doShowAttendance(
+                              this.state.classDate,
+                              moment(
+                                this.props.classSchedules.get(scheduleIdx)
+                                  .start,
+                              ).format('HH:mm'),
+                              this.props.classSchedules.get(scheduleIdx).title,
+                              this.props.classSchedules.get(scheduleIdx)
+                                .program,
+                            );
+                          }}
+                        />
+                      </div>
+                    </span>
                   </div>
-                </span>
-              </div>
+                )}
+              </span>
             ) : (
-              <div className="classSection">
-                <span className="line">
-                  <div className="sessionDate">
-                    <label htmlFor="sessionDate">DATE</label>
-                    <Datetime
-                      className="float-right"
-                      defaultValue={moment(
-                        this.state.classDate,
-                        'L hh:mm A',
-                      ).set({
-                        hour: moment().get('hour'),
-                        minute: 0,
-                        second: 0,
-                      })}
-                      dateFormat={moment(new Date())
-                        .locale(
-                          getLocalePreference(
-                            this.props.space,
-                            this.props.profile,
-                          ),
-                        )
-                        .localeData()
-                        .longDateFormat('L')}
-                      timeConstraints={{
-                        minutes: {
-                          step: parseInt(
-                            getAttributeValue(
-                              this.props.space,
-                              'Calendar Time Slots',
-                              '15',
-                            ),
-                          ),
-                        },
-                      }}
-                      onBlur={dt => {
-                        this.doShowAttendance(
-                          dt.format('L hh:mm A'),
-                          dt.format('hh:mm'),
-                          this.state.classTitle,
-                          this.state.className,
-                        );
-                        this.setState({
-                          manualSelect: true,
-                          classDate: dt.format('L hh:mm A'),
-                          classTime: dt.format('HH:mm'),
-                        });
-                      }}
-                    />
+              <span>
+                {!this.props.isKiosk && (
+                  <div className="classSection">
+                    <span className="line">
+                      <div className="sessionDate">
+                        <label htmlFor="sessionDate">DATE</label>
+                        <Datetime
+                          className="float-right"
+                          defaultValue={moment(
+                            this.state.classDate,
+                            'L hh:mm A',
+                          ).set({
+                            hour: moment().get('hour'),
+                            minute: 0,
+                            second: 0,
+                          })}
+                          dateFormat={moment(new Date())
+                            .locale(
+                              getLocalePreference(
+                                this.props.space,
+                                this.props.profile,
+                              ),
+                            )
+                            .localeData()
+                            .longDateFormat('L')}
+                          timeConstraints={{
+                            minutes: {
+                              step: parseInt(
+                                getAttributeValue(
+                                  this.props.space,
+                                  'Calendar Time Slots',
+                                  '15',
+                                ),
+                              ),
+                            },
+                          }}
+                          onBlur={dt => {
+                            this.doShowAttendance(
+                              dt.format('L hh:mm A'),
+                              dt.format('hh:mm'),
+                              this.state.classTitle,
+                              this.state.className,
+                            );
+                            this.setState({
+                              manualSelect: true,
+                              classDate: dt.format('L hh:mm A'),
+                              classTime: dt.format('HH:mm'),
+                            });
+                          }}
+                        />
+                      </div>
+                      <div className="class">
+                        <label htmlFor="programClass">CLASS</label>
+                        <select
+                          name="programClass"
+                          id="programClass"
+                          onChange={e => {
+                            this.doShowAttendance(
+                              this.state.classDate,
+                              this.state.classTime,
+                              e.target.value.split('###')[1],
+                              e.target.value.split('###')[0],
+                            );
+                          }}
+                        >
+                          <option value="" />
+                          {this.props.programs
+                            .concat(this.props.additionalPrograms)
+                            .map(program => (
+                              <option
+                                key={program.program + '###' + program.title}
+                                value={program.program}
+                              >
+                                {program.program}
+                              </option>
+                            ))}
+                        </select>
+                        <div className="droparrow" />
+                      </div>
+                    </span>
                   </div>
-                  <div className="class">
-                    <label htmlFor="programClass">CLASS</label>
-                    <select
-                      name="programClass"
-                      id="programClass"
-                      onChange={e => {
-                        this.doShowAttendance(
-                          this.state.classDate,
-                          this.state.classTime,
-                          e.target.value.split('###')[1],
-                          e.target.value.split('###')[0],
-                        );
-                      }}
-                    >
-                      <option value="" />
-                      {this.props.programs
-                        .concat(this.props.additionalPrograms)
-                        .map(program => (
-                          <option
-                            key={program.program + '###' + program.title}
-                            value={program.program}
-                          >
-                            {program.program}
-                          </option>
-                        ))}
-                    </select>
-                    <div className="droparrow" />
-                  </div>
-                </span>
-              </div>
+                )}
+              </span>
             )}
             {this.state.classTime !== undefined && (
               <div className="classBookingSection">
@@ -2615,8 +2743,14 @@ export class AttendanceDetail extends Component {
                               <span className="top">
                                 {booking.photo === undefined ? (
                                   <span className="noPhoto">
-                                    {booking.firstName[0]}
-                                    {booking.lastName[0]}
+                                    {booking.firstName !== undefined &&
+                                    booking.firstName !== ''
+                                      ? booking.firstName[0]
+                                      : ''}
+                                    {booking.lastName !== undefined &&
+                                    booking.lastName !== ''
+                                      ? booking.lastName[0]
+                                      : ''}
                                   </span>
                                 ) : (
                                   <img
@@ -2766,8 +2900,16 @@ export class AttendanceDetail extends Component {
                   <div className="memberInfo">
                     {this.state.memberItem.values['Photo'] === undefined ? (
                       <span className="noPhoto">
-                        {this.state.memberItem.values['First Name'][0]}
-                        {this.state.memberItem.values['Last Name'][0]}
+                        {this.state.memberItem.values['First Name'] !==
+                          undefined &&
+                        this.state.memberItem.values['First Name'] !== ''
+                          ? this.state.memberItem.values['First Name'][0]
+                          : ''}
+                        {this.state.memberItem.values['Last Name'] !==
+                          undefined &&
+                        this.state.memberItem.values['Last Name'] !== ''
+                          ? this.state.memberItem.values['Last Name'][0]
+                          : ''}
                       </span>
                     ) : (
                       <img
@@ -3113,8 +3255,16 @@ export class AttendanceDetail extends Component {
                               <span className="top">
                                 {checkin.values['Photo'] === undefined ? (
                                   <span className="noPhoto">
-                                    {checkin.values['First Name'][0]}
-                                    {checkin.values['Last Name'][0]}
+                                    {checkin.values['First Name'] !==
+                                      undefined &&
+                                    checkin.values['First Name'] !== ''
+                                      ? checkin.values['First Name'][0]
+                                      : ''}
+                                    {checkin.values['Last Name'] !==
+                                      undefined &&
+                                    checkin.values['Last Name'] !== ''
+                                      ? checkin.values['Last Name'][0]
+                                      : ''}
                                   </span>
                                 ) : (
                                   <img

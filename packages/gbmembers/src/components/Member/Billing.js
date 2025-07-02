@@ -60,6 +60,8 @@ import checkoutRightArrowIcon from '../../images/checkoutRightArrow.png?raw';
 import Helmet from 'react-helmet';
 import { getTimezone } from '../leads/LeadsUtils';
 import { isBamboraFailedPayment } from '../Member/MemberUtils';
+import mail from '../../images/mail.png';
+import { confirm } from '../helpers/Confirmation';
 
 <script src="../helpers/jquery.multiselect.js" />;
 
@@ -135,6 +137,7 @@ const mapDispatchToProps = {
   fetchBillingChangeByBillingReference:
     servicesActions.fetchBillingChangeByBillingReference,
   fetchCashRegistrations: servicesActions.fetchCashRegistrations,
+  sendReceipt: servicesActions.sendReceipt,
 };
 
 const ezidebit_date_format = 'YYYY-MM-DD HH:mm:ss';
@@ -1452,6 +1455,7 @@ export class FamilyFeeDetails extends Component {
 export class PaymentHistory extends Component {
   constructor(props) {
     super(props);
+    this.formatEmailCell = this.formatEmailCell.bind(this);
     this.refundPayment = this.refundPayment.bind(this);
     this.paymentHistory = this.props.paymentHistory;
     this.memberCashPayments = this.props.memberCashPayments;
@@ -1488,7 +1492,50 @@ export class PaymentHistory extends Component {
       });
     }
   }
+  formatEmailCell(cellInfo) {
+    return cellInfo.original.paymentStatus === 'S' ||
+      cellInfo.original.paymentStatus === 'paid' ||
+      cellInfo.original.paymentStatus === 'Settled' ||
+      cellInfo.original.paymentStatus === 'Approved' ||
+      cellInfo.original.paymentStatus === 'Cash' ? (
+      <span
+        className="registrationEmail"
+        onClick={async e => {
+          if (
+            await confirm(
+              <span>
+                <span>Are you sure you want to send a receipt email?</span>
+              </span>,
+            )
+          ) {
+            var values = {};
+            values['Form Slug'] = 'member_receipt';
+            values['Submission ID'] = this.props.memberItem.id;
+            values['Email Content'] = $(
+              '#print_' + cellInfo.original['_id'],
+            ).html();
 
+            this.props.sendReceipt({
+              values: values,
+              addNotification: this.props.addNotification,
+              setSystemError: this.props.setSystemError,
+            });
+          }
+        }}
+      >
+        <img src={mail} alt="Email" />
+        {cellInfo.original['receiptSender'] !== undefined && (
+          <span className="sendTimes" placeholder="Send Receipt Times">
+            {cellInfo.original['receiptSender'].map(date => (
+              <span className="sendTime">{date.format('L hh:mmA')}</span>
+            ))}
+          </span>
+        )}
+      </span>
+    ) : (
+      <div></div>
+    );
+  }
   getData(
     memberItem,
     payments,
@@ -1599,7 +1646,7 @@ export class PaymentHistory extends Component {
         accessor: 'paymentSource',
         Header: 'Type',
         Cell: props => {
-          return props.value !== undefined && props.value !== ''
+          return props.value !== undefined && props.value.trim() !== ''
             ? props.value
             : 'Membership';
         },
@@ -1715,7 +1762,10 @@ export class PaymentHistory extends Component {
           row.original.paymentStatus === 'Approved' ||
           row.original.paymentStatus === 'Cash') && (
           <span className="col-sm-2 orderreceipt">
-            <span style={{ display: 'none' }}>
+            <span
+              style={{ display: 'none' }}
+              id={'print_' + row.original['_id']}
+            >
               <MembershipReceiptToPrint
                 memberItem={this.props.memberItem}
                 membershipServices={this.props.membershipServices}
@@ -1758,6 +1808,12 @@ export class PaymentHistory extends Component {
           </span>
         ),
     });
+    columns.push({
+      headerClassName: 'email',
+      className: 'email',
+      Cell: this.formatEmailCell,
+    });
+
     return columns;
   }
 
@@ -2591,6 +2647,32 @@ export class BillingInfo extends Component {
                             </NavLink>
                           </div>
                         )}
+                        {/*getAttributeValue(
+                          this.props.space,
+                          'Billing Company',
+                        ) === 'Stripe' && (
+                          <div>
+                            <NavLink
+                              to={`/categories/stripe-billing/stripe-submit-billing-changes?id=${this.props.memberItem.id}`}
+                              kappSlug={'services'}
+                              className={
+                                'nav-link icon-wrapper btn btn-primary'
+                              }
+                              activeClassName="active"
+                              disabled={
+                                this.props.memberItem.values['Status'] !==
+                                'Active'
+                              }
+                              style={{
+                                display: 'inline',
+                                paddingTop: '4px',
+                                paddingBottom: '4px',
+                              }}
+                            >
+                              Update Billing Details
+                            </NavLink>
+                          </div>
+                        )*/}
                         {getAttributeValue(
                           this.props.space,
                           'Billing Company',
@@ -3098,6 +3180,9 @@ export class BillingInfo extends Component {
                   }
                   cashRegistrations={this.props.cashRegistrations}
                   cashRegistrationsLoading={this.props.cashRegistrationsLoading}
+                  sendReceipt={this.props.sendReceipt}
+                  addNotification={this.props.addNotification}
+                  setSystemError={this.props.setSystemError}
                 />
               )}
             </div>
@@ -3197,6 +3282,9 @@ export const Billing = ({
   fetchCashRegistrations,
   cashRegistrations,
   cashRegistrationsLoading,
+  sendReceipt,
+  addNotification,
+  setSystemError,
 }) =>
   currentMemberLoading ? (
     <div />
@@ -3264,6 +3352,9 @@ export const Billing = ({
               fetchCashRegistrations={fetchCashRegistrations}
               cashRegistrations={cashRegistrations}
               cashRegistrationsLoading={cashRegistrationsLoading}
+              sendReceipt={sendReceipt}
+              addNotification={addNotification}
+              setSystemError={setSystemError}
             />
           )}
           {/*(memberItem.values['Billing Customer Id'] === null ||
@@ -3826,8 +3917,6 @@ export const BillingContainer = compose(
           }
         }
         if (
-          getAttributeValue(this.props.space, 'Billing Company') ===
-            'Bambora' &&
           member.values['Billing Customer Reference'] !== undefined &&
           member.values['Billing Customer Reference'] !== null &&
           member.values['Billing Customer Reference'] !== ''
@@ -3842,21 +3931,6 @@ export const BillingContainer = compose(
               'Bambora'
                 ? this.props.updateBamboraBillingInfo
                 : undefined,
-            addNotification: this.props.addNotification,
-            setSystemError: this.props.setSystemError,
-            useSubAccount:
-              member.values['useSubAccount'] === 'YES' ? true : false,
-          });
-        } else if (
-          member.values['Billing Customer Id'] !== undefined &&
-          member.values['Billing Customer Id'] !== null &&
-          member.values['Billing Customer Id'] !== ''
-        ) {
-          this.props.fetchBillingInfo({
-            billingRef: member.values['Billing Customer Id'],
-            history: this.props.history,
-            myThis: this,
-            setBillingInfo: this.props.setBillingInfo,
             addNotification: this.props.addNotification,
             setSystemError: this.props.setSystemError,
             useSubAccount:

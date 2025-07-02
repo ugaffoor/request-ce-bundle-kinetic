@@ -56,19 +56,20 @@ export const handleDelete = props => () => {
   };
   props.deleteSubmission(props.submissionId, deleteCallback);
 };
-
-export const mapStateToProps = (state, { match: { params } }) => ({
-  category: params.categorySlug
-    ? state.services.categories.data.find(
-        category => category.slug === params.categorySlug,
-      )
-    : null,
-  forms: state.services.forms.data,
-  values: valuesFromQueryParams(state.router.location.search),
-  kappSlug: state.app.config.kappSlug,
-  space: state.member.app.space,
-  profile: state.member.app.profile,
-});
+export const mapStateToProps = (state, { match: { params } }) => {
+  return {
+    category: params.categorySlug
+      ? state.services.categories.data.find(
+          category => category.slug === params.categorySlug,
+        )
+      : null,
+    forms: state.services.forms.data,
+    values: valuesFromQueryParams(state.router.location.search),
+    kappSlug: state.app.config.kappSlug,
+    space: state.app.space,
+    profile: state.app.profile,
+  };
+};
 
 export const mapDispatchToProps = {
   push,

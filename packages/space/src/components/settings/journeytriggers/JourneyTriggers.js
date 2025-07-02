@@ -829,20 +829,22 @@ export class BlockTriggers extends Component {
                 <span key={idx}>
                   <div className="triggerType">
                     <div className="typeName">{condition}</div>
-                    <div
-                      className="newTrigger"
-                      onClick={e => {
-                        this.setState({
-                          showBlock: false,
-                          editingTrigger: false,
-                          editingTriggerRecord: undefined,
-                          newTrigger: true,
-                          newTriggerRecordCondition: condition,
-                        });
-                      }}
-                    >
-                      <span className="fa fa-fw fa-plus" />
-                    </div>
+                    {condition !== 'Payment Notification' && (
+                      <div
+                        className="newTrigger"
+                        onClick={e => {
+                          this.setState({
+                            showBlock: false,
+                            editingTrigger: false,
+                            editingTriggerRecord: undefined,
+                            newTrigger: true,
+                            newTriggerRecordCondition: condition,
+                          });
+                        }}
+                      >
+                        <span className="fa fa-fw fa-plus" />
+                      </div>
+                    )}
                   </div>
                   <div className="triggerConditions">
                     <table>
@@ -892,41 +894,49 @@ export class BlockTriggers extends Component {
                                   />
                                 </td>
                                 <td>
-                                  <TriggerStatus
-                                    trigger={trigger}
-                                    status={trigger.values['Status']}
-                                    updateJourneyTrigger={
-                                      this.props.updateJourneyTrigger
-                                    }
-                                  />
+                                  {condition !== 'Payment Notification' && (
+                                    <TriggerStatus
+                                      trigger={trigger}
+                                      status={trigger.values['Status']}
+                                      updateJourneyTrigger={
+                                        this.props.updateJourneyTrigger
+                                      }
+                                    />
+                                  )}
                                 </td>
                                 <td width="40">
-                                  <TriggerDelete
-                                    id={`trash-${trigger.id}`}
-                                    trigger={trigger}
-                                    deleteTrigger={this.props.deleteTrigger}
-                                    journeyTriggers={this.props.journeyTriggers}
-                                    triggerEvents={this.state.triggerEvents}
-                                  />
+                                  {condition !== 'Payment Notification' && (
+                                    <TriggerDelete
+                                      id={`trash-${trigger.id}`}
+                                      trigger={trigger}
+                                      deleteTrigger={this.props.deleteTrigger}
+                                      journeyTriggers={
+                                        this.props.journeyTriggers
+                                      }
+                                      triggerEvents={this.state.triggerEvents}
+                                    />
+                                  )}
                                 </td>
                                 <td width="40">
-                                  <span
-                                    className="edit fa fa-fw fa-edit"
-                                    id={trigger.id}
-                                    onClick={e => {
-                                      this.setState({
-                                        showBlock: false,
-                                        editingTrigger: true,
-                                        editingTriggerRecord: this.props.journeyTriggers.find(
-                                          trigger =>
-                                            trigger.id ===
-                                            $(e.target).prop('id'),
-                                        ),
-                                        newTrigger: false,
-                                        newTriggerRecordCondition: undefined,
-                                      });
-                                    }}
-                                  />
+                                  {condition !== 'Payment Notification' && (
+                                    <span
+                                      className="edit fa fa-fw fa-edit"
+                                      id={trigger.id}
+                                      onClick={e => {
+                                        this.setState({
+                                          showBlock: false,
+                                          editingTrigger: true,
+                                          editingTriggerRecord: this.props.journeyTriggers.find(
+                                            trigger =>
+                                              trigger.id ===
+                                              $(e.target).prop('id'),
+                                          ),
+                                          newTrigger: false,
+                                          newTriggerRecordCondition: undefined,
+                                        });
+                                      }}
+                                    />
+                                  )}
                                 </td>
                               </tr>
                             ))}

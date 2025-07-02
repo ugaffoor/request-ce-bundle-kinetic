@@ -75,7 +75,7 @@ export function* fetchMembers(action) {
             ',values[useSubAccount],values[POS Profile ID],values[Fee Program],values[Parent or Guardian]' +
             ',values[Emails Sent Count],values[Max Weekly Classes],values[Reminder Date]' +
             ',values[Emails Received Count],values[Is New Reply Received],values[SMS Sent Count],values[SMS Received Count]' +
-            ',values[Payment Method],values[Lead Submission ID]' +
+            ',values[Payment Method],values[Lead Submission ID],values[Send Payment Receipt]' +
             ',values[Billing Period],values[Admin Fee],values[Last Payment Date]',
         ])
 
@@ -134,7 +134,7 @@ export function* fetchMembers(action) {
               ',values[useSubAccount],values[POS Profile ID],values[Fee Program],values[Parent or Guardian]' +
               ',values[Emails Sent Count],values[Max Weekly Classes],values[Reminder Date]' +
               ',values[Emails Received Count],values[Is New Reply Received],values[SMS Sent Count],values[SMS Received Count]' +
-              ',values[Payment Method],values[Lead Submission ID]' +
+              ',values[Payment Method],values[Lead Submission ID],values[Send Payment Receipt]' +
               ',values[Billing Period],values[Admin Fee],values[Last Payment Date]',
           ])
 
@@ -438,7 +438,8 @@ export function* fetchCurrentMemberAdditional(action) {
       .index('values[Person ID]')
       .eq('values[Person ID]', action.payload.id)
       .include(['details', 'values'])
-      .limit(1000)
+      .sortDirection('DESC')
+      .limit(100)
       .build();
 
     var mIdx = action.payload.allMembers.findIndex(
@@ -454,7 +455,8 @@ export function* fetchCurrentMemberAdditional(action) {
           : 'XX',
       )
       .include(['details', 'values'])
-      .limit(1000)
+      .sortDirection('DESC')
+      .limit(100)
       .build();
     const MEMBER_FILES_SEARCH = new CoreAPI.SubmissionSearch(true)
       .index('values[Member ID]')
@@ -473,12 +475,19 @@ export function* fetchCurrentMemberAdditional(action) {
       .include(['details', 'values'])
       .limit(1000)
       .build();
+    const REMOTE_REGISTRATION_SEARCH = new CoreAPI.SubmissionSearch(true)
+      .eq('values[Member GUID]', action.payload.id)
+      .include(['details', 'values'])
+      .sortDirection('DESC')
+      .limit(1000)
+      .build();
     const [
       memberActivities,
       memberFilesSubmissions,
       posOrderSubmissions,
       posLeadOrderSubmissions,
       posPurchasedItems,
+      remoteRegistrationSubmissions,
     ] = yield all([
       call(CoreAPI.searchSubmissions, {
         form: 'member-activities',
@@ -504,6 +513,13 @@ export function* fetchCurrentMemberAdditional(action) {
         form: 'pos-purchased-item',
         search: MEMBER_POS_SEARCH,
         datastore: true,
+      }),
+      call(CoreAPI.searchSubmissions, {
+        form:
+          action.payload.billingService.toLowerCase().replace(' ', '-') +
+          '-remote-registration',
+        kapp: 'services',
+        search: REMOTE_REGISTRATION_SEARCH,
       }),
     ]);
 
@@ -687,6 +703,10 @@ export function* fetchCurrentMemberAdditional(action) {
       posOrders: posOrders,
       posItems: posItems,
       additionalServices: additionalServices,
+      remoteRegistrationForm:
+        remoteRegistrationSubmissions.submissions.length > 0
+          ? remoteRegistrationSubmissions.submissions[0]
+          : undefined,
     };
     yield put(actions.setCurrentMemberAdditional(memberInfo));
   } catch (error) {
@@ -1955,6 +1975,9 @@ export function* activateBiller(action) {
   args.startDate = action.payload.startDate;
   args.scheduleDate = action.payload.scheduleDate;
   args.email = action.payload.email;
+  args.city = action.payload.city;
+  args.postcode = action.payload.postcode;
+  args.state = action.payload.state;
   args.address = action.payload.address;
   axios
     .post(appSettings.kineticBillingServerUrl + activateBillerUrl, args)

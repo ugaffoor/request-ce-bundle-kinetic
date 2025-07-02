@@ -8,6 +8,7 @@ import { Utils } from 'common';
 import download from '../images/download.svg?raw';
 import SVGInline from 'react-svg-inline';
 import attentionRequired from '../images/flag.svg?raw';
+import { getAttributeValue } from '../lib/react-kinops-components/src/utils';
 
 export const Sidebar = ({
   documentationUrl,
@@ -107,6 +108,11 @@ export const Sidebar = ({
           ))}
         </select>
         <div className="droparrow" />
+        {getAttributeValue(space, 'Migration Mode') === 'YES' && (
+          <NavLink to={`/MigratingMembers`} className="btn btn-primary">
+            Migrating Members
+          </NavLink>
+        )}
         {filterType === 'filter' && true && (
           <Members
             allMembers={allMembers}

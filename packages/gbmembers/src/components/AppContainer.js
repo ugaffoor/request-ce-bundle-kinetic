@@ -6,20 +6,25 @@ import { actions as alertsActions } from '../redux/modules/alerts';
 import * as selectors from '../lib/react-kinops-components/src/redux/kinopsSelectors';
 import { actions as leadActions } from '../redux/modules/leads';
 import { actions as memberActions } from '../redux/modules/members';
+import { actions as servicesActions } from '../redux/modules/services';
+import { getAttributeValue } from '../lib/react-kinops-components/src/utils';
 
 import { App } from './App';
 
-const mapStateToProps = state => ({
-  loading: state.member.app.loading || state.member.kinops.loading,
-  isKiosk: selectors.selectHasRoleKiosk(state),
-  space: state.member.kinops.space,
-  profile: state.member.kinops.profile,
-  leadLastFetchTime: state.member.leads.leadLastFetchTime,
-  memberInitialLoadComplete: state.member.members.memberInitialLoadComplete,
-  membersNextPageToken: state.member.members.membersNextPageToken,
-  memberLastFetchTime: state.member.members.memberLastFetchTime,
-  memberNotesLoading: state.member.members.memberNotesLoading,
-});
+const mapStateToProps = state => {
+  return {
+    loading: state.member.app.loading || state.member.kinops.loading,
+    isKiosk: selectors.selectHasRoleKiosk(state),
+    space: state.member.kinops.space,
+    profile: state.member.kinops.profile,
+    leadLastFetchTime: state.member.leads.leadLastFetchTime,
+    memberInitialLoadComplete: state.member.members.memberInitialLoadComplete,
+    membersNextPageToken: state.member.members.membersNextPageToken,
+    memberLastFetchTime: state.member.members.memberLastFetchTime,
+    memberNotesLoading: state.member.members.memberNotesLoading,
+    migrationsLastFetchTime: state.member.services.migrationsLastFetchTime,
+  };
+};
 
 const mapDispatchToProps = {
   loadApp: appActions.loadApp,
@@ -27,6 +32,7 @@ const mapDispatchToProps = {
   fetchAlerts: alertsActions.fetchAlerts,
   fetchLeads: leadActions.fetchLeads,
   fetchMembers: memberActions.fetchMembers,
+  fetchMemberMigrations: servicesActions.fetchMemberMigrations,
 };
 
 function tick(mythis) {
@@ -34,6 +40,15 @@ function tick(mythis) {
   mythis.props.fetchLeads({
     leadLastFetchTime: mythis.props.leadLastFetchTime,
   });
+  if (getAttributeValue(mythis.props.space, 'Migration Mode') === 'YES') {
+    mythis.props.fetchMemberMigrations({
+      billingSystem: getAttributeValue(
+        mythis.props.space,
+        'Billing Company',
+      ).toLowerCase(),
+      migrationsLastFetchTime: mythis.props.migrationsLastFetchTime,
+    });
+  }
   if (
     mythis.props.memberInitialLoadComplete &&
     !mythis.props.memberNotesLoading

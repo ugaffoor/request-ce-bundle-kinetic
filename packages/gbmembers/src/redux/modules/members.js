@@ -385,7 +385,12 @@ export const reducer = (state = State(), { type, payload }) => {
               user.username.toLowerCase() ===
                 payload.members[k].values['Member ID'].toLowerCase(),
           );
-          members[members.length] = payload.members[k];
+          if (
+            members.findIndex(member => member.id === payload.members[k].id) ===
+            -1
+          ) {
+            members[members.length] = payload.members[k];
+          }
         }
       }
 
@@ -520,6 +525,8 @@ export const reducer = (state = State(), { type, payload }) => {
       state.currentMember.posOrders = payload.posOrders;
       state.currentMember.posItems = payload.posItems;
       state.currentMember.additionalServices = payload.additionalServices;
+      state.currentMember.remoteRegistrationForm =
+        payload.remoteRegistrationForm;
 
       return state
         .set('currentMemberAdditionalLoading', false)

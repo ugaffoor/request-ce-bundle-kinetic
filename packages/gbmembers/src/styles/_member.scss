@@ -1,3 +1,94 @@
+.migrationSection {
+  .classSection {
+    .memberFilter {
+      margin-top: 40px;
+      margin-left: 60px;
+    }
+    input {
+      font-size: 18px;
+    }
+  }
+  .bar {
+    height: 22px;
+    width: 200px;
+    background-color: #434343;
+    float: left;
+    position: relative;
+    margin-right: 4px;
+    .percent {
+      height: 22px;
+      position: absolute;
+      background-color: #37729d;
+    }
+  }
+  .memberDetails label {
+    width: 200px;
+  }
+  .buttons {
+    button {
+      margin: 10px;
+    }
+  }
+  .members {
+    background-color: #f8f5f5;
+    border-radius: 5px;
+    padding-left: 10px;
+    margin-top: 10px;
+    .memberRow {
+      display: flex;
+      padding: 10px;
+      .memberName {
+        min-width: 400px;
+        margin: 0;
+      }
+      .circle {
+        display: block;
+        width: 50px;
+        height: 50px;
+      }
+      h4.label {
+        margin-top: 10px;
+        margin-left: 20px;
+        width: 120px;
+      }
+      .notMigrated {
+        background-color: rgb(238, 92, 92);
+        border-radius: 25px;
+      }
+      .migrated {
+        background-color: #37729d;
+        border-radius: 25px;
+      }
+      .inProgress {
+        background-color: #7ff46a;
+        border-radius: 25px;
+      }
+      .inProgressSubmitted {
+        background-color: #7ff46a;
+        border-radius: 25px;
+        border-style: dashed;
+        border-color: green;
+      }
+      .expired {
+        background-color: #f58c0c;
+        border-radius: 25px;
+      }
+      .action {
+        margin-top: 12px;
+        margin-left: 40px;
+      }
+      .buttonInfo {
+        display: flex;
+        flex-direction: row;
+        h5 {
+          margin-top: 0;
+          margin-bottom: 0;
+          margin-left: 20px;
+        }
+      }
+    }
+  }
+}
 @media print {
   .paymentHistory {
     .print {
@@ -5,6 +96,20 @@
     }
     .refund .btn {
       display: none;
+    }
+  }
+}
+.registerOptions {
+  display: flex;
+  .cell {
+    margin: 20px;
+    .device {
+      color: blue;
+      cursor: pointer;
+    }
+    .remote {
+      color: green;
+      cursor: pointer;
     }
   }
 }
@@ -1029,6 +1134,9 @@
     border: 0;
   }
   .printReceipt {
+    cursor: pointer;
+  }
+  .registrationEmail {
     cursor: pointer;
   }
   .icon-svg {

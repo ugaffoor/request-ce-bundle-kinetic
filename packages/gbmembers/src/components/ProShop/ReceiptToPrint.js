@@ -115,14 +115,20 @@ export class ReceiptToPrint extends React.Component {
             )}
           {this.state.posCheckout['Checkout Items']['products'] !== undefined &&
             this.state.posCheckout['Checkout Items']['products'].filter(
-              product => product['productType'] === 'Service',
+              product =>
+                product['productType'] === 'Service' ||
+                product['productType'] === 'Concession',
             ).length > 0 && (
               <span className="services">
                 <span className="products">
                   {this.state.posCheckout['Checkout Items']['products'] !==
                     undefined &&
                     this.state.posCheckout['Checkout Items']['products']
-                      .filter(product => product['productType'] === 'Service')
+                      .filter(
+                        product =>
+                          product['productType'] === 'Service' ||
+                          product['productType'] === 'Concession',
+                      )
                       .map((product, index) => (
                         <span
                           className="lineItem"

@@ -27,11 +27,14 @@ import { displayableFormPredicate } from './utils';
 import { selectCurrentKapp } from 'common';
 import { Catalog } from './components/home/Catalog';
 import { actions } from './redux/modules/submissions';
+import { actions as memberActions } from 'gbmembers/src/redux/modules/memberApp';
 
 import './assets/styles/master.scss';
 
 const mapStateToProps = (state, props) => {
   return {
+    space: state.app.space,
+    profile: state.app.profile,
     categories: state.services.categories.data,
     forms: state.services.forms.data,
     submissionCounts: state.services.submissionCounts.data,
@@ -54,6 +57,7 @@ const mapDispatchToProps = {
   fetchForms: formsActions.fetchForms,
   fetchSubmissionCounts: submissionCountActions.fetchSubmissionCounts,
   fetchSubmissions: actions.fetchSubmissions,
+  loadAppSettings: memberActions.loadAppSettings,
 };
 
 export const AppComponent = props => {
@@ -180,6 +184,7 @@ const enhance = compose(
   }),
   lifecycle({
     UNSAFE_componentWillMount() {
+      this.props.loadAppSettings();
       this.props.fetchCategories();
       this.props.fetchForms();
       this.props.fetchSubmissionCounts();

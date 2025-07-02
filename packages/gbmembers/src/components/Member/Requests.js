@@ -38,7 +38,10 @@ export class Requests extends Component {
       cellInfo.original['Form'] === 'PaySmart Member Registration' ||
       cellInfo.original['Form'] === 'Cash Member Registration' ||
       cellInfo.original['Form'] === 'Member Self Sign Up' ||
-      cellInfo.original['Form'] === 'Stripe Member Registration' ? (
+      cellInfo.original['Form'] === 'Stripe Member Registration' ||
+      cellInfo.original['Form'] === 'Bambora Remote Registration' ||
+      cellInfo.original['Form'] === 'Stripe Remote Registration' ||
+      cellInfo.original['Form'] === 'PaySmart Remote Registration' ? (
       <span
         className="registrationEmail"
         onClick={async e => {
@@ -147,7 +150,7 @@ export class Requests extends Component {
   render() {
     return (
       <div className="row">
-        <div className="col-sm-12">
+        <div className="col-sm-10">
           <span style={{ width: '100%' }}>
             <h3>Requests</h3>
             <ReactTable

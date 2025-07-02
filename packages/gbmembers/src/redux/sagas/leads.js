@@ -137,6 +137,7 @@ export function* fetchCurrentLead(action) {
       .index('values[Person ID]')
       .eq('values[Person ID]', action.payload.id)
       .include(['details', 'values'])
+      .sortDirection('DESC')
       .limit(100)
       .build();
     const [

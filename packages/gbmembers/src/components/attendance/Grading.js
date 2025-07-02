@@ -48,6 +48,7 @@ export class GradingDetail extends Component {
       showPromotionReviewDialog: false,
       classAttendances: undefined,
       classSchedule: undefined,
+      readyToCheckOnly: false,
     };
   }
   setIsDirty = dirty => {
@@ -179,6 +180,7 @@ export class GradingDetail extends Component {
                         className: this.state.classSchedule.program,
                       });
                     }
+                    $('#readyToCheck').prop('checked', false);
                   }}
                 />
                 <label htmlFor="checkins"></label>
@@ -189,6 +191,26 @@ export class GradingDetail extends Component {
               ) : (
                 <div />
               )}
+            </div>
+            <div className="readyToCheckFilter">
+              <label htmlFor="readyToCheck">Show Ready to Check</label>
+              <div className="checkboxFilter">
+                <input
+                  id="readyToCheck"
+                  type="checkbox"
+                  value="1"
+                  onChange={e => {
+                    this.setState({
+                      readyToCheckOnly: $(e.target).prop('checked')
+                        ? true
+                        : false,
+                      classAttendances: undefined,
+                    });
+                    $('#checkins').prop('checked', false);
+                  }}
+                />
+                <label htmlFor="readyToCheck"></label>
+              </div>
             </div>
           </span>
         </div>
@@ -207,6 +229,12 @@ export class GradingDetail extends Component {
                     att => att.values['Member GUID'] === member.id,
                   );
                   return attendee !== undefined ? true : false;
+                }
+                if (this.state.readyToCheckOnly) {
+                  if (member.statusText === 'READY TO CHECK') {
+                    return true;
+                  }
+                  return false;
                 }
                 return (
                   member.values['Status'] !== 'Inactive' &&

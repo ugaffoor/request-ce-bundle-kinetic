@@ -78,8 +78,8 @@ export function* fetchPOSProducts(action) {
         search: SEARCH_PRODUCT,
       },
     );
-    let nextPageTokenValue = nextPageToken;
-    let allSubmissions = [];
+    var nextPageTokenValue = nextPageToken;
+    var allSubmissions = [];
     allSubmissions = allSubmissions.concat(submissions);
 
     while (nextPageTokenValue) {

@@ -41,6 +41,19 @@ form,
 }
 
 form {
+  .DayPickerInput {
+    width: 100%;
+  }
+  .DayPickerInput input {
+    background: #fff;
+    border: 1px solid #d3dce7;
+    border-radius: 3px;
+    width: 100%;
+    outline: none;
+    padding: 0.25rem;
+    -webkit-text-fill-color: #000;
+    -webkit-transform: translateZ(0px);
+  }
   // Headings
   section h1 {
     margin-top: 0;
