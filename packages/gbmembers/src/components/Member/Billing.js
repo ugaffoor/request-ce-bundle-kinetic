@@ -1646,7 +1646,7 @@ export class PaymentHistory extends Component {
         accessor: 'paymentSource',
         Header: 'Type',
         Cell: props => {
-          return props.value !== undefined && props.value !== ''
+          return props.value !== undefined && props.value.trim() !== ''
             ? props.value
             : 'Membership';
         },
@@ -2647,6 +2647,32 @@ export class BillingInfo extends Component {
                             </NavLink>
                           </div>
                         )}
+                        {/*getAttributeValue(
+                          this.props.space,
+                          'Billing Company',
+                        ) === 'Stripe' && (
+                          <div>
+                            <NavLink
+                              to={`/categories/stripe-billing/stripe-submit-billing-changes?id=${this.props.memberItem.id}`}
+                              kappSlug={'services'}
+                              className={
+                                'nav-link icon-wrapper btn btn-primary'
+                              }
+                              activeClassName="active"
+                              disabled={
+                                this.props.memberItem.values['Status'] !==
+                                'Active'
+                              }
+                              style={{
+                                display: 'inline',
+                                paddingTop: '4px',
+                                paddingBottom: '4px',
+                              }}
+                            >
+                              Update Billing Details
+                            </NavLink>
+                          </div>
+                        )*/}
                         {getAttributeValue(
                           this.props.space,
                           'Billing Company',
@@ -3891,8 +3917,6 @@ export const BillingContainer = compose(
           }
         }
         if (
-          getAttributeValue(this.props.space, 'Billing Company') ===
-            'Bambora' &&
           member.values['Billing Customer Reference'] !== undefined &&
           member.values['Billing Customer Reference'] !== null &&
           member.values['Billing Customer Reference'] !== ''
@@ -3907,21 +3931,6 @@ export const BillingContainer = compose(
               'Bambora'
                 ? this.props.updateBamboraBillingInfo
                 : undefined,
-            addNotification: this.props.addNotification,
-            setSystemError: this.props.setSystemError,
-            useSubAccount:
-              member.values['useSubAccount'] === 'YES' ? true : false,
-          });
-        } else if (
-          member.values['Billing Customer Id'] !== undefined &&
-          member.values['Billing Customer Id'] !== null &&
-          member.values['Billing Customer Id'] !== ''
-        ) {
-          this.props.fetchBillingInfo({
-            billingRef: member.values['Billing Customer Id'],
-            history: this.props.history,
-            myThis: this,
-            setBillingInfo: this.props.setBillingInfo,
             addNotification: this.props.addNotification,
             setSystemError: this.props.setSystemError,
             useSubAccount:

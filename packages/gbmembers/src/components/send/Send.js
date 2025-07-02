@@ -922,13 +922,24 @@ export class SmsCampaignsList extends Component {
         ) {
           hasInProgress = true;
         }
+        var recipients = campaign.values['Recipients'];
+        if (
+          recipients === undefined &&
+          campaign.values['Phone Numbers'] !== undefined
+        ) {
+          recipients = [];
+          JSON.parse(campaign.values['Phone Numbers']).forEach(item => {
+            recipients.push(item.id);
+          });
+          recipients = JSON.stringify(recipients);
+        }
         return {
           _id: campaign['id'],
           content: campaign.values['SMS Content'],
           sentDate: campaign.values['Sent Date'],
           scheduledTime: campaign.values['Scheduled Time'],
           cancelled: campaign.values['Cancel Campaign'],
-          recipients: campaign.values['Recipients'],
+          recipients: recipients,
         };
       });
 

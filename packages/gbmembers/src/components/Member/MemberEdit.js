@@ -1140,7 +1140,25 @@ export const MemberEdit = ({
                           memberChanges,
                         );
                       }
-                      if (addressType === 'administrative_area_level_1') {
+                      if (
+                        getAttributeValue(space, 'School Country Code') ===
+                          'GB' &&
+                        addressType === 'postal_town'
+                      ) {
+                        var newValue =
+                          place.address_components[i]['short_name'];
+                        handleChange(
+                          memberItem,
+                          'State',
+                          { target: { value: newValue } },
+                          setIsDirty,
+                          memberChanges,
+                        );
+                      }
+                      if (
+                        addressType === 'administrative_area_level_1' &&
+                        getAttributeValue(space, 'School Country Code') !== 'GB'
+                      ) {
                         var newValue =
                           place.address_components[i]['short_name'];
                         handleChange(

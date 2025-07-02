@@ -475,12 +475,19 @@ export function* fetchCurrentMemberAdditional(action) {
       .include(['details', 'values'])
       .limit(1000)
       .build();
+    const REMOTE_REGISTRATION_SEARCH = new CoreAPI.SubmissionSearch(true)
+      .eq('values[Member GUID]', action.payload.id)
+      .include(['details', 'values'])
+      .sortDirection('DESC')
+      .limit(1000)
+      .build();
     const [
       memberActivities,
       memberFilesSubmissions,
       posOrderSubmissions,
       posLeadOrderSubmissions,
       posPurchasedItems,
+      remoteRegistrationSubmissions,
     ] = yield all([
       call(CoreAPI.searchSubmissions, {
         form: 'member-activities',
@@ -506,6 +513,13 @@ export function* fetchCurrentMemberAdditional(action) {
         form: 'pos-purchased-item',
         search: MEMBER_POS_SEARCH,
         datastore: true,
+      }),
+      call(CoreAPI.searchSubmissions, {
+        form:
+          action.payload.billingService.toLowerCase().replace(' ', '-') +
+          '-remote-registration',
+        kapp: 'services',
+        search: REMOTE_REGISTRATION_SEARCH,
       }),
     ]);
 
@@ -689,6 +703,10 @@ export function* fetchCurrentMemberAdditional(action) {
       posOrders: posOrders,
       posItems: posItems,
       additionalServices: additionalServices,
+      remoteRegistrationForm:
+        remoteRegistrationSubmissions.submissions.length > 0
+          ? remoteRegistrationSubmissions.submissions[0]
+          : undefined,
     };
     yield put(actions.setCurrentMemberAdditional(memberInfo));
   } catch (error) {

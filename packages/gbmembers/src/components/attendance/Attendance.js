@@ -197,8 +197,14 @@ export class SelfCheckin extends Component {
           <div className="details">
             {this.state.memberItem.values['Photo'] === undefined ? (
               <span className="noPhoto">
-                {this.state.memberItem.values['First Name'][0]}
-                {this.state.memberItem.values['Last Name'][0]}
+                {this.state.memberItem.values['First Name'] !== undefined &&
+                this.state.memberItem.values['First Name'] !== ''
+                  ? this.state.memberItem.values['First Name'][0]
+                  : ''}
+                {this.state.memberItem.values['Last Name'] !== undefined &&
+                this.state.memberItem.values['Last Name'] !== ''
+                  ? this.state.memberItem.values['Last Name'][0]
+                  : ''}
               </span>
             ) : (
               <img
@@ -461,7 +467,10 @@ export class SelfCheckin extends Component {
         member.values['Status'] !== 'Inactive' &&
         member.values['Status'] !== 'Frozen' &&
         this.state.allowedPrograms.findIndex(
-          program => program.value === member.values['Ranking Program'],
+          program =>
+            program.value === member.values['Ranking Program'] ||
+            member.values['Additional Program 1'] === program.value ||
+            member.values['Additional Program 2'] === program.value,
         ) !== -1
       ) {
         membersVals.push({
@@ -606,20 +615,54 @@ export class SelfCheckin extends Component {
         memberItem.values['Max Weekly Classes'] !== '' &&
         parseInt(memberItem.values['Max Weekly Classes']) > 0
       ) {
-        var now = moment();
-        var monday = now.clone().weekday(0);
-        var sunday = now.clone().weekday(6);
-        this.setState({
-          memberItem: memberItem,
-          verifyMemberMaxClasses: true,
-          memberMaxClassesExceeded: false,
+        var excludeFromMaxClasses = false;
+        this.state.allowedPrograms.forEach(prog => {
+          let addProg = attendanceThis.props.additionalPrograms.findEntry(
+            add => add.program === prog.value,
+          );
+          console.log(addProg);
+          if (addProg !== undefined && addProg[1].exludeFromGrading.length > 0)
+            excludeFromMaxClasses = true;
         });
-        attendanceThis.props.fetchMemberClassAttendancesByDate({
-          memberItem: memberItem,
-          fromDate: monday.format('YYYY-MM-DD'),
-          toDate: sunday.format('YYYY-MM-DD'),
-          verifyMemberMaxClassesComplete: this.verifyMemberMaxClassesComplete,
-        });
+
+        if (!excludeFromMaxClasses) {
+          var now = moment();
+          var monday = now.clone().weekday(0);
+          var sunday = now.clone().weekday(6);
+          this.setState({
+            memberItem: memberItem,
+            verifyMemberMaxClasses: true,
+            memberMaxClassesExceeded: false,
+          });
+          attendanceThis.props.fetchMemberClassAttendancesByDate({
+            memberItem: memberItem,
+            fromDate: monday.format('YYYY-MM-DD'),
+            toDate: sunday.format('YYYY-MM-DD'),
+            verifyMemberMaxClassesComplete: this.verifyMemberMaxClassesComplete,
+          });
+        } else {
+          let attendance = {
+            attendanceStatus: 'Full Class',
+          };
+          this.setState({
+            memberItem: memberItem,
+            checkinClassMember: true,
+          });
+          attendanceThis.props.checkinMember(
+            attendanceThis.props.createAttendance,
+            attendance,
+            attendanceThis.props.additionalPrograms,
+            memberItem,
+            this.state.classTitle,
+            this.state.className,
+            this.state.classDate,
+            this.state.classTime,
+            'Full Class',
+            attendanceThis.props.classAttendances,
+            attendanceThis.props.allMembers,
+            attendanceThis.props.updateMember,
+          );
+        }
       } else {
         let attendance = {
           attendanceStatus: 'Full Class',
@@ -812,7 +855,10 @@ export class SelfCheckin extends Component {
     if (memberItem !== undefined) {
       validClassessAllowed =
         this.state.allowedPrograms.findIndex(
-          program => program.value === memberItem.values['Ranking Program'],
+          program =>
+            program.value === memberItem.values['Ranking Program'] ||
+            memberItem.values['Additional Program 1'] === program.value ||
+            memberItem.values['Additional Program 2'] === program.value,
         ) !== -1;
     }
     for (let i = 0; i < attendanceThis.props.classAttendances.length; i++) {
@@ -998,7 +1044,7 @@ export class SelfCheckin extends Component {
                       this.selfCheckinHandleScan(e.target.value)
                     }}
                   />
-                  */}
+                 */}
                 <div className="dayClasses">
                   {attendanceThis
                     .getDayClasses(
@@ -1042,123 +1088,139 @@ export class SelfCheckin extends Component {
                       <h5>READY TO SCAN MEMBER</h5>
                       <SVGInline svg={barcodeIcon} className="icon" />
                     </div>
-                    <div className="manual">
-                      <h5>OR SELECT MEMBER</h5>
-                      <Select
-                        closeMenuOnSelect={true}
-                        options={this.getClassAllowedMembers()}
-                        className="hide-columns-container"
-                        classNamePrefix="hide-columns"
-                        placeholder="Select Member"
-                        styles={{
-                          option: base => ({
-                            ...base,
-                            width: '100%',
-                            height: '120px',
-                          }),
-                          input: base => ({
-                            ...base,
-                            width: '400px',
-                          }),
-                        }}
-                        value={
-                          this.memberItem === undefined
-                            ? ''
-                            : this.memberItem.id
-                        }
-                        formatOptionLabel={value => (
-                          <div className="member-option">
-                            {value.member !== undefined ? (
-                              <div className="memberInfo">
-                                {value.member.values['Photo'] === undefined ? (
-                                  <span className="noPhoto">
-                                    {value.member.values['First Name'][0]}
-                                    {value.member.values['Last Name'][0]}
-                                  </span>
-                                ) : (
-                                  <img
-                                    src={value.member.values['Photo']}
-                                    alt="Member Photograph"
-                                    className="photo"
-                                  />
-                                )}
-                                <div className="info">
-                                  {getAttributeValue(
-                                    this.props.space,
-                                    'Member Waiver Compliance Date',
-                                  ) !== undefined &&
-                                    getAttributeValue(
+                    {getAttributeValue(
+                      this.props.space,
+                      'Self Checkin Scan Only',
+                    ) !== 'YES' && (
+                      <div className="manual">
+                        <h5>OR SELECT MEMBER</h5>
+                        <Select
+                          closeMenuOnSelect={true}
+                          options={this.getClassAllowedMembers()}
+                          className="hide-columns-container"
+                          classNamePrefix="hide-columns"
+                          placeholder="Select Member"
+                          styles={{
+                            option: base => ({
+                              ...base,
+                              width: '100%',
+                              height: '120px',
+                            }),
+                            input: base => ({
+                              ...base,
+                              width: '400px',
+                            }),
+                          }}
+                          value={
+                            this.memberItem === undefined
+                              ? ''
+                              : this.memberItem.id
+                          }
+                          formatOptionLabel={value => (
+                            <div className="member-option">
+                              {value.member !== undefined ? (
+                                <div className="memberInfo">
+                                  {value.member.values['Photo'] ===
+                                  undefined ? (
+                                    <span className="noPhoto">
+                                      {value.member.values['First Name'] !==
+                                        undefined &&
+                                      value.member.values['First Name'] !== ''
+                                        ? value.member.values['First Name'][0]
+                                        : ''}
+                                      {value.member.values['Last Name'] !==
+                                        undefined &&
+                                      value.member.values['Last Name'] !== ''
+                                        ? value.member.values['Last Name'][0]
+                                        : ''}
+                                    </span>
+                                  ) : (
+                                    <img
+                                      src={value.member.values['Photo']}
+                                      alt="Member Photograph"
+                                      className="photo"
+                                    />
+                                  )}
+                                  <div className="info">
+                                    {getAttributeValue(
                                       this.props.space,
                                       'Member Waiver Compliance Date',
-                                    ) !== '' &&
-                                    getAttributeValue(
-                                      this.props.space,
-                                      'Member Waiver Compliance Date',
-                                    ) !== null && (
-                                      <span>
-                                        {(value.member.values[
-                                          'Waiver Complete Date'
-                                        ] === undefined ||
-                                          value.member.values[
-                                            'Waiver Complete Date'
-                                          ] === '' ||
-                                          value.member.values[
+                                    ) !== undefined &&
+                                      getAttributeValue(
+                                        this.props.space,
+                                        'Member Waiver Compliance Date',
+                                      ) !== '' &&
+                                      getAttributeValue(
+                                        this.props.space,
+                                        'Member Waiver Compliance Date',
+                                      ) !== null && (
+                                        <span>
+                                          {(value.member.values[
                                             'Waiver Complete Date'
                                           ] === undefined ||
-                                          value.member.values[
-                                            'Waiver Complete Date'
-                                          ] === null ||
-                                          moment(
                                             value.member.values[
                                               'Waiver Complete Date'
-                                            ],
-                                          ).isBefore(
+                                            ] === '' ||
+                                            value.member.values[
+                                              'Waiver Complete Date'
+                                            ] === undefined ||
+                                            value.member.values[
+                                              'Waiver Complete Date'
+                                            ] === null ||
                                             moment(
-                                              getAttributeValue(
-                                                this.props.space,
-                                                'Member Waiver Compliance Date',
+                                              value.member.values[
+                                                'Waiver Complete Date'
+                                              ],
+                                            ).isBefore(
+                                              moment(
+                                                getAttributeValue(
+                                                  this.props.space,
+                                                  'Member Waiver Compliance Date',
+                                                ),
                                               ),
-                                            ),
-                                          )) && (
-                                          <div
-                                            className={
-                                              'iconItem waiver notValid'
-                                            }
-                                          >
-                                            <SVGInline
-                                              svg={waiverCheckedIcon}
-                                              className="icon"
-                                            />
-                                            <span className="value">
-                                              Waiver Acceptance Required
-                                            </span>
-                                          </div>
-                                        )}
-                                      </span>
-                                    )}
-                                  <h4>
-                                    {value.member.values['First Name']}{' '}
-                                    {value.member.values['Last Name']}: <br />
-                                    <b>
-                                      {value.member.values['Ranking Program']}
-                                    </b>
-                                    -
-                                    <i>{value.member.values['Ranking Belt']}</i>
-                                  </h4>
+                                            )) && (
+                                            <div
+                                              className={
+                                                'iconItem waiver notValid'
+                                              }
+                                            >
+                                              <SVGInline
+                                                svg={waiverCheckedIcon}
+                                                className="icon"
+                                              />
+                                              <span className="value">
+                                                Waiver Acceptance Required
+                                              </span>
+                                            </div>
+                                          )}
+                                        </span>
+                                      )}
+                                    <h4>
+                                      {value.member.values['First Name']}{' '}
+                                      {value.member.values['Last Name']}: <br />
+                                      <b>
+                                        {value.member.values['Ranking Program']}
+                                      </b>
+                                      -
+                                      <i>
+                                        {value.member.values['Ranking Belt']}
+                                      </i>
+                                    </h4>
+                                  </div>
                                 </div>
-                              </div>
-                            ) : (
-                              <div />
-                            )}
-                          </div>
-                        )}
-                        onChange={e => {
-                          this.setState({ attendanceAdded: undefined });
-                          this.selectedSelfCheckInMember(e.member);
-                        }}
-                        style={{ width: '300px' }}
-                      />
-                    </div>
+                              ) : (
+                                <div />
+                              )}
+                            </div>
+                          )}
+                          onChange={e => {
+                            this.setState({ attendanceAdded: undefined });
+                            this.selectedSelfCheckInMember(e.member);
+                          }}
+                          style={{ width: '300px' }}
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
                 {this.state.memberItem !== undefined ||
@@ -1168,8 +1230,16 @@ export class SelfCheckin extends Component {
                   <div className="memberInfo">
                     {this.state.memberItem.values['Photo'] === undefined ? (
                       <span className="noPhoto">
-                        {this.state.memberItem.values['First Name'][0]}
-                        {this.state.memberItem.values['Last Name'][0]}
+                        {this.state.memberItem.values['First Name'] !==
+                          undefined &&
+                        this.state.memberItem.values['First Name'] !== ''
+                          ? this.state.memberItem.values['First Name'][0]
+                          : ''}
+                        {this.state.memberItem.values['Last Name'] !==
+                          undefined &&
+                        this.state.memberItem.values['Last Name'] !== ''
+                          ? this.state.memberItem.values['Last Name'][0]
+                          : ''}
                       </span>
                     ) : (
                       <img
@@ -1297,8 +1367,14 @@ export class SelfCheckin extends Component {
                               <span className="top">
                                 {booking.photo === undefined ? (
                                   <span className="noPhoto">
-                                    {booking.firstName[0]}
-                                    {booking.lastName[0]}
+                                    {booking.firstName !== undefined &&
+                                    booking.firstName !== ''
+                                      ? booking.firstName[0]
+                                      : ''}
+                                    {booking.lastName !== undefined &&
+                                    booking.lastName !== ''
+                                      ? booking.lastName[0]
+                                      : ''}
                                   </span>
                                 ) : (
                                   <img
@@ -1439,8 +1515,16 @@ export class SelfCheckin extends Component {
                               <span className="top">
                                 {checkin.values['Photo'] === undefined ? (
                                   <span className="noPhoto">
-                                    {checkin.values['First Name'][0]}
-                                    {checkin.values['Last Name'][0]}
+                                    {checkin.values['First Name'] !==
+                                      undefined &&
+                                    checkin.values['First Name'] !== ''
+                                      ? checkin.values['First Name'][0]
+                                      : ''}
+                                    {checkin.values['Last Name'] !==
+                                      undefined &&
+                                    checkin.values['Last Name'] !== ''
+                                      ? checkin.values['Last Name'][0]
+                                      : ''}
                                   </span>
                                 ) : (
                                   <img
@@ -1935,7 +2019,7 @@ export class AttendanceDetail extends Component {
       }
     }
 
-    if (!this.state.memberAlreadyCheckedIn) {
+    if (!this.state.memberAlreadyCheckedIn && memberItem !== undefined) {
       if (
         memberItem.values['Max Weekly Classes'] !== undefined &&
         memberItem.values['Max Weekly Classes'] !== null &&
@@ -2659,8 +2743,14 @@ export class AttendanceDetail extends Component {
                               <span className="top">
                                 {booking.photo === undefined ? (
                                   <span className="noPhoto">
-                                    {booking.firstName[0]}
-                                    {booking.lastName[0]}
+                                    {booking.firstName !== undefined &&
+                                    booking.firstName !== ''
+                                      ? booking.firstName[0]
+                                      : ''}
+                                    {booking.lastName !== undefined &&
+                                    booking.lastName !== ''
+                                      ? booking.lastName[0]
+                                      : ''}
                                   </span>
                                 ) : (
                                   <img
@@ -2810,8 +2900,16 @@ export class AttendanceDetail extends Component {
                   <div className="memberInfo">
                     {this.state.memberItem.values['Photo'] === undefined ? (
                       <span className="noPhoto">
-                        {this.state.memberItem.values['First Name'][0]}
-                        {this.state.memberItem.values['Last Name'][0]}
+                        {this.state.memberItem.values['First Name'] !==
+                          undefined &&
+                        this.state.memberItem.values['First Name'] !== ''
+                          ? this.state.memberItem.values['First Name'][0]
+                          : ''}
+                        {this.state.memberItem.values['Last Name'] !==
+                          undefined &&
+                        this.state.memberItem.values['Last Name'] !== ''
+                          ? this.state.memberItem.values['Last Name'][0]
+                          : ''}
                       </span>
                     ) : (
                       <img
@@ -3157,8 +3255,16 @@ export class AttendanceDetail extends Component {
                               <span className="top">
                                 {checkin.values['Photo'] === undefined ? (
                                   <span className="noPhoto">
-                                    {checkin.values['First Name'][0]}
-                                    {checkin.values['Last Name'][0]}
+                                    {checkin.values['First Name'] !==
+                                      undefined &&
+                                    checkin.values['First Name'] !== ''
+                                      ? checkin.values['First Name'][0]
+                                      : ''}
+                                    {checkin.values['Last Name'] !==
+                                      undefined &&
+                                    checkin.values['Last Name'] !== ''
+                                      ? checkin.values['Last Name'][0]
+                                      : ''}
                                   </span>
                                 ) : (
                                   <img

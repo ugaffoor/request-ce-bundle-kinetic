@@ -1261,7 +1261,7 @@ export class MemberFinancialReport extends Component {
         (status === 'Active' ||
           status === 'Pending Freeze' ||
           status === 'Pending Cancellation') &&
-        /*        (member.member!==undefined) &&  */
+        member.member !== undefined &&
         (member.member.values['Non Paying'] === null ||
           member.member.values['Non Paying'] === undefined ||
           member.member.values['Non Paying'] === '')
@@ -2184,7 +2184,8 @@ export class MemberFinancialReport extends Component {
       member.values['Billing User'] === 'YES'
     ) {
       let billingIdx = billingCustomers.findIndex(
-        element => element.customerId === member.values['Billing Customer Id'],
+        element =>
+          element.customerId === member.values['Billing Customer Reference'],
       );
       if (billingIdx === -1) return 0;
       let billing = billingCustomers[billingIdx];

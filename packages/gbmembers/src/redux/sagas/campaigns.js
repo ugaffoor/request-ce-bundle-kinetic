@@ -269,6 +269,7 @@ export function* fetchSmsCampaigns(action) {
       .includes([
         'details',
         'values[Recipients]',
+        'values[Phone Numbers]',
         'values[From Number]',
         'values[SMS Content]',
         'values[Sent Date]',

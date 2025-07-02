@@ -24,6 +24,7 @@ import { getLocalePreference } from '../Member/MemberUtils';
 import { I18n } from '../../../../app/src/I18nProvider';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { KappNavLink as NavLink } from 'common';
+import { DeleteLeadsModalContainer } from './DeleteLeadsModalContainer';
 
 export const contact_date_format = ['YYYY-MM-DD HH:mm', 'YYYY-MM-DDTHH:mm:ssZ'];
 
@@ -45,6 +46,7 @@ export class LeadsActivityReport extends Component {
     this.activityData = this.getGridData(this.props.leads);
     this.handleCellClick = this.handleCellClick.bind(this);
     this.handleEventsCellClick = this.handleEventsCellClick.bind(this);
+    this.setDeleteLeadsModal = this.setDeleteLeadsModal.bind(this);
 
     this.columns = [
       {
@@ -304,6 +306,7 @@ export class LeadsActivityReport extends Component {
       includesOptions: [],
       includesValue: [],
       selectedFilterFieldDataType: null,
+      deleteLeadsModal: false,
     };
   }
 
@@ -1703,7 +1706,9 @@ export class LeadsActivityReport extends Component {
         preference['Preference Name'] !== this.state.selectedPreference,
     );
   };
-
+  setDeleteLeadsModal(show) {
+    this.setState({ deleteLeadsModal: show });
+  }
   render() {
     const options = {
       height: 450,
@@ -1962,6 +1967,18 @@ export class LeadsActivityReport extends Component {
                   <br />
                   Preference
                 </button>
+                {/*                <button
+                  name="deleteLeads"
+                      className="btn btn-primary"
+                  onClick={e => this.setState({deleteLeadsModal: true})}
+                >
+                  Delete Leads
+                </button>
+                {this.state.deleteLeadsModal && (
+                  <DeleteLeadsModalContainer
+                    setShowSetStatusModal={this.setDeleteLeadsModal}
+                    leadRows={this.leadsActivityGridref.table.rowManager.activeRows}
+                  /> */}
               </div>
             </div>
           </div>

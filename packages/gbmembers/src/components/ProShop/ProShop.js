@@ -3199,6 +3199,79 @@ class Checkout extends Component {
                     </div>
                   </div>
                 )}
+              {this.props.posCheckout['Checkout Items']['products'] !==
+                undefined &&
+                this.props.posCheckout['Checkout Items']['products'].filter(
+                  product => product['productType'] === 'Concession',
+                ).length > 0 && (
+                  <div className="concessions">
+                    <div className="label">Concessions</div>
+                    <div className="products">
+                      {this.props.posCheckout['Checkout Items']['products'] !==
+                        undefined &&
+                        this.props.posCheckout['Checkout Items']['products']
+                          .filter(
+                            product => product['productType'] === 'Concession',
+                          )
+                          .map((product, index) => (
+                            <div
+                              className="lineItem"
+                              product-id={product['productID']}
+                              key={index}
+                            >
+                              <div className="quantity">
+                                {product['quantity']}
+                              </div>
+                              <div className="name">{product['name']}</div>
+                              <div className="price">
+                                {new Intl.NumberFormat(this.props.locale, {
+                                  style: 'currency',
+                                  currency: this.props.currency,
+                                }).format(product['price'])}
+                              </div>
+                              <SVGInline
+                                svg={binIcon}
+                                className="icon delete"
+                                onClick={async e => {
+                                  var cancelButton = $(e.target);
+                                  if (
+                                    await confirm(
+                                      <span>
+                                        <span>
+                                          Are you sure you want to REMOVE this
+                                          item?
+                                        </span>
+                                        <table>
+                                          <tbody>
+                                            <tr>
+                                              <td>
+                                                {$(e.target)
+                                                  .parents('.lineItem')
+                                                  .children('.name')
+                                                  .html()}
+                                              </td>
+                                            </tr>
+                                          </tbody>
+                                        </table>
+                                      </span>,
+                                    )
+                                  ) {
+                                    console.log('sds');
+
+                                    this.props.removeProduct(
+                                      this,
+                                      cancelButton
+                                        .parents('.lineItem')
+                                        .attr('product-id'),
+                                    );
+                                  }
+                                }}
+                              />
+                            </div>
+                          ))}
+                    </div>
+                  </div>
+                )}
             </span>
             <span className="subtotal">
               <div className="label">
@@ -4095,6 +4168,41 @@ export class ProShop extends Component {
                     <span className="appName">PACKAGES</span>
                     <div className="droparrow" />
                   </div>
+                  <div
+                    className="categoryIconButton cancession"
+                    onClick={e => {
+                      $('.topRow .categoryIconButton').removeClass('active');
+                      $(e.target)
+                        .parents('.categoryIconButton')
+                        .addClass('active');
+                      this.props.setProductType('Concession');
+                      if (
+                        this.props.posCategories.filter(
+                          category => category.values['Type'] === 'Concession',
+                        ).length > 0
+                      ) {
+                        this.setState({
+                          category: this.props.posCategories.filter(
+                            category =>
+                              category.values['Type'] === 'Concession',
+                          )[0].values['Label'],
+                        });
+                      } else {
+                        this.setState({
+                          category: '',
+                        });
+                      }
+                      this.setState({
+                        scanned: undefined,
+                        scannedSKU: undefined,
+                        productCodeValue: undefined,
+                      });
+                    }}
+                  >
+                    <SVGInline svg={starIcon} className="icon" />
+                    <span className="appName">CONCESSIONS</span>
+                    <div className="droparrow" />
+                  </div>
                   <div className="editProductsView">
                     <label htmlFor="editProductsMode">Edit Products</label>
                     <div className="checkboxFilter">
@@ -4153,10 +4261,9 @@ export class ProShop extends Component {
                   >
                     <img src={addIcon} alt="Add" />
                     <span className="appName">
-                      ADD{' '}
                       {this.props.productType === 'Apparel'
-                        ? 'PRODUCT'
-                        : 'SERVICE'}
+                        ? 'ADD PRODUCT'
+                        : 'ADD ' + this.props.productType.toUpperCase()}
                     </span>
                   </div>
                   {this.state.showAddProductDialog && (
@@ -4602,7 +4709,10 @@ export const ProShopContainer = compose(
                 posProducts[prodIdx].stock[stockIdx].values['Quantity'],
               ) - 1;
           });
-        } else if (product['productType'] === 'Service') {
+        } else if (
+          product['productType'] === 'Service' ||
+          product['productType'] === 'Concession'
+        ) {
         } else {
           decrementPOSStock({
             productID: product['productID'],

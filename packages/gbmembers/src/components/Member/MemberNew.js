@@ -302,7 +302,23 @@ export const MemberNew = ({
                           });
                           // $("#suburb").val(newValue);
                         }
-                        if (addressType === 'administrative_area_level_1') {
+                        if (
+                          getAttributeValue(space, 'School Country Code') ===
+                            'GB' &&
+                          addressType === 'postal_town'
+                        ) {
+                          let newValue =
+                            place.address_components[i]['short_name'];
+                          handleNewChange(myThis.props.memberItem, 'State', {
+                            target: { value: newValue },
+                          });
+                          // $("#state").val(newValue);
+                        }
+                        if (
+                          addressType === 'administrative_area_level_1' &&
+                          getAttributeValue(space, 'School Country Code') !==
+                            'GB'
+                        ) {
                           let newValue =
                             place.address_components[i]['short_name'];
                           handleNewChange(myThis.props.memberItem, 'State', {
@@ -721,6 +737,26 @@ export const MemberNew = ({
                 )}
               </span>
             </div>
+            {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+              <div className="sectionParent">
+                <h4>Parent or Guardian</h4>
+                <span className="line">
+                  <div>
+                    <label htmlFor="ParentGuardian">Parent or Guardian</label>
+                    <input
+                      type="text"
+                      name="ParentGuardian"
+                      id="ParentGuardian"
+                      ref={input => (this.input = input)}
+                      value={memberItem.values['Parent or Guardian']}
+                      onChange={e =>
+                        handleNewChange(memberItem, 'Parent or Guardian', e)
+                      }
+                    />
+                  </div>
+                </span>
+              </div>
+            )}
             <div className="section2">
               {getAttributeValue(space, 'Franchisor') !== 'YES' ? (
                 <h1>Emergency Contact Information</h1>
@@ -1913,6 +1949,7 @@ export const MemberNewContainer = compose(
         'Additional Phone Number': '',
         'Date Joined': '',
         'Member Type': '',
+        'Parent or Guardian': '',
         'Emergency Contact Name': '',
         'Emergency Contact Phone': '',
         'Emergency Contact Relationship': '',
@@ -1983,6 +2020,10 @@ export const MemberNewContainer = compose(
             this.props.allLeads[idx].values['Additional Phone Number'] !==
             undefined
               ? this.props.allLeads[idx].values['Additional Phone Number']
+              : '';
+          values['Parent or Guardian'] =
+            this.props.allLeads[idx].values['Parent or Guardian'] !== undefined
+              ? this.props.allLeads[idx].values['Parent or Guardian']
               : '';
           values['Emergency Contact Name'] =
             this.props.allLeads[idx].values['Emergency Contact Name'] !==

@@ -51,6 +51,7 @@ export const handleLoaded = props => form => {
   });
 };
 export const handleUpdated = props => response => {
+  K.reset();
   if (response.submission.id) {
     let idx = migrationThis.props.allMembers.findIndex(
       member => member.id === response.submission.values['Member GUID'],
@@ -61,7 +62,7 @@ export const handleUpdated = props => response => {
 };
 export const handleCreated = props => response => {
   console.log('handleCreated');
-  $(K('form').element()).remove();
+  K.reset();
 
   if (response.submission.id) {
     let idx = migrationThis.props.allMembers.findIndex(
@@ -90,6 +91,7 @@ export class StartMemberMigration extends Component {
     bundle.config.widgets.profile = this.props.profile;
     var initValues = {
       'Member GUID': this.props.memberItem.id,
+      'Registration Mode': 'Migration',
     };
     var values = {
       'Ranking Program': this.props.memberItem.values['Ranking Program'],
@@ -285,7 +287,7 @@ export class StartMemberMigration extends Component {
                 className="btn btn-primary"
                 onClick={e => {
                   try {
-                    $(K('form').element()).remove();
+                    K.reset();
                   } catch (e) {}
                   this.props.setStartMigration(false);
                 }}
@@ -461,7 +463,7 @@ export class EditMemberMigration extends Component {
               disabled={this.state.migrationFormCancelEnabled}
               onClick={e => {
                 try {
-                  $(K('form').element()).remove();
+                  K.reset();
                 } catch (e) {}
                 this.props.setEditMigration(false);
               }}

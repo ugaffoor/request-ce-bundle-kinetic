@@ -38,6 +38,7 @@ import ReactSpinner from 'react16-spinjs';
 import { CallScriptModalContainer } from './CallScriptModalContainer';
 import { SMSModalContainer } from './SMSModalContainer';
 import { ChangeStatusModalContainer } from './ChangeStatusModalContainer';
+import { RegisterMemberModalContainer } from './RegisterMemberModalContainer';
 import { BamboraActivateContainer } from './BamboraActivate';
 import { EmailsReceived } from './EmailsReceived';
 import { MemberEmails } from './MemberEmails';
@@ -930,6 +931,8 @@ export const MemberView = ({
   showSMSModal,
   setShowChangeStatusModal,
   showChangeStatusModal,
+  setShowRegisterMemberModal,
+  showRegisterMemberModal,
   isSmsEnabled,
   printBarcode,
   attendClasses,
@@ -1270,47 +1273,30 @@ export const MemberView = ({
                 <span className="buttons">
                   {getAttributeValue(space, 'Franchisor') !== 'YES' && (
                     <span>
-                      {!Utils.isMemberOf(profile, 'Role::Program Managers') ||
-                      (Utils.getAttributeValue(space, 'Billing Company') !==
-                        'Bambora' &&
-                        Utils.getAttributeValue(space, 'Billing Company') !==
-                          'Stripe') ? (
+                      {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
                         <div />
                       ) : isNewMember(memberItem) ? (
                         <span>
-                          {Utils.getAttributeValue(space, 'Billing Company') ===
-                            'Bambora' && (
-                            <a
-                              href={
-                                Utils.getAttributeValue(
-                                  space,
-                                  'Web Server Url',
-                                ) +
-                                '/#/kapps/services/categories/bambora-billing/bambora-member-registration?id=' +
-                                memberItem.id
+                          <a
+                            onClick={e => setShowRegisterMemberModal(true)}
+                            className="btn btn-primary"
+                            disabled={currentMemberAdditionalLoading}
+                            style={{ marginLeft: '10px', color: 'white' }}
+                          >
+                            Register
+                          </a>
+                          {showRegisterMemberModal && (
+                            <RegisterMemberModalContainer
+                              memberItem={memberItem}
+                              space={space}
+                              setShowRegisterMemberModal={
+                                setShowRegisterMemberModal
                               }
-                              className="btn btn-primary"
-                              style={{ marginLeft: '10px', color: 'white' }}
-                            >
-                              Register
-                            </a>
-                          )}
-                          {Utils.getAttributeValue(space, 'Billing Company') ===
-                            'Stripe' && (
-                            <a
-                              href={
-                                Utils.getAttributeValue(
-                                  space,
-                                  'Web Server Url',
-                                ) +
-                                '/#/kapps/services/categories/stripe-billing/stripe-member-registration?id=' +
-                                memberItem.id
-                              }
-                              className="btn btn-primary"
-                              style={{ marginLeft: '10px', color: 'white' }}
-                            >
-                              Register
-                            </a>
+                              billingCompany={Utils.getAttributeValue(
+                                space,
+                                'Billing Company',
+                              )}
+                            />
                           )}
                         </span>
                       ) : (
@@ -2088,6 +2074,7 @@ export const MemberViewContainer = compose(
   withState('showAttendanceDialog', 'setShowAttendanceDialog', false),
   withState('showSMSModal', 'setShowSMSModal', false),
   withState('showChangeStatusModal', 'setShowChangeStatusModal', false),
+  withState('showRegisterMemberModal', 'setShowRegisterMemberModal', false),
   withState('attendClasses', 'setAttendClasses', 0),
   withState('durationPeriod', 'setDurationPeriod', 0),
   withState('creatingUserAccount', 'setCreatingUserAccount', false),
@@ -2715,6 +2702,7 @@ export const MemberViewContainer = compose(
           allMembers: nextProps.allMembers,
         });
         this.props.setShowChangeStatusModal(false);
+        this.props.setShowRegisterMemberModal(false);
         this.props.setContactDate(moment().format(contact_date_format));
       }
       if (

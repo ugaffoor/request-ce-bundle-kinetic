@@ -450,6 +450,9 @@ export class DatepickerWrapper extends React.Component {
           ),
           localeUtils: MomentLocaleUtils,
         }}
+        classNames={{
+          container: 'DayPickerInput datetimepicker',
+        }}
       />
     );
   }

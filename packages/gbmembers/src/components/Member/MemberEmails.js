@@ -127,6 +127,20 @@ export class MemberEmails extends Component {
       /member\('Last Name'\)/g,
       this.props.memberItem.values['Last Name'],
     );
+    body = body.replace(/member\('ID'\)/g, this.props.memberItem.id);
+    body = body.replace(
+      /\$\{Event\%20Source\%20ID}/g,
+      this.props.campaignItem.values['Event Source ID'],
+    );
+    body = body.replace(
+      /\$\{Event\%20Source\%20Date}/g,
+      moment(
+        this.props.campaignItem.values['Event Source Date'],
+        'YYYY-MM-DD',
+      ).format('L'),
+    );
+    body = body.replace(/\$\{space\}/g, this.props.space.slug);
+    body = body.replace(/\$\{spaceSlug\}/g, this.props.space.slug);
     var matches = body.match(/\$\{.*?\('(.*?)'\)\}/g);
     var self = this;
     if (matches !== null) {

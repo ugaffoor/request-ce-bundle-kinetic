@@ -99,6 +99,20 @@
     }
   }
 }
+.registerOptions {
+  display: flex;
+  .cell {
+    margin: 20px;
+    .device {
+      color: blue;
+      cursor: pointer;
+    }
+    .remote {
+      color: green;
+      cursor: pointer;
+    }
+  }
+}
 .statusOptions a {
   color: blue;
 }

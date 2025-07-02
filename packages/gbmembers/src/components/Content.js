@@ -12,6 +12,7 @@ import { NotificationsContainer } from './notifications/NotificationsContainer';
 import { MemberEditContainer } from './Member/MemberEdit';
 import { MemberNewContainer } from './Member/MemberNew';
 import { MemberViewContainer } from './Member/MemberView';
+import { RemoteRegistrationContainer } from './Member/RemoteRegistration';
 import { BillingContainer } from './Member/Billing';
 import { ModalFormContainer } from '../lib/react-kinops-components/src/components/Modals/ModalFormContainer';
 import { ListNewContainer } from './lists/ListNew';
@@ -54,6 +55,10 @@ export const Content = ({ isKiosk }) => (
     <Route path="/NewMember/:leadId?" component={MemberNewContainer} />
     <Route path="/Edit/:id" component={MemberEditContainer} />
     <Route path="/Member/:id" component={MemberViewContainer} />
+    <Route
+      path="/RemoteRegistration/:id"
+      component={RemoteRegistrationContainer}
+    />
     <Route path="/Billing/:id" component={BillingContainer} />
     <Route path="/NewList" component={ListNewContainer} />
     <Route path="/memberLists" component={ListContainer} />
