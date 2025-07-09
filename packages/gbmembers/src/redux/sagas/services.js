@@ -10,7 +10,6 @@ const util = require('util');
 export function* fetchServicesByDate(action) {
   const kappSlug = 'services';
   const searchBuilder = new CoreAPI.SubmissionSearch()
-    .coreState('Submitted')
     .type('Service')
     .sortBy('submittedAt')
     .sortDirection('DESC')

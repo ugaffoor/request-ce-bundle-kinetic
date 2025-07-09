@@ -2647,32 +2647,34 @@ export class BillingInfo extends Component {
                             </NavLink>
                           </div>
                         )}
-                        {/*getAttributeValue(
+                        {getAttributeValue(
                           this.props.space,
                           'Billing Company',
-                        ) === 'Stripe' && (
-                          <div>
-                            <NavLink
-                              to={`/categories/stripe-billing/stripe-submit-billing-changes?id=${this.props.memberItem.id}`}
-                              kappSlug={'services'}
-                              className={
-                                'nav-link icon-wrapper btn btn-primary'
-                              }
-                              activeClassName="active"
-                              disabled={
-                                this.props.memberItem.values['Status'] !==
-                                'Active'
-                              }
-                              style={{
-                                display: 'inline',
-                                paddingTop: '4px',
-                                paddingBottom: '4px',
-                              }}
-                            >
-                              Update Billing Details
-                            </NavLink>
-                          </div>
-                        )*/}
+                        ) === 'Stripe' &&
+                          getAttributeValue(this.props.space, 'Franchisor') !==
+                            'YES' && (
+                            <div>
+                              <NavLink
+                                to={`/categories/stripe-billing/stripe-submit-billing-changes?id=${this.props.memberItem.id}`}
+                                kappSlug={'services'}
+                                className={
+                                  'nav-link icon-wrapper btn btn-primary'
+                                }
+                                activeClassName="active"
+                                disabled={
+                                  this.props.memberItem.values['Status'] !==
+                                  'Active'
+                                }
+                                style={{
+                                  display: 'inline',
+                                  paddingTop: '4px',
+                                  paddingBottom: '4px',
+                                }}
+                              >
+                                Update Billing Details
+                              </NavLink>
+                            </div>
+                          )}
                         {getAttributeValue(
                           this.props.space,
                           'Billing Company',

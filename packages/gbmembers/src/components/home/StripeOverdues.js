@@ -119,7 +119,7 @@ export class StripeOverdues extends Component {
       // Keep only Recurring Billing failures
       var idx = this.props.allMembers.findIndex(
         member =>
-          member.values['Billing Customer Reference'] ===
+          member.values['Billing Customer Id'] ===
             payment.yourSystemReference ||
           member.values['Billing Setup Fee Id'] === payment.yourSystemReference,
       );
@@ -143,7 +143,7 @@ export class StripeOverdues extends Component {
 
       var idx = this.props.allMembers.findIndex(
         member =>
-          member.values['Billing Customer Reference'] ===
+          member.values['Billing Customer Id'] ===
             payment.yourSystemReference ||
           member.values['Billing Setup Fee Id'] === payment.yourSystemReference,
       );

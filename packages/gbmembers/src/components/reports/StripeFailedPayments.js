@@ -97,8 +97,7 @@ export class StripeFailedPayments extends Component {
     const data = uniqueHistory.map(payment => {
       var idx = this.props.allMembers.findIndex(
         member =>
-          member.values['Billing Customer Reference'] ===
-          payment.yourSystemReference,
+          member.values['Billing Customer Id'] === payment.yourSystemReference,
       );
       var member = undefined;
       if (idx !== -1) {
