@@ -1119,7 +1119,9 @@ export class MemberFinancialReport extends Component {
 
     cashMemberRegistrations.forEach(registration => {
       var pIdx = cashPayments.findIndex(
-        item => item.member.id === registration.values['Members'],
+        item =>
+          item.member !== undefined &&
+          item.member.id === registration.values['Members'],
       );
       var mIdx = members.findIndex(
         member => member.id === registration.values['Members'],
@@ -1143,9 +1145,11 @@ export class MemberFinancialReport extends Component {
         endPeriod: moment(registration.values['Term End Date']),
         date: moment(registration.values['Term Date']),
         name:
-          members[mIdx].values['First Name'] +
-          ' ' +
-          members[mIdx].values['Last Name'],
+          members[mIdx] !== undefined
+            ? members[mIdx].values['First Name'] +
+              ' ' +
+              members[mIdx].values['Last Name']
+            : 'Unknown',
         amount: Number(registration.values['Payment Required']).toFixed(2),
       });
       cashPaymentsValue += Number(registration.values['Payment Required']);
@@ -1245,7 +1249,8 @@ export class MemberFinancialReport extends Component {
         if (
           item.values['Member ID'] === member.memberId ||
           item.values['Member ID'] === member.customerId ||
-          item.values['Billing Customer Id'] === member.customerId
+          item.values['Billing Customer Id'] === member.customerId ||
+            item.values['Billing Customer Reference'] === member.customerId
         ) {
           member.id = item.id;
           member.status = item.values['Status'];
@@ -1269,7 +1274,8 @@ export class MemberFinancialReport extends Component {
         // Find latest payment date
         var idx = fullPaymentHistory.findIndex(item => {
           if (
-            member.customerId === item.yourSystemReference &&
+            (member.customerId === item.yourSystemReference ||
+              member.customerId === item.paymentID) &&
             item.paymentSource !== 'Manual Membership Payment' &&
             item.paymentSource !== 'Overdue Payment'
           ) {
@@ -1310,7 +1316,7 @@ export class MemberFinancialReport extends Component {
               )
             );
           else {
-            return payment.yourSystemReference === member.customerId;
+            return payment.paymentID === member.customerId;
           }
         });
         var isConcerned = this.isConcernedMember(
@@ -1956,7 +1962,11 @@ export class MemberFinancialReport extends Component {
   getCashPaymentAmount(payments, member) {
     var amount = 0;
     payments.forEach((payment, i) => {
-      if (payment.member.values['Member ID'] === member.values['Member ID']) {
+      if (
+        payment.member !== undefined &&
+        member !== undefined &&
+        payment.member.values['Member ID'] === member.values['Member ID']
+      ) {
         amount = amount + parseFloat(payment.amount);
       }
     });
@@ -2108,11 +2118,14 @@ export class MemberFinancialReport extends Component {
     for (var i = col - 1; i < members.length; i = i + 2) {
       var amount = this.getCashPaymentAmount(members, members[i].member);
       members_col[members_col.length] = {
-        memberId: members[i].member.id,
+        memberId:
+          members[i].member !== undefined ? members[i].member.id : 'Unknown',
         name:
-          members[i].member.values['Last Name'] +
-          ' ' +
-          members[i].member.values['First Name'],
+          members[i].member !== undefined
+            ? members[i].member.values['Last Name'] +
+              ' ' +
+              members[i].member.values['First Name']
+            : 'Unknown',
         fee: amount,
         cost: amount,
         period: 'Cash',
@@ -2185,6 +2198,7 @@ export class MemberFinancialReport extends Component {
     ) {
       let billingIdx = billingCustomers.findIndex(
         element =>
+          element.customerId === member.values['Billing Customer Id'] ||
           element.customerId === member.values['Billing Customer Reference'],
       );
       if (billingIdx === -1) return 0;
@@ -2264,9 +2278,17 @@ export class MemberFinancialReport extends Component {
   }
   getCashPaymentsTableData(members, cashPayments) {
     members.sort(function(a, b) {
-      if (a.member.values['Last Name'] < b.member.values['Last Name']) {
+      if (
+        a.member !== undefined &&
+        b.member !== undefined &&
+        a.member.values['Last Name'] < b.member.values['Last Name']
+      ) {
         return -1;
-      } else if (a.member.values['Last Name'] > b.member.values['Last Name']) {
+      } else if (
+        a.member !== undefined &&
+        b.member !== undefined &&
+        a.member.values['Last Name'] > b.member.values['Last Name']
+      ) {
         return 1;
       }
       return 0;

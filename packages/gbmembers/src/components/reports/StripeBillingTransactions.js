@@ -127,7 +127,7 @@ export class StripeBillingTransactions extends Component {
         this.props.space.defaultTimezone,
       ),
     });
-    this.props.fetchPaymentHistory({
+    /*    this.props.fetchPaymentHistory({
       paymentType: 'FAILED',
       paymentMethod: 'ALL',
       paymentSource: 'ALL',
@@ -144,7 +144,7 @@ export class StripeBillingTransactions extends Component {
         this.props.profile.timezone,
         this.props.space.defaultTimezone,
       ),
-    });
+    }); */
     this.props.fetchPaymentHistory({
       paymentType: 'CHARGES',
       paymentMethod: 'ALL',
@@ -200,33 +200,35 @@ export class StripeBillingTransactions extends Component {
     let dataMap = new Map();
 
     posPaymentHistory.forEach((payment, idx) => {
-      let date = this.getDate(payment['debitDate']);
-      let item = dataMap.get(date);
-      let amount = parseFloat(payment['paymentAmount'].toFixed(2));
-      let fee = -parseFloat(payment['transactionFeeClient'].toFixed(2));
-      //console.log(","+payment['debitDate']+","+date+","+amount+",");
-      if (item === undefined) {
-        if (payment['yourGeneralReference'] === null) {
-          dataMap.set(date, { pos: amount, fees: fee });
-        } else {
-          dataMap.set(date, { membership: amount, fees: fee });
-        }
-      } else {
-        if (payment['yourGeneralReference'] === null) {
-          if (item.pos === undefined) {
-            item.pos = amount;
+      if (payment['paymentStatus'] === 'succeeded') {
+        let date = this.getDate(payment['debitDate']);
+        let item = dataMap.get(date);
+        let amount = parseFloat(payment['paymentAmount'].toFixed(2));
+        let fee = -parseFloat(payment['transactionFeeClient'].toFixed(2));
+        //console.log(","+payment['debitDate']+","+date+","+amount+",");
+        if (item === undefined) {
+          if (payment['yourGeneralReference'] === null) {
+            dataMap.set(date, { pos: amount, fees: fee });
           } else {
-            item.pos = item.pos + amount;
+            dataMap.set(date, { membership: amount, fees: fee });
           }
         } else {
-          if (item.membership === undefined) {
-            item.membership = amount;
+          if (payment['yourGeneralReference'] === null) {
+            if (item.pos === undefined) {
+              item.pos = amount;
+            } else {
+              item.pos = item.pos + amount;
+            }
           } else {
-            item.membership = item.membership + amount;
+            if (item.membership === undefined) {
+              item.membership = amount;
+            } else {
+              item.membership = item.membership + amount;
+            }
           }
+          item.fees = item.fees + fee;
+          dataMap.set(date, item);
         }
-        item.fees = item.fees + fee;
-        dataMap.set(date, item);
       }
     });
 

@@ -239,7 +239,9 @@ export class RecordStockDialog extends Component {
                   if (
                     product.values['Status'] === 'Active' &&
                     product.values['Product Type'] === 'Apparel' &&
-                    product.values['SKU'] !== null &&
+                    product.values['SKU'] !== undefined &&
+                    product.values['Name'] !== undefined &&
+                    product.values['Colour'] !== undefined &&
                     ((this.state.productNameValue !== '' &&
                       product.values['SKU']
                         .toLowerCase()
