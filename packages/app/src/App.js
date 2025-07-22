@@ -39,6 +39,13 @@ export const AppComponent = props =>
         <div>Clearing cache and loading a new release, please wait...</div>
       } //If not pass, nothing appears at the time of new version check.
       metaFileDirectory={props.metaJSONLocation} //If public assets are hosted somewhere other than root on your server.
+      /*      onCacheClear={() => {
+        console.log("🧹 Cache cleared! A new version is available.");
+        // Optional: force refresh or show UI prompt
+        if (window.confirm("A new version of the app is available. Reload now?")) {
+          window.location.reload(true); // force reload without cache
+        }
+      }}*/
     >
       <Helmet>
         {

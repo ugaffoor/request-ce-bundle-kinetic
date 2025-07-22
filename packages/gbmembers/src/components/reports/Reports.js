@@ -8,14 +8,18 @@ import { actions as reportingActions } from '../../redux/modules/reporting';
 import { actions as leadsActions } from '../../redux/modules/leads';
 import { actions as servicesActions } from '../../redux/modules/services';
 import { actions as posActions } from '../../redux/modules/pos';
+import { actions as triggerActions } from '../../../../space/src/redux/modules/journeyTriggers';
+import { actions as dataStoreActions } from '../../redux/modules/settingsDatastore';
 import 'react-tabulator/lib/styles.css'; // default theme
 import 'react-tabulator/css/bootstrap/tabulator_bootstrap.min.css'; // use Theme(s)
 import { actions as appActions } from '../../redux/modules/memberApp';
+import { actions as campaignActions } from '../../redux/modules/campaigns';
 import { MemberActivityReport } from './MemberActivity';
 import { MemberFinancialStats } from './MemberFinancialStats';
 import { MemberFinancialReportContainer } from './MemberFinancialReport';
 import { LeadsActivityReport } from './LeadActivity';
 import { PDDailyReport } from './PDDaily';
+import { GBOnlineReport } from './GBOnlineReport';
 import { Services } from './Services';
 import { InactiveCustomersChart } from './PaysmartInactiveCustomers';
 import { VariationCustomers } from './PaysmartVariations';
@@ -90,6 +94,13 @@ const mapStateToProps = state => ({
   servicesLoading: state.member.services.servicesLoading,
   fetchingAttendancesByDate: state.member.attendance.fetchingAttendancesByDate,
   attendancesByDate: state.member.attendance.attendancesByDate,
+  emailCampaignsByDate: state.member.campaigns.allEmailCampaignsByDate,
+  emailCampaignsByDateLoading:
+    state.member.campaigns.emailCampaignsByDateLoading,
+  journeyTriggers: state.space.journeyTriggers.journeyTriggers,
+  journeyInfoLoading: state.space.journeyTriggers.journeyInfoLoading,
+  emailTemplates: state.member.datastore.emailTemplates,
+  emailTemplatesLoading: state.member.datastore.emailTemplatesLoading,
 });
 
 const mapDispatchToProps = {
@@ -115,6 +126,9 @@ const mapDispatchToProps = {
   setSidebarDisplayType: appActions.setSidebarDisplayType,
   fetchAttendancesByDate: attendanceActions.fetchAttendancesByDate,
   fetchPOSOrders: posActions.fetchPOSOrders,
+  fetchEmailCampaignsByDate: campaignActions.fetchEmailCampaignsByDate,
+  fetchJourneyInfo: triggerActions.fetchJourneyInfo,
+  fetchEmailTemplates: dataStoreActions.fetchEmailTemplates,
 };
 
 export const ReportsView = ({
@@ -154,6 +168,8 @@ export const ReportsView = ({
   setShowLeadActivityReport,
   showPDDailyReport,
   setShowPDDailyReport,
+  showGBOnlineReport,
+  setShowGBOnlineReport,
   showServicesReport,
   setServicesReport,
   showResumingReport,
@@ -229,6 +245,15 @@ export const ReportsView = ({
   fetchingAttendancesByDate,
   attendancesByDate,
   fetchPOSOrders,
+  fetchEmailCampaignsByDate,
+  emailCampaignsByDate,
+  emailCampaignsByDateLoading,
+  fetchJourneyInfo,
+  journeyTriggers,
+  journeyInfoLoading,
+  emailTemplatesLoading,
+  emailTemplates,
+  fetchEmailTemplates,
 }) => (
   <div className="reports">
     {memberInitialLoadComplete && (
@@ -531,6 +556,42 @@ export const ReportsView = ({
                   fetchLeadsByDate={fetchLeadsByDate}
                   leadsByDate={leadsByDate}
                   leadsByDateLoading={leadsByDateLoading}
+                  profile={profile}
+                  space={space}
+                />
+              </div>
+            )}
+          </div>
+        )}
+        {getAttributeValue(space, 'GB Online Affiliate') === 'YES' && (
+          <div style={{ margin: '20px 0px 0px 10px' }} id="gbonline-report">
+            <div className="row">
+              <button
+                type="button"
+                className="btn btn-primary report-btn-default"
+                disabled={!dummyFormLoaded}
+                onClick={e => {
+                  setShowGBOnlineReport(showGBOnlineReport ? false : true);
+                  document.getElementById('gbonline-report').scrollIntoView();
+                }}
+              >
+                {showGBOnlineReport
+                  ? 'Hide GB Online Report'
+                  : 'Show GB Online Report'}
+              </button>
+            </div>
+            {!showGBOnlineReport ? null : (
+              <div className="row">
+                <GBOnlineReport
+                  fetchEmailCampaignsByDate={fetchEmailCampaignsByDate}
+                  emailCampaignsByDate={emailCampaignsByDate}
+                  emailCampaignsByDateLoading={emailCampaignsByDateLoading}
+                  fetchJourneyInfo={fetchJourneyInfo}
+                  journeyTriggers={journeyTriggers}
+                  journeyInfoLoading={journeyInfoLoading}
+                  emailTemplatesLoading={emailTemplatesLoading}
+                  emailTemplates={emailTemplates}
+                  fetchEmailTemplates={fetchEmailTemplates}
                   profile={profile}
                   space={space}
                 />
@@ -971,6 +1032,7 @@ export const ReportsContainer = compose(
   withState('showInactiveMembers', 'setShowInactiveMembers', false),
   withState('showLeadActivityReport', 'setShowLeadActivityReport', false),
   withState('showPDDailyReport', 'setShowPDDailyReport', false),
+  withState('showGBOnlineReport', 'setShowGBOnlineReport', false),
   withState('showServicesReport', 'setServicesReport', false),
   withState('showResumingReport', 'setResumingReport', false),
   withState('showInactiveChart', 'setShowInactiveChart', false),

@@ -9,7 +9,15 @@ export const types = {
   SET_NEW_EMAIL_CAMPAIGN: namespace('campaigns', 'SET_NEW_EMAIL_CAMPAIGN'),
   FETCH_EMAIL_CAMPAIGNS: namespace('campaigns', 'FETCH_EMAIL_CAMPAIGNS'),
   SET_EMAIL_CAMPAIGNS: namespace('campaigns', 'SET_EMAIL_CAMPAIGNS'),
-  FETCH_EMAIL_CAMPAIGN: namespace('campaigns', 'FETCH_EMAIL_CAMPAIGN'),
+  FETCH_EMAIL_CAMPAIGNS_BYDATE: namespace(
+    'campaigns',
+    'FETCH_EMAIL_CAMPAIGNS_BYDATE',
+  ),
+  SET_EMAIL_CAMPAIGNS_BYDATE: namespace(
+    'campaigns',
+    'SET_EMAIL_CAMPAIGNS_BYDATE',
+  ),
+  FETCH_EMAIL_CAMPAIGN: namespace('campaigns', 'FETCH_EMAIL_CAMPAIGN_BYDATE'),
   SET_EMAIL_CAMPAIGN: namespace('campaigns', 'SET_EMAIL_CAMPAIGN'),
   UPDATE_EMAIL_CAMPAIGN: namespace('campaigns', 'UPDATE_EMAIL_CAMPAIGN'),
 
@@ -29,6 +37,8 @@ export const actions = {
   setNewEmailCampaign: withPayload(types.SET_NEW_EMAIL_CAMPAIGN),
   fetchEmailCampaigns: withPayload(types.FETCH_EMAIL_CAMPAIGNS),
   setEmailCampaigns: withPayload(types.SET_EMAIL_CAMPAIGNS),
+  fetchEmailCampaignsByDate: withPayload(types.FETCH_EMAIL_CAMPAIGNS_BYDATE),
+  setEmailCampaignsByDate: withPayload(types.SET_EMAIL_CAMPAIGNS_BYDATE),
   fetchEmailCampaign: withPayload(types.FETCH_EMAIL_CAMPAIGN),
   setEmailCampaign: withPayload(types.SET_EMAIL_CAMPAIGN),
   updateEmailCampaign: withPayload(types.UPDATE_EMAIL_CAMPAIGN),
@@ -47,8 +57,10 @@ export const State = Record({
   newEmailCampaign: {},
   emailCampaignItem: {},
   allEmailCampaigns: [],
+  allEmailCampaignsByDate: [],
   newEmailCampaignLoading: true,
   emailCampaignsLoading: true,
+  emailCampaignsByDateLoading: true,
   emailCampaignsLoadingTimestamp: moment().subtract(1, 'days'),
   emailCampaignLoading: true,
 
@@ -98,6 +110,16 @@ export const reducer = (state = State(), { type, payload }) => {
         })
         .set('emailCampaignsLoading', false)
         .set('emailCampaignsLoadingTimestamp', moment());
+    }
+    case types.FETCH_EMAIL_CAMPAIGNS_BYDATE: {
+      return state.set('emailCampaignsByDateLoading', true);
+    }
+    case types.SET_EMAIL_CAMPAIGNS_BYDATE: {
+      return state
+        .set('allEmailCampaignsByDate', {
+          submissions: payload.emailCampaigns,
+        })
+        .set('emailCampaignsByDateLoading', false);
     }
 
     case types.FETCH_NEW_SMS_CAMPAIGN:

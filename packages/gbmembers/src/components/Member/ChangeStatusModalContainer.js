@@ -904,6 +904,38 @@ export class ChangeStatusModal extends Component {
                           </tr>
                         </span>
                       )}
+                    {this.props.memberItem.values['Status'] === 'Active' &&
+                      this.props.memberItem.values['Billing Payment Type'] ===
+                        'Cash' && (
+                        <span className="cell">
+                          <tr>
+                            <td>
+                              <h2 className="remoteRegister">
+                                <NavLink
+                                  to={`/RemoteRegistration/${this.props.memberItem.id}`}
+                                  className=" nav-link icon-wrapper remote"
+                                  activeClassName="active"
+                                  style={{ display: 'inline', color: 'green' }}
+                                >
+                                  Remote Register
+                                </NavLink>
+                              </h2>
+                              <span>
+                                Convert the Cash payments to a recurring billing
+                                type
+                              </span>
+                              <br />
+                              <ol>
+                                <li>
+                                  Set the program, price and start date,{' '}
+                                  <br></br>then send link to Member to complete
+                                  the Registration via SMS or Email
+                                </li>
+                              </ol>
+                            </td>
+                          </tr>
+                        </span>
+                      )}
                     {(this.props.memberItem.values['Status'] === 'Active' ||
                       this.props.memberItem.values['Status'] === 'Frozen' ||
                       this.props.memberItem.values['Status'] ===

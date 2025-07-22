@@ -1,4 +1,4 @@
-import { call, put, takeEvery } from 'redux-saga/effects';
+import { call, put, all, takeEvery } from 'redux-saga/effects';
 import { CoreAPI } from 'react-kinetic-core';
 import { types, actions } from '../modules/campaigns';
 import axios, { post } from 'axios';
@@ -158,6 +158,74 @@ export function* fetchEmailCampaigns(action) {
   }
 }
 
+export function* fetchEmailCampaignsByDate(action) {
+  try {
+    let emailCampaigns = [];
+    let nextBeltPageTokenValue;
+
+    let search = new CoreAPI.SubmissionSearch()
+      .includes([
+        'details',
+        'values[Recipients]',
+        'values[Subject]',
+        'values[Opened By Members]',
+        'values[Clicked By Members]',
+      ])
+      .startDate(action.payload.start.toDate())
+      .endDate(action.payload.end.toDate())
+      .limit(1000)
+      .build();
+
+    const { submissions, nextPageToken } = yield call(
+      CoreAPI.searchSubmissions,
+      {
+        kapp: 'gbmembers',
+        form: 'email-campaigns',
+        search,
+      },
+    );
+    console.log(
+      '#### fetchEmailCampaignsByDate nextPageToken:' + nextPageToken,
+    );
+    nextBeltPageTokenValue = nextPageToken;
+    emailCampaigns = emailCampaigns.concat(submissions);
+
+    while (nextBeltPageTokenValue) {
+      let search2 = new CoreAPI.SubmissionSearch()
+        .includes([
+          'details',
+          'values[Recipients]',
+          'values[Subject]',
+          'values[Opened By Members]',
+          'values[Clicked By Members]',
+        ])
+        .limit(1000)
+        .pageToken(nextBeltPageTokenValue)
+        .build();
+
+      var [submissions2] = yield all([
+        call(CoreAPI.searchSubmissions, {
+          kapp: 'gbmembers',
+          form: 'email-campaigns',
+          search: search2,
+        }),
+      ]);
+      emailCampaigns = emailCampaigns.concat(submissions2.submissions);
+      nextBeltPageTokenValue = submissions2.nextPageToken;
+    }
+
+    console.log('emailCampaigns' + emailCampaigns.length);
+    yield put(
+      actions.setEmailCampaignsByDate({
+        emailCampaigns: emailCampaigns,
+      }),
+    );
+  } catch (error) {
+    console.log('Error in fetchEmailCampaignsByDate: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
+
 export function* fetchNewSmsCampaign(action) {
   var campaign = {
     values: {},
@@ -310,6 +378,10 @@ export function* watchCampaigns() {
   yield takeEvery(types.CREATE_EMAIL_CAMPAIGN, createEmailCampaign);
   yield takeEvery(types.FETCH_EMAIL_CAMPAIGN, fetchEmailCampaign);
   yield takeEvery(types.FETCH_EMAIL_CAMPAIGNS, fetchEmailCampaigns);
+  yield takeEvery(
+    types.FETCH_EMAIL_CAMPAIGNS_BYDATE,
+    fetchEmailCampaignsByDate,
+  );
   yield takeEvery(types.UPDATE_EMAIL_CAMPAIGN, updateEmailCampaign);
 
   yield takeEvery(types.FETCH_NEW_SMS_CAMPAIGN, fetchNewSmsCampaign);
