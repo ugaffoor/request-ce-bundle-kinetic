@@ -1,6 +1,24 @@
 .leadCountTotal b {
   color: red;
 }
+.gbonlineDetails {
+  .filters {
+    margin: 20px;
+  }
+  .summaryHeader {
+    background-color: #eae3e3;
+    /* border-radius: 5px; */
+  }
+  .adultsHeader {
+    background-color: #eae3e3;
+  }
+  thead.kidsHeader {
+    background-color: #eae3e3;
+  }
+  .totals {
+    background-color: #e0c5c5;
+  }
+}
 .financialReportActions {
   .downloadCSV {
     padding: 2px 5px;
@@ -19,7 +37,8 @@
     margin: 4px;
   }
 }
-.attendanceReport {
+.attendanceReport,
+.gbonlineDetails {
   .filters {
     display: flex;
     flex-direction: column;

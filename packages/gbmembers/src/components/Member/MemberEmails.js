@@ -220,6 +220,23 @@ export class MemberEmails extends Component {
                             </div>
                             <div className="row">
                               <div className="col-sm-2">
+                                <label>Clicked:</label>
+                              </div>
+                              <div className="col-sm-8">
+                                {this.props.campaignItem !== undefined &&
+                                this.props.campaignItem.values[
+                                  'Clicked By Members'
+                                ] !== undefined
+                                  ? this.props.campaignItem.values[
+                                      'Clicked By Members'
+                                    ].indexOf(this.props.memberItem.id) !== -1
+                                    ? 'Yes'
+                                    : 'No'
+                                  : 'No'}
+                              </div>
+                            </div>
+                            <div className="row">
+                              <div className="col-sm-2">
                                 <label>Subject:</label>
                               </div>
                               <div className="col-sm-8">
