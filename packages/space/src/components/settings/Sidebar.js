@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { compose, withProps } from 'recompose';
-import { bundle } from 'react-kinetic-core';
+import { bundle } from '@kineticdata/react';
 import { selectHasSharedTaskEngine } from '../../redux/modules/spaceApp';
 import {
   selectHasRoleSchedulerAdmin,
@@ -11,7 +11,7 @@ import {
 } from 'common';
 import { NOTIFICATIONS_FORM_SLUG } from '../../redux/modules/settingsNotifications';
 import { ROBOT_DEFINITIONS_FORM_SLUG } from '../../redux/modules/settingsRobots';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 export const SidebarComponent = ({
   settingsBackPath,

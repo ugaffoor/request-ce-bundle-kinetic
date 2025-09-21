@@ -1,6 +1,12 @@
 import { List } from 'immutable';
 import { call, put, takeEvery } from 'redux-saga/effects';
-import { CoreAPI } from 'react-kinetic-core';
+import {
+  SubmissionSearch,
+  searchSubmissions,
+  createSubmission,
+  updateSubmission,
+  deleteSubmission,
+} from '@kineticdata/react';
 import { types, actions } from '../modules/classes';
 import moment from 'moment';
 import { actions as errorActions } from '../modules/errors';
@@ -27,12 +33,13 @@ function convertCalendarDate(dateVal) {
 
 export function* fetchClassSchedules(action) {
   try {
-    const search = new CoreAPI.SubmissionSearch(true)
+    const search = new SubmissionSearch(true)
       .includes(['details', 'values'])
       .limit(1000)
       .build();
 
-    const { submissions } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions } = yield call(searchSubmissions, {
+      get: true,
       form: 'class-schedule',
       datastore: true,
       search,
@@ -81,7 +88,7 @@ export function* fetchClassSchedules(action) {
 export function* fetchClassBookings(action) {
   try {
     var allMembers = action.payload.allMembers;
-    const search = new CoreAPI.SubmissionSearch(true)
+    const search = new SubmissionSearch(true)
       .includes(['details', 'values'])
       .index(
         'values[Class Date],values[Class Time],values[Program],values[Status]',
@@ -93,7 +100,8 @@ export function* fetchClassBookings(action) {
       .limit(1000)
       .build();
 
-    const { submissions } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions } = yield call(searchSubmissions, {
+      get: true,
       form: 'class-booking',
       datastore: true,
       search,
@@ -129,14 +137,15 @@ export function* fetchClassBookings(action) {
 
 export function* fetchCurrentClassBookings(action) {
   try {
-    const search = new CoreAPI.SubmissionSearch(true)
+    const search = new SubmissionSearch(true)
       .includes(['details', 'values'])
       .index('values[Class Date]')
       .gteq('values[Class Date]', moment().format('YYYY-MM-DD'))
       .limit(1000)
       .build();
 
-    const { submissions } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions } = yield call(searchSubmissions, {
+      get: true,
       form: 'class-booking',
       datastore: true,
       search,
@@ -180,7 +189,7 @@ export function* fetchCurrentClassBookings(action) {
 export function* newClass(action) {
   try {
     console.log('new Class entry');
-    const { submission } = yield call(CoreAPI.createSubmission, {
+    const { submission } = yield call(createSubmission, {
       datastore: true,
       formSlug: 'class-schedule',
       values: action.payload.values,
@@ -203,7 +212,7 @@ export function* newClass(action) {
 }
 export function* editClass(action) {
   try {
-    const { submission } = yield call(CoreAPI.updateSubmission, {
+    const { submission } = yield call(updateSubmission, {
       datastore: true,
       id: action.payload.id,
       values: action.payload.values,
@@ -219,7 +228,7 @@ export function* editClass(action) {
 export function* deleteClass(action) {
   try {
     console.log('deleteClass: ');
-    const { errors, serverError } = yield call(CoreAPI.deleteSubmission, {
+    const { errors, serverError } = yield call(deleteSubmission, {
       id: action.payload.id,
       datastore: true,
     });
@@ -238,7 +247,7 @@ export function* deleteClass(action) {
 }
 export function* updateBooking(action) {
   try {
-    const { submission } = yield call(CoreAPI.updateSubmission, {
+    const { submission } = yield call(updateSubmission, {
       id: action.payload.id,
       values: action.payload.values,
       datastore: true,
@@ -257,7 +266,7 @@ export function* updateBooking(action) {
 }
 export function* addBooking(action) {
   try {
-    const { submission } = yield call(CoreAPI.createSubmission, {
+    const { submission } = yield call(createSubmission, {
       datastore: true,
       formSlug: 'class-booking',
       values: action.payload.values,
@@ -284,7 +293,7 @@ export function* addBooking(action) {
 export function* deleteBooking(action) {
   try {
     console.log('deleteBooking: ');
-    const { errors, serverError } = yield call(CoreAPI.deleteSubmission, {
+    const { errors, serverError } = yield call(deleteSubmission, {
       id: action.payload.id,
       datastore: true,
     });
@@ -304,14 +313,15 @@ export function* deleteBooking(action) {
 export function* fetchRecurringBookings(action) {
   try {
     var allMembers = action.payload.allMembers;
-    const search = new CoreAPI.SubmissionSearch(true)
+    const search = new SubmissionSearch(true)
       .includes(['details', 'values'])
       .index('values[Status]')
       .eq('values[Status]', 'Active')
       .limit(1000)
       .build();
 
-    const { submissions } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions } = yield call(searchSubmissions, {
+      get: true,
       form: 'class-recurring-booking',
       datastore: true,
       search,
@@ -352,7 +362,7 @@ export function* fetchRecurringBookings(action) {
 
 export function* updateRecurring(action) {
   try {
-    const { submission } = yield call(CoreAPI.updateSubmission, {
+    const { submission } = yield call(updateSubmission, {
       id: action.payload.id,
       values: action.payload.values,
       datastore: true,
@@ -366,7 +376,7 @@ export function* updateRecurring(action) {
 }
 export function* addRecurring(action) {
   try {
-    const { submission } = yield call(CoreAPI.createSubmission, {
+    const { submission } = yield call(createSubmission, {
       datastore: true,
       formSlug: 'class-recurring-booking',
       values: action.payload.values,
@@ -394,7 +404,7 @@ export function* addRecurring(action) {
 export function* deleteRecurring(action) {
   try {
     console.log('deleteRecurring: ');
-    const { errors, serverError } = yield call(CoreAPI.deleteSubmission, {
+    const { errors, serverError } = yield call(deleteSubmission, {
       id: action.payload.id,
       datastore: true,
     });

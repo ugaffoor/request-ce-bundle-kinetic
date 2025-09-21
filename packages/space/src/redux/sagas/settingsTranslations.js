@@ -1,5 +1,25 @@
 import { all, call, put, select, takeEvery } from 'redux-saga/effects';
-import { CoreAPI } from 'react-kinetic-core';
+import {
+  fetchDefaultLocale,
+  fetchEnabledLocales,
+  fetchAvailableLocales,
+  setDefaultLocale,
+  enableLocale,
+  disableLocale,
+  fetchContexts,
+  fetchKapps,
+  fetchForms,
+  createContext,
+  updateContext,
+  deleteContext,
+  updateContextKey,
+  fetchTranslations,
+  fetchContextKeys,
+  upsertTranslations,
+  deleteTranslations,
+  fetchStagedTranslations,
+  clearTranslationsCache,
+} from '@kineticdata/react';
 import { List } from 'immutable';
 import { toastActions } from 'common';
 
@@ -9,9 +29,9 @@ export function* fetchLocalesSaga({
   payload: { exclude = {}, localeCode } = {},
 }) {
   const [defaultLocale, enabled, available] = yield all([
-    !exclude.default && call(CoreAPI.fetchDefaultLocale, {}),
-    !exclude.enabled && call(CoreAPI.fetchEnabledLocales, {}),
-    !exclude.available && call(CoreAPI.fetchAvailableLocales, { localeCode }),
+    !exclude.default && call(fetchDefaultLocale, {}),
+    !exclude.enabled && call(fetchEnabledLocales, {}),
+    !exclude.available && call(fetchAvailableLocales, { localeCode }),
   ]);
 
   const errors = new List();
@@ -59,7 +79,7 @@ export function* fetchLocalesSaga({
 }
 
 export function* setDefaultLocaleSaga({ payload }) {
-  const { errors, serverError } = yield call(CoreAPI.setDefaultLocale, {
+  const { errors, serverError } = yield call(setDefaultLocale, {
     localeCode: payload.localeCode,
   });
 
@@ -76,7 +96,9 @@ export function* setDefaultLocaleSaga({ payload }) {
     yield all([
       put(
         toastActions.addSuccess(
-          `The ${payload.localeCode} locale was successfully set as the default locale.`,
+          `The ${
+            payload.localeCode
+          } locale was successfully set as the default locale.`,
           'Default Locale Set',
         ),
       ),
@@ -93,7 +115,7 @@ export function* setDefaultLocaleSaga({ payload }) {
 }
 
 export function* enableLocaleSaga({ payload }) {
-  const { errors, serverError } = yield call(CoreAPI.enableLocale, {
+  const { errors, serverError } = yield call(enableLocale, {
     localeCode: payload.localeCode,
   });
 
@@ -124,7 +146,7 @@ export function* enableLocaleSaga({ payload }) {
 }
 
 export function* disableLocaleSaga({ payload }) {
-  const { errors, serverError } = yield call(CoreAPI.disableLocale, {
+  const { errors, serverError } = yield call(disableLocale, {
     localeCode: payload.localeCode,
   });
 
@@ -158,9 +180,9 @@ export function* fetchContextsSaga({ payload = {} }) {
   const customContextRegex = new RegExp('custom.([a-z0-9.-]+)');
 
   const [custom, unexpected, kapps] = yield all([
-    payload.custom && call(CoreAPI.fetchContexts, { custom: true }),
-    payload.unexpected && call(CoreAPI.fetchContexts, { unexpected: true }),
-    payload.form && call(CoreAPI.fetchKapps, { manage: true }),
+    payload.custom && call(fetchContexts, { custom: true }),
+    payload.unexpected && call(fetchContexts, { unexpected: true }),
+    payload.form && call(fetchKapps, { manage: true }),
   ]);
 
   const errorList = [];
@@ -193,9 +215,9 @@ export function* fetchContextsSaga({ payload = {} }) {
 
   if (kapps && !handleErrors(kapps)) {
     const [datastoreForms, ...kappFormsList] = yield all([
-      call(CoreAPI.fetchForms, { datastore: true, manage: true }),
+      call(fetchForms, { datastore: true, manage: true }),
       ...kapps.kapps.map(({ slug }) =>
-        call(CoreAPI.fetchForms, {
+        call(fetchForms, {
           kappSlug: slug,
           manage: true,
           include: 'kapp',
@@ -233,7 +255,7 @@ export function* fetchContextsSaga({ payload = {} }) {
 }
 
 export function* createContextSaga({ payload }) {
-  const { context, errors, serverError } = yield call(CoreAPI.createContext, {
+  const { context, errors, serverError } = yield call(createContext, {
     context: payload.context,
   });
 
@@ -260,7 +282,7 @@ export function* createContextSaga({ payload }) {
 }
 
 export function* updateContextSaga({ payload }) {
-  const { errors, serverError } = yield call(CoreAPI.updateContext, {
+  const { errors, serverError } = yield call(updateContext, {
     contextName: payload.contextName,
     context: payload.context,
   });
@@ -275,7 +297,9 @@ export function* updateContextSaga({ payload }) {
     yield all([
       put(
         toastActions.addSuccess(
-          `The ${payload.contextName} context was successfully updated to ${payload.context.name}`,
+          `The ${payload.contextName} context was successfully updated to ${
+            payload.context.name
+          }`,
           'Context Updated',
         ),
       ),
@@ -285,7 +309,7 @@ export function* updateContextSaga({ payload }) {
 }
 
 export function* deleteContextSaga({ payload }) {
-  const { errors, serverError } = yield call(CoreAPI.deleteContext, {
+  const { errors, serverError } = yield call(deleteContext, {
     contextName: payload.contextName,
   });
 
@@ -309,7 +333,7 @@ export function* deleteContextSaga({ payload }) {
 }
 
 export function* updateContextKeySaga({ payload }) {
-  const { errors, serverError } = yield call(CoreAPI.updateContextKey, {
+  const { errors, serverError } = yield call(updateContextKey, {
     contextName: payload.context,
     keyHash: payload.keyHash,
     key: { name: payload.key },
@@ -336,7 +360,7 @@ export function* updateContextKeySaga({ payload }) {
 
 export function* fetchTranslationsSaga({ payload = {} }) {
   const [{ entries, errors, serverError }, keys, locales] = yield all([
-    call(CoreAPI.fetchTranslations, {
+    call(fetchTranslations, {
       cache: !!payload.cache,
       contextName: payload.contextName,
       localeCode: payload.localeCode,
@@ -345,7 +369,7 @@ export function* fetchTranslationsSaga({ payload = {} }) {
       export: payload.export,
     }),
     payload.contextName &&
-      call(CoreAPI.fetchContextKeys, { contextName: payload.contextName }),
+      call(fetchContextKeys, { contextName: payload.contextName }),
     select(state => state.space.settingsTranslations.locales.enabled),
   ]);
 
@@ -377,7 +401,7 @@ export function* fetchTranslationsSaga({ payload = {} }) {
 }
 
 export function* upsertTranslationsSaga({ payload }) {
-  const { errors, serverError } = yield call(CoreAPI.upsertTranslations, {
+  const { errors, serverError } = yield call(upsertTranslations, {
     translation: payload.translation,
     file: payload.file,
     import: payload.import,
@@ -412,7 +436,7 @@ export function* deleteTranslationsSaga({ payload }) {
       'You must provide either context or locale when deleting translations.',
     );
   }
-  const { errors, serverError } = yield call(CoreAPI.deleteTranslations, {
+  const { errors, serverError } = yield call(deleteTranslations, {
     contextName: payload.context,
     localeCode: payload.locale,
     keyHash: payload.keyHash,
@@ -445,12 +469,9 @@ export function* deleteTranslationsSaga({ payload }) {
 }
 
 export function* fetchStagedTranslationsSaga({ payload = {} }) {
-  const { changes, errors, serverError } = yield call(
-    CoreAPI.fetchStagedTranslations,
-    {
-      contextName: payload.contextName,
-    },
-  );
+  const { changes, errors, serverError } = yield call(fetchStagedTranslations, {
+    contextName: payload.contextName,
+  });
 
   if (serverError) {
     yield put(
@@ -466,10 +487,7 @@ export function* fetchStagedTranslationsSaga({ payload = {} }) {
 }
 
 export function* clearTranslationsCacheSaga({ payload = {} }) {
-  const { errors, serverError } = yield call(
-    CoreAPI.clearTranslationsCache,
-    {},
-  );
+  const { errors, serverError } = yield call(clearTranslationsCache, {});
 
   if (serverError) {
     yield put(

@@ -27,7 +27,7 @@
     }
   }
   .dropdown-item {
-    .svg-gb-icon-svg {
+    .svg-gb-icon {
       width: 5rem !important;
       height: 2rem !important;
     }
@@ -247,16 +247,16 @@ ul.nav-header.apps.nav {
 }
 .leadsNavItem .nav-link,
 .homeNavItem .nav-link {
-  .attention-svg.icon-svg {
+  .attention.icon.icon-svg {
     height: 20px;
   }
 }
 .leadsNavItem .nav-link.active {
-  .attention-svg.icon-svg path {
+  .attention.icon.icon-svg path {
     fill: orange;
     stroke: white;
   }
-  .attention-svg.icon-svg {
+  .attention.icon.icon-svg {
     height: 20px;
   }
 }

@@ -20,7 +20,6 @@ import MomentLocaleUtils, {
 import {
   getLocalePreference,
   handleChange,
-  handleFormattedChange,
   handleMultiSelectChange,
   getJson,
 } from './MemberUtils';
@@ -49,10 +48,9 @@ import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { actions as appActions } from '../../redux/modules/memberApp';
 import { actions as posActions } from '../../redux/modules/pos';
 import { actions as servicesActions } from '../../redux/modules/services';
-import printerIcon from '../../images/Print.svg?raw';
+import { ReactComponent as PrinterIcon } from '../../images/Print.svg';
 import { MembershipReceiptToPrint } from './MembershipReceiptToPrint';
 import ReactToPrint from 'react-to-print';
-import SVGInline from 'react-svg-inline';
 import axios from 'axios';
 import { ReceiptToPrint } from './ReceiptToPrint';
 import ScaleLoader from 'react-spinners/ScaleLoader';
@@ -244,6 +242,8 @@ class PayNow extends Component {
     this.disablePayNow = this.disablePayNow.bind(this);
     this.loadBamboraCheckout = this.loadBamboraCheckout.bind(this);
 
+    this.componentRef = React.createRef();
+
     axios
       .get('https://api.ipify.org/')
       .then(ip => {
@@ -311,7 +311,7 @@ class PayNow extends Component {
       };
     }
   }
-  componentWillReceiveProps(nextProps) {}
+  UNSAFE_componentWillReceiveProps(nextProps) {}
   componentWillMount() {}
 
   completePayment() {}
@@ -801,7 +801,6 @@ class PayNow extends Component {
                   <div className="label">Membership Amount</div>
                   <div className="value">
                     <NumberFormat
-                      ref={input => (this.input = input)}
                       value={this.state.paymentAmount}
                       onValueChange={(values, e) => {
                         var { formattedValue, value } = values;
@@ -922,11 +921,11 @@ class PayNow extends Component {
                             content="width=device-width, initial-scale=1"
                           />
                           <div className="card-container">
-                            <div className="row"></div>
+                            <div className="row" />
                           </div>
                           <div className="row">
                             <div className="col-lg-12 text-center">
-                              <div id="feedback"></div>
+                              <div id="feedback" />
                             </div>
                           </div>
                         </span>
@@ -936,24 +935,25 @@ class PayNow extends Component {
                     </div>
                   </span>
                 )}
-              {this.state.status !== '1' && this.state.status !== '' && (
-                <span className="error">
-                  <span className="statusCode">
-                    <label>Status:</label>
-                    <value>{this.state.status}</value>
-                  </span>
-                  <span className="statusMessage">
-                    <label>Status Message:</label>
-                    <value>{this.state.status_message}</value>
-                  </span>
-                  {this.state.errors !== '' && (
-                    <span className="errors">
-                      <label>Errors:</label>
-                      <value>{this.state.errors}</value>
+              {this.state.status !== '1' &&
+                this.state.status !== '' && (
+                  <span className="error">
+                    <span className="statusCode">
+                      <label>Status:</label>
+                      <value>{this.state.status}</value>
                     </span>
-                  )}
-                </span>
-              )}
+                    <span className="statusMessage">
+                      <label>Status Message:</label>
+                      <value>{this.state.status_message}</value>
+                    </span>
+                    {this.state.errors !== '' && (
+                      <span className="errors">
+                        <label>Errors:</label>
+                        <value>{this.state.errors}</value>
+                      </span>
+                    )}
+                  </span>
+                )}
             </span>
           ) : (
             <span className="receipt">
@@ -968,17 +968,14 @@ class PayNow extends Component {
                 snippets={this.props.snippets}
                 datetime={this.state.datetime}
                 name={this.state.name}
-                ref={el => (this.componentRef = el)}
+                ref={this.componentRef}
               />
               <span className="printReceipt">
                 <ReactToPrint
                   trigger={() => (
-                    <SVGInline
-                      svg={printerIcon}
-                      className="icon barcodePrint"
-                    />
+                    <PrinterIcon className="icon barcodePrint icon-svg" />
                   )}
-                  content={() => this.componentRef}
+                  content={() => this.componentRef.current}
                   pageStyle="@page {size: a4 portrait;margin: 0;}"
                 />
               </span>
@@ -1466,6 +1463,9 @@ export class PaymentHistory extends Component {
     );
     let columns = this.getColumns();
     this.rowRecieptsRefs = new Map();
+
+    this.tableComponentRef = React.createRef();
+
     this.state = {
       data,
       columns,
@@ -1533,7 +1533,7 @@ export class PaymentHistory extends Component {
         )}
       </span>
     ) : (
-      <div></div>
+      <div />
     );
   }
   getData(
@@ -1637,8 +1637,8 @@ export class PaymentHistory extends Component {
       typeof this.props.memberItem.values['Refunded Payments'] === 'object'
         ? this.props.memberItem.values['Refunded Payments']
         : this.props.memberItem.values['Refunded Payments']
-        ? JSON.parse(this.props.memberItem.values['Refunded Payments'])
-        : [];
+          ? JSON.parse(this.props.memberItem.values['Refunded Payments'])
+          : [];
 
     const columns = [];
     if (getAttributeValue(this.props.space, 'Billing Company') === 'Bambora') {
@@ -1799,7 +1799,7 @@ export class PaymentHistory extends Component {
             <span className="printReceipt">
               <ReactToPrint
                 trigger={() => (
-                  <SVGInline svg={printerIcon} className="icon barcodePrint" />
+                  <PrinterIcon className="icon barcodePrint icon-svg" />
                 )}
                 content={() => this.rowRecieptsRefs.get(row.original._id)}
                 pageStyle="@page {size: a4 portrait;margin: 0;}"
@@ -1849,10 +1849,8 @@ export class PaymentHistory extends Component {
     ) : (
       <div className="purchaseItemsReport">
         <ReactToPrint
-          trigger={() => (
-            <SVGInline svg={printerIcon} className="icon tablePrint" />
-          )}
-          content={() => this.tableComponentRef}
+          trigger={() => <PrinterIcon className="icon tablePrint icon-svg" />}
+          content={() => this.tableComponentRef.current}
         />
         <div className="paymentHistoryTable">
           <ReactTable
@@ -1880,7 +1878,7 @@ export class PaymentHistory extends Component {
         <span style={{ display: 'none' }}>
           <div
             className="printMemberBillingTransactions"
-            ref={el => (this.tableComponentRef = el)}
+            ref={this.tableComponentRef}
           >
             <div className="memberDetails">
               <div className="header">
@@ -1910,7 +1908,7 @@ export class PaymentHistory extends Component {
                   </td>
                 </tr>
                 <tr>
-                  <td className="label"></td>
+                  <td className="label" />
                   <td className="name">
                     {this.props.memberItem.values['Suburb']},{' '}
                     {this.props.memberItem.values['State']}{' '}
@@ -1942,7 +1940,7 @@ export class PaymentHistory extends Component {
                       ))}
                     </tbody>
                   </table>
-                  <br></br>
+                  <br />
                 </span>
               )}
             <div className="memberDetails">
@@ -2078,8 +2076,8 @@ class BillingAudit extends Component {
           typeof props.value === 'object'
             ? objectToString(props.value)
             : props.value
-            ? props.value
-            : '',
+              ? props.value
+              : '',
       },
       { accessor: 'reason', Header: 'Reason' },
     ];
@@ -2543,7 +2541,6 @@ export class BillingInfo extends Component {
                           name="toDate"
                           id="toDate"
                           disabled={true}
-                          ref={input => (this.input = input)}
                           defaultValue={''}
                           value={this.state.renewalToDate.format('L')}
                         />
@@ -2627,7 +2624,9 @@ export class BillingInfo extends Component {
                         ) === 'Bambora' && (
                           <div>
                             <NavLink
-                              to={`/categories/bambora-billing/bambora-submit-billing-changes?id=${this.props.memberItem.id}`}
+                              to={`/categories/bambora-billing/bambora-submit-billing-changes?id=${
+                                this.props.memberItem.id
+                              }`}
                               kappSlug={'services'}
                               className={
                                 'nav-link icon-wrapper btn btn-primary'
@@ -2655,7 +2654,9 @@ export class BillingInfo extends Component {
                             'YES' && (
                             <div>
                               <NavLink
-                                to={`/categories/stripe-billing/stripe-submit-billing-changes?id=${this.props.memberItem.id}`}
+                                to={`/categories/stripe-billing/stripe-submit-billing-changes?id=${
+                                  this.props.memberItem.id
+                                }`}
                                 kappSlug={'services'}
                                 className={
                                   'nav-link icon-wrapper btn btn-primary'
@@ -2681,7 +2682,9 @@ export class BillingInfo extends Component {
                         ) === 'Bambora' && (
                           <div>
                             <NavLink
-                              to={`/categories/bambora-billing/bambora-change-credit-card-details?id=${this.props.memberItem.id}`}
+                              to={`/categories/bambora-billing/bambora-change-credit-card-details?id=${
+                                this.props.memberItem.id
+                              }`}
                               kappSlug={'services'}
                               className={
                                 'nav-link icon-wrapper btn btn-primary'
@@ -3478,7 +3481,10 @@ function getResumeDates(nextBillingDate, billingPeriod) {
 }
 
 export const BillingContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(
     ({
       memberItem,

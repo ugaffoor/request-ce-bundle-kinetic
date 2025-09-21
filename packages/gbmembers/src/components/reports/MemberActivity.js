@@ -21,7 +21,7 @@ import MomentLocaleUtils, {
   parseDate,
 } from 'react-day-picker/moment';
 import { getLocalePreference } from '../Member/MemberUtils';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 import { Utils } from 'common';
 
 export const contact_date_format = 'YYYY-MM-DD HH:mm';
@@ -34,6 +34,76 @@ const member_activities_url =
 const journey_events_url =
   'app/api/v1/datastore/forms/journey-event/submissions?include=details,values&index=values[Record ID]&limit=1000';
 const no_data_placeholder = 'No records found';
+
+const OpenMemberCellButton = ({ cell, onSelect, label }) => {
+  const rowData = cell.getData(); // access full row data
+  return (
+    <a href={`/#/kapps/gbmembers/Member/${rowData.id}`} className="">
+      {cell.getValue()}
+    </a>
+  );
+};
+const ExpandNotesCellButton = ({ cell, onSelect, label }) => {
+  if (cell.getValue() === undefined) {
+    return <span />;
+  }
+  var notes = getJson(cell.getValue());
+  notes.forEach((item, i) => {
+    item['note'] = item['note'].replace(/(?:\r\n|\r|\n)/g, '<br>');
+  });
+
+  notes.sort(function(a, b) {
+    if (a['contactDate'] > b['contactDate']) {
+      return -1;
+    } else if (a['contactDate'] < b['contactDate']) {
+      return 1;
+    }
+    return 0;
+  });
+  const value = notes.length > 0 ? notes[0]['note'] : '';
+  return (
+    <span className="firstNote">
+      <div
+        className="rt-expander closed"
+        onClick={() => compThis.handleNotesCellClick(compThis, cell)}
+      >
+        •
+      </div>
+      <span className="note">{value}</span>{' '}
+    </span>
+  );
+};
+const ExpandEventsCellButton = ({ cell, onSelect, label }) => {
+  return (
+    <span className="events">
+      <div
+        className="rt-expander closed"
+        onClick={() => compThis.handleEventsCellClick(compThis, cell)}
+      >
+        •
+      </div>
+    </span>
+  );
+};
+const ExpandCellButton = ({ cell, onSelect, label }) => {
+  const cellData = cell._cell.row.data;
+  const value = cell.getValue();
+  return (
+    <span>
+      {value}{' '}
+      <button
+        className={
+          value === 0
+            ? 'grid-cell-expand show-sub-grid btn btn-xs disabled'
+            : 'grid-cell-expand show-sub-grid btn btn-xs'
+        }
+        onClick={() => compThis.handleCellClick(compThis, cell)}
+      >
+        Show
+      </button>
+    </span>
+  );
+};
 
 export class MemberActivityReport extends Component {
   constructor(props) {
@@ -53,7 +123,14 @@ export class MemberActivityReport extends Component {
       this.currencySymbol = getCurrency(currency)['symbol'];
     }
 
-    this.columns = [
+    if (getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES') {
+      this.columns.push({
+        title: 'Use Sub Account',
+        field: 'useSubAccount',
+      });
+    }
+
+    this.allColumns = [
       {
         title: 'Last Modified Date',
         field: 'lastModifiedDate',
@@ -73,7 +150,7 @@ export class MemberActivityReport extends Component {
         field: 'name',
         tooltip: true,
         bottomCalc: 'count',
-        formatter: reactFormatter(<this.OpenMemberCellButton />),
+        formatter: reactFormatter(<OpenMemberCellButton />),
       },
       { title: 'First Name', field: 'firstname' },
       { title: 'Last Name', field: 'lastname' },
@@ -155,48 +232,42 @@ export class MemberActivityReport extends Component {
       {
         title: 'Notes',
         field: 'history',
-        formatter: reactFormatter(<this.ExpandNotesCellButton />),
+        formatter: reactFormatter(<ExpandNotesCellButton />),
       },
       {
         title: 'Events',
         field: 'events',
-        formatter: reactFormatter(<this.ExpandEventsCellButton />),
+        formatter: reactFormatter(<ExpandEventsCellButton />),
       },
       {
         title: 'Emails Sent',
         field: 'emailsSent',
-        formatter: reactFormatter(<this.ExpandCellButton />),
+        formatter: reactFormatter(<ExpandCellButton />),
         bottomCalc: 'sum',
         width: 100,
       },
       {
         title: 'Emails Received',
         field: 'emailsReceived',
-        formatter: reactFormatter(<this.ExpandCellButton />),
+        formatter: reactFormatter(<ExpandCellButton />),
         bottomCalc: 'sum',
         width: 100,
       },
       {
         title: 'SMS Sent',
         field: 'smsSent',
-        formatter: reactFormatter(<this.ExpandCellButton />),
+        formatter: reactFormatter(<ExpandCellButton />),
         bottomCalc: 'sum',
         width: 100,
       },
       {
         title: 'SMS Received',
         field: 'smsReceived',
-        formatter: reactFormatter(<this.ExpandCellButton />),
+        formatter: reactFormatter(<ExpandCellButton />),
         bottomCalc: 'sum',
         width: 100,
       },
     ];
-    if (getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES') {
-      this.columns.push({
-        title: 'Use Sub Account',
-        field: 'useSubAccount',
-      });
-    }
 
     this.notesColumns = [
       { title: 'Submitter', field: 'submitter' },
@@ -497,8 +568,20 @@ export class MemberActivityReport extends Component {
     };
 
     this.filterIds = {};
+    var columns = [];
+
+    this.allColumns.forEach(column => {
+      if (
+        this.hiddenColumns.findIndex(
+          hidden => hidden.value === column.field,
+        ) === -1
+      ) {
+        columns.push(column);
+      }
+    });
 
     this.state = {
+      columns: columns,
       filterColumns: this.filterColumns,
       filters: [],
       selectedFilterValueOptions: [],
@@ -515,7 +598,7 @@ export class MemberActivityReport extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (!this.props.reportPreferences.equals(nextProps.reportPreferences)) {
       let preferences = this.getTablePreferences(nextProps.reportPreferences);
       this.setState({
@@ -583,15 +666,6 @@ export class MemberActivityReport extends Component {
     };
   };
 
-  hideColumns = () => {
-    if (this.state.hiddenColumns && this.memberActivityGridref) {
-      this.state.hiddenColumns.forEach(column => {
-        this.memberActivityGridref.table.hideColumn(column.value);
-      });
-      this.memberActivityGridref.table.redraw();
-    }
-  };
-
   removeFilter = (e, cell) => {
     const filterColumn = cell.getRow().getData()['filterColumn'];
     const filterType = cell.getRow().getData()['filterType'];
@@ -609,17 +683,17 @@ export class MemberActivityReport extends Component {
         filterColumn === 'cashEndDate' ||
         filterColumn === 'waiverCompleteDate'
       ) {
-        this.memberActivityGridref.table.removeFilter(
+        this.memberActivityGridref.current.removeFilter(
           this.dateRangeFilter,
           this.filterIds[filterId],
         );
       } else if (filterType === 'includes') {
-        this.memberActivityGridref.table.removeFilter(
+        this.memberActivityGridref.current.removeFilter(
           this.includesFilter,
           this.filterIds[filterId],
         );
       } else {
-        this.memberActivityGridref.table.removeFilter(
+        this.memberActivityGridref.current.removeFilter(
           filterColumn,
           filterType,
           filterValue,
@@ -636,17 +710,17 @@ export class MemberActivityReport extends Component {
         filterColumn === 'cashEndDate' ||
         filterColumn === 'waiverCompleteDate'
       ) {
-        this.memberActivityGridref.table.clearFilter(
+        this.memberActivityGridref.current.clearFilter(
           this.dateRangeFilter,
           this.filterIds[filterId],
         );
       } else if (filterType === 'includes') {
-        this.memberActivityGridref.table.clearFilter(
+        this.memberActivityGridref.current.clearFilter(
           this.includesFilter,
           this.filterIds[filterId],
         );
       } else {
-        this.memberActivityGridref.table.clearFilter(
+        this.memberActivityGridref.current.clearFilter(
           filterColumn,
           filterType,
           filterValue,
@@ -738,12 +812,12 @@ export class MemberActivityReport extends Component {
         },
         function() {
           if (this.state.filters && this.state.filters.length > 0) {
-            this.memberActivityGridref.table.addFilter(
+            this.memberActivityGridref.current.addFilter(
               this.dateRangeFilter,
               filterParams,
             );
           } else {
-            this.memberActivityGridref.table.setFilter(
+            this.memberActivityGridref.current.setFilter(
               this.dateRangeFilter,
               filterParams,
             );
@@ -774,12 +848,12 @@ export class MemberActivityReport extends Component {
         },
         function() {
           if (this.state.filters && this.state.filters.length > 0) {
-            this.memberActivityGridref.table.addFilter(
+            this.memberActivityGridref.current.addFilter(
               this.includesFilter,
               filterParams,
             );
           } else {
-            this.memberActivityGridref.table.setFilter(
+            this.memberActivityGridref.current.setFilter(
               this.includesFilter,
               filterParams,
             );
@@ -807,13 +881,13 @@ export class MemberActivityReport extends Component {
         },
         function() {
           if (this.state.filters && this.state.filters.length > 0) {
-            this.memberActivityGridref.table.addFilter(
+            this.memberActivityGridref.current.addFilter(
               filterColumn,
               type,
               value,
             );
           } else {
-            this.memberActivityGridref.table.setFilter(
+            this.memberActivityGridref.current.setFilter(
               filterColumn,
               type,
               value,
@@ -944,18 +1018,20 @@ export class MemberActivityReport extends Component {
   handlePreferenceChange = event => {
     this.setState({ selectedPreference: event.target.value });
     if (!event.target.value) {
+      var columns = [];
+      columns.push(this.allColumns[0]);
+      columns.push(this.allColumns.find(column => column.field === 'name'));
+      columns.push(this.allColumns.find(column => column.field === 'status'));
+
       this.setState({
+        columns: columns,
         filterColumns: this.filterColumns,
-        selectedColumns: this.filterColumns,
+        selectedColumns: this.visibleColumns,
         hiddenColumns: this.hiddenColumns,
         filters: [],
         key: Math.random(),
       });
-      this.filterColumns.forEach(column => {
-        this.memberActivityGridref.table.showColumn(column.value);
-      });
-      this.memberActivityGridref.table.redraw();
-      this.memberActivityGridref.table.clearFilter();
+      this.memberActivityGridref.current.clearFilter();
       return;
     }
 
@@ -975,143 +1051,60 @@ export class MemberActivityReport extends Component {
         filter.filterValue = JSON.parse(filter.filterValue);
       }
     });
-    this.setState(
-      {
-        filterColumns: this.filterColumns.filter(
-          column =>
-            !preference['Hidden Columns'].some(
-              elm => elm.value === column.value,
-            ),
-        ),
-        selectedColumns: this.filterColumns.filter(
-          column =>
-            !preference['Hidden Columns'].some(
-              elm => elm.value === column.value,
-            ),
-        ),
-        hiddenColumns: this.filterColumns.filter(column =>
-          preference['Hidden Columns'].some(elm => elm.value === column.value),
-        ),
-        filters: filters,
-        key: Math.random(),
-      },
-      function() {
-        this.filterColumns.forEach(column => {
-          this.memberActivityGridref.table.showColumn(column.value);
-        });
-
-        preference['Hidden Columns'].forEach(column => {
-          this.memberActivityGridref.table.hideColumn(column.value);
-        });
-        this.memberActivityGridref.table.redraw();
-        this.memberActivityGridref.table.clearFilter();
-        filters.forEach((filter, index) => {
-          if (index === 0) {
-            if (filter.filterType === 'includes') {
-              this.memberActivityGridref.table.addFilter(this.includesFilter, {
-                field: filter.filterColumn,
-                includes: filter.filterValue,
-              });
-            } else {
-              this.memberActivityGridref.table.addFilter(
-                filter.filterColumn,
-                filter.filterType,
-                filter.filterValue,
-              );
-            }
-          } else {
-            if (filter.filterType === 'includes') {
-              this.memberActivityGridref.table.addFilter(this.includesFilter, {
-                field: filter.filterColumn,
-                includes: filter.filterValue,
-              });
-            } else {
-              this.memberActivityGridref.table.setFilter(
-                filter.filterColumn,
-                filter.filterType,
-                filter.filterValue,
-              );
-            }
-          }
-        });
-      },
+    var filterColumns = this.filterColumns.filter(
+      column =>
+        !preference['Hidden Columns'].some(elm => elm.value === column.value),
     );
+
+    var columns = [];
+    columns.push(this.allColumns[0]);
+    this.allColumns.forEach(column => {
+      let idx = filterColumns.findIndex(
+        filterColumn => filterColumn.value === column.field,
+      );
+      if (idx !== -1) {
+        columns.push(column);
+      }
+    });
+
+    this.setState({
+      columns: columns,
+      filterColumns: filterColumns,
+      selectedColumns: this.filterColumns.filter(
+        column =>
+          !preference['Hidden Columns'].some(elm => elm.value === column.value),
+      ),
+      hiddenColumns: this.filterColumns.filter(column =>
+        preference['Hidden Columns'].some(elm => elm.value === column.value),
+      ),
+      filters: filters,
+      key: Math.random(),
+    });
+
+    setTimeout(function() {
+      compThis.memberActivityGridref.current.clearFilter();
+      filters.forEach((filter, index) => {
+        if (filter.filterType === 'includes') {
+          compThis.memberActivityGridref.current.addFilter(
+            this.includesFilter,
+            {
+              field: filter.filterColumn,
+              includes: filter.filterValue,
+            },
+          );
+        } else {
+          compThis.memberActivityGridref.current.addFilter(
+            filter.filterColumn,
+            filter.filterType,
+            filter.filterValue,
+          );
+        }
+      });
+    }, 1);
   };
 
   handleIncludesChange = options => {
     this.setState({ includesValue: options });
-  };
-  OpenMemberCellButton = (props: any) => {
-    return (
-      <a
-        href={`/#/kapps/gbmembers/Member/${props.cell.getData().id}`}
-        className=""
-      >
-        {props.cell.getValue()}
-      </a>
-    );
-  };
-
-  ExpandNotesCellButton = (props: any) => {
-    if (props.cell.getValue() === undefined) {
-      return <span />;
-    }
-    var notes = getJson(props.cell.getValue());
-    notes.forEach((item, i) => {
-      item['note'] = item['note'].replace(/(?:\r\n|\r|\n)/g, '<br>');
-    });
-
-    notes.sort(function(a, b) {
-      if (a['contactDate'] > b['contactDate']) {
-        return -1;
-      } else if (a['contactDate'] < b['contactDate']) {
-        return 1;
-      }
-      return 0;
-    });
-    const value = notes.length > 0 ? notes[0]['note'] : '';
-    return (
-      <span className="firstNote">
-        <div
-          className="rt-expander closed"
-          onClick={() => this.handleNotesCellClick(this, props.cell)}
-        >
-          •
-        </div>
-        <span className="note">{value}</span>{' '}
-      </span>
-    );
-  };
-  ExpandEventsCellButton = (props: any) => {
-    return (
-      <span className="events">
-        <div
-          className="rt-expander closed"
-          onClick={() => this.handleEventsCellClick(this, props.cell)}
-        >
-          •
-        </div>
-      </span>
-    );
-  };
-  ExpandCellButton = (props: any) => {
-    const cellData = props.cell._cell.row.data;
-    const value = props.cell.getValue();
-    return (
-      <span>
-        {value}{' '}
-        <button
-          className={
-            value === 0
-              ? 'grid-cell-expand show-sub-grid btn btn-xs disabled'
-              : 'grid-cell-expand show-sub-grid btn btn-xs'
-          }
-          onClick={() => this.handleCellClick(this, props.cell)}
-        >
-          Show
-        </button>
-      </span>
-    );
   };
 
   getMemberFee(members, member) {
@@ -1811,7 +1804,7 @@ export class MemberActivityReport extends Component {
   };
 
   downLoadTableAsCsv() {
-    this.memberActivityGridref.table.download(
+    this.memberActivityGridref.current.download(
       'csv',
       'member-activity-report.csv',
     );
@@ -1826,29 +1819,27 @@ export class MemberActivityReport extends Component {
     });
   }
   onColumnDropdownChange = options => {
-    this.filterColumns.forEach(column => {
-      this.memberActivityGridref.table.hideColumn(column.value);
+    var columns = [];
+    columns.push(this.allColumns[0]);
+    options.forEach(option => {
+      let idx = this.allColumns.findIndex(
+        column => option.value === column.field,
+      );
+      if (idx !== -1) {
+        columns.push(this.allColumns[idx]);
+      }
     });
 
-    options.forEach(column => {
-      this.memberActivityGridref.table.showColumn(column.value);
+    this.setState({
+      columns: columns,
+      filterColumns: this.filterColumns.filter(column =>
+        options.some(elm => elm.value === column.value),
+      ),
+      selectedColumns: options,
+      hiddenColumns: this.filterColumns.filter(
+        column => !options.some(elm => elm.value === column.value),
+      ),
     });
-
-    this.setState(
-      {
-        filterColumns: this.filterColumns.filter(column =>
-          options.some(elm => elm.value === column.value),
-        ),
-        selectedColumns: options,
-        hiddenColumns: this.filterColumns.filter(
-          column => !options.some(elm => elm.value === column.value),
-        ),
-      },
-      function() {
-        this.memberActivityGridref.table.redraw();
-      },
-    );
-    //this.selectedColumns = options;
   };
 
   updateReportPreferences = () => {
@@ -1939,18 +1930,22 @@ export class MemberActivityReport extends Component {
       'Member Activity Report',
       memberActivityReport,
     );
+
+    var columns = [];
+    columns.push(this.allColumns[0]);
+    columns.push(this.allColumns.find(column => column.field === 'name'));
+    columns.push(this.allColumns.find(column => column.field === 'status'));
+
     this.setState({
+      columns: columns,
       filterColumns: this.filterColumns,
-      selectedColumns: this.filterColumns,
+      selectedColumns: this.selectedColumns,
       hiddenColumns: this.hiddenColumns,
       selectedPreference: '',
       filters: [],
       key: Math.random(),
     });
-    this.filterColumns.forEach(column => {
-      this.memberActivityGridref.table.showColumn(column.value);
-    });
-    this.memberActivityGridref.table.clearFilter();
+    this.memberActivityGridref.current.clearFilter();
   };
 
   render() {
@@ -1980,7 +1975,7 @@ export class MemberActivityReport extends Component {
                     id="filter-field"
                     onChange={e => this.onFilterFieldChange(e)}
                   >
-                    <option></option>
+                    <option />
                     {this.state.filterColumns.map(column => (
                       <option key={column.value} value={column.value}>
                         {column.label}
@@ -2141,23 +2136,32 @@ export class MemberActivityReport extends Component {
                     }}
                   />
                 </span>
-                <button id="filter-add" onClick={e => this.addFilter(e)}>
+                <button
+                  id="filter-add"
+                  className="btn"
+                  onClick={e => this.addFilter(e)}
+                >
                   Create Filter
                 </button>
-                <span className="vl"></span>
+                <span className="vl" />
                 <button
                   name="download"
+                  className="btn"
                   onClick={e => this.downLoadTableAsCsv(e)}
                 >
-                  <i className="fa fa-download"></i> Download Data as CSV
+                  <i className="fa fa-download" /> Download Data as CSV
                 </button>
-                <span className="vl"></span>
-                <button name="download" onClick={e => this.loadMemberNotes(e)}>
+                <span className="vl" />
+                <button
+                  name="download"
+                  className="btn"
+                  onClick={e => this.loadMemberNotes(e)}
+                >
                   {this.props.memberNotesLoaded
                     ? 'Member Notes Loaded'
                     : this.props.memberNotesLoading
-                    ? 'Loading Member Notes'
-                    : 'Load Member Notes'}
+                      ? 'Loading Member Notes'
+                      : 'Load Member Notes'}
                 </button>
               </div>
             </div>
@@ -2203,8 +2207,8 @@ export class MemberActivityReport extends Component {
                   <button
                     className={
                       this.state.selectedPreference
-                        ? 'input-group-addon'
-                        : 'input-group-addon disabled'
+                        ? 'input-group-addon btn'
+                        : 'input-group-addon btn disabled'
                     }
                     disabled={this.state.selectedPreference ? false : true}
                     id="clear_addon"
@@ -2222,6 +2226,7 @@ export class MemberActivityReport extends Component {
                 )}
                 <button
                   name="updateMemberPereference"
+                  className="btn"
                   style={{ whiteSpace: 'normal' }}
                   onClick={e => this.updateReportPreferences(e)}
                 >
@@ -2247,11 +2252,11 @@ export class MemberActivityReport extends Component {
         ) : null}
         <div className="row tableData">
           <ReactTabulator
-            columns={this.columns}
+            key={this.state.columns.map(c => c.field).join(',')}
+            columns={this.state.columns}
             data={this.activityData}
             options={options}
-            renderComplete={e => this.hideColumns()}
-            ref={ref => (this.memberActivityGridref = ref)}
+            onRef={ref => (this.memberActivityGridref = ref)}
             layout="fitColumns"
           />
         </div>

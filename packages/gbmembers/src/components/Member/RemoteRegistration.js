@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { withHandlers } from 'recompose';
 import { KappNavLink as NavLink, Loading } from 'common';
 import 'react-day-picker/lib/style.css';
-import { CoreForm } from 'react-kinetic-core';
+import { CoreForm } from '@kineticdata/react';
 import { Utils } from 'common';
 import { actions as appActions } from '../../redux/modules/memberApp';
 
@@ -199,7 +199,10 @@ export const RemoteRegistration = ({
 );
 
 export const RemoteRegistrationContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('memberID', 'setMemberID', ''),
   withHandlers({
     handleCreated,

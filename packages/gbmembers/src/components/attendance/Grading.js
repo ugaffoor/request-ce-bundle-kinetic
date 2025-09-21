@@ -118,7 +118,6 @@ export class GradingDetail extends Component {
               <select
                 name="program"
                 id="program"
-                ref={input => (this.input = input)}
                 defaultValue={this.state.className}
                 onChange={e => this.handleProgramChange(e)}
               >
@@ -136,7 +135,6 @@ export class GradingDetail extends Component {
               <select
                 name="belt"
                 id="belt"
-                ref={input => (this.input = input)}
                 defaultValue={this.state.beltName}
                 onChange={e => this.handleBeltChange(e)}
               >
@@ -183,7 +181,7 @@ export class GradingDetail extends Component {
                     $('#readyToCheck').prop('checked', false);
                   }}
                 />
-                <label htmlFor="checkins"></label>
+                <label htmlFor="checkins" />
               </div>
               {this.props.fetchingClassSchedules ||
               this.props.fetchingClassAttendances ? (
@@ -209,7 +207,7 @@ export class GradingDetail extends Component {
                     $('#checkins').prop('checked', false);
                   }}
                 />
-                <label htmlFor="readyToCheck"></label>
+                <label htmlFor="readyToCheck" />
               </div>
             </div>
           </span>
@@ -370,7 +368,10 @@ export const GradingView = ({
 );
 
 export const GradingContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withHandlers({}),
   lifecycle({
     UNSAFE_componentWillReceiveProps(nextProps) {},

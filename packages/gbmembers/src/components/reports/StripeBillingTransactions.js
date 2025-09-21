@@ -3,9 +3,8 @@ import ReactTable from 'react-table';
 import { KappNavLink as NavLink } from 'common';
 import moment from 'moment-timezone';
 import ReactToPrint from 'react-to-print';
-import printerIcon from '../../images/Print.svg?raw';
-import downloadIcon from '../../images/download.svg?raw';
-import SVGInline from 'react-svg-inline';
+import { ReactComponent as PrinterIcon } from '../../images/Print.svg';
+import { ReactComponent as DownloadIcon } from '../../images/download.svg';
 import { CSVLink } from 'react-csv';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
 import 'react-day-picker/lib/style.css';
@@ -45,6 +44,8 @@ export class StripeBillingTransactions extends Component {
     this.getCashData = this.getCashData.bind(this);
     let cashData = [];
     let cashColumns = this.getColumns();
+
+    this.tableComponentRef = React.createRef();
 
     this.state = {
       data,
@@ -443,7 +444,7 @@ export class StripeBillingTransactions extends Component {
             type="text"
             disabled
             value={this.state.lastExportedEndDate}
-          ></input>
+          />
         </div>
         <div className="daysOut">
           <label htmlFor="fromDate" className="control-label">
@@ -477,20 +478,18 @@ export class StripeBillingTransactions extends Component {
           />
         </div>
         <ReactToPrint
-          trigger={() => (
-            <SVGInline svg={printerIcon} className="icon tablePrint" />
-          )}
-          content={() => this.tableComponentRef}
+          trigger={() => <PrinterIcon className="icon icon-svg tablePrint" />}
+          content={() => this.tableComponentRef.current}
         />
         <CSVLink
           className="downloadbtn"
           filename={moment().format('L') + '-billing-transactions.csv'}
           data={this.getDownloadData()}
         >
-          <SVGInline svg={downloadIcon} className="icon tableDownload" />
+          <DownloadIcon className="icon icon-svg tableDownload" />
         </CSVLink>
         <ReactTable
-          ref={el => (this.tableComponentRef = el)}
+          ref={this.tableComponentRef}
           columns={columns}
           data={data}
           className="-striped -highlight"
@@ -500,9 +499,7 @@ export class StripeBillingTransactions extends Component {
         />
         <br />
         <ReactToPrint
-          trigger={() => (
-            <SVGInline svg={printerIcon} className="icon tablePrint" />
-          )}
+          trigger={() => <PrinterIcon className="icon icon-svg tablePrint" />}
           content={() => this.tableCashComponentRef}
         />
         <CSVLink
@@ -510,7 +507,7 @@ export class StripeBillingTransactions extends Component {
           filename={moment().format('L') + '-cash-billing-transactions.csv'}
           data={this.getDownloadCashData()}
         >
-          <SVGInline svg={downloadIcon} className="icon tableDownload" />
+          <DownloadIcon className="icon icon-svg tableDownload" />
         </CSVLink>
         <ReactTable
           ref={el => (this.tableCashComponentRef = el)}

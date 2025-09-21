@@ -1,17 +1,14 @@
 import React from 'react';
 import { Navbar, Nav, NavItem } from 'reactstrap';
 import { KappNavLink as NavLink } from 'common';
-import SVGInline from 'react-svg-inline';
-
-import { CompanyLogoContainer } from './CompanyLogo';
-import homeIcon from '../images/Dashboard.svg?raw';
-import attendanceIcon from '../images/Attendance.svg?raw';
-import leadsIcon from '../images/Leads.svg?raw';
-import sendIcon from '../images/Send.svg?raw';
-import gradingIcon from '../images/Grading.svg?raw';
-import reportsIcon from '../images/Reports.svg?raw';
-import proShopIcon from '../images/proShop.svg?raw';
-import attentionRequired from '../images/flag.svg?raw';
+import { ReactComponent as Home } from '../images/Dashboard.svg';
+import { ReactComponent as Attendance } from '../images/Attendance.svg';
+import { ReactComponent as Leads } from '../images/Leads.svg';
+import { ReactComponent as Send } from '../images/Send.svg';
+import { ReactComponent as Grading } from '../images/Grading.svg';
+import { ReactComponent as Reports } from '../images/Reports.svg';
+import { ReactComponent as ProShop } from '../images/proShop.svg';
+import { ReactComponent as Flag } from '../images/flag.svg';
 import { getAttributeValue } from '../lib/react-kinops-components/src/utils';
 
 import { Utils } from 'common';
@@ -40,14 +37,13 @@ export const Header = ({
             strict
             activeClassName="active"
           >
-            <SVGInline svg={homeIcon} className="icon" />
+            <Home className="icon-svg" />
             <span className="appName">DASHBOARD</span>
-            <SVGInline
-              svg={attentionRequired}
+            <Flag
               className={
                 memberAttentionRequired
-                  ? 'attention icon'
-                  : 'attention icon hide'
+                  ? 'attention icon icon-svg'
+                  : 'attention icon hide icon-svg'
               }
             />
           </NavLink>
@@ -60,7 +56,7 @@ export const Header = ({
               strict
               activeClassName="active"
             >
-              <SVGInline svg={attendanceIcon} className="icon" />
+              <Attendance className="icon-svg" />
               <span className="appName">ATTENDANCE</span>
             </NavLink>
           </NavItem>
@@ -72,12 +68,13 @@ export const Header = ({
             strict
             activeClassName="active"
           >
-            <SVGInline svg={leadsIcon} className="icon" />
+            <Leads className="icon-svg" />
             <span className="appName ">LEADS</span>
-            <SVGInline
-              svg={attentionRequired}
+            <Flag
               className={
-                leadAttentionRequired ? 'attention icon' : 'attention icon hide'
+                leadAttentionRequired
+                  ? 'attention icon icon-svg'
+                  : 'attention icon hide icon-svg'
               }
             />
           </NavLink>
@@ -89,7 +86,7 @@ export const Header = ({
             strict
             activeClassName="active"
           >
-            <SVGInline svg={sendIcon} className="icon" />
+            <Send className="icon-svg" />
             <span className="appName">SEND</span>
           </NavLink>
         </NavItem>
@@ -101,7 +98,7 @@ export const Header = ({
               strict
               activeClassName="active"
             >
-              <SVGInline svg={gradingIcon} className="icon" />
+              <Grading className="icon-svg" />
               <span className="appName">GRADING</span>
             </NavLink>
           </NavItem>
@@ -116,7 +113,7 @@ export const Header = ({
               strict
               activeClassName="active"
             >
-              <SVGInline svg={reportsIcon} className="icon" />
+              <Reports className="icon-svg" />
               <span className="appName">REPORTS</span>
             </NavLink>
           </NavItem>
@@ -131,7 +128,7 @@ export const Header = ({
               strict
               activeClassName="active"
             >
-              <SVGInline svg={proShopIcon} className="icon" />
+              <ProShop className="icon-svg" />
               <span className="appName">PRO SHOP</span>
             </NavLink>
           </NavItem>
@@ -146,7 +143,7 @@ export const Header = ({
             strict
             activeClassName="active"
           >
-            <SVGInline svg={attendanceIcon} className="icon" />
+            <Attendance />
             <span className="appName">ATTENDANCE</span>
           </NavLink>
         </NavItem>

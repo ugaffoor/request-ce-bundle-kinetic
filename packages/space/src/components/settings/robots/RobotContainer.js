@@ -9,7 +9,7 @@ import { Robot } from './Robot';
 import { RobotExecution } from './RobotExecution';
 import { RobotExecutionsList } from './RobotExecutionsList';
 import { RobotsList } from './RobotsList';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const RobotError = () => (
   <h1>
@@ -51,5 +51,8 @@ export const mapDispatchToProps = {
 };
 
 export const RobotContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
 )(RobotContainerComponent);

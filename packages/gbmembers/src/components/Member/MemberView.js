@@ -8,20 +8,19 @@ import {
   withProps,
 } from 'recompose';
 import { actions } from '../../redux/modules/members';
-import addressIcon from '../../images/Address.svg?raw';
-import phoneIcon from '../../images/phone.svg?raw';
-import emailIcon from '../../images/E-mail.svg?raw';
-import dobIcon from '../../images/Birthday.svg?raw';
-import aidIcon from '../../images/Emergency.svg?raw';
-import printerIcon from '../../images/Print.svg?raw';
-import waiverIcon from '../../images/clipboard.svg?raw';
-import statsBarIcon from '../../images/stats-bars.svg?raw';
-import waiverCheckedIcon from '../../images/assignment_turned_in.svg?raw';
+import { ReactComponent as AddressIcon } from '../../images/Address.svg';
+import { ReactComponent as PhoneIcon } from '../../images/phone.svg';
+import { ReactComponent as EmailIcon } from '../../images/E-mail.svg';
+import { ReactComponent as DobIcon } from '../../images/Birthday.svg';
+import { ReactComponent as AidIcon } from '../../images/Emergency.svg';
+import { ReactComponent as PrinterIcon } from '../../images/Print.svg';
+import { ReactComponent as WaiverIcon } from '../../images/clipboard.svg';
+import { ReactComponent as StatsBarIcon } from '../../images/stats-bars.svg';
+import { ReactComponent as WaiverCheckedIcon } from '../../images/assignment_turned_in.svg';
 import phone from '../../images/phone.png';
 import mail from '../../images/mail.png';
 import sms from '../../images/sms.png';
 import in_person from '../../images/in_person.png';
-import SVGInline from 'react-svg-inline';
 import html2canvas from 'html2canvas';
 import { KappNavLink as NavLink } from 'common';
 import { PaymentPeriod, PaymentType } from './BillingUtils';
@@ -51,7 +50,6 @@ import { GradingStatus } from '../attendance/GradingStatus';
 import { AttendanceDialogContainer } from '../attendance/AttendanceDialog';
 import { SwitchBillingMemberContainer } from './SwitchBillingMemberContainer';
 import { Requests } from './Requests';
-import { MemberAttendanceContainer } from './MemberAttendance';
 import { actions as posActions } from '../../redux/modules/pos';
 import { actions as campaignActions } from '../../redux/modules/campaigns';
 import { actions as attendanceActions } from '../../redux/modules/attendance';
@@ -75,13 +73,13 @@ import {
   isNewMember,
   getPhoneNumberFormat,
 } from './MemberUtils';
-import ReactToPrint from 'react-to-print';
 import css from 'css';
-import attentionRequired from '../../images/flag.svg?raw';
+import { ReactComponent as AttentionRequired } from '../../images/flag.svg';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import styled from 'styled-components';
 import { confirm } from '../helpers/Confirmation';
 import 'react-datetime/css/react-datetime.css';
+import ReactToPrint from 'react-to-print';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -192,7 +190,7 @@ export class NewCustomers extends Component {
       data,
     };
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.newCustomers.length !== this.props.newCustomers.length) {
       this.setState({
         data: this.getData(nextProps.newCustomers),
@@ -284,7 +282,7 @@ export class BillingParentInfo extends Component {
     this.member = this.props.member;
     this.parentMember = undefined;
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     //    if (this.member===undefined /*|| this.allMembers.length!==nextProps.allMembers.length){
     if (
       nextProps.parentMemberId !== undefined &&
@@ -363,7 +361,7 @@ export class SwitchBillingParent extends Component {
     this.member = this.props.member;
     this.parentMember = undefined;
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     //    if (this.member===undefined /*|| this.allMembers.length!==nextProps.allMembers.length){
   }
   render() {
@@ -394,7 +392,7 @@ export class AttendanceChart extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (this.props.id !== nextProps.id) {
       this.props.fetchMemberAttendances({
         id: nextProps.id,
@@ -476,7 +474,7 @@ export class AttendanceChart extends Component {
               width: '14px',
               height: '14px',
             }}
-          ></svg>
+          />
         </li>
       </ul>
     );
@@ -573,6 +571,7 @@ class AttendanceCardToPrint extends React.Component {
       <div />
     ) : (
       <div
+        id="attendanceCardToPrint"
         className={
           'attendanceCard ' +
           (getAttributeValue(this.props.space, 'Card Region') === undefined
@@ -693,7 +692,7 @@ class AttendanceCardToPrint extends React.Component {
                 .replace(/ /g, '_')
                 .replace(/\+/g, '_')
             }
-          ></div>
+          />
         )}
         {this.props.memberItem.values['Ranking Program'].indexOf('Combo') !==
           -1 && (
@@ -811,6 +810,7 @@ class VisitorCardToPrint extends React.Component {
   render() {
     return (
       <div
+        id="visitorCardToPrint"
         className={
           'visitorCard ' +
           (getAttributeValue(this.props.space, 'Card Region') === undefined
@@ -846,15 +846,17 @@ class VisitorCardToPrint extends React.Component {
             )}
           </div>
         </div>
-        <div className={'filler'}></div>
+        <div className={'filler'} />
       </div>
     );
   }
 }
+
 class CoachCardToPrint extends React.Component {
   render() {
     return (
       <div
+        id="coachCardToPrint"
         className={
           'coachCard ' +
           (getAttributeValue(this.props.space, 'Card Region') === undefined
@@ -890,9 +892,9 @@ class CoachCardToPrint extends React.Component {
             )}
           </div>
         </div>
-        <div className={'filler'}></div>
+        <div className={'filler'} />
         <PageBreakWrapper>&nbsp;</PageBreakWrapper>
-        <div id="coachCard_p2" className={'card2 coachCard'}></div>
+        <div id="coachCard_p2" className={'card2 coachCard'} />
       </div>
     );
   }
@@ -971,8 +973,11 @@ export const MemberView = ({
   contactDate,
   addNotification,
   setSystemError,
-}) =>
-  initialLoad ? (
+}) => {
+  const componentRef = React.createRef();
+  const visitorCardComponentRef = React.createRef();
+  const coachCardComponentRef = React.createRef();
+  return initialLoad ? (
     <div className="loading">
       <ReactSpinner />
     </div>
@@ -1025,7 +1030,7 @@ export const MemberView = ({
               )}
               <span className="details1">
                 <div className="iconItem">
-                  <SVGInline svg={addressIcon} className="icon" />
+                  <AddressIcon className="icon icon-svg" />
                   <span className="value">
                     <p className="address">
                       {memberItem.values['Address']},{' '}
@@ -1036,7 +1041,7 @@ export const MemberView = ({
                   </span>
                 </div>
                 <div className="iconItem">
-                  <SVGInline svg={emailIcon} className="icon" />
+                  <EmailIcon className="icon icon-svg" />
                   <span className="value">
                     <NavLink to={`/NewEmailCampaign/member/${memberItem.id}`}>
                       {memberItem.values['Email']}
@@ -1044,7 +1049,7 @@ export const MemberView = ({
                   </span>
                 </div>
                 <div className="iconItem">
-                  <SVGInline svg={phoneIcon} className="icon" />
+                  <PhoneIcon className="icon icon-svg" />
                   <span className="value">
                     <a href={'tel:' + memberItem.values['Phone Number']}>
                       <NumberFormat
@@ -1056,8 +1061,8 @@ export const MemberView = ({
                             ? getAttributeValue(space, 'PhoneNumber Format')
                             : space.slug === 'europe' ||
                               space.slug === 'unitedkingdom'
-                            ? getPhoneNumberFormat(memberItem)
-                            : '####-###-###'
+                              ? getPhoneNumberFormat(memberItem)
+                              : '####-###-###'
                         }
                       />
                     </a>
@@ -1065,7 +1070,7 @@ export const MemberView = ({
                 </div>
                 {getAttributeValue(space, 'Franchisor') !== 'YES' && (
                   <div className="iconItem">
-                    <SVGInline svg={dobIcon} className="icon" />
+                    <DobIcon className="icon icon-svg" />
                     <span className="value">
                       {moment(memberItem.values['DOB'], 'YYYY-MM-DD').format(
                         'L',
@@ -1076,7 +1081,7 @@ export const MemberView = ({
                   </div>
                 )}
                 <div className="iconItem">
-                  <SVGInline svg={aidIcon} className="icon" />
+                  <AidIcon className="icon icon-svg" />
                   <span className="value">
                     {memberItem.values['Emergency Contact Name']} (
                     {memberItem.values['Emergency Contact Relationship']}){' '}
@@ -1090,8 +1095,8 @@ export const MemberView = ({
                           ? getAttributeValue(space, 'PhoneNumber Format')
                           : space.slug === 'europe' ||
                             space.slug === 'unitedkingdom'
-                          ? getPhoneNumberFormat(memberItem)
-                          : '####-###-###'
+                            ? getPhoneNumberFormat(memberItem)
+                            : '####-###-###'
                       }
                     />
                   </span>
@@ -1125,10 +1130,7 @@ export const MemberView = ({
                                 : 'iconItem waiver notValid'
                             }
                           >
-                            <SVGInline
-                              svg={waiverCheckedIcon}
-                              className="icon"
-                            />
+                            <WaiverCheckedIcon className="icon icon-svg" />
                             <span className="value">
                               {moment(
                                 memberItem.values['Waiver Complete Date'],
@@ -1140,7 +1142,7 @@ export const MemberView = ({
                         undefined ||
                         memberItem.values['Waiver Complete Date'] === '') && (
                         <div className={'iconItem waiver notValid'}>
-                          <SVGInline svg={waiverCheckedIcon} className="icon" />
+                          <WaiverCheckedIcon className="icon icon-svg" />
                           <span className="value">
                             Waiver Acceptance Required
                           </span>
@@ -1150,7 +1152,7 @@ export const MemberView = ({
                   )}
                 {/*getAttributeValue(space, 'Franchisor') !== 'YES' && (
                   <div className="iconItem">
-                    <SVGInline svg={waiverIcon} className="icon" />
+                    <WaiverIcon className="icon icon-svg" />
                     <span className="value">
                       {memberItem.values['Covid19 Waiver'] === null ||
                       memberItem.values['Covid19 Waiver'] === undefined ||
@@ -1265,10 +1267,10 @@ export const MemberView = ({
                       memberItem.values['Status'] === 'Active'
                         ? 'green'
                         : memberItem.values['Status'] === 'Inactive'
-                        ? 'red'
-                        : 'blue'
+                          ? 'red'
+                          : 'blue'
                     }
-                  ></div>
+                  />
                 </div>
                 <span className="buttons">
                   {getAttributeValue(space, 'Franchisor') !== 'YES' && (
@@ -1425,9 +1427,8 @@ export const MemberView = ({
                         updateAttentionRequired();
                       }}
                     >
-                      <SVGInline
-                        svg={attentionRequired}
-                        className={'attention icon'}
+                      <AttentionRequired
+                        className={'attention icon icon-svg'}
                       />
                     </div>
                   )}
@@ -1444,20 +1445,17 @@ export const MemberView = ({
                             ? memberItem.id.split('-')[4].substring(6, 12)
                             : memberItem.values['Alternate Barcode']
                         }
-                        width={1.3}
                         height={30}
+                        width={1.3}
                         displayValue={false}
                         type={'CODE128'}
                       />
                     </div>
                     <ReactToPrint
                       trigger={() => (
-                        <SVGInline
-                          svg={printerIcon}
-                          className="icon barcodePrint"
-                        />
+                        <PrinterIcon className="icon icon-svg barcodePrint" />
                       )}
-                      content={() => this.componentRef}
+                      content={() => componentRef.current}
                     />
                   </div>
                 )}
@@ -1468,12 +1466,9 @@ export const MemberView = ({
                     </div>
                     <ReactToPrint
                       trigger={() => (
-                        <SVGInline
-                          svg={printerIcon}
-                          className="icon visitorCardPrint"
-                        />
+                        <PrinterIcon className="icon icon-svg barcodePrint" />
                       )}
-                      content={() => this.visitorCardComponentRef}
+                      content={() => visitorCardComponentRef.current}
                     />
                   </div>
                 )}
@@ -1487,12 +1482,9 @@ export const MemberView = ({
                       </div>
                       <ReactToPrint
                         trigger={() => (
-                          <SVGInline
-                            svg={printerIcon}
-                            className="icon coachCardPrint"
-                          />
+                          <PrinterIcon className="icon icon-svg barcodePrint" />
                         )}
-                        content={() => this.coachCardComponentRef}
+                        content={() => coachCardComponentRef.current}
                       />
                     </div>
                   )}
@@ -1513,23 +1505,23 @@ export const MemberView = ({
               Converted Lead
             </NavLink>
           </div>
-          <div style={{ display: 'none' }}>
+          <div className="print-only">
             <AttendanceCardToPrint
-              ref={el => (this.componentRef = el)}
+              ref={componentRef}
               memberItem={memberItem}
               space={space}
             />
           </div>
-          <div style={{ display: 'none' }}>
+          <div className="print-only">
             <VisitorCardToPrint
-              ref={el => (this.visitorCardComponentRef = el)}
+              ref={visitorCardComponentRef}
               memberItem={memberItem}
               space={space}
             />
           </div>
-          <div style={{ display: 'none' }}>
+          <div className="print-only">
             <CoachCardToPrint
-              ref={el => (this.coachCardComponentRef = el)}
+              ref={coachCardComponentRef}
               memberItem={memberItem}
               space={space}
             />
@@ -1548,9 +1540,8 @@ export const MemberView = ({
                 <div className="program">
                   <p>{memberItem.values['Ranking Program']}</p>
                   <span placeholder="View Attendance">
-                    <SVGInline
-                      svg={statsBarIcon}
-                      className="icon statsbar"
+                    <StatsBarIcon
+                      className="icon icon-svg statsbar"
                       onClick={e => setShowAttendanceDialog(true)}
                     />
                   </span>
@@ -1585,7 +1576,7 @@ export const MemberView = ({
                       belts={belts}
                       allMembers={allMembers}
                     />
-                    <div></div>
+                    <div />
                   </div>
                 )}
               </div>
@@ -1777,7 +1768,8 @@ export const MemberView = ({
                   /*(memberItem.values['Billing Customer Reference'] === null ||
                     memberItem.values['Billing Customer Reference'] ===
                       undefined ||
-                    memberItem.values['Billing Customer Reference'] === '') &&*/ <div>
+                    memberItem.values['Billing Customer Reference'] === '') &&*/ <div
+                  >
                     <button
                       onClick={e => setShowBamboraActivate(true)}
                       className="btn btn-primary"
@@ -1925,7 +1917,7 @@ export const MemberView = ({
                   style={{ width: '100%' }}
                   id="memberNote"
                   className="form-control"
-                  ref={input => (this.input = input)}
+                  ref={React.createRef()}
                   placeholder="Start Typing for notes"
                   onChange={e => setIsDirty(true)}
                 />
@@ -1955,109 +1947,114 @@ export const MemberView = ({
             <p>... Loading Additional Details</p>
           )}
 
-          {!currentMemberLoading && !currentMemberAdditionalLoading && (
-            <div className="additionalDetails">
-              <div>
-                <MemberViewNotes
-                  saveRemoveMemberNote={saveRemoveMemberNote}
-                  space={space}
-                  profile={profile}
-                  memberItem={memberItem}
-                />
-              </div>
-              <div>
-                {(Utils.getAttributeValue(space, 'Billing Company') ===
-                  'Bambora' ||
-                  Utils.getAttributeValue(space, 'Billing Company') ===
-                    'Stripe') && (
-                  <MemberAdditionalServices
+          {!currentMemberLoading &&
+            !currentMemberAdditionalLoading && (
+              <div className="additionalDetails">
+                <div>
+                  <MemberViewNotes
+                    saveRemoveMemberNote={saveRemoveMemberNote}
+                    space={space}
+                    profile={profile}
+                    memberItem={memberItem}
+                  />
+                </div>
+                <div>
+                  {(Utils.getAttributeValue(space, 'Billing Company') ===
+                    'Bambora' ||
+                    Utils.getAttributeValue(space, 'Billing Company') ===
+                      'Stripe') && (
+                    <MemberAdditionalServices
+                      memberItem={memberItem}
+                      allMembers={allMembers}
+                      space={space}
+                      profile={profile}
+                      cancelAdditionalService={cancelAdditionalService}
+                      locale={locale}
+                      currency={currency}
+                    />
+                  )}
+                </div>
+                <div>
+                  <MemberFiles
+                    memberItem={memberItem}
+                    space={space}
+                    profile={profile}
+                    deleteMemberFile={deleteMemberFile}
+                  />
+                </div>
+                <div>
+                  <Requests
+                    requestContent={
+                      memberItem.leadRequestContent === undefined
+                        ? memberItem.requestContent
+                        : memberItem.leadRequestContent.concat(
+                            memberItem.requestContent,
+                          )
+                    }
+                    space={space}
+                    profile={profile}
+                    locale={locale}
+                    currency={currency}
+                    sendReceipt={sendReceipt}
+                    addNotification={addNotification}
+                    setSystemError={setSystemError}
+                  />
+                </div>
+                <div>
+                  <MemberEmails
+                    memberItem={memberItem}
+                    fetchCampaign={fetchCampaign}
+                    campaignItem={campaignItem}
+                    campaignLoading={campaignLoading}
+                    fetchSenderReceipt={fetchSenderReceipt}
+                    senderReceipt={senderReceipt}
+                    senderReceiptLoading={senderReceiptLoading}
+                    space={space}
+                    profile={profile}
+                  />
+                </div>
+                <div>
+                  <EmailsReceived
+                    submission={memberItem}
+                    space={space}
+                    profile={profile}
+                  />
+                </div>
+                <div>
+                  <MemberSMS
+                    memberItem={memberItem}
+                    space={space}
+                    profile={profile}
+                  />
+                </div>
+                <div>
+                  <MemberOrders
                     memberItem={memberItem}
                     allMembers={allMembers}
                     space={space}
                     profile={profile}
-                    cancelAdditionalService={cancelAdditionalService}
-                    locale={locale}
-                    currency={currency}
+                    sendReceipt={sendReceipt}
+                    snippets={snippets}
+                    refundPOSPayment={refundPOSPayment}
+                    refundPOSTransactionInProgress={
+                      refundPOSTransactionInProgress
+                    }
+                    refundPOSTransactionID={refundPOSTransactionID}
                   />
-                )}
+                </div>
               </div>
-              <div>
-                <MemberFiles
-                  memberItem={memberItem}
-                  space={space}
-                  profile={profile}
-                  deleteMemberFile={deleteMemberFile}
-                />
-              </div>
-              <div>
-                <Requests
-                  requestContent={
-                    memberItem.leadRequestContent === undefined
-                      ? memberItem.requestContent
-                      : memberItem.leadRequestContent.concat(
-                          memberItem.requestContent,
-                        )
-                  }
-                  space={space}
-                  profile={profile}
-                  locale={locale}
-                  currency={currency}
-                  sendReceipt={sendReceipt}
-                  addNotification={addNotification}
-                  setSystemError={setSystemError}
-                />
-              </div>
-              <div>
-                <MemberEmails
-                  memberItem={memberItem}
-                  fetchCampaign={fetchCampaign}
-                  campaignItem={campaignItem}
-                  campaignLoading={campaignLoading}
-                  fetchSenderReceipt={fetchSenderReceipt}
-                  senderReceipt={senderReceipt}
-                  senderReceiptLoading={senderReceiptLoading}
-                  space={space}
-                  profile={profile}
-                />
-              </div>
-              <div>
-                <EmailsReceived
-                  submission={memberItem}
-                  space={space}
-                  profile={profile}
-                />
-              </div>
-              <div>
-                <MemberSMS
-                  memberItem={memberItem}
-                  space={space}
-                  profile={profile}
-                />
-              </div>
-              <div>
-                <MemberOrders
-                  memberItem={memberItem}
-                  allMembers={allMembers}
-                  space={space}
-                  profile={profile}
-                  sendReceipt={sendReceipt}
-                  snippets={snippets}
-                  refundPOSPayment={refundPOSPayment}
-                  refundPOSTransactionInProgress={
-                    refundPOSTransactionInProgress
-                  }
-                  refundPOSTransactionID={refundPOSTransactionID}
-                />
-              </div>
-            </div>
-          )}
+            )}
         </div>
       </div>
     </span>
   );
+};
 
 export const MemberViewContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(({ memberItem }) => {}),
   withState('isAssigning', 'setIsAssigning', false),
   withState('isDirty', 'setIsDirty', false),
@@ -2682,7 +2679,7 @@ export const MemberViewContainer = compose(
         locale: this.locale,
       });
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       //$('#mainContent').offset({ top: 98});
       if (this.props.pathname !== nextProps.pathname) {
         this.props.fetchCurrentMember({

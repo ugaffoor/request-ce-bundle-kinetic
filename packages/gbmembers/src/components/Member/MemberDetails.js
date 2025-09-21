@@ -7,7 +7,7 @@ import { KappNavLink as NavLink } from 'common';
 import { PhotoForm } from '../PhotoForm';
 import $ from 'jquery';
 import { StatusMessagesContainer } from '../StatusMessages';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 export function handleChange(memberItem, key, event) {
   if (memberItem[key]) {
@@ -70,7 +70,6 @@ export class MemberDetails extends React.Component {
                     id="username"
                     disabled={!this.newMember}
                     required
-                    ref={input => (this.input = input)}
                     defaultValue={this.memberItem.username}
                     onChange={e => handleChange(this.memberItem, 'username', e)}
                   />
@@ -94,7 +93,6 @@ export class MemberDetails extends React.Component {
                     name="firstName"
                     id="firstName"
                     required
-                    ref={input => (this.input = input)}
                     defaultValue={getAttributeValue(
                       this.memberItem,
                       'First Name',
@@ -121,7 +119,6 @@ export class MemberDetails extends React.Component {
                     name="lastName"
                     id="lastNames"
                     required
-                    ref={input => (this.input = input)}
                     defaultValue={getAttributeValue(
                       this.memberItem,
                       'Last Name',
@@ -136,7 +133,6 @@ export class MemberDetails extends React.Component {
                   <select
                     name="gender"
                     id="gender"
-                    ref={input => (this.input = input)}
                     defaultValue={getAttributeValue(this.memberItem, 'Gender')}
                     onChange={e => handleChange(this.memberItem, 'Gender', e)}
                   >
@@ -168,7 +164,6 @@ export class MemberDetails extends React.Component {
                     id="address"
                     size="80"
                     required
-                    ref={input => (this.input = input)}
                     defaultValue={getAttributeValue(this.memberItem, 'Address')}
                     onChange={e => handleChange(this.memberItem, 'Address', e)}
                   />
@@ -191,7 +186,6 @@ export class MemberDetails extends React.Component {
                     name="suburb"
                     id="suburb"
                     required
-                    ref={input => (this.input = input)}
                     defaultValue={getAttributeValue(this.memberItem, 'Suburb')}
                     onChange={e => handleChange(this.memberItem, 'Suburb', e)}
                   />
@@ -211,7 +205,6 @@ export class MemberDetails extends React.Component {
                     name="state"
                     id="state"
                     required
-                    ref={input => (this.input = input)}
                     defaultValue={getAttributeValue(this.memberItem, 'State')}
                     onChange={e => handleChange(this.memberItem, 'State', e)}
                   >
@@ -243,7 +236,6 @@ export class MemberDetails extends React.Component {
                     name="postcode"
                     id="postcode"
                     required
-                    ref={input => (this.input = input)}
                     defaultValue={getAttributeValue(
                       this.memberItem,
                       'Postcode',
@@ -266,7 +258,6 @@ export class MemberDetails extends React.Component {
                     name="email"
                     id="email"
                     required
-                    ref={input => (this.input = input)}
                     defaultValue={this.memberItem.email}
                     onChange={e => handleChange(this.memberItem, 'email', e)}
                   />
@@ -288,7 +279,6 @@ export class MemberDetails extends React.Component {
                     name="phone"
                     id="phone"
                     required
-                    ref={input => (this.input = input)}
                     defaultValue={getAttributeValue(
                       this.memberItem,
                       'Phone Number',
@@ -306,7 +296,6 @@ export class MemberDetails extends React.Component {
                     type="date"
                     name="datejoined"
                     id="datejoined"
-                    ref={input => (this.input = input)}
                     defaultValue={getAttributeValue(
                       this.memberItem,
                       'Date Joined',
@@ -322,7 +311,6 @@ export class MemberDetails extends React.Component {
                     type="date"
                     name="birthday"
                     id="birthday"
-                    ref={input => (this.input = input)}
                     defaultValue={getAttributeValue(this.memberItem, 'DOB')}
                     onChange={e => handleChange(this.memberItem, 'DOB', e)}
                   />
@@ -334,7 +322,6 @@ export class MemberDetails extends React.Component {
                   <select
                     name="membertype"
                     id="membertype"
-                    ref={input => (this.input = input)}
                     defaultValue={getAttributeValue(
                       this.memberItem,
                       'Member Type',
@@ -363,7 +350,6 @@ export class MemberDetails extends React.Component {
                     size="40"
                     name="emergencyname"
                     id="emergencyname"
-                    ref={input => (this.input = input)}
                     defaultValue={getAttributeValue(
                       this.memberItem,
                       'Emergency Contact Name',
@@ -380,7 +366,6 @@ export class MemberDetails extends React.Component {
                     size="40"
                     name="relationship"
                     id="relationship"
-                    ref={input => (this.input = input)}
                     defaultValue={getAttributeValue(
                       this.memberItem,
                       'Emergency Contact Relationship',
@@ -403,7 +388,6 @@ export class MemberDetails extends React.Component {
                     size="40"
                     name="emergencyphone"
                     id="emergencyphone"
-                    ref={input => (this.input = input)}
                     defaultValue={getAttributeValue(
                       this.memberItem,
                       'Emergency Contact Phone',
@@ -424,7 +408,6 @@ export class MemberDetails extends React.Component {
                     size="40"
                     name="alergies"
                     id="alergies"
-                    ref={input => (this.input = input)}
                     defaultValue={getAttributeValue(
                       this.memberItem,
                       'Medical Allergies',
@@ -445,7 +428,6 @@ export class MemberDetails extends React.Component {
                   <select
                     name="program"
                     id="program"
-                    ref={input => (this.input = input)}
                     defaultValue={getAttributeValue(
                       this.memberItem,
                       'Ranking Program',
@@ -470,7 +452,6 @@ export class MemberDetails extends React.Component {
                   <select
                     name="belt"
                     id="belt"
-                    ref={input => (this.input = input)}
                     defaultValue={getAttributeValue(
                       this.memberItem,
                       'Ranking Belt',

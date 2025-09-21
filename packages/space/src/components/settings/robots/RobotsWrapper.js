@@ -2,7 +2,7 @@ import React from 'react';
 import { Switch, Route, Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { RobotContainer } from './RobotContainer';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 import semver from 'semver';
 const MINIMUM_CE_VERSION = '2.1.0';
 

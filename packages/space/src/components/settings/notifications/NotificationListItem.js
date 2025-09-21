@@ -9,7 +9,7 @@ import {
   DropdownItem,
 } from 'reactstrap';
 import { actions } from '../../../redux/modules/settingsNotifications';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const NotificationListItemComponent = ({
   notification,
@@ -114,7 +114,10 @@ const toggleDropdown = ({
   setOpenDropdown(dropdownSlug === openDropdown ? '' : dropdownSlug);
 
 export const NotificationListItem = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('openDropdown', 'setOpenDropdown', ''),
   withState('modalIsOpen', 'setModalVisible', true),
   withHandlers({

@@ -12,7 +12,7 @@ import downloadjs from 'downloadjs';
 import { actions } from '../../../redux/modules/settingsUsers';
 
 import { UsersListItem } from './UsersListItem';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const IsJsonString = str => {
   try {
@@ -44,6 +44,8 @@ const UsersListComponent = ({
   handleChange,
   handleDownload,
 }) => {
+  const fileEl = React.createRef();
+
   return (
     <div className="page-container page-container--settings-users">
       <PageTitle parts={['Users', 'Settings']} />
@@ -71,9 +73,7 @@ const UsersListComponent = ({
               id="file-input"
               style={{ display: 'none' }}
               onChange={handleChange}
-              ref={element => {
-                this.fileEl = element;
-              }}
+              ref={fileEl}
             />
             <label
               htmlFor="file-input"
@@ -153,12 +153,12 @@ const createCSV = users => {
 };
 
 const handleChange = props => () => {
-  const file = this.fileEl.files[0];
+  const file = this.fileEl.current.files[0];
   const extention = file.name.split('.')[file.name.split('.').length - 1];
 
   if (file && extention === 'csv') {
     const reader = new FileReader();
-    reader.readAsText(this.fileEl.files[0]);
+    reader.readAsText(this.fileEl.current.files[0]);
     reader.onload = event => {
       papaparse.parse(event.target.result, {
         header: true,
@@ -171,14 +171,17 @@ const handleChange = props => () => {
               .map(user => {
                 return user
                   .update('allowedIps', val => (val ? val : ''))
-                  .update('attributesMap', val =>
-                    IsJsonString(val) ? fromJS(JSON.parse(val)) : {},
+                  .update(
+                    'attributesMap',
+                    val => (IsJsonString(val) ? fromJS(JSON.parse(val)) : {}),
                   )
-                  .update('profileAttributesMap', val =>
-                    IsJsonString(val) ? fromJS(JSON.parse(val)) : {},
+                  .update(
+                    'profileAttributesMap',
+                    val => (IsJsonString(val) ? fromJS(JSON.parse(val)) : {}),
                   )
-                  .update('memberships', val =>
-                    IsJsonString(val) ? fromJS(JSON.parse(val)) : {},
+                  .update(
+                    'memberships',
+                    val => (IsJsonString(val) ? fromJS(JSON.parse(val)) : {}),
                   );
               })
               .toSet();
@@ -230,7 +233,10 @@ export const mapDispatchToProps = {
 };
 
 export const UsersList = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('data', 'setData', ''),
   withHandlers({ handleChange, handleDownload }),
   lifecycle({

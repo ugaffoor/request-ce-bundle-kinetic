@@ -3,8 +3,8 @@ import { connect } from 'react-redux';
 import { compose, withHandlers, withProps, withState } from 'recompose';
 import { actions } from '../../redux/modules/workMenu';
 import { Modal, ModalBody, ModalFooter } from 'reactstrap';
-import { CoreForm } from 'react-kinetic-core';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { CoreForm } from '@kineticdata/react';
+import { I18n } from '@kineticdata/react';
 
 const globals = import('common/globals');
 
@@ -37,7 +37,9 @@ export const WorkMenu = ({
       </div>
       <ModalBody>
         <I18n
-          context={`kapps.${queueItem.form.kapp.slug}.forms.${queueItem.form.slug}`}
+          context={`kapps.${queueItem.form.kapp.slug}.forms.${
+            queueItem.form.slug
+          }`}
         >
           <CoreForm
             globals={globals}
@@ -49,22 +51,25 @@ export const WorkMenu = ({
           />
         </I18n>
       </ModalBody>
-      {mode === 'Work' && !complete && (
-        <ModalFooter>
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={handleSaveClick}
-          >
-            <I18n>Save</I18n>{' '}
-            <I18n
-              context={`kapps.${queueItem.form.kapp.slug}.forms.${queueItem.form.slug}`}
+      {mode === 'Work' &&
+        !complete && (
+          <ModalFooter>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleSaveClick}
             >
-              {queueItem.form.name}
-            </I18n>
-          </button>
-        </ModalFooter>
-      )}
+              <I18n>Save</I18n>{' '}
+              <I18n
+                context={`kapps.${queueItem.form.kapp.slug}.forms.${
+                  queueItem.form.slug
+                }`}
+              >
+                {queueItem.form.name}
+              </I18n>
+            </button>
+          </ModalFooter>
+        )}
     </Modal>
   );
 
@@ -77,7 +82,10 @@ export const mapDispatchToProps = {
 };
 
 export const WorkMenuContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('complete', 'setComplete', false),
   withProps(({ queueItem }) => ({
     mode: queueItem && queueItem.coreState === 'Draft' ? 'Work' : 'Review',

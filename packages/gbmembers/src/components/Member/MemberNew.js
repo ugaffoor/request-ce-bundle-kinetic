@@ -35,7 +35,7 @@ import MomentLocaleUtils, {
   parseDate,
 } from 'react-day-picker/moment';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 import Barcode from 'react-barcode';
 import enAU from 'moment/locale/en-au';
 import enCA from 'moment/locale/en-ca';
@@ -143,7 +143,6 @@ export const MemberNew = ({
                         : false
                     }
                     required
-                    ref={input => (this.input = input)}
                     value={
                       getAttributeValue(space, 'Franchisor') === 'YES'
                         ? 'GB'
@@ -172,7 +171,6 @@ export const MemberNew = ({
                     name="lastName"
                     id="lastName"
                     required
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Last Name']}
                     onChange={e => handleNewChange(memberItem, 'Last Name', e)}
                     onBlur={e => handleNameChange(memberItem, e)}
@@ -192,7 +190,6 @@ export const MemberNew = ({
                       name="gender"
                       id="gender"
                       required
-                      ref={input => (this.input = input)}
                       value={memberItem.values['Gender']}
                       onChange={e => handleChange(memberItem, 'Gender', e)}
                     >
@@ -235,7 +232,6 @@ export const MemberNew = ({
                     name="username"
                     id="username"
                     required
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Member ID']}
                     onBlur={e => {
                       e.target.value = e.target.value.trim();
@@ -253,6 +249,7 @@ export const MemberNew = ({
               {getAttributeValue(space, 'Franchisor') !== 'YES' && (
                 <span className="line">
                   <Autocomplete
+                    id="addressAutoComplete"
                     apiKey={'AIzaSyA-tujnpf8Jy33hVaJ_9GtRdMgHw4jvnwo'}
                     placeholder="Lookup Address"
                     style={{
@@ -362,7 +359,6 @@ export const MemberNew = ({
                     id="address"
                     size="80"
                     required
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Address']}
                     onChange={e => {
                       handleNewChange(memberItem, 'Address', e);
@@ -391,7 +387,6 @@ export const MemberNew = ({
                     name="suburb"
                     id="suburb"
                     required
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Suburb']}
                     onChange={e => handleNewChange(memberItem, 'Suburb', e)}
                     onBlur={e =>
@@ -407,7 +402,6 @@ export const MemberNew = ({
                       name="country"
                       id="country"
                       required
-                      ref={input => (this.input = input)}
                       value={memberItem.values['Country']}
                       onChange={e =>
                         handleCountryChange(memberItem, 'Country', e)
@@ -416,7 +410,7 @@ export const MemberNew = ({
                       <option value="" />
                       {getAttributeValue(space, 'Countries', '') ===
                       undefined ? (
-                        <option value=""></option>
+                        <option value="" />
                       ) : (
                         getAttributeValue(space, 'Countries', '')
                           .split(',')
@@ -447,7 +441,6 @@ export const MemberNew = ({
                         name="state"
                         id="state"
                         required
-                        ref={input => (this.input = input)}
                         value={memberItem.values['State']}
                         onChange={e => handleChange(memberItem, 'State', e)}
                       >
@@ -466,7 +459,6 @@ export const MemberNew = ({
                         name="state"
                         id="state"
                         required
-                        ref={input => (this.input = input)}
                         value={memberItem.values['State']}
                         onChange={e => handleChange(memberItem, 'State', e)}
                       >
@@ -499,7 +491,6 @@ export const MemberNew = ({
                       id="postcode"
                       size="10"
                       required
-                      ref={input => (this.input = input)}
                       value={memberItem.values['Postcode']}
                       onChange={e => {
                         handleChange(memberItem, 'Postcode', e);
@@ -516,7 +507,6 @@ export const MemberNew = ({
                       }
                       mask="_"
                       required
-                      ref={input => (this.input = input)}
                       value={memberItem.values['Postcode']}
                       onValueChange={(values, e) =>
                         handleFormattedChange(values, memberItem, 'Postcode', e)
@@ -544,7 +534,6 @@ export const MemberNew = ({
                     id="email"
                     size="40"
                     required
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Email']}
                     onChange={e => {
                       e.target.value = e.target.value.trim().toLowerCase();
@@ -559,7 +548,6 @@ export const MemberNew = ({
                     name="additionalEmail"
                     id="additionalEmail"
                     size="40"
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Additional Email']}
                     onChange={e => {
                       e.target.value = e.target.value.trim().toLowerCase();
@@ -588,12 +576,11 @@ export const MemberNew = ({
                         ? getAttributeValue(space, 'PhoneNumber Format')
                         : space.slug === 'europe' ||
                           space.slug === 'unitedkingdom'
-                        ? getPhoneNumberFormat(memberItem)
-                        : '####-###-###'
+                          ? getPhoneNumberFormat(memberItem)
+                          : '####-###-###'
                     }
                     mask="_"
                     required
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Phone Number']}
                     onValueChange={(values, e) =>
                       handleFormattedChange(
@@ -615,11 +602,10 @@ export const MemberNew = ({
                         ? getAttributeValue(space, 'PhoneNumber Format')
                         : space.slug === 'europe' ||
                           space.slug === 'unitedkingdom'
-                        ? getPhoneNumberFormat(memberItem)
-                        : '####-###-###'
+                          ? getPhoneNumberFormat(memberItem)
+                          : '####-###-###'
                     }
                     mask="_"
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Additional Phone Number']}
                     onValueChange={(values, e) =>
                       handleFormattedChange(
@@ -721,7 +707,6 @@ export const MemberNew = ({
                       name="membertype"
                       id="membertype"
                       required
-                      ref={input => (this.input = input)}
                       value={memberItem.values['Member Type']}
                       onChange={e => handleChange(memberItem, 'Member Type', e)}
                     >
@@ -747,7 +732,6 @@ export const MemberNew = ({
                       type="text"
                       name="ParentGuardian"
                       id="ParentGuardian"
-                      ref={input => (this.input = input)}
                       value={memberItem.values['Parent or Guardian']}
                       onChange={e =>
                         handleNewChange(memberItem, 'Parent or Guardian', e)
@@ -782,7 +766,6 @@ export const MemberNew = ({
                     required
                     name="emergencyname"
                     id="emergencyname"
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Emergency Contact Name']}
                     onChange={e =>
                       handleNewChange(memberItem, 'Emergency Contact Name', e)
@@ -813,7 +796,6 @@ export const MemberNew = ({
                       name="relationship"
                       required
                       id="relationship"
-                      ref={input => (this.input = input)}
                       value={
                         memberItem.values['Emergency Contact Relationship']
                       }
@@ -854,12 +836,11 @@ export const MemberNew = ({
                         ? getAttributeValue(space, 'PhoneNumber Format')
                         : space.slug === 'europe' ||
                           space.slug === 'unitedkingdom'
-                        ? getPhoneNumberFormat(memberItem)
-                        : '####-###-###'
+                          ? getPhoneNumberFormat(memberItem)
+                          : '####-###-###'
                     }
                     mask="_"
                     required
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Emergency Contact Phone']}
                     onValueChange={(values, e) =>
                       handleFormattedChange(
@@ -879,7 +860,6 @@ export const MemberNew = ({
                       size="40"
                       name="alergies"
                       id="alergies"
-                      ref={input => (this.input = input)}
                       value={memberItem.values['Medical Allergies']}
                       onChange={e =>
                         handleNewChange(memberItem, 'Medical Allergies', e)
@@ -908,7 +888,6 @@ export const MemberNew = ({
                     <select
                       name="program"
                       id="program"
-                      ref={input => (this.input = input)}
                       value={memberItem.values['Ranking Program']}
                       required
                       onChange={e =>
@@ -939,7 +918,6 @@ export const MemberNew = ({
                       name="belt"
                       id="belt"
                       required
-                      ref={input => (this.input = input)}
                       value={memberItem.values['Ranking Belt']}
                       onChange={e =>
                         handleChange(memberItem, 'Ranking Belt', e)
@@ -1000,7 +978,6 @@ export const MemberNew = ({
                       name="attendanceCount"
                       id="attendanceCount"
                       style={{ width: '130px' }}
-                      ref={input => (this.input = input)}
                       value={memberItem.values['Attendance Count']}
                       onChange={e =>
                         handleChange(memberItem, 'Attendance Count', e)
@@ -1015,7 +992,6 @@ export const MemberNew = ({
                       type="number"
                       name="maxWeeklyClasses"
                       id="maxWeeklyClasses"
-                      ref={input => (this.input = input)}
                       value={memberItem.values['Max Weekly Classes']}
                       onChange={e =>
                         handleChange(memberItem, 'Max Weekly Classes', e)
@@ -1029,7 +1005,6 @@ export const MemberNew = ({
                     <select
                       name="beltSize"
                       id="beltSize"
-                      ref={input => (this.input = input)}
                       value={memberItem.values['Belt Size']}
                       onChange={e => handleChange(memberItem, 'Belt Size', e)}
                     >
@@ -1059,7 +1034,6 @@ export const MemberNew = ({
                       name="nonpaying"
                       id="nonpaying"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="YES"
                       checked={
                         memberItem.values['Non Paying'] === 'YES' ? true : false
@@ -1082,7 +1056,6 @@ export const MemberNew = ({
                         name="billingReceipt"
                         id="billingReceipt"
                         style={{ clear: 'none', margin: '4px' }}
-                        ref={input => (this.input = input)}
                         value="YES"
                         checked={
                           memberItem.values['Send Payment Receipt'] === 'YES'
@@ -1106,7 +1079,6 @@ export const MemberNew = ({
                       name="optout"
                       id="optout"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="YES"
                       checked={
                         memberItem.values['Opt-Out'] === 'YES' ? true : false
@@ -1128,7 +1100,6 @@ export const MemberNew = ({
                       name="mainbenefits"
                       id="excercise"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="excercise"
                       checked={
                         memberItem.values['Main Benefits'] !== undefined
@@ -1168,7 +1139,6 @@ export const MemberNew = ({
                       name="mainbenefits"
                       id="discipline"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="discipline"
                       checked={
                         memberItem.values['Main Benefits'] !== undefined
@@ -1208,7 +1178,6 @@ export const MemberNew = ({
                       name="mainbenefits"
                       id="selfdefense"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="self defense"
                       checked={
                         memberItem.values['Main Benefits'] !== undefined
@@ -1250,7 +1219,6 @@ export const MemberNew = ({
                       name="mainbenefits"
                       id="reducestress"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="reduce stress"
                       checked={
                         memberItem.values['Main Benefits'] !== undefined
@@ -1292,7 +1260,6 @@ export const MemberNew = ({
                       name="mainbenefits"
                       id="respect"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="respect"
                       checked={
                         memberItem.values['Main Benefits'] !== undefined
@@ -1333,7 +1300,6 @@ export const MemberNew = ({
                       name="mainbenefits"
                       id="selfconfidence"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="self confidence"
                       checked={
                         memberItem.values['Main Benefits'] !== undefined
@@ -1375,7 +1341,6 @@ export const MemberNew = ({
                       name="mainbenefits"
                       id="concentration"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="concentration"
                       checked={
                         memberItem.values['Main Benefits'] !== undefined
@@ -1417,7 +1382,6 @@ export const MemberNew = ({
                       name="mainbenefits"
                       id="coordination"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="coordination"
                       checked={
                         memberItem.values['Main Benefits'] !== undefined
@@ -1459,7 +1423,6 @@ export const MemberNew = ({
                       name="mainbenefits"
                       id="balance"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="balance"
                       checked={
                         memberItem.values['Main Benefits'] !== undefined
@@ -1500,7 +1463,6 @@ export const MemberNew = ({
                       name="mainbenefits"
                       id="characterdevelopment"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="character development"
                       checked={
                         memberItem.values['Main Benefits'] !== undefined
@@ -1542,7 +1504,6 @@ export const MemberNew = ({
                       name="mainbenefits"
                       id="focus"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="focus"
                       checked={
                         memberItem.values['Main Benefits'] !== undefined
@@ -1578,7 +1539,6 @@ export const MemberNew = ({
                       name="mainbenefits"
                       id="fun"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="fun"
                       checked={
                         memberItem.values['Main Benefits'] !== undefined
@@ -1614,7 +1574,6 @@ export const MemberNew = ({
                       name="mainbenefits"
                       id="competition"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="competition"
                       checked={
                         memberItem.values['Main Benefits'] !== undefined
@@ -1656,7 +1615,6 @@ export const MemberNew = ({
                       name="mainbenefits"
                       id="ArtofJiuJitsu"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="Art of Jiu Jitsu"
                       checked={
                         memberItem.values['Main Benefits'] !== undefined
@@ -1698,7 +1656,6 @@ export const MemberNew = ({
                     <select
                       name="additionalprogram1"
                       id="additionalprogram1"
-                      ref={input => (this.input = input)}
                       value={memberItem.values['Additional Program 1']}
                       onChange={e =>
                         handleProgramChange(
@@ -1724,7 +1681,6 @@ export const MemberNew = ({
                     <select
                       name="additionalprogram2"
                       id="additionalprogram2"
-                      ref={input => (this.input = input)}
                       value={memberItem.values['Additional Program 2']}
                       onChange={e =>
                         handleProgramChange(
@@ -1750,7 +1706,7 @@ export const MemberNew = ({
                     <select
                       name="covid19"
                       id="covid19"
-                      ref={input => (this.input = input)}
+                      
                       defaultValue={''}
                       onChange={e =>
                         handleChange(memberItem, 'Covid19 Waiver', e)
@@ -1771,7 +1727,6 @@ export const MemberNew = ({
                       type="text"
                       name="alternateBarcode"
                       id="alternateBarcode"
-                      ref={input => (this.input = input)}
                       value={memberItem.values['Alternate Barcode']}
                       onChange={e =>
                         handleChange(memberItem, 'Alternate Barcode', e)
@@ -1797,15 +1752,9 @@ export const MemberNew = ({
             <div className="section4">
               <span className="line">
                 <span className="rightButtons">
-                  {this.newMember ? (
-                    <NavLink to={`/Home`} className="btn btn-primary">
-                      Cancel
-                    </NavLink>
-                  ) : (
-                    <NavLink to={`/`} className="btn btn-primary">
-                      Cancel
-                    </NavLink>
-                  )}
+                  <NavLink to={`/`} className="btn btn-primary">
+                    Cancel
+                  </NavLink>
                   <button
                     type="button"
                     id="saveButton"
@@ -1824,7 +1773,10 @@ export const MemberNew = ({
   );
 
 export const MemberNewContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(({ memberItem, createMember }) => {
     return {};
   }),

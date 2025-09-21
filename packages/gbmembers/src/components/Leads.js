@@ -3,8 +3,7 @@ import React from 'react';
 import ReactTable from 'react-table';
 import 'react-table/react-table.css';
 import { KappNavLink as NavLink } from 'common';
-import SVGInline from 'react-svg-inline';
-import attentionRequired from '../images/flag.svg?raw';
+import { ReactComponent as Flag } from '../images/flag.svg';
 
 var leadsThis;
 export class Leads extends React.Component {
@@ -93,12 +92,11 @@ export class Leads extends React.Component {
         }
         activeClassName="active"
       >
-        <SVGInline
-          svg={attentionRequired}
+        <Flag
           className={
             cellInfo.original['Is New Reply Received'] === 'true'
-              ? 'attention icon'
-              : 'attention icon hide'
+              ? 'attention icon icon-svg'
+              : 'attention icon icon-svg hide'
           }
         />
         {cellInfo.original['Last Name']}
@@ -138,7 +136,7 @@ export class Leads extends React.Component {
             });
           }}
         >
-          <SVGInline svg={attentionRequired} className={'attention icon'} />
+          <Flag className={'attention icon icon-svg'} />
         </button>
         <input
           value={this.state.filterAll}

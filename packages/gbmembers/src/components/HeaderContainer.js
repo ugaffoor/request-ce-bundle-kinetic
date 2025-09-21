@@ -4,7 +4,6 @@ import { Header } from './Header';
 import { actions as leadsActions } from '../redux/modules/leads';
 import { actions as membersActions } from '../redux/modules/members';
 import * as selectors from '../lib/react-kinops-components/src/redux/kinopsSelectors';
-import { clearTimeout } from 'timers';
 
 export const mapStateToProps = state => ({
   loading: state.member.app.loading || state.member.kinops.loading,

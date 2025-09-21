@@ -20,40 +20,34 @@ import { App as RegistrationsApp } from 'registrations/src/App';
 import { App as QueueApp } from 'queue/src/App';
 import { App as SpaceApp } from 'space/src/App';
 import { AppContainer as MemberApp } from 'gbmembers/src/components/AppContainer';
-import CacheBuster from 'react-cache-buster';
-import { version } from './components/package.json';
+import packageInfo from 'packageJson';
 //import Favicon from "react-favicon";
 import { Helmet } from 'react-helmet';
 
+require('react-dom');
+/*window.React2 = require('react');
+console.log("React instance count test:"+window.React1 === window.React2);
+console.log("React1 version:"+window.React1.version);
+console.log("React2 t:"+window.React2.version); */
+
 const isProduction = process.env.NODE_ENV === 'production';
+export const clientId =
+  process.env.NODE_ENV === 'development'
+    ? 'kinetic-bundle-dev'
+    : 'kinetic-bundle';
 
 //<Favicon url="https://us-gbfms-files.s3.us-east-2.amazonaws.com/favicon.ico" />
 
 export const AppComponent = props =>
   !props.loading && (
-    <CacheBuster
-      currentVersion={version}
-      isEnabled={isProduction} //If false, the library is disabled.
-      isVerboseMode={true} //If true, the library writes verbose logs to console.
-      loadingComponent={
-        <div>Clearing cache and loading a new release, please wait...</div>
-      } //If not pass, nothing appears at the time of new version check.
-      metaFileDirectory={props.metaJSONLocation} //If public assets are hosted somewhere other than root on your server.
-      /*      onCacheClear={() => {
-        console.log("🧹 Cache cleared! A new version is available.");
-        // Optional: force refresh or show UI prompt
-        if (window.confirm("A new version of the app is available. Reload now?")) {
-          window.location.reload(true); // force reload without cache
-        }
-      }}*/
-    >
+    <div>
       <Helmet>
         {
           <link
             rel="icon"
             href="https://us-gbfms-files.s3.us-east-2.amazonaws.com/favicon.ico"
             type="image/x-icon"
-          ></link>
+          />
         }
       </Helmet>
       <Fragment>
@@ -103,7 +97,7 @@ export const AppComponent = props =>
           />
         )}
       </Fragment>
-    </CacheBuster>
+    </div>
   );
 
 export const mapStateToProps = state => ({
@@ -145,7 +139,10 @@ const getAppProvider = kapp => {
 };
 
 export const App = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(props => {
     const AppProvider = getAppProvider(
       props.kapps.find(kapp => kapp.slug === props.kappSlug),

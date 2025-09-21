@@ -1,5 +1,9 @@
 import { select, call, all, put, takeEvery } from 'redux-saga/effects';
-import { CoreAPI } from 'react-kinetic-core';
+import {
+  createSubmission,
+  SubmissionSearch,
+  searchSubmissions,
+} from '@kineticdata/react';
 import { types, actions } from '../modules/messaging';
 import { actions as errorActions, NOTICE_TYPES } from '../modules/errors';
 import axios from 'axios';
@@ -217,7 +221,7 @@ export function* getAccountCredit(action) {
 
 export function* createMemberActivities(action) {
   try {
-    const { submission } = yield call(CoreAPI.createSubmission, {
+    const { submission } = yield call(createSubmission, {
       kappSlug: 'gbmembers',
       formSlug: 'member-activities',
       values: action.payload.memberActivities.values,
@@ -239,7 +243,7 @@ export function* createMemberActivities(action) {
 
 export function* createLeadActivities(action) {
   try {
-    const { submission } = yield call(CoreAPI.createSubmission, {
+    const { submission } = yield call(createSubmission, {
       kappSlug: 'gbmembers',
       formSlug: 'lead-activities',
       values: action.payload.leadActivities.values,
@@ -260,7 +264,7 @@ export function* createLeadActivities(action) {
 
 export function* getIndividualSMS(action) {
   try {
-    const MEMBER_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch()
+    const MEMBER_ACTIVITIES_SEARCH = new SubmissionSearch()
       .eq('values[Type]', 'SMS')
       .eq('values[Direction]', 'Outbound')
       .include(['details', 'values'])
@@ -272,7 +276,7 @@ export function* getIndividualSMS(action) {
       .endDate(moment().toDate())
       .limit(25)
       .build();
-    const LEAD_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch()
+    const LEAD_ACTIVITIES_SEARCH = new SubmissionSearch()
       .eq('values[Type]', 'SMS')
       .eq('values[Direction]', 'Outbound')
       .include(['details', 'values'])
@@ -285,12 +289,14 @@ export function* getIndividualSMS(action) {
       .limit(25)
       .build();
     const [memberActivities, leadActivities] = yield all([
-      call(CoreAPI.searchSubmissions, {
+      call(searchSubmissions, {
+        get: true,
         form: 'member-activities',
         kapp: 'gbmembers',
         search: MEMBER_ACTIVITIES_SEARCH,
       }),
-      call(CoreAPI.searchSubmissions, {
+      call(searchSubmissions, {
+        get: true,
         form: 'lead-activities',
         kapp: 'gbmembers',
         search: LEAD_ACTIVITIES_SEARCH,

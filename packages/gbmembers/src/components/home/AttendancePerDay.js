@@ -12,23 +12,9 @@ import {
   LabelList,
 } from 'recharts';
 import moment from 'moment';
-import ReactSpinner from 'react16-spinjs';
 import ReactTable from 'react-table';
 import { KappNavLink as NavLink } from 'common';
-import crossIcon from '../../images/cross.svg?raw';
-import SVGInline from 'react-svg-inline';
-import { actions as classActions } from '../../redux/modules/classes';
-import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
-
-const chartLabels = {
-  this_week: 'This Week',
-  last_week: 'Last Week',
-  last_month: 'Last Month',
-  last_3_months: 'Last 3 Months',
-  last_6_months: 'Last 6 Months',
-  last_year: 'Last Year',
-  custom: 'Custom Dates',
-};
+import { ReactComponent as CrossIcon } from '../../images/cross.svg';
 
 export class AttendancePerDay extends Component {
   handleClose = () => {
@@ -551,8 +537,8 @@ export class AttendancePerDay extends Component {
       return a['sortVal'] > b['sortVal']
         ? 1
         : b['sortVal'] > a['sortVal']
-        ? -1
-        : 0;
+          ? -1
+          : 0;
     });
 
     return classesData;
@@ -709,7 +695,7 @@ export class AttendancePerDay extends Component {
                 })
               }
             >
-              <SVGInline svg={crossIcon} className="icon" />
+              <CrossIcon className="icon icon-svg" />
             </span>
             <ReactTable
               columns={this.classColumns}

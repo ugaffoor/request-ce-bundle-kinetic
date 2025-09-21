@@ -1,11 +1,11 @@
 import React from 'react';
-import { CoreForm } from 'react-kinetic-core';
+import { CoreForm } from '@kineticdata/react';
 import { connect } from 'react-redux';
 import { push } from 'connected-react-router';
 import { compose, withHandlers, withState } from 'recompose';
 import { parse } from 'query-string';
 import { PageTitle } from 'common';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 // Asynchronously import the global dependencies that are used in the embedded
 // forms. Note that we deliberately do this as a const so that it should start
@@ -88,7 +88,9 @@ const mapStateToProps = (state, { match: { params } }) => ({
 
 export const handleCreated = props => response => {
   props.push(
-    `/kapps/${props.kappSlug}/forms/${props.formSlug}/submissions/${response.submission.id}`,
+    `/kapps/${props.kappSlug}/forms/${props.formSlug}/submissions/${
+      response.submission.id
+    }`,
   );
 };
 
@@ -97,7 +99,10 @@ export const handleLoaded = props => form => {
 };
 
 export const IsolatedForm = compose(
-  connect(mapStateToProps, { push }),
+  connect(
+    mapStateToProps,
+    { push },
+  ),
   withState('formName', 'setFormName', ''),
   withHandlers({ handleCreated, handleLoaded }),
 )(IsolatedFormComponent);

@@ -31,7 +31,7 @@ import MomentLocaleUtils, {
   parseDate,
 } from 'react-day-picker/moment';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 import Autocomplete from 'react-google-autocomplete';
 
 const mapStateToProps = state => ({
@@ -158,7 +158,6 @@ export class LeadEdit extends Component {
                             name="emailsReceivedCount"
                             id="emailsReceivedCount"
                             size="30"
-                            ref={input => (this.input = input)}
                             defaultValue={
                               this.props.leadItem.values[
                                 'Emails Received Count'
@@ -183,7 +182,6 @@ export class LeadEdit extends Component {
                             name="status"
                             id="status"
                             size="30"
-                            ref={input => (this.input = input)}
                             defaultValue={this.props.leadItem.values['Status']}
                             onChange={e =>
                               handleChange(
@@ -202,7 +200,6 @@ export class LeadEdit extends Component {
                             name="leadState"
                             id="leadState"
                             size="30"
-                            ref={input => (this.input = input)}
                             defaultValue={
                               this.props.leadItem.values['Lead State']
                             }
@@ -227,7 +224,6 @@ export class LeadEdit extends Component {
                             name="convertedMemberID"
                             id="convertedMemberID"
                             size="30"
-                            ref={input => (this.input = input)}
                             defaultValue={
                               this.props.leadItem.values['Converted Member ID']
                             }
@@ -250,7 +246,6 @@ export class LeadEdit extends Component {
                             name="history"
                             id="history"
                             size="90"
-                            ref={input => (this.input = input)}
                             defaultValue={this.props.leadItem.values['History']}
                             onChange={e =>
                               handleChange(
@@ -283,7 +278,6 @@ export class LeadEdit extends Component {
                     name="source"
                     id="source"
                     required
-                    ref={input => (this.input = input)}
                     value={this.props.leadItem.values['Source']}
                     onChange={e =>
                       handleChange(
@@ -394,7 +388,6 @@ export class LeadEdit extends Component {
                         ? false
                         : true
                     }
-                    ref={input => (this.input = input)}
                     value={this.props.leadItem.values['First Name']}
                     onChange={e =>
                       handleChange(
@@ -424,7 +417,6 @@ export class LeadEdit extends Component {
                     name="lastName"
                     id="lastNames"
                     required
-                    ref={input => (this.input = input)}
                     value={this.props.leadItem.values['Last Name']}
                     onChange={e =>
                       handleChange(
@@ -453,7 +445,6 @@ export class LeadEdit extends Component {
                       name="gender"
                       id="gender"
                       required
-                      ref={input => (this.input = input)}
                       value={this.props.leadItem.values['Gender']}
                       onChange={e =>
                         handleChange(
@@ -487,6 +478,7 @@ export class LeadEdit extends Component {
               {getAttributeValue(this.props.space, 'Franchisor') !== 'YES' && (
                 <span className="line">
                   <Autocomplete
+                    id="addressAutoComplete"
                     apiKey={'AIzaSyA-tujnpf8Jy33hVaJ_9GtRdMgHw4jvnwo'}
                     placeholder="Lookup Address"
                     style={{
@@ -548,7 +540,6 @@ export class LeadEdit extends Component {
                     name="address"
                     id="address"
                     size="80"
-                    ref={input => (this.input = input)}
                     value={this.props.leadItem.values['Address']}
                     onChange={e =>
                       handleChange(
@@ -570,7 +561,6 @@ export class LeadEdit extends Component {
                     type="text"
                     name="suburb"
                     id="suburb"
-                    ref={input => (this.input = input)}
                     value={this.props.leadItem.values['Suburb']}
                     onChange={e =>
                       handleChange(
@@ -589,7 +579,6 @@ export class LeadEdit extends Component {
                     <select
                       name="country"
                       id="country"
-                      ref={input => (this.input = input)}
                       defaultValue={this.props.leadItem.values['Country']}
                       onChange={e => {
                         this.props.leadItem.myThis = myThis;
@@ -623,7 +612,6 @@ export class LeadEdit extends Component {
                       <select
                         name="state"
                         id="state"
-                        ref={input => (this.input = input)}
                         defaultValue={this.props.leadItem.values['State']}
                         onChange={e =>
                           handleChange(
@@ -666,7 +654,6 @@ export class LeadEdit extends Component {
                       <select
                         name="state"
                         id="state"
-                        ref={input => (this.input = input)}
                         defaultValue={this.props.leadItem.values['State']}
                         onChange={e =>
                           handleChange(
@@ -711,7 +698,6 @@ export class LeadEdit extends Component {
                       name="postcode"
                       id="postcode"
                       size="10"
-                      ref={input => (this.input = input)}
                       defaultValue={this.props.leadItem.values['Postcode']}
                       onChange={e =>
                         handleChange(
@@ -736,7 +722,6 @@ export class LeadEdit extends Component {
                           : '####'
                       }
                       mask="_"
-                      ref={input => (this.input = input)}
                       value={this.props.leadItem.values['Postcode']}
                       onValueChange={(values, e) =>
                         handleFormattedChange(
@@ -766,8 +751,8 @@ export class LeadEdit extends Component {
                       ) === 'False'
                         ? false
                         : this.props.leadItem.values['Email'] === null
-                        ? true
-                        : false
+                          ? true
+                          : false
                     }
                   >
                     Email
@@ -789,7 +774,6 @@ export class LeadEdit extends Component {
                         ? false
                         : true
                     }
-                    ref={input => (this.input = input)}
                     value={this.props.leadItem.values['Email']}
                     onChange={e => {
                       if (e.target.value !== null)
@@ -817,7 +801,6 @@ export class LeadEdit extends Component {
                     name="additionalEmail"
                     id="additionalEmail"
                     size="40"
-                    ref={input => (this.input = input)}
                     value={this.props.leadItem.values['Additional Email']}
                     onChange={e => {
                       if (e.target.value !== null)
@@ -864,12 +847,11 @@ export class LeadEdit extends Component {
                           )
                         : this.props.space.slug === 'europe' ||
                           this.props.space.slug === 'unitedkingdom'
-                        ? getPhoneNumberFormat(this.props.leadItem)
-                        : '####-###-###'
+                          ? getPhoneNumberFormat(this.props.leadItem)
+                          : '####-###-###'
                     }
                     mask="_"
                     required
-                    ref={input => (this.input = input)}
                     value={this.props.leadItem.values['Phone Number']}
                     onValueChange={(values, e) =>
                       handleFormattedChange(
@@ -896,11 +878,10 @@ export class LeadEdit extends Component {
                           )
                         : this.props.space.slug === 'europe' ||
                           this.props.space.slug === 'unitedkingdom'
-                        ? getPhoneNumberFormat(this.props.leadItem)
-                        : '####-###-###'
+                          ? getPhoneNumberFormat(this.props.leadItem)
+                          : '####-###-###'
                     }
                     mask="_"
-                    ref={input => (this.input = input)}
                     value={
                       this.props.leadItem.values['Additional Phone Number']
                     }
@@ -1065,7 +1046,6 @@ export class LeadEdit extends Component {
                           type="text"
                           name="ParentGuardian"
                           id="ParentGuardian"
-                          ref={input => (this.input = input)}
                           defaultValue={
                             this.props.leadItem.values['Parent or Guardian']
                           }
@@ -1098,7 +1078,6 @@ export class LeadEdit extends Component {
                       size="40"
                       name="emergencyname"
                       id="emergencyname"
-                      ref={input => (this.input = input)}
                       defaultValue={
                         this.props.leadItem.values['Emergency Contact Name']
                       }
@@ -1121,7 +1100,6 @@ export class LeadEdit extends Component {
                         size="40"
                         name="relationship"
                         id="relationship"
-                        ref={input => (this.input = input)}
                         defaultValue={
                           this.props.leadItem.values[
                             'Emergency Contact Relationship'
@@ -1154,11 +1132,10 @@ export class LeadEdit extends Component {
                             )
                           : this.props.space.slug === 'europe' ||
                             this.props.space.slug === 'unitedkingdom'
-                          ? getPhoneNumberFormat(this.props.leadItem)
-                          : '####-###-###'
+                            ? getPhoneNumberFormat(this.props.leadItem)
+                            : '####-###-###'
                       }
                       mask="_"
-                      ref={input => (this.input = input)}
                       value={
                         this.props.leadItem.values['Emergency Contact Phone']
                       }
@@ -1182,7 +1159,6 @@ export class LeadEdit extends Component {
                         size="40"
                         name="alergies"
                         id="alergies"
-                        ref={input => (this.input = input)}
                         defaultValue={
                           this.props.leadItem.values['Medical Allergies']
                         }
@@ -1215,7 +1191,6 @@ export class LeadEdit extends Component {
                       name="optout"
                       id="optout"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="YES"
                       checked={
                         this.props.leadItem.values['Opt-Out'] === 'YES'
@@ -1293,7 +1268,6 @@ export class LeadEdit extends Component {
                       name="mainbenefits"
                       id="excercise"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="excercise"
                       checked={
                         this.props.leadItem.values['Main Benefits'] !==
@@ -1346,7 +1320,6 @@ export class LeadEdit extends Component {
                       name="mainbenefits"
                       id="discipline"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="discipline"
                       checked={
                         this.props.leadItem.values['Main Benefits'] !==
@@ -1399,7 +1372,6 @@ export class LeadEdit extends Component {
                       name="mainbenefits"
                       id="selfdefense"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="self defense"
                       checked={
                         this.props.leadItem.values['Main Benefits'] !==
@@ -1452,7 +1424,6 @@ export class LeadEdit extends Component {
                       name="mainbenefits"
                       id="reducestress"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="reduce stress"
                       checked={
                         this.props.leadItem.values['Main Benefits'] !==
@@ -1505,7 +1476,6 @@ export class LeadEdit extends Component {
                       name="mainbenefits"
                       id="respect"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="respect"
                       checked={
                         this.props.leadItem.values['Main Benefits'] !==
@@ -1561,7 +1531,6 @@ export class LeadEdit extends Component {
                       name="mainbenefits"
                       id="selfconfidence"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="self confidence"
                       checked={
                         this.props.leadItem.values['Main Benefits'] !==
@@ -1614,7 +1583,6 @@ export class LeadEdit extends Component {
                       name="mainbenefits"
                       id="concentration"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="concentration"
                       checked={
                         this.props.leadItem.values['Main Benefits'] !==
@@ -1667,7 +1635,6 @@ export class LeadEdit extends Component {
                       name="mainbenefits"
                       id="coordination"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="coordination"
                       checked={
                         this.props.leadItem.values['Main Benefits'] !==
@@ -1720,7 +1687,6 @@ export class LeadEdit extends Component {
                       name="mainbenefits"
                       id="balance"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="balance"
                       checked={
                         this.props.leadItem.values['Main Benefits'] !==
@@ -1776,7 +1742,6 @@ export class LeadEdit extends Component {
                       name="mainbenefits"
                       id="characterdevelopment"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="character development"
                       checked={
                         this.props.leadItem.values['Main Benefits'] !==
@@ -1829,7 +1794,6 @@ export class LeadEdit extends Component {
                       name="mainbenefits"
                       id="focus"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="focus"
                       checked={
                         this.props.leadItem.values['Main Benefits'] !==
@@ -1882,7 +1846,6 @@ export class LeadEdit extends Component {
                       name="mainbenefits"
                       id="fun"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="fun"
                       checked={
                         this.props.leadItem.values['Main Benefits'] !==
@@ -1935,7 +1898,6 @@ export class LeadEdit extends Component {
                       name="mainbenefits"
                       id="competition"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="competition"
                       checked={
                         this.props.leadItem.values['Main Benefits'] !==
@@ -1988,7 +1950,6 @@ export class LeadEdit extends Component {
                       name="mainbenefits"
                       id="ArtofJiuJitsu"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="Art of Jiu Jitsu"
                       checked={
                         this.props.leadItem.values['Main Benefits'] !==
@@ -2041,7 +2002,6 @@ export class LeadEdit extends Component {
                     <select
                       name="program"
                       id="program"
-                      ref={input => (this.input = input)}
                       defaultValue={
                         this.props.leadItem.values['Interest in Program']
                       }
@@ -2077,7 +2037,6 @@ export class LeadEdit extends Component {
                       name="sourceReference1"
                       id="sourceReference1"
                       size="20"
-                      ref={input => (this.input = input)}
                       defaultValue={
                         this.props.leadItem.values['Source Reference 1']
                       }
@@ -2100,7 +2059,6 @@ export class LeadEdit extends Component {
                       name="sourceReference2"
                       id="sourceReference2"
                       size="20"
-                      ref={input => (this.input = input)}
                       defaultValue={
                         this.props.leadItem.values['Source Reference 2']
                       }
@@ -2121,7 +2079,6 @@ export class LeadEdit extends Component {
                     <select
                       name="sourceReference3"
                       id="sourceReference3"
-                      ref={input => (this.input = input)}
                       defaultValue={
                         this.props.leadItem.values['Source Reference 3']
                       }
@@ -2153,7 +2110,6 @@ export class LeadEdit extends Component {
                       name="sourceReference4"
                       id="sourceReference4"
                       className="form-group"
-                      ref={input => (this.input = input)}
                       defaultValue={
                         this.props.leadItem.values['Source Reference 4']
                       }
@@ -2202,7 +2158,6 @@ export class LeadEdit extends Component {
                       name="sourceReference5"
                       id="sourceReference5"
                       className="form-group"
-                      ref={input => (this.input = input)}
                       defaultValue={
                         this.props.leadItem.values['Source Reference 5']
                       }
@@ -2256,7 +2211,6 @@ export class LeadEdit extends Component {
                     name="moreInformation"
                     id="moreInformation"
                     cols="60"
-                    ref={input => (this.input = input)}
                     defaultValue={
                       this.props.leadItem.values['More Information']
                     }
@@ -2362,7 +2316,10 @@ export const LeadEditView = ({
   );
 
 export const LeadEditContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('editAdmin', 'setEditAdmin', false),
   withState('states', 'setStates', ''),
   withProps(() => {
@@ -2374,6 +2331,7 @@ export const LeadEditContainer = compose(
       fetchLeads({});
     },
     saveLead: ({
+      leads,
       updateLead,
       fetchLeads,
       isDirty,
@@ -2422,6 +2380,7 @@ export const LeadEditContainer = compose(
         updateLead({
           id: leadItem['id'],
           leadItem: leadItem,
+          allLeads: leads,
           history: leadItem.history,
           showLead: true,
           leadLastFetchTime: leadLastFetchTime,

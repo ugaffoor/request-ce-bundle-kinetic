@@ -14,9 +14,8 @@ import { KappLink, Utils } from 'common';
 import { HelpContainer } from './HelpContainer';
 import { JourneyEventsContainer } from './JourneyEventsContainer';
 import { ProfileContainer } from './ProfileContainer';
-import { I18n } from '../I18nProvider';
-import SVGInline from 'react-svg-inline';
-import gbIcon from '../assets/images/GBMEMBERS.svg?raw';
+import { I18n } from '@kineticdata/react';
+import { ReactComponent as GBMEMBERS } from '../assets/images/GBMEMBERS.svg?raw';
 
 export const dropdownTitleName = currentKapp => (
   <I18n>{currentKapp ? currentKapp.name : 'Home'}</I18n>
@@ -30,7 +29,7 @@ export const dropdownIcon = currentKapp =>
 const BuildKappLink = ({ kapp, onClick, nameOverride = kapp.name }) => (
   <Link className="dropdown-item" to={`/kapps/${kapp.slug}`} onClick={onClick}>
     {Utils.getAttributeValue(kapp, 'Icon') === 'svg-gb-icon' ? (
-      <SVGInline svg={gbIcon} className="icon  svg-gb-icon" />
+      <GBMEMBERS className="icon  svg-gb-icon" />
     ) : (
       <span>
         <span
@@ -65,25 +64,26 @@ export const Header = ({
         currentKapp !== null ? currentKapp.slug + ' nav-header' : 'nav-header'
       }
     >
-      {hasSidebar && !isKiosk && (
-        <NavItem id="header-sidebar-toggle">
-          <NavLink
-            className="drawer-button"
-            role="button"
-            tabIndex="0"
-            onClick={toggleSidebarOpen}
-          >
-            <i className="fa fa-fw fa-bars" />
-          </NavLink>
-        </NavItem>
-      )}
+      {hasSidebar &&
+        !isKiosk && (
+          <NavItem id="header-sidebar-toggle">
+            <NavLink
+              className="drawer-button"
+              role="button"
+              tabIndex="0"
+              onClick={toggleSidebarOpen}
+            >
+              <i className="fa fa-fw fa-bars" />
+            </NavLink>
+          </NavItem>
+        )}
       {isSpaceAdmin && (
         <NavItem>
           <KappLink className="nav-link" to="/">
             {dropdownIcon(currentKapp) === 'svg-gb-icon' ||
             (currentKapp !== null && currentKapp.slug === 'services') ? (
               <span>
-                <SVGInline svg={gbIcon} className="icon svg-gb-icon" />
+                <GBMEMBERS className="icon svg-gb-icon" />
               </span>
             ) : (
               <span>

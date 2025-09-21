@@ -5,14 +5,14 @@ import { compose, withHandlers, withState, lifecycle } from 'recompose';
 import { Link } from 'react-router-dom';
 import { parse } from 'query-string';
 import { ButtonGroup, Button } from 'reactstrap';
-import { CoreForm } from 'react-kinetic-core';
+import { CoreForm } from '@kineticdata/react';
 import { LinkContainer } from 'react-router-bootstrap';
 import $ from 'jquery';
 
 import { PageTitle, toastActions } from 'common';
 import { selectDiscussionsEnabled } from 'common/src/redux/modules/common';
 import EmailEditor from 'react-email-editor';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 import ReactDOM from 'react-dom';
 import ReactQuill, { Quill } from 'react-quill';
 import ImageResize from 'quill-image-resize-module-react';
@@ -122,32 +122,34 @@ const DatastoreSubmissionComponent = ({
             </h1>
           </div>
           <div className="page-title__actions">
-            {showPrevAndNext && !isEditing && (
-              <ButtonGroup className="datastore-prev-next">
-                <LinkContainer to={prevAndNext.prev || ''}>
-                  <Button color="inverse" disabled={!prevAndNext.prev}>
-                    <span className="icon">
-                      <span className="fa fa-fw fa-caret-left" />
-                    </span>
-                  </Button>
-                </LinkContainer>
-                <LinkContainer to={prevAndNext.next || ''}>
-                  <Button color="inverse" disabled={!prevAndNext.next}>
-                    <span className="icon">
-                      <span className="fa fa-fw fa-caret-right" />
-                    </span>
-                  </Button>
-                </LinkContainer>
-              </ButtonGroup>
-            )}
-            {submissionId && !isEditing && (
-              <Link
-                to={`/settings/datastore/${form.slug}/${submissionId}/edit`}
-                className="btn btn-primary ml-3 datastore-edit"
-              >
-                <I18n>Edit Record</I18n>
-              </Link>
-            )}
+            {showPrevAndNext &&
+              !isEditing && (
+                <ButtonGroup className="datastore-prev-next">
+                  <LinkContainer to={prevAndNext.prev || ''}>
+                    <Button color="inverse" disabled={!prevAndNext.prev}>
+                      <span className="icon">
+                        <span className="fa fa-fw fa-caret-left" />
+                      </span>
+                    </Button>
+                  </LinkContainer>
+                  <LinkContainer to={prevAndNext.next || ''}>
+                    <Button color="inverse" disabled={!prevAndNext.next}>
+                      <span className="icon">
+                        <span className="fa fa-fw fa-caret-right" />
+                      </span>
+                    </Button>
+                  </LinkContainer>
+                </ButtonGroup>
+              )}
+            {submissionId &&
+              !isEditing && (
+                <Link
+                  to={`/settings/datastore/${form.slug}/${submissionId}/edit`}
+                  className="btn btn-primary ml-3 datastore-edit"
+                >
+                  <I18n>Edit Record</I18n>
+                </Link>
+              )}
           </div>
         </div>
         <div>
@@ -423,7 +425,10 @@ export const mapDispatchToProps = {
 };
 
 export const DatastoreSubmission = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('formKey', 'setFormKey', getRandomKey),
   withHandlers({
     handleUpdated,

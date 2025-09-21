@@ -1,6 +1,11 @@
 import { select, call, put, takeEvery } from 'redux-saga/effects';
 import moment from 'moment';
-import { CoreAPI } from 'react-kinetic-core';
+import {
+  SubmissionSearch,
+  searchSubmissions,
+  fetchSubmission,
+  updateSubmission,
+} from '@kineticdata/react';
 import isFunction from 'is-function';
 
 import { types, actions } from '../modules/queue';
@@ -126,7 +131,7 @@ export const prepareCreatedByMeFilter = (searcher, filter, appSettings) => {
 };
 
 export const buildSearch = (filter, appSettings) => {
-  let searcher = new CoreAPI.SubmissionSearch();
+  let searcher = new SubmissionSearch();
 
   searcher = prepareDateRangeFilter(searcher, filter, moment());
 
@@ -211,7 +216,8 @@ export function* fetchListTask(action) {
       nextPageToken,
       serverError,
       error,
-    } = yield call(CoreAPI.searchSubmissions, {
+    } = yield call(searchSubmissions, {
+      get: true,
       kapp: kappSlug,
       search,
       limit: 1000,
@@ -236,7 +242,7 @@ export function* fetchListTask(action) {
 }
 
 export function* fetchCurrentItemTask(action) {
-  const { submission, serverError } = yield call(CoreAPI.fetchSubmission, {
+  const { submission, serverError } = yield call(fetchSubmission, {
     id: action.payload,
     include: SUBMISSION_INCLUDES,
   });
@@ -249,7 +255,7 @@ export function* fetchCurrentItemTask(action) {
 }
 
 export function* updateQueueItemTask(action) {
-  const { submission } = yield call(CoreAPI.updateSubmission, {
+  const { submission } = yield call(updateSubmission, {
     id: action.payload.id,
     values: action.payload.values,
     include: SUBMISSION_INCLUDES,

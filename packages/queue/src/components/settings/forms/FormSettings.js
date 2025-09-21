@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { bundle } from 'react-kinetic-core';
+import { bundle } from '@kineticdata/react';
 import { connect } from 'react-redux';
 import { compose, lifecycle, withState, withHandlers } from 'recompose';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
@@ -10,7 +10,7 @@ import {
   buildFormConfigurationObject,
 } from '../../../redux/modules/settingsForms';
 import { actions as queueActions } from '../../../redux/modules/settingsQueue';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 export const TextInput = ({ value, name, setInputs, inputs, className }) => (
   <input
@@ -47,11 +47,9 @@ export const Select = ({
   if (data) {
     const kappName = type.charAt(0).toUpperCase() + type.slice(1);
     if (type === 'teams') {
-      options = data
-        .filter(team => !team.name.includes('Role'))
-        .map(team => {
-          return { value: team.name, label: `${kappName} > ${team.name}` };
-        });
+      options = data.filter(team => !team.name.includes('Role')).map(team => {
+        return { value: team.name, label: `${kappName} > ${team.name}` };
+      });
     } else if (type === 'notifications') {
       options = data.map(notification => {
         return {
@@ -64,11 +62,9 @@ export const Select = ({
         .filter(form => form.type === 'Task' || form.type === 'Subtask')
         .map(form => ({ value: form.slug, label: form.name }));
     } else {
-      options = data.kapps
-        .find(kapp => kapp.slug === type)
-        .forms.map(form => {
-          return { value: form.slug, label: `${kappName} > ${form.label}` };
-        });
+      options = data.kapps.find(kapp => kapp.slug === type).forms.map(form => {
+        return { value: form.slug, label: `${kappName} > ${form.label}` };
+      });
     }
     optionElements = options.map(option => {
       return (
@@ -583,7 +579,10 @@ const mapDispatchToProps = {
 };
 
 export const FormSettings = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('inputs', 'setInputs', {}),
   withHandlers({
     setInitialInputs,

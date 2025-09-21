@@ -29,14 +29,12 @@ import free_class from '../../images/free_class.png';
 import attended_class from '../../images/user-check.png';
 import noshow_class from '../../images/no-show.png';
 import moment from 'moment';
-import { getJson, getPhoneNumberFormat } from '../Member/MemberUtils';
+import { getJson } from '../Member/MemberUtils';
 import ReactTable from 'react-table';
 import 'react-datetime/css/react-datetime.css';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as campaignActions } from '../../redux/modules/campaigns';
 import { actions as settingsActions } from '../../redux/modules/settingsDatastore';
-import ReactSpinner from 'react16-spinjs';
-import { Confirm } from 'react-confirm-bootstrap';
 import { CallScriptModalContainer } from '../Member/CallScriptModalContainer';
 import { SMSModalContainer } from '../Member/SMSModalContainer';
 import { SetStatusModalContainer } from './SetStatusModalContainer';
@@ -44,15 +42,13 @@ import { EmailsReceived } from '../Member/EmailsReceived';
 import { Requests } from '../Member/Requests';
 import { actions as errorActions } from '../../redux/modules/errors';
 import { LeadSMS } from './LeadSMS';
-import attentionRequired from '../../images/flag.svg?raw';
-import SVGInline from 'react-svg-inline';
-import binIcon from '../../images/bin.svg?raw';
-import cancelClassIcon from '../../images/cancel-class.svg?raw';
+import { ReactComponent as AttentionRequired } from '../../images/flag.svg';
+import { ReactComponent as BinIcon } from '../../images/bin.svg';
+import { ReactComponent as CancelClassIcon } from '../../images/cancel-class.svg';
 import { confirm } from '../helpers/Confirmation';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { LeadOrders } from './LeadOrders';
 import { actions as posActions } from '../../redux/modules/pos';
-import NumberFormat from 'react-number-format';
 
 const email_date_format = ['DD-MM-YYYY HH:mm', 'YYYY-MM-DDTHH:mm:ssZ'];
 
@@ -376,7 +372,7 @@ export class LeadDetail extends Component {
         </span>
       );
     } else {
-      return <span className="notesCell"></span>;
+      return <span className="notesCell" />;
     }
   }
 
@@ -490,7 +486,7 @@ export class LeadDetail extends Component {
                 }
               }}
             >
-              <SVGInline svg={cancelClassIcon} className="icon" />
+              <CancelClassIcon className="icon icon-svg" />
             </span>
           )}
         <span
@@ -544,7 +540,7 @@ export class LeadDetail extends Component {
             }
           }}
         >
-          <SVGInline svg={binIcon} className="icon" />
+          <BinIcon className="icon icon-svg" />
         </span>
       </span>
     );
@@ -591,7 +587,9 @@ export class LeadDetail extends Component {
                     this.props.leadItem.values['ParentMember'] !== null ? (
                       <span>
                         <NavLink
-                          to={`/Member/${this.props.leadItem.values['ParentMember']}`}
+                          to={`/Member/${
+                            this.props.leadItem.values['ParentMember']
+                          }`}
                           className={'nav-link icon-wrapper'}
                           activeClassName="active"
                           style={{ display: 'inline' }}
@@ -609,7 +607,9 @@ export class LeadDetail extends Component {
                     this.props.leadItem.values['ParentLead'] !== null ? (
                       <span>
                         <NavLink
-                          to={`/LeadDetail/${this.props.leadItem.values['ParentLead']}`}
+                          to={`/LeadDetail/${
+                            this.props.leadItem.values['ParentLead']
+                          }`}
                           className={'nav-link icon-wrapper'}
                           activeClassName="active"
                           style={{ display: 'inline' }}
@@ -692,10 +692,7 @@ export class LeadDetail extends Component {
                       this.props.updateAttentionRequired();
                     }}
                   >
-                    <SVGInline
-                      svg={attentionRequired}
-                      className={'attention icon'}
-                    />
+                    <AttentionRequired className={'attention icon icon-svg'} />
                   </div>
                   <NavLink to={`/LeadEdit/${this.props.leadItem['id']}`}>
                     <img
@@ -1072,7 +1069,7 @@ export class LeadDetail extends Component {
                   <div
                     style={{ padding: '20px', textAlign: 'left' }}
                     dangerouslySetInnerHTML={{ __html: row.original.note }}
-                  ></div>
+                  />
                 );
               }}
             />
@@ -1192,7 +1189,10 @@ export const LeadDetailView = ({
   );
 
 export const LeadDetailContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(() => {
     return {};
   }),
@@ -1662,7 +1662,7 @@ class LeadEmails extends Component {
         if (value.indexOf('spaceAttributes') !== -1) {
           body = body.replace(
             new RegExp(self.escapeRegExp(value), 'g'),
-            self.props.space.attributes[value.split("'")[1]][0],
+            getAttributeValue(self.props.space, value.split("'")[1]),
           );
         }
       });

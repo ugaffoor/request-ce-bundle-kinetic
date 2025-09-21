@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import ReactTable from 'react-table';
 import moment from 'moment';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const email_date_format = ['DD-MM-YYYY HH:mm', 'YYYY-MM-DDTHH:mm:ssZ'];
 
@@ -149,7 +150,7 @@ export class MemberEmails extends Component {
         if (value.indexOf('spaceAttributes') !== -1) {
           body = body.replace(
             new RegExp(self.escapeRegExp(value), 'g'),
-            self.props.space.attributes[value.split("'")[1]][0],
+            getAttributeValue(self.props.space, value.split("'")[1]),
           );
         }
       });
@@ -342,7 +343,7 @@ export class MemberEmails extends Component {
                                     dangerouslySetInnerHTML={{
                                       __html: this.substituteFields(
                                         this.props.senderReceipt.values !==
-                                          undefined
+                                        undefined
                                           ? this.props.senderReceipt.values[
                                               'Email Content'
                                             ]

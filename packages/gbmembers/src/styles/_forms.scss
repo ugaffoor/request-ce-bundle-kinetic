@@ -356,7 +356,7 @@ section.page {
 
       &[data-button-type='submit-page'],
       &[data-button-type='custom'] {
-        @extend .btn-default;
+        @extend .btn-default !optional;
       }
       &[data-button-type='custom'].btn-link {
         @extend .btn-link;

@@ -4,7 +4,7 @@ import { compose, withHandlers } from 'recompose';
 import { actions } from '../../../../redux/modules/settingsDatastore';
 import { SubmissionListItem } from './SubmissionListItem';
 import wallyHappyImage from 'common/src/assets/images/wally-happy.svg';
-import { I18n } from '../../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const DiscussionIcon = () => (
   <span className="icon">
@@ -124,11 +124,14 @@ const SubmissionListComponent = ({
         <div>
           {submissions.size > 0 && (
             <div>
-              {nextPageToken === null && pageTokens.size === 0 && !searching && (
-                <div className="alert alert-success mt-3">
-                  <strong>{submissions.size}</strong> <I18n>results found</I18n>
-                </div>
-              )}
+              {nextPageToken === null &&
+                pageTokens.size === 0 &&
+                !searching && (
+                  <div className="alert alert-success mt-3">
+                    <strong>{submissions.size}</strong>{' '}
+                    <I18n>results found</I18n>
+                  </div>
+                )}
               {clientSortInfo &&
                 (nextPageToken !== null || pageTokens.size > 0) && (
                   <div className="text-info mb-2">
@@ -189,7 +192,9 @@ const SubmissionListComponent = ({
                               className="form-control"
                               value={
                                 (clientSortInfo &&
-                                  `${clientSortInfo.name}::${clientSortInfo.type}`) ||
+                                  `${clientSortInfo.name}::${
+                                    clientSortInfo.type
+                                  }`) ||
                                 ''
                               }
                               onChange={e => {
@@ -266,12 +271,14 @@ const SubmissionListComponent = ({
             </div>
           )}
           {searching && <WallySearching />}
-          {!searching && hasStartedSearching && submissions.size === 0 && (
-            <WallyNoResultsFoundMessage form={form} />
-          )}
-          {!searching && !hasStartedSearching && submissions.size === 0 && (
-            <WallyEnterSearchTerm form={form} />
-          )}
+          {!searching &&
+            hasStartedSearching &&
+            submissions.size === 0 && (
+              <WallyNoResultsFoundMessage form={form} />
+            )}
+          {!searching &&
+            !hasStartedSearching &&
+            submissions.size === 0 && <WallyEnterSearchTerm form={form} />}
         </div>
       )}
     </div>
@@ -303,7 +310,10 @@ export const mapDispatchToProps = {
 };
 
 export const SubmissionList = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withHandlers({
     sortTable,
     fetchSubmissions,

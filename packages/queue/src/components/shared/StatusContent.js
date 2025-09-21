@@ -1,7 +1,7 @@
 import React, { Fragment } from 'react';
 import { UncontrolledTooltip, ButtonGroup, Button } from 'reactstrap';
 import { KappLinkContainer as LinkContainer } from 'common';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const CLOSED_STATUSES = ['Cancelled', 'Complete'];
 

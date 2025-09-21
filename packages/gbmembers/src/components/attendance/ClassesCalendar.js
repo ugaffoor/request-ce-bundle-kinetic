@@ -9,7 +9,7 @@ import {
   getAttributeValue,
   setAttributeValue,
 } from '../../lib/react-kinops-components/src/utils';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { Utils } from 'common';
 import { EditAttributeValue } from '../../utils/EditAttributeValue';

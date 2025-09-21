@@ -89,7 +89,13 @@
     }
   }
 }
+.print-only {
+  display: none;
+}
 @media print {
+  .print-only {
+    display: block;
+  }
   .paymentHistory {
     .print {
       display: none;
@@ -209,6 +215,7 @@
     size: letter landscape;
   }
 }
+
 .card1.BarraFIT,
 .card1.Athlete,
 .card1.Elite_Athlete {
@@ -811,9 +818,7 @@
     .memberBarcode {
       float: left;
     }
-    .barcodePrint-svg,
-    .visitorCardPrint-svg,
-    .coachCardPrint-svg {
+    .icon-svg {
       margin-top: 10px;
       cursor: pointer;
     }
@@ -1323,6 +1328,7 @@
 iframe#printf {
   display: none;
 }
+
 .visitorCard {
   .card1 {
     width: 240mm;

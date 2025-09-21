@@ -4,7 +4,7 @@ import { actions } from '../modules/alerts';
 global.bundle = {
   apiLocation: () => '/acme/app/api/v1',
 };
-const { CoreAPI } = require('react-kinetic-core');
+const { searchSubmissions } = require('@kineticdata/react');
 const { fetchAlertsSaga, ALERTS_SEARCH } = require('./alerts');
 
 describe('alerts saga', () => {
@@ -21,7 +21,7 @@ describe('alerts saga', () => {
           search: ALERTS_SEARCH,
         };
         expect(saga.next().value).toEqual(
-          call(CoreAPI.searchSubmissions, fetchArguments),
+          call(searchSubmissions, fetchArguments),
         );
 
         // Mock the response and send it to the generator.
@@ -45,7 +45,7 @@ describe('alerts saga', () => {
           search: ALERTS_SEARCH,
         };
         expect(saga.next().value).toEqual(
-          call(CoreAPI.searchSubmissions, fetchArguments),
+          call(searchSubmissions, fetchArguments),
         );
 
         // Mock the response and send it to the generator.

@@ -2,7 +2,7 @@ import React, { Fragment } from 'react';
 import { connect } from 'react-redux';
 import { push } from 'connected-react-router';
 import { compose, lifecycle, withHandlers, withState } from 'recompose';
-import { CoreForm } from 'react-kinetic-core';
+import { CoreForm } from '@kineticdata/react';
 import moment from 'moment';
 import {
   Modal,
@@ -20,7 +20,7 @@ import {
 } from '../../redux/modules/schedulers';
 import { actions as toastActions } from '../../redux/modules/toasts';
 import { Moment, Constants } from 'common';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const globals = import('common/globals');
 
@@ -53,29 +53,32 @@ const SchedulerAvailabilityComponent = ({
 }) => (
   <div className="list-wrapper list-wrapper--availability">
     {loading && availability.size === 0 && <LoadingMessage />}
-    {!loading && errors.length > 0 && (
-      <ErrorMessage
-        heading="Failed to retrieve availability"
-        text={errors.map((e, i) => (
-          <div key={`error-${i}`}>
-            <I18n>{e}</I18n>
-          </div>
-        ))}
-      />
-    )}
-    {!loading && errors.length === 0 && availability.size === 0 && (
-      <Fragment>
-        <EmptyMessage
-          heading="No Availability Found"
-          text="Availability is the times during which customers can request appointments and how many appointments are available at each time."
+    {!loading &&
+      errors.length > 0 && (
+        <ErrorMessage
+          heading="Failed to retrieve availability"
+          text={errors.map((e, i) => (
+            <div key={`error-${i}`}>
+              <I18n>{e}</I18n>
+            </div>
+          ))}
         />
-        <div className="text-center">
-          <button className="btn btn-primary" onClick={handleAdd}>
-            <I18n>Add Availability</I18n>
-          </button>
-        </div>
-      </Fragment>
-    )}
+      )}
+    {!loading &&
+      errors.length === 0 &&
+      availability.size === 0 && (
+        <Fragment>
+          <EmptyMessage
+            heading="No Availability Found"
+            text="Availability is the times during which customers can request appointments and how many appointments are available at each time."
+          />
+          <div className="text-center">
+            <button className="btn btn-primary" onClick={handleAdd}>
+              <I18n>Add Availability</I18n>
+            </button>
+          </div>
+        </Fragment>
+      )}
     {availability.size > 0 && (
       <table className="table table-sm table-striped table-availability table--settings">
         <thead className="header">
@@ -261,7 +264,10 @@ const handleError = props => response => {
 };
 
 export const SchedulerAvailability = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('openDropdown', 'setOpenDropdown', false),
   withState('openModal', 'setOpenModal', false),
   withState('openConfirm', 'setOpenConfirm', false),

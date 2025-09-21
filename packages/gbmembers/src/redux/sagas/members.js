@@ -1,5 +1,16 @@
 import { select, call, put, takeEvery, all } from 'redux-saga/effects';
-import { CoreAPI } from 'react-kinetic-core';
+import {
+  SubmissionSearch,
+  searchSubmissions,
+  fetchSubmission,
+  fetchUsers,
+  fetchUser,
+  createUser,
+  updateSubmission,
+  updateUser,
+  createSubmission,
+  deleteSubmission,
+} from '@kineticdata/react';
 import $ from 'jquery';
 
 import { types, actions } from '../modules/members';
@@ -41,6 +52,117 @@ const activateBillerUrl = '/activateBiller';
 
 const util = require('util');
 
+export let defaultAuthAssumed = false;
+export const setDefaultAuthAssumed = boolean => {
+  defaultAuthAssumed = boolean;
+};
+
+const mySearchSubmissions = options => {
+  const { kapp, form, search, datastore = false } = options;
+
+  if (datastore && !form) {
+    throw new Error('Datastore searches must be scoped to a form.');
+  }
+
+  const kappSlug = kapp || bundle.kappSlug();
+
+  const path = datastore
+    ? `${bundle.apiLocation()}/datastore/forms/${form}/submissions`
+    : form
+      ? `${bundle.apiLocation()}/kapps/${kappSlug}/forms/${form}/submissions`
+      : `${bundle.apiLocation()}/kapps/${kappSlug}/submissions`;
+
+  const meta = { ...search };
+  // Format includes.
+  if (search.include.length > 0) {
+    meta.include = search.include.join();
+  }
+
+  delete meta.query;
+  if (typeof search.query === 'string' && search.query.length > 0) {
+    meta.q = search.query;
+  }
+
+  // Fetch the submissions.
+  let promise = axios.get(path, {
+    params: { ...meta, ...myParamBuilder(options) },
+    headers: myHeaderBuilder(options),
+  });
+
+  // Remove the response envelop and leave us with the submissions.
+  promise = promise.then(response => ({
+    submissions: response.data.submissions,
+    messages: response.data.messages,
+    nextPageToken: response.data.nextPageToken,
+  }));
+
+  // Clean up any errors we receive. Make srue this is the last thing so that it
+  // cleans up all errors.
+  promise = promise.catch(myHandleErrors);
+
+  return promise;
+};
+export const myParamBuilder = options => {
+  const params = {};
+
+  if (options.include) {
+    params.include = options.include;
+  }
+
+  if (options.limit) {
+    params.limit = options.limit;
+  }
+
+  if (options.manage) {
+    params.manage = options.manage;
+  }
+
+  if (options.export) {
+    params.export = options.export;
+  }
+
+  return params;
+};
+
+export const myHeaderBuilder = options => {
+  const headers = {};
+  // CAREFUL to not override falsey values explicitly passed in options, hence
+  // the nested if statement.
+  if (options.hasOwnProperty('authAssumed')) {
+    if (options.authAssumed) {
+      headers['X-Kinetic-AuthAssumed'] = 'true';
+    }
+  } else {
+    if (defaultAuthAssumed) {
+      headers['X-Kinetic-AuthAssumed'] = 'true';
+    }
+  }
+  return headers;
+};
+export const myHandleErrors = error => {
+  if (error instanceof Error && !error.response) {
+    // When the error is an Error object an exception was thrown in the process.
+    // so we'll just 'convert' it to a 400 error to be handled downstream.
+    return { serverError: { status: 400, statusText: error.message } };
+  }
+
+  // Destructure out the information needed.
+  const { data, status, statusText } = error.response;
+  if (status === 400 && typeof data === 'object') {
+    // If the errors returned are from server-side validations or constraints.
+    if (data.errors) {
+      return { errors: data.errors };
+    } else if (data.error) {
+      return { errors: [data.error], ...data };
+    } else {
+      return data;
+    }
+  }
+
+  // For all other server-side errors.
+  return { serverError: { status, statusText, error: data && data.error } };
+};
+
 export function* fetchMembers(action) {
   try {
     const appSettings = yield select(getAppSettings);
@@ -55,7 +177,7 @@ export function* fetchMembers(action) {
         : undefined;
 
     if (!action.payload.memberInitialLoadComplete) {
-      let searchCurrent = new CoreAPI.SubmissionSearch()
+      let searchCurrent = new SubmissionSearch()
         .includes([
           'details',
           'values[Member ID],values[Status],values[Status History],values[First Name],values[Last Name],values[Gender]' +
@@ -104,7 +226,7 @@ export function* fetchMembers(action) {
         .build();
 
       const [submissions] = yield all([
-        call(CoreAPI.searchSubmissions, {
+        call(mySearchSubmissions, {
           form: 'member',
           kapp: 'gbmembers',
           search: searchCurrent,
@@ -114,7 +236,7 @@ export function* fetchMembers(action) {
       allSubmissions = allSubmissions.concat(submissions.submissions);
 
       while (nextPageTokenValue) {
-        let search2 = new CoreAPI.SubmissionSearch()
+        let search2 = new SubmissionSearch()
           .includes([
             'details',
             'values[Member ID],values[Status],values[Status History],values[First Name],values[Last Name],values[Gender]' +
@@ -146,7 +268,7 @@ export function* fetchMembers(action) {
           .build();
 
         const [submissions] = yield all([
-          call(CoreAPI.searchSubmissions, {
+          call(mySearchSubmissions, {
             form: 'member',
             kapp: 'gbmembers',
             search: search2,
@@ -162,7 +284,7 @@ export function* fetchMembers(action) {
       memberLastFetchTime !== undefined &&
       !action.payload.loadMemberNotes
     ) {
-      let searchCurrent = new CoreAPI.SubmissionSearch()
+      let searchCurrent = new SubmissionSearch()
         //  .includes(['details', 'values[Member ID],values[First Name],values[Last Name],values[Status],values[Status History],values[Billing Parent Member],values[Billing User],values[Non Paying],values[Billing Customer Id],values[Billing Customer Reference],values[Billing Migrated]'])
         .includes(['details', 'values'])
         .sortBy('updatedAt')
@@ -173,7 +295,7 @@ export function* fetchMembers(action) {
       searchCurrent = searchCurrent.build();
 
       const [submissions] = yield all([
-        call(CoreAPI.searchSubmissions, {
+        call(mySearchSubmissions, {
           form: 'member',
           kapp: 'gbmembers',
           search: searchCurrent,
@@ -187,14 +309,14 @@ export function* fetchMembers(action) {
       action.payload.memberInitialLoadComplete &&
       action.payload.loadMemberNotes
     ) {
-      let searchCurrent = new CoreAPI.SubmissionSearch()
+      let searchCurrent = new SubmissionSearch()
         .includes(['details', 'values'])
         .sortBy('updatedAt')
         .limit(1000)
         .build();
 
       const [submissions] = yield all([
-        call(CoreAPI.searchSubmissions, {
+        call(mySearchSubmissions, {
           form: 'member',
           kapp: 'gbmembers',
           search: searchCurrent,
@@ -204,7 +326,7 @@ export function* fetchMembers(action) {
       allSubmissions = allSubmissions.concat(submissions.submissions);
 
       while (nextPageTokenValue) {
-        let search2 = new CoreAPI.SubmissionSearch()
+        let search2 = new SubmissionSearch()
           .includes(['details', 'values'])
           .sortBy('updatedAt')
           .limit(1000)
@@ -212,7 +334,7 @@ export function* fetchMembers(action) {
           .build();
 
         const [submissions] = yield all([
-          call(CoreAPI.searchSubmissions, {
+          call(mySearchSubmissions, {
             form: 'member',
             kapp: 'gbmembers',
             search: search2,
@@ -226,7 +348,7 @@ export function* fetchMembers(action) {
     let usersResult;
     if (!action.payload.memberInitialLoadComplete) {
       const [users] = yield all([
-        call(CoreAPI.fetchUsers, {
+        call(fetchUsers, {
           include: ['details'],
           limit: 1000,
         }),
@@ -253,7 +375,8 @@ export function* fetchCurrentMember(action) {
   try {
     const appSettings = yield select(getAppSettings);
     const [submission] = yield all([
-      call(CoreAPI.fetchSubmission, {
+      call(fetchSubmission, {
+        get: true,
         id: action.payload.id,
         include: SUBMISSION_INCLUDES,
       }),
@@ -264,7 +387,7 @@ export function* fetchCurrentMember(action) {
       action.payload.allMembers.length === 0
     ) {
       const [user] = yield all([
-        call(CoreAPI.fetchUser, {
+        call(fetchUser, {
           username: submission.submission.values['Member ID'],
           include: ['details'],
         }),
@@ -282,7 +405,7 @@ export function* fetchCurrentMember(action) {
     }
 
     if (submission.submission.values['Lead Submission ID'] !== undefined) {
-      const LEAD_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
+      const LEAD_ACTIVITIES_SEARCH = new SubmissionSearch(true)
         .eq(
           'values[Lead ID]',
           submission.submission.values['Lead Submission ID'],
@@ -291,7 +414,8 @@ export function* fetchCurrentMember(action) {
         .limit(1000)
         .build();
       const [leadActivities] = yield all([
-        call(CoreAPI.searchSubmissions, {
+        call(searchSubmissions, {
+          get: true,
           form: 'lead-activities',
           kapp: 'gbmembers',
           search: LEAD_ACTIVITIES_SEARCH,
@@ -434,7 +558,7 @@ export function* fetchCurrentMember(action) {
 }
 export function* fetchCurrentMemberAdditional(action) {
   try {
-    const MEMBER_POS_SEARCH = new CoreAPI.SubmissionSearch(true)
+    const MEMBER_POS_SEARCH = new SubmissionSearch(true)
       .index('values[Person ID]')
       .eq('values[Person ID]', action.payload.id)
       .include(['details', 'values'])
@@ -446,7 +570,7 @@ export function* fetchCurrentMemberAdditional(action) {
       member => action.payload.id === member.id,
     );
 
-    const LEAD_POS_SEARCH = new CoreAPI.SubmissionSearch(true)
+    const LEAD_POS_SEARCH = new SubmissionSearch(true)
       .index('values[Person ID]')
       .eq(
         'values[Person ID]',
@@ -458,24 +582,24 @@ export function* fetchCurrentMemberAdditional(action) {
       .sortDirection('DESC')
       .limit(100)
       .build();
-    const MEMBER_FILES_SEARCH = new CoreAPI.SubmissionSearch(true)
+    const MEMBER_FILES_SEARCH = new SubmissionSearch(true)
       .index('values[Member ID]')
       .eq('values[Member ID]', action.payload.id)
       .include(['details', 'values'])
       .limit(1000)
       .build();
-    const MEMBER_ADDITIONAL_SERVICES = new CoreAPI.SubmissionSearch(true)
+    const MEMBER_ADDITIONAL_SERVICES = new SubmissionSearch(true)
       .index('values[Member GUID]')
       .eq('values[Member GUID]', action.payload.id)
       .include(['details', 'values'])
       .limit(1000)
       .build();
-    const MEMBER_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
+    const MEMBER_ACTIVITIES_SEARCH = new SubmissionSearch(true)
       .eq('values[Member ID]', action.payload.id)
       .include(['details', 'values'])
       .limit(1000)
       .build();
-    const REMOTE_REGISTRATION_SEARCH = new CoreAPI.SubmissionSearch(true)
+    const REMOTE_REGISTRATION_SEARCH = new SubmissionSearch(true)
       .eq('values[Member GUID]', action.payload.id)
       .include(['details', 'values'])
       .sortDirection('DESC')
@@ -489,32 +613,38 @@ export function* fetchCurrentMemberAdditional(action) {
       posPurchasedItems,
       remoteRegistrationSubmissions,
     ] = yield all([
-      call(CoreAPI.searchSubmissions, {
+      call(searchSubmissions, {
+        get: true,
         form: 'member-activities',
         kapp: 'gbmembers',
         search: MEMBER_ACTIVITIES_SEARCH,
       }),
-      call(CoreAPI.searchSubmissions, {
+      call(searchSubmissions, {
+        get: true,
         form: 'member-files',
         search: MEMBER_FILES_SEARCH,
         datastore: true,
       }),
-      call(CoreAPI.searchSubmissions, {
+      call(searchSubmissions, {
+        get: true,
         form: 'pos-order',
         search: MEMBER_POS_SEARCH,
         datastore: true,
       }),
-      call(CoreAPI.searchSubmissions, {
+      call(searchSubmissions, {
+        get: true,
         form: 'pos-order',
         search: LEAD_POS_SEARCH,
         datastore: true,
       }),
-      call(CoreAPI.searchSubmissions, {
+      call(searchSubmissions, {
+        get: true,
         form: 'pos-purchased-item',
         search: MEMBER_POS_SEARCH,
         datastore: true,
       }),
-      call(CoreAPI.searchSubmissions, {
+      call(searchSubmissions, {
+        get: true,
         form:
           action.payload.billingService.toLowerCase().replace(' ', '-') +
           '-remote-registration',
@@ -527,7 +657,8 @@ export function* fetchCurrentMemberAdditional(action) {
 
     if (action.payload.billingService === 'Bambora') {
       const [memberAdditionalServices] = yield all([
-        call(CoreAPI.searchSubmissions, {
+        call(searchSubmissions, {
+          get: true,
           form:
             action.payload.billingService === 'Bambora'
               ? 'bambora-member-additional-services'
@@ -635,14 +766,15 @@ export function* fetchCurrentMemberAdditional(action) {
     if (receiptSubmissionIDs.length === 0) {
       receiptSubmissionIDs[0] = 'XX';
     }
-    const RECEIPT_SENDER_SEARCH = new CoreAPI.SubmissionSearch(true)
+    const RECEIPT_SENDER_SEARCH = new SubmissionSearch(true)
       .index('values[Submission ID]')
       .in('values[Submission ID]', receiptSubmissionIDs)
       .include(['details', 'values'])
       .limit(1000)
       .build();
     const [receiptSenderSubmissions] = yield all([
-      call(CoreAPI.searchSubmissions, {
+      call(searchSubmissions, {
+        get: true,
         form: 'receipt-sender',
         search: RECEIPT_SENDER_SEARCH,
         datastore: true,
@@ -716,13 +848,14 @@ export function* fetchCurrentMemberAdditional(action) {
 }
 export function* fetchMemberPromotions(action) {
   try {
-    const MEMBER_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
+    const MEMBER_ACTIVITIES_SEARCH = new SubmissionSearch(true)
       .eq('values[Member ID]', action.payload.id)
       .eq('values[Type]', 'Promotion')
       .include(['details', 'values'])
       .limit(1000)
       .build();
-    const { submissions } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions } = yield call(searchSubmissions, {
+      get: true,
       form: 'member-activities',
       kapp: 'gbmembers',
       search: MEMBER_ACTIVITIES_SEARCH,
@@ -764,7 +897,7 @@ export function* updateCurrentMember(action) {
         ? action.payload.values
         : action.payload.memberItem.values;
 
-    const { submission } = yield call(CoreAPI.updateSubmission, {
+    const { submission } = yield call(updateSubmission, {
       id: action.payload.id,
       values: values,
     });
@@ -772,7 +905,7 @@ export function* updateCurrentMember(action) {
       let user = {
         email: action.payload.memberItem.values['Email'],
       };
-      const { userUpdate } = yield call(CoreAPI.updateUser, {
+      const { userUpdate } = yield call(updateUser, {
         username: action.payload.memberItem.values['Member ID'],
         user: user,
       });
@@ -830,7 +963,7 @@ export function* createMember(action) {
     )
       action.payload.memberItem.values['Lead Source'] =
         action.payload.leadItem.values['Source'];
-    const { submission } = yield call(CoreAPI.createSubmission, {
+    const { submission } = yield call(createSubmission, {
       kappSlug: 'gbmembers',
       formSlug: 'member',
       values: action.payload.memberItem.values,
@@ -879,7 +1012,7 @@ export function* deleteMember(action) {
       Status: 'Deleted',
     };
 
-    const { submission } = yield call(CoreAPI.updateSubmission, {
+    const { submission } = yield call(updateSubmission, {
       id: action.payload.memberItem.id,
       values: values,
     });
@@ -906,7 +1039,7 @@ export function* deleteMember(action) {
 
 export function* deleteMemberFile(action) {
   try {
-    const { submission } = yield call(CoreAPI.deleteSubmission, {
+    const { submission } = yield call(deleteSubmission, {
       id: action.payload.id,
       datastore: true,
     });
@@ -1391,7 +1524,7 @@ export function* fetchOverdues(action) {
 export function* fetchAdditionalServices(action) {
   try {
     if (action.payload.additionalServiceForm !== '') {
-      const search = new CoreAPI.SubmissionSearch(true)
+      const search = new SubmissionSearch(true)
         .includes(['details', 'values'])
         .index('values[Start Date]')
         .between(
@@ -1402,14 +1535,11 @@ export function* fetchAdditionalServices(action) {
         .limit(1000)
         .build();
 
-      const { submissions, serverError } = yield call(
-        CoreAPI.searchSubmissions,
-        {
-          datastore: true,
-          form: action.payload.additionalServiceForm,
-          search,
-        },
-      );
+      const { submissions, serverError } = yield call(searchSubmissions, {
+        datastore: true,
+        form: action.payload.additionalServiceForm,
+        search,
+      });
       yield put(actions.setAdditionalServices(submissions));
     } else {
       yield put(actions.setAdditionalServices([]));
@@ -1423,21 +1553,18 @@ export function* fetchAdditionalServices(action) {
 export function* fetchActiveAdditionalServices(action) {
   try {
     if (action.payload.additionalServiceForm !== '') {
-      const search = new CoreAPI.SubmissionSearch(true)
+      const search = new SubmissionSearch(true)
         .includes(['details', 'values'])
         .index('values[Status]')
         .eq('values[Status]', 'Active')
         .limit(1000)
         .build();
 
-      const { submissions, serverError } = yield call(
-        CoreAPI.searchSubmissions,
-        {
-          datastore: true,
-          form: action.payload.additionalServiceForm,
-          search,
-        },
-      );
+      const { submissions, serverError } = yield call(searchSubmissions, {
+        datastore: true,
+        form: action.payload.additionalServiceForm,
+        search,
+      });
       yield put(actions.setAdditionalServices(submissions));
     } else {
       yield put(actions.setAdditionalServices([]));
@@ -1491,12 +1618,13 @@ export function* fetchBillingPayments(action) {
   yield put(actions.setDummy());
 }
 export function* createBillingStatistics(action) {
-  const search = new CoreAPI.SubmissionSearch(true)
+  const search = new SubmissionSearch(true)
     .includes(['details', 'values'])
     .limit(1000)
     .build();
 
-  const { submissions } = yield call(CoreAPI.searchSubmissions, {
+  const { submissions } = yield call(searchSubmissions, {
+    get: true,
     form: 'monthly-statistics',
     datastore: true,
     search,
@@ -1573,7 +1701,7 @@ export function* createStatistic(payload) {
     values['Monthly Revenue'] = statistic['income'];
     values['Average Price Per Student'] = '';
 
-    const { submission } = yield call(CoreAPI.createSubmission, {
+    const { submission } = yield call(createSubmission, {
       datastore: true,
       formSlug: 'monthly-statistics',
       values: values,
@@ -1812,7 +1940,7 @@ export function* registerBillingMember(action) {
       /.(?=.{4,}$)/g,
       '*',
     );
-    const { submission } = yield call(CoreAPI.updateSubmission, {
+    const { submission } = yield call(updateSubmission, {
       id: action.payload.billingInfo['id'],
       values: action.payload.billingInfo.values,
     });
@@ -2042,8 +2170,10 @@ export function* refundTransaction(action) {
           'object'
             ? action.payload.memberItem.values['Refunded Payments']
             : action.payload.memberItem.values['Refunded Payments']
-            ? JSON.parse(action.payload.memberItem.values['Refunded Payments'])
-            : [];
+              ? JSON.parse(
+                  action.payload.memberItem.values['Refunded Payments'],
+                )
+              : [];
 
         paymentsRefunded.push(action.payload.transactionId);
         action.payload.memberItem.values[
@@ -2557,12 +2687,13 @@ export function* createBillingMembers(action) {
     }
     //    if (!customer.fromSubAccount || loadCount > 4) continue;
     //    loadCount++;
-    const MEMBER_SEARCH = new CoreAPI.SubmissionSearch(true)
+    const MEMBER_SEARCH = new SubmissionSearch(true)
       .eq('values[Billing Customer Id]', customer.customerId)
       .include('details,values')
       .build();
 
-    const { submissions } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions } = yield call(searchSubmissions, {
+      get: true,
       form: 'member',
       kapp: 'gbmembers',
       search: MEMBER_SEARCH,
@@ -2749,12 +2880,13 @@ export function* syncBillingMembers(action) {
   let newMemberAdded = false;
   for (let i = 0; i < action.payload.customers.length; i++) {
     let customer = action.payload.customers[i];
-    const MEMBER_SEARCH = new CoreAPI.SubmissionSearch(true)
+    const MEMBER_SEARCH = new SubmissionSearch(true)
       .eq('values[Billing Customer Id]', customer.customerId)
       .include('details,values')
       .build();
 
-    const { submissions } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions } = yield call(searchSubmissions, {
+      get: true,
       form: 'member',
       kapp: 'gbmembers',
       search: MEMBER_SEARCH,
@@ -2927,7 +3059,7 @@ export function* createMemberUserAccount(action) {
       attributesMap: {},
       profileAttributesMap: { 'Default Kapp Display': ['services'] },
     };
-    const { submission } = yield call(CoreAPI.createUser, {
+    const { submission } = yield call(createUser, {
       user: user,
     });
 
@@ -2948,7 +3080,7 @@ export function* createMemberUserAccount(action) {
 }
 export function* addCashPayment(action) {
   try {
-    const { submission } = yield call(CoreAPI.createSubmission, {
+    const { submission } = yield call(createSubmission, {
       datastore: true,
       formSlug: 'cash-payment',
       values: action.payload.values,
@@ -2979,13 +3111,14 @@ export function* addCashPayment(action) {
 }
 export function* fetchMemberCashPayments(action) {
   try {
-    const search = new CoreAPI.SubmissionSearch(true)
+    const search = new SubmissionSearch(true)
       .eq('values[Member GUID]', action.payload.id)
       .index('values[Member GUID]')
       .include(['details', 'values'])
       .limit(1000)
       .build();
-    const { submissions } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions } = yield call(searchSubmissions, {
+      get: true,
       form: 'cash-payment',
       datastore: true,
       search,
@@ -2999,14 +3132,15 @@ export function* fetchMemberCashPayments(action) {
 }
 export function* fetchCashPaymentsByDate(action) {
   try {
-    const search = new CoreAPI.SubmissionSearch(true)
+    const search = new SubmissionSearch(true)
       .gteq('values[Date]', action.payload.dateFrom)
       .lteq('values[Date]', action.payload.dateTo)
       .index('values[Date]')
       .include(['details', 'values'])
       .limit(1000)
       .build();
-    const { submissions } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions } = yield call(searchSubmissions, {
+      get: true,
       form: 'cash-payment',
       datastore: true,
       search,
@@ -3083,7 +3217,7 @@ export function* watchMembers() {
 }
 
 export default function fetchMemberById(id) {
-  const submission = CoreAPI.fetchSubmission({
+  const submission = fetchSubmission({
     id: id,
     include: SUBMISSION_INCLUDES,
   });
@@ -3091,7 +3225,7 @@ export default function fetchMemberById(id) {
 }
 
 export function updateBillingMember(options) {
-  const submission = CoreAPI.updateSubmission({
+  const submission = updateSubmission({
     id: options.id,
     values: options.memberItem.values,
   });
@@ -3117,7 +3251,7 @@ export function updateBillingMembers(
 export function* cancelAdditionalService(action) {
   let values = {};
   values['Status'] = 'Cancelled';
-  const { submission } = yield call(CoreAPI.updateSubmission, {
+  const { submission } = yield call(updateSubmission, {
     id: action.payload['id'],
     values: values,
     datastore: true,

@@ -1,5 +1,10 @@
 import { all, call, put, takeEvery } from 'redux-saga/effects';
-import { CoreAPI } from 'react-kinetic-core';
+import {
+  SubmissionSearch,
+  searchSubmissions,
+  createSubmission,
+  fetchSubmission,
+} from '@kineticdata/react';
 
 import { actions, types } from '../modules/services';
 import { actions as systemErrorActions } from '../modules/systemError';
@@ -9,7 +14,7 @@ const util = require('util');
 
 export function* fetchServicesByDate(action) {
   const kappSlug = 'services';
-  const searchBuilder = new CoreAPI.SubmissionSearch()
+  const searchBuilder = new SubmissionSearch()
     .type('Service')
     .sortBy('submittedAt')
     .sortDirection('DESC')
@@ -28,7 +33,8 @@ export function* fetchServicesByDate(action) {
 
   const search = searchBuilder.build();
 
-  const { submissions } = yield call(CoreAPI.searchSubmissions, {
+  const { submissions } = yield call(searchSubmissions, {
+    get: true,
     kapp: 'services',
     search,
   });
@@ -42,7 +48,7 @@ export function* fetchServicesByDate(action) {
 }
 export function* sendReceipt(action) {
   try {
-    const { submission } = yield call(CoreAPI.createSubmission, {
+    const { submission } = yield call(createSubmission, {
       datastore: true,
       formSlug: 'receipt-sender',
       values: action.payload.values,
@@ -57,7 +63,7 @@ export function* sendReceipt(action) {
 export function* fetchSenderReceipt(action) {
   try {
     const SUBMISSION_INCLUDES = 'details,values';
-    const { submission, serverError } = yield call(CoreAPI.fetchSubmission, {
+    const { submission, serverError } = yield call(fetchSubmission, {
       id: action.payload.id,
       include: SUBMISSION_INCLUDES,
       datastore: true,
@@ -77,7 +83,7 @@ export function* fetchBillingChangeByBillingReference(action) {
       yield put(actions.setBillingChangeByBillingReference(membershipServices));
     } else {
       if (action.payload.billingCompany === 'Bambora') {
-        const BAMBORA_REGISTRATION_SEARCH = new CoreAPI.SubmissionSearch(true)
+        const BAMBORA_REGISTRATION_SEARCH = new SubmissionSearch(true)
           .sortDirection('DESC')
           .eq('values[Member ID]', action.payload.billingCustomerRef)
           .include([
@@ -87,9 +93,7 @@ export function* fetchBillingChangeByBillingReference(action) {
           .limit(25)
           .build();
 
-        const BAMBORA_BILLING_CHANGES_SEARCH = new CoreAPI.SubmissionSearch(
-          true,
-        )
+        const BAMBORA_BILLING_CHANGES_SEARCH = new SubmissionSearch(true)
           .eq('values[Billing Customer Id]', action.payload.billingCustomerRef)
           .include([
             'details',
@@ -98,7 +102,7 @@ export function* fetchBillingChangeByBillingReference(action) {
           .limit(25)
           .build();
 
-        const BAMBORA_SETUP_BILLER_SEARCH = new CoreAPI.SubmissionSearch(true)
+        const BAMBORA_SETUP_BILLER_SEARCH = new SubmissionSearch(true)
           .eq('values[Billing Customer Id]', action.payload.billingCustomerRef)
           .include([
             'details',
@@ -108,17 +112,20 @@ export function* fetchBillingChangeByBillingReference(action) {
           .build();
 
         const [registrations, billingChanges, setupBillers] = yield all([
-          call(CoreAPI.searchSubmissions, {
+          call(searchSubmissions, {
+            get: true,
             form: 'bambora-member-registration',
             kapp: 'services',
             search: BAMBORA_REGISTRATION_SEARCH,
           }),
-          call(CoreAPI.searchSubmissions, {
+          call(searchSubmissions, {
+            get: true,
             form: 'bambora-submit-billing-changes',
             kapp: 'services',
             search: BAMBORA_BILLING_CHANGES_SEARCH,
           }),
-          call(CoreAPI.searchSubmissions, {
+          call(searchSubmissions, {
+            get: true,
             form: 'bambora-setup-biller-details',
             kapp: 'services',
             search: BAMBORA_SETUP_BILLER_SEARCH,
@@ -221,7 +228,7 @@ export function* fetchBillingChangeByBillingReference(action) {
         );
       }
       if (action.payload.billingCompany === 'PaySmart') {
-        const PAYSMART_REGISTRATION_SEARCH = new CoreAPI.SubmissionSearch(true)
+        const PAYSMART_REGISTRATION_SEARCH = new SubmissionSearch(true)
           .sortDirection('DESC')
           .eq('values[Member ID]', action.payload.billingCustomerRef)
           .include([
@@ -231,7 +238,7 @@ export function* fetchBillingChangeByBillingReference(action) {
           .limit(25)
           .build();
 
-        const PAYSMART_BILLER_SETUP_SEARCH = new CoreAPI.SubmissionSearch(true)
+        const PAYSMART_BILLER_SETUP_SEARCH = new SubmissionSearch(true)
           .eq('values[Billing Customer Id]', action.payload.billingCustomerRef)
           .include([
             'details',
@@ -241,12 +248,14 @@ export function* fetchBillingChangeByBillingReference(action) {
           .build();
 
         const [paysmartRegistrations, setupBiller] = yield all([
-          call(CoreAPI.searchSubmissions, {
+          call(searchSubmissions, {
+            get: true,
             form: 'paysmart-member-registration',
             kapp: 'services',
             search: PAYSMART_REGISTRATION_SEARCH,
           }),
-          call(CoreAPI.searchSubmissions, {
+          call(searchSubmissions, {
+            get: true,
             form: 'setup-biller-details',
             kapp: 'services',
             search: PAYSMART_BILLER_SETUP_SEARCH,
@@ -316,7 +325,7 @@ export function* fetchBillingChangeByBillingReference(action) {
         );
       }
       if (action.payload.billingCompany === 'Stripe') {
-        const STRIPE_REGISTRATION_SEARCH = new CoreAPI.SubmissionSearch(true)
+        const STRIPE_REGISTRATION_SEARCH = new SubmissionSearch(true)
           .sortDirection('DESC')
           .eq('values[Member ID]', action.payload.billingCustomerRef)
           .include([
@@ -326,7 +335,7 @@ export function* fetchBillingChangeByBillingReference(action) {
           .limit(25)
           .build();
 
-        const STRIPE_BILLER_SETUP_SEARCH = new CoreAPI.SubmissionSearch(true)
+        const STRIPE_BILLER_SETUP_SEARCH = new SubmissionSearch(true)
           .eq('values[Billing Customer Id]', action.payload.billingCustomerRef)
           .include([
             'details',
@@ -336,12 +345,14 @@ export function* fetchBillingChangeByBillingReference(action) {
           .build();
 
         const [stripeRegistrations, stripeSetupBiller] = yield all([
-          call(CoreAPI.searchSubmissions, {
+          call(searchSubmissions, {
+            get: true,
             form: 'stripe-member-registration',
             kapp: 'services',
             search: STRIPE_REGISTRATION_SEARCH,
           }),
-          call(CoreAPI.searchSubmissions, {
+          call(searchSubmissions, {
+            get: true,
             form: 'stripe-setup-biller-details',
             kapp: 'services',
             search: STRIPE_BILLER_SETUP_SEARCH,
@@ -420,7 +431,7 @@ export function* fetchBillingChangeByBillingReference(action) {
 }
 export function* fetchCashRegistrations(action) {
   const kappSlug = 'services';
-  const searchBuilder = new CoreAPI.SubmissionSearch()
+  const searchBuilder = new SubmissionSearch()
     .coreState('Submitted')
     .type('Service')
     .sortBy('submittedAt')
@@ -433,7 +444,8 @@ export function* fetchCashRegistrations(action) {
     ])
     .build();
 
-  const { submissions } = yield call(CoreAPI.searchSubmissions, {
+  const { submissions } = yield call(searchSubmissions, {
+    get: true,
     form: 'cash-member-registration',
     kapp: 'services',
     search: searchBuilder,
@@ -456,7 +468,7 @@ export function* fetchMemberMigrations(action) {
         ? action.payload.migrationsLastFetchTime
         : undefined;
 
-    let searchBuilder = new CoreAPI.SubmissionSearch()
+    let searchBuilder = new SubmissionSearch()
       .type('Service')
       .includes([
         'details',
@@ -473,14 +485,15 @@ export function* fetchMemberMigrations(action) {
     }
     searchBuilder = searchBuilder.build();
 
-    var { submissions, nextPageToken } = yield call(CoreAPI.searchSubmissions, {
+    var { submissions, nextPageToken } = yield call(searchSubmissions, {
+      get: true,
       form: action.payload.billingSystem + '-remote-registration',
       kapp: 'services',
       search: searchBuilder,
     });
     allSubmissions = allSubmissions.concat(submissions);
     while (nextPageToken) {
-      var search2 = new CoreAPI.SubmissionSearch()
+      var search2 = new SubmissionSearch()
         .type('Service')
         .includes([
           'details',
@@ -490,14 +503,11 @@ export function* fetchMemberMigrations(action) {
         .limit(1000)
         .build();
 
-      var { submissions, nextPageToken } = yield call(
-        CoreAPI.searchSubmissions,
-        {
-          form: action.payload.billingSystem + '-remote-registration',
-          kapp: 'services',
-          search: search2,
-        },
-      );
+      var { submissions, nextPageToken } = yield call(searchSubmissions, {
+        form: action.payload.billingSystem + '-remote-registration',
+        kapp: 'services',
+        search: search2,
+      });
 
       allSubmissions = allSubmissions.concat(submissions);
     }

@@ -19,8 +19,8 @@ import {
 } from 'react-bootstrap-typeahead';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
 import 'react-bootstrap-typeahead/css/Typeahead-bs4.css';
-import { CoreAPI } from 'react-kinetic-core';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { fetchKapp, updateKapp } from '@kineticdata/react';
+import { I18n } from '@kineticdata/react';
 
 export const SettingsComponent = ({
   attributesMap,
@@ -255,7 +255,7 @@ const fetchSettings = ({
   setPreviousKappName,
   currentKapp,
 }) => async () => {
-  const { kapp } = await CoreAPI.fetchKapp({
+  const { kapp } = await fetchKapp({
     kappSlug: currentKapp.slug,
     include: KAPP_INCLUDES,
   });
@@ -284,7 +284,7 @@ const updateSettings = ({
   reloadApp,
   currentKapp,
 }) => async () => {
-  const { kapp, serverError } = await CoreAPI.updateKapp({
+  const { kapp, serverError } = await updateKapp({
     kappSlug: currentKapp.slug,
     include: KAPP_INCLUDES,
     kapp: {
@@ -348,7 +348,10 @@ const mapDispatchToProps = {
 };
 
 export const QueueSettings = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('attributesMap', 'setAttributesMap', Map()),
   withState('previousAttributesMap', 'setPreviousAttributesMap', Map()),
   withState('attributesMapDifferences', 'setAttributesMapDifferences', Map()),

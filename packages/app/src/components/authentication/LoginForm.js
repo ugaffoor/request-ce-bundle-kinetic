@@ -1,24 +1,25 @@
 import React from 'react';
 import { compose, withHandlers, lifecycle } from 'recompose';
 import { login } from '../../utils/authentication';
-import { I18n } from '../../I18nProvider';
+import { I18n } from '@kineticdata/react';
 import { Utils } from 'common';
 import { App as SpaceApp } from 'space/src/App';
 
 export const Login = ({
-  handleLogin,
+  onLogin,
   toResetPassword,
   toCreateAccount,
-  email,
+  username,
   password,
-  handleEmail,
-  handlePassword,
+  onChangeUsername,
+  onChangePassword,
   error,
+  pending,
   routed,
   space,
   pathname,
 }) => (
-  <form className="login-form-container" onSubmit={handleLogin}>
+  <form className="login-form-container" onSubmit={onLogin}>
     <div
       style={{
         display: 'flex',
@@ -34,17 +35,17 @@ export const Login = ({
             click "RESET PASSWORD" to reset a password.
           </span>
         )}
-        <label htmlFor="email">
+        <label htmlFor="username">
           <I18n>User Name</I18n>
         </label>
         <input
           type="text"
           autoFocus
           className="form-control"
-          id="email"
+          id="username"
           placeholder=""
-          value={email}
-          onChange={handleEmail}
+          value={username}
+          onChange={onChangeUsername}
         />
       </div>
       <div className="form-group">
@@ -57,7 +58,7 @@ export const Login = ({
           id="password"
           placeholder=""
           value={password}
-          onChange={handlePassword}
+          onChange={onChangePassword}
         />
       </div>
       <span className="text-danger">{error || ' '}</span>
@@ -78,38 +79,7 @@ export const Login = ({
   </form>
 );
 
-const handleLogin = ({ tryAuthentication, email, password }) => e => {
-  e.preventDefault();
-  tryAuthentication(email, password);
-};
-const tryAuthentication = ({
-  setError,
-  setPassword,
-  handleAuthenticated,
-  routed,
-  push,
-  pathname,
-}) => async (username, password) => {
-  try {
-    await login(username, password);
-
-    handleAuthenticated();
-
-    if (routed || pathname.includes('redirected')) {
-      push('/');
-    }
-  } catch (error) {
-    setError('Invalid username or password.');
-    setPassword('');
-  }
-};
 export const LoginForm = compose(
-  withHandlers({
-    tryAuthentication,
-  }),
-  withHandlers({
-    handleLogin,
-  }),
   lifecycle({
     /*    componentDidMount() {
       console.log("Login Form mounted");

@@ -7,7 +7,15 @@ import {
   takeEvery,
 } from 'redux-saga/effects';
 import { OrderedMap, fromJS } from 'immutable';
-import { CoreAPI } from 'react-kinetic-core';
+import {
+  SubmissionSearch,
+  searchSubmissions,
+  fetchSpace,
+  fetchKapps,
+  fetchProfile,
+  updateKapp,
+  updateProfile,
+} from '@kineticdata/react';
 import moment from 'moment';
 
 import { getAttributeValue } from '../../utils';
@@ -32,44 +40,44 @@ export const selectKapp = ({ app }) => app.kapps;
 export const selectReportPreferences = ({ member }) =>
   member.app.reportPreferences;
 
-export const PROGRAMBELTS_SEARCH = new CoreAPI.SubmissionSearch(true)
+export const PROGRAMBELTS_SEARCH = new SubmissionSearch(true)
   //  .in('values[Program Order]', ['1', '2', '3', '4', '5', '6', '7'])
   //  .index('values[Program Order]')
   .include('details,values')
   .limit(1000)
   .build();
-export const PROGRAMBELTS_SEARCH2 = new CoreAPI.SubmissionSearch(true)
+export const PROGRAMBELTS_SEARCH2 = new SubmissionSearch(true)
   .in('values[Program Order]', ['8', '9', '10', '11', '12', '13', '14'])
   .index('values[Program Order]')
   .include('details,values')
   .limit(1000)
   .build();
-export const ADD_PROGRAMS_SEARCH = new CoreAPI.SubmissionSearch(true)
+export const ADD_PROGRAMS_SEARCH = new SubmissionSearch(true)
   .eq('values[Status]', 'Active')
   .index('values[Status]')
   .include('details,values')
   .limit(1000)
   .build();
-export const MEMBER_TYPES_SEARCH = new CoreAPI.SubmissionSearch(true)
+export const MEMBER_TYPES_SEARCH = new SubmissionSearch(true)
   .eq('values[Status]', 'Active')
   .index('values[Status]')
   .include('details,values')
   .limit(1000)
   .build();
-export const MEMBERSHIP_FEES_SEARCH = new CoreAPI.SubmissionSearch(true)
+export const MEMBERSHIP_FEES_SEARCH = new SubmissionSearch(true)
   .eq('values[Status]', 'Active')
   .index('values[Status]')
   .include('details,values')
   .limit(1000)
   .build();
-export const SNIPPETS_SEARCH = new CoreAPI.SubmissionSearch(true)
+export const SNIPPETS_SEARCH = new SubmissionSearch(true)
   .eq('values[Status]', 'Active')
   .eq('values[Type]', 'Snippet')
   .index('values[Status],values[Type]')
   .include('details,values')
   .limit(1000)
   .build();
-export const JOURNEY_TRIGGERS_SEARCH = new CoreAPI.SubmissionSearch(true)
+export const JOURNEY_TRIGGERS_SEARCH = new SubmissionSearch(true)
   .eq('values[Status]', 'Active')
   .index('values[Status]')
   .include('details,values')
@@ -83,9 +91,9 @@ export function* fetchMemberAppSettingsTask() {
     space: { space },
     profile: { profile },
   } = yield all({
-    space: call(CoreAPI.fetchSpace, { include: 'details,attributes' }),
-    kapps: call(CoreAPI.fetchKapps, { include: 'attributes' }),
-    profile: call(CoreAPI.fetchProfile, {
+    space: call(fetchSpace, { include: 'details,attributes' }),
+    kapps: call(fetchKapps, { include: 'attributes' }),
+    profile: call(fetchProfile, {
       include: PROFILE_INCLUDES,
     }),
   });
@@ -97,12 +105,13 @@ export function* fetchMemberAppSettingsTask() {
   var beltSubmissions = [];
   let nextBeltPageTokenValue;
 
-  const beltSearch = new CoreAPI.SubmissionSearch(true)
+  const beltSearch = new SubmissionSearch(true)
     .includes(['values'])
     .limit(1000)
     .build();
 
-  const { submissions, nextPageToken } = yield call(CoreAPI.searchSubmissions, {
+  const { submissions, nextPageToken } = yield call(searchSubmissions, {
+    get: true,
     datastore: true,
     form: 'program-belts',
     search: beltSearch,
@@ -111,14 +120,15 @@ export function* fetchMemberAppSettingsTask() {
   beltSubmissions = beltSubmissions.concat(submissions);
 
   while (nextBeltPageTokenValue) {
-    let beltSearch2 = new CoreAPI.SubmissionSearch(true)
+    let beltSearch2 = new SubmissionSearch(true)
       .includes(['values'])
       .limit(1000)
       .pageToken(nextBeltPageTokenValue)
       .build();
 
     const [submissions2, nextPageToken] = yield all([
-      call(CoreAPI.searchSubmissions, {
+      call(searchSubmissions, {
+        get: true,
         datastore: true,
         form: 'program-belts',
         search: beltSearch2,
@@ -203,7 +213,8 @@ export function* fetchMemberAppSettingsTask() {
       : [];
 
   const memberTypes = yield all({
-    submissions: call(CoreAPI.searchSubmissions, {
+    submissions: call(searchSubmissions, {
+      get: true,
       datastore: true,
       form: 'membership-types',
       search: MEMBER_TYPES_SEARCH,
@@ -233,7 +244,8 @@ export function* fetchMemberAppSettingsTask() {
   var membershipTypes = memberTypesMap.toList();
 
   const memberFees = yield all({
-    submissions: call(CoreAPI.searchSubmissions, {
+    submissions: call(searchSubmissions, {
+      get: true,
       datastore: true,
       form: 'membership-fees',
       search: MEMBERSHIP_FEES_SEARCH,
@@ -264,7 +276,8 @@ export function* fetchMemberAppSettingsTask() {
   var membershipFees = membershipFeesMap.toList();
 
   const addPrograms = yield all({
-    submissions: call(CoreAPI.searchSubmissions, {
+    submissions: call(searchSubmissions, {
+      get: true,
       datastore: true,
       form: 'additional-programs',
       search: ADD_PROGRAMS_SEARCH,
@@ -295,7 +308,8 @@ export function* fetchMemberAppSettingsTask() {
   var additionalPrograms = additionalProgramsMap.toList();
 
   const snippetsSubs = yield all({
-    submissions: call(CoreAPI.searchSubmissions, {
+    submissions: call(searchSubmissions, {
+      get: true,
       datastore: true,
       form: 'notification-data',
       search: SNIPPETS_SEARCH,
@@ -312,13 +326,21 @@ export function* fetchMemberAppSettingsTask() {
   var snippets = snippetsMap.toList();
 
   const triggersSubs = yield all({
-    submissions: call(CoreAPI.searchSubmissions, {
+    submissions: call(searchSubmissions, {
+      get: true,
       datastore: true,
       form: 'journey-triggers',
       search: JOURNEY_TRIGGERS_SEARCH,
     }),
   });
   var triggers = triggersSubs.submissions.submissions;
+
+  var profileAttributes = [];
+  profile.profileAttributes.forEach(
+    item => (profileAttributes[item['name']] = item['values']),
+  );
+
+  profile.profileAttributes = profileAttributes;
 
   const appSettings = {
     kineticBillingServerUrl: getAttributeValue(
@@ -404,7 +426,7 @@ export function* updateDDRTemplatesTask(payload) {
   }
 
   try {
-    const { serverError } = yield call(CoreAPI.updateKapp, {
+    const { serverError } = yield call(updateKapp, {
       kapp,
       kappSlug: 'gbmembers',
       include: KAPP_UPDATE_INCLUDES,
@@ -453,7 +475,7 @@ export function* updateMembersListTask(payload) {
     profileAttributes: profile.profileAttributes,
   };
   profileCopy.profileAttributes['Member Lists'] = memberListsArr;
-  const { serverError } = yield call(CoreAPI.updateProfile, {
+  const { serverError } = yield call(updateProfile, {
     profile: profileCopy,
     include: PROFILE_UPDATE_INCLUDES,
   });
@@ -478,7 +500,7 @@ export function* updateLeadsListTask(payload) {
     profileAttributes: profile.profileAttributes,
   };
   profileCopy.profileAttributes['Lead Lists'] = leadListsArr;
-  const { serverError } = yield call(CoreAPI.updateProfile, {
+  const { serverError } = yield call(updateProfile, {
     profile: profileCopy,
     include: PROFILE_UPDATE_INCLUDES,
   });
@@ -493,7 +515,7 @@ export function* updateLeadsListTask(payload) {
 
 //TODO - fetch only reportPreferences instead of entire profile
 export function* fetchReportPreferences() {
-  const { profile } = yield call(CoreAPI.fetchProfile, {
+  const { profile } = yield call(fetchProfile, {
     include: PROFILE_INCLUDES,
   });
   yield put(actions.setReportPreferences(profile));
@@ -507,12 +529,19 @@ export function* updateReportPreferences(action) {
     reportPreferencesArr[i] = JSON.stringify(reportPreferencesArr[i]);
   }
 
-  let profileCopy = {}; //_.cloneDeep(profile);
+  var preference = profile.profileAttributes.find(
+    item => item.name === 'Report Preferences',
+  );
+  preference.values = reportPreferencesArr;
+
+  let profileCopy = _.cloneDeep(profile);
   profileCopy = {
     profileAttributes: profile.profileAttributes,
   };
+  profile.profileAttributesMap = undefined;
   profileCopy.profileAttributes['Report Preferences'] = reportPreferencesArr;
-  const { serverError } = yield call(CoreAPI.updateProfile, {
+
+  const { serverError } = yield call(updateProfile, {
     profile: profileCopy,
     include: PROFILE_UPDATE_INCLUDES,
   });
@@ -524,7 +553,7 @@ export function* updateReportPreferences(action) {
         'Update Preference',
       ),
     );
-    yield put(actions.fetchReportPreferences());
+    //yield put(actions.fetchReportPreferences());
   } else {
     yield put(
       errorActions.addError('Error updating preferences', 'Update Preference'),

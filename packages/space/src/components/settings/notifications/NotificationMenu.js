@@ -9,7 +9,7 @@ import {
   DropdownItem,
 } from 'reactstrap';
 import { actions } from '../../../redux/modules/settingsNotifications';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const wrapVar = type => property => `\${${type}('${property}')}`;
 const MINIMUM_CE_VERSION_FOR_DATASTORE = '2.1.0';
@@ -418,7 +418,10 @@ const mapDispatchToProps = {
 };
 
 export const NotificationMenu = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('selectedKapp', 'setSelectedKapp', null),
   withState('selectedForm', 'setSelectedForm', null),
   withState('isDatastore', 'setIsDatastore', false),

@@ -1,7 +1,5 @@
 import React, { Component } from 'react';
-import ReactSpinner from 'react16-spinjs';
 import moment from 'moment';
-import { getJson } from '../Member/MemberUtils';
 import $ from 'jquery';
 import ReactTable from 'react-table';
 import { KappNavLink as NavLink } from 'common';
@@ -14,14 +12,11 @@ import MomentLocaleUtils, {
   parseDate,
 } from 'react-day-picker/moment';
 import { getLocalePreference } from '../Member/MemberUtils';
-import { I18n } from '../../../../app/src/I18nProvider';
 import { actions } from '../../redux/modules/members';
 import { compose } from 'recompose';
 import { connect } from 'react-redux';
-import SVGInline from 'react-svg-inline';
-import crossIcon from '../../images/cross.svg?raw';
 import ReactToPrint from 'react-to-print';
-import printerIcon from '../../images/Print.svg?raw';
+import { ReactComponent as PrinterIcon } from '../../images/Print.svg';
 
 const mapStateToProps = state => ({
   members: state.member.members.allMembers,
@@ -80,6 +75,8 @@ export class AdditionalServicesReport extends Component {
     this.paymentHistory = [];
     let data = this.getData([]);
     let columns = this.getColumns();
+
+    this.tableComponentRef = React.createRef();
 
     this.state = {
       columns,
@@ -380,8 +377,8 @@ export class AdditionalServicesReport extends Component {
               {this.state.repPeriod === 'weekly'
                 ? 'Week'
                 : this.state.repPeriod === 'fortnightly'
-                ? 'Fortnights'
-                : 'Month'}
+                  ? 'Fortnights'
+                  : 'Month'}
             </button>
             <button
               type="button"
@@ -398,8 +395,8 @@ export class AdditionalServicesReport extends Component {
               {this.state.repPeriod === 'weekly'
                 ? 'Week'
                 : this.state.repPeriod === 'fortnightly'
-                ? 'Fortnight'
-                : 'Month'}
+                  ? 'Fortnight'
+                  : 'Month'}
             </button>
             <button
               type="button"
@@ -536,12 +533,12 @@ export class AdditionalServicesReport extends Component {
           <div className="additionalServicesReport">
             <ReactToPrint
               trigger={() => (
-                <SVGInline svg={printerIcon} className="icon tablePrint" />
+                <PrinterIcon className="icon icon-svg tablePrint" />
               )}
-              content={() => this.tableComponentRef}
+              content={() => this.tableComponentRef.current}
             />
             <ReactTable
-              ref={el => (this.tableComponentRef = el)}
+              ref={this.tableComponentRef}
               columns={this.getColumns()}
               groupBy="paymenttype"
               data={this.state.data}
@@ -560,7 +557,12 @@ export class AdditionalServicesReport extends Component {
   }
 }
 
-const enhance = compose(connect(mapStateToProps, mapDispatchToProps));
+const enhance = compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
+);
 export const AdditionalServicesReportContainer = enhance(
   AdditionalServicesReport,
 );

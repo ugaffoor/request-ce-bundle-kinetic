@@ -290,7 +290,10 @@ export const HomeView = ({
 );
 
 export const HomeContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(({ memberItem, space, profile }) => {
     let currency = getAttributeValue(space, 'Currency');
     if (currency === undefined) currency = 'USD';

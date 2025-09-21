@@ -1,11 +1,15 @@
 import { call, put, takeEvery, all } from 'redux-saga/effects';
-import { CoreAPI } from 'react-kinetic-core';
+import {
+  SubmissionSearch,
+  searchSubmissions,
+  updateSubmission,
+} from '@kineticdata/react';
 import { actions, types } from '../modules/journeyevents';
 
 const util = require('util');
 
 // Alerts Search Query
-export const JOURNEY_EVENTS_SEARCH = new CoreAPI.SubmissionSearch(true)
+export const JOURNEY_EVENTS_SEARCH = new SubmissionSearch(true)
   .eq('values[Status]', 'New')
   .include('details,values')
   .index('values[Status]')
@@ -13,7 +17,8 @@ export const JOURNEY_EVENTS_SEARCH = new CoreAPI.SubmissionSearch(true)
   .build();
 
 export function* fetchJourneyEventsTask() {
-  const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
+  const { submissions, serverError } = yield call(searchSubmissions, {
+    get: true,
     form: 'journey-event',
     search: JOURNEY_EVENTS_SEARCH,
     datastore: true,
@@ -31,7 +36,7 @@ export function* deleteJourneyEvents(action) {
 
     for (var i = 0; i < ids.length; i++) {
       const [submission] = yield all([
-        call(CoreAPI.updateSubmission, {
+        call(updateSubmission, {
           id: ids[i],
           values: { Status: 'Delete' },
           datastore: true,

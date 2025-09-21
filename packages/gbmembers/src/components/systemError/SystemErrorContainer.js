@@ -1,13 +1,15 @@
 import { connect } from 'react-redux';
-import { compose } from 'recompose';
-import { loadable } from 'react-kinetic-core';
+import { compose, lifecycle } from 'recompose';
 import { actions } from '../../redux/modules/errors';
 
 import { SystemError } from './SystemError';
 
 export const mapStateToProps = ({ errors }) => ({
-  status: errors.system.status,
-  statusText: errors.system.statusText,
+  status: errors !== undefined ? errors.system.status : 'Network',
+  statusText:
+    errors !== undefined
+      ? errors.system.statusText
+      : 'A network issue has occured',
 });
 export const mapDispatchToProps = actions;
 
@@ -16,7 +18,9 @@ export const SystemErrorContainer = compose(
     mapStateToProps,
     mapDispatchToProps,
   ),
-  loadable({
-    onUnmount: props => props.clearSystemError(),
+  lifecycle({
+    componentWillUnmount() {
+      this.props.clearSystemError();
+    },
   }),
 )(SystemError);

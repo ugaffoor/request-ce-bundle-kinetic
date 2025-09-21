@@ -11,7 +11,7 @@ import {
   takeEvery,
   takeLatest,
 } from 'redux-saga/effects';
-import { CoreAPI } from 'react-kinetic-core';
+import { updateSubmission } from '@kineticdata/react';
 
 import { SUBMISSION_INCLUDES } from './queue';
 import { actions as errorActions } from '../modules/errors';
@@ -217,7 +217,7 @@ export function* createInviteTask({ payload }) {
 }
 
 export const updateSubmissionDiscussionId = ({ id, guid }) =>
-  CoreAPI.updateSubmission({
+  updateSubmission({
     id,
     values: { 'Discussion Id': guid },
     include: SUBMISSION_INCLUDES,

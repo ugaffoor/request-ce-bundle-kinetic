@@ -2,7 +2,7 @@ import React from 'react';
 import DocumentTitle from 'react-document-title';
 import { connect } from 'react-redux';
 import { compose } from 'recompose';
-import { I18n } from '../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 export const PageTitleComponent = ({ space, kapp, parts }) => {
   return (
@@ -31,6 +31,9 @@ export const mapStateToProps = state => ({
 
 export const mapDispatchToProps = {};
 
-export const PageTitle = compose(connect(mapStateToProps, mapDispatchToProps))(
-  PageTitleComponent,
-);
+export const PageTitle = compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
+)(PageTitleComponent);

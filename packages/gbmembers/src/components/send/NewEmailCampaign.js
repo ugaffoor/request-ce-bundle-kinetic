@@ -11,7 +11,6 @@ import { actions } from '../../redux/modules/campaigns';
 import $ from 'jquery';
 import 'react-datetime/css/react-datetime.css';
 import moment from 'moment';
-import { email_sent_date_format } from '../leads/LeadsUtils';
 import { AttachmentForm } from './AttachmentForm';
 import { actions as leadsActions } from '../../redux/modules/leads';
 import { actions as membersActions } from '../../redux/modules/members';
@@ -39,6 +38,7 @@ import { TinyMCEComponent, createEditorStore } from 'mb-react-tinymce';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { actions as appActions } from '../../redux/modules/memberApp';
 import '../helpers/jquery.multiselect.js';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 <script src="../helpers/jquery.multiselect.js" />;
 
@@ -114,10 +114,10 @@ export class NewEmailCampaign extends Component {
       enablePreview = true;
     }
     this.state = {
-      schoolEmail: this.props.space.attributes['School Email'][0],
+      schoolEmail: getAttributeValue(this.props.space, 'School Email'),
       aliasEmail: undefined,
       aliasEmailOptions: this.getEmailAlias(
-        this.props.space.attributes['School Email Alias'],
+        getAttributeValue(this.props.space, 'School Email Alias'),
       ),
       text: '',
       subject: '',
@@ -638,11 +638,11 @@ export class NewEmailCampaign extends Component {
                           : '')
                       : ''
                     : this.props.leadItem && this.props.leadItem.values
-                    ? this.props.leadItem.values['Email'] +
-                      (this.props.leadItem.values['Additional Email']
-                        ? ',' + this.props.leadItem.values['Additional Email']
-                        : '')
-                    : ''
+                      ? this.props.leadItem.values['Email'] +
+                        (this.props.leadItem.values['Additional Email']
+                          ? ',' + this.props.leadItem.values['Additional Email']
+                          : '')
+                      : ''
                 }
               />
             ) : this.state.selectMember ? (
@@ -666,7 +666,6 @@ export class NewEmailCampaign extends Component {
                         className="form-control"
                         multiple
                         id="specificMembers"
-                        ref={input => (this.input = input)}
                         style={{ height: 'auto' }}
                       >
                         {this.props.allMembers
@@ -838,7 +837,7 @@ export class NewEmailCampaign extends Component {
                   text={"member('ID')"}
                   onCopy={console.log("member('ID') copied to Clipboard")}
                 >
-                  <i className="fa fa-clipboard" aria-hidden="true"></i>
+                  <i className="fa fa-clipboard" aria-hidden="true" />
                 </CopyToClipboard>
               </div>
               <div className="copyItem">
@@ -849,7 +848,7 @@ export class NewEmailCampaign extends Component {
                     "member('First Name') copied to Clipboard",
                   )}
                 >
-                  <i className="fa fa-clipboard" aria-hidden="true"></i>
+                  <i className="fa fa-clipboard" aria-hidden="true" />
                 </CopyToClipboard>
               </div>
               <div className="copyItem">
@@ -860,7 +859,7 @@ export class NewEmailCampaign extends Component {
                     "member('Last Name') copied to Clipboard",
                   )}
                 >
-                  <i className="fa fa-clipboard" aria-hidden="true"></i>
+                  <i className="fa fa-clipboard" aria-hidden="true" />
                 </CopyToClipboard>
               </div>
               <div className="copyItem">
@@ -871,7 +870,7 @@ export class NewEmailCampaign extends Component {
                     "member('Parent Name') copied to Clipboard",
                   )}
                 >
-                  <i className="fa fa-clipboard" aria-hidden="true"></i>
+                  <i className="fa fa-clipboard" aria-hidden="true" />
                 </CopyToClipboard>
               </div>
               <div className="copyItem">
@@ -886,7 +885,7 @@ export class NewEmailCampaign extends Component {
                     'Email Footer copied to Clipboard, only paste into a HTML block',
                   )}
                 >
-                  <i className="fa fa-clipboard" aria-hidden="true"></i>
+                  <i className="fa fa-clipboard" aria-hidden="true" />
                 </CopyToClipboard>
               </div>
               <div className="copyItem">
@@ -897,7 +896,7 @@ export class NewEmailCampaign extends Component {
                   }
                   onCopy={console.log("member('ID') copied to Clipboard")}
                 >
-                  <i className="fa fa-clipboard" aria-hidden="true"></i>
+                  <i className="fa fa-clipboard" aria-hidden="true" />
                 </CopyToClipboard>
               </div>
             </span>
@@ -998,7 +997,7 @@ export class NewEmailCampaign extends Component {
                         });
                       }}
                     />
-                    <label htmlFor="schedule"></label>
+                    <label htmlFor="schedule" />
                   </div>
                 </div>
                 {this.state.scheduleEmail && (
@@ -1094,7 +1093,10 @@ export const NewEmailCampaignView = ({
   );
 
 export const EmailCampaignContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(({ match }) => {
     return {
       submissionId: match.params.submissionId,

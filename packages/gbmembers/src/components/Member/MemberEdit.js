@@ -33,7 +33,7 @@ import { SetStatusModalContainer } from './SetStatusModalContainer';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
 import 'react-day-picker/lib/style.css';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 import Barcode from 'react-barcode';
 import Autocomplete from 'react-google-autocomplete';
 
@@ -252,7 +252,6 @@ export const MemberEdit = ({
                     id="username"
                     className="userNameField"
                     required
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Member ID']}
                     onChange={e =>
                       handleChange(
@@ -298,7 +297,6 @@ export const MemberEdit = ({
                       ? true
                       : false
                   }
-                  ref={input => (this.input = input)}
                   value={memberItem.values['First Name']}
                   onChange={e =>
                     handleChange(
@@ -327,7 +325,6 @@ export const MemberEdit = ({
                   name="lastName"
                   id="lastNames"
                   required
-                  ref={input => (this.input = input)}
                   value={memberItem.values['Last Name']}
                   onChange={e =>
                     handleChange(
@@ -354,7 +351,6 @@ export const MemberEdit = ({
                     name="gender"
                     id="gender"
                     required
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Gender']}
                     onChange={e =>
                       handleChange(
@@ -416,7 +412,6 @@ export const MemberEdit = ({
                           name="billingUser"
                           id="billingUser"
                           size="30"
-                          ref={input => (this.input = input)}
                           value={memberItem.values['Billing User']}
                           onChange={e =>
                             handleChange(
@@ -436,7 +431,6 @@ export const MemberEdit = ({
                           name="migrated"
                           id="migrated"
                           size="30"
-                          ref={input => (this.input = input)}
                           value={memberItem.values['Biller Migrated']}
                           onChange={e =>
                             handleChange(
@@ -458,7 +452,6 @@ export const MemberEdit = ({
                           name="useSubAccount"
                           id="useSubAccount"
                           size="30"
-                          ref={input => (this.input = input)}
                           value={memberItem.values['useSubAccount']}
                           onChange={e =>
                             handleChange(
@@ -482,7 +475,6 @@ export const MemberEdit = ({
                           name="ccExpiryMonth"
                           id="ccExpiryMonth"
                           size="30"
-                          ref={input => (this.input = input)}
                           value={memberItem.values['Credit Card Expiry Month']}
                           onChange={e =>
                             handleChange(
@@ -504,7 +496,6 @@ export const MemberEdit = ({
                           name="ccExpiryYear"
                           id="ccExpiryYear"
                           size="30"
-                          ref={input => (this.input = input)}
                           value={memberItem.values['Credit Card Expiry Year']}
                           onChange={e =>
                             handleChange(
@@ -526,7 +517,6 @@ export const MemberEdit = ({
                           name="billingId"
                           id="billingId"
                           size="30"
-                          ref={input => (this.input = input)}
                           value={memberItem.values['Billing Customer Id']}
                           onChange={e =>
                             handleChange(
@@ -546,7 +536,6 @@ export const MemberEdit = ({
                           name="billingRef"
                           id="billingRef"
                           size="30"
-                          ref={input => (this.input = input)}
                           value={
                             memberItem.values['Billing Customer Reference']
                           }
@@ -570,7 +559,6 @@ export const MemberEdit = ({
                           name="billingId"
                           id="billingId"
                           size="30"
-                          ref={input => (this.input = input)}
                           value={memberItem.values['Billing Setup Fee Id']}
                           onChange={e =>
                             handleChange(
@@ -592,7 +580,6 @@ export const MemberEdit = ({
                           name="billingId"
                           id="billingId"
                           size="30"
-                          ref={input => (this.input = input)}
                           value={memberItem.values['Billing Setup Fee Type']}
                           onChange={e =>
                             handleChange(
@@ -616,7 +603,6 @@ export const MemberEdit = ({
                           name="billingPaymentType"
                           id="billingPaymentType"
                           size="30"
-                          ref={input => (this.input = input)}
                           value={memberItem.values['Billing Payment Type']}
                           onChange={e =>
                             handleChange(
@@ -638,7 +624,6 @@ export const MemberEdit = ({
                           name="billingPaymentPeriod"
                           id="billingPaymentPeriod"
                           size="30"
-                          ref={input => (this.input = input)}
                           value={memberItem.values['Billing Payment Period']}
                           onChange={e =>
                             handleChange(
@@ -658,7 +643,6 @@ export const MemberEdit = ({
                           name="billingPeriod"
                           id="billingPeriod"
                           size="30"
-                          ref={input => (this.input = input)}
                           value={memberItem.values['Billing Period']}
                           onChange={e =>
                             handleChange(
@@ -680,7 +664,6 @@ export const MemberEdit = ({
                           name="billingPayment"
                           id="billingPayment"
                           size="30"
-                          ref={input => (this.input = input)}
                           value={memberItem.values['Payment']}
                           onChange={e =>
                             handleChange(
@@ -700,7 +683,6 @@ export const MemberEdit = ({
                           name="membershipCost"
                           id="membershipCost"
                           size="30"
-                          ref={input => (this.input = input)}
                           value={memberItem.values['Membership Cost']}
                           onChange={e =>
                             handleChange(
@@ -724,7 +706,6 @@ export const MemberEdit = ({
                           name="billingStartDate"
                           id="billingStartDate"
                           size="30"
-                          ref={input => (this.input = input)}
                           value={memberItem.values['Billing Start Date']}
                           onChange={e =>
                             handleChange(
@@ -746,7 +727,6 @@ export const MemberEdit = ({
                           name="billingParentMember"
                           id="billingParentMember"
                           size="30"
-                          ref={input => (this.input = input)}
                           value={memberItem.values['Billing Parent Member']}
                           onChange={e =>
                             handleChange(
@@ -770,7 +750,6 @@ export const MemberEdit = ({
                           name="billingFamilyMembers"
                           id="billingFamilyMembers"
                           size="90"
-                          ref={input => (this.input = input)}
                           value={memberItem.values['Billing Family Members']}
                           onChange={e =>
                             handleChange(
@@ -792,7 +771,6 @@ export const MemberEdit = ({
                           name="resumeDate"
                           id="resumeDate"
                           size="30"
-                          ref={input => (this.input = input)}
                           value={memberItem.values['Resume Date']}
                           onChange={e =>
                             handleChange(
@@ -814,7 +792,6 @@ export const MemberEdit = ({
                           name="posProfileID"
                           id="posProfileID"
                           size="30"
-                          ref={input => (this.input = input)}
                           value={memberItem.values['POS Profile ID']}
                           onChange={e =>
                             handleChange(
@@ -836,7 +813,6 @@ export const MemberEdit = ({
                           name="registeredWithCard"
                           id="registeredWithCard"
                           size="30"
-                          ref={input => (this.input = input)}
                           value={memberItem.values['Registered with Card']}
                           onChange={e =>
                             handleChange(
@@ -860,7 +836,6 @@ export const MemberEdit = ({
                           name="emailsReceivedCount"
                           id="emailsReceivedCount"
                           size="30"
-                          ref={input => (this.input = input)}
                           value={memberItem.values['Emails Received Count']}
                           onChange={e =>
                             handleChange(
@@ -882,7 +857,6 @@ export const MemberEdit = ({
                           name="leadSubmissionID"
                           id="leadSubmissionID"
                           size="30"
-                          ref={input => (this.input = input)}
                           value={memberItem.values['Lead Submission ID']}
                           onChange={e =>
                             handleChange(
@@ -904,7 +878,6 @@ export const MemberEdit = ({
                           name="statusHistory"
                           id="statusHistory"
                           size="50"
-                          ref={input => (this.input = input)}
                           value={memberItem.values['Status History']}
                           onChange={e =>
                             handleChange(
@@ -926,7 +899,6 @@ export const MemberEdit = ({
                           name="notesHistory"
                           id="notesHistory"
                           size="50"
-                          ref={input => (this.input = input)}
                           value={memberItem.values['Notes History']}
                           onChange={e =>
                             handleChange(
@@ -948,7 +920,6 @@ export const MemberEdit = ({
                           name="photo"
                           id="photo"
                           size="50"
-                          ref={input => (this.input = input)}
                           value={memberItem.values['Photo']}
                           onChange={e =>
                             handleChange(
@@ -972,7 +943,6 @@ export const MemberEdit = ({
                           name="Last Attendance Date"
                           id="lastAttendanceDate"
                           size="50"
-                          ref={input => (this.input = input)}
                           value={memberItem.values['Last Attendance Date']}
                           onChange={e =>
                             handleChange(
@@ -996,7 +966,6 @@ export const MemberEdit = ({
                           name="refundedHistory"
                           id="refundedHistory"
                           size="50"
-                          ref={input => (this.input = input)}
                           value={memberItem.values['Refunded Payments']}
                           onChange={e =>
                             handleChange(
@@ -1020,7 +989,6 @@ export const MemberEdit = ({
                           name="cashStart"
                           id="cashStart"
                           size="50"
-                          ref={input => (this.input = input)}
                           value={
                             memberItem.values['Billing Cash Term Start Date']
                           }
@@ -1044,7 +1012,6 @@ export const MemberEdit = ({
                           name="cashEnd"
                           id="cashEnd"
                           size="50"
-                          ref={input => (this.input = input)}
                           value={
                             memberItem.values['Billing Cash Term End Date']
                           }
@@ -1070,7 +1037,6 @@ export const MemberEdit = ({
                           name="waiverCompleteDate"
                           id="waiverCompleteDate"
                           size="50"
-                          ref={input => (this.input = input)}
                           value={memberItem.values['Waiver Complete Date']}
                           onChange={e =>
                             handleChange(
@@ -1091,6 +1057,7 @@ export const MemberEdit = ({
             {getAttributeValue(space, 'Franchisor') !== 'YES' && (
               <span className="line">
                 <Autocomplete
+                  id="addressAutoComplete"
                   apiKey={'AIzaSyA-tujnpf8Jy33hVaJ_9GtRdMgHw4jvnwo'}
                   placeholder="Lookup Address"
                   style={{
@@ -1206,7 +1173,6 @@ export const MemberEdit = ({
                   id="address"
                   size="80"
                   required
-                  ref={input => (this.input = input)}
                   value={memberItem.values['Address']}
                   onChange={e => {
                     handleChange(
@@ -1235,7 +1201,6 @@ export const MemberEdit = ({
                   name="suburb"
                   id="suburb"
                   required
-                  ref={input => (this.input = input)}
                   value={memberItem.values['Suburb']}
                   onChange={e =>
                     handleChange(
@@ -1255,7 +1220,6 @@ export const MemberEdit = ({
                     name="country"
                     id="country"
                     required
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Country']}
                     onChange={e => {
                       memberItem.myThis = myThis;
@@ -1294,7 +1258,6 @@ export const MemberEdit = ({
                       name="state"
                       id="state"
                       required
-                      ref={input => (this.input = input)}
                       value={memberItem.values['State']}
                       onChange={e =>
                         handleChange(
@@ -1327,7 +1290,6 @@ export const MemberEdit = ({
                       name="state"
                       id="state"
                       required
-                      ref={input => (this.input = input)}
                       value={memberItem.values['State']}
                       onChange={e =>
                         handleChange(
@@ -1368,7 +1330,6 @@ export const MemberEdit = ({
                     id="postcode"
                     size="10"
                     required
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Postcode']}
                     onChange={e =>
                       handleChange(
@@ -1389,7 +1350,6 @@ export const MemberEdit = ({
                     }
                     mask="_"
                     required
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Postcode']}
                     onValueChange={(values, e) =>
                       handleFormattedChange(
@@ -1419,7 +1379,6 @@ export const MemberEdit = ({
                   id="email"
                   size="40"
                   required
-                  ref={input => (this.input = input)}
                   value={memberItem.values['Email']}
                   onChange={e => {
                     if (e.target.value !== null)
@@ -1446,7 +1405,6 @@ export const MemberEdit = ({
                   name="additionalEmail"
                   id="additionalEmail"
                   size="40"
-                  ref={input => (this.input = input)}
                   value={memberItem.values['Additional Email']}
                   onChange={e => {
                     if (e.target.value !== null)
@@ -1487,12 +1445,11 @@ export const MemberEdit = ({
                       ? getAttributeValue(space, 'PhoneNumber Format')
                       : space.slug === 'europe' ||
                         space.slug === 'unitedkingdom'
-                      ? getPhoneNumberFormat(memberItem)
-                      : '####-###-###'
+                        ? getPhoneNumberFormat(memberItem)
+                        : '####-###-###'
                   }
                   mask="_"
                   required
-                  ref={input => (this.input = input)}
                   value={memberItem.values['Phone Number']}
                   onValueChange={(values, e) =>
                     handleFormattedChange(
@@ -1514,12 +1471,11 @@ export const MemberEdit = ({
                       ? getAttributeValue(space, 'PhoneNumber Format')
                       : space.slug === 'europe' ||
                         space.slug === 'unitedkingdom'
-                      ? getPhoneNumberFormat(memberItem)
-                      : '####-###-###'
+                        ? getPhoneNumberFormat(memberItem)
+                        : '####-###-###'
                   }
                   mask="_"
                   required
-                  ref={input => (this.input = input)}
                   value={memberItem.values['Additional Phone Number']}
                   onValueChange={(values, e) =>
                     handleFormattedChange(
@@ -1615,7 +1571,6 @@ export const MemberEdit = ({
                   <select
                     name="membertype"
                     id="membertype"
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Member Type']}
                     onChange={e =>
                       handleChange(
@@ -1648,7 +1603,6 @@ export const MemberEdit = ({
                     type="text"
                     name="ParentGuardian"
                     id="ParentGuardian"
-                    ref={input => (this.input = input)}
                     defaultValue={memberItem.values['Parent or Guardian']}
                     onChange={e =>
                       handleChange(
@@ -1690,7 +1644,6 @@ export const MemberEdit = ({
                   name="emergencyname"
                   id="emergencyname"
                   required
-                  ref={input => (this.input = input)}
                   value={memberItem.values['Emergency Contact Name']}
                   onChange={e =>
                     handleChange(
@@ -1722,7 +1675,6 @@ export const MemberEdit = ({
                     name="relationship"
                     id="relationship"
                     required
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Emergency Contact Relationship']}
                     onChange={e =>
                       handleChange(
@@ -1756,12 +1708,11 @@ export const MemberEdit = ({
                       ? getAttributeValue(space, 'PhoneNumber Format')
                       : space.slug === 'europe' ||
                         space.slug === 'unitedkingdom'
-                      ? getPhoneNumberFormat(memberItem)
-                      : '####-###-###'
+                        ? getPhoneNumberFormat(memberItem)
+                        : '####-###-###'
                   }
                   mask="_"
                   required
-                  ref={input => (this.input = input)}
                   value={memberItem.values['Emergency Contact Phone']}
                   onValueChange={(values, e) =>
                     handleFormattedChange(
@@ -1783,7 +1734,6 @@ export const MemberEdit = ({
                     size="40"
                     name="alergies"
                     id="alergies"
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Medical Allergies']}
                     onChange={e =>
                       handleChange(
@@ -1820,7 +1770,6 @@ export const MemberEdit = ({
                     name="program"
                     id="program"
                     required
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Ranking Program']}
                     onChange={e => {
                       handleChange(
@@ -1862,7 +1811,6 @@ export const MemberEdit = ({
                     name="belt"
                     id="belt"
                     required
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Ranking Belt']}
                     onChange={e =>
                       handleChange(
@@ -1874,7 +1822,7 @@ export const MemberEdit = ({
                       )
                     }
                   >
-                    <option key="" value=""></option>
+                    <option key="" value="" />
                     {belts.map(
                       belt =>
                         belt.program ===
@@ -1930,7 +1878,6 @@ export const MemberEdit = ({
                     type="number"
                     name="attendanceCount"
                     id="attendanceCount"
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Attendance Count']}
                     onChange={e =>
                       handleChange(
@@ -1951,7 +1898,6 @@ export const MemberEdit = ({
                     type="number"
                     name="maxWeeklyClasses"
                     id="maxWeeklyClasses"
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Max Weekly Classes']}
                     onChange={e =>
                       handleChange(
@@ -1971,7 +1917,6 @@ export const MemberEdit = ({
                   <select
                     name="beltSize"
                     id="beltSize"
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Belt Size']}
                     onChange={e =>
                       handleChange(
@@ -2009,7 +1954,6 @@ export const MemberEdit = ({
                     name="nonpaying"
                     id="nonpaying"
                     style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
                     value="YES"
                     checked={
                       memberItem.values['Non Paying'] === 'YES' ? true : false
@@ -2045,7 +1989,6 @@ export const MemberEdit = ({
                       name="billingReceipt"
                       id="billingReceipt"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="YES"
                       checked={
                         memberItem.values['Send Payment Receipt'] === 'YES'
@@ -2082,7 +2025,6 @@ export const MemberEdit = ({
                     name="optout"
                     id="optout"
                     style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
                     value="YES"
                     checked={
                       memberItem.values['Opt-Out'] === 'YES' ? true : false
@@ -2117,7 +2059,6 @@ export const MemberEdit = ({
                     name="mainbenefits"
                     id="excercise"
                     style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
                     value="excercise"
                     checked={
                       memberItem.values['Main Benefits'] !== undefined &&
@@ -2163,7 +2104,6 @@ export const MemberEdit = ({
                     name="mainbenefits"
                     id="discipline"
                     style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
                     value="discipline"
                     checked={
                       memberItem.values['Main Benefits'] !== undefined &&
@@ -2211,7 +2151,6 @@ export const MemberEdit = ({
                     name="mainbenefits"
                     id="selfdefense"
                     style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
                     value="self defense"
                     checked={
                       memberItem.values['Main Benefits'] !== undefined &&
@@ -2259,7 +2198,6 @@ export const MemberEdit = ({
                     name="mainbenefits"
                     id="reducestress"
                     style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
                     value="reduce stress"
                     checked={
                       memberItem.values['Main Benefits'] !== undefined &&
@@ -2309,7 +2247,6 @@ export const MemberEdit = ({
                     name="mainbenefits"
                     id="respect"
                     style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
                     value="respect"
                     checked={
                       memberItem.values['Main Benefits'] !== undefined &&
@@ -2353,7 +2290,6 @@ export const MemberEdit = ({
                     name="mainbenefits"
                     id="selfconfidence"
                     style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
                     value="self confidence"
                     checked={
                       memberItem.values['Main Benefits'] !== undefined &&
@@ -2403,7 +2339,6 @@ export const MemberEdit = ({
                     name="mainbenefits"
                     id="concentration"
                     style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
                     value="concentration"
                     checked={
                       memberItem.values['Main Benefits'] !== undefined &&
@@ -2453,7 +2388,6 @@ export const MemberEdit = ({
                     name="mainbenefits"
                     id="coordination"
                     style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
                     value="coordination"
                     checked={
                       memberItem.values['Main Benefits'] !== undefined &&
@@ -2501,7 +2435,6 @@ export const MemberEdit = ({
                     name="mainbenefits"
                     id="balance"
                     style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
                     value="balance"
                     checked={
                       memberItem.values['Main Benefits'] !== undefined &&
@@ -2548,7 +2481,6 @@ export const MemberEdit = ({
                     name="mainbenefits"
                     id="characterdevelopment"
                     style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
                     value="character development"
                     checked={
                       memberItem.values['Main Benefits'] !== undefined &&
@@ -2598,7 +2530,6 @@ export const MemberEdit = ({
                     name="mainbenefits"
                     id="focus"
                     style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
                     value="focus"
                     checked={
                       memberItem.values['Main Benefits'] !== undefined &&
@@ -2642,7 +2573,6 @@ export const MemberEdit = ({
                     name="mainbenefits"
                     id="fun"
                     style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
                     value="fun"
                     checked={
                       memberItem.values['Main Benefits'] !== undefined &&
@@ -2684,7 +2614,6 @@ export const MemberEdit = ({
                     name="mainbenefits"
                     id="competition"
                     style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
                     value="competition"
                     checked={
                       memberItem.values['Main Benefits'] !== undefined &&
@@ -2732,7 +2661,6 @@ export const MemberEdit = ({
                     name="mainbenefits"
                     id="ArtofJiuJitsu"
                     style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
                     value="Art of Jiu Jitsu"
                     checked={
                       memberItem.values['Main Benefits'] !== undefined &&
@@ -2782,7 +2710,6 @@ export const MemberEdit = ({
                   <select
                     name="additionalprogram1"
                     id="additionalprogram1"
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Additional Program 1']}
                     onChange={e =>
                       handleChange(
@@ -2810,7 +2737,6 @@ export const MemberEdit = ({
                   <select
                     name="additionalprogram2"
                     id="additionalprogram2"
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Additional Program 2']}
                     onChange={e =>
                       handleChange(
@@ -2838,7 +2764,6 @@ export const MemberEdit = ({
                   <select
                     name="covid19"
                     id="covid19"
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Covid19 Waiver']}
                     onChange={e =>
                       handleChange(
@@ -2865,7 +2790,6 @@ export const MemberEdit = ({
                     type="text"
                     name="alternateBarcode"
                     id="alternateBarcode"
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Alternate Barcode']}
                     onChange={e =>
                       handleChange(
@@ -2924,18 +2848,12 @@ export const MemberEdit = ({
                 </button>
               </span>
               <span className="rightButtons">
-                {this.newMember ? (
-                  <NavLink to={`/Home`} className="btn btn-primary">
-                    Cancel
-                  </NavLink>
-                ) : (
-                  <NavLink
-                    to={`/Member/${memberItem.id}`}
-                    className="btn btn-primary"
-                  >
-                    Cancel
-                  </NavLink>
-                )}
+                <NavLink
+                  to={`/Member/${memberItem.id}`}
+                  className="btn btn-primary"
+                >
+                  Cancel
+                </NavLink>
                 <button
                   type="button"
                   id="saveButton"
@@ -2965,7 +2883,10 @@ export const MemberEdit = ({
   );
 
 export const MemberEditContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(({ memberItem, updateMember, deleteMember }) => {
     return {};
   }),

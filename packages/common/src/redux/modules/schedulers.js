@@ -1,6 +1,6 @@
 import { List, Record } from 'immutable';
 import { namespace, noPayload, withPayload } from '../../utils';
-import { DatastoreSubmission } from '../../../records';
+import { DatastoreSubmission } from '../../records';
 
 export const SCHEDULER_FORM_SLUG = 'scheduler';
 export const SCHEDULER_CONFIG_FORM_SLUG = 'scheduler-config';

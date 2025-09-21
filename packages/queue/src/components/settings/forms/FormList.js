@@ -12,7 +12,7 @@ import {
 import { TimeAgo } from 'common';
 import wallyHappyImage from 'common/src/assets/images/wally-happy.svg';
 import { actions } from '../../../redux/modules/forms';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const WallyEmptyMessage = ({ filter }) => {
   return (
@@ -238,7 +238,10 @@ const toggleDropdown = ({
   setOpenDropdown(dropdownSlug === openDropdown ? '' : dropdownSlug);
 
 export const FormList = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('openDropdown', 'setOpenDropdown', ''),
   withState('currentPage', 'setCurrentPage', 1),
   withHandlers({ toggleDropdown }),

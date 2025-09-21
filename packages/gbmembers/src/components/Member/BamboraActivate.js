@@ -170,7 +170,6 @@ export class BamboraActivate extends Component {
                   <select
                     name="paymentPeriod"
                     id="paymentPeriod"
-                    ref={input => (this.input = input)}
                     defaultValue={
                       this.props.memberItem.values['Billing Payment Period']
                     }
@@ -205,7 +204,6 @@ export class BamboraActivate extends Component {
                     name="currentAmount"
                     id="currentAmount"
                     disabled={false}
-                    ref={input => (this.input = input)}
                     defaultValue={this.state.currentAmount}
                     onChange={e => {
                       if (this.state.applyAdminFee) {
@@ -238,7 +236,6 @@ export class BamboraActivate extends Component {
                     name="applyAdmin"
                     id="applyAdmin"
                     style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
                     value="YES"
                     checked={this.state.applyAdminFee}
                     onChange={e => {
@@ -272,7 +269,6 @@ export class BamboraActivate extends Component {
                       name="adminFee"
                       id="adminFee"
                       disabled={true}
-                      ref={input => (this.input = input)}
                       defaultValue={'1.33%'}
                       onChange={e => {}}
                     />
@@ -286,7 +282,6 @@ export class BamboraActivate extends Component {
                     type="text"
                     name="payment"
                     id="payment"
-                    ref={input => (this.input = input)}
                     value={this.state.paymentValue}
                     onChange={e => {}}
                   />
@@ -328,7 +323,10 @@ export class BamboraActivate extends Component {
 }
 
 const enhance = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withHandlers({
     activateBillerMember: ({
       memberItem,

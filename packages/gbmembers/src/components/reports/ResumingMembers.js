@@ -3,14 +3,16 @@ import ReactTable from 'react-table';
 import { KappNavLink as NavLink } from 'common';
 import moment from 'moment';
 import ReactToPrint from 'react-to-print';
-import printerIcon from '../../images/Print.svg?raw';
-import SVGInline from 'react-svg-inline';
+import { ReactComponent as PrinterIcon } from '../../images/Print.svg';
 
 export class ResumingMembers extends Component {
   constructor(props) {
     super(props);
     let data = this.getData(this.props.allMembers, 0);
     let columns = this.getColumns();
+
+    this.tableComponentRef = React.createRef();
+
     this.state = {
       data,
       columns,
@@ -120,7 +122,6 @@ export class ResumingMembers extends Component {
           <select
             name="weeks"
             id="weeks"
-            ref={input => (this.input = input)}
             defaultValue={0}
             onChange={e => {
               let data = this.getData(
@@ -142,13 +143,11 @@ export class ResumingMembers extends Component {
           <div className="droparrow" />
         </div>
         <ReactToPrint
-          trigger={() => (
-            <SVGInline svg={printerIcon} className="icon tablePrint" />
-          )}
-          content={() => this.tableComponentRef}
+          trigger={() => <PrinterIcon className="icon icon-svg tablePrint" />}
+          content={() => this.tableComponentRef.current}
         />
         <ReactTable
-          ref={el => (this.tableComponentRef = el)}
+          ref={this.tableComponentRef}
           columns={columns}
           data={data}
           className="-striped -highlight"

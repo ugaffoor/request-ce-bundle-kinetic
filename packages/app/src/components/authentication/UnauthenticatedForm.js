@@ -1,10 +1,10 @@
 import React, { Fragment } from 'react';
-import { CoreForm } from 'react-kinetic-core';
+import { CoreForm } from '@kineticdata/react';
 import { connect } from 'react-redux';
 import { push } from 'connected-react-router';
 import { compose, withHandlers, withState } from 'recompose';
 import { parse } from 'query-string';
-import { I18n } from '../../I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 import { PageTitle } from 'common';
 
@@ -108,7 +108,10 @@ export const handleLoaded = props => form => {
 };
 
 export const UnauthenticatedForm = compose(
-  connect(mapStateToProps, { push }),
+  connect(
+    mapStateToProps,
+    { push },
+  ),
   withState('formName', 'setFormName', ''),
   withHandlers({ handleCreated, handleLoaded }),
 )(UnauthenticatedFormComponent);

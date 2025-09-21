@@ -5,7 +5,10 @@ import { Provider } from 'react-redux';
 import { ConnectedRouter } from 'connected-react-router';
 import { createHashHistory } from 'history';
 import axios from 'axios';
-import { CoreAPI } from 'react-kinetic-core';
+import {
+  addResponseInterceptor,
+  setDefaultAuthAssumed,
+} from '@kineticdata/react';
 import AuthInterceptor from './utils/AuthInterceptor';
 import {
   actions as authActions,
@@ -45,8 +48,8 @@ const authInterceptor = new AuthInterceptor(
   authSelectors.cancelledSelector,
 );
 axios.interceptors.response.use(null, authInterceptor.handleRejected);
-CoreAPI.addResponseInterceptor(null, authInterceptor.handleRejected);
-CoreAPI.setDefaultAuthAssumed(true);
+addResponseInterceptor(null, authInterceptor.handleRejected);
+setDefaultAuthAssumed(true);
 
 ReactDOM.render(
   <Provider store={store}>

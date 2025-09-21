@@ -3,9 +3,8 @@ import ReactTable from 'react-table';
 import { KappNavLink as NavLink } from 'common';
 import moment from 'moment';
 import ReactToPrint from 'react-to-print';
-import printerIcon from '../../images/Print.svg?raw';
-import downloadIcon from '../../images/download.svg?raw';
-import SVGInline from 'react-svg-inline';
+import { ReactComponent as PrinterIcon } from '../../images/Print.svg';
+import { ReactComponent as DownloadIcon } from '../../images/download.svg';
 import { CSVLink } from 'react-csv';
 
 export class MemberBirthdays extends Component {
@@ -13,6 +12,9 @@ export class MemberBirthdays extends Component {
     super(props);
     let data = this.getData(this.props.allMembers, 1);
     let columns = this.getColumns();
+
+    this.tableComponentRef = React.createRef();
+
     this.state = {
       data,
       columns,
@@ -146,7 +148,6 @@ export class MemberBirthdays extends Component {
           <select
             name="days"
             id="days"
-            ref={input => (this.input = input)}
             defaultValue={1}
             onChange={e => {
               let data = this.getData(
@@ -168,20 +169,18 @@ export class MemberBirthdays extends Component {
           <div className="droparrow" />
         </div>
         <ReactToPrint
-          trigger={() => (
-            <SVGInline svg={printerIcon} className="icon tablePrint" />
-          )}
-          content={() => this.tableComponentRef}
+          trigger={() => <PrinterIcon className="icon icon-svg tablePrint" />}
+          content={() => this.tableComponentRef.current}
         />
         <CSVLink
           className="downloadbtn"
           filename="birthdays.csv"
           data={this.getDownloadData()}
         >
-          <SVGInline svg={downloadIcon} className="icon tableDownload" />
+          <DownloadIcon className="icon icon-svg tableDownload" />
         </CSVLink>
         <ReactTable
-          ref={el => (this.tableComponentRef = el)}
+          ref={this.tableComponentRef}
           columns={columns}
           data={data}
           className="-striped -highlight"

@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { Map, List, fromJS } from 'immutable';
 import { compose, lifecycle, withState, withHandlers } from 'recompose';
-import { CoreAPI } from 'react-kinetic-core';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { fetchSpace, updateSpace } from '@kineticdata/react';
+import { I18n } from '@kineticdata/react';
 
 import {
   commonActions,
@@ -110,49 +110,52 @@ export const SettingsComponent = ({
             <h2 className="section__title">
               <I18n>Form Mapping</I18n>
             </h2>
-            {requiredKapps.queue && attributesMap.has('Approval Form Slug') && (
-              <AttributeSelectors.FormSelect
-                id="Approval Form Slug"
-                value={attributesMap.getIn(['Approval Form Slug', 'value'])}
-                onChange={handleAttributeChange}
-                valueMapper={value => value.slug}
-                kappSlug={requiredKapps.queue.slug}
-                label="Default Approval Form"
-                style={{ width: '50%' }}
-                description={attributesMap.getIn([
-                  'Approval Form Slug',
-                  'description',
-                ])}
-              />
-            )}
-            {requiredKapps.admin && attributesMap.has('Feedback Form Slug') && (
-              <AttributeSelectors.FormSelect
-                id="Feedback Form Slug"
-                value={attributesMap.getIn(['Feedback Form Slug', 'value'])}
-                onChange={handleAttributeChange}
-                valueMapper={value => value.slug}
-                kappSlug={requiredKapps.admin.slug}
-                label="Feedback Form Slug"
-                description={attributesMap.getIn([
-                  'Feedback Form Slug',
-                  'description',
-                ])}
-              />
-            )}
-            {requiredKapps.admin && attributesMap.has('Help Form Slug') && (
-              <AttributeSelectors.FormSelect
-                id="Help Form Slug"
-                value={attributesMap.getIn(['Help Form Slug', 'value'])}
-                onChange={handleAttributeChange}
-                valueMapper={value => value.slug}
-                kappSlug={requiredKapps.admin.slug}
-                label="Help Form Slug"
-                description={attributesMap.getIn([
-                  'Help Form Slug',
-                  'description',
-                ])}
-              />
-            )}
+            {requiredKapps.queue &&
+              attributesMap.has('Approval Form Slug') && (
+                <AttributeSelectors.FormSelect
+                  id="Approval Form Slug"
+                  value={attributesMap.getIn(['Approval Form Slug', 'value'])}
+                  onChange={handleAttributeChange}
+                  valueMapper={value => value.slug}
+                  kappSlug={requiredKapps.queue.slug}
+                  label="Default Approval Form"
+                  style={{ width: '50%' }}
+                  description={attributesMap.getIn([
+                    'Approval Form Slug',
+                    'description',
+                  ])}
+                />
+              )}
+            {requiredKapps.admin &&
+              attributesMap.has('Feedback Form Slug') && (
+                <AttributeSelectors.FormSelect
+                  id="Feedback Form Slug"
+                  value={attributesMap.getIn(['Feedback Form Slug', 'value'])}
+                  onChange={handleAttributeChange}
+                  valueMapper={value => value.slug}
+                  kappSlug={requiredKapps.admin.slug}
+                  label="Feedback Form Slug"
+                  description={attributesMap.getIn([
+                    'Feedback Form Slug',
+                    'description',
+                  ])}
+                />
+              )}
+            {requiredKapps.admin &&
+              attributesMap.has('Help Form Slug') && (
+                <AttributeSelectors.FormSelect
+                  id="Help Form Slug"
+                  value={attributesMap.getIn(['Help Form Slug', 'value'])}
+                  onChange={handleAttributeChange}
+                  valueMapper={value => value.slug}
+                  kappSlug={requiredKapps.admin.slug}
+                  label="Help Form Slug"
+                  description={attributesMap.getIn([
+                    'Help Form Slug',
+                    'description',
+                  ])}
+                />
+              )}
             {requiredKapps.admin &&
               attributesMap.has('Request Alert Form Slug') && (
                 <AttributeSelectors.FormSelect
@@ -189,20 +192,21 @@ export const SettingsComponent = ({
                   ])}
                 />
               )}
-            {requiredKapps.queue && attributesMap.has('Task Form Slug') && (
-              <AttributeSelectors.FormSelect
-                id="Task Form Slug"
-                value={attributesMap.getIn(['Task Form Slug', 'value'])}
-                onChange={handleAttributeChange}
-                valueMapper={value => value.slug}
-                kappSlug={requiredKapps.queue.slug}
-                label="Default Task Form Slug"
-                description={attributesMap.getIn([
-                  'Task Form Slug',
-                  'description',
-                ])}
-              />
-            )}
+            {requiredKapps.queue &&
+              attributesMap.has('Task Form Slug') && (
+                <AttributeSelectors.FormSelect
+                  id="Task Form Slug"
+                  value={attributesMap.getIn(['Task Form Slug', 'value'])}
+                  onChange={handleAttributeChange}
+                  valueMapper={value => value.slug}
+                  kappSlug={requiredKapps.queue.slug}
+                  label="Default Task Form Slug"
+                  description={attributesMap.getIn([
+                    'Task Form Slug',
+                    'description',
+                  ])}
+                />
+              )}
           </form>
           <div className="form__footer">
             <span className="form__footer__right">
@@ -281,7 +285,7 @@ const fetchSettings = ({
   setSpaceName,
   setPreviousSpaceName,
 }) => async () => {
-  const { space } = await CoreAPI.fetchSpace({
+  const { space } = await fetchSpace({
     include: SPACE_INCLUDES,
   });
   const { attributes, kapps, requiredKapps } = spaceMapping(space);
@@ -308,7 +312,7 @@ const updateSettings = ({
   setPreviousSpaceName,
   reloadApp,
 }) => async () => {
-  const { space, serverError } = await CoreAPI.updateSpace({
+  const { space, serverError } = await updateSpace({
     include: SPACE_INCLUDES,
     space: {
       name: spaceName,
@@ -358,7 +362,10 @@ const handleNameChange = ({ setSpaceName }) => event => {
 
 // Settings Container
 export const SpaceSettings = compose(
-  connect(null, { reloadApp: commonActions.loadApp, ...toastActions }),
+  connect(
+    null,
+    { reloadApp: commonActions.loadApp, ...toastActions },
+  ),
   withState('attributesMap', 'setAttributesMap', Map()),
   withState('previousAttributesMap', 'setPreviousAttributesMap', Map()),
   withState('attributesMapDifferences', 'setAttributesMapDifferences', Map()),

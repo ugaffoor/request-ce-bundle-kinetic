@@ -4,7 +4,7 @@ import { compose, withHandlers } from 'recompose';
 import { ModalBody } from 'reactstrap';
 import { OrderedMap } from 'immutable';
 import { actions } from '../../redux/modules/filterMenu';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 export const SORT_OPTIONS = OrderedMap([
   ['createdAt', { label: 'Created At', id: 'sorted-by-created-at' }],
@@ -35,9 +35,12 @@ export const SortedBySection = ({ filter, setSortedByHandler }) => (
 );
 
 export const SortedBySectionContainer = compose(
-  connect(null, {
-    setSortedBy: actions.setSortedBy,
-  }),
+  connect(
+    null,
+    {
+      setSortedBy: actions.setSortedBy,
+    },
+  ),
   withHandlers({
     setSortedByHandler: props => event => props.setSortedBy(event.target.value),
   }),

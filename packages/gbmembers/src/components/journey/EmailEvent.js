@@ -36,6 +36,7 @@ import '../send/tinymce.min.js';
 import { TinyMCEComponent, createEditorStore } from 'mb-react-tinymce';
 import { contact_date_format } from '../leads/LeadsUtils';
 import { actions as appActions } from '../../redux/modules/memberApp';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -94,7 +95,9 @@ class EventResult extends Component {
                 </NavLink>
               ) : (
                 <NavLink
-                  to={`/LeadDetail/${this.props.journeyEvent.values['Record ID']}`}
+                  to={`/LeadDetail/${
+                    this.props.journeyEvent.values['Record ID']
+                  }`}
                   className="nameValue"
                 >
                   {this.props.journeyEvent.values['Record Name']}
@@ -133,12 +136,12 @@ class EventResult extends Component {
                               : '')
                           : ''
                         : this.props.leadItem && this.props.leadItem.values
-                        ? this.props.leadItem.values['Email'] +
-                          (this.props.leadItem.values['Additional Email']
-                            ? ',' +
-                              this.props.leadItem.values['Additional Email']
-                            : '')
-                        : ''}
+                          ? this.props.leadItem.values['Email'] +
+                            (this.props.leadItem.values['Additional Email']
+                              ? ',' +
+                                this.props.leadItem.values['Additional Email']
+                              : '')
+                          : ''}
                     </span>
                   </td>
                 </tr>
@@ -311,7 +314,9 @@ export class EmailEvent extends Component {
                 </small>
                 {this.props.journeyEvent.values['Record Type'] === 'Member' ? (
                   <NavLink
-                    to={`/Member/${this.props.journeyEvent.values['Record ID']}`}
+                    to={`/Member/${
+                      this.props.journeyEvent.values['Record ID']
+                    }`}
                     className="nameValue"
                   >
                     {this.props.journeyEvent.values['Record Name']}{' '}
@@ -319,7 +324,9 @@ export class EmailEvent extends Component {
                   </NavLink>
                 ) : (
                   <NavLink
-                    to={`/LeadDetail/${this.props.journeyEvent.values['Record ID']}`}
+                    to={`/LeadDetail/${
+                      this.props.journeyEvent.values['Record ID']
+                    }`}
                     className="nameValue"
                   >
                     {this.props.journeyEvent.values['Record Name']}{' '}
@@ -361,12 +368,12 @@ export class EmailEvent extends Component {
                                 : '')
                             : ''
                           : this.props.leadItem && this.props.leadItem.values
-                          ? this.props.leadItem.values['Email'] +
-                            (this.props.leadItem.values['Additional Email']
-                              ? ',' +
-                                this.props.leadItem.values['Additional Email']
-                              : '')
-                          : ''}
+                            ? this.props.leadItem.values['Email'] +
+                              (this.props.leadItem.values['Additional Email']
+                                ? ',' +
+                                  this.props.leadItem.values['Additional Email']
+                                : '')
+                            : ''}
                       </span>
                     </td>
                   </tr>
@@ -574,7 +581,10 @@ export const EmailEventView = ({
   );
 
 export const EmailEventContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(({ match }) => {
     return {
       eventId: match.params.eventId,
@@ -601,7 +611,7 @@ export const EmailEventContainer = compose(
       var campaignItem = {
         values: {},
       };
-      campaignItem.values['From'] = space.attributes['School Email'][0];
+      campaignItem.values['From'] = getAttributeValue(space, 'School Email');
       campaignItem.values['Recipients'] = recipients;
       campaignItem.values['Subject'] = subject;
       campaignItem.values['Body'] = body;

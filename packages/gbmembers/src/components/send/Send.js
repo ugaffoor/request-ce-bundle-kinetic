@@ -19,10 +19,9 @@ import { StatusMessagesContainer } from '../StatusMessages';
 import { email_received_date_format } from '../leads/LeadsUtils';
 import moment from 'moment';
 import { actions as appActions } from '../../redux/modules/memberApp';
-import crossIcon from '../../images/cross.svg?raw';
-import SVGInline from 'react-svg-inline';
+import { ReactComponent as CrossIcon } from '../../images/cross.svg';
 import { confirm } from '../helpers/Confirmation';
-import helpIcon from '../../images/help.svg?raw';
+import { ReactComponent as HelpIcon } from '../../images/help.svg';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -154,7 +153,7 @@ export class EmailCampaignsList extends Component {
                       }
                     }}
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                 </span>
               )}
@@ -203,7 +202,7 @@ export class EmailCampaignsList extends Component {
                       }
                     }}
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                 </span>
               )}
@@ -675,11 +674,10 @@ export class EmailCampaignsList extends Component {
                     });
                   }}
                 />
-                <label htmlFor="scheduled"></label>
+                <label htmlFor="scheduled" />
               </div>
-              <SVGInline
-                svg={helpIcon}
-                className="icon help"
+              <HelpIcon
+                className="icon icon-svg help"
                 onClick={e => {
                   $('.scheduledEmailsModeHelp').toggle('');
                 }}
@@ -690,7 +688,7 @@ export class EmailCampaignsList extends Component {
                 <li>No - Show all Emails</li>
                 <li>
                   Yes - Displays only emails that are still scheduled to be
-                  sent.<br></br>If you have Scheduled emails that are older than
+                  sent.<br />If you have Scheduled emails that are older than
                   the last item displayed, click Show More to load another group
                   of emails.
                 </li>
@@ -823,9 +821,10 @@ export class SmsCampaignsList extends Component {
                 </span>
               )}
               {props.original.cancelled === 'YES' && <span>Cancelled</span>}
-              {scheduleTime !== undefined && sentTime.isAfter(scheduleTime) && (
-                <span>Sent {sentTime.format('L h:mm A')} </span>
-              )}
+              {scheduleTime !== undefined &&
+                sentTime.isAfter(scheduleTime) && (
+                  <span>Sent {sentTime.format('L h:mm A')} </span>
+                )}
               {scheduleTime !== undefined &&
                 scheduleTime.isAfter(sentTime) &&
                 props.original.cancelled !== 'YES' && (
@@ -870,7 +869,7 @@ export class SmsCampaignsList extends Component {
                         }
                       }}
                     >
-                      <SVGInline svg={crossIcon} className="icon" />
+                      <CrossIcon className="icon icon-svg" />
                     </span>
                   </span>
                 )}
@@ -981,7 +980,9 @@ export class SmsCampaignsList extends Component {
             <div />
           ) : (
             <NavLink
-              to={`/${props.original.recipients_col1['type']}/${props.original.recipients_col1['memberId']}`}
+              to={`/${props.original.recipients_col1['type']}/${
+                props.original.recipients_col1['memberId']
+              }`}
               className=""
             >
               {props.original.recipients_col1['name']}
@@ -997,7 +998,9 @@ export class SmsCampaignsList extends Component {
             <div />
           ) : (
             <NavLink
-              to={`/${props.original.recipients_col2['type']}/${props.original.recipients_col2['memberId']}`}
+              to={`/${props.original.recipients_col2['type']}/${
+                props.original.recipients_col2['memberId']
+              }`}
               className=""
             >
               {props.original.recipients_col2['name']}
@@ -1013,7 +1016,9 @@ export class SmsCampaignsList extends Component {
             <div />
           ) : (
             <NavLink
-              to={`/${props.original.recipients_col3['type']}/${props.original.recipients_col3['memberId']}`}
+              to={`/${props.original.recipients_col3['type']}/${
+                props.original.recipients_col3['memberId']
+              }`}
               className=""
             >
               {props.original.recipients_col3['name']}
@@ -1029,7 +1034,9 @@ export class SmsCampaignsList extends Component {
             <div />
           ) : (
             <NavLink
-              to={`/${props.original.recipients_col4['type']}/${props.original.recipients_col4['memberId']}`}
+              to={`/${props.original.recipients_col4['type']}/${
+                props.original.recipients_col4['memberId']
+              }`}
               className=""
             >
               {props.original.recipients_col4['name']}
@@ -1045,7 +1052,9 @@ export class SmsCampaignsList extends Component {
             <div />
           ) : (
             <NavLink
-              to={`/${props.original.recipients_col5['type']}/${props.original.recipients_col5['memberId']}`}
+              to={`/${props.original.recipients_col5['type']}/${
+                props.original.recipients_col5['memberId']
+              }`}
               className=""
             >
               {props.original.recipients_col5['name']}
@@ -1289,11 +1298,10 @@ export class SmsCampaignsList extends Component {
                     });
                   }}
                 />
-                <label htmlFor="scheduledSMS"></label>
+                <label htmlFor="scheduledSMS" />
               </div>
-              <SVGInline
-                svg={helpIcon}
-                className="icon help"
+              <HelpIcon
+                className="icon icon-svg help"
                 onClick={e => {
                   $('.scheduledSMSModeHelp').toggle('');
                 }}
@@ -1304,9 +1312,8 @@ export class SmsCampaignsList extends Component {
                 <li>No - Show all SMS</li>
                 <li>
                   Yes - Displays only SMS that are still scheduled to be sent.
-                  <br></br>If you have Scheduled SMS that are older than the
-                  last item displayed, click Show More to load another group of
-                  SMS.
+                  <br />If you have Scheduled SMS that are older than the last
+                  item displayed, click Show More to load another group of SMS.
                 </li>
               </ul>
             </span>
@@ -1634,7 +1641,10 @@ export const CampaignView = ({
 );
 
 export const CampaignContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(({}) => {
     return {};
   }),

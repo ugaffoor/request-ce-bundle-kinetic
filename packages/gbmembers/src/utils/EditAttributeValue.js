@@ -3,10 +3,9 @@ import {
   getAttributeValue,
   setAttributeValue,
 } from '../lib/react-kinops-components/src/utils';
-import helpIcon from '../images/help.svg?raw';
-import SVGInline from 'react-svg-inline';
+import { ReactComponent as HelpIcon } from '../images/help.svg';
 import NumberFormat from 'react-number-format';
-import { I18n } from 'app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 import Creatable from 'react-select';
 import MomentLocaleUtils, {
   formatDate,
@@ -191,9 +190,8 @@ export class EditAttributeValue extends Component {
           <span className="value">
             <I18n>{this.props.labelName}</I18n>
           </span>
-          <SVGInline
-            svg={helpIcon}
-            className="icon help"
+          <HelpIcon
+            className="icon icon-svg help"
             onClick={e => {
               $('.' + this.props.attributeID + 'Help').toggle('');
             }}
@@ -233,7 +231,6 @@ export class EditAttributeValue extends Component {
               id={this.props.attributeID + 'Attribute'}
               value={this.state.value != '' ? this.state.value * 100 : ''}
               style={{ width: `${this.props.width}` }}
-              ref={input => (this.input = input)}
               suffix="%"
               decimalScale={2}
               onChange={e => {
@@ -252,7 +249,6 @@ export class EditAttributeValue extends Component {
                   : ''
               }
               style={{ width: `${this.props.width}` }}
-              ref={input => (this.input = input)}
               suffix="%"
               decimalScale={2}
               onChange={e => {
@@ -309,7 +305,6 @@ export class EditAttributeValue extends Component {
                   : '####-###-###'
               }
               mask="_"
-              ref={input => (this.input = input)}
               value={this.state.value}
               disabled={this.props.disabled ? true : false}
               onChange={e => {
@@ -845,11 +840,11 @@ export class EditAttributeValue extends Component {
               this.props.attributeName,
               this.state.value,
             );
-            setAttributeValue(
+            /*            setAttributeValue(
               this.props.appSpace,
               this.props.attributeName,
               this.state.value,
-            );
+            ); */
           }}
         >
           Save
@@ -864,7 +859,7 @@ export class EditAttributeValue extends Component {
               dangerouslySetInnerHTML={{
                 __html: this.props.helpText,
               }}
-            ></li>
+            />
           </ul>
         </span>
       </div>

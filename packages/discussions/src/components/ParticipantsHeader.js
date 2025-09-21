@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { compose, withHandlers } from 'recompose';
-import { bundle } from 'react-kinetic-core';
+import { bundle } from '@kineticdata/react';
 import { actions } from '../redux/modules/discussions';
 import { Avatar } from 'common';
 
@@ -61,7 +61,10 @@ const mapDispatchToProps = {
 };
 
 export const ParticipantsHeaderContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withHandlers({
     openParticipantsModal: props => () =>
       props.openModal(props.discussion.issue.guid, 'participants'),

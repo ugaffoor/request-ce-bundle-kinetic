@@ -6,7 +6,7 @@ import {
   DropdownMenu,
   DropdownItem,
 } from 'reactstrap';
-import { CoreForm } from 'react-kinetic-core';
+import { CoreForm } from '@kineticdata/react';
 import classNames from 'classnames';
 
 const globals = import('common/globals');

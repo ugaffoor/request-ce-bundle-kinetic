@@ -4,7 +4,7 @@ import { List } from 'immutable';
 import { MessagesGroup } from 'discussions';
 import { getTeamColor } from '../../utils';
 import { Avatar } from 'common';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const getTeamHeaderStyle = (discussion, teams) => {
   const teamSlug = discussion.tag_list.find(t => t === 'META:TYPE:Team')

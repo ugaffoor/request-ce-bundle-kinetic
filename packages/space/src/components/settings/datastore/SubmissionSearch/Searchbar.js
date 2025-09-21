@@ -9,7 +9,7 @@ import { IndexPart } from '../../../../records';
 import { actions } from '../../../../redux/modules/settingsDatastore';
 
 import { AutoFocusInput } from './AutoFocusInput';
-import { I18n } from '../../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const OPERATIONS = [
   'Equal To',
@@ -549,7 +549,10 @@ const handleResetSearch = ({
 };
 
 export const Searchbar = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('indexLookup', 'setIndexLookup', ''),
   withState('placeholderText', 'setPlaceholderText', DEFAULT_PLACEHOLDER),
   withHandlers({

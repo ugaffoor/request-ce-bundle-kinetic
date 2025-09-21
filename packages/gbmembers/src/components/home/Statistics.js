@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import ReactSpinner from 'react16-spinjs';
 import moment from 'moment';
 import {
   getJson,
@@ -10,9 +9,8 @@ import {
 import $ from 'jquery';
 import ReactTable from 'react-table';
 import { KappNavLink as NavLink } from 'common';
-import crossIcon from '../../images/cross.svg?raw';
-import SVGInline from 'react-svg-inline';
-import helpIcon from '../../images/help.svg?raw';
+import { ReactComponent as CrossIcon } from '../../images/cross.svg';
+import { ReactComponent as HelpIcon } from '../../images/help.svg';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
 import 'react-day-picker/lib/style.css';
 import MomentLocaleUtils, {
@@ -316,7 +314,7 @@ export class Statistics extends Component {
       } else {
         var statusHistory = JSON.parse(
           member['values']['Status History'] === null ||
-            member['values']['Status History'] === undefined
+          member['values']['Status History'] === undefined
             ? '[]'
             : member['values']['Status History'],
         );
@@ -1751,13 +1749,12 @@ export class Statistics extends Component {
                   });
                 }}
               />
-              <label htmlFor="lctMode"></label>
+              <label htmlFor="lctMode" />
             </div>
             {}
           </div>
-          <SVGInline
-            svg={helpIcon}
-            className="icon help"
+          <HelpIcon
+            className="icon help icon-svg"
             onClick={e => {
               $('.lctModeHelp').toggle('');
             }}
@@ -1806,7 +1803,7 @@ export class Statistics extends Component {
                     style={{
                       width: '100%',
                     }}
-                  ></div>
+                  />
                 </div>
                 <div className="value">100%</div>
               </div>
@@ -1820,7 +1817,7 @@ export class Statistics extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getLeadTableColumns()}
@@ -1875,7 +1872,7 @@ export class Statistics extends Component {
                             ).toFixed(2)
                           : 0) + '%',
                     }}
-                  ></div>
+                  />
                 </div>
                 <div className="value">
                   {this.state.leadData.leadsTotal.length !== 0
@@ -1898,7 +1895,7 @@ export class Statistics extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getLeadIntroTableColumns()}
@@ -1955,7 +1952,7 @@ export class Statistics extends Component {
                             ).toFixed(2)
                           : 0) + '%',
                     }}
-                  ></div>
+                  />
                 </div>
                 <div className="value">
                   {this.state.leadData.leadsTotal.length !== 0
@@ -1978,7 +1975,7 @@ export class Statistics extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getLeadTableColumns()}
@@ -2035,7 +2032,7 @@ export class Statistics extends Component {
                             ).toFixed(2)
                           : 0) + '%',
                     }}
-                  ></div>
+                  />
                 </div>
                 <div className="value">
                   {this.state.leadData.leadsTotal.length !== 0
@@ -2058,7 +2055,7 @@ export class Statistics extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getMemberTableColumns()}
@@ -2109,7 +2106,7 @@ export class Statistics extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getMemberTableColumns()}
@@ -2156,7 +2153,7 @@ export class Statistics extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getMemberTableColumns()}
@@ -2203,7 +2200,7 @@ export class Statistics extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getMemberTableColumns()}
@@ -2248,7 +2245,7 @@ export class Statistics extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getMemberTableColumns()}
@@ -2334,7 +2331,7 @@ export class Statistics extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getMemberTableColumns()}
@@ -2407,12 +2404,11 @@ export class Statistics extends Component {
                         })
                       }
                     >
-                      <SVGInline svg={crossIcon} className="icon" />
+                      <CrossIcon className="icon icon-svg" />
                     </span>
                     <div className="retentionRates">
-                      <SVGInline
-                        svg={helpIcon}
-                        className="icon help"
+                      <HelpIcon
+                        className="icon help icon-svg"
                         onClick={e => {
                           $('.retentionRateHelp').toggle('');
                         }}
@@ -2582,7 +2578,7 @@ export class Statistics extends Component {
                         })
                       }
                     >
-                      <SVGInline svg={crossIcon} className="icon" />
+                      <CrossIcon className="icon icon-svg" />
                     </span>
                     <ReactTable
                       columns={this.getMemberTableColumns()}

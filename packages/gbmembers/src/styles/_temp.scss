@@ -175,13 +175,11 @@ body a {
   cursor: pointer;
 }
 
-.tablePrint,
-.tableDownload {
+.tablePrint.icon-svg,
+.tableDownload.icon-svg {
   cursor: pointer;
-  .icon-svg {
-    width: 2rem;
-    height: 2rem;
-  }
+  width: 2rem;
+  height: 2rem;
 }
 input.searchInput {
   -webkit-text-fill-color: unset;

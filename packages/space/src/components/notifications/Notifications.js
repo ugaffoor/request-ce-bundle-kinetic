@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { compose, withHandlers } from 'recompose';
 import { actions } from '../../redux/modules/errors';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const defaultTitle = {
   success: 'Success',
@@ -45,7 +45,10 @@ const mapDispatchToProps = {
 };
 
 export const Notifications = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withHandlers({
     dismiss: ({ removeNotification }) => id => () => removeNotification(id),
   }),

@@ -10,7 +10,7 @@ import { DateRangeSelector } from 'common/src/components/DateRangeSelector';
 import { validateAssignments, validateDateRange } from './FilterMenuContainer';
 import moment from 'moment';
 import { AttributeSelectors } from 'common';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const VALID_STATUSES = List(['Open', 'Pending', 'Cancelled', 'Complete']);
 
@@ -310,7 +310,10 @@ const removeFilter = props => filter => {
 };
 
 export const FilterMenuAbstract = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withHandlers({ applyFilter }),
   withHandlers({
     toggleShowing,

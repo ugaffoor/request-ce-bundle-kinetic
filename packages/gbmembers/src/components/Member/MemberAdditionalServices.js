@@ -1,12 +1,9 @@
 import React, { Component } from 'react';
 import ReactTable from 'react-table';
 import moment from 'moment';
-import { contact_date_format } from '../leads/LeadsUtils';
-import crossIcon from '../../images/cross.svg?raw';
+import { ReactComponent as CrossIcon } from '../../images/cross.svg';
 import { confirm } from '../helpers/Confirmation';
-import { getJson } from '../Member/MemberUtils';
-import SVGInline from 'react-svg-inline';
-import { CoreForm } from 'react-kinetic-core';
+import { CoreForm } from '@kineticdata/react';
 import ReactSpinner from 'react16-spinjs';
 import { Utils } from 'common';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
@@ -235,7 +232,7 @@ export class MemberAdditionalServices extends Component {
           }
         }}
       >
-        <SVGInline svg={crossIcon} className="icon" />
+        <CrossIcon className="icon icon-svg" />
       </span>
     ) : (
       <div />
@@ -308,8 +305,8 @@ export class MemberAdditionalServices extends Component {
                           this.props.space,
                           'Billing Company',
                         ) === 'Stripe'
-                      ? 'stripe-member-additional-services'
-                      : ''
+                        ? 'stripe-member-additional-services'
+                        : ''
                   }
                   values={this.state.defaultValues}
                   loaded={this.handleLoaded}

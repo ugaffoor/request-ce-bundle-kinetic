@@ -1,6 +1,6 @@
 import React from 'react';
 import { PageTitle } from './PageTitle';
-import { I18n } from '../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 export const Loading = ({ text }) => (
   <div className="loadingWrapper">

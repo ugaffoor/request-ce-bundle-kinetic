@@ -8,8 +8,7 @@ import {
   Legend,
 } from 'recharts';
 import { KappNavLink as NavLink } from 'common';
-import crossIcon from '../../images/cross.svg?raw';
-import SVGInline from 'react-svg-inline';
+import { ReactComponent as CrossIcon } from '../../images/cross.svg';
 import ReactTable from 'react-table';
 
 export class ProgramsChart extends Component {
@@ -293,7 +292,7 @@ export class ProgramsChart extends Component {
                 })
               }
             >
-              <SVGInline svg={crossIcon} className="icon" />
+              <CrossIcon className="icon icon-svg" />
             </span>
             <ReactTable
               columns={this.getMemberTableColumns()}

@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import SVGInline from 'react-svg-inline';
 import { compose, lifecycle, withHandlers, withProps } from 'recompose';
 import { actions } from '../../redux/modules/leads';
 import { actions as memberActions } from '../../redux/modules/members';
@@ -19,11 +18,10 @@ import { getJson } from '../Member/MemberUtils';
 import download from '../../images/download.png';
 import sort1 from '../../images/sort1.png';
 import sort2 from '../../images/sort2.png';
-import attentionRequired from '../../images/flag.svg?raw';
+import { ReactComponent as AttentionRequired } from '../../images/flag.svg';
 import {
   contact_date_format,
   reminder_date_format,
-  gmt_format,
   getLocalePreference,
   formatDateValue,
 } from './LeadsUtils';
@@ -524,12 +522,11 @@ export class TasksDetail extends Component {
       {
         width: 30,
         Cell: row => (
-          <SVGInline
-            svg={attentionRequired}
+          <AttentionRequired
             className={
               row.original.attentionRequired === 'true'
-                ? 'attention icon'
-                : 'attention icon hide'
+                ? 'attention icon icon-svg'
+                : 'attention icon hide icon-svg'
             }
           />
         ),
@@ -736,12 +733,11 @@ export class TasksDetail extends Component {
       {
         width: 30,
         Cell: row => (
-          <SVGInline
-            svg={attentionRequired}
+          <AttentionRequired
             className={
               row.original.attentionRequired === 'true'
-                ? 'attention icon'
-                : 'attention icon hide'
+                ? 'attention icon icon-svg'
+                : 'attention icon hide icon-svg'
             }
           />
         ),
@@ -922,7 +918,7 @@ export class TasksDetail extends Component {
                   className="form-control showTasks"
                   onChange={e => this.onShowTasksSelectLeadsListChange(e)}
                 >
-                  <option value=""></option>
+                  <option value="" />
                   {this.leadLists.map(item => (
                     <option key={item.name} value={item.name}>
                       {item.name}
@@ -965,16 +961,13 @@ export class TasksDetail extends Component {
                     });
                   }}
                 >
-                  <SVGInline
-                    svg={attentionRequired}
-                    className={'attention icon'}
-                  />
+                  <AttentionRequired className={'attention icon icon-svg'} />
                   Show Attention Required
                 </button>
               </div>
             </div>
             <div className="col">
-              <div className="form-group"></div>
+              <div className="form-group" />
             </div>
           </div>
         </div>
@@ -1140,12 +1133,11 @@ export class LeadsDetail extends Component {
                 : '') + 'leadDetailAnchor'
             }
           >
-            <SVGInline
-              svg={attentionRequired}
+            <AttentionRequired
               className={
                 row.original.attentionRequired === 'true'
-                  ? 'attention icon'
-                  : 'attention icon hide'
+                  ? 'attention icon icon-svg'
+                  : 'attention icon hide icon-svg'
               }
             />
             {row.original.name}
@@ -2229,7 +2221,10 @@ function tick(mythis) {
   });
 }
 export const LeadsContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(() => {
     return {};
   }),

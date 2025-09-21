@@ -16,7 +16,7 @@ import { AttributeSelectors, selectHasRoleSchedulerAdmin } from 'common';
 import { LoadingMessage, EmptyMessage, InfoMessage } from './Schedulers';
 import { actions as toastActions } from '../../redux/modules/toasts';
 import { actions } from '../../redux/modules/schedulers';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const SchedulerManagersComponent = ({
   loading,
@@ -41,91 +41,96 @@ const SchedulerManagersComponent = ({
 }) => (
   <div className="list-wrapper list-wrapper--managers">
     {loading && !managers && <LoadingMessage />}
-    {!loading && !managers && (
-      <Fragment>
-        <InfoMessage
-          heading="The team for managers is being created."
-          text="This may take a few minutes."
-        />
-        <div className="text-center">
-          <button
-            className="btn btn-primary"
-            onClick={() => {
-              fetchSchedulerManagersTeam({
-                schedulerName,
-              });
-            }}
-          >
-            <span className="fa fa-refresh" />
-          </button>
-        </div>
-      </Fragment>
-    )}
-    {!loading && managers && managers.memberships.length === 0 && (
-      <Fragment>
-        <EmptyMessage
-          heading="No Managers Found"
-          text="Managers are the users who can manage the scheduler and its agents."
-        />
-        {isSchedulerAdmin && (
+    {!loading &&
+      !managers && (
+        <Fragment>
+          <InfoMessage
+            heading="The team for managers is being created."
+            text="This may take a few minutes."
+          />
           <div className="text-center">
-            <button className="btn btn-primary" onClick={handleAdd}>
-              <I18n>Add Manager</I18n>
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                fetchSchedulerManagersTeam({
+                  schedulerName,
+                });
+              }}
+            >
+              <span className="fa fa-refresh" />
             </button>
           </div>
-        )}
-      </Fragment>
-    )}
-    {!loading && managers && managers.memberships.length > 0 && (
-      <table className="table table-sm table-striped table-managers table--settings">
-        <thead className="header">
-          <tr>
-            <th scope="col">
-              <I18n>Display Name</I18n>
-            </th>
-            <th scope="col">
-              <I18n>Username</I18n>
-            </th>
-            {isSchedulerAdmin && (
-              <th className="text-right">
-                <button className="btn btn-primary" onClick={handleAdd}>
-                  <I18n>Add Manager</I18n>
-                </button>
+        </Fragment>
+      )}
+    {!loading &&
+      managers &&
+      managers.memberships.length === 0 && (
+        <Fragment>
+          <EmptyMessage
+            heading="No Managers Found"
+            text="Managers are the users who can manage the scheduler and its agents."
+          />
+          {isSchedulerAdmin && (
+            <div className="text-center">
+              <button className="btn btn-primary" onClick={handleAdd}>
+                <I18n>Add Manager</I18n>
+              </button>
+            </div>
+          )}
+        </Fragment>
+      )}
+    {!loading &&
+      managers &&
+      managers.memberships.length > 0 && (
+        <table className="table table-sm table-striped table-managers table--settings">
+          <thead className="header">
+            <tr>
+              <th scope="col">
+                <I18n>Display Name</I18n>
               </th>
-            )}
-          </tr>
-        </thead>
-        <tbody>
-          {List(managers.memberships)
-            .sortBy(a => a.user.displayName)
-            .map(manager => (
-              <tr key={manager.user.username}>
-                <td scope="row">{manager.user.displayName}</td>
-                <td>{manager.user.username}</td>
-                {isSchedulerAdmin && (
-                  <td className="text-right">
-                    <Dropdown
-                      toggle={toggleDropdown(manager.user.username)}
-                      isOpen={openDropdown === manager.user.username}
-                    >
-                      <DropdownToggle color="link" className="btn-sm">
-                        <span className="fa fa-ellipsis-h fa-2x" />
-                      </DropdownToggle>
-                      <DropdownMenu right>
-                        <DropdownItem
-                          onClick={handleRemove(manager.user.username)}
-                        >
-                          <I18n>Remove</I18n>
-                        </DropdownItem>
-                      </DropdownMenu>
-                    </Dropdown>
-                  </td>
-                )}
-              </tr>
-            ))}
-        </tbody>
-      </table>
-    )}
+              <th scope="col">
+                <I18n>Username</I18n>
+              </th>
+              {isSchedulerAdmin && (
+                <th className="text-right">
+                  <button className="btn btn-primary" onClick={handleAdd}>
+                    <I18n>Add Manager</I18n>
+                  </button>
+                </th>
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {List(managers.memberships)
+              .sortBy(a => a.user.displayName)
+              .map(manager => (
+                <tr key={manager.user.username}>
+                  <td scope="row">{manager.user.displayName}</td>
+                  <td>{manager.user.username}</td>
+                  {isSchedulerAdmin && (
+                    <td className="text-right">
+                      <Dropdown
+                        toggle={toggleDropdown(manager.user.username)}
+                        isOpen={openDropdown === manager.user.username}
+                      >
+                        <DropdownToggle color="link" className="btn-sm">
+                          <span className="fa fa-ellipsis-h fa-2x" />
+                        </DropdownToggle>
+                        <DropdownMenu right>
+                          <DropdownItem
+                            onClick={handleRemove(manager.user.username)}
+                          >
+                            <I18n>Remove</I18n>
+                          </DropdownItem>
+                        </DropdownMenu>
+                      </Dropdown>
+                    </td>
+                  )}
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      )}
 
     {openModal && (
       <Modal isOpen={!!openModal} toggle={toggleModal}>
@@ -344,7 +349,10 @@ const processRemove = ({
 };
 
 export const SchedulerManagers = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(({ scheduler }) => ({
     schedulerName: scheduler ? scheduler.values['Name'] : '',
   })),

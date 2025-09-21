@@ -5,12 +5,12 @@ import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { push } from 'connected-react-router';
 import { lifecycle, compose, withHandlers, withState } from 'recompose';
-import { bundle } from 'react-kinetic-core';
+import { bundle } from '@kineticdata/react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { List } from 'immutable';
 import { PageTitle } from 'common';
 import { isBlank } from '../../../utils';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 import {
   BridgeQualification,
@@ -1331,7 +1331,10 @@ export const mapDispatchToProps = {
 };
 
 export const DatastoreSettings = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('newQualification', 'setNewQualification', null),
   withState('newAttribute', 'setNewAttribute', new BridgeAttribute()),
   withState('editAttribute', 'setEditAttribute', new BridgeAttribute()),

@@ -7,7 +7,7 @@ import { modalFormActions, PageTitle } from 'common';
 import { actions } from '../../../redux/modules/profiles';
 import { ProfileCard } from 'common';
 import { TeamCard } from '../../shared/TeamCard';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 import * as selectors from 'app/src/redux/selectors';
 
 export const EditProfileComponent = ({
@@ -498,7 +498,10 @@ const mapDispatchToProps = {
 };
 
 export const Profile = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('fieldValues', 'setFieldValues', translateProfileToFieldValues({})),
   withHandlers({
     handleChangeManagerClick: openChangeManagerForm,

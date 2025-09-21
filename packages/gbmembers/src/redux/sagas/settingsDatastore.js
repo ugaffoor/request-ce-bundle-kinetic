@@ -1,5 +1,12 @@
 import { select, call, put, all, takeEvery } from 'redux-saga/effects';
-import { CoreAPI } from 'react-kinetic-core';
+import {
+  SubmissionSearch,
+  searchSubmissions,
+  fetchSubmission,
+  deleteSubmission,
+  createSubmission,
+  updateSubmission,
+} from '@kineticdata/react';
 import $ from 'jquery';
 
 import { types, actions } from '../modules/settingsDatastore';
@@ -12,12 +19,13 @@ const util = require('util');
 
 export function* fetchCallScripts(action) {
   try {
-    const search = new CoreAPI.SubmissionSearch()
+    const search = new SubmissionSearch()
       .includes(['details', 'values'])
       .limit(1000)
       .build();
 
-    const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions, serverError } = yield call(searchSubmissions, {
+      get: true,
       datastore: true,
       form: 'call-scripts',
       search,
@@ -31,12 +39,13 @@ export function* fetchCallScripts(action) {
 
 export function* fetchEmailTemplates(action) {
   try {
-    const search = new CoreAPI.SubmissionSearch()
+    const search = new SubmissionSearch()
       .includes(['details', 'values'])
       .limit(1000)
       .build();
 
-    const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions, serverError } = yield call(searchSubmissions, {
+      get: true,
       datastore: true,
       form: 'email-templates',
       search,
@@ -49,13 +58,14 @@ export function* fetchEmailTemplates(action) {
 }
 export function* fetchEmailTemplate(action) {
   try {
-    const search = new CoreAPI.SubmissionSearch()
+    const search = new SubmissionSearch()
       .includes(['details', 'values'])
       .eq('id', action.id)
       .limit(1000)
       .build();
 
-    const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions, serverError } = yield call(searchSubmissions, {
+      get: true,
       datastore: true,
       form: 'email-templates',
       search,
@@ -68,14 +78,15 @@ export function* fetchEmailTemplate(action) {
 }
 export function* fetchEmailTemplateByName(action) {
   try {
-    const search = new CoreAPI.SubmissionSearch(true)
+    const search = new SubmissionSearch(true)
       .includes(['details', 'values'])
       .index('values[Template Name]')
       .eq('values[Template Name]', action.payload)
       .limit(1000)
       .build();
 
-    const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions, serverError } = yield call(searchSubmissions, {
+      get: true,
       datastore: true,
       form: 'email-templates',
       search,
@@ -89,12 +100,13 @@ export function* fetchEmailTemplateByName(action) {
 
 export function* fetchSMSTemplates(action) {
   try {
-    const search = new CoreAPI.SubmissionSearch()
+    const search = new SubmissionSearch()
       .includes(['details', 'values'])
       .limit(1000)
       .build();
 
-    const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions, serverError } = yield call(searchSubmissions, {
+      get: true,
       datastore: true,
       form: 'sms-templates',
       search,
@@ -109,7 +121,7 @@ export function* fetchSMSTemplates(action) {
 export function* fetchJourneyEvent(action) {
   console.log('fetchJourneyEvent:' + action);
   const SUBMISSION_INCLUDES = 'details,values';
-  const { submission, serverError } = yield call(CoreAPI.fetchSubmission, {
+  const { submission, serverError } = yield call(fetchSubmission, {
     id: action.payload.id,
     include: SUBMISSION_INCLUDES,
     datastore: true,
@@ -125,7 +137,7 @@ export function* fetchJourneyEvent(action) {
     submission.values['Record Type'] === 'Member' &&
     submission.values['Contact Type'] === 'SMS'
   ) {
-    let searchSMS = new CoreAPI.SubmissionSearch(true)
+    let searchSMS = new SubmissionSearch(true)
       .includes(['details', 'values'])
       .index('values[Template Name]')
       .eq('values[Template Name]', submission.values['Template Name'])
@@ -133,11 +145,12 @@ export function* fetchJourneyEvent(action) {
       .build();
 
     let [memberSubmissionSMS, submissionsSMS] = yield all([
-      call(CoreAPI.fetchSubmission, {
+      call(fetchSubmission, {
         id: submission.values['Record ID'],
         include: 'details,values[Notes History]',
       }),
-      call(CoreAPI.searchSubmissions, {
+      call(searchSubmissions, {
+        get: true,
         datastore: true,
         form: 'sms-templates',
         search: searchSMS,
@@ -165,7 +178,7 @@ export function* fetchJourneyEvent(action) {
     submission.values['Record Type'] === 'Member' &&
     submission.values['Contact Type'] === 'Email'
   ) {
-    let searchEmail = new CoreAPI.SubmissionSearch(true)
+    let searchEmail = new SubmissionSearch(true)
       .includes(['details', 'values'])
       .index('values[Template Name]')
       .eq('values[Template Name]', submission.values['Template Name'])
@@ -173,11 +186,12 @@ export function* fetchJourneyEvent(action) {
       .build();
 
     let [memberSubmissionEmail, submissionsEmail] = yield all([
-      call(CoreAPI.fetchSubmission, {
+      call(fetchSubmission, {
         id: submission.values['Record ID'],
         include: 'details,values[Notes History]',
       }),
-      call(CoreAPI.searchSubmissions, {
+      call(searchSubmissions, {
+        get: true,
         datastore: true,
         form: 'email-templates',
         search: searchEmail,
@@ -204,7 +218,7 @@ export function* fetchJourneyEvent(action) {
     submission.values['Record Type'] === 'Member' &&
     submission.values['Contact Type'] === 'Call'
   ) {
-    let searchCall = new CoreAPI.SubmissionSearch(true)
+    let searchCall = new SubmissionSearch(true)
       .includes(['details', 'values'])
       .index('values[Target],values[Script Name]')
       .eq('values[Target]', submission.values['Record Type'] + 's')
@@ -213,11 +227,12 @@ export function* fetchJourneyEvent(action) {
       .build();
 
     let [memberSubmissionCall, submissionsCall] = yield all([
-      call(CoreAPI.fetchSubmission, {
+      call(fetchSubmission, {
         id: submission.values['Record ID'],
         include: 'details,values[Notes History]',
       }),
-      call(CoreAPI.searchSubmissions, {
+      call(searchSubmissions, {
+        get: true,
         datastore: true,
         form: 'call-scripts',
         search: searchCall,
@@ -244,7 +259,7 @@ export function* fetchJourneyEvent(action) {
     submission.values['Record Type'] === 'Lead' &&
     submission.values['Contact Type'] === 'Email'
   ) {
-    let searchLeadEmail = new CoreAPI.SubmissionSearch(true)
+    let searchLeadEmail = new SubmissionSearch(true)
       .includes(['details', 'values'])
       .index('values[Template Name]')
       .eq('values[Template Name]', submission.values['Template Name'])
@@ -252,7 +267,8 @@ export function* fetchJourneyEvent(action) {
       .build();
 
     let [submissionsLeadEmail] = yield all([
-      call(CoreAPI.searchSubmissions, {
+      call(searchSubmissions, {
+        get: true,
         datastore: true,
         form: 'email-templates',
         search: searchLeadEmail,
@@ -270,7 +286,7 @@ export function* fetchJourneyEvent(action) {
     submission.values['Record Type'] === 'Lead' &&
     submission.values['Contact Type'] === 'SMS'
   ) {
-    let searchLeadSMS = new CoreAPI.SubmissionSearch(true)
+    let searchLeadSMS = new SubmissionSearch(true)
       .includes(['details', 'values'])
       .index('values[Template Name]')
       .eq('values[Template Name]', submission.values['Template Name'])
@@ -278,7 +294,8 @@ export function* fetchJourneyEvent(action) {
       .build();
 
     let [submissionsLeadSMS] = yield all([
-      call(CoreAPI.searchSubmissions, {
+      call(searchSubmissions, {
+        get: true,
         datastore: true,
         form: 'sms-templates',
         search: searchLeadSMS,
@@ -295,7 +312,7 @@ export function* fetchJourneyEvent(action) {
     submission.values['Record Type'] === 'Lead' &&
     submission.values['Contact Type'] === 'Call'
   ) {
-    let searchLeadCall = new CoreAPI.SubmissionSearch(true)
+    let searchLeadCall = new SubmissionSearch(true)
       .includes(['details', 'values'])
       .index('values[Target],values[Script Name]')
       .eq('values[Target]', submission.values['Record Type'] + 's')
@@ -304,7 +321,8 @@ export function* fetchJourneyEvent(action) {
       .build();
 
     let [submissionsLeadCall] = yield all([
-      call(CoreAPI.searchSubmissions, {
+      call(searchSubmissions, {
+        get: true,
         datastore: true,
         form: 'call-scripts',
         search: searchLeadCall,
@@ -335,25 +353,26 @@ export function* fetchJourneyEvent(action) {
 }
 export function* createJourneyEvent(action) {
   try {
-    const search = new CoreAPI.SubmissionSearch(true)
+    const search = new SubmissionSearch(true)
       .includes(['details', 'values'])
       .index('values[Record ID],values[Trigger ID]')
       .eq('values[Record ID]', action.payload.values['Record ID'])
       .eq('values[Trigger ID]', action.payload.values['Trigger ID'])
       .build();
 
-    const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions, serverError } = yield call(searchSubmissions, {
+      get: true,
       datastore: true,
       form: 'journey-event',
       search,
     });
     if (submissions.length > 0) {
-      const { errors, serverError } = yield call(CoreAPI.deleteSubmission, {
+      const { errors, serverError } = yield call(deleteSubmission, {
         id: submissions[0]['id'],
         datastore: true,
       });
     }
-    const { submission } = yield call(CoreAPI.createSubmission, {
+    const { submission } = yield call(createSubmission, {
       formSlug: 'journey-event',
       values: action.payload.values,
       datastore: true,
@@ -366,7 +385,7 @@ export function* createJourneyEvent(action) {
 }
 export function* updateJourneyEvent(action) {
   try {
-    const { submission } = yield call(CoreAPI.updateSubmission, {
+    const { submission } = yield call(updateSubmission, {
       id: action.payload.id,
       values: action.payload.values,
       datastore: true,
@@ -381,7 +400,7 @@ export function* updateJourneyEvent(action) {
 export function* deleteJourneyEvent(action) {
   try {
     var values = { Status: 'Delete' };
-    const { submission } = yield call(CoreAPI.updateSubmission, {
+    const { submission } = yield call(updateSubmission, {
       id: action.payload.id,
       values: values,
       datastore: true,
@@ -395,7 +414,7 @@ export function* deleteJourneyEvent(action) {
 }
 export function* createTrialBooking(action) {
   try {
-    const { submission } = yield call(CoreAPI.createSubmission, {
+    const { submission } = yield call(createSubmission, {
       formSlug: 'trial-booking',
       values: action.payload.values,
       datastore: true,
@@ -408,20 +427,21 @@ export function* createTrialBooking(action) {
 }
 export function* deleteTrialBooking(action) {
   try {
-    const search = new CoreAPI.SubmissionSearch(true)
+    const search = new SubmissionSearch(true)
       .includes(['details', 'values'])
       .index('values[Lead ID],values[Trial Datetime]')
       .eq('values[Lead ID]', action.payload.values['Lead ID'])
       .eq('values[Trial Datetime]', action.payload.values['Trial Datetime'])
       .build();
 
-    const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions, serverError } = yield call(searchSubmissions, {
+      get: true,
       datastore: true,
       form: 'trial-booking',
       search,
     });
     if (submissions.length > 0) {
-      const { errors, serverError } = yield call(CoreAPI.deleteSubmission, {
+      const { errors, serverError } = yield call(deleteSubmission, {
         id: submissions[0]['id'],
         datastore: true,
       });
@@ -434,14 +454,11 @@ export function* deleteTrialBooking(action) {
 }
 export function* updateSpaceAttribute(action) {
   try {
-    const { submission, error, statusCode } = yield call(
-      CoreAPI.createSubmission,
-      {
-        formSlug: 'space-attribute-update',
-        values: action.payload.values,
-        datastore: true,
-      },
-    );
+    const { submission, error, statusCode } = yield call(createSubmission, {
+      formSlug: 'space-attribute-update',
+      values: action.payload.values,
+      datastore: true,
+    });
     if (statusCode === undefined) {
       console.log('create record for space-attribute-update');
       yield put(
@@ -460,7 +477,7 @@ export function* updateSpaceAttribute(action) {
 }
 export function* fetchUpdateSpaceAttributes(action) {
   try {
-    let search = new CoreAPI.SubmissionSearch(true)
+    let search = new SubmissionSearch(true)
       .includes(['details', 'values'])
       .index('values[Attribute Name]')
       .in('values[Attribute Name]', action.payload.attributeNames)
@@ -474,14 +491,11 @@ export function* fetchUpdateSpaceAttributes(action) {
 
     search = search.build();
 
-    const { submissions, nextPageToken } = yield call(
-      CoreAPI.searchSubmissions,
-      {
-        datastore: true,
-        form: 'space-attribute-update',
-        search,
-      },
-    );
+    const { submissions, nextPageToken } = yield call(searchSubmissions, {
+      datastore: true,
+      form: 'space-attribute-update',
+      search,
+    });
     console.log(
       '#### fetchUpdateSpaceAttributes nextPageToken:' + nextPageToken,
     );

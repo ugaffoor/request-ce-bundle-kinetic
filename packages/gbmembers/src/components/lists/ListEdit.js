@@ -71,7 +71,10 @@ export const ListEditView = ({
 );
 
 export const ListEditContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(() => {
     return {};
   }),
@@ -511,7 +514,6 @@ export class ListEditHome extends Component {
                         className="form-control"
                         multiple
                         id="status"
-                        ref={input => (this.input = input)}
                         style={{ height: 'auto' }}
                       >
                         {[
@@ -632,7 +634,6 @@ export class ListEditHome extends Component {
                         id="fromAge"
                         name="fromAge"
                         type="text"
-                        ref={input => (this.input = input)}
                         className="form-control form-control-sm"
                       />
                     </div>
@@ -642,7 +643,6 @@ export class ListEditHome extends Component {
                         id="toAge"
                         name="toAge"
                         type="text"
-                        ref={input => (this.input = input)}
                         className="form-control form-control-sm"
                       />
                     </div>
@@ -663,7 +663,6 @@ export class ListEditHome extends Component {
                           className="form-check-input"
                           name="gender"
                           value="Male"
-                          ref={input => (this.input = input)}
                         />{' '}
                         Male
                       </label>
@@ -675,7 +674,6 @@ export class ListEditHome extends Component {
                           className="form-check-input"
                           name="gender"
                           value="Female"
-                          ref={input => (this.input = input)}
                         />{' '}
                         Female
                       </label>
@@ -691,7 +689,6 @@ export class ListEditHome extends Component {
                             className="form-check-input"
                             name="gender"
                             value="Prefer not to answer"
-                            ref={input => (this.input = input)}
                           />{' '}
                           Prefer not to answer
                         </label>
@@ -708,7 +705,6 @@ export class ListEditHome extends Component {
                             className="form-check-input"
                             name="gender"
                             value="Other"
-                            ref={input => (this.input = input)}
                           />{' '}
                           Other
                         </label>
@@ -732,7 +728,6 @@ export class ListEditHome extends Component {
                         className="form-control"
                         multiple
                         id="program"
-                        ref={input => (this.input = input)}
                         style={{ height: 'auto' }}
                       >
                         {this.props.programs.map(program => (
@@ -759,7 +754,6 @@ export class ListEditHome extends Component {
                         className="form-control"
                         multiple
                         id="belt"
-                        ref={input => (this.input = input)}
                         style={{ height: 'auto' }}
                       >
                         {[
@@ -795,7 +789,6 @@ export class ListEditHome extends Component {
                         className="form-control"
                         multiple
                         id="additionalProgram1"
-                        ref={input => (this.input = input)}
                         style={{ height: 'auto' }}
                       >
                         {this.props.additionalPrograms.map(program => (
@@ -817,7 +810,6 @@ export class ListEditHome extends Component {
                         className="form-control"
                         multiple
                         id="additionalProgram2"
-                        ref={input => (this.input = input)}
                         style={{ height: 'auto' }}
                       >
                         {this.props.additionalPrograms.map(program => (
@@ -840,11 +832,7 @@ export class ListEditHome extends Component {
                     <legend className="scheduler-border">Member Type</legend>
                     <div className="form-group form-inline">
                       <label htmlFor="memberType">Member Type&nbsp;</label>
-                      <select
-                        className="form-control"
-                        id="memberType"
-                        ref={input => (this.input = input)}
-                      >
+                      <select className="form-control" id="memberType">
                         <option value="" />
                         {this.props.membershipTypes.map(type => (
                           <option key={type.type} value={type.type}>
@@ -948,7 +936,6 @@ export class ListEditHome extends Component {
                         className="form-control"
                         multiple
                         id="specificMembers"
-                        ref={input => (this.input = input)}
                         style={{ height: 'auto' }}
                       >
                         {this.props.allMembers
@@ -980,7 +967,6 @@ export class ListEditHome extends Component {
                     className="form-control"
                     style={{ width: '50%' }}
                     id="listName"
-                    ref={input => (this.input = input)}
                     defaultValue={
                       this.state.listToBeUpdated
                         ? this.state.listToBeUpdated.name

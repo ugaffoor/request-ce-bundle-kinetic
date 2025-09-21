@@ -19,7 +19,7 @@ import MomentLocaleUtils, {
 } from 'react-day-picker/moment';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
 import 'react-day-picker/lib/style.css';
-import { CoreForm } from 'react-kinetic-core';
+import { CoreForm } from '@kineticdata/react';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { Utils } from 'common';
 
@@ -70,7 +70,8 @@ export const handleCreated = props => response => {
     );
     migrationThis.props.memberMigrations[
       migrationThis.props.memberMigrations.length
-    ] = response.submission;
+    ] =
+      response.submission;
     migrationThis.props.allMembers[idx].migrationForm = response.submission;
     migrationThis.props.allMembers[idx].values['Billing User'] = 'YES';
     migrationThis.props.allMembers[idx].values['Billing Parent Member'] =
@@ -136,7 +137,6 @@ export class StartMemberMigration extends Component {
                     name="program"
                     id="program"
                     required
-                    ref={input => (this.input = input)}
                     defaultValue={
                       this.state.memberItem.values['Ranking Program']
                     }
@@ -165,14 +165,13 @@ export class StartMemberMigration extends Component {
                     name="belt"
                     id="belt"
                     required
-                    ref={input => (this.input = input)}
                     defaultValue={this.state.memberItem.values['Ranking Belt']}
                     onChange={e => {
                       this.state.memberItem.values['Ranking Belt'] =
                         e.target.value;
                     }}
                   >
-                    <option key="" value=""></option>
+                    <option key="" value="" />
                     {this.props.belts.map(
                       belt =>
                         belt.program ===
@@ -227,7 +226,6 @@ export class StartMemberMigration extends Component {
                     type="number"
                     name="attendanceCount"
                     id="attendanceCount"
-                    ref={input => (this.input = input)}
                     defaultValue={
                       this.state.memberItem.values['Attendance Count']
                     }
@@ -245,7 +243,6 @@ export class StartMemberMigration extends Component {
                     type="number"
                     name="maxWeeklyClasses"
                     id="maxWeeklyClasses"
-                    ref={input => (this.input = input)}
                     defaultValue={
                       this.state.memberItem.values['Max Weekly Classes']
                     }
@@ -262,7 +259,6 @@ export class StartMemberMigration extends Component {
                   <select
                     name="beltSize"
                     id="beltSize"
-                    ref={input => (this.input = input)}
                     value={this.state.memberItem.values['Belt Size']}
                     onChange={e => {
                       this.state.memberItem.values['Belt Size'] =
@@ -885,14 +881,13 @@ export class MigrationDetail extends Component {
                     <select
                       name="status"
                       id="status"
-                      ref={input => (this.input = input)}
                       value={this.state.status}
                       onChange={e => {
                         let status = e.target.value;
                         this.displayStatus(status);
                       }}
                     >
-                      <option value=""></option>
+                      <option value="" />
                       <option value="All">All</option>
                       <option value="Not Started">Not Started</option>
                       <option value="In Progress">In Progress</option>
@@ -912,7 +907,7 @@ export class MigrationDetail extends Component {
                       <div
                         className="percent"
                         style={this.state.percentageStyle}
-                      ></div>
+                      />
                     </div>
                   </div>
                 </span>
@@ -989,7 +984,7 @@ export class MigrationDetail extends Component {
                             </NavLink>
                           </h4>
                           <div className={status}>
-                            <span className="circle"></span>
+                            <span className="circle" />
                           </div>
                           <h4 className="label">{labeltext}</h4>
                           <div className="action">
@@ -1170,7 +1165,10 @@ export const MigrationMembers = ({
 );
 
 export const MigratingMembersContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withHandlers({
     handleCreated,
     handleError,

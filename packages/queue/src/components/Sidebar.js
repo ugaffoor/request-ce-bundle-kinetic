@@ -1,7 +1,7 @@
 import React from 'react';
 import { KappLink as Link, KappNavLink as NavLink } from 'common';
 import { Nav, NavItem } from 'reactstrap';
-import { I18n } from '../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const formatCount = count =>
   count || count === 0 ? (count >= 1000 ? '(999+)' : `(${count})`) : '';

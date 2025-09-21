@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
-import { CoreForm } from 'react-kinetic-core';
+import { CoreForm } from '@kineticdata/react';
 import DocumentTitle from 'react-document-title';
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import { CameraFeed } from './Member/CameraFeed';
-import { bundle } from 'react-kinetic-core';
+import { bundle } from '@kineticdata/react';
 import { contact_date_format } from './leads/LeadsUtils';
 
 class UploadPhoto extends React.Component {

@@ -1,5 +1,11 @@
 import { select, all, call, put, takeEvery } from 'redux-saga/effects';
-import { CoreAPI } from 'react-kinetic-core';
+import {
+  SubmissionSearch,
+  searchSubmissions,
+  updateSubmission,
+  createSubmission,
+  deleteSubmission,
+} from '@kineticdata/react';
 import $ from 'jquery';
 import moment from 'moment';
 import { getAttributeValue } from '../../utils';
@@ -43,12 +49,13 @@ export function* fetchPOSCards(action) {
 }
 export function* fetchPOSCategories(action) {
   try {
-    const search = new CoreAPI.SubmissionSearch()
+    const search = new SubmissionSearch()
       .includes(['details', 'values'])
       .limit(1000)
       .build();
 
-    const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions, serverError } = yield call(searchSubmissions, {
+      get: true,
       datastore: true,
       form: 'pos-categories',
       search,
@@ -61,36 +68,35 @@ export function* fetchPOSCategories(action) {
 }
 export function* fetchPOSProducts(action) {
   try {
-    const SEARCH_PRODUCT = new CoreAPI.SubmissionSearch(true)
+    const SEARCH_PRODUCT = new SubmissionSearch(true)
       .includes(['details', 'values'])
       .limit(1000)
       .build();
-    const SEARCH_STOCK = new CoreAPI.SubmissionSearch(true)
+    const SEARCH_STOCK = new SubmissionSearch(true)
       .includes(['details', 'values'])
       .limit(1000)
       .build();
 
-    const { submissions, nextPageToken } = yield call(
-      CoreAPI.searchSubmissions,
-      {
-        datastore: true,
-        form: 'pos-product',
-        search: SEARCH_PRODUCT,
-      },
-    );
+    const { submissions, nextPageToken } = yield call(searchSubmissions, {
+      get: true,
+      datastore: true,
+      form: 'pos-product',
+      search: SEARCH_PRODUCT,
+    });
     var nextPageTokenValue = nextPageToken;
     var allSubmissions = [];
     allSubmissions = allSubmissions.concat(submissions);
 
     while (nextPageTokenValue) {
-      let search2 = new CoreAPI.SubmissionSearch(true)
+      let search2 = new SubmissionSearch(true)
         .includes(['values'])
         .limit(1000)
         .pageToken(nextPageTokenValue)
         .build();
 
       const [submissions2, nextPageToken] = yield all([
-        call(CoreAPI.searchSubmissions, {
+        call(searchSubmissions, {
+          get: true,
           datastore: true,
           form: 'pos-product',
           search: search2,
@@ -102,7 +108,8 @@ export function* fetchPOSProducts(action) {
 
     var products = allSubmissions;
     const stocksSubmissions = yield all({
-      submissions: call(CoreAPI.searchSubmissions, {
+      submissions: call(searchSubmissions, {
+        get: true,
         datastore: true,
         form: 'pos-stock',
         search: SEARCH_STOCK,
@@ -155,31 +162,29 @@ export function* fetchPOSBarcodes(action) {
     let allSubmissions = [];
     let nextPageTokenValue;
 
-    const search = new CoreAPI.SubmissionSearch(true)
+    const search = new SubmissionSearch(true)
       .includes(['values'])
       .limit(1000)
       .build();
 
-    const { submissions, nextPageToken } = yield call(
-      CoreAPI.searchSubmissions,
-      {
-        datastore: true,
-        form: 'pos-barcodes',
-        search,
-      },
-    );
+    const { submissions, nextPageToken } = yield call(searchSubmissions, {
+      datastore: true,
+      form: 'pos-barcodes',
+      search,
+    });
     nextPageTokenValue = nextPageToken;
     allSubmissions = allSubmissions.concat(submissions);
 
     while (nextPageTokenValue) {
-      let search2 = new CoreAPI.SubmissionSearch(true)
+      let search2 = new SubmissionSearch(true)
         .includes(['values'])
         .limit(1000)
         .pageToken(nextPageTokenValue)
         .build();
 
       const [submissions2, nextPageToken] = yield all([
-        call(CoreAPI.searchSubmissions, {
+        call(searchSubmissions, {
+          get: true,
           datastore: true,
           form: 'pos-barcodes',
           search: search2,
@@ -196,12 +201,13 @@ export function* fetchPOSBarcodes(action) {
 }
 export function* fetchPOSStock(action) {
   try {
-    const search = new CoreAPI.SubmissionSearch()
+    const search = new SubmissionSearch()
       .includes(['details', 'values'])
       .limit(1000)
       .build();
 
-    const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions, serverError } = yield call(searchSubmissions, {
+      get: true,
       datastore: true,
       form: 'pos-stock',
       search,
@@ -214,7 +220,7 @@ export function* fetchPOSStock(action) {
 }
 export function* fetchPOSItems(action) {
   try {
-    const search = new CoreAPI.SubmissionSearch(true)
+    const search = new SubmissionSearch(true)
       .includes(['details', 'values'])
       .index('submittedAt')
       .gteq(
@@ -228,7 +234,8 @@ export function* fetchPOSItems(action) {
       .limit(1000)
       .build();
 
-    const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions, serverError } = yield call(searchSubmissions, {
+      get: true,
       datastore: true,
       form: 'pos-purchased-item',
       search,
@@ -241,7 +248,7 @@ export function* fetchPOSItems(action) {
 }
 export function* fetchPOSOrders(action) {
   try {
-    const search = new CoreAPI.SubmissionSearch(true)
+    const search = new SubmissionSearch(true)
       .includes(['details', 'values'])
       .index('values[Date time processed]')
       .gteq(
@@ -259,7 +266,8 @@ export function* fetchPOSOrders(action) {
       .limit(1000)
       .build();
 
-    const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions, serverError } = yield call(searchSubmissions, {
+      get: true,
       datastore: true,
       form: 'pos-order',
       search,
@@ -272,7 +280,7 @@ export function* fetchPOSOrders(action) {
 }
 export function* fetchPOSOrdersPI(action) {
   try {
-    const search = new CoreAPI.SubmissionSearch(true)
+    const search = new SubmissionSearch(true)
       .includes(['details', 'values'])
       .index('values[Date time processed]')
       .gteq(
@@ -290,7 +298,8 @@ export function* fetchPOSOrdersPI(action) {
       .limit(1000)
       .build();
 
-    const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions, serverError } = yield call(searchSubmissions, {
+      get: true,
       datastore: true,
       form: 'pos-order',
       search,
@@ -303,12 +312,13 @@ export function* fetchPOSOrdersPI(action) {
 }
 export function* fetchPOSDiscounts(action) {
   try {
-    const search = new CoreAPI.SubmissionSearch()
+    const search = new SubmissionSearch()
       .includes(['details', 'values'])
       .limit(1000)
       .build();
 
-    const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions, serverError } = yield call(searchSubmissions, {
+      get: true,
       datastore: true,
       form: 'pos-discounts',
       search,
@@ -321,14 +331,15 @@ export function* fetchPOSDiscounts(action) {
 }
 export function* fetchPOSCheckout(action) {
   try {
-    const SEARCH = new CoreAPI.SubmissionSearch(true)
+    const SEARCH = new SubmissionSearch(true)
       .includes(['details', 'values'])
       .index('values[User Name]')
       .eq('values[User Name]', action.payload.username)
       .build();
 
     let checkout = {};
-    const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions, serverError } = yield call(searchSubmissions, {
+      get: true,
       datastore: true,
       form: 'pos-checkout',
       search: SEARCH,
@@ -337,7 +348,7 @@ export function* fetchPOSCheckout(action) {
       checkout['User Name'] = action.payload.username;
       checkout['Checkout Items'] = {};
 
-      const { submission } = yield call(CoreAPI.createSubmission, {
+      const { submission } = yield call(createSubmission, {
         formSlug: 'pos-checkout',
         values: checkout,
         datastore: true,
@@ -361,7 +372,7 @@ export function* updatePOSCheckout(action) {
   try {
     let values = {};
     values['Checkout Items'] = action.payload['Checkout Items'];
-    const { submission } = yield call(CoreAPI.updateSubmission, {
+    const { submission } = yield call(updateSubmission, {
       id: action.payload['id'],
       values: values,
       datastore: true,
@@ -381,7 +392,7 @@ export function* updatePOSCheckout(action) {
 
 export function* updatePOSOrder(action) {
   try {
-    const { submission } = yield call(CoreAPI.updateSubmission, {
+    const { submission } = yield call(updateSubmission, {
       id: action.payload.id,
       values: action.payload.values,
       datastore: true,
@@ -420,7 +431,7 @@ export function* savePOSCheckout(action) {
     values['Transaction ID'] = action.payload['transaction_id'];
     values['POS Checkout JSON'] = action.payload['posCheckout'];
 
-    const { submission } = yield call(CoreAPI.createSubmission, {
+    const { submission } = yield call(createSubmission, {
       values: values,
       formSlug: 'pos-order',
       datastore: true,
@@ -438,7 +449,7 @@ export function* savePOSCheckout(action) {
 }
 export function* savePOSSavePurchasedItem(action) {
   try {
-    const { submission } = yield call(CoreAPI.createSubmission, {
+    const { submission } = yield call(createSubmission, {
       values: action.payload.values,
       formSlug: 'pos-purchased-item',
       datastore: true,
@@ -453,7 +464,7 @@ export function* savePOSSavePurchasedItem(action) {
 }
 export function* savePOSStock(action) {
   try {
-    const SEARCH = new CoreAPI.SubmissionSearch(true)
+    const SEARCH = new SubmissionSearch(true)
       .includes(['details', 'values'])
       .index('values[Product ID],values[Colour],values[Size]')
       .eq('values[Product ID]', action.payload.product.id)
@@ -461,7 +472,8 @@ export function* savePOSStock(action) {
       .eq('values[Size]', action.payload.size)
       .build();
     let stock = [];
-    const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions, serverError } = yield call(searchSubmissions, {
+      get: true,
       datastore: true,
       form: 'pos-stock',
       search: SEARCH,
@@ -476,7 +488,7 @@ export function* savePOSStock(action) {
       values['Quantity'] = action.payload.quantity;
       values['Size'] = action.payload.size;
 
-      const { submission } = yield call(CoreAPI.createSubmission, {
+      const { submission } = yield call(createSubmission, {
         values: values,
         formSlug: 'pos-stock',
         datastore: true,
@@ -492,7 +504,7 @@ export function* savePOSStock(action) {
         values['Quantity'] = action.payload.quantity;
       }
 
-      const { submission } = yield call(CoreAPI.updateSubmission, {
+      const { submission } = yield call(updateSubmission, {
         id: submissions[0].id,
         values: values,
         datastore: true,
@@ -515,13 +527,14 @@ export function* savePOSStock(action) {
 }
 export function* decrementPOSStock(action) {
   try {
-    const SEARCH = new CoreAPI.SubmissionSearch(true)
+    const SEARCH = new SubmissionSearch(true)
       .includes(['details', 'values'])
       .index('values[Product ID],values[Size]')
       .eq('values[Product ID]', action.payload.productID)
       .eq('values[Size]', action.payload.size)
       .build();
-    const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions, serverError } = yield call(searchSubmissions, {
+      get: true,
       datastore: true,
       form: 'pos-stock',
       search: SEARCH,
@@ -531,7 +544,7 @@ export function* decrementPOSStock(action) {
       values['Quantity'] =
         parseInt(submissions[0].values['Quantity']) - action.payload.quantity;
 
-      const { submission } = yield call(CoreAPI.updateSubmission, {
+      const { submission } = yield call(updateSubmission, {
         id: submissions[0].id,
         values: values,
         datastore: true,
@@ -547,13 +560,14 @@ export function* decrementPOSStock(action) {
 }
 export function* incrementPOSStock(action) {
   try {
-    const SEARCH = new CoreAPI.SubmissionSearch(true)
+    const SEARCH = new SubmissionSearch(true)
       .includes(['details', 'values'])
       .index('values[Product ID],values[Size]')
       .eq('values[Product ID]', action.payload.productID)
       .eq('values[Size]', action.payload.size)
       .build();
-    const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions, serverError } = yield call(searchSubmissions, {
+      get: true,
       datastore: true,
       form: 'pos-stock',
       search: SEARCH,
@@ -563,7 +577,7 @@ export function* incrementPOSStock(action) {
       values['Quantity'] =
         parseInt(submissions[0].values['Quantity']) + action.payload.quantity;
 
-      const { submission } = yield call(CoreAPI.updateSubmission, {
+      const { submission } = yield call(updateSubmission, {
         id: submissions[0].id,
         values: values,
         datastore: true,
@@ -579,7 +593,7 @@ export function* incrementPOSStock(action) {
 }
 export function* deletePOSPurchasedItem(action) {
   try {
-    const { submission } = yield call(CoreAPI.deleteSubmission, {
+    const { submission } = yield call(deleteSubmission, {
       id: action.payload.id,
       datastore: true,
     });

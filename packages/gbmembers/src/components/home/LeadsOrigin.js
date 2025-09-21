@@ -8,21 +8,10 @@ import {
   Legend,
 } from 'recharts';
 import moment from 'moment';
-import ReactSpinner from 'react16-spinjs';
-import $ from 'jquery';
 import { KappNavLink as NavLink } from 'common';
-import crossIcon from '../../images/cross.svg?raw';
-import SVGInline from 'react-svg-inline';
+import { ReactComponent as CrossIcon } from '../../images/cross.svg';
 import ReactTable from 'react-table';
 
-const chartLabels = {
-  last_30_days: 'Last 30 Days',
-  last_month: 'Last Month',
-  last_3_months: 'Last 3 Months',
-  last_6_months: 'Last 6 Months',
-  last_year: 'Last Year',
-  custom: 'Custom Dates',
-};
 const RADIAN = Math.PI / 180;
 const COLORS = [
   '#5a9ad5',
@@ -370,7 +359,7 @@ export class LeadsOriginChart extends Component {
                 })
               }
             >
-              <SVGInline svg={crossIcon} className="icon" />
+              <CrossIcon className="icon icon-svg" />
             </span>
             <ReactTable
               columns={this.getLeadTableColumns()}

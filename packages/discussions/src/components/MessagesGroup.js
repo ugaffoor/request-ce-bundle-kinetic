@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { Avatar } from 'common';
 import moment from 'moment';
 import Markdown from 'react-markdown';
-import { bundle } from 'react-kinetic-core';
+import { bundle } from '@kineticdata/react';
 import { ParticipantCard } from './ParticipantCard';
 
 const AVAILABLE_ICONS = [
@@ -106,19 +106,20 @@ export const MessagesGroup = ({ messages, profile, discussionServerUrl }) => (
     )}
 
     <div className="message-list">
-      {messages.map(message =>
-        message.messageable_type === 'Upload' ? (
-          <UploadMessage
-            key={message.id}
-            message={message}
-            discussionServerUrl={discussionServerUrl}
-            messageOwner={
-              messages.first().user.email === profile.email ? 'mine' : 'other'
-            }
-          />
-        ) : (
-          <TextMessage key={message.id} message={message} />
-        ),
+      {messages.map(
+        message =>
+          message.messageable_type === 'Upload' ? (
+            <UploadMessage
+              key={message.id}
+              message={message}
+              discussionServerUrl={discussionServerUrl}
+              messageOwner={
+                messages.first().user.email === profile.email ? 'mine' : 'other'
+              }
+            />
+          ) : (
+            <TextMessage key={message.id} message={message} />
+          ),
       )}
       <div className="meta">
         <span className="author">

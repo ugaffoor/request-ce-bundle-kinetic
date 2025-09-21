@@ -1,11 +1,10 @@
 import React from 'react';
 import { KappLink as Link, Icon } from 'common';
-import SVGInline from 'react-svg-inline';
-import billingIcon from '../../assets/images/Billing.svg?raw';
-import bookingIcon from '../../assets/images/booking.svg?raw';
-import incidentIcon from '../../assets/images/Incidents.svg?raw';
-import oceaniaIcon from '../../assets/images/Oceania.svg?raw';
-import registrationIcon from '../../assets/images/Registration.svg?raw';
+import { ReactComponent as BillingIcon } from '../../assets/images/Billing.svg';
+import { ReactComponent as BookingIcon } from '../../assets/images/booking.svg';
+import { ReactComponent as IncidentIcon } from '../../assets/images/Incidents.svg';
+import { ReactComponent as OceaniaIcon } from '../../assets/images/Oceania.svg';
+import { ReactComponent as RegistrationIcon } from '../../assets/images/Registration.svg';
 
 function getCategoryIcon(slug) {
   if (
@@ -13,17 +12,51 @@ function getCategoryIcon(slug) {
     slug === 'payline-billing' ||
     slug === 'bombara-billing'
   )
-    return billingIcon;
-  if (slug === 'class-bookings') return bookingIcon;
-  if (slug === 'incidents') return incidentIcon;
-  if (slug === 'oceania') return oceaniaIcon;
-  if (slug === 'registrations') return registrationIcon;
-  return registrationIcon;
+    return 'billingIcon';
+  if (slug === 'class-bookings') return 'bookingIcon';
+  if (slug === 'incidents') return 'incidentIcon';
+  if (slug === 'oceania') return 'oceaniaIcon';
+  if (slug === 'registrations') return 'registrationIcon';
+  return 'registrationIcon';
 }
 export const CategoryCard = props => (
   <Link to={props.path} className="card card--category">
     <h1>
-      <SVGInline svg={getCategoryIcon(props.category.slug)} className="icon" />
+      <BillingIcon
+        className={
+          getCategoryIcon(props.category.slug) === 'billingIcon'
+            ? 'icon icon-svg'
+            : 'hide'
+        }
+      />
+      <BookingIcon
+        className={
+          getCategoryIcon(props.category.slug) === 'bookingIcon'
+            ? 'icon icon-svg'
+            : 'hide'
+        }
+      />
+      <IncidentIcon
+        className={
+          getCategoryIcon(props.category.slug) === 'incidentIcon'
+            ? 'icon icon-svg'
+            : 'hide'
+        }
+      />
+      <OceaniaIcon
+        className={
+          getCategoryIcon(props.category.slug) === 'oceaniaIcon'
+            ? 'icon icon-svg'
+            : 'hide'
+        }
+      />
+      <RegistrationIcon
+        className={
+          getCategoryIcon(props.category.slug) === 'registrationIcon'
+            ? 'icon icon-svg'
+            : 'hide'
+        }
+      />
       {props.category.name}
     </h1>
     <p>{props.category.description}</p>

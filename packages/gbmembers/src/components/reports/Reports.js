@@ -39,7 +39,7 @@ import { actions } from '../../redux/modules/members';
 import { actions as attendanceActions } from '../../redux/modules/attendance';
 import moment from 'moment';
 import { Utils } from 'common';
-import { CoreForm } from 'react-kinetic-core';
+import { CoreForm } from '@kineticdata/react';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { getTimezone } from '../leads/LeadsUtils';
 
@@ -1022,7 +1022,10 @@ export const ReportsView = ({
 );
 
 export const ReportsContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('showMemberActivityReport', 'setShowMemberActivityReport', false),
   withState('showBirthdaysReport', 'setBirthdaysReport', false),
   withState('showLastAttendance', 'setShowLastAttendance', false),
@@ -1056,7 +1059,7 @@ export const ReportsContainer = compose(
       if (!dummyFormLoaded) {
         setTimeout(function() {
           setDummyFormLoaded(true);
-        }, 2000);
+        }, 5000);
       }
     },
     fetchLeads: ({ fetchLeads }) => () => {

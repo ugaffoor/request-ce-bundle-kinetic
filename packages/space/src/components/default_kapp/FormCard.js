@@ -1,6 +1,6 @@
 import React from 'react';
 import { KappLink as Link, Icon } from 'common';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 export const FormCard = ({ path, form }) => (
   <Link to={path} className="card card--form">

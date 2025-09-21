@@ -4,7 +4,7 @@ import { compose, withHandlers } from 'recompose';
 import { actions as discussionsActions } from 'discussions';
 import { actions } from '../../../redux/modules/settingsDatastore';
 import { Discussion } from 'discussions';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 export const DatastoreDiscussionsComponent = props => {
   const { discussionId, createDiscussion } = props;
@@ -63,7 +63,10 @@ const createDiscussion = props => () => {
 };
 
 export const DatastoreDiscussions = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
 
   withHandlers({
     createDiscussion,

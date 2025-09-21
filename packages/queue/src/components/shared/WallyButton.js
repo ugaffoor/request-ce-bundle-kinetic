@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { compose, withHandlers, withProps } from 'recompose';
 import { actions } from '../../redux/modules/workMenu';
 import { actions as queueActions } from '../../redux/modules/queue';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const getButtonMode = (queueItem, profile) => {
   if (queueItem.coreState !== 'Draft') {
@@ -30,7 +30,10 @@ export const mapDispatchToProps = {
 };
 
 export const WallyButtonContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(props => ({
     buttonMode: getButtonMode(props.queueItem, props.profile),
   })),

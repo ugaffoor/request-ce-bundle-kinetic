@@ -2,9 +2,7 @@ import React, { Component } from 'react';
 import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
 import { connect } from 'react-redux';
 import { compose } from 'recompose';
-import $ from 'jquery';
-import { CoreForm } from 'react-kinetic-core';
-import ReactSpinner from 'react16-spinjs';
+import { CoreForm } from '@kineticdata/react';
 
 const mapStateToProps = state => ({});
 const mapDispatchToProps = {};
@@ -77,7 +75,12 @@ export class AddProductDialog extends Component {
   }
 }
 
-const enhance = compose(connect(mapStateToProps, mapDispatchToProps));
+const enhance = compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
+);
 const inlineStyle = {
   width: '600px',
   top: '10%',

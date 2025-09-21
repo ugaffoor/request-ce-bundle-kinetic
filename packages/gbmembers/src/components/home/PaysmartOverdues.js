@@ -2,8 +2,7 @@ import React, { Component } from 'react';
 import ReactTable from 'react-table';
 import moment from 'moment';
 import ReactToPrint from 'react-to-print';
-import SVGInline from 'react-svg-inline';
-import printerIcon from '../../images/Print.svg?raw';
+import { ReactComponent as PrinterIcon } from '../../images/Print.svg';
 
 const ezidebit_date_format = 'YYYY-MM-DD HH:mm:ss';
 
@@ -13,6 +12,9 @@ export class PaysmartOverdues extends Component {
     this.overdues = this.props.overdues;
     let data = this.getData(this.overdues);
     let columns = this.getColumns();
+
+    this.tableComponentRef = React.createRef();
+
     this.state = {
       data,
       columns,
@@ -94,13 +96,11 @@ export class PaysmartOverdues extends Component {
           <h6>Overdue Payments - Last Week</h6>
         </div>
         <ReactToPrint
-          trigger={() => (
-            <SVGInline svg={printerIcon} className="icon tablePrint" />
-          )}
-          content={() => this.tableComponentRef}
+          trigger={() => <PrinterIcon className="icon tablePrint icon-svg" />}
+          content={() => this.tableComponentRef.current}
         />
         <ReactTable
-          ref={el => (this.tableComponentRef = el)}
+          ref={this.tableComponentRef}
           columns={columns}
           data={data}
           className="-striped -highlight"

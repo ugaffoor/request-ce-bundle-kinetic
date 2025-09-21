@@ -5,9 +5,7 @@ import { ListMembers } from './ListMembers';
 import { actions } from '../redux/modules/members';
 import { KappNavLink as NavLink } from 'common';
 import { Utils } from 'common';
-import download from '../images/download.svg?raw';
-import SVGInline from 'react-svg-inline';
-import attentionRequired from '../images/flag.svg?raw';
+import { ReactComponent as Download } from '../images/download.svg';
 import { getAttributeValue } from '../lib/react-kinops-components/src/utils';
 
 export const Sidebar = ({
@@ -53,9 +51,8 @@ export const Sidebar = ({
           </NavLink>
         </div>
         <div className="options">
-          <SVGInline
-            svg={download}
-            className={'download icon'}
+          <Download
+            className={'download icon icon-svg'}
             title="Export Leads to CSV"
             alt="Export Leads to CSV"
             onClick={e => downloadLeads()}
@@ -78,7 +75,7 @@ export const Sidebar = ({
             Member Lists
           </NavLink>
         </div>
-        <div className="options"></div>
+        <div className="options" />
         <select
           value={filterValue}
           className="membersFilters"
@@ -113,14 +110,15 @@ export const Sidebar = ({
             Migrating Members
           </NavLink>
         )}
-        {filterType === 'filter' && true && (
-          <Members
-            allMembers={allMembers}
-            currentFilter={currentFilter}
-            actions={actions}
-            space={space}
-          />
-        )}
+        {filterType === 'filter' &&
+          true && (
+            <Members
+              allMembers={allMembers}
+              currentFilter={currentFilter}
+              actions={actions}
+              space={space}
+            />
+          )}
         {filterType === 'list' && (
           <ListMembers
             allMembers={allMembers}

@@ -90,7 +90,9 @@ class EventResult extends Component {
                 </NavLink>
               ) : (
                 <NavLink
-                  to={`/LeadDetail/${this.props.journeyEvent.values['Record ID']}`}
+                  to={`/LeadDetail/${
+                    this.props.journeyEvent.values['Record ID']
+                  }`}
                   className="nameValue"
                 >
                   {this.props.journeyEvent.values['Record Name']}
@@ -133,14 +135,16 @@ class EventResult extends Component {
                               : '')
                           : ''
                         : this.props.leadItem && this.props.leadItem.values
-                        ? this.props.leadItem.values['Phone Number'] +
-                          (this.props.leadItem.values['Additional Phone Number']
-                            ? ',' +
-                              this.props.leadItem.values[
-                                'Additional Phone Number'
-                              ]
-                            : '')
-                        : ''}
+                          ? this.props.leadItem.values['Phone Number'] +
+                            (this.props.leadItem.values[
+                              'Additional Phone Number'
+                            ]
+                              ? ',' +
+                                this.props.leadItem.values[
+                                  'Additional Phone Number'
+                                ]
+                              : '')
+                          : ''}
                     </span>
                   </td>
                 </tr>
@@ -214,14 +218,18 @@ export class CallEvent extends Component {
                 </small>
                 {this.props.journeyEvent.values['Record Type'] === 'Member' ? (
                   <NavLink
-                    to={`/Member/${this.props.journeyEvent.values['Record ID']}`}
+                    to={`/Member/${
+                      this.props.journeyEvent.values['Record ID']
+                    }`}
                     className="nameValue"
                   >
                     {this.props.journeyEvent.values['Record Name']}
                   </NavLink>
                 ) : (
                   <NavLink
-                    to={`/LeadDetail/${this.props.journeyEvent.values['Record ID']}`}
+                    to={`/LeadDetail/${
+                      this.props.journeyEvent.values['Record ID']
+                    }`}
                     className="nameValue"
                   >
                     {this.props.journeyEvent.values['Record Name']}
@@ -264,16 +272,16 @@ export class CallEvent extends Component {
                                 : '')
                             : ''
                           : this.props.leadItem && this.props.leadItem.values
-                          ? this.props.leadItem.values['Phone Number'] +
-                            (this.props.leadItem.values[
-                              'Additional Phone Number'
-                            ]
-                              ? ',' +
-                                this.props.leadItem.values[
-                                  'Additional Phone Number'
-                                ]
-                              : '')
-                          : ''}
+                            ? this.props.leadItem.values['Phone Number'] +
+                              (this.props.leadItem.values[
+                                'Additional Phone Number'
+                              ]
+                                ? ',' +
+                                  this.props.leadItem.values[
+                                    'Additional Phone Number'
+                                  ]
+                                : '')
+                            : ''}
                       </span>
                     </td>
                   </tr>
@@ -356,7 +364,6 @@ export class CallEvent extends Component {
                   style={{ width: '100%' }}
                   id="callNote"
                   className="form-control"
-                  ref={input => (this.input = input)}
                   placeholder="Start Typing for notes"
                   onChange={e => {
                     this.props.setIsDirty(true);
@@ -476,7 +483,10 @@ export const CallEventView = ({
   );
 
 export const CallEventContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(({ match }) => {
     return {
       eventId: match.params.eventId,

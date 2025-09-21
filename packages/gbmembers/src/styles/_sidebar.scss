@@ -54,10 +54,10 @@
   .icon-svg .primary-fill {
     fill: white;
   }
-  .cancelling .icon-svg path {
+  .cancelling.icon-svg path {
     fill: rgb(229, 196, 196) !important;
   }
-  .freezing .icon-svg path {
+  .freezing.icon-svg path {
     fill: rgb(96, 96, 237) !important;
   }
   .ReactTable .rt-thead .rt-th.-sort-asc,
@@ -85,7 +85,7 @@
   padding: 1.5rem 0;
   width: 252px;
   height: unset;
-  .options .download-svg.icon-svg {
+  .options .download.icon.icon-svg {
     height: 2rem;
     width: 2rem;
   }

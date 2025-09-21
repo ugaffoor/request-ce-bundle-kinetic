@@ -587,6 +587,13 @@ btn:disabled {
 
 .tabulator {
   font-size: 12px !important;
+  .tabulator-tableholder {
+    position: relative;
+    width: 100%;
+    white-space: nowrap;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 .includes-container {

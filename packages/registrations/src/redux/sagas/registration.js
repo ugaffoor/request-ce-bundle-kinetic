@@ -8,7 +8,11 @@ import {
   takeEvery,
   select,
 } from 'redux-saga/effects';
-import { CoreAPI } from 'react-kinetic-core';
+import {
+  fetchSubmission,
+  createSubmission,
+  deleteSubmission,
+} from '@kineticdata/react';
 import { Map, Seq } from 'immutable';
 import { push } from 'connected-react-router';
 
@@ -19,11 +23,10 @@ export function* fetchRegistrationSaga(action) {
   const include =
     'details,values,form,form.attributes,form.kapp.attributes,' +
     'form.kapp.space.attributes,activities,activities.details';
-  const {
-    submission,
-    errors,
-    serverError,
-  } = yield call(CoreAPI.fetchSubmission, { id: action.payload, include });
+  const { submission, errors, serverError } = yield call(fetchSubmission, {
+    id: action.payload,
+    include,
+  });
 
   if (serverError) {
     yield put(systemErrorActions.setSystemError(serverError));
@@ -37,11 +40,10 @@ export function* fetchRegistrationSaga(action) {
 export function* cloneRegistrationSaga(action) {
   const include = 'details,values,form,form.fields.details,form.kapp';
   const kappSlug = yield select(state => state.app.config.kappSlug);
-  const {
-    submission,
-    errors,
-    serverError,
-  } = yield call(CoreAPI.fetchSubmission, { id: action.payload, include });
+  const { submission, errors, serverError } = yield call(fetchSubmission, {
+    id: action.payload,
+    include,
+  });
 
   if (serverError) {
     yield put(systemErrorActions.setSystemError(serverError));
@@ -74,7 +76,7 @@ export function* cloneRegistrationSaga(action) {
       submission: cloneRegistration,
       postErrors,
       postServerError,
-    } = yield call(CoreAPI.createSubmission, {
+    } = yield call(createSubmission, {
       kappSlug: submission.form.kapp.slug,
       formSlug: submission.form.slug,
       values,
@@ -97,7 +99,7 @@ export function* cloneRegistrationSaga(action) {
 }
 
 export function* deleteRegistrationSaga(action) {
-  const { errors, serverError } = yield call(CoreAPI.deleteSubmission, {
+  const { errors, serverError } = yield call(deleteSubmission, {
     id: action.payload.id,
   });
 
@@ -123,7 +125,7 @@ export function* pollerTask(id) {
     // Wait
     yield delay(pollDelay);
     // Query
-    const { submission, serverError } = yield call(CoreAPI.fetchSubmission, {
+    const { submission, serverError } = yield call(fetchSubmission, {
       id,
       include,
     });

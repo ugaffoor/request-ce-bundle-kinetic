@@ -10,10 +10,10 @@ import 'react-bootstrap-typeahead/css/Typeahead.css';
 import 'react-bootstrap-typeahead/css/Typeahead-bs4.css';
 import isMatch from 'lodash.ismatch';
 import memoize from 'memoize-one';
-import { CoreAPI } from 'react-kinetic-core';
+import { fetchUsers, fetchTeams } from '@kineticdata/react';
 
 import { Cache } from '../../cache';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 export const TeamMenuItem = props => {
   const disabledReason = props.disabledFn && props.disabledFn(props.option);
@@ -117,12 +117,12 @@ const renderMenu = memoize(disabledFn => (results, props) => (
       const CurrentMenuItem = option.user
         ? UserMenuItem
         : option.team
-        ? TeamMenuItem
-        : option.manager
-        ? ManagerMenuItem
-        : option.none
-        ? NoneMenuItem
-        : EmailMenuItem;
+          ? TeamMenuItem
+          : option.manager
+            ? ManagerMenuItem
+            : option.none
+              ? NoneMenuItem
+              : EmailMenuItem;
       return (
         <CurrentMenuItem
           key={i}
@@ -144,12 +144,12 @@ const renderToken = (option, props, index) => (
       option.user
         ? 'user'
         : option.team
-        ? 'team'
-        : option.manager
-        ? 'manager'
-        : option.none
-        ? 'none'
-        : 'new'
+          ? 'team'
+          : option.manager
+            ? 'manager'
+            : option.none
+              ? 'none'
+              : 'new'
     }
   >
     {option.label}
@@ -157,7 +157,7 @@ const renderToken = (option, props, index) => (
 );
 
 const userCache = new Cache(() =>
-  CoreAPI.fetchUsers().then(response =>
+  fetchUsers().then(response =>
     response.users.map(user => ({
       label: user.displayName || user.username,
       user,
@@ -165,7 +165,7 @@ const userCache = new Cache(() =>
   ),
 );
 const teamCache = new Cache(() =>
-  CoreAPI.fetchTeams().then(response =>
+  fetchTeams().then(response =>
     response.teams.map(team => ({
       label: team.name,
       team,

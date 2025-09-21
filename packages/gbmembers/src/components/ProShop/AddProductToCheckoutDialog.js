@@ -114,7 +114,9 @@ export class AddProductToCheckoutDialog extends Component {
                 <div
                   className="productImage"
                   style={{
-                    backgroundImage: `url(${this.props.product.values['Image URL']})`,
+                    backgroundImage: `url(${
+                      this.props.product.values['Image URL']
+                    })`,
                   }}
                 />
               )}
@@ -288,7 +290,6 @@ export class AddProductToCheckoutDialog extends Component {
                             <select
                               name={product.id + 'sizes'}
                               id={product.id + 'sizes'}
-                              ref={input => (this.input = input)}
                               disabled
                               onChange={e => {
                                 var selected = this.state.packagedProductSizes;
@@ -384,7 +385,12 @@ export class AddProductToCheckoutDialog extends Component {
   }
 }
 
-const enhance = compose(connect(mapStateToProps, mapDispatchToProps));
+const enhance = compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
+);
 const inlineStyle = {
   width: '600px',
   top: '10%',

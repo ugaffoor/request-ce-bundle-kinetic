@@ -7,7 +7,7 @@ import { StatusSectionContainer } from './StatusSection';
 import { DateRangeSectionContainer } from './DateRangeSection';
 import { SortedBySectionContainer } from './SortedBySection';
 import { GroupedBySectionContainer } from './GroupedBySection';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 export const FilterMenu = ({
   teams,
@@ -57,40 +57,47 @@ export const FilterMenu = ({
         </button>
       )}
     </div>
-    {currentFilter && activeSection === null && (
-      <MainSection
-        filter={currentFilter}
-        showSection={showSection}
-        filterName={filterName}
-        handleChangeFilterName={handleChangeFilterName}
-        handleSaveFilter={handleSaveFilter}
-        handleRemoveFilter={handleRemoveFilter}
-        appliedAssignments={appliedAssignments}
-        errors={errors}
-      />
-    )}
-    {currentFilter && activeSection === 'teams' && (
-      <TeamsSectionContainer filter={currentFilter} teams={teams} />
-    )}
-    {currentFilter && activeSection === 'assignment' && (
-      <AssignmentSectionContainer
-        filter={currentFilter}
-        errors={errors}
-        appliedAssignments={appliedAssignments}
-      />
-    )}
-    {currentFilter && activeSection === 'status' && (
-      <StatusSectionContainer filter={currentFilter} />
-    )}
-    {currentFilter && activeSection === 'date' && (
-      <DateRangeSectionContainer errors={errors} filter={currentFilter} />
-    )}
-    {currentFilter && activeSection === 'sort' && (
-      <SortedBySectionContainer filter={currentFilter} />
-    )}
-    {currentFilter && activeSection === 'group' && (
-      <GroupedBySectionContainer filter={currentFilter} />
-    )}
+    {currentFilter &&
+      activeSection === null && (
+        <MainSection
+          filter={currentFilter}
+          showSection={showSection}
+          filterName={filterName}
+          handleChangeFilterName={handleChangeFilterName}
+          handleSaveFilter={handleSaveFilter}
+          handleRemoveFilter={handleRemoveFilter}
+          appliedAssignments={appliedAssignments}
+          errors={errors}
+        />
+      )}
+    {currentFilter &&
+      activeSection === 'teams' && (
+        <TeamsSectionContainer filter={currentFilter} teams={teams} />
+      )}
+    {currentFilter &&
+      activeSection === 'assignment' && (
+        <AssignmentSectionContainer
+          filter={currentFilter}
+          errors={errors}
+          appliedAssignments={appliedAssignments}
+        />
+      )}
+    {currentFilter &&
+      activeSection === 'status' && (
+        <StatusSectionContainer filter={currentFilter} />
+      )}
+    {currentFilter &&
+      activeSection === 'date' && (
+        <DateRangeSectionContainer errors={errors} filter={currentFilter} />
+      )}
+    {currentFilter &&
+      activeSection === 'sort' && (
+        <SortedBySectionContainer filter={currentFilter} />
+      )}
+    {currentFilter &&
+      activeSection === 'group' && (
+        <GroupedBySectionContainer filter={currentFilter} />
+      )}
     <ModalFooter>
       <button
         type="button"

@@ -1,6 +1,6 @@
 import { takeEvery, put, all, call, select } from 'redux-saga/effects';
 import { push } from 'connected-react-router';
-import { CoreAPI } from 'react-kinetic-core';
+import { fetchUsers, fetchSpace, deleteSubmission } from '@kineticdata/react';
 import { List } from 'immutable';
 import { commonActions, toastActions } from 'common';
 import { actions, types } from '../modules/spaceApp';
@@ -10,8 +10,8 @@ import { DiscussionAPI } from 'discussions';
 
 export function* fetchAppSettingsSaga() {
   const [{ users, usersServerError }, { space, spaceServerError }] = yield all([
-    call(CoreAPI.fetchUsers),
-    call(CoreAPI.fetchSpace, {
+    call(fetchUsers),
+    call(fetchSpace, {
       include: 'userAttributeDefinitions,userProfileAttributeDefinitions',
     }),
   ]);
@@ -44,7 +44,7 @@ export function* fetchAppSettingsSaga() {
 }
 
 export function* deleteAlertSaga(action) {
-  const { errors, serverError } = yield call(CoreAPI.deleteSubmission, {
+  const { errors, serverError } = yield call(deleteSubmission, {
     id: action.payload,
   });
 

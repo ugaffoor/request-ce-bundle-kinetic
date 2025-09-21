@@ -38,7 +38,7 @@ class SettingsAudit extends Component {
       attributeNames: this.props.attributeNames,
     });
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (!nextProps.updateSpaceAttributesLoading) {
       this.setState({
         data: this.getData(nextProps.updateSpaceAttributes.submissions),
@@ -861,7 +861,10 @@ export const mapDispatchToProps = {
 };
 
 export const SchoolSettings = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withHandlers({}),
   lifecycle({
     UNSAFE_componentWillMount() {

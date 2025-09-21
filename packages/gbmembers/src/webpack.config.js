@@ -11,20 +11,16 @@ module.exports = {
   module: {
     rules: [
       {
+        test: /\.css$/i,
+        use: ['style-loader', 'css-loader'],
+      },
+      {
+        test: /\.wasm$/,
+        type: 'webassembly/async',
+      },
+      {
         test: /\.svg$/,
-        exclude: /node_modules/,
-        use: [
-          'babel-loader',
-          {
-            loader: reactSvgLoader, // 'react-svg'
-            query: {
-              svgo: {
-                pretty: true,
-                plugins: [{ removeStyleElement: true }],
-              },
-            },
-          },
-        ],
+        use: ['@svgr/webpack'],
       },
       {
         test: /\.js$/,

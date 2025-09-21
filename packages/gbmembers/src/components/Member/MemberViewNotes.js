@@ -2,10 +2,9 @@ import React, { Component } from 'react';
 import ReactTable from 'react-table';
 import moment from 'moment';
 import { contact_date_format } from '../leads/LeadsUtils';
-import binIcon from '../../images/bin.svg?raw';
+import { ReactComponent as BinIcon } from '../../images/bin.svg';
 import { confirm } from '../helpers/Confirmation';
 import { getJson } from '../Member/MemberUtils';
-import SVGInline from 'react-svg-inline';
 import phone from '../../images/phone.png';
 import mail from '../../images/mail.png';
 import sms from '../../images/sms.png';
@@ -117,7 +116,7 @@ export class MemberViewNotes extends Component {
         </span>
       );
     } else {
-      return <span className="notesCell"></span>;
+      return <span className="notesCell" />;
     }
   }
 
@@ -170,7 +169,7 @@ export class MemberViewNotes extends Component {
           }
         }}
       >
-        <SVGInline svg={binIcon} className="icon" />
+        <BinIcon className="icon icon-svg" />
       </span>
     );
   }

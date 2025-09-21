@@ -21,7 +21,7 @@ import { Teams } from './teams/Teams';
 import { Translations } from './translations/Translations';
 import { actions as datastoreActions } from '../../redux/modules/settingsDatastore';
 import { actions as teamActions } from '../../redux/modules/teamList';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 export const SettingsComponent = () => (
   <Switch>
@@ -57,7 +57,10 @@ const mapDispatchToProps = {
 };
 
 export const Settings = compose(
-  connect(null, mapDispatchToProps),
+  connect(
+    null,
+    mapDispatchToProps,
+  ),
   lifecycle({
     UNSAFE_componentWillMount(prev, next) {
       this.props.fetchForms();
@@ -183,6 +186,9 @@ const mapStateToProps = state => ({
   isSchedulerManager: selectHasRoleSchedulerManager(state),
 });
 
-export const SettingsNavigation = compose(connect(mapStateToProps, {}))(
-  SettingsNavigationComponent,
-);
+export const SettingsNavigation = compose(
+  connect(
+    mapStateToProps,
+    {},
+  ),
+)(SettingsNavigationComponent);

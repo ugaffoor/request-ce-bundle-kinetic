@@ -1,6 +1,11 @@
 import { List } from 'immutable';
 import { select, call, put, takeEvery, all } from 'redux-saga/effects';
-import { CoreAPI } from 'react-kinetic-core';
+import {
+  SubmissionSearch,
+  searchSubmissions,
+  createSubmission,
+  deleteSubmission,
+} from '@kineticdata/react';
 import { types, actions } from '../modules/attendance';
 import moment from 'moment';
 import { actions as errorActions } from '../modules/errors';
@@ -31,7 +36,7 @@ export function* fetchAttendancesByDate(action) {
     let dtTo = moment(action.payload.toDate);
     let allSubmissions = [];
 
-    const search = new CoreAPI.SubmissionSearch(true)
+    const search = new SubmissionSearch(true)
       .gteq('values[Class Date]', dtFrom.format('YYYY-MM-DD'))
       .lteq('values[Class Date]', dtTo.format('YYYY-MM-DD'))
       .index('values[Class Date]')
@@ -39,7 +44,8 @@ export function* fetchAttendancesByDate(action) {
       .limit(1000)
       .build();
 
-    var { submissions, nextPageToken } = yield call(CoreAPI.searchSubmissions, {
+    var { submissions, nextPageToken } = yield call(searchSubmissions, {
+      get: true,
       form: 'member-attendance',
       datastore: true,
       search,
@@ -47,7 +53,7 @@ export function* fetchAttendancesByDate(action) {
     allSubmissions = allSubmissions.concat(submissions);
 
     while (nextPageToken) {
-      var search2 = new CoreAPI.SubmissionSearch(true)
+      var search2 = new SubmissionSearch(true)
         .gteq('values[Class Date]', dtFrom.format('YYYY-MM-DD'))
         .lteq('values[Class Date]', dtTo.format('YYYY-MM-DD'))
         .index('values[Class Date]')
@@ -57,7 +63,8 @@ export function* fetchAttendancesByDate(action) {
         .build();
 
       var [submissions2] = yield all([
-        call(CoreAPI.searchSubmissions, {
+        call(searchSubmissions, {
+          get: true,
           form: 'member-attendance',
           datastore: true,
           search: search2,
@@ -85,7 +92,7 @@ export function* fetchMemberClassAttendancesByDate(action) {
     let dtTo = moment(action.payload.toDate);
     let allSubmissions = [];
 
-    const search = new CoreAPI.SubmissionSearch(true)
+    const search = new SubmissionSearch(true)
       .eq('values[Member GUID]', action.payload.memberItem.id)
       .gteq('values[Class Date]', dtFrom.format('YYYY-MM-DD'))
       .lteq('values[Class Date]', dtTo.format('YYYY-MM-DD'))
@@ -94,7 +101,8 @@ export function* fetchMemberClassAttendancesByDate(action) {
       .limit(1000)
       .build();
 
-    var { submissions } = yield call(CoreAPI.searchSubmissions, {
+    var { submissions } = yield call(searchSubmissions, {
+      get: true,
       form: 'member-attendance',
       datastore: true,
       search,
@@ -117,14 +125,15 @@ export function* fetchClassAttendances(action) {
   try {
     let dt = moment(action.payload.classDate);
 
-    const search = new CoreAPI.SubmissionSearch(true)
+    const search = new SubmissionSearch(true)
       .eq('values[Class Date]', dt.format('YYYY-MM-DD'))
       .index('values[Class Date]')
       .includes(['details', 'values'])
       .limit(1000)
       .build();
 
-    const { submissions } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions } = yield call(searchSubmissions, {
+      get: true,
       form: 'member-attendance',
       datastore: true,
       search,
@@ -170,7 +179,7 @@ export function* fetchClassAttendances(action) {
 }
 export function* fetchMemberAttendances(action) {
   try {
-    const search = new CoreAPI.SubmissionSearch(true)
+    const search = new SubmissionSearch(true)
       .eq('values[Member GUID]', action.payload.id)
       .gteq('values[Class Date]', action.payload.fromDate)
       .lteq('values[Class Date]', action.payload.toDate)
@@ -179,7 +188,8 @@ export function* fetchMemberAttendances(action) {
       .limit(1000)
       .build();
 
-    const { submissions } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions } = yield call(searchSubmissions, {
+      get: true,
       form: 'member-attendance',
       datastore: true,
       search,
@@ -193,7 +203,7 @@ export function* fetchMemberAttendances(action) {
 }
 export function* createAttendance(action) {
   try {
-    const { submission } = yield call(CoreAPI.createSubmission, {
+    const { submission } = yield call(createSubmission, {
       datastore: true,
       formSlug: 'member-attendance',
       values: action.payload.values,
@@ -296,7 +306,7 @@ export function* createAttendance(action) {
 export function* deleteAttendance(action) {
   try {
     console.log('deleteAttendance: ');
-    const { errors, serverError } = yield call(CoreAPI.deleteSubmission, {
+    const { errors, serverError } = yield call(deleteSubmission, {
       id: action.payload.attendance.id,
       datastore: true,
     });

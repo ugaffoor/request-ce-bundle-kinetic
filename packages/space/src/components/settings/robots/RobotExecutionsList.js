@@ -8,14 +8,14 @@ import { Constants, Loading, PageTitle } from 'common';
 import { NavLink } from 'react-router-dom';
 import wallyHappyImage from 'common/src/assets/images/wally-happy.svg';
 import { actions } from '../../../redux/modules/settingsRobots';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const getStatusColor = status =>
   status === 'Queued'
     ? 'status--yellow'
     : status === 'Running'
-    ? 'status--green'
-    : 'status--gray';
+      ? 'status--green'
+      : 'status--gray';
 
 const WallyEmptyMessage = () => {
   return (
@@ -96,19 +96,20 @@ const RobotExecutionsListComponent = ({
             </li>
           </ul>
         </div>
-        {robotExecutions.size <= 0 && robotExecutionsErrors.length > 0 && (
-          <div className="text-center text-danger">
-            <h1>
-              <I18n>Oops!</I18n>
-            </h1>
-            <h2>
-              <I18n>Robot Executions Not Found</I18n>
-            </h2>
-            {robotExecutionsErrors.map(error => (
-              <p className="error-details">{error}</p>
-            ))}
-          </div>
-        )}
+        {robotExecutions.size <= 0 &&
+          robotExecutionsErrors.length > 0 && (
+            <div className="text-center text-danger">
+              <h1>
+                <I18n>Oops!</I18n>
+              </h1>
+              <h2>
+                <I18n>Robot Executions Not Found</I18n>
+              </h2>
+              {robotExecutionsErrors.map(error => (
+                <p className="error-details">{error}</p>
+              ))}
+            </div>
+          )}
         {robotExecutions.size > 0 && (
           <table className="table table-sm table-striped table-robots">
             <thead className="header">
@@ -155,7 +156,9 @@ const RobotExecutionsListComponent = ({
                     </td>
                     <td>
                       <Link
-                        to={`/settings/robots/${execution.values['Robot ID']}/executions/${execution.id}`}
+                        to={`/settings/robots/${
+                          execution.values['Robot ID']
+                        }/executions/${execution.id}`}
                       >
                         <span>
                           <I18n>View</I18n>{' '}
@@ -169,9 +172,8 @@ const RobotExecutionsListComponent = ({
             </tbody>
           </table>
         )}
-        {robotExecutionsErrors.length <= 0 && robotExecutions.size === 0 && (
-          <WallyEmptyMessage />
-        )}
+        {robotExecutionsErrors.length <= 0 &&
+          robotExecutions.size === 0 && <WallyEmptyMessage />}
         <div className="robots-pagination">
           <div className="btn-group">
             <button
@@ -232,7 +234,10 @@ export const mapDispatchToProps = {
 };
 
 export const RobotExecutionsList = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withHandlers({
     handleNextPage: props => () =>
       props.fetchRobotExecutionsNextPage(props.match.params.robotId),

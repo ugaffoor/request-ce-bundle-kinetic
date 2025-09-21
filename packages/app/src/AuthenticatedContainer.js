@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { compose, withState, withHandlers, lifecycle } from 'recompose';
 import { Route, Switch } from 'react-router-dom';
 import { push } from 'connected-react-router';
-import { bundle } from 'react-kinetic-core';
+import { bundle } from '@kineticdata/react';
 
 import logoImage from './assets/images/gb-logo.jpg';
 
@@ -18,7 +18,7 @@ export const LoginScreen = props => (
     <div
       className="login-image-container"
       style={{ backgroundImage: `url(${logoImage})` }}
-    ></div>
+    />
     <div className="login-container">
       <div className="login-wrapper">{props.children}</div>
     </div>
@@ -165,7 +165,10 @@ const mapStateToProps = state => ({
 });
 
 export const AuthenticatedContainer = compose(
-  connect(mapStateToProps, { push }),
+  connect(
+    mapStateToProps,
+    { push },
+  ),
   withState('display', 'setDisplay', 'none'),
   withState('error', 'setError', ''),
   withState('email', 'setEmail', ''),
@@ -192,3 +195,135 @@ export const AuthenticatedContainer = compose(
     },
   }),
 )(Authenticated);
+
+export const Authentication = compose(
+  connect(
+    mapStateToProps,
+    { push },
+  ),
+  withState('display', 'setDisplay', 'none'),
+  withState('authenticated', 'setAuthenticated', false),
+  withHandlers({
+    toResetPassword,
+    toSignIn,
+    toCreateAccount,
+  }),
+  lifecycle({
+    componentDidMount() {
+      this.props.setAuthenticated(this.props.loggedIn);
+    },
+    componentDidUpdate(prevProps) {
+      if (
+        this.props.loggedIn !== prevProps.loggedIn ||
+        this.props.timedOut !== prevProps.timedOut
+      ) {
+        this.props.setAuthenticated(this.props.loggedIn);
+      }
+    },
+  }),
+)(({ loginProps, timedOut, authenticated, children, isPublic, ...props }) => {
+  return (
+    <>
+      {authenticated && !isPublic ? (
+        children
+      ) : (
+        <div>
+          {props.display === 'none' ? (
+            <Switch>
+              <Route
+                path="/login"
+                exact
+                render={route => (
+                  <LoginScreen>
+                    <LoginForm {...props} {...loginProps} {...route} routed />
+                  </LoginScreen>
+                )}
+              />
+              <Route
+                path="/reset-password"
+                exact
+                render={route => (
+                  <LoginScreen>
+                    <ResetPasswordForm {...props} {...route} routed />{' '}
+                  </LoginScreen>
+                )}
+              />
+              <Route
+                path="/reset-password/:token"
+                exact
+                render={route => (
+                  <LoginScreen>
+                    <ResetTokenForm {...props} {...route} routed />
+                  </LoginScreen>
+                )}
+              />
+              <Route
+                path="/create-account"
+                exact
+                render={route => (
+                  <LoginScreen>
+                    <CreateAccountForm {...props} {...route} routed />
+                  </LoginScreen>
+                )}
+              />
+              <Route
+                path="/kapps/:kappSlug/forms/:formSlug"
+                exact
+                render={route => (
+                  <UnauthenticatedForm {...props} {...route} routed />
+                )}
+              />
+              <Route
+                path="/kapps/:kappSlug/submissions/:id"
+                exact
+                render={route => (
+                  <UnauthenticatedForm {...props} {...route} routed />
+                )}
+              />
+              <Route
+                path="/kapps/:kappSlug/forms/:formSlug/submissions/:id"
+                exact
+                render={route => (
+                  <UnauthenticatedForm {...props} {...route} routed />
+                )}
+              />
+              <Route
+                path="/"
+                render={route => (
+                  <LoginScreen>
+                    {props.display === 'reset' ? (
+                      <ResetPasswordForm {...props} />
+                    ) : props.display === 'reset-token' ? (
+                      <ResetTokenForm {...props} />
+                    ) : props.display === 'create-account' ? (
+                      <CreateAccountForm {...props} />
+                    ) : (
+                      <LoginForm {...props} {...loginProps} />
+                    )}
+                  </LoginScreen>
+                )}
+              />
+            </Switch>
+          ) : (
+            <Route
+              path="/"
+              render={route => (
+                <LoginScreen>
+                  {props.display === 'reset' ? (
+                    <ResetPasswordForm {...props} />
+                  ) : props.display === 'reset-token' ? (
+                    <ResetTokenForm {...props} />
+                  ) : props.display === 'create-account' ? (
+                    <CreateAccountForm {...props} />
+                  ) : (
+                    <LoginForm {...props} {...loginProps} />
+                  )}
+                </LoginScreen>
+              )}
+            />
+          )}
+        </div>
+      )}
+    </>
+  );
+});

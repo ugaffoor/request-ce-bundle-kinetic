@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
 import ReactTable from 'react-table';
 import ReactToPrint from 'react-to-print';
-import SVGInline from 'react-svg-inline';
-import printerIcon from '../../images/Print.svg?raw';
+import { ReactComponent as PrinterIcon } from '../../images/Print.svg';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 export class PaysmartMemberDescrepencies extends Component {
@@ -10,6 +9,9 @@ export class PaysmartMemberDescrepencies extends Component {
     super(props);
     let data = [];
     let columns = this.getColumns();
+
+    this.tableComponentRef = React.createRef();
+
     this.state = {
       data,
       columns,
@@ -124,13 +126,11 @@ export class PaysmartMemberDescrepencies extends Component {
           <h6>Member PaySmart Descrepencies</h6>
         </div>
         <ReactToPrint
-          trigger={() => (
-            <SVGInline svg={printerIcon} className="icon tablePrint" />
-          )}
-          content={() => this.tableComponentRef}
+          trigger={() => <PrinterIcon className="icon icon-svg tablePrint" />}
+          content={() => this.tableComponentRef.current}
         />
         <ReactTable
-          ref={el => (this.tableComponentRef = el)}
+          ref={this.tableComponentRef}
           columns={columns}
           data={data}
           width="100%"

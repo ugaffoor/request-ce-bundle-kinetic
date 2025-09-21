@@ -1,5 +1,10 @@
 import { takeEvery, call, all, put, select } from 'redux-saga/effects';
-import { CoreAPI } from 'react-kinetic-core';
+import {
+  SubmissionSearch,
+  searchSubmissions,
+  updateSubmission,
+  deleteSubmission,
+} from '@kineticdata/react';
 
 import {
   actions as errorActions,
@@ -8,12 +13,12 @@ import {
 import { types, actions } from '../modules/journeyTriggers';
 const util = require('util');
 
-export const JOURNEY_GROUPS_SEARCH = new CoreAPI.SubmissionSearch(true)
+export const JOURNEY_GROUPS_SEARCH = new SubmissionSearch(true)
   .include('details,values')
   .limit(1000)
   .build();
 
-export const JOURNEY_TRIGGERS_SEARCH = new CoreAPI.SubmissionSearch(true)
+export const JOURNEY_TRIGGERS_SEARCH = new SubmissionSearch(true)
   .include('details,values')
   .limit(1000)
   .build();
@@ -25,7 +30,7 @@ export function* fetchJourneyEvents(action) {
     action.payload.memberID === null &&
     action.payload.leadID === null
   ) {
-    search = new CoreAPI.SubmissionSearch(true)
+    search = new SubmissionSearch(true)
       .eq('values[Trigger ID]', action.payload.triggerID)
       .index('values[Trigger ID]')
       .includes(['details', 'values'])
@@ -37,7 +42,7 @@ export function* fetchJourneyEvents(action) {
     action.payload.memberID !== null &&
     action.payload.leadID === null
   ) {
-    search = new CoreAPI.SubmissionSearch(true)
+    search = new SubmissionSearch(true)
       .eq('values[Record ID]', action.payload.memberID)
       .eq('values[Trigger ID]', action.payload.triggerID)
       .index('values[Record ID],values[Trigger ID]')
@@ -50,7 +55,7 @@ export function* fetchJourneyEvents(action) {
     action.payload.memberID === null &&
     action.payload.leadID !== null
   ) {
-    search = new CoreAPI.SubmissionSearch(true)
+    search = new SubmissionSearch(true)
       .eq('values[Record ID]', action.payload.leadID)
       .eq('values[Trigger ID]', action.payload.triggerID)
       .index('values[Record ID],values[Trigger ID]')
@@ -63,7 +68,7 @@ export function* fetchJourneyEvents(action) {
     action.payload.memberID !== null &&
     action.payload.leadID == null
   ) {
-    search = new CoreAPI.SubmissionSearch(true)
+    search = new SubmissionSearch(true)
       .eq('values[Record ID]', action.payload.memberID.value)
       .index('values[Record ID]')
       .includes(['details', 'values'])
@@ -75,7 +80,7 @@ export function* fetchJourneyEvents(action) {
     action.payload.memberID === null &&
     action.payload.leadID !== null
   ) {
-    search = new CoreAPI.SubmissionSearch(true)
+    search = new SubmissionSearch(true)
       .eq('values[Record ID]', action.payload.leadID.value)
       .index('values[Record ID]')
       .includes(['details', 'values'])
@@ -83,7 +88,8 @@ export function* fetchJourneyEvents(action) {
       .limit(50)
       .build();
   }
-  const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
+  const { submissions, serverError } = yield call(searchSubmissions, {
+    get: true,
     form: 'journey-event',
     search: search,
     datastore: true,
@@ -102,12 +108,14 @@ export function* fetchJourneyEvents(action) {
 
 export function* fetchJourneyInfo() {
   const { groups, triggers } = yield all({
-    groups: call(CoreAPI.searchSubmissions, {
+    groups: call(searchSubmissions, {
+      get: true,
       datastore: true,
       form: 'trigger-groups',
       search: JOURNEY_GROUPS_SEARCH,
     }),
-    triggers: call(CoreAPI.searchSubmissions, {
+    triggers: call(searchSubmissions, {
+      get: true,
       datastore: true,
       form: 'journey-triggers',
       search: JOURNEY_TRIGGERS_SEARCH,
@@ -133,7 +141,7 @@ export function* fetchJourneyInfo() {
 
 export function* updateJourneyTrigger({ payload }) {
   try {
-    const { submission, serverError } = yield call(CoreAPI.updateSubmission, {
+    const { submission, serverError } = yield call(updateSubmission, {
       id: payload.id,
       values: payload.values,
       datastore: true,
@@ -160,7 +168,7 @@ export function* updateJourneyTrigger({ payload }) {
 export function* deleteTrigger(action) {
   try {
     console.log('deleteTrigger: ');
-    const { errors, serverError } = yield call(CoreAPI.deleteSubmission, {
+    const { errors, serverError } = yield call(deleteSubmission, {
       id: action.payload.id,
       datastore: true,
     });

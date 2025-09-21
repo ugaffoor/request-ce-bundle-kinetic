@@ -8,8 +8,7 @@ import moment from 'moment';
 import reactCSS from 'reactcss';
 import { SketchPicker } from 'react-color';
 import Select from 'react-select';
-import helpIcon from '../../images/help.svg?raw';
-import SVGInline from 'react-svg-inline';
+import { ReactComponent as Help } from '../../images/help.svg';
 
 const mapStateToProps = state => ({});
 const mapDispatchToProps = {
@@ -323,9 +322,8 @@ export class ClassDialog extends Component {
               <div className="cancellationCutoffDiv form-group">
                 <label htmlFor="cancellationCutoff">
                   Cancellation Cutoff (hours)
-                  <SVGInline
-                    svg={helpIcon}
-                    className="icon help"
+                  <Help
+                    className="icon help icon-svg"
                     onClick={e => {
                       $('.cancellationCutoffHelp').toggle('');
                     }}
@@ -355,9 +353,8 @@ export class ClassDialog extends Component {
               <div className="bookingCutoffDiv form-group">
                 <label htmlFor="bookingCutoff">
                   Booking Cutoff (hours)
-                  <SVGInline
-                    svg={helpIcon}
-                    className="icon help"
+                  <Help
+                    className="icon help icon-svg"
                     onClick={e => {
                       $('.bookingCutoffHelp').toggle('');
                     }}
@@ -446,8 +443,8 @@ export class ClassDialog extends Component {
                     this.state.allowedPrograms === ''
                       ? ''
                       : typeof this.state.allowedPrograms === 'string'
-                      ? JSON.parse(this.state.allowedPrograms)
-                      : this.state.allowedPrograms
+                        ? JSON.parse(this.state.allowedPrograms)
+                        : this.state.allowedPrograms
                   }
                   onChange={this.handleAllowedProgramsChange}
                   options={this.getProgramOptions(
@@ -523,21 +520,22 @@ export class ClassDialog extends Component {
                   </div>
                 </div>
               )}
-              {this.state.acceptTrials && this.state.studentType === 'Child' && (
-                <div className="titleDiv form-group">
-                  <label htmlFor="ageInfo">Age Information</label>
-                  <input
-                    type="text"
-                    name="ageInfo"
-                    id="ageInfo"
-                    placeHolder="Describe age group of students"
-                    value={this.state.ageInfo}
-                    onChange={e => {
-                      this.setState({ ageInfo: e.target.value });
-                    }}
-                  />
-                </div>
-              )}
+              {this.state.acceptTrials &&
+                this.state.studentType === 'Child' && (
+                  <div className="titleDiv form-group">
+                    <label htmlFor="ageInfo">Age Information</label>
+                    <input
+                      type="text"
+                      name="ageInfo"
+                      id="ageInfo"
+                      placeHolder="Describe age group of students"
+                      value={this.state.ageInfo}
+                      onChange={e => {
+                        this.setState({ ageInfo: e.target.value });
+                      }}
+                    />
+                  </div>
+                )}
               {this.state.event !== undefined && (
                 <button
                   type="button"
@@ -562,7 +560,12 @@ export class ClassDialog extends Component {
   }
 }
 
-const enhance = compose(connect(mapStateToProps, mapDispatchToProps));
+const enhance = compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
+);
 const inlineStyle = {
   width: '500px',
   top: '20%',

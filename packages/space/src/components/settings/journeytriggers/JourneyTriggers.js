@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { compose, lifecycle, withHandlers, withState } from 'recompose';
 import { PageTitle, Loading } from 'common';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 import { actions } from '../../../redux/modules/journeyTriggers';
-import { CoreForm } from 'react-kinetic-core';
+import { CoreForm } from '@kineticdata/react';
 import { EmailTemplateContainer } from './EmailTemplate';
 import { SMSTemplateContainer } from './SMSTemplate';
 import { ScriptTemplateContainer } from './ScriptTemplate';
@@ -161,7 +161,7 @@ export class TriggerStatus extends Component {
             });
           }}
         />
-        <label htmlFor={this.props.trigger.id}></label>
+        <label htmlFor={this.props.trigger.id} />
       </div>
     );
   }
@@ -886,8 +886,8 @@ export class BlockTriggers extends Component {
                                         ? 'fa fa-fw fa-phone'
                                         : trigger.values['Contact Type'] ===
                                           'SMS'
-                                        ? 'fa fa-fw fa-comment-o'
-                                        : 'fa fa-fw fa-envelope-o'
+                                          ? 'fa fa-fw fa-comment-o'
+                                          : 'fa fa-fw fa-envelope-o'
                                     }
                                   />
                                 </td>
@@ -982,29 +982,30 @@ export class TriggerTypeBlocks extends Component {
   render() {
     return (
       <div>
-        {!this.state.showBlocks && !this.state.showBlockTriggers && (
-          <div
-            className="block"
-            onClick={e => {
-              if (this.props.type === 'Member') {
-                this.props.setHideLeadBlock(true);
-                this.props.setHideActivityBlock(true);
-              }
-              if (this.props.type === 'Lead') {
-                this.props.setHideMemberBlock(true);
-                this.props.setHideActivityBlock(true);
-              }
-              this.props.setShowTriggerActivities(false);
+        {!this.state.showBlocks &&
+          !this.state.showBlockTriggers && (
+            <div
+              className="block"
+              onClick={e => {
+                if (this.props.type === 'Member') {
+                  this.props.setHideLeadBlock(true);
+                  this.props.setHideActivityBlock(true);
+                }
+                if (this.props.type === 'Lead') {
+                  this.props.setHideMemberBlock(true);
+                  this.props.setHideActivityBlock(true);
+                }
+                this.props.setShowTriggerActivities(false);
 
-              this.setState({
-                showBlocks: true,
-              });
-            }}
-          >
-            <div className="title">{this.props.title}</div>
-            <div className="info">{this.props.info}</div>
-          </div>
-        )}
+                this.setState({
+                  showBlocks: true,
+                });
+              }}
+            >
+              <div className="title">{this.props.title}</div>
+              <div className="info">{this.props.info}</div>
+            </div>
+          )}
         {this.state.showBlocks && (
           <div className="blockGroups">
             <div
@@ -1243,7 +1244,10 @@ export const mapDispatchToProps = {
 };
 
 export const JourneyTriggers = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('hideMemberBlock', 'setHideMemberBlock', false),
   withState('hideLeadBlock', 'setHideLeadBlock', false),
   withState('hideActivityBlock', 'setHideActivityBlock', false),
