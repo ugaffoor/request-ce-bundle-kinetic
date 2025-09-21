@@ -213,7 +213,9 @@ export class PromotionDialog extends Component {
               </span>
             </div>
             <div className="infoAction">
-              {this.props.memberItem.values['Photo'] === undefined ? (
+              {this.props.memberItem.values['Photo'] === undefined ||
+              this.props.memberItem.values['Photo'] === null ||
+              this.props.memberItem.values['Photo'] === '' ? (
                 <span className="noPhoto">
                   {this.props.memberItem.values['First Name'][0]}
                   {this.props.memberItem.values['Last Name'][0]}

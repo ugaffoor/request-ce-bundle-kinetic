@@ -218,7 +218,7 @@ class SchoolAttributes extends Component {
             }
             width="400px"
             labelName="School Address"
-            helpText="School Address, this appears in emails and memberhip agreements. Please contact support@graciebarra.com to edit this value."
+            helpText="School Address, this appears in emails and memberhip agreements. Please contact software@graciebarra.com to edit this value."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
             space={this.props.space}
             appSpace={this.props.appSpace}
@@ -236,7 +236,7 @@ class SchoolAttributes extends Component {
             }
             width="100px"
             labelName="School Telephone"
-            helpText="School Telephone, this appears in emails, SMS and memberhip agreements. Please contact support@graciebarra.com to edit this value."
+            helpText="School Telephone, this appears in emails, SMS and memberhip agreements. Please contact software@graciebarra.com to edit this value."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
             space={this.props.space}
             appSpace={this.props.appSpace}
@@ -356,8 +356,10 @@ Indications in the application will identify members not compliant."
         </span>
         <span className="detailsSection">
           <h6>Billing</h6>
-          {Utils.getAttributeValue(this.props.space, 'Billing Company') ===
-            'Bambora' && (
+          {(Utils.getAttributeValue(this.props.space, 'Billing Company') ===
+            'Bambora' ||
+            Utils.getAttributeValue(this.props.space, 'Billing Company') ===
+              'Stripe') && (
             <span className="adminFee">
               <EditAttributeValue
                 attributeID="ignoreAdminFee"
@@ -425,8 +427,10 @@ Indications in the application will identify members not compliant."
             profile={this.props.profile}
           />
         </span>
-        {Utils.getAttributeValue(this.props.space, 'Billing Company') ===
-          'Bambora' && (
+        {(Utils.getAttributeValue(this.props.space, 'Billing Company') ===
+          'Bambora' ||
+          Utils.getAttributeValue(this.props.space, 'Billing Company') ===
+            'Stripe') && (
           <span className="detailsSection">
             <h6>Membership Taxes</h6>
             <EditAttributeValue
@@ -477,8 +481,10 @@ Indications in the application will identify members not compliant."
             />
           </span>
         )}
-        {Utils.getAttributeValue(this.props.space, 'Billing Company') ===
-          'Bambora' && (
+        {(Utils.getAttributeValue(this.props.space, 'Billing Company') ===
+          'Bambora' ||
+          Utils.getAttributeValue(this.props.space, 'Billing Company') ===
+            'Stripe') && (
           <span className="detailsSection">
             <h6>POS Taxes</h6>
             <EditAttributeValue
@@ -501,6 +507,7 @@ Indications in the application will identify members not compliant."
               helpText="POS Tax percentage value applied to products."
               updateSpaceAttribute={this.props.updateSpaceAttribute}
               space={this.props.space}
+              appSpace={this.props.appSpace}
               profile={this.props.profile}
             />
             <EditAttributeValue
@@ -511,6 +518,7 @@ Indications in the application will identify members not compliant."
               helpText="Label applied to the POS Tax value .<br/>Eg, HST 13%"
               updateSpaceAttribute={this.props.updateSpaceAttribute}
               space={this.props.space}
+              appSpace={this.props.appSpace}
               profile={this.props.profile}
             />
             <EditAttributeValue
@@ -578,6 +586,18 @@ Indications in the application will identify members not compliant."
             profile={this.props.profile}
           />
           <EditAttributeValue
+            attributeID="switchTrialClassBookingOrder"
+            attributeName="Switch Trial Class Booking Order"
+            inputType="yesToggleValue"
+            width="400px"
+            labelName="Switch Trial Class Booking Order"
+            helpText="Check to Switch the trial class booking order, to first select class then provide name details. The default is to provide name details first then select a class."
+            updateSpaceAttribute={this.props.updateSpaceAttribute}
+            space={this.props.space}
+            appSpace={this.props.appSpace}
+            profile={this.props.profile}
+          />
+          <EditAttributeValue
             attributeID="thankyouURL"
             attributeName="Trial Booking Thank you URL"
             inputType="Text"
@@ -596,6 +616,18 @@ Indications in the application will identify members not compliant."
             width="400px"
             labelName="Trial Calendar Name"
             helpText="This Trial Calendar Name an be used to seperate Trial Bookings from the Primary calendar events."
+            updateSpaceAttribute={this.props.updateSpaceAttribute}
+            space={this.props.space}
+            appSpace={this.props.appSpace}
+            profile={this.props.profile}
+          />
+          <EditAttributeValue
+            attributeID="trialBookingCutOff"
+            attributeName="Trial Booking Cut Off"
+            inputType="Integer"
+            width="40px"
+            labelName="Trial Booking Cut Off"
+            helpText="Number of hours before a Trial Booking is allowed to be made."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
             space={this.props.space}
             appSpace={this.props.appSpace}

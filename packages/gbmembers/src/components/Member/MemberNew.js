@@ -1068,34 +1068,35 @@ export const MemberNew = ({
                     />
                   </div>
                 </span>
-                {getAttributeValue(space, 'Billing Company') === 'Bambora' && (
-                  <span className="line">
-                    <div>
-                      <label
-                        htmlFor="billingReceipt"
-                        style={{ minWidth: '100px' }}
-                      >
-                        Send Billing Payment Receipt
-                      </label>
-                      <input
-                        type="checkbox"
-                        name="billingReceipt"
-                        id="billingReceipt"
-                        style={{ clear: 'none', margin: '4px' }}
-                        ref={input => (this.input = input)}
-                        value="YES"
-                        checked={
-                          memberItem.values['Send Payment Receipt'] === 'YES'
-                            ? true
-                            : false
-                        }
-                        onChange={e =>
-                          handleChange(memberItem, 'Send Payment Receipt', e)
-                        }
-                      />
-                    </div>
-                  </span>
-                )}
+                {getAttributeValue(space, 'Billing Company') === 'Bambora' ||
+                  (getAttributeValue(space, 'Billing Company') === 'Stripe' && (
+                    <span className="line">
+                      <div>
+                        <label
+                          htmlFor="billingReceipt"
+                          style={{ minWidth: '100px' }}
+                        >
+                          Send Billing Payment Receipt
+                        </label>
+                        <input
+                          type="checkbox"
+                          name="billingReceipt"
+                          id="billingReceipt"
+                          style={{ clear: 'none', margin: '4px' }}
+                          ref={input => (this.input = input)}
+                          value="YES"
+                          checked={
+                            memberItem.values['Send Payment Receipt'] === 'YES'
+                              ? true
+                              : false
+                          }
+                          onChange={e =>
+                            handleChange(memberItem, 'Send Payment Receipt', e)
+                          }
+                        />
+                      </div>
+                    </span>
+                  ))}
                 <span className="line">
                   <div>
                     <label htmlFor="optout" style={{ minWidth: '100px' }}>

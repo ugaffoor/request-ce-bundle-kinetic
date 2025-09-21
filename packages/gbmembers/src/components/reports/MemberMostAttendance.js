@@ -100,7 +100,8 @@ export class MemberMostAttendance extends Component {
         (allMembers[mIdx].values['Status'] === 'Active' ||
           allMembers[mIdx].values['Status'] === 'Pending Freeze' ||
           allMembers[mIdx].values['Status'] === 'Pending Cancellation') &&
-        allMembers[mIdx].values['Ranking Program'] === program
+        (allMembers[mIdx].values['Ranking Program'] === program ||
+          program === 'All')
       ) {
         programMembers.push({ member: allMembers[mIdx], count: value.count });
       }
@@ -418,6 +419,7 @@ export class MemberMostAttendance extends Component {
               }}
             >
               <option value="" />
+              <option value="All">All</option>
               {this.props.programs.map(program => (
                 <option key={program.program} value={program.program}>
                   {program.program}

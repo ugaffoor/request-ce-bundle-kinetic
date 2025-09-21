@@ -432,6 +432,26 @@ export function* deleteTrialBooking(action) {
     yield put(errorActions.setSystemError(error));
   }
 }
+export function flushServicesCache(space, attributeName) {
+  if (
+    attributeName === 'Switch Trial Class Booking Order' ||
+    attributeName === 'School Closed Dates' ||
+    attributeName === 'School Start Date'
+  ) {
+    axios
+      .get(
+        'https://services.gbmembers.net/gbcalendar-3.0/flushCache.htm?space=' +
+          space,
+      )
+      .then(result => {
+        console.log('flushCache:' + result);
+      })
+      .catch(error => {
+        console.log(error.response);
+      });
+  }
+}
+
 export function* updateSpaceAttribute(action) {
   try {
     const { submission, error, statusCode } = yield call(
@@ -449,6 +469,10 @@ export function* updateSpaceAttribute(action) {
           'Attribute value updated',
           action.payload.values['Attribute Name'] + ' updated',
         ),
+      );
+      flushServicesCache(
+        action.payload.space.slug,
+        action.payload.values['Attribute Name'],
       );
     } else {
       yield put(errorActions.addError('Attribute value updated', error));

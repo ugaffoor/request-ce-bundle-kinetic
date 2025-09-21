@@ -1054,7 +1054,7 @@ export function* syncBillingCustomer(action) {
         action.payload.setBillingInfo(result.data.data);
         // Update memberItem values from billingInfo
         action.payload.memberItem.values['Billing Customer Reference'] =
-          result.data.data.customerReference;
+          result.data.data.customerBillingId;
         action.payload.memberItem.values['Billing Customer Id'] =
           result.data.data.customerBillingId;
         action.payload.memberItem.values['Billing User'] = 'YES';
@@ -2104,7 +2104,9 @@ export function* refundPOSTransaction(action) {
   args.space = appSettings.spaceSlug;
   args.billingService = appSettings.billingCompany;
   args.transactionId = action.payload.transactionId;
+  args.customerId = action.payload.customerId;
   args.refundAmount = action.payload.refundAmount;
+  args.bankReceiptId = 'POS';
 
   axios
     .post(appSettings.kineticBillingServerUrl + refundTransactionUrl, args)

@@ -15,6 +15,7 @@ import binIcon from '../../images/bin.svg?raw';
 import tickIcon from '../../images/tick.svg?raw';
 import crossIcon from '../../images/cross.svg?raw';
 import waiverCheckedIcon from '../../images/assignment_turned_in.svg?raw';
+import birthdayIcon from '../../images/birthdayPop.svg?raw';
 import SVGInline from 'react-svg-inline';
 import Select from 'react-select';
 import { withHandlers } from 'recompose';
@@ -27,6 +28,7 @@ import {
   validOverdue,
   getLastBillingStartDate,
   isBamboraFailedPayment,
+  isBirthday,
 } from '../Member/MemberUtils';
 import { getTimezone } from '../leads/LeadsUtils';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
@@ -195,7 +197,9 @@ export class SelfCheckin extends Component {
       return (
         <span className="countdown">
           <div className="details">
-            {this.state.memberItem.values['Photo'] === undefined ? (
+            {this.state.memberItem.values['Photo'] === undefined ||
+            this.state.memberItem.values['Photo'] === null ||
+            this.state.memberItem.values['Photo'] === '' ? (
               <span className="noPhoto">
                 {this.state.memberItem.values['First Name'] !== undefined &&
                 this.state.memberItem.values['First Name'] !== ''
@@ -1120,8 +1124,9 @@ export class SelfCheckin extends Component {
                             <div className="member-option">
                               {value.member !== undefined ? (
                                 <div className="memberInfo">
-                                  {value.member.values['Photo'] ===
-                                  undefined ? (
+                                  {value.member.values['Photo'] === undefined ||
+                                  value.member.values['Photo'] === null ||
+                                  value.member.values['Photo'] === '' ? (
                                     <span className="noPhoto">
                                       {value.member.values['First Name'] !==
                                         undefined &&
@@ -1228,7 +1233,9 @@ export class SelfCheckin extends Component {
                   <div />
                 ) : (
                   <div className="memberInfo">
-                    {this.state.memberItem.values['Photo'] === undefined ? (
+                    {this.state.memberItem.values['Photo'] === undefined ||
+                    this.state.memberItem.values['Photo'] === null ||
+                    this.state.memberItem.values['Photo'] === '' ? (
                       <span className="noPhoto">
                         {this.state.memberItem.values['First Name'] !==
                           undefined &&
@@ -1513,7 +1520,9 @@ export class SelfCheckin extends Component {
                               id={checkin.id}
                             >
                               <span className="top">
-                                {checkin.values['Photo'] === undefined ? (
+                                {checkin.values['Photo'] === undefined ||
+                                checkin.values['Photo'] === null ||
+                                checkin.values['Photo'] === '' ? (
                                   <span className="noPhoto">
                                     {checkin.values['First Name'] !==
                                       undefined &&
@@ -2732,7 +2741,10 @@ export class AttendanceDetail extends Component {
                       <div className="classBookings">
                         {this.props.classBookings
                           .filter(booking => {
-                            return booking.title === this.state.classTitle;
+                            return (
+                              booking.program === this.state.className &&
+                              booking.title === this.state.classTitle
+                            );
                           })
                           .map((booking, index) => (
                             <span
@@ -2898,7 +2910,9 @@ export class AttendanceDetail extends Component {
                   <div />
                 ) : (
                   <div className="memberInfo">
-                    {this.state.memberItem.values['Photo'] === undefined ? (
+                    {this.state.memberItem.values['Photo'] === undefined ||
+                    this.state.memberItem.values['Photo'] === null ||
+                    this.state.memberItem.values['Photo'] === '' ? (
                       <span className="noPhoto">
                         {this.state.memberItem.values['First Name'] !==
                           undefined &&
@@ -3150,9 +3164,9 @@ export class AttendanceDetail extends Component {
                     this.props.classAttendances.filter(checkin => {
                       var result =
                         checkin.values['Class Time'] === this.state.classTime &&
-                        (checkin.values['Title'] === undefined ||
+                        /*(checkin.values['Title'] === undefined ||
                           checkin.values['Title'] === '' ||
-                          checkin.values['Title'] === this.state.classTitle) &&
+                          checkin.values['Title'] === this.state.classTitle) && */
                         checkin.values['Class'] === this.state.className;
 
                       if (result) {
@@ -3186,10 +3200,10 @@ export class AttendanceDetail extends Component {
                           return (
                             checkin.values['Class Time'] ===
                               this.state.classTime &&
-                            (checkin.values['Title'] === undefined ||
+                            /*(checkin.values['Title'] === undefined ||
                               checkin.values['Title'] === '' ||
                               checkin.values['Title'] ===
-                                this.state.classTitle) &&
+                                this.state.classTitle) && */
                             checkin.values['Class'] === this.state.className
                           );
                         }).length === 0
@@ -3205,10 +3219,10 @@ export class AttendanceDetail extends Component {
                           return (
                             checkin.values['Class Time'] ===
                               this.state.classTime &&
-                            (checkin.values['Title'] === undefined ||
+                            /*(checkin.values['Title'] === undefined ||
                               checkin.values['Title'] === '' ||
                               checkin.values['Title'] ===
-                                this.state.classTitle) &&
+                                this.state.classTitle) && */
                             checkin.values['Class'] === this.state.className
                           );
                         }).length === 0
@@ -3233,10 +3247,10 @@ export class AttendanceDetail extends Component {
                             return (
                               checkin.values['Class Time'] ===
                                 this.state.classTime &&
-                              (checkin.values['Title'] === undefined ||
+                              /*(checkin.values['Title'] === undefined ||
                                 checkin.values['Title'] === '' ||
                                 checkin.values['Title'] ===
-                                  this.state.classTitle) &&
+                                  this.state.classTitle) && */
                               checkin.values['Class'] ===
                                 this.state.className &&
                               checkin.values['First Name'] !== 'Member Deleted'
@@ -3253,7 +3267,9 @@ export class AttendanceDetail extends Component {
                               id={checkin.id}
                             >
                               <span className="top">
-                                {checkin.values['Photo'] === undefined ? (
+                                {checkin.values['Photo'] === undefined ||
+                                checkin.values['Photo'] === null ||
+                                checkin.values['Photo'] === '' ? (
                                   <span className="noPhoto">
                                     {checkin.values['First Name'] !==
                                       undefined &&
@@ -3344,6 +3360,14 @@ export class AttendanceDetail extends Component {
                                         />
                                       </h5>
                                     )}
+                                  {isBirthday(checkin.memberItem) && (
+                                    <div className="dobIcon">
+                                      <SVGInline
+                                        svg={birthdayIcon}
+                                        className="icon"
+                                      />
+                                    </div>
+                                  )}
                                   {checkin.overdueMember ? (
                                     <span
                                       className="overdue"

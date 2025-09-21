@@ -61,7 +61,7 @@ export class EditAttributeValue extends Component {
     }
     if (this.props.inputType === 'PercentageText') {
       let value = getAttributeValue(this.props.space, this.props.attributeName);
-      if (value !== '') {
+      if (value !== undefined && value !== '') {
         value = value.replace('%', '');
         value = parseFloat(value) / 100;
         percentageTextValue = value;
@@ -283,17 +283,17 @@ export class EditAttributeValue extends Component {
               </label>
             </span>
           )}
-          {this.props.inputType === 'noToggleValue' && (
-            <span className="noToggleValue">
+          {this.props.inputType === 'yesToggleValue' && (
+            <span className="yesToggleValue">
               <input
                 type="checkbox"
                 id={this.props.attributeID + 'Attribute'}
                 value="YES"
-                checked={this.state.value === 'NO' ? true : false}
+                checked={this.state.value === 'YES' ? true : false}
                 name={this.props.attributeID + 'Attribute'}
                 onChange={e => {
                   this.setState({
-                    value: e.target.checked ? 'NO' : undefined,
+                    value: e.target.checked ? 'YES' : undefined,
                   });
                 }}
               />
@@ -838,6 +838,7 @@ export class EditAttributeValue extends Component {
             });
 
             this.props.updateSpaceAttribute({
+              space: this.props.space,
               values,
             });
             setAttributeValue(

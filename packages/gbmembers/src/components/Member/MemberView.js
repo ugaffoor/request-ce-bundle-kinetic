@@ -590,7 +590,9 @@ class AttendanceCardToPrint extends React.Component {
           }
         >
           <div className="photoDiv">
-            {this.props.memberItem.values['Photo'] === undefined &&
+            {(this.props.memberItem.values['Photo'] === undefined ||
+              this.props.memberItem.values['Photo'] === null ||
+              this.props.memberItem.values['Photo'] === '') &&
             this.props.memberItem.values['First Name'] !== undefined ? (
               <span className="noPhotoDiv">
                 <span className="name">
@@ -732,7 +734,9 @@ class AttendanceCardToPrint extends React.Component {
               />
             </div>
             <div className="photoDiv">
-              {this.props.memberItem.values['Photo'] === undefined &&
+              {(this.props.memberItem.values['Photo'] === undefined ||
+                this.props.memberItem.values['Photo'] === null ||
+                this.props.memberItem.values['Photo'] === '') &&
               this.props.memberItem.values['First Name'] !== undefined ? (
                 <span className="noPhotoDiv">
                   <span className="name">
@@ -829,7 +833,9 @@ class VisitorCardToPrint extends React.Component {
             </p>
           </div>
           <div className="photoDiv">
-            {this.props.memberItem.values['Photo'] === undefined &&
+            {(this.props.memberItem.values['Photo'] === undefined ||
+              this.props.memberItem.values['Photo'] === null ||
+              this.props.memberItem.values['Photo'] === '') &&
             this.props.memberItem.values['First Name'] !== undefined ? (
               <span className="noPhotoDiv">
                 <span className="name">
@@ -873,7 +879,9 @@ class CoachCardToPrint extends React.Component {
             </p>
           </div>
           <div className="photoDiv">
-            {this.props.memberItem.values['Photo'] === undefined &&
+            {(this.props.memberItem.values['Photo'] === undefined ||
+              this.props.memberItem.values['Photo'] === null ||
+              this.props.memberItem.values['Photo'] === '') &&
             this.props.memberItem.values['First Name'] !== undefined ? (
               <span className="noPhotoDiv">
                 <span className="name">
@@ -1008,7 +1016,9 @@ export const MemberView = ({
         <div className="viewContent">
           <div className="general">
             <div className="userDetails">
-              {memberItem.values['Photo'] === undefined &&
+              {(memberItem.values['Photo'] === undefined ||
+                memberItem.values['Photo'] === null ||
+                memberItem.values['Photo'] === '') &&
               memberItem.values['First Name'] !== undefined ? (
                 <span className="noPhoto">
                   {memberItem.values['First Name'][0]}
@@ -2583,6 +2593,7 @@ export const MemberViewContainer = compose(
     ) => {
       console.log('### paymentId = ' + paymentId);
       let args = {};
+      args.customerId = memberItem.values['Member ID'];
       args.orderid = orderid;
       args.transactionId = paymentId;
       args.refundAmount = paymentAmount;
