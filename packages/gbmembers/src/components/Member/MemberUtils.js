@@ -250,6 +250,21 @@ var currencies = {
   },
 };
 
+export function isBirthday(member) {
+  if (
+    member.values['DOB'] === undefined ||
+    member.values['DOB'] === '' ||
+    member.values['DOB'] === null
+  )
+    return false;
+  let dob = moment(member.values['DOB'], 'YYYY-MM-DD');
+  let today = moment();
+
+  return dob.date() == today.date() && dob.month() === today.month()
+    ? true
+    : false;
+}
+
 export function isBamboraFailedPayment(payment) {
   return (
     (payment.paymentStatus === 'Transaction Declined' ||

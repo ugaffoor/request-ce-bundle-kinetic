@@ -1233,7 +1233,8 @@ export const LeadDetailContainer = compose(
         timeZone: getTimezone(profile.timezone, space.defaultTimezone),
         calendarName: getAttributeValue(space, 'Trial Calendar Name'),
       };
-      let startDateTime = moment(contactDate, 'YYYY-MM-DD HH:mm');
+
+      let startDateTime = moment(contactDate);
       let rfcStartDateTime = startDateTime.utc().format('YYYY-MM-DDTHH:mm:ssZ');
 
       var triggerIdx = journeyTriggers.findIndex(

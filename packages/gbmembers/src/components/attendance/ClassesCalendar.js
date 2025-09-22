@@ -127,6 +127,7 @@ export class ClassesCalendar extends Component {
     start,
     end,
     title,
+    description,
     program,
     maxStudents,
     colour,
@@ -147,6 +148,7 @@ export class ClassesCalendar extends Component {
       let values = {};
       values['id'] = id;
       values['Title'] = title;
+      values['Description'] = description;
       values['Program'] = program;
       values['Max Students'] = maxStudents;
       values['Start'] = this.formatCalendarDate(start);
@@ -170,6 +172,7 @@ export class ClassesCalendar extends Component {
             start,
             end,
             title,
+            description,
             maxStudents,
             program,
             colour,
@@ -191,6 +194,7 @@ export class ClassesCalendar extends Component {
         values: values,
         classEvent: {
           title,
+          description,
           program,
           maxStudents,
           start: convertCalendarDate(values['Start']),
@@ -212,6 +216,7 @@ export class ClassesCalendar extends Component {
         const events = [...prevState.events];
         const idx = events.indexOf(event);
         events[idx].title = title;
+        events[idx].description = description;
         events[idx].program = program;
         events[idx].maxStudents = maxStudents;
         events[idx].colour = colour;
@@ -233,6 +238,7 @@ export class ClassesCalendar extends Component {
       let values = {};
       values['id'] = event.id;
       values['Title'] = title;
+      values['Description'] = description;
       values['Program'] = program;
       values['Max Students'] = maxStudents;
       values['Start'] = this.formatCalendarDate(start);
@@ -259,6 +265,7 @@ export class ClassesCalendar extends Component {
         var scheduledClass = this.props.classSchedules.get(cidx);
 
         scheduledClass.title = title;
+        scheduledClass.description = description;
         scheduledClass.program = program;
         scheduledClass.maxStudents = maxStudents;
         scheduledClass.start = convertCalendarDate(values['Start']);

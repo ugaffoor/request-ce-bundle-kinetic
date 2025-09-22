@@ -33,6 +33,7 @@ export class ClassDialog extends Component {
     this.setState({
       event: undefined,
       title: undefined,
+      description: undefined,
       program: undefined,
       color: undefined,
       textColor: undefined,
@@ -49,6 +50,7 @@ export class ClassDialog extends Component {
       this.state.start,
       this.state.end,
       this.state.title,
+      this.state.description,
       this.state.program,
       this.state.maxStudents,
       this.state.color.hex,
@@ -66,6 +68,7 @@ export class ClassDialog extends Component {
     this.setState({
       event: undefined,
       title: undefined,
+      description: undefined,
       program: undefined,
       maxStudents: undefined,
       color: undefined,
@@ -158,6 +161,7 @@ export class ClassDialog extends Component {
         start: this.props.event.start,
         end: this.props.event.end,
         title: this.props.event.title,
+        description: this.props.event.description,
         program: this.props.event.program,
         maxStudents: this.props.event.maxStudents,
         color: { hex: this.props.event.colour },
@@ -177,6 +181,7 @@ export class ClassDialog extends Component {
         start: this.props.start,
         end: this.props.end,
         title: undefined,
+        description: undefined,
         program: undefined,
         maxStudents: undefined,
         color: { hex: '#6F6E6E' },
@@ -279,6 +284,38 @@ export class ClassDialog extends Component {
                     this.setState({ title: e.target.value });
                   }}
                 />
+              </div>
+              <div className="descriptionDiv form-group">
+                <label htmlFor="title">
+                  Description
+                  <SVGInline
+                    svg={helpIcon}
+                    className="icon help"
+                    onClick={e => {
+                      $('.descriptionHelp').toggle('');
+                    }}
+                  />
+                </label>
+                <input
+                  type="text"
+                  name="description"
+                  id="description"
+                  defaultValue={this.state.description}
+                  onChange={e => {
+                    this.setState({ description: e.target.value });
+                  }}
+                />
+                <span className={'descriptionHelp'} style={{ display: 'none' }}>
+                  <ul>
+                    <li>
+                      Description is used by the Timetable widget to help
+                      describe a Class.
+                      <br />
+                      Note, this is not the same as the Age information for a
+                      Trial Class.
+                    </li>
+                  </ul>
+                </span>
               </div>
               <div className="programDiv form-group required">
                 <label htmlFor="program">Program</label>
