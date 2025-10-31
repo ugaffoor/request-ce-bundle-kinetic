@@ -1469,6 +1469,7 @@ export class SelfCheckin extends Component {
                       var result =
                         checkin.values['Class Time'] === this.state.classTime &&
                         (checkin.values['Title'] === undefined ||
+                          checkin.values['Title'] === null ||
                           checkin.values['Title'] === '' ||
                           checkin.values['Title'] === this.state.classTitle) &&
                         checkin.values['Class'] === this.state.className;
@@ -1503,6 +1504,7 @@ export class SelfCheckin extends Component {
                               checkin.values['Class Time'] ===
                                 this.state.classTime &&
                               (checkin.values['Title'] === undefined ||
+                                checkin.values['Title'] === null ||
                                 checkin.values['Title'] === '' ||
                                 checkin.values['Title'] ===
                                   this.state.classTitle) &&
@@ -3164,9 +3166,10 @@ export class AttendanceDetail extends Component {
                     this.props.classAttendances.filter(checkin => {
                       var result =
                         checkin.values['Class Time'] === this.state.classTime &&
-                        /*(checkin.values['Title'] === undefined ||
+                        (checkin.values['Title'] === undefined ||
+                          checkin.values['Title'] === null ||
                           checkin.values['Title'] === '' ||
-                          checkin.values['Title'] === this.state.classTitle) && */
+                          checkin.values['Title'] === this.state.classTitle) &&
                         checkin.values['Class'] === this.state.className;
 
                       if (result) {
@@ -3200,10 +3203,11 @@ export class AttendanceDetail extends Component {
                           return (
                             checkin.values['Class Time'] ===
                               this.state.classTime &&
-                            /*(checkin.values['Title'] === undefined ||
+                            (checkin.values['Title'] === undefined ||
+                              checkin.values['Title'] === null ||
                               checkin.values['Title'] === '' ||
                               checkin.values['Title'] ===
-                                this.state.classTitle) && */
+                                this.state.classTitle) &&
                             checkin.values['Class'] === this.state.className
                           );
                         }).length === 0
@@ -3219,10 +3223,11 @@ export class AttendanceDetail extends Component {
                           return (
                             checkin.values['Class Time'] ===
                               this.state.classTime &&
-                            /*(checkin.values['Title'] === undefined ||
+                            (checkin.values['Title'] === undefined ||
+                              checkin.values['Title'] === null ||
                               checkin.values['Title'] === '' ||
                               checkin.values['Title'] ===
-                                this.state.classTitle) && */
+                                this.state.classTitle) &&
                             checkin.values['Class'] === this.state.className
                           );
                         }).length === 0
@@ -3247,10 +3252,11 @@ export class AttendanceDetail extends Component {
                             return (
                               checkin.values['Class Time'] ===
                                 this.state.classTime &&
-                              /*(checkin.values['Title'] === undefined ||
+                              (checkin.values['Title'] === undefined ||
+                                checkin.values['Title'] === null ||
                                 checkin.values['Title'] === '' ||
                                 checkin.values['Title'] ===
-                                  this.state.classTitle) && */
+                                  this.state.classTitle) &&
                               checkin.values['Class'] ===
                                 this.state.className &&
                               checkin.values['First Name'] !== 'Member Deleted'
