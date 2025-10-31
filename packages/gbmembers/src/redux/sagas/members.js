@@ -192,7 +192,7 @@ export function* fetchMembers(action) {
             ',values[Billing Payment Period],values[Billing Payment Type],values[Billing Cash Term Start Date]' +
             ',values[Billing Cash Term End Date],values[Credit Card Expiry Year],values[Credit Card Expiry Month],values[Billing Members]' +
             ',values[Billing Family Members],values[Biller Migrated],values[Payment]' +
-            ',values[Membership Cost],values[Family Fee Details],values[Resume Date]' +
+            ',values[Membership Cost],values[Family Fee Details],values[Resume Date],values[TAX ID]' +
             ',values[Last Attendance Date],values[Is New Reply Received],values[Waiver Complete Date]' +
             ',values[useSubAccount],values[POS Profile ID],values[Fee Program],values[Parent or Guardian]' +
             ',values[Emails Sent Count],values[Max Weekly Classes],values[Reminder Date]' +
@@ -201,26 +201,6 @@ export function* fetchMembers(action) {
             ',values[Billing Period],values[Admin Fee],values[Last Payment Date]',
         ])
 
-        /*        
-        .includes(['details', ''+
-        ',values[Next Schedule Promotion]'+
-        ',values[Billing Setup Fee Type]'+
-        ',values[Billing First Name],values[Billing Last Name],values[Billing Email]'+
-        ',values[Billing Phone Number],values[Billing Address],values[Billing Suburb],values[Billing State]'+
-        ',values[Billing Postcode]'+
-        ',values[Credit Card Expiry Year],values[Credit Card Expiry Month],values[Billing Members]'+
-        ',values[Family Member Order]'+
-        ',values[Payment Schedule]'+
-        ',values[Refunded Payments],values[DDR Status],values[Membership TAX 1]'+
-        ',values[Membership TAX 2],values[Membership TAX 3],values[Main Benefits]'+
-        ',values[First Payment]'+
-        ',values[Setup Fee]'+
-        ',values[Lead History],values[Member Changes],values[Billing Changes]'+
-        ',values[Mother Covid Check],values[Father Covid Check]'])
-*/
-
-        //    .includes(['details', 'values[Member ID],values[First Name],values[Last Name],values[Status],values[Gender],values[Date Joined],values[DOB],values[Ranking Program],values[Ranking Belt],values[Status History],values[Billing Parent Member],values[Billing User],values[Non Paying],values[Billing Customer Id],values[Billing Customer Reference],values[Billing Migrated],values[Lead Submission ID],values[Billing Payment Period]'])
-        //.includes(['details', 'values'])
         .sortBy('updatedAt')
         .limit(1000)
         .build();
@@ -251,7 +231,7 @@ export function* fetchMembers(action) {
               ',values[Billing Payment Period],values[Billing Payment Type],values[Billing Cash Term Start Date]' +
               ',values[Billing Cash Term End Date],values[Credit Card Expiry Year],values[Credit Card Expiry Month],values[Billing Members]' +
               ',values[Billing Family Members],values[Biller Migrated],values[Payment]' +
-              ',values[Membership Cost],values[Family Fee Details],values[Resume Date]' +
+              ',values[Membership Cost],values[Family Fee Details],values[Resume Date],values[TAX ID]' +
               ',values[Last Attendance Date],values[Is New Reply Received],values[Waiver Complete Date]' +
               ',values[useSubAccount],values[POS Profile ID],values[Fee Program],values[Parent or Guardian]' +
               ',values[Emails Sent Count],values[Max Weekly Classes],values[Reminder Date]' +
@@ -260,8 +240,6 @@ export function* fetchMembers(action) {
               ',values[Billing Period],values[Admin Fee],values[Last Payment Date]',
           ])
 
-          //  .includes(['details', 'values[Member ID],values[First Name],values[Last Name],values[Status],values[Gender],values[Date Joined],values[DOB],values[Ranking Program],values[Ranking Belt],values[Status History],values[Billing Parent Member],values[Billing User],values[Non Paying],values[Billing Customer Id],values[Billing Customer Reference],values[Billing Migrated],values[Lead Submission ID],values[Billing Payment Period]'])
-          //    .includes(['details', 'values'])
           .sortBy('updatedAt')
           .limit(1000)
           .pageToken(nextPageTokenValue)

@@ -145,6 +145,7 @@ export class ResumingMembers extends Component {
         <ReactToPrint
           trigger={() => <PrinterIcon className="icon icon-svg tablePrint" />}
           content={() => this.tableComponentRef.current}
+          onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
         />
         <ReactTable
           ref={this.tableComponentRef}

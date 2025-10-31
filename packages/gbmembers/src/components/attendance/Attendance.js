@@ -16,7 +16,7 @@ import { ReactComponent as Bin } from '../../images/bin.svg';
 import { ReactComponent as Tick } from '../../images/tick.svg';
 import { ReactComponent as Cross } from '../../images/cross.svg';
 import { ReactComponent as Waiver } from '../../images/assignment_turned_in.svg';
-import { ReactComponent as birthdayIcon } from '../../images/birthdayPop.svg?raw';
+import { ReactComponent as BirthdayIcon } from '../../images/birthdayPop.svg';
 import Select from 'react-select';
 import { withHandlers } from 'recompose';
 import { GradingStatus } from './GradingStatus';
@@ -37,7 +37,6 @@ import PinInput from 'w-react-pin-input';
 import Countdown from 'react-countdown';
 import * as selectors from '../../lib/react-kinops-components/src/redux/kinopsSelectors';
 import { FullScreen, useFullScreenHandle } from 'react-full-screen';
-import settingsIcon from '../../images/Settings.svg?raw';
 import { SettingsContainer } from './Settings';
 import { Utils } from 'common';
 
@@ -992,6 +991,7 @@ export class SelfCheckin extends Component {
                             memberItem: undefined,
                             verifyPIN: false,
                             invalidPIN: false,
+                            checkinClassMember: false,
                           });
                           attendanceThis.setState({
                             verifyPIN: false,
@@ -1083,7 +1083,15 @@ export class SelfCheckin extends Component {
                             );
                           }}
                         />
-                        <label htmlFor={'class_' + idx}>{dayClass.label}</label>
+                        <label htmlFor={'class_' + idx}>
+                          <span
+                            className="classTick"
+                            style={{ display: 'none' }}
+                          >
+                            ✔
+                          </span>
+                          {dayClass.label}
+                        </label>
                       </div>
                     ))}
                 </div>
@@ -1462,6 +1470,7 @@ export class SelfCheckin extends Component {
                       var result =
                         checkin.values['Class Time'] === this.state.classTime &&
                         (checkin.values['Title'] === undefined ||
+                          checkin.values['Title'] === null ||
                           checkin.values['Title'] === '' ||
                           checkin.values['Title'] === this.state.classTitle) &&
                         checkin.values['Class'] === this.state.className;
@@ -1496,6 +1505,7 @@ export class SelfCheckin extends Component {
                               checkin.values['Class Time'] ===
                                 this.state.classTime &&
                               (checkin.values['Title'] === undefined ||
+                                checkin.values['Title'] === null ||
                                 checkin.values['Title'] === '' ||
                                 checkin.values['Title'] ===
                                   this.state.classTitle) &&
@@ -2470,16 +2480,14 @@ export class AttendanceDetail extends Component {
                   this.props.fetchMemberClassAttendancesByDate
                 }
               />
-              {Utils.isMemberOf(this.props.profile, 'Role::Data Admin') && (
-                <div className="settings">
-                  <Settings
-                    className="icon icon-svg"
-                    onClick={e => {
-                      this.setShowSettings(true);
-                    }}
-                  />
-                </div>
-              )}
+              <div className="settings">
+                <Settings
+                  className="icon icon-svg"
+                  onClick={e => {
+                    this.setShowSettings(true);
+                  }}
+                />
+              </div>
             </div>
             {this.state.verifyPIN && (
               <div className="verifyPINBase">
@@ -3140,9 +3148,10 @@ export class AttendanceDetail extends Component {
                     this.props.classAttendances.filter(checkin => {
                       var result =
                         checkin.values['Class Time'] === this.state.classTime &&
-                        /*(checkin.values['Title'] === undefined ||
+                        (checkin.values['Title'] === undefined ||
+                          checkin.values['Title'] === null ||
                           checkin.values['Title'] === '' ||
-                          checkin.values['Title'] === this.state.classTitle) && */
+                          checkin.values['Title'] === this.state.classTitle) &&
                         checkin.values['Class'] === this.state.className;
 
                       if (result) {
@@ -3178,10 +3187,11 @@ export class AttendanceDetail extends Component {
                           return (
                             checkin.values['Class Time'] ===
                               this.state.classTime &&
-                            /*(checkin.values['Title'] === undefined ||
+                            (checkin.values['Title'] === undefined ||
+                              checkin.values['Title'] === null ||
                               checkin.values['Title'] === '' ||
                               checkin.values['Title'] ===
-                                this.state.classTitle) && */
+                                this.state.classTitle) &&
                             checkin.values['Class'] === this.state.className
                           );
                         }).length === 0
@@ -3199,10 +3209,11 @@ export class AttendanceDetail extends Component {
                           return (
                             checkin.values['Class Time'] ===
                               this.state.classTime &&
-                            /*(checkin.values['Title'] === undefined ||
+                            (checkin.values['Title'] === undefined ||
+                              checkin.values['Title'] === null ||
                               checkin.values['Title'] === '' ||
                               checkin.values['Title'] ===
-                                this.state.classTitle) && */
+                                this.state.classTitle) &&
                             checkin.values['Class'] === this.state.className
                           );
                         }).length === 0
@@ -3227,10 +3238,11 @@ export class AttendanceDetail extends Component {
                             return (
                               checkin.values['Class Time'] ===
                                 this.state.classTime &&
-                              /*(checkin.values['Title'] === undefined ||
+                              (checkin.values['Title'] === undefined ||
+                                checkin.values['Title'] === null ||
                                 checkin.values['Title'] === '' ||
                                 checkin.values['Title'] ===
-                                  this.state.classTitle) && */
+                                  this.state.classTitle) &&
                               checkin.values['Class'] ===
                                 this.state.className &&
                               checkin.values['First Name'] !== 'Member Deleted'
@@ -3341,10 +3353,7 @@ export class AttendanceDetail extends Component {
                                     )}
                                   {isBirthday(checkin.memberItem) && (
                                     <div className="dobIcon">
-                                      <SVGInline
-                                        svg={birthdayIcon}
-                                        className="icon"
-                                      />
+                                      <BirthdayIcon className="icon icon-svg" />
                                     </div>
                                   )}
                                   {checkin.overdueMember ? (

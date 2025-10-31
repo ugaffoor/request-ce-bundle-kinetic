@@ -190,6 +190,7 @@ export class MembershipReceiptToPrint extends React.Component {
       tax1: tax1,
       tax2: tax2,
       total: this.props.total,
+      refundValue: this.props.refundValue,
       paymentID: this.props.paymentID,
       feeDetails: feeDetails,
     };
@@ -411,6 +412,12 @@ export class MembershipReceiptToPrint extends React.Component {
           <span className="total refund">
             <span className="label">
               <I18n>Refunded</I18n>
+            </span>
+            <span className="value refund">
+              {new Intl.NumberFormat(this.props.locale, {
+                style: 'currency',
+                currency: this.props.currency,
+              }).format(this.state.refundValue)}
             </span>
           </span>
         )}

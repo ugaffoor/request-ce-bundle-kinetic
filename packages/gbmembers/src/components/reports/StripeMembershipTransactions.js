@@ -2,9 +2,8 @@ import React, { Component } from 'react';
 import ReactTable from 'react-table';
 import moment from 'moment-timezone';
 import ReactToPrint from 'react-to-print';
-import printerIcon from '../../images/Print.svg?raw';
-import downloadIcon from '../../images/download.svg?raw';
-import SVGInline from 'react-svg-inline';
+import { ReactComponent as PrinterIcon } from '../../images/Print.svg';
+import { ReactComponent as DownloadIcon } from '../../images/download.svg';
 import { CSVLink } from 'react-csv';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
 import 'react-day-picker/lib/style.css';
@@ -174,6 +173,7 @@ export class StripeMembershipTransactions extends Component {
             values: {
               'First Name': 'Unknown',
               'Last Name': 'Unknown',
+              'TAX ID': 'Unknown',
               Address: 'Unknown',
               Suburb: '',
               State: '',
@@ -216,6 +216,16 @@ export class StripeMembershipTransactions extends Component {
             ' ' +
             props.original.member.values['Last Name']
           );
+        },
+        width: 100,
+      },
+      {
+        accessor: 'taxID',
+        Header: 'Tax ID',
+        Cell: props => {
+          return props.original.member.values['TAX ID'] !== undefined
+            ? props.original.member.values['TAX ID']
+            : '';
         },
         width: 100,
       },
@@ -346,6 +356,7 @@ export class StripeMembershipTransactions extends Component {
 
     let columns = [
       'Full name',
+      'Tax ID',
       'Address',
       'Date of transaction',
       'Document Type',
@@ -373,6 +384,9 @@ export class StripeMembershipTransactions extends Component {
         element.member.values['First Name'] +
           ' ' +
           element.member.values['Last Name'],
+        element.member.values['TAX ID'] !== undefined
+          ? element.member.values['TAX ID']
+          : '',
         element.member.values['Address'] +
           ' ' +
           element.member.values['Suburb'] +
@@ -469,17 +483,16 @@ export class StripeMembershipTransactions extends Component {
               this.props.SUCCESSFULpaymentHistoryLoading && <ReactSpinner />}
           </div>
           <ReactToPrint
-            trigger={() => (
-              <SVGInline svg={printerIcon} className="icon tablePrint" />
-            )}
+            trigger={() => <PrinterIcon className="icon icon-svg tablePrint" />}
             content={() => this.tableComponentRef}
+            onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
           />
           <CSVLink
             className="downloadbtn"
             filename={moment().format('L') + '-billing-transactions.csv'}
             data={this.getDownloadData()}
           >
-            <SVGInline svg={downloadIcon} className="icon tableDownload" />
+            <DownloadIcon className="icon icon-svg tableDownload" />
           </CSVLink>
           <ReactTable
             ref={el => (this.tableComponentRef = el)}

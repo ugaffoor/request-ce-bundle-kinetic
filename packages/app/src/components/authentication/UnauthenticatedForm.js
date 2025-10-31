@@ -16,6 +16,7 @@ const globals = import('common/globals');
 
 const UnauthenticatedFormComponent = props => {
   const {
+    isPublic,
     kappSlug,
     formSlug,
     submissionId,
@@ -44,6 +45,7 @@ const UnauthenticatedFormComponent = props => {
           {submissionId ? (
             <Fragment>
               <CoreForm
+                public={isPublic}
                 onUnauthorized={handleUnauthorized}
                 submission={submissionId}
                 globals={globals}
@@ -54,6 +56,7 @@ const UnauthenticatedFormComponent = props => {
           ) : (
             <Fragment>
               <CoreForm
+                public={isPublic}
                 onUnauthorized={handleUnauthorized}
                 kapp={kappSlug}
                 form={formSlug}

@@ -199,6 +199,7 @@ export class ReviewRequest extends React.Component {
                 <PrinterIcon className="icon icon-svg barcodePrint" />
               )}
               content={() => this.componentRef.current}
+              onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
             />
             <div ref={this.componentRef}>
               <CoreForm
@@ -236,6 +237,7 @@ export class ReviewRequest extends React.Component {
         <ReactToPrint
           trigger={() => <PrinterIcon className="icon icon-svg barcodePrint" />}
           content={() => this.componentRef2.current}
+          onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
         />
         <div ref={this.componentRef2}>
           <CoreForm

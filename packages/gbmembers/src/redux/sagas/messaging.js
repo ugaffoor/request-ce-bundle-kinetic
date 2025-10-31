@@ -16,6 +16,7 @@ const sendSmsUrl = '/send_sms';
 const sendBulkSmsUrl = '/send_bulk_sms';
 const getAccountCreditUrl = '/account_credit';
 const util = require('util');
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 export function* sendSms(action) {
   const appSettings = yield select(getAppSettings);
@@ -29,7 +30,8 @@ export function* sendSms(action) {
   };
   axios
     .post(
-      appSettings.kapp.attributes['Kinetic Messaging Server URL'] + sendSmsUrl,
+      getAttributeValue(appSettings.kapp, 'Kinetic Messaging Server URL') +
+        sendSmsUrl,
       args,
     )
     .then(result => {
@@ -120,7 +122,7 @@ export function* sendBulkSms(action) {
   };
   axios
     .post(
-      appSettings.kapp.attributes['Kinetic Messaging Server URL'] +
+      getAttributeValue(appSettings.kapp, 'Kinetic Messaging Server URL') +
         sendBulkSmsUrl,
       args,
     )
@@ -196,7 +198,7 @@ export function* getAccountCredit(action) {
   };
   axios
     .post(
-      appSettings.kapp.attributes['Kinetic Messaging Server URL'] +
+      getAttributeValue(appSettings.kapp, 'Kinetic Messaging Server URL') +
         getAccountCreditUrl,
       args,
     )

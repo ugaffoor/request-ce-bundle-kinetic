@@ -308,16 +308,14 @@ export class Settings extends Component {
           </div>
         </span>
         <span className="details">
-          {Utils.isMemberOf(this.props.profile, 'Role::Program Managers') && (
-            <div style={{ margin: '20px 0px 0px 10px' }} id="setSelfCheckinPin">
-              <div className="row">
-                <SelfCheckinSetPIN
-                  profile={this.props.profile}
-                  space={this.props.space}
-                />
-              </div>
+          <div style={{ margin: '20px 0px 0px 10px' }} id="setSelfCheckinPin">
+            <div className="row">
+              <SelfCheckinSetPIN
+                profile={this.props.profile}
+                space={this.props.space}
+              />
             </div>
-          )}
+          </div>
           {!Utils.isMemberOf(this.props.profile, 'Role::Program Managers') ||
           getAttributeValue(this.props.space, 'Franchisor') === 'YES' ? (
             <div />
@@ -452,30 +450,31 @@ export class Settings extends Component {
             <div />
           )}
 
-          {getAttributeValue(this.props.space, 'Franchisor') !== 'YES' && (
-            <div style={{ margin: '20px 0px 0px 10px' }} id="stock-report">
-              <div className="row">
-                <button
-                  type="button"
-                  id="printMemberbarcodes"
-                  className={'btn btn-primary'}
-                  onClick={e => {
-                    this.props.printMemberBarcodes(
-                      this.props.allMembers,
-                      this.props.setPrintingBarcodes,
-                    );
-                    this.props.setShowBarcodes(
-                      this.props.showBarcodes ? false : true,
-                    );
-                  }}
-                >
-                  {this.props.showBarcodes
-                    ? 'Hide Member barcodes'
-                    : 'Show Member barcodes'}
-                </button>
+          {getAttributeValue(this.props.space, 'Franchisor') !== 'YES' &&
+            Utils.isMemberOf(this.props.profile, 'Role::Program Managers') && (
+              <div style={{ margin: '20px 0px 0px 10px' }} id="stock-report">
+                <div className="row">
+                  <button
+                    type="button"
+                    id="printMemberbarcodes"
+                    className={'btn btn-primary'}
+                    onClick={e => {
+                      this.props.printMemberBarcodes(
+                        this.props.allMembers,
+                        this.props.setPrintingBarcodes,
+                      );
+                      this.props.setShowBarcodes(
+                        this.props.showBarcodes ? false : true,
+                      );
+                    }}
+                  >
+                    {this.props.showBarcodes
+                      ? 'Hide Member barcodes'
+                      : 'Show Member barcodes'}
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
           {!this.props.printingBarcodes || !this.props.showBarcodes ? (
             <div />
           ) : (
@@ -489,6 +488,7 @@ export class Settings extends Component {
                 )}
                 content={() => this.componentRef.current}
                 copyStyles={true}
+                onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
               />
               <ComponentToPrint
                 ref={this.componentRef}

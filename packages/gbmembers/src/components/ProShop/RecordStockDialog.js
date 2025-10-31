@@ -236,11 +236,13 @@ export class RecordStockDialog extends Component {
                 .filter(product => {
                   if (
                     product.values['Status'] === 'Active' &&
-                    product.values['Product Type'] === 'Apparel' &&
+                    (product.values['Product Type'] === 'Apparel' ||
+                      product.values['Product Type'] === 'Concession') &&
                     product.values['SKU'] !== undefined &&
                     product.values['Name'] !== undefined &&
                     product.values['Colour'] !== undefined &&
                     ((this.state.productNameValue !== '' &&
+                      product.values['SKU'] !== null &&
                       product.values['SKU']
                         .toLowerCase()
                         .indexOf(
@@ -421,6 +423,7 @@ export class RecordStockDialog extends Component {
                                 className="btn btn-primary editStockBtn"
                                 onClick={e => {
                                   this.props.savePOSStock({
+                                    posStock: this.props.posStock,
                                     products: this.props.products,
                                     product: product,
                                     size: this.state[
@@ -456,6 +459,7 @@ export class RecordStockDialog extends Component {
                                 className="btn btn-primary addStockBtn"
                                 onClick={e => {
                                   this.props.savePOSStock({
+                                    posStock: this.props.posStock,
                                     products: this.props.products,
                                     product: product,
                                     size: this.state[

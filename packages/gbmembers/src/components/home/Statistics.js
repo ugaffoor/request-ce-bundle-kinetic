@@ -18,6 +18,7 @@ import MomentLocaleUtils, {
   parseDate,
 } from 'react-day-picker/moment';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
+import ReactTooltip from 'react-tooltip';
 
 var compThis = undefined;
 var twelveMonthRetentionRateData = undefined;
@@ -1754,23 +1755,25 @@ export class Statistics extends Component {
             {}
           </div>
           <HelpIcon
+            data-for="lctModeHelp"
+            data-tip
+            content=""
             className="icon help icon-svg"
-            onClick={e => {
-              $('.lctModeHelp').toggle('');
-            }}
           />
-          <span className="lctModeHelp">
-            <ul>
-              <li>
-                No - Displays all Leads created in the period, and all Lead
-                events created in the period for any Lead.
-              </li>
-              <li>
-                Yes - Displays all Leads created in the period, but only Lead
-                events created in the period for Leads created in the period.
-              </li>
-            </ul>
-          </span>
+          <ReactTooltip id="lctModeHelp" place="bottom" variant="info">
+            <span className="lctModeHelp">
+              <ul>
+                <li>
+                  No - Displays all Leads created in the period, and all Lead
+                  events created in the period for any Lead.
+                </li>
+                <li>
+                  Yes - Displays all Leads created in the period, but only Lead
+                  events created in the period for Leads created in the period.
+                </li>
+              </ul>
+            </span>
+          </ReactTooltip>
           <div className="statItems">
             <div className="statItem">
               <div className="info">

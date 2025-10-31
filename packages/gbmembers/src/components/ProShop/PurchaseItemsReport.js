@@ -1039,6 +1039,7 @@ export class PurchaseItemsReport extends Component {
                   <PrinterIcon className="icon icon-svg tablePrint" />
                 )}
                 content={() => this.tableComponentRef.current}
+                onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
               />
               <CSVLink
                 className="downloadbtn"

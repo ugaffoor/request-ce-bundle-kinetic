@@ -15,7 +15,7 @@ import DayPickerInput from 'react-day-picker/DayPickerInput';
 import DayPicker, { DateUtils } from 'react-day-picker/DayPicker';
 import 'react-day-picker/lib/style.css';
 import { getLocalePreference } from '../components/Member/MemberUtils';
-import $ from 'jquery';
+import ReactTooltip from 'react-tooltip';
 
 const components = {
   DropdownIndicator: null,
@@ -191,9 +191,18 @@ export class EditAttributeValue extends Component {
             <I18n>{this.props.labelName}</I18n>
           </span>
           <HelpIcon
+            data-for={this.props.attributeID + 'Help'}
+            content=""
+            data-tip={this.props.helpText}
             className="icon icon-svg help"
-            onClick={e => {
-              $('.' + this.props.attributeID + 'Help').toggle('');
+          />
+          <ReactTooltip
+            id={this.props.attributeID + 'Help'}
+            place="bottom"
+            variant="info"
+            html={true}
+            getContent={() => {
+              return;
             }}
           />
           {this.props.inputType === 'Text' && (
@@ -851,18 +860,6 @@ export class EditAttributeValue extends Component {
           Save
         </button>
         <br />
-        <span
-          className={this.props.attributeID + 'Help'}
-          style={{ display: 'none' }}
-        >
-          <ul>
-            <li
-              dangerouslySetInnerHTML={{
-                __html: this.props.helpText,
-              }}
-            />
-          </ul>
-        </span>
       </div>
     );
   }

@@ -7,7 +7,7 @@
     width: 185px;
   }
 }
-.dobIcon svg.SVGInline-svg.icon-svg {
+.dobIcon svg.icon-svg {
   height: 3rem;
   width: 3rem;
   .cls-4 {
@@ -232,11 +232,10 @@
       background: #e1251b;
       color: white;
       box-shadow: 0px 0px 0px 5px #e1251b;
-      &::after {
+      .classTick {
+        display: block !important;
         color: hsla(215, 5%, 25%, 1);
-        font-family: FontAwesome;
         border: 2px solid #e1251b;
-        content: '\f00c';
         font-size: 24px;
         position: absolute;
         top: -25px;
@@ -1049,7 +1048,7 @@ i.fa.fa-usd.overdue {
     }
     img {
       width: 100px;
-      height: 100px;
+      max-height: 100px;
       float: left;
       border-style: solid;
       border-color: #d5d5d5;
@@ -1140,7 +1139,7 @@ i.fa.fa-usd.overdue {
     }
     img {
       width: 100px;
-      height: 100px;
+      max-height: 100px;
       float: left;
       border-style: solid;
       border-color: #d5d5d5;
@@ -1295,6 +1294,7 @@ i.fa.fa-usd.overdue {
     min-width: 30%;
     .top {
       float: left;
+      height: 100px;
     }
     .bottom {
       float: left;
@@ -1383,7 +1383,7 @@ i.fa.fa-usd.overdue {
     }
     img {
       width: 100px;
-      height: 100px;
+      max-height: 100px;
       float: left;
       border-style: solid;
       border-color: #d5d5d5;

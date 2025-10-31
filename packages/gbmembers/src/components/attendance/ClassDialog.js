@@ -288,9 +288,8 @@ export class ClassDialog extends Component {
               <div className="descriptionDiv form-group">
                 <label htmlFor="title">
                   Description
-                  <SVGInline
-                    svg={helpIcon}
-                    className="icon help"
+                  <Help
+                    className="icon help icon-svg"
                     onClick={e => {
                       $('.descriptionHelp').toggle('');
                     }}

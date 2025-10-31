@@ -80,6 +80,7 @@ import styled from 'styled-components';
 import { confirm } from '../helpers/Confirmation';
 import 'react-datetime/css/react-datetime.css';
 import ReactToPrint from 'react-to-print';
+import ReactTooltip from 'react-tooltip';
 
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
@@ -638,10 +639,10 @@ class AttendanceCardToPrint extends React.Component {
                 .replace(/\+/g, '_')
             }
           >
-            <p>
+            <div>
               {this.props.memberItem.values['First Name']}{' '}
               {this.props.memberItem.values['Last Name']}
-            </p>
+            </div>
           </div>
           {/*this.props.memberItem.values['Ranking Program'].indexOf("BarraFIT")!==-1 && (
             <div
@@ -1445,7 +1446,18 @@ export const MemberView = ({
                 </span>
                 {getAttributeValue(space, 'Franchisor') !== 'YES' && (
                   <div className="emergency">
-                    <div className="memberBarcode">
+                    <div
+                      className="memberBarcode"
+                      data-for="member-barcode"
+                      content=""
+                      data-tip={
+                        memberItem.values['Alternate Barcode'] === undefined ||
+                        memberItem.values['Alternate Barcode'] === '' ||
+                        memberItem.values['Alternate Barcode'] === null
+                          ? memberItem.id.split('-')[4].substring(6, 12)
+                          : memberItem.values['Alternate Barcode']
+                      }
+                    >
                       <Barcode
                         value={
                           memberItem.values['Alternate Barcode'] ===
@@ -1461,11 +1473,22 @@ export const MemberView = ({
                         type={'CODE128'}
                       />
                     </div>
+                    <ReactTooltip
+                      id="member-barcode"
+                      place="bottom"
+                      variant="info"
+                      getContent={() => {
+                        return;
+                      }}
+                    />
                     <ReactToPrint
                       trigger={() => (
                         <PrinterIcon className="icon icon-svg barcodePrint" />
                       )}
                       content={() => componentRef.current}
+                      onBeforePrint={() =>
+                        new Promise(r => setTimeout(r, 1000))
+                      }
                     />
                   </div>
                 )}
@@ -1479,6 +1502,9 @@ export const MemberView = ({
                         <PrinterIcon className="icon icon-svg barcodePrint" />
                       )}
                       content={() => visitorCardComponentRef.current}
+                      onBeforePrint={() =>
+                        new Promise(r => setTimeout(r, 1000))
+                      }
                     />
                   </div>
                 )}
@@ -1495,6 +1521,9 @@ export const MemberView = ({
                           <PrinterIcon className="icon icon-svg barcodePrint" />
                         )}
                         content={() => coachCardComponentRef.current}
+                        onBeforePrint={() =>
+                          new Promise(r => setTimeout(r, 1000))
+                        }
                       />
                     </div>
                   )}
@@ -1589,6 +1618,15 @@ export const MemberView = ({
                     <div />
                   </div>
                 )}
+                {memberItem.values['Max Weekly Classes'] !== null &&
+                  memberItem.values['Max Weekly Classes'] !== undefined &&
+                  memberItem.values['Max Weekly Classes'] !== '' && (
+                    <div className="maxClasses">
+                      Max Weekly Classes({
+                        memberItem.values['Max Weekly Classes']
+                      })
+                    </div>
+                  )}
               </div>
             )}
             <div className="billing">

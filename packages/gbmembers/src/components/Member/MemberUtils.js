@@ -769,7 +769,7 @@ export function handleChange(
   }
   //console.log("key = " + key + ", changes = " + JSON.stringify(memberChanges));
   if (!Array.isArray(memberItem.values[key])) {
-    memberItem.values[key] = event.target.value.trim();
+    memberItem.values[key] = event.target.value;
   }
   if ($(event.target).attr('required')) {
     var val = memberItem.values[key].trim();

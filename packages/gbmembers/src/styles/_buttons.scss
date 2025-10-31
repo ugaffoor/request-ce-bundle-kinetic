@@ -312,37 +312,12 @@ button[data-element-type='button'] {
     float: left;
     position: relative;
     padding-left: 2.4rem;
-    &:before {
-      font-family: 'AdiHaus DIN Regular';
-      font-weight: 400;
-      content: '\f053';
-      position: absolute;
-      top: 50%;
-      left: -0.6rem;
-      width: 2.3rem;
-      height: 1.4rem;
-      line-height: 1;
-      margin-top: -0.4rem;
-    }
   }
 
   &[data-button-type='save'] {
     @extend .btn-subtle;
     position: relative;
     padding-left: 2rem;
-
-    &:before {
-      font-family: 'AdiHaus DIN Regular';
-      font-weight: 400;
-      content: '\f0c7';
-      position: absolute;
-      top: 50%;
-      left: 0.5rem;
-      width: 1rem;
-      height: 1rem;
-      line-height: 1;
-      margin-top: -0.4rem;
-    }
   }
   &[disabled] {
     cursor: not-allowed;

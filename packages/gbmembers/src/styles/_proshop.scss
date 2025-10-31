@@ -295,16 +295,13 @@
         }
       }
       .total.refund {
-        color: red;
-      }
-      .refund {
         display: flex;
         width: 800px;
         height: 50px;
         margin-left: auto;
         margin-right: auto;
-        .value {
-          margin-left: auto;
+        color: red;
+        .value.refund {
           text-decoration: line-through;
         }
       }
@@ -899,11 +896,18 @@
       width: auto !important;
     }
   }
+  .salestax,
+  .discountLine {
+    .delete {
+      margin-top: 7px !important;
+    }
+  }
   .checkout,
   .paynow,
   .settings {
     .delete {
       margin-left: 10px;
+      margin-top: 4px;
       cursor: pointer;
     }
     .topRow {

@@ -336,6 +336,9 @@ export class MemberOrders extends Component {
                                 )}
                                 content={() => this.componentRef.current}
                                 pageStyle="@page {size: a4 portrait;margin: 0;}"
+                                onBeforePrint={() =>
+                                  new Promise(r => setTimeout(r, 1000))
+                                }
                               />
                             </span>
                           </span>

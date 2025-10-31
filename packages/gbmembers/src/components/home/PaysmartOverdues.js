@@ -98,6 +98,7 @@ export class PaysmartOverdues extends Component {
         <ReactToPrint
           trigger={() => <PrinterIcon className="icon tablePrint icon-svg" />}
           content={() => this.tableComponentRef.current}
+          onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
         />
         <ReactTable
           ref={this.tableComponentRef}

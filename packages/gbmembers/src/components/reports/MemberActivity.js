@@ -193,6 +193,7 @@ export class MemberActivityReport extends Component {
       { title: 'Lead Source', field: 'leadSource' },
       { title: 'Biller Migrated', field: 'billerMigrated' },
       { title: 'Biller ID', field: 'billerId' },
+      { title: 'TAX ID', field: 'taxid' },
       { title: 'Non Paying', field: 'nonPaying' },
       { title: 'Send Payment Receipt', field: 'sendPaymentReceipt' },
       { title: 'Account Created', field: 'accountCreated' },
@@ -268,6 +269,13 @@ export class MemberActivityReport extends Component {
         width: 100,
       },
     ];
+
+    if (getAttributeValue(this.props.space, 'Member TAX ID') === 'YES') {
+      this.allColumns.push({
+        title: 'TAX ID',
+        field: 'taxid',
+      });
+    }
 
     this.notesColumns = [
       { title: 'Submitter', field: 'submitter' },
@@ -359,6 +367,12 @@ export class MemberActivityReport extends Component {
       { label: 'Events', value: 'events' },
       { label: 'Notes', value: 'history' },
     ];
+    if (getAttributeValue(this.props.space, 'Member TAX ID') === 'YES') {
+      this.hiddenColumns.push({
+        label: 'TAX ID',
+        value: 'taxid',
+      });
+    }
     if (getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES') {
       this.hiddenColumns.push({
         label: 'Use Sub Account',
@@ -443,6 +457,12 @@ export class MemberActivityReport extends Component {
           { label: 'Family Members', value: 'familyMembers' },
         ],
       });
+      if (getAttributeValue(this.props.space, 'Member TAX ID') === 'YES') {
+        this.columnsToHide[1].options.push({
+          label: 'TAX ID',
+          value: 'taxid',
+        });
+      }
       if (
         getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
       ) {
@@ -520,6 +540,12 @@ export class MemberActivityReport extends Component {
       { label: 'SMS Sent', value: 'smsSent' },
       { label: 'SMS Received', value: 'smsReceived' },
     ];
+    if (getAttributeValue(this.props.space, 'Member TAX ID') === 'YES') {
+      this.filterColumns.push({
+        label: 'TAX ID',
+        value: 'taxid',
+      });
+    }
     if (getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES') {
       this.filterColumns.push({
         label: 'Use Sub Account',
@@ -1305,6 +1331,7 @@ export class MemberActivityReport extends Component {
         //        billerMigrated: member.values['Biller Migrated'] === 'YES' ? 'YES' : '',
         billerMigrated: member.values['Biller Migrated'],
         billerId: member.values['Billing Customer Reference'],
+        taxid: member.values['TAX ID'],
         nonPaying: member.values['Non Paying'] === 'YES' ? 'YES' : '',
         sendPaymentReceipt:
           member.values['Send Payment Receipt'] === 'YES' ? 'YES' : '',

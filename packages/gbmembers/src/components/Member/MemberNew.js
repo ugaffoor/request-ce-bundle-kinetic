@@ -1024,6 +1024,21 @@ export const MemberNew = ({
               <div className="section3">
                 <h1>Other Information</h1>
                 <hr />
+                {getAttributeValue(space, 'Member TAX ID') === 'YES' && (
+                  <span className="line">
+                    <div>
+                      <label htmlFor="taxID">Tax Id</label>
+                      <input
+                        type="text"
+                        size="20"
+                        name="taxID"
+                        id="taxIDtaxID"
+                        value={memberItem.values['TAX ID']}
+                        onChange={e => handleNewChange(memberItem, 'TAX ID', e)}
+                      />
+                    </div>
+                  </span>
+                )}
                 <span className="line">
                   <div>
                     <label htmlFor="nopaying" style={{ minWidth: '100px' }}>
@@ -1057,7 +1072,6 @@ export const MemberNew = ({
                           name="billingReceipt"
                           id="billingReceipt"
                           style={{ clear: 'none', margin: '4px' }}
-                          ref={input => (this.input = input)}
                           value="YES"
                           checked={
                             memberItem.values['Send Payment Receipt'] === 'YES'

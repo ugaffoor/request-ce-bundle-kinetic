@@ -159,10 +159,12 @@ const Authenticated = props => {
   );
 };
 
-const mapStateToProps = state => ({
-  pathname: state.router.location.pathname,
-  isPublic: state.router.location.search.includes('public'),
-});
+const mapStateToProps = state => {
+  return {
+    pathname: state.router.location.pathname,
+    isPublic: state.router.location.search.includes('public'),
+  };
+};
 
 export const AuthenticatedContainer = compose(
   connect(

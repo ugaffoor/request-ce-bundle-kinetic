@@ -493,12 +493,13 @@ export class StripeBillingTransactions extends Component {
           </div>
           <ReactToPrint
             trigger={() => <PrinterIcon className="icon icon-svg tablePrint" />}
-            content={() => this.tableCashComponentRef}
+            content={() => this.tableComponentRef}
+            onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
           />
           <CSVLink
             className="downloadbtn"
-            filename={moment().format('L') + '-cash-billing-transactions.csv'}
-            data={this.getDownloadCashData()}
+            filename={moment().format('L') + '-billing-transactions.csv'}
+            data={this.getDownloadData()}
           >
             <DownloadIcon className="icon icon-svg tableDownload" />
           </CSVLink>
@@ -513,17 +514,16 @@ export class StripeBillingTransactions extends Component {
           />
           <br />
           <ReactToPrint
-            trigger={() => (
-              <SVGInline svg={printerIcon} className="icon tablePrint" />
-            )}
+            trigger={() => <PrinterIcon className="icon icon-svg tablePrint" />}
             content={() => this.tableCashComponentRef}
+            onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
           />
           <CSVLink
             className="downloadbtn"
             filename={moment().format('L') + '-cash-billing-transactions.csv'}
             data={this.getDownloadCashData()}
           >
-            <SVGInline svg={downloadIcon} className="icon tableDownload" />
+            <DownloadIcon className="icon icon-svg tableDownload" />
           </CSVLink>
           <ReactTable
             ref={el => (this.tableCashComponentRef = el)}

@@ -96,7 +96,7 @@ thead.sortable {
     padding-right: 1.1rem;
     vertical-align: initial;
 
-    &:before {
+    /*    &:before {
       font-family: 'FontAwesome';
       font-weight: 400;
       content: '\f0dc';
@@ -115,7 +115,7 @@ thead.sortable {
     }
     &.sort-desc:before {
       content: '\f0dd';
-    }
+    } */
   }
 }
 

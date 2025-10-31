@@ -5,6 +5,7 @@ import { actions } from '../../../../redux/modules/settingsDatastore';
 import { SubmissionListItem } from './SubmissionListItem';
 import wallyHappyImage from 'common/src/assets/images/wally-happy.svg';
 import { I18n } from '@kineticdata/react';
+import styled from 'styled-components';
 
 const DiscussionIcon = () => (
   <span className="icon">
@@ -96,6 +97,37 @@ const fetchSubmissions = ({
   }
 };
 
+const Sortable = styled.span`
+  position: relative;
+  &::after {
+    content: '\\f0dc';
+    font-family: 'FontAwesome';
+    position: relative;
+    right: -0.5rem;
+    opacity: 0.3;
+  }
+`;
+const SortAsc = styled.span`
+  position: relative;
+  &::after {
+    content: '\\f0de';
+    font-family: 'FontAwesome';
+    position: relative;
+    right: -0.5rem;
+    opacity: 0.3;
+  }
+`;
+const SortDesc = styled.span`
+  position: relative;
+  &::after {
+    content: '\\f0dd';
+    font-family: 'FontAwesome';
+    position: relative;
+    right: -0.5rem;
+    opacity: 0.3;
+  }
+`;
+
 const SubmissionListComponent = ({
   form,
   submissions,
@@ -166,10 +198,20 @@ const SubmissionListComponent = ({
                           onClick={e => sortTable(c)}
                           scope="col"
                         >
-                          {isDiscussionIdField ? (
-                            <DiscussionIcon />
-                          ) : (
-                            <I18n>{c.label}</I18n>
+                          {sortClass === '' && (
+                            <Sortable>
+                              <I18n>{c.label}</I18n>
+                            </Sortable>
+                          )}
+                          {sortClass === 'sort-asc' && (
+                            <SortAsc>
+                              <I18n>{c.label}</I18n>
+                            </SortAsc>
+                          )}
+                          {sortClass === 'sort-desc' && (
+                            <SortDesc>
+                              <I18n>{c.label}</I18n>
+                            </SortDesc>
                           )}
                         </th>
                       );

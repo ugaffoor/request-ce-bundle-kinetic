@@ -252,7 +252,7 @@ export const MemberEdit = ({
                     id="username"
                     className="userNameField"
                     required
-                    value={memberItem.values['Member ID']}
+                    defaultValue={memberItem.values['Member ID']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -297,7 +297,7 @@ export const MemberEdit = ({
                       ? true
                       : false
                   }
-                  value={memberItem.values['First Name']}
+                  defaultValue={memberItem.values['First Name']}
                   onChange={e =>
                     handleChange(
                       memberItem,
@@ -325,7 +325,7 @@ export const MemberEdit = ({
                   name="lastName"
                   id="lastNames"
                   required
-                  value={memberItem.values['Last Name']}
+                  defaultValue={memberItem.values['Last Name']}
                   onChange={e =>
                     handleChange(
                       memberItem,
@@ -351,7 +351,7 @@ export const MemberEdit = ({
                     name="gender"
                     id="gender"
                     required
-                    value={memberItem.values['Gender']}
+                    defaultValue={memberItem.values['Gender']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -412,7 +412,7 @@ export const MemberEdit = ({
                           name="billingUser"
                           id="billingUser"
                           size="30"
-                          value={memberItem.values['Billing User']}
+                          defaultValue={memberItem.values['Billing User']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -431,7 +431,7 @@ export const MemberEdit = ({
                           name="migrated"
                           id="migrated"
                           size="30"
-                          value={memberItem.values['Biller Migrated']}
+                          defaultValue={memberItem.values['Biller Migrated']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -452,7 +452,7 @@ export const MemberEdit = ({
                           name="useSubAccount"
                           id="useSubAccount"
                           size="30"
-                          value={memberItem.values['useSubAccount']}
+                          defaultValue={memberItem.values['useSubAccount']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -475,7 +475,9 @@ export const MemberEdit = ({
                           name="ccExpiryMonth"
                           id="ccExpiryMonth"
                           size="30"
-                          value={memberItem.values['Credit Card Expiry Month']}
+                          defaultValue={
+                            memberItem.values['Credit Card Expiry Month']
+                          }
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -496,7 +498,9 @@ export const MemberEdit = ({
                           name="ccExpiryYear"
                           id="ccExpiryYear"
                           size="30"
-                          value={memberItem.values['Credit Card Expiry Year']}
+                          defaultValue={
+                            memberItem.values['Credit Card Expiry Year']
+                          }
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -517,7 +521,9 @@ export const MemberEdit = ({
                           name="billingId"
                           id="billingId"
                           size="30"
-                          value={memberItem.values['Billing Customer Id']}
+                          defaultValue={
+                            memberItem.values['Billing Customer Id']
+                          }
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -536,7 +542,7 @@ export const MemberEdit = ({
                           name="billingRef"
                           id="billingRef"
                           size="30"
-                          value={
+                          defaultValue={
                             memberItem.values['Billing Customer Reference']
                           }
                           onChange={e =>
@@ -559,7 +565,9 @@ export const MemberEdit = ({
                           name="billingId"
                           id="billingId"
                           size="30"
-                          value={memberItem.values['Billing Setup Fee Id']}
+                          defaultValue={
+                            memberItem.values['Billing Setup Fee Id']
+                          }
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -580,7 +588,9 @@ export const MemberEdit = ({
                           name="billingId"
                           id="billingId"
                           size="30"
-                          value={memberItem.values['Billing Setup Fee Type']}
+                          defaultValue={
+                            memberItem.values['Billing Setup Fee Type']
+                          }
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -603,7 +613,9 @@ export const MemberEdit = ({
                           name="billingPaymentType"
                           id="billingPaymentType"
                           size="30"
-                          value={memberItem.values['Billing Payment Type']}
+                          defaultValue={
+                            memberItem.values['Billing Payment Type']
+                          }
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -624,7 +636,9 @@ export const MemberEdit = ({
                           name="billingPaymentPeriod"
                           id="billingPaymentPeriod"
                           size="30"
-                          value={memberItem.values['Billing Payment Period']}
+                          defaultValue={
+                            memberItem.values['Billing Payment Period']
+                          }
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -643,7 +657,7 @@ export const MemberEdit = ({
                           name="billingPeriod"
                           id="billingPeriod"
                           size="30"
-                          value={memberItem.values['Billing Period']}
+                          defaultValue={memberItem.values['Billing Period']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -664,7 +678,7 @@ export const MemberEdit = ({
                           name="billingPayment"
                           id="billingPayment"
                           size="30"
-                          value={memberItem.values['Payment']}
+                          defaultValue={memberItem.values['Payment']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -683,7 +697,7 @@ export const MemberEdit = ({
                           name="membershipCost"
                           id="membershipCost"
                           size="30"
-                          value={memberItem.values['Membership Cost']}
+                          defaultValue={memberItem.values['Membership Cost']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -706,7 +720,7 @@ export const MemberEdit = ({
                           name="billingStartDate"
                           id="billingStartDate"
                           size="30"
-                          value={memberItem.values['Billing Start Date']}
+                          defaultValue={memberItem.values['Billing Start Date']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -727,7 +741,9 @@ export const MemberEdit = ({
                           name="billingParentMember"
                           id="billingParentMember"
                           size="30"
-                          value={memberItem.values['Billing Parent Member']}
+                          defaultValue={
+                            memberItem.values['Billing Parent Member']
+                          }
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -750,7 +766,9 @@ export const MemberEdit = ({
                           name="billingFamilyMembers"
                           id="billingFamilyMembers"
                           size="90"
-                          value={memberItem.values['Billing Family Members']}
+                          defaultValue={
+                            memberItem.values['Billing Family Members']
+                          }
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -771,7 +789,7 @@ export const MemberEdit = ({
                           name="resumeDate"
                           id="resumeDate"
                           size="30"
-                          value={memberItem.values['Resume Date']}
+                          defaultValue={memberItem.values['Resume Date']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -792,7 +810,7 @@ export const MemberEdit = ({
                           name="posProfileID"
                           id="posProfileID"
                           size="30"
-                          value={memberItem.values['POS Profile ID']}
+                          defaultValue={memberItem.values['POS Profile ID']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -813,7 +831,9 @@ export const MemberEdit = ({
                           name="registeredWithCard"
                           id="registeredWithCard"
                           size="30"
-                          value={memberItem.values['Registered with Card']}
+                          defaultValue={
+                            memberItem.values['Registered with Card']
+                          }
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -836,7 +856,9 @@ export const MemberEdit = ({
                           name="emailsReceivedCount"
                           id="emailsReceivedCount"
                           size="30"
-                          value={memberItem.values['Emails Received Count']}
+                          defaultValue={
+                            memberItem.values['Emails Received Count']
+                          }
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -857,7 +879,7 @@ export const MemberEdit = ({
                           name="leadSubmissionID"
                           id="leadSubmissionID"
                           size="30"
-                          value={memberItem.values['Lead Submission ID']}
+                          defaultValue={memberItem.values['Lead Submission ID']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -878,7 +900,7 @@ export const MemberEdit = ({
                           name="statusHistory"
                           id="statusHistory"
                           size="50"
-                          value={memberItem.values['Status History']}
+                          defaultValue={memberItem.values['Status History']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -899,7 +921,7 @@ export const MemberEdit = ({
                           name="notesHistory"
                           id="notesHistory"
                           size="50"
-                          value={memberItem.values['Notes History']}
+                          defaultValue={memberItem.values['Notes History']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -920,7 +942,7 @@ export const MemberEdit = ({
                           name="photo"
                           id="photo"
                           size="50"
-                          value={memberItem.values['Photo']}
+                          defaultValue={memberItem.values['Photo']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -943,7 +965,9 @@ export const MemberEdit = ({
                           name="Last Attendance Date"
                           id="lastAttendanceDate"
                           size="50"
-                          value={memberItem.values['Last Attendance Date']}
+                          defaultValue={
+                            memberItem.values['Last Attendance Date']
+                          }
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -966,7 +990,7 @@ export const MemberEdit = ({
                           name="refundedHistory"
                           id="refundedHistory"
                           size="50"
-                          value={memberItem.values['Refunded Payments']}
+                          defaultValue={memberItem.values['Refunded Payments']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -989,7 +1013,7 @@ export const MemberEdit = ({
                           name="cashStart"
                           id="cashStart"
                           size="50"
-                          value={
+                          defaultValue={
                             memberItem.values['Billing Cash Term Start Date']
                           }
                           onChange={e =>
@@ -1012,7 +1036,7 @@ export const MemberEdit = ({
                           name="cashEnd"
                           id="cashEnd"
                           size="50"
-                          value={
+                          defaultValue={
                             memberItem.values['Billing Cash Term End Date']
                           }
                           onChange={e =>
@@ -1037,7 +1061,9 @@ export const MemberEdit = ({
                           name="waiverCompleteDate"
                           id="waiverCompleteDate"
                           size="50"
-                          value={memberItem.values['Waiver Complete Date']}
+                          defaultValue={
+                            memberItem.values['Waiver Complete Date']
+                          }
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -1173,7 +1199,7 @@ export const MemberEdit = ({
                   id="address"
                   size="80"
                   required
-                  value={memberItem.values['Address']}
+                  defaultValue={memberItem.values['Address']}
                   onChange={e => {
                     handleChange(
                       memberItem,
@@ -1201,7 +1227,7 @@ export const MemberEdit = ({
                   name="suburb"
                   id="suburb"
                   required
-                  value={memberItem.values['Suburb']}
+                  defaultValue={memberItem.values['Suburb']}
                   onChange={e =>
                     handleChange(
                       memberItem,
@@ -1220,7 +1246,7 @@ export const MemberEdit = ({
                     name="country"
                     id="country"
                     required
-                    value={memberItem.values['Country']}
+                    defaultValue={memberItem.values['Country']}
                     onChange={e => {
                       memberItem.myThis = myThis;
                       handleCountryChange(
@@ -1258,7 +1284,7 @@ export const MemberEdit = ({
                       name="state"
                       id="state"
                       required
-                      value={memberItem.values['State']}
+                      defaultValue={memberItem.values['State']}
                       onChange={e =>
                         handleChange(
                           memberItem,
@@ -1290,7 +1316,7 @@ export const MemberEdit = ({
                       name="state"
                       id="state"
                       required
-                      value={memberItem.values['State']}
+                      defaultValue={memberItem.values['State']}
                       onChange={e =>
                         handleChange(
                           memberItem,
@@ -1330,7 +1356,7 @@ export const MemberEdit = ({
                     id="postcode"
                     size="10"
                     required
-                    value={memberItem.values['Postcode']}
+                    defaultValue={memberItem.values['Postcode']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -1379,7 +1405,7 @@ export const MemberEdit = ({
                   id="email"
                   size="40"
                   required
-                  value={memberItem.values['Email']}
+                  defaultValue={memberItem.values['Email']}
                   onChange={e => {
                     if (e.target.value !== null)
                       e.target.value = e.target.value.trim().toLowerCase();
@@ -1405,7 +1431,7 @@ export const MemberEdit = ({
                   name="additionalEmail"
                   id="additionalEmail"
                   size="40"
-                  value={memberItem.values['Additional Email']}
+                  defaultValue={memberItem.values['Additional Email']}
                   onChange={e => {
                     if (e.target.value !== null)
                       e.target.value = e.target.value.trim().toLowerCase();
@@ -1644,7 +1670,7 @@ export const MemberEdit = ({
                   name="emergencyname"
                   id="emergencyname"
                   required
-                  value={memberItem.values['Emergency Contact Name']}
+                  defaultValue={memberItem.values['Emergency Contact Name']}
                   onChange={e =>
                     handleChange(
                       memberItem,
@@ -1675,7 +1701,9 @@ export const MemberEdit = ({
                     name="relationship"
                     id="relationship"
                     required
-                    value={memberItem.values['Emergency Contact Relationship']}
+                    defaultValue={
+                      memberItem.values['Emergency Contact Relationship']
+                    }
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -1734,7 +1762,7 @@ export const MemberEdit = ({
                     size="40"
                     name="alergies"
                     id="alergies"
-                    value={memberItem.values['Medical Allergies']}
+                    defaultValue={memberItem.values['Medical Allergies']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -1770,7 +1798,7 @@ export const MemberEdit = ({
                     name="program"
                     id="program"
                     required
-                    value={memberItem.values['Ranking Program']}
+                    defaultValue={memberItem.values['Ranking Program']}
                     onChange={e => {
                       handleChange(
                         memberItem,
@@ -1811,7 +1839,7 @@ export const MemberEdit = ({
                     name="belt"
                     id="belt"
                     required
-                    value={memberItem.values['Ranking Belt']}
+                    defaultValue={memberItem.values['Ranking Belt']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -1878,7 +1906,7 @@ export const MemberEdit = ({
                     type="number"
                     name="attendanceCount"
                     id="attendanceCount"
-                    value={memberItem.values['Attendance Count']}
+                    defaultValue={memberItem.values['Attendance Count']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -1898,7 +1926,7 @@ export const MemberEdit = ({
                     type="number"
                     name="maxWeeklyClasses"
                     id="maxWeeklyClasses"
-                    value={memberItem.values['Max Weekly Classes']}
+                    defaultValue={memberItem.values['Max Weekly Classes']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -1917,7 +1945,7 @@ export const MemberEdit = ({
                   <select
                     name="beltSize"
                     id="beltSize"
-                    value={memberItem.values['Belt Size']}
+                    defaultValue={memberItem.values['Belt Size']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -1943,6 +1971,29 @@ export const MemberEdit = ({
           <div className="section3">
             <h1>Other Information</h1>
             <hr />
+            {getAttributeValue(space, 'Member TAX ID') === 'YES' && (
+              <span className="line">
+                <div>
+                  <label htmlFor="taxID">Tax Id</label>
+                  <input
+                    type="text"
+                    size="20"
+                    name="taxID"
+                    id="taxIDtaxID"
+                    defaultValue={memberItem.values['TAX ID']}
+                    onChange={e =>
+                      handleChange(
+                        memberItem,
+                        'TAX ID',
+                        e,
+                        setIsDirty,
+                        memberChanges,
+                      )
+                    }
+                  />
+                </div>
+              </span>
+            )}
             {getAttributeValue(space, 'Franchisor') !== 'YES' && (
               <span className="line">
                 <div>
@@ -1988,7 +2039,6 @@ export const MemberEdit = ({
                     name="billingReceipt"
                     id="billingReceipt"
                     style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
                     value="YES"
                     checked={
                       memberItem.values['Send Payment Receipt'] === 'YES'
@@ -2025,7 +2075,6 @@ export const MemberEdit = ({
                       name="optout"
                       id="optout"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="YES"
                       checked={
                         memberItem.values['Opt-Out'] === 'YES' ? true : false
@@ -2060,7 +2109,6 @@ export const MemberEdit = ({
                       name="mainbenefits"
                       id="excercise"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="excercise"
                       checked={
                         memberItem.values['Main Benefits'] !== undefined &&
@@ -2110,7 +2158,6 @@ export const MemberEdit = ({
                       name="mainbenefits"
                       id="discipline"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="discipline"
                       checked={
                         memberItem.values['Main Benefits'] !== undefined &&
@@ -2160,7 +2207,6 @@ export const MemberEdit = ({
                       name="mainbenefits"
                       id="selfdefense"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="self defense"
                       checked={
                         memberItem.values['Main Benefits'] !== undefined &&
@@ -2212,7 +2258,6 @@ export const MemberEdit = ({
                       name="mainbenefits"
                       id="reducestress"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="reduce stress"
                       checked={
                         memberItem.values['Main Benefits'] !== undefined &&
@@ -2264,7 +2309,6 @@ export const MemberEdit = ({
                       name="mainbenefits"
                       id="respect"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="respect"
                       checked={
                         memberItem.values['Main Benefits'] !== undefined &&
@@ -2315,7 +2359,6 @@ export const MemberEdit = ({
                       name="mainbenefits"
                       id="selfconfidence"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="self confidence"
                       checked={
                         memberItem.values['Main Benefits'] !== undefined &&
@@ -2367,7 +2410,6 @@ export const MemberEdit = ({
                       name="mainbenefits"
                       id="concentration"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="concentration"
                       checked={
                         memberItem.values['Main Benefits'] !== undefined &&
@@ -2419,7 +2461,6 @@ export const MemberEdit = ({
                       name="mainbenefits"
                       id="coordination"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="coordination"
                       checked={
                         memberItem.values['Main Benefits'] !== undefined &&
@@ -2471,7 +2512,6 @@ export const MemberEdit = ({
                       name="mainbenefits"
                       id="balance"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="balance"
                       checked={
                         memberItem.values['Main Benefits'] !== undefined &&
@@ -2522,7 +2562,6 @@ export const MemberEdit = ({
                       name="mainbenefits"
                       id="characterdevelopment"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="character development"
                       checked={
                         memberItem.values['Main Benefits'] !== undefined &&
@@ -2574,7 +2613,6 @@ export const MemberEdit = ({
                       name="mainbenefits"
                       id="focus"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="focus"
                       checked={
                         memberItem.values['Main Benefits'] !== undefined &&
@@ -2620,7 +2658,6 @@ export const MemberEdit = ({
                       name="mainbenefits"
                       id="fun"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="fun"
                       checked={
                         memberItem.values['Main Benefits'] !== undefined &&
@@ -2666,7 +2703,6 @@ export const MemberEdit = ({
                       name="mainbenefits"
                       id="competition"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="competition"
                       checked={
                         memberItem.values['Main Benefits'] !== undefined &&
@@ -2718,7 +2754,6 @@ export const MemberEdit = ({
                       name="mainbenefits"
                       id="ArtofJiuJitsu"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="Art of Jiu Jitsu"
                       checked={
                         memberItem.values['Main Benefits'] !== undefined &&
@@ -2770,8 +2805,7 @@ export const MemberEdit = ({
                     <select
                       name="additionalprogram1"
                       id="additionalprogram1"
-                      ref={input => (this.input = input)}
-                      value={memberItem.values['Additional Program 1']}
+                      defaultValue={memberItem.values['Additional Program 1']}
                       onChange={e =>
                         handleChange(
                           memberItem,
@@ -2798,8 +2832,7 @@ export const MemberEdit = ({
                     <select
                       name="additionalprogram2"
                       id="additionalprogram2"
-                      ref={input => (this.input = input)}
-                      value={memberItem.values['Additional Program 2']}
+                      defaultValue={memberItem.values['Additional Program 2']}
                       onChange={e =>
                         handleChange(
                           memberItem,
@@ -2827,8 +2860,7 @@ export const MemberEdit = ({
                       type="text"
                       name="alternateBarcode"
                       id="alternateBarcode"
-                      ref={input => (this.input = input)}
-                      value={memberItem.values['Alternate Barcode']}
+                      defaultValue={memberItem.values['Alternate Barcode']}
                       onChange={e =>
                         handleChange(
                           memberItem,
@@ -2844,7 +2876,7 @@ export const MemberEdit = ({
                     {memberItem.values['Alternate Barcode'] !== undefined &&
                       memberItem.values['Alternate Barcode'] !== null && (
                         <Barcode
-                          value={memberItem.values['Alternate Barcode']}
+                          defaultValue={memberItem.values['Alternate Barcode']}
                           width={1.3}
                           height={30}
                           displayValue={false}

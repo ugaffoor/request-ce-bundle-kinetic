@@ -7,7 +7,7 @@ import mail from '../assets/images/mail.png';
 import sms from '../assets/images/sms.png';
 import moment from 'moment';
 import $ from 'jquery';
-import { ReactComponent as Bin } from '../assets/images/bin.svg?raw';
+import { ReactComponent as Bin } from '../assets/images/bin.svg';
 
 export const JourneyEvents = ({
   journeyevents,

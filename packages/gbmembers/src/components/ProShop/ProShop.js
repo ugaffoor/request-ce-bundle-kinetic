@@ -1605,6 +1605,7 @@ class PayNow extends Component {
       name: getAttributeValue(this.props.space, 'School Name'),
       address: addressInfo.length > 0 ? addressInfo[0].trim() : 'unknown',
       city: getAttributeValue(this.props.space, 'School City'),
+      state: getAttributeValue(this.props.space, 'School State'),
       postcode: getAttributeValue(this.props.space, 'School Postcode'),
       country: getAttributeValue(this.props.space, 'School Country Code'),
     };
@@ -2459,6 +2460,7 @@ class PayNow extends Component {
                     )}
                     content={() => this.componentRef.current}
                     pageStyle="@page {size: a4 portrait;margin: 0;}"
+                    onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
                   />
                 </span>
                 <span
@@ -4233,6 +4235,7 @@ export class ProShop extends Component {
                   {this.state.showRecordStockDialog && (
                     <RecordStockDialogContainer
                       setShowRecordStockDialog={this.setShowRecordStockDialog}
+                      posStock={this.props.posStock}
                       products={this.props.posProducts}
                       locale={this.props.locale}
                       currency={this.props.currency}
@@ -4443,7 +4446,8 @@ export class ProShop extends Component {
                             product.values['Status'] === 'Active' &&
                             product.values['Product Type'] ===
                               this.props.productType &&
-                            (product.values['Product Type'] === 'Apparel'
+                            (product.values['Product Type'] === 'Apparel' ||
+                            product.values['Product Type'] === 'Concession'
                               ? product.stock.length > 0
                               : true))
                         )
@@ -4713,14 +4717,12 @@ export const ProShopContainer = compose(
                 posProducts[prodIdx].stock[stockIdx].values['Quantity'],
               ) - 1;
           });
-        } else if (
-          product['productType'] === 'Service' ||
-          product['productType'] === 'Concession'
-        ) {
+        } else if (product['productType'] === 'Service') {
         } else {
           decrementPOSStock({
             productID: product['productID'],
-            size: product['size'],
+            size:
+              product['productType'] === 'Concession' ? 'ALL' : product['size'],
             quantity: product['quantity'],
           });
           var prodIdx = posProducts.findIndex(
@@ -4729,7 +4731,10 @@ export const ProShopContainer = compose(
           var stockIdx = posProducts[prodIdx].stock.findIndex(
             stock =>
               stock.values['Product ID'] === product['productID'] &&
-              stock.values['Size'] === product['size'],
+              stock.values['Size'] ===
+                (product['productType'] === 'Concession'
+                  ? 'ALL'
+                  : product['size']),
           );
           posProducts[prodIdx].stock[stockIdx].values['Quantity'] =
             parseInt(posProducts[prodIdx].stock[stockIdx].values['Quantity']) -

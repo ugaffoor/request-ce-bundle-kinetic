@@ -423,10 +423,12 @@ class PayNow extends Component {
     return disable;
   }
   processPayment() {
+    var billingSystem = getAttributeValue(this.props.space, 'Billing Company');
     var posSystem = getAttributeValue(this.props.space, 'POS System');
     var posServiceURL = getAttributeValue(this.props.space, 'POS Service URL');
     var schoolName = getAttributeValue(this.props.space, 'School Name');
     if (
+      billingSystem === 'Bambora' ||
       posSystem === 'Bambora' ||
       (posSystem === 'Square' &&
         getAttributeValue(this.props.space, 'Billing Company') === 'Bambora')
@@ -977,6 +979,7 @@ class PayNow extends Component {
                   )}
                   content={() => this.componentRef.current}
                   pageStyle="@page {size: a4 portrait;margin: 0;}"
+                  onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
                 />
               </span>
             </span>
@@ -1776,6 +1779,7 @@ export class PaymentHistory extends Component {
                 payment={row.original}
                 paymentID={row.original['paymentID']}
                 paymentMethod={row.original['paymentMethod']}
+                refundValue={row.original['refundAmount']}
                 status={
                   this.isPaymentRefunded(
                     row.original.paymentID,
@@ -1803,6 +1807,7 @@ export class PaymentHistory extends Component {
                 )}
                 content={() => this.rowRecieptsRefs.get(row.original._id)}
                 pageStyle="@page {size: a4 portrait;margin: 0;}"
+                onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
               />
             </span>
           </span>
@@ -1851,6 +1856,7 @@ export class PaymentHistory extends Component {
         <ReactToPrint
           trigger={() => <PrinterIcon className="icon tablePrint icon-svg" />}
           content={() => this.tableComponentRef.current}
+          onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
         />
         <div className="paymentHistoryTable">
           <ReactTable

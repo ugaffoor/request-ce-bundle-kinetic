@@ -22,6 +22,7 @@ import { actions as appActions } from '../../redux/modules/memberApp';
 import { ReactComponent as CrossIcon } from '../../images/cross.svg';
 import { confirm } from '../helpers/Confirmation';
 import { ReactComponent as HelpIcon } from '../../images/help.svg';
+import ReactTooltip from 'react-tooltip';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -677,23 +678,28 @@ export class EmailCampaignsList extends Component {
                 <label htmlFor="scheduled" />
               </div>
               <HelpIcon
+                data-for="scheduledEmailsModeHelp"
+                data-tip
                 className="icon icon-svg help"
-                onClick={e => {
-                  $('.scheduledEmailsModeHelp').toggle('');
-                }}
               />
             </div>
-            <span className="scheduledEmailsModeHelp">
-              <ul>
-                <li>No - Show all Emails</li>
-                <li>
-                  Yes - Displays only emails that are still scheduled to be
-                  sent.<br />If you have Scheduled emails that are older than
-                  the last item displayed, click Show More to load another group
-                  of emails.
-                </li>
-              </ul>
-            </span>
+            <ReactTooltip
+              id="scheduledEmailsModeHelp"
+              place="bottom"
+              variant="info"
+            >
+              <span className="scheduledEmailsModeHelp">
+                <ul>
+                  <li>No - Show all Emails</li>
+                  <li>
+                    Yes - Displays only emails that are still scheduled to be
+                    sent.<br />If you have Scheduled emails that are older than
+                    the last item displayed, click Show More to load another
+                    group of emails.
+                  </li>
+                </ul>
+              </span>
+            </ReactTooltip>
           </div>
         </div>
         <div
@@ -1301,22 +1307,28 @@ export class SmsCampaignsList extends Component {
                 <label htmlFor="scheduledSMS" />
               </div>
               <HelpIcon
+                data-for="scheduledSMSModeHelp"
+                data-tip
                 className="icon icon-svg help"
-                onClick={e => {
-                  $('.scheduledSMSModeHelp').toggle('');
-                }}
               />
             </div>
-            <span className="scheduledSMSModeHelp">
-              <ul>
-                <li>No - Show all SMS</li>
-                <li>
-                  Yes - Displays only SMS that are still scheduled to be sent.
-                  <br />If you have Scheduled SMS that are older than the last
-                  item displayed, click Show More to load another group of SMS.
-                </li>
-              </ul>
-            </span>
+            <ReactTooltip
+              id="scheduledSMSModeHelp"
+              place="bottom"
+              variant="info"
+            >
+              <span className="scheduledSMSModeHelp">
+                <ul>
+                  <li>No - Show all SMS</li>
+                  <li>
+                    Yes - Displays only SMS that are still scheduled to be sent.
+                    <br />If you have Scheduled SMS that are older than the last
+                    item displayed, click Show More to load another group of
+                    SMS.
+                  </li>
+                </ul>
+              </span>
+            </ReactTooltip>
           </div>
         </div>
         <div

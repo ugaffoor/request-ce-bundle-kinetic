@@ -1987,7 +1987,7 @@ export class MemberFinancialReport extends Component {
 
     return name;
   }
-  getMemberFee(members, member, forRegistrationFee) {
+  getMemberFee(members, member, forRegistrationFee, allTransactionRecords) {
     if (forRegistrationFee && member.registrationFeeMember) {
       return member.memberRegistrationFee;
     }
@@ -1998,6 +1998,18 @@ export class MemberFinancialReport extends Component {
       member.values['Non Paying'] === 'YES'
     )
       return 'Non Paying';
+
+    if (member.values['Status'] === 'Frozen') {
+      var amount = 0;
+      allTransactionRecords.forEach(transaction => {
+        if (
+          transaction.billingID === member.values['Billing Customer Reference']
+        ) {
+          amount = amount + parseFloat(transaction.payment);
+        }
+      });
+      return amount.toFixed(2);
+    }
     if (
       member.values['Family Fee Details'] !== null &&
       member.values['Family Fee Details'] !== undefined
@@ -2063,7 +2075,14 @@ export class MemberFinancialReport extends Component {
       return member.values['Billing Payment Period'];
     return '';
   }
-  getMembers(allMembers, members, billingCustomers, col, forRegistrationFee) {
+  getMembers(
+    allMembers,
+    members,
+    billingCustomers,
+    col,
+    forRegistrationFee,
+    allTransactionRecords,
+  ) {
     var members_col = [];
 
     for (var i = col - 1; i < members.length; i = i + 2) {
@@ -2075,7 +2094,12 @@ export class MemberFinancialReport extends Component {
           members[i].values['First Name'],
         fee:
           members[i].id !== 'Orphan'
-            ? this.getMemberFee(allMembers, members[i], forRegistrationFee)
+            ? this.getMemberFee(
+                allMembers,
+                members[i],
+                forRegistrationFee,
+                allTransactionRecords,
+              )
             : members[i].fee,
         cost:
           members[i].id !== 'Orphan'
@@ -2083,6 +2107,7 @@ export class MemberFinancialReport extends Component {
                 members[i],
                 billingCustomers,
                 forRegistrationFee,
+                allTransactionRecords,
               )
             : members[i].fee,
         period:
@@ -2187,9 +2212,26 @@ export class MemberFinancialReport extends Component {
 
     return members_col;
   }
-  getScheduledPayment(member, billingCustomers, forRegistrationFee) {
+  getScheduledPayment(
+    member,
+    billingCustomers,
+    forRegistrationFee,
+    allTransactionRecords,
+  ) {
     if (forRegistrationFee && member.registrationFeeMember) {
       return member.memberRegistrationFee;
+    }
+
+    if (member.values['Status'] === 'Frozen') {
+      var amount = 0;
+      allTransactionRecords.forEach(transaction => {
+        if (
+          transaction.billingID === member.values['Billing Customer Reference']
+        ) {
+          amount = amount + parseFloat(transaction.payment);
+        }
+      });
+      return amount.toFixed(2);
     }
 
     if (
@@ -2211,7 +2253,12 @@ export class MemberFinancialReport extends Component {
     return 0;
   }
 
-  getMemberTableData(members, billingCustomers, forRegistrationFee) {
+  getMemberTableData(
+    members,
+    billingCustomers,
+    forRegistrationFee,
+    allTransactionRecords,
+  ) {
     members.sort(function(a, b) {
       if (a.values['Last Name'] < b.values['Last Name']) {
         return -1;
@@ -2227,6 +2274,7 @@ export class MemberFinancialReport extends Component {
       billingCustomers,
       1,
       forRegistrationFee,
+      allTransactionRecords,
     );
     let members_col2 = this.getMembers(
       this.state.allMembers,
@@ -2234,6 +2282,7 @@ export class MemberFinancialReport extends Component {
       billingCustomers,
       2,
       forRegistrationFee,
+      allTransactionRecords,
     );
 
     return [
@@ -3096,6 +3145,7 @@ export class MemberFinancialReport extends Component {
           <ReactToPrint
             trigger={() => <PrinterIcon className="icon icon-svg tablePrint" />}
             content={() => this.tableComponentRef.current}
+            onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
           />
           <button
             className="downloadCSV"
@@ -3202,6 +3252,8 @@ export class MemberFinancialReport extends Component {
                 data={this.getMemberTableData(
                   this.state.repMemberData.accountHolders.members,
                   this.state.billingCustomers,
+                  false,
+                  this.state.repMemberData.allTransactionRecords,
                 )}
                 defaultPageSize={1}
                 showPagination={false}
@@ -3226,6 +3278,7 @@ export class MemberFinancialReport extends Component {
                   this.state.repMemberData.registrationFeeMembers.members,
                   this.state.billingCustomers,
                   true,
+                  this.state.repMemberData.allTransactionRecords,
                 )}
                 defaultPageSize={1}
                 showPagination={false}

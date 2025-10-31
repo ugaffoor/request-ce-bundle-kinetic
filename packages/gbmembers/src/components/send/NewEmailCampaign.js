@@ -38,7 +38,10 @@ import { TinyMCEComponent, createEditorStore } from 'mb-react-tinymce';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { actions as appActions } from '../../redux/modules/memberApp';
 import '../helpers/jquery.multiselect.js';
-import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
+import {
+  getAttributeValue,
+  getAttributeValues,
+} from '../../lib/react-kinops-components/src/utils';
 
 <script src="../helpers/jquery.multiselect.js" />;
 
@@ -117,7 +120,7 @@ export class NewEmailCampaign extends Component {
       schoolEmail: getAttributeValue(this.props.space, 'School Email'),
       aliasEmail: undefined,
       aliasEmailOptions: this.getEmailAlias(
-        getAttributeValue(this.props.space, 'School Email Alias'),
+        getAttributeValues(this.props.space, 'School Email Alias'),
       ),
       text: '',
       subject: '',

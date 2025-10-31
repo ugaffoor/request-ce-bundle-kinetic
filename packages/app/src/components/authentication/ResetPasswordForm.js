@@ -91,7 +91,7 @@ const handleResetPassword = ({
         'Display Name': null,
         'Password Reset URL': null,
       },
-      authAssumed: false,
+      public: true,
     });
 
     setShowConfirmation(true);

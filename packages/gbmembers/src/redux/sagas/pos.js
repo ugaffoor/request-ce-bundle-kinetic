@@ -146,6 +146,8 @@ export function* fetchPOSProducts(action) {
             }
           }
         }
+      } else if (products[i].values['Product Type'] === 'Concession') {
+        products[i].values['Sizes'] = ['ALL'];
       }
     }
 
@@ -516,6 +518,7 @@ export function* savePOSStock(action) {
     console.log('setPOSStockSaved');
     yield put(
       actions.setPOSStockSaved({
+        posStock: action.payload.posStock,
         products: action.payload.products,
         stock: stock,
       }),
