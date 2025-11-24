@@ -219,6 +219,7 @@ export class MembershipReceiptToPrint extends React.Component {
           </span>
           {this.props.familyMembers !== undefined &&
             this.props.familyMembers.length > 0 &&
+            this.props.payment.paymentSource !== 'Manual Registration Fee' &&
             this.props.payment.paymentSource !== 'Member Registration Fee' && (
               <span className="familyMembers">
                 <table style={{ border: 1, width: '100%' }}>
@@ -252,7 +253,9 @@ export class MembershipReceiptToPrint extends React.Component {
             )}
           {this.props.familyMembers !== undefined &&
             this.props.familyMembers.length > 0 &&
-            this.props.payment.paymentSource === 'Member Registration Fee' && (
+            (this.props.payment.paymentSource === 'Manual Registration Fee' ||
+              this.props.payment.paymentSource ===
+                'Member Registration Fee') && (
               <span className="familyMembers">
                 <table style={{ border: 1, width: '100%' }}>
                   <thead>
@@ -260,21 +263,12 @@ export class MembershipReceiptToPrint extends React.Component {
                       <b>Member</b>
                     </td>
                     <td />
-                    <td>
-                      <b>Fee</b>
-                    </td>
                   </thead>
                   <tbody>
                     {this.state.feeDetails.map((member, index) => (
                       <tr>
                         <td>{member.Name}</td>
                         <td>Member Registration Fee</td>
-                        <td>
-                          {new Intl.NumberFormat(this.props.locale, {
-                            style: 'currency',
-                            currency: this.props.currency,
-                          }).format(this.props.payment.paymentAmount)}
-                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -321,6 +315,7 @@ export class MembershipReceiptToPrint extends React.Component {
           getAttributeValue(this.props.space, 'Billing Company') ===
             'Bambora' &&
           getAttributeValue(this.props.space, 'Ignore Admin Fee') !== 'YES' &&
+          this.props.payment.paymentSource !== 'Manual Registration Fee' &&
           this.props.payment.paymentSource !== 'Member Registration Fee' &&
           this.state.memberStatus !== 'Frozen' &&
           this.state.memberStatus !== 'Pending Freeze' && (
@@ -351,6 +346,7 @@ export class MembershipReceiptToPrint extends React.Component {
           getAttributeValue(this.props.space, 'TAX 1 Value') !== '' &&
           getAttributeValue(this.props.space, 'TAX 1 Value') !== undefined &&
           getAttributeValue(this.props.space, 'TAX 1 Value') !== null &&
+          this.props.payment.paymentSource !== 'Manual Registration Fee' &&
           this.props.payment.paymentSource !== 'Member Registration Fee' && (
             <span className="total">
               <span className="label">
@@ -377,6 +373,7 @@ export class MembershipReceiptToPrint extends React.Component {
           getAttributeValue(this.props.space, 'TAX 2 Value') !== '' &&
           getAttributeValue(this.props.space, 'TAX 2 Value') !== undefined &&
           getAttributeValue(this.props.space, 'TAX 2 Value') !== null &&
+          this.props.payment.paymentSource !== 'Manual Registration Fee' &&
           this.props.payment.paymentSource !== 'Member Registration Fee' && (
             <span className="total">
               <span className="label">

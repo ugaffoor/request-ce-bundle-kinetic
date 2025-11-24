@@ -150,11 +150,22 @@ export class StripeMembershipTransactions extends Component {
     return dt;
   }
 
+  isMembershipFee(payment) {
+    if (
+      payment['paymentStatus'] === 'paid' ||
+      (payment['paymentStatus'] === 'succeeded' &&
+        payment.paymentSource === 'Manual Membership Payment')
+    ) {
+      return true;
+    }
+    return false;
+  }
+
   getData(paymentHistory, allMembers) {
     let data = [];
 
     paymentHistory.forEach((payment, idx) => {
-      if (payment['paymentStatus'] === 'paid') {
+      if (this.isMembershipFee(payment)) {
         let date = this.getDate(payment['debitDate']);
         let amount = parseFloat(payment['paymentAmount'].toFixed(2));
         let subTotal =
@@ -182,12 +193,14 @@ export class StripeMembershipTransactions extends Component {
             },
           };
         }
+
         data.push({
           date: date,
           subTotal: subTotal,
           amount: amount,
           fee: fee,
           member: member,
+          paymentMethod: payment.paymentMethod,
         });
       }
     });
@@ -262,7 +275,9 @@ export class StripeMembershipTransactions extends Component {
         accessor: 'paymentMethod',
         Header: 'Payment Method',
         Cell: props => {
-          return props.original.member.values['Billing Payment Type'];
+          return props.original.paymentMethod === 'card'
+            ? 'Credit Card'
+            : props.original.member.values['Billing Payment Type'];
         },
         width: 100,
       },

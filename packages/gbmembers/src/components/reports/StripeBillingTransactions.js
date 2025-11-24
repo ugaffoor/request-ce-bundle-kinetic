@@ -113,7 +113,7 @@ export class StripeBillingTransactions extends Component {
   loadData(startDate) {
     var dateFrom = moment(startDate).format('YYYY-MM-DD');
 
-    this.props.fetchPaymentHistory({
+    /*    this.props.fetchPaymentHistory({
       paymentType: 'SUCCESSFUL',
       paymentMethod: 'ALL',
       paymentSource: 'ALL',
@@ -130,7 +130,7 @@ export class StripeBillingTransactions extends Component {
         this.props.profile.timezone,
         this.props.space.defaultTimezone,
       ),
-    });
+    }); */
     /*    this.props.fetchPaymentHistory({
       paymentType: 'FAILED',
       paymentMethod: 'ALL',

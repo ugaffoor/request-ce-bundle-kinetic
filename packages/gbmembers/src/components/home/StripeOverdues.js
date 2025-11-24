@@ -289,15 +289,13 @@ export class StripeOverdues extends Component {
             </div>
           );
         },
-        Footer: (
+        Footer: () => (
           <span>
             <strong>Total: </strong>
-            {this.state !== undefined
-              ? new Intl.NumberFormat(this.locale, {
-                  style: 'currency',
-                  currency: this.currency,
-                }).format(this.state.total)
-              : 0}
+            {new Intl.NumberFormat(this.locale, {
+              style: 'currency',
+              currency: this.currency,
+            }).format(this.state.total)}
           </span>
         ),
       },

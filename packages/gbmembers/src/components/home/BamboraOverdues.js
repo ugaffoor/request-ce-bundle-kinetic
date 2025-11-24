@@ -309,15 +309,13 @@ export class BamboraOverdues extends React.Component {
             </div>
           );
         },
-        Footer: (
+        Footer: () => (
           <span>
             <strong>Total: </strong>
-            {this.state !== undefined
-              ? new Intl.NumberFormat(this.props.locale, {
-                  style: 'currency',
-                  currency: this.props.currency,
-                }).format(this.state.total)
-              : 0}
+            {new Intl.NumberFormat(this.props.locale, {
+              style: 'currency',
+              currency: this.props.currency,
+            }).format(this.state.total)}
           </span>
         ),
       },
@@ -347,7 +345,7 @@ export class BamboraOverdues extends React.Component {
   }
 
   render() {
-    const { data, columns } = this.state;
+    const { data, columns, total } = this.state;
     return this.props.FAILEDpaymentHistoryLoading ||
       this.props.SUCCESSFULpaymentHistoryLoading ? (
       <div>Loading Payment History ...</div>
@@ -379,13 +377,11 @@ export class BamboraOverdues extends React.Component {
           </div>
           <ReactTable
             ref={this.tableComponentRef}
-            columns={this.state.columns}
-            data={this.state.data}
+            columns={columns}
+            data={data}
             className="-striped -highlight"
-            defaultPageSize={
-              this.state.data.length > 0 ? this.state.data.length : 2
-            }
-            pageSize={this.state.data.length > 0 ? this.state.data.length : 2}
+            defaultPageSize={data.length > 0 ? data.length : 2}
+            pageSize={data.length > 0 ? data.length : 2}
             showPagination={false}
           />
         </div>

@@ -536,6 +536,9 @@ export class MemberFinancialReport extends Component {
       return undefined;
     var idx = members.findIndex(
       member =>
+        member.values['Billing Customer Id'] !== undefined &&
+        member.values['Billing Customer Id'] !== null &&
+        member.values['Billing Customer Id'] !== '' &&
         member.values['Billing Customer Id'] === payment['yourSystemReference'],
     );
 
@@ -550,7 +553,9 @@ export class MemberFinancialReport extends Component {
     )
       return undefined;
     var idx = members.findIndex(
-      member => member.values['Member ID'] === payment['yourSystemReference'],
+      member =>
+        member.values['Member ID'] === payment['yourSystemReference'] ||
+        member.values['Billing Customer Id'] === payment['yourSystemReference'],
     );
 
     if (idx !== -1) return members[idx];
@@ -562,7 +567,10 @@ export class MemberFinancialReport extends Component {
       payment['paymentSource'] === 'Manual Registration Fee'
     ) {
       var idx = members.findIndex(
-        member => member.values['Member ID'] === payment['yourSystemReference'],
+        member =>
+          member.values['Member ID'] === payment['yourSystemReference'] ||
+          member.values['Billing Customer Id'] ===
+            payment['yourSystemReference'],
       );
 
       if (idx !== -1) return members[idx];
@@ -1076,6 +1084,7 @@ export class MemberFinancialReport extends Component {
           if (payment.paymentStatus !== 'Refund') {
             if (
               payment.paymentAmount !== 0 &&
+              payment.paymentMethod !== 'card_present' &&
               (payment.paymentSource === null ||
                 payment.paymentSource.indexOf('POS') === -1)
             ) {
@@ -1436,7 +1445,10 @@ export class MemberFinancialReport extends Component {
     additionalServicesRecords.forEach((service, i) => {
       // Find latest payment date
       var idx = paymentHistory.findIndex(item => {
-        return service.values['Member ID'] === item.yourSystemReference;
+        return (
+          service.values['Member ID'] === item.yourSystemReference ||
+          service.values['Billing Customer Id'] === item.yourSystemReference
+        );
       });
       var lastPayment;
       if (idx !== -1) {
@@ -1574,6 +1586,7 @@ export class MemberFinancialReport extends Component {
       var idx = members.findIndex(
         item =>
           item.values['Member ID'] === refund.yourSystemReference ||
+          item.values['Billing Customer Id'] === refund.yourSystemReference ||
           item.values['First Name'] + ' ' + item.values['Last Name'] ===
             refund.customerName,
       );
@@ -1582,6 +1595,8 @@ export class MemberFinancialReport extends Component {
         mIdx = refundMembers.findIndex(
           item =>
             item.member.values['Member ID'] === refund.yourSystemReference ||
+            item.member.values['Billing Customer Id'] ===
+              refund.yourSystemReference ||
             item.member.values['First Name'] +
               ' ' +
               item.member.values['Last Name'] ===
@@ -3747,8 +3762,10 @@ export class MemberFinancialReport extends Component {
                 </div>
                 <div className="column col4" />
               </div>
-              {getAttributeValue(this.props.space, 'Billing Company') ===
-                'Bambora' && (
+              {(getAttributeValue(this.props.space, 'Billing Company') ===
+                'Bambora' ||
+                getAttributeValue(this.props.space, 'Billing Company') ===
+                  'Stripe') && (
                 <div className="row header4">
                   <div className="column col1">Registration Fees</div>
                   <div className="column col2">
@@ -3927,18 +3944,22 @@ export class MemberFinancialReport extends Component {
                 <div className="column col4" />
               </div>
               <div className="row header8">
-                {getAttributeValue(this.props.space, 'Billing Company') ===
-                  'Bambora' && (
+                {(getAttributeValue(this.props.space, 'Billing Company') ===
+                  'Bambora' ||
+                  getAttributeValue(this.props.space, 'Billing Company') ===
+                    'Stripe') && (
                   <div className="column col1">
                     Membership+Registration Fees-Refunds+ProShop+Forecast
                   </div>
                 )}
                 {getAttributeValue(this.props.space, 'Billing Company') !==
-                  'Bambora' && (
-                  <div className="column col1">
-                    Membership-Refunds+ProShop+Forecast
-                  </div>
-                )}
+                  'Bambora' &&
+                  getAttributeValue(this.props.space, 'Billing Company') !==
+                    'Stripe' && (
+                    <div className="column col1">
+                      Membership-Refunds+ProShop+Forecast
+                    </div>
+                  )}
                 <div className="column col2">
                   <div className="dollarValue">
                     {new Intl.NumberFormat(this.locale, {
@@ -3981,16 +4002,20 @@ export class MemberFinancialReport extends Component {
                 <div className="column col4" />
               </div>
               <div className="row header10">
-                {getAttributeValue(this.props.space, 'Billing Company') ===
-                  'Bambora' && (
+                {(getAttributeValue(this.props.space, 'Billing Company') ===
+                  'Bambora' ||
+                  getAttributeValue(this.props.space, 'Billing Company') ===
+                    'Stripe') && (
                   <div className="column col1">
                     Membership+Registration Fees+Forecast
                   </div>
                 )}
                 {getAttributeValue(this.props.space, 'Billing Company') !==
-                  'Bambora' && (
-                  <div className="column col1">Membership+Forecast</div>
-                )}
+                  'Bambora' &&
+                  getAttributeValue(this.props.space, 'Billing Company') !==
+                    'Stripe' && (
+                    <div className="column col1">Membership+Forecast</div>
+                  )}
                 <div className="column col2">
                   <div className="dollarValue">
                     {new Intl.NumberFormat(this.locale, {
@@ -4008,16 +4033,22 @@ export class MemberFinancialReport extends Component {
                 <div className="column col4" />
               </div>
               <div className="row header10">
-                {getAttributeValue(this.props.space, 'Billing Company') ===
-                  'Bambora' && (
+                {(getAttributeValue(this.props.space, 'Billing Company') ===
+                  'Bambora' ||
+                  getAttributeValue(this.props.space, 'Billing Company') ===
+                    'Stripe') && (
                   <div className="column col1">
                     Membership+Registration Fees+Forecast-Refunds
                   </div>
                 )}
                 {getAttributeValue(this.props.space, 'Billing Company') !==
-                  'Bambora' && (
-                  <div className="column col1">Membership+Forecast-Refunds</div>
-                )}
+                  'Bambora' &&
+                  getAttributeValue(this.props.space, 'Billing Company') !==
+                    'Stripe' && (
+                    <div className="column col1">
+                      Membership+Forecast-Refunds
+                    </div>
+                  )}
                 <div className="column col2">
                   <div className="dollarValue">
                     {new Intl.NumberFormat(this.locale, {

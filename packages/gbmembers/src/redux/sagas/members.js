@@ -2210,7 +2210,9 @@ export function* refundPOSTransaction(action) {
 
   let args = {};
   args.space = appSettings.spaceSlug;
-  args.billingService = appSettings.billingCompany;
+  args.billingService = action.payload.transactionId.startsWith('ch_')
+    ? 'Stripe'
+    : appSettings.billingCompany;
   args.transactionId = action.payload.transactionId;
   args.customerId = action.payload.customerId;
   args.refundAmount = action.payload.refundAmount;
@@ -2533,7 +2535,10 @@ export function* fetchBillingCustomers(action) {
   args.active = true;
   args.useSubAccount = action.payload.useSubAccount;
 
-  if (appSettings.billingCompany === 'Bambora') {
+  if (
+    appSettings.billingCompany === 'Bambora' ||
+    appSettings.billingCompany === 'Stripe'
+  ) {
     let billingCustomers = [];
     action.payload.allMembers.forEach((member, i) => {
       if (member.values['Billing User'] === 'YES') {
