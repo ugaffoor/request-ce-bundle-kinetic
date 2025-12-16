@@ -692,6 +692,19 @@ Indications in the application will identify members not compliant."
         <span className="detailsSection">
           <h6>Leads</h6>
           <EditAttributeValue
+            attributeID="allowMeetingCalls"
+            attributeName="Allow Meeting Calls"
+            inputType="yesToggleValue"
+            width="400px"
+            labelName="Allow Meeting Calls"
+            helpText="Check to allow the use of Meeting Calls for Leads."
+            updateSpaceAttribute={this.props.updateSpaceAttribute}
+            space={this.props.space}
+            appSpace={this.props.appSpace}
+            profile={this.props.profile}
+          />
+
+          <EditAttributeValue
             attributeID="waiverHiddenItems"
             attributeName="Waiver Hidden Items"
             inputType="waiverHiddenItems"

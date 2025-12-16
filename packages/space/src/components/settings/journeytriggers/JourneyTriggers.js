@@ -14,6 +14,8 @@ import { PopConfirm } from '../../shared/PopConfirm';
 import { Button } from 'reactstrap';
 import { actions as leadActions } from 'gbmembers/src/redux/modules/leads';
 import { actions as memberActions } from 'gbmembers/src/redux/modules/members';
+import { Utils } from 'common';
+import { getAttributeValue } from 'gbmembers/src/lib/react-kinops-components/src/utils';
 
 const globals = import('common/globals');
 var triggerFormThis = undefined;
@@ -1020,7 +1022,16 @@ export class TriggerTypeBlocks extends Component {
               }}
             />
             {this.props.journeyGroups
-              .filter(group => group.values['Journey Type'] === this.props.type)
+              .filter(
+                group =>
+                  group.values['Journey Type'] === this.props.type &&
+                  (group.values['Name'] !== 'Meeting Calls' ||
+                    (group.values['Name'] === 'Meeting Calls' &&
+                      getAttributeValue(
+                        this.props.space,
+                        'Allow Meeting Calls',
+                      ) === 'YES')),
+              )
               .sort(function(a, b) {
                 if (parseInt(a.values['Order']) < parseInt(b.values['Order'])) {
                   return -1;
@@ -1091,6 +1102,7 @@ export class TriggerTypeBlocks extends Component {
 }
 
 const JourneyTriggersComponent = ({
+  space,
   journeyInfoLoading,
   journeyGroups,
   journeyTriggers,
@@ -1140,6 +1152,7 @@ const JourneyTriggersComponent = ({
           <div className="journeyTriggersContent">
             {!hideMemberBlock && (
               <TriggerTypeBlocks
+                space={space}
                 handleLoaded={handleLoaded}
                 handleNewLoaded={handleNewLoaded}
                 handleCreated={handleCreated}
@@ -1162,6 +1175,7 @@ const JourneyTriggersComponent = ({
             )}
             {!hideLeadBlock && (
               <TriggerTypeBlocks
+                space={space}
                 handleLoaded={handleLoaded}
                 handleNewLoaded={handleNewLoaded}
                 handleCreated={handleCreated}
@@ -1222,6 +1236,7 @@ const JourneyTriggersComponent = ({
 
 export const mapStateToProps = state => {
   return {
+    space: state.member.app.space,
     journeyInfoLoading: state.space.journeyTriggers.journeyInfoLoading,
     journeyGroups: state.space.journeyTriggers.journeyGroups,
     journeyTriggers: state.space.journeyTriggers.journeyTriggers,

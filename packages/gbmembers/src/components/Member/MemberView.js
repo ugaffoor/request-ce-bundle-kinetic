@@ -1051,13 +1051,36 @@ export const MemberView = ({
                     </p>
                   </span>
                 </div>
-                <div className="iconItem">
+                <div
+                  className={
+                    memberItem.values['Opt-Out'] === 'YES'
+                      ? 'iconItem optOut'
+                      : 'iconItem'
+                  }
+                  data-for="emailTip"
+                  content=""
+                  data-tip={
+                    memberItem.values['Opt-Out'] === 'YES'
+                      ? 'This member has the Opt-Out value set and will not be included in Email/SMS campaigns. Direct emails will be sent.'
+                      : ''
+                  }
+                >
                   <EmailIcon className="icon icon-svg" />
+
                   <span className="value">
                     <NavLink to={`/NewEmailCampaign/member/${memberItem.id}`}>
                       {memberItem.values['Email']}
                     </NavLink>
                   </span>
+
+                  <ReactTooltip
+                    id="emailTip"
+                    place="bottom"
+                    variant="info"
+                    getContent={() => {
+                      return;
+                    }}
+                  />
                 </div>
                 <div className="iconItem">
                   <PhoneIcon className="icon icon-svg" />

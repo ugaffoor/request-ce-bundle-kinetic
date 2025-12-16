@@ -850,11 +850,11 @@ export class EditAttributeValue extends Component {
               this.props.attributeName,
               this.state.value,
             );
-            /*            setAttributeValue(
+            setAttributeValue(
               this.props.appSpace,
               this.props.attributeName,
               this.state.value,
-            ); */
+            );
           }}
         >
           Save

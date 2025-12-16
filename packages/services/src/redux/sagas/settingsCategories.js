@@ -6,15 +6,19 @@ import { actions, types } from '../modules/settingsCategories';
 import { Promise } from 'core-js';
 
 export function* fetchCategoriesSaga(action) {
-  const { serverError, categories } = yield call(fetchCategories, {
-    kappSlug: action.payload,
-    include: 'attributes',
-  });
+  try {
+    const { serverError, categories } = yield call(fetchCategories, {
+      kappSlug: action.payload,
+      include: 'attributes',
+    });
 
-  if (serverError) {
-    yield put(actions.setCategoriesErrors(serverError));
-  } else {
-    yield put(actions.setCategories(categories));
+    if (serverError) {
+      yield put(actions.setCategoriesErrors(serverError));
+    } else {
+      yield put(actions.setCategories(categories));
+    }
+  } catch (error) {
+    console.log('Error in fetchCategoriesSaga: ' + util.inspect(error));
   }
 }
 

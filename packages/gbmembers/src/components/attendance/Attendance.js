@@ -1323,7 +1323,7 @@ export class SelfCheckin extends Component {
                 {this.state.attendanceAdded &&
                   this.state.checkinClassMember && (
                     <Countdown
-                      date={Date.now() + 1000 * 20}
+                      date={Date.now() + 1000 * 10}
                       renderer={this.renderer}
                     />
                   )}

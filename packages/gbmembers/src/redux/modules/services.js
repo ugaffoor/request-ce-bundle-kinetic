@@ -125,7 +125,21 @@ export const reducer = (state = State(), { type, payload }) => {
             memberMigrations.push(payload[k]);
           }
         }
+        // --- Deduplicate by First + Last Name ---
+        memberMigrations = Object.values(
+          memberMigrations.reduce((acc, item) => {
+            const key =
+              (item.values['Student First Name'] || '').trim().toLowerCase() +
+              '|' +
+              (item.values['Student Last Name'] || '').trim().toLowerCase();
+
+            acc[key] = item; // Replace duplicate with latest
+
+            return acc;
+          }, {}),
+        );
       }
+
       return state
         .set('migrationsLastFetchTime', moment().format('YYYY-MM-DDTHH:mm:ssZ'))
         .set('memberMigrationsLoading', false)

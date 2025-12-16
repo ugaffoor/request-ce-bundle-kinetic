@@ -55,8 +55,9 @@ export class MembershipReceiptToPrint extends React.Component {
     // Determine the Family Members relevant at the time of this receipt
     for (let i = 0; i < this.props.membershipServices.length; i++) {
       if (
-        this.props.datetime.isAfter(
+        this.props.datetime.isSameOrAfter(
           this.props.membershipServices[i].submittedAtDate,
+          'day',
         ) &&
         this.props.datetime.isSameOrAfter(
           this.props.membershipServices[i].billingStartDate,

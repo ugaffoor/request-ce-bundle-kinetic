@@ -4,6 +4,7 @@ import moment from 'moment';
 import { contact_date_format } from '../leads/LeadsUtils';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import axios from 'axios';
+import { Country, State } from 'country-state-city';
 import { ReactComponent as GB1Icon } from '../../images/GB1.svg';
 import { ReactComponent as GB2Icon } from '../../images/GB2.svg';
 import { ReactComponent as GB3Icon } from '../../images/GB3.svg';
@@ -249,6 +250,25 @@ var currencies = {
     name_plural: 'British pounds sterling',
   },
 };
+
+export function formatPhone(phone, mask) {
+  let formatted = '';
+  let phoneIndex = 0;
+
+  for (let i = 0; i < mask.length; i++) {
+    if (mask[i] === '#') {
+      if (phoneIndex < phone.length) {
+        formatted += phone[phoneIndex++];
+      } else {
+        formatted += ''; // no more digits
+      }
+    } else {
+      formatted += mask[i];
+    }
+  }
+
+  return formatted;
+}
 
 export function isBirthday(member) {
   if (
@@ -1415,31 +1435,28 @@ export function handleCountryChange(
     memberItem.myThis.props.space,
     'Billing Company',
   );
-  var states = '';
-  let promise = axios.post(
-    `https://countriesnow.space/api/v0.1/countries/states`,
-    {
-      country: event.target.value,
-    },
+  const countryName = event.target.value;
+
+  // Convert country name → object
+  const country = Country.getAllCountries().find(
+    c => c.name.toLowerCase() === countryName.toLowerCase(),
   );
 
-  promise = promise.then(response => {
-    if (response.data.data.states) {
-      response.data.data.states.forEach(state => {
-        if (states.length > 0) {
-          states = states + ',';
-        }
-        states =
-          states +
-          (billingSystem === 'Bambora' ? state.state_code : state.name);
-      });
-    }
-    if (memberItem.myThis !== undefined)
-      memberItem.myThis.setState({ states: states });
-    return states;
-  });
+  if (!country) {
+    memberItem.myThis.setState({ states: '' });
+    return;
+  }
 
-  promise = promise.catch(handleErrors);
+  // Get states using ISO2
+  const stateList = State.getStatesOfCountry(country.isoCode);
+
+  let states = stateList
+    .map(s => (billingSystem === 'Bambora' ? s.isoCode : s.name))
+    .join(',');
+
+  if (memberItem.myThis !== undefined) {
+    memberItem.myThis.setState({ states });
+  }
 
   //Commenting out following code since we are using uncontrolled components calling setState on value change (and consequently on every keypress)
   //is not required and not desirable. It will result in lifecycle methods like componentWillReceiveProps, componentDidUpdate etc being called

@@ -16,42 +16,46 @@ const buildSearch = (coreState, username) =>
     .build();
 
 export function* fetchSubmissionCountsSaga() {
-  const kappSlug = yield select(state => state.app.config.kappSlug);
-  const username = yield select(state => state.app.profile.username);
-  const [draft, submitted, closed] = yield all([
-    call(searchSubmissions, {
-      get: true,
-      search: buildSearch(constants.CORE_STATE_DRAFT, username),
-      kapp: kappSlug,
-    }),
-    call(searchSubmissions, {
-      get: true,
-      search: buildSearch(constants.CORE_STATE_SUBMITTED, username),
-      kapp: kappSlug,
-    }),
-    call(searchSubmissions, {
-      get: true,
-      search: buildSearch(constants.CORE_STATE_CLOSED, username),
-      kapp: kappSlug,
-    }),
-  ]);
-
-  const serverError =
-    draft.serverError || submitted.serverError || closed.serverError;
-  if (serverError) {
-    yield put(systemErrorActions.setSystemError(serverError));
-  } else {
-    yield put(
-      actions.setSubmissionCounts({
-        Draft: draft.submissions !== undefined ? draft.submissions.length : 0,
-        Submitted:
-          submitted.submissions !== undefined
-            ? submitted.submissions.length
-            : 0,
-        Closed:
-          closed.submissions !== undefined ? closed.submissions.length : 0,
+  try {
+    const kappSlug = yield select(state => state.app.config.kappSlug);
+    const username = yield select(state => state.app.profile.username);
+    const [draft, submitted, closed] = yield all([
+      call(searchSubmissions, {
+        get: true,
+        search: buildSearch(constants.CORE_STATE_DRAFT, username),
+        kapp: kappSlug,
       }),
-    );
+      call(searchSubmissions, {
+        get: true,
+        search: buildSearch(constants.CORE_STATE_SUBMITTED, username),
+        kapp: kappSlug,
+      }),
+      call(searchSubmissions, {
+        get: true,
+        search: buildSearch(constants.CORE_STATE_CLOSED, username),
+        kapp: kappSlug,
+      }),
+    ]);
+
+    const serverError =
+      draft.serverError || submitted.serverError || closed.serverError;
+    if (serverError) {
+      yield put(systemErrorActions.setSystemError(serverError));
+    } else {
+      yield put(
+        actions.setSubmissionCounts({
+          Draft: draft.submissions !== undefined ? draft.submissions.length : 0,
+          Submitted:
+            submitted.submissions !== undefined
+              ? submitted.submissions.length
+              : 0,
+          Closed:
+            closed.submissions !== undefined ? closed.submissions.length : 0,
+        }),
+      );
+    }
+  } catch (error) {
+    console.log('Error in fetchSubmissionCountsSaga: ' + util.inspect(error));
   }
 }
 

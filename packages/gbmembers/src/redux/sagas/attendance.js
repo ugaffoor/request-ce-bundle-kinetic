@@ -203,91 +203,137 @@ export function* fetchMemberAttendances(action) {
 }
 export function* createAttendance(action) {
   try {
-    const { submission } = yield call(createSubmission, {
+    var memberItem;
+    var attendanceSubmission;
+    const { submission, error } = yield call(createSubmission, {
       datastore: true,
       formSlug: 'member-attendance',
       values: action.payload.values,
       completed: true,
       include: SUBMISSION_INCLUDES,
     });
-    action.payload.attendance['id'] = submission.id;
-    let memberItem = undefined;
     for (let i = 0; i < action.payload.allMembers.length; i++) {
       if (
-        action.payload.allMembers[i].id === submission.values['Member GUID']
+        action.payload.allMembers[i].id === action.payload.values['Member GUID']
       ) {
         memberItem = action.payload.allMembers[i];
         break;
       }
     }
+    debugger;
     const app = yield select(getApp);
     setMemberPromotionValues(memberItem, app.belts);
 
-    submission.values['Photo'] = memberItem.values['Photo'];
-    submission.values['First Name'] = memberItem.values['First Name'];
-    submission.values['Last Name'] = memberItem.values['Last Name'];
-    submission.values['Waiver Complete Date'] =
-      memberItem.values['Waiver Complete Date'];
+    if (error !== undefined && error.key === 'uniqueness_violation') {
+      // Retrieve actual record.
+      const search = new SubmissionSearch(true)
+        .eq('values[Member GUID]', action.payload.values['Member GUID'])
+        .eq('values[Class Date]', action.payload.values['Class Date'])
+        .eq('values[Class Time]', action.payload.values['Class Time'])
+        .index('values[Class Date],values[Class Time],values[Member GUID]')
+        .includes(['details', 'values'])
+        .build();
 
-    submission.programOrder = memberItem.programOrder;
-    submission.promotionSort = memberItem.promotionSort;
-    submission.statusText = memberItem.statusText;
-    submission.attendClasses = memberItem.attendClasses;
-    submission.durationPeriod = memberItem.durationPeriod;
-    submission.attendanceVal = memberItem.attendanceVal;
-    submission.daysElapsed = memberItem.daysElapsed;
-    submission.daysVal = memberItem.daysVal;
-    submission.attendancePerc = memberItem.attendancePerc;
-    submission.statusIndicator = memberItem.statusIndicator;
+      const { submissions } = yield call(searchSubmissions, {
+        get: true,
+        form: 'member-attendance',
+        datastore: true,
+        search,
+      });
+      attendanceSubmission = submissions[0];
+      action.payload.attendance['id'] = attendanceSubmission.id;
 
-    // Only Increment attendanceCount if the first classs of the day
-    let checkin = action.payload.classAttendances.find(
-      checkin =>
-        checkin.values['Member GUID'] === submission.values['Member GUID'] &&
-        moment(checkin.values['Class Date']).format('MM/DD/YYYY') ===
-          moment(action.payload.classDate).format('MM/DD/YYYY') &&
+      attendanceSubmission.values['Photo'] = memberItem.values['Photo'];
+      attendanceSubmission.values['First Name'] =
+        memberItem.values['First Name'];
+      attendanceSubmission.values['Last Name'] = memberItem.values['Last Name'];
+      attendanceSubmission.values['Waiver Complete Date'] =
+        memberItem.values['Waiver Complete Date'];
+
+      attendanceSubmission.programOrder = memberItem.programOrder;
+      attendanceSubmission.promotionSort = memberItem.promotionSort;
+      attendanceSubmission.statusText = memberItem.statusText;
+      attendanceSubmission.attendClasses = memberItem.attendClasses;
+      attendanceSubmission.durationPeriod = memberItem.durationPeriod;
+      attendanceSubmission.attendanceVal = memberItem.attendanceVal;
+      attendanceSubmission.daysElapsed = memberItem.daysElapsed;
+      attendanceSubmission.daysVal = memberItem.daysVal;
+      attendanceSubmission.attendancePerc = memberItem.attendancePerc;
+      attendanceSubmission.statusIndicator = memberItem.statusIndicator;
+    } else {
+      attendanceSubmission = submission;
+      action.payload.attendance['id'] = attendanceSubmission.id;
+
+      attendanceSubmission.values['Photo'] = memberItem.values['Photo'];
+      attendanceSubmission.values['First Name'] =
+        memberItem.values['First Name'];
+      attendanceSubmission.values['Last Name'] = memberItem.values['Last Name'];
+      attendanceSubmission.values['Waiver Complete Date'] =
+        memberItem.values['Waiver Complete Date'];
+
+      attendanceSubmission.programOrder = memberItem.programOrder;
+      attendanceSubmission.promotionSort = memberItem.promotionSort;
+      attendanceSubmission.statusText = memberItem.statusText;
+      attendanceSubmission.attendClasses = memberItem.attendClasses;
+      attendanceSubmission.durationPeriod = memberItem.durationPeriod;
+      attendanceSubmission.attendanceVal = memberItem.attendanceVal;
+      attendanceSubmission.daysElapsed = memberItem.daysElapsed;
+      attendanceSubmission.daysVal = memberItem.daysVal;
+      attendanceSubmission.attendancePerc = memberItem.attendancePerc;
+      attendanceSubmission.statusIndicator = memberItem.statusIndicator;
+
+      // Only Increment attendanceCount if the first classs of the day
+      let checkin = action.payload.classAttendances.find(
+        checkin =>
+          checkin.values['Member GUID'] ===
+            attendanceSubmission.values['Member GUID'] &&
+          moment(checkin.values['Class Date']).format('MM/DD/YYYY') ===
+            moment(action.payload.classDate).format('MM/DD/YYYY') &&
+          !excludeFromAttendanceCount(
+            action.payload.additionalPrograms,
+            checkin.values['Class'],
+          ),
+      );
+      if (
+        checkin === undefined &&
         !excludeFromAttendanceCount(
           action.payload.additionalPrograms,
-          checkin.values['Class'],
-        ),
-    );
-    if (
-      checkin === undefined &&
-      !excludeFromAttendanceCount(
-        action.payload.additionalPrograms,
-        action.payload.values['Class'],
-      )
-    ) {
-      let attendanceCount =
-        memberItem.values['Attendance Count'] !== undefined &&
-        memberItem.values['Attendance Count'] !== null
-          ? parseFloat(
-              parseFloat(memberItem.values['Attendance Count']).toFixed(2),
-            )
-          : 0;
-      attendanceCount += 1;
-      memberItem.values['Attendance Count'] = attendanceCount;
-      memberItem.values['Last Attendance Date'] = moment().format('YYYY-MM-DD');
+          action.payload.values['Class'],
+        )
+      ) {
+        let attendanceCount =
+          memberItem.values['Attendance Count'] !== undefined &&
+          memberItem.values['Attendance Count'] !== null
+            ? parseFloat(
+                parseFloat(memberItem.values['Attendance Count']).toFixed(2),
+              )
+            : 0;
+        attendanceCount += 1;
+        memberItem.values['Attendance Count'] = attendanceCount;
+        memberItem.values['Last Attendance Date'] = moment().format(
+          'YYYY-MM-DD',
+        );
 
-      var values = {};
-      values['Attendance Count'] = attendanceCount;
-      values['Last Attendance Date'] = moment().format('YYYY-MM-DD');
-      action.payload.updateMember({
-        id: memberItem['id'],
-        memberItem: memberItem,
-        values: values,
-        myThis: action.payload.myThis,
-      });
+        var values = {};
+        values['Attendance Count'] = attendanceCount;
+        values['Last Attendance Date'] = moment().format('YYYY-MM-DD');
+        action.payload.updateMember({
+          id: memberItem['id'],
+          memberItem: memberItem,
+          values: values,
+          myThis: action.payload.myThis,
+        });
+      }
     }
     var values = [];
     values['Member GUID'] = memberItem.id;
 
     action.payload.classAttendances[
       action.payload.classAttendances.length
-    ] = submission;
+    ] = attendanceSubmission;
     yield put(
       actions.setAddAttendance({
-        id: submission.id,
+        id: attendanceSubmission.id,
         values: values,
         name:
           memberItem.values['First Name'] +
@@ -297,9 +343,9 @@ export function* createAttendance(action) {
       }),
     );
     yield put(actions.setClassAttendances(action.payload.classAttendances));
-  } catch (error) {
-    console.log('Error in createAttendance: ' + util.inspect(error));
-    yield put(errorActions.setSystemError(error));
+  } catch (errorMessage) {
+    console.log('Error in createAttendance: ' + util.inspect(errorMessage));
+    yield put(errorActions.setSystemError(errorMessage));
   }
 }
 

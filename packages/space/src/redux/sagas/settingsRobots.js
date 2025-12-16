@@ -16,125 +16,155 @@ import {
 } from '../modules/settingsRobots';
 
 export function* fetchRobotsSaga(action) {
-  const query = new SubmissionSearch(true);
-  query.include('details,values');
-  query.limit('1000');
+  try {
+    const query = new SubmissionSearch(true);
+    query.include('details,values');
+    query.limit('1000');
 
-  const { submissions, errors, serverError } = yield call(searchSubmissions, {
-    search: query.build(),
-    datastore: true,
-    form: ROBOT_FORM_SLUG,
-  });
+    const { submissions, errors, serverError } = yield call(searchSubmissions, {
+      search: query.build(),
+      datastore: true,
+      form: ROBOT_FORM_SLUG,
+    });
 
-  if (serverError) {
-    yield put(systemErrorActions.setSystemError(serverError));
-  } else if (errors) {
-    yield put(actions.setFetchRobotsError(errors));
-  } else {
-    yield put(actions.setRobots(submissions));
+    if (serverError) {
+      yield put(systemErrorActions.setSystemError(serverError));
+    } else if (errors) {
+      yield put(actions.setFetchRobotsError(errors));
+    } else {
+      yield put(actions.setRobots(submissions));
+    }
+  } catch (error) {
+    console.log('Error in fetchRobotsSaga: ' + util.inspect(error));
+    yield put(errorActions.addError([error], 'fetchRobotsSaga'));
   }
 }
 
 export function* fetchRobotSaga(action) {
-  const include = 'details,values';
-  const { submission, errors, serverError } = yield call(fetchSubmission, {
-    id: action.payload,
-    include,
-    datastore: true,
-  });
+  try {
+    const include = 'details,values';
+    const { submission, errors, serverError } = yield call(fetchSubmission, {
+      id: action.payload,
+      include,
+      datastore: true,
+    });
 
-  if (serverError) {
-    yield put(systemErrorActions.setSystemError(serverError));
-  } else if (errors) {
-    yield put(actions.setRobotError(errors));
-  } else {
-    yield put(actions.setRobot(submission));
+    if (serverError) {
+      yield put(systemErrorActions.setSystemError(serverError));
+    } else if (errors) {
+      yield put(actions.setRobotError(errors));
+    } else {
+      yield put(actions.setRobot(submission));
+    }
+  } catch (error) {
+    console.log('Error in fetchRobotSaga: ' + util.inspect(error));
+    yield put(errorActions.addError([error], 'fetchRobotSaga'));
   }
 }
 
 export function* deleteRobotSaga(action) {
-  const { errors, serverError } = yield call(deleteSubmission, {
-    id: action.payload.id,
-    datastore: true,
-  });
+  try {
+    const { errors, serverError } = yield call(deleteSubmission, {
+      id: action.payload.id,
+      datastore: true,
+    });
 
-  if (serverError) {
-    yield put(systemErrorActions.setSystemError(serverError));
-  } else if (errors) {
-    yield put(actions.setDeleteError(errors));
-  } else {
-    yield put(actions.setDeleteSuccess());
-    if (typeof action.payload.callback === 'function') {
-      action.payload.callback();
+    if (serverError) {
+      yield put(systemErrorActions.setSystemError(serverError));
+    } else if (errors) {
+      yield put(actions.setDeleteError(errors));
+    } else {
+      yield put(actions.setDeleteSuccess());
+      if (typeof action.payload.callback === 'function') {
+        action.payload.callback();
+      }
     }
+  } catch (error) {
+    console.log('Error in deleteRobotSaga: ' + util.inspect(error));
+    yield put(errorActions.addError([error], 'deleteRobotSaga'));
   }
 }
 
 export function* fetchRobotExecutionsSaga({ payload: { scheduleId } }) {
-  const pageToken = yield select(
-    state => state.space.settingsRobots.robotExecutionsCurrentPageToken,
-  );
-  const query = new SubmissionSearch(true);
-  if (pageToken) {
-    query.pageToken(pageToken);
-  }
-  query.include('details,values');
-  query.limit(ROBOT_EXECUTIONS_PAGE_SIZE);
-  query.sortDirection('DESC');
-  query.eq('values[Robot ID]', scheduleId);
-  query.index('values[Robot ID],values[Start]');
+  try {
+    const pageToken = yield select(
+      state => state.space.settingsRobots.robotExecutionsCurrentPageToken,
+    );
+    const query = new SubmissionSearch(true);
+    if (pageToken) {
+      query.pageToken(pageToken);
+    }
+    query.include('details,values');
+    query.limit(ROBOT_EXECUTIONS_PAGE_SIZE);
+    query.sortDirection('DESC');
+    query.eq('values[Robot ID]', scheduleId);
+    query.index('values[Robot ID],values[Start]');
 
-  const { submissions, nextPageToken, errors, serverError } = yield call(
-    searchSubmissions,
-    {
-      search: query.build(),
-      datastore: true,
-      form: ROBOT_EXECUTIONS_FORM_SLUG,
-    },
-  );
+    const { submissions, nextPageToken, errors, serverError } = yield call(
+      searchSubmissions,
+      {
+        search: query.build(),
+        datastore: true,
+        form: ROBOT_EXECUTIONS_FORM_SLUG,
+      },
+    );
 
-  if (serverError) {
-    yield put(systemErrorActions.setSystemError(serverError));
-  } else if (errors) {
-    yield put(actions.setFetchRobotExecutionsError(errors));
-  } else {
-    yield put(actions.setRobotExecutions({ submissions, nextPageToken }));
+    if (serverError) {
+      yield put(systemErrorActions.setSystemError(serverError));
+    } else if (errors) {
+      yield put(actions.setFetchRobotExecutionsError(errors));
+    } else {
+      yield put(actions.setRobotExecutions({ submissions, nextPageToken }));
+    }
+  } catch (error) {
+    console.log('Error in fetchRobotExecutionsSaga: ' + util.inspect(error));
+    yield put(errorActions.addError([error], 'fetchRobotExecutionsSaga'));
   }
 }
 
 export function* fetchRobotExecutionSaga(action) {
-  const include = 'details,values';
-  const { submission, errors, serverError } = yield call(fetchSubmission, {
-    id: action.payload,
-    include,
-    datastore: true,
-  });
+  try {
+    const include = 'details,values';
+    const { submission, errors, serverError } = yield call(fetchSubmission, {
+      id: action.payload,
+      include,
+      datastore: true,
+    });
 
-  if (serverError) {
-    yield put(systemErrorActions.setSystemError(serverError));
-  } else if (errors) {
-    yield put(actions.setRobotExecutionError(errors));
-  } else {
-    yield put(actions.setRobotExecution(submission));
+    if (serverError) {
+      yield put(systemErrorActions.setSystemError(serverError));
+    } else if (errors) {
+      yield put(actions.setRobotExecutionError(errors));
+    } else {
+      yield put(actions.setRobotExecution(submission));
+    }
+  } catch (error) {
+    console.log('Error in fetchRobotExecutionSaga: ' + util.inspect(error));
+    yield put(errorActions.addError([error], 'fetchRobotExecutionSaga'));
   }
 }
 
 export function* fetchNextExecutionsSaga(action) {
-  const query = new SubmissionSearch(true);
+  try {
+    const query = new SubmissionSearch(true);
 
-  query.include('details,values');
-  query.limit('1000');
+    query.include('details,values');
+    query.limit('1000');
 
-  const { submissions, errors, serverError } = yield call(searchSubmissions, {
-    search: query.build(),
-    datastore: true,
-    form: 'robot-next-execution',
-  });
+    const { submissions, errors, serverError } = yield call(searchSubmissions, {
+      search: query.build(),
+      datastore: true,
+      form: 'robot-next-execution',
+    });
 
-  if (serverError) {
-  } else if (errors) {
-  } else {
-    yield put(actions.setNextExecutions(submissions));
+    if (serverError) {
+    } else if (errors) {
+    } else {
+      yield put(actions.setNextExecutions(submissions));
+    }
+  } catch (error) {
+    console.log('Error in fetchNextExecutionsSaga: ' + util.inspect(error));
+    yield put(errorActions.addError([error], 'fetchNextExecutionsSaga'));
   }
 }
 

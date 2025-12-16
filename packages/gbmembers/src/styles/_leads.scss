@@ -298,7 +298,8 @@
     }
   }
 }
-#cancelTrialReason {
+#cancelTrialReason,
+#cancelMeetingReason {
   width: 400px;
 }
 #noteDetailDiv {
@@ -315,7 +316,8 @@
     background-color: #d0cdcd;
   }
   .deleteNote,
-  .cancelTrial {
+  .cancelTrial,
+  .cancelMeeting {
     .icon-svg {
       height: 1rem;
       width: 1rem;
@@ -338,6 +340,7 @@
   .nav-tabs .nav-item.label {
     margin-top: 16px;
     margin-right: 5px;
+    min-width: 80px;
   }
   .nav-tabs {
     border-bottom: none !important;
@@ -411,7 +414,32 @@
     margin: 0px 10px 0px 10px;
   }
 }
-
+.card-body {
+  .iconItem {
+    pointer-events: auto;
+    text-align: left;
+    width: auto;
+    padding-left: 40px;
+    .value {
+      margin-left: 10px;
+      font-size: 18px;
+    }
+    a {
+      color: $darkgray;
+    }
+    .checkboxFilter {
+      margin-left: 6px;
+    }
+    label {
+      min-width: 165px;
+    }
+  }
+  .iconItem.optOut {
+    .icon-svg path {
+      fill: orange !important;
+    }
+  }
+}
 .leadConversion {
   width: 300px;
   @media (min-width: 630px) {

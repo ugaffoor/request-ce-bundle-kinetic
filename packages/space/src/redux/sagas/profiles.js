@@ -6,17 +6,22 @@ const PROFILE_INCLUDES =
   'attributes,profileAttributes,memberships,memberships.team,memberships.team.attributes,memberships.team.memberships,memberships.team.memberships.user';
 
 export function* fetchProfileSaga({ payload }) {
-  const { serverError, profile, user } = payload
-    ? yield call(fetchUser, {
-        include: PROFILE_INCLUDES,
-        username: payload,
-      })
-    : yield call(fetchProfile, { include: PROFILE_INCLUDES });
+  try {
+    const { serverError, profile, user } = payload
+      ? yield call(fetchUser, {
+          include: PROFILE_INCLUDES,
+          username: payload,
+        })
+      : yield call(fetchProfile, { include: PROFILE_INCLUDES });
 
-  if (serverError) {
-    yield put(actions.setProfileError(serverError));
-  } else {
-    yield put(actions.setProfile(user || profile));
+    if (serverError) {
+      yield put(actions.setProfileError(serverError));
+    } else {
+      yield put(actions.setProfile(user || profile));
+    }
+  } catch (error) {
+    console.log('Error in fetchProfileSaga: ' + util.inspect(error));
+    yield put(errorActions.addError([error], 'fetchProfileSaga'));
   }
 }
 

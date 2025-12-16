@@ -20,32 +20,37 @@ const getProfileCardsUrl = '/getProfileCards';
 const util = require('util');
 
 export function* fetchPOSCards(action) {
-  const appSettings = yield select(getAppSettings);
-  var args = {
-    space: appSettings.spaceSlug,
-    billingService: appSettings.billingCompany,
-    profileId: action.payload.profileId,
-  };
-  console.log('action:' + action.payload);
-  axios
-    .post(appSettings.kineticBillingServerUrl + getProfileCardsUrl, args)
-    .then(result => {
-      if (result.data.error && result.data.error > 0) {
-        console.log(result.data.errorMessage);
-        action.payload.addNotification(
-          NOTICE_TYPES.ERROR,
-          result.data.errorMessage,
-          'Get POS Cards',
-        );
-      } else {
-        action.payload.setPOSCards(result.data.data);
-      }
-    })
-    .catch(error => {
-      console.log(error.response);
-      //action.payload.setSystemError(error);
-    });
-  yield put(actions.setDummy());
+  try {
+    const appSettings = yield select(getAppSettings);
+    var args = {
+      space: appSettings.spaceSlug,
+      billingService: appSettings.billingCompany,
+      profileId: action.payload.profileId,
+    };
+    console.log('action:' + action.payload);
+    axios
+      .post(appSettings.kineticBillingServerUrl + getProfileCardsUrl, args)
+      .then(result => {
+        if (result.data.error && result.data.error > 0) {
+          console.log(result.data.errorMessage);
+          action.payload.addNotification(
+            NOTICE_TYPES.ERROR,
+            result.data.errorMessage,
+            'Get POS Cards',
+          );
+        } else {
+          action.payload.setPOSCards(result.data.data);
+        }
+      })
+      .catch(error => {
+        console.log(error.response);
+        //action.payload.setSystemError(error);
+      });
+    yield put(actions.setDummy());
+  } catch (error) {
+    console.log('Error in fetchPOSCards: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
 }
 export function* fetchPOSCategories(action) {
   try {

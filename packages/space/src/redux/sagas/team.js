@@ -20,103 +20,138 @@ import {
 import { actions as errorActions } from '../modules/errors';
 
 export function* fetchUsersSaga() {
-  const { users, serverError } = yield call(fetchUsers);
+  try {
+    const { users, serverError } = yield call(fetchUsers);
 
-  if (serverError) {
-    yield put(errorActions.setSystemError(serverError));
-  } else {
-    yield put(
-      currentActions.setUsers(
-        users.filter(user => !user.username.endsWith('@kinops.io')),
-      ),
-    );
+    if (serverError) {
+      yield put(errorActions.setSystemError(serverError));
+    } else {
+      yield put(
+        currentActions.setUsers(
+          users.filter(user => !user.username.endsWith('@kinops.io')),
+        ),
+      );
+    }
+  } catch (error) {
+    console.log('Error in fetchUsersSaga: ' + util.inspect(error));
+    yield put(errorActions.addError([error], 'fetchUsersSaga'));
   }
 }
 
 export function* fetchTeamsSaga() {
-  const { teams, serverError } = yield call(fetchTeams, {
-    include:
-      'attributes,memberships.user,memberships.user.attributes,memberships.user.profileAttributes',
-  });
+  try {
+    const { teams, serverError } = yield call(fetchTeams, {
+      include:
+        'attributes,memberships.user,memberships.user.attributes,memberships.user.profileAttributes',
+    });
 
-  if (serverError) {
-    yield put(errorActions.setSystemError(serverError));
-  } else {
-    yield put(listActions.setTeams(teams));
-    yield put(listActions.setRoles(teams));
+    if (serverError) {
+      yield put(errorActions.setSystemError(serverError));
+    } else {
+      yield put(listActions.setTeams(teams));
+      yield put(listActions.setRoles(teams));
+    }
+  } catch (error) {
+    console.log('Error in fetchTeamsSaga: ' + util.inspect(error));
+    yield put(errorActions.addError([error], 'fetchTeamsSaga'));
   }
 }
 
 export function* fetchTeamSaga(action) {
-  const { team, serverError } = yield call(fetchTeam, {
-    teamSlug: action.payload,
-    include:
-      'attributes,memberships.user,memberships.user.attributes,memberships.user.profileAttributes',
-  });
+  try {
+    const { team, serverError } = yield call(fetchTeam, {
+      teamSlug: action.payload,
+      include:
+        'attributes,memberships.user,memberships.user.attributes,memberships.user.profileAttributes',
+    });
 
-  if (serverError) {
-    yield put(errorActions.setSystemError(serverError));
-  } else {
-    yield put(currentActions.setTeam(team));
+    if (serverError) {
+      yield put(errorActions.setSystemError(serverError));
+    } else {
+      yield put(currentActions.setTeam(team));
+    }
+  } catch (error) {
+    console.log('Error in fetchTeamSaga: ' + util.inspect(error));
+    yield put(errorActions.addError([error], 'fetchTeamSaga'));
   }
 }
 
 export function* updateTeamSaga(action) {
-  const { team, serverError } = yield call(updateTeam, {
-    teamSlug: action.payload.slug,
-    team: action.payload,
-    include:
-      'attributes,memberships.user,memberships.user.attributes,memberships.user.profileAttributes',
-  });
+  try {
+    const { team, serverError } = yield call(updateTeam, {
+      teamSlug: action.payload.slug,
+      team: action.payload,
+      include:
+        'attributes,memberships.user,memberships.user.attributes,memberships.user.profileAttributes',
+    });
 
-  if (serverError) {
-    yield put(currentActions.setSubmitError(serverError));
-  } else {
-    yield put(currentActions.setTeam(team));
-    yield put(listActions.fetchTeams());
-    yield put(push(`/teams/${team.slug}`));
+    if (serverError) {
+      yield put(currentActions.setSubmitError(serverError));
+    } else {
+      yield put(currentActions.setTeam(team));
+      yield put(listActions.fetchTeams());
+      yield put(push(`/teams/${team.slug}`));
+    }
+  } catch (error) {
+    console.log('Error in updateTeamSaga: ' + util.inspect(error));
+    yield put(errorActions.addError([error], 'updateTeamSaga'));
   }
 }
 
 export function* createTeamSaga(action) {
-  const { team, serverError } = yield call(createTeam, {
-    team: action.payload,
-    include:
-      'attributes,memberships.user,memberships.user.attributes,memberships.user.profileAttributes',
-  });
+  try {
+    const { team, serverError } = yield call(createTeam, {
+      team: action.payload,
+      include:
+        'attributes,memberships.user,memberships.user.attributes,memberships.user.profileAttributes',
+    });
 
-  if (serverError) {
-    yield put(currentActions.setSubmitError(serverError));
-  } else {
-    yield put(currentActions.setTeam(team));
-    yield put(listActions.addTeam(team));
-    yield put(push(`/teams/${team.slug}`));
+    if (serverError) {
+      yield put(currentActions.setSubmitError(serverError));
+    } else {
+      yield put(currentActions.setTeam(team));
+      yield put(listActions.addTeam(team));
+      yield put(push(`/teams/${team.slug}`));
+    }
+  } catch (error) {
+    console.log('Error in createTeamSaga: ' + util.inspect(error));
+    yield put(errorActions.addError([error], 'createTeamSaga'));
   }
 }
 
 export function* deleteTeamSaga(action) {
-  const teamSlug = action.payload.slug;
-  const { serverError } = yield call(deleteTeam, {
-    teamSlug,
-  });
+  try {
+    const teamSlug = action.payload.slug;
+    const { serverError } = yield call(deleteTeam, {
+      teamSlug,
+    });
 
-  if (serverError) {
-    yield put(currentActions.setDeleteError(serverError));
-  } else {
-    yield put(listActions.removeTeam(teamSlug));
-    yield put(push('/settings/teams'));
-    yield put(currentActions.resetTeam());
+    if (serverError) {
+      yield put(currentActions.setDeleteError(serverError));
+    } else {
+      yield put(listActions.removeTeam(teamSlug));
+      yield put(push('/settings/teams'));
+      yield put(currentActions.resetTeam());
+    }
+  } catch (error) {
+    console.log('Error in deleteTeamSaga: ' + util.inspect(error));
+    yield put(errorActions.addError([error], 'deleteTeamSaga'));
   }
 }
 
 export function* cancelSaveTeamSaga(action) {
-  const teamSlug = action.payload.slug;
-  if (teamSlug) {
-    yield put(push(`/teams/${teamSlug}`));
-  } else {
-    yield put(push('/settings/teams'));
+  try {
+    const teamSlug = action.payload.slug;
+    if (teamSlug) {
+      yield put(push(`/teams/${teamSlug}`));
+    } else {
+      yield put(push('/settings/teams'));
+    }
+    yield put(currentActions.resetTeam());
+  } catch (error) {
+    console.log('Error in cancelSaveTeamSaga: ' + util.inspect(error));
+    yield put(errorActions.addError([error], 'cancelSaveTeamSaga'));
   }
-  yield put(currentActions.resetTeam());
 }
 
 export function* watchTeams() {

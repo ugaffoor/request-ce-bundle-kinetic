@@ -17,18 +17,23 @@ export const JOURNEY_EVENTS_SEARCH = new SubmissionSearch(true)
   .build();
 
 export function* fetchJourneyEventsTask() {
-  const { submissions, serverError } = yield call(searchSubmissions, {
-    get: true,
-    form: 'journey-event',
-    search: JOURNEY_EVENTS_SEARCH,
-    datastore: true,
-  });
+  try {
+    const { submissions, serverError } = yield call(searchSubmissions, {
+      get: true,
+      form: 'journey-event',
+      search: JOURNEY_EVENTS_SEARCH,
+      datastore: true,
+    });
 
-  yield put(
-    serverError
-      ? actions.setJourneyEventsError(serverError)
-      : actions.setJourneyEvents(submissions),
-  );
+    yield put(
+      serverError
+        ? actions.setJourneyEventsError(serverError)
+        : actions.setJourneyEvents(submissions),
+    );
+  } catch (error) {
+    console.log('Error in fetchJourneyEventsTask: ' + util.inspect(error));
+    yield put(actions.setJourneyEventsError(error));
+  }
 }
 export function* deleteJourneyEvents(action) {
   try {
