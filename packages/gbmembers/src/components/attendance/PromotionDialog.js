@@ -213,7 +213,9 @@ export class PromotionDialog extends Component {
               </span>
             </div>
             <div className="infoAction">
-              {this.props.memberItem.values['Photo'] === undefined ? (
+              {this.props.memberItem.values['Photo'] === undefined ||
+              this.props.memberItem.values['Photo'] === null ||
+              this.props.memberItem.values['Photo'] === '' ? (
                 <span className="noPhoto">
                   {this.props.memberItem.values['First Name'][0]}
                   {this.props.memberItem.values['Last Name'][0]}
@@ -240,7 +242,7 @@ export class PromotionDialog extends Component {
                     <div
                       className="percent"
                       style={this.state.percentageStyle}
-                    ></div>
+                    />
                   </div>
                 </div>
               </div>
@@ -274,7 +276,7 @@ export class PromotionDialog extends Component {
                           ? 'fa fa-arrow-circle-up'
                           : 'fa fa-arrow-circle-down'
                       }
-                    ></i>
+                    />
                   </button>
                 )}
               </div>
@@ -366,7 +368,7 @@ export class PromotionDialog extends Component {
                     defaultValue={this.props.memberItem.values['Ranking Belt']}
                     onChange={e => {}}
                   >
-                    <option key="" value=""></option>
+                    <option key="" value="" />
                     {this.props.belts.map(
                       belt =>
                         belt.program ===
@@ -435,7 +437,12 @@ export class PromotionDialog extends Component {
   }
 }
 
-const enhance = compose(connect(mapStateToProps, mapDispatchToProps));
+const enhance = compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
+);
 const inlineStyle = {
   width: '800px',
   top: '30%',

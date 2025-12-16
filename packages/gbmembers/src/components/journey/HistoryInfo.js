@@ -1,8 +1,5 @@
 import React, { Component } from 'react';
 import moment from 'moment';
-import reviewIcon from '../../images/review.svg?raw';
-import SVGInline from 'react-svg-inline';
-import { actions as attendanceActions } from '../../redux/modules/attendance';
 import phone from '../../images/phone.png';
 import mail from '../../images/mail.png';
 import sms from '../../images/sms.png';
@@ -63,7 +60,7 @@ export class HistoryInfo extends Component {
                       ) : item.contactMethod === 'noshow_class' ? (
                         <img src={noshow_class} alt="Class No Show" />
                       ) : (
-                        <span className="notesCell"></span>
+                        <span className="notesCell" />
                       )}
                       <span className="date">
                         {item['contactDate'] !== ''

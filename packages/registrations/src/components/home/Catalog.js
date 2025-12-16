@@ -32,7 +32,7 @@ export const Catalog = ({
               placeholder="Select Lead"
               allLeads={allLeads}
               onChange={e => {
-                selectLead(e.value, setSelectedLead, this.allLeads);
+                selectLead(e.value, setSelectedLead, allLeads);
               }}
               style={{ width: '300px' }}
             />

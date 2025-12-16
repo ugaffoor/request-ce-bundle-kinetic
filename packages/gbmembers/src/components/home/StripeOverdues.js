@@ -3,8 +3,7 @@ import ReactTable from 'react-table';
 import moment from 'moment';
 import { KappNavLink as NavLink } from 'common';
 import ReactToPrint from 'react-to-print';
-import printerIcon from '../../images/Print.svg?raw';
-import SVGInline from 'react-svg-inline';
+import { ReactComponent as PrinterIcon } from '../../images/Print.svg';
 import {
   getCurrency,
   validOverdue,
@@ -23,6 +22,8 @@ export class StripeOverdues extends Component {
     let data = this.getData(this.paymentHistory, this.successfulPaymentHistory);
     let columns = this.getColumns();
     this.locale = this.props.locale;
+
+    this.tableComponentRef = React.createRef();
 
     moment.locale(
       this.props.profile.preferredLocale === null
@@ -288,15 +289,13 @@ export class StripeOverdues extends Component {
             </div>
           );
         },
-        Footer: (
+        Footer: () => (
           <span>
             <strong>Total: </strong>
-            {this.state !== undefined
-              ? new Intl.NumberFormat(this.locale, {
-                  style: 'currency',
-                  currency: this.currency,
-                }).format(this.state.total)
-              : 0}
+            {new Intl.NumberFormat(this.locale, {
+              style: 'currency',
+              currency: this.currency,
+            }).format(this.state.total)}
           </span>
         ),
       },
@@ -341,16 +340,17 @@ export class StripeOverdues extends Component {
             <div style={{ float: 'left' }}>
               <ReactToPrint
                 trigger={() => (
-                  <SVGInline svg={printerIcon} className="icon tablePrint" />
+                  <PrinterIcon className="icon tablePrint icon-svg" />
                 )}
-                content={() => this.tableComponentRef}
+                content={() => this.tableComponentRef.current}
+                onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
               />
             </div>
             <h6>Overdue Payments</h6>
           </div>
         </div>
         <ReactTable
-          ref={el => (this.tableComponentRef = el)}
+          ref={this.tableComponentRef}
           columns={this.getColumns()}
           data={data}
           className="-striped -highlight"

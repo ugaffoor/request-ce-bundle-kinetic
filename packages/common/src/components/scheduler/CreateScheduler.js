@@ -4,12 +4,12 @@ import { push } from 'connected-react-router';
 import { compose, withHandlers } from 'recompose';
 import { Link } from 'react-router-dom';
 import { PageTitle } from 'common';
-import { CoreForm } from 'react-kinetic-core';
+import { CoreForm } from '@kineticdata/react';
 import { ErrorUnauthorized } from '../ErrorUnauthorized';
 import { SCHEDULER_FORM_SLUG } from '../../redux/modules/schedulers';
 import { actions as toastActions } from '../../redux/modules/toasts';
 import { selectHasRoleSchedulerAdmin } from '../../redux/selectors';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const globals = import('common/globals');
 
@@ -79,7 +79,10 @@ export const mapDispatchToProps = {
 };
 
 export const CreateScheduler = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withHandlers({
     handleCreated,
     handleError,

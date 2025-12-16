@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import papaparse from 'papaparse';
 
 import { actions } from '../../../redux/modules/settingsForms';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const ExportComponent = ({
   submissions,
@@ -138,7 +138,10 @@ const mapDispatchToProps = {
 };
 
 export const Export = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('exportStatus', 'setExportStatus', 'NOT_STARTED'),
   withHandlers({
     handleDownload,

@@ -1,8 +1,6 @@
 import React, { Component } from 'react';
 import { PromotionReviewDialogContainer } from './PromotionReviewDialog';
-import reviewIcon from '../../images/review.svg?raw';
-import SVGInline from 'react-svg-inline';
-import { actions as attendanceActions } from '../../redux/modules/attendance';
+import { ReactComponent as Review } from '../../images/review.svg';
 
 export class PromotionReviewIcon extends Component {
   constructor(props) {
@@ -26,9 +24,8 @@ export class PromotionReviewIcon extends Component {
     return (
       <span className="promotionReviewIcon">
         <span placeholder="Review Attendance">
-          <SVGInline
-            svg={reviewIcon}
-            className="icon review"
+          <Review
+            className="icon review icon-svg"
             onClick={e => this.setShowPromotionReviewDialog(true)}
           />
         </span>

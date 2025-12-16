@@ -3,10 +3,9 @@ import {
   getAttributeValue,
   setAttributeValue,
 } from '../lib/react-kinops-components/src/utils';
-import helpIcon from '../images/help.svg?raw';
-import SVGInline from 'react-svg-inline';
+import { ReactComponent as HelpIcon } from '../images/help.svg';
 import NumberFormat from 'react-number-format';
-import { I18n } from 'app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 import Creatable from 'react-select';
 import MomentLocaleUtils, {
   formatDate,
@@ -16,7 +15,7 @@ import DayPickerInput from 'react-day-picker/DayPickerInput';
 import DayPicker, { DateUtils } from 'react-day-picker/DayPicker';
 import 'react-day-picker/lib/style.css';
 import { getLocalePreference } from '../components/Member/MemberUtils';
-import $ from 'jquery';
+import ReactTooltip from 'react-tooltip';
 
 const components = {
   DropdownIndicator: null,
@@ -61,7 +60,7 @@ export class EditAttributeValue extends Component {
     }
     if (this.props.inputType === 'PercentageText') {
       let value = getAttributeValue(this.props.space, this.props.attributeName);
-      if (value !== '') {
+      if (value !== undefined && value !== '') {
         value = value.replace('%', '');
         value = parseFloat(value) / 100;
         percentageTextValue = value;
@@ -191,11 +190,19 @@ export class EditAttributeValue extends Component {
           <span className="value">
             <I18n>{this.props.labelName}</I18n>
           </span>
-          <SVGInline
-            svg={helpIcon}
-            className="icon help"
-            onClick={e => {
-              $('.' + this.props.attributeID + 'Help').toggle('');
+          <HelpIcon
+            data-for={this.props.attributeID + 'Help'}
+            content=""
+            data-tip={this.props.helpText}
+            className="icon icon-svg help"
+          />
+          <ReactTooltip
+            id={this.props.attributeID + 'Help'}
+            place="bottom"
+            variant="info"
+            html={true}
+            getContent={() => {
+              return;
             }}
           />
           {this.props.inputType === 'Text' && (
@@ -233,7 +240,6 @@ export class EditAttributeValue extends Component {
               id={this.props.attributeID + 'Attribute'}
               value={this.state.value != '' ? this.state.value * 100 : ''}
               style={{ width: `${this.props.width}` }}
-              ref={input => (this.input = input)}
               suffix="%"
               decimalScale={2}
               onChange={e => {
@@ -252,7 +258,6 @@ export class EditAttributeValue extends Component {
                   : ''
               }
               style={{ width: `${this.props.width}` }}
-              ref={input => (this.input = input)}
               suffix="%"
               decimalScale={2}
               onChange={e => {
@@ -283,17 +288,17 @@ export class EditAttributeValue extends Component {
               </label>
             </span>
           )}
-          {this.props.inputType === 'noToggleValue' && (
-            <span className="noToggleValue">
+          {this.props.inputType === 'yesToggleValue' && (
+            <span className="yesToggleValue">
               <input
                 type="checkbox"
                 id={this.props.attributeID + 'Attribute'}
                 value="YES"
-                checked={this.state.value === 'NO' ? true : false}
+                checked={this.state.value === 'YES' ? true : false}
                 name={this.props.attributeID + 'Attribute'}
                 onChange={e => {
                   this.setState({
-                    value: e.target.checked ? 'NO' : undefined,
+                    value: e.target.checked ? 'YES' : undefined,
                   });
                 }}
               />
@@ -309,7 +314,6 @@ export class EditAttributeValue extends Component {
                   : '####-###-###'
               }
               mask="_"
-              ref={input => (this.input = input)}
               value={this.state.value}
               disabled={this.props.disabled ? true : false}
               onChange={e => {
@@ -838,6 +842,7 @@ export class EditAttributeValue extends Component {
             });
 
             this.props.updateSpaceAttribute({
+              space: this.props.space,
               values,
             });
             setAttributeValue(
@@ -855,18 +860,6 @@ export class EditAttributeValue extends Component {
           Save
         </button>
         <br />
-        <span
-          className={this.props.attributeID + 'Help'}
-          style={{ display: 'none' }}
-        >
-          <ul>
-            <li
-              dangerouslySetInnerHTML={{
-                __html: this.props.helpText,
-              }}
-            ></li>
-          </ul>
-        </span>
       </div>
     );
   }

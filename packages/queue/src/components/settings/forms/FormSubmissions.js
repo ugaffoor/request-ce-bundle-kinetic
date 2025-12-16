@@ -8,7 +8,7 @@ import { Modal } from 'reactstrap';
 import { SubmissionListItem } from './SubmissionListItem';
 import { ExportModal } from './ExportModal';
 import { actions } from '../../../redux/modules/settingsForms';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const DiscussionIcon = () => (
   <span className="icon">
@@ -291,18 +291,19 @@ export const FormSubmissionsContainer = ({
               </div>
 
               <div className="mt-3">
-                {clientSortInfo && (nextPageToken || currentPage >= 2) && (
-                  <div className="text-info mb-2">
-                    <small>
-                      <em>
-                        <I18n>
-                          Sorting the table columns will only sort the visible
-                          records on the current page.
-                        </I18n>
-                      </em>
-                    </small>
-                  </div>
-                )}
+                {clientSortInfo &&
+                  (nextPageToken || currentPage >= 2) && (
+                    <div className="text-info mb-2">
+                      <small>
+                        <em>
+                          <I18n>
+                            Sorting the table columns will only sort the visible
+                            records on the current page.
+                          </I18n>
+                        </em>
+                      </small>
+                    </div>
+                  )}
                 <table className="table table-sm table-striped settings-table">
                   <thead className="d-none d-md-table-header-group sortable">
                     <tr>
@@ -351,7 +352,9 @@ export const FormSubmissionsContainer = ({
                                 className="form-control"
                                 value={
                                   (clientSortInfo &&
-                                    `${clientSortInfo.name}::${clientSortInfo.type}`) ||
+                                    `${clientSortInfo.name}::${
+                                      clientSortInfo.type
+                                    }`) ||
                                   ''
                                 }
                                 onChange={e => {
@@ -416,20 +419,23 @@ export const FormSubmissionsContainer = ({
                       </th>
                     </tr>
                   </thead>
-                  {!submissionsLoading && submissions.size > 0 && (
-                    <tbody>
-                      {submissions.map(s => (
-                        <SubmissionListItem
-                          key={`trow-${s.id}`}
-                          submission={s}
-                          form={form}
-                          columns={visibleColumns}
-                          to={`/kapps/${kappSlug}/settings/forms/${s.id}/activity`}
-                          isMobile={isMobile}
-                        />
-                      ))}
-                    </tbody>
-                  )}
+                  {!submissionsLoading &&
+                    submissions.size > 0 && (
+                      <tbody>
+                        {submissions.map(s => (
+                          <SubmissionListItem
+                            key={`trow-${s.id}`}
+                            submission={s}
+                            form={form}
+                            columns={visibleColumns}
+                            to={`/kapps/${kappSlug}/settings/forms/${
+                              s.id
+                            }/activity`}
+                            isMobile={isMobile}
+                          />
+                        ))}
+                      </tbody>
+                    )}
                 </table>
                 <ul className="pagination">
                   {currentPage >= 2 && (
@@ -733,7 +739,10 @@ const mapDispatchToProps = {
 };
 
 export const FormSubmissions = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('previousPageTokens', 'setPreviousPageToken', []),
   withState('currentPage', 'setCurrentPage', 1),
   withState('openDropdown', 'setOpenDropdown', ''),

@@ -9,8 +9,7 @@ import free_class from '../../images/free_class.png';
 import attended_class from '../../images/user-check.png';
 import noshow_class from '../../images/no-show.png';
 import note from '../../images/pencil.png';
-import helpIcon from '../../images/help.svg?raw';
-import SVGInline from 'react-svg-inline';
+import { ReactComponent as HelpIcon } from '../../images/help.svg';
 import $ from 'jquery';
 export const contact_date_format = 'YYYY-MM-DD HH:mm';
 
@@ -45,10 +44,10 @@ export class EventItem extends Component {
           this.state.event['Contact Type'] === 'Call' ? (
             <img src={phone} alt="Phone Call" />
           ) : this.state.event['Contact Type'] === 'email' ||
-            this.state.event['Contact Type'] === 'Email' ? (
+          this.state.event['Contact Type'] === 'Email' ? (
             <img src={mail} alt="Email" />
           ) : this.state.event['Contact Type'] === 'sms' ||
-            this.state.event['Contact Type'] === 'SMS' ? (
+          this.state.event['Contact Type'] === 'SMS' ? (
             <img src={sms} alt="SMS" />
           ) : this.state.event['Contact Type'] === 'in_person' ? (
             <img src={in_person} alt="In Person" />
@@ -134,38 +133,37 @@ export class LeadEvents extends Component {
     return (
       <div className="Events">
         <div className="helpSection">
-          <SVGInline
-            svg={helpIcon}
-            className="icon help"
+          <HelpIcon
+            className="icon icon-svg help"
             onClick={e => {
               $('.eventModeHelp').toggle('');
             }}
           />
           <span className="eventModeHelp">
             <div className="infoRow">
-              <div className="color Website"></div>
+              <div className="color Website" />
               <div className="info">Lead generated from Website.</div>
             </div>
             <div className="infoRow">
-              <div className="color Defined"></div>
+              <div className="color Defined" />
               <div className="info">
                 Journey Event defined as a future trigger.
               </div>
             </div>
             <div className="infoRow">
-              <div className="color New"></div>
+              <div className="color New" />
               <div className="info">New Journey Event, yet to be managed.</div>
             </div>
             <div className="infoRow">
-              <div className="color Delete"></div>
+              <div className="color Delete" />
               <div className="info">Journey Event deleted.</div>
             </div>
             <div className="infoRow">
-              <div className="color Completed"></div>
+              <div className="color Completed" />
               <div className="info">Journey Event completed.</div>
             </div>
             <div className="infoRow">
-              <div className="color Manual"></div>
+              <div className="color Manual" />
               <div className="info">Note captured manually.</div>
             </div>
           </span>

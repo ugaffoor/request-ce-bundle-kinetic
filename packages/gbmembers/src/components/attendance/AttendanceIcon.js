@@ -1,8 +1,6 @@
 import React, { Component } from 'react';
 import { AttendanceDialogContainer } from './AttendanceDialog';
-import statsBarIcon from '../../images/stats-bars.svg?raw';
-import SVGInline from 'react-svg-inline';
-import { actions as attendanceActions } from '../../redux/modules/attendance';
+import { ReactComponent as StatsBarIcon } from '../../images/stats-bars.svg';
 
 export class AttendanceIcon extends Component {
   constructor(props) {
@@ -25,9 +23,8 @@ export class AttendanceIcon extends Component {
     return (
       <span className="attendanceIcon">
         <span placeholder="View Attendance">
-          <SVGInline
-            svg={statsBarIcon}
-            className="icon statsbar"
+          <StatsBarIcon
+            className="icon statsbar icon-svg"
             onClick={e => this.setShowAttendanceDialog(true)}
           />
         </span>

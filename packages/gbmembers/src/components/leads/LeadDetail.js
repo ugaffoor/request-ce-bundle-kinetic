@@ -20,6 +20,9 @@ import {
 import lead_dtls from '../../images/lead_details.png';
 import convert_to_member from '../../images/convert_to_member.png';
 import phone from '../../images/phone.png';
+import meeting from '../../images/calendar.png';
+import meeting_completed from '../../images/calendarCompleted.png';
+import meeting_noanswer from '../../images/calendarNoAnswer.png';
 import mail from '../../images/mail.png';
 import sms from '../../images/sms.png';
 import in_person from '../../images/in_person.png';
@@ -28,15 +31,14 @@ import cancel_class from '../../images/class_cancelled.png';
 import free_class from '../../images/free_class.png';
 import attended_class from '../../images/user-check.png';
 import noshow_class from '../../images/no-show.png';
+import { ReactComponent as EmailIcon } from '../../images/E-mail.svg';
 import moment from 'moment';
-import { getJson, getPhoneNumberFormat } from '../Member/MemberUtils';
+import { getJson, formatPhone } from '../Member/MemberUtils';
 import ReactTable from 'react-table';
 import 'react-datetime/css/react-datetime.css';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as campaignActions } from '../../redux/modules/campaigns';
 import { actions as settingsActions } from '../../redux/modules/settingsDatastore';
-import ReactSpinner from 'react16-spinjs';
-import { Confirm } from 'react-confirm-bootstrap';
 import { CallScriptModalContainer } from '../Member/CallScriptModalContainer';
 import { SMSModalContainer } from '../Member/SMSModalContainer';
 import { SetStatusModalContainer } from './SetStatusModalContainer';
@@ -44,15 +46,14 @@ import { EmailsReceived } from '../Member/EmailsReceived';
 import { Requests } from '../Member/Requests';
 import { actions as errorActions } from '../../redux/modules/errors';
 import { LeadSMS } from './LeadSMS';
-import attentionRequired from '../../images/flag.svg?raw';
-import SVGInline from 'react-svg-inline';
-import binIcon from '../../images/bin.svg?raw';
-import cancelClassIcon from '../../images/cancel-class.svg?raw';
+import { ReactComponent as AttentionRequired } from '../../images/flag.svg';
+import { ReactComponent as BinIcon } from '../../images/bin.svg';
+import { ReactComponent as CancelClassIcon } from '../../images/cancel-class.svg';
 import { confirm } from '../helpers/Confirmation';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { LeadOrders } from './LeadOrders';
 import { actions as posActions } from '../../redux/modules/pos';
-import NumberFormat from 'react-number-format';
+import ReactTooltip from 'react-tooltip';
 
 const email_date_format = ['DD-MM-YYYY HH:mm', 'YYYY-MM-DDTHH:mm:ssZ'];
 
@@ -97,6 +98,18 @@ function convertContactType(type) {
     case 'phone':
       label = 'Phone Call';
       break;
+    case 'meeting':
+      label = 'Meeting Call';
+      break;
+    case 'meeting_completed':
+      label = 'Meeting Completed';
+      break;
+    case 'meeting_noanswer':
+      label = 'Meeting No Answer';
+      break;
+    case 'meeting_cancelled':
+      label = 'Cancelled Class';
+      break;
     case 'email':
       label = 'Email';
       break;
@@ -127,24 +140,40 @@ function convertContactType(type) {
 }
 
 const Datetime = require('react-datetime');
+const typeRank = {
+  phone: 1,
+  meeting: 1,
+  meeting_completed: 2,
+  meeting_noanswer: 2,
+  meeting_cancelled: 2,
+  email: 1,
+  sms: 1,
+  in_person: 1,
+  intro_class: 1,
+  free_class: 1,
+  cancelled_class: 2,
+  attended_class: 2,
+  noshow_class: 2,
+};
+
 function getLatestHistory(history) {
   //console.log("# history = " + util.inspect(history));
+
   let sortedHistory = getJson(history)
     .slice()
     .sort(function(a, b) {
-      if (
-        moment(a['contactDate'], contact_date_format).isBefore(
-          moment(b['contactDate'], contact_date_format),
-        )
-      )
-        return 1;
-      if (
-        moment(a['contactDate'], contact_date_format).isAfter(
-          moment(b['contactDate'], contact_date_format),
-        )
-      )
-        return -1;
-      return 0;
+      const dateA = moment(a['contactDate'], contact_date_format);
+      const dateB = moment(b['contactDate'], contact_date_format);
+
+      // Primary: descending by date
+      if (dateA.isBefore(dateB)) return 1;
+      if (dateA.isAfter(dateB)) return -1;
+
+      // Secondary: custom ranking
+      const rankA = typeRank[a['contactMethod']] ?? 9999;
+      const rankB = typeRank[b['contactMethod']] ?? 9999;
+
+      return rankA - rankB;
     });
 
   return sortedHistory[0];
@@ -156,6 +185,7 @@ export class LeadDetail extends Component {
     this.saveLeadNote = this.props.saveLeadNote;
     this.saveRemoveLeadNote = this.props.saveRemoveLeadNote;
     this.saveCancelTrialNote = this.props.saveCancelTrialNote;
+    this.saveCancelMeetingNote = this.props.saveCancelMeetingNote;
 
     this.saveStatus = this.props.saveStatus;
     moment.locale(
@@ -292,22 +322,19 @@ export class LeadDetail extends Component {
       };
     });
 
-    return histories.sort(function(history1, history2) {
-      if (
-        moment(new Date(history1.contactDate), contact_date_format).isAfter(
-          moment(new Date(history2.contactDate), contact_date_format),
-        )
-      ) {
-        return -1;
-      }
-      if (
-        moment(new Date(history1.contactDate), contact_date_format).isBefore(
-          moment(new Date(history2.contactDate), contact_date_format),
-        )
-      ) {
-        return 1;
-      }
-      return 0;
+    return histories.sort(function(a, b) {
+      const dateA = moment(a['contactDate'], contact_date_format);
+      const dateB = moment(b['contactDate'], contact_date_format);
+
+      // Primary: descending by date
+      if (dateA.isBefore(dateB)) return 1;
+      if (dateA.isAfter(dateB)) return -1;
+
+      // Secondary: custom ranking
+      const rankA = typeRank[a['contactMethod']] ?? 9999;
+      const rankB = typeRank[b['contactMethod']] ?? 9999;
+
+      return rankB - rankA;
     });
   }
 
@@ -317,6 +344,27 @@ export class LeadDetail extends Component {
         <span className="notesCell phone">
           <img src={phone} alt="Phone Call" />
           Phone Call
+        </span>
+      );
+    } else if (row.original.contactMethod === 'meeting') {
+      return (
+        <span className="notesCell meeting">
+          <img src={meeting} alt="Meeting" />
+          Meeting Call
+        </span>
+      );
+    } else if (row.original.contactMethod === 'meeting_completed') {
+      return (
+        <span className="notesCell meeting_completed">
+          <img src={meeting_completed} alt="Meeting Completed" />
+          Meeting Completed
+        </span>
+      );
+    } else if (row.original.contactMethod === 'meeting_noanswer') {
+      return (
+        <span className="notesCell meeting_noanswer">
+          <img src={meeting_noanswer} alt="Meeting No Answer" />
+          Meeting No Answer
         </span>
       );
     } else if (row.original.contactMethod === 'email') {
@@ -376,7 +424,7 @@ export class LeadDetail extends Component {
         </span>
       );
     } else {
-      return <span className="notesCell"></span>;
+      return <span className="notesCell" />;
     }
   }
 
@@ -490,7 +538,102 @@ export class LeadDetail extends Component {
                 }
               }}
             >
-              <SVGInline svg={cancelClassIcon} className="icon" />
+              <CancelClassIcon className="icon icon-svg" />
+            </span>
+          )}
+        {cellInfo.original.contactMethod === 'meeting' &&
+          moment(cellInfo.original.contactDate, 'YYYY-MM-DD HH:mm').isAfter(
+            moment(),
+          ) && (
+            <span
+              className="cancelMeeting"
+              onClick={async e => {
+                console.log(
+                  e.currentTarget.getAttribute('noteDate') +
+                    ' ' +
+                    e.currentTarget.getAttribute('noteType'),
+                );
+                if (
+                  await confirm(
+                    <span>
+                      <span>
+                        Are you sure you want to CANCEL this Meeting Call?
+                      </span>
+                      <table>
+                        <tbody>
+                          <tr>
+                            <td>Date:</td>
+                            <td>
+                              {moment(
+                                cellInfo.original.contactDate,
+                                'YYYY-MM-DD HH:mm',
+                              ).format('lll')}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>Type:</td>
+                            <td>
+                              {convertContactType(
+                                cellInfo.original.contactMethod,
+                              )}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>Note:</td>
+                            <td>{cellInfo.original.note}</td>
+                          </tr>
+                          <tr>
+                            <td>Reason:</td>
+                            <td>
+                              <textarea id="cancelMeetingReason"> </textarea>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </span>,
+                  )
+                ) {
+                  let history = getJson(this.state.leadItem.values['History']);
+                  let historyItem = history.filter(element => {
+                    return (
+                      element.contactDate === cellInfo.original.contactDate &&
+                      element.contactMethod ===
+                        cellInfo.original.contactMethod &&
+                      element.note === cellInfo.original.note
+                    );
+                  });
+                  historyItem[0].contactMethod = 'meeting_cancelled';
+                  historyItem[0].note =
+                    historyItem[0].note +
+                    '<br> Meeting Scheduled:' +
+                    moment(historyItem[0].contactDate).format('L h:mm A');
+                  historyItem[0].note =
+                    historyItem[0].note +
+                    '<br> Meeting Cancelled:' +
+                    moment().format('lll');
+                  if (
+                    $('#cancelMeetingReason')
+                      .val()
+                      .trim() !== ''
+                  ) {
+                    historyItem[0].note =
+                      historyItem[0].note +
+                      '<br> Reason:' +
+                      $('#cancelMeetingReason')
+                        .val()
+                        .trim();
+                  }
+                  console.log(history);
+                  this.saveCancelMeetingNote(
+                    history,
+                    cellInfo.original.contactMethod,
+                    cellInfo.original.contactDate,
+                    cellInfo.original.note,
+                  );
+                }
+              }}
+            >
+              <CancelClassIcon className="icon icon-svg" />
             </span>
           )}
         <span
@@ -544,7 +687,7 @@ export class LeadDetail extends Component {
             }
           }}
         >
-          <SVGInline svg={binIcon} className="icon" />
+          <BinIcon className="icon icon-svg" />
         </span>
       </span>
     );
@@ -591,7 +734,9 @@ export class LeadDetail extends Component {
                     this.props.leadItem.values['ParentMember'] !== null ? (
                       <span>
                         <NavLink
-                          to={`/Member/${this.props.leadItem.values['ParentMember']}`}
+                          to={`/Member/${
+                            this.props.leadItem.values['ParentMember']
+                          }`}
                           className={'nav-link icon-wrapper'}
                           activeClassName="active"
                           style={{ display: 'inline' }}
@@ -609,7 +754,9 @@ export class LeadDetail extends Component {
                     this.props.leadItem.values['ParentLead'] !== null ? (
                       <span>
                         <NavLink
-                          to={`/LeadDetail/${this.props.leadItem.values['ParentLead']}`}
+                          to={`/LeadDetail/${
+                            this.props.leadItem.values['ParentLead']
+                          }`}
                           className={'nav-link icon-wrapper'}
                           activeClassName="active"
                           style={{ display: 'inline' }}
@@ -634,33 +781,46 @@ export class LeadDetail extends Component {
                     -&nbsp;[
                     {this.props.leadItem.values['Status']}]
                   </div>
-                  <div>
+                  <div className="iconItem">
                     <img
                       src={phone}
                       alt="Phone"
                       style={{ border: 'none', marginRight: '5px' }}
                     />
                     <span>{this.props.leadItem.values['Phone Number']}</span>
-                    {/*<NumberFormat
-                      displayType={'text'}
-                      format={
-                        getAttributeValue(
-                          this.props.space,
-                          'PhoneNumber Format',
-                        ) !== undefined
-                          ? getAttributeValue(
-                              this.props.space,
-                              'PhoneNumber Format',
-                            )
-                          : this.props.space.slug === 'europe' ||
-                            this.props.space.slug === 'unitedkingdom'
-                          ? getPhoneNumberFormat(this.props.leadItem)
-                          : '####-###-###'
-                      }
-                      mask="_"
-                      value={this.props.leadItem.values['Phone Number']}
+                  </div>
+                  <div
+                    className={
+                      this.props.leadItem.values['Opt-Out'] === 'YES'
+                        ? 'iconItem optOut'
+                        : 'iconItem'
+                    }
+                    data-for="emailTip"
+                    content=""
+                    data-tip={
+                      this.props.leadItem.values['Opt-Out'] === 'YES'
+                        ? 'This lead has the Opt-Out value set and will not be included in Email/SMS campaigns. Direct emails will be sent.'
+                        : ''
+                    }
+                  >
+                    <EmailIcon className="icon icon-svg" />
+
+                    <span className="value">
+                      <NavLink
+                        to={`/NewEmailCampaign/lead/${this.props.leadItem.id}`}
+                      >
+                        {this.props.leadItem.values['Email']}
+                      </NavLink>
+                    </span>
+
+                    <ReactTooltip
+                      id="emailTip"
+                      place="bottom"
+                      variant="info"
+                      getContent={() => {
+                        return;
+                      }}
                     />
-                    */}
                   </div>
                 </span>
                 <span className="setStatus">
@@ -692,10 +852,7 @@ export class LeadDetail extends Component {
                       this.props.updateAttentionRequired();
                     }}
                   >
-                    <SVGInline
-                      svg={attentionRequired}
-                      className={'attention icon'}
-                    />
+                    <AttentionRequired className={'attention icon icon-svg'} />
                   </div>
                   <NavLink to={`/LeadEdit/${this.props.leadItem['id']}`}>
                     <img
@@ -896,6 +1053,76 @@ export class LeadDetail extends Component {
                   />
                 </a>
               </li>
+              {getAttributeValue(this.props.space, 'Allow Meeting Calls') ===
+                'YES' && (
+                <li className="nav-item icon meeting">
+                  <a
+                    className="nav-link"
+                    title="Meeting Appointment"
+                    data-toggle="tab"
+                    href="#method"
+                    id="meeting_tab"
+                    role="tab"
+                    aria-controls="contact_method"
+                    aria-selected="true"
+                    onClick={() => this.handleContactMethodChange('meeting')}
+                  >
+                    <img
+                      src={meeting}
+                      alt="Meeting"
+                      style={{ border: 'none' }}
+                    />
+                  </a>
+                </li>
+              )}
+              {getAttributeValue(this.props.space, 'Allow Meeting Calls') ===
+                'YES' && (
+                <li className="nav-item icon meeting_completed">
+                  <a
+                    className="nav-link"
+                    title="Meeting Appointment Completed"
+                    data-toggle="tab"
+                    href="#method"
+                    id="meeting_completed_tab"
+                    role="tab"
+                    aria-controls="contact_method"
+                    aria-selected="true"
+                    onClick={() =>
+                      this.handleContactMethodChange('meeting_completed')
+                    }
+                  >
+                    <img
+                      src={meeting_completed}
+                      alt="Meeting Completed"
+                      style={{ border: 'none' }}
+                    />
+                  </a>
+                </li>
+              )}
+              {getAttributeValue(this.props.space, 'Allow Meeting Calls') ===
+                'YES' && (
+                <li className="nav-item icon meeting_noanswer">
+                  <a
+                    className="nav-link"
+                    title="Meeting Appointment No Answer"
+                    data-toggle="tab"
+                    href="#method"
+                    id="meeting_noanswer_tab"
+                    role="tab"
+                    aria-controls="contact_method"
+                    aria-selected="true"
+                    onClick={() =>
+                      this.handleContactMethodChange('meeting_noanswer')
+                    }
+                  >
+                    <img
+                      src={meeting_noanswer}
+                      alt="Meeting No Answer"
+                      style={{ border: 'none' }}
+                    />
+                  </a>
+                </li>
+              )}
             </ul>
             <ul
               className="nav nav-tabs card-header-tabs pull-left contact-method-select"
@@ -1046,6 +1273,37 @@ export class LeadDetail extends Component {
                           ) {
                             this.saveNote();
                           }
+                        } else if (this.state.contactMethod === 'meeting') {
+                          if (
+                            await confirm(
+                              <span>
+                                <span>
+                                  Are you sure you want to schedule this
+                                  Meeting? Note, the note will be visible to the
+                                  Lead.
+                                </span>
+                                <table>
+                                  <tbody>
+                                    <tr>
+                                      <td>Meeting Date:</td>
+                                      <td>
+                                        {moment(
+                                          this.state.contactDate,
+                                          'YYYY-MM-DD HH:mm',
+                                        ).format('lll')}
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td>Note:</td>
+                                      <td>{this.state.note}</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                              </span>,
+                            )
+                          ) {
+                            this.saveNote();
+                          }
                         } else {
                           this.saveNote();
                         }
@@ -1072,7 +1330,7 @@ export class LeadDetail extends Component {
                   <div
                     style={{ padding: '20px', textAlign: 'left' }}
                     dangerouslySetInnerHTML={{ __html: row.original.note }}
-                  ></div>
+                  />
                 );
               }}
             />
@@ -1133,6 +1391,7 @@ export const LeadDetailView = ({
   saveLeadNote,
   saveRemoveLeadNote,
   saveCancelTrialNote,
+  saveCancelMeetingNote,
   saveStatus,
   fetchCampaign,
   campaignItem,
@@ -1166,6 +1425,7 @@ export const LeadDetailView = ({
       saveLeadNote={saveLeadNote}
       saveRemoveLeadNote={saveRemoveLeadNote}
       saveCancelTrialNote={saveCancelTrialNote}
+      saveCancelMeetingNote={saveCancelMeetingNote}
       saveStatus={saveStatus}
       fetchCampaign={fetchCampaign}
       campaignItem={campaignItem}
@@ -1192,7 +1452,10 @@ export const LeadDetailView = ({
   );
 
 export const LeadDetailContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(() => {
     return {};
   }),
@@ -1233,7 +1496,8 @@ export const LeadDetailContainer = compose(
         timeZone: getTimezone(profile.timezone, space.defaultTimezone),
         calendarName: getAttributeValue(space, 'Trial Calendar Name'),
       };
-      let startDateTime = moment(contactDate, 'YYYY-MM-DD HH:mm');
+
+      let startDateTime = moment(contactDate);
       let rfcStartDateTime = startDateTime.utc().format('YYYY-MM-DDTHH:mm:ssZ');
 
       var triggerIdx = journeyTriggers.findIndex(
@@ -1272,6 +1536,53 @@ export const LeadDetailContainer = compose(
 
         deleteTrialBooking({ values });
       }
+
+      calendarDeleteEvent.startDateTime = rfcStartDateTime;
+
+      updateLead({
+        id: leadItem['id'],
+        leadItem: leadItem,
+        allLeads: allLeads,
+        myThis: this,
+        addNotification,
+        setSystemError,
+        calendarDeleteEvent,
+      });
+      setIsDirty(false);
+    },
+    saveCancelMeetingNote: ({
+      profile,
+      leadItem,
+      allLeads,
+      updateLead,
+      journeyTriggers,
+      createJourneyEvent,
+      addNotification,
+      setSystemError,
+      space,
+      setIsDirty,
+    }) => (newHistory, contactType, contactDate, note) => {
+      leadItem.values['History'] = newHistory;
+
+      let calendarDeleteEvent = null;
+
+      calendarDeleteEvent = {
+        summary:
+          leadItem.values['First Name'] +
+          ' ' +
+          leadItem.values['Last Name'] +
+          ' - ' +
+          convertContactType(contactType) +
+          (note.includes('[') && note.includes(']')
+            ? ' ' + note.substring(note.indexOf('['), note.indexOf(']') + 1)
+            : ''),
+        attendeeEmail: leadItem.values['Email'],
+        timeZone: getTimezone(profile.timezone, space.defaultTimezone),
+        calendarName: getAttributeValue(space, 'Trial Calendar Name'),
+      };
+
+      let startDateTime = moment(contactDate);
+      let rfcStartDateTime = startDateTime.utc().format('YYYY-MM-DDTHH:mm:ssZ');
 
       calendarDeleteEvent.startDateTime = rfcStartDateTime;
 
@@ -1372,7 +1683,8 @@ export const LeadDetailContainer = compose(
 
       if (
         newHistory.contactMethod === 'intro_class' ||
-        newHistory.contactMethod === 'free_class'
+        newHistory.contactMethod === 'free_class' ||
+        newHistory.contactMethod === 'meeting'
       ) {
         calendarEvent = {
           summary:
@@ -1382,7 +1694,13 @@ export const LeadDetailContainer = compose(
             ' - ' +
             convertContactType(newHistory.contactMethod),
           description: newHistory['note'],
-          location: getAttributeValue(space, 'School Address'),
+          location:
+            newHistory.contactMethod === 'meeting'
+              ? formatPhone(
+                  leadItem.values['Phone Number'],
+                  getAttributeValue(space, 'PhoneNumber Format'),
+                )
+              : getAttributeValue(space, 'School Address'),
           attendeeEmail: leadItem.values['Email'],
           timeZone: getTimezone(profile.timezone, space.defaultTimezone),
           calendarName: getAttributeValue(space, 'Trial Calendar Name'),
@@ -1402,6 +1720,33 @@ export const LeadDetailContainer = compose(
             trigger =>
               trigger['values']['Record Type'] === 'Lead' &&
               trigger['values']['Lead Condition'] === 'Intro Class Scheduled' &&
+              trigger['values']['Lead Condition Duration'] === '0',
+          );
+          triggers.forEach(trigger => {
+            console.log('Creating Journey Event');
+            var values = {};
+            values['Status'] = 'New';
+            values['Trigger ID'] = trigger['id'];
+            values['Record Type'] = trigger['values']['Record Type'];
+            values['Trigger Date'] = moment().format('YYYY-MM-DD');
+            values['Event Source Date'] = startDateTime.format('YYYY-MM-DD');
+            values['Record ID'] = leadItem['id'];
+            values['Record Name'] =
+              leadItem['values']['First Name'] +
+              ' ' +
+              leadItem['values']['Last Name'];
+            values['Action'] = trigger['values']['Action'];
+            values['Contact Type'] = trigger['values']['Contact Type'];
+            values['Template Name'] = trigger['values']['Template Name'];
+
+            createJourneyEvent({ values });
+          });
+        }
+        if (newHistory.contactMethod === 'meeting') {
+          var triggers = journeyTriggers.filter(
+            trigger =>
+              trigger['values']['Record Type'] === 'Lead' &&
+              trigger['values']['Lead Condition'] === 'Meeting Scheduled' &&
               trigger['values']['Lead Condition Duration'] === '0',
           );
           triggers.forEach(trigger => {
@@ -1662,7 +2007,7 @@ class LeadEmails extends Component {
         if (value.indexOf('spaceAttributes') !== -1) {
           body = body.replace(
             new RegExp(self.escapeRegExp(value), 'g'),
-            self.props.space.attributes[value.split("'")[1]][0],
+            getAttributeValue(self.props.space, value.split("'")[1]),
           );
         }
       });

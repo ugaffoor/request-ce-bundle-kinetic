@@ -21,7 +21,7 @@ import { TeamContainer } from './components/teams/TeamContainer';
 import { TeamsContainer } from './components/teams/TeamsContainer';
 import { IsolatedForm } from './components/shared/IsolatedForm';
 import { FormList } from './components/default_kapp/FormList';
-import { I18n } from '../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 import './assets/styles/master.scss';
 import { NotificationsContainer } from 'gbmembers/src/components/notifications/NotificationsContainer';
 
@@ -95,7 +95,9 @@ export const AppComponent = props => {
               path="/datastore/forms/:slug/submissions/:id"
               render={({ match }) => (
                 <Redirect
-                  to={`/settings/datastore/${match.params.slug}/${match.params.id}`}
+                  to={`/settings/datastore/${match.params.slug}/${
+                    match.params.id
+                  }`}
                 />
               )}
             />
@@ -135,7 +137,10 @@ const mapDispatchToProps = {
 };
 
 export const App = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withHandlers({
     openSettings: props => () => props.setSettingsBackPath(props.pathname),
   }),

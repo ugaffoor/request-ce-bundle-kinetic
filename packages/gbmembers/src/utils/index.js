@@ -17,12 +17,11 @@ export const getAttributeValue = (value, defaultValue, ...sources) => {
     source =>
       source !== undefined &&
       source.attributes &&
-      source.attributes[value] &&
-      source.attributes[value].length > 0,
+      source.attributes.findIndex(item => item['name'] === value) !== -1,
   );
 
   if (best) {
-    return best.attributes[value];
+    return best.attributes.find(item => item['name'] === value)['values'];
   }
 
   return [defaultValue];

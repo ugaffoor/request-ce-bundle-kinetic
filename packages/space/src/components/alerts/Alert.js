@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { PopConfirm } from '../shared/PopConfirm';
 import { Button } from 'reactstrap';
 import { actions as appActions } from '../../redux/modules/spaceApp';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const AlertComponent = ({
   alert,
@@ -78,7 +78,10 @@ export const mapDispatchToProps = {
 };
 
 export const Alert = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('openDeleteConfirm', 'setOpenDeleteConfirm', null),
   withHandlers({
     toggleDeleteConfirm: ({

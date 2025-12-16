@@ -8,7 +8,7 @@ import {
   TimeAgo,
   Utils as CommonUtils,
 } from 'common';
-import { bundle } from 'react-kinetic-core';
+import { bundle } from '@kineticdata/react';
 import { RequestShowConfirmationContainer } from './RequestShowConfirmation';
 import { RequestActivityList } from './RequestActivityList';
 import { CancelButtonContainer } from './CancelButton';

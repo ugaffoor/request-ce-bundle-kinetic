@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
-import { CoreForm } from 'react-kinetic-core';
+import { CoreForm } from '@kineticdata/react';
 import DocumentTitle from 'react-document-title';
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import { CameraFeed } from './Member/CameraFeed';
-import { bundle } from 'react-kinetic-core';
+import { bundle } from '@kineticdata/react';
 import { contact_date_format } from './leads/LeadsUtils';
 
 class UploadPhoto extends React.Component {
@@ -58,18 +58,6 @@ class UploadPhoto extends React.Component {
     );
   }
 }
-class Photo extends React.Component {
-  render() {
-    return (
-      <img
-        src={this.props.memberItem.values['Photo']}
-        alt="Member Photograph"
-        className="photo"
-        onClick={e => this.props.setUpload()}
-      />
-    );
-  }
-}
 export class PhotoForm extends Component {
   constructor(props) {
     super(props);
@@ -87,6 +75,7 @@ export class PhotoForm extends Component {
     if (this.props.setIsDirty) this.setIsDirty = this.props.setIsDirty;
     this.state = {
       photoMode: 'Camera',
+      uploadMode: false,
     };
   }
   componentWillUnmount() {
@@ -107,13 +96,10 @@ export class PhotoForm extends Component {
       window.cameraFeedEl.videoPlayer.srcObject
         .getTracks()
         .forEach(track => track.stop());
-    ReactDOM.render(
-      React.createElement(Photo, {
-        memberItem: this.props.memberItem,
-        setUpload: this.setUpload,
-      }),
-      $('.photo-form')[0],
-    );
+
+    this.setState({
+      uploadMode: false,
+    });
   }
   switchModes() {
     this.setState({
@@ -121,18 +107,10 @@ export class PhotoForm extends Component {
     });
   }
   setUpload() {
-    ReactDOM.render(
-      React.createElement(UploadPhoto, {
-        submissionId: '0f104411-0565-11e8-8ffe-87d52fe83b7b',
-        memberItem: this.props.memberItem,
-        appliedEditForm: this.appliedEditForm,
-        defaultValues: this.defaultValues,
-        cancel: this.cancel,
-        photoMode: this.state.photoMode,
-        switchModes: this.switchModes,
-      }),
-      $('.photo-form')[0],
-    );
+    this.setState({
+      photoMode: 'Camera',
+      uploadMode: true,
+    });
   }
   appliedForm(response, actions) {
     if (
@@ -199,18 +177,14 @@ export class PhotoForm extends Component {
     if (
       window.cameraFeedEl &&
       window.cameraFeedEl.videoPlayer.srcObject !== null
-    )
+    ) {
       window.cameraFeedEl.videoPlayer.srcObject
         .getTracks()
         .forEach(track => track.stop());
-    ReactDOM.render(
-      React.createElement(Photo, {
-        memberItem: this.props.memberItem,
-        setUpload: this.setUpload,
-      }),
-      $('.photo-form')[0],
-    );
-    this.setState(this.state);
+    }
+    this.setState({
+      uploadMode: false,
+    });
     if (this.setIsDirty) this.setIsDirty(true);
   }
   handleLoaded() {
@@ -220,7 +194,8 @@ export class PhotoForm extends Component {
     return (
       <DocumentTitle title="Photo Upload">
         <div className="photo-form">
-          {this.props.memberItem.values['Photo'] === undefined ? (
+          {!this.state.uploadMode &&
+          this.props.memberItem.values['Photo'] === undefined ? (
             <span>
               <CoreForm
                 kapp="gbmembers"
@@ -254,10 +229,22 @@ export class PhotoForm extends Component {
                   : 'Switch to Camera'}
               </button>
             </span>
-          ) : (
-            <Photo
+          ) : this.state.uploadMode ? (
+            <UploadPhoto
+              submissionId="0f104411-0565-11e8-8ffe-87d52fe83b7b"
               memberItem={this.props.memberItem}
-              setUpload={this.setUpload}
+              appliedEditForm={this.appliedEditForm}
+              defaultValues={this.defaultValues}
+              cancel={this.cancel}
+              photoMode={this.state.photoMode}
+              switchModes={this.switchModes}
+            />
+          ) : (
+            <img
+              src={this.props.memberItem.values['Photo']}
+              alt="Member Photograph"
+              className="photo"
+              onClick={e => this.setUpload()}
             />
           )}
         </div>

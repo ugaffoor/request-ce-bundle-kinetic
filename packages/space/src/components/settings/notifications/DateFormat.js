@@ -2,11 +2,11 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { compose, withHandlers, withProps } from 'recompose';
 import { Link } from 'react-router-dom';
-import { CoreForm } from 'react-kinetic-core';
+import { CoreForm } from '@kineticdata/react';
 import { push } from 'connected-react-router';
 import { toastActions, PageTitle } from 'common';
 import { NOTIFICATIONS_DATE_FORMAT_FORM_SLUG } from '../../../redux/modules/settingsNotifications';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 export const DateFormatComponent = props => (
   <div className="page-container page-container--notifications">
@@ -70,7 +70,10 @@ export const mapDispatchToProps = {
 };
 
 export const DateFormat = compose(
-  connect(null, mapDispatchToProps),
+  connect(
+    null,
+    mapDispatchToProps,
+  ),
   withProps(props => ({
     submissionId:
       props.match.params.id !== 'new' ? props.match.params.id : null,

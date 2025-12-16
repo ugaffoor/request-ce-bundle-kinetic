@@ -2,9 +2,8 @@ import React, { Component } from 'react';
 import ReactTable from 'react-table';
 import { KappNavLink as NavLink } from 'common';
 import moment from 'moment';
-import SVGInline from 'react-svg-inline';
 import ReactToPrint from 'react-to-print';
-import printerIcon from '../../images/Print.svg?raw';
+import { ReactComponent as PrinterIcon } from '../../images/Print.svg';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
 import 'react-day-picker/lib/style.css';
 import { getLocalePreference } from '../Member/MemberUtils';
@@ -33,6 +32,9 @@ export class MemberMostAttendance extends Component {
       this.props.allMembers,
       'GB1',
     );
+
+    this.tableComponentRef = React.createRef();
+
     this.state = {
       fromDate: fromDate.format('YYYY-MM-DD'),
       toDate: toDate.format('YYYY-MM-DD'),
@@ -100,7 +102,8 @@ export class MemberMostAttendance extends Component {
         (allMembers[mIdx].values['Status'] === 'Active' ||
           allMembers[mIdx].values['Status'] === 'Pending Freeze' ||
           allMembers[mIdx].values['Status'] === 'Pending Cancellation') &&
-        allMembers[mIdx].values['Ranking Program'] === program
+        (allMembers[mIdx].values['Ranking Program'] === program ||
+          program === 'All')
       ) {
         programMembers.push({ member: allMembers[mIdx], count: value.count });
       }
@@ -401,7 +404,6 @@ export class MemberMostAttendance extends Component {
             <select
               name="program"
               id="program"
-              ref={input => (this.input = input)}
               value={this.state.program}
               onChange={e => {
                 const data = this.getData(
@@ -418,6 +420,7 @@ export class MemberMostAttendance extends Component {
               }}
             >
               <option value="" />
+              <option value="All">All</option>
               {this.props.programs.map(program => (
                 <option key={program.program} value={program.program}>
                   {program.program}
@@ -428,16 +431,15 @@ export class MemberMostAttendance extends Component {
           </div>
         </div>
         <ReactToPrint
-          trigger={() => (
-            <SVGInline svg={printerIcon} className="icon tablePrint" />
-          )}
-          content={() => this.tableComponentRef}
+          trigger={() => <PrinterIcon className="icon icon-svg tablePrint" />}
+          content={() => this.tableComponentRef.current}
+          onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
         />
         {this.props.fetchingAttendancesByDate ? (
           <div>Loading...</div>
         ) : (
           <ReactTable
-            ref={el => (this.tableComponentRef = el)}
+            ref={this.tableComponentRef}
             columns={columns}
             data={data}
             className="-striped -highlight"

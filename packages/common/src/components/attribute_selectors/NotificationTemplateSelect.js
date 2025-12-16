@@ -10,10 +10,10 @@ import {
 import 'react-bootstrap-typeahead/css/Typeahead.css';
 import 'react-bootstrap-typeahead/css/Typeahead-bs4.css';
 import memoize from 'memoize-one';
-import { CoreAPI } from 'react-kinetic-core';
+import { SubmissionSearch, searchSubmissions } from '@kineticdata/react';
 
 import { Cache } from '../../cache';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 export const TeamMenuItem = props => {
   const disabledReason = props.disabledFn && props.disabledFn(props.option);
@@ -59,12 +59,12 @@ const renderToken = (option, props, index) => (
 );
 
 const notificationTemplateCache = new Cache(() => {
-  const query = new CoreAPI.SubmissionSearch(true)
+  const query = new SubmissionSearch(true)
     .limit('999')
     .includes(['values'])
     .index('values[Type]')
     .eq(`values[Type]`, 'Template');
-  return CoreAPI.searchSubmissions({
+  return searchSubmissions({
     search: query.build(),
     datastore: true,
     form: 'notification-data',
@@ -121,7 +121,9 @@ export class NotificationTemplateSelect extends React.Component {
         ),
       );
       return selectedOptions.length > 0
-        ? `/settings/notifications/templates/${selectedOptions[0].submission.id}`
+        ? `/settings/notifications/templates/${
+            selectedOptions[0].submission.id
+          }`
         : undefined;
     } else {
       return undefined;

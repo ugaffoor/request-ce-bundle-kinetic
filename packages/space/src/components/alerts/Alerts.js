@@ -7,7 +7,7 @@ import { List } from 'immutable';
 import moment from 'moment';
 import wallyHappyImage from 'common/src/assets/images/wally-happy.svg';
 import { Alert } from './Alert';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const WallyEmptyMessage = ({ canEdit }) => {
   return (
@@ -57,33 +57,33 @@ const AlertsComponent = ({ alerts, loading, match, error, canEdit }) => {
             </h3>
           )}
           <div className="page-content  page-content--space-alerts">
-            {!error && alerts.size <= 0 && (
-              <WallyEmptyMessage canEdit={canEdit} />
-            )}
-            {!error && alerts.size > 0 && (
-              <table className="table table--alerts">
-                <thead>
-                  <tr>
-                    <th scope="col">
-                      <I18n>Title</I18n>
-                    </th>
-                    <th scope="col" width="50%">
-                      <I18n>Description</I18n>
-                    </th>
-                    {canEdit && <th width="10%" />}
-                  </tr>
-                </thead>
-                <tbody>
-                  {alerts.map(alert => (
-                    <Alert
-                      key={alert.id}
-                      alert={alert}
-                      active={alert.id === selectedAlert}
-                    />
-                  ))}
-                </tbody>
-              </table>
-            )}
+            {!error &&
+              alerts.size <= 0 && <WallyEmptyMessage canEdit={canEdit} />}
+            {!error &&
+              alerts.size > 0 && (
+                <table className="table table--alerts">
+                  <thead>
+                    <tr>
+                      <th scope="col">
+                        <I18n>Title</I18n>
+                      </th>
+                      <th scope="col" width="50%">
+                        <I18n>Description</I18n>
+                      </th>
+                      {canEdit && <th width="10%" />}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {alerts.map(alert => (
+                      <Alert
+                        key={alert.id}
+                        alert={alert}
+                        active={alert.id === selectedAlert}
+                      />
+                    ))}
+                  </tbody>
+                </table>
+              )}
           </div>
         </div>
       )}
@@ -117,7 +117,10 @@ export const mapDispatchToProps = {
 };
 
 export const Alerts = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   lifecycle({
     UNSAFE_componentWillMount() {
       this.props.fetchAlerts();

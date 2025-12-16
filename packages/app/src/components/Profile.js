@@ -2,9 +2,9 @@ import React from 'react';
 import { Avatar } from 'common';
 import { Link } from 'react-router-dom';
 import { Dropdown, DropdownToggle, DropdownMenu } from 'reactstrap';
-import { bundle } from 'react-kinetic-core';
-import { I18n } from '../I18nProvider';
-import { version } from './package.json';
+import { bundle } from '@kineticdata/react';
+import { I18n } from '@kineticdata/react';
+import packageInfo from 'packageJson';
 
 export const Profile = ({
   profile,
@@ -31,7 +31,7 @@ export const Profile = ({
       </span>
       <Avatar size={38} user={profile} previewable={false} />
     </DropdownToggle>
-    <DropdownMenu right className="profile-menu">
+    <DropdownMenu className="profile-menu">
       <div className="profile-header">
         <h6>
           {profile.displayName}
@@ -41,7 +41,7 @@ export const Profile = ({
       </div>
       <div className="profile-links">
         <div className="dropdown-divider" />
-        <div className="dropdown-item">Version:{version}</div>
+        <div className="dropdown-item">Version:{packageInfo.version}</div>
         <div className="dropdown-divider" />
         <a
           href={`${bundle.spaceLocation()}/app/logout`}

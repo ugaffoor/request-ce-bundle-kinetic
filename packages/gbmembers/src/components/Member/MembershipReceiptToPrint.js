@@ -1,5 +1,5 @@
 import React from 'react';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import $ from 'jquery';
 import { getJson, memberStatusAt } from './MemberUtils';
@@ -21,7 +21,8 @@ export class MembershipReceiptToPrint extends React.Component {
           var attrValue = value.split("'")[1];
           if (value.indexOf('spaceAttributes') !== -1) {
             if (
-              self.props.space.attributes[value.split("'")[1]] !== undefined
+              getAttributeValue(self.props.space, value.split("'")[1]) !==
+              undefined
             ) {
               receiptFooter = receiptFooter.replace(
                 new RegExp(self.escapeRegExp('display_' + attrValue), 'g'),
@@ -29,7 +30,7 @@ export class MembershipReceiptToPrint extends React.Component {
               );
               receiptFooter = receiptFooter.replace(
                 new RegExp(self.escapeRegExp(value), 'g'),
-                self.props.space.attributes[value.split("'")[1]][0],
+                getAttributeValue(self.props.space, value.split("'")[1]),
               );
             } else {
               receiptFooter = receiptFooter.replace(
@@ -54,8 +55,9 @@ export class MembershipReceiptToPrint extends React.Component {
     // Determine the Family Members relevant at the time of this receipt
     for (let i = 0; i < this.props.membershipServices.length; i++) {
       if (
-        this.props.datetime.isAfter(
+        this.props.datetime.isSameOrAfter(
           this.props.membershipServices[i].submittedAtDate,
+          'day',
         ) &&
         this.props.datetime.isSameOrAfter(
           this.props.membershipServices[i].billingStartDate,
@@ -189,6 +191,7 @@ export class MembershipReceiptToPrint extends React.Component {
       tax1: tax1,
       tax2: tax2,
       total: this.props.total,
+      refundValue: this.props.refundValue,
       paymentID: this.props.paymentID,
       feeDetails: feeDetails,
     };
@@ -217,6 +220,7 @@ export class MembershipReceiptToPrint extends React.Component {
           </span>
           {this.props.familyMembers !== undefined &&
             this.props.familyMembers.length > 0 &&
+            this.props.payment.paymentSource !== 'Manual Registration Fee' &&
             this.props.payment.paymentSource !== 'Member Registration Fee' && (
               <span className="familyMembers">
                 <table style={{ border: 1, width: '100%' }}>
@@ -250,29 +254,22 @@ export class MembershipReceiptToPrint extends React.Component {
             )}
           {this.props.familyMembers !== undefined &&
             this.props.familyMembers.length > 0 &&
-            this.props.payment.paymentSource === 'Member Registration Fee' && (
+            (this.props.payment.paymentSource === 'Manual Registration Fee' ||
+              this.props.payment.paymentSource ===
+                'Member Registration Fee') && (
               <span className="familyMembers">
                 <table style={{ border: 1, width: '100%' }}>
                   <thead>
                     <td>
                       <b>Member</b>
                     </td>
-                    <td></td>
-                    <td>
-                      <b>Fee</b>
-                    </td>
+                    <td />
                   </thead>
                   <tbody>
                     {this.state.feeDetails.map((member, index) => (
                       <tr>
                         <td>{member.Name}</td>
                         <td>Member Registration Fee</td>
-                        <td>
-                          {new Intl.NumberFormat(this.props.locale, {
-                            style: 'currency',
-                            currency: this.props.currency,
-                          }).format(this.props.payment.paymentAmount)}
-                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -319,6 +316,7 @@ export class MembershipReceiptToPrint extends React.Component {
           getAttributeValue(this.props.space, 'Billing Company') ===
             'Bambora' &&
           getAttributeValue(this.props.space, 'Ignore Admin Fee') !== 'YES' &&
+          this.props.payment.paymentSource !== 'Manual Registration Fee' &&
           this.props.payment.paymentSource !== 'Member Registration Fee' &&
           this.state.memberStatus !== 'Frozen' &&
           this.state.memberStatus !== 'Pending Freeze' && (
@@ -349,6 +347,7 @@ export class MembershipReceiptToPrint extends React.Component {
           getAttributeValue(this.props.space, 'TAX 1 Value') !== '' &&
           getAttributeValue(this.props.space, 'TAX 1 Value') !== undefined &&
           getAttributeValue(this.props.space, 'TAX 1 Value') !== null &&
+          this.props.payment.paymentSource !== 'Manual Registration Fee' &&
           this.props.payment.paymentSource !== 'Member Registration Fee' && (
             <span className="total">
               <span className="label">
@@ -375,6 +374,7 @@ export class MembershipReceiptToPrint extends React.Component {
           getAttributeValue(this.props.space, 'TAX 2 Value') !== '' &&
           getAttributeValue(this.props.space, 'TAX 2 Value') !== undefined &&
           getAttributeValue(this.props.space, 'TAX 2 Value') !== null &&
+          this.props.payment.paymentSource !== 'Manual Registration Fee' &&
           this.props.payment.paymentSource !== 'Member Registration Fee' && (
             <span className="total">
               <span className="label">
@@ -410,6 +410,12 @@ export class MembershipReceiptToPrint extends React.Component {
           <span className="total refund">
             <span className="label">
               <I18n>Refunded</I18n>
+            </span>
+            <span className="value refund">
+              {new Intl.NumberFormat(this.props.locale, {
+                style: 'currency',
+                currency: this.props.currency,
+              }).format(this.state.refundValue)}
             </span>
           </span>
         )}

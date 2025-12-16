@@ -38,7 +38,7 @@ class SettingsAudit extends Component {
       attributeNames: this.props.attributeNames,
     });
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (!nextProps.updateSpaceAttributesLoading) {
       this.setState({
         data: this.getData(nextProps.updateSpaceAttributes.submissions),
@@ -218,7 +218,7 @@ class SchoolAttributes extends Component {
             }
             width="400px"
             labelName="School Address"
-            helpText="School Address, this appears in emails and memberhip agreements. Please contact support@graciebarra.com to edit this value."
+            helpText="School Address, this appears in emails and memberhip agreements.<br>Please contact software@graciebarra.com to edit this value."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
             space={this.props.space}
             appSpace={this.props.appSpace}
@@ -236,7 +236,7 @@ class SchoolAttributes extends Component {
             }
             width="100px"
             labelName="School Telephone"
-            helpText="School Telephone, this appears in emails, SMS and memberhip agreements. Please contact support@graciebarra.com to edit this value."
+            helpText="School Telephone, this appears in emails, SMS and memberhip agreements.<br>Please contact software@graciebarra.com to edit this value."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
             space={this.props.space}
             appSpace={this.props.appSpace}
@@ -317,8 +317,8 @@ class SchoolAttributes extends Component {
             inputType="Date"
             width="400px"
             labelName="Member Waiver Compliance Date"
-            helpText="This date indicates the date which all members should have completed a waiver as a Lead or a Member.
-If a new waiver is generate and all members are required to complete, this date is used to ensure a member has completed their waiver.
+            helpText="This date indicates the date which all members should have completed a waiver as a Lead or a Member.<br>
+If a new waiver is generate and all members are required to complete, <br>this date is used to ensure a member has completed their waiver.
 Indications in the application will identify members not compliant."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
             space={this.props.space}
@@ -335,7 +335,7 @@ Indications in the application will identify members not compliant."
             width="400px"
             labelName="School Email"
             disabled={true}
-            helpText="School email used for all out going emailing and incoming email if configured.<br/>If this email needs to be changed, please contact support."
+            helpText="School email used for all out going emailing and incoming email if configured.<br>If this email needs to be changed, please contact support."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
             space={this.props.space}
             appSpace={this.props.appSpace}
@@ -356,8 +356,10 @@ Indications in the application will identify members not compliant."
         </span>
         <span className="detailsSection">
           <h6>Billing</h6>
-          {Utils.getAttributeValue(this.props.space, 'Billing Company') ===
-            'Bambora' && (
+          {(Utils.getAttributeValue(this.props.space, 'Billing Company') ===
+            'Bambora' ||
+            Utils.getAttributeValue(this.props.space, 'Billing Company') ===
+              'Stripe') && (
             <span className="adminFee">
               <EditAttributeValue
                 attributeID="ignoreAdminFee"
@@ -424,9 +426,27 @@ Indications in the application will identify members not compliant."
             appSpace={this.props.appSpace}
             profile={this.props.profile}
           />
+          {Utils.getAttributeValue(this.props.space, 'Billing Company') ===
+            'Stripe' && (
+            <span className="memberTaxID">
+              <EditAttributeValue
+                attributeID="memberTaxID"
+                attributeName="Member TAX ID"
+                inputType="yesToggleValue"
+                labelName="Capture Member Tax ID"
+                helpText="Include the capture of the Members Tax ID."
+                updateSpaceAttribute={this.props.updateSpaceAttribute}
+                space={this.props.space}
+                appSpace={this.props.appSpace}
+                profile={this.props.profile}
+              />
+            </span>
+          )}
         </span>
-        {Utils.getAttributeValue(this.props.space, 'Billing Company') ===
-          'Bambora' && (
+        {(Utils.getAttributeValue(this.props.space, 'Billing Company') ===
+          'Bambora' ||
+          Utils.getAttributeValue(this.props.space, 'Billing Company') ===
+            'Stripe') && (
           <span className="detailsSection">
             <h6>Membership Taxes</h6>
             <EditAttributeValue
@@ -457,7 +477,7 @@ Indications in the application will identify members not compliant."
               attributeName="TAX 2 Label"
               inputType="Text"
               labelName="Membership Tax 2 Label"
-              helpText="Label applied to the Membership Tax 2 value (apply Membership Tax 2 Percentage value also).<br/>Eg, GST 5%, HST 7%"
+              helpText="Label applied to the Membership Tax 2 value (apply Membership Tax 2 Percentage value also).<br>Eg, GST 5%, HST 7%"
               updateSpaceAttribute={this.props.updateSpaceAttribute}
               space={this.props.space}
               appSpace={this.props.appSpace}
@@ -477,8 +497,10 @@ Indications in the application will identify members not compliant."
             />
           </span>
         )}
-        {Utils.getAttributeValue(this.props.space, 'Billing Company') ===
-          'Bambora' && (
+        {(Utils.getAttributeValue(this.props.space, 'Billing Company') ===
+          'Bambora' ||
+          Utils.getAttributeValue(this.props.space, 'Billing Company') ===
+            'Stripe') && (
           <span className="detailsSection">
             <h6>POS Taxes</h6>
             <EditAttributeValue
@@ -501,6 +523,7 @@ Indications in the application will identify members not compliant."
               helpText="POS Tax percentage value applied to products."
               updateSpaceAttribute={this.props.updateSpaceAttribute}
               space={this.props.space}
+              appSpace={this.props.appSpace}
               profile={this.props.profile}
             />
             <EditAttributeValue
@@ -511,6 +534,7 @@ Indications in the application will identify members not compliant."
               helpText="Label applied to the POS Tax value .<br/>Eg, HST 13%"
               updateSpaceAttribute={this.props.updateSpaceAttribute}
               space={this.props.space}
+              appSpace={this.props.appSpace}
               profile={this.props.profile}
             />
             <EditAttributeValue
@@ -520,6 +544,45 @@ Indications in the application will identify members not compliant."
               width="60px"
               labelName="POS Tax 2 Percentage"
               helpText="POS Tax 2 percentage value applied to products."
+              updateSpaceAttribute={this.props.updateSpaceAttribute}
+              space={this.props.space}
+              appSpace={this.props.appSpace}
+              profile={this.props.profile}
+            />
+          </span>
+        )}
+        {Utils.getAttributeValue(this.props.space, 'POS System') ===
+          'StripeTerminal' && (
+          <span className="detailsSection">
+            <h6>Stripe Terminal Location Values</h6>
+            <EditAttributeValue
+              attributeID="schoolStateLabel"
+              attributeName="School State"
+              inputType="Text"
+              labelName="School State"
+              helpText="Stripe Terminal State, required for US/CAD"
+              updateSpaceAttribute={this.props.updateSpaceAttribute}
+              space={this.props.space}
+              appSpace={this.props.appSpace}
+              profile={this.props.profile}
+            />
+            <EditAttributeValue
+              attributeID="schoolCityLabel"
+              attributeName="School City"
+              inputType="Text"
+              labelName="School City"
+              helpText="Stripe Terminal City, required for US/CAD"
+              updateSpaceAttribute={this.props.updateSpaceAttribute}
+              space={this.props.space}
+              appSpace={this.props.appSpace}
+              profile={this.props.profile}
+            />
+            <EditAttributeValue
+              attributeID="schoolPostcodeLabel"
+              attributeName="School Postcode"
+              inputType="Text"
+              labelName="School Postcode/Zip"
+              helpText="Stripe Terminal Postcode/Zip, required for US/CAD"
               updateSpaceAttribute={this.props.updateSpaceAttribute}
               space={this.props.space}
               appSpace={this.props.appSpace}
@@ -578,6 +641,18 @@ Indications in the application will identify members not compliant."
             profile={this.props.profile}
           />
           <EditAttributeValue
+            attributeID="switchTrialClassBookingOrder"
+            attributeName="Switch Trial Class Booking Order"
+            inputType="yesToggleValue"
+            width="400px"
+            labelName="Switch Trial Class Booking Order"
+            helpText="Check to Switch the trial class booking order, to first select class then provide name details.<br>The default is to provide name details first then select a class."
+            updateSpaceAttribute={this.props.updateSpaceAttribute}
+            space={this.props.space}
+            appSpace={this.props.appSpace}
+            profile={this.props.profile}
+          />
+          <EditAttributeValue
             attributeID="thankyouURL"
             attributeName="Trial Booking Thank you URL"
             inputType="Text"
@@ -601,9 +676,34 @@ Indications in the application will identify members not compliant."
             appSpace={this.props.appSpace}
             profile={this.props.profile}
           />
+          <EditAttributeValue
+            attributeID="trialBookingCutOff"
+            attributeName="Trial Booking Cut Off"
+            inputType="Integer"
+            width="40px"
+            labelName="Trial Booking Cut Off"
+            helpText="Number of hours before a Trial Booking is allowed to be made."
+            updateSpaceAttribute={this.props.updateSpaceAttribute}
+            space={this.props.space}
+            appSpace={this.props.appSpace}
+            profile={this.props.profile}
+          />
         </span>
         <span className="detailsSection">
           <h6>Leads</h6>
+          <EditAttributeValue
+            attributeID="allowMeetingCalls"
+            attributeName="Allow Meeting Calls"
+            inputType="yesToggleValue"
+            width="400px"
+            labelName="Allow Meeting Calls"
+            helpText="Check to allow the use of Meeting Calls for Leads."
+            updateSpaceAttribute={this.props.updateSpaceAttribute}
+            space={this.props.space}
+            appSpace={this.props.appSpace}
+            profile={this.props.profile}
+          />
+
           <EditAttributeValue
             attributeID="waiverHiddenItems"
             attributeName="Waiver Hidden Items"
@@ -861,7 +961,10 @@ export const mapDispatchToProps = {
 };
 
 export const SchoolSettings = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withHandlers({}),
   lifecycle({
     UNSAFE_componentWillMount() {

@@ -1,8 +1,8 @@
 import React, { Fragment, useEffect, useRef, useState } from 'react';
 import { connect } from 'react-redux';
 import ReactDOM from 'react-dom';
-import { CoreForm } from 'react-kinetic-core';
-import { bundle } from 'react-kinetic-core';
+import { CoreForm } from '@kineticdata/react';
+import { bundle } from '@kineticdata/react';
 import SignatureCanvas from 'react-signature-canvas';
 //import DateTimePicker from 'react-xdsoft-datetimepicker';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
@@ -66,11 +66,12 @@ export const Form = ({
                 <Link to="/requests">requests</Link>
               )}
               {match.url.startsWith('/request') && ' / '}
-              {match.url.startsWith('/request') && match.params.type && (
-                <Link to={`/requests/${match.params.type || ''}`}>
-                  {match.params.type}
-                </Link>
-              )}
+              {match.url.startsWith('/request') &&
+                match.params.type && (
+                  <Link to={`/requests/${match.params.type || ''}`}>
+                    {match.params.type}
+                  </Link>
+                )}
               {match.url.startsWith('/request') && match.params.type && ' / '}
               {category && <Link to="/categories">categories</Link>}
               {category && ' / '}
@@ -92,9 +93,7 @@ export const Form = ({
           )}
         </div>
         <div className="form-description">
-          {form && (
-            <p dangerouslySetInnerHTML={{ __html: form.description }}></p>
-          )}
+          {form && <p dangerouslySetInnerHTML={{ __html: form.description }} />}
         </div>
         <div className="embedded-core-form--wrapper">
           {submissionId ? (

@@ -8,8 +8,7 @@ import moment from 'moment';
 import reactCSS from 'reactcss';
 import { SketchPicker } from 'react-color';
 import Select from 'react-select';
-import helpIcon from '../../images/help.svg?raw';
-import SVGInline from 'react-svg-inline';
+import { ReactComponent as Help } from '../../images/help.svg';
 
 const mapStateToProps = state => ({});
 const mapDispatchToProps = {
@@ -34,6 +33,7 @@ export class ClassDialog extends Component {
     this.setState({
       event: undefined,
       title: undefined,
+      description: undefined,
       program: undefined,
       color: undefined,
       textColor: undefined,
@@ -50,6 +50,7 @@ export class ClassDialog extends Component {
       this.state.start,
       this.state.end,
       this.state.title,
+      this.state.description,
       this.state.program,
       this.state.maxStudents,
       this.state.color.hex,
@@ -67,6 +68,7 @@ export class ClassDialog extends Component {
     this.setState({
       event: undefined,
       title: undefined,
+      description: undefined,
       program: undefined,
       maxStudents: undefined,
       color: undefined,
@@ -159,6 +161,7 @@ export class ClassDialog extends Component {
         start: this.props.event.start,
         end: this.props.event.end,
         title: this.props.event.title,
+        description: this.props.event.description,
         program: this.props.event.program,
         maxStudents: this.props.event.maxStudents,
         color: { hex: this.props.event.colour },
@@ -178,6 +181,7 @@ export class ClassDialog extends Component {
         start: this.props.start,
         end: this.props.end,
         title: undefined,
+        description: undefined,
         program: undefined,
         maxStudents: undefined,
         color: { hex: '#6F6E6E' },
@@ -281,6 +285,37 @@ export class ClassDialog extends Component {
                   }}
                 />
               </div>
+              <div className="descriptionDiv form-group">
+                <label htmlFor="title">
+                  Description
+                  <Help
+                    className="icon help icon-svg"
+                    onClick={e => {
+                      $('.descriptionHelp').toggle('');
+                    }}
+                  />
+                </label>
+                <input
+                  type="text"
+                  name="description"
+                  id="description"
+                  defaultValue={this.state.description}
+                  onChange={e => {
+                    this.setState({ description: e.target.value });
+                  }}
+                />
+                <span className={'descriptionHelp'} style={{ display: 'none' }}>
+                  <ul>
+                    <li>
+                      Description is used by the Timetable widget to help
+                      describe a Class.
+                      <br />
+                      Note, this is not the same as the Age information for a
+                      Trial Class.
+                    </li>
+                  </ul>
+                </span>
+              </div>
               <div className="programDiv form-group required">
                 <label htmlFor="program">Program</label>
                 <select
@@ -323,9 +358,8 @@ export class ClassDialog extends Component {
               <div className="cancellationCutoffDiv form-group">
                 <label htmlFor="cancellationCutoff">
                   Cancellation Cutoff (hours)
-                  <SVGInline
-                    svg={helpIcon}
-                    className="icon help"
+                  <Help
+                    className="icon help icon-svg"
                     onClick={e => {
                       $('.cancellationCutoffHelp').toggle('');
                     }}
@@ -355,9 +389,8 @@ export class ClassDialog extends Component {
               <div className="bookingCutoffDiv form-group">
                 <label htmlFor="bookingCutoff">
                   Booking Cutoff (hours)
-                  <SVGInline
-                    svg={helpIcon}
-                    className="icon help"
+                  <Help
+                    className="icon help icon-svg"
                     onClick={e => {
                       $('.bookingCutoffHelp').toggle('');
                     }}
@@ -446,8 +479,8 @@ export class ClassDialog extends Component {
                     this.state.allowedPrograms === ''
                       ? ''
                       : typeof this.state.allowedPrograms === 'string'
-                      ? JSON.parse(this.state.allowedPrograms)
-                      : this.state.allowedPrograms
+                        ? JSON.parse(this.state.allowedPrograms)
+                        : this.state.allowedPrograms
                   }
                   onChange={this.handleAllowedProgramsChange}
                   options={this.getProgramOptions(
@@ -523,21 +556,22 @@ export class ClassDialog extends Component {
                   </div>
                 </div>
               )}
-              {this.state.acceptTrials && this.state.studentType === 'Child' && (
-                <div className="titleDiv form-group">
-                  <label htmlFor="ageInfo">Age Information</label>
-                  <input
-                    type="text"
-                    name="ageInfo"
-                    id="ageInfo"
-                    placeHolder="Describe age group of students"
-                    value={this.state.ageInfo}
-                    onChange={e => {
-                      this.setState({ ageInfo: e.target.value });
-                    }}
-                  />
-                </div>
-              )}
+              {this.state.acceptTrials &&
+                this.state.studentType === 'Child' && (
+                  <div className="titleDiv form-group">
+                    <label htmlFor="ageInfo">Age Information</label>
+                    <input
+                      type="text"
+                      name="ageInfo"
+                      id="ageInfo"
+                      placeHolder="Describe age group of students"
+                      value={this.state.ageInfo}
+                      onChange={e => {
+                        this.setState({ ageInfo: e.target.value });
+                      }}
+                    />
+                  </div>
+                )}
               {this.state.event !== undefined && (
                 <button
                   type="button"
@@ -562,7 +596,12 @@ export class ClassDialog extends Component {
   }
 }
 
-const enhance = compose(connect(mapStateToProps, mapDispatchToProps));
+const enhance = compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
+);
 const inlineStyle = {
   width: '500px',
   top: '20%',

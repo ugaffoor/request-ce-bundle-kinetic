@@ -544,12 +544,14 @@ export class GBOnlineReport extends Component {
               </table>
               <table>
                 <thead className="adultsHeader">
-                  <th colSpan={4}>Adults Onboarding</th>
+                  <th colSpan={6}>Adults Onboarding</th>
                 </thead>
                 <thead>
                   <th width="200px">Week</th>
                   <th width="200px">Sent</th>
+                  <th width="200px">Open #</th>
                   <th width="200px">Open %</th>
+                  <th width="200px">Clicked #</th>
                   <th width="200px">Clicked %</th>
                 </thead>
                 <tbody>
@@ -565,13 +567,16 @@ export class GBOnlineReport extends Component {
                           }
                         </td>
                         <td>{record.count}</td>
+                        <td>{record.opened}</td>
                         <td>{record.openRate}</td>
+                        <td>{record.clicked}</td>
                         <td>{record.clickRate}</td>
                       </tr>
                     ))}
                   <tr className="totals">
                     <td>Totals</td>
                     <td>{this.state.data.adultsSummary.total}</td>
+                    <td>{this.state.data.adultsSummary.opened}</td>
                     <td>
                       {(
                         (this.state.data.adultsSummary.opened /
@@ -579,6 +584,7 @@ export class GBOnlineReport extends Component {
                         100
                       ).toFixed(2)}
                     </td>
+                    <td>{this.state.data.adultsSummary.clicked}</td>
                     <td>
                       {(
                         (this.state.data.adultsSummary.clicked /
@@ -591,12 +597,14 @@ export class GBOnlineReport extends Component {
               </table>
               <table>
                 <thead className="kidsHeader">
-                  <th colSpan={4}>Kids Onboarding</th>
+                  <th colSpan={6}>Kids Onboarding</th>
                 </thead>
                 <thead>
                   <th width="200px">Week</th>
                   <th width="200px">Sent</th>
+                  <th width="200px">Open #</th>
                   <th width="200px">Open %</th>
+                  <th width="200px">Clicked #</th>
                   <th width="200px">Clicked %</th>
                 </thead>
                 <tbody>
@@ -612,13 +620,16 @@ export class GBOnlineReport extends Component {
                           }
                         </td>
                         <td>{record.count}</td>
+                        <td>{record.opened}</td>
                         <td>{record.openRate}</td>
+                        <td>{record.clicked}</td>
                         <td>{record.clickRate}</td>
                       </tr>
                     ))}
                   <tr className="totals">
                     <td>Totals</td>
                     <td>{this.state.data.kidsSummary.total}</td>
+                    <td>{this.state.data.kidsSummary.opened}</td>
                     <td>
                       {(
                         (this.state.data.kidsSummary.opened /
@@ -626,6 +637,7 @@ export class GBOnlineReport extends Component {
                         100
                       ).toFixed(2)}
                     </td>
+                    <td>{this.state.data.kidsSummary.clicked}</td>
                     <td>
                       {(
                         (this.state.data.kidsSummary.clicked /

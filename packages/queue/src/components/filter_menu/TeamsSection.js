@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { compose, withHandlers } from 'recompose';
 import { ModalBody } from 'reactstrap';
 import { actions } from '../../redux/modules/filterMenu';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 export const TeamsSection = ({ teams, filter, toggleTeamHandler }) => (
   <ModalBody className="filter-section">
@@ -26,9 +26,12 @@ export const TeamsSection = ({ teams, filter, toggleTeamHandler }) => (
 );
 
 export const TeamsSectionContainer = compose(
-  connect(null, {
-    toggleTeam: actions.toggleTeam,
-  }),
+  connect(
+    null,
+    {
+      toggleTeam: actions.toggleTeam,
+    },
+  ),
   withHandlers({
     toggleTeamHandler: props => event => props.toggleTeam(event.target.value),
   }),

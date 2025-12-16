@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import ReactSpinner from 'react16-spinjs';
 import moment from 'moment';
 import {
   getJson,
@@ -9,9 +8,8 @@ import {
 import $ from 'jquery';
 import ReactTable from 'react-table';
 import { KappNavLink as NavLink } from 'common';
-import crossIcon from '../../images/cross.svg?raw';
-import helpIcon from '../../images/help.svg?raw';
-import SVGInline from 'react-svg-inline';
+import { ReactComponent as CrossIcon } from '../../images/cross.svg';
+import { ReactComponent as HelpIcon } from '../../images/help.svg';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
 import 'react-day-picker/lib/style.css';
@@ -20,8 +18,7 @@ import MomentLocaleUtils, {
   parseDate,
 } from 'react-day-picker/moment';
 import { getLocalePreference } from '../Member/MemberUtils';
-import { I18n } from '../../../../app/src/I18nProvider';
-import { actions as servicesActions } from '../../redux/modules/services';
+import { I18n } from '@kineticdata/react';
 
 var compThis = undefined;
 
@@ -443,8 +440,8 @@ export class MemberFinancialStats extends Component {
   ) {
     let cost = parseFloat(
       member.values['Billing User'] !== null &&
-        member.values['Billing User'] !== undefined &&
-        member.values['Billing User'] === 'YES'
+      member.values['Billing User'] !== undefined &&
+      member.values['Billing User'] === 'YES'
         ? this.getScheduledPayment(member, billingCustomers)
         : 0,
     );
@@ -656,8 +653,8 @@ export class MemberFinancialStats extends Component {
   ) {
     let cost = parseFloat(
       member.values['Billing User'] !== null &&
-        member.values['Billing User'] !== undefined &&
-        member.values['Billing User'] === 'YES'
+      member.values['Billing User'] !== undefined &&
+      member.values['Billing User'] === 'YES'
         ? this.getScheduledPayment(member, billingCustomers)
         : 0,
     );
@@ -2056,7 +2053,7 @@ export class MemberFinancialStats extends Component {
                   }).format(props.original.members_col1['cost'])
                 )
               ) : props.original.members_col1['fee'] === '' ||
-                props.original.members_col1['fee'] === 'Non Paying' ? (
+              props.original.members_col1['fee'] === 'Non Paying' ? (
                 <div>{props.original.members_col1['fee']}</div>
               ) : (
                 new Intl.NumberFormat(this.locale, {
@@ -2122,7 +2119,7 @@ export class MemberFinancialStats extends Component {
                   }).format(props.original.members_col2['cost'])
                 )
               ) : props.original.members_col2['fee'] === '' ||
-                props.original.members_col2['fee'] === 'Non Paying' ? (
+              props.original.members_col2['fee'] === 'Non Paying' ? (
                 <div>{props.original.members_col2['fee']}</div>
               ) : (
                 new Intl.NumberFormat(this.locale, {
@@ -2223,13 +2220,12 @@ export class MemberFinancialStats extends Component {
                 });
               }}
             />
-            <label htmlFor="lctMode"></label>
+            <label htmlFor="lctMode" />
           </div>
           {}
         </div>
-        <SVGInline
-          svg={helpIcon}
-          className="icon help"
+        <HelpIcon
+          className="icon ivon-svg help"
           onClick={e => {
             $('.lctModeHelp').toggle('');
           }}
@@ -2346,8 +2342,8 @@ export class MemberFinancialStats extends Component {
               {this.state.billingPeriod === 'weekly'
                 ? 'Weeks'
                 : this.state.billingPeriod === 'fortnightly'
-                ? 'Fortnights'
-                : 'Months'}
+                  ? 'Fortnights'
+                  : 'Months'}
             </button>
             <button
               type="button"
@@ -2368,8 +2364,8 @@ export class MemberFinancialStats extends Component {
               {this.state.billingPeriod === 'weekly'
                 ? 'Week'
                 : this.state.billingPeriod === 'fortnightly'
-                ? 'Fortnights'
-                : 'Month'}
+                  ? 'Fortnights'
+                  : 'Month'}
             </button>
             <button
               type="button"
@@ -2390,8 +2386,8 @@ export class MemberFinancialStats extends Component {
               {this.state.billingPeriod === 'weekly'
                 ? 'Week'
                 : this.state.billingPeriod === 'fortnightly'
-                ? 'Fortnight'
-                : 'Month'}
+                  ? 'Fortnight'
+                  : 'Month'}
             </button>
             <button
               type="button"
@@ -2412,8 +2408,8 @@ export class MemberFinancialStats extends Component {
               {this.state.billingPeriod === 'weekly'
                 ? 'Week'
                 : this.state.billingPeriod === 'fortnightly'
-                ? 'Fortnight'
-                : 'Month'}
+                  ? 'Fortnight'
+                  : 'Month'}
             </button>
             <button
               type="button"
@@ -2542,9 +2538,8 @@ export class MemberFinancialStats extends Component {
         </div>
 
         <div className="memberFinanceStatistics">
-          <SVGInline
-            svg={helpIcon}
-            className="icon help"
+          <HelpIcon
+            className="icon icon-svg help"
             onClick={e => {
               $('.statisticsHelp').toggle('');
             }}
@@ -2675,7 +2670,7 @@ export class MemberFinancialStats extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getMemberTableColumns()}
@@ -2738,7 +2733,7 @@ export class MemberFinancialStats extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getMemberTableColumns()}
@@ -2755,7 +2750,7 @@ export class MemberFinancialStats extends Component {
             <div className="statItem">
               <div className="info">
                 <div className="label">Average Price per Student(weekly)</div>
-                <div className="value"></div>
+                <div className="value" />
               </div>
               <div className="dollarValue">
                 {new Intl.NumberFormat(this.locale, {
@@ -2813,7 +2808,7 @@ export class MemberFinancialStats extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getMemberTableColumns()}
@@ -2874,7 +2869,7 @@ export class MemberFinancialStats extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getMemberTableColumns()}
@@ -2937,7 +2932,7 @@ export class MemberFinancialStats extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getMemberTableColumns()}
@@ -3000,7 +2995,7 @@ export class MemberFinancialStats extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getMemberTableColumns()}
@@ -3063,7 +3058,7 @@ export class MemberFinancialStats extends Component {
                         })
                       }
                     >
-                      <SVGInline svg={crossIcon} className="icon" />
+                      <CrossIcon className="icon icon-svg" />
                     </span>
                     <ReactTable
                       columns={this.getMemberTableColumns()}
@@ -3132,7 +3127,7 @@ export class MemberFinancialStats extends Component {
                         })
                       }
                     >
-                      <SVGInline svg={crossIcon} className="icon" />
+                      <CrossIcon className="icon icon-svg" />
                     </span>
                     <ReactTable
                       columns={this.getMemberTableColumns()}
@@ -3196,7 +3191,7 @@ export class MemberFinancialStats extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getMemberTableColumns()}
@@ -3259,7 +3254,7 @@ export class MemberFinancialStats extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getMemberTableColumns()}
@@ -3322,7 +3317,7 @@ export class MemberFinancialStats extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getMemberTableColumns()}
@@ -3383,7 +3378,7 @@ export class MemberFinancialStats extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getMemberTableColumns()}
@@ -3446,7 +3441,7 @@ export class MemberFinancialStats extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getMemberTableColumns()}
@@ -3509,7 +3504,7 @@ export class MemberFinancialStats extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getMemberTableColumns()}
@@ -3572,7 +3567,7 @@ export class MemberFinancialStats extends Component {
                         })
                       }
                     >
-                      <SVGInline svg={crossIcon} className="icon" />
+                      <CrossIcon className="icon icon-svg" />
                     </span>
                     <ReactTable
                       columns={this.getMemberTableColumns()}
@@ -3635,7 +3630,7 @@ export class MemberFinancialStats extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getMemberTableColumns()}

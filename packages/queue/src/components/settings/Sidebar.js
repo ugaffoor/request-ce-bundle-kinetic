@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { compose } from 'recompose';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 export const SidebarComponent = ({ loading, spaceAdmin }) => (
   <div className="sidebar space-sidebar">

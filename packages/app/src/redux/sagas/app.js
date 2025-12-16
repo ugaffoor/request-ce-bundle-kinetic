@@ -2,7 +2,7 @@ import { takeEvery, call, put, all, select } from 'redux-saga/effects';
 import { push } from 'connected-react-router';
 import { Map } from 'immutable';
 import axios from 'axios';
-import { CoreAPI, bundle } from 'react-kinetic-core';
+import { fetchVersion, fetchProfile, bundle } from '@kineticdata/react';
 import { actions as configActions } from '../modules/config';
 import { actions as kappActions } from '../modules/kapps';
 import {
@@ -20,13 +20,13 @@ const MINIMUM_TRANSLATIONS_CE_VERSION = '2.3.0';
 
 // Fetch Entire App
 export function* fetchAppTask({ payload }) {
-  const { version } = yield call(CoreAPI.fetchVersion);
+  const { version } = yield call(fetchVersion);
   const initialLoad = payload;
   // Check to make sure the version is compatible with this bundle.
   if (
     semver.satisfies(semver.coerce(version.version), `>=${MINIMUM_CE_VERSION}`)
   ) {
-    const { profile } = yield call(CoreAPI.fetchProfile, {
+    const { profile } = yield call(fetchProfile, {
       include:
         'attributes,profileAttributes,profileAttributesMap,memberships,memberships.team,memberships.team.attributes,memberships.team.memberships,memberships.team.memberships.user,attributes,space,space.details,space.attributes,space.attributesMap,space.kapps,space.kapps.attributes',
     });
@@ -72,8 +72,8 @@ export function* fetchAppTask({ payload }) {
       profile.profileAttributesMap['Default Kapp Display'][0] !== ''
         ? profile.profileAttributesMap['Default Kapp Display'][0]
         : profile.memberships.length === 0
-        ? 'services'
-        : undefined;
+          ? 'services'
+          : undefined;
 
     // Preload locale before displaying the app to get rid of flicker
     // Set locale in config
@@ -86,7 +86,6 @@ export function* fetchAppTask({ payload }) {
         `>=${MINIMUM_TRANSLATIONS_CE_VERSION}`,
       )
     ) {
-      //            const { defaultLocale } = yield call(CoreAPI.fetchDefaultLocale);
       var defaultLocale = 'en-AU';
       if (profile.space.defaultLocale !== undefined) {
         defaultLocale = profile.space.defaultLocale;

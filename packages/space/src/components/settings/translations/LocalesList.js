@@ -11,7 +11,7 @@ import {
 } from 'reactstrap';
 import { compose, lifecycle, withHandlers, withState } from 'recompose';
 import { actions } from '../../../redux/modules/settingsTranslations';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 export const LocalesListComponent = ({
   pathPrefix,
@@ -174,7 +174,10 @@ const handleSetDefaultLocale = ({ setDefaultLocale }) => localeCode => () => {
 };
 
 export const LocalesList = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('openDropdown', 'setOpenDropdown', ''),
   withState('localeToEnable', 'setLocaleToEnable', ''),
   withHandlers({

@@ -6,7 +6,7 @@ import { PageTitle } from 'common';
 import { actions, selectIsMyProfile } from '../../redux/modules/profiles';
 import { TeamCard } from '../shared/TeamCard';
 import { Avatar } from 'common';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const ViewProfileComponent = ({
   loading,
@@ -213,7 +213,10 @@ export const mapDispatchToProps = {
 };
 
 export const ViewProfile = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   lifecycle({
     UNSAFE_componentWillMount() {
       this.props.fetchProfile(this.props.match.params.username);

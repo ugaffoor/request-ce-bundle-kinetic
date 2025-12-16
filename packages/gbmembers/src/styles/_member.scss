@@ -89,7 +89,17 @@
     }
   }
 }
+.print-only {
+  //display: none;
+  visibility: hidden;
+  position: absolute;
+}
 @media print {
+  .print-only {
+    //display: block;
+    visibility: visible;
+    position: relative;
+  }
   .paymentHistory {
     .print {
       display: none;
@@ -209,6 +219,7 @@
     size: letter landscape;
   }
 }
+
 .card1.BarraFIT,
 .card1.Athlete,
 .card1.Elite_Athlete {
@@ -577,6 +588,7 @@
   }
 
   .iconItem {
+    pointer-events: auto;
     text-align: center;
     width: auto;
     display: flex;
@@ -596,6 +608,11 @@
     }
     label {
       min-width: 165px;
+    }
+  }
+  .iconItem.optOut {
+    .icon-svg path {
+      fill: orange !important;
     }
   }
   .iconItem.waiver.valid {
@@ -634,7 +651,7 @@
     float: left;
     .photo {
       width: 100%;
-      height: 100%;
+      max-height: 200px;
     }
   }
   .noPhoto {
@@ -811,9 +828,7 @@
     .memberBarcode {
       float: left;
     }
-    .barcodePrint-svg,
-    .visitorCardPrint-svg,
-    .coachCardPrint-svg {
+    .icon-svg {
       margin-top: 10px;
       cursor: pointer;
     }
@@ -1076,7 +1091,7 @@
       position: absolute;
       //  z-index: 100;
       width: 200px;
-      height: 200px;
+      max-height: 200px;
     }
   }
   #saveButton.notDirty {
@@ -1323,6 +1338,7 @@
 iframe#printf {
   display: none;
 }
+
 .visitorCard {
   .card1 {
     width: 240mm;
@@ -1665,7 +1681,7 @@ iframe#printf {
     -ms-transform: rotate(90deg);
     -o-transform: rotate(90deg);
     filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
-    p {
+    div {
       font-size: 26px;
     }
   }
@@ -1880,7 +1896,7 @@ iframe#printf {
     margin-top: -109mm;
     margin-left: 95mm;
     min-width: 400px;
-    p {
+    div {
       font-size: 18px;
     }
   }
@@ -1892,7 +1908,7 @@ iframe#printf {
     margin-top: -28mm;
     margin-left: 84mm;
     width: 300px;
-    p {
+    div {
       font-size: 32px;
       font-family: 'AdiHaus DIN Bold';
     }
@@ -1921,7 +1937,7 @@ iframe#printf {
     -ms-transform: rotate(90deg);
     -o-transform: rotate(90deg);
     filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
-    p {
+    div {
       font-size: 23px;
     }
   }

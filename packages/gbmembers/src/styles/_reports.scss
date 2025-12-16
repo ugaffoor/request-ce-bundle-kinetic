@@ -1,3 +1,12 @@
+#spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 4vh; /* Full viewport height */
+  .spinner {
+    position: relative !important;
+  }
+}
 .leadCountTotal b {
   color: red;
 }
@@ -29,7 +38,8 @@
     margin: 4px;
   }
 }
-.lastExportedEndDate {
+.lastExportedEndDate,
+.lastMembershipExportedEndDate {
   width: 100%;
   input {
     width: 100%;
@@ -406,6 +416,7 @@
     }
   }
 }
+
 .reportContent {
   width: 100%;
   .header {
@@ -587,6 +598,13 @@ btn:disabled {
 
 .tabulator {
   font-size: 12px !important;
+  .tabulator-tableholder {
+    position: relative;
+    width: 100%;
+    white-space: nowrap;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 .includes-container {

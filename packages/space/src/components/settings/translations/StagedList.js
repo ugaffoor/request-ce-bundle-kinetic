@@ -7,7 +7,7 @@ import { compose, lifecycle, withHandlers } from 'recompose';
 import { Table, PaginationControl, FilterControl } from 'common';
 import md5 from 'md5';
 import { actions } from '../../../redux/modules/settingsTranslations';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 export const StagedListComponent = ({
   match: {
@@ -168,7 +168,10 @@ const renderStatusCell = () => ({ value, row, index }) => (
 );
 
 export const StagedList = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withHandlers({
     handlePublish,
     renderLocaleCell,

@@ -1,7 +1,5 @@
 import React, { Component } from 'react';
-import ReactSpinner from 'react16-spinjs';
 import moment from 'moment';
-import { getJson } from '../Member/MemberUtils';
 import $ from 'jquery';
 import ReactTable from 'react-table';
 import { KappNavLink as NavLink } from 'common';
@@ -14,16 +12,13 @@ import MomentLocaleUtils, {
   parseDate,
 } from 'react-day-picker/moment';
 import { getLocalePreference } from '../Member/MemberUtils';
-import { I18n } from '../../../../app/src/I18nProvider';
-import { actions } from '../../redux/modules/members';
+import { I18n } from '@kineticdata/react';
 import { actions as posActions } from '../../redux/modules/pos';
 import { compose } from 'recompose';
 import { connect } from 'react-redux';
-import SVGInline from 'react-svg-inline';
-import crossIcon from '../../images/cross.svg?raw';
 import ReactToPrint from 'react-to-print';
-import printerIcon from '../../images/Print.svg?raw';
-import downloadIcon from '../../images/download.svg?raw';
+import { ReactComponent as PrinterIcon } from '../../images/Print.svg';
+import { ReactComponent as DownloadIcon } from '../../images/download.svg';
 import { CSVLink } from 'react-csv';
 
 const mapStateToProps = state => ({
@@ -73,6 +68,8 @@ export class OrdersReport extends Component {
       this.currencySymbol = getCurrency(this.currency)['symbol'];
     }
 
+    this.tableComponentRef = React.createRef();
+
     this.setFromDate = moment().date(1);
     this.setToDate = moment()
       .date(1)
@@ -101,7 +98,7 @@ export class OrdersReport extends Component {
       repPeriod: 'monthly',
       repViewPeriod: 'this_period',
       showRepAccountHolders: false,
-      expandedRows: {},
+      expandedRows: [],
     };
 
     this.productColumns = [
@@ -249,11 +246,11 @@ export class OrdersReport extends Component {
             ? products
             : []
           : products !== undefined
-          ? products.forEach((prod, i) => {
-              prod['name'] = prod['name'];
-              prod['status'] = 'refunded';
-            })
-          : [];
+            ? products.forEach((prod, i) => {
+                prod['name'] = prod['name'];
+                prod['status'] = 'refunded';
+              })
+            : [];
 
       data[data.length] = {
         key: item.values['Person ID'],
@@ -771,8 +768,8 @@ export class OrdersReport extends Component {
               {this.state.repPeriod === 'weekly'
                 ? 'Week'
                 : this.state.repPeriod === 'fortnightly'
-                ? 'Fortnights'
-                : 'Month'}
+                  ? 'Fortnights'
+                  : 'Month'}
             </button>
             <button
               type="button"
@@ -789,8 +786,8 @@ export class OrdersReport extends Component {
               {this.state.repPeriod === 'weekly'
                 ? 'Week'
                 : this.state.repPeriod === 'fortnightly'
-                ? 'Fortnight'
-                : 'Month'}
+                  ? 'Fortnight'
+                  : 'Month'}
             </button>
             <button
               type="button"
@@ -926,20 +923,21 @@ export class OrdersReport extends Component {
             <div className="reportIcons">
               <ReactToPrint
                 trigger={() => (
-                  <SVGInline svg={printerIcon} className="icon tablePrint" />
+                  <PrinterIcon className="icon icon-svg tablePrint" />
                 )}
-                content={() => this.tableComponentRef}
+                content={() => this.tableComponentRef.current}
+                onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
               />
               <CSVLink
                 className="downloadbtn"
                 filename="orders.csv"
                 data={this.getDownloadData()}
               >
-                <SVGInline svg={downloadIcon} className="icon tableDownload" />
+                <DownloadIcon className="icon icon-svg tableDownload" />
               </CSVLink>
             </div>
             <ReactTable
-              ref={el => (this.tableComponentRef = el)}
+              ref={this.tableComponentRef}
               columns={this.getColumns()}
               groupBy="paymenttype"
               data={this.state.data}
@@ -986,5 +984,10 @@ export class OrdersReport extends Component {
   }
 }
 
-const enhance = compose(connect(mapStateToProps, mapDispatchToProps));
+const enhance = compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
+);
 export const OrdersReportContainer = enhance(OrdersReport);

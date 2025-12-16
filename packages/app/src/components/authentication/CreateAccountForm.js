@@ -1,8 +1,8 @@
 import React from 'react';
 import { compose, withState, withHandlers } from 'recompose';
-import { I18n } from '../../I18nProvider';
+import { I18n } from '@kineticdata/react';
 
-import { CoreAPI } from 'react-kinetic-core';
+import { createSubmission } from '@kineticdata/react';
 
 const CreateAccount = ({
   submitted,
@@ -141,7 +141,7 @@ const handleSubmit = ({
   e.preventDefault();
 
   try {
-    await CoreAPI.createSubmission({
+    await createSubmission({
       kappSlug: 'admin',
       formSlug: 'kinops-account-request',
       values: {

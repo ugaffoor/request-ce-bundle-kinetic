@@ -5,16 +5,14 @@ import { push } from 'connected-react-router';
 import { compose, withState, withHandlers, lifecycle } from 'recompose';
 import { actions } from '../../../redux/modules/settingsForms';
 import { actions as queueActions } from '../../../redux/modules/settingsQueue';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 export const teamOptions = teams => {
   let optionElements = '<option></option>';
   let options;
-  options = teams
-    .filter(team => !team.name.includes('Role'))
-    .map(team => {
-      return { value: team.name, label: team.name };
-    });
+  options = teams.filter(team => !team.name.includes('Role')).map(team => {
+    return { value: team.name, label: team.name };
+  });
   optionElements = options.map(option => {
     return (
       <option key={option.value} value={option.value}>
@@ -280,7 +278,10 @@ export const mapDispatchToProps = {
 };
 
 export const CreateForm = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('inputs', 'setInputs', { Type: 'Service', Status: 'Active' }),
   withState('slugEntered', 'setSlugEntered', false),
   withHandlers({ teamOptions, validateForm }),

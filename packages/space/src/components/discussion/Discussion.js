@@ -3,9 +3,9 @@ import { connect } from 'react-redux';
 import { compose } from 'recompose';
 import { Link } from 'react-router-dom';
 import { Utils, PageTitle } from 'common';
-import { bundle } from 'react-kinetic-core';
+import { bundle } from '@kineticdata/react';
 import { Discussion as KinopsDiscussion } from 'discussions';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const buildRelatedItem = issue => {
   const tagList = issue.tag_list;

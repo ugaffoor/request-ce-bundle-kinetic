@@ -1,16 +1,17 @@
 import { takeEvery, call, put } from 'redux-saga/effects';
-import { CoreAPI } from 'react-kinetic-core';
+import { SubmissionSearch, searchSubmissions } from '@kineticdata/react';
 import { actions, types } from '../modules/alerts';
 
 // Alerts Search Query
-export const ALERTS_SEARCH = new CoreAPI.SubmissionSearch()
+export const ALERTS_SEARCH = new SubmissionSearch()
   .eq('values[Status]', 'Active')
   .include('details,values')
   .limit(1000)
   .build();
 
 export function* fetchAlertsTask() {
-  const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
+  const { submissions, serverError } = yield call(searchSubmissions, {
+    get: true,
     kapp: 'admin',
     form: 'alerts',
     search: ALERTS_SEARCH,

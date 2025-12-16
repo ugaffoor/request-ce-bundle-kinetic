@@ -12,7 +12,7 @@ import { FormSettings } from './forms/FormSettings';
 import { FormActivity } from './forms/FormActivity';
 import { CreateForm } from './forms/CreateForm';
 import { FormSubmissions } from './forms/FormSubmissions';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 export const SettingsComponent = () => (
   <Switch>
@@ -56,7 +56,10 @@ const mapDispatchToProps = {
 };
 
 export const Settings = compose(
-  connect(null, mapDispatchToProps),
+  connect(
+    null,
+    mapDispatchToProps,
+  ),
   lifecycle({
     UNSAFE_componentWillMount(prev, next) {
       this.props.fetchQueueSettings();
@@ -117,6 +120,9 @@ const mapStateToProps = state => ({
   isSpaceAdmin: state.app.profile.spaceAdmin,
 });
 
-export const SettingsNavigation = compose(connect(mapStateToProps, {}))(
-  SettingsNavigationComponent,
-);
+export const SettingsNavigation = compose(
+  connect(
+    mapStateToProps,
+    {},
+  ),
+)(SettingsNavigationComponent);

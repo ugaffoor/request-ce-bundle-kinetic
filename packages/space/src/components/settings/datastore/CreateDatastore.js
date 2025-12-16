@@ -8,7 +8,7 @@ import { PageTitle } from 'common';
 
 import { DatastoreForm } from '../../../records';
 import { actions } from '../../../redux/modules/settingsDatastore';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const CreateDatastoreComponent = ({
   spaceAdmin,
@@ -180,7 +180,10 @@ export const mapDispatchToProps = {
 };
 
 export const CreateDatastore = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('newForm', 'setNewForm', DatastoreForm()),
   withState('creating', 'setCreating', false),
   withHandlers({

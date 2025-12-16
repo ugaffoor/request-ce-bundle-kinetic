@@ -1,9 +1,8 @@
 import React from 'react';
 import { UncontrolledDropdown, DropdownToggle, DropdownMenu } from 'reactstrap';
-import SVGInline from 'react-svg-inline';
-import { bundle } from 'react-kinetic-core';
+import { bundle } from '@kineticdata/react';
 
-import personIcon from 'font-awesome-svg-png/white/svg/user.svg';
+import { ReactComponent as PersonIcon } from 'font-awesome-svg-png/white/svg/user.svg';
 
 export const Profile = ({
   profile,
@@ -14,7 +13,7 @@ export const Profile = ({
 }) => (
   <UncontrolledDropdown className="profile">
     <DropdownToggle nav role="button" className="icon-wrapper">
-      <SVGInline svg={personIcon} className="icon" />
+      <PersonIcon className="icon icon-svg" />
     </DropdownToggle>
     <DropdownMenu right className="profile-menu">
       <div className="profile-header">

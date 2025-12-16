@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { CoreForm } from 'react-kinetic-core';
+import { CoreForm } from '@kineticdata/react';
 import DocumentTitle from 'react-document-title';
 
 export class FormSample extends Component {

@@ -3,11 +3,10 @@ import React from 'react';
 import ReactTable from 'react-table';
 import 'react-table/react-table.css';
 import { KappNavLink as NavLink } from 'common';
-import SVGInline from 'react-svg-inline';
-import attentionRequired from '../images/flag.svg?raw';
-import noBilling from '../images/credit-card.svg?raw';
-import cancelling from '../images/crying.svg?raw';
-import freezing from '../images/snowflake-o.svg?raw';
+import { ReactComponent as Flag } from '../images/flag.svg';
+import { ReactComponent as NoBilling } from '../images/credit-card.svg';
+import { ReactComponent as Crying } from '../images/crying.svg';
+import { ReactComponent as Freezing } from '../images/snowflake-o.svg';
 import $ from 'jquery';
 import { matchesMemberFilter } from '../utils/utils';
 import { getAttributeValue } from '../lib/react-kinops-components/src/utils';
@@ -121,16 +120,14 @@ export class ListMembers extends React.Component {
         }
         activeClassName="active"
       >
-        <SVGInline
-          svg={attentionRequired}
+        <Flag
           className={
             cellInfo.original['Is New Reply Received'] === 'true'
               ? 'attention icon'
               : 'attention icon hide'
           }
         />
-        <SVGInline
-          svg={noBilling}
+        <NoBilling
           className={
             cellInfo.original.orphan ? 'noBilling icon' : 'noBilling icon hide'
           }
@@ -164,7 +161,7 @@ export class ListMembers extends React.Component {
             });
           }}
         >
-          <SVGInline svg={attentionRequired} className={'attention icon'} />
+          <Flag className={'attention icon icon-svg'} />
         </button>
         <input
           value={this.state.filterAll}
@@ -197,33 +194,33 @@ export class ListMembers extends React.Component {
                   {this.state.filteredCount !== undefined
                     ? this.state.filteredCount
                     : this.selectTable !== undefined
-                    ? this.selectTable.state.sortedData.length
-                    : data.length}
-                  <span className="cancelling">
-                    <SVGInline svg={cancelling} className={' icon'} />
+                      ? this.selectTable.state.sortedData.length
+                      : data.length}
+                  <span className="cancelling icon-svg">
+                    <Crying className={' icon'} />
                     {this.state.pendingCancellationsCount !== undefined
                       ? this.state.pendingCancellationsCount
                       : this.selectTable !== undefined
-                      ? this.selectTable.state.data.filter(member => {
-                          return member['Status'] === 'Pending Cancellation';
-                        }).length
-                      : data.filter(member => {
-                          console.log(member);
-                          return member['Status'] === 'Pending Cancellation';
-                        }).length}
+                        ? this.selectTable.state.data.filter(member => {
+                            return member['Status'] === 'Pending Cancellation';
+                          }).length
+                        : data.filter(member => {
+                            console.log(member);
+                            return member['Status'] === 'Pending Cancellation';
+                          }).length}
                   </span>
-                  <span className="freezing">
-                    <SVGInline svg={freezing} className={'icon'} />
+                  <span className="freezing icon-svg">
+                    <Freezing className={'icon'} />
                     {this.state.pendingFreezeCount !== undefined
                       ? this.state.pendingFreezeCount
                       : this.selectTable !== undefined
-                      ? this.selectTable.state.data.filter(member => {
-                          return member['Status'] === 'Pending Freeze';
-                        }).length
-                      : data.filter(member => {
-                          console.log(member);
-                          return member['Status'] === 'Pending Freeze';
-                        }).length}
+                        ? this.selectTable.state.data.filter(member => {
+                            return member['Status'] === 'Pending Freeze';
+                          }).length
+                        : data.filter(member => {
+                            console.log(member);
+                            return member['Status'] === 'Pending Freeze';
+                          }).length}
                   </span>
                 </span>
               ),

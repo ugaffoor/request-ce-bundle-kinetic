@@ -10,7 +10,7 @@ import {
   selectHasRoleSchedulerAdmin,
   selectHasRoleSchedulerManager,
 } from '../../redux/selectors';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const getStatusColor = status =>
   status === 'Inactive' ? 'status--red' : 'status--green';
@@ -94,22 +94,25 @@ const SchedulersListComponent = ({
               </tbody>
             </table>
           )}
-          {!loading && errors.length === 0 && schedulers.size === 0 && (
-            <EmptyMessage
-              heading="No Schedulers Found"
-              text="Schedulers are used to allow customers to schedule appointments."
-            />
-          )}
-          {!loading && errors.length > 0 && (
-            <ErrorMessage
-              heading="Failed to retrieve schedulers."
-              text={errors.map((e, i) => (
-                <div key={`error-${i}`}>
-                  <I18n>{e}</I18n>
-                </div>
-              ))}
-            />
-          )}
+          {!loading &&
+            errors.length === 0 &&
+            schedulers.size === 0 && (
+              <EmptyMessage
+                heading="No Schedulers Found"
+                text="Schedulers are used to allow customers to schedule appointments."
+              />
+            )}
+          {!loading &&
+            errors.length > 0 && (
+              <ErrorMessage
+                heading="Failed to retrieve schedulers."
+                text={errors.map((e, i) => (
+                  <div key={`error-${i}`}>
+                    <I18n>{e}</I18n>
+                  </div>
+                ))}
+              />
+            )}
         </div>
       </div>
     </div>
@@ -130,7 +133,10 @@ export const mapDispatchToProps = {
 };
 
 export const SchedulersList = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   lifecycle({
     componentDidMount() {
       this.props.fetchSchedulers({

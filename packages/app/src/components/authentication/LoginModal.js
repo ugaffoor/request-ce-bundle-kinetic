@@ -4,7 +4,7 @@ import { compose, withState, withHandlers, lifecycle } from 'recompose';
 import { Modal, ModalBody, ModalFooter } from 'reactstrap';
 import { login } from '../../utils/authentication';
 import { actions } from '../../redux/modules/auth';
-import { I18n } from '../../I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 export const LoginModalComponent = props =>
   props.showing && (
@@ -84,7 +84,10 @@ const handleLogin = props => event => {
 };
 
 export const LoginModal = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('email', 'setEmail', ''),
   withState('password', 'setPassword', ''),
   withState('error', 'setError', ''),

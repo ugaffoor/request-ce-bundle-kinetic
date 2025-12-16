@@ -1,16 +1,15 @@
 import React from 'react';
-import { withState, withHandlers, compose } from 'recompose';
 import {
   Dropdown,
   DropdownToggle,
   DropdownMenu,
   DropdownItem,
 } from 'reactstrap';
-import { CoreForm } from 'react-kinetic-core';
+import { CoreForm } from '@kineticdata/react';
 import classNames from 'classnames';
 import ReactToPrint from 'react-to-print';
-import printerIcon from '../../../../gbmembers/src/images/Print.svg?raw';
-import SVGInline from 'react-svg-inline';
+import { ReactComponent as PrinterIcon } from '../../../../gbmembers/src/images/Print.svg';
+import { withState, withHandlers, compose } from 'recompose';
 
 const globals = import('common/globals');
 
@@ -102,105 +101,153 @@ const NavigationControls = compose(
     handlePageChange,
   }),
 )(NavigationControlsComponent);
+var compThis;
 
-export const ReviewRequestComponent = ({
-  handleLoaded,
-  reviewPage,
-  kappSlug,
-  submission,
-  formLoaded,
-  displayTop,
-  multiPageForm,
-  displayPages,
-  currentLoc,
-  ...restProps
-}) => {
-  return multiPageForm ? (
-    <div className="multi-page--service">
-      {displayTop && (
-        <div className="page-display--top">
-          <h3>{displayPages[currentLoc]}</h3>
-          <NavigationControls {...{ ...restProps, currentLoc, displayPages }} />
-        </div>
-      )}
-      <div className="form-wrapper--review">
-        <div
-          className={classNames({
-            hidden: !formLoaded,
-          })}
-        >
-          <ReactToPrint
-            trigger={() => (
-              <SVGInline svg={printerIcon} className="icon barcodePrint" />
-            )}
-            content={() => this.componentRef}
-          />
-          <CoreForm
-            loaded={handleLoaded}
-            submission={submission.id}
-            review={reviewPage}
-            globals={globals}
-            ref={el => (this.componentRef = el)}
-          />
-        </div>
-        <div
-          className={classNames('load-wrapper', {
-            hidden: formLoaded,
-          })}
-        >
-          <span className="fa fa-spinner fa-spin fa-lg fa-fw" />
-        </div>
-      </div>
-      {formLoaded && (
-        <div className="page-display--bottom">
-          <NavigationControls {...{ ...restProps, currentLoc, displayPages }} />
-        </div>
-      )}
-    </div>
-  ) : (
-    <span>
-      <ReactToPrint
-        trigger={() => (
-          <SVGInline svg={printerIcon} className="icon barcodePrint" />
-        )}
-        content={() => this.componentRef}
-      />
-      <CoreForm
-        loaded={handleLoaded}
-        submission={submission.id}
-        review
-        globals={globals}
-        ref={el => (this.componentRef = el)}
-      />
-    </span>
-  );
-};
+export class ReviewRequest extends React.Component {
+  constructor(props) {
+    super(props);
+    compThis = this;
+    this.componentRef = React.createRef();
+    this.componentRef2 = React.createRef();
 
-export const handleLoaded = props => form => {
-  // if form has already been loaded don't set these states again
-  if (!props.displayPages) {
-    props.setDisplayPages(form.displayablePages());
-    props.setDisplayTop(true);
-    if (form.displayablePages().length > 1) {
-      props.setMultiPageForm(true);
-    }
-    const currentLoc = form
-      .displayablePages()
-      .findIndex(currentPage => currentPage === form.page().name());
-    props.setCurrentLoc(currentLoc);
+    this.setFormLoaded = this.setFormLoaded.bind(this);
+    this.setDisplayTop = this.setDisplayTop.bind(this);
+    this.setDisplayPages = this.setDisplayPages.bind(this);
+    this.setMultiPageForm = this.setMultiPageForm.bind(this);
+    this.setCurrentLoc = this.setCurrentLoc.bind(this);
+    this.setReviewPage = this.setReviewPage.bind(this);
+
+    this.formLoaded = false;
+    this.displayTop = false;
+    this.displayPages = null;
+    this.currentLoc = 0;
+    this.reviewPage = true;
+
+    this.state = {
+      multiPageForm: false,
+    };
   }
 
-  props.setFormLoaded(true);
-};
+  setFormLoaded(value) {
+    this.formLoaded = value;
+  }
+  setDisplayTop(value) {
+    this.displayTop = value;
+  }
+  setDisplayPages(value) {
+    this.displayPages = value;
+  }
+  setMultiPageForm(value) {
+    this.setState({
+      multiPageForm: value,
+    });
+  }
+  setCurrentLoc(value) {
+    this.currentLoc = value;
+  }
+  setReviewPage(value) {
+    this.reviewPage = value;
+    this.setState({
+      multiPageForm: this.state.multiPageForm,
+    });
+  }
 
-const enhance = compose(
-  withState('formLoaded', 'setFormLoaded', false),
-  withState('displayTop', 'setDisplayTop', false),
-  withState('displayPages', 'setDisplayPages', null),
-  withState('multiPageForm', 'setMultiPageForm', false),
-  withState('currentLoc', 'setCurrentLoc', 0),
-  withState('reviewPage', 'setReviewPage', true),
-  withHandlers({ handleLoaded }),
-);
+  handleLoaded(form) {
+    if (!compThis.displayPages) {
+      compThis.setDisplayPages(form.displayablePages());
+      compThis.setDisplayTop(true);
+      if (form.displayablePages().length > 1) {
+        compThis.setMultiPageForm(true);
+      }
+      const currentLoc = form
+        .displayablePages()
+        .findIndex(currentPage => currentPage === form.page().name());
+      compThis.setCurrentLoc(currentLoc);
+    }
 
-export const ReviewRequest = enhance(ReviewRequestComponent);
+    compThis.setFormLoaded(true);
+
+    compThis.setState({
+      dummy: true,
+    });
+  }
+  render() {
+    return this.state.multiPageForm ? (
+      <div className="multi-page--service">
+        {this.displayTop && (
+          <div className="page-display--top">
+            <h3>{this.displayPages[this.currentLoc]}</h3>
+            <NavigationControls
+              {...{
+                setFormLoaded: this.setFormLoaded,
+                setCurrentLoc: this.setCurrentLoc,
+                setReviewPage: this.setReviewPage,
+                currentLoc: this.currentLoc,
+                displayPages: this.displayPages,
+              }}
+            />
+          </div>
+        )}
+        <div className="form-wrapper--review">
+          <div
+            className={classNames({
+              hidden: !this.formLoaded,
+            })}
+          >
+            <ReactToPrint
+              trigger={() => (
+                <PrinterIcon className="icon icon-svg barcodePrint" />
+              )}
+              content={() => this.componentRef.current}
+              onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
+            />
+            <div ref={this.componentRef}>
+              <CoreForm
+                loaded={this.handleLoaded}
+                submission={this.props.submission.id}
+                review={this.reviewPage}
+                globals={globals}
+              />
+            </div>
+          </div>
+          <div
+            className={classNames('load-wrapper', {
+              hidden: this.formLoaded,
+            })}
+          >
+            <span className="fa fa-spinner fa-spin fa-lg fa-fw" />
+          </div>
+        </div>
+        {this.formLoaded && (
+          <div className="page-display--bottom">
+            <NavigationControls
+              {...{
+                setFormLoaded: this.setFormLoaded,
+                setCurrentLoc: this.setCurrentLoc,
+                setReviewPage: this.setReviewPage,
+                currentLoc: this.currentLoc,
+                displayPages: this.displayPages,
+              }}
+            />
+          </div>
+        )}
+      </div>
+    ) : (
+      <span>
+        <ReactToPrint
+          trigger={() => <PrinterIcon className="icon icon-svg barcodePrint" />}
+          content={() => this.componentRef2.current}
+          onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
+        />
+        <div ref={this.componentRef2}>
+          <CoreForm
+            loaded={this.handleLoaded}
+            submission={this.props.submission.id}
+            review
+            globals={globals}
+          />
+        </div>
+      </span>
+    );
+  }
+}

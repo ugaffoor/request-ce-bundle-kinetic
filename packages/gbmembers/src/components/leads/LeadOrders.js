@@ -1,13 +1,10 @@
 import React, { Component } from 'react';
 import ReactTable from 'react-table';
 import moment from 'moment';
-import { email_sent_date_format } from '../leads/LeadsUtils';
-import NumberFormat from 'react-number-format';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { ReceiptToPrint } from '../ProShop/ReceiptToPrint';
-import printerIcon from '../../images/Print.svg?raw';
+import { ReactComponent as PrinterIcon } from '../../images/Print.svg';
 import ReactToPrint from 'react-to-print';
-import SVGInline from 'react-svg-inline';
 import { confirmWithAmount } from '../Member/ConfirmWithAmount';
 
 export class LeadOrders extends Component {
@@ -25,6 +22,7 @@ export class LeadOrders extends Component {
         : this.props.profile.preferredLocale;
 
     this.refundPayment = this.refundPayment.bind(this);
+    this.componentRef = React.createRef();
 
     this.state = {
       data,
@@ -45,8 +43,8 @@ export class LeadOrders extends Component {
     return order['Status'] === 'Refunded'
       ? true
       : order['id'] === id
-      ? true
-      : false;
+        ? true
+        : false;
   }
 
   refundPayment(orderid, paymentId, originalAmount) {
@@ -129,9 +127,9 @@ export class LeadOrders extends Component {
                 : 'Refund Payment'}
             </button>
           ) : this.isPaymentRefunded(
-              row.original,
-              this.props.refundPOSTransactionID.id,
-            ) ? (
+            row.original,
+            this.props.refundPOSTransactionID.id,
+          ) ? (
             <span>
               Refunded{' '}
               <span className="refund">
@@ -261,19 +259,19 @@ export class LeadOrders extends Component {
                                 snippets={this.props.snippets}
                                 datetime={this.state.datetime}
                                 name={this.state.name}
-                                ref={el => (this.componentRef = el)}
+                                ref={this.componentRef}
                               />
                             </span>
                             <span className="printReceipt">
                               <ReactToPrint
                                 trigger={() => (
-                                  <SVGInline
-                                    svg={printerIcon}
-                                    className="icon barcodePrint"
-                                  />
+                                  <PrinterIcon className="icon barcodePrint icon-svg" />
                                 )}
-                                content={() => this.componentRef}
+                                content={() => this.componentRef.current}
                                 pageStyle="@page {size: a4 portrait;margin: 0;}"
+                                onBeforePrint={() =>
+                                  new Promise(r => setTimeout(r, 1000))
+                                }
                               />
                             </span>
                           </span>

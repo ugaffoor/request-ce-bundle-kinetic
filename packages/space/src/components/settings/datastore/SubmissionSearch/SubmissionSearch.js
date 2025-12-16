@@ -17,7 +17,7 @@ import { Searchbar } from './Searchbar';
 import { SubmissionList } from './SubmissionList';
 import { Paging } from './Paging';
 import { DatastoreModal } from '../DatastoreModal';
-import { I18n } from '../../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const SubmissionSearchComponent = ({
   form,
@@ -125,7 +125,10 @@ export const mapDispatchToProps = {
 };
 
 export const SubmissionSearch = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('optionsOpen', 'setOptionsOpen', false),
   lifecycle({
     UNSAFE_componentWillMount() {

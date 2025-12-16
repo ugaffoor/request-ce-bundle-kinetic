@@ -12,22 +12,20 @@ import $ from 'jquery';
 import 'bootstrap/scss/bootstrap.scss';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as errorActions } from '../../redux/modules/errors';
-import { Utils } from 'common';
-import SVGInline from 'react-svg-inline';
-import apparelIcon from '../../images/apparel.svg?raw';
-import starIcon from '../../images/star.svg?raw';
+import { ReactComponent as ApparelIcon } from '../../images/apparel.svg';
+import { ReactComponent as StarIcon } from '../../images/star.svg';
 import addIcon from '../../images/add.png?raw';
-import privateClassesIcon from '../../images/Privateclasses.svg?raw';
-import pairingIcon from '../../images/pos_pairing.svg?raw';
-import promoIcon from '../../images/Promo.svg?raw';
-import eventIcon from '../../images/Events.svg?raw';
-import binIcon from '../../images/bin.svg?raw';
+import { ReactComponent as PrivateClassesIcon } from '../../images/Privateclasses.svg';
+import { ReactComponent as PairingIcon } from '../../images/pos_pairing.svg';
+import { ReactComponent as PromoIcon } from '../../images/Promo.svg';
+import { ReactComponent as EventIcon } from '../../images/Events.svg';
+import { ReactComponent as BinIcon } from '../../images/bin.svg';
 import checkoutIcon from '../../images/checkout.png?raw';
 import checkoutLeftArrowIcon from '../../images/checkoutLeftArrow.png?raw';
 import discountIcon from '../../images/discount.png?raw';
 import checkoutRightArrowIcon from '../../images/checkoutRightArrow.png?raw';
-import editIcon from '../../images/pencil.png';
-import settingsIcon from '../../images/Settings.svg?raw';
+import editIcon from '../../images/pencil.png?raw';
+import { ReactComponent as SettingsIcon } from '../../images/Settings.svg';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { AddProductToCheckoutDialogContainer } from './AddProductToCheckoutDialog';
 import { EditProductDialogContainer } from './EditProductDialog';
@@ -39,19 +37,18 @@ import Select from 'react-select';
 import { actions as leadsActions } from '../../redux/modules/leads';
 import { actions as memberActions } from '../../redux/modules/members';
 import axios from 'axios';
-import Cards from 'react-credit-cards';
 import ScaleLoader from 'react-spinners/ScaleLoader';
-import printerIcon from '../../images/Print.svg?raw';
+import { ReactComponent as PrinterIcon } from '../../images/Print.svg';
 import ReactToPrint from 'react-to-print';
 import NumberFormat from 'react-number-format';
 import uuid from 'uuid';
 import moment from 'moment';
 import { ReceiptToPrint } from './ReceiptToPrint';
 import Helmet from 'react-helmet';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 import { actions as appActions } from '../../redux/modules/memberApp';
 import BarcodeReader from 'react-barcode-reader';
-import barcodeIcon from '../../images/barcode.svg?raw';
+import { ReactComponent as BarcodeIcon } from '../../images/barcode.svg';
 import { SettingsContainer } from './Settings';
 import { loadStripe } from '@stripe/stripe-js';
 import {
@@ -202,6 +199,9 @@ class PayNow extends Component {
       this.isCVVComplete = false;
       this.isExpiryComplete = false;
     }
+
+    this.componentRef = React.createRef();
+
     var subtotal = 0;
     var discount = 0;
     var total = 0;
@@ -300,7 +300,7 @@ class PayNow extends Component {
       };
     }
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (!nextProps.posCardsLoading && this.state.payment === undefined) {
       this.setState({
         payment: 'useSavedCreditCard',
@@ -1605,6 +1605,7 @@ class PayNow extends Component {
       name: getAttributeValue(this.props.space, 'School Name'),
       address: addressInfo.length > 0 ? addressInfo[0].trim() : 'unknown',
       city: getAttributeValue(this.props.space, 'School City'),
+      state: getAttributeValue(this.props.space, 'School State'),
       postcode: getAttributeValue(this.props.space, 'School Postcode'),
       country: getAttributeValue(this.props.space, 'School Country Code'),
     };
@@ -1926,10 +1927,10 @@ class PayNow extends Component {
                   <div className="label">Auto Creating Saved Card...</div>
                 </span>
               ) : getAttributeValue(this.props.space, 'POS System') ===
-                  'Bambora' &&
-                this.state.posProfileID !== undefined &&
-                this.state.posProfileID !== null &&
-                this.state.posProfileID !== '' ? (
+                'Bambora' &&
+              this.state.posProfileID !== undefined &&
+              this.state.posProfileID !== null &&
+              this.state.posProfileID !== '' ? (
                 this.props.posCardsLoading ? (
                   <span className="paymentType">
                     <div className="label">Loading Saved Card...</div>
@@ -2248,10 +2249,9 @@ class PayNow extends Component {
               getAttributeValue(this.props.space, 'POS System') ===
                 'StripeTerminal' ? (
                 <span className="capture">
-                  <SVGInline
-                    svg={pairingIcon}
+                  <PairingIcon
                     className={
-                      'posPairing icon ' +
+                      'posPairing icon icon-svg' +
                       this.state.deviceStatus +
                       ' S' +
                       (verifyDeviceCount % 2)
@@ -2315,10 +2315,9 @@ class PayNow extends Component {
               {this.state.payment === 'capture' &&
               getAttributeValue(this.props.space, 'POS System') === 'Square' ? (
                 <span className="capture">
-                  <SVGInline
-                    svg={pairingIcon}
+                  <PairingIcon
                     className={
-                      'posPairing icon ' +
+                      'posPairing icon icon-svg ' +
                       this.state.deviceStatus +
                       ' S' +
                       (verifyDeviceCount % 2)
@@ -2374,11 +2373,11 @@ class PayNow extends Component {
                           content="width=device-width, initial-scale=1"
                         />
                         <div className="card-container">
-                          <div className="row"></div>
+                          <div className="row" />
                         </div>
                         <div className="row">
                           <div className="col-lg-12 text-center">
-                            <div id="feedback"></div>
+                            <div id="feedback" />
                           </div>
                         </div>
                       </span>
@@ -2413,24 +2412,25 @@ class PayNow extends Component {
               ) : (
                 <div />
               )}
-              {this.state.status !== '1' && this.state.status !== '' && (
-                <span className="error">
-                  <span className="statusCode">
-                    <label>Status:</label>
-                    <value>{this.state.status}</value>
-                  </span>
-                  <span className="statusMessage">
-                    <label>Status Message:</label>
-                    <value>{this.state.status_message}</value>
-                  </span>
-                  {this.state.errors !== '' && (
-                    <span className="errors">
-                      <label>Errors:</label>
-                      <value>{this.state.errors}</value>
+              {this.state.status !== '1' &&
+                this.state.status !== '' && (
+                  <span className="error">
+                    <span className="statusCode">
+                      <label>Status:</label>
+                      <value>{this.state.status}</value>
                     </span>
-                  )}
-                </span>
-              )}
+                    <span className="statusMessage">
+                      <label>Status Message:</label>
+                      <value>{this.state.status_message}</value>
+                    </span>
+                    {this.state.errors !== '' && (
+                      <span className="errors">
+                        <label>Errors:</label>
+                        <value>{this.state.errors}</value>
+                      </span>
+                    )}
+                  </span>
+                )}
             </span>
           ) : (
             <span className="receipt">
@@ -2450,19 +2450,17 @@ class PayNow extends Component {
                 snippets={this.props.snippets}
                 datetime={this.state.datetime}
                 name={this.state.name}
-                ref={el => (this.componentRef = el)}
+                ref={this.componentRef}
               />
               <span className="buttons">
                 <span className="printReceipt">
                   <ReactToPrint
                     trigger={() => (
-                      <SVGInline
-                        svg={printerIcon}
-                        className="icon barcodePrint"
-                      />
+                      <PrinterIcon className="icon icon-svg barcodePrint" />
                     )}
-                    content={() => this.componentRef}
+                    content={() => this.componentRef.current}
                     pageStyle="@page {size: a4 portrait;margin: 0;}"
+                    onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
                   />
                 </span>
                 <span
@@ -2765,7 +2763,7 @@ class Checkout extends Component {
       showPayNow: show,
     });
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     var subtotal = 0;
     var discount = 0;
     var salestax = 0;
@@ -2993,9 +2991,8 @@ class Checkout extends Component {
                                   currency: this.props.currency,
                                 }).format(product['price'])}
                               </div>
-                              <SVGInline
-                                svg={binIcon}
-                                className="icon delete"
+                              <BinIcon
+                                className="icon icon-svg delete"
                                 onClick={async e => {
                                   var cancelButton = $(e.target);
                                   if (
@@ -3071,9 +3068,8 @@ class Checkout extends Component {
                                   currency: this.props.currency,
                                 }).format(product['price'])}
                               </div>
-                              <SVGInline
-                                svg={binIcon}
-                                className="icon delete"
+                              <BinIcon
+                                className="icon icon-svg delete"
                                 onClick={async e => {
                                   var cancelButton = $(e.target);
                                   if (
@@ -3144,9 +3140,8 @@ class Checkout extends Component {
                                     currency: this.props.currency,
                                   }).format(product['price'])}
                                 </div>
-                                <SVGInline
-                                  svg={binIcon}
-                                  className="icon delete"
+                                <BinIcon
+                                  className="icon icon-svg delete"
                                   onClick={async e => {
                                     var cancelButton = $(e.target);
                                     if (
@@ -3229,9 +3224,8 @@ class Checkout extends Component {
                                   currency: this.props.currency,
                                 }).format(product['price'])}
                               </div>
-                              <SVGInline
-                                svg={binIcon}
-                                className="icon delete"
+                              <BinIcon
+                                className="icon icon-svg delete"
                                 onClick={async e => {
                                   var cancelButton = $(e.target);
                                   if (
@@ -3311,7 +3305,6 @@ class Checkout extends Component {
                           }).formatToParts(0)[0].value}
                     </span>
                     <NumberFormat
-                      ref={input => (this.input = input)}
                       value={
                         this.props.posCheckout['Checkout Items'][
                           'discountValue'
@@ -3331,9 +3324,8 @@ class Checkout extends Component {
                     }).format(this.state.discount)}
                   </div>
                 )}
-                <SVGInline
-                  svg={binIcon}
-                  className="icon delete"
+                <BinIcon
+                  className="icon icon-svg delete"
                   onClick={async e => {
                     var cancelButton = $(e.target);
                     if (
@@ -3383,9 +3375,8 @@ class Checkout extends Component {
                     currency: this.props.currency,
                   }).format(this.state.salestax)}
                 </div>
-                <SVGInline
-                  svg={binIcon}
-                  className="icon delete"
+                <BinIcon
+                  className="icon icon-svg delete"
                   onClick={async e => {
                     var cancelButton = $(e.target);
                     if (
@@ -3451,9 +3442,8 @@ class Checkout extends Component {
                     currency: this.props.currency,
                   }).format(this.state.salestax2)}
                 </div>
-                <SVGInline
-                  svg={binIcon}
-                  className="icon delete"
+                <BinIcon
+                  className="icon icon-svg delete"
                   onClick={async e => {
                     var cancelButton = $(e.target);
                     if (
@@ -3932,7 +3922,7 @@ export class ProShop extends Component {
       scanned: undefined,
     });
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (
       nextProps.posCheckout['Checkout Items'] !== undefined &&
       nextProps.posCheckout['Checkout Items'].length !== this.state.productCount
@@ -4096,7 +4086,7 @@ export class ProShop extends Component {
                       });
                     }}
                   >
-                    <SVGInline svg={apparelIcon} className="icon" />
+                    <ApparelIcon className="icon icon-svg " />
                     <span className="appName">APPAREL</span>
                     <div className="droparrow" />
                   </div>
@@ -4130,7 +4120,7 @@ export class ProShop extends Component {
                       });
                     }}
                   >
-                    <SVGInline svg={starIcon} className="icon" />
+                    <StarIcon className="icon icon-svg " />
                     <span className="appName">SERVICES</span>
                     <div className="droparrow" />
                   </div>
@@ -4164,7 +4154,7 @@ export class ProShop extends Component {
                       });
                     }}
                   >
-                    <SVGInline svg={starIcon} className="icon" />
+                    <StarIcon className="icon icon-svg " />
                     <span className="appName">PACKAGES</span>
                     <div className="droparrow" />
                   </div>
@@ -4199,7 +4189,7 @@ export class ProShop extends Component {
                       });
                     }}
                   >
-                    <SVGInline svg={starIcon} className="icon" />
+                    <StarIcon className="icon icon-svg " />
                     <span className="appName">CONCESSIONS</span>
                     <div className="droparrow" />
                   </div>
@@ -4219,11 +4209,11 @@ export class ProShop extends Component {
                           });
                         }}
                       />
-                      <label htmlFor="editProductsMode"></label>
+                      <label htmlFor="editProductsMode" />
                     </div>
                     {}
                   </div>
-                  {<SVGInline svg={barcodeIcon} className="barcodeIcon" />}
+                  {<BarcodeIcon className="barcodeIcon icon-svg " />}
                   {/*<input
                     type="text"
                     className="searchValue"
@@ -4245,6 +4235,7 @@ export class ProShop extends Component {
                   {this.state.showRecordStockDialog && (
                     <RecordStockDialogContainer
                       setShowRecordStockDialog={this.setShowRecordStockDialog}
+                      posStock={this.props.posStock}
                       products={this.props.posProducts}
                       locale={this.props.locale}
                       currency={this.props.currency}
@@ -4276,9 +4267,8 @@ export class ProShop extends Component {
                     />
                   )}
                   <div className="setting">
-                    <SVGInline
-                      svg={settingsIcon}
-                      className="icon"
+                    <SettingsIcon
+                      className="icon icon-svg "
                       onClick={e => {
                         this.setShowSettings(true);
                       }}
@@ -4322,19 +4312,32 @@ export class ProShop extends Component {
                                 });
                               }}
                             >
-                              <SVGInline
-                                svg={
-                                  category.values['Icon'] === 'events'
-                                    ? eventIcon
-                                    : category.values['Icon'] === 'promotion'
-                                    ? promoIcon
-                                    : category.values['Icon'] ===
-                                      'private_class'
-                                    ? privateClassesIcon
-                                    : apparelIcon
-                                }
-                                className={category.values['Icon'] + ' icon'}
-                              />
+                              {category.values['Icon'] === 'events' ? (
+                                <EventIcon
+                                  className={
+                                    category.values['Icon'] + ' icon icon-svg'
+                                  }
+                                />
+                              ) : category.values['Icon'] === 'promotion' ? (
+                                <PromoIcon
+                                  className={
+                                    category.values['Icon'] + ' icon icon-svg'
+                                  }
+                                />
+                              ) : category.values['Icon'] ===
+                              'private_class' ? (
+                                <PrivateClassesIcon
+                                  className={
+                                    category.values['Icon'] + ' icon icon-svg'
+                                  }
+                                />
+                              ) : (
+                                <ApparelIcon
+                                  className={
+                                    category.values['Icon'] + ' icon icon-svg'
+                                  }
+                                />
+                              )}
                               <span className="appName">
                                 {category.values['Label']}
                               </span>
@@ -4443,7 +4446,8 @@ export class ProShop extends Component {
                             product.values['Status'] === 'Active' &&
                             product.values['Product Type'] ===
                               this.props.productType &&
-                            (product.values['Product Type'] === 'Apparel'
+                            (product.values['Product Type'] === 'Apparel' ||
+                            product.values['Product Type'] === 'Concession'
                               ? product.stock.length > 0
                               : true))
                         )
@@ -4484,12 +4488,13 @@ export class ProShop extends Component {
                           />
                         );
                       })}
-                  {this.state.scanned && this.state.productCodeValue === '' && (
-                    <div className="scannedNotFound">
-                      Scanned product with barcode[{this.state.scannedSKU}] does
-                      not exist.
-                    </div>
-                  )}
+                  {this.state.scanned &&
+                    this.state.productCodeValue === '' && (
+                      <div className="scannedNotFound">
+                        Scanned product with barcode[{this.state.scannedSKU}]
+                        does not exist.
+                      </div>
+                    )}
                 </div>
                 <div
                   className="ckeckoutIcon"
@@ -4611,7 +4616,10 @@ export const ProShopView = ({
 );
 
 export const ProShopContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(({ memberItem }) => {
     return {};
   }),
@@ -4709,14 +4717,12 @@ export const ProShopContainer = compose(
                 posProducts[prodIdx].stock[stockIdx].values['Quantity'],
               ) - 1;
           });
-        } else if (
-          product['productType'] === 'Service' ||
-          product['productType'] === 'Concession'
-        ) {
+        } else if (product['productType'] === 'Service') {
         } else {
           decrementPOSStock({
             productID: product['productID'],
-            size: product['size'],
+            size:
+              product['productType'] === 'Concession' ? 'ALL' : product['size'],
             quantity: product['quantity'],
           });
           var prodIdx = posProducts.findIndex(
@@ -4725,7 +4731,10 @@ export const ProShopContainer = compose(
           var stockIdx = posProducts[prodIdx].stock.findIndex(
             stock =>
               stock.values['Product ID'] === product['productID'] &&
-              stock.values['Size'] === product['size'],
+              stock.values['Size'] ===
+                (product['productType'] === 'Concession'
+                  ? 'ALL'
+                  : product['size']),
           );
           posProducts[prodIdx].stock[stockIdx].values['Quantity'] =
             parseInt(posProducts[prodIdx].stock[stockIdx].values['Quantity']) -
@@ -4998,7 +5007,7 @@ export const ProShopContainer = compose(
         });
       }
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);

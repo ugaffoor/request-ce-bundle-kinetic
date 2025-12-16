@@ -7,7 +7,7 @@ import { actions } from '../../redux/modules/queue';
 import { QueueItemDetailsContainer } from './QueueItemDetails';
 import { QueueItemDiscussionsContainer } from './QueueItemDiscussionsContainer';
 import { getFilterByPath, buildFilterPath } from '../../redux/modules/queueApp';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 export const QueueItem = ({ filter, queueItem, discussionsEnabled }) =>
   queueItem !== null && (
@@ -46,7 +46,10 @@ export const mapDispatchToProps = {
 };
 
 export const QueueItemContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   lifecycle({
     UNSAFE_componentWillMount() {
       this.props.fetchCurrentItem(this.props.id);

@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { compose, lifecycle } from 'recompose';
 import { PageTitle } from 'common';
 import { actions } from '../../../redux/modules/settingsForms';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 export const FormActivityContainer = ({ loading, submission, space }) =>
   !loading && (
@@ -32,7 +32,9 @@ export const FormActivityContainer = ({ loading, submission, space }) =>
                   to={`/kapps/queue/settings/forms/${submission.form.slug}`}
                 >
                   <I18n
-                    context={`kapps.${submission.form.kapp.slug}.forms.${submission.form.slug}`}
+                    context={`kapps.${submission.form.kapp.slug}.forms.${
+                      submission.form.slug
+                    }`}
                   >
                     {submission.form.name}
                   </I18n>
@@ -41,7 +43,9 @@ export const FormActivityContainer = ({ loading, submission, space }) =>
               </h3>
               <h1>
                 <I18n
-                  context={`kapps.${submission.form.kapp.slug}.forms.${submission.form.slug}`}
+                  context={`kapps.${submission.form.kapp.slug}.forms.${
+                    submission.form.slug
+                  }`}
                 >
                   {submission.form.name}
                 </I18n>{' '}
@@ -53,7 +57,9 @@ export const FormActivityContainer = ({ loading, submission, space }) =>
               .map(attribute => (
                 <a
                   key={attribute.name}
-                  href={`${attribute.values[0]}/app/runs?sourceId=${submission.id}`}
+                  href={`${attribute.values[0]}/app/runs?sourceId=${
+                    submission.id
+                  }`}
                   target="_blank"
                 >
                   <button className="btn btn-primary pull-right">
@@ -253,7 +259,9 @@ export const FormActivityContainer = ({ loading, submission, space }) =>
                   <tr key={field.name}>
                     <td>
                       <I18n
-                        context={`kapps.${submission.form.kapp.slug}.forms.${submission.form.slug}`}
+                        context={`kapps.${submission.form.kapp.slug}.forms.${
+                          submission.form.slug
+                        }`}
                       >
                         {field.name}
                       </I18n>
@@ -281,7 +289,10 @@ const mapDispatchToProps = {
 };
 
 export const FormActivity = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   lifecycle({
     UNSAFE_componentWillMount() {
       this.props.fetchFormSubmission({

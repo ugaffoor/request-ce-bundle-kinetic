@@ -1,14 +1,13 @@
 import React from 'react';
 import { UncontrolledDropdown, DropdownToggle, DropdownMenu } from 'reactstrap';
-import SVGInline from 'react-svg-inline';
-import { bundle } from 'react-kinetic-core';
+import { bundle } from '@kineticdata/react';
 
-import bellIcon from 'font-awesome-svg-png/white/svg/bell.svg';
+import { ReactComponent as BellIcon } from 'font-awesome-svg-png/white/svg/bell.svg';
 
 export const Alerts = ({ alerts, fetchAlerts }) => (
   <UncontrolledDropdown className="nav-item-right">
     <DropdownToggle nav role="button" className="icon-wrapper">
-      <SVGInline svg={bellIcon} className="icon" />
+      <BellIcon className="icon icon-svg" />
       {alerts.size > 0 && <span className="badge">{alerts.size}</span>}
     </DropdownToggle>
     <DropdownMenu right className="alerts-menu">

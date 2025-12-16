@@ -3,9 +3,8 @@ import ReactTable from 'react-table';
 import ReactSpinner from 'react16-spinjs';
 import moment from 'moment';
 import { getJson } from '../Member/MemberUtils';
-import SVGInline from 'react-svg-inline';
 import ReactToPrint from 'react-to-print';
-import printerIcon from '../../images/Print.svg?raw';
+import { ReactComponent as PrinterIcon } from '../../images/Print.svg';
 
 export class PDDailyReport extends Component {
   constructor(props) {
@@ -21,6 +20,9 @@ export class PDDailyReport extends Component {
     let leads = this.props.leadsByDate;
     let data = this.getData(leads, startOfWeek, endOfWeek);
     let columns = this.getColumns();
+
+    this.tableComponentRef = React.createRef();
+
     this.state = {
       leads,
       data,
@@ -964,13 +966,12 @@ export class PDDailyReport extends Component {
           </div>
         </div>
         <ReactToPrint
-          trigger={() => (
-            <SVGInline svg={printerIcon} className="icon tablePrint" />
-          )}
-          content={() => this.tableComponentRef}
+          trigger={() => <PrinterIcon className="icon icon-svg tablePrint" />}
+          content={() => this.tableComponentRef.current}
+          onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
         />
         <ReactTable
-          ref={el => (this.tableComponentRef = el)}
+          ref={this.tableComponentRef}
           columns={columns}
           data={data}
           className="-striped -highlight"

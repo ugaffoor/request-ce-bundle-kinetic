@@ -8,7 +8,7 @@ import { Modal, ModalBody } from 'reactstrap';
 import { NotificationListItem } from './NotificationListItem';
 import wallyHappyImage from 'common/src/assets/images/wally-happy.svg';
 import { actions } from '../../../redux/modules/settingsNotifications';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const WallyNoResultsFoundMessage = ({ type }) => {
   return (
@@ -163,7 +163,10 @@ export const mapDispatchToProps = {
 };
 
 export const NotificationsList = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('previewModal', 'setPreviewModal', null),
   withProps(props => {
     switch (props.match.params.type) {

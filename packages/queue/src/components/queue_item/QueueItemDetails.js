@@ -12,7 +12,7 @@ import { QueueListItemSmall } from '../queue_list/QueueListItem';
 import { AssignmentSelector } from '../shared/AssignmentSelector';
 import { StatusContent } from '../shared/StatusContent';
 import { WallyButtonContainer } from '../shared/WallyButton';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const nonQueueLink = (queueItem, kappSlug) =>
   queueItem.parent &&
@@ -73,7 +73,9 @@ export const QueueItemDetails = ({
           <li className="list-group-item timestamp">
             <span className="label">
               <I18n
-                context={`kapps.${queueItem.form.kapp.slug}.forms.${queueItem.form.slug}`}
+                context={`kapps.${queueItem.form.kapp.slug}.forms.${
+                  queueItem.form.slug
+                }`}
               >
                 {queueItem.form.name}
               </I18n>{' '}
@@ -215,7 +217,10 @@ export const mapDispatchToProps = {
 };
 
 export const QueueItemDetailsContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(({ queueItem }) => {
     const prohibit = getAttr(queueItem.form, 'Prohibit Subtasks');
     const permitted = getAttr(queueItem.form, 'Permitted Subtasks');

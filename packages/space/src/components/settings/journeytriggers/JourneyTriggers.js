@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { compose, lifecycle, withHandlers, withState } from 'recompose';
 import { PageTitle, Loading } from 'common';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 import { actions } from '../../../redux/modules/journeyTriggers';
-import { CoreForm } from 'react-kinetic-core';
+import { CoreForm } from '@kineticdata/react';
 import { EmailTemplateContainer } from './EmailTemplate';
 import { SMSTemplateContainer } from './SMSTemplate';
 import { ScriptTemplateContainer } from './ScriptTemplate';
@@ -14,6 +14,8 @@ import { PopConfirm } from '../../shared/PopConfirm';
 import { Button } from 'reactstrap';
 import { actions as leadActions } from 'gbmembers/src/redux/modules/leads';
 import { actions as memberActions } from 'gbmembers/src/redux/modules/members';
+import { Utils } from 'common';
+import { getAttributeValue } from 'gbmembers/src/lib/react-kinops-components/src/utils';
 
 const globals = import('common/globals');
 var triggerFormThis = undefined;
@@ -161,7 +163,7 @@ export class TriggerStatus extends Component {
             });
           }}
         />
-        <label htmlFor={this.props.trigger.id}></label>
+        <label htmlFor={this.props.trigger.id} />
       </div>
     );
   }
@@ -886,8 +888,8 @@ export class BlockTriggers extends Component {
                                         ? 'fa fa-fw fa-phone'
                                         : trigger.values['Contact Type'] ===
                                           'SMS'
-                                        ? 'fa fa-fw fa-comment-o'
-                                        : 'fa fa-fw fa-envelope-o'
+                                          ? 'fa fa-fw fa-comment-o'
+                                          : 'fa fa-fw fa-envelope-o'
                                     }
                                   />
                                 </td>
@@ -982,29 +984,30 @@ export class TriggerTypeBlocks extends Component {
   render() {
     return (
       <div>
-        {!this.state.showBlocks && !this.state.showBlockTriggers && (
-          <div
-            className="block"
-            onClick={e => {
-              if (this.props.type === 'Member') {
-                this.props.setHideLeadBlock(true);
-                this.props.setHideActivityBlock(true);
-              }
-              if (this.props.type === 'Lead') {
-                this.props.setHideMemberBlock(true);
-                this.props.setHideActivityBlock(true);
-              }
-              this.props.setShowTriggerActivities(false);
+        {!this.state.showBlocks &&
+          !this.state.showBlockTriggers && (
+            <div
+              className="block"
+              onClick={e => {
+                if (this.props.type === 'Member') {
+                  this.props.setHideLeadBlock(true);
+                  this.props.setHideActivityBlock(true);
+                }
+                if (this.props.type === 'Lead') {
+                  this.props.setHideMemberBlock(true);
+                  this.props.setHideActivityBlock(true);
+                }
+                this.props.setShowTriggerActivities(false);
 
-              this.setState({
-                showBlocks: true,
-              });
-            }}
-          >
-            <div className="title">{this.props.title}</div>
-            <div className="info">{this.props.info}</div>
-          </div>
-        )}
+                this.setState({
+                  showBlocks: true,
+                });
+              }}
+            >
+              <div className="title">{this.props.title}</div>
+              <div className="info">{this.props.info}</div>
+            </div>
+          )}
         {this.state.showBlocks && (
           <div className="blockGroups">
             <div
@@ -1019,7 +1022,16 @@ export class TriggerTypeBlocks extends Component {
               }}
             />
             {this.props.journeyGroups
-              .filter(group => group.values['Journey Type'] === this.props.type)
+              .filter(
+                group =>
+                  group.values['Journey Type'] === this.props.type &&
+                  (group.values['Name'] !== 'Meeting Calls' ||
+                    (group.values['Name'] === 'Meeting Calls' &&
+                      getAttributeValue(
+                        this.props.space,
+                        'Allow Meeting Calls',
+                      ) === 'YES')),
+              )
               .sort(function(a, b) {
                 if (parseInt(a.values['Order']) < parseInt(b.values['Order'])) {
                   return -1;
@@ -1090,6 +1102,7 @@ export class TriggerTypeBlocks extends Component {
 }
 
 const JourneyTriggersComponent = ({
+  space,
   journeyInfoLoading,
   journeyGroups,
   journeyTriggers,
@@ -1139,6 +1152,7 @@ const JourneyTriggersComponent = ({
           <div className="journeyTriggersContent">
             {!hideMemberBlock && (
               <TriggerTypeBlocks
+                space={space}
                 handleLoaded={handleLoaded}
                 handleNewLoaded={handleNewLoaded}
                 handleCreated={handleCreated}
@@ -1161,6 +1175,7 @@ const JourneyTriggersComponent = ({
             )}
             {!hideLeadBlock && (
               <TriggerTypeBlocks
+                space={space}
                 handleLoaded={handleLoaded}
                 handleNewLoaded={handleNewLoaded}
                 handleCreated={handleCreated}
@@ -1221,6 +1236,7 @@ const JourneyTriggersComponent = ({
 
 export const mapStateToProps = state => {
   return {
+    space: state.member.app.space,
     journeyInfoLoading: state.space.journeyTriggers.journeyInfoLoading,
     journeyGroups: state.space.journeyTriggers.journeyGroups,
     journeyTriggers: state.space.journeyTriggers.journeyTriggers,
@@ -1243,7 +1259,10 @@ export const mapDispatchToProps = {
 };
 
 export const JourneyTriggers = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('hideMemberBlock', 'setHideMemberBlock', false),
   withState('hideLeadBlock', 'setHideLeadBlock', false),
   withState('hideActivityBlock', 'setHideActivityBlock', false),

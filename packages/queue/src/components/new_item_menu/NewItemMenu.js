@@ -1,8 +1,8 @@
 import React from 'react';
 import { Modal, ModalBody, ModalFooter } from 'reactstrap';
-import { CoreForm } from 'react-kinetic-core';
+import { CoreForm } from '@kineticdata/react';
 import { AssignmentSelector } from '../shared/AssignmentSelector';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const globals = import('common/globals');
 
@@ -109,12 +109,14 @@ export const NewItemMenu = ({
         </span>
         <span>&nbsp;</span>
       </h4>
-      {currentForm !== null && currentAssignment === null && (
-        <FormsBackButton handleFormClick={handleFormClick} />
-      )}
-      {currentForm !== null && currentAssignment !== null && (
-        <AssignmentBackButton handleAssignmentClick={handleAssignmentClick} />
-      )}
+      {currentForm !== null &&
+        currentAssignment === null && (
+          <FormsBackButton handleFormClick={handleFormClick} />
+        )}
+      {currentForm !== null &&
+        currentAssignment !== null && (
+          <AssignmentBackButton handleAssignmentClick={handleAssignmentClick} />
+        )}
     </div>
     <ModalBody>
       {currentForm === null ? (
@@ -140,15 +142,20 @@ export const NewItemMenu = ({
         </I18n>
       )}
     </ModalBody>
-    {currentForm !== null && kForm !== null && (
-      <ModalFooter>
-        <button type="button" className="btn btn-primary" onClick={handleSave}>
-          <I18n>Save</I18n>{' '}
-          <I18n context={`kapps.${kappSlug}.forms.${currentForm.slug}`}>
-            {currentForm.name}
-          </I18n>
-        </button>
-      </ModalFooter>
-    )}
+    {currentForm !== null &&
+      kForm !== null && (
+        <ModalFooter>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={handleSave}
+          >
+            <I18n>Save</I18n>{' '}
+            <I18n context={`kapps.${kappSlug}.forms.${currentForm.slug}`}>
+              {currentForm.name}
+            </I18n>
+          </button>
+        </ModalFooter>
+      )}
   </Modal>
 );

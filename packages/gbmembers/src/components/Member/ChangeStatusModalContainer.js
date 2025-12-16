@@ -162,7 +162,12 @@ export class ChangeStatusModal extends Component {
                                 <li>
                                   Click{' '}
                                   <NavLink
-                                    to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-resume-frozen-member?id=${
+                                    to={`/categories/${
+                                      this.props.billingCompany === 'PaySmart'
+                                        ? 'billing-registration'
+                                        : this.props.billingCompany.toLowerCase() +
+                                          '-billing'
+                                    }/${this.props.billingCompany.toLowerCase()}-resume-frozen-member?id=${
                                       this.props.memberItem.id
                                     }`}
                                     kappSlug={'services'}
@@ -220,7 +225,13 @@ export class ChangeStatusModal extends Component {
                                       <li>
                                         Click{' '}
                                         <NavLink
-                                          to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-submit-billing-changes?id=${
+                                          to={`/categories/${
+                                            this.props.billingCompany ===
+                                            'PaySmart'
+                                              ? 'billing-registration'
+                                              : this.props.billingCompany.toLowerCase() +
+                                                '-billing'
+                                          }/${this.props.billingCompany.toLowerCase()}-submit-billing-changes?id=${
                                             this.props.memberItem.values[
                                               'Billing Parent Member'
                                             ]
@@ -243,7 +254,19 @@ export class ChangeStatusModal extends Component {
                                       <li>
                                         Click{' '}
                                         <NavLink
-                                          to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-setup-biller-details?id=${
+                                          to={`/categories/${
+                                            this.props.billingCompany ===
+                                            'PaySmart'
+                                              ? 'billing-registration'
+                                              : this.props.billingCompany.toLowerCase() +
+                                                '-billing'
+                                          }/${
+                                            this.props.billingCompany ===
+                                            'PaySmart'
+                                              ? 'setup-biller-details'
+                                              : this.props.billingCompany.toLowerCase() +
+                                                '-setup-biller-details'
+                                          }?id=${
                                             this.props.memberItem.values[
                                               'Billing Parent Member'
                                             ]
@@ -313,7 +336,11 @@ export class ChangeStatusModal extends Component {
                                     <li>
                                       Click{' '}
                                       <NavLink
-                                        to={`/Member/${this.props.memberItem.values['Billing Parent Member']}`}
+                                        to={`/Member/${
+                                          this.props.memberItem.values[
+                                            'Billing Parent Member'
+                                          ]
+                                        }`}
                                         kappSlug={'gbmembers'}
                                         className={'nav-link icon-wrapper'}
                                         activeClassName="active"
@@ -385,7 +412,12 @@ export class ChangeStatusModal extends Component {
                                 <li>
                                   Click{' '}
                                   <NavLink
-                                    to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-resume-frozen-member?id=${
+                                    to={`/categories/${
+                                      this.props.billingCompany === 'PaySmart'
+                                        ? 'billing-registration'
+                                        : this.props.billingCompany.toLowerCase() +
+                                          '-billing'
+                                    }/${this.props.billingCompany.toLowerCase()}-resume-frozen-member?id=${
                                       this.props.memberItem.id
                                     }`}
                                     kappSlug={'services'}
@@ -492,9 +524,17 @@ export class ChangeStatusModal extends Component {
                                 <li>
                                   Click{' '}
                                   <NavLink
-                                    to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-membership-freeze?id=${
-                                      this.props.memberItem.id
-                                    }`}
+                                    to={`/categories/${
+                                      this.props.billingCompany === 'PaySmart'
+                                        ? 'billing-registration'
+                                        : this.props.billingCompany.toLowerCase() +
+                                          '-billing'
+                                    }/${
+                                      this.props.billingCompany === 'PaySmart'
+                                        ? 'membership-freeze'
+                                        : this.props.billingCompany.toLowerCase() +
+                                          '-membership-freeze'
+                                    }?id=${this.props.memberItem.id}`}
                                     kappSlug={'services'}
                                     className={'nav-link icon-wrapper'}
                                     activeClassName="active"
@@ -536,7 +576,12 @@ export class ChangeStatusModal extends Component {
                                   <li>
                                     Click{' '}
                                     <NavLink
-                                      to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-submit-billing-changes?id=${
+                                      to={`/categories/${
+                                        this.props.billingCompany === 'PaySmart'
+                                          ? 'billing-registration'
+                                          : this.props.billingCompany.toLowerCase() +
+                                            '-billing'
+                                      }/${this.props.billingCompany.toLowerCase()}-submit-billing-changes?id=${
                                         this.props.memberItem.values[
                                           'Billing Parent Member'
                                         ]
@@ -557,7 +602,17 @@ export class ChangeStatusModal extends Component {
                                   <li>
                                     Click{' '}
                                     <NavLink
-                                      to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-setup-biller-details?id=${
+                                      to={`/categories/${
+                                        this.props.billingCompany === 'PaySmart'
+                                          ? 'billing-registration'
+                                          : this.props.billingCompany.toLowerCase() +
+                                            '-billing'
+                                      }/${
+                                        this.props.billingCompany === 'PaySmart'
+                                          ? 'setup-biller-details'
+                                          : this.props.billingCompany.toLowerCase() +
+                                            '-setup-biller-details'
+                                      }?id=${
                                         this.props.memberItem.values[
                                           'Billing Parent Member'
                                         ]
@@ -663,9 +718,17 @@ export class ChangeStatusModal extends Component {
                                 <li>
                                   Click{' '}
                                   <NavLink
-                                    to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-membership-freeze?id=${
-                                      this.props.memberItem.id
-                                    }`}
+                                    to={`/categories/${
+                                      this.props.billingCompany === 'PaySmart'
+                                        ? 'billing-registration'
+                                        : this.props.billingCompany.toLowerCase() +
+                                          '-billing'
+                                    }/${
+                                      this.props.billingCompany === 'PaySmart'
+                                        ? 'membership-freeze'
+                                        : this.props.billingCompany.toLowerCase() +
+                                          '-membership-freeze'
+                                    }?id=${this.props.memberItem.id}`}
                                     kappSlug={'services'}
                                     className={'nav-link icon-wrapper'}
                                     activeClassName="active"
@@ -743,9 +806,17 @@ export class ChangeStatusModal extends Component {
                                 <li>
                                   Click{' '}
                                   <NavLink
-                                    to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-member-cancellation?id=${
-                                      this.props.memberItem.id
-                                    }`}
+                                    to={`/categories/${
+                                      this.props.billingCompany === 'PaySmart'
+                                        ? 'billing-registration'
+                                        : this.props.billingCompany.toLowerCase() +
+                                          '-billing'
+                                    }/${
+                                      this.props.billingCompany === 'PaySmart'
+                                        ? 'member-cancellation'
+                                        : this.props.billingCompany.toLowerCase() +
+                                          '-member-cancellation'
+                                    }?id=${this.props.memberItem.id}`}
                                     kappSlug={'services'}
                                     className={'nav-link icon-wrapper'}
                                     activeClassName="active"
@@ -790,7 +861,16 @@ export class ChangeStatusModal extends Component {
                                   <li>
                                     Click{' '}
                                     <NavLink
-                                      to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-submit-billing-changes?id=${
+                                      to={`/categories/${
+                                        this.props.billingCompany === 'PaySmart'
+                                          ? 'billing-registration'
+                                          : this.props.billingCompany.toLowerCase() +
+                                            '-billing'
+                                      }/${
+                                        this.props.billingCompany === 'PaySmart'
+                                          ? 'billing-registration'
+                                          : this.props.billingCompany.toLowerCase()
+                                      }-submit-billing-changes?id=${
                                         this.props.memberItem.values[
                                           'Billing Parent Member'
                                         ]
@@ -811,7 +891,17 @@ export class ChangeStatusModal extends Component {
                                   <li>
                                     Click{' '}
                                     <NavLink
-                                      to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-setup-biller-details?id=${
+                                      to={`/categories/${
+                                        this.props.billingCompany === 'PaySmart'
+                                          ? 'billing-registration'
+                                          : this.props.billingCompany.toLowerCase() +
+                                            '-billing'
+                                      }/${
+                                        this.props.billingCompany === 'PaySmart'
+                                          ? 'setup-biller-details'
+                                          : this.props.billingCompany.toLowerCase() +
+                                            '-setup-biller-details'
+                                      }?id=${
                                         this.props.memberItem.values[
                                           'Billing Parent Member'
                                         ]
@@ -912,7 +1002,9 @@ export class ChangeStatusModal extends Component {
                             <td>
                               <h2 className="remoteRegister">
                                 <NavLink
-                                  to={`/RemoteRegistration/${this.props.memberItem.id}`}
+                                  to={`/RemoteRegistration/${
+                                    this.props.memberItem.id
+                                  }`}
                                   className=" nav-link icon-wrapper remote"
                                   activeClassName="active"
                                   style={{ display: 'inline', color: 'green' }}
@@ -927,9 +1019,9 @@ export class ChangeStatusModal extends Component {
                               <br />
                               <ol>
                                 <li>
-                                  Set the program, price and start date,{' '}
-                                  <br></br>then send link to Member to complete
-                                  the Registration via SMS or Email
+                                  Set the program, price and start date, <br />then
+                                  send link to Member to complete the
+                                  Registration via SMS or Email
                                 </li>
                               </ol>
                             </td>
@@ -958,9 +1050,17 @@ export class ChangeStatusModal extends Component {
                                 <li>
                                   Click{' '}
                                   <NavLink
-                                    to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-member-cancellation?id=${
-                                      this.props.memberItem.id
-                                    }`}
+                                    to={`/categories/${
+                                      this.props.billingCompany === 'PaySmart'
+                                        ? 'billing-registration'
+                                        : this.props.billingCompany.toLowerCase() +
+                                          '-billing'
+                                    }/${
+                                      this.props.billingCompany === 'PaySmart'
+                                        ? 'member-cancellation'
+                                        : this.props.billingCompany.toLowerCase() +
+                                          '-member-cancellation'
+                                    }?id=${this.props.memberItem.id}`}
                                     kappSlug={'services'}
                                     className={'nav-link icon-wrapper'}
                                     activeClassName="active"
@@ -1004,7 +1104,12 @@ export class ChangeStatusModal extends Component {
                               <li>
                                 Click{' '}
                                 <NavLink
-                                  to={`/categories/${this.props.billingCompany.toLowerCase()}-billing/${this.props.billingCompany.toLowerCase()}-revoke-cancellation?id=${
+                                  to={`/categories/${
+                                    this.props.billingCompany === 'PaySmart'
+                                      ? 'billing-registration'
+                                      : this.props.billingCompany.toLowerCase() +
+                                        '-billing'
+                                  }/${this.props.billingCompany.toLowerCase()}-revoke-cancellation?id=${
                                     this.props.memberItem.id
                                   }`}
                                   kappSlug={'services'}
@@ -1057,5 +1162,10 @@ export class ChangeStatusModal extends Component {
   }
 }
 
-const enhance = compose(connect(mapStateToProps, mapDispatchToProps));
+const enhance = compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
+);
 export const ChangeStatusModalContainer = enhance(ChangeStatusModal);

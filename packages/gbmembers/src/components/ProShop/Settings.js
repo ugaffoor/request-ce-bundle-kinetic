@@ -11,7 +11,7 @@ import { PurchaseItemsReportContainer } from './PurchaseItemsReport';
 import { OrdersReportContainer } from './OrdersReport';
 import { POSTaxSettingsContainer } from './POSTaxSettings';
 import { actions } from '../../redux/modules/pos';
-import { CoreForm } from 'react-kinetic-core';
+import { CoreForm } from '@kineticdata/react';
 import { Utils } from 'common';
 
 const mapStateToProps = state => ({
@@ -184,7 +184,10 @@ export class Settings extends Component {
 }
 
 const enhance = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('showStockReport', 'setShowStockReport', false),
   withState('showPurchaseItemsReport', 'setShowPurchaseItemsReport', false),
   withState('showOrdersReport', 'setShowOrdersReport', false),

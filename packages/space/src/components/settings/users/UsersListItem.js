@@ -12,7 +12,7 @@ import {
 
 import { Avatar } from 'common';
 import { actions } from '../../../redux/modules/settingsUsers';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const UsersListItemComponent = ({ user, openDropdown, toggleDropdown }) => {
   return (
@@ -123,7 +123,10 @@ const toggleDropdown = ({
   setOpenDropdown(dropdownSlug === openDropdown ? '' : dropdownSlug);
 
 export const UsersListItem = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('openDropdown', 'setOpenDropdown', ''),
   withHandlers({ toggleDropdown }),
 )(UsersListItemComponent);

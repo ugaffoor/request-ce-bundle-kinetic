@@ -1,5 +1,9 @@
 import { select, call, put, takeEvery } from 'redux-saga/effects';
-import { CoreAPI } from 'react-kinetic-core';
+import {
+  SubmissionSearch,
+  searchSubmissions,
+  updateSubmission,
+} from '@kineticdata/react';
 import $ from 'jquery';
 
 import { types, actions } from '../modules/members';
@@ -24,12 +28,13 @@ const util = require('util');
 
 export function* fetchMembers(action) {
   try {
-    const search = new CoreAPI.SubmissionSearch()
+    const search = new SubmissionSearch()
       .includes(['details', 'values'])
       .limit(1000)
       .build();
 
-    const { submissions } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions } = yield call(searchSubmissions, {
+      get: true,
       form: 'member',
       kapp: 'gbmembers',
       search,
@@ -43,7 +48,7 @@ export function* fetchMembers(action) {
 
 export function* updateCurrentMember(action) {
   try {
-    const { submission } = yield call(CoreAPI.updateSubmission, {
+    const { submission } = yield call(updateSubmission, {
       id: action.payload.id,
       values: action.payload.memberItem.values,
     });
@@ -161,7 +166,7 @@ export function* registerBillingMember(action) {
       /.(?=.{4,}$)/g,
       '*',
     );
-    const { submission } = yield call(CoreAPI.updateSubmission, {
+    const { submission } = yield call(updateSubmission, {
       id: action.payload.billingInfo['id'],
       values: action.payload.billingInfo.values,
     });

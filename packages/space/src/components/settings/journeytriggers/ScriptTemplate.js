@@ -2,7 +2,7 @@ import React, { Component, Fragment } from 'react';
 import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
 import { connect } from 'react-redux';
 import { compose, withHandlers } from 'recompose';
-import { CoreForm } from 'react-kinetic-core';
+import { CoreForm } from '@kineticdata/react';
 import { Loading } from 'common';
 import ReactDOM from 'react-dom';
 import ReactQuill, { Quill } from 'react-quill';
@@ -220,7 +220,10 @@ export class ScriptTemplate extends Component {
 }
 
 const enhance = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withHandlers({
     handleUpdated,
     handleCreated,

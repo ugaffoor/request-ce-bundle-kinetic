@@ -3,7 +3,9 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // SVG colors
-.icon-svg {
+.icon-svg,
+.icon-svg svg {
+  cursor: pointer;
   height: 1rem;
   width: 1rem;
   path,
@@ -33,33 +35,33 @@
   }
 }
 
-span.SVGInline.attention.icon .icon-svg path {
-  fill: orange;
+.attention.icon.icon-svg path {
+  fill: orange !important;
 }
-span.SVGInline.attention.icon {
+.attention.icon {
   padding-right: 4px;
 }
-span.SVGInline.attention.hide {
+.attention.hide {
   display: none;
 }
-span.SVGInline.noBilling.icon .icon-svg path {
+.noBilling.icon.icon-svg path {
   fill: #a46fad;
 }
-span.SVGInline.noBilling.icon {
+.noBilling.icon {
   padding-right: 4px;
 }
-span.SVGInline.noBilling.hide {
+.noBilling.hide {
   display: none;
 }
-span.SVGInline.cancelling.icon {
+.cancelling.icon {
   padding-left: 4px;
 }
-span.SVGInline.cancelling.hide {
+.cancelling.hide {
   display: none;
 }
-span.SVGInline.freezing.icon {
+.freezing.icon {
   padding-left: 4px;
 }
-span.SVGInline.freezing.hide {
+.freezing.hide {
   display: none;
 }

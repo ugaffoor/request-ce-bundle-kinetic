@@ -11,7 +11,7 @@ import { buildHierarchy } from '../../../utils';
 import { IconPicker } from '../../shared/IconPicker';
 import { TeamCard } from '../../shared/TeamCard';
 import { Avatar } from 'common';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 import {
   actions as teamListActions,
@@ -324,7 +324,10 @@ const mapStateToProps = (state, props) => {
 };
 
 export const TeamForm = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('fieldValues', 'setFieldValues', translateTeamToFieldValues({})),
   withHandlers({
     handleAddMemberClick: props => event => {

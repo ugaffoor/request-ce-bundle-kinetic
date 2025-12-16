@@ -4,7 +4,7 @@ import { getTeamColor, getTeamIcon } from '../../utils';
 import { Discussion as KinopsDiscussion } from 'discussions';
 import { PageTitle, Avatar } from 'common';
 import { ServiceCard } from '../shared/ServiceCard';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 export const Team = ({
   loading,
@@ -53,15 +53,16 @@ export const Team = ({
               </Link>
             )}
           </div>
-          {userIsMember && discussionId && (
-            <button
-              onClick={openDiscussion}
-              className="btn btn-primary btn-inverse btn-discussion d-md-none d-lg-none d-xl-none"
-            >
-              <span className="fa fa-comments fa-fw icon" />
-              <I18n>View Discussion</I18n>
-            </button>
-          )}
+          {userIsMember &&
+            discussionId && (
+              <button
+                onClick={openDiscussion}
+                className="btn btn-primary btn-inverse btn-discussion d-md-none d-lg-none d-xl-none"
+              >
+                <span className="fa fa-comments fa-fw icon" />
+                <I18n>View Discussion</I18n>
+              </button>
+            )}
           <div className="card card--team">
             <div
               className="card--team__header"
@@ -167,17 +168,18 @@ export const Team = ({
             </section>
           )}
         </div>
-        {userIsMember && discussionId && (
-          <KinopsDiscussion
-            discussionId={discussionId}
-            isMobileModal
-            renderClose={() => (
-              <Link to={`/`} className="btn btn-link">
-                <I18n>Close</I18n>
-              </Link>
-            )}
-          />
-        )}
+        {userIsMember &&
+          discussionId && (
+            <KinopsDiscussion
+              discussionId={discussionId}
+              isMobileModal
+              renderClose={() => (
+                <Link to={`/`} className="btn btn-link">
+                  <I18n>Close</I18n>
+                </Link>
+              )}
+            />
+          )}
       </Fragment>
     )}
   </div>

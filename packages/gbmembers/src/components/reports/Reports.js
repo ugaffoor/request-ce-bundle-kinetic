@@ -33,13 +33,14 @@ import { BamboraFailedPayments } from './BamboraFailedPayments';
 import { StripeFailedPayments } from './StripeFailedPayments';
 import { PaysmartOverdues } from './PaysmartOverdues';
 import { StripeBillingTransactions } from './StripeBillingTransactions';
+import { StripeMembershipTransactions } from './StripeMembershipTransactions';
 import { AdditionalServicesReportContainer } from './AdditionalServicesReport';
 import { ResumingMembers } from './ResumingMembers';
 import { actions } from '../../redux/modules/members';
 import { actions as attendanceActions } from '../../redux/modules/attendance';
 import moment from 'moment';
 import { Utils } from 'common';
-import { CoreForm } from 'react-kinetic-core';
+import { CoreForm } from '@kineticdata/react';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { getTimezone } from '../leads/LeadsUtils';
 
@@ -220,6 +221,8 @@ export const ReportsView = ({
   setShowOverduesReport,
   showStripeBillingTransactions,
   setShowStripeBillingTransactions,
+  showStripeMembershipTransactions,
+  setShowStripeMembershipTransactions,
   getOverdues,
   showAdditionalServicesReport,
   setShowAdditionalServicesReport,
@@ -1010,7 +1013,52 @@ export const ReportsView = ({
             )}
           </div>
         )}
-
+        {Utils.getAttributeValue(space, 'Billing Company') !== 'Stripe' ||
+        !Utils.isMemberOf(profile, 'Billing') ? (
+          <div />
+        ) : (
+          <div
+            style={{ margin: '20px 0px 0px 10px' }}
+            id="stripe-membership-transactions"
+          >
+            <div className="row">
+              <button
+                type="button"
+                className="btn btn-primary report-btn-default"
+                disabled={!dummyFormLoaded}
+                onClick={e => {
+                  setShowStripeMembershipTransactions(
+                    showStripeMembershipTransactions ? false : true,
+                  );
+                  document
+                    .getElementById('stripe-billing-transactions')
+                    .scrollIntoView();
+                }}
+              >
+                {showStripeMembershipTransactions
+                  ? 'Hide Stripe Membership Transactions'
+                  : 'Show Stripe Membership Transactions'}
+              </button>
+            </div>
+            {!showStripeMembershipTransactions ? null : (
+              <div className="row">
+                <div>
+                  <StripeMembershipTransactions
+                    allMembers={members}
+                    profile={profile}
+                    space={space}
+                    fetchPaymentHistory={fetchPaymentHistory}
+                    setPaymentHistory={setPaymentHistory}
+                    SUCCESSFULpaymentHistory={SUCCESSFULpaymentHistory}
+                    SUCCESSFULpaymentHistoryLoading={
+                      SUCCESSFULpaymentHistoryLoading
+                    }
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
         <CoreForm
           kapp="gbmembers"
           form="dummy-form"
@@ -1022,7 +1070,10 @@ export const ReportsView = ({
 );
 
 export const ReportsContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('showMemberActivityReport', 'setShowMemberActivityReport', false),
   withState('showBirthdaysReport', 'setBirthdaysReport', false),
   withState('showLastAttendance', 'setShowLastAttendance', false),
@@ -1046,6 +1097,11 @@ export const ReportsContainer = compose(
     false,
   ),
   withState(
+    'showStripeMembershipTransactions',
+    'setShowStripeMembershipTransactions',
+    false,
+  ),
+  withState(
     'showAdditionalServicesReport',
     'setShowAdditionalServicesReport',
     false,
@@ -1056,7 +1112,7 @@ export const ReportsContainer = compose(
       if (!dummyFormLoaded) {
         setTimeout(function() {
           setDummyFormLoaded(true);
-        }, 2000);
+        }, 5000);
       }
     },
     fetchLeads: ({ fetchLeads }) => () => {

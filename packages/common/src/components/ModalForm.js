@@ -1,10 +1,10 @@
 import React from 'react';
-import { CoreForm } from 'react-kinetic-core';
+import { CoreForm } from '@kineticdata/react';
 import { Modal, ModalBody } from 'reactstrap';
 import { ErrorNotFound } from './ErrorNotFound';
 import { ErrorUnauthorized } from './ErrorUnauthorized';
 import { ErrorUnexpected } from './ErrorUnexpected';
-import { I18n } from '../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 // Asynchronously import the global dependencies that are used in the embedded
 // forms. Note that we deliberately do this as a const so that it should start

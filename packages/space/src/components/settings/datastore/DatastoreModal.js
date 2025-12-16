@@ -6,7 +6,7 @@ import { actions } from '../../../redux/modules/settingsDatastore';
 
 import { Export } from './Export';
 import { Import } from './Import';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const DatastoreModalComponent = ({ modalIsOpen, closeModal, modalName }) => (
   <Modal isOpen={modalIsOpen} toggle={closeModal} size="lg">

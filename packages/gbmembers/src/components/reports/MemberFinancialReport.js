@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import ReactSpinner from 'react16-spinjs';
 import moment from 'moment';
 import { getJson } from '../Member/MemberUtils';
 import $ from 'jquery';
@@ -21,19 +20,18 @@ import {
   getLocalePreference,
   isBamboraFailedPayment,
 } from '../Member/MemberUtils';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 import { actions } from '../../redux/modules/members';
 import { actions as posActions } from '../../redux/modules/pos';
 import { compose } from 'recompose';
 import { connect } from 'react-redux';
-import SVGInline from 'react-svg-inline';
-import crossIcon from '../../images/cross.svg?raw';
+import { ReactComponent as CrossIcon } from '../../images/cross.svg';
 import { actions as leadsActions } from '../../redux/modules/leads';
 import { actions as servicesActions } from '../../redux/modules/services';
-import helpIcon from '../../images/help.svg?raw';
+import { ReactComponent as HelpIcon } from '../../images/help.svg';
 import { getTimezone } from '../leads/LeadsUtils';
 import ReactToPrint from 'react-to-print';
-import printerIcon from '../../images/Print.svg?raw';
+import { ReactComponent as PrinterIcon } from '../../images/Print.svg';
 
 const mapStateToProps = state => ({
   members: state.member.members.allMembers,
@@ -126,6 +124,9 @@ export class MemberFinancialReport extends Component {
     let repToDate = this.setToDate.hour(23).minute(59);
     this.paymentHistory = [];
     let memberData = this.getMemberData(undefined);
+
+    this.tableComponentRef = React.createRef();
+
     this.state = {
       allMembers: this.props.members,
       repMemberData: memberData,
@@ -535,6 +536,9 @@ export class MemberFinancialReport extends Component {
       return undefined;
     var idx = members.findIndex(
       member =>
+        member.values['Billing Customer Id'] !== undefined &&
+        member.values['Billing Customer Id'] !== null &&
+        member.values['Billing Customer Id'] !== '' &&
         member.values['Billing Customer Id'] === payment['yourSystemReference'],
     );
 
@@ -549,7 +553,9 @@ export class MemberFinancialReport extends Component {
     )
       return undefined;
     var idx = members.findIndex(
-      member => member.values['Member ID'] === payment['yourSystemReference'],
+      member =>
+        member.values['Member ID'] === payment['yourSystemReference'] ||
+        member.values['Billing Customer Id'] === payment['yourSystemReference'],
     );
 
     if (idx !== -1) return members[idx];
@@ -561,7 +567,10 @@ export class MemberFinancialReport extends Component {
       payment['paymentSource'] === 'Manual Registration Fee'
     ) {
       var idx = members.findIndex(
-        member => member.values['Member ID'] === payment['yourSystemReference'],
+        member =>
+          member.values['Member ID'] === payment['yourSystemReference'] ||
+          member.values['Billing Customer Id'] ===
+            payment['yourSystemReference'],
       );
 
       if (idx !== -1) return members[idx];
@@ -844,8 +853,8 @@ export class MemberFinancialReport extends Component {
     let allTransactionRecords = [];
     let adminFeePerc = Number(
       getAttributeValue(this.props.space, 'Admin Fee Charge') !== undefined &&
-        getAttributeValue(this.props.space, 'Admin Fee Charge') !== null &&
-        getAttributeValue(this.props.space, 'Admin Fee Charge') !== ''
+      getAttributeValue(this.props.space, 'Admin Fee Charge') !== null &&
+      getAttributeValue(this.props.space, 'Admin Fee Charge') !== ''
         ? Number(
             getAttributeValue(this.props.space, 'Admin Fee Charge').replace(
               '%',
@@ -856,29 +865,29 @@ export class MemberFinancialReport extends Component {
     );
     let tax1Percentage = Number(
       getAttributeValue(this.props.space, 'TAX 1 Value') !== undefined &&
-        getAttributeValue(this.props.space, 'TAX 1 Value') !== null &&
-        getAttributeValue(this.props.space, 'TAX 1 Value') !== ''
+      getAttributeValue(this.props.space, 'TAX 1 Value') !== null &&
+      getAttributeValue(this.props.space, 'TAX 1 Value') !== ''
         ? Number(getAttributeValue(this.props.space, 'TAX 1 Value'))
         : 0,
     );
     let tax2Percentage = Number(
       getAttributeValue(this.props.space, 'TAX 2 Value') !== undefined &&
-        getAttributeValue(this.props.space, 'TAX 2 Value') !== null &&
-        getAttributeValue(this.props.space, 'TAX 2 Value') !== ''
+      getAttributeValue(this.props.space, 'TAX 2 Value') !== null &&
+      getAttributeValue(this.props.space, 'TAX 2 Value') !== ''
         ? Number(getAttributeValue(this.props.space, 'TAX 2 Value'))
         : 0,
     );
     let posTax1Percentage = Number(
       getAttributeValue(this.props.space, 'POS Sales Tax') !== undefined &&
-        getAttributeValue(this.props.space, 'POS Sales Tax') !== null &&
-        getAttributeValue(this.props.space, 'POS Sales Tax') !== ''
+      getAttributeValue(this.props.space, 'POS Sales Tax') !== null &&
+      getAttributeValue(this.props.space, 'POS Sales Tax') !== ''
         ? Number(getAttributeValue(this.props.space, 'POS Sales Tax'))
         : 0,
     );
     let posTax2Percentage = Number(
       getAttributeValue(this.props.space, 'POS Sales Tax 2') !== undefined &&
-        getAttributeValue(this.props.space, 'POS Sales Tax 2') !== null &&
-        getAttributeValue(this.props.space, 'POS Sales Tax 2') !== ''
+      getAttributeValue(this.props.space, 'POS Sales Tax 2') !== null &&
+      getAttributeValue(this.props.space, 'POS Sales Tax 2') !== ''
         ? Number(getAttributeValue(this.props.space, 'POS Sales Tax 2'))
         : 0,
     );
@@ -1075,6 +1084,7 @@ export class MemberFinancialReport extends Component {
           if (payment.paymentStatus !== 'Refund') {
             if (
               payment.paymentAmount !== 0 &&
+              payment.paymentMethod !== 'card_present' &&
               (payment.paymentSource === null ||
                 payment.paymentSource.indexOf('POS') === -1)
             ) {
@@ -1250,7 +1260,7 @@ export class MemberFinancialReport extends Component {
           item.values['Member ID'] === member.memberId ||
           item.values['Member ID'] === member.customerId ||
           item.values['Billing Customer Id'] === member.customerId ||
-            item.values['Billing Customer Reference'] === member.customerId
+          item.values['Billing Customer Reference'] === member.customerId
         ) {
           member.id = item.id;
           member.status = item.values['Status'];
@@ -1435,7 +1445,10 @@ export class MemberFinancialReport extends Component {
     additionalServicesRecords.forEach((service, i) => {
       // Find latest payment date
       var idx = paymentHistory.findIndex(item => {
-        return service.values['Member ID'] === item.yourSystemReference;
+        return (
+          service.values['Member ID'] === item.yourSystemReference ||
+          service.values['Billing Customer Id'] === item.yourSystemReference
+        );
       });
       var lastPayment;
       if (idx !== -1) {
@@ -1573,6 +1586,7 @@ export class MemberFinancialReport extends Component {
       var idx = members.findIndex(
         item =>
           item.values['Member ID'] === refund.yourSystemReference ||
+          item.values['Billing Customer Id'] === refund.yourSystemReference ||
           item.values['First Name'] + ' ' + item.values['Last Name'] ===
             refund.customerName,
       );
@@ -1581,6 +1595,8 @@ export class MemberFinancialReport extends Component {
         mIdx = refundMembers.findIndex(
           item =>
             item.member.values['Member ID'] === refund.yourSystemReference ||
+            item.member.values['Billing Customer Id'] ===
+              refund.yourSystemReference ||
             item.member.values['First Name'] +
               ' ' +
               item.member.values['Last Name'] ===
@@ -1914,13 +1930,13 @@ export class MemberFinancialReport extends Component {
             tax1: hasTax1
               ? Number.parseFloat(order.values['Sales Tax'])
               : posTax1Percentage !== 0
-              ? Number(feeTotal * posTax1Percentage).toFixed(2)
-              : 0,
+                ? Number(feeTotal * posTax1Percentage).toFixed(2)
+                : 0,
             tax2: hasTax2
               ? Number.parseFloat(order.values['Sales Tax 2'])
               : posTax2Percentage !== 0
-              ? Number(feeTotal * posTax2Percentage).toFixed(2)
-              : 0,
+                ? Number(feeTotal * posTax2Percentage).toFixed(2)
+                : 0,
           });
         }
       }
@@ -1986,7 +2002,7 @@ export class MemberFinancialReport extends Component {
 
     return name;
   }
-  getMemberFee(members, member, forRegistrationFee) {
+  getMemberFee(members, member, forRegistrationFee, allTransactionRecords) {
     if (forRegistrationFee && member.registrationFeeMember) {
       return member.memberRegistrationFee;
     }
@@ -1997,6 +2013,18 @@ export class MemberFinancialReport extends Component {
       member.values['Non Paying'] === 'YES'
     )
       return 'Non Paying';
+
+    if (member.values['Status'] === 'Frozen') {
+      var amount = 0;
+      allTransactionRecords.forEach(transaction => {
+        if (
+          transaction.billingID === member.values['Billing Customer Reference']
+        ) {
+          amount = amount + parseFloat(transaction.payment);
+        }
+      });
+      return amount.toFixed(2);
+    }
     if (
       member.values['Family Fee Details'] !== null &&
       member.values['Family Fee Details'] !== undefined
@@ -2062,7 +2090,14 @@ export class MemberFinancialReport extends Component {
       return member.values['Billing Payment Period'];
     return '';
   }
-  getMembers(allMembers, members, billingCustomers, col, forRegistrationFee) {
+  getMembers(
+    allMembers,
+    members,
+    billingCustomers,
+    col,
+    forRegistrationFee,
+    allTransactionRecords,
+  ) {
     var members_col = [];
 
     for (var i = col - 1; i < members.length; i = i + 2) {
@@ -2074,7 +2109,12 @@ export class MemberFinancialReport extends Component {
           members[i].values['First Name'],
         fee:
           members[i].id !== 'Orphan'
-            ? this.getMemberFee(allMembers, members[i], forRegistrationFee)
+            ? this.getMemberFee(
+                allMembers,
+                members[i],
+                forRegistrationFee,
+                allTransactionRecords,
+              )
             : members[i].fee,
         cost:
           members[i].id !== 'Orphan'
@@ -2082,6 +2122,7 @@ export class MemberFinancialReport extends Component {
                 members[i],
                 billingCustomers,
                 forRegistrationFee,
+                allTransactionRecords,
               )
             : members[i].fee,
         period:
@@ -2186,9 +2227,26 @@ export class MemberFinancialReport extends Component {
 
     return members_col;
   }
-  getScheduledPayment(member, billingCustomers, forRegistrationFee) {
+  getScheduledPayment(
+    member,
+    billingCustomers,
+    forRegistrationFee,
+    allTransactionRecords,
+  ) {
     if (forRegistrationFee && member.registrationFeeMember) {
       return member.memberRegistrationFee;
+    }
+
+    if (member.values['Status'] === 'Frozen') {
+      var amount = 0;
+      allTransactionRecords.forEach(transaction => {
+        if (
+          transaction.billingID === member.values['Billing Customer Reference']
+        ) {
+          amount = amount + parseFloat(transaction.payment);
+        }
+      });
+      return amount.toFixed(2);
     }
 
     if (
@@ -2210,7 +2268,12 @@ export class MemberFinancialReport extends Component {
     return 0;
   }
 
-  getMemberTableData(members, billingCustomers, forRegistrationFee) {
+  getMemberTableData(
+    members,
+    billingCustomers,
+    forRegistrationFee,
+    allTransactionRecords,
+  ) {
     members.sort(function(a, b) {
       if (a.values['Last Name'] < b.values['Last Name']) {
         return -1;
@@ -2226,6 +2289,7 @@ export class MemberFinancialReport extends Component {
       billingCustomers,
       1,
       forRegistrationFee,
+      allTransactionRecords,
     );
     let members_col2 = this.getMembers(
       this.state.allMembers,
@@ -2233,6 +2297,7 @@ export class MemberFinancialReport extends Component {
       billingCustomers,
       2,
       forRegistrationFee,
+      allTransactionRecords,
     );
 
     return [
@@ -2432,7 +2497,7 @@ export class MemberFinancialReport extends Component {
                   }).format(props.original.members_col1['cost'])
                 )
               ) : props.original.members_col1['fee'] === '' ||
-                props.original.members_col1['fee'] === 'Non Paying' ? (
+              props.original.members_col1['fee'] === 'Non Paying' ? (
                 <div>{props.original.members_col1['fee']}</div>
               ) : (
                 new Intl.NumberFormat(this.locale, {
@@ -2498,7 +2563,7 @@ export class MemberFinancialReport extends Component {
                   }).format(props.original.members_col2['cost'])
                 )
               ) : props.original.members_col2['fee'] === '' ||
-                props.original.members_col2['fee'] === 'Non Paying' ? (
+              props.original.members_col2['fee'] === 'Non Paying' ? (
                 <div>{props.original.members_col2['fee']}</div>
               ) : (
                 new Intl.NumberFormat(this.locale, {
@@ -2982,10 +3047,10 @@ export class MemberFinancialReport extends Component {
               ' ' +
               forecast.member.values['Last Name']
             : forecast.values !== undefined
-            ? forecast.values['Student First Name'] +
-              ' ' +
-              forecast.values['Student Last Name']
-            : forecast.firstName + ' ' + forecast.lastName) +
+              ? forecast.values['Student First Name'] +
+                ' ' +
+                forecast.values['Student Last Name']
+              : forecast.firstName + ' ' + forecast.lastName) +
           '","' +
           (forecast.member !== undefined
             ? forecast.billingId !== undefined
@@ -2996,8 +3061,8 @@ export class MemberFinancialReport extends Component {
           (forecast.member !== undefined
             ? forecast.billingAmount
             : forecast.values !== undefined
-            ? Number(forecast.values['Fee']).toFixed(2)
-            : forecast.billingAmount) +
+              ? Number(forecast.values['Fee']).toFixed(2)
+              : forecast.billingAmount) +
           '","' +
           '"\n',
       );
@@ -3093,10 +3158,9 @@ export class MemberFinancialReport extends Component {
       <span>
         <span className="line financialReportActions">
           <ReactToPrint
-            trigger={() => (
-              <SVGInline svg={printerIcon} className="icon tablePrint" />
-            )}
-            content={() => this.tableComponentRef}
+            trigger={() => <PrinterIcon className="icon icon-svg tablePrint" />}
+            content={() => this.tableComponentRef.current}
+            onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
           />
           <button
             className="downloadCSV"
@@ -3107,13 +3171,10 @@ export class MemberFinancialReport extends Component {
               )
             }
           >
-            <i className="fa fa-download"></i> Download Data as CSV
+            <i className="fa fa-download" /> Download Data as CSV
           </button>
         </span>
-        <span
-          className="financialStats"
-          ref={el => (this.tableComponentRef = el)}
-        >
+        <span className="financialStats" ref={this.tableComponentRef}>
           {this.state.showConcernedMembers && (
             <div className="members concernedMembers">
               <span
@@ -3124,7 +3185,7 @@ export class MemberFinancialReport extends Component {
                   })
                 }
               >
-                <SVGInline svg={crossIcon} className="icon" />
+                <CrossIcon className="icon icon-svg" />
               </span>
               <div className="concernedMembers">
                 <span className="concernedMembersHelp">
@@ -3199,13 +3260,15 @@ export class MemberFinancialReport extends Component {
                   })
                 }
               >
-                <SVGInline svg={crossIcon} className="icon" />
+                <CrossIcon className="icon icon-svg" />
               </span>
               <ReactTable
                 columns={this.getMemberTableColumns()}
                 data={this.getMemberTableData(
                   this.state.repMemberData.accountHolders.members,
                   this.state.billingCustomers,
+                  false,
+                  this.state.repMemberData.allTransactionRecords,
                 )}
                 defaultPageSize={1}
                 showPagination={false}
@@ -3222,7 +3285,7 @@ export class MemberFinancialReport extends Component {
                   })
                 }
               >
-                <SVGInline svg={crossIcon} className="icon" />
+                <CrossIcon className="icon icon-svg" />
               </span>
               <ReactTable
                 columns={this.getMemberTableColumns()}
@@ -3230,6 +3293,7 @@ export class MemberFinancialReport extends Component {
                   this.state.repMemberData.registrationFeeMembers.members,
                   this.state.billingCustomers,
                   true,
+                  this.state.repMemberData.allTransactionRecords,
                 )}
                 defaultPageSize={1}
                 showPagination={false}
@@ -3246,7 +3310,7 @@ export class MemberFinancialReport extends Component {
                   })
                 }
               >
-                <SVGInline svg={crossIcon} className="icon" />
+                <CrossIcon className="icon icon-svg" />
               </span>
               <ReactTable
                 columns={this.getMemberTableColumns()}
@@ -3269,7 +3333,7 @@ export class MemberFinancialReport extends Component {
                   })
                 }
               >
-                <SVGInline svg={crossIcon} className="icon" />
+                <CrossIcon className="icon icon-svg" />
               </span>
               <ReactTable
                 columns={this.getMemberTableColumns()}
@@ -3292,7 +3356,7 @@ export class MemberFinancialReport extends Component {
                   })
                 }
               >
-                <SVGInline svg={crossIcon} className="icon" />
+                <CrossIcon className="icon icon-svg" />
               </span>
               <ReactTable
                 columns={this.getMemberPOSTableColumns()}
@@ -3316,7 +3380,7 @@ export class MemberFinancialReport extends Component {
                   })
                 }
               >
-                <SVGInline svg={crossIcon} className="icon" />
+                <CrossIcon className="icon icon-svg" />
               </span>
               <ReactTable
                 columns={this.getMemberRefundsTableColumns()}
@@ -3421,8 +3485,8 @@ export class MemberFinancialReport extends Component {
                 {this.state.repBillingPeriod === 'weekly'
                   ? 'Week'
                   : this.state.repBillingPeriod === 'fortnightly'
-                  ? 'Fortnights'
-                  : 'Month'}
+                    ? 'Fortnights'
+                    : 'Month'}
               </button>
               <button
                 type="button"
@@ -3443,8 +3507,8 @@ export class MemberFinancialReport extends Component {
                 {this.state.repBillingPeriod === 'weekly'
                   ? 'Week'
                   : this.state.repBillingPeriod === 'fortnightly'
-                  ? 'Fortnight'
-                  : 'Month'}
+                    ? 'Fortnight'
+                    : 'Month'}
               </button>
               <button
                 type="button"
@@ -3585,7 +3649,7 @@ export class MemberFinancialReport extends Component {
           ) : (
             <div className="memberFinanceReport">
               <div className="row header1">
-                <div className="column col1"></div>
+                <div className="column col1" />
                 <div className="column col2">{this.currencySymbol} Amount</div>
                 <div className="column col3">%</div>
                 <div className="column col4">
@@ -3617,8 +3681,8 @@ export class MemberFinancialReport extends Component {
                     )}
                   </div>
                 </div>
-                <div className="column col3"></div>
-                <div className="column col4"></div>
+                <div className="column col3" />
+                <div className="column col4" />
               </div>
               <div className="row header4">
                 <div className="column col1">Membership</div>
@@ -3657,7 +3721,7 @@ export class MemberFinancialReport extends Component {
                     %
                   </div>
                 </div>
-                <div className="column col4"></div>
+                <div className="column col4" />
               </div>
               <div className="row header4">
                 <div className="column col1">Membership Cash Payments</div>
@@ -3696,10 +3760,12 @@ export class MemberFinancialReport extends Component {
                     %
                   </div>
                 </div>
-                <div className="column col4"></div>
+                <div className="column col4" />
               </div>
-              {getAttributeValue(this.props.space, 'Billing Company') ===
-                'Bambora' && (
+              {(getAttributeValue(this.props.space, 'Billing Company') ===
+                'Bambora' ||
+                getAttributeValue(this.props.space, 'Billing Company') ===
+                  'Stripe') && (
                 <div className="row header4">
                   <div className="column col1">Registration Fees</div>
                   <div className="column col2">
@@ -3739,7 +3805,7 @@ export class MemberFinancialReport extends Component {
                       %
                     </div>
                   </div>
-                  <div className="column col4"></div>
+                  <div className="column col4" />
                 </div>
               )}
               {getAttributeValue(this.props.space, 'Billing Company') ===
@@ -3783,7 +3849,7 @@ export class MemberFinancialReport extends Component {
                       %
                     </div>
                   </div>
-                  <div className="column col4"></div>
+                  <div className="column col4" />
                 </div>
               )}
               <div className="row header5">
@@ -3854,8 +3920,8 @@ export class MemberFinancialReport extends Component {
                     }).format(this.state.repMemberData.refundMembers.value)}
                   </div>
                 </div>
-                <div className="column col3"></div>
-                <div className="column col4"></div>
+                <div className="column col3" />
+                <div className="column col4" />
               </div>
               <div className="row header7">
                 <div className="column col1">TOTAL</div>
@@ -3874,22 +3940,26 @@ export class MemberFinancialReport extends Component {
                     )}
                   </div>
                 </div>
-                <div className="column col3"></div>
-                <div className="column col4"></div>
+                <div className="column col3" />
+                <div className="column col4" />
               </div>
               <div className="row header8">
-                {getAttributeValue(this.props.space, 'Billing Company') ===
-                  'Bambora' && (
+                {(getAttributeValue(this.props.space, 'Billing Company') ===
+                  'Bambora' ||
+                  getAttributeValue(this.props.space, 'Billing Company') ===
+                    'Stripe') && (
                   <div className="column col1">
                     Membership+Registration Fees-Refunds+ProShop+Forecast
                   </div>
                 )}
                 {getAttributeValue(this.props.space, 'Billing Company') !==
-                  'Bambora' && (
-                  <div className="column col1">
-                    Membership-Refunds+ProShop+Forecast
-                  </div>
-                )}
+                  'Bambora' &&
+                  getAttributeValue(this.props.space, 'Billing Company') !==
+                    'Stripe' && (
+                    <div className="column col1">
+                      Membership-Refunds+ProShop+Forecast
+                    </div>
+                  )}
                 <div className="column col2">
                   <div className="dollarValue">
                     {new Intl.NumberFormat(this.locale, {
@@ -3905,15 +3975,14 @@ export class MemberFinancialReport extends Component {
                     )}
                   </div>
                 </div>
-                <div className="column col3"></div>
-                <div className="column col4"></div>
+                <div className="column col3" />
+                <div className="column col4" />
               </div>
               <div className="row header9">
                 <div className="column col1">
                   Forecast
-                  <SVGInline
-                    svg={helpIcon}
-                    className="icon help"
+                  <HelpIcon
+                    className="icon icon-svg help"
                     onClick={e => {
                       this.setState({
                         showConcernedMembers: true,
@@ -3929,20 +3998,24 @@ export class MemberFinancialReport extends Component {
                     }).format(this.state.repMemberData.forecastHolders.value)}
                   </div>
                 </div>
-                <div className="column col3"></div>
-                <div className="column col4"></div>
+                <div className="column col3" />
+                <div className="column col4" />
               </div>
               <div className="row header10">
-                {getAttributeValue(this.props.space, 'Billing Company') ===
-                  'Bambora' && (
+                {(getAttributeValue(this.props.space, 'Billing Company') ===
+                  'Bambora' ||
+                  getAttributeValue(this.props.space, 'Billing Company') ===
+                    'Stripe') && (
                   <div className="column col1">
                     Membership+Registration Fees+Forecast
                   </div>
                 )}
                 {getAttributeValue(this.props.space, 'Billing Company') !==
-                  'Bambora' && (
-                  <div className="column col1">Membership+Forecast</div>
-                )}
+                  'Bambora' &&
+                  getAttributeValue(this.props.space, 'Billing Company') !==
+                    'Stripe' && (
+                    <div className="column col1">Membership+Forecast</div>
+                  )}
                 <div className="column col2">
                   <div className="dollarValue">
                     {new Intl.NumberFormat(this.locale, {
@@ -3956,20 +4029,26 @@ export class MemberFinancialReport extends Component {
                     )}
                   </div>
                 </div>
-                <div className="column col3"></div>
-                <div className="column col4"></div>
+                <div className="column col3" />
+                <div className="column col4" />
               </div>
               <div className="row header10">
-                {getAttributeValue(this.props.space, 'Billing Company') ===
-                  'Bambora' && (
+                {(getAttributeValue(this.props.space, 'Billing Company') ===
+                  'Bambora' ||
+                  getAttributeValue(this.props.space, 'Billing Company') ===
+                    'Stripe') && (
                   <div className="column col1">
                     Membership+Registration Fees+Forecast-Refunds
                   </div>
                 )}
                 {getAttributeValue(this.props.space, 'Billing Company') !==
-                  'Bambora' && (
-                  <div className="column col1">Membership+Forecast-Refunds</div>
-                )}
+                  'Bambora' &&
+                  getAttributeValue(this.props.space, 'Billing Company') !==
+                    'Stripe' && (
+                    <div className="column col1">
+                      Membership+Forecast-Refunds
+                    </div>
+                  )}
                 <div className="column col2">
                   <div className="dollarValue">
                     {new Intl.NumberFormat(this.locale, {
@@ -3984,8 +4063,8 @@ export class MemberFinancialReport extends Component {
                     )}
                   </div>
                 </div>
-                <div className="column col3"></div>
-                <div className="column col4"></div>
+                <div className="column col3" />
+                <div className="column col4" />
               </div>
             </div>
           )}
@@ -3995,5 +4074,10 @@ export class MemberFinancialReport extends Component {
   }
 }
 
-const enhance = compose(connect(mapStateToProps, mapDispatchToProps));
+const enhance = compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
+);
 export const MemberFinancialReportContainer = enhance(MemberFinancialReport);

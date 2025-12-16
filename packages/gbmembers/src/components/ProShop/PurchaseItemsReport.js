@@ -1,10 +1,7 @@
 import React, { Component } from 'react';
-import ReactSpinner from 'react16-spinjs';
 import moment from 'moment';
-import { getJson } from '../Member/MemberUtils';
 import $ from 'jquery';
 import ReactTable from 'react-table';
-import { KappNavLink as NavLink } from 'common';
 import { getCurrency } from '../Member/MemberUtils';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
@@ -14,16 +11,12 @@ import MomentLocaleUtils, {
   parseDate,
 } from 'react-day-picker/moment';
 import { getLocalePreference } from '../Member/MemberUtils';
-import { I18n } from '../../../../app/src/I18nProvider';
-import { actions } from '../../redux/modules/members';
 import { actions as posActions } from '../../redux/modules/pos';
 import { compose } from 'recompose';
 import { connect } from 'react-redux';
-import SVGInline from 'react-svg-inline';
-import crossIcon from '../../images/cross.svg?raw';
 import ReactToPrint from 'react-to-print';
-import printerIcon from '../../images/Print.svg?raw';
-import downloadIcon from '../../images/download.svg?raw';
+import { ReactComponent as PrinterIcon } from '../../images/Print.svg';
+import { ReactComponent as DownloadIcon } from '../../images/download.svg';
 import { CSVLink } from 'react-csv';
 
 const mapStateToProps = state => ({
@@ -90,6 +83,8 @@ export class PurchaseItemsReport extends Component {
     this.paymentHistory = [];
     let data = this.getData([]);
     let columns = this.getColumns();
+
+    this.tableComponentRef = React.createRef();
 
     this.state = {
       columns,
@@ -886,8 +881,8 @@ export class PurchaseItemsReport extends Component {
               {this.state.repPeriod === 'weekly'
                 ? 'Week'
                 : this.state.repPeriod === 'fortnightly'
-                ? 'Fortnights'
-                : 'Month'}
+                  ? 'Fortnights'
+                  : 'Month'}
             </button>
             <button
               type="button"
@@ -904,8 +899,8 @@ export class PurchaseItemsReport extends Component {
               {this.state.repPeriod === 'weekly'
                 ? 'Week'
                 : this.state.repPeriod === 'fortnightly'
-                ? 'Fortnight'
-                : 'Month'}
+                  ? 'Fortnight'
+                  : 'Month'}
             </button>
             <button
               type="button"
@@ -1041,9 +1036,10 @@ export class PurchaseItemsReport extends Component {
             <div className="reportIcons">
               <ReactToPrint
                 trigger={() => (
-                  <SVGInline svg={printerIcon} className="icon tablePrint" />
+                  <PrinterIcon className="icon icon-svg tablePrint" />
                 )}
-                content={() => this.tableComponentRef}
+                content={() => this.tableComponentRef.current}
+                onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
               />
               <CSVLink
                 className="downloadbtn"
@@ -1054,7 +1050,7 @@ export class PurchaseItemsReport extends Component {
                     : this.getDownloadData()
                 }
               >
-                <SVGInline svg={downloadIcon} className="icon tableDownload" />
+                <DownloadIcon className="icon icon-svg tableDownload" />
               </CSVLink>
               <div className="personView">
                 <label htmlFor="personMode">Show By Person</label>
@@ -1085,13 +1081,13 @@ export class PurchaseItemsReport extends Component {
                       });
                     }}
                   />
-                  <label htmlFor="personViewMode"></label>
+                  <label htmlFor="personViewMode" />
                 </div>
                 {}
               </div>
             </div>
             <ReactTable
-              ref={el => (this.tableComponentRef = el)}
+              ref={this.tableComponentRef}
               columns={
                 this.state.personViewMode
                   ? this.getColumnsByPerson()
@@ -1113,5 +1109,10 @@ export class PurchaseItemsReport extends Component {
   }
 }
 
-const enhance = compose(connect(mapStateToProps, mapDispatchToProps));
+const enhance = compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
+);
 export const PurchaseItemsReportContainer = enhance(PurchaseItemsReport);

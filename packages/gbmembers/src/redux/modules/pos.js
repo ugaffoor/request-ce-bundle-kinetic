@@ -195,7 +195,24 @@ export const reducer = (state = State(), { type, payload }) => {
         }
       }
 
-      return state.set('posStockSaving', false).set('posProducts', products);
+      var stocks = payload.posStock;
+      var idx = stocks.findIndex(item => item.id === payload.stock.id);
+      if (idx === -1) {
+        stocks[stocks.length] = payload.stock;
+      } else {
+        stocks[idx] = payload.stock;
+      }
+
+      for (var i = 0; i < stocks.length; i++) {
+        if (stocks[i]['id'] === payload.stock.id) {
+          stocks[i] = payload.stock;
+        }
+      }
+
+      return state
+        .set('posStockSaving', false)
+        .set('posProducts', products)
+        .set('posStock', stocks);
     }
     default:
       return state;

@@ -1,15 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Dropdown, DropdownToggle, DropdownMenu } from 'reactstrap';
-import { I18n } from '../I18nProvider';
+import { I18n } from '@kineticdata/react';
 import phone from '../assets/images/phone.png';
 import mail from '../assets/images/mail.png';
 import sms from '../assets/images/sms.png';
-import binIcon from '../assets/images/bin.svg?raw';
 import moment from 'moment';
 import $ from 'jquery';
-import SVGInline from 'react-svg-inline';
-import { confirm } from './Confirmation';
+import { ReactComponent as Bin } from '../assets/images/bin.svg';
 
 export const JourneyEvents = ({
   journeyevents,
@@ -50,136 +48,152 @@ export const JourneyEvents = ({
           <span className="title">
             <I18n>Journey Events</I18n>
           </span>
-          {!deletingJourneyEvents && !confirmDelete && (
-            <span className="deleteButton">
+          {!deletingJourneyEvents &&
+            !confirmDelete && (
+              <span className="deleteButton">
+                <button
+                  type="button"
+                  className="btn btn-primary report-btn-default"
+                  onClick={e => {
+                    $('.deleteButton button').attr('active', doDelete);
+                    setDoDelete(!doDelete);
+                  }}
+                >
+                  Enable Delete
+                </button>
+              </span>
+            )}
+          {!deletingJourneyEvents &&
+            !confirmDelete && (
+              <div className="actions">
+                <a role="button" tabIndex="0" onClick={fetchJourneyEvents}>
+                  <I18n>Refresh</I18n>
+                </a>
+              </div>
+            )}
+        </div>
+        {!deletingJourneyEvents &&
+          !confirmDelete && (
+            <div className="viewByButtons">
               <button
                 type="button"
+                active="true"
                 className="btn btn-primary report-btn-default"
                 onClick={e => {
-                  $('.deleteButton button').attr('active', doDelete);
-                  setDoDelete(!doDelete);
+                  $('.viewByButtons button[active=true]').attr(
+                    'active',
+                    'false',
+                  );
+                  $(e.target).attr('active', 'true');
+                  setViewBy('all');
                 }}
               >
-                Enable Delete
-              </button>
-            </span>
-          )}
-          {!deletingJourneyEvents && !confirmDelete && (
-            <div className="actions">
-              <a role="button" tabIndex="0" onClick={fetchJourneyEvents}>
-                <I18n>Refresh</I18n>
-              </a>
-            </div>
-          )}
-        </div>
-        {!deletingJourneyEvents && !confirmDelete && (
-          <div className="viewByButtons">
-            <button
-              type="button"
-              active="true"
-              className="btn btn-primary report-btn-default"
-              onClick={e => {
-                $('.viewByButtons button[active=true]').attr('active', 'false');
-                $(e.target).attr('active', 'true');
-                setViewBy('all');
-              }}
-            >
-              All
-            </button>
-            <button
-              type="button"
-              active="false"
-              className="btn btn-primary"
-              onClick={e => {
-                $('.viewByButtons button[active=true]').attr('active', 'false');
-                $(e.target).attr('active', 'true');
-                setViewBy('leads');
-              }}
-            >
-              Leads
-            </button>
-            <button
-              type="button"
-              active="false"
-              className="btn btn-primary"
-              onClick={e => {
-                $('.viewByButtons button[active=true]').attr('active', 'false');
-                $(e.target).attr('active', 'true');
-                setViewBy('members');
-              }}
-            >
-              Members
-            </button>
-          </div>
-        )}
-        {doDelete && !deletingJourneyEvents && !confirmDelete && (
-          <div className="deleteOptions">
-            <button
-              type="button"
-              active="false"
-              className="btn btn-primary"
-              onClick={e => {
-                if (!selectAll) {
-                  $('.deleteEvent input').prop('checked', true);
-                } else {
-                  $('.deleteEvent input').prop('checked', false);
-                }
-                setSelectAll(!selectAll);
-              }}
-            >
-              {!selectAll ? 'Select All' : 'Unselect All'}
-            </button>
-            <span
-              className="deletEvents"
-              onClick={async e => {
-                setConfirmDelete(true);
-              }}
-            >
-              <SVGInline svg={binIcon} className="icon" />
-            </span>
-          </div>
-        )}
-        {confirmDelete && !deletingJourneyEvents && (
-          <div className="deleteConfirmation">
-            <h1>
-              Do you wish to delete the{' '}
-              {$('.deleteEvent input:checkbox:checked').length} alerts selected?
-            </h1>
-            <div className="buttons viewByButtons">
-              <button
-                type="button"
-                active="false"
-                className="btn "
-                onClick={e => {
-                  setConfirmDelete(false);
-                }}
-              >
-                Cancel
+                All
               </button>
               <button
                 type="button"
                 active="false"
-                className="btn "
+                className="btn btn-primary"
                 onClick={e => {
-                  var ids = [];
-                  $('.deleteEvent input:checkbox:checked').each(function() {
-                    ids.push(
-                      $(this)
-                        .prop('id')
-                        .replace('event-', ''),
-                    );
-                  });
-                  deleteJourneyEvents({
-                    journeyevents: journeyevents,
-                    ids: ids,
-                  });
+                  $('.viewByButtons button[active=true]').attr(
+                    'active',
+                    'false',
+                  );
+                  $(e.target).attr('active', 'true');
+                  setViewBy('leads');
                 }}
               >
-                Continue
+                Leads
+              </button>
+              <button
+                type="button"
+                active="false"
+                className="btn btn-primary"
+                onClick={e => {
+                  $('.viewByButtons button[active=true]').attr(
+                    'active',
+                    'false',
+                  );
+                  $(e.target).attr('active', 'true');
+                  setViewBy('members');
+                }}
+              >
+                Members
               </button>
             </div>
-          </div>
-        )}
+          )}
+        {doDelete &&
+          !deletingJourneyEvents &&
+          !confirmDelete && (
+            <div className="deleteOptions">
+              <button
+                type="button"
+                active="false"
+                className="btn btn-primary"
+                onClick={e => {
+                  if (!selectAll) {
+                    $('.deleteEvent input').prop('checked', true);
+                  } else {
+                    $('.deleteEvent input').prop('checked', false);
+                  }
+                  setSelectAll(!selectAll);
+                }}
+              >
+                {!selectAll ? 'Select All' : 'Unselect All'}
+              </button>
+              <span
+                className="deletEvents"
+                onClick={async e => {
+                  setConfirmDelete(true);
+                }}
+              >
+                <Bin className="icon icon-svg" />
+              </span>
+            </div>
+          )}
+        {confirmDelete &&
+          !deletingJourneyEvents && (
+            <div className="deleteConfirmation">
+              <h1>
+                Do you wish to delete the{' '}
+                {$('.deleteEvent input:checkbox:checked').length} alerts
+                selected?
+              </h1>
+              <div className="buttons viewByButtons">
+                <button
+                  type="button"
+                  active="false"
+                  className="btn "
+                  onClick={e => {
+                    setConfirmDelete(false);
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  active="false"
+                  className="btn "
+                  onClick={e => {
+                    var ids = [];
+                    $('.deleteEvent input:checkbox:checked').each(function() {
+                      ids.push(
+                        $(this)
+                          .prop('id')
+                          .replace('event-', ''),
+                      );
+                    });
+                    deleteJourneyEvents({
+                      journeyevents: journeyevents,
+                      ids: ids,
+                    });
+                  }}
+                >
+                  Continue
+                </button>
+              </div>
+            </div>
+          )}
         {deletingJourneyEvents && (
           <div className="deleteConfirmation">
             <h1>
@@ -217,7 +231,11 @@ export const JourneyEvents = ({
             .map(journeyevent => (
               <li key={journeyevent.id} className="event-item">
                 <Link
-                  to={`/kapps/gbmembers/${journeyevent.values['Contact Type']}Event/${journeyevent.values['Record Type']}/${journeyevent.id}`}
+                  to={`/kapps/gbmembers/${
+                    journeyevent.values['Contact Type']
+                  }Event/${journeyevent.values['Record Type']}/${
+                    journeyevent.id
+                  }`}
                   onClick={toggle}
                 >
                   <h1>

@@ -1,5 +1,11 @@
 import { call, put, all, takeEvery } from 'redux-saga/effects';
-import { CoreAPI } from 'react-kinetic-core';
+import {
+  createSubmission,
+  updateSubmission,
+  fetchSubmission,
+  SubmissionSearch,
+  searchSubmissions,
+} from '@kineticdata/react';
 import { types, actions } from '../modules/campaigns';
 import axios, { post } from 'axios';
 import { actions as errorActions } from '../modules/errors';
@@ -31,7 +37,7 @@ export function* createEmailCampaign(action) {
     //action.payload.campaignItem.history=undefined;
     action.payload.campaignItem.fetchEmailCampaigns = undefined;
 
-    const { submission } = yield call(CoreAPI.createSubmission, {
+    const { submission } = yield call(createSubmission, {
       kappSlug: 'gbmembers',
       formSlug: 'email-campaigns',
       values: action.payload.campaignItem.values,
@@ -57,7 +63,7 @@ export function* createEmailCampaign(action) {
 export function* updateEmailCampaign(action) {
   try {
     console.log('#### updating campaign ... ');
-    const { submission } = yield call(CoreAPI.updateSubmission, {
+    const { submission } = yield call(updateSubmission, {
       id: action.payload.id,
       values: action.payload.values,
     });
@@ -91,7 +97,7 @@ export function* fetchEmailCampaign(action) {
       };
       yield put(actions.setEmailCampaign(campaign));
     } else {
-      const { submission } = yield call(CoreAPI.fetchSubmission, {
+      const { submission } = yield call(fetchSubmission, {
         id: action.payload.id,
         include: SUBMISSION_INCLUDES,
       });
@@ -114,7 +120,7 @@ export function* fetchEmailCampaigns(action) {
     //action.payload.campaignItem.myThis=undefined;
     //action.payload.campaignItem.history=undefined;
     //action.payload.campaignItem.fetchCampaigns=undefined;
-    let search = new CoreAPI.SubmissionSearch()
+    let search = new SubmissionSearch()
       .includes([
         'details',
         'values[Recipients]',
@@ -136,14 +142,11 @@ export function* fetchEmailCampaigns(action) {
 
     search = search.build();
 
-    const { submissions, nextPageToken } = yield call(
-      CoreAPI.searchSubmissions,
-      {
-        kapp: 'gbmembers',
-        form: 'email-campaigns',
-        search,
-      },
-    );
+    const { submissions, nextPageToken } = yield call(searchSubmissions, {
+      kapp: 'gbmembers',
+      form: 'email-campaigns',
+      search,
+    });
     console.log('#### fetchCampaigns nextPageToken:' + nextPageToken);
     yield put(
       actions.setEmailCampaigns({
@@ -163,7 +166,7 @@ export function* fetchEmailCampaignsByDate(action) {
     let emailCampaigns = [];
     let nextBeltPageTokenValue;
 
-    let search = new CoreAPI.SubmissionSearch()
+    let search = new SubmissionSearch()
       .includes([
         'details',
         'values[Recipients]',
@@ -176,14 +179,11 @@ export function* fetchEmailCampaignsByDate(action) {
       .limit(1000)
       .build();
 
-    const { submissions, nextPageToken } = yield call(
-      CoreAPI.searchSubmissions,
-      {
-        kapp: 'gbmembers',
-        form: 'email-campaigns',
-        search,
-      },
-    );
+    const { submissions, nextPageToken } = yield call(searchSubmissions, {
+      kapp: 'gbmembers',
+      form: 'email-campaigns',
+      search,
+    });
     console.log(
       '#### fetchEmailCampaignsByDate nextPageToken:' + nextPageToken,
     );
@@ -191,7 +191,7 @@ export function* fetchEmailCampaignsByDate(action) {
     emailCampaigns = emailCampaigns.concat(submissions);
 
     while (nextBeltPageTokenValue) {
-      let search2 = new CoreAPI.SubmissionSearch()
+      let search2 = new SubmissionSearch()
         .includes([
           'details',
           'values[Recipients]',
@@ -204,7 +204,8 @@ export function* fetchEmailCampaignsByDate(action) {
         .build();
 
       var [submissions2] = yield all([
-        call(CoreAPI.searchSubmissions, {
+        call(searchSubmissions, {
+          get: true,
           kapp: 'gbmembers',
           form: 'email-campaigns',
           search: search2,
@@ -245,7 +246,7 @@ export function* createSmsCampaign(action) {
     //action.payload.campaignItem.history=undefined;
     action.payload.campaignItem.fetchSmsCampaigns = undefined;
 
-    const { submission } = yield call(CoreAPI.createSubmission, {
+    const { submission } = yield call(createSubmission, {
       kappSlug: 'gbmembers',
       formSlug: 'sms-campaigns',
       values: action.payload.campaignItem.values,
@@ -280,7 +281,7 @@ export function* createSmsCampaign(action) {
 
 export function* updateSmsCampaign(action) {
   try {
-    const { submission } = yield call(CoreAPI.updateSubmission, {
+    const { submission } = yield call(updateSubmission, {
       id: action.payload.id,
       values: action.payload.values,
     });
@@ -313,7 +314,7 @@ export function* fetchSmsCampaign(action) {
       };
       yield put(actions.setSmsCampaign(campaign));
     } else {
-      const { submission } = yield call(CoreAPI.fetchSubmission, {
+      const { submission } = yield call(fetchSubmission, {
         id: action.payload.id,
         include: SUBMISSION_INCLUDES,
       });
@@ -333,7 +334,7 @@ export function* fetchSmsCampaign(action) {
 
 export function* fetchSmsCampaigns(action) {
   try {
-    let search = new CoreAPI.SubmissionSearch()
+    let search = new SubmissionSearch()
       .includes([
         'details',
         'values[Recipients]',
@@ -352,14 +353,11 @@ export function* fetchSmsCampaigns(action) {
 
     search = search.build();
 
-    const { submissions, nextPageToken } = yield call(
-      CoreAPI.searchSubmissions,
-      {
-        kapp: 'gbmembers',
-        form: 'sms-campaigns',
-        search,
-      },
-    );
+    const { submissions, nextPageToken } = yield call(searchSubmissions, {
+      kapp: 'gbmembers',
+      form: 'sms-campaigns',
+      search,
+    });
     yield put(
       actions.setSmsCampaigns({
         submissions,

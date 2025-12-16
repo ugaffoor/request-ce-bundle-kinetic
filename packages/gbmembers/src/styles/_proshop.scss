@@ -295,16 +295,13 @@
         }
       }
       .total.refund {
-        color: red;
-      }
-      .refund {
         display: flex;
         width: 800px;
         height: 50px;
         margin-left: auto;
         margin-right: auto;
-        .value {
-          margin-left: auto;
+        color: red;
+        .value.refund {
           text-decoration: line-through;
         }
       }
@@ -370,13 +367,10 @@
   margin: 0;
 }*/
 .proshopContainer {
-  span.SVGInline.barcodeIcon {
-    height: 30px;
-    margin-top: 6px;
-  }
-  .barcodeIcon-svg {
+  .barcodeIcon.icon-svg {
     width: 50px;
     height: 30px;
+    margin-top: 6px;
   }
 
   .reportIcons {
@@ -398,7 +392,7 @@
     .filterInfo {
       margin: 10px;
       display: flex;
-      .barcodeIcon-svg {
+      .barcodeIcon.icon-svg {
         width: 50px;
         height: 30px;
       }
@@ -507,15 +501,11 @@
     }
   }
   .buttons {
-    .printReceipt {
+    .printReceipt svg {
       margin-left: 45%;
-      .barcodePrint {
-        cursor: pointer;
-        .icon-svg {
-          width: 4rem;
-          height: 4rem;
-        }
-      }
+      cursor: pointer;
+      width: 4rem;
+      height: 4rem;
     }
     .emailReceipt {
       margin-left: 20px;
@@ -906,11 +896,18 @@
       width: auto !important;
     }
   }
+  .salestax,
+  .discountLine {
+    .delete {
+      margin-top: 7px !important;
+    }
+  }
   .checkout,
   .paynow,
   .settings {
     .delete {
       margin-left: 10px;
+      margin-top: 4px;
       cursor: pointer;
     }
     .topRow {
@@ -1197,15 +1194,13 @@
         display: flex;
         flex-direction: row;
         cursor: pointer;
-        .icon {
+        .icon.icon-svg {
           margin: 4px;
           margin-bottom: 5px;
-          svg {
-            width: 24px;
-            height: 24px;
-            .st0 {
-              fill: #4d5059 !important;
-            }
+          width: 24px;
+          height: 24px;
+          .st0 {
+            fill: #4d5059 !important;
           }
         }
         .icon-svg path,
@@ -1239,11 +1234,9 @@
         .icon-svg .primary-fill {
           fill: #eaa846;
         }
-        .icon {
-          svg {
-            .st0 {
-              fill: #e1251b !important;
-            }
+        .icon-svg {
+          .st0 {
+            fill: #e1251b !important;
           }
         }
         .events {
@@ -1251,15 +1244,11 @@
             fill: #eaa846 !important;
           }
         }
-        .promotion {
-          .icon-svg path {
-            fill: #2ac940 !important;
-          }
+        .promotion.icon-svg path {
+          fill: #2ac940 !important;
         }
-        .private_class {
-          .icon-svg path {
-            fill: #39f !important;
-          }
+        .private_class.icon-svg path {
+          fill: #39f !important;
         }
         .appName {
           color: white;

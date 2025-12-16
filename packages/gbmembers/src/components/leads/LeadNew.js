@@ -34,7 +34,7 @@ import MomentLocaleUtils, {
   parseDate,
 } from 'react-day-picker/moment';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 import Autocomplete from 'react-google-autocomplete';
 
 const mapStateToProps = state => ({
@@ -204,7 +204,6 @@ export class LeadNew extends Component {
                     className="form-group"
                     style={{ marginLeft: '10px' }}
                     required
-                    ref={input => (this.input = input)}
                     onChange={e =>
                       handleChange(this.props.leadItem, 'Source', e)
                     }
@@ -273,8 +272,8 @@ export class LeadNew extends Component {
                       'YES'
                         ? false
                         : this.props.leadItem.values['First Name'] === undefined
-                        ? true
-                        : false
+                          ? true
+                          : false
                     }
                   >
                     {getAttributeValue(this.props.space, 'Franchisor') ===
@@ -300,7 +299,6 @@ export class LeadNew extends Component {
                         ? false
                         : true
                     }
-                    ref={input => (this.input = input)}
                     defaultValue={
                       getAttributeValue(this.props.space, 'Franchisor') ===
                       'YES'
@@ -330,7 +328,6 @@ export class LeadNew extends Component {
                     name="lastName"
                     id="lastNames"
                     required
-                    ref={input => (this.input = input)}
                     onChange={e =>
                       handleChange(this.props.leadItem, 'Last Name', e)
                     }
@@ -353,7 +350,6 @@ export class LeadNew extends Component {
                       name="gender"
                       id="gender"
                       required
-                      ref={input => (this.input = input)}
                       onChange={e =>
                         handleChange(this.props.leadItem, 'Gender', e)
                       }
@@ -381,6 +377,7 @@ export class LeadNew extends Component {
               {getAttributeValue(this.props.space, 'Franchisor') !== 'YES' && (
                 <span className="line">
                   <Autocomplete
+                    id="addressAutoComplete"
                     apiKey={'AIzaSyA-tujnpf8Jy33hVaJ_9GtRdMgHw4jvnwo'}
                     placeholder="Lookup Address"
                     style={{
@@ -452,7 +449,6 @@ export class LeadNew extends Component {
                     name="address"
                     id="address"
                     size="80"
-                    ref={input => (this.input = input)}
                     onChange={e =>
                       handleChange(this.props.leadItem, 'Address', e)
                     }
@@ -468,7 +464,6 @@ export class LeadNew extends Component {
                     type="text"
                     name="suburb"
                     id="suburb"
-                    ref={input => (this.input = input)}
                     onChange={e =>
                       handleChange(this.props.leadItem, 'Suburb', e)
                     }
@@ -481,7 +476,6 @@ export class LeadNew extends Component {
                     <select
                       name="country"
                       id="country"
-                      ref={input => (this.input = input)}
                       defaultValue={''}
                       onChange={e =>
                         handleCountryChange(this.props.leadItem, 'Country', e)
@@ -490,7 +484,7 @@ export class LeadNew extends Component {
                       <option value="" />
                       {getAttributeValue(this.props.space, 'Countries', '') ===
                       undefined ? (
-                        <option value=""></option>
+                        <option value="" />
                       ) : (
                         getAttributeValue(this.props.space, 'Countries', '')
                           .split(',')
@@ -511,7 +505,6 @@ export class LeadNew extends Component {
                         name="state"
                         id="state"
                         required
-                        ref={input => (this.input = input)}
                         defaultValue={''}
                         onChange={e =>
                           handleChange(this.props.leadItem, 'State', e)
@@ -532,7 +525,6 @@ export class LeadNew extends Component {
                         name="state"
                         id="state"
                         required
-                        ref={input => (this.input = input)}
                         defaultValue={''}
                         onChange={e =>
                           handleChange(this.props.leadItem, 'State', e)
@@ -568,7 +560,6 @@ export class LeadNew extends Component {
                       name="postcode"
                       id="postcode"
                       size="10"
-                      ref={input => (this.input = input)}
                       defaultValue={''}
                       onChange={e =>
                         handleChange(this.props.leadItem, 'Postcode', e)
@@ -589,7 +580,6 @@ export class LeadNew extends Component {
                       }
                       id="postcode"
                       mask="_"
-                      ref={input => (this.input = input)}
                       value={this.props.leadItem.values['Postcode']}
                       onValueChange={(values, e) =>
                         handleFormattedChange(
@@ -618,8 +608,8 @@ export class LeadNew extends Component {
                       ) === 'False'
                         ? false
                         : this.props.leadItem.values['Email'] === undefined
-                        ? true
-                        : false
+                          ? true
+                          : false
                     }
                   >
                     Email
@@ -641,7 +631,6 @@ export class LeadNew extends Component {
                         ? false
                         : true
                     }
-                    ref={input => (this.input = input)}
                     onChange={e =>
                       handleChange(this.props.leadItem, 'Email', e)
                     }
@@ -654,7 +643,6 @@ export class LeadNew extends Component {
                     name="additionalEmail"
                     id="additionalEmail"
                     size="40"
-                    ref={input => (this.input = input)}
                     onChange={e =>
                       handleChange(this.props.leadItem, 'Additional Email', e)
                     }
@@ -677,11 +665,10 @@ export class LeadNew extends Component {
                           )
                         : this.props.space.slug === 'europe' ||
                           this.props.space.slug === 'unitedkingdom'
-                        ? getPhoneNumberFormat(this.props.leadItem)
-                        : '####-###-###'
+                          ? getPhoneNumberFormat(this.props.leadItem)
+                          : '####-###-###'
                     }
                     mask="_"
-                    ref={input => (this.input = input)}
                     value={this.props.leadItem.values['Phone Number']}
                     onValueChange={(values, e) =>
                       handleFormattedChange(
@@ -708,11 +695,10 @@ export class LeadNew extends Component {
                           )
                         : this.props.space.slug === 'europe' ||
                           this.props.space.slug === 'unitedkingdom'
-                        ? getPhoneNumberFormat(this.props.leadItem)
-                        : '####-###-###'
+                          ? getPhoneNumberFormat(this.props.leadItem)
+                          : '####-###-###'
                     }
                     mask="_"
-                    ref={input => (this.input = input)}
                     value={
                       this.props.leadItem.values['Additional Phone Number']
                     }
@@ -940,7 +926,6 @@ export class LeadNew extends Component {
                           type="text"
                           name="ParentGuardian"
                           id="ParentGuardian"
-                          ref={input => (this.input = input)}
                           onChange={e =>
                             handleChange(
                               this.props.leadItem,
@@ -969,7 +954,6 @@ export class LeadNew extends Component {
                       size="40"
                       name="emergencyname"
                       id="emergencyname"
-                      ref={input => (this.input = input)}
                       onChange={e =>
                         handleChange(
                           this.props.leadItem,
@@ -988,7 +972,6 @@ export class LeadNew extends Component {
                         size="40"
                         name="relationship"
                         id="relationship"
-                        ref={input => (this.input = input)}
                         onChange={e =>
                           handleChange(
                             this.props.leadItem,
@@ -1015,11 +998,10 @@ export class LeadNew extends Component {
                             )
                           : this.props.space.slug === 'europe' ||
                             this.props.space.slug === 'unitedkingdom'
-                          ? getPhoneNumberFormat(this.props.leadItem)
-                          : '####-###-###'
+                            ? getPhoneNumberFormat(this.props.leadItem)
+                            : '####-###-###'
                       }
                       mask="_"
-                      ref={input => (this.input = input)}
                       onValueChange={(values, e) =>
                         handleFormattedChange(
                           values,
@@ -1039,7 +1021,6 @@ export class LeadNew extends Component {
                         size="40"
                         name="alergies"
                         id="alergies"
-                        ref={input => (this.input = input)}
                         onChange={e =>
                           handleChange(
                             this.props.leadItem,
@@ -1103,7 +1084,6 @@ export class LeadNew extends Component {
                       name="contactMethod"
                       id="contactMethod"
                       required
-                      ref={input => (this.input = input)}
                       onChange={e => this.handleChange('contactMethod', e)}
                     >
                       <option value="" />
@@ -1195,7 +1175,6 @@ export class LeadNew extends Component {
                       name="mainbenefits"
                       id="excercise"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="excercise"
                       onChange={e => {
                         if (
@@ -1235,7 +1214,6 @@ export class LeadNew extends Component {
                       name="mainbenefits"
                       id="discipline"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="discipline"
                       onChange={e => {
                         if (
@@ -1275,7 +1253,6 @@ export class LeadNew extends Component {
                       name="mainbenefits"
                       id="selfdefense"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="self defense"
                       onChange={e => {
                         if (
@@ -1315,7 +1292,6 @@ export class LeadNew extends Component {
                       name="mainbenefits"
                       id="reducestress"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="reduce stress"
                       onChange={e => {
                         if (
@@ -1355,7 +1331,6 @@ export class LeadNew extends Component {
                       name="mainbenefits"
                       id="respect"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="respect"
                       onChange={e => {
                         if (
@@ -1398,7 +1373,6 @@ export class LeadNew extends Component {
                       name="mainbenefits"
                       id="selfconfidence"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="self confidence"
                       onChange={e => {
                         if (
@@ -1438,7 +1412,6 @@ export class LeadNew extends Component {
                       name="mainbenefits"
                       id="concentration"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="concentration"
                       onChange={e => {
                         if (
@@ -1478,7 +1451,6 @@ export class LeadNew extends Component {
                       name="mainbenefits"
                       id="coordination"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="coordination"
                       onChange={e => {
                         if (
@@ -1518,7 +1490,6 @@ export class LeadNew extends Component {
                       name="mainbenefits"
                       id="balance"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="balance"
                       onChange={e => {
                         if (
@@ -1561,7 +1532,6 @@ export class LeadNew extends Component {
                       name="mainbenefits"
                       id="characterdevelopment"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="character development"
                       onChange={e => {
                         if (
@@ -1601,7 +1571,6 @@ export class LeadNew extends Component {
                       name="mainbenefits"
                       id="focus"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="focus"
                       onChange={e => {
                         if (
@@ -1641,7 +1610,6 @@ export class LeadNew extends Component {
                       name="mainbenefits"
                       id="fun"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="fun"
                       onChange={e => {
                         if (
@@ -1681,7 +1649,6 @@ export class LeadNew extends Component {
                       name="mainbenefits"
                       id="competition"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="competition"
                       onChange={e => {
                         if (
@@ -1721,7 +1688,6 @@ export class LeadNew extends Component {
                       name="mainbenefits"
                       id="ArtofJiuJitsu"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="Art of Jiu Jitsu"
                       onChange={e => {
                         if (
@@ -1761,7 +1727,6 @@ export class LeadNew extends Component {
                     <select
                       name="program"
                       id="program"
-                      ref={input => (this.input = input)}
                       onChange={e =>
                         handleChange(
                           this.props.leadItem,
@@ -1794,7 +1759,6 @@ export class LeadNew extends Component {
                       name="sourceReference1"
                       id="sourceReference1"
                       size="20"
-                      ref={input => (this.input = input)}
                       onChange={e =>
                         handleChange(
                           this.props.leadItem,
@@ -1813,7 +1777,6 @@ export class LeadNew extends Component {
                       name="sourceReference2"
                       id="sourceReference2"
                       size="20"
-                      ref={input => (this.input = input)}
                       onChange={e =>
                         handleChange(
                           this.props.leadItem,
@@ -1830,7 +1793,6 @@ export class LeadNew extends Component {
                     <select
                       name="sourceReference3"
                       id="sourceReference3"
-                      ref={input => (this.input = input)}
                       onChange={e =>
                         handleChange(
                           this.props.leadItem,
@@ -1857,7 +1819,6 @@ export class LeadNew extends Component {
                       name="sourceReference4"
                       id="sourceReference4"
                       className="form-group"
-                      ref={input => (this.input = input)}
                       onChange={e =>
                         handleChange(
                           this.props.leadItem,
@@ -1889,7 +1850,6 @@ export class LeadNew extends Component {
                       name="sourceReference5"
                       id="sourceReference5"
                       className="form-group"
-                      ref={input => (this.input = input)}
                       onChange={e =>
                         handleChange(
                           this.props.leadItem,
@@ -2000,7 +1960,10 @@ export const LeadNewView = ({
   );
 
 export const LeadNewContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(({ leadItem, createLead }) => {
     return {};
   }),

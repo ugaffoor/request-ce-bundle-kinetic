@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { Modal, ModalFooter } from 'reactstrap';
 import { compose, lifecycle, withHandlers, withState } from 'recompose';
 import { actions } from '../../redux/modules/spaceApp';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const CreateDiscussionModalComponent = ({
   fieldValues,
@@ -106,7 +106,10 @@ export const mapDispatchToProps = {
 };
 
 export const CreateDiscussionModal = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   lifecycle({
     /*
      * Do this so that navigating away from the parent page (causing an unmount)

@@ -1,9 +1,17 @@
 import { select, call, put, takeEvery, all } from 'redux-saga/effects';
-import { CoreAPI } from 'react-kinetic-core';
+import {
+  SubmissionSearch,
+  searchSubmissions,
+  fetchSubmission,
+  updateSubmission,
+  createSubmission,
+  deleteSubmission,
+} from '@kineticdata/react';
 import { types, actions } from '../modules/leads';
 import { actions as errorActions, NOTICE_TYPES } from '../modules/errors';
 import axios from 'axios';
 import moment from 'moment';
+import { getAttributeValue } from '../../utils';
 
 export const ERROR_STATUS_STRING = 'There was a problem retrieving items.';
 export const TOO_MANY_STATUS_STRING = 'Your filter matches too many items.';
@@ -29,7 +37,7 @@ export function* fetchLeads(action) {
       action.payload.leadLastFetchTime !== undefined
         ? action.payload.leadLastFetchTime
         : undefined;
-    let searchCurrent = new CoreAPI.SubmissionSearch()
+    let searchCurrent = new SubmissionSearch()
       .in('values[Lead State]', ['Open', 'Converted'])
       .sortBy('updatedAt')
       .sortDirection('DESC')
@@ -43,7 +51,8 @@ export function* fetchLeads(action) {
     }
     searchCurrent = searchCurrent.build();
 
-    var { submissions, nextPageToken } = yield call(CoreAPI.searchSubmissions, {
+    var { submissions, nextPageToken } = yield call(searchSubmissions, {
+      get: true,
       kapp: 'gbmembers',
       form: 'lead',
       search: searchCurrent,
@@ -51,7 +60,7 @@ export function* fetchLeads(action) {
     allSubmissions = allSubmissions.concat(submissions);
 
     while (nextPageToken) {
-      var search2 = new CoreAPI.SubmissionSearch()
+      var search2 = new SubmissionSearch()
         .eq('values[Lead State]', 'Open')
         .sortBy('updatedAt')
         .sortDirection('DESC')
@@ -61,14 +70,11 @@ export function* fetchLeads(action) {
         .limit(1000)
         .build();
 
-      var { submissions, nextPageToken } = yield call(
-        CoreAPI.searchSubmissions,
-        {
-          kapp: 'gbmembers',
-          form: 'lead',
-          search: search2,
-        },
-      );
+      var { submissions, nextPageToken } = yield call(searchSubmissions, {
+        kapp: 'gbmembers',
+        form: 'lead',
+        search: search2,
+      });
 
       allSubmissions = allSubmissions.concat(submissions);
     }
@@ -83,7 +89,7 @@ export function* fetchLeadsByDate(action) {
   try {
     let allSubmissions = [];
 
-    const search = new CoreAPI.SubmissionSearch()
+    const search = new SubmissionSearch()
       //.includes(['details', 'values[Lead State],values[Status],values[Status History],values[Source],values[Date],values[Date Created],values[Date Created],values[Last Name],values[Gender],values[Email],values[Additional Email],values[Phone Number],values[Additional Phone Number]'])
       .includes(['details', 'values'])
       .sortBy('updatedAt')
@@ -91,7 +97,8 @@ export function* fetchLeadsByDate(action) {
       .limit(1000)
       .build();
 
-    var { submissions, nextPageToken } = yield call(CoreAPI.searchSubmissions, {
+    var { submissions, nextPageToken } = yield call(searchSubmissions, {
+      get: true,
       kapp: 'gbmembers',
       form: 'lead',
       search,
@@ -99,7 +106,7 @@ export function* fetchLeadsByDate(action) {
     allSubmissions = allSubmissions.concat(submissions);
 
     while (nextPageToken) {
-      var search2 = new CoreAPI.SubmissionSearch()
+      var search2 = new SubmissionSearch()
         //.includes(['details', 'values[Lead State],values[Status],values[Status History],values[Source],values[Date],values[Date Created],values[Date Created],values[Last Name],values[Gender],values[Email],values[Additional Email],values[Phone Number],values[Additional Phone Number]'])
         .includes(['details', 'values'])
         .sortBy('updatedAt')
@@ -108,14 +115,11 @@ export function* fetchLeadsByDate(action) {
         .limit(1000)
         .build();
 
-      var { submissions, nextPageToken } = yield call(
-        CoreAPI.searchSubmissions,
-        {
-          kapp: 'gbmembers',
-          form: 'lead',
-          search: search2,
-        },
-      );
+      var { submissions, nextPageToken } = yield call(searchSubmissions, {
+        kapp: 'gbmembers',
+        form: 'lead',
+        search: search2,
+      });
       allSubmissions = allSubmissions.concat(submissions);
     }
     //    console.log('Leads by Date# ' + submissions);
@@ -128,12 +132,12 @@ export function* fetchLeadsByDate(action) {
 
 export function* fetchCurrentLead(action) {
   try {
-    const LEAD_ACTIVITIES_SEARCH = new CoreAPI.SubmissionSearch(true)
+    const LEAD_ACTIVITIES_SEARCH = new SubmissionSearch(true)
       .eq('values[Lead ID]', action.payload.id)
       .include(['details', 'values'])
       .limit(1000)
       .build();
-    const MEMBER_POS_SEARCH = new CoreAPI.SubmissionSearch(true)
+    const MEMBER_POS_SEARCH = new SubmissionSearch(true)
       .index('values[Person ID]')
       .eq('values[Person ID]', action.payload.id)
       .include(['details', 'values'])
@@ -146,21 +150,24 @@ export function* fetchCurrentLead(action) {
       posOrderSubmissions,
       posPurchasedItems,
     ] = yield all([
-      call(CoreAPI.fetchSubmission, {
+      call(fetchSubmission, {
         id: action.payload.id,
         include: SUBMISSION_INCLUDES,
       }),
-      call(CoreAPI.searchSubmissions, {
+      call(searchSubmissions, {
+        get: true,
         form: 'lead-activities',
         kapp: 'gbmembers',
         search: LEAD_ACTIVITIES_SEARCH,
       }),
-      call(CoreAPI.searchSubmissions, {
+      call(searchSubmissions, {
+        get: true,
         form: 'pos-order',
         search: MEMBER_POS_SEARCH,
         datastore: true,
       }),
-      call(CoreAPI.searchSubmissions, {
+      call(searchSubmissions, {
+        get: true,
         form: 'pos-purchased-item',
         search: MEMBER_POS_SEARCH,
         datastore: true,
@@ -260,7 +267,7 @@ export function* updateCurrentLead(action) {
   const appSettings = yield select(getAppSettings);
   try {
     //console.log("### updateCurrentLead # item.history = " + util.inspect(action.payload.history));
-    const { submission } = yield call(CoreAPI.updateSubmission, {
+    const { submission } = yield call(updateSubmission, {
       id: action.payload.id,
       values: action.payload.leadItem.values,
     });
@@ -313,7 +320,7 @@ export function* updateCurrentLead(action) {
       };
       axios
         .post(
-          appSettings.kapp.attributes['Kinetic Email Server URL'] +
+          getAttributeValue('Kinetic Email Server URL', '', appSettings.kapp) +
             createEventUrl,
           args,
         )
@@ -359,7 +366,7 @@ export function* updateCurrentLead(action) {
       };
       axios
         .post(
-          appSettings.kapp.attributes['Kinetic Email Server URL'] +
+          getAttributeValue('Kinetic Email Server URL', '', appSettings.kapp) +
             deleteEventUrl,
           args,
         )
@@ -402,7 +409,7 @@ export function* createLead(action) {
     action.payload.leadItem.myThis = undefined;
     action.payload.leadItem.history = undefined;
     action.payload.leadItem.fetchLeads = undefined;
-    const { submission } = yield call(CoreAPI.createSubmission, {
+    const { submission } = yield call(createSubmission, {
       kappSlug: 'gbmembers',
       formSlug: 'lead',
       values: action.payload.leadItem.values,
@@ -429,7 +436,7 @@ export function* createLead(action) {
 
 export function* deleteLead(action) {
   try {
-    const { submission } = yield call(CoreAPI.deleteSubmission, {
+    const { submission } = yield call(deleteSubmission, {
       id: action.payload.leadItem.id,
     });
     let mIdx = action.payload.allLeads.findIndex(

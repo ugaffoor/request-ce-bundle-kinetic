@@ -3,9 +3,8 @@ import ReactTable from 'react-table';
 import { KappNavLink as NavLink } from 'common';
 import moment from 'moment-timezone';
 import ReactToPrint from 'react-to-print';
-import printerIcon from '../../images/Print.svg?raw';
-import downloadIcon from '../../images/download.svg?raw';
-import SVGInline from 'react-svg-inline';
+import { ReactComponent as PrinterIcon } from '../../images/Print.svg';
+import { ReactComponent as DownloadIcon } from '../../images/download.svg';
 import { CSVLink } from 'react-csv';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
 import 'react-day-picker/lib/style.css';
@@ -16,6 +15,7 @@ import MomentLocaleUtils, {
 import { getLocalePreference, getTimezoneOff } from '../Member/MemberUtils';
 import { MOMENT_FORMATS } from 'common/src/constants';
 import { getTimezone } from '../leads/LeadsUtils';
+import ReactSpinner from 'react16-spinjs';
 
 var compThis = undefined;
 
@@ -46,6 +46,8 @@ export class StripeBillingTransactions extends Component {
     let cashData = [];
     let cashColumns = this.getColumns();
 
+    this.tableComponentRef = React.createRef();
+
     this.state = {
       data,
       columns,
@@ -54,6 +56,7 @@ export class StripeBillingTransactions extends Component {
       week: '1',
       startDate: undefined,
       lastExportedEndDate: lastExportedEndDate,
+      loading: false,
     };
   }
   setCookie(c_name, value, exdays) {
@@ -100,6 +103,7 @@ export class StripeBillingTransactions extends Component {
       this.setState({
         data: data,
         cashData: cashData,
+        loading: false,
       });
     }
   }
@@ -109,7 +113,7 @@ export class StripeBillingTransactions extends Component {
   loadData(startDate) {
     var dateFrom = moment(startDate).format('YYYY-MM-DD');
 
-    this.props.fetchPaymentHistory({
+    /*    this.props.fetchPaymentHistory({
       paymentType: 'SUCCESSFUL',
       paymentMethod: 'ALL',
       paymentSource: 'ALL',
@@ -126,7 +130,7 @@ export class StripeBillingTransactions extends Component {
         this.props.profile.timezone,
         this.props.space.defaultTimezone,
       ),
-    });
+    }); */
     /*    this.props.fetchPaymentHistory({
       paymentType: 'FAILED',
       paymentMethod: 'ALL',
@@ -177,6 +181,10 @@ export class StripeBillingTransactions extends Component {
       setSystemError: this.props.setSystemError,
       addNotification: this.props.addNotification,
       /*      timezoneOffset: getTimezoneOff(), */
+    });
+
+    this.setState({
+      loading: true,
     });
   }
   getDate(dateVal) {
@@ -443,7 +451,7 @@ export class StripeBillingTransactions extends Component {
             type="text"
             disabled
             value={this.state.lastExportedEndDate}
-          ></input>
+          />
         </div>
         <div className="daysOut">
           <label htmlFor="fromDate" className="control-label">
@@ -476,51 +484,57 @@ export class StripeBillingTransactions extends Component {
             }}
           />
         </div>
-        <ReactToPrint
-          trigger={() => (
-            <SVGInline svg={printerIcon} className="icon tablePrint" />
-          )}
-          content={() => this.tableComponentRef}
-        />
-        <CSVLink
-          className="downloadbtn"
-          filename={moment().format('L') + '-billing-transactions.csv'}
-          data={this.getDownloadData()}
-        >
-          <SVGInline svg={downloadIcon} className="icon tableDownload" />
-        </CSVLink>
-        <ReactTable
-          ref={el => (this.tableComponentRef = el)}
-          columns={columns}
-          data={data}
-          className="-striped -highlight"
-          defaultPageSize={data.length > 0 ? data.length : 2}
-          pageSize={data.length > 0 ? data.length : 2}
-          showPagination={false}
-        />
-        <br />
-        <ReactToPrint
-          trigger={() => (
-            <SVGInline svg={printerIcon} className="icon tablePrint" />
-          )}
-          content={() => this.tableCashComponentRef}
-        />
-        <CSVLink
-          className="downloadbtn"
-          filename={moment().format('L') + '-cash-billing-transactions.csv'}
-          data={this.getDownloadCashData()}
-        >
-          <SVGInline svg={downloadIcon} className="icon tableDownload" />
-        </CSVLink>
-        <ReactTable
-          ref={el => (this.tableCashComponentRef = el)}
-          columns={cashColumns}
-          data={cashData}
-          className="-striped -highlight"
-          defaultPageSize={cashData.length > 0 ? cashData.length : 2}
-          pageSize={cashData.length > 0 ? cashData.length : 2}
-          showPagination={false}
-        />
+        <div>
+          <div id="spinner-container">
+            {this.state.loading &&
+              (this.props.CHARGESpaymentHistory ||
+                this.props.posOrdersLoading ||
+                this.props.customerRefundsLoading) && <ReactSpinner />}
+          </div>
+          <ReactToPrint
+            trigger={() => <PrinterIcon className="icon icon-svg tablePrint" />}
+            content={() => this.tableComponentRef}
+            onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
+          />
+          <CSVLink
+            className="downloadbtn"
+            filename={moment().format('L') + '-billing-transactions.csv'}
+            data={this.getDownloadData()}
+          >
+            <DownloadIcon className="icon icon-svg tableDownload" />
+          </CSVLink>
+          <ReactTable
+            ref={el => (this.tableComponentRef = el)}
+            columns={columns}
+            data={data}
+            className="-striped -highlight"
+            defaultPageSize={data.length > 0 ? data.length : 2}
+            pageSize={data.length > 0 ? data.length : 2}
+            showPagination={false}
+          />
+          <br />
+          <ReactToPrint
+            trigger={() => <PrinterIcon className="icon icon-svg tablePrint" />}
+            content={() => this.tableCashComponentRef}
+            onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
+          />
+          <CSVLink
+            className="downloadbtn"
+            filename={moment().format('L') + '-cash-billing-transactions.csv'}
+            data={this.getDownloadCashData()}
+          >
+            <DownloadIcon className="icon icon-svg tableDownload" />
+          </CSVLink>
+          <ReactTable
+            ref={el => (this.tableCashComponentRef = el)}
+            columns={cashColumns}
+            data={cashData}
+            className="-striped -highlight"
+            defaultPageSize={cashData.length > 0 ? cashData.length : 2}
+            pageSize={cashData.length > 0 ? cashData.length : 2}
+            showPagination={false}
+          />
+        </div>
       </span>
     );
   }

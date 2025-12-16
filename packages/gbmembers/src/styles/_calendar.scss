@@ -41,6 +41,9 @@
 }
 
 .classDialog {
+  .form-group {
+    display: flex;
+  }
   display: inline-grid;
   .datesValue {
     width: 100%;
@@ -48,14 +51,20 @@
     text-align: center;
     color: white;
   }
-  .titleDiv {
+  .titleDiv,
+  .descriptionDiv {
     margin: 10px;
+    display: flex;
   }
   label {
     margin-right: 10px;
     width: 100px;
   }
+  input {
+    height: 30px;
+  }
   input#title,
+  input#description,
   select#program {
     width: 70%;
   }

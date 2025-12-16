@@ -1,9 +1,9 @@
 import React from 'react';
 import axios from 'axios';
 import { connect } from 'react-redux';
-import { bundle } from 'react-kinetic-core';
+import { bundle } from '@kineticdata/react';
 import { Map, Set } from 'immutable';
-import { CoreAPI } from 'react-kinetic-core';
+import { fetchSubmission } from '@kineticdata/react';
 import isarray from 'isarray';
 import semver from 'semver';
 const MINIMUM_CE_VERSION = '2.3.0';
@@ -51,7 +51,9 @@ export class I18nProvider extends React.Component {
       }
     } else if (this.props.version) {
       console.warn(
-        `You are currently running Kinetic CE ${this.props.version}. Translations require Kinetic CE ${MINIMUM_CE_VERSION} or greater.`,
+        `You are currently running Kinetic CE ${
+          this.props.version
+        }. Translations require Kinetic CE ${MINIMUM_CE_VERSION} or greater.`,
       );
     }
   }
@@ -142,7 +144,7 @@ export class I18n extends React.Component {
           }));
         } else {
           // Otherwise fetch the submission
-          CoreAPI.fetchSubmission({
+          fetchSubmission({
             id: this.props.submissionId,
             datastore: !!this.props.datastore,
             include: 'form,form.kapp',
@@ -151,7 +153,9 @@ export class I18n extends React.Component {
             const context = submission
               ? !!this.props.datastore
                 ? `datastore.forms.${submission.form.slug}`
-                : `kapps.${submission.form.kapp.slug}.forms.${submission.form.slug}`
+                : `kapps.${submission.form.kapp.slug}.forms.${
+                    submission.form.slug
+                  }`
               : null;
             // Store the context for the submissionId
             submissionContexts[this.props.submissionId] = context;

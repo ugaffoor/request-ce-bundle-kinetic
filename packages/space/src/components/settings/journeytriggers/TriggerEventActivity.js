@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { compose, withHandlers } from 'recompose';
 import Select from 'react-select';
 import { Button } from 'reactstrap';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 import { actions } from '../../../redux/modules/journeyTriggers';
 import { actions as leadActions } from 'gbmembers/src/redux/modules/leads';
 import { actions as memberActions } from 'gbmembers/src/redux/modules/members';
@@ -115,16 +115,16 @@ export class TriggerResults extends Component {
                     ? trigger.values['Member Condition']
                     : 'Trigger Deleted'
                   : trigger !== undefined
-                  ? trigger.values['Lead Condition']
-                  : 'Trigger Deleted',
+                    ? trigger.values['Lead Condition']
+                    : 'Trigger Deleted',
               Duration:
                 recordType === 'Member'
                   ? trigger !== undefined
                     ? trigger.values['Member Condition Duration']
                     : 'Trigger Deleted'
                   : trigger !== undefined
-                  ? trigger.values['Lead Condition Duration']
-                  : 'Trigger Deleted',
+                    ? trigger.values['Lead Condition Duration']
+                    : 'Trigger Deleted',
             };
           });
           memberTriggers.forEach((trigger, i) => {
@@ -219,11 +219,11 @@ export class TriggerResults extends Component {
               <th width="100">Updated</th>
               <th width="80">Status</th>
               <th width="300">Member/Lead</th>
-              <th width="10"></th>
+              <th width="10" />
               <th width="300">Condition</th>
               <th width="500">Template Name</th>
-              <th></th>
-              <th></th>
+              <th />
+              <th />
             </tr>
           </thead>
           <tbody>
@@ -346,8 +346,8 @@ export class TriggerResults extends Component {
                       event.values['Contact Type'] === 'Call'
                         ? 'fa fa-fw fa-phone'
                         : event.values['Contact Type'] === 'SMS'
-                        ? 'fa fa-fw fa-comment-o'
-                        : 'fa fa-fw fa-envelope-o'
+                          ? 'fa fa-fw fa-comment-o'
+                          : 'fa fa-fw fa-envelope-o'
                     }
                   />
                 </td>
@@ -698,7 +698,10 @@ export class TriggerEventActivity extends Component {
 }
 
 const enhance = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withHandlers({}),
 );
 

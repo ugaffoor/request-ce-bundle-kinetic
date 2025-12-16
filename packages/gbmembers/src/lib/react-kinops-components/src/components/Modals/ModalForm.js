@@ -1,5 +1,5 @@
 import React from 'react';
-import { CoreForm } from 'react-kinetic-core';
+import { CoreForm } from '@kineticdata/react';
 import { Modal, ModalBody } from 'reactstrap';
 
 const globals = import('../../../../../globals');

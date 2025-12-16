@@ -1,6 +1,6 @@
 import React from 'react';
 import { Dropdown, DropdownToggle, DropdownMenu } from 'reactstrap';
-import { I18n } from '../I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 export const Help = ({
   Help,
@@ -41,10 +41,10 @@ export const Help = ({
                   setFilterValue(e.target.value);
                 }}
               />
-              <span className="fa fa-search"></span>
+              <span className="fa fa-search" />
             </form>
           </div>
-          <div className="actions"></div>
+          <div className="actions" />
         </div>
         <div className="viewByButtons">
           <button
@@ -154,7 +154,7 @@ export const Help = ({
                   dangerouslySetInnerHTML={{
                     __html: help.values['Information'],
                   }}
-                ></span>
+                />
               </li>
             ))}
           {Help.size < 1 && (

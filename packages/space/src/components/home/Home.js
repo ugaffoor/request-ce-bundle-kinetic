@@ -13,8 +13,8 @@ import { actions as teamListActions } from '../../redux/modules/teamList';
 import { CreateDiscussionModal } from './CreateDiscussionModal';
 import { Discussion } from './Discussion';
 import wallyMissingImage from 'common/src/assets/images/wally-missing.svg';
-import { bundle } from 'react-kinetic-core';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { bundle } from '@kineticdata/react';
+import { I18n } from '@kineticdata/react';
 
 const HomeComponent = ({
   spaceName,
@@ -133,17 +133,19 @@ const HomeComponent = ({
             )}
           </div>
         )}
-      {!discussionsError && !discussionsLoading && discussionGroups.size === 0 && (
-        <div className="empty-state empty-state--wally">
-          <h5>
-            <I18n>No discussions found</I18n>
-          </h5>
-          <img src={wallyMissingImage} alt="Missing Wally" />
-          <h6>
-            <I18n>You are not involved in any discussions!</I18n>
-          </h6>
-        </div>
-      )}
+      {!discussionsError &&
+        !discussionsLoading &&
+        discussionGroups.size === 0 && (
+          <div className="empty-state empty-state--wally">
+            <h5>
+              <I18n>No discussions found</I18n>
+            </h5>
+            <img src={wallyMissingImage} alt="Missing Wally" />
+            <h6>
+              <I18n>You are not involved in any discussions!</I18n>
+            </h6>
+          </div>
+        )}
     </div>
   </div>
 );
@@ -176,7 +178,10 @@ export const mapDispatchToProps = {
 };
 
 export const Home = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withHandlers({
     handleCreateDiscussionButtonClick: props => event =>
       props.setCreateDiscussionModalOpen(true),

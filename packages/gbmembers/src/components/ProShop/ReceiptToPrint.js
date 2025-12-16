@@ -1,7 +1,6 @@
 import React from 'react';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
-import $ from 'jquery';
 
 export class ReceiptToPrint extends React.Component {
   constructor(props) {
@@ -20,7 +19,8 @@ export class ReceiptToPrint extends React.Component {
           var attrValue = value.split("'")[1];
           if (value.indexOf('spaceAttributes') !== -1) {
             if (
-              self.props.space.attributes[value.split("'")[1]] !== undefined
+              getAttributeValue(self.props.space, value.split("'")[1]) !==
+              undefined
             ) {
               receiptFooter = receiptFooter.replace(
                 new RegExp(self.escapeRegExp('display_' + attrValue), 'g'),
@@ -28,7 +28,7 @@ export class ReceiptToPrint extends React.Component {
               );
               receiptFooter = receiptFooter.replace(
                 new RegExp(self.escapeRegExp(value), 'g'),
-                self.props.space.attributes[value.split("'")[1]][0],
+                getAttributeValue(self.props.space, value.split("'")[1]),
               );
             } else {
               receiptFooter = receiptFooter.replace(

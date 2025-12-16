@@ -19,7 +19,7 @@ import MomentLocaleUtils, {
 } from 'react-day-picker/moment';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
 import 'react-day-picker/lib/style.css';
-import { CoreForm } from 'react-kinetic-core';
+import { CoreForm } from '@kineticdata/react';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { Utils } from 'common';
 
@@ -70,7 +70,8 @@ export const handleCreated = props => response => {
     );
     migrationThis.props.memberMigrations[
       migrationThis.props.memberMigrations.length
-    ] = response.submission;
+    ] =
+      response.submission;
     migrationThis.props.allMembers[idx].migrationForm = response.submission;
     migrationThis.props.allMembers[idx].values['Billing User'] = 'YES';
     migrationThis.props.allMembers[idx].values['Billing Parent Member'] =
@@ -136,7 +137,6 @@ export class StartMemberMigration extends Component {
                     name="program"
                     id="program"
                     required
-                    ref={input => (this.input = input)}
                     defaultValue={
                       this.state.memberItem.values['Ranking Program']
                     }
@@ -165,14 +165,13 @@ export class StartMemberMigration extends Component {
                     name="belt"
                     id="belt"
                     required
-                    ref={input => (this.input = input)}
                     defaultValue={this.state.memberItem.values['Ranking Belt']}
                     onChange={e => {
                       this.state.memberItem.values['Ranking Belt'] =
                         e.target.value;
                     }}
                   >
-                    <option key="" value=""></option>
+                    <option key="" value="" />
                     {this.props.belts.map(
                       belt =>
                         belt.program ===
@@ -227,7 +226,6 @@ export class StartMemberMigration extends Component {
                     type="number"
                     name="attendanceCount"
                     id="attendanceCount"
-                    ref={input => (this.input = input)}
                     defaultValue={
                       this.state.memberItem.values['Attendance Count']
                     }
@@ -245,7 +243,6 @@ export class StartMemberMigration extends Component {
                     type="number"
                     name="maxWeeklyClasses"
                     id="maxWeeklyClasses"
-                    ref={input => (this.input = input)}
                     defaultValue={
                       this.state.memberItem.values['Max Weekly Classes']
                     }
@@ -262,7 +259,6 @@ export class StartMemberMigration extends Component {
                   <select
                     name="beltSize"
                     id="beltSize"
-                    ref={input => (this.input = input)}
                     value={this.state.memberItem.values['Belt Size']}
                     onChange={e => {
                       this.state.memberItem.values['Belt Size'] =
@@ -569,6 +565,7 @@ export class MigrationDetail extends Component {
       viewMemberMigration: false,
       migratingMember: undefined,
       memberSearchValue: '',
+      listSort: 'date',
     };
   }
   setStartMigration(start, justCreated) {
@@ -591,7 +588,10 @@ export class MigrationDetail extends Component {
       startMemberMigration: start,
       allActive: allActive,
     });
-    this.displayStatus(justCreated ? 'In Progress' : this.state.status);
+    this.displayStatus(
+      justCreated ? 'In Progress' : this.state.status,
+      this.state.listSort,
+    );
   }
   setEditMigration(start) {
     let allActive = this.props.allMembers.filter(
@@ -613,7 +613,7 @@ export class MigrationDetail extends Component {
       editMemberMigration: start,
       allActive: allActive,
     });
-    this.displayStatus(this.state.status);
+    this.displayStatus(this.state.status, this.state.listSort);
   }
   setViewMigration(start) {
     this.setState({
@@ -670,7 +670,22 @@ export class MigrationDetail extends Component {
     return false;
   }
   getCompletedDate(member) {
-    return moment(member.migrationForm.submittedAt).format('L HH:mm');
+    let isChild =
+      member.values['Billing Parent Member'] !== undefined &&
+      member.values['Billing Parent Member'] !== '' &&
+      member.values['Billing Parent Member'] !== null &&
+      member.values['Billing Parent Member'] !== member.id;
+
+    if (isChild) {
+      var idx = this.props.allMembers.findIndex(mem => {
+        return mem.id === member.values['Billing Parent Member'];
+      });
+      if (idx !== -1) {
+        return moment(this.props.allMembers[idx].migrationForm.submittedAt);
+      }
+    }
+
+    return moment(member.migrationForm.submittedAt);
   }
   getSentDate(member) {
     return moment(member.migrationForm.values['Form Completion Sent']).format(
@@ -693,27 +708,37 @@ export class MigrationDetail extends Component {
     );
   }
   isStarted(member) {
-    let isChild =
-      member.values['Billing Parent Member'] !== undefined &&
-      member.values['Billing Parent Member'] !== '' &&
-      member.values['Billing Parent Member'] !== null &&
-      member.values['Billing Parent Member'] !== member.id;
+    let isChild = false;
+    var midx = -1;
+    var idx = this.props.memberMigrations.findIndex(form => {
+      return (
+        form.values['Member GUID'] !== member.id &&
+        form.values['membersJSON'] !== undefined &&
+        form.values['membersJSON'].includes(member.id)
+      );
+    });
+
+    if (idx != -1) {
+      midx = this.props.allMembers.findIndex(mem => {
+        return (
+          mem.id === this.props.memberMigrations[idx].values['Member GUID']
+        );
+      });
+      if (midx != -1) {
+        isChild = true;
+      }
+    }
 
     let parentInProgress = false;
     if (isChild) {
-      var idx = this.props.allMembers.findIndex(mem => {
-        return mem.id === member.values['Billing Parent Member'];
-      });
-      if (idx !== -1) {
-        parentInProgress =
-          this.props.allMembers[idx].values['Biller Migrated'] !== 'YES' &&
-          this.props.allMembers[idx].migrationForm !== undefined &&
-          moment(
-            this.props.allMembers[idx].migrationForm.values[
-              'The first instalment is due on'
-            ],
-          ).isAfter(moment());
-      }
+      parentInProgress =
+        this.props.allMembers[midx].values['Biller Migrated'] !== 'YES' &&
+        this.props.allMembers[midx].migrationForm !== undefined &&
+        moment(
+          this.props.allMembers[midx].migrationForm.values[
+            'The first instalment is due on'
+          ],
+        ).isAfter(moment());
     }
 
     return (
@@ -743,12 +768,28 @@ export class MigrationDetail extends Component {
     );
   }
   isStartedChild(member) {
-    return (
-      member.values['Billing Parent Member'] !== undefined &&
-      member.values['Billing Parent Member'] !== '' &&
-      member.values['Billing Parent Member'] !== null &&
-      member.values['Billing Parent Member'] !== member.id
-    );
+    var idx = this.props.memberMigrations.findIndex(form => {
+      return (
+        form.values['Member GUID'] !== member.id &&
+        form.values['membersJSON'] !== undefined &&
+        form.values['membersJSON'].includes(member.id)
+      );
+    });
+
+    if (idx != -1) {
+      var midx = this.props.allMembers.findIndex(mem => {
+        return (
+          mem.id === this.props.memberMigrations[idx].values['Member GUID']
+        );
+      });
+      if (midx != -1) {
+        if (!this.isSubmitted(this.props.allMembers[midx])) {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
   getParentName(member) {
     var idx = this.props.allMembers.findIndex(mem => {
@@ -759,6 +800,20 @@ export class MigrationDetail extends Component {
         this.props.allMembers[idx].values['Last Name'] +
         ' ' +
         this.props.allMembers[idx].values['First Name']
+      );
+    }
+
+    var idx = this.props.memberMigrations.findIndex(form => {
+      return (
+        form.values['membersJSON'] !== undefined &&
+        form.values['membersJSON'].includes(member.id)
+      );
+    });
+    if (idx != -1) {
+      return (
+        this.props.memberMigrations[idx].values['Student Last Name'] +
+        ' ' +
+        this.props.memberMigrations[idx].values['Student First Name']
       );
     }
   }
@@ -790,7 +845,7 @@ export class MigrationDetail extends Component {
       migratingMember: member,
     });
   }
-  displayStatus(status) {
+  displayStatus(status, sortOrder) {
     let statusMembers = this.state.allActive
       .filter(member => {
         var apply = false;
@@ -798,35 +853,68 @@ export class MigrationDetail extends Component {
           apply = true;
         } else if (status === 'Migrated' && this.isMigrated(member)) {
           apply = true;
-        } else if (status === 'In Progress' && this.isStarted(member)) {
+        } else if (
+          status === 'In Progress' &&
+          (this.isStarted(member) || this.isStartedChild(member))
+        ) {
           apply = true;
         } else if (status === 'Expired' && this.isExpired(member)) {
           apply = true;
-        } else if (status === 'Not Started' && this.isNotStarted(member)) {
+        } else if (
+          status === 'Not Started' &&
+          this.isNotStarted(member) &&
+          !this.isStartedChild(member)
+        ) {
           apply = true;
         }
         return apply;
       })
       .sort((member1, member2) => {
         try {
-          if (
-            (
-              member1.values['Last Name'] + member1.values['First Name']
-            ).toLowerCase() <
-            (
-              member2.values['Last Name'] + member2.values['First Name']
-            ).toLowerCase()
-          )
-            return -1;
-          if (
-            (
-              member1.values['Last Name'] + member1.values['First Name']
-            ).toLowerCase() >
-            (
-              member2.values['Last Name'] + member2.values['First Name']
-            ).toLowerCase()
-          )
-            return 1;
+          if (sortOrder === 'member') {
+            if (
+              (
+                member1.values['Last Name'] + member1.values['First Name']
+              ).toLowerCase() <
+              (
+                member2.values['Last Name'] + member2.values['First Name']
+              ).toLowerCase()
+            )
+              return -1;
+            if (
+              (
+                member1.values['Last Name'] + member1.values['First Name']
+              ).toLowerCase() >
+              (
+                member2.values['Last Name'] + member2.values['First Name']
+              ).toLowerCase()
+            )
+              return 1;
+          } else {
+            let date1 = moment();
+            let date2 = moment();
+            if (this.isMigrated(member1)) {
+              date1 = this.getCompletedDate(member1);
+            } else if (this.isStarted(member1)) {
+              date1 = this.getSentDate(member1);
+            } else if (this.isExpired(member1)) {
+              date1 = this.getSentDate(member1);
+            }
+            if (this.isMigrated(member2)) {
+              date2 = this.getCompletedDate(member2);
+            } else if (this.isStarted(member2)) {
+              date2 = this.getSentDate(member2);
+            } else if (this.isExpired(member2)) {
+              date2 = this.getSentDate(member2);
+            }
+
+            if (date1.isAfter(date2)) {
+              return -1;
+            } else if (date1.isBefore(date2)) {
+              return 1;
+            }
+            return 0;
+          }
         } catch (error) {
           return 0;
         }
@@ -866,7 +954,7 @@ export class MigrationDetail extends Component {
       statusMembers: [],
       allActive: allActive,
     });
-    this.displayStatus(this.state.status);
+    this.displayStatus(this.state.status, this.state.listSort);
   }
   render() {
     return this.props.memberMigrationsLoading ? (
@@ -885,14 +973,13 @@ export class MigrationDetail extends Component {
                     <select
                       name="status"
                       id="status"
-                      ref={input => (this.input = input)}
                       value={this.state.status}
                       onChange={e => {
                         let status = e.target.value;
-                        this.displayStatus(status);
+                        this.displayStatus(status, this.state.listSort);
                       }}
                     >
-                      <option value=""></option>
+                      <option value="" />
                       <option value="All">All</option>
                       <option value="Not Started">Not Started</option>
                       <option value="In Progress">In Progress</option>
@@ -912,7 +999,7 @@ export class MigrationDetail extends Component {
                       <div
                         className="percent"
                         style={this.state.percentageStyle}
-                      ></div>
+                      />
                     </div>
                   </div>
                 </span>
@@ -928,6 +1015,29 @@ export class MigrationDetail extends Component {
                         this.setState({ memberSearchValue: e.target.value });
                       }}
                     />
+                  </div>
+                </span>
+                <span className="line">
+                  <label htmlFor="migrationListSort">Sort by Member</label>
+                  <div className="checkboxFilter">
+                    <input
+                      id="migrationListSort"
+                      type="checkbox"
+                      value="1"
+                      onChange={e => {
+                        this.displayStatus(
+                          this.state.status,
+                          this.state.listSort === 'member' ? 'date' : 'member',
+                        );
+                        this.setState({
+                          listSort:
+                            this.state.listSort === 'member'
+                              ? 'date'
+                              : 'member',
+                        });
+                      }}
+                    />
+                    <label htmlFor="migrationListSort" />
                   </div>
                 </span>
               </div>
@@ -989,20 +1099,21 @@ export class MigrationDetail extends Component {
                             </NavLink>
                           </h4>
                           <div className={status}>
-                            <span className="circle"></span>
+                            <span className="circle" />
                           </div>
                           <h4 className="label">{labeltext}</h4>
                           <div className="action">
-                            {this.isNotStarted(member) && (
-                              <button
-                                type="button"
-                                active="false"
-                                className="btn btn-primary report-btn-default"
-                                onClick={e => this.startMigration(member)}
-                              >
-                                Start Migration
-                              </button>
-                            )}
+                            {this.isNotStarted(member) &&
+                              !this.isStartedChild(member) && (
+                                <button
+                                  type="button"
+                                  active="false"
+                                  className="btn btn-primary report-btn-default"
+                                  onClick={e => this.startMigration(member)}
+                                >
+                                  Start Migration
+                                </button>
+                              )}
                             {this.isStarted(member) &&
                               this.isStartedMain(member) &&
                               !this.isSubmitted(member) && (
@@ -1034,11 +1145,15 @@ export class MigrationDetail extends Component {
                                     View
                                   </button>
                                   <h5>
-                                    Completed: {this.getCompletedDate(member)}
+                                    Completed:{' '}
+                                    {this.getCompletedDate(member).format(
+                                      'L HH:mm',
+                                    )}
                                   </h5>
                                 </span>
                               )}
                             {this.isStarted(member) &&
+                              !this.isStartedMain(member) &&
                               this.isStartedChild(member) && (
                                 <span className="buttonInfo">
                                   <h5>Parent: {this.getParentName(member)}</h5>
@@ -1072,7 +1187,10 @@ export class MigrationDetail extends Component {
                                     View
                                   </button>
                                   <h5>
-                                    Completed: {this.getCompletedDate(member)}
+                                    Completed:{' '}
+                                    {this.getCompletedDate(member).format(
+                                      'L HH:mm',
+                                    )}
                                   </h5>
                                 </span>
                               )}
@@ -1170,7 +1288,10 @@ export const MigrationMembers = ({
 );
 
 export const MigratingMembersContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withHandlers({
     handleCreated,
     handleError,

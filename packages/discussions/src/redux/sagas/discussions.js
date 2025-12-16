@@ -12,7 +12,7 @@ import {
   takeLatest,
   fork,
 } from 'redux-saga/effects';
-import { CoreAPI, bundle } from 'react-kinetic-core';
+import { updateSubmission, bundle } from '@kineticdata/react';
 
 import { toastActions } from 'common';
 import { types, actions } from '../modules/discussions';
@@ -220,7 +220,7 @@ export const updateSubmissionDiscussionId = ({
   include,
   datastore,
 }) =>
-  CoreAPI.updateSubmission({
+  updateSubmission({
     id,
     values: { 'Discussion Id': guid },
     include: include || SUBMISSION_INCLUDES,

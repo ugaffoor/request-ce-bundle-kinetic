@@ -1,14 +1,7 @@
 import React, { Component } from 'react';
 import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
-import ReactSpinner from 'react16-spinjs';
 import { connect } from 'react-redux';
-import {
-  compose,
-  withState,
-  lifecycle,
-  withHandlers,
-  withProps,
-} from 'recompose';
+import { compose, withState, lifecycle, withHandlers } from 'recompose';
 import Select from 'react-select';
 import { actions } from '../../redux/modules/members';
 import { actions as leadsActions } from '../../redux/modules/leads';
@@ -153,7 +146,7 @@ export class SMSModal extends Component {
               value.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1'),
               'g',
             ),
-            self.props.space.attributes[value.split("'")[1]][0],
+            getAttributeValue(self.props.space, value.split("'")[1]),
           );
         }
       });
@@ -490,7 +483,10 @@ export class SMSModal extends Component {
 }
 
 const enhance = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('showMessageHistory', 'setShowMessageHistory', true),
   withHandlers({
     sendSmsMessage: ({

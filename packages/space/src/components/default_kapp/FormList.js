@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { FormCard } from './FormCard';
 import wallyHappyImage from 'common/src/assets/images/wally-happy.svg';
 import { actions as spaceFormActions } from '../../redux/modules/spaceForms';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const WallyEmptyMessage = () => {
   return (
@@ -49,9 +49,7 @@ export const FormListComponent = ({ forms, loading, kapp }) =>
                 path: `/forms/${form.slug}`,
                 key: form.slug,
               }))
-              .map(props => (
-                <FormCard {...props} />
-              ))}
+              .map(props => <FormCard {...props} />)}
           </div>
         ) : (
           <WallyEmptyMessage />
@@ -73,7 +71,10 @@ const mapDispatchToProps = {
 };
 
 export const FormList = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   lifecycle({
     UNSAFE_componentWillMount(props) {
       this.props.fetchForms(this.props.kappSlug);

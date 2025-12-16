@@ -1,7 +1,6 @@
 import React from 'react';
 import { ModalBody } from 'reactstrap';
-import SVGInline from 'react-svg-inline';
-import chevronRightIcon from 'font-awesome-svg-png/black/svg/angle-right.svg?raw';
+import { ReactComponent as ChevronRightIcon } from 'font-awesome-svg-png/black/svg/angle-right.svg';
 import { SORT_OPTIONS } from '../FilterMenu/SortedBySection';
 
 const ListSummary = ({ type, list }) =>
@@ -42,7 +41,7 @@ export const MainSection = ({
         >
           <span className="button-title">Teams</span>
           <ListSummary type="Teams" list={filter.teams} />
-          <SVGInline svg={chevronRightIcon} className="icon" />
+          <ChevronRightIcon className="icon icon-svg" />
         </button>
       </li>
       <li className="list-group-item">
@@ -53,7 +52,7 @@ export const MainSection = ({
         >
           <span className="button-title">Assignment</span>
           <AssignmentSummary appliedAssignments={appliedAssignments} />
-          <SVGInline svg={chevronRightIcon} className="icon" />
+          <ChevronRightIcon className="icon icon-svg" />
         </button>
       </li>
       <li className="list-group-item">
@@ -64,7 +63,7 @@ export const MainSection = ({
         >
           <span className="button-title">Status</span>
           <ListSummary type="Statuses" list={filter.status} />
-          <SVGInline svg={chevronRightIcon} className="icon" />
+          <ChevronRightIcon className="icon icon-svg" />
         </button>
       </li>
       <li className="list-group-item">
@@ -74,7 +73,7 @@ export const MainSection = ({
           onClick={() => showSection('date')}
         >
           <span className="button-title">Date Range</span>
-          <SVGInline svg={chevronRightIcon} className="icon" />
+          <ChevronRightIcon className="icon icon-svg" />
         </button>
       </li>
       <li className="list-group-item">
@@ -85,7 +84,7 @@ export const MainSection = ({
         >
           <span className="button-title">Sorted By</span>
           <span>{SORT_OPTIONS.get(filter.sortBy).label}</span>
-          <SVGInline svg={chevronRightIcon} className="icon" />
+          <ChevronRightIcon className="icon icon-svg" />
         </button>
       </li>
     </ul>

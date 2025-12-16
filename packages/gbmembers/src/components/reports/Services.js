@@ -4,11 +4,10 @@ import ReactSpinner from 'react16-spinjs';
 import moment from 'moment';
 import { getJson } from '../Member/MemberUtils';
 import { Utils } from 'common';
-import SVGInline from 'react-svg-inline';
-import crossIcon from '../../images/cross.svg?raw';
+import { ReactComponent as CrossIcon } from '../../images/cross.svg';
 import { KappNavLink as NavLink } from 'common';
 import ReactToPrint from 'react-to-print';
-import printerIcon from '../../images/Print.svg?raw';
+import { ReactComponent as PrinterIcon } from '../../images/Print.svg';
 
 export class Services extends Component {
   constructor(props) {
@@ -29,6 +28,9 @@ export class Services extends Component {
       this.props.space,
     );
     let columns = this.getColumns();
+
+    this.tableComponentRef = React.createRef();
+
     this.state = {
       services,
       data,
@@ -208,7 +210,7 @@ export class Services extends Component {
                   })
                 }
               >
-                <SVGInline svg={crossIcon} className="icon" />
+                <CrossIcon className="icon icon-svg" />
               </span>
               <ReactTable
                 columns={this.getServicesTableColumns()}
@@ -260,13 +262,12 @@ export class Services extends Component {
           </div>
         </div>
         <ReactToPrint
-          trigger={() => (
-            <SVGInline svg={printerIcon} className="icon tablePrint" />
-          )}
-          content={() => this.tableComponentRef}
+          trigger={() => <PrinterIcon className="icon icon-svg tablePrint" />}
+          content={() => this.tableComponentRef.current}
+          onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
         />
         <ReactTable
-          ref={el => (this.tableComponentRef = el)}
+          ref={this.tableComponentRef}
           columns={columns}
           data={data}
           className="-striped -highlight"

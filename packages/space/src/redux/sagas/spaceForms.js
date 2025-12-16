@@ -1,19 +1,24 @@
 import { takeEvery, call, put } from 'redux-saga/effects';
-import { CoreAPI } from 'react-kinetic-core';
+import { fetchForms } from '@kineticdata/react';
 
 import { types, actions } from '../modules/spaceForms';
 
 export function* fetchFormsSaga(action) {
-  const { forms, serverError } = yield call(CoreAPI.fetchForms, {
-    kappSlug: action.payload,
-    include: 'attributes,kapp',
-  });
+  try {
+    const { forms, serverError } = yield call(fetchForms, {
+      kappSlug: action.payload,
+      include: 'attributes,kapp',
+    });
 
-  if (serverError) {
-    // TODO: implement system error push.
-    yield put(actions.setForms([]));
-  } else {
-    yield put(actions.setForms(forms));
+    if (serverError) {
+      // TODO: implement system error push.
+      yield put(actions.setForms([]));
+    } else {
+      yield put(actions.setForms(forms));
+    }
+  } catch (error) {
+    console.log('Error in fetchFormsSaga: ' + util.inspect(error));
+    yield put(errorActions.addError([error], 'fetchFormsSaga'));
   }
 }
 

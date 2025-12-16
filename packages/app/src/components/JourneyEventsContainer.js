@@ -48,7 +48,10 @@ function tick(mythis) {
 }
 
 export const JourneyEventsContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('isOpen', 'setIsOpen', false),
   withState('viewBy', 'setViewBy', 'all'),
   withState('doDelete', 'setDoDelete', false),
@@ -65,7 +68,7 @@ export const JourneyEventsContainer = compose(
     componentWillUnmount() {
       clearInterval(this.state.timer);
     },
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (
         nextProps.deletingJourneyEvents === false &&
         this.props.deletingJourneyEvents

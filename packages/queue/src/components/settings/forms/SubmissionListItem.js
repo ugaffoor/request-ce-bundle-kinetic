@@ -10,7 +10,7 @@ import {
 import moment from 'moment';
 
 import { Constants } from 'common';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const DiscussionIcon = () => (
   <span className="icon">
@@ -152,8 +152,8 @@ const getSubmissionData = (submission, column) =>
   column.type === 'value'
     ? submission.values[column.name]
     : column.name.includes('At')
-    ? moment(submission[column.name]).format(Constants.TIME_FORMAT)
-    : submission[column.name];
+      ? moment(submission[column.name]).format(Constants.TIME_FORMAT)
+      : submission[column.name];
 
 const toggleDropdown = ({
   setOpenDropdown,

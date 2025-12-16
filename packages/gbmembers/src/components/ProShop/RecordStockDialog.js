@@ -3,11 +3,8 @@ import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
 import { connect } from 'react-redux';
 import { compose } from 'recompose';
 import $ from 'jquery';
-import { CoreForm } from 'react-kinetic-core';
-import ReactSpinner from 'react16-spinjs';
 import BarcodeReader from 'react-barcode-reader';
-import barcodeIcon from '../../images/barcode.svg?raw';
-import SVGInline from 'react-svg-inline';
+import { ReactComponent as BarcodeIcon } from '../../images/barcode.svg';
 import NumericInput from 'react-numeric-input';
 import ScaleLoader from 'react-spinners/ScaleLoader';
 
@@ -172,7 +169,7 @@ export class RecordStockDialog extends Component {
         >
           <span className="productStock">
             <div className="filterInfo">
-              {<SVGInline svg={barcodeIcon} className="barcodeIcon" />}
+              {<BarcodeIcon className="barcodeIcon icon-svg" />}
               {/*<input
                   type="text"
                   value={this.state.productCodeValue}
@@ -223,26 +220,29 @@ export class RecordStockDialog extends Component {
                       });
                     }}
                   />
-                  <label htmlFor="editStockMode"></label>
+                  <label htmlFor="editStockMode" />
                 </div>
                 {}
               </div>
             </div>
-            {this.state.scanned && this.state.productCodeValue === '' && (
-              <div className="noProductFound">
-                No product found with SKU and Size: {this.state.scannedSKU}
-              </div>
-            )}
+            {this.state.scanned &&
+              this.state.productCodeValue === '' && (
+                <div className="noProductFound">
+                  No product found with SKU and Size: {this.state.scannedSKU}
+                </div>
+              )}
             {this.props.products &&
               this.props.products
                 .filter(product => {
                   if (
                     product.values['Status'] === 'Active' &&
-                    product.values['Product Type'] === 'Apparel' &&
+                    (product.values['Product Type'] === 'Apparel' ||
+                      product.values['Product Type'] === 'Concession') &&
                     product.values['SKU'] !== undefined &&
                     product.values['Name'] !== undefined &&
                     product.values['Colour'] !== undefined &&
                     ((this.state.productNameValue !== '' &&
+                      product.values['SKU'] !== null &&
                       product.values['SKU']
                         .toLowerCase()
                         .indexOf(
@@ -293,9 +293,11 @@ export class RecordStockDialog extends Component {
                       <div
                         className="productImage"
                         style={{
-                          backgroundImage: `url(${product.values['Image URL']})`,
+                          backgroundImage: `url(${
+                            product.values['Image URL']
+                          })`,
                         }}
-                      ></div>
+                      />
                       <div className="details">
                         <div className="item">
                           <div className="label">Code:</div>
@@ -421,6 +423,7 @@ export class RecordStockDialog extends Component {
                                 className="btn btn-primary editStockBtn"
                                 onClick={e => {
                                   this.props.savePOSStock({
+                                    posStock: this.props.posStock,
                                     products: this.props.products,
                                     product: product,
                                     size: this.state[
@@ -456,6 +459,7 @@ export class RecordStockDialog extends Component {
                                 className="btn btn-primary addStockBtn"
                                 onClick={e => {
                                   this.props.savePOSStock({
+                                    posStock: this.props.posStock,
                                     products: this.props.products,
                                     product: product,
                                     size: this.state[
@@ -490,7 +494,12 @@ export class RecordStockDialog extends Component {
   }
 }
 
-const enhance = compose(connect(mapStateToProps, mapDispatchToProps));
+const enhance = compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
+);
 const inlineStyle = {
   width: '1000px',
   top: '10%',

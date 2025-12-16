@@ -8,7 +8,7 @@ import {
   actions,
   DATASTORE_LIMIT,
 } from '../../../../redux/modules/settingsDatastore';
-import { I18n } from '../../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const getPageText = (pageTokens, nextPageToken, submissions) => {
   let pages = pageTokens.size + 1;
@@ -91,7 +91,10 @@ const handlePrevThousandPage = ({
 };
 
 export const Paging = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withHandlers({
     handlePrevThousandPage,
     handleNextThousandPage,

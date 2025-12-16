@@ -3,7 +3,7 @@ import moment from 'moment';
 import { ModalBody } from 'reactstrap';
 import { SORT_OPTIONS } from './SortedBySection';
 import { CreatedByMeContainer } from './CreatedByMe';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const ListSummary = ({ type, list }) =>
   list.size > 0 &&
@@ -216,16 +216,18 @@ export const MainSection = ({
             : 'Save Filter As'}
         </I18n>
       </button>
-      {filter && filter.type === 'custom' && filter.name.length > 0 && (
-        <button
-          type="button"
-          className="btn btn-inverse text-danger"
-          onClick={handleRemoveFilter}
-          disabled={filterName === '' || !errors.isEmpty()}
-        >
-          <I18n>Delete Filter</I18n>
-        </button>
-      )}
+      {filter &&
+        filter.type === 'custom' &&
+        filter.name.length > 0 && (
+          <button
+            type="button"
+            className="btn btn-inverse text-danger"
+            onClick={handleRemoveFilter}
+            disabled={filterName === '' || !errors.isEmpty()}
+          >
+            <I18n>Delete Filter</I18n>
+          </button>
+        )}
     </div>
   </ModalBody>
 );

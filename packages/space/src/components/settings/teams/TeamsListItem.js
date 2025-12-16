@@ -10,7 +10,7 @@ import {
   DropdownItem,
 } from 'reactstrap';
 import { getTeamColor, getTeamIcon } from '../../../utils';
-import { I18n } from '../../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const TeamsListItemComponent = ({ team, openDropdown, toggleDropdown }) => {
   return (
@@ -70,7 +70,10 @@ const toggleDropdown = ({
   setOpenDropdown(dropdownSlug === openDropdown ? '' : dropdownSlug);
 
 export const TeamsListItem = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('openDropdown', 'setOpenDropdown', ''),
   withHandlers({ toggleDropdown }),
 )(TeamsListItemComponent);

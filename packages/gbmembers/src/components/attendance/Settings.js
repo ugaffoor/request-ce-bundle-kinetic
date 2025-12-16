@@ -10,7 +10,7 @@ import {
   getAttributeValue,
   setAttributeValue,
 } from '../../lib/react-kinops-components/src/utils';
-import { CoreAPI } from 'react-kinetic-core';
+import { updateProfile } from '@kineticdata/react';
 import { Map } from 'immutable';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { ClassesCalendar } from './ClassesCalendar';
@@ -75,7 +75,6 @@ class ComponentToPrint extends React.Component {
             id="filter"
             name="filter"
             type="text"
-            ref={input => (this.input = input)}
             className="form-control form-control-sm"
             onChange={e => {
               myThis.setState({
@@ -114,55 +113,56 @@ class ComponentToPrint extends React.Component {
               return a.values['Date Joined'] > b.values['Date Joined']
                 ? -1
                 : b.values['Date Joined'] > a.values['Date Joined']
-                ? 1
-                : 0;
+                  ? 1
+                  : 0;
             })
-            .map((member, index) =>
-              index !== 0 && index % 65 === 0 ? (
-                <div className="barCode pageBreak" key={index}>
-                  <Barcode
-                    value={
-                      member.values['Alternate Barcode'] === undefined ||
-                      member.values['Alternate Barcode'] === '' ||
-                      member.values['Alternate Barcode'] === null
-                        ? member.id.split('-')[4].substring(6, 12)
-                        : member.values['Alternate Barcode']
-                    }
-                    width={1.3}
-                    height={36}
-                    text={
-                      member.values['First Name'].substring(0, 3) +
-                      ' ' +
-                      member.values['Last Name']
-                    }
-                    type={'CODE128'}
-                    font={'monospace'}
-                    textAlign={'center'}
-                    textPosition={'bottom'}
-                    textMargin={2}
-                    fontSize={8}
-                  />
-                </div>
-              ) : (
-                <span className="barCode" key={index}>
-                  <Barcode
-                    value={member.id.split('-')[4].substring(6, 12)}
-                    width={1.3}
-                    height={36}
-                    text={
-                      member.values['First Name'].substring(0, 3) +
-                      ' ' +
-                      member.values['Last Name']
-                    }
-                    type={'CODE128'}
-                    font={'monospace'}
-                    textAlign={'center'}
-                    textPosition={'bottom'}
-                    textMargin={2}
-                    fontSize={8}
-                  />
-                </span>
-              ),
+            .map(
+              (member, index) =>
+                index !== 0 && index % 65 === 0 ? (
+                  <div className="barCode pageBreak" key={index}>
+                    <Barcode
+                      value={
+                        member.values['Alternate Barcode'] === undefined ||
+                        member.values['Alternate Barcode'] === '' ||
+                        member.values['Alternate Barcode'] === null
+                          ? member.id.split('-')[4].substring(6, 12)
+                          : member.values['Alternate Barcode']
+                      }
+                      width={1.3}
+                      height={36}
+                      text={
+                        member.values['First Name'].substring(0, 3) +
+                        ' ' +
+                        member.values['Last Name']
+                      }
+                      type={'CODE128'}
+                      font={'monospace'}
+                      textAlign={'center'}
+                      textPosition={'bottom'}
+                      textMargin={2}
+                      fontSize={8}
+                    />
+                  </div>
+                ) : (
+                  <span className="barCode" key={index}>
+                    <Barcode
+                      value={member.id.split('-')[4].substring(6, 12)}
+                      width={1.3}
+                      height={36}
+                      text={
+                        member.values['First Name'].substring(0, 3) +
+                        ' ' +
+                        member.values['Last Name']
+                      }
+                      type={'CODE128'}
+                      font={'monospace'}
+                      textAlign={'center'}
+                      textPosition={'bottom'}
+                      textMargin={2}
+                      fontSize={8}
+                    />
+                  </span>
+                ),
             )}
         </span>
       </div>
@@ -173,12 +173,12 @@ class ComponentToPrint extends React.Component {
 export class SelfCheckinSetPIN extends Component {
   updateProfileValues = async profile => {
     console.log('updateProfileValues');
-    let profileCopy = {}; //_.cloneDeep(profile);
-    profileCopy = {
-      profileAttributes: profile.profileAttributes,
-    };
-    const { space, serverError } = await CoreAPI.updateProfile({
-      profile: profileCopy,
+    //    let profileCopy = {}; //_.cloneDeep(profile);
+    //    profileCopy = {
+    //      profileAttributes: profile.profileAttributes,
+    //    };
+    const { space, serverError } = await updateProfile({
+      profile: profile,
       include: 'attributesMap',
     });
   };
@@ -284,6 +284,7 @@ export class Settings extends Component {
   constructor(props) {
     super(props);
     this.state = {};
+    this.componentRef = React.createRef();
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {}
@@ -307,16 +308,14 @@ export class Settings extends Component {
           </div>
         </span>
         <span className="details">
-          {Utils.isMemberOf(this.props.profile, 'Role::Program Managers') && (
-            <div style={{ margin: '20px 0px 0px 10px' }} id="setSelfCheckinPin">
-              <div className="row">
-                <SelfCheckinSetPIN
-                  profile={this.props.profile}
-                  space={this.props.space}
-                />
-              </div>
+          <div style={{ margin: '20px 0px 0px 10px' }} id="setSelfCheckinPin">
+            <div className="row">
+              <SelfCheckinSetPIN
+                profile={this.props.profile}
+                space={this.props.space}
+              />
             </div>
-          )}
+          </div>
           {!Utils.isMemberOf(this.props.profile, 'Role::Program Managers') ||
           getAttributeValue(this.props.space, 'Franchisor') === 'YES' ? (
             <div />
@@ -355,7 +354,7 @@ export class Settings extends Component {
               profile={this.props.profile}
               updatingAttribute={this.props.updatingAttribute}
               updateSpaceAttribute={this.props.updateSpaceAttribute}
-            ></ClassesCalendar>
+            />
           )}
           {!Utils.isMemberOf(this.props.profile, 'Role::Program Managers') ||
           getAttributeValue(this.props.space, 'Franchisor') === 'YES' ? (
@@ -391,7 +390,7 @@ export class Settings extends Component {
           this.props.showRecurringBookings ? (
             <p>Loading Recurring Bookings ....</p>
           ) : !this.props.fetchingRecurringBookings &&
-            this.props.showRecurringBookings ? (
+          this.props.showRecurringBookings ? (
             <ManageRecurringBookings
               recurringBookings={this.props.recurringBookings}
               allMembers={this.props.allMembers}
@@ -403,7 +402,7 @@ export class Settings extends Component {
               deleteRecurring={this.props.deleteRecurring}
               space={this.props.space}
               classSchedules={this.props.classSchedules}
-            ></ManageRecurringBookings>
+            />
           ) : (
             <div />
           )}
@@ -434,7 +433,7 @@ export class Settings extends Component {
           {this.props.fetchingClassBookings && this.props.showClassBookings ? (
             <p>Loading Class Bookings ....</p>
           ) : !this.props.fetchingClassBookings &&
-            this.props.showClassBookings ? (
+          this.props.showClassBookings ? (
             <ManageBookings
               classBookings={this.props.classBookings}
               allMembers={this.props.allMembers}
@@ -446,35 +445,36 @@ export class Settings extends Component {
               deleteBooking={this.props.deleteBooking}
               space={this.props.space}
               classSchedules={this.props.classSchedules}
-            ></ManageBookings>
+            />
           ) : (
             <div />
           )}
 
-          {getAttributeValue(this.props.space, 'Franchisor') !== 'YES' && (
-            <div style={{ margin: '20px 0px 0px 10px' }} id="stock-report">
-              <div className="row">
-                <button
-                  type="button"
-                  id="printMemberbarcodes"
-                  className={'btn btn-primary'}
-                  onClick={e => {
-                    this.props.printMemberBarcodes(
-                      this.props.allMembers,
-                      this.props.setPrintingBarcodes,
-                    );
-                    this.props.setShowBarcodes(
-                      this.props.showBarcodes ? false : true,
-                    );
-                  }}
-                >
-                  {this.props.showBarcodes
-                    ? 'Hide Member barcodes'
-                    : 'Show Member barcodes'}
-                </button>
+          {getAttributeValue(this.props.space, 'Franchisor') !== 'YES' &&
+            Utils.isMemberOf(this.props.profile, 'Role::Program Managers') && (
+              <div style={{ margin: '20px 0px 0px 10px' }} id="stock-report">
+                <div className="row">
+                  <button
+                    type="button"
+                    id="printMemberbarcodes"
+                    className={'btn btn-primary'}
+                    onClick={e => {
+                      this.props.printMemberBarcodes(
+                        this.props.allMembers,
+                        this.props.setPrintingBarcodes,
+                      );
+                      this.props.setShowBarcodes(
+                        this.props.showBarcodes ? false : true,
+                      );
+                    }}
+                  >
+                    {this.props.showBarcodes
+                      ? 'Hide Member barcodes'
+                      : 'Show Member barcodes'}
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
           {!this.props.printingBarcodes || !this.props.showBarcodes ? (
             <div />
           ) : (
@@ -483,14 +483,15 @@ export class Settings extends Component {
                 trigger={() => (
                   <span>
                     <button>Print Barcodes!</button>
-                    <br></br>
+                    <br />
                   </span>
                 )}
-                content={() => this.componentRef}
+                content={() => this.componentRef.current}
                 copyStyles={true}
+                onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
               />
               <ComponentToPrint
-                ref={el => (this.componentRef = el)}
+                ref={this.componentRef}
                 allMembers={this.props.allMembers}
               />
             </div>
@@ -502,7 +503,10 @@ export class Settings extends Component {
 }
 
 const enhance = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withHandlers({
     printMemberBarcodes: () => (allMembers, setPrintingBarcodes) => {
       console.log('Printing:' + allMembers.length);

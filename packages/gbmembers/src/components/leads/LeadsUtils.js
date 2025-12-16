@@ -59,14 +59,13 @@ export function substituteFields(text, person, space, profile, journeyEvent) {
   }
   //  var matches = text.match(/\$\{.*?\('(.*?)'\)\}/g);
   var matches = text.match(/\$\{.*?\}/g);
-  var self = this;
   if (matches !== null) {
     matches.forEach(function(value, index) {
       console.log(value);
       if (value.indexOf('spaceAttributes') !== -1) {
         text = text.replace(
           new RegExp(escapeRegExp(value), 'g'),
-          space.attributes[value.split("'")[1]][0],
+          getAttributeValue(space, value.split("'")[1]),
         );
       }
     });

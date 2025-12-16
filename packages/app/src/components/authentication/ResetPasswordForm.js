@@ -1,7 +1,7 @@
 import React from 'react';
 import { compose, withState, withHandlers } from 'recompose';
-import { CoreAPI } from 'react-kinetic-core';
-import { I18n } from '../../I18nProvider';
+import { createSubmission } from '@kineticdata/react';
+import { I18n } from '@kineticdata/react';
 
 const ResetPassword = ({
   handleResetPassword,
@@ -83,7 +83,7 @@ const handleResetPassword = ({
   e.preventDefault();
 
   try {
-    await CoreAPI.createSubmission({
+    await createSubmission({
       kappSlug: 'admin',
       formSlug: 'kinops-reset-password',
       values: {
@@ -91,7 +91,7 @@ const handleResetPassword = ({
         'Display Name': null,
         'Password Reset URL': null,
       },
-      authAssumed: false,
+      public: true,
     });
 
     setShowConfirmation(true);
@@ -102,10 +102,14 @@ const handleResetPassword = ({
   }
 };
 
+const handleEmail = ({ setEmail }) => e => setEmail(e.target.value);
+
 export const ResetPasswordForm = compose(
+  withState('email', 'setEmail', ''),
   withState('error', 'setError', ''),
   withState('showConfirmation', 'setShowConfirmation', false),
   withHandlers({
+    handleEmail,
     handleResetPassword,
   }),
 )(ResetPassword);

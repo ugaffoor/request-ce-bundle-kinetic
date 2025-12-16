@@ -1,6 +1,6 @@
 import React from 'react';
 import { Discussion } from 'discussions';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 export const QueueItemDiscussions = props => {
   const { discussionId, createDiscussion } = props;

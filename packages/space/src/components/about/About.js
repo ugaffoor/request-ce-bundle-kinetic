@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { TimeAgo, PageTitle } from 'common';
 import { Avatar } from 'common';
 import { actions } from '../../redux/modules/about';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const AboutComponent = ({ space, about, loading }) => (
   <div className="page-container page-container--space-about">
@@ -109,7 +109,10 @@ const mapDispatchToProps = {
 };
 
 export const About = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   lifecycle({
     UNSAFE_componentWillMount() {
       this.props.fetchAbout();

@@ -16,7 +16,7 @@ import { AttributeSelectors } from 'common';
 import { LoadingMessage, EmptyMessage, InfoMessage } from './Schedulers';
 import { actions as toastActions } from '../../redux/modules/toasts';
 import { actions } from '../../redux/modules/schedulers';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const SchedulerAgentsComponent = ({
   loading,
@@ -40,83 +40,90 @@ const SchedulerAgentsComponent = ({
 }) => (
   <div className="list-wrapper list-wrapper--agents">
     {loading && !agents && <LoadingMessage />}
-    {!loading && !agents && (
-      <Fragment>
-        <InfoMessage
-          heading="The team for agents is being created."
-          text="This may take a few minutes."
-        />
-        <div className="text-center">
-          <button
-            className="btn btn-primary"
-            onClick={() => {
-              fetchSchedulerAgentsTeam({
-                schedulerName,
-              });
-            }}
-          >
-            <span className="fa fa-refresh" />
-          </button>
-        </div>
-      </Fragment>
-    )}
-    {!loading && agents && agents.memberships.length === 0 && (
-      <Fragment>
-        <EmptyMessage
-          heading="No Agents Found"
-          text="Agents are the users who are assigned to scheduled events."
-        />
-        <div className="text-center">
-          <button className="btn btn-primary" onClick={handleAdd}>
-            <I18n>Add Agent</I18n>
-          </button>
-        </div>
-      </Fragment>
-    )}
-    {!loading && agents && agents.memberships.length > 0 && (
-      <table className="table table-sm table-striped table-agents table--settings">
-        <thead className="header">
-          <tr>
-            <th scope="col">
-              <I18n>Display Name</I18n>
-            </th>
-            <th scope="col">
-              <I18n>Username</I18n>
-            </th>
-            <th className="text-right">
-              <button className="btn btn-primary" onClick={handleAdd}>
-                <I18n>Add Agent</I18n>
-              </button>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {List(agents.memberships)
-            .sortBy(a => a.user.displayName)
-            .map(agent => (
-              <tr key={agent.user.username}>
-                <td scope="row">{agent.user.displayName}</td>
-                <td>{agent.user.username}</td>
-                <td className="text-right">
-                  <Dropdown
-                    toggle={toggleDropdown(agent.user.username)}
-                    isOpen={openDropdown === agent.user.username}
-                  >
-                    <DropdownToggle color="link" className="btn-sm">
-                      <span className="fa fa-ellipsis-h fa-2x" />
-                    </DropdownToggle>
-                    <DropdownMenu right>
-                      <DropdownItem onClick={handleRemove(agent.user.username)}>
-                        <I18n>Remove</I18n>
-                      </DropdownItem>
-                    </DropdownMenu>
-                  </Dropdown>
-                </td>
-              </tr>
-            ))}
-        </tbody>
-      </table>
-    )}
+    {!loading &&
+      !agents && (
+        <Fragment>
+          <InfoMessage
+            heading="The team for agents is being created."
+            text="This may take a few minutes."
+          />
+          <div className="text-center">
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                fetchSchedulerAgentsTeam({
+                  schedulerName,
+                });
+              }}
+            >
+              <span className="fa fa-refresh" />
+            </button>
+          </div>
+        </Fragment>
+      )}
+    {!loading &&
+      agents &&
+      agents.memberships.length === 0 && (
+        <Fragment>
+          <EmptyMessage
+            heading="No Agents Found"
+            text="Agents are the users who are assigned to scheduled events."
+          />
+          <div className="text-center">
+            <button className="btn btn-primary" onClick={handleAdd}>
+              <I18n>Add Agent</I18n>
+            </button>
+          </div>
+        </Fragment>
+      )}
+    {!loading &&
+      agents &&
+      agents.memberships.length > 0 && (
+        <table className="table table-sm table-striped table-agents table--settings">
+          <thead className="header">
+            <tr>
+              <th scope="col">
+                <I18n>Display Name</I18n>
+              </th>
+              <th scope="col">
+                <I18n>Username</I18n>
+              </th>
+              <th className="text-right">
+                <button className="btn btn-primary" onClick={handleAdd}>
+                  <I18n>Add Agent</I18n>
+                </button>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {List(agents.memberships)
+              .sortBy(a => a.user.displayName)
+              .map(agent => (
+                <tr key={agent.user.username}>
+                  <td scope="row">{agent.user.displayName}</td>
+                  <td>{agent.user.username}</td>
+                  <td className="text-right">
+                    <Dropdown
+                      toggle={toggleDropdown(agent.user.username)}
+                      isOpen={openDropdown === agent.user.username}
+                    >
+                      <DropdownToggle color="link" className="btn-sm">
+                        <span className="fa fa-ellipsis-h fa-2x" />
+                      </DropdownToggle>
+                      <DropdownMenu right>
+                        <DropdownItem
+                          onClick={handleRemove(agent.user.username)}
+                        >
+                          <I18n>Remove</I18n>
+                        </DropdownItem>
+                      </DropdownMenu>
+                    </Dropdown>
+                  </td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      )}
 
     {openModal && (
       <Modal isOpen={!!openModal} toggle={toggleModal}>
@@ -334,7 +341,10 @@ const processRemove = ({
 };
 
 export const SchedulerAgents = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(({ scheduler }) => ({
     schedulerName: scheduler ? scheduler.values['Name'] : '',
   })),

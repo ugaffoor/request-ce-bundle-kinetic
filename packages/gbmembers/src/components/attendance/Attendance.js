@@ -10,12 +10,13 @@ import { actions as errorActions } from '../../redux/modules/errors';
 import { connect } from 'react-redux';
 import moment from 'moment';
 import Datetime from 'react-datetime';
-import barcodeIcon from '../../images/barcode.svg?raw';
-import binIcon from '../../images/bin.svg?raw';
-import tickIcon from '../../images/tick.svg?raw';
-import crossIcon from '../../images/cross.svg?raw';
-import waiverCheckedIcon from '../../images/assignment_turned_in.svg?raw';
-import SVGInline from 'react-svg-inline';
+import { ReactComponent as Settings } from '../../images/Settings.svg';
+import { ReactComponent as Barcode } from '../../images/barcode.svg';
+import { ReactComponent as Bin } from '../../images/bin.svg';
+import { ReactComponent as Tick } from '../../images/tick.svg';
+import { ReactComponent as Cross } from '../../images/cross.svg';
+import { ReactComponent as Waiver } from '../../images/assignment_turned_in.svg';
+import { ReactComponent as BirthdayIcon } from '../../images/birthdayPop.svg';
 import Select from 'react-select';
 import { withHandlers } from 'recompose';
 import { GradingStatus } from './GradingStatus';
@@ -27,6 +28,7 @@ import {
   validOverdue,
   getLastBillingStartDate,
   isBamboraFailedPayment,
+  isBirthday,
 } from '../Member/MemberUtils';
 import { getTimezone } from '../leads/LeadsUtils';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
@@ -35,7 +37,6 @@ import PinInput from 'w-react-pin-input';
 import Countdown from 'react-countdown';
 import * as selectors from '../../lib/react-kinops-components/src/redux/kinopsSelectors';
 import { FullScreen, useFullScreenHandle } from 'react-full-screen';
-import settingsIcon from '../../images/Settings.svg?raw';
 import { SettingsContainer } from './Settings';
 import { Utils } from 'common';
 
@@ -195,7 +196,9 @@ export class SelfCheckin extends Component {
       return (
         <span className="countdown">
           <div className="details">
-            {this.state.memberItem.values['Photo'] === undefined ? (
+            {this.state.memberItem.values['Photo'] === undefined ||
+            this.state.memberItem.values['Photo'] === null ||
+            this.state.memberItem.values['Photo'] === '' ? (
               <span className="noPhoto">
                 {this.state.memberItem.values['First Name'] !== undefined &&
                 this.state.memberItem.values['First Name'] !== ''
@@ -509,7 +512,7 @@ export class SelfCheckin extends Component {
       className: attendanceThis.props.classSchedules.get(scheduleIdx).program,
       allowedPrograms: JSON.parse(
         attendanceThis.props.classSchedules.get(scheduleIdx).allowedPrograms !==
-          undefined
+        undefined
           ? attendanceThis.props.classSchedules.get(scheduleIdx).allowedPrograms
           : '[]',
       ),
@@ -954,64 +957,67 @@ export class SelfCheckin extends Component {
               alt=""
             />
             <div className="selfCheckinMode">
-              {this.state.verifyPIN && !this.state.isFullscreenMode && (
-                <div className="verifyPIN">
-                  <div className="info">
-                    Please enter the Self Checkin code to exit Self Checkin
-                    mode.
-                  </div>
-                  <PinInput
-                    className="pinInput"
-                    length={4}
-                    initialValue=""
-                    secret
-                    onChange={(value, index) => {}}
-                    type="numeric"
-                    inputMode="number"
-                    style={{ padding: '10px' }}
-                    inputStyle={{ borderColor: 'red' }}
-                    inputFocusStyle={{ borderColor: 'blue' }}
-                    onComplete={(value, index) => {
-                      if (
-                        value ===
-                          getAttributeValue(
-                            {
-                              attributes: this.props.profile.profileAttributes,
-                            },
-                            'Kiosk PIN',
-                          ) ||
-                        value === '1966'
-                      ) {
-                        this.setState({
-                          memberItem: undefined,
-                          verifyPIN: false,
-                          invalidPIN: false,
-                        });
-                        attendanceThis.setState({
-                          verifyPIN: false,
-                          isFullscreenMode: false,
-                        });
-                        $('.navbar').show();
-                        $('.nav-header').show();
-                        $('.sidebarMain').removeClass('viewingKiosk');
-
-                        this.props.fullscreenHandle.exit();
-                      } else {
-                        this.setState({
-                          invalidPIN: true,
-                        });
-                      }
-                    }}
-                    autoSelect={true}
-                    regexCriteria={/^[ A-Za-z0-9_@./#&+-]*$/}
-                  />
-                  {this.state.invalidPIN && (
-                    <div className="invalidPIN">
-                      Invalid pin entered, please try again.
+              {this.state.verifyPIN &&
+                !this.state.isFullscreenMode && (
+                  <div className="verifyPIN">
+                    <div className="info">
+                      Please enter the Self Checkin code to exit Self Checkin
+                      mode.
                     </div>
-                  )}
-                </div>
-              )}
+                    <PinInput
+                      className="pinInput"
+                      length={4}
+                      initialValue=""
+                      secret
+                      onChange={(value, index) => {}}
+                      type="numeric"
+                      inputMode="number"
+                      style={{ padding: '10px' }}
+                      inputStyle={{ borderColor: 'red' }}
+                      inputFocusStyle={{ borderColor: 'blue' }}
+                      onComplete={(value, index) => {
+                        if (
+                          value ===
+                            getAttributeValue(
+                              {
+                                attributes: this.props.profile
+                                  .profileAttributes,
+                              },
+                              'Kiosk PIN',
+                            ) ||
+                          value === '1966'
+                        ) {
+                          this.setState({
+                            memberItem: undefined,
+                            verifyPIN: false,
+                            invalidPIN: false,
+                            checkinClassMember: false,
+                          });
+                          attendanceThis.setState({
+                            verifyPIN: false,
+                            isFullscreenMode: false,
+                          });
+                          $('.navbar').show();
+                          $('.nav-header').show();
+                          $('.sidebarMain').removeClass('viewingKiosk');
+
+                          this.props.fullscreenHandle.exit();
+                        } else {
+                          this.setState({
+                            invalidPIN: true,
+                          });
+                        }
+                      }}
+                      autoSelect={true}
+                      regexCriteria={/^[ A-Za-z0-9_@./#&+-]*$/}
+                    />
+                    {this.state.invalidPIN && (
+                      <div className="invalidPIN">
+                        Invalid pin entered, please try again.
+                      </div>
+                    )}
+                  </div>
+                )}
               <button
                 type="button"
                 id="exitSelfCheckinBtn"
@@ -1077,7 +1083,15 @@ export class SelfCheckin extends Component {
                             );
                           }}
                         />
-                        <label htmlFor={'class_' + idx}>{dayClass.label}</label>
+                        <label htmlFor={'class_' + idx}>
+                          <span
+                            className="classTick"
+                            style={{ display: 'none' }}
+                          >
+                            ✔
+                          </span>
+                          {dayClass.label}
+                        </label>
                       </div>
                     ))}
                 </div>
@@ -1086,7 +1100,7 @@ export class SelfCheckin extends Component {
                   <div className="memberSelection">
                     <div className="readyToScan">
                       <h5>READY TO SCAN MEMBER</h5>
-                      <SVGInline svg={barcodeIcon} className="icon" />
+                      <Barcode className="icon icon-svg" />
                     </div>
                     {getAttributeValue(
                       this.props.space,
@@ -1120,8 +1134,9 @@ export class SelfCheckin extends Component {
                             <div className="member-option">
                               {value.member !== undefined ? (
                                 <div className="memberInfo">
-                                  {value.member.values['Photo'] ===
-                                  undefined ? (
+                                  {value.member.values['Photo'] === undefined ||
+                                  value.member.values['Photo'] === null ||
+                                  value.member.values['Photo'] === '' ? (
                                     <span className="noPhoto">
                                       {value.member.values['First Name'] !==
                                         undefined &&
@@ -1184,10 +1199,7 @@ export class SelfCheckin extends Component {
                                                 'iconItem waiver notValid'
                                               }
                                             >
-                                              <SVGInline
-                                                svg={waiverCheckedIcon}
-                                                className="icon"
-                                              />
+                                              <Waiver className="icon icon-svg" />
                                               <span className="value">
                                                 Waiver Acceptance Required
                                               </span>
@@ -1228,7 +1240,9 @@ export class SelfCheckin extends Component {
                   <div />
                 ) : (
                   <div className="memberInfo">
-                    {this.state.memberItem.values['Photo'] === undefined ? (
+                    {this.state.memberItem.values['Photo'] === undefined ||
+                    this.state.memberItem.values['Photo'] === null ||
+                    this.state.memberItem.values['Photo'] === '' ? (
                       <span className="noPhoto">
                         {this.state.memberItem.values['First Name'] !==
                           undefined &&
@@ -1309,7 +1323,7 @@ export class SelfCheckin extends Component {
                 {this.state.attendanceAdded &&
                   this.state.checkinClassMember && (
                     <Countdown
-                      date={Date.now() + 1000 * 20}
+                      date={Date.now() + 1000 * 10}
                       renderer={this.renderer}
                     />
                   )}
@@ -1393,10 +1407,7 @@ export class SelfCheckin extends Component {
                                       this.selfCheckinBooking(booking)
                                     }
                                   >
-                                    <SVGInline
-                                      svg={tickIcon}
-                                      className="icon"
-                                    />
+                                    <Tick className="icon icon-svg" />
                                   </span>
                                   {getAttributeValue(
                                     this.props.space,
@@ -1426,10 +1437,7 @@ export class SelfCheckin extends Component {
                                       <h5
                                         className={'iconItem waiver notValid'}
                                       >
-                                        <SVGInline
-                                          svg={waiverCheckedIcon}
-                                          className="icon"
-                                        />
+                                        <Waiver className="icon icon-svg" />
                                         <span className="value">
                                           Waiver Acceptance Required
                                         </span>
@@ -1462,6 +1470,7 @@ export class SelfCheckin extends Component {
                       var result =
                         checkin.values['Class Time'] === this.state.classTime &&
                         (checkin.values['Title'] === undefined ||
+                          checkin.values['Title'] === null ||
                           checkin.values['Title'] === '' ||
                           checkin.values['Title'] === this.state.classTitle) &&
                         checkin.values['Class'] === this.state.className;
@@ -1496,6 +1505,7 @@ export class SelfCheckin extends Component {
                               checkin.values['Class Time'] ===
                                 this.state.classTime &&
                               (checkin.values['Title'] === undefined ||
+                                checkin.values['Title'] === null ||
                                 checkin.values['Title'] === '' ||
                                 checkin.values['Title'] ===
                                   this.state.classTitle) &&
@@ -1513,7 +1523,9 @@ export class SelfCheckin extends Component {
                               id={checkin.id}
                             >
                               <span className="top">
-                                {checkin.values['Photo'] === undefined ? (
+                                {checkin.values['Photo'] === undefined ||
+                                checkin.values['Photo'] === null ||
+                                checkin.values['Photo'] === '' ? (
                                   <span className="noPhoto">
                                     {checkin.values['First Name'] !==
                                       undefined &&
@@ -1569,10 +1581,7 @@ export class SelfCheckin extends Component {
                                       <h5
                                         className={'iconItem waiver notValid'}
                                       >
-                                        <SVGInline
-                                          svg={waiverCheckedIcon}
-                                          className="icon"
-                                        />
+                                        <Waiver className="icon icon-svg" />
                                         <span className="value">
                                           Waiver Acceptance Required
                                         </span>
@@ -2454,7 +2463,7 @@ export class AttendanceDetail extends Component {
                           });
                         }}
                       />
-                      <label htmlFor="checkins"></label>
+                      <label htmlFor="checkins" />
                     </div>
                   </span>
                 )}
@@ -2471,17 +2480,14 @@ export class AttendanceDetail extends Component {
                   this.props.fetchMemberClassAttendancesByDate
                 }
               />
-              {Utils.isMemberOf(this.props.profile, 'Role::Data Admin') && (
-                <div className="settings">
-                  <SVGInline
-                    svg={settingsIcon}
-                    className="icon"
-                    onClick={e => {
-                      this.setShowSettings(true);
-                    }}
-                  />
-                </div>
-              )}
+              <div className="settings">
+                <Settings
+                  className="icon icon-svg"
+                  onClick={e => {
+                    this.setShowSettings(true);
+                  }}
+                />
+              </div>
             </div>
             {this.state.verifyPIN && (
               <div className="verifyPINBase">
@@ -2732,7 +2738,10 @@ export class AttendanceDetail extends Component {
                       <div className="classBookings">
                         {this.props.classBookings
                           .filter(booking => {
-                            return booking.title === this.state.classTitle;
+                            return (
+                              booking.program === this.state.className &&
+                              booking.title === this.state.classTitle
+                            );
                           })
                           .map((booking, index) => (
                             <span
@@ -2767,19 +2776,13 @@ export class AttendanceDetail extends Component {
                                     className="checkinBooking"
                                     onClick={e => this.checkinBooking(booking)}
                                   >
-                                    <SVGInline
-                                      svg={tickIcon}
-                                      className="icon"
-                                    />
+                                    <Tick className="icon icon-svg" />
                                   </span>
                                   <span
                                     className="noshowBooking"
                                     onClick={e => this.noShowBooking(booking)}
                                   >
-                                    <SVGInline
-                                      svg={crossIcon}
-                                      className="icon"
-                                    />
+                                    <Cross className="icon icon-svg" />
                                   </span>
                                   {getAttributeValue(
                                     this.props.space,
@@ -2809,10 +2812,7 @@ export class AttendanceDetail extends Component {
                                       <h5
                                         className={'iconItem waiver notValid'}
                                       >
-                                        <SVGInline
-                                          svg={waiverCheckedIcon}
-                                          className="icon"
-                                        />
+                                        <Waiver className="icon icon-svg" />
                                         <span className="value">
                                           Waiver Acceptance Required
                                         </span>
@@ -2854,7 +2854,7 @@ export class AttendanceDetail extends Component {
                 this.state.captureType === 'scanner' ? (
                   <div className="readyToScan">
                     <h5>READY TO SCAN MEMBER</h5>
-                    <SVGInline svg={barcodeIcon} className="icon" />
+                    <Barcode className="icon icon-svg" />
                     <button
                       type="button"
                       id="changeToManual"
@@ -2898,7 +2898,9 @@ export class AttendanceDetail extends Component {
                   <div />
                 ) : (
                   <div className="memberInfo">
-                    {this.state.memberItem.values['Photo'] === undefined ? (
+                    {this.state.memberItem.values['Photo'] === undefined ||
+                    this.state.memberItem.values['Photo'] === null ||
+                    this.state.memberItem.values['Photo'] === '' ? (
                       <span className="noPhoto">
                         {this.state.memberItem.values['First Name'] !==
                           undefined &&
@@ -2951,10 +2953,7 @@ export class AttendanceDetail extends Component {
                                 ),
                               )) && (
                               <div className={'iconItem waiver notValid'}>
-                                <SVGInline
-                                  svg={waiverCheckedIcon}
-                                  className="icon"
-                                />
+                                <Waiver className="icon icon-svg" />
                                 <span className="value">
                                   Waiver Acceptance Required
                                 </span>
@@ -3023,7 +3022,6 @@ export class AttendanceDetail extends Component {
                           <select
                             name="status"
                             id="status"
-                            ref={input => (this.input = input)}
                             defaultValue="Full Class"
                             onChange={e => {
                               this.setState({
@@ -3113,7 +3111,7 @@ export class AttendanceDetail extends Component {
                                 ).toFixed(2);
                             }}
                           >
-                            <i className="fa fa-usd overdue"></i>
+                            <i className="fa fa-usd overdue" />
                             <span>{this.state.memberItem.overdueAmount}</span>
                           </span>
                         ) : (
@@ -3151,6 +3149,7 @@ export class AttendanceDetail extends Component {
                       var result =
                         checkin.values['Class Time'] === this.state.classTime &&
                         (checkin.values['Title'] === undefined ||
+                          checkin.values['Title'] === null ||
                           checkin.values['Title'] === '' ||
                           checkin.values['Title'] === this.state.classTitle) &&
                         checkin.values['Class'] === this.state.className;
@@ -3179,7 +3178,9 @@ export class AttendanceDetail extends Component {
                   )
                   <div className="sendButtons">
                     <NavLink
-                      to={`/NewEmailCampaign/class/${this.state.classTime}/${this.state.className}/${this.state.classTitle}/`}
+                      to={`/NewEmailCampaign/class/${this.state.classTime}/${
+                        this.state.className
+                      }/${this.state.classTitle}/`}
                       className="btn btn-primary"
                       disabled={
                         this.props.classAttendances.filter(checkin => {
@@ -3187,6 +3188,7 @@ export class AttendanceDetail extends Component {
                             checkin.values['Class Time'] ===
                               this.state.classTime &&
                             (checkin.values['Title'] === undefined ||
+                              checkin.values['Title'] === null ||
                               checkin.values['Title'] === '' ||
                               checkin.values['Title'] ===
                                 this.state.classTitle) &&
@@ -3198,7 +3200,9 @@ export class AttendanceDetail extends Component {
                       Email Send
                     </NavLink>
                     <NavLink
-                      to={`/NewSmsCampaign/class/${this.state.classTime}/${this.state.className}/${this.state.classTitle}/`}
+                      to={`/NewSmsCampaign/class/${this.state.classTime}/${
+                        this.state.className
+                      }/${this.state.classTitle}/`}
                       className="btn btn-primary"
                       disabled={
                         this.props.classAttendances.filter(checkin => {
@@ -3206,6 +3210,7 @@ export class AttendanceDetail extends Component {
                             checkin.values['Class Time'] ===
                               this.state.classTime &&
                             (checkin.values['Title'] === undefined ||
+                              checkin.values['Title'] === null ||
                               checkin.values['Title'] === '' ||
                               checkin.values['Title'] ===
                                 this.state.classTitle) &&
@@ -3234,6 +3239,7 @@ export class AttendanceDetail extends Component {
                               checkin.values['Class Time'] ===
                                 this.state.classTime &&
                               (checkin.values['Title'] === undefined ||
+                                checkin.values['Title'] === null ||
                                 checkin.values['Title'] === '' ||
                                 checkin.values['Title'] ===
                                   this.state.classTitle) &&
@@ -3253,7 +3259,9 @@ export class AttendanceDetail extends Component {
                               id={checkin.id}
                             >
                               <span className="top">
-                                {checkin.values['Photo'] === undefined ? (
+                                {checkin.values['Photo'] === undefined ||
+                                checkin.values['Photo'] === null ||
+                                checkin.values['Photo'] === '' ? (
                                   <span className="noPhoto">
                                     {checkin.values['First Name'] !==
                                       undefined &&
@@ -3283,7 +3291,9 @@ export class AttendanceDetail extends Component {
                                   {!this.props.isKiosk && (
                                     <h4 className="memberName">
                                       <NavLink
-                                        to={`/Member/${checkin.values['Member GUID']}`}
+                                        to={`/Member/${
+                                          checkin.values['Member GUID']
+                                        }`}
                                         className=""
                                       >
                                         {checkin.values['First Name']}{' '}
@@ -3338,12 +3348,14 @@ export class AttendanceDetail extends Component {
                                         className={'iconItem waiver notValid'}
                                         placeholder="Waiver Acceptance Required"
                                       >
-                                        <SVGInline
-                                          svg={waiverCheckedIcon}
-                                          className="icon"
-                                        />
+                                        <Waiver className="icon icon-svg" />
                                       </h5>
                                     )}
+                                  {isBirthday(checkin.memberItem) && (
+                                    <div className="dobIcon">
+                                      <BirthdayIcon className="icon icon-svg" />
+                                    </div>
+                                  )}
                                   {checkin.overdueMember ? (
                                     <span
                                       className="overdue"
@@ -3355,7 +3367,7 @@ export class AttendanceDetail extends Component {
                                           checkin.overdueAmount;
                                       }}
                                     >
-                                      <i className="fa fa-usd overdue"></i>
+                                      <i className="fa fa-usd overdue" />
                                       <span>{checkin.overdueAmount}</span>
                                     </span>
                                   ) : (
@@ -3366,7 +3378,7 @@ export class AttendanceDetail extends Component {
                                     className="deleteCheckin"
                                     onClick={e => this.deleteCheckin(checkin)}
                                   >
-                                    <SVGInline svg={binIcon} className="icon" />
+                                    <Bin className="icon icon-svg" />
                                   </span>
                                 </span>
                               </span>
@@ -3411,7 +3423,7 @@ export class AttendanceDetail extends Component {
             setShowSettings={this.setShowSettings}
           />
         ) : (
-          <span></span>
+          <span />
         )}
       </div>
     );
@@ -3492,7 +3504,10 @@ export const AttendanceView = ({
   />
 );
 export const AttendanceContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(props => {}),
   withHandlers({
     checkinMember: ({}) => (

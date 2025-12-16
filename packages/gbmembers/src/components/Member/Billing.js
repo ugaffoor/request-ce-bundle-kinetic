@@ -20,7 +20,6 @@ import MomentLocaleUtils, {
 import {
   getLocalePreference,
   handleChange,
-  handleFormattedChange,
   handleMultiSelectChange,
   getJson,
 } from './MemberUtils';
@@ -49,10 +48,9 @@ import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { actions as appActions } from '../../redux/modules/memberApp';
 import { actions as posActions } from '../../redux/modules/pos';
 import { actions as servicesActions } from '../../redux/modules/services';
-import printerIcon from '../../images/Print.svg?raw';
+import { ReactComponent as PrinterIcon } from '../../images/Print.svg';
 import { MembershipReceiptToPrint } from './MembershipReceiptToPrint';
 import ReactToPrint from 'react-to-print';
-import SVGInline from 'react-svg-inline';
 import axios from 'axios';
 import { ReceiptToPrint } from './ReceiptToPrint';
 import ScaleLoader from 'react-spinners/ScaleLoader';
@@ -62,6 +60,17 @@ import { getTimezone } from '../leads/LeadsUtils';
 import { isBamboraFailedPayment } from '../Member/MemberUtils';
 import mail from '../../images/mail.png';
 import { confirm } from '../helpers/Confirmation';
+import { loadStripe } from '@stripe/stripe-js';
+import {
+  CardElement,
+  Elements,
+  useStripe,
+  useElements,
+  confirmCardPayment,
+  paymentIntents,
+} from '@stripe/react-stripe-js';
+import { loadStripeTerminal } from '@stripe/terminal-js/pure';
+import uuid from 'uuid';
 
 <script src="../helpers/jquery.multiselect.js" />;
 
@@ -210,6 +219,55 @@ const handleSaveBillingChanges = (
   }
 };
 
+var payNowThis;
+var StripeTerminal = undefined;
+var terminal = undefined;
+var discoveredReaders;
+var paymentIntentId;
+
+var verifyDeviceCount = 0;
+var updatingCard = false;
+
+const StripePaymentCapture = () => {
+  const stripe = useStripe();
+  const elements = useElements();
+  return (
+    <CardElement
+      onReady={e => {
+        $('.__PrivateStripeElement iframe').css('width', '400px');
+      }}
+      onChange={e => {
+        console.log('Complete:' + e.complete);
+        if (e.complete) {
+          payNowThis.setState({
+            processing: false,
+            cvc: 'NA',
+            expiry: 'NA',
+            number: 'NA',
+            stripe: stripe,
+            stripeElements: elements,
+          });
+        }
+      }}
+      options={{
+        hidePostalCode: true,
+        style: {
+          base: {
+            fontSize: '16px',
+            color: '#424770',
+            '::placeholder': {
+              color: '#aab7c4',
+            },
+          },
+          invalid: {
+            color: '#9e2146',
+          },
+        },
+      }}
+    />
+  );
+};
+
 const copyToClipboard = str => {
   const el = document.createElement('textarea'); // Create a <textarea> element
   el.value = str; // Set its value to the string that you want copied
@@ -231,7 +289,6 @@ const copyToClipboard = str => {
   }
 };
 
-var payNowThis;
 class PayNow extends Component {
   constructor(props) {
     super(props);
@@ -243,6 +300,8 @@ class PayNow extends Component {
     this.completePayment = this.completePayment.bind(this);
     this.disablePayNow = this.disablePayNow.bind(this);
     this.loadBamboraCheckout = this.loadBamboraCheckout.bind(this);
+
+    this.componentRef = React.createRef();
 
     axios
       .get('https://api.ipify.org/')
@@ -311,7 +370,7 @@ class PayNow extends Component {
       };
     }
   }
-  componentWillReceiveProps(nextProps) {}
+  UNSAFE_componentWillReceiveProps(nextProps) {}
   componentWillMount() {}
 
   completePayment() {}
@@ -422,11 +481,20 @@ class PayNow extends Component {
     }
     return disable;
   }
+  disablePaymentType() {
+    var disable = true;
+    if (this.state.paymentAmount !== '' && this.state.paymentAmount !== '0') {
+      disable = false;
+    }
+    return disable;
+  }
   processPayment() {
+    var billingSystem = getAttributeValue(this.props.space, 'Billing Company');
     var posSystem = getAttributeValue(this.props.space, 'POS System');
     var posServiceURL = getAttributeValue(this.props.space, 'POS Service URL');
     var schoolName = getAttributeValue(this.props.space, 'School Name');
     if (
+      billingSystem === 'Bambora' ||
       posSystem === 'Bambora' ||
       (posSystem === 'Square' &&
         getAttributeValue(this.props.space, 'Billing Company') === 'Bambora')
@@ -438,8 +506,204 @@ class PayNow extends Component {
         schoolName,
         this.props.memberItem.values['Billing Customer Id'],
       );
+    } else if (posSystem === 'Stripe') {
+      this.processStripePayment(
+        posServiceURL,
+        this.props.spaceSlug,
+        posSystem,
+        this.props.memberItem.values['Billing Customer Id'],
+        schoolName,
+        uuid(),
+        this,
+      );
     }
   }
+  fetchPaymentIntentClientSecret = async (
+    posServiceURL,
+    spaceSlug,
+    posSystem,
+    customerId,
+    currency,
+    amount,
+    email,
+    posThis,
+  ) => {
+    var clientSecret = 'NOT_FOUND';
+    var data = JSON.stringify({
+      space: spaceSlug,
+      billingService: posSystem,
+      type: 'payment',
+      customerId: customerId,
+      currency: currency,
+      amount: amount,
+      email: email,
+      subscriptionType:
+        this.state.feeType === 'Membership Fee'
+          ? 'Manual Membership Payment'
+          : 'Manual Registration Fee',
+    });
+
+    var config = {
+      method: 'post',
+      url: posServiceURL.replace('processPOS', 'fetchPaymentIntent'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: data,
+    };
+    await axios(config)
+      .then(function(response) {
+        clientSecret = response.data.data.clientSecret;
+      })
+      .catch(err => {
+        var error = 'Connection Error';
+        if (err.response) {
+          // client received an error response (5xx, 4xx)
+          error = err.response;
+        } else if (err.request) {
+          // client never received a response, or request never left
+          error = err.request;
+        }
+        posThis.setState({
+          status: '10',
+          status_message: 'System Error',
+          errors: error,
+          auth_code: '',
+          transaction_id: '',
+          processingComplete: true,
+          processing: false,
+          datetime: moment(),
+        });
+        console.log(error);
+        clientSecret = 'ERROR';
+      });
+    return clientSecret;
+  };
+  processStripePayment = async (
+    posServiceURL,
+    spaceSlug,
+    posSystem,
+    customerId,
+    schoolName,
+    uuid,
+    posThis,
+  ) => {
+    console.log('processStripePayment');
+    // Fetch the intent client secret from the backend
+    const clientSecret = await this.fetchPaymentIntentClientSecret(
+      posServiceURL,
+      spaceSlug,
+      posSystem,
+      customerId,
+      posThis.props.currency,
+      posThis.state.paymentAmount,
+      posThis.state.email,
+      posThis,
+    );
+
+    if (clientSecret === 'NOT_FOUND') {
+      posThis.setState({
+        status: '10',
+        status_message: 'System Error',
+        errors: 'Client not obtained',
+        auth_code: '',
+        transaction_id: '',
+        processingComplete: true,
+        processing: false,
+        datetime: moment(),
+      });
+      return;
+    }
+
+    const payload = await posThis.state.stripe.confirmCardPayment(
+      clientSecret,
+      {
+        payment_method: {
+          card: posThis.state.stripeElements.getElement(CardElement),
+          billing_details: {
+            name: posThis.state.firstName + ' ' + posThis.state.lastName,
+          },
+        },
+      },
+    );
+
+    if (payload.error) {
+      posThis.setState({
+        status: '10',
+        status_message: payload.error.message,
+        errors: payload.error.message,
+        auth_code: payload.error.code,
+        transaction_id: '',
+        processingComplete: true,
+        processing: false,
+        datetime: moment(),
+      });
+    } else {
+      payNowThis.completeStripePayment(
+        payload.paymentIntent.id,
+        payNowThis,
+        posThis.props.currency,
+      );
+    }
+  };
+
+  completeStripePayment = async (id, posThis, currency) => {
+    var chargeId = '';
+
+    var posSystem = getAttributeValue(this.props.space, 'POS System');
+    var posServiceURL = getAttributeValue(this.props.space, 'POS Service URL');
+    var spaceSlug = this.props.spaceSlug;
+
+    var data = JSON.stringify({
+      space: spaceSlug,
+      billingService: posSystem,
+      currency: currency,
+      id: id,
+    });
+
+    var config = {
+      method: 'post',
+      url: posServiceURL.replace('processPOS', 'fetchPaymentIntent'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: data,
+    };
+    await axios(config)
+      .then(function(response) {
+        chargeId = response.data.data.chargeId;
+        posThis.setState({
+          status: '1',
+          auth_code: chargeId,
+          transaction_id: chargeId,
+          processingComplete: true,
+          processing: false,
+          datetime: moment(),
+        });
+      })
+      .catch(err => {
+        var error = 'Connection Error';
+        if (err.response) {
+          // client received an error response (5xx, 4xx)
+          error = err.response;
+        } else if (err.request) {
+          // client never received a response, or request never left
+          error = err.request;
+        }
+        posThis.setState({
+          status: '10',
+          status_message: 'System Error',
+          errors: error,
+          auth_code: '',
+          transaction_id: '',
+          processingComplete: true,
+          processing: false,
+          datetime: moment(),
+        });
+        console.log(error);
+      });
+  };
+
   processCashPayment() {
     let values = {};
     values['Member ID'] = this.props.memberItem.values['Member ID'];
@@ -753,6 +1017,250 @@ class PayNow extends Component {
     };
     customCheckoutController.init();
   }
+  unexpectedDisconnect() {
+    // In this function, your app should notify the user that the reader disconnected.
+    // You can also include a way to attempt to reconnect to a reader.
+    console.log('Disconnected from reader');
+    payNowThis.setState({
+      deviceStatus: 'ERROR',
+    });
+  }
+  stripeTerminalCancelCapture() {
+    terminal.cancelCollectPaymentMethod().then(function(result) {
+      console.log('Canceled Capture');
+      payNowThis.setState({
+        status: '',
+        status_message: undefined,
+        paymentIntentId: undefined,
+      });
+    });
+  }
+  fetchStripeTerminalPaymentIntentClientSecret(amount) {
+    var url = getAttributeValue(this.props.space, 'POS Service URL');
+    url = url.replace('processPOS', 'terminalCheckout');
+    var args = {
+      space: this.props.space.slug,
+      billingService: 'Stripe',
+      amount: amount,
+      currency: this.props.currency,
+      deviceId: 'dummy',
+      note: 'dummy',
+      referenceId: 'dummy',
+      receiptEmail: this.state.email,
+    };
+    const bodyContent = JSON.stringify(args);
+    return fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: bodyContent,
+    })
+      .then(function(response) {
+        return response.json();
+      })
+      .then(function(data) {
+        if (data.error === 100) {
+          payNowThis.setState({
+            status: '0',
+            deviceStatus: 'ERROR',
+            status_message: data.errorMessage,
+          });
+          return null;
+        } else {
+          data = JSON.parse(data.data);
+          payNowThis.setState({
+            paymentIntentId: data.paymentIntentId,
+          });
+          return data.client_secret;
+        }
+      });
+  }
+  stripeTerminalCapture(paymentIntentId) {
+    var url = getAttributeValue(this.props.space, 'POS Service URL');
+    url = url.replace('processPOS', 'checkTerminalCheckout');
+    var args = {
+      space: this.props.space.slug,
+      billingService: 'Stripe',
+      checkoutId: paymentIntentId,
+      checkCount: 1,
+    };
+    const bodyContent = JSON.stringify(args);
+    return fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: bodyContent,
+    })
+      .then(function(response) {
+        return response.json();
+      })
+      .then(function(data) {
+        console.log('server.capture', data);
+        if (data.error === 100) {
+          payNowThis.setState({
+            status: '0',
+            deviceStatus: 'ERROR',
+            status_message: data.errorMessage,
+          });
+          return null;
+        } else {
+          data = JSON.parse(data.data);
+
+          payNowThis.setState({
+            processing: false,
+            processingComplete: true,
+            status: '1',
+            errors: '',
+            auth_code: '',
+            transaction_id: data.id,
+            datetime: moment(),
+          });
+
+          payNowThis.completePayment();
+        }
+      });
+  }
+
+  stripeTerminalCollectPayment() {
+    console.log('In collectPayment.');
+    this.fetchStripeTerminalPaymentIntentClientSecret(
+      Math.round(this.state.paymentAmount * 100),
+    ).then(function(client_secret) {
+      //        terminal.setSimulatorConfiguration({
+      //          testCardNumber: '4242424242424242',
+      //        });
+      //        terminal.setSimulatorConfiguration({testCardNumber: '4000000000000002'}); // charge_declined
+      //        terminal.setSimulatorConfiguration({testCardNumber: '4000000000009995'}); // charge_declined_insufficient_funds
+      //        terminal.setSimulatorConfiguration({testCardNumber: '4001007020000002'}); // offline_pin_cvm
+
+      terminal
+        .collectPaymentMethod(client_secret, {
+          stripeAccount: getAttributeValue(
+            payNowThis.props.space,
+            'Stripe Account ID',
+          ),
+        })
+        .then(function(result) {
+          if (result.error) {
+            payNowThis.setState({
+              status: '0',
+              deviceStatus: 'ERROR',
+              status_message: result.error.message,
+            });
+          } else {
+            console.log('terminal.collectPaymentMethod', result.paymentIntent);
+            terminal
+              .processPayment(result.paymentIntent)
+              .then(function(result) {
+                if (result.error) {
+                  console.log(result.error);
+                  payNowThis.setState({
+                    status: '0',
+                    deviceStatus: 'ERROR',
+                    status_message: result.error.message,
+                  });
+                } else if (result.paymentIntent) {
+                  paymentIntentId = result.paymentIntent.id;
+                  console.log('terminal.processPayment', result.paymentIntent);
+                  payNowThis.stripeTerminalCapture(paymentIntentId);
+                }
+              });
+          }
+        });
+    });
+  }
+  stripeTerminalCreateReaderLocationHandler() {
+    var url = getAttributeValue(this.props.space, 'POS Service URL');
+    url = url.replace('processPOS', 'createDeviceID');
+    var schoolAddress = getAttributeValue(this.props.space, 'School Address');
+    var addressInfo = schoolAddress.split(',');
+
+    var args = {
+      space: this.props.space.slug,
+      billingService: 'Stripe',
+      deviceId: this.state.stripeTerminalCode,
+      name: getAttributeValue(this.props.space, 'School Name'),
+      address: addressInfo.length > 0 ? addressInfo[0].trim() : 'unknown',
+      city: getAttributeValue(this.props.space, 'School City'),
+      state: getAttributeValue(this.props.space, 'School State'),
+      postcode: getAttributeValue(this.props.space, 'School Postcode'),
+      country: getAttributeValue(this.props.space, 'School Country Code'),
+    };
+    const bodyContent = JSON.stringify(args);
+    return fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: bodyContent,
+    })
+      .then(function(response) {
+        return response.json();
+      })
+      .then(function(data) {
+        console.log('server.capture', data);
+        if (data.error === 100) {
+          payNowThis.setState({
+            status: '0',
+            deviceStatus: 'ERROR',
+            status_message: data.errorMessage,
+          });
+          return null;
+        } else {
+          data = JSON.parse(data.data);
+
+          payNowThis.setState({
+            processing: false,
+          });
+          payNowThis.stripeTerminalDiscoverReaderHandler();
+        }
+      });
+  }
+  stripeTerminalDiscoverReaderHandler() {
+    var config = { simulated: false };
+    terminal.discoverReaders(config).then(function(discoverResult) {
+      if (discoverResult.error) {
+        console.log('Failed to discover: ', discoverResult.error);
+        payNowThis.setState({
+          status: '0',
+          deviceStatus: 'ERROR',
+          status_message: discoverResult.error.message,
+        });
+      } else if (discoverResult.discoveredReaders.length === 0) {
+        console.log('No available readers.');
+        payNowThis.setState({
+          status: '1',
+          deviceStatus: 'CAPTURE',
+          status_message:
+            'No readers have been detected. Please ensure you have a Terminal configured against your location.',
+        });
+      } else {
+        discoveredReaders = discoverResult.discoveredReaders;
+        console.log('terminal.discoverReaders', discoveredReaders);
+
+        var selectedReader = discoveredReaders[0];
+        terminal.connectReader(selectedReader).then(function(connectResult) {
+          if (connectResult.error) {
+            console.log('Failed to connect: ', connectResult.error);
+            payNowThis.setState({
+              status: '0',
+              deviceStatus: 'ERROR',
+              status_message: connectResult.error.message,
+            });
+          } else {
+            console.log('Connected to reader: ', connectResult.reader.label);
+            console.log('terminal.connectReader', connectResult);
+            payNowThis.setState({
+              deviceStatus: 'PAIRED',
+            });
+            payNowThis.stripeTerminalCollectPayment();
+          }
+        });
+      }
+    });
+  }
 
   render() {
     return (
@@ -801,7 +1309,6 @@ class PayNow extends Component {
                   <div className="label">Membership Amount</div>
                   <div className="value">
                     <NumberFormat
-                      ref={input => (this.input = input)}
                       value={this.state.paymentAmount}
                       onValueChange={(values, e) => {
                         var { formattedValue, value } = values;
@@ -813,7 +1320,9 @@ class PayNow extends Component {
                   </div>
                 </span>
               </span>
-              {this.state.posProfileID !== undefined &&
+              {getAttributeValue(this.props.space, 'POS System') ===
+                'Bambora' &&
+              this.state.posProfileID !== undefined &&
               this.state.posProfileID !== null &&
               this.state.posProfileID !== '' &&
               this.props.posCardsLoading ? (
@@ -822,23 +1331,28 @@ class PayNow extends Component {
                 </span>
               ) : (
                 <span className="paymentType">
-                  <div className="label">Saved Card</div>
-                  <table className="savedCards">
-                    <tr>
-                      <th>Number</th>
-                      <th>Expiry Month</th>
-                      <th>Year</th>
-                      <th>Type</th>
-                    </tr>
-                    {this.props.posCards.map((card, index) => (
-                      <tr>
-                        <td>{card.number}</td>
-                        <td>{card.expiryMonth}</td>
-                        <td>{card.expiryYear}</td>
-                        <td>{card.cardType}</td>
-                      </tr>
-                    ))}
-                  </table>
+                  {getAttributeValue(this.props.space, 'POS System') ===
+                    'Bambora' && (
+                    <span>
+                      <div className="label">Saved Card</div>
+                      <table className="savedCards">
+                        <tr>
+                          <th>Number</th>
+                          <th>Expiry Month</th>
+                          <th>Year</th>
+                          <th>Type</th>
+                        </tr>
+                        {this.props.posCards.map((card, index) => (
+                          <tr>
+                            <td>{card.number}</td>
+                            <td>{card.expiryMonth}</td>
+                            <td>{card.expiryYear}</td>
+                            <td>{card.cardType}</td>
+                          </tr>
+                        ))}
+                      </table>
+                    </span>
+                  )}
                   <div className="radioGroup">
                     {this.props.posCards.length > 0 && (
                       <label htmlFor="savedCreditCard" className="radio">
@@ -864,18 +1378,104 @@ class PayNow extends Component {
                         Use Saved Card
                       </label>
                     )}
-                    <label htmlFor="useAnotherCreditCard" className="radio">
-                      <input
-                        id="useAnotherCreditCard"
-                        name="savedcard"
-                        type="radio"
-                        onChange={e => {
-                          this.setState({ payment: 'creditcard' });
-                        }}
-                        onClick={async e => {}}
-                      />
-                      Use Another Credit Card
-                    </label>
+                    {getAttributeValue(this.props.space, 'POS System') ===
+                      'Bambora' ||
+                      (getAttributeValue(this.props.space, 'POS System') ===
+                        'Stripe' && (
+                        <label htmlFor="useAnotherCreditCard" className="radio">
+                          <input
+                            id="useAnotherCreditCard"
+                            name="savedcard"
+                            type="radio"
+                            onChange={e => {
+                              this.setState({ payment: 'creditcard' });
+                            }}
+                            onClick={async e => {}}
+                          />
+                          Use Another Credit Card
+                        </label>
+                      ))}
+                    {getAttributeValue(this.props.space, 'POS System') ===
+                      'StripeTerminal' && (
+                      <Elements
+                        stripe={loadStripe(
+                          getAttributeValue(
+                            this.props.space,
+                            'POS Stripe Publishable Key',
+                          ),
+                        )}
+                      >
+                        <label htmlFor="captureStripe" className="radio">
+                          <input
+                            id="captureStripe"
+                            name="savedcard"
+                            type="radio"
+                            checked={
+                              this.state.payment !== undefined &&
+                              this.state.payment === 'capture'
+                            }
+                            disabled={this.disablePaymentType()}
+                            value="Capture"
+                            onChange={e => {
+                              this.setState({
+                                payment: 'capture',
+                                squareCheckoutStatus: '',
+                                processingComplete: false,
+                                paymentIntentId: undefined,
+                              });
+                            }}
+                            onClick={async e => {
+                              StripeTerminal = await loadStripeTerminal();
+                              terminal = StripeTerminal.create({
+                                onFetchConnectionToken: async () => {
+                                  var url = getAttributeValue(
+                                    this.props.space,
+                                    'POS Service URL',
+                                  );
+                                  url = url.replace(
+                                    'processPOS',
+                                    'pairedDevice',
+                                  );
+                                  var args = {
+                                    space: this.props.space.slug,
+                                    billingService: 'Stripe',
+                                  };
+
+                                  const bodyContent = JSON.stringify(args);
+                                  return fetch(url, {
+                                    method: 'POST',
+                                    headers: {
+                                      'Content-Type': 'application/json',
+                                    },
+                                    body: bodyContent,
+                                  })
+                                    .then(function(response) {
+                                      return response.json();
+                                    })
+                                    .then(function(data) {
+                                      data = JSON.parse(data.data);
+                                      if (data.error === 100) {
+                                        this.setState({
+                                          deviceStatus: 'ERROR',
+                                          status_message:
+                                            'Unable to connect to Terminal server',
+                                        });
+                                      } else {
+                                        return data.secret;
+                                      }
+                                    });
+                                },
+                                onUnexpectedReaderDisconnect: this
+                                  .unexpectedDisconnect,
+                              });
+
+                              this.stripeTerminalDiscoverReaderHandler();
+                            }}
+                          />
+                          Capture
+                        </label>
+                      </Elements>
+                    )}
                     <label htmlFor="cash" className="radio">
                       <input
                         id="cash"
@@ -922,11 +1522,11 @@ class PayNow extends Component {
                             content="width=device-width, initial-scale=1"
                           />
                           <div className="card-container">
-                            <div className="row"></div>
+                            <div className="row" />
                           </div>
                           <div className="row">
                             <div className="col-lg-12 text-center">
-                              <div id="feedback"></div>
+                              <div id="feedback" />
                             </div>
                           </div>
                         </span>
@@ -936,24 +1536,48 @@ class PayNow extends Component {
                     </div>
                   </span>
                 )}
-              {this.state.status !== '1' && this.state.status !== '' && (
-                <span className="error">
-                  <span className="statusCode">
-                    <label>Status:</label>
-                    <value>{this.state.status}</value>
-                  </span>
-                  <span className="statusMessage">
-                    <label>Status Message:</label>
-                    <value>{this.state.status_message}</value>
-                  </span>
-                  {this.state.errors !== '' && (
-                    <span className="errors">
-                      <label>Errors:</label>
-                      <value>{this.state.errors}</value>
-                    </span>
-                  )}
+              {this.state.payment === 'creditcard' &&
+              getAttributeValue(this.props.space, 'POS System') === 'Stripe' ? (
+                <span className="creditCard">
+                  <Elements
+                    stripe={loadStripe(
+                      getAttributeValue(
+                        this.props.space,
+                        'POS Stripe Publishable Key',
+                      ),
+                      {
+                        stripeAccount: getAttributeValue(
+                          this.props.space,
+                          'Stripe Account ID',
+                        ),
+                      },
+                    )}
+                  >
+                    <StripePaymentCapture />
+                  </Elements>
                 </span>
+              ) : (
+                <div />
               )}
+              {this.state.status !== '1' &&
+                this.state.status !== '' && (
+                  <span className="error">
+                    <span className="statusCode">
+                      <label>Status:</label>
+                      <value>{this.state.status}</value>
+                    </span>
+                    <span className="statusMessage">
+                      <label>Status Message:</label>
+                      <value>{this.state.status_message}</value>
+                    </span>
+                    {this.state.errors !== '' && (
+                      <span className="errors">
+                        <label>Errors:</label>
+                        <value>{this.state.errors}</value>
+                      </span>
+                    )}
+                  </span>
+                )}
             </span>
           ) : (
             <span className="receipt">
@@ -968,23 +1592,67 @@ class PayNow extends Component {
                 snippets={this.props.snippets}
                 datetime={this.state.datetime}
                 name={this.state.name}
-                ref={el => (this.componentRef = el)}
+                ref={this.componentRef}
               />
               <span className="printReceipt">
                 <ReactToPrint
                   trigger={() => (
-                    <SVGInline
-                      svg={printerIcon}
-                      className="icon barcodePrint"
-                    />
+                    <PrinterIcon className="icon barcodePrint icon-svg" />
                   )}
-                  content={() => this.componentRef}
+                  content={() => this.componentRef.current}
                   pageStyle="@page {size: a4 portrait;margin: 0;}"
+                  onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
                 />
               </span>
             </span>
           )}
           <span className="bottomRow">
+            {this.state.payment === 'capture' &&
+              this.state.status !== '1' &&
+              this.state.status !== '0' &&
+              this.state.paymentIntentId !== undefined &&
+              getAttributeValue(this.props.space, 'POS System') ===
+                'StripeTerminal' && (
+                <div
+                  className="cancelTerminalButton"
+                  onClick={async e => {
+                    terminal
+                      .cancelCollectPaymentMethod()
+                      .then(function(result) {
+                        if (result.error) {
+                          compThis.setState({
+                            status: '0',
+                            deviceStatus: 'ERROR',
+                            status_message: result.error.message,
+                          });
+                        } else {
+                          compThis.setState({
+                            status: '1',
+                            squareCheckoutStatus: 'CANCELED',
+                            status_message: undefined,
+                            paymentIntentId: undefined,
+                          });
+                        }
+                      });
+                  }}
+                >
+                  {this.state.processing ? (
+                    <ScaleLoader
+                      className="processing"
+                      height="35px"
+                      width="16px"
+                      radius="2px"
+                      margin="4px"
+                      color="white"
+                    />
+                  ) : (
+                    <span>
+                      <span className="label">Cancel Payment</span>
+                      <img src={checkoutRightArrowIcon} alt="Cancel Payment" />
+                    </span>
+                  )}
+                </div>
+              )}
             {(!this.state.processingComplete ||
               (this.state.status !== '1' && this.state.status !== '')) &&
               this.state.payment !== 'capture' && (
@@ -1466,6 +2134,9 @@ export class PaymentHistory extends Component {
     );
     let columns = this.getColumns();
     this.rowRecieptsRefs = new Map();
+
+    this.tableComponentRef = React.createRef();
+
     this.state = {
       data,
       columns,
@@ -1495,6 +2166,7 @@ export class PaymentHistory extends Component {
   formatEmailCell(cellInfo) {
     return cellInfo.original.paymentStatus === 'S' ||
       cellInfo.original.paymentStatus === 'paid' ||
+      cellInfo.original.paymentStatus === 'succeeded' ||
       cellInfo.original.paymentStatus === 'Settled' ||
       cellInfo.original.paymentStatus === 'Approved' ||
       cellInfo.original.paymentStatus === 'Cash' ? (
@@ -1533,7 +2205,7 @@ export class PaymentHistory extends Component {
         )}
       </span>
     ) : (
-      <div></div>
+      <div />
     );
   }
   getData(
@@ -1637,16 +2309,21 @@ export class PaymentHistory extends Component {
       typeof this.props.memberItem.values['Refunded Payments'] === 'object'
         ? this.props.memberItem.values['Refunded Payments']
         : this.props.memberItem.values['Refunded Payments']
-        ? JSON.parse(this.props.memberItem.values['Refunded Payments'])
-        : [];
+          ? JSON.parse(this.props.memberItem.values['Refunded Payments'])
+          : [];
 
     const columns = [];
-    if (getAttributeValue(this.props.space, 'Billing Company') === 'Bambora') {
+    if (
+      getAttributeValue(this.props.space, 'Billing Company') === 'Bambora' ||
+      getAttributeValue(this.props.space, 'Billing Company') === 'Stripe'
+    ) {
       columns.push({
         accessor: 'paymentSource',
         Header: 'Type',
         Cell: props => {
-          return props.value !== undefined && props.value.trim() !== ''
+          return props.value !== undefined &&
+            props.value !== null &&
+            props.value.trim() !== ''
             ? props.value
             : 'Membership';
         },
@@ -1758,6 +2435,7 @@ export class PaymentHistory extends Component {
       Cell: row =>
         (row.original.paymentStatus === 'S' ||
           row.original.paymentStatus === 'paid' ||
+          row.original.paymentStatus === 'succeeded' ||
           row.original.paymentStatus === 'Settled' ||
           row.original.paymentStatus === 'Approved' ||
           row.original.paymentStatus === 'Cash') && (
@@ -1776,6 +2454,7 @@ export class PaymentHistory extends Component {
                 payment={row.original}
                 paymentID={row.original['paymentID']}
                 paymentMethod={row.original['paymentMethod']}
+                refundValue={row.original['refundAmount']}
                 status={
                   this.isPaymentRefunded(
                     row.original.paymentID,
@@ -1799,10 +2478,11 @@ export class PaymentHistory extends Component {
             <span className="printReceipt">
               <ReactToPrint
                 trigger={() => (
-                  <SVGInline svg={printerIcon} className="icon barcodePrint" />
+                  <PrinterIcon className="icon barcodePrint icon-svg" />
                 )}
                 content={() => this.rowRecieptsRefs.get(row.original._id)}
                 pageStyle="@page {size: a4 portrait;margin: 0;}"
+                onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
               />
             </span>
           </span>
@@ -1849,10 +2529,9 @@ export class PaymentHistory extends Component {
     ) : (
       <div className="purchaseItemsReport">
         <ReactToPrint
-          trigger={() => (
-            <SVGInline svg={printerIcon} className="icon tablePrint" />
-          )}
-          content={() => this.tableComponentRef}
+          trigger={() => <PrinterIcon className="icon tablePrint icon-svg" />}
+          content={() => this.tableComponentRef.current}
+          onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
         />
         <div className="paymentHistoryTable">
           <ReactTable
@@ -1880,7 +2559,7 @@ export class PaymentHistory extends Component {
         <span style={{ display: 'none' }}>
           <div
             className="printMemberBillingTransactions"
-            ref={el => (this.tableComponentRef = el)}
+            ref={this.tableComponentRef}
           >
             <div className="memberDetails">
               <div className="header">
@@ -1910,7 +2589,7 @@ export class PaymentHistory extends Component {
                   </td>
                 </tr>
                 <tr>
-                  <td className="label"></td>
+                  <td className="label" />
                   <td className="name">
                     {this.props.memberItem.values['Suburb']},{' '}
                     {this.props.memberItem.values['State']}{' '}
@@ -1942,7 +2621,7 @@ export class PaymentHistory extends Component {
                       ))}
                     </tbody>
                   </table>
-                  <br></br>
+                  <br />
                 </span>
               )}
             <div className="memberDetails">
@@ -2078,8 +2757,8 @@ class BillingAudit extends Component {
           typeof props.value === 'object'
             ? objectToString(props.value)
             : props.value
-            ? props.value
-            : '',
+              ? props.value
+              : '',
       },
       { accessor: 'reason', Header: 'Reason' },
     ];
@@ -2543,7 +3222,6 @@ export class BillingInfo extends Component {
                           name="toDate"
                           id="toDate"
                           disabled={true}
-                          ref={input => (this.input = input)}
                           defaultValue={''}
                           value={this.state.renewalToDate.format('L')}
                         />
@@ -2627,7 +3305,9 @@ export class BillingInfo extends Component {
                         ) === 'Bambora' && (
                           <div>
                             <NavLink
-                              to={`/categories/bambora-billing/bambora-submit-billing-changes?id=${this.props.memberItem.id}`}
+                              to={`/categories/bambora-billing/bambora-submit-billing-changes?id=${
+                                this.props.memberItem.id
+                              }`}
                               kappSlug={'services'}
                               className={
                                 'nav-link icon-wrapper btn btn-primary'
@@ -2655,7 +3335,9 @@ export class BillingInfo extends Component {
                             'YES' && (
                             <div>
                               <NavLink
-                                to={`/categories/stripe-billing/stripe-submit-billing-changes?id=${this.props.memberItem.id}`}
+                                to={`/categories/stripe-billing/stripe-submit-billing-changes?id=${
+                                  this.props.memberItem.id
+                                }`}
                                 kappSlug={'services'}
                                 className={
                                   'nav-link icon-wrapper btn btn-primary'
@@ -2681,7 +3363,9 @@ export class BillingInfo extends Component {
                         ) === 'Bambora' && (
                           <div>
                             <NavLink
-                              to={`/categories/bambora-billing/bambora-change-credit-card-details?id=${this.props.memberItem.id}`}
+                              to={`/categories/bambora-billing/bambora-change-credit-card-details?id=${
+                                this.props.memberItem.id
+                              }`}
                               kappSlug={'services'}
                               className={
                                 'nav-link icon-wrapper btn btn-primary'
@@ -2694,6 +3378,30 @@ export class BillingInfo extends Component {
                               }}
                             >
                               Update Credit Card
+                            </NavLink>
+                          </div>
+                        )}
+                        {getAttributeValue(
+                          this.props.space,
+                          'Billing Company',
+                        ) === 'Stripe' && (
+                          <div>
+                            <NavLink
+                              to={`/categories/stripe-billing/stripe-change-payment-type?id=${
+                                this.props.memberItem.id
+                              }`}
+                              kappSlug={'services'}
+                              className={
+                                'nav-link icon-wrapper btn btn-primary'
+                              }
+                              activeClassName="active"
+                              style={{
+                                display: 'inline',
+                                paddingTop: '4px',
+                                paddingBottom: '4px',
+                              }}
+                            >
+                              Update Payment Details
                             </NavLink>
                           </div>
                         )}
@@ -3051,10 +3759,18 @@ export class BillingInfo extends Component {
                                 </td>
                               </tr>
                             )}
-                          {getAttributeValue(
+                          {(getAttributeValue(
                             this.props.space,
                             'Billing Company',
-                          ) === 'Bambora' && (
+                          ) === 'Bambora' ||
+                            getAttributeValue(
+                              this.props.space,
+                              'Billing Company',
+                            ) === 'StripeTerminal' ||
+                            getAttributeValue(
+                              this.props.space,
+                              'Billing Company',
+                            ) === 'Stripe') && (
                             <tr>
                               <td rowSpan="2">
                                 <button
@@ -3478,7 +4194,10 @@ function getResumeDates(nextBillingDate, billingPeriod) {
 }
 
 export const BillingContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(
     ({
       memberItem,

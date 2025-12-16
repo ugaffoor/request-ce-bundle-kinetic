@@ -8,7 +8,7 @@ import { FilterMenuToolbar } from './FilterMenuToolbar';
 import { FilterMenuMobile } from './FilterMenuMobile';
 import { QueueListPagination } from './QueueListPagination';
 import moment from 'moment';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const WallyEmptyMessage = ({ filter }) => {
   if (filter.type === 'adhoc') {
@@ -203,9 +203,7 @@ export const QueueList = ({
           </div>
         ) : (
           <WallyBadFilter
-            message={filterValidations.map((v, i) => (
-              <p key={i}>{v}</p>
-            ))}
+            message={filterValidations.map((v, i) => <p key={i}>{v}</p>)}
           />
         )}
         <QueueListPagination

@@ -1,4 +1,4 @@
-import { CoreAPI } from 'react-kinetic-core';
+import { createSubmission } from '@kineticdata/react';
 
 export const ACTIONS_FORM_SLUG = 'actions';
 
@@ -12,7 +12,7 @@ export const createAction = ({
   successCallback,
   errorCallback,
 }) => {
-  CoreAPI.createSubmission({
+  createSubmission({
     datastore: true,
     formSlug: ACTIONS_FORM_SLUG,
     values: {

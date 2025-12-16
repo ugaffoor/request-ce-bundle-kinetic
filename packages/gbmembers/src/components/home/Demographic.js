@@ -11,8 +11,7 @@ import {
 } from 'recharts';
 import moment from 'moment';
 import { KappNavLink as NavLink } from 'common';
-import crossIcon from '../../images/cross.svg?raw';
-import SVGInline from 'react-svg-inline';
+import { ReactComponent as CrossIcon } from '../../images/cross.svg';
 import ReactTable from 'react-table';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
@@ -1003,7 +1002,7 @@ export class DemographicChart extends Component {
                 })
               }
             >
-              <SVGInline svg={crossIcon} className="icon" />
+              <CrossIcon className="icon icon-svg" />
             </span>
             <ReactTable
               columns={this.getMemberTableColumns()}

@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import ReactSpinner from 'react16-spinjs';
 import moment from 'moment';
 import {
   getJson,
@@ -10,9 +9,8 @@ import {
 import $ from 'jquery';
 import ReactTable from 'react-table';
 import { KappNavLink as NavLink } from 'common';
-import crossIcon from '../../images/cross.svg?raw';
-import SVGInline from 'react-svg-inline';
-import helpIcon from '../../images/help.svg?raw';
+import { ReactComponent as CrossIcon } from '../../images/cross.svg';
+import { ReactComponent as HelpIcon } from '../../images/help.svg';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
 import 'react-day-picker/lib/style.css';
 import MomentLocaleUtils, {
@@ -20,6 +18,7 @@ import MomentLocaleUtils, {
   parseDate,
 } from 'react-day-picker/moment';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
+import ReactTooltip from 'react-tooltip';
 
 var compThis = undefined;
 var twelveMonthRetentionRateData = undefined;
@@ -316,7 +315,7 @@ export class Statistics extends Component {
       } else {
         var statusHistory = JSON.parse(
           member['values']['Status History'] === null ||
-            member['values']['Status History'] === undefined
+          member['values']['Status History'] === undefined
             ? '[]'
             : member['values']['Status History'],
         );
@@ -603,6 +602,9 @@ export class Statistics extends Component {
         introsTotal: [],
         attendedTotal: [],
         convertedTotal: [],
+        meetingTotal: [],
+        meetingCompletedTotal: [],
+        meetingNoAnswerTotal: [],
       };
     }
 
@@ -611,6 +613,10 @@ export class Statistics extends Component {
     let attendedTotal = [];
     let noshowTotal = [];
     let convertedTotal = [];
+    let meetingTotal = [];
+    let meetingCompletedTotal = [];
+    let meetingNoAnswerTotal = [];
+
     if (LCTViewSwitch) {
       let idx = 0;
       leads.forEach(lead => {
@@ -632,10 +638,7 @@ export class Statistics extends Component {
               history[i]['contactMethod'] === 'intro_class'
             ) {
               introsTotal[introsTotal.length] = { lead: lead, idx: i };
-            }
-          }
-          for (i = 0; i < history.length; i++) {
-            if (
+            } else if (
               moment(history[i]['contactDate'], 'YYYY-MM-DD HH:mm').isBetween(
                 fromDate,
                 toDate,
@@ -643,10 +646,7 @@ export class Statistics extends Component {
               history[i]['contactMethod'] === 'attended_class'
             ) {
               attendedTotal[attendedTotal.length] = { lead: lead, idx: i };
-            }
-          }
-          for (i = 0; i < history.length; i++) {
-            if (
+            } else if (
               moment(history[i]['contactDate'], 'YYYY-MM-DD HH:mm').isBetween(
                 fromDate,
                 toDate,
@@ -654,6 +654,36 @@ export class Statistics extends Component {
               history[i]['contactMethod'] === 'noshow_class'
             ) {
               noshowTotal[noshowTotal.length] = lead;
+            } else if (
+              moment(history[i]['contactDate'], 'YYYY-MM-DD HH:mm').isBetween(
+                fromDate,
+                toDate,
+              ) &&
+              history[i]['contactMethod'] === 'meeting'
+            ) {
+              meetingTotal[meetingTotal.length] = { lead: lead, idx: i };
+            } else if (
+              moment(history[i]['contactDate'], 'YYYY-MM-DD HH:mm').isBetween(
+                fromDate,
+                toDate,
+              ) &&
+              history[i]['contactMethod'] === 'meeting_completed'
+            ) {
+              meetingCompletedTotal[meetingCompletedTotal.length] = {
+                lead: lead,
+                idx: i,
+              };
+            } else if (
+              moment(history[i]['contactDate'], 'YYYY-MM-DD HH:mm').isBetween(
+                fromDate,
+                toDate,
+              ) &&
+              history[i]['contactMethod'] === 'meeting_noanswer'
+            ) {
+              meetingNoAnswerTotal[meetingNoAnswerTotal.length] = {
+                lead: lead,
+                idx: i,
+              };
             }
           }
           if (lead.values['Lead State'] === 'Converted') {
@@ -693,10 +723,7 @@ export class Statistics extends Component {
             history[i]['contactMethod'] === 'intro_class'
           ) {
             introsTotal[introsTotal.length] = { lead: lead, idx: i };
-          }
-        }
-        for (i = 0; i < history.length; i++) {
-          if (
+          } else if (
             moment(history[i]['contactDate'], 'YYYY-MM-DD HH:mm').isBetween(
               fromDate,
               toDate,
@@ -704,10 +731,7 @@ export class Statistics extends Component {
             history[i]['contactMethod'] === 'attended_class'
           ) {
             attendedTotal[attendedTotal.length] = { lead: lead, idx: i };
-          }
-        }
-        for (i = 0; i < history.length; i++) {
-          if (
+          } else if (
             moment(history[i]['contactDate'], 'YYYY-MM-DD HH:mm').isBetween(
               fromDate,
               toDate,
@@ -715,6 +739,36 @@ export class Statistics extends Component {
             history[i]['contactMethod'] === 'noshow_class'
           ) {
             noshowTotal[noshowTotal.length] = { lead: lead, idx: i };
+          } else if (
+            moment(history[i]['contactDate'], 'YYYY-MM-DD HH:mm').isBetween(
+              fromDate,
+              toDate,
+            ) &&
+            history[i]['contactMethod'] === 'meeting'
+          ) {
+            meetingTotal[meetingTotal.length] = { lead: lead, idx: i };
+          } else if (
+            moment(history[i]['contactDate'], 'YYYY-MM-DD HH:mm').isBetween(
+              fromDate,
+              toDate,
+            ) &&
+            history[i]['contactMethod'] === 'meeting_completed'
+          ) {
+            meetingCompletedTotal[meetingCompletedTotal.length] = {
+              lead: lead,
+              idx: i,
+            };
+          } else if (
+            moment(history[i]['contactDate'], 'YYYY-MM-DD HH:mm').isBetween(
+              fromDate,
+              toDate,
+            ) &&
+            history[i]['contactMethod'] === 'meeting_noanswer'
+          ) {
+            meetingNoAnswerTotal[meetingNoAnswerTotal.length] = {
+              lead: lead,
+              idx: i,
+            };
           }
         }
         if (lead.values['Lead State'] === 'Converted') {
@@ -739,6 +793,9 @@ export class Statistics extends Component {
       introsTotal: introsTotal,
       attendedTotal: attendedTotal,
       convertedTotal: convertedTotal,
+      meetingTotal: meetingTotal,
+      meetingCompletedTotal: meetingCompletedTotal,
+      meetingNoAnswerTotal: meetingNoAnswerTotal,
     };
   }
   getMemberData(members, fromDate, toDate, overdueRecords) {
@@ -1210,6 +1267,9 @@ export class Statistics extends Component {
     if (this.state.showNewLeads) return 'Leads';
     if (this.state.showScheduledLeads) return 'Intro Scheduled';
     if (this.state.showIntroLeads) return 'Completed Intros';
+    if (this.state.showMeetingLeads) return 'Meetings Scheduled';
+    if (this.state.showMeetingCompletedLeads) return 'Meeting Completed';
+    if (this.state.showMeetingNoAnswerLeads) return 'Meeting No Answer';
   }
   getLeadTableColumns(row) {
     return [
@@ -1751,29 +1811,30 @@ export class Statistics extends Component {
                   });
                 }}
               />
-              <label htmlFor="lctMode"></label>
+              <label htmlFor="lctMode" />
             </div>
             {}
           </div>
-          <SVGInline
-            svg={helpIcon}
-            className="icon help"
-            onClick={e => {
-              $('.lctModeHelp').toggle('');
-            }}
+          <HelpIcon
+            data-for="lctModeHelp"
+            data-tip
+            content=""
+            className="icon help icon-svg"
           />
-          <span className="lctModeHelp">
-            <ul>
-              <li>
-                No - Displays all Leads created in the period, and all Lead
-                events created in the period for any Lead.
-              </li>
-              <li>
-                Yes - Displays all Leads created in the period, but only Lead
-                events created in the period for Leads created in the period.
-              </li>
-            </ul>
-          </span>
+          <ReactTooltip id="lctModeHelp" place="bottom" variant="info">
+            <span className="lctModeHelp">
+              <ul>
+                <li>
+                  No - Displays all Leads created in the period, and all Lead
+                  events created in the period for any Lead.
+                </li>
+                <li>
+                  Yes - Displays all Leads created in the period, but only Lead
+                  events created in the period for Leads created in the period.
+                </li>
+              </ul>
+            </span>
+          </ReactTooltip>
           <div className="statItems">
             <div className="statItem">
               <div className="info">
@@ -1806,7 +1867,7 @@ export class Statistics extends Component {
                     style={{
                       width: '100%',
                     }}
-                  ></div>
+                  />
                 </div>
                 <div className="value">100%</div>
               </div>
@@ -1820,7 +1881,7 @@ export class Statistics extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getLeadTableColumns()}
@@ -1875,7 +1936,7 @@ export class Statistics extends Component {
                             ).toFixed(2)
                           : 0) + '%',
                     }}
-                  ></div>
+                  />
                 </div>
                 <div className="value">
                   {this.state.leadData.leadsTotal.length !== 0
@@ -1898,7 +1959,7 @@ export class Statistics extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getLeadIntroTableColumns()}
@@ -1955,7 +2016,7 @@ export class Statistics extends Component {
                             ).toFixed(2)
                           : 0) + '%',
                     }}
-                  ></div>
+                  />
                 </div>
                 <div className="value">
                   {this.state.leadData.leadsTotal.length !== 0
@@ -1978,7 +2039,7 @@ export class Statistics extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getLeadTableColumns()}
@@ -2035,7 +2096,7 @@ export class Statistics extends Component {
                             ).toFixed(2)
                           : 0) + '%',
                     }}
-                  ></div>
+                  />
                 </div>
                 <div className="value">
                   {this.state.leadData.leadsTotal.length !== 0
@@ -2058,7 +2119,7 @@ export class Statistics extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getMemberTableColumns()}
@@ -2072,6 +2133,241 @@ export class Statistics extends Component {
               )}
             </div>
           </div>
+          {getAttributeValue(this.props.space, 'Allow Meeting Calls') ===
+            'YES' && (
+            <div className="statItems">
+              <div className="statItem" />
+              <div className="statItem">
+                <div className="info">
+                  <div className="label">Meetings Scheduled</div>
+                  <div
+                    className="value"
+                    onClick={e =>
+                      this.setState({
+                        showNewLeads: false,
+                        showScheduledLeads: false,
+                        showIntroLeads: false,
+                        showConvertedLeads: false,
+                        showCancellationsMembers: false,
+                        showPendingCancellationsMembers: false,
+                        showFrozenMembers: false,
+                        showPendingFrozenMembers: false,
+                        showOverdueMembers: false,
+                        showNewMembers: false,
+                        showRententionRates: false,
+                        showMeetingLeads: true,
+                        showMeetingCompletedLeads: false,
+                        showMeetingNoAnswerLeads: false,
+                      })
+                    }
+                  >
+                    {this.state.leadData.meetingTotal.length}
+                  </div>
+                </div>
+                <div className="barDiv">
+                  <div className="bar">
+                    <div
+                      className="percent"
+                      style={{
+                        width: '100%',
+                      }}
+                    />
+                  </div>
+                  <div className="value">100%</div>
+                </div>
+                {this.state.showMeetingLeads && (
+                  <div className="leads">
+                    <span
+                      className="closeLeads"
+                      onClick={e =>
+                        this.setState({
+                          showMeetingLeads: false,
+                        })
+                      }
+                    >
+                      <CrossIcon className="icon icon-svg" />
+                    </span>
+                    <ReactTable
+                      columns={this.getLeadIntroTableColumns()}
+                      data={this.getLeadTableData(
+                        this.state.leadData.meetingTotal,
+                      )}
+                      defaultPageSize={1}
+                      showPagination={false}
+                    />
+                  </div>
+                )}
+              </div>
+              <div className="statItem">
+                <div className="info">
+                  <div className="label">Meeting Completed</div>
+                  <div
+                    className="value"
+                    onClick={e =>
+                      this.setState({
+                        showScheduledLeads: false,
+                        showNewLeads: false,
+                        showIntroLeads: false,
+                        showConvertedLeads: false,
+                        showCancellationsMembers: false,
+                        showPendingCancellationsMembers: false,
+                        showFrozenMembers: false,
+                        showPendingFrozenMembers: false,
+                        showOverdueMembers: false,
+                        showNewMembers: false,
+                        showRententionRates: false,
+                        showMeetingLeads: false,
+                        showMeetingCompletedLeads: true,
+                        showMeetingNoAnswerLeads: false,
+                      })
+                    }
+                  >
+                    {this.state.leadData.meetingCompletedTotal.length}
+                  </div>
+                </div>
+                <div className="barDiv">
+                  <div className="bar">
+                    <div
+                      className={
+                        this.state.leadData.meetingCompletedTotal.length /
+                          this.state.leadData.meetingTotal.length <
+                        0.5
+                          ? 'percent50'
+                          : 'percent'
+                      }
+                      style={{
+                        width:
+                          (this.state.leadData.meetingTotal.length !== 0
+                            ? (
+                                (this.state.leadData.meetingCompletedTotal
+                                  .length /
+                                  this.state.leadData.meetingTotal.length) *
+                                100
+                              ).toFixed(2)
+                            : 0) + '%',
+                      }}
+                    />
+                  </div>
+                  <div className="value">
+                    {this.state.leadData.meetingTotal.length !== 0
+                      ? (
+                          (this.state.leadData.meetingCompletedTotal.length /
+                            this.state.leadData.meetingTotal.length) *
+                          100
+                        ).toFixed(2)
+                      : 0}
+                    %
+                  </div>
+                </div>
+                {this.state.showMeetingCompletedLeads && (
+                  <div className="leads">
+                    <span
+                      className="closeLeads"
+                      onClick={e =>
+                        this.setState({
+                          showMeetingCompletedLeads: false,
+                        })
+                      }
+                    >
+                      <CrossIcon className="icon icon-svg" />
+                    </span>
+                    <ReactTable
+                      columns={this.getLeadIntroTableColumns()}
+                      data={this.getLeadTableData(
+                        this.state.leadData.meetingCompletedTotal,
+                      )}
+                      defaultPageSize={1}
+                      showPagination={false}
+                    />
+                  </div>
+                )}
+              </div>
+              <div className="statItem">
+                <div className="info">
+                  <div className="label">Meeting Not Answered</div>
+                  <div
+                    className="value"
+                    onClick={e =>
+                      this.setState({
+                        showIntroLeads: false,
+                        showNewLeads: false,
+                        showScheduledLeads: false,
+                        showConvertedLeads: false,
+                        showCancellationsMembers: false,
+                        showPendingCancellationsMembers: false,
+                        showFrozenMembers: false,
+                        showPendingFrozenMembers: false,
+                        showOverdueMembers: false,
+                        showNewMembers: false,
+                        showRententionRates: false,
+                        showMeetingLeads: false,
+                        showMeetingCompletedLeads: false,
+                        showMeetingNoAnswerLeads: true,
+                      })
+                    }
+                  >
+                    {this.state.leadData.meetingNoAnswerTotal.length}
+                  </div>
+                </div>
+                <div className="barDiv">
+                  <div className="bar">
+                    <div
+                      className={
+                        this.state.leadData.meetingNoAnswerTotal.length /
+                          this.state.leadData.meetingTotal.length <
+                        0.5
+                          ? 'percent50'
+                          : 'percent'
+                      }
+                      style={{
+                        width:
+                          (this.state.leadData.meetingNoAnswerTotal.length !== 0
+                            ? (
+                                (this.state.leadData.meetingNoAnswerTotal
+                                  .length /
+                                  this.state.leadData.meetingTotal.length) *
+                                100
+                              ).toFixed(2)
+                            : 0) + '%',
+                      }}
+                    />
+                  </div>
+                  <div className="value">
+                    {this.state.leadData.meetingTotal.length !== 0
+                      ? (
+                          (this.state.leadData.meetingNoAnswerTotal.length /
+                            this.state.leadData.meetingTotal.length) *
+                          100
+                        ).toFixed(2)
+                      : 0}
+                    %
+                  </div>
+                </div>
+                {this.state.showMeetingNoAnswerLeads && (
+                  <div className="leads">
+                    <span
+                      className="closeLeads"
+                      onClick={e =>
+                        this.setState({
+                          showMeetingNoAnswerLeads: false,
+                        })
+                      }
+                    >
+                      <CrossIcon className="icon icon-svg" />
+                    </span>
+                    <ReactTable
+                      columns={this.getLeadIntroTableColumns()}
+                      data={this.getLeadTableData(
+                        this.state.leadData.meetingNoAnswerTotal,
+                      )}
+                      defaultPageSize={1}
+                      showPagination={false}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
         <div className="memberStatistics">
           <div className="statItems">
@@ -2109,7 +2405,7 @@ export class Statistics extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getMemberTableColumns()}
@@ -2156,7 +2452,7 @@ export class Statistics extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getMemberTableColumns()}
@@ -2203,7 +2499,7 @@ export class Statistics extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getMemberTableColumns()}
@@ -2248,7 +2544,7 @@ export class Statistics extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getMemberTableColumns()}
@@ -2334,7 +2630,7 @@ export class Statistics extends Component {
                       })
                     }
                   >
-                    <SVGInline svg={crossIcon} className="icon" />
+                    <CrossIcon className="icon icon-svg" />
                   </span>
                   <ReactTable
                     columns={this.getMemberTableColumns()}
@@ -2407,12 +2703,11 @@ export class Statistics extends Component {
                         })
                       }
                     >
-                      <SVGInline svg={crossIcon} className="icon" />
+                      <CrossIcon className="icon icon-svg" />
                     </span>
                     <div className="retentionRates">
-                      <SVGInline
-                        svg={helpIcon}
-                        className="icon help"
+                      <HelpIcon
+                        className="icon help icon-svg"
                         onClick={e => {
                           $('.retentionRateHelp').toggle('');
                         }}
@@ -2582,7 +2877,7 @@ export class Statistics extends Component {
                         })
                       }
                     >
-                      <SVGInline svg={crossIcon} className="icon" />
+                      <CrossIcon className="icon icon-svg" />
                     </span>
                     <ReactTable
                       columns={this.getMemberTableColumns()}

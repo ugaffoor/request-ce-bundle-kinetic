@@ -2,7 +2,7 @@ import React from 'react';
 import { KappLink as Link, TimeAgo, Avatar } from 'common';
 import { StatusContent } from '../shared/StatusContent';
 import { buildFilterPath } from '../../redux/modules/queueApp';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const AssignmentParagraph = ({ values }) => (
   <span className="submission__assignment">
@@ -56,7 +56,9 @@ export const QueueListItemSmall = ({ queueItem, filter }) => {
           <StatusContent queueItem={queueItem} />
           <div className="submission__handler">
             <I18n
-              context={`kapps.${queueItem.form.kapp.slug}.forms.${queueItem.form.slug}`}
+              context={`kapps.${queueItem.form.kapp.slug}.forms.${
+                queueItem.form.slug
+              }`}
             >
               {queueItem.form.name}
             </I18n>{' '}

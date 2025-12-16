@@ -25,7 +25,7 @@ export const App = ({ loading, isKiosk, space, profile }) => (
           rel="icon"
           href="https://us-gbfms-files.s3.us-east-2.amazonaws.com/favicon.ico"
           type="image/x-icon"
-        ></link>
+        />
       }
     </Helmet>
     {loading ? (

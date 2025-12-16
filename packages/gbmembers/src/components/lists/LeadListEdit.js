@@ -76,7 +76,10 @@ export const ListEditView = ({
 );
 
 export const LeadListEditContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(() => {
     return {};
   }),
@@ -509,7 +512,6 @@ export class ListEditHome extends Component {
                         className="form-control"
                         multiple
                         id="status"
-                        ref={input => (this.input = input)}
                         style={{ height: 'auto' }}
                       >
                         {[
@@ -642,7 +644,6 @@ export class ListEditHome extends Component {
                         id="fromAge"
                         name="fromAge"
                         type="text"
-                        ref={input => (this.input = input)}
                         className="form-control form-control-sm"
                       />
                     </div>
@@ -652,7 +653,6 @@ export class ListEditHome extends Component {
                         id="toAge"
                         name="toAge"
                         type="text"
-                        ref={input => (this.input = input)}
                         className="form-control form-control-sm"
                       />
                     </div>
@@ -673,7 +673,6 @@ export class ListEditHome extends Component {
                           className="form-check-input"
                           name="gender"
                           value="Male"
-                          ref={input => (this.input = input)}
                         />{' '}
                         Male
                       </label>
@@ -685,7 +684,6 @@ export class ListEditHome extends Component {
                           className="form-check-input"
                           name="gender"
                           value="Female"
-                          ref={input => (this.input = input)}
                         />{' '}
                         Female
                       </label>
@@ -701,7 +699,6 @@ export class ListEditHome extends Component {
                             className="form-check-input"
                             name="gender"
                             value="Prefer not to answer"
-                            ref={input => (this.input = input)}
                           />{' '}
                           Prefer not to answer
                         </label>
@@ -718,7 +715,6 @@ export class ListEditHome extends Component {
                             className="form-check-input"
                             name="gender"
                             value="Other"
-                            ref={input => (this.input = input)}
                           />{' '}
                           Other
                         </label>
@@ -742,7 +738,6 @@ export class ListEditHome extends Component {
                         className="form-control"
                         multiple
                         id="program"
-                        ref={input => (this.input = input)}
                         style={{ height: 'auto' }}
                       >
                         {this.props.programs.map(program => (
@@ -776,7 +771,6 @@ export class ListEditHome extends Component {
                         className="form-control"
                         multiple
                         id="leadReferred"
-                        ref={input => (this.input = input)}
                         style={{ height: 'auto' }}
                       >
                         {this.props.leadSourceValues.map((value, index) => {
@@ -805,11 +799,7 @@ export class ListEditHome extends Component {
                       <label htmlFor="sourceReference1">
                         Source Reference 1&nbsp;
                       </label>
-                      <select
-                        className="form-control"
-                        id="sourceReference1"
-                        ref={input => (this.input = input)}
-                      >
+                      <select className="form-control" id="sourceReference1">
                         <option value="" />
                         {this.getReferenceMap(
                           this.props.allLeads,
@@ -826,11 +816,7 @@ export class ListEditHome extends Component {
                       <label htmlFor="sourceReference2">
                         Source Reference 2&nbsp;
                       </label>
-                      <select
-                        className="form-control"
-                        id="sourceReference2"
-                        ref={input => (this.input = input)}
-                      >
+                      <select className="form-control" id="sourceReference2">
                         <option value="" />
                         {this.getReferenceMap(
                           this.props.allLeads,
@@ -847,11 +833,7 @@ export class ListEditHome extends Component {
                       <label htmlFor="sourceReference3">
                         Source Reference 3&nbsp;
                       </label>
-                      <select
-                        className="form-control"
-                        id="sourceReference3"
-                        ref={input => (this.input = input)}
-                      >
+                      <select className="form-control" id="sourceReference3">
                         <option value="" />
                         {this.getReferenceMap(
                           this.props.allLeads,
@@ -868,11 +850,7 @@ export class ListEditHome extends Component {
                       <label htmlFor="sourceReference4">
                         Source Reference 4&nbsp;
                       </label>
-                      <select
-                        className="form-control"
-                        id="sourceReference4"
-                        ref={input => (this.input = input)}
-                      >
+                      <select className="form-control" id="sourceReference4">
                         <option value="" />
                         {this.getReferenceMap(
                           this.props.allLeads,
@@ -906,7 +884,6 @@ export class ListEditHome extends Component {
                         className="form-control"
                         multiple
                         id="specificLeads"
-                        ref={input => (this.input = input)}
                         style={{ height: 'auto' }}
                       >
                         {this.props.allLeads
@@ -936,7 +913,6 @@ export class ListEditHome extends Component {
                     className="form-control"
                     style={{ width: '50%' }}
                     id="listName"
-                    ref={input => (this.input = input)}
                     defaultValue={
                       this.state.listToBeUpdated
                         ? this.state.listToBeUpdated.name

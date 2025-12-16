@@ -10,7 +10,7 @@ export const withPayload = type => payload => ({ type, payload });
  * Should return undefined if attributes are missing or there is no attribute
  * value for the given attrName. It supports both attribute structures (arrays
  * that are returned directly from the API and objects that are returned by the
- * helpers in react-kinetic-core).
+ * helpers in @kineticdata/react).
  *
  * @param model: { attributes }
  * @param attrName
@@ -31,7 +31,14 @@ function updateSpaceAttribute(attrs, attrName, attrValue) {
   if (isarray(attrs)) {
     if (attrs.filter(a => a.name === attrName).map(a => a.values[0])) {
       let idx = attrs.findIndex(a => a.name === attrName);
-      attrs[idx].values[0] = attrValue;
+      if (idx != -1) {
+        attrs[idx].values[0] = attrValue;
+      } else {
+        attrs[attrs.length] = {
+          name: attrName,
+          values: [attrValue],
+        };
+      }
     } else {
       attrs[attrs.length] = { name: attrName, values: [attrValue] };
     }

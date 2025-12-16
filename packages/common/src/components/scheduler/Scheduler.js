@@ -18,7 +18,11 @@ import {
   DropdownMenu,
 } from 'reactstrap';
 import { PageTitle, Constants, Moment } from 'common';
-import { CoreAPI, CoreForm } from 'react-kinetic-core';
+import {
+  searchSubmissions,
+  SubmissionSearch,
+  CoreForm,
+} from '@kineticdata/react';
 import moment from 'moment';
 import { LoadingMessage, ErrorMessage, InfoMessage } from './Schedulers';
 import { SchedulerManagers } from './SchedulerManagers';
@@ -37,7 +41,7 @@ import {
   selectHasRoleSchedulerAdmin,
   selectHasRoleSchedulerManager,
 } from '../../redux/selectors';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const globals = import('common/globals');
 
@@ -152,16 +156,17 @@ const SchedulerComponent = ({
 
         <div className="content-wrapper">
           {loading && !currentLoaded && <LoadingMessage />}
-          {!loading && errors.length > 0 && (
-            <ErrorMessage
-              heading="Failed to retrieve scheduler."
-              text={errors.map((e, i) => (
-                <div key={`error-${i}`}>
-                  <I18n>{e}</I18n>
-                </div>
-              ))}
-            />
-          )}
+          {!loading &&
+            errors.length > 0 && (
+              <ErrorMessage
+                heading="Failed to retrieve scheduler."
+                text={errors.map((e, i) => (
+                  <div key={`error-${i}`}>
+                    <I18n>{e}</I18n>
+                  </div>
+                ))}
+              />
+            )}
           {currentLoaded &&
             (mode !== 'edit' ? (
               <Fragment>
@@ -229,7 +234,9 @@ const SchedulerComponent = ({
                           <I18n>Reservation Timeout</I18n>
                         </label>
                         <div>
-                          <span>{`${scheduler.values['Reservation Timeout']} `}</span>
+                          <span>{`${
+                            scheduler.values['Reservation Timeout']
+                          } `}</span>
                           <I18n>minutes</I18n>
                         </div>
                       </div>
@@ -253,7 +260,9 @@ const SchedulerComponent = ({
                             <I18n>Scheduling Window</I18n>
                           </label>
                           <div>
-                            <span>{`${scheduler.values['Scheduling Window']} `}</span>
+                            <span>{`${
+                              scheduler.values['Scheduling Window']
+                            } `}</span>
                             <I18n>days</I18n>
                           </div>
                         </div>
@@ -269,7 +278,9 @@ const SchedulerComponent = ({
                         <I18n>{scheduler.values['Location']}</I18n>{' '}
                         {scheduler.values['Latitude'] && (
                           <span className="text-muted">
-                            {`(${scheduler.values['Latitude']}, ${scheduler.values['Longitude']})`}
+                            {`(${scheduler.values['Latitude']}, ${
+                              scheduler.values['Longitude']
+                            })`}
                           </span>
                         )}
                       </div>
@@ -468,8 +479,8 @@ const handleSchedulerDelete = ({
   push,
 }) => () => {
   setOpenConfirm(false);
-  CoreAPI.searchSubmissions({
-    search: new CoreAPI.SubmissionSearch(true)
+  searchSubmissions({
+    search: new SubmissionSearch(true)
       .limit(1000)
       .index('values[Scheduler Id],values[Date],values[Time]')
       .eq('values[Scheduler Id]', scheduler.values['Id'])
@@ -510,7 +521,10 @@ const handleSchedulerDelete = ({
 };
 
 export const Scheduler = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('openConfirm', 'setOpenConfirm', false),
   withState('optionsOpen', 'setOptionsOpen', false),
   withState('previousMode', 'setPreviousMode', ''),

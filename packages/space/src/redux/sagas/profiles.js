@@ -1,27 +1,32 @@
 import { takeEvery, call, put } from 'redux-saga/effects';
 import { actions, types } from '../modules/profiles';
-import { CoreAPI } from 'react-kinetic-core';
+import { fetchProfile, fetchUser, updateProfile } from '@kineticdata/react';
 
 const PROFILE_INCLUDES =
   'attributes,profileAttributes,memberships,memberships.team,memberships.team.attributes,memberships.team.memberships,memberships.team.memberships.user';
 
 export function* fetchProfileSaga({ payload }) {
-  const { serverError, profile, user } = payload
-    ? yield call(CoreAPI.fetchUser, {
-        include: PROFILE_INCLUDES,
-        username: payload,
-      })
-    : yield call(CoreAPI.fetchProfile, { include: PROFILE_INCLUDES });
+  try {
+    const { serverError, profile, user } = payload
+      ? yield call(fetchUser, {
+          include: PROFILE_INCLUDES,
+          username: payload,
+        })
+      : yield call(fetchProfile, { include: PROFILE_INCLUDES });
 
-  if (serverError) {
-    yield put(actions.setProfileError(serverError));
-  } else {
-    yield put(actions.setProfile(user || profile));
+    if (serverError) {
+      yield put(actions.setProfileError(serverError));
+    } else {
+      yield put(actions.setProfile(user || profile));
+    }
+  } catch (error) {
+    console.log('Error in fetchProfileSaga: ' + util.inspect(error));
+    yield put(errorActions.addError([error], 'fetchProfileSaga'));
   }
 }
 
 export function* updateProfileSaga({ payload }) {
-  const { serverError, profile } = yield call(CoreAPI.updateProfile, {
+  const { serverError, profile } = yield call(updateProfile, {
     include: PROFILE_INCLUDES,
     profile: payload,
   });

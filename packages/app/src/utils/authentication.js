@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { bundle } from 'react-kinetic-core';
+import { bundle } from '@kineticdata/react';
 
 export const login = (username, password) =>
   axios.post(

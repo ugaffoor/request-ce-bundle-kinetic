@@ -1,5 +1,9 @@
 import { select, call, put, takeEvery } from 'redux-saga/effects';
-import { CoreAPI } from 'react-kinetic-core';
+import {
+  SubmissionSearch,
+  searchSubmissions,
+  updateSubmission,
+} from '@kineticdata/react';
 import $ from 'jquery';
 
 import { types, actions } from '../modules/members';
@@ -24,12 +28,13 @@ const util = require('util');
 
 export function* fetchMembers(action) {
   try {
-    const search = new CoreAPI.SubmissionSearch()
+    const search = new SubmissionSearch()
       .includes(['details', 'values'])
       .limit(1000)
       .build();
 
-    const { submissions } = yield call(CoreAPI.searchSubmissions, {
+    const { submissions } = yield call(searchSubmissions, {
+      get: true,
       form: 'member',
       kapp: 'gbmembers',
       search,
@@ -43,7 +48,7 @@ export function* fetchMembers(action) {
 
 export function* updateCurrentMember(action) {
   try {
-    const { submission } = yield call(CoreAPI.updateSubmission, {
+    const { submission } = yield call(updateSubmission, {
       id: action.payload.id,
       values: action.payload.memberItem.values,
     });
@@ -67,88 +72,98 @@ export function* updateCurrentMember(action) {
 }
 
 export function* fetchBillingInfo(action) {
-  if (
-    action.payload.billingRef === undefined ||
-    action.payload.billingRef === ''
-  ) {
-    yield put(actions.setBillingInfo({}));
-  } else {
+  try {
+    if (
+      action.payload.billingRef === undefined ||
+      action.payload.billingRef === ''
+    ) {
+      yield put(actions.setBillingInfo({}));
+    } else {
+      const kineticBillingServerUrl = yield select(getBillingServerUrl);
+      var args = {
+        customerId: action.payload.billingRef,
+        space: spaceSlug,
+        billingService: billingCompany,
+      };
+      axios
+        .post(kineticBillingServerUrl + getBillingInfoUrl, args)
+        .then(result => {
+          if (result.data.error && result.data.error > 0) {
+            console.log(result.data.errorMessage);
+          } else {
+            action.payload.setBillingInfo(result.data.data);
+          }
+        })
+        .catch(error => {
+          console.log(error.response);
+        });
+      yield put(actions.setDummy());
+    }
+  } catch (error) {
+    console.log('Error in fetchBillingInfo: ' + util.inspect(error));
+  }
+}
+
+export function* fetchBillingInfoAfterRegistration(action) {
+  try {
     const kineticBillingServerUrl = yield select(getBillingServerUrl);
+    const username = yield select(getUserName);
     var args = {
       customerId: action.payload.billingRef,
       space: spaceSlug,
       billingService: billingCompany,
     };
+    console.log('action:' + action.payload);
     axios
       .post(kineticBillingServerUrl + getBillingInfoUrl, args)
       .then(result => {
         if (result.data.error && result.data.error > 0) {
           console.log(result.data.errorMessage);
         } else {
-          action.payload.setBillingInfo(result.data.data);
+          // Update memberItem values from billingInfo
+          action.payload.memberItem.values['Billing Customer Reference'] =
+            result.data.data.customerReference;
+          action.payload.memberItem.values['Billing Customer Id'] =
+            result.data.data.customerBillingId;
+          action.payload.memberItem.values['Billing Payment Type'] =
+            result.data.data.paymentMethod;
+          action.payload.memberItem.values['Billing Payment Period'] =
+            result.data.data.paymentPeriod;
+          action.payload.memberItem.values['Payment Schedule'] = {
+            period: 'Fortnightly',
+            amount: result.data.data.paymentAmountInCents / 100,
+          };
+
+          let changes = getBillingChanges(action.payload.memberItem);
+          changes.push({
+            date: moment().format(contact_date_format),
+            user: username,
+            action: 'Setup Billing',
+            from: null,
+            to:
+              'Setup Member Billing with payments of [' +
+              result.data.data.paymentAmountInCents / 100 +
+              ']',
+          });
+          action.payload.memberItem.values['Billing Changes'] = changes;
+
+          action.payload.updateMember({
+            id: action.payload.memberItem.id,
+            memberItem: action.payload.memberItem,
+            myThis: action.payload.memberItem.myThis,
+            fetchMembers: action.payload.fetchMembers,
+          });
         }
       })
       .catch(error => {
         console.log(error.response);
       });
     yield put(actions.setDummy());
+  } catch (error) {
+    console.log(
+      'Error in fetchBillingInfoAfterRegistration: ' + util.inspect(error),
+    );
   }
-}
-
-export function* fetchBillingInfoAfterRegistration(action) {
-  const kineticBillingServerUrl = yield select(getBillingServerUrl);
-  const username = yield select(getUserName);
-  var args = {
-    customerId: action.payload.billingRef,
-    space: spaceSlug,
-    billingService: billingCompany,
-  };
-  console.log('action:' + action.payload);
-  axios
-    .post(kineticBillingServerUrl + getBillingInfoUrl, args)
-    .then(result => {
-      if (result.data.error && result.data.error > 0) {
-        console.log(result.data.errorMessage);
-      } else {
-        // Update memberItem values from billingInfo
-        action.payload.memberItem.values['Billing Customer Reference'] =
-          result.data.data.customerReference;
-        action.payload.memberItem.values['Billing Customer Id'] =
-          result.data.data.customerBillingId;
-        action.payload.memberItem.values['Billing Payment Type'] =
-          result.data.data.paymentMethod;
-        action.payload.memberItem.values['Billing Payment Period'] =
-          result.data.data.paymentPeriod;
-        action.payload.memberItem.values['Payment Schedule'] = {
-          period: 'Fortnightly',
-          amount: result.data.data.paymentAmountInCents / 100,
-        };
-
-        let changes = getBillingChanges(action.payload.memberItem);
-        changes.push({
-          date: moment().format(contact_date_format),
-          user: username,
-          action: 'Setup Billing',
-          from: null,
-          to:
-            'Setup Member Billing with payments of [' +
-            result.data.data.paymentAmountInCents / 100 +
-            ']',
-        });
-        action.payload.memberItem.values['Billing Changes'] = changes;
-
-        action.payload.updateMember({
-          id: action.payload.memberItem.id,
-          memberItem: action.payload.memberItem,
-          myThis: action.payload.memberItem.myThis,
-          fetchMembers: action.payload.fetchMembers,
-        });
-      }
-    })
-    .catch(error => {
-      console.log(error.response);
-    });
-  yield put(actions.setDummy());
 }
 
 export function* registerBillingMember(action) {
@@ -161,7 +176,7 @@ export function* registerBillingMember(action) {
       /.(?=.{4,}$)/g,
       '*',
     );
-    const { submission } = yield call(CoreAPI.updateSubmission, {
+    const { submission } = yield call(updateSubmission, {
       id: action.payload.billingInfo['id'],
       values: action.payload.billingInfo.values,
     });

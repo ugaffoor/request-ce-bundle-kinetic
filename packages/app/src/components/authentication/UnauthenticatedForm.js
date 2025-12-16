@@ -1,10 +1,10 @@
 import React, { Fragment } from 'react';
-import { CoreForm } from 'react-kinetic-core';
+import { CoreForm } from '@kineticdata/react';
 import { connect } from 'react-redux';
 import { push } from 'connected-react-router';
 import { compose, withHandlers, withState } from 'recompose';
 import { parse } from 'query-string';
-import { I18n } from '../../I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 import { PageTitle } from 'common';
 
@@ -16,6 +16,7 @@ const globals = import('common/globals');
 
 const UnauthenticatedFormComponent = props => {
   const {
+    isPublic,
     kappSlug,
     formSlug,
     submissionId,
@@ -44,6 +45,7 @@ const UnauthenticatedFormComponent = props => {
           {submissionId ? (
             <Fragment>
               <CoreForm
+                public={isPublic}
                 onUnauthorized={handleUnauthorized}
                 submission={submissionId}
                 globals={globals}
@@ -54,6 +56,7 @@ const UnauthenticatedFormComponent = props => {
           ) : (
             <Fragment>
               <CoreForm
+                public={isPublic}
                 onUnauthorized={handleUnauthorized}
                 kapp={kappSlug}
                 form={formSlug}
@@ -108,7 +111,10 @@ export const handleLoaded = props => form => {
 };
 
 export const UnauthenticatedForm = compose(
-  connect(mapStateToProps, { push }),
+  connect(
+    mapStateToProps,
+    { push },
+  ),
   withState('formName', 'setFormName', ''),
   withHandlers({ handleCreated, handleLoaded }),
 )(UnauthenticatedFormComponent);

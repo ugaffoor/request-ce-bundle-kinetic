@@ -10,19 +10,18 @@ import {
 } from 'reactstrap';
 import { KappNavLink as NavLink } from 'common';
 import classNames from 'classnames';
-import { bundle } from 'react-kinetic-core';
-import SVGInline from 'react-svg-inline';
+import { bundle } from '@kineticdata/react';
 
 import { getAttributeValue } from '../../utils';
 import { AlertsContainer } from './AlertsContainer';
 import { ProfileContainer } from './ProfileContainer';
 import { CompanyLogoContainer } from '../../../../../components/CompanyLogo';
-import hamburgerIcon from '../../../../../images/hamburger.svg';
-import homeIcon from '../../../../../images/home3.svg';
-import attendanceIcon from '../../../../../images/flag.svg';
-import leadsIcon from '../../../../../images/smile.svg';
-import sendIcon from '../../../../../images/envelop.svg';
-import gradingIcon from '../../../../../images/star-full.svg';
+import { ReactComponent as HamburgerIcon } from '../../../../../images/hamburger.svg';
+import { ReactComponent as HomeIcon } from '../../../../../images/home3.svg';
+import { ReactComponent as AttendanceIcon } from '../../../../../images/flag.svg';
+import { ReactComponent as LeadsIcon } from '../../../../../images/smile.svg';
+import { ReactComponent as SendIcon } from '../../../../../images/envelop.svg';
+import { ReactComponent as GradingIcon } from '../../../../../images/star-full.svg';
 
 const BuildKappLink = ({ kapp, nameOverride = kapp.name }) => (
   <DropdownItem tag="a" href={bundle.kappLocation(kapp.slug)}>
@@ -60,7 +59,7 @@ export const Header = ({
             tabIndex="0"
             onClick={toggleSidebarOpen}
           >
-            <SVGInline svg={hamburgerIcon} className="icon" />
+            <HamburgerIcon className="icon icon-svg" />
           </NavLink>
         </NavItem>
       )}
@@ -116,7 +115,7 @@ export const Header = ({
             strict
             activeClassName="active"
           >
-            <SVGInline svg={homeIcon} className="icon" />
+            <HomeIcon className="icon icon-svg" />
             <span className="appName">Dashboard</span>
           </NavLink>
         </NavItem>
@@ -128,7 +127,7 @@ export const Header = ({
           strict
           activeClassName="active"
         >
-          <SVGInline svg={attendanceIcon} className="icon" />
+          <AttendanceIcon className="icon icon-svg" />
           <span className="appName">Attendance</span>
         </NavLink>
       </NavItem>
@@ -139,7 +138,7 @@ export const Header = ({
           strict
           activeClassName="active"
         >
-          <SVGInline svg={leadsIcon} className="icon" />
+          <LeadsIcon className="icon icon-svg" />
           <span className="appName">Leads / Tasks</span>
         </NavLink>
       </NavItem>
@@ -150,7 +149,7 @@ export const Header = ({
           strict
           activeClassName="active"
         >
-          <SVGInline svg={sendIcon} className="icon" />
+          <SendIcon className="icon icon-svg" />
           <span className="appName">Send</span>
         </NavLink>
       </NavItem>
@@ -161,7 +160,7 @@ export const Header = ({
           strict
           activeClassName="active"
         >
-          <SVGInline svg={gradingIcon} className="icon" />
+          <GradingIcon className="icon icon-svg" />
           <span className="appName">Grading</span>
         </NavLink>
       </NavItem>

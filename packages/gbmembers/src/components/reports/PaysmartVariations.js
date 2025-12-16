@@ -1,14 +1,16 @@
 import React, { Component } from 'react';
 import ReactTable from 'react-table';
-import SVGInline from 'react-svg-inline';
 import ReactToPrint from 'react-to-print';
-import printerIcon from '../../images/Print.svg?raw';
+import { ReactComponent as PrinterIcon } from '../../images/Print.svg';
 
 export class VariationCustomers extends Component {
   constructor(props) {
     super(props);
     let data = this.getData(this.props.variationCustomers, this.props.members);
     let columns = this.getColumns();
+
+    this.tableComponentRef = React.createRef();
+
     this.state = {
       data,
       columns,
@@ -101,13 +103,12 @@ export class VariationCustomers extends Component {
           <h6>Variation Customers</h6>
         </div>
         <ReactToPrint
-          trigger={() => (
-            <SVGInline svg={printerIcon} className="icon tablePrint" />
-          )}
-          content={() => this.tableComponentRef}
+          trigger={() => <PrinterIcon className="icon icon-svg tablePrint" />}
+          content={() => this.tableComponentRef.current}
+          onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
         />
         <ReactTable
-          ref={el => (this.tableComponentRef = el)}
+          ref={this.tableComponentRef}
           columns={columns}
           data={data}
           className="-striped -highlight"

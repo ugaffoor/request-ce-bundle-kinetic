@@ -1,14 +1,11 @@
 import React, { Component } from 'react';
 import ReactTable from 'react-table';
 import moment from 'moment';
-import { email_sent_date_format } from '../leads/LeadsUtils';
-import NumberFormat from 'react-number-format';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { ReceiptToPrint } from '../ProShop/ReceiptToPrint';
-import printerIcon from '../../images/Print.svg?raw';
+import { ReactComponent as PrinterIcon } from '../../images/Print.svg';
 import ReactToPrint from 'react-to-print';
-import SVGInline from 'react-svg-inline';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 import { confirmWithAmount } from './ConfirmWithAmount';
 import mail from '../../images/mail.png';
 import { confirm } from '../helpers/Confirmation';
@@ -29,6 +26,8 @@ export class MemberOrders extends Component {
         ? this.props.space.defaultLocale
         : this.props.profile.preferredLocale;
     this.refundPayment = this.refundPayment.bind(this);
+
+    this.componentRef = React.createRef();
 
     this.state = {
       data,
@@ -92,8 +91,8 @@ export class MemberOrders extends Component {
     return order['Status'] === 'Refunded'
       ? true
       : order['id'] === id
-      ? true
-      : false;
+        ? true
+        : false;
   }
 
   refundPayment(orderid, paymentId, originalAmount) {
@@ -179,9 +178,9 @@ export class MemberOrders extends Component {
                 : 'Refund Payment'}
             </button>
           ) : this.isPaymentRefunded(
-              row.original,
-              this.props.refundPOSTransactionID.id,
-            ) ? (
+            row.original,
+            this.props.refundPOSTransactionID.id,
+          ) ? (
             <span>
               Refunded{' '}
               <span className="refund">
@@ -327,19 +326,19 @@ export class MemberOrders extends Component {
                                 snippets={this.props.snippets}
                                 datetime={this.state.datetime}
                                 name={this.state.name}
-                                ref={el => (this.componentRef = el)}
+                                ref={this.componentRef}
                               />
                             </span>
                             <span className="printReceipt">
                               <ReactToPrint
                                 trigger={() => (
-                                  <SVGInline
-                                    svg={printerIcon}
-                                    className="icon barcodePrint"
-                                  />
+                                  <PrinterIcon className="icon barcodePrint icon-svg" />
                                 )}
-                                content={() => this.componentRef}
+                                content={() => this.componentRef.current}
                                 pageStyle="@page {size: a4 portrait;margin: 0;}"
+                                onBeforePrint={() =>
+                                  new Promise(r => setTimeout(r, 1000))
+                                }
                               />
                             </span>
                           </span>
@@ -385,7 +384,7 @@ export class MemberOrders extends Component {
                         {this.state.discount !== undefined &&
                           this.state.discount > 0 && (
                             <div className="productLine">
-                              <div className="quantity"></div>
+                              <div className="quantity" />
                               <div className="name">
                                 <I18n>DISCOUNT</I18n>
                               </div>
@@ -402,7 +401,7 @@ export class MemberOrders extends Component {
                         {this.state.salestax !== undefined &&
                           this.state.salestax > 0 && (
                             <div className="productLine">
-                              <div className="quantity"></div>
+                              <div className="quantity" />
                               <div className="name">
                                 {this.state.salestax2 === undefined &&
                                 getAttributeValue(
@@ -419,9 +418,9 @@ export class MemberOrders extends Component {
                                     'POS Sales Tax Label 2',
                                   )
                                 ) : getAttributeValue(
-                                    this.props.space,
-                                    'POS Sales Tax Label',
-                                  ) === undefined ? (
+                                  this.props.space,
+                                  'POS Sales Tax Label',
+                                ) === undefined ? (
                                   <I18n>SALES TAX</I18n>
                                 ) : (
                                   getAttributeValue(
@@ -443,7 +442,7 @@ export class MemberOrders extends Component {
                         {this.state.salestax2 !== undefined &&
                           this.state.salestax2 > 0 && (
                             <div className="productLine">
-                              <div className="quantity"></div>
+                              <div className="quantity" />
                               <div className="name">
                                 {getAttributeValue(
                                   this.props.space,
@@ -468,7 +467,7 @@ export class MemberOrders extends Component {
                             </div>
                           )}
                         <div className="productLine">
-                          <div className="quantity"></div>
+                          <div className="quantity" />
                           <div className="name">
                             {getAttributeValue(
                               this.props.space,

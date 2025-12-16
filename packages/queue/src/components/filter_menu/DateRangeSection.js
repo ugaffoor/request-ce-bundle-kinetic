@@ -4,7 +4,7 @@ import { compose, withHandlers } from 'recompose';
 import { ModalBody } from 'reactstrap';
 import { actions } from '../../redux/modules/filterMenu';
 import { DateRangeSelector } from 'common/src/components/DateRangeSelector';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 
 const convertDateRangeValue = dateRange =>
   !dateRange.custom
@@ -48,10 +48,13 @@ export const DateRangeSection = ({
 );
 
 export const DateRangeSectionContainer = compose(
-  connect(null, {
-    setDateRangeTimeline: actions.setDateRangeTimeline,
-    setDateRange: actions.setDateRange,
-  }),
+  connect(
+    null,
+    {
+      setDateRangeTimeline: actions.setDateRangeTimeline,
+      setDateRange: actions.setDateRange,
+    },
+  ),
   withHandlers({
     setDateRangeTimelineHandler: props => event =>
       props.setDateRangeTimeline(event.target.value),

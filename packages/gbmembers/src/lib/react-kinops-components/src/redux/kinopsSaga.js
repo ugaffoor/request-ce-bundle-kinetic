@@ -1,12 +1,16 @@
 import { takeEvery } from 'redux-saga/effects';
 import { all, call, put } from 'redux-saga/effects';
 import { Map } from 'immutable';
-import { CoreAPI } from 'react-kinetic-core';
+import {
+  SubmissionSearch,
+  searchSubmissions,
+  fetchProfile,
+} from '@kineticdata/react';
 
 import { actions, types } from './kinopsModule';
 
 // Alerts Search Query
-export const ALERTS_SEARCH = new CoreAPI.SubmissionSearch(true)
+export const ALERTS_SEARCH = new SubmissionSearch(true)
   .eq('values[Status]', 'Active')
   .index('values[Status]')
   .include('details,values')
@@ -19,11 +23,12 @@ export function* fetchAppTask() {
     profile: { profile },
     alerts: { submissions },
   } = yield all({
-    profile: call(CoreAPI.fetchProfile, {
+    profile: call(fetchProfile, {
       include:
         'attributes,profileAttributes,memberships,memberships.team,memberships.team.attributes,memberships.team.memberships,memberships.team.memberships.user,attributes,space,space.attributes,space.kapps,space.kapps.attributes',
     }),
-    alerts: call(CoreAPI.searchSubmissions, {
+    alerts: call(searchSubmissions, {
+      get: true,
       datastore: true,
       form: 'alerts',
       search: ALERTS_SEARCH,
@@ -49,7 +54,8 @@ export function* fetchAppTask() {
 }
 
 export function* fetchAlertsTask() {
-  const { submissions, serverError } = yield call(CoreAPI.searchSubmissions, {
+  const { submissions, serverError } = yield call(searchSubmissions, {
+    get: true,
     datastore: true,
     form: 'alerts',
     search: ALERTS_SEARCH,

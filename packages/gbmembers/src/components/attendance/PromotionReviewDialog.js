@@ -8,8 +8,7 @@ import { compose } from 'recompose';
 import $ from 'jquery';
 import { GradingStatus } from '../attendance/GradingStatus';
 import { getBeltSVG } from '../Member/MemberUtils';
-import helpIcon from '../../images/help.svg?raw';
-import SVGInline from 'react-svg-inline';
+import { ReactComponent as Help } from '../../images/help.svg';
 
 const mapStateToProps = state => ({
   attendances: state.member.attendance.memberAttendances,
@@ -130,8 +129,8 @@ export class PromotionReviewDialog extends Component {
           ? 1
           : b.values['Class Date'] + b.values['Class Time'] >
             a.values['Class Date'] + a.values['Class Time']
-          ? -1
-          : 0;
+            ? -1
+            : 0;
       });
       data.push({ week: key, attendances: value });
     });
@@ -203,9 +202,8 @@ export class PromotionReviewDialog extends Component {
                         ) + '%'
                       : '0%'}
                   </span>
-                  <SVGInline
-                    svg={helpIcon}
-                    className="icon help"
+                  <Help
+                    className="icon help icon-svg"
                     onClick={e => {
                       $('.noGIHelp').toggle('slow');
                     }}
@@ -222,9 +220,8 @@ export class PromotionReviewDialog extends Component {
                     Minimum Weeks Required:{' '}
                     {this.classesRequired !== 0 ? this.classesRequired : '0'}
                   </span>
-                  <SVGInline
-                    svg={helpIcon}
-                    className="icon help"
+                  <Help
+                    className="icon help icon-svg"
                     onClick={e => {
                       $('.minimumWeeksHelp').toggle('slow');
                     }}
@@ -277,7 +274,12 @@ export class PromotionReviewDialog extends Component {
   }
 }
 
-const enhance = compose(connect(mapStateToProps, mapDispatchToProps));
+const enhance = compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
+);
 const inlineStyle = {
   width: '700px',
   top: '30%',

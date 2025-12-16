@@ -33,7 +33,7 @@ import { SetStatusModalContainer } from './SetStatusModalContainer';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
 import 'react-day-picker/lib/style.css';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
-import { I18n } from '../../../../app/src/I18nProvider';
+import { I18n } from '@kineticdata/react';
 import Barcode from 'react-barcode';
 import Autocomplete from 'react-google-autocomplete';
 
@@ -252,8 +252,7 @@ export const MemberEdit = ({
                     id="username"
                     className="userNameField"
                     required
-                    ref={input => (this.input = input)}
-                    value={memberItem.values['Member ID']}
+                    defaultValue={memberItem.values['Member ID']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -298,8 +297,7 @@ export const MemberEdit = ({
                       ? true
                       : false
                   }
-                  ref={input => (this.input = input)}
-                  value={memberItem.values['First Name']}
+                  defaultValue={memberItem.values['First Name']}
                   onChange={e =>
                     handleChange(
                       memberItem,
@@ -327,8 +325,7 @@ export const MemberEdit = ({
                   name="lastName"
                   id="lastNames"
                   required
-                  ref={input => (this.input = input)}
-                  value={memberItem.values['Last Name']}
+                  defaultValue={memberItem.values['Last Name']}
                   onChange={e =>
                     handleChange(
                       memberItem,
@@ -354,8 +351,7 @@ export const MemberEdit = ({
                     name="gender"
                     id="gender"
                     required
-                    ref={input => (this.input = input)}
-                    value={memberItem.values['Gender']}
+                    defaultValue={memberItem.values['Gender']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -416,8 +412,7 @@ export const MemberEdit = ({
                           name="billingUser"
                           id="billingUser"
                           size="30"
-                          ref={input => (this.input = input)}
-                          value={memberItem.values['Billing User']}
+                          defaultValue={memberItem.values['Billing User']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -436,8 +431,7 @@ export const MemberEdit = ({
                           name="migrated"
                           id="migrated"
                           size="30"
-                          ref={input => (this.input = input)}
-                          value={memberItem.values['Biller Migrated']}
+                          defaultValue={memberItem.values['Biller Migrated']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -458,8 +452,7 @@ export const MemberEdit = ({
                           name="useSubAccount"
                           id="useSubAccount"
                           size="30"
-                          ref={input => (this.input = input)}
-                          value={memberItem.values['useSubAccount']}
+                          defaultValue={memberItem.values['useSubAccount']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -482,8 +475,9 @@ export const MemberEdit = ({
                           name="ccExpiryMonth"
                           id="ccExpiryMonth"
                           size="30"
-                          ref={input => (this.input = input)}
-                          value={memberItem.values['Credit Card Expiry Month']}
+                          defaultValue={
+                            memberItem.values['Credit Card Expiry Month']
+                          }
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -504,8 +498,9 @@ export const MemberEdit = ({
                           name="ccExpiryYear"
                           id="ccExpiryYear"
                           size="30"
-                          ref={input => (this.input = input)}
-                          value={memberItem.values['Credit Card Expiry Year']}
+                          defaultValue={
+                            memberItem.values['Credit Card Expiry Year']
+                          }
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -526,8 +521,9 @@ export const MemberEdit = ({
                           name="billingId"
                           id="billingId"
                           size="30"
-                          ref={input => (this.input = input)}
-                          value={memberItem.values['Billing Customer Id']}
+                          defaultValue={
+                            memberItem.values['Billing Customer Id']
+                          }
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -546,8 +542,7 @@ export const MemberEdit = ({
                           name="billingRef"
                           id="billingRef"
                           size="30"
-                          ref={input => (this.input = input)}
-                          value={
+                          defaultValue={
                             memberItem.values['Billing Customer Reference']
                           }
                           onChange={e =>
@@ -570,8 +565,9 @@ export const MemberEdit = ({
                           name="billingId"
                           id="billingId"
                           size="30"
-                          ref={input => (this.input = input)}
-                          value={memberItem.values['Billing Setup Fee Id']}
+                          defaultValue={
+                            memberItem.values['Billing Setup Fee Id']
+                          }
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -592,8 +588,9 @@ export const MemberEdit = ({
                           name="billingId"
                           id="billingId"
                           size="30"
-                          ref={input => (this.input = input)}
-                          value={memberItem.values['Billing Setup Fee Type']}
+                          defaultValue={
+                            memberItem.values['Billing Setup Fee Type']
+                          }
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -616,8 +613,9 @@ export const MemberEdit = ({
                           name="billingPaymentType"
                           id="billingPaymentType"
                           size="30"
-                          ref={input => (this.input = input)}
-                          value={memberItem.values['Billing Payment Type']}
+                          defaultValue={
+                            memberItem.values['Billing Payment Type']
+                          }
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -638,8 +636,9 @@ export const MemberEdit = ({
                           name="billingPaymentPeriod"
                           id="billingPaymentPeriod"
                           size="30"
-                          ref={input => (this.input = input)}
-                          value={memberItem.values['Billing Payment Period']}
+                          defaultValue={
+                            memberItem.values['Billing Payment Period']
+                          }
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -658,8 +657,7 @@ export const MemberEdit = ({
                           name="billingPeriod"
                           id="billingPeriod"
                           size="30"
-                          ref={input => (this.input = input)}
-                          value={memberItem.values['Billing Period']}
+                          defaultValue={memberItem.values['Billing Period']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -680,8 +678,7 @@ export const MemberEdit = ({
                           name="billingPayment"
                           id="billingPayment"
                           size="30"
-                          ref={input => (this.input = input)}
-                          value={memberItem.values['Payment']}
+                          defaultValue={memberItem.values['Payment']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -700,8 +697,7 @@ export const MemberEdit = ({
                           name="membershipCost"
                           id="membershipCost"
                           size="30"
-                          ref={input => (this.input = input)}
-                          value={memberItem.values['Membership Cost']}
+                          defaultValue={memberItem.values['Membership Cost']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -724,8 +720,7 @@ export const MemberEdit = ({
                           name="billingStartDate"
                           id="billingStartDate"
                           size="30"
-                          ref={input => (this.input = input)}
-                          value={memberItem.values['Billing Start Date']}
+                          defaultValue={memberItem.values['Billing Start Date']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -746,8 +741,9 @@ export const MemberEdit = ({
                           name="billingParentMember"
                           id="billingParentMember"
                           size="30"
-                          ref={input => (this.input = input)}
-                          value={memberItem.values['Billing Parent Member']}
+                          defaultValue={
+                            memberItem.values['Billing Parent Member']
+                          }
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -770,8 +766,9 @@ export const MemberEdit = ({
                           name="billingFamilyMembers"
                           id="billingFamilyMembers"
                           size="90"
-                          ref={input => (this.input = input)}
-                          value={memberItem.values['Billing Family Members']}
+                          defaultValue={
+                            memberItem.values['Billing Family Members']
+                          }
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -792,8 +789,7 @@ export const MemberEdit = ({
                           name="resumeDate"
                           id="resumeDate"
                           size="30"
-                          ref={input => (this.input = input)}
-                          value={memberItem.values['Resume Date']}
+                          defaultValue={memberItem.values['Resume Date']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -814,8 +810,7 @@ export const MemberEdit = ({
                           name="posProfileID"
                           id="posProfileID"
                           size="30"
-                          ref={input => (this.input = input)}
-                          value={memberItem.values['POS Profile ID']}
+                          defaultValue={memberItem.values['POS Profile ID']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -836,8 +831,9 @@ export const MemberEdit = ({
                           name="registeredWithCard"
                           id="registeredWithCard"
                           size="30"
-                          ref={input => (this.input = input)}
-                          value={memberItem.values['Registered with Card']}
+                          defaultValue={
+                            memberItem.values['Registered with Card']
+                          }
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -860,8 +856,9 @@ export const MemberEdit = ({
                           name="emailsReceivedCount"
                           id="emailsReceivedCount"
                           size="30"
-                          ref={input => (this.input = input)}
-                          value={memberItem.values['Emails Received Count']}
+                          defaultValue={
+                            memberItem.values['Emails Received Count']
+                          }
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -882,8 +879,7 @@ export const MemberEdit = ({
                           name="leadSubmissionID"
                           id="leadSubmissionID"
                           size="30"
-                          ref={input => (this.input = input)}
-                          value={memberItem.values['Lead Submission ID']}
+                          defaultValue={memberItem.values['Lead Submission ID']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -904,8 +900,7 @@ export const MemberEdit = ({
                           name="statusHistory"
                           id="statusHistory"
                           size="50"
-                          ref={input => (this.input = input)}
-                          value={memberItem.values['Status History']}
+                          defaultValue={memberItem.values['Status History']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -926,8 +921,7 @@ export const MemberEdit = ({
                           name="notesHistory"
                           id="notesHistory"
                           size="50"
-                          ref={input => (this.input = input)}
-                          value={memberItem.values['Notes History']}
+                          defaultValue={memberItem.values['Notes History']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -948,8 +942,7 @@ export const MemberEdit = ({
                           name="photo"
                           id="photo"
                           size="50"
-                          ref={input => (this.input = input)}
-                          value={memberItem.values['Photo']}
+                          defaultValue={memberItem.values['Photo']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -972,8 +965,9 @@ export const MemberEdit = ({
                           name="Last Attendance Date"
                           id="lastAttendanceDate"
                           size="50"
-                          ref={input => (this.input = input)}
-                          value={memberItem.values['Last Attendance Date']}
+                          defaultValue={
+                            memberItem.values['Last Attendance Date']
+                          }
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -996,8 +990,7 @@ export const MemberEdit = ({
                           name="refundedHistory"
                           id="refundedHistory"
                           size="50"
-                          ref={input => (this.input = input)}
-                          value={memberItem.values['Refunded Payments']}
+                          defaultValue={memberItem.values['Refunded Payments']}
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -1020,8 +1013,7 @@ export const MemberEdit = ({
                           name="cashStart"
                           id="cashStart"
                           size="50"
-                          ref={input => (this.input = input)}
-                          value={
+                          defaultValue={
                             memberItem.values['Billing Cash Term Start Date']
                           }
                           onChange={e =>
@@ -1044,8 +1036,7 @@ export const MemberEdit = ({
                           name="cashEnd"
                           id="cashEnd"
                           size="50"
-                          ref={input => (this.input = input)}
-                          value={
+                          defaultValue={
                             memberItem.values['Billing Cash Term End Date']
                           }
                           onChange={e =>
@@ -1070,8 +1061,9 @@ export const MemberEdit = ({
                           name="waiverCompleteDate"
                           id="waiverCompleteDate"
                           size="50"
-                          ref={input => (this.input = input)}
-                          value={memberItem.values['Waiver Complete Date']}
+                          defaultValue={
+                            memberItem.values['Waiver Complete Date']
+                          }
                           onChange={e =>
                             handleChange(
                               memberItem,
@@ -1091,6 +1083,7 @@ export const MemberEdit = ({
             {getAttributeValue(space, 'Franchisor') !== 'YES' && (
               <span className="line">
                 <Autocomplete
+                  id="addressAutoComplete"
                   apiKey={'AIzaSyA-tujnpf8Jy33hVaJ_9GtRdMgHw4jvnwo'}
                   placeholder="Lookup Address"
                   style={{
@@ -1206,8 +1199,7 @@ export const MemberEdit = ({
                   id="address"
                   size="80"
                   required
-                  ref={input => (this.input = input)}
-                  value={memberItem.values['Address']}
+                  defaultValue={memberItem.values['Address']}
                   onChange={e => {
                     handleChange(
                       memberItem,
@@ -1235,8 +1227,7 @@ export const MemberEdit = ({
                   name="suburb"
                   id="suburb"
                   required
-                  ref={input => (this.input = input)}
-                  value={memberItem.values['Suburb']}
+                  defaultValue={memberItem.values['Suburb']}
                   onChange={e =>
                     handleChange(
                       memberItem,
@@ -1255,8 +1246,7 @@ export const MemberEdit = ({
                     name="country"
                     id="country"
                     required
-                    ref={input => (this.input = input)}
-                    value={memberItem.values['Country']}
+                    defaultValue={memberItem.values['Country']}
                     onChange={e => {
                       memberItem.myThis = myThis;
                       handleCountryChange(
@@ -1294,8 +1284,7 @@ export const MemberEdit = ({
                       name="state"
                       id="state"
                       required
-                      ref={input => (this.input = input)}
-                      value={memberItem.values['State']}
+                      defaultValue={memberItem.values['State']}
                       onChange={e =>
                         handleChange(
                           memberItem,
@@ -1327,8 +1316,7 @@ export const MemberEdit = ({
                       name="state"
                       id="state"
                       required
-                      ref={input => (this.input = input)}
-                      value={memberItem.values['State']}
+                      defaultValue={memberItem.values['State']}
                       onChange={e =>
                         handleChange(
                           memberItem,
@@ -1368,8 +1356,7 @@ export const MemberEdit = ({
                     id="postcode"
                     size="10"
                     required
-                    ref={input => (this.input = input)}
-                    value={memberItem.values['Postcode']}
+                    defaultValue={memberItem.values['Postcode']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -1389,7 +1376,6 @@ export const MemberEdit = ({
                     }
                     mask="_"
                     required
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Postcode']}
                     onValueChange={(values, e) =>
                       handleFormattedChange(
@@ -1419,8 +1405,7 @@ export const MemberEdit = ({
                   id="email"
                   size="40"
                   required
-                  ref={input => (this.input = input)}
-                  value={memberItem.values['Email']}
+                  defaultValue={memberItem.values['Email']}
                   onChange={e => {
                     if (e.target.value !== null)
                       e.target.value = e.target.value.trim().toLowerCase();
@@ -1446,8 +1431,7 @@ export const MemberEdit = ({
                   name="additionalEmail"
                   id="additionalEmail"
                   size="40"
-                  ref={input => (this.input = input)}
-                  value={memberItem.values['Additional Email']}
+                  defaultValue={memberItem.values['Additional Email']}
                   onChange={e => {
                     if (e.target.value !== null)
                       e.target.value = e.target.value.trim().toLowerCase();
@@ -1487,12 +1471,11 @@ export const MemberEdit = ({
                       ? getAttributeValue(space, 'PhoneNumber Format')
                       : space.slug === 'europe' ||
                         space.slug === 'unitedkingdom'
-                      ? getPhoneNumberFormat(memberItem)
-                      : '####-###-###'
+                        ? getPhoneNumberFormat(memberItem)
+                        : '####-###-###'
                   }
                   mask="_"
                   required
-                  ref={input => (this.input = input)}
                   value={memberItem.values['Phone Number']}
                   onValueChange={(values, e) =>
                     handleFormattedChange(
@@ -1514,12 +1497,11 @@ export const MemberEdit = ({
                       ? getAttributeValue(space, 'PhoneNumber Format')
                       : space.slug === 'europe' ||
                         space.slug === 'unitedkingdom'
-                      ? getPhoneNumberFormat(memberItem)
-                      : '####-###-###'
+                        ? getPhoneNumberFormat(memberItem)
+                        : '####-###-###'
                   }
                   mask="_"
                   required
-                  ref={input => (this.input = input)}
                   value={memberItem.values['Additional Phone Number']}
                   onValueChange={(values, e) =>
                     handleFormattedChange(
@@ -1615,7 +1597,6 @@ export const MemberEdit = ({
                   <select
                     name="membertype"
                     id="membertype"
-                    ref={input => (this.input = input)}
                     value={memberItem.values['Member Type']}
                     onChange={e =>
                       handleChange(
@@ -1648,7 +1629,6 @@ export const MemberEdit = ({
                     type="text"
                     name="ParentGuardian"
                     id="ParentGuardian"
-                    ref={input => (this.input = input)}
                     defaultValue={memberItem.values['Parent or Guardian']}
                     onChange={e =>
                       handleChange(
@@ -1690,8 +1670,7 @@ export const MemberEdit = ({
                   name="emergencyname"
                   id="emergencyname"
                   required
-                  ref={input => (this.input = input)}
-                  value={memberItem.values['Emergency Contact Name']}
+                  defaultValue={memberItem.values['Emergency Contact Name']}
                   onChange={e =>
                     handleChange(
                       memberItem,
@@ -1722,8 +1701,9 @@ export const MemberEdit = ({
                     name="relationship"
                     id="relationship"
                     required
-                    ref={input => (this.input = input)}
-                    value={memberItem.values['Emergency Contact Relationship']}
+                    defaultValue={
+                      memberItem.values['Emergency Contact Relationship']
+                    }
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -1756,12 +1736,11 @@ export const MemberEdit = ({
                       ? getAttributeValue(space, 'PhoneNumber Format')
                       : space.slug === 'europe' ||
                         space.slug === 'unitedkingdom'
-                      ? getPhoneNumberFormat(memberItem)
-                      : '####-###-###'
+                        ? getPhoneNumberFormat(memberItem)
+                        : '####-###-###'
                   }
                   mask="_"
                   required
-                  ref={input => (this.input = input)}
                   value={memberItem.values['Emergency Contact Phone']}
                   onValueChange={(values, e) =>
                     handleFormattedChange(
@@ -1783,8 +1762,7 @@ export const MemberEdit = ({
                     size="40"
                     name="alergies"
                     id="alergies"
-                    ref={input => (this.input = input)}
-                    value={memberItem.values['Medical Allergies']}
+                    defaultValue={memberItem.values['Medical Allergies']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -1820,8 +1798,7 @@ export const MemberEdit = ({
                     name="program"
                     id="program"
                     required
-                    ref={input => (this.input = input)}
-                    value={memberItem.values['Ranking Program']}
+                    defaultValue={memberItem.values['Ranking Program']}
                     onChange={e => {
                       handleChange(
                         memberItem,
@@ -1862,8 +1839,7 @@ export const MemberEdit = ({
                     name="belt"
                     id="belt"
                     required
-                    ref={input => (this.input = input)}
-                    value={memberItem.values['Ranking Belt']}
+                    defaultValue={memberItem.values['Ranking Belt']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -1874,7 +1850,7 @@ export const MemberEdit = ({
                       )
                     }
                   >
-                    <option key="" value=""></option>
+                    <option key="" value="" />
                     {belts.map(
                       belt =>
                         belt.program ===
@@ -1930,8 +1906,7 @@ export const MemberEdit = ({
                     type="number"
                     name="attendanceCount"
                     id="attendanceCount"
-                    ref={input => (this.input = input)}
-                    value={memberItem.values['Attendance Count']}
+                    defaultValue={memberItem.values['Attendance Count']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -1951,8 +1926,7 @@ export const MemberEdit = ({
                     type="number"
                     name="maxWeeklyClasses"
                     id="maxWeeklyClasses"
-                    ref={input => (this.input = input)}
-                    value={memberItem.values['Max Weekly Classes']}
+                    defaultValue={memberItem.values['Max Weekly Classes']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -1971,8 +1945,7 @@ export const MemberEdit = ({
                   <select
                     name="beltSize"
                     id="beltSize"
-                    ref={input => (this.input = input)}
-                    value={memberItem.values['Belt Size']}
+                    defaultValue={memberItem.values['Belt Size']}
                     onChange={e =>
                       handleChange(
                         memberItem,
@@ -1995,13 +1968,36 @@ export const MemberEdit = ({
               </span>
             </div>
           )}
-          {getAttributeValue(space, 'Franchisor') !== 'YES' && (
-            <div className="section3">
-              <h1>Other Information</h1>
-              <hr />
+          <div className="section3">
+            <h1>Other Information</h1>
+            <hr />
+            {getAttributeValue(space, 'Member TAX ID') === 'YES' && (
               <span className="line">
                 <div>
-                  <label htmlFor="nopaying" style={{ minWidth: '100px' }}>
+                  <label htmlFor="taxID">Tax Id</label>
+                  <input
+                    type="text"
+                    size="20"
+                    name="taxID"
+                    id="taxIDtaxID"
+                    defaultValue={memberItem.values['TAX ID']}
+                    onChange={e =>
+                      handleChange(
+                        memberItem,
+                        'TAX ID',
+                        e,
+                        setIsDirty,
+                        memberChanges,
+                      )
+                    }
+                  />
+                </div>
+              </span>
+            )}
+            {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+              <span className="line">
+                <div>
+                  <label htmlFor="nonpaying" style={{ minWidth: '100px' }}>
                     Non Paying
                   </label>
                   <input
@@ -2009,7 +2005,6 @@ export const MemberEdit = ({
                     name="nonpaying"
                     id="nonpaying"
                     style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
                     value="YES"
                     checked={
                       memberItem.values['Non Paying'] === 'YES' ? true : false
@@ -2031,38 +2026,68 @@ export const MemberEdit = ({
                   />
                 </div>
               </span>
-              {getAttributeValue(space, 'Billing Company') === 'Bambora' && (
+            )}
+            {(getAttributeValue(space, 'Billing Company') === 'Bambora' ||
+              getAttributeValue(space, 'Billing Company') === 'Stripe') && (
+              <span className="line">
+                <div>
+                  <label htmlFor="billingReceipt" style={{ minWidth: '100px' }}>
+                    Send Billing Payment Receipt
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="billingReceipt"
+                    id="billingReceipt"
+                    style={{ clear: 'none', margin: '4px' }}
+                    value="YES"
+                    checked={
+                      memberItem.values['Send Payment Receipt'] === 'YES'
+                        ? true
+                        : false
+                    }
+                    onChange={e => {
+                      if (memberItem.values['Send Payment Receipt'] === 'YES') {
+                        e.target.value = '';
+                      } else {
+                        e.target.value = 'YES';
+                      }
+                      handleChange(
+                        memberItem,
+                        'Send Payment Receipt',
+                        e,
+                        setIsDirty,
+                        memberChanges,
+                      );
+                    }}
+                  />
+                </div>
+              </span>
+            )}
+            {getAttributeValue(space, 'Franchisor') !== 'YES' && (
+              <span>
                 <span className="line">
                   <div>
-                    <label
-                      htmlFor="billingReceipt"
-                      style={{ minWidth: '100px' }}
-                    >
-                      Send Billing Payment Receipt
+                    <label htmlFor="optout" style={{ minWidth: '100px' }}>
+                      Opt Out
                     </label>
                     <input
                       type="checkbox"
-                      name="billingReceipt"
-                      id="billingReceipt"
+                      name="optout"
+                      id="optout"
                       style={{ clear: 'none', margin: '4px' }}
-                      ref={input => (this.input = input)}
                       value="YES"
                       checked={
-                        memberItem.values['Send Payment Receipt'] === 'YES'
-                          ? true
-                          : false
+                        memberItem.values['Opt-Out'] === 'YES' ? true : false
                       }
                       onChange={e => {
-                        if (
-                          memberItem.values['Send Payment Receipt'] === 'YES'
-                        ) {
+                        if (memberItem.values['Opt-Out'] === 'YES') {
                           e.target.value = '';
                         } else {
                           e.target.value = 'YES';
                         }
                         handleChange(
                           memberItem,
-                          'Send Payment Receipt',
+                          'Opt-Out',
                           e,
                           setIsDirty,
                           memberChanges,
@@ -2071,827 +2096,797 @@ export const MemberEdit = ({
                     />
                   </div>
                 </span>
-              )}
-              <span className="line">
-                <div>
-                  <label htmlFor="optout" style={{ minWidth: '100px' }}>
-                    Opt Out
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="optout"
-                    id="optout"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="YES"
-                    checked={
-                      memberItem.values['Opt-Out'] === 'YES' ? true : false
-                    }
-                    onChange={e => {
-                      if (memberItem.values['Opt-Out'] === 'YES') {
-                        e.target.value = '';
-                      } else {
-                        e.target.value = 'YES';
+                <span className="line">
+                  <span>Main Benefits to Train</span>
+                </span>
+                <span className="line benefits">
+                  <span className="optionItem">
+                    <label htmlFor="excercise" style={{ minWidth: 'auto' }}>
+                      excercise
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="mainbenefits"
+                      id="excercise"
+                      style={{ clear: 'none', margin: '4px' }}
+                      value="excercise"
+                      checked={
+                        memberItem.values['Main Benefits'] !== undefined &&
+                        memberItem.values['Main Benefits'] !== null
+                          ? memberItem.values['Main Benefits'].includes(
+                              'excercise',
+                            )
+                          : false
                       }
-                      handleChange(
-                        memberItem,
-                        'Opt-Out',
-                        e,
-                        setIsDirty,
-                        memberChanges,
-                      );
-                    }}
-                  />
-                </div>
-              </span>
-              <span className="line">
-                <span>Main Benefits to Train</span>
-              </span>
-              <span className="line benefits">
-                <span className="optionItem">
-                  <label htmlFor="excercise" style={{ minWidth: 'auto' }}>
-                    excercise
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="mainbenefits"
-                    id="excercise"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="excercise"
-                    checked={
-                      memberItem.values['Main Benefits'] !== undefined &&
-                      memberItem.values['Main Benefits'] !== null
-                        ? memberItem.values['Main Benefits'].includes(
+                      onChange={e => {
+                        if (
+                          memberItem.values['Main Benefits'] === undefined ||
+                          memberItem.values['Main Benefits'] === null
+                        )
+                          memberItem.values['Main Benefits'] = new Array();
+                        if (
+                          memberItem.values['Main Benefits'].includes(
                             'excercise',
                           )
-                        : false
-                    }
-                    onChange={e => {
-                      if (
-                        memberItem.values['Main Benefits'] === undefined ||
-                        memberItem.values['Main Benefits'] === null
-                      )
-                        memberItem.values['Main Benefits'] = new Array();
-                      if (
-                        memberItem.values['Main Benefits'].includes('excercise')
-                      ) {
-                        e.target.value = '';
-                        memberItem.values['Main Benefits'] = memberItem.values[
-                          'Main Benefits'
-                        ].filter(elem => elem !== 'excercise');
-                      } else {
-                        e.target.value = 'excercise';
-                        memberItem.values['Main Benefits'].push('excercise');
+                        ) {
+                          e.target.value = '';
+                          memberItem.values[
+                            'Main Benefits'
+                          ] = memberItem.values['Main Benefits'].filter(
+                            elem => elem !== 'excercise',
+                          );
+                        } else {
+                          e.target.value = 'excercise';
+                          memberItem.values['Main Benefits'].push('excercise');
+                        }
+                        handleChange(
+                          memberItem,
+                          'Main Benefits',
+                          e,
+                          setIsDirty,
+                          memberChanges,
+                        );
+                      }}
+                    />
+                  </span>
+                  <span className="optionItem">
+                    <label htmlFor="discipline" style={{ minWidth: 'auto' }}>
+                      discipline
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="mainbenefits"
+                      id="discipline"
+                      style={{ clear: 'none', margin: '4px' }}
+                      value="discipline"
+                      checked={
+                        memberItem.values['Main Benefits'] !== undefined &&
+                        memberItem.values['Main Benefits'] !== null
+                          ? memberItem.values['Main Benefits'].includes(
+                              'discipline',
+                            )
+                          : false
                       }
-                      handleChange(
-                        memberItem,
-                        'Main Benefits',
-                        e,
-                        setIsDirty,
-                        memberChanges,
-                      );
-                    }}
-                  />
-                </span>
-                <span className="optionItem">
-                  <label htmlFor="discipline" style={{ minWidth: 'auto' }}>
-                    discipline
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="mainbenefits"
-                    id="discipline"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="discipline"
-                    checked={
-                      memberItem.values['Main Benefits'] !== undefined &&
-                      memberItem.values['Main Benefits'] !== null
-                        ? memberItem.values['Main Benefits'].includes(
+                      onChange={e => {
+                        if (
+                          memberItem.values['Main Benefits'] === undefined ||
+                          memberItem.values['Main Benefits'] === null
+                        )
+                          memberItem.values['Main Benefits'] = new Array();
+                        if (
+                          memberItem.values['Main Benefits'].includes(
                             'discipline',
                           )
-                        : false
-                    }
-                    onChange={e => {
-                      if (
-                        memberItem.values['Main Benefits'] === undefined ||
-                        memberItem.values['Main Benefits'] === null
-                      )
-                        memberItem.values['Main Benefits'] = new Array();
-                      if (
-                        memberItem.values['Main Benefits'].includes(
-                          'discipline',
-                        )
-                      ) {
-                        e.target.value = '';
-                        memberItem.values['Main Benefits'] = memberItem.values[
-                          'Main Benefits'
-                        ].filter(elem => elem !== 'discipline');
-                      } else {
-                        e.target.value = 'discipline';
-                        memberItem.values['Main Benefits'].push('discipline');
+                        ) {
+                          e.target.value = '';
+                          memberItem.values[
+                            'Main Benefits'
+                          ] = memberItem.values['Main Benefits'].filter(
+                            elem => elem !== 'discipline',
+                          );
+                        } else {
+                          e.target.value = 'discipline';
+                          memberItem.values['Main Benefits'].push('discipline');
+                        }
+                        handleChange(
+                          memberItem,
+                          'Main Benefits',
+                          e,
+                          setIsDirty,
+                          memberChanges,
+                        );
+                      }}
+                    />
+                  </span>
+                  <span className="optionItem">
+                    <label htmlFor="selfdefense" style={{ minWidth: 'auto' }}>
+                      self defense
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="mainbenefits"
+                      id="selfdefense"
+                      style={{ clear: 'none', margin: '4px' }}
+                      value="self defense"
+                      checked={
+                        memberItem.values['Main Benefits'] !== undefined &&
+                        memberItem.values['Main Benefits'] !== null
+                          ? memberItem.values['Main Benefits'].includes(
+                              'self defense',
+                            )
+                          : false
                       }
-                      handleChange(
-                        memberItem,
-                        'Main Benefits',
-                        e,
-                        setIsDirty,
-                        memberChanges,
-                      );
-                    }}
-                  />
-                </span>
-                <span className="optionItem">
-                  <label htmlFor="selfdefense" style={{ minWidth: 'auto' }}>
-                    self defense
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="mainbenefits"
-                    id="selfdefense"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="self defense"
-                    checked={
-                      memberItem.values['Main Benefits'] !== undefined &&
-                      memberItem.values['Main Benefits'] !== null
-                        ? memberItem.values['Main Benefits'].includes(
+                      onChange={e => {
+                        if (
+                          memberItem.values['Main Benefits'] === undefined ||
+                          memberItem.values['Main Benefits'] === null
+                        )
+                          memberItem.values['Main Benefits'] = new Array();
+                        if (
+                          memberItem.values['Main Benefits'].includes(
                             'self defense',
                           )
-                        : false
-                    }
-                    onChange={e => {
-                      if (
-                        memberItem.values['Main Benefits'] === undefined ||
-                        memberItem.values['Main Benefits'] === null
-                      )
-                        memberItem.values['Main Benefits'] = new Array();
-                      if (
-                        memberItem.values['Main Benefits'].includes(
-                          'self defense',
-                        )
-                      ) {
-                        e.target.value = '';
-                        memberItem.values['Main Benefits'] = memberItem.values[
-                          'Main Benefits'
-                        ].filter(elem => elem !== 'self defense');
-                      } else {
-                        e.target.value = 'self defense';
-                        memberItem.values['Main Benefits'].push('self defense');
+                        ) {
+                          e.target.value = '';
+                          memberItem.values[
+                            'Main Benefits'
+                          ] = memberItem.values['Main Benefits'].filter(
+                            elem => elem !== 'self defense',
+                          );
+                        } else {
+                          e.target.value = 'self defense';
+                          memberItem.values['Main Benefits'].push(
+                            'self defense',
+                          );
+                        }
+                        handleChange(
+                          memberItem,
+                          'Main Benefits',
+                          e,
+                          setIsDirty,
+                          memberChanges,
+                        );
+                      }}
+                    />
+                  </span>
+                  <span className="optionItem">
+                    <label htmlFor="reducestress" style={{ minWidth: 'auto' }}>
+                      reduce stress
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="mainbenefits"
+                      id="reducestress"
+                      style={{ clear: 'none', margin: '4px' }}
+                      value="reduce stress"
+                      checked={
+                        memberItem.values['Main Benefits'] !== undefined &&
+                        memberItem.values['Main Benefits'] !== null
+                          ? memberItem.values['Main Benefits'].includes(
+                              'reduce stress',
+                            )
+                          : false
                       }
-                      handleChange(
-                        memberItem,
-                        'Main Benefits',
-                        e,
-                        setIsDirty,
-                        memberChanges,
-                      );
-                    }}
-                  />
-                </span>
-                <span className="optionItem">
-                  <label htmlFor="reducestress" style={{ minWidth: 'auto' }}>
-                    reduce stress
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="mainbenefits"
-                    id="reducestress"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="reduce stress"
-                    checked={
-                      memberItem.values['Main Benefits'] !== undefined &&
-                      memberItem.values['Main Benefits'] !== null
-                        ? memberItem.values['Main Benefits'].includes(
+                      onChange={e => {
+                        if (
+                          memberItem.values['Main Benefits'] === undefined ||
+                          memberItem.values['Main Benefits'] === null
+                        )
+                          memberItem.values['Main Benefits'] = new Array();
+                        if (
+                          memberItem.values['Main Benefits'].includes(
                             'reduce stress',
                           )
-                        : false
-                    }
-                    onChange={e => {
-                      if (
-                        memberItem.values['Main Benefits'] === undefined ||
-                        memberItem.values['Main Benefits'] === null
-                      )
-                        memberItem.values['Main Benefits'] = new Array();
-                      if (
-                        memberItem.values['Main Benefits'].includes(
-                          'reduce stress',
-                        )
-                      ) {
-                        e.target.value = '';
-                        memberItem.values['Main Benefits'] = memberItem.values[
-                          'Main Benefits'
-                        ].filter(elem => elem !== 'reduce stress');
-                      } else {
-                        e.target.value = 'reduce stress';
-                        memberItem.values['Main Benefits'].push(
-                          'reduce stress',
+                        ) {
+                          e.target.value = '';
+                          memberItem.values[
+                            'Main Benefits'
+                          ] = memberItem.values['Main Benefits'].filter(
+                            elem => elem !== 'reduce stress',
+                          );
+                        } else {
+                          e.target.value = 'reduce stress';
+                          memberItem.values['Main Benefits'].push(
+                            'reduce stress',
+                          );
+                        }
+                        handleChange(
+                          memberItem,
+                          'Main Benefits',
+                          e,
+                          setIsDirty,
+                          memberChanges,
                         );
+                      }}
+                    />
+                  </span>
+                  <span className="optionItem">
+                    <label htmlFor="respect" style={{ minWidth: 'auto' }}>
+                      respect
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="mainbenefits"
+                      id="respect"
+                      style={{ clear: 'none', margin: '4px' }}
+                      value="respect"
+                      checked={
+                        memberItem.values['Main Benefits'] !== undefined &&
+                        memberItem.values['Main Benefits'] !== null
+                          ? memberItem.values['Main Benefits'].includes(
+                              'respect',
+                            )
+                          : false
                       }
-                      handleChange(
-                        memberItem,
-                        'Main Benefits',
-                        e,
-                        setIsDirty,
-                        memberChanges,
-                      );
-                    }}
-                  />
-                </span>
-                <span className="optionItem">
-                  <label htmlFor="respect" style={{ minWidth: 'auto' }}>
-                    respect
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="mainbenefits"
-                    id="respect"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="respect"
-                    checked={
-                      memberItem.values['Main Benefits'] !== undefined &&
-                      memberItem.values['Main Benefits'] !== null
-                        ? memberItem.values['Main Benefits'].includes('respect')
-                        : false
-                    }
-                    onChange={e => {
-                      if (
-                        memberItem.values['Main Benefits'] === undefined ||
-                        memberItem.values['Main Benefits'] === null
-                      )
-                        memberItem.values['Main Benefits'] = new Array();
-                      if (
-                        memberItem.values['Main Benefits'].includes('respect')
-                      ) {
-                        e.target.value = '';
-                        memberItem.values['Main Benefits'] = memberItem.values[
-                          'Main Benefits'
-                        ].filter(elem => elem !== 'respect');
-                      } else {
-                        e.target.value = 'respect';
-                        memberItem.values['Main Benefits'].push('respect');
+                      onChange={e => {
+                        if (
+                          memberItem.values['Main Benefits'] === undefined ||
+                          memberItem.values['Main Benefits'] === null
+                        )
+                          memberItem.values['Main Benefits'] = new Array();
+                        if (
+                          memberItem.values['Main Benefits'].includes('respect')
+                        ) {
+                          e.target.value = '';
+                          memberItem.values[
+                            'Main Benefits'
+                          ] = memberItem.values['Main Benefits'].filter(
+                            elem => elem !== 'respect',
+                          );
+                        } else {
+                          e.target.value = 'respect';
+                          memberItem.values['Main Benefits'].push('respect');
+                        }
+                        handleChange(
+                          memberItem,
+                          'Main Benefits',
+                          e,
+                          setIsDirty,
+                          memberChanges,
+                        );
+                      }}
+                    />
+                  </span>
+                  <span className="optionItem">
+                    <label
+                      htmlFor="selfconfidence"
+                      style={{ minWidth: 'auto' }}
+                    >
+                      self confidence
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="mainbenefits"
+                      id="selfconfidence"
+                      style={{ clear: 'none', margin: '4px' }}
+                      value="self confidence"
+                      checked={
+                        memberItem.values['Main Benefits'] !== undefined &&
+                        memberItem.values['Main Benefits'] !== null
+                          ? memberItem.values['Main Benefits'].includes(
+                              'self confidence',
+                            )
+                          : false
                       }
-                      handleChange(
-                        memberItem,
-                        'Main Benefits',
-                        e,
-                        setIsDirty,
-                        memberChanges,
-                      );
-                    }}
-                  />
-                </span>
-                <span className="optionItem">
-                  <label htmlFor="selfconfidence" style={{ minWidth: 'auto' }}>
-                    self confidence
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="mainbenefits"
-                    id="selfconfidence"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="self confidence"
-                    checked={
-                      memberItem.values['Main Benefits'] !== undefined &&
-                      memberItem.values['Main Benefits'] !== null
-                        ? memberItem.values['Main Benefits'].includes(
+                      onChange={e => {
+                        if (
+                          memberItem.values['Main Benefits'] === undefined ||
+                          memberItem.values['Main Benefits'] === null
+                        )
+                          memberItem.values['Main Benefits'] = new Array();
+                        if (
+                          memberItem.values['Main Benefits'].includes(
                             'self confidence',
                           )
-                        : false
-                    }
-                    onChange={e => {
-                      if (
-                        memberItem.values['Main Benefits'] === undefined ||
-                        memberItem.values['Main Benefits'] === null
-                      )
-                        memberItem.values['Main Benefits'] = new Array();
-                      if (
-                        memberItem.values['Main Benefits'].includes(
-                          'self confidence',
-                        )
-                      ) {
-                        e.target.value = '';
-                        memberItem.values['Main Benefits'] = memberItem.values[
-                          'Main Benefits'
-                        ].filter(elem => elem !== 'self confidence');
-                      } else {
-                        e.target.value = 'self confidence';
-                        memberItem.values['Main Benefits'].push(
-                          'self confidence',
+                        ) {
+                          e.target.value = '';
+                          memberItem.values[
+                            'Main Benefits'
+                          ] = memberItem.values['Main Benefits'].filter(
+                            elem => elem !== 'self confidence',
+                          );
+                        } else {
+                          e.target.value = 'self confidence';
+                          memberItem.values['Main Benefits'].push(
+                            'self confidence',
+                          );
+                        }
+                        handleChange(
+                          memberItem,
+                          'Main Benefits',
+                          e,
+                          setIsDirty,
+                          memberChanges,
                         );
+                      }}
+                    />
+                  </span>
+                  <span className="optionItem">
+                    <label htmlFor="concentration" style={{ minWidth: 'auto' }}>
+                      concentration
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="mainbenefits"
+                      id="concentration"
+                      style={{ clear: 'none', margin: '4px' }}
+                      value="concentration"
+                      checked={
+                        memberItem.values['Main Benefits'] !== undefined &&
+                        memberItem.values['Main Benefits'] !== null
+                          ? memberItem.values['Main Benefits'].includes(
+                              'concentration',
+                            )
+                          : false
                       }
-                      handleChange(
-                        memberItem,
-                        'Main Benefits',
-                        e,
-                        setIsDirty,
-                        memberChanges,
-                      );
-                    }}
-                  />
-                </span>
-                <span className="optionItem">
-                  <label htmlFor="concentration" style={{ minWidth: 'auto' }}>
-                    concentration
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="mainbenefits"
-                    id="concentration"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="concentration"
-                    checked={
-                      memberItem.values['Main Benefits'] !== undefined &&
-                      memberItem.values['Main Benefits'] !== null
-                        ? memberItem.values['Main Benefits'].includes(
+                      onChange={e => {
+                        if (
+                          memberItem.values['Main Benefits'] === undefined ||
+                          memberItem.values['Main Benefits'] === null
+                        )
+                          memberItem.values['Main Benefits'] = new Array();
+                        if (
+                          memberItem.values['Main Benefits'].includes(
                             'concentration',
                           )
-                        : false
-                    }
-                    onChange={e => {
-                      if (
-                        memberItem.values['Main Benefits'] === undefined ||
-                        memberItem.values['Main Benefits'] === null
-                      )
-                        memberItem.values['Main Benefits'] = new Array();
-                      if (
-                        memberItem.values['Main Benefits'].includes(
-                          'concentration',
-                        )
-                      ) {
-                        e.target.value = '';
-                        memberItem.values['Main Benefits'] = memberItem.values[
-                          'Main Benefits'
-                        ].filter(elem => elem !== 'concentration');
-                      } else {
-                        e.target.value = 'concentration';
-                        memberItem.values['Main Benefits'].push(
-                          'concentration',
+                        ) {
+                          e.target.value = '';
+                          memberItem.values[
+                            'Main Benefits'
+                          ] = memberItem.values['Main Benefits'].filter(
+                            elem => elem !== 'concentration',
+                          );
+                        } else {
+                          e.target.value = 'concentration';
+                          memberItem.values['Main Benefits'].push(
+                            'concentration',
+                          );
+                        }
+                        handleChange(
+                          memberItem,
+                          'Main Benefits',
+                          e,
+                          setIsDirty,
+                          memberChanges,
                         );
+                      }}
+                    />
+                  </span>
+                  <span className="optionItem">
+                    <label htmlFor="coordination" style={{ minWidth: 'auto' }}>
+                      coordination
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="mainbenefits"
+                      id="coordination"
+                      style={{ clear: 'none', margin: '4px' }}
+                      value="coordination"
+                      checked={
+                        memberItem.values['Main Benefits'] !== undefined &&
+                        memberItem.values['Main Benefits'] !== null
+                          ? memberItem.values['Main Benefits'].includes(
+                              'coordination',
+                            )
+                          : false
                       }
-                      handleChange(
-                        memberItem,
-                        'Main Benefits',
-                        e,
-                        setIsDirty,
-                        memberChanges,
-                      );
-                    }}
-                  />
-                </span>
-                <span className="optionItem">
-                  <label htmlFor="coordination" style={{ minWidth: 'auto' }}>
-                    coordination
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="mainbenefits"
-                    id="coordination"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="coordination"
-                    checked={
-                      memberItem.values['Main Benefits'] !== undefined &&
-                      memberItem.values['Main Benefits'] !== null
-                        ? memberItem.values['Main Benefits'].includes(
+                      onChange={e => {
+                        if (
+                          memberItem.values['Main Benefits'] === undefined ||
+                          memberItem.values['Main Benefits'] === null
+                        )
+                          memberItem.values['Main Benefits'] = new Array();
+                        if (
+                          memberItem.values['Main Benefits'].includes(
                             'coordination',
                           )
-                        : false
-                    }
-                    onChange={e => {
-                      if (
-                        memberItem.values['Main Benefits'] === undefined ||
-                        memberItem.values['Main Benefits'] === null
-                      )
-                        memberItem.values['Main Benefits'] = new Array();
-                      if (
-                        memberItem.values['Main Benefits'].includes(
-                          'coordination',
+                        ) {
+                          e.target.value = '';
+                          memberItem.values[
+                            'Main Benefits'
+                          ] = memberItem.values['Main Benefits'].filter(
+                            elem => elem !== 'coordination',
+                          );
+                        } else {
+                          e.target.value = 'coordination';
+                          memberItem.values['Main Benefits'].push(
+                            'coordination',
+                          );
+                        }
+                        handleChange(
+                          memberItem,
+                          'Main Benefits',
+                          e,
+                          setIsDirty,
+                          memberChanges,
+                        );
+                      }}
+                    />
+                  </span>
+                  <span className="optionItem">
+                    <label htmlFor="balance" style={{ minWidth: 'auto' }}>
+                      balance
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="mainbenefits"
+                      id="balance"
+                      style={{ clear: 'none', margin: '4px' }}
+                      value="balance"
+                      checked={
+                        memberItem.values['Main Benefits'] !== undefined &&
+                        memberItem.values['Main Benefits'] !== null
+                          ? memberItem.values['Main Benefits'].includes(
+                              'balance',
+                            )
+                          : false
+                      }
+                      onChange={e => {
+                        if (
+                          memberItem.values['Main Benefits'] === undefined ||
+                          memberItem.values['Main Benefits'] === null
                         )
-                      ) {
-                        e.target.value = '';
-                        memberItem.values['Main Benefits'] = memberItem.values[
-                          'Main Benefits'
-                        ].filter(elem => elem !== 'coordination');
-                      } else {
-                        e.target.value = 'coordination';
-                        memberItem.values['Main Benefits'].push('coordination');
+                          memberItem.values['Main Benefits'] = new Array();
+                        if (
+                          memberItem.values['Main Benefits'].includes('balance')
+                        ) {
+                          e.target.value = '';
+                          memberItem.values[
+                            'Main Benefits'
+                          ] = memberItem.values['Main Benefits'].filter(
+                            elem => elem !== 'balance',
+                          );
+                        } else {
+                          e.target.value = 'balance';
+                          memberItem.values['Main Benefits'].push('balance');
+                        }
+                        handleChange(
+                          memberItem,
+                          'Main Benefits',
+                          e,
+                          setIsDirty,
+                          memberChanges,
+                        );
+                      }}
+                    />
+                  </span>
+                  <span className="optionItem">
+                    <label
+                      htmlFor="characterdevelopment"
+                      style={{ minWidth: 'auto' }}
+                    >
+                      character development
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="mainbenefits"
+                      id="characterdevelopment"
+                      style={{ clear: 'none', margin: '4px' }}
+                      value="character development"
+                      checked={
+                        memberItem.values['Main Benefits'] !== undefined &&
+                        memberItem.values['Main Benefits'] !== null
+                          ? memberItem.values['Main Benefits'].includes(
+                              'character development',
+                            )
+                          : false
                       }
-                      handleChange(
-                        memberItem,
-                        'Main Benefits',
-                        e,
-                        setIsDirty,
-                        memberChanges,
-                      );
-                    }}
-                  />
-                </span>
-                <span className="optionItem">
-                  <label htmlFor="balance" style={{ minWidth: 'auto' }}>
-                    balance
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="mainbenefits"
-                    id="balance"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="balance"
-                    checked={
-                      memberItem.values['Main Benefits'] !== undefined &&
-                      memberItem.values['Main Benefits'] !== null
-                        ? memberItem.values['Main Benefits'].includes('balance')
-                        : false
-                    }
-                    onChange={e => {
-                      if (
-                        memberItem.values['Main Benefits'] === undefined ||
-                        memberItem.values['Main Benefits'] === null
-                      )
-                        memberItem.values['Main Benefits'] = new Array();
-                      if (
-                        memberItem.values['Main Benefits'].includes('balance')
-                      ) {
-                        e.target.value = '';
-                        memberItem.values['Main Benefits'] = memberItem.values[
-                          'Main Benefits'
-                        ].filter(elem => elem !== 'balance');
-                      } else {
-                        e.target.value = 'balance';
-                        memberItem.values['Main Benefits'].push('balance');
-                      }
-                      handleChange(
-                        memberItem,
-                        'Main Benefits',
-                        e,
-                        setIsDirty,
-                        memberChanges,
-                      );
-                    }}
-                  />
-                </span>
-                <span className="optionItem">
-                  <label
-                    htmlFor="characterdevelopment"
-                    style={{ minWidth: 'auto' }}
-                  >
-                    character development
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="mainbenefits"
-                    id="characterdevelopment"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="character development"
-                    checked={
-                      memberItem.values['Main Benefits'] !== undefined &&
-                      memberItem.values['Main Benefits'] !== null
-                        ? memberItem.values['Main Benefits'].includes(
+                      onChange={e => {
+                        if (
+                          memberItem.values['Main Benefits'] === undefined ||
+                          memberItem.values['Main Benefits'] === null
+                        )
+                          memberItem.values['Main Benefits'] = new Array();
+                        if (
+                          memberItem.values['Main Benefits'].includes(
                             'character development',
                           )
-                        : false
-                    }
-                    onChange={e => {
-                      if (
-                        memberItem.values['Main Benefits'] === undefined ||
-                        memberItem.values['Main Benefits'] === null
-                      )
-                        memberItem.values['Main Benefits'] = new Array();
-                      if (
-                        memberItem.values['Main Benefits'].includes(
-                          'character development',
-                        )
-                      ) {
-                        e.target.value = '';
-                        memberItem.values['Main Benefits'] = memberItem.values[
-                          'Main Benefits'
-                        ].filter(elem => elem !== 'character development');
-                      } else {
-                        e.target.value = 'character development';
-                        memberItem.values['Main Benefits'].push(
-                          'character development',
+                        ) {
+                          e.target.value = '';
+                          memberItem.values[
+                            'Main Benefits'
+                          ] = memberItem.values['Main Benefits'].filter(
+                            elem => elem !== 'character development',
+                          );
+                        } else {
+                          e.target.value = 'character development';
+                          memberItem.values['Main Benefits'].push(
+                            'character development',
+                          );
+                        }
+                        handleChange(
+                          memberItem,
+                          'Main Benefits',
+                          e,
+                          setIsDirty,
+                          memberChanges,
                         );
+                      }}
+                    />
+                  </span>
+                  <span className="optionItem">
+                    <label htmlFor="focus" style={{ minWidth: 'auto' }}>
+                      focus
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="mainbenefits"
+                      id="focus"
+                      style={{ clear: 'none', margin: '4px' }}
+                      value="focus"
+                      checked={
+                        memberItem.values['Main Benefits'] !== undefined &&
+                        memberItem.values['Main Benefits'] !== null
+                          ? memberItem.values['Main Benefits'].includes('focus')
+                          : false
                       }
-                      handleChange(
-                        memberItem,
-                        'Main Benefits',
-                        e,
-                        setIsDirty,
-                        memberChanges,
-                      );
-                    }}
-                  />
-                </span>
-                <span className="optionItem">
-                  <label htmlFor="focus" style={{ minWidth: 'auto' }}>
-                    focus
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="mainbenefits"
-                    id="focus"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="focus"
-                    checked={
-                      memberItem.values['Main Benefits'] !== undefined &&
-                      memberItem.values['Main Benefits'] !== null
-                        ? memberItem.values['Main Benefits'].includes('focus')
-                        : false
-                    }
-                    onChange={e => {
-                      if (
-                        memberItem.values['Main Benefits'] === undefined ||
-                        memberItem.values['Main Benefits'] === null
-                      )
-                        memberItem.values['Main Benefits'] = new Array();
-                      if (
-                        memberItem.values['Main Benefits'].includes('focus')
-                      ) {
-                        e.target.value = '';
-                        memberItem.values['Main Benefits'] = memberItem.values[
-                          'Main Benefits'
-                        ].filter(elem => elem !== 'focus');
-                      } else {
-                        e.target.value = 'focus';
-                        memberItem.values['Main Benefits'].push('focus');
+                      onChange={e => {
+                        if (
+                          memberItem.values['Main Benefits'] === undefined ||
+                          memberItem.values['Main Benefits'] === null
+                        )
+                          memberItem.values['Main Benefits'] = new Array();
+                        if (
+                          memberItem.values['Main Benefits'].includes('focus')
+                        ) {
+                          e.target.value = '';
+                          memberItem.values[
+                            'Main Benefits'
+                          ] = memberItem.values['Main Benefits'].filter(
+                            elem => elem !== 'focus',
+                          );
+                        } else {
+                          e.target.value = 'focus';
+                          memberItem.values['Main Benefits'].push('focus');
+                        }
+                        handleChange(
+                          memberItem,
+                          'Main Benefits',
+                          e,
+                          setIsDirty,
+                          memberChanges,
+                        );
+                      }}
+                    />
+                  </span>
+                  <span className="optionItem">
+                    <label htmlFor="fun" style={{ minWidth: 'auto' }}>
+                      fun
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="mainbenefits"
+                      id="fun"
+                      style={{ clear: 'none', margin: '4px' }}
+                      value="fun"
+                      checked={
+                        memberItem.values['Main Benefits'] !== undefined &&
+                        memberItem.values['Main Benefits'] !== null
+                          ? memberItem.values['Main Benefits'].includes('fun')
+                          : false
                       }
-                      handleChange(
-                        memberItem,
-                        'Main Benefits',
-                        e,
-                        setIsDirty,
-                        memberChanges,
-                      );
-                    }}
-                  />
-                </span>
-                <span className="optionItem">
-                  <label htmlFor="fun" style={{ minWidth: 'auto' }}>
-                    fun
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="mainbenefits"
-                    id="fun"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="fun"
-                    checked={
-                      memberItem.values['Main Benefits'] !== undefined &&
-                      memberItem.values['Main Benefits'] !== null
-                        ? memberItem.values['Main Benefits'].includes('fun')
-                        : false
-                    }
-                    onChange={e => {
-                      if (
-                        memberItem.values['Main Benefits'] === undefined ||
-                        memberItem.values['Main Benefits'] === null
-                      )
-                        memberItem.values['Main Benefits'] = new Array();
-                      if (memberItem.values['Main Benefits'].includes('fun')) {
-                        e.target.value = '';
-                        memberItem.values['Main Benefits'] = memberItem.values[
-                          'Main Benefits'
-                        ].filter(elem => elem !== 'fun');
-                      } else {
-                        e.target.value = 'fun';
-                        memberItem.values['Main Benefits'].push('fun');
+                      onChange={e => {
+                        if (
+                          memberItem.values['Main Benefits'] === undefined ||
+                          memberItem.values['Main Benefits'] === null
+                        )
+                          memberItem.values['Main Benefits'] = new Array();
+                        if (
+                          memberItem.values['Main Benefits'].includes('fun')
+                        ) {
+                          e.target.value = '';
+                          memberItem.values[
+                            'Main Benefits'
+                          ] = memberItem.values['Main Benefits'].filter(
+                            elem => elem !== 'fun',
+                          );
+                        } else {
+                          e.target.value = 'fun';
+                          memberItem.values['Main Benefits'].push('fun');
+                        }
+                        handleChange(
+                          memberItem,
+                          'Main Benefits',
+                          e,
+                          setIsDirty,
+                          memberChanges,
+                        );
+                      }}
+                    />
+                  </span>
+                  <span className="optionItem">
+                    <label htmlFor="competition" style={{ minWidth: 'auto' }}>
+                      competition
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="mainbenefits"
+                      id="competition"
+                      style={{ clear: 'none', margin: '4px' }}
+                      value="competition"
+                      checked={
+                        memberItem.values['Main Benefits'] !== undefined &&
+                        memberItem.values['Main Benefits'] !== null
+                          ? memberItem.values['Main Benefits'].includes(
+                              'competition',
+                            )
+                          : false
                       }
-                      handleChange(
-                        memberItem,
-                        'Main Benefits',
-                        e,
-                        setIsDirty,
-                        memberChanges,
-                      );
-                    }}
-                  />
-                </span>
-                <span className="optionItem">
-                  <label htmlFor="competition" style={{ minWidth: 'auto' }}>
-                    competition
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="mainbenefits"
-                    id="competition"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="competition"
-                    checked={
-                      memberItem.values['Main Benefits'] !== undefined &&
-                      memberItem.values['Main Benefits'] !== null
-                        ? memberItem.values['Main Benefits'].includes(
+                      onChange={e => {
+                        if (
+                          memberItem.values['Main Benefits'] === undefined ||
+                          memberItem.values['Main Benefits'] === null
+                        )
+                          memberItem.values['Main Benefits'] = new Array();
+                        if (
+                          memberItem.values['Main Benefits'].includes(
                             'competition',
                           )
-                        : false
-                    }
-                    onChange={e => {
-                      if (
-                        memberItem.values['Main Benefits'] === undefined ||
-                        memberItem.values['Main Benefits'] === null
-                      )
-                        memberItem.values['Main Benefits'] = new Array();
-                      if (
-                        memberItem.values['Main Benefits'].includes(
-                          'competition',
-                        )
-                      ) {
-                        e.target.value = '';
-                        memberItem.values['Main Benefits'] = memberItem.values[
-                          'Main Benefits'
-                        ].filter(elem => elem !== 'competition');
-                      } else {
-                        e.target.value = 'competition';
-                        memberItem.values['Main Benefits'].push('competition');
+                        ) {
+                          e.target.value = '';
+                          memberItem.values[
+                            'Main Benefits'
+                          ] = memberItem.values['Main Benefits'].filter(
+                            elem => elem !== 'competition',
+                          );
+                        } else {
+                          e.target.value = 'competition';
+                          memberItem.values['Main Benefits'].push(
+                            'competition',
+                          );
+                        }
+                        handleChange(
+                          memberItem,
+                          'Main Benefits',
+                          e,
+                          setIsDirty,
+                          memberChanges,
+                        );
+                      }}
+                    />
+                  </span>
+                  <span className="optionItem">
+                    <label htmlFor="ArtofJiuJitsu" style={{ minWidth: 'auto' }}>
+                      Art of Jiu Jitsu
+                    </label>
+                    <input
+                      type="checkbox"
+                      name="mainbenefits"
+                      id="ArtofJiuJitsu"
+                      style={{ clear: 'none', margin: '4px' }}
+                      value="Art of Jiu Jitsu"
+                      checked={
+                        memberItem.values['Main Benefits'] !== undefined &&
+                        memberItem.values['Main Benefits'] !== null
+                          ? memberItem.values['Main Benefits'].includes(
+                              'Art of Jiu Jitsu',
+                            )
+                          : false
                       }
-                      handleChange(
-                        memberItem,
-                        'Main Benefits',
-                        e,
-                        setIsDirty,
-                        memberChanges,
-                      );
-                    }}
-                  />
-                </span>
-                <span className="optionItem">
-                  <label htmlFor="ArtofJiuJitsu" style={{ minWidth: 'auto' }}>
-                    Art of Jiu Jitsu
-                  </label>
-                  <input
-                    type="checkbox"
-                    name="mainbenefits"
-                    id="ArtofJiuJitsu"
-                    style={{ clear: 'none', margin: '4px' }}
-                    ref={input => (this.input = input)}
-                    value="Art of Jiu Jitsu"
-                    checked={
-                      memberItem.values['Main Benefits'] !== undefined &&
-                      memberItem.values['Main Benefits'] !== null
-                        ? memberItem.values['Main Benefits'].includes(
+                      onChange={e => {
+                        if (
+                          memberItem.values['Main Benefits'] === undefined ||
+                          memberItem.values['Main Benefits'] === null
+                        )
+                          memberItem.values['Main Benefits'] = new Array();
+                        if (
+                          memberItem.values['Main Benefits'].includes(
                             'Art of Jiu Jitsu',
                           )
-                        : false
-                    }
-                    onChange={e => {
-                      if (
-                        memberItem.values['Main Benefits'] === undefined ||
-                        memberItem.values['Main Benefits'] === null
-                      )
-                        memberItem.values['Main Benefits'] = new Array();
-                      if (
-                        memberItem.values['Main Benefits'].includes(
-                          'Art of Jiu Jitsu',
-                        )
-                      ) {
-                        e.target.value = '';
-                        memberItem.values['Main Benefits'] = memberItem.values[
-                          'Main Benefits'
-                        ].filter(elem => elem !== 'Art of Jiu Jitsu');
-                      } else {
-                        e.target.value = 'Art of Jiu Jitsu';
-                        memberItem.values['Main Benefits'].push(
-                          'Art of Jiu Jitsu',
+                        ) {
+                          e.target.value = '';
+                          memberItem.values[
+                            'Main Benefits'
+                          ] = memberItem.values['Main Benefits'].filter(
+                            elem => elem !== 'Art of Jiu Jitsu',
+                          );
+                        } else {
+                          e.target.value = 'Art of Jiu Jitsu';
+                          memberItem.values['Main Benefits'].push(
+                            'Art of Jiu Jitsu',
+                          );
+                        }
+                        handleChange(
+                          memberItem,
+                          'Main Benefits',
+                          e,
+                          setIsDirty,
+                          memberChanges,
                         );
+                      }}
+                    />
+                  </span>
+                </span>
+                <span className="line">
+                  <div>
+                    <label htmlFor="additionalprogram1">
+                      Additional Program 1
+                    </label>
+                    <select
+                      name="additionalprogram1"
+                      id="additionalprogram1"
+                      defaultValue={memberItem.values['Additional Program 1']}
+                      onChange={e =>
+                        handleChange(
+                          memberItem,
+                          'Additional Program 1',
+                          e,
+                          setIsDirty,
+                          memberChanges,
+                        )
                       }
-                      handleChange(
-                        memberItem,
-                        'Main Benefits',
-                        e,
-                        setIsDirty,
-                        memberChanges,
-                      );
-                    }}
-                  />
+                    >
+                      <option value="" />
+                      {additionalPrograms.map(program => (
+                        <option key={program.program} value={program.program}>
+                          {program.program}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="droparrow" />
+                  </div>
+                  <div>
+                    <label htmlFor="additionalprogram2">
+                      Additional Program 2
+                    </label>
+                    <select
+                      name="additionalprogram2"
+                      id="additionalprogram2"
+                      defaultValue={memberItem.values['Additional Program 2']}
+                      onChange={e =>
+                        handleChange(
+                          memberItem,
+                          'Additional Program 2',
+                          e,
+                          setIsDirty,
+                          memberChanges,
+                        )
+                      }
+                    >
+                      <option value="" />
+                      {additionalPrograms.map(program => (
+                        <option key={program.program} value={program.program}>
+                          {program.program}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="droparrow" />
+                  </div>{' '}
+                </span>
+                <span className="line">
+                  <div className="field">
+                    <label htmlFor="alternateBarcode">Alternate Barcode</label>
+                    <input
+                      type="text"
+                      name="alternateBarcode"
+                      id="alternateBarcode"
+                      defaultValue={memberItem.values['Alternate Barcode']}
+                      onChange={e =>
+                        handleChange(
+                          memberItem,
+                          'Alternate Barcode',
+                          e,
+                          setIsDirty,
+                          memberChanges,
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="memberBarcode">
+                    {memberItem.values['Alternate Barcode'] !== undefined &&
+                      memberItem.values['Alternate Barcode'] !== null && (
+                        <Barcode
+                          defaultValue={memberItem.values['Alternate Barcode']}
+                          width={1.3}
+                          height={30}
+                          displayValue={false}
+                        />
+                      )}
+                  </div>
                 </span>
               </span>
-              <span className="line">
-                <div>
-                  <label htmlFor="additionalprogram1">
-                    Additional Program 1
-                  </label>
-                  <select
-                    name="additionalprogram1"
-                    id="additionalprogram1"
-                    ref={input => (this.input = input)}
-                    value={memberItem.values['Additional Program 1']}
-                    onChange={e =>
-                      handleChange(
-                        memberItem,
-                        'Additional Program 1',
-                        e,
-                        setIsDirty,
-                        memberChanges,
-                      )
-                    }
-                  >
-                    <option value="" />
-                    {additionalPrograms.map(program => (
-                      <option key={program.program} value={program.program}>
-                        {program.program}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="droparrow" />
-                </div>
-                <div>
-                  <label htmlFor="additionalprogram2">
-                    Additional Program 2
-                  </label>
-                  <select
-                    name="additionalprogram2"
-                    id="additionalprogram2"
-                    ref={input => (this.input = input)}
-                    value={memberItem.values['Additional Program 2']}
-                    onChange={e =>
-                      handleChange(
-                        memberItem,
-                        'Additional Program 2',
-                        e,
-                        setIsDirty,
-                        memberChanges,
-                      )
-                    }
-                  >
-                    <option value="" />
-                    {additionalPrograms.map(program => (
-                      <option key={program.program} value={program.program}>
-                        {program.program}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="droparrow" />
-                </div>{' '}
-              </span>
-              {/*              <span className="line">
-                <div>
-                  <label htmlFor="covid19">Covid19 Waiver Agreement</label>
-                  <select
-                    name="covid19"
-                    id="covid19"
-                    ref={input => (this.input = input)}
-                    value={memberItem.values['Covid19 Waiver']}
-                    onChange={e =>
-                      handleChange(
-                        memberItem,
-                        'Covid19 Waiver',
-                        e,
-                        setIsDirty,
-                        memberChanges,
-                      )
-                    }
-                  >
-                    <option value="" />
-                    <option value="Agreed">Agreed</option>
-                    <option value="NOT Agreed">NOT Agreed</option>
-                  </select>
-                  <div className="droparrow" />
-                </div>
-              </span>
-                  */}
-              <span className="line">
-                <div className="field">
-                  <label htmlFor="alternateBarcode">Alternate Barcode</label>
-                  <input
-                    type="text"
-                    name="alternateBarcode"
-                    id="alternateBarcode"
-                    ref={input => (this.input = input)}
-                    value={memberItem.values['Alternate Barcode']}
-                    onChange={e =>
-                      handleChange(
-                        memberItem,
-                        'Alternate Barcode',
-                        e,
-                        setIsDirty,
-                        memberChanges,
-                      )
-                    }
-                  />
-                </div>
-                <div className="memberBarcode">
-                  {memberItem.values['Alternate Barcode'] !== undefined &&
-                    memberItem.values['Alternate Barcode'] !== null && (
-                      <Barcode
-                        value={memberItem.values['Alternate Barcode']}
-                        width={1.3}
-                        height={30}
-                        displayValue={false}
-                      />
-                    )}
-                </div>
-              </span>
-            </div>
-          )}
+            )}
+          </div>
           <div className="section4">
             <span className="line">
               <span className="leftButtons">
@@ -2924,18 +2919,12 @@ export const MemberEdit = ({
                 </button>
               </span>
               <span className="rightButtons">
-                {this.newMember ? (
-                  <NavLink to={`/Home`} className="btn btn-primary">
-                    Cancel
-                  </NavLink>
-                ) : (
-                  <NavLink
-                    to={`/Member/${memberItem.id}`}
-                    className="btn btn-primary"
-                  >
-                    Cancel
-                  </NavLink>
-                )}
+                <NavLink
+                  to={`/Member/${memberItem.id}`}
+                  className="btn btn-primary"
+                >
+                  Cancel
+                </NavLink>
                 <button
                   type="button"
                   id="saveButton"
@@ -2965,7 +2954,10 @@ export const MemberEdit = ({
   );
 
 export const MemberEditContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(({ memberItem, updateMember, deleteMember }) => {
     return {};
   }),

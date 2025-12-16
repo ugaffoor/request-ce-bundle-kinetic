@@ -59,7 +59,18 @@ export class CameraFeed extends Component {
   takePhoto = () => {
     //        const { sendFile } = this.props;
     const context = this.canvas.getContext('2d');
-    context.drawImage(this.videoPlayer, 0, 0, 100, 100);
+    // Match canvas size to video’s actual size
+    var width = this.videoPlayer.videoWidth;
+    var height = this.videoPlayer.videoHeight;
+
+    while (width > 200) {
+      width = width / 2;
+      height = height / 2;
+    }
+    this.canvas.width = width;
+    this.canvas.height = height;
+
+    context.drawImage(this.videoPlayer, 0, 0, width, height);
     let data = this.canvas.toDataURL();
     K('field[Photo Image]').value(data);
     K('button[Submit Button]').show();
@@ -71,13 +82,13 @@ export class CameraFeed extends Component {
         <div className="c-camera-feed__viewer">
           <video
             ref={ref => (this.videoPlayer = ref)}
-            width="160"
-            heigh="160"
+            width="150"
+            heigh="150"
           />
         </div>
         <button onClick={this.takePhoto}>Take photo!</button>
         <div className="c-camera-feed__stage">
-          <canvas width="100" height="100" ref={ref => (this.canvas = ref)} />
+          <canvas ref={ref => (this.canvas = ref)} />
         </div>
       </div>
     );

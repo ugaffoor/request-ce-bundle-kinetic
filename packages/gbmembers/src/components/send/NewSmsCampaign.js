@@ -8,11 +8,9 @@ import {
   withProps,
 } from 'recompose';
 import { actions } from '../../redux/modules/campaigns';
-import { KappNavLink as NavLink } from 'common';
 import $ from 'jquery';
 import NumberFormat from 'react-number-format';
 import 'react-datetime/css/react-datetime.css';
-import ReactTable from 'react-table';
 import moment from 'moment';
 import { email_sent_date_format, substituteFields } from '../leads/LeadsUtils';
 import Select, { components } from 'react-select';
@@ -27,9 +25,7 @@ import { actions as messagingActions } from '../../redux/modules/messaging';
 import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
 import PropTypes from 'prop-types';
 import { actions as dataStoreActions } from '../../redux/modules/settingsDatastore';
-import { actions as leadsActions } from '../../redux/modules/leads';
 import { actions as appActions } from '../../redux/modules/memberApp';
-import { actions as attendanceActions } from '../../redux/modules/attendance';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import ReactSpinner from 'react16-spinjs';
 
@@ -398,8 +394,8 @@ export class NewSmsCampaign extends Component {
       this.props.submissionType === 'member'
         ? this.state.selectedOption
         : this.props.submissionType === 'lead'
-        ? this.state.selectedLeadOption
-        : this.state.selectedClassOption;
+          ? this.state.selectedLeadOption
+          : this.state.selectedClassOption;
     options.forEach(option => {
       option.phoneNumbers.forEach(phoneNumber => {
         if (!phoneNumber.primaryDeleted) {
@@ -485,8 +481,8 @@ export class NewSmsCampaign extends Component {
       this.props.submissionType === 'member'
         ? this.state.selectedOption
         : this.props.submissionType === 'lead'
-        ? this.state.selectedLeadOption
-        : this.state.selectedClassOption;
+          ? this.state.selectedLeadOption
+          : this.state.selectedClassOption;
 
     options.forEach(option => {
       option.phoneNumbers.forEach(phoneNumber => {
@@ -784,7 +780,7 @@ export class NewSmsCampaign extends Component {
                         });
                       }}
                     />
-                    <label htmlFor="schedule"></label>
+                    <label htmlFor="schedule" />
                   </div>
                   {this.state.scheduleSMS && (
                     <Datetime
@@ -872,7 +868,10 @@ export const NewSmsCampaignView = ({
   );
 
 export const SmsCampaignContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(({ match }) => {
     return {
       submissionId: match.params.submissionId,
@@ -911,14 +910,16 @@ export const SmsCampaignContainer = compose(
                 value.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1'),
                 'g',
               ),
-              space.attributes[value.split("'")[1]][0],
+              getAttributeValue(space, value.split("'")[1]),
             );
           }
         });
       }
 
-      campaignItem.values['From Number'] =
-        space.attributes['School Telephone'][0];
+      campaignItem.values['From Number'] = getAttributeValue(
+        space,
+        'School Telephone',
+      );
       campaignItem.values['Recipients'] = ids;
       campaignItem.values['Phone Numbers'] = phoneNumbers;
       campaignItem.values['Target'] =

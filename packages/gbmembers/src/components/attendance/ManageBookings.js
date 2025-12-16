@@ -248,7 +248,13 @@ export class ManageBookings extends Component {
 
   addClassBooking(bookingsDataMap, booking) {
     var key =
-      booking.classDate + '-' + booking.classTime + '-' + booking.program;
+      booking.classDate +
+      '-' +
+      booking.classTime +
+      '-' +
+      booking.program +
+      '-' +
+      booking.title;
     var bookingsArray = [];
     if (bookingsDataMap.get(key) === undefined) {
       bookingsArray[0] = {
@@ -266,6 +272,7 @@ export class ManageBookings extends Component {
       bookingsDataMap.set(key, {
         sortVal: booking.classDate + '-' + booking.classTime,
         program: booking.program,
+        title: booking.title,
         classDate: moment(booking.classDate).format('ddd Do MMM'),
         classTime: moment(booking.classDate + ' ' + booking.classTime).format(
           'LT',
@@ -278,6 +285,7 @@ export class ManageBookings extends Component {
         id: booking['id'],
         status: booking.status,
         program: booking.program,
+        title: booking.title,
         classDate: moment(booking.classDate).format('ddd Do MMM'),
         classTime: moment(booking.classDate + ' ' + booking.classTime).format(
           'LT',
@@ -333,7 +341,8 @@ export class ManageBookings extends Component {
           moment(schedule.start).day() ===
             moment(value.classDate, 'ddd Do MMM').day() &&
           moment(schedule.start).format('LT') === value.classTime &&
-          schedule.program === value.program
+          schedule.program === value.program &&
+          schedule.title === value.title
         );
       });
       bookingsData.push({
@@ -349,8 +358,8 @@ export class ManageBookings extends Component {
       return a['sortVal'] > b['sortVal']
         ? 1
         : b['sortVal'] > a['sortVal']
-        ? -1
-        : 0;
+          ? -1
+          : 0;
     });
 
     return bookingsData;
@@ -579,6 +588,8 @@ export class ManageBookings extends Component {
                   name="programClass"
                   id="programClass"
                   onChange={e => {
+                    var program = e.target.value.split(' - ')[0];
+                    var title = e.target.value.split(' - ')[1];
                     var schedule = this.classSchedules.filter(schedule => {
                       return (
                         moment(schedule.start).day() ===
@@ -587,13 +598,14 @@ export class ManageBookings extends Component {
                           this.state.classTime &&
                         ((schedule.allowedPrograms !== undefined &&
                           schedule.allowedPrograms !== null &&
-                          schedule.allowedPrograms.includes(e.target.value)) ||
-                          schedule.program === e.target.value)
+                          schedule.allowedPrograms.includes(program)) ||
+                          schedule.program === program) &&
+                        schedule.title == title
                       );
                     });
                     this.setState({
-                      program: e.target.value,
-                      title: schedule.get(0).title,
+                      program: program,
+                      title: title,
                       allowedPrograms:
                         schedule.size !== 0
                           ? schedule.get(0).allowedPrograms
@@ -618,8 +630,12 @@ export class ManageBookings extends Component {
                     ),
                   ].map(program => (
                     <option
-                      key={program.split('::')[0]}
-                      value={program.split('::')[0]}
+                      key={
+                        program.split('::')[0] + ' - ' + program.split('::')[1]
+                      }
+                      value={
+                        program.split('::')[0] + ' - ' + program.split('::')[1]
+                      }
                     >
                       {program.split('::')[0] + ' - ' + program.split('::')[1]}
                     </option>
@@ -777,6 +793,7 @@ export class ManageBookings extends Component {
                     values['Status'] = 'Booked';
                     values['Program'] = this.state.program;
                     values['Title'] = this.state.title;
+                    values['Program'] = this.state.program;
                     values['Class Date'] = this.state.classDate;
                     values['Class Time'] = this.state.classTime;
                     values['Member ID'] = this.state.memberID;

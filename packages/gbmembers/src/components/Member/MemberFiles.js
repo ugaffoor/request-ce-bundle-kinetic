@@ -1,12 +1,9 @@
 import React, { Component } from 'react';
 import ReactTable from 'react-table';
 import moment from 'moment';
-import { contact_date_format } from '../leads/LeadsUtils';
-import binIcon from '../../images/bin.svg?raw';
+import { ReactComponent as BinIcon } from '../../images/bin.svg';
 import { confirm } from '../helpers/Confirmation';
-import { getJson } from '../Member/MemberUtils';
-import SVGInline from 'react-svg-inline';
-import { CoreForm } from 'react-kinetic-core';
+import { CoreForm } from '@kineticdata/react';
 
 export class MemberFiles extends Component {
   constructor(props) {
@@ -143,7 +140,7 @@ export class MemberFiles extends Component {
           }
         }}
       >
-        <SVGInline svg={binIcon} className="icon" />
+        <BinIcon className="icon icon-svg" />
       </span>
     );
   }
@@ -154,7 +151,8 @@ export class MemberFiles extends Component {
     ) {
       this.props.memberItem.memberFiles[
         this.props.memberItem.memberFiles.length
-      ] = response.submission;
+      ] =
+        response.submission;
     }
     this.setState({
       data: this.getData(this.props.memberItem),
