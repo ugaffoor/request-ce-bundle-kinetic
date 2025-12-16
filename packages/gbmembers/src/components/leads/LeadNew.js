@@ -378,7 +378,10 @@ export class LeadNew extends Component {
                 <span className="line">
                   <Autocomplete
                     id="addressAutoComplete"
-                    apiKey={'AIzaSyA-tujnpf8Jy33hVaJ_9GtRdMgHw4jvnwo'}
+                    apiKey={getAttributeValue(
+                      this.props.space,
+                      'AutoCompleteKey',
+                    )}
                     placeholder="Lookup Address"
                     style={{
                       width: '400px',
