@@ -1216,29 +1216,79 @@ export class MemberFinancialReport extends Component {
       }
     });
     cashPaymentsByDate.forEach((payment, i) => {
-      var mIdx = members.findIndex(
-        member => member.id === payment.values['Member GUID'],
-      );
-      payment['member'] = members[mIdx];
-      var pIdx = cashPayments.findIndex(
-        item => item.member.id === payment.values['Member GUID'],
-      );
-      if (pIdx === -1) {
-        payment.amount = Number(payment.values['Amount']);
-        cashPayments[cashPayments.length] = payment;
+      if (payment.values['Payment Type'] === 'Registration Fee') {
+        var idx = members.findIndex(
+          member => member.id === payment.values['Member GUID'],
+        );
+
+        var registrationFeeMember = members[idx];
+        if (
+          registrationFeeMembers.findIndex(
+            item => item.id === registrationFeeMember.id,
+          ) === -1
+        ) {
+          registrationFeeMember.registrationFeeMember = true;
+          registrationFeeMember.cashRegistrationFeeMember = true;
+          registrationFeeMember.memberRegistrationFee = Number(
+            payment.values['Amount'],
+          ).toFixed(2);
+          registrationFeeMembers[
+            registrationFeeMembers.length
+          ] = registrationFeeMember;
+        }
+        registrationFeeMembersValue += Number(payment.values['Amount']);
+        allTransactionRecords.push({
+          type: 'memberRegistrationFee',
+          date: payment.values['Date'],
+          name:
+            registrationFeeMember.values['First Name'] +
+            ' ' +
+            registrationFeeMember.values['Last Name'],
+          billingID: 'Cash',
+          paymentID: 'Cash',
+          payment: Number(payment.values['Amount']).toFixed(2),
+        });
+        console.log(
+          '1 ' +
+            registrationFeeMember.values['First Name'] +
+            ' ' +
+            registrationFeeMember.values['Last Name'] +
+            ' - ' +
+            'Cash' +
+            ',' +
+            Number(payment.values['Amount']).toFixed(2) +
+            ',' +
+            'Cash' +
+            ',' +
+            payment.values['Date'] +
+            ',' +
+            'Cash',
+        );
       } else {
-        cashPayments[pIdx].amount += Number(payment.values['Amount']);
+        var mIdx = members.findIndex(
+          member => member.id === payment.values['Member GUID'],
+        );
+        payment['member'] = members[mIdx];
+        var pIdx = cashPayments.findIndex(
+          item => item.member.id === payment.values['Member GUID'],
+        );
+        if (pIdx === -1) {
+          payment.amount = Number(payment.values['Amount']);
+          cashPayments[cashPayments.length] = payment;
+        } else {
+          cashPayments[pIdx].amount += Number(payment.values['Amount']);
+        }
+        cashPaymentsValue += Number(payment.values['Amount']);
+        allTransactionRecords.push({
+          type: 'Cash Payments',
+          date: moment(payment.values['Date']),
+          name:
+            members[mIdx].values['First Name'] +
+            ' ' +
+            members[mIdx].values['Last Name'],
+          amount: Number(payment.values['Amount']).toFixed(2),
+        });
       }
-      cashPaymentsValue += Number(payment.values['Amount']);
-      allTransactionRecords.push({
-        type: 'Cash Payments',
-        date: moment(payment.values['Date']),
-        name:
-          members[mIdx].values['First Name'] +
-          ' ' +
-          members[mIdx].values['Last Name'],
-        amount: Number(payment.values['Amount']).toFixed(2),
-      });
     });
 
     //    if (fromDate.month()>=moment().month() && toDate.month()>=moment().month()) {

@@ -706,6 +706,8 @@ class PayNow extends Component {
 
   processCashPayment() {
     let values = {};
+
+    values['Payment Type'] = this.state.feeType;
     values['Member ID'] = this.props.memberItem.values['Member ID'];
     values['Member GUID'] = this.props.memberItem.id;
     values['Date'] = moment();
@@ -2258,7 +2260,11 @@ export class PaymentHistory extends Component {
         paymentMethod: 'Cash',
         paymentStatus: 'Cash',
         debitDate: moment(payment.values['Date']).format('YYYY-MM-DD HH:mm:ss'),
-        paymentSource: 'Cash',
+        paymentSource:
+          payment.values['Payment Type'] === undefined ||
+          payment.values['Payment Type'] === ''
+            ? 'Membership'
+            : payment.values['Payment Type'],
         paymentID: payment.handle,
       };
     });
@@ -2978,6 +2984,7 @@ export class BillingInfo extends Component {
     });
 
     let values = {};
+    values['Payment Type'] = 'Membership Fee';
     values['Member ID'] = this.props.memberItem.values['Member ID'];
     values['Member GUID'] = this.props.memberItem.id;
     values['Date'] = moment();
