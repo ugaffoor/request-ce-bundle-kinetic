@@ -35,7 +35,10 @@ function eventsTick(mythis) {
 }
 
 export const HeaderContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withState('kappDropdownOpen', 'setKappDropdownOpen', false),
   // Filter out Kapps that have an attribute of "Hidden" set to True or Yes
   withProps(props => ({
@@ -56,13 +59,7 @@ export const HeaderContainer = compose(
     kappDropdownToggle: props => () => props.setKappDropdownOpen(open => !open),
   }),
   lifecycle({
-    constructor() {
-      /*      this.props.fetchCurrentMember({
-        id: this.props.match.params.id,
-        history: this.props.history,
-        fetchMembers: this.props.fetchMembers,
-      }); */
-    },
+    constructor() {},
     UNSAFE_componentWillMount() {
       let timer = setInterval(eventsTick, 10 * 1000 * 60, this); // refresh every 1 hour
       this.setState({ timer: timer });

@@ -60,6 +60,22 @@ export class Members extends React.Component {
       ? true
       : false;
   }
+  isStartedMain(space, member) {
+    return (
+      member.values['Status'] !== 'Inactive' &&
+      (((member.values['Biller Customer Reference'] === null ||
+        member.values['Biller Customer Reference'] === undefined ||
+        member.values['Biller Customer Reference'] === '') &&
+        member.migrationForm !== undefined &&
+        member.migrationForm.coreState !== 'Submitted') ||
+        (member.migrationForm !== undefined &&
+          member.migrationForm.form.slug ===
+            getAttributeValue(space, 'Billing Company').toLowerCase() +
+              '-remote-registration' &&
+          member.migrationForm.coreState === 'Submitted' &&
+          member.values['Biller Migrated'] !== 'YES'))
+    );
+  }
   getData(space, allMembers, currentFilter) {
     let members = allMembers.filter(member => {
       let match = false;
@@ -78,6 +94,8 @@ export class Members extends React.Component {
           member.values['Status'] === 'Inactive'
         )
           match = true;
+      } else if (currentFilter === 'Pending Registrations') {
+        if (this.isStartedMain(space, member)) match = true;
       } else if (currentFilter === 'All Members') {
         match = true;
       }

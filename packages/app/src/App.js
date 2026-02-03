@@ -3,7 +3,6 @@ import 'font-awesome/css/font-awesome.css';
 import 'typeface-open-sans/index.css';
 import 'common/src/assets/styles/master.scss';
 import './assets/styles/master.scss';
-import 'discussions/src/assets/styles/master.scss';
 import React, { Fragment } from 'react';
 import { connect } from 'react-redux';
 import { compose, lifecycle, withHandlers, withProps } from 'recompose';
@@ -20,7 +19,6 @@ import { App as RegistrationsApp } from 'registrations/src/App';
 import { App as QueueApp } from 'queue/src/App';
 import { App as SpaceApp } from 'space/src/App';
 import { AppContainer as MemberApp } from 'gbmembers/src/components/AppContainer';
-import packageInfo from 'packageJson';
 //import Favicon from "react-favicon";
 import { Helmet } from 'react-helmet';
 
@@ -30,7 +28,6 @@ console.log("React instance count test:"+window.React1 === window.React2);
 console.log("React1 version:"+window.React1.version);
 console.log("React2 t:"+window.React2.version); */
 
-const isProduction = process.env.NODE_ENV === 'production';
 export const clientId =
   process.env.NODE_ENV === 'development'
     ? 'kinetic-bundle-dev'

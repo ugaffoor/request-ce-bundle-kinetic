@@ -168,6 +168,23 @@ export class PromotionDialog extends Component {
 
     let showPromote = false;
     let showAttendanceDialog = false;
+
+    // GBK 6.0 compliance
+    let gbk6Recommend = false;
+    let belt = props.memberItem.values['Ranking Belt'];
+    if (
+      statusIndicator === 'ready' &&
+      (belt === 'Grey / White Belt 1 Red Stripe' ||
+        belt === 'Grey / White Belt 2 Red Stripes' ||
+        belt === 'Grey / White Belt 3 Red Stripes' ||
+        belt === 'Grey / White Belt 4 Red Stripes' ||
+        belt === 'Grey / White Belt 1 Black Stripe' ||
+        belt === 'Grey / White Belt 2 Black Stripes' ||
+        belt === 'Grey / White Belt 3 Black Stripes')
+    ) {
+      gbk6Recommend = true;
+    }
+
     this.state = {
       promotionDate: moment(),
       showPromote,
@@ -180,6 +197,7 @@ export class PromotionDialog extends Component {
       attendancePerc,
       percentageStyle,
       showAttendanceDialog,
+      gbk6Recommend,
     };
   }
   UNSAFE_componentWillReceiveProps(nextProps) {}
@@ -255,6 +273,12 @@ export class PromotionDialog extends Component {
                 <span>
                   {this.state.statusText}
                   {this.state.statusIndicator !== 'ready' ? 'TO GRADE' : ''}
+                  {this.state.gbk6Recommend && (
+                    <span className="gbk6">
+                      The GBK 6.0 now requires this member to be promoted to the
+                      next belt.
+                    </span>
+                  )}
                 </span>
                 {(Utils.isMemberOf(
                   this.props.profile,

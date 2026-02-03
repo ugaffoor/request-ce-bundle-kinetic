@@ -3,7 +3,6 @@ import $ from 'jquery';
 import moment from 'moment';
 import { contact_date_format } from '../leads/LeadsUtils';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
-import axios from 'axios';
 import { Country, State } from 'country-state-city';
 import { ReactComponent as GB1Icon } from '../../images/GB1.svg';
 import { ReactComponent as GB2Icon } from '../../images/GB2.svg';
@@ -33,12 +32,15 @@ import { ReactComponent as Brown_Belt_4_StripesIcon } from '../../images/Brown_B
 
 import { ReactComponent as Grey_Belt_No_StripesIcon } from '../../images/Grey_Belt_No_Stripes.svg';
 import { ReactComponent as Grey_Belt_1_Black_StripeIcon } from '../../images/Grey_Belt_1_Black_Stripe.svg';
+import { ReactComponent as Grey_Belt_1_Yellow_StripeIcon } from '../../images/Grey_Belt_1_Yellow_Stripe.svg';
 import { ReactComponent as Grey_Belt_1_Red_StripeIcon } from '../../images/Grey_Belt_1_Red_Stripe.svg';
 import { ReactComponent as Grey_Belt_1_White_StripeIcon } from '../../images/Grey_Belt_1_White_Stripe.svg';
 import { ReactComponent as Grey_Belt_2_Black_StripesIcon } from '../../images/Grey_Belt_2_Black_Stripes.svg';
+import { ReactComponent as Grey_Belt_2_Yellow_StripesIcon } from '../../images/Grey_Belt_2_Yellow_Stripes.svg';
 import { ReactComponent as Grey_Belt_2_Red_StripesIcon } from '../../images/Grey_Belt_2_Red_Stripes.svg';
 import { ReactComponent as Grey_Belt_2_White_StripesIcon } from '../../images/Grey_Belt_2_White_Stripes.svg';
 import { ReactComponent as Grey_Belt_3_Black_StripesIcon } from '../../images/Grey_Belt_3_Black_Stripes.svg';
+import { ReactComponent as Grey_Belt_3_Yellow_StripesIcon } from '../../images/Grey_Belt_3_Yellow_Stripes.svg';
 import { ReactComponent as Grey_Belt_3_Red_StripesIcon } from '../../images/Grey_Belt_3_Red_Stripes.svg';
 import { ReactComponent as Grey_Belt_3_White_StripesIcon } from '../../images/Grey_Belt_3_White_Stripes.svg';
 import { ReactComponent as Grey_Belt_4_Red_StripesIcon } from '../../images/Grey_Belt_4_Red_Stripes.svg';
@@ -59,12 +61,15 @@ import { ReactComponent as Grey_White_Belt_4_White_StripesIcon } from '../../ima
 
 import { ReactComponent as Grey_Black_Belt_No_StripesIcon } from '../../images/Grey_Black_Belt_No_Stripes.svg';
 import { ReactComponent as Grey_Black_Belt_1_Black_StripeIcon } from '../../images/Grey_Black_Belt_1_Black_Stripe.svg';
+import { ReactComponent as Grey_Black_Belt_1_Yellow_StripeIcon } from '../../images/Grey_Black_Belt_1_Yellow_Stripe.svg';
 import { ReactComponent as Grey_Black_Belt_1_Red_StripeIcon } from '../../images/Grey_Black_Belt_1_Red_Stripe.svg';
 import { ReactComponent as Grey_Black_Belt_1_White_StripeIcon } from '../../images/Grey_Black_Belt_1_White_Stripe.svg';
 import { ReactComponent as Grey_Black_Belt_2_Black_StripesIcon } from '../../images/Grey_Black_Belt_2_Black_Stripes.svg';
+import { ReactComponent as Grey_Black_Belt_2_Yellow_StripesIcon } from '../../images/Grey_Black_Belt_2_Yellow_Stripes.svg';
 import { ReactComponent as Grey_Black_Belt_2_Red_StripesIcon } from '../../images/Grey_Black_Belt_2_Red_Stripes.svg';
 import { ReactComponent as Grey_Black_Belt_2_White_StripesIcon } from '../../images/Grey_Black_Belt_2_White_Stripes.svg';
 import { ReactComponent as Grey_Black_Belt_3_Black_StripesIcon } from '../../images/Grey_Black_Belt_3_Black_Stripes.svg';
+import { ReactComponent as Grey_Black_Belt_3_Yellow_StripesIcon } from '../../images/Grey_Black_Belt_3_Yellow_Stripes.svg';
 import { ReactComponent as Grey_Black_Belt_3_Red_StripesIcon } from '../../images/Grey_Black_Belt_3_Red_Stripes.svg';
 import { ReactComponent as Grey_Black_Belt_3_White_StripesIcon } from '../../images/Grey_Black_Belt_3_White_Stripes.svg';
 import { ReactComponent as Grey_Black_Belt_4_Red_StripesIcon } from '../../images/Grey_Black_Belt_4_Red_Stripes.svg';
@@ -72,12 +77,15 @@ import { ReactComponent as Grey_Black_Belt_4_White_StripesIcon } from '../../ima
 
 import { ReactComponent as Yellow_Belt_No_StripesIcon } from '../../images/Yellow_Belt_No_Stripes.svg';
 import { ReactComponent as Yellow_Belt_1_Black_StripeIcon } from '../../images/Yellow_Belt_1_Black_Stripe.svg';
+import { ReactComponent as Yellow_Belt_1_Orange_StripeIcon } from '../../images/Yellow_Belt_1_Orange_Stripe.svg';
 import { ReactComponent as Yellow_Belt_1_Red_StripeIcon } from '../../images/Yellow_Belt_1_Red_Stripe.svg';
 import { ReactComponent as Yellow_Belt_1_White_StripeIcon } from '../../images/Yellow_Belt_1_White_Stripe.svg';
 import { ReactComponent as Yellow_Belt_2_Black_StripesIcon } from '../../images/Yellow_Belt_2_Black_Stripes.svg';
+import { ReactComponent as Yellow_Belt_2_Orange_StripesIcon } from '../../images/Yellow_Belt_2_Orange_Stripes.svg';
 import { ReactComponent as Yellow_Belt_2_Red_StripesIcon } from '../../images/Yellow_Belt_2_Red_Stripes.svg';
 import { ReactComponent as Yellow_Belt_2_White_StripesIcon } from '../../images/Yellow_Belt_2_White_Stripes.svg';
 import { ReactComponent as Yellow_Belt_3_Black_StripesIcon } from '../../images/Yellow_Belt_3_Black_Stripes.svg';
+import { ReactComponent as Yellow_Belt_3_Orange_StripesIcon } from '../../images/Yellow_Belt_3_Orange_Stripes.svg';
 import { ReactComponent as Yellow_Belt_3_Red_StripesIcon } from '../../images/Yellow_Belt_3_Red_Stripes.svg';
 import { ReactComponent as Yellow_Belt_3_White_StripesIcon } from '../../images/Yellow_Belt_3_White_Stripes.svg';
 import { ReactComponent as Yellow_Belt_4_Red_StripesIcon } from '../../images/Yellow_Belt_4_Red_Stripes.svg';
@@ -85,12 +93,15 @@ import { ReactComponent as Yellow_Belt_4_White_StripesIcon } from '../../images/
 
 import { ReactComponent as Yellow_White_Belt_No_StripesIcon } from '../../images/Yellow_White_Belt_No_Stripes.svg';
 import { ReactComponent as Yellow_White_Belt_1_Black_StripeIcon } from '../../images/Yellow_White_Belt_1_Black_Stripe.svg';
+import { ReactComponent as Yellow_White_Belt_1_Orange_StripeIcon } from '../../images/Yellow_White_Belt_1_Orange_Stripe.svg';
 import { ReactComponent as Yellow_White_Belt_1_Red_StripeIcon } from '../../images/Yellow_White_Belt_1_Red_Stripe.svg';
 import { ReactComponent as Yellow_White_Belt_1_White_StripeIcon } from '../../images/Yellow_White_Belt_1_White_Stripe.svg';
 import { ReactComponent as Yellow_White_Belt_2_Black_StripesIcon } from '../../images/Yellow_White_Belt_2_Black_Stripes.svg';
+import { ReactComponent as Yellow_White_Belt_2_Orange_StripesIcon } from '../../images/Yellow_White_Belt_2_Orange_Stripes.svg';
 import { ReactComponent as Yellow_White_Belt_2_Red_StripesIcon } from '../../images/Yellow_White_Belt_2_Red_Stripes.svg';
 import { ReactComponent as Yellow_White_Belt_2_White_StripesIcon } from '../../images/Yellow_White_Belt_2_White_Stripes.svg';
 import { ReactComponent as Yellow_White_Belt_3_Black_StripesIcon } from '../../images/Yellow_White_Belt_3_Black_Stripes.svg';
+import { ReactComponent as Yellow_White_Belt_3_Orange_StripesIcon } from '../../images/Yellow_White_Belt_3_Orange_Stripes.svg';
 import { ReactComponent as Yellow_White_Belt_3_Red_StripesIcon } from '../../images/Yellow_White_Belt_3_Red_Stripes.svg';
 import { ReactComponent as Yellow_White_Belt_3_White_StripesIcon } from '../../images/Yellow_White_Belt_3_White_Stripes.svg';
 import { ReactComponent as Yellow_White_Belt_4_Red_StripesIcon } from '../../images/Yellow_White_Belt_4_Red_Stripes.svg';
@@ -98,12 +109,15 @@ import { ReactComponent as Yellow_White_Belt_4_White_StripesIcon } from '../../i
 
 import { ReactComponent as Yellow_Black_Belt_No_StripesIcon } from '../../images/Yellow_Black_Belt_No_Stripes.svg';
 import { ReactComponent as Yellow_Black_Belt_1_Black_StripeIcon } from '../../images/Yellow_Black_Belt_1_Black_Stripe.svg';
+import { ReactComponent as Yellow_Black_Belt_1_Orange_StripeIcon } from '../../images/Yellow_Black_Belt_1_Orange_Stripe.svg';
 import { ReactComponent as Yellow_Black_Belt_1_Red_StripeIcon } from '../../images/Yellow_Black_Belt_1_Red_Stripe.svg';
 import { ReactComponent as Yellow_Black_Belt_1_White_StripeIcon } from '../../images/Yellow_Black_Belt_1_White_Stripe.svg';
 import { ReactComponent as Yellow_Black_Belt_2_Black_StripesIcon } from '../../images/Yellow_Black_Belt_2_Black_Stripes.svg';
+import { ReactComponent as Yellow_Black_Belt_2_Orange_StripesIcon } from '../../images/Yellow_Black_Belt_2_Orange_Stripes.svg';
 import { ReactComponent as Yellow_Black_Belt_2_Red_StripesIcon } from '../../images/Yellow_Black_Belt_2_Red_Stripes.svg';
 import { ReactComponent as Yellow_Black_Belt_2_White_StripesIcon } from '../../images/Yellow_Black_Belt_2_White_Stripes.svg';
 import { ReactComponent as Yellow_Black_Belt_3_Black_StripesIcon } from '../../images/Yellow_Black_Belt_3_Black_Stripes.svg';
+import { ReactComponent as Yellow_Black_Belt_3_Orange_StripesIcon } from '../../images/Yellow_Black_Belt_3_Orange_Stripes.svg';
 import { ReactComponent as Yellow_Black_Belt_3_Red_StripesIcon } from '../../images/Yellow_Black_Belt_3_Red_Stripes.svg';
 import { ReactComponent as Yellow_Black_Belt_3_White_StripesIcon } from '../../images/Yellow_Black_Belt_3_White_Stripes.svg';
 import { ReactComponent as Yellow_Black_Belt_4_Red_StripesIcon } from '../../images/Yellow_Black_Belt_4_Red_Stripes.svg';
@@ -111,12 +125,15 @@ import { ReactComponent as Yellow_Black_Belt_4_White_StripesIcon } from '../../i
 
 import { ReactComponent as Orange_Belt_No_StripesIcon } from '../../images/Orange_Belt_No_Stripes.svg';
 import { ReactComponent as Orange_Belt_1_Black_StripeIcon } from '../../images/Orange_Belt_1_Black_Stripe.svg';
+import { ReactComponent as Orange_Belt_1_Green_StripeIcon } from '../../images/Orange_Belt_1_Green_Stripe.svg';
 import { ReactComponent as Orange_Belt_1_Red_StripeIcon } from '../../images/Orange_Belt_1_Red_Stripe.svg';
 import { ReactComponent as Orange_Belt_1_White_StripeIcon } from '../../images/Orange_Belt_1_White_Stripe.svg';
 import { ReactComponent as Orange_Belt_2_Black_StripesIcon } from '../../images/Orange_Belt_2_Black_Stripes.svg';
+import { ReactComponent as Orange_Belt_2_Green_StripesIcon } from '../../images/Orange_Belt_2_Green_Stripes.svg';
 import { ReactComponent as Orange_Belt_2_Red_StripesIcon } from '../../images/Orange_Belt_2_Red_Stripes.svg';
 import { ReactComponent as Orange_Belt_2_White_StripesIcon } from '../../images/Orange_Belt_2_White_Stripes.svg';
 import { ReactComponent as Orange_Belt_3_Black_StripesIcon } from '../../images/Orange_Belt_3_Black_Stripes.svg';
+import { ReactComponent as Orange_Belt_3_Green_StripesIcon } from '../../images/Orange_Belt_3_Green_Stripes.svg';
 import { ReactComponent as Orange_Belt_3_Red_StripesIcon } from '../../images/Orange_Belt_3_Red_Stripes.svg';
 import { ReactComponent as Orange_Belt_3_White_StripesIcon } from '../../images/Orange_Belt_3_White_Stripes.svg';
 import { ReactComponent as Orange_Belt_4_Red_StripesIcon } from '../../images/Orange_Belt_4_Red_Stripes.svg';
@@ -124,12 +141,15 @@ import { ReactComponent as Orange_Belt_4_White_StripesIcon } from '../../images/
 
 import { ReactComponent as Orange_White_Belt_No_StripesIcon } from '../../images/Orange_White_Belt_No_Stripes.svg';
 import { ReactComponent as Orange_White_Belt_1_Black_StripeIcon } from '../../images/Orange_White_Belt_1_Black_Stripe.svg';
+import { ReactComponent as Orange_White_Belt_1_Green_StripeIcon } from '../../images/Orange_White_Belt_1_Green_Stripe.svg';
 import { ReactComponent as Orange_White_Belt_1_Red_StripeIcon } from '../../images/Orange_White_Belt_1_Red_Stripe.svg';
 import { ReactComponent as Orange_White_Belt_1_White_StripeIcon } from '../../images/Orange_White_Belt_1_White_Stripe.svg';
 import { ReactComponent as Orange_White_Belt_2_Black_StripesIcon } from '../../images/Orange_White_Belt_2_Black_Stripes.svg';
+import { ReactComponent as Orange_White_Belt_2_Green_StripesIcon } from '../../images/Orange_White_Belt_2_Green_Stripes.svg';
 import { ReactComponent as Orange_White_Belt_2_Red_StripesIcon } from '../../images/Orange_White_Belt_2_Red_Stripes.svg';
 import { ReactComponent as Orange_White_Belt_2_White_StripesIcon } from '../../images/Orange_White_Belt_2_White_Stripes.svg';
 import { ReactComponent as Orange_White_Belt_3_Black_StripesIcon } from '../../images/Orange_White_Belt_3_Black_Stripes.svg';
+import { ReactComponent as Orange_White_Belt_3_Green_StripesIcon } from '../../images/Orange_White_Belt_3_Green_Stripes.svg';
 import { ReactComponent as Orange_White_Belt_3_Red_StripesIcon } from '../../images/Orange_White_Belt_3_Red_Stripes.svg';
 import { ReactComponent as Orange_White_Belt_3_White_StripesIcon } from '../../images/Orange_White_Belt_3_White_Stripes.svg';
 import { ReactComponent as Orange_White_Belt_4_Red_StripesIcon } from '../../images/Orange_White_Belt_4_Red_Stripes.svg';
@@ -137,12 +157,15 @@ import { ReactComponent as Orange_White_Belt_4_White_StripesIcon } from '../../i
 
 import { ReactComponent as Orange_Black_Belt_No_StripesIcon } from '../../images/Orange_Black_Belt_No_Stripes.svg';
 import { ReactComponent as Orange_Black_Belt_1_Black_StripeIcon } from '../../images/Orange_Black_Belt_1_Black_Stripe.svg';
+import { ReactComponent as Orange_Black_Belt_1_Green_StripeIcon } from '../../images/Orange_Black_Belt_1_Green_Stripe.svg';
 import { ReactComponent as Orange_Black_Belt_1_Red_StripeIcon } from '../../images/Orange_Black_Belt_1_Red_Stripe.svg';
 import { ReactComponent as Orange_Black_Belt_1_White_StripeIcon } from '../../images/Orange_Black_Belt_1_White_Stripe.svg';
 import { ReactComponent as Orange_Black_Belt_2_Black_StripesIcon } from '../../images/Orange_Black_Belt_2_Black_Stripes.svg';
+import { ReactComponent as Orange_Black_Belt_2_Green_StripesIcon } from '../../images/Orange_Black_Belt_2_Green_Stripes.svg';
 import { ReactComponent as Orange_Black_Belt_2_Red_StripesIcon } from '../../images/Orange_Black_Belt_2_Red_Stripes.svg';
 import { ReactComponent as Orange_Black_Belt_2_White_StripesIcon } from '../../images/Orange_Black_Belt_2_White_Stripes.svg';
 import { ReactComponent as Orange_Black_Belt_3_Black_StripesIcon } from '../../images/Orange_Black_Belt_3_Black_Stripes.svg';
+import { ReactComponent as Orange_Black_Belt_3_Green_StripesIcon } from '../../images/Orange_Black_Belt_3_Green_Stripes.svg';
 import { ReactComponent as Orange_Black_Belt_3_Red_StripesIcon } from '../../images/Orange_Black_Belt_3_Red_Stripes.svg';
 import { ReactComponent as Orange_Black_Belt_3_White_StripesIcon } from '../../images/Orange_Black_Belt_3_White_Stripes.svg';
 import { ReactComponent as Orange_Black_Belt_4_Red_StripesIcon } from '../../images/Orange_Black_Belt_4_Red_Stripes.svg';
@@ -150,12 +173,15 @@ import { ReactComponent as Orange_Black_Belt_4_White_StripesIcon } from '../../i
 
 import { ReactComponent as Green_Belt_No_StripesIcon } from '../../images/Green_Belt_No_Stripes.svg';
 import { ReactComponent as Green_Belt_1_Black_StripeIcon } from '../../images/Green_Belt_1_Black_Stripe.svg';
+import { ReactComponent as Green_Belt_1_Blue_StripeIcon } from '../../images/Green_Belt_1_Blue_Stripe.svg';
 import { ReactComponent as Green_Belt_1_Red_StripeIcon } from '../../images/Green_Belt_1_Red_Stripe.svg';
 import { ReactComponent as Green_Belt_1_White_StripeIcon } from '../../images/Green_Belt_1_White_Stripe.svg';
 import { ReactComponent as Green_Belt_2_Black_StripesIcon } from '../../images/Green_Belt_2_Black_Stripes.svg';
+import { ReactComponent as Green_Belt_2_Blue_StripesIcon } from '../../images/Green_Belt_2_Blue_Stripes.svg';
 import { ReactComponent as Green_Belt_2_Red_StripesIcon } from '../../images/Green_Belt_2_Red_Stripes.svg';
 import { ReactComponent as Green_Belt_2_White_StripesIcon } from '../../images/Green_Belt_2_White_Stripes.svg';
 import { ReactComponent as Green_Belt_3_Black_StripesIcon } from '../../images/Green_Belt_3_Black_Stripes.svg';
+import { ReactComponent as Green_Belt_3_Blue_StripesIcon } from '../../images/Green_Belt_3_Blue_Stripes.svg';
 import { ReactComponent as Green_Belt_3_Red_StripesIcon } from '../../images/Green_Belt_3_Red_Stripes.svg';
 import { ReactComponent as Green_Belt_3_White_StripesIcon } from '../../images/Green_Belt_3_White_Stripes.svg';
 import { ReactComponent as Green_Belt_4_Red_StripesIcon } from '../../images/Green_Belt_4_Red_Stripes.svg';
@@ -163,24 +189,30 @@ import { ReactComponent as Green_Belt_4_White_StripesIcon } from '../../images/G
 
 import { ReactComponent as Green_White_Belt_No_StripesIcon } from '../../images/Green_White_Belt_No_Stripes.svg';
 import { ReactComponent as Green_White_Belt_1_Black_StripeIcon } from '../../images/Green_White_Belt_1_Black_Stripe.svg';
+import { ReactComponent as Green_White_Belt_1_Blue_StripeIcon } from '../../images/Green_White_Belt_1_Blue_Stripe.svg';
 import { ReactComponent as Green_White_Belt_1_Red_StripeIcon } from '../../images/Green_White_Belt_1_Red_Stripe.svg';
 import { ReactComponent as Green_White_Belt_1_White_StripeIcon } from '../../images/Green_White_Belt_1_White_Stripe.svg';
 import { ReactComponent as Green_White_Belt_2_Black_StripesIcon } from '../../images/Green_White_Belt_2_Black_Stripes.svg';
+import { ReactComponent as Green_White_Belt_2_Blue_StripesIcon } from '../../images/Green_White_Belt_2_Blue_Stripes.svg';
 import { ReactComponent as Green_White_Belt_2_Red_StripesIcon } from '../../images/Green_White_Belt_2_Red_Stripes.svg';
 import { ReactComponent as Green_White_Belt_2_White_StripesIcon } from '../../images/Green_White_Belt_2_White_Stripes.svg';
 import { ReactComponent as Green_White_Belt_3_Black_StripesIcon } from '../../images/Green_White_Belt_3_Black_Stripes.svg';
+import { ReactComponent as Green_White_Belt_3_Blue_StripesIcon } from '../../images/Green_White_Belt_3_Blue_Stripes.svg';
 import { ReactComponent as Green_White_Belt_3_Red_StripesIcon } from '../../images/Green_White_Belt_3_Red_Stripes.svg';
 import { ReactComponent as Green_White_Belt_3_White_StripesIcon } from '../../images/Green_White_Belt_3_White_Stripes.svg';
 import { ReactComponent as Green_White_Belt_4_Red_StripesIcon } from '../../images/Green_White_Belt_4_Red_Stripes.svg';
 
 import { ReactComponent as Green_Black_Belt_No_StripesIcon } from '../../images/Green_Black_Belt_No_Stripes.svg';
 import { ReactComponent as Green_Black_Belt_1_Black_StripeIcon } from '../../images/Green_Black_Belt_1_Black_Stripe.svg';
+import { ReactComponent as Green_Black_Belt_1_Blue_StripeIcon } from '../../images/Green_Black_Belt_1_Blue_Stripe.svg';
 import { ReactComponent as Green_Black_Belt_1_Red_StripeIcon } from '../../images/Green_Black_Belt_1_Red_Stripe.svg';
 import { ReactComponent as Green_Black_Belt_1_White_StripeIcon } from '../../images/Green_Black_Belt_1_White_Stripe.svg';
 import { ReactComponent as Green_Black_Belt_2_Black_StripesIcon } from '../../images/Green_Black_Belt_2_Black_Stripes.svg';
+import { ReactComponent as Green_Black_Belt_2_Blue_StripesIcon } from '../../images/Green_Black_Belt_2_Blue_Stripes.svg';
 import { ReactComponent as Green_Black_Belt_2_Red_StripesIcon } from '../../images/Green_Black_Belt_2_Red_Stripes.svg';
 import { ReactComponent as Green_Black_Belt_2_White_StripesIcon } from '../../images/Green_Black_Belt_2_White_Stripes.svg';
 import { ReactComponent as Green_Black_Belt_3_Black_StripesIcon } from '../../images/Green_Black_Belt_3_Black_Stripes.svg';
+import { ReactComponent as Green_Black_Belt_3_Blue_StripesIcon } from '../../images/Green_Black_Belt_3_Blue_Stripes.svg';
 import { ReactComponent as Green_Black_Belt_3_Red_StripesIcon } from '../../images/Green_Black_Belt_3_Red_Stripes.svg';
 import { ReactComponent as Green_Black_Belt_3_White_StripesIcon } from '../../images/Green_Black_Belt_3_White_Stripes.svg';
 import { ReactComponent as Green_Black_Belt_4_Red_StripesIcon } from '../../images/Green_Black_Belt_4_Red_Stripes.svg';
@@ -372,30 +404,6 @@ export function getBeltSVG(belt) {
       return <Brown_Belt_3_StripesIcon className="icon icon-svg" />;
     case 'Brown Belt 4 Stripes':
       return <Brown_Belt_4_StripesIcon className="icon icon-svg" />;
-    case 'Grey Belt No Stripes':
-      return <Grey_Belt_No_StripesIcon className="icon icon-svg" />;
-    case 'Grey Belt 1 Black Stripe':
-      return <Grey_Belt_1_Black_StripeIcon className="icon icon-svg" />;
-    case 'Grey Belt 1 Red Stripe':
-      return <Grey_Belt_1_Red_StripeIcon className="icon icon-svg" />;
-    case 'Grey Belt 1 White Stripe':
-      return <Grey_Belt_1_White_StripeIcon className="icon icon-svg" />;
-    case 'Grey Belt 2 Black Stripes':
-      return <Grey_Belt_2_Black_StripesIcon className="icon icon-svg" />;
-    case 'Grey Belt 2 Red Stripes':
-      return <Grey_Belt_2_Red_StripesIcon className="icon icon-svg" />;
-    case 'Grey Belt 2 White Stripes':
-      return <Grey_Belt_2_White_StripesIcon className="icon icon-svg" />;
-    case 'Grey Belt 3 Black Stripes':
-      return <Grey_Belt_3_Black_StripesIcon className="icon icon-svg" />;
-    case 'Grey Belt 3 Red Stripes':
-      return <Grey_Belt_3_Red_StripesIcon className="icon icon-svg" />;
-    case 'Grey Belt 3 White Stripes':
-      return <Grey_Belt_3_White_StripesIcon className="icon icon-svg" />;
-    case 'Grey Belt 4 Red Stripes':
-      return <Grey_Belt_4_Red_StripesIcon className="icon icon-svg" />;
-    case 'Grey Belt 4 White Stripes':
-      return <Grey_Belt_4_White_StripesIcon className="icon icon-svg" />;
 
     case 'Grey / White Belt No Stripes':
       return <Grey_White_Belt_No_StripesIcon className="icon icon-svg" />;
@@ -422,22 +430,59 @@ export function getBeltSVG(belt) {
     case 'Grey / White Belt 4 White Stripes':
       return <Grey_White_Belt_4_White_StripesIcon className="icon icon-svg" />;
 
+    case 'Grey Belt No Stripes':
+      return <Grey_Belt_No_StripesIcon className="icon icon-svg" />;
+    case 'Grey Belt 1 Black Stripe':
+      return <Grey_Belt_1_Yellow_StripeIcon className="icon icon-svg" />;
+    case 'Grey Belt 1 Yellow Stripe':
+      return <Grey_Belt_1_Yellow_StripeIcon className="icon icon-svg" />;
+    case 'Grey Belt 1 Red Stripe':
+      return <Grey_Belt_1_Red_StripeIcon className="icon icon-svg" />;
+    case 'Grey Belt 1 White Stripe':
+      return <Grey_Belt_1_White_StripeIcon className="icon icon-svg" />;
+    case 'Grey Belt 2 Yellow Stripes':
+      return <Grey_Belt_2_Yellow_StripesIcon className="icon icon-svg" />;
+    case 'Grey Belt 2 Black Stripes':
+      return <Grey_Belt_2_Black_StripesIcon className="icon icon-svg" />;
+    case 'Grey Belt 2 Red Stripes':
+      return <Grey_Belt_2_Red_StripesIcon className="icon icon-svg" />;
+    case 'Grey Belt 2 White Stripes':
+      return <Grey_Belt_2_White_StripesIcon className="icon icon-svg" />;
+    case 'Grey Belt 3 Yellow Stripes':
+      return <Grey_Belt_3_Yellow_StripesIcon className="icon icon-svg" />;
+    case 'Grey Belt 3 Black Stripes':
+      return <Grey_Belt_3_Black_StripesIcon className="icon icon-svg" />;
+    case 'Grey Belt 3 Red Stripes':
+      return <Grey_Belt_3_Red_StripesIcon className="icon icon-svg" />;
+    case 'Grey Belt 3 White Stripes':
+      return <Grey_Belt_3_White_StripesIcon className="icon icon-svg" />;
+    case 'Grey Belt 4 Red Stripes':
+      return <Grey_Belt_4_Red_StripesIcon className="icon icon-svg" />;
+    case 'Grey Belt 4 White Stripes':
+      return <Grey_Belt_4_White_StripesIcon className="icon icon-svg" />;
+
     case 'Grey / Black Belt Stripe':
       return <Grey_Black_Belt_No_StripesIcon className="icon icon-svg" />;
     case 'Grey / Black Belt No Stripes':
       return <Grey_Black_Belt_No_StripesIcon className="icon icon-svg" />;
+    case 'Grey / Black Belt 1 Yellow Stripe':
+      return <Grey_Black_Belt_1_Yellow_StripeIcon className="icon icon-svg" />;
     case 'Grey / Black Belt 1 Black Stripe':
       return <Grey_Black_Belt_1_Black_StripeIcon className="icon icon-svg" />;
     case 'Grey / Black Belt 1 Red Stripe':
       return <Grey_Black_Belt_1_Red_StripeIcon className="icon icon-svg" />;
     case 'Grey / Black Belt 1 White Stripe':
       return <Grey_Black_Belt_1_White_StripeIcon className="icon icon-svg" />;
+    case 'Grey / Black Belt 2 Yellow Stripes':
+      return <Grey_Black_Belt_2_Yellow_StripesIcon className="icon icon-svg" />;
     case 'Grey / Black Belt 2 Black Stripes':
       return <Grey_Black_Belt_2_Black_StripesIcon className="icon icon-svg" />;
     case 'Grey / Black Belt 2 Red Stripes':
       return <Grey_Black_Belt_2_Red_StripesIcon className="icon icon-svg" />;
     case 'Grey / Black Belt 2 White Stripes':
       return <Grey_Black_Belt_2_White_StripesIcon className="icon icon-svg" />;
+    case 'Grey / Black Belt 3 Yellow Stripes':
+      return <Grey_Black_Belt_3_Yellow_StripesIcon className="icon icon-svg" />;
     case 'Grey / Black Belt 3 Black Stripes':
       return <Grey_Black_Belt_3_Black_StripesIcon className="icon icon-svg" />;
     case 'Grey / Black Belt 3 Red Stripes':
@@ -453,16 +498,24 @@ export function getBeltSVG(belt) {
       return <Yellow_Belt_No_StripesIcon className="icon icon-svg" />;
     case 'Yellow Belt 1 Black Stripe':
       return <Yellow_Belt_1_Black_StripeIcon className="icon icon-svg" />;
+    case 'Yellow Belt 1 Orange Stripe':
+      return <Yellow_Belt_1_Orange_StripeIcon className="icon icon-svg" />;
     case 'Yellow Belt 1 Red Stripe':
       return <Yellow_Belt_1_Red_StripeIcon className="icon icon-svg" />;
     case 'Yellow Belt 1 White Stripe':
       return <Yellow_Belt_1_White_StripeIcon className="icon icon-svg" />;
+    case 'Yellow Belt 2 Orange Stripes':
+      return <Yellow_Belt_2_Orange_StripesIcon className="icon icon-svg" />;
     case 'Yellow Belt 2 Black Stripes':
       return <Yellow_Belt_2_Black_StripesIcon className="icon icon-svg" />;
+    case 'Yellow Belt 2 Orange Stripes':
+      return <Yellow_Belt_2_Orange_StripesIcon className="icon icon-svg" />;
     case 'Yellow Belt 2 Red Stripes':
       return <Yellow_Belt_2_Red_StripesIcon className="icon icon-svg" />;
     case 'Yellow Belt 2 White Stripes':
       return <Yellow_Belt_2_White_StripesIcon className="icon icon-svg" />;
+    case 'Yellow Belt 3 Orange Stripes':
+      return <Yellow_Belt_3_Orange_StripesIcon className="icon icon-svg" />;
     case 'Yellow Belt 3 Black Stripes':
       return <Yellow_Belt_3_Black_StripesIcon className="icon icon-svg" />;
     case 'Yellow Belt 3 Red Stripes':
@@ -476,68 +529,118 @@ export function getBeltSVG(belt) {
 
     case 'Yellow / White Belt No Stripes':
       return <Yellow_White_Belt_No_StripesIcon className="icon icon-svg" />;
+    case 'Yellow / White Belt 1 Orange Stripe':
+      return (
+        <Yellow_White_Belt_1_Orange_StripeIcon className="icon icon-svg" />
+      );
     case 'Yellow / White Belt 1 Black Stripe':
-      return <Yellow_White_Belt_1_Black_StripeIcon className="icon icon-sv" />;
+      return <Yellow_White_Belt_1_Black_StripeIcon className="icon icon-svg" />;
     case 'Yellow / White Belt 1 Red Stripe':
       return <Yellow_White_Belt_1_Red_StripeIcon className="icon icon-svg" />;
     case 'Yellow / White Belt 1 White Stripe':
-      return <Yellow_White_Belt_1_White_StripeIcon className="icon icon-sv" />;
+      return <Yellow_White_Belt_1_White_StripeIcon className="icon icon-svg" />;
+    case 'Yellow / White Belt 2 Orange Stripes':
+      return (
+        <Yellow_White_Belt_2_Orange_StripesIcon className="icon icon-svg" />
+      );
     case 'Yellow / White Belt 2 Black Stripes':
-      return <Yellow_White_Belt_2_Black_StripesIcon className="icon icon-sv" />;
+      return (
+        <Yellow_White_Belt_2_Black_StripesIcon className="icon icon-svg" />
+      );
     case 'Yellow / White Belt 2 Red Stripes':
       return <Yellow_White_Belt_2_Red_StripesIcon className="icon icon-svg" />;
     case 'Yellow / White Belt 2 White Stripes':
-      return <Yellow_White_Belt_2_White_StripesIcon className="icon icon-sv" />;
+      return (
+        <Yellow_White_Belt_2_White_StripesIcon className="icon icon-svg" />
+      );
+    case 'Yellow / White Belt 3 Orange Stripes':
+      return (
+        <Yellow_White_Belt_3_Orange_StripesIcon className="icon icon-svg" />
+      );
     case 'Yellow / White Belt 3 Black Stripes':
-      return <Yellow_White_Belt_3_Black_StripesIcon className="icon icon-sv" />;
+      return (
+        <Yellow_White_Belt_3_Black_StripesIcon className="icon icon-svg" />
+      );
     case 'Yellow / White Belt 3 Red Stripes':
       return <Yellow_White_Belt_3_Red_StripesIcon className="icon icon-svg" />;
     case 'Yellow / White Belt 3 White Stripes':
-      return <Yellow_White_Belt_3_White_StripesIcon className="icon icon-sv" />;
+      return (
+        <Yellow_White_Belt_3_White_StripesIcon className="icon icon-svg" />
+      );
     case 'Yellow / White Belt 4 Red Stripes':
       return <Yellow_White_Belt_4_Red_StripesIcon className="icon icon-svg" />;
     case 'Yellow / White Belt 4 White Stripes':
-      return <Yellow_White_Belt_4_White_StripesIcon className="icon icon-sv" />;
+      return (
+        <Yellow_White_Belt_4_White_StripesIcon className="icon icon-svg" />
+      );
 
     case 'Yellow / Black Belt No Stripes':
       return <Yellow_Black_Belt_No_StripesIcon className="icon icon-svg" />;
+    case 'Yellow / Black Belt 1 Orange Stripe':
+      return (
+        <Yellow_Black_Belt_1_Orange_StripeIcon className="icon icon-svg" />
+      );
     case 'Yellow / Black Belt 1 Black Stripe':
-      return <Yellow_Black_Belt_1_Black_StripeIcon className="icon icon-sv" />;
+      return <Yellow_Black_Belt_1_Black_StripeIcon className="icon icon-svg" />;
     case 'Yellow / Black Belt 1 Red Stripe':
       return <Yellow_Black_Belt_1_Red_StripeIcon className="icon icon-svg" />;
     case 'Yellow / Black Belt 1 White Stripe':
-      return <Yellow_Black_Belt_1_White_StripeIcon className="icon icon-sv" />;
+      return <Yellow_Black_Belt_1_White_StripeIcon className="icon icon-svg" />;
+    case 'Yellow / Black Belt 2 Orange Stripes':
+      return (
+        <Yellow_Black_Belt_2_Orange_StripesIcon className="icon icon-svg" />
+      );
     case 'Yellow / Black Belt 2 Black Stripes':
-      return <Yellow_Black_Belt_2_Black_StripesIcon className="icon icon-sv" />;
+      return (
+        <Yellow_Black_Belt_2_Black_StripesIcon className="icon icon-svg" />
+      );
     case 'Yellow / Black Belt 2 Red Stripes':
       return <Yellow_Black_Belt_2_Red_StripesIcon className="icon icon-svg" />;
     case 'Yellow / Black Belt 2 White Stripes':
-      return <Yellow_Black_Belt_2_White_StripesIcon className="icon icon-sv" />;
+      return (
+        <Yellow_Black_Belt_2_White_StripesIcon className="icon icon-svg" />
+      );
+    case 'Yellow / Black Belt 3 Orange Stripes':
+      return (
+        <Yellow_Black_Belt_3_Orange_StripesIcon className="icon icon-svg" />
+      );
     case 'Yellow / Black Belt 3 Black Stripes':
-      return <Yellow_Black_Belt_3_Black_StripesIcon className="icon icon-sv" />;
+      return (
+        <Yellow_Black_Belt_3_Black_StripesIcon className="icon icon-svg" />
+      );
     case 'Yellow / Black Belt 3 Red Stripes':
       return <Yellow_Black_Belt_3_Red_StripesIcon className="icon icon-svg" />;
     case 'Yellow / Black Belt 3 White Stripes':
-      return <Yellow_Black_Belt_3_White_StripesIcon className="icon icon-sv" />;
+      return (
+        <Yellow_Black_Belt_3_White_StripesIcon className="icon icon-svg" />
+      );
     case 'Yellow / Black Belt 4 Red Stripes':
       return <Yellow_Black_Belt_4_Red_StripesIcon className="icon icon-svg" />;
     case 'Yellow / Black Belt 4 White Stripes':
-      return <Yellow_Black_Belt_4_White_StripesIcon className="icon icon-sv" />;
+      return (
+        <Yellow_Black_Belt_4_White_StripesIcon className="icon icon-svg" />
+      );
 
     case 'Orange Belt No Stripes':
       return <Orange_Belt_No_StripesIcon className="icon icon-svg" />;
+    case 'Orange Belt 1 Green Stripe':
+      return <Orange_Belt_1_Green_StripeIcon className="icon icon-svg" />;
     case 'Orange Belt 1 Black Stripe':
       return <Orange_Belt_1_Black_StripeIcon className="icon icon-svg" />;
     case 'Orange Belt 1 Red Stripe':
       return <Orange_Belt_1_Red_StripeIcon className="icon icon-svg" />;
     case 'Orange Belt 1 White Stripe':
       return <Orange_Belt_1_White_StripeIcon className="icon icon-svg" />;
+    case 'Orange Belt 2 Green Stripes':
+      return <Orange_Belt_2_Green_StripesIcon className="icon icon-svg" />;
     case 'Orange Belt 2 Black Stripes':
       return <Orange_Belt_2_Black_StripesIcon className="icon icon-svg" />;
     case 'Orange Belt 2 Red Stripes':
       return <Orange_Belt_2_Red_StripesIcon className="icon icon-svg" />;
     case 'Orange Belt 2 White Stripes':
       return <Orange_Belt_2_White_StripesIcon className="icon icon-svg" />;
+    case 'Orange Belt 3 Green Stripes':
+      return <Orange_Belt_3_Green_StripesIcon className="icon icon-svg" />;
     case 'Orange Belt 3 Black Stripes':
       return <Orange_Belt_3_Black_StripesIcon className="icon icon-svg" />;
     case 'Orange Belt 3 Red Stripes':
@@ -551,68 +654,114 @@ export function getBeltSVG(belt) {
 
     case 'Orange / White Belt No Stripes':
       return <Orange_White_Belt_No_StripesIcon className="icon icon-svg" />;
+    case 'Orange / White Belt 1 Green Stripe':
+      return <Orange_White_Belt_1_Green_StripeIcon className="icon icon-svg" />;
     case 'Orange / White Belt 1 Black Stripe':
-      return <Orange_White_Belt_1_Black_StripeIcon className="icon icon-sv" />;
+      return <Orange_White_Belt_1_Black_StripeIcon className="icon icon-svg" />;
     case 'Orange / White Belt 1 Red Stripe':
       return <Orange_White_Belt_1_Red_StripeIcon className="icon icon-svg" />;
     case 'Orange / White Belt 1 White Stripe':
-      return <Orange_White_Belt_1_White_StripeIcon className="icon icon-sv" />;
+      return <Orange_White_Belt_1_White_StripeIcon className="icon icon-svg" />;
+    case 'Orange / White Belt 2 Green Stripes':
+      return (
+        <Orange_White_Belt_2_Green_StripesIcon className="icon icon-svg" />
+      );
     case 'Orange / White Belt 2 Black Stripes':
-      return <Orange_White_Belt_2_Black_StripesIcon className="icon icon-sv" />;
+      return (
+        <Orange_White_Belt_2_Black_StripesIcon className="icon icon-svg" />
+      );
     case 'Orange / White Belt 2 Red Stripes':
       return <Orange_White_Belt_2_Red_StripesIcon className="icon icon-svg" />;
     case 'Orange / White Belt 2 White Stripes':
-      return <Orange_White_Belt_2_White_StripesIcon className="icon icon-sv" />;
+      return (
+        <Orange_White_Belt_2_White_StripesIcon className="icon icon-svg" />
+      );
+    case 'Orange / White Belt 3 Green Stripes':
+      return (
+        <Orange_White_Belt_3_Green_StripesIcon className="icon icon-svg" />
+      );
     case 'Orange / White Belt 3 Black Stripes':
-      return <Orange_White_Belt_3_Black_StripesIcon className="icon icon-sv" />;
+      return (
+        <Orange_White_Belt_3_Black_StripesIcon className="icon icon-svg" />
+      );
     case 'Orange / White Belt 3 Red Stripes':
       return <Orange_White_Belt_3_Red_StripesIcon className="icon icon-svg" />;
     case 'Orange / White Belt 3 White Stripes':
-      return <Orange_White_Belt_3_White_StripesIcon className="icon icon-sv" />;
+      return (
+        <Orange_White_Belt_3_White_StripesIcon className="icon icon-svg" />
+      );
     case 'Orange / White Belt 4 Red Stripes':
       return <Orange_White_Belt_4_Red_StripesIcon className="icon icon-svg" />;
     case 'Orange / White Belt 4 White Stripes':
-      return <Orange_White_Belt_4_White_StripesIcon className="icon icon-sv" />;
+      return (
+        <Orange_White_Belt_4_White_StripesIcon className="icon icon-svg" />
+      );
 
     case 'Orange / Black Belt No Stripes':
       return <Orange_Black_Belt_No_StripesIcon className="icon icon-svg" />;
-    case 'Orange / Black Belt 1 Black Stripe':
-      return <Orange_Black_Belt_1_Black_StripeIcon className="icon icon-sv" />;
+    case 'Orange / Black Belt 1 Green Stripe':
+      return <Orange_Black_Belt_1_Green_StripeIcon className="icon icon-svg" />;
+    case 'Orange / Black 1 Black Stripe':
+      return <Orange_Black_Belt_1_Black_StripeIcon className="icon icon-svg" />;
     case 'Orange / Black Belt 1 Red Stripe':
       return <Orange_Black_Belt_1_Red_StripeIcon className="icon icon-svg" />;
     case 'Orange / Black Belt 1 White Stripe':
-      return <Orange_Black_Belt_1_White_StripeIcon className="icon icon-sv" />;
-    case 'Orange / Black Belt 2 Black Stripes':
-      return <Orange_Black_Belt_2_Black_StripesIcon className="icon icon-sv" />;
+      return <Orange_Black_Belt_1_White_StripeIcon className="icon icon-svg" />;
+    case 'Orange / Black Belt 2 Green Stripes':
+      return (
+        <Orange_Black_Belt_2_Green_StripesIcon className="icon icon-svg" />
+      );
+    case 'Orange / Black 2 Black Stripes':
+      return (
+        <Orange_Black_Belt_2_Black_StripesIcon className="icon icon-svg" />
+      );
     case 'Orange / Black Belt 2 Red Stripes':
       return <Orange_Black_Belt_2_Red_StripesIcon className="icon icon-svg" />;
     case 'Orange / Black Belt 2 White Stripes':
-      return <Orange_Black_Belt_2_White_StripesIcon className="icon icon-sv" />;
-    case 'Orange / Black Belt 3 Black Stripes':
-      return <Orange_Black_Belt_3_Black_StripesIcon className="icon icon-sv" />;
+      return (
+        <Orange_Black_Belt_2_White_StripesIcon className="icon icon-svg" />
+      );
+    case 'Orange / Black Belt 3 Green Stripes':
+      return (
+        <Orange_Black_Belt_3_Green_StripesIcon className="icon icon-svg" />
+      );
+    case 'Orange / Black 3 Black Stripes':
+      return (
+        <Orange_Black_Belt_3_Black_StripesIcon className="icon icon-svg" />
+      );
     case 'Orange / Black Belt 3 Red Stripes':
       return <Orange_Black_Belt_3_Red_StripesIcon className="icon icon-svg" />;
     case 'Orange / Black Belt 3 White Stripes':
-      return <Orange_Black_Belt_3_White_StripesIcon className="icon icon-sv" />;
+      return (
+        <Orange_Black_Belt_3_White_StripesIcon className="icon icon-svg" />
+      );
     case 'Orange / Black Belt 4 Red Stripes':
       return <Orange_Black_Belt_4_Red_StripesIcon className="icon icon-svg" />;
     case 'Orange / Black Belt 4 White Stripes':
-      return <Orange_Black_Belt_4_White_StripesIcon className="icon icon-sv" />;
+      return (
+        <Orange_Black_Belt_4_White_StripesIcon className="icon icon-svg" />
+      );
 
     case 'Green Belt No Stripes':
       return <Green_Belt_No_StripesIcon className="icon icon-svg" />;
+    case 'Green Belt 1 Blue Stripe':
+      return <Green_Belt_1_Blue_StripeIcon className="icon icon-svg" />;
     case 'Green Belt 1 Black Stripe':
       return <Green_Belt_1_Black_StripeIcon className="icon icon-svg" />;
     case 'Green Belt 1 Red Stripe':
       return <Green_Belt_1_Red_StripeIcon className="icon icon-svg" />;
     case 'Green Belt 1 White Stripe':
       return <Green_Belt_1_White_StripeIcon className="icon icon-svg" />;
+    case 'Green Belt 2 Blue Stripes':
+      return <Green_Belt_2_Blue_StripesIcon className="icon icon-svg" />;
     case 'Green Belt 2 Black Stripes':
       return <Green_Belt_2_Black_StripesIcon className="icon icon-svg" />;
     case 'Green Belt 2 Red Stripes':
       return <Green_Belt_2_Red_StripesIcon className="icon icon-svg" />;
     case 'Green Belt 2 White Stripes':
       return <Green_Belt_2_White_StripesIcon className="icon icon-svg" />;
+    case 'Green Belt 3 Blue Stripes':
+      return <Green_Belt_3_Blue_StripesIcon className="icon icon-svg" />;
     case 'Green Belt 3 Black Stripes':
       return <Green_Belt_3_Black_StripesIcon className="icon icon-svg" />;
     case 'Green Belt 3 Red Stripes':
@@ -626,53 +775,65 @@ export function getBeltSVG(belt) {
 
     case 'Green / White Belt No Stripes':
       return <Green_White_Belt_No_StripesIcon className="icon icon-svg" />;
+    case 'Green / White Belt 1 Blue Stripe':
+      return <Green_White_Belt_1_Blue_StripeIcon className="icon icon-svg" />;
     case 'Green / White Belt 1 Black Stripe':
       return <Green_White_Belt_1_Black_StripeIcon className="icon icon-svg" />;
     case 'Green / White Belt 1 Red Stripe':
       return <Green_White_Belt_1_Red_StripeIcon className="icon icon-svg" />;
     case 'Green / White Belt 1 White Stripe':
       return <Green_White_Belt_1_White_StripeIcon className="icon icon-svg" />;
+    case 'Green / White Belt 2 Blue Stripes':
+      return <Green_White_Belt_2_Blue_StripesIcon className="icon icon-svg" />;
     case 'Green / White Belt 2 Black Stripes':
-      return <Green_White_Belt_2_Black_StripesIcon className="icon icon-sv" />;
+      return <Green_White_Belt_2_Black_StripesIcon className="icon icon-svg" />;
     case 'Green / White Belt 2 Red Stripes':
       return <Green_White_Belt_2_Red_StripesIcon className="icon icon-svg" />;
     case 'Green / White Belt 2 White Stripes':
-      return <Green_White_Belt_2_White_StripesIcon className="icon icon-sv" />;
+      return <Green_White_Belt_2_White_StripesIcon className="icon icon-svg" />;
+    case 'Green / White Belt 3 Blue Stripes':
+      return <Green_White_Belt_3_Blue_StripesIcon className="icon icon-svg" />;
     case 'Green / White Belt 3 Black Stripes':
-      return <Green_White_Belt_3_Black_StripesIcon className="icon icon-sv" />;
+      return <Green_White_Belt_3_Black_StripesIcon className="icon icon-svg" />;
     case 'Green / White Belt 3 Red Stripes':
       return <Green_White_Belt_3_Red_StripesIcon className="icon icon-svg" />;
     case 'Green / White Belt 3 White Stripes':
-      return <Green_White_Belt_3_White_StripesIcon className="icon icon-sv" />;
+      return <Green_White_Belt_3_White_StripesIcon className="icon icon-svg" />;
     case 'Green / White Belt 4 Red Stripes':
       return <Green_White_Belt_4_Red_StripesIcon className="icon icon-svg" />;
     case 'Green / White Belt 4 White Stripes':
-      return <Green_White_Belt_4_White_StripesIcon className="icon icon-sv" />;
+      return <Green_White_Belt_4_White_StripesIcon className="icon icon-svg" />;
 
     case 'Green / Black Belt No Stripes':
       return <Green_Black_Belt_No_StripesIcon className="icon icon-svg" />;
+    case 'Green / Black Belt 1 Blue Stripe':
+      return <Green_Black_Belt_1_Blue_StripeIcon className="icon icon-svg" />;
     case 'Green / Black Belt 1 Black Stripe':
       return <Green_Black_Belt_1_Black_StripeIcon className="icon icon-svg" />;
     case 'Green / Black Belt 1 Red Stripe':
       return <Green_Black_Belt_1_Red_StripeIcon className="icon icon-svg" />;
     case 'Green / Black Belt 1 White Stripe':
       return <Green_Black_Belt_1_White_StripeIcon className="icon icon-svg" />;
+    case 'Green / Black Belt 2 Blue Stripes':
+      return <Green_Black_Belt_2_Blue_StripesIcon className="icon icon-svg" />;
     case 'Green / Black Belt 2 Black Stripes':
-      return <Green_Black_Belt_2_Black_StripesIcon className="icon icon-sv" />;
+      return <Green_Black_Belt_2_Black_StripesIcon className="icon icon-svg" />;
     case 'Green / Black Belt 2 Red Stripes':
       return <Green_Black_Belt_2_Red_StripesIcon className="icon icon-svg" />;
     case 'Green / Black Belt 2 White Stripes':
-      return <Green_Black_Belt_2_White_StripesIcon className="icon icon-sv" />;
+      return <Green_Black_Belt_2_White_StripesIcon className="icon icon-svg" />;
+    case 'Green / Black Belt 3 Blue Stripes':
+      return <Green_Black_Belt_3_Blue_StripesIcon className="icon icon-svg" />;
     case 'Green / Black Belt 3 Black Stripes':
-      return <Green_Black_Belt_3_Black_StripesIcon className="icon icon-sv" />;
+      return <Green_Black_Belt_3_Black_StripesIcon className="icon icon-svg" />;
     case 'Green / Black Belt 3 Red Stripes':
       return <Green_Black_Belt_3_Red_StripesIcon className="icon icon-svg" />;
     case 'Green / Black Belt 3 White Stripes':
-      return <Green_Black_Belt_3_White_StripesIcon className="icon icon-sv" />;
+      return <Green_Black_Belt_3_White_StripesIcon className="icon icon-svg" />;
     case 'Green / Black Belt 4 Red Stripes':
       return <Green_Black_Belt_4_Red_StripesIcon className="icon icon-svg" />;
     case 'Green / Black Belt 4 White Stripes':
-      return <Green_Black_Belt_4_White_StripesIcon className="icon icon-sv" />;
+      return <Green_Black_Belt_4_White_StripesIcon className="icon icon-svg" />;
 
     case 'Black Belt No Stripes':
       return <Black_Belt_No_StripesIcon className="icon icon-svg" />;

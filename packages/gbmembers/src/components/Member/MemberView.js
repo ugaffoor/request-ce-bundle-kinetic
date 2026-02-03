@@ -1871,6 +1871,9 @@ export const MemberView = ({
                   <CallScriptModalContainer
                     scriptTarget="Members"
                     setShowCallScriptModal={setShowCallScriptModal}
+                    member={memberItem}
+                    profile={profile}
+                    space={space}
                   />
                 )}
               </div>

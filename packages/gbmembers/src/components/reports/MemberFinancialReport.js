@@ -595,11 +595,15 @@ export class MemberFinancialReport extends Component {
     this.paymentHistory = [];
 
     var dateFrom = moment(fromDate).format('YYYY-MM-DD');
-    //    if (getAttributeValue(this.props.space, 'Billing Company') === 'Bambora') {
-    dateFrom = moment(fromDate)
-      .subtract('months', 6)
-      .format('YYYY-MM-DD');
-    //    }
+    if (moment(toDate).diff(fromDate, 'months') >= 11) {
+      dateFrom = moment(fromDate)
+        .subtract('months', 1)
+        .format('YYYY-MM-DD');
+    } else {
+      dateFrom = moment(fromDate)
+        .subtract('months', 6)
+        .format('YYYY-MM-DD');
+    }
     this.props.fetchPaymentHistory({
       paymentType: 'FINSUCCESSFUL',
       paymentMethod: 'ALL',
@@ -927,6 +931,10 @@ export class MemberFinancialReport extends Component {
           billingID: member.values['Billing Customer Reference'],
           paymentID: payment.paymentID,
           payment: Number(payment.paymentAmount).toFixed(2),
+          transactionFeeClient: Number(payment.transactionFeeClient).toFixed(2),
+          transactionFeeCustomer: Number(
+            payment.transactionFeeCustomer,
+          ).toFixed(2),
           tax1:
             tax1Percentage !== 0
               ? Number(feeTotal * tax1Percentage).toFixed(2)
@@ -1615,9 +1623,65 @@ export class MemberFinancialReport extends Component {
         salesTaxValue += Number.parseFloat(pos.values['Sales Tax']);
       }
     });
-
+    // Find all POS Refunds
+    /*    posOrders.forEach(pos => {
+      if (pos.values['Status']==="Refunded"){
+        var idx = members.findIndex(
+          item =>
+            item.id === pos.values['Person ID'] ||
+            item.values['Lead Submission ID'] === pos.values['Person ID'],
+        );
+        if (idx !== -1) {
+          if (
+            refundMembers.findIndex(
+              item =>
+                item.member.id === pos.values['Person ID'] ||
+                item.member.values['Lead Submission ID'] === pos.values['Person ID'],
+            ) === -1
+          ) {
+            refundMembers[refundMembers.length] = {
+              member: members[idx],
+              refundValue: Number.parseFloat(pos.values['Total']),
+            };
+          }
+        } else {
+          idx = leads.findIndex(item => item.id === pos.values['Person ID']);
+          if (idx !== -1) {
+            if (
+              refundMembers.findIndex(item => item.member.id === pos.values['Person ID']) ===
+              -1
+            ) {
+              refundMembers[refundMembers.length] = {
+                member: leads[idx],
+                refundValue: Number.parseFloat(pos.values['Total']),
+              };
+            }
+          } else {
+            var idx = members.findIndex(
+              item =>
+                item.member.values['Lead Submission ID'] === pos.values['Person ID'],
+            );
+            if (idx !== -1) {
+              if (
+                refundMembers.findIndex(
+                  item =>
+                    item.member.values['Lead Submission ID'] === pos.values['Person ID'],
+                ) === -1
+              ) {
+                refundMembers[refundMembers.length] = {
+                  member: members[idx],
+                  refundValue: Number.parseFloat(pos.values['Total']),
+                };
+              }
+            }
+          }
+        }
+        refundValue += Number.parseFloat(pos.values['Total']);
+      }
+    });
+*/
     posPeople.forEach(person => {
-      posPaymentsValue += /*this.getTotalValue(pos);*/ this.getMemberPOS(
+      let posValue = this.getMemberPOS(
         members,
         person,
         posOrders,
@@ -1626,6 +1690,7 @@ export class MemberFinancialReport extends Component {
         posTax1Percentage,
         posTax2Percentage,
       );
+      posPaymentsValue += posValue;
     });
 
     console.log('customerRefunds:' + customerRefunds.length);
@@ -3016,6 +3081,13 @@ export class MemberFinancialReport extends Component {
           '","' +
           transaction['tax2'] +
           '","' +
+          (getAttributeValue(this.props.space, 'Billing Company') === 'PaySmart'
+            ? transaction['transactionFeeClient']
+            : '') +
+          '","' +
+          (getAttributeValue(this.props.space, 'Billing Company') === 'PaySmart'
+            ? transaction['transactionFeeCustomer']
+            : '') +
           '"\n',
       );
     });

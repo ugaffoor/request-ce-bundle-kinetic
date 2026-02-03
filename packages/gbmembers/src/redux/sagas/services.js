@@ -526,6 +526,7 @@ export function* fetchMemberMigrations(action) {
       .sortBy('updatedAt')
       .sortDirection('ASC')
       .includes([
+        'form',
         'details',
         'values[Student First Name],values[Student Last Name],values[Member GUID],values[The first instalment is due on],values[I promise to pay equal FREQUENCY instalments of],values[Billing Customer Reference],values[customerBillingId],values[Form Completion Sent],values[membersJSON]',
       ])
@@ -553,6 +554,7 @@ export function* fetchMemberMigrations(action) {
         .sortBy('updatedAt')
         .sortDirection('ASC')
         .includes([
+          'form',
           'details',
           'values[Student First Name],values[Student Last Name],values[Member GUID],values[The first instalment is due on],values[I promise to pay equal FREQUENCY instalments of],values[Billing Customer Reference],values[customerBillingId],values[Form Completion Sent]',
         ])
@@ -577,6 +579,7 @@ export function* fetchMemberMigrations(action) {
       .sortBy('submittedAt')
       .sortDirection('ASC')
       .includes([
+        'form',
         'details',
         'values[Student First Name],values[Student Last Name],values[Member GUID],values[The first instalment is due on],values[I promise to pay equal FREQUENCY instalments of],values[Billing Customer Reference],values[customerBillingId],values[Form Completion Sent]',
       ])
@@ -605,6 +608,7 @@ export function* fetchMemberMigrations(action) {
         .sortBy('submittedAt')
         .sortDirection('ASC')
         .includes([
+          'form',
           'details',
           'values[Student First Name],values[Student Last Name],values[Member GUID],values[The first instalment is due on],values[I promise to pay equal FREQUENCY instalments of],values[Billing Customer Reference],values[customerBillingId],values[Form Completion Sent]',
         ])

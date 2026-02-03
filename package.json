@@ -1,6 +1,6 @@
 {
   "name": "request-ce-bundle-kinetic",
-  "version": "2.6.21",
+  "version": "2.6.30",
   "private": true,
   "workspaces": [
     "packages/*"
@@ -25,6 +25,7 @@
     "@craco/craco": "^7.0.0",
     "@types/jest": "^25.2.1",
     "babel-polyfill": "^6.26.0",
+    "baseline-browser-mapping": "^2.9.19",
     "cross-env": "^5.2.0",
     "enzyme": "^3.3.0",
     "enzyme-adapter-react-16": "^1.1.1",
@@ -81,6 +82,7 @@
     "react-favicon": "^2.0.3",
     "react-full-screen": "^1.1.1",
     "react-google-autocomplete": "^2.7.4",
+    "react-helmet-async": "^2.0.5",
     "react-numeric-input": "^2.2.3",
     "react-select": "^2.4.4",
     "react-spinners": "^0.10.4",
@@ -89,6 +91,7 @@
     "react-tooltip": "^4.2.21",
     "react-webcam": "^3.1.1",
     "react-xdsoft-datetimepicker": "^0.1.0",
+    "redux-immutable": "^4.0.0",
     "sass-loader": "^8.0.2",
     "square": "^12.0.0",
     "styled-components": "^5.3.0",

@@ -263,6 +263,7 @@ class PayNow extends Component {
 
     this.state = {
       total: total,
+      memberItem: undefined,
       personType: 'Member',
       personID: undefined,
       pickUp: undefined,
@@ -683,59 +684,139 @@ class PayNow extends Component {
     posThis,
   ) => {
     console.log('processStripePayment');
-    // Fetch the intent client secret from the backend
-    const clientSecret = await this.fetchPaymentIntentClientSecret(
-      posServiceURL,
-      spaceSlug,
-      posSystem,
-      posThis.props.currency,
-      posThis.state.total,
-      posThis.state.email,
-    );
+    if (this.state.payment === 'creditcard') {
+      // Fetch the intent client secret from the backend
+      const clientSecret = await this.fetchPaymentIntentClientSecret(
+        posServiceURL,
+        spaceSlug,
+        posSystem,
+        posThis.props.currency,
+        posThis.state.total,
+        posThis.state.email,
+      );
 
-    if (clientSecret === 'NOT_FOUND') {
-      posThis.setState({
-        status: '10',
-        status_message: 'System Error',
-        errors: 'Client not obtained',
-        auth_code: '',
-        transaction_id: '',
-        processingComplete: true,
-        processing: false,
-        datetime: moment(),
-      });
-      return;
-    }
+      if (clientSecret === 'NOT_FOUND') {
+        posThis.setState({
+          status: '10',
+          status_message: 'System Error',
+          errors: 'Client not obtained',
+          auth_code: '',
+          transaction_id: '',
+          processingComplete: true,
+          processing: false,
+          datetime: moment(),
+        });
+        return;
+      }
 
-    const payload = await posThis.state.stripe.confirmCardPayment(
-      clientSecret,
-      {
-        payment_method: {
-          card: posThis.state.stripeElements.getElement(CardElement),
-          billing_details: {
-            name: posThis.state.firstName + ' ' + posThis.state.lastName,
+      const payload = await posThis.state.stripe.confirmCardPayment(
+        clientSecret,
+        {
+          payment_method: {
+            card: posThis.state.stripeElements.getElement(CardElement),
+            billing_details: {
+              name: posThis.state.firstName + ' ' + posThis.state.lastName,
+            },
           },
         },
-      },
-    );
-
-    if (payload.error) {
-      posThis.setState({
-        status: '10',
-        status_message: payload.error.message,
-        errors: payload.error.message,
-        auth_code: payload.error.code,
-        transaction_id: '',
-        processingComplete: true,
-        processing: false,
-        datetime: moment(),
-      });
-    } else {
-      posThis.completeStripePayment(
-        payload.paymentIntent.id,
-        posThis,
-        posThis.props.currency,
       );
+
+      if (payload.error) {
+        posThis.setState({
+          status: '10',
+          status_message: payload.error.message,
+          errors: payload.error.message,
+          auth_code: payload.error.code,
+          transaction_id: '',
+          processingComplete: true,
+          processing: false,
+          datetime: moment(),
+        });
+      } else {
+        posThis.completeStripePayment(
+          payload.paymentIntent.id,
+          posThis,
+          posThis.props.currency,
+        );
+      }
+    } else if (this.state.payment === 'currentPaymentMethod') {
+      var data = JSON.stringify({
+        space: spaceSlug,
+        billingService: posSystem,
+        customerId: this.state.memberItem.values['Billing Customer Id'],
+        payment: this.state.total,
+        orderId: this.state.memberItem.values['Member ID'],
+        firstName: this.state.firstName,
+        lastName: this.state.lastName,
+        sourceIP: this.state.publicIP,
+        address: this.state.address,
+        city: this.state.city,
+        province: this.state.province,
+        postCode: this.state.postCode,
+        currency: posThis.props.currency,
+        country: this.state.country === undefined ? 'US' : this.state.country,
+        phoneNumber: this.state.phoneNumber,
+        email: this.state.email,
+        description: schoolName + ' POS',
+      });
+
+      var config = {
+        method: 'post',
+        url: posServiceURL,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        data: data,
+      };
+      axios(config)
+        .then(function(response) {
+          var data = JSON.parse(response.data.data);
+          posThis.setState({
+            status:
+              data['status'] === 'succeeded' || data['status'] === 'processing'
+                ? '1'
+                : data['status'],
+            status_message: data['status_message'],
+            errors: data['errors'],
+            auth_code: data['auth_code'],
+            transaction_id: data['transaction_id'],
+            processingComplete: true,
+            processing: false,
+            datetime: moment(),
+          });
+
+          if (
+            data['status'] === 'succeeded' ||
+            data['status'] === 'processing'
+          ) {
+            posThis.completeCheckout();
+          } else {
+            posThis.setState({
+              processingComplete: false,
+            });
+          }
+        })
+        .catch(err => {
+          var error = 'Connection Error';
+          if (err.response) {
+            // client received an error response (5xx, 4xx)
+            error = err.response;
+          } else if (err.request) {
+            // client never received a response, or request never left
+            error = err.request;
+          }
+          posThis.setState({
+            status: '10',
+            status_message: 'System Error',
+            errors: error,
+            auth_code: '',
+            transaction_id: '',
+            processingComplete: false,
+            processing: false,
+            datetime: moment(),
+          });
+          console.log(error);
+        });
     }
   };
 
@@ -1791,6 +1872,7 @@ class PayNow extends Component {
                         }
                       }
                       this.setState({
+                        memberItem: memberItem,
                         personID: e.value,
                         firstName: firstName,
                         lastName: lastName,
@@ -1892,6 +1974,7 @@ class PayNow extends Component {
                         }
                       }
                       this.setState({
+                        memberItem: undefined,
                         personID: e.value,
                         firstName: firstName,
                         lastName: lastName,
@@ -2038,6 +2121,34 @@ class PayNow extends Component {
                 <span className="paymentType">
                   <div className="label">Payment Type</div>
                   <div className="radioGroup">
+                    {(getAttributeValue(this.props.space, 'POS System') ===
+                      'Stripe' ||
+                      getAttributeValue(this.props.space, 'POS System') ===
+                        'StripeTerminal') &&
+                      this.state.memberItem !== undefined &&
+                      this.state.memberItem.values['Billing Customer Id'] !==
+                        undefined &&
+                      this.state.memberItem.values['Billing Customer Id'] !==
+                        null &&
+                      !this.state.memberItem.values['Billing Customer Id'] !==
+                        '' && (
+                        <label htmlFor="currentPaymentMethod" className="radio">
+                          <input
+                            id="currentPaymentMethod"
+                            name="cardpayment"
+                            type="radio"
+                            disabled={this.disablePaymentType()}
+                            value="CurrentPaymentMethod"
+                            onChange={e => {
+                              this.setState({
+                                payment: 'currentPaymentMethod',
+                              });
+                            }}
+                            onClick={async e => {}}
+                          />
+                          Current Payment Method
+                        </label>
+                      )}
                     {getAttributeValue(this.props.space, 'POS System') !==
                       'Square' &&
                       getAttributeValue(this.props.space, 'POS System') !==
@@ -2564,6 +2675,7 @@ class PayNow extends Component {
                     if (
                       this.state.payment === 'creditcard' ||
                       this.state.payment === 'useSavedCreditCard' ||
+                      this.state.payment === 'currentPaymentMethod' ||
                       this.state.payment === 'updateCreditCard'
                     ) {
                       console.log('calling processPayment');

@@ -241,7 +241,7 @@ export class EditAttributeValue extends Component {
               value={this.state.value != '' ? this.state.value * 100 : ''}
               style={{ width: `${this.props.width}` }}
               suffix="%"
-              decimalScale={2}
+              decimalScale={4}
               onChange={e => {
                 this.setState({
                   value: parseFloat(e.target.value) / 100,
@@ -259,7 +259,7 @@ export class EditAttributeValue extends Component {
               }
               style={{ width: `${this.props.width}` }}
               suffix="%"
-              decimalScale={2}
+              decimalScale={4}
               onChange={e => {
                 this.setState({
                   percentageTextValue: parseFloat(e.target.value) / 100,

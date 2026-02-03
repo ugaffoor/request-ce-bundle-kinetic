@@ -50,6 +50,8 @@ export class Statistics extends Component {
     this._getMemberRowTableColumns = this.getMemberRowTableColumns();
 
     this.loadRententionRate = this.loadRententionRate.bind(this);
+    this.getLeadTableData = this.getLeadTableData.bind(this);
+    this.getLeadIntroDate = this.getLeadIntroDate.bind(this);
 
     this.setIsAssigning = this.props.setIsAssigning;
     this.datesChanged = this.props.datesChanged;
@@ -1097,27 +1099,49 @@ export class Statistics extends Component {
     //    }
     return lead.values['First Name'] + ' ' + lead.values['Last Name'] + info;
   }
-  getLeadTableData(leads) {
+  getLeadIntroDate(lead, idx) {
+    var info = '';
+    var history =
+      lead.values['History'] !== undefined
+        ? getJson(lead.values['History'])
+        : {};
+
+    return moment(history[idx]['contactDate']);
+  }
+  getLeadTableData(leads, sortOrder) {
     leads = leads.sort(function(lead1, lead2) {
       try {
-        if (
-          (
-            lead1.lead.values['First Name'] + lead1.lead.values['Last Name']
-          ).toLowerCase() <
-          (
-            lead2.lead.values['First Name'] + lead2.lead.values['Last Name']
-          ).toLowerCase()
-        )
-          return -1;
-        if (
-          (
-            lead1.lead.values['First Name'] + lead1.lead.values['Last Name']
-          ).toLowerCase() >
-          (
-            lead2.lead.values['First Name'] + lead2.lead.values['Last Name']
-          ).toLowerCase()
-        )
-          return 1;
+        if (sortOrder === 'date') {
+          let date1 = compThis.getLeadIntroDate(lead1.lead, lead1.idx);
+          let date2 = compThis.getLeadIntroDate(lead2.lead, lead2.idx);
+
+          if (date1.isBefore(date2)) {
+            return -1;
+          }
+          if (date1.isAfter(date2)) {
+            return 1;
+          }
+          return 0;
+        } else {
+          if (
+            (
+              lead1.lead.values['First Name'] + lead1.lead.values['Last Name']
+            ).toLowerCase() <
+            (
+              lead2.lead.values['First Name'] + lead2.lead.values['Last Name']
+            ).toLowerCase()
+          )
+            return -1;
+          if (
+            (
+              lead1.lead.values['First Name'] + lead1.lead.values['Last Name']
+            ).toLowerCase() >
+            (
+              lead2.lead.values['First Name'] + lead2.lead.values['Last Name']
+            ).toLowerCase()
+          )
+            return 1;
+        }
       } catch (error) {
         return 0;
       }
@@ -1965,6 +1989,7 @@ export class Statistics extends Component {
                     columns={this.getLeadIntroTableColumns()}
                     data={this.getLeadTableData(
                       this.state.leadData.introsTotal,
+                      'date',
                     )}
                     defaultPageSize={1}
                     showPagination={false}

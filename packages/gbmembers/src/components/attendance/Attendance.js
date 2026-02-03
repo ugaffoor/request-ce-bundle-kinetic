@@ -3248,6 +3248,20 @@ export class AttendanceDetail extends Component {
                               checkin.values['First Name'] !== 'Member Deleted'
                             );
                           })
+                          .sort((a, b) => {
+                            const aBirthday = isBirthday(a.memberItem);
+                            const bBirthday = isBirthday(b.memberItem);
+
+                            // Birthdays always come first
+                            if (aBirthday && !bBirthday) return -1;
+                            if (!aBirthday && bBirthday) return 1;
+
+                            // Otherwise sort by promotionSort
+                            if (a.attendancePerc < b.attendancePerc) return 1;
+                            if (a.attendancePerc > b.attendancePerc) return -1;
+
+                            return 0;
+                          })
                           .map((checkin, index) => (
                             <span
                               key={index}

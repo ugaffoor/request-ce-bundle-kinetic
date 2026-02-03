@@ -310,13 +310,22 @@ export function* createAttendance(action) {
             : 0;
         attendanceCount += 1;
         memberItem.values['Attendance Count'] = attendanceCount;
-        memberItem.values['Last Attendance Date'] = moment().format(
+
+        let lastAttendanceDate = moment(
+          action.payload.values['Class Date'],
+        ).isAfter(moment(memberItem.values['Last Attendance Date']))
+          ? moment(action.payload.values['Class Date'])
+          : moment(memberItem.values['Last Attendance Date']);
+
+        memberItem.values['Last Attendance Date'] = lastAttendanceDate.format(
           'YYYY-MM-DD',
         );
 
         var values = {};
         values['Attendance Count'] = attendanceCount;
-        values['Last Attendance Date'] = moment().format('YYYY-MM-DD');
+        values['Last Attendance Date'] = lastAttendanceDate.format(
+          'YYYY-MM-DD',
+        );
         action.payload.updateMember({
           id: memberItem['id'],
           memberItem: memberItem,

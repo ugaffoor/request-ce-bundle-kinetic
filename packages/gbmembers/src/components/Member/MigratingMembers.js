@@ -681,7 +681,9 @@ export class MigrationDetail extends Component {
         return mem.id === member.values['Billing Parent Member'];
       });
       if (idx !== -1) {
-        return moment(this.props.allMembers[idx].migrationForm.submittedAt);
+        return this.props.allMembers[idx].migrationForm !== undefined
+          ? moment(this.props.allMembers[idx].migrationForm.submittedAt)
+          : moment(member.migrationForm.submittedAt);
       }
     }
 

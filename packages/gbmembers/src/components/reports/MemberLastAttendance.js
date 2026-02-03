@@ -129,6 +129,7 @@ export class MemberLastAttendance extends Component {
               });
             }}
           >
+            <option value="1">1 Week</option>
             <option value="2">2 Week</option>
             <option value="3">3 Week</option>
             <option value="4">4 Week</option>

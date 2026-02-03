@@ -11,7 +11,6 @@ import { About } from './components/about/About';
 import { AlertForm } from './components/alerts/AlertForm';
 import { Alerts } from './components/alerts/Alerts';
 import { Settings } from './components/settings/Settings';
-import { Discussion } from './components/discussion/Discussion';
 import { Home } from './components/home/Home';
 import { Notifications } from './components/notifications/Notifications';
 import { ViewProfile } from './components/profile/ViewProfile';
@@ -60,7 +59,6 @@ export const AppComponent = props => {
             <Route path="/about" exact component={About} />
             <Route path="/alerts" exact component={Alerts} />
             <Route path="/alerts/:id" exact component={AlertForm} />
-            <Route path="/discussions/:id" exact component={Discussion} />
             <Route path="/profile/:username" exact component={ViewProfile} />
             <Route
               path="/settings/journeytriggers"

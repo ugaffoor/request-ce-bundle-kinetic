@@ -65,14 +65,6 @@ export const QueueListItemSmall = ({ queueItem, filter }) => {
             ({queueItem.handle})
           </div>
           <AssignmentParagraph values={values} />
-          {queueItem.values['Discussion Id'] && (
-            <span className="btn icon icon--discussion">
-              <span
-                className="fa fa-fw fa-comments"
-                style={{ color: 'rgb(9, 84, 130)', fontSize: '16px' }}
-              />
-            </span>
-          )}
         </div>
 
         <h6 className="submission__title">{queueItem.label}</h6>

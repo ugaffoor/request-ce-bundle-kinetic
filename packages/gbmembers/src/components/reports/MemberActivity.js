@@ -193,7 +193,6 @@ export class MemberActivityReport extends Component {
       { title: 'Lead Source', field: 'leadSource' },
       { title: 'Biller Migrated', field: 'billerMigrated' },
       { title: 'Biller ID', field: 'billerId' },
-      { title: 'TAX ID', field: 'taxid' },
       { title: 'Non Paying', field: 'nonPaying' },
       { title: 'Send Payment Receipt', field: 'sendPaymentReceipt' },
       { title: 'Account Created', field: 'accountCreated' },

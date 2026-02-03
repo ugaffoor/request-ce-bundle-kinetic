@@ -40,15 +40,13 @@ function tick(mythis) {
   mythis.props.fetchLeads({
     leadLastFetchTime: mythis.props.leadLastFetchTime,
   });
-  if (getAttributeValue(mythis.props.space, 'Migration Mode') === 'YES') {
-    mythis.props.fetchMemberMigrations({
-      billingSystem: getAttributeValue(
-        mythis.props.space,
-        'Billing Company',
-      ).toLowerCase(),
-      migrationsLastFetchTime: mythis.props.migrationsLastFetchTime,
-    });
-  }
+  mythis.props.fetchMemberMigrations({
+    billingSystem: getAttributeValue(
+      mythis.props.space,
+      'Billing Company',
+    ).toLowerCase(),
+    migrationsLastFetchTime: mythis.props.migrationsLastFetchTime,
+  });
   if (
     mythis.props.memberInitialLoadComplete &&
     !mythis.props.memberNotesLoading
@@ -62,7 +60,10 @@ function tick(mythis) {
 }
 
 export const AppContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   lifecycle({
     componentDidMount() {
       this.props.loadApp();

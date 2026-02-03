@@ -11,11 +11,28 @@ export class GradingStatus extends Component {
       width: props.memberItem.attendancePerc + '%',
     };
     let showPromotionDialog = false;
+
+    // GBK 6.0 compliance
+    let gbk6Recommend = false;
+    let belt = props.memberItem.values['Ranking Belt'];
+    if (
+      statusIndicator === 'ready' &&
+      (belt === 'Grey / White Belt 1 Red Stripe' ||
+        belt === 'Grey / White Belt 2 Red Stripes' ||
+        belt === 'Grey / White Belt 3 Red Stripes' ||
+        belt === 'Grey / White Belt 4 Red Stripes' ||
+        belt === 'Grey / White Belt 1 Black Stripe' ||
+        belt === 'Grey / White Belt 2 Black Stripes' ||
+        belt === 'Grey / White Belt 3 Black Stripes')
+    ) {
+      gbk6Recommend = true;
+    }
     this.state = {
       statusIndicator,
       percentageStyle,
       statusText,
       showPromotionDialog,
+      gbk6Recommend,
     };
   }
   UNSAFE_componentWillReceiveProps(nextProps) {
@@ -27,11 +44,28 @@ export class GradingStatus extends Component {
         width: nextProps.memberItem.attendancePerc + '%',
       };
       let showPromotionDialog = false;
+      // GBK 6.0 compliance
+      let gbk6Recommend = false;
+      let belt = nextProps.memberItem.values['Ranking Belt'];
+      if (
+        statusIndicator === 'ready' &&
+        (belt === 'Grey / White Belt 1 Red Stripe' ||
+          belt === 'Grey / White Belt 2 Red Stripes' ||
+          belt === 'Grey / White Belt 3 Red Stripes' ||
+          belt === 'Grey / White Belt 4 Red Stripes' ||
+          belt === 'Grey / White Belt 1 Black Stripe' ||
+          belt === 'Grey / White Belt 2 Black Stripes' ||
+          belt === 'Grey / White Belt 3 Black Stripes')
+      ) {
+        gbk6Recommend = true;
+      }
+
       this.setState({
         statusIndicator: statusIndicator,
         percentageStyle: percentageStyle,
         statusText: statusText,
         showPromotionDialog: showPromotionDialog,
+        gbk6Recommend: gbk6Recommend,
       });
     }
   }
@@ -49,9 +83,15 @@ export class GradingStatus extends Component {
       >
         <div className={this.state.statusIndicator} title="Grading History">
           <div className="bar">
-            <div className="percent" style={this.state.percentageStyle}></div>
+            <div className="percent" style={this.state.percentageStyle} />
           </div>
           <div className="gradeStatus">{this.state.statusText}</div>
+          {this.state.gbk6Recommend && (
+            <div className="gbk6">
+              The GBK 6.0 now requires this member to be promoted to the next
+              belt.
+            </div>
+          )}
         </div>
         {this.state.showPromotionDialog && (
           <PromotionDialogContainer
