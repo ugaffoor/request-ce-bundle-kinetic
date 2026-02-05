@@ -52,6 +52,7 @@ export class ReceiptToPrint extends React.Component {
       subtotal: this.props.subtotal,
       salestax: this.props.salestax,
       salestax2: this.props.salestax2,
+      adminfee: this.props.adminfee,
       discount: this.props.discount,
       number: '...' + this.props.number.substring(this.props.number.length - 4),
       auth_code: this.props.auth_code,
@@ -220,6 +221,28 @@ export class ReceiptToPrint extends React.Component {
                 currency: this.props.currency,
               }).format(this.state.discount)}
             </span>
+          </span>
+        )}
+        {this.state.adminfee === 0 ||
+        this.state.adminfee === '0' ||
+        this.state.adminfee === undefined ? (
+          <div />
+        ) : (
+          <span className="salestax">
+            <div className="label">
+              {getAttributeValue(this.props.space, 'Admin Fee Label') !==
+              undefined ? (
+                <I18n>Admin Fee</I18n>
+              ) : (
+                getAttributeValue(this.props.space, 'Admin Fee Label')
+              )}
+            </div>
+            <div className="value">
+              {new Intl.NumberFormat(this.props.locale, {
+                style: 'currency',
+                currency: this.props.currency,
+              }).format(this.state.adminfee)}
+            </div>
           </span>
         )}
         {this.state.salestax === 0 ||
