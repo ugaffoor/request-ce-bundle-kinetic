@@ -1454,6 +1454,7 @@ export function getLastBillingStartDate(member, successfulPayments) {
   var idx = successfulPayments.findIndex(successful => {
     return (
       (member.values['Member ID'] === successful.yourSystemReference ||
+        member.values['Billing Customer Reference'] === successful.paymentID ||
         member.values['Billing Customer Reference'] ===
           successful.yourSystemReference ||
         member.values['Billing Setup Fee Id'] ===

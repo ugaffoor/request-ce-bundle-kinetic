@@ -1138,7 +1138,7 @@ export class MemberActivityReport extends Component {
       member.values['Non Paying'] !== undefined &&
       member.values['Non Paying'] === 'YES'
     )
-      return '0';
+      return '';
     if (
       member.values['Family Fee Details'] !== null &&
       member.values['Family Fee Details'] !== undefined
@@ -1343,12 +1343,14 @@ export class MemberActivityReport extends Component {
             ? member.values['Alternate Barcode']
             : member.id.split('-')[4].substring(6, 12),
         cost:
-          member.values['Billing User'] === 'YES'
+          member.values['Billing User'] === 'YES' &&
+          member.values['Non Paying'] !== 'YES'
             ? member.values['Membership Cost']
             : '',
         fee: this.getMemberFee(members, member),
         average:
           member.values['Billing User'] === 'YES' &&
+          member.values['Non Paying'] !== 'YES' &&
           member.values['Billing Family Members'] &&
           member.values['Billing Family Members'] !== '[]'
             ? (

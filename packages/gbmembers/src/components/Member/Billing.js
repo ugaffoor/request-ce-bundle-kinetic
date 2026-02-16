@@ -1471,10 +1471,8 @@ class PayNow extends Component {
                         Use Saved Card
                       </label>
                     )}
-                    {(getAttributeValue(this.props.space, 'POS System') ===
-                      'Stripe' ||
-                      getAttributeValue(this.props.space, 'POS System') ===
-                        'StripeTerminal') &&
+                    {getAttributeValue(this.props.space, 'Billing Company') ===
+                      'Stripe' &&
                       this.props.memberItem !== undefined &&
                       this.props.memberItem.values['Billing Customer Id'] !==
                         undefined &&
@@ -2508,7 +2506,11 @@ export class PaymentHistory extends Component {
         (row.original.paymentStatus === 'S' ||
           row.original.paymentStatus === 'paid' ||
           row.original.paymentStatus === 'Settled' ||
-          row.original.paymentStatus === 'Approved') ? (
+          row.original.paymentStatus === 'Approved' ||
+          (row.original.paymentStatus === 'succeeded' &&
+            (row.original.paymentSource === 'Manual Membership Payment' ||
+              row.original.paymentSource === 'Member Registration Fee' ||
+              row.original.paymentSource === 'Manual Registration Fee'))) ? (
           <button
             type="button"
             className="btn btn-primary"

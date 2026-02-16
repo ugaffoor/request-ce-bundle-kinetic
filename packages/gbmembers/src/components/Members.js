@@ -51,14 +51,29 @@ export class Members extends React.Component {
   isOrphan(space, allMembers, member) {
     if (getAttributeValue(space, 'Billing Company') === 'No Billing')
       return false;
-    return (member.values['Billing Parent Member'] === undefined ||
-      member.values['Billing Parent Member'] === '' ||
-      member.values['Billing Parent Member'] === null) &&
+
+    let noBilling =
+      (member.values['Billing Parent Member'] === undefined ||
+        member.values['Billing Parent Member'] === '' ||
+        member.values['Billing Parent Member'] === null) &&
       member.values['Billing User'] !== 'YES' &&
       member.values['Status'] === 'Active' &&
       member.values['Non Paying'] !== 'YES'
-      ? true
-      : false;
+        ? true
+        : false;
+
+    let needActivation =
+      getAttributeValue(space, 'Billing Company') === 'Stripe' &&
+      member.values['Billing User'] === 'YES' &&
+      member.values['Non Paying'] !== 'YES' &&
+      member.values['Billing Payment Type'] !== 'Cash' &&
+      (member.values['Billing Customer Reference'] === null ||
+        member.values['Billing Customer Reference'] === undefined ||
+        member.values['Billing Customer Reference'] === '')
+        ? true
+        : false;
+
+    return noBilling || needActivation ? true : false;
   }
   isStartedMain(space, member) {
     return (

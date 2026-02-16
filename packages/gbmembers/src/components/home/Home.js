@@ -19,6 +19,7 @@ import { Utils } from 'common';
 import { BamboraOverdues } from './BamboraOverdues';
 import { PaysmartOverdues } from './PaysmartOverdues';
 import { StripeOverdues } from './StripeOverdues';
+import { ActiveOrphans } from './ActiveOrphans';
 import { DemographicChart } from './Demographic';
 import { ProgramsChart } from './Programs';
 import { Statistics } from './Statistics';
@@ -164,6 +165,28 @@ export const HomeView = ({
         fetchMembers={fetchMembers}
       />
     )}
+    {getAttributeValue(space, 'Franchisor') !== 'YES' &&
+      getAttributeValue(space, 'Billing Company') === 'Bambora' &&
+      (profile.username === 'unus@uniqconsulting.com.au' ||
+        profile.username === 'software@graciebarra.com') && (
+        <div className="activaeorphans">
+          {memberInitialLoadComplete && (
+            <div>
+              <ActiveOrphans
+                allMembers={allMembers}
+                successfulPaymentHistory={SUCCESSFULpaymentHistory}
+                SUCCESSFULpaymentHistoryLoading={
+                  SUCCESSFULpaymentHistoryLoading
+                }
+                currency={currency}
+                space={space}
+                locale={locale}
+                profile={profile}
+              />
+            </div>
+          )}
+        </div>
+      )}
     {getAttributeValue(space, 'Franchisor') !== 'YES' &&
       getAttributeValue(space, 'Billing Company') === 'Bambora' &&
       Utils.isMemberOf(profile, 'Role::Program Managers') && (

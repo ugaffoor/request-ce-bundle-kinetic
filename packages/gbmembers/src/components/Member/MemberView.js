@@ -39,6 +39,7 @@ import { SMSModalContainer } from './SMSModalContainer';
 import { ChangeStatusModalContainer } from './ChangeStatusModalContainer';
 import { RegisterMemberModalContainer } from './RegisterMemberModalContainer';
 import { BamboraActivateContainer } from './BamboraActivate';
+import { StripeActivateContainer } from './StripeActivate';
 import { EmailsReceived } from './EmailsReceived';
 import { MemberEmails } from './MemberEmails';
 import { MemberSMS } from './MemberSMS';
@@ -958,6 +959,8 @@ export const MemberView = ({
   setSwitchBillingMemberDialog,
   showBamboraActivate,
   setShowBamboraActivate,
+  showStripeActivate,
+  setShowStripeActivate,
   createUserAccount,
   createMemberUserAccount,
   creatingUserAccount,
@@ -1703,9 +1706,10 @@ export const MemberView = ({
                 className={
                   memberItem.values['Billing Payment Type'] !== 'Cash' &&
                   memberItem.values['Non Paying'] !== 'YES' &&
-                  ((memberItem.values['Billing Customer Id'] !== undefined &&
-                    memberItem.values['Billing Customer Id'] !== '' &&
-                    memberItem.values['Billing Customer Id'] !== null) ||
+                  ((memberItem.values['Billing Customer Reference'] !==
+                    undefined &&
+                    memberItem.values['Billing Customer Reference'] !== '' &&
+                    memberItem.values['Billing Customer Reference'] !== null) ||
                     (memberItem.values['Billing Setup Fee Id'] !== undefined &&
                       memberItem.values['Billing Setup Fee Id'] !== '' &&
                       memberItem.values['Billing Setup Fee Id'] !== null))
@@ -1854,6 +1858,32 @@ export const MemberView = ({
                         allMembers={allMembers}
                         target="Member"
                         setShowBamboraActivate={setShowBamboraActivate}
+                      />
+                    )}
+                  </div>
+                )}
+              {Utils.getAttributeValue(space, 'Billing Company') === 'Stripe' &&
+                memberItem.values['Billing User'] === 'YES' &&
+                memberItem.values['Non Paying'] !== 'YES' &&
+                memberItem.values['Billing Payment Type'] !== 'Cash' &&
+                (memberItem.values['Billing Customer Reference'] === null ||
+                  memberItem.values['Billing Customer Reference'] ===
+                    undefined ||
+                  memberItem.values['Billing Customer Reference'] === '') && (
+                  <div>
+                    <button
+                      onClick={e => setShowStripeActivate(true)}
+                      className="btn btn-primary"
+                      style={{ marginTop: '6px', color: 'white' }}
+                    >
+                      Activate Stripe Account
+                    </button>
+                    {showStripeActivate && (
+                      <StripeActivateContainer
+                        memberItem={memberItem}
+                        allMembers={allMembers}
+                        target="Member"
+                        setShowStripeActivate={setShowStripeActivate}
                       />
                     )}
                   </div>
@@ -2142,6 +2172,7 @@ export const MemberViewContainer = compose(
   withState('showNewCustomers', 'setShowNewCustomers', false),
   withState('showCallScriptModal', 'setShowCallScriptModal', false),
   withState('showBamboraActivate', 'setShowBamboraActivate', false),
+  withState('showStripeActivate', 'setShowStripeActivate', false),
   withState('showAttendanceDialog', 'setShowAttendanceDialog', false),
   withState('showSMSModal', 'setShowSMSModal', false),
   withState('showChangeStatusModal', 'setShowChangeStatusModal', false),
