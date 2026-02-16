@@ -1179,6 +1179,9 @@ export class LeadDetail extends Component {
                   <CallScriptModalContainer
                     scriptTarget="Leads"
                     setShowCallScriptModal={this.props.setShowCallScriptModal}
+                    member={this.props.leadItem}
+                    profile={this.props.profile}
+                    space={this.props.space}
                   />
                 )}
               </li>
@@ -1707,7 +1710,9 @@ export const LeadDetailContainer = compose(
         };
 
         let startDateTime = moment(newHistory.contactDate, 'YYYY-MM-DD HH:mm');
-        let endDateTime = startDateTime.clone().add(1, 'hours');
+        let hours = 1;
+        if (newHistory.contactMethod === 'meeting') hours = 0.5;
+        let endDateTime = startDateTime.clone().add(hours, 'hours');
         let rfcStartDateTime = startDateTime
           .utc()
           .format('YYYY-MM-DDTHH:mm:ssZ');

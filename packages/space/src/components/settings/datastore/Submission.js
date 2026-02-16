@@ -10,7 +10,6 @@ import { LinkContainer } from 'react-router-bootstrap';
 import $ from 'jquery';
 
 import { PageTitle, toastActions } from 'common';
-import { selectDiscussionsEnabled } from 'common/src/redux/modules/common';
 import EmailEditor from 'react-email-editor';
 import { I18n } from '@kineticdata/react';
 import ReactDOM from 'react-dom';
@@ -23,8 +22,6 @@ import {
   actions,
 } from '../../../redux/modules/settingsDatastore';
 import { actions as memberActions } from '../../../../../gbmembers/src/redux/modules/memberApp';
-
-import { DatastoreDiscussions } from './DatastoreDiscussions';
 
 const globals = import('common/globals');
 var Block = Quill.import('blots/block');
@@ -77,7 +74,6 @@ const DatastoreSubmissionComponent = ({
   isEditing,
   isSpaceAdmin,
   formKey,
-  discussionsEnabled,
 }) => (
   <I18n context={`datastore.forms.${form.slug}`}>
     <div className="page-container page-container--panels page-container--datastore">
@@ -177,13 +173,6 @@ const DatastoreSubmissionComponent = ({
           )}
         </div>
       </div>
-      {discussionsEnabled &&
-        submission &&
-        submission.form &&
-        submission.form.fields &&
-        submission.form.fields.find(f => f.name === 'Discussion Id') && (
-          <DatastoreDiscussions />
-        )}
     </div>
   </I18n>
 );
@@ -411,7 +400,6 @@ export const mapStateToProps = (state, { match: { params } }) => ({
   form: selectFormBySlug(state, params.slug),
   values: valuesFromQueryParams(state.router.location.search),
   isEditing: params.mode && params.mode === 'edit' ? true : false,
-  discussionsEnabled: selectDiscussionsEnabled(state),
   snippets: state.member.app.snippets,
 });
 

@@ -432,6 +432,7 @@ export function* savePOSCheckout(action) {
     values['Auth Code'] = action.payload['auth_code'];
     values['SubTotal'] = action.payload['subtotal'];
     values['Discount'] = action.payload['discount'];
+    values['Admin Fee'] = action.payload['adminfee'];
     values['Sales Tax'] = action.payload['salestax'];
     values['Sales Tax 2'] = action.payload['salestax2'];
     values['Total'] = action.payload['total'];

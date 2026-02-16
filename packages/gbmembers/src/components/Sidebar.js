@@ -90,6 +90,9 @@ export const Sidebar = ({
           <option type="filter" value="Inactive Members">
             Inactive Members
           </option>
+          <option type="filter" value="Pending Registrations">
+            Pending Registrations
+          </option>
           <option type="filter" value="All Members">
             All Members
           </option>

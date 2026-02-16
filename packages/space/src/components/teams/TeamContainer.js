@@ -1,6 +1,5 @@
 import { compose, lifecycle, withHandlers } from 'recompose';
 import { connect } from 'react-redux';
-import { actions as discussionActions } from 'discussions';
 
 import { modalFormActions, Utils } from 'common';
 
@@ -48,10 +47,6 @@ const mapStateToProps = state => {
       'Admin Kapp Slug',
       'admin',
     ),
-    discussionId:
-      !state.space.team.loading && team
-        ? Utils.getAttributeValue(team, 'Discussion Id', null)
-        : null,
     memberships: selectTeamMemberships(state).map(member => member.user),
     userIsMember: selectIsTeamMember(state, me),
     parent: heirarchy.parent && teamsMap[heirarchy.parent.name],
@@ -72,7 +67,6 @@ const mapDispatchToProps = {
   fetchTeams: teamListActions.fetchTeams,
   fetchForms: spaceFormsActions.fetchForms,
   resetTeam: actions.resetTeam,
-  openModal: discussionActions.openModal,
 };
 
 const openRequestToJoinForm = ({
@@ -108,7 +102,10 @@ const openRequestToLeaveForm = ({
   });
 
 export const TeamContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   lifecycle({
     UNSAFE_componentWillMount() {
       this.props.fetchTeam(this.props.match.params.slug);
@@ -127,8 +124,5 @@ export const TeamContainer = compose(
   withHandlers({
     openRequestToJoinForm,
     openRequestToLeaveForm,
-    openDiscussion: ({ discussionId, openModal }) => () => {
-      openModal(discussionId, 'discussion');
-    },
   }),
 )(Team);

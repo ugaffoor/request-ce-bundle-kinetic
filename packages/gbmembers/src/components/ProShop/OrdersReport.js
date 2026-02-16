@@ -153,12 +153,14 @@ export class OrdersReport extends Component {
       let data = this.getData(this.posOrders, this.props.posProducts);
       var total = 0;
       var discountTotal = 0;
+      var adminfeeTotal = 0;
       var salestaxTotal = 0;
       var salestax2Total = 0;
       var refundTotal = 0;
       data.forEach((item, i) => {
         total += item.total;
         discountTotal += item.discount;
+        adminfeeTotal += item.adminfee;
         salestaxTotal += item.salestax;
         salestax2Total += item.salestax2;
         refundTotal += item.refund;
@@ -169,6 +171,7 @@ export class OrdersReport extends Component {
         data,
         total,
         discountTotal,
+        adminfeeTotal,
         salestaxTotal,
         salestax2Total,
         refundTotal,
@@ -196,7 +199,7 @@ export class OrdersReport extends Component {
     });
   }
   getTotalValue(item) {
-    if (getAttributeValue(this.props.space, 'POS System') === 'Bambora') {
+    /*    if (getAttributeValue(this.props.space, 'POS System') === 'Bambora') {
       if (
         item.values['Sales Tax'] !== undefined &&
         item.values['Sales Tax'] !== null
@@ -207,9 +210,9 @@ export class OrdersReport extends Component {
         );
       }
       return Number.parseFloat(item.values['Total']);
-    } else {
-      return Number.parseFloat(item.values['Total']);
-    }
+    } else { */
+    return Number.parseFloat(item.values['Total']);
+    /*    } */
   }
   getDate(dateVal) {
     var dt =
@@ -262,6 +265,11 @@ export class OrdersReport extends Component {
           item.values['Discount'] !== null
             ? Number.parseFloat(item.values['Discount'])
             : 0,
+        adminfee:
+          item.values['Admin Fee'] !== undefined &&
+          item.values['Admin Fee'] !== null
+            ? Number.parseFloat(item.values['Admin Fee'])
+            : 0,
         salestax:
           item.values['Sales Tax'] !== undefined &&
           item.values['Sales Tax'] !== null
@@ -310,10 +318,16 @@ export class OrdersReport extends Component {
     header.push('Name');
     header.push('Total');
     header.push('Discount');
-    header.push(this.getSalesTaxLabel());
     if (
-      getAttributeValue(this.props.space, 'POS Sales Tax Label 2') !== undefined
+      getAttributeValue(this.props.space, 'Admin Fee Charge') !== undefined &&
+      getAttributeValue(this.props.space, 'Admin Fee Apply to POS') === 'YES'
     ) {
+      header.push(this.getAdminFeeLabel());
+    }
+    if (getAttributeValue(this.props.space, 'POS Sales Tax') !== undefined) {
+      header.push(this.getSalesTaxLabel());
+    }
+    if (getAttributeValue(this.props.space, 'POS Sales Tax 2') !== undefined) {
       header.push(this.getSalesTaxLabel2());
     }
     header.push('Refund');
@@ -348,6 +362,11 @@ export class OrdersReport extends Component {
       row.push(
         element['discount'] !== undefined
           ? parseFloat(element['discount']).toFixed(2)
+          : '',
+      );
+      row.push(
+        element['adminfee'] !== undefined
+          ? parseFloat(element['adminfee']).toFixed(2)
           : '',
       );
       row.push(
@@ -541,6 +560,14 @@ export class OrdersReport extends Component {
       });
     }
   }
+  getAdminFeeLabel() {
+    return getAttributeValue(this.props.space, 'Admin Fee Label') ===
+      undefined ? (
+      <I18n>Admin Fee</I18n>
+    ) : (
+      getAttributeValue(this.props.space, 'Admin Fee Label')
+    );
+  }
   getSalesTaxLabel() {
     return getAttributeValue(this.props.space, 'POS Sales Tax Label') ===
       undefined ? (
@@ -649,37 +676,70 @@ export class OrdersReport extends Component {
         </span>
       ),
     });
-    columns.push({
-      accessor: 'salestax',
-      Header: this.getSalesTaxLabel(),
-      width: 150,
-      Cell: props => {
-        return props.original.salestax === undefined ? (
-          <div />
-        ) : (
-          <div className="dollarValue">
-            {new Intl.NumberFormat(this.locale, {
-              style: 'currency',
-              currency: this.currency,
-            }).format(props.original.salestax)}
-          </div>
-        );
-      },
-      Footer: (
-        <span>
-          <strong>Total: </strong>
-          {this.state !== undefined
-            ? new Intl.NumberFormat(this.locale, {
+    if (
+      getAttributeValue(this.props.space, 'Admin Fee Charge') !== undefined &&
+      getAttributeValue(this.props.space, 'Admin Fee Apply to POS') === 'YES'
+    ) {
+      columns.push({
+        accessor: 'adminfee',
+        Header: this.getAdminFeeLabel(),
+        width: 150,
+        Cell: props => {
+          return props.original.adminfee === undefined ? (
+            <div />
+          ) : (
+            <div className="dollarValue">
+              {new Intl.NumberFormat(this.locale, {
                 style: 'currency',
                 currency: this.currency,
-              }).format(this.state.salestaxTotal)
-            : 0}
-        </span>
-      ),
-    });
-    if (
-      getAttributeValue(this.props.space, 'POS Sales Tax Label 2') !== undefined
-    ) {
+              }).format(props.original.adminfee)}
+            </div>
+          );
+        },
+        Footer: (
+          <span>
+            <strong>Total: </strong>
+            {this.state !== undefined
+              ? new Intl.NumberFormat(this.locale, {
+                  style: 'currency',
+                  currency: this.currency,
+                }).format(this.state.adminfeeTotal)
+              : 0}
+          </span>
+        ),
+      });
+    }
+    if (getAttributeValue(this.props.space, 'POS Sales Tax') !== undefined) {
+      columns.push({
+        accessor: 'salestax',
+        Header: this.getSalesTaxLabel(),
+        width: 150,
+        Cell: props => {
+          return props.original.salestax === undefined ? (
+            <div />
+          ) : (
+            <div className="dollarValue">
+              {new Intl.NumberFormat(this.locale, {
+                style: 'currency',
+                currency: this.currency,
+              }).format(props.original.salestax)}
+            </div>
+          );
+        },
+        Footer: (
+          <span>
+            <strong>Total: </strong>
+            {this.state !== undefined
+              ? new Intl.NumberFormat(this.locale, {
+                  style: 'currency',
+                  currency: this.currency,
+                }).format(this.state.salestaxTotal)
+              : 0}
+          </span>
+        ),
+      });
+    }
+    if (getAttributeValue(this.props.space, 'POS Sales Tax 2') !== undefined) {
       columns.push({
         accessor: 'salestax2',
         Header: this.getSalesTaxLabel2(),

@@ -27,52 +27,62 @@ export class MemberBirthdays extends Component {
   UNSAFE_componentWillMount() {}
 
   getData(allMembers, week) {
-    if (!allMembers || allMembers.length <= 0) {
+    if (!allMembers || allMembers.length === 0) {
       return [];
     }
-    let year = moment().year();
-    let now = moment().subtract(1, 'days');
-    let toWeek = moment()
+
+    const now = moment().startOf('day');
+    const toWeek = moment()
       .add(week, 'weeks')
-      .add(1, 'days');
-    let members = allMembers
+      .add(1, 'days')
+      .endOf('day');
+
+    const members = allMembers
+      .filter(member =>
+        ['Active', 'Casual', 'Pending Freeze', 'Pending Cancellation'].includes(
+          member.values['Status'],
+        ),
+      )
       .filter(member => {
-        return member.values['Status'] === 'Active' ||
-          member.values['Status'] === 'Casual' ||
-          member.values['Status'] === 'Pending Freeze' ||
-          member.values['Status'] === 'Pending Cancellation'
-          ? true
-          : false;
-      })
-      .filter(member => {
-        let dob = moment(member.values['DOB']).year(year);
-        if (week === 0) {
-          return dob.get('date') === moment().get('date') &&
-            dob.month() === moment().month()
-            ? true
-            : false;
+        const originalDob = moment(member.values['DOB']);
+
+        // Build this year's birthday
+        let nextBirthday = originalDob.clone().year(now.year());
+
+        // If birthday already passed, move to next year
+        if (nextBirthday.isBefore(now)) {
+          nextBirthday.add(1, 'year');
         }
-        return dob.isBetween(now, toWeek) ? true : false;
+
+        if (week === 0) {
+          return nextBirthday.isSame(now, 'day');
+        }
+
+        return nextBirthday.isBetween(now, toWeek, null, '[]');
       });
+
     const data = members
       .sort((a, b) => {
-        let aDt = moment(a.values['DOB']).year(year);
-        let bDt = moment(b.values['DOB']).year(year);
-        if (aDt.isBefore(bDt)) {
-          return -1;
-        } else if (aDt.isAfter(bDt)) {
-          return 1;
-        }
+        const aDob = moment(a.values['DOB']);
+        const bDob = moment(b.values['DOB']);
+
+        let aNext = aDob.clone().year(now.year());
+        let bNext = bDob.clone().year(now.year());
+
+        if (aNext.isBefore(now)) aNext.add(1, 'year');
+        if (bNext.isBefore(now)) bNext.add(1, 'year');
+
+        if (aNext.isBefore(bNext)) return -1;
+        if (aNext.isAfter(bNext)) return 1;
         return 0;
       })
-      .map(member => {
-        return {
-          name: member.values['First Name'] + ' ' + member.values['Last Name'],
-          memberID: member.id,
-          dob: member.values['DOB'],
-          status: member.values['Status'],
-        };
-      });
+      .map(member => ({
+        name: `${member.values['First Name']} ${member.values['Last Name']}`,
+        memberID: member.id,
+        dob: member.values['DOB'],
+        status: member.values['Status'],
+      }));
+
     return data;
   }
 

@@ -588,62 +588,153 @@ class PayNow extends Component {
     uuid,
     posThis,
   ) => {
-    console.log('processStripePayment');
-    // Fetch the intent client secret from the backend
-    const clientSecret = await this.fetchPaymentIntentClientSecret(
-      posServiceURL,
-      spaceSlug,
-      posSystem,
-      customerId,
-      posThis.props.currency,
-      posThis.state.paymentAmount,
-      posThis.state.email,
-      posThis,
-    );
+    if (this.state.payment === 'creditcard') {
+      console.log('processStripePayment');
+      // Fetch the intent client secret from the backend
+      const clientSecret = await this.fetchPaymentIntentClientSecret(
+        posServiceURL,
+        spaceSlug,
+        posSystem,
+        customerId,
+        posThis.props.currency,
+        posThis.state.paymentAmount,
+        posThis.state.email,
+        posThis,
+      );
 
-    if (clientSecret === 'NOT_FOUND') {
-      posThis.setState({
-        status: '10',
-        status_message: 'System Error',
-        errors: 'Client not obtained',
-        auth_code: '',
-        transaction_id: '',
-        processingComplete: true,
-        processing: false,
-        datetime: moment(),
-      });
-      return;
-    }
+      if (clientSecret === 'NOT_FOUND') {
+        posThis.setState({
+          status: '10',
+          status_message: 'System Error',
+          errors: 'Client not obtained',
+          auth_code: '',
+          transaction_id: '',
+          processingComplete: true,
+          processing: false,
+          datetime: moment(),
+        });
+        return;
+      }
 
-    const payload = await posThis.state.stripe.confirmCardPayment(
-      clientSecret,
-      {
-        payment_method: {
-          card: posThis.state.stripeElements.getElement(CardElement),
-          billing_details: {
-            name: posThis.state.firstName + ' ' + posThis.state.lastName,
+      const payload = await posThis.state.stripe.confirmCardPayment(
+        clientSecret,
+        {
+          payment_method: {
+            card: posThis.state.stripeElements.getElement(CardElement),
+            billing_details: {
+              name: posThis.state.firstName + ' ' + posThis.state.lastName,
+            },
           },
         },
-      },
-    );
-
-    if (payload.error) {
-      posThis.setState({
-        status: '10',
-        status_message: payload.error.message,
-        errors: payload.error.message,
-        auth_code: payload.error.code,
-        transaction_id: '',
-        processingComplete: true,
-        processing: false,
-        datetime: moment(),
-      });
-    } else {
-      payNowThis.completeStripePayment(
-        payload.paymentIntent.id,
-        payNowThis,
-        posThis.props.currency,
       );
+
+      if (payload.error) {
+        posThis.setState({
+          status: '10',
+          status_message: payload.error.message,
+          errors: payload.error.message,
+          auth_code: payload.error.code,
+          transaction_id: '',
+          processingComplete: true,
+          processing: false,
+          datetime: moment(),
+        });
+      } else {
+        payNowThis.completeStripePayment(
+          payload.paymentIntent.id,
+          payNowThis,
+          posThis.props.currency,
+        );
+      }
+    } else if (this.state.payment === 'currentPaymentMethod') {
+      var data = JSON.stringify({
+        space: spaceSlug,
+        billingService: posSystem,
+        customerId: posThis.props.memberItem.values['Billing Customer Id'],
+        payment: posThis.state.paymentAmount,
+        orderId: posThis.props.memberItem.values['Member ID'],
+        firstName: posThis.state.firstName,
+        lastName: posThis.state.lastName,
+        sourceIP: posThis.state.publicIP,
+        address: posThis.state.address,
+        city: posThis.state.city,
+        province: posThis.state.province,
+        postCode: posThis.state.postCode,
+        currency: posThis.props.currency,
+        country:
+          posThis.state.country === undefined ? 'US' : posThis.state.country,
+        phoneNumber: posThis.state.phoneNumber,
+        email: posThis.state.email,
+        description:
+          posThis.state.feeType === 'Membership Fee'
+            ? 'Manual Membership Payment'
+            : 'Manual Registration Fee',
+      });
+
+      var config = {
+        method: 'post',
+        url: posServiceURL,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        data: data,
+      };
+      axios(config)
+        .then(function(response) {
+          var data = JSON.parse(response.data.data);
+          posThis.setState({
+            status:
+              data['status'] === 'succeeded' || data['status'] === 'processing'
+                ? '1'
+                : data['status'],
+            status_message: data['status_message'],
+            errors: data['errors'],
+            auth_code: data['auth_code'],
+            transaction_id: data['transaction_id'],
+            processingComplete: true,
+            processing: false,
+            datetime: moment(),
+          });
+
+          if (
+            data['status'] === 'succeeded' ||
+            data['status'] === 'processing'
+          ) {
+            posThis.setState({
+              status: '1',
+              auth_code: data['transaction_id'],
+              transaction_id: data['transaction_id'],
+              processingComplete: true,
+              processing: false,
+              datetime: moment(),
+            });
+          } else {
+            posThis.setState({
+              processingComplete: false,
+            });
+          }
+        })
+        .catch(err => {
+          var error = 'Connection Error';
+          if (err.response) {
+            // client received an error response (5xx, 4xx)
+            error = err.response;
+          } else if (err.request) {
+            // client never received a response, or request never left
+            error = err.request;
+          }
+          posThis.setState({
+            status: '10',
+            status_message: 'System Error',
+            errors: error,
+            auth_code: '',
+            transaction_id: '',
+            processingComplete: false,
+            processing: false,
+            datetime: moment(),
+          });
+          console.log(error);
+        });
     }
   };
 
@@ -1380,23 +1471,50 @@ class PayNow extends Component {
                         Use Saved Card
                       </label>
                     )}
-                    {getAttributeValue(this.props.space, 'POS System') ===
-                      'Bambora' ||
-                      (getAttributeValue(this.props.space, 'POS System') ===
-                        'Stripe' && (
-                        <label htmlFor="useAnotherCreditCard" className="radio">
+                    {getAttributeValue(this.props.space, 'Billing Company') ===
+                      'Stripe' &&
+                      this.props.memberItem !== undefined &&
+                      this.props.memberItem.values['Billing Customer Id'] !==
+                        undefined &&
+                      this.props.memberItem.values['Billing Customer Id'] !==
+                        null &&
+                      !this.props.memberItem.values['Billing Customer Id'] !==
+                        '' && (
+                        <label htmlFor="currentPaymentMethod" className="radio">
                           <input
-                            id="useAnotherCreditCard"
+                            id="currentPaymentMethod"
                             name="savedcard"
                             type="radio"
+                            disabled={this.disablePaymentType()}
+                            value="CurrentPaymentMethod"
                             onChange={e => {
-                              this.setState({ payment: 'creditcard' });
+                              this.setState({
+                                payment: 'currentPaymentMethod',
+                              });
                             }}
                             onClick={async e => {}}
                           />
-                          Use Another Credit Card
+                          Current Payment Method
                         </label>
-                      ))}
+                      )}
+                    {(getAttributeValue(this.props.space, 'POS System') ===
+                      'Bambora' ||
+                      getAttributeValue(this.props.space, 'POS System') ===
+                        'Stripe') && (
+                      <label htmlFor="useAnotherCreditCard" className="radio">
+                        <input
+                          id="useAnotherCreditCard"
+                          name="savedcard"
+                          type="radio"
+                          disabled={this.disablePaymentType()}
+                          onChange={e => {
+                            this.setState({ payment: 'creditcard' });
+                          }}
+                          onClick={async e => {}}
+                        />
+                        Use Another Credit Card
+                      </label>
+                    )}
                     {getAttributeValue(this.props.space, 'POS System') ===
                       'StripeTerminal' && (
                       <Elements
@@ -1483,6 +1601,7 @@ class PayNow extends Component {
                         id="cash"
                         name="savedcard"
                         type="radio"
+                        disabled={this.disablePaymentType()}
                         value="Cash"
                         onChange={e => {
                           this.setState({
@@ -1669,6 +1788,7 @@ class PayNow extends Component {
                     if (
                       this.state.payment === 'creditcard' ||
                       this.state.payment === 'useSavedCreditCard' ||
+                      this.state.payment === 'currentPaymentMethod' ||
                       this.state.payment === 'updateCreditCard'
                     ) {
                       this.processPayment();
@@ -2386,7 +2506,11 @@ export class PaymentHistory extends Component {
         (row.original.paymentStatus === 'S' ||
           row.original.paymentStatus === 'paid' ||
           row.original.paymentStatus === 'Settled' ||
-          row.original.paymentStatus === 'Approved') ? (
+          row.original.paymentStatus === 'Approved' ||
+          (row.original.paymentStatus === 'succeeded' &&
+            (row.original.paymentSource === 'Manual Membership Payment' ||
+              row.original.paymentSource === 'Member Registration Fee' ||
+              row.original.paymentSource === 'Manual Registration Fee'))) ? (
           <button
             type="button"
             className="btn btn-primary"

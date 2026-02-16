@@ -11,6 +11,7 @@ import {
 } from 'recompose';
 import Select from 'react-select';
 import { actions as dataStoreActions } from '../../redux/modules/settingsDatastore';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const mapStateToProps = state => ({
   callScripts: state.member.datastore.callScripts,
@@ -31,6 +32,7 @@ export class CallScriptModal extends Component {
     super(props);
     this.getOptions = this.getOptions.bind(this);
     this.handleOptionChange = this.handleOptionChange.bind(this);
+    this.subsituteValues = this.subsituteValues.bind(this);
 
     this.state = {
       selectedOption: null,
@@ -66,6 +68,41 @@ export class CallScriptModal extends Component {
     }
   }
 
+  subsituteValues(member, selectedScript) {
+    let script = selectedScript.values['Script'];
+
+    script = script.replaceAll("member('ID')", member.id);
+    script = script.replaceAll(
+      "member('Username')",
+      member.values['Member ID'],
+    );
+    script = script.replaceAll(
+      "member('First Name')",
+      member.values['First Name'],
+    );
+    script = script.replaceAll(
+      "member('Last Name')",
+      member.values['Last Name'],
+    );
+    script = script.replaceAll(
+      "member('Parent Name')",
+      member.values['Parent or Guardian'],
+    );
+    script = script.replaceAll(
+      "${spaceAttributes['School Name']}",
+      getAttributeValue(this.props.space, 'School Name'),
+    );
+    script = script.replaceAll(
+      "${spaceAttributes['School Telephone']}",
+      getAttributeValue(this.props.space, 'School Telephone'),
+    );
+    script = script.replaceAll(
+      '${submitterName}',
+      this.props.profile.displayName,
+    );
+
+    selectedScript.values['Script'] = script;
+  }
   handleOptionChange = selectedOption => {
     let selectedScript = null;
     if (selectedOption) {
@@ -73,6 +110,7 @@ export class CallScriptModal extends Component {
         script => script['id'] === selectedOption.value,
       );
     }
+    this.subsituteValues(this.props.member, selectedScript);
 
     this.setState({
       selectedOption: selectedOption,
@@ -110,42 +148,47 @@ export class CallScriptModal extends Component {
                 <div className="row">
                   <div className="col-md-12">
                     <span className="services-color-bar services-color-bar__blue-slate" />
-                    {this.state.selectedOption && this.state.selectedScript && (
-                      <div className="page-container page-container--services-form">
-                        <div className="embedded-core-form--wrapper">
-                          <div className="form-group col-xs-4 col-md-12">
-                            <label htmlFor="name" className="control-label">
-                              Target
-                            </label>
-                            <span className="form-control">
-                              {this.state.selectedScript.values['Target']}
-                            </span>
-                          </div>
-                          <div className="form-group col-xs-4 col-md-12">
-                            <label htmlFor="name" className="control-label">
-                              Script Name
-                            </label>
-                            <span className="form-control">
-                              {this.state.selectedScript.values['Script Name']}
-                            </span>
-                          </div>
-                          <div className="form-group col-xs-4 col-md-12">
-                            <label htmlFor="name" className="control-label">
-                              Script
-                            </label>
-                            <div
-                              className="form-control"
-                              style={{ overflowY: 'scroll', height: '400px' }}
-                              dangerouslySetInnerHTML={{
-                                __html: this.state.selectedScript.values[
-                                  'Script'
-                                ],
-                              }}
-                            ></div>
+                    {this.state.selectedOption &&
+                      this.state.selectedScript && (
+                        <div className="page-container page-container--services-form">
+                          <div className="embedded-core-form--wrapper">
+                            <div className="form-group col-xs-4 col-md-12">
+                              <label htmlFor="name" className="control-label">
+                                Target
+                              </label>
+                              <span className="form-control">
+                                {this.state.selectedScript.values['Target']}
+                              </span>
+                            </div>
+                            <div className="form-group col-xs-4 col-md-12">
+                              <label htmlFor="name" className="control-label">
+                                Script Name
+                              </label>
+                              <span className="form-control">
+                                {
+                                  this.state.selectedScript.values[
+                                    'Script Name'
+                                  ]
+                                }
+                              </span>
+                            </div>
+                            <div className="form-group col-xs-4 col-md-12">
+                              <label htmlFor="name" className="control-label">
+                                Script
+                              </label>
+                              <div
+                                className="form-control"
+                                style={{ overflowY: 'scroll', height: '400px' }}
+                                dangerouslySetInnerHTML={{
+                                  __html: this.state.selectedScript.values[
+                                    'Script'
+                                  ],
+                                }}
+                              />
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )}
+                      )}
                   </div>
                 </div>
               </div>
@@ -157,7 +200,12 @@ export class CallScriptModal extends Component {
   }
 }
 
-const enhance = compose(connect(mapStateToProps, mapDispatchToProps));
+const enhance = compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
+);
 const inlineStyle = {
   position: 'absolute',
   marginBottom: '20px',

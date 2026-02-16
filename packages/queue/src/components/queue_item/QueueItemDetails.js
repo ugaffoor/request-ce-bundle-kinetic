@@ -2,8 +2,6 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { compose, withState, withHandlers, withProps } from 'recompose';
 import { KappLink as Link, TimeAgo } from 'common';
-import { selectDiscussionsEnabled } from 'common/src/redux/modules/common';
-import { actions as discussionActions } from 'discussions';
 import { selectAssignments } from '../../redux/modules/queueApp';
 import { actions, selectPrevAndNext } from '../../redux/modules/queue';
 import { ViewOriginalRequest } from './ViewOriginalRequest';
@@ -36,35 +34,12 @@ export const QueueItemDetails = ({
   openNewItemMenu,
   prohibitSubtasks,
   refreshQueueItem,
-  openDiscussion,
-  createDiscussion,
   prevAndNext,
   kappSlug,
-  discussionsEnabled,
 }) => (
   <div className="queue-item-details">
     <div className="scroll-wrapper">
       <div className="general">
-        {discussionsEnabled && (
-          <button
-            onClick={
-              queueItem.values['Discussion Id'] === null
-                ? createDiscussion
-                : openDiscussion
-            }
-            className="btn btn-inverse btn-discussion d-md-none d-lg-none d-xl-none"
-          >
-            <span
-              className="fa fa-fw fa-comments"
-              style={{ fontSize: '16px' }}
-            />
-            <I18n>
-              {queueItem.values['Discussion Id'] === null
-                ? 'New Discussion'
-                : 'View Discussion'}
-            </I18n>
-          </button>
-        )}
         <div className="submission__meta">
           <StatusContent queueItem={queueItem} prevAndNext={prevAndNext} />
         </div>
@@ -201,7 +176,6 @@ export const mapStateToProps = (state, props) => {
     ).toJS(),
     prevAndNext: selectPrevAndNext(state, props.filter),
     kappSlug: state.app.config.kappSlug,
-    discussionsEnabled: selectDiscussionsEnabled(state),
   };
 };
 
@@ -210,8 +184,6 @@ export const mapDispatchToProps = {
   setCurrentItem: actions.setCurrentItem,
   openNewItemMenu: actions.openNewItemMenu,
   fetchCurrentItem: actions.fetchCurrentItem,
-  openModal: discussionActions.openModal,
-  createDiscussion: discussionActions.createIssue,
   setOffset: actions.setOffset,
   fetchList: actions.fetchList,
 };
@@ -275,18 +247,5 @@ export const QueueItemDetailsContainer = compose(
       }
       fetchCurrentItem(queueItem.id);
     },
-    openDiscussion: props => () =>
-      props.openModal(props.queueItem.values['Discussion Id'], 'discussion'),
-    createDiscussion: props => () =>
-      props.createDiscussion(
-        props.queueItem.label || 'Queue Discussion',
-        props.queueItem.values['Details'] || '',
-        props.queueItem,
-        null,
-        (issue, submission) => {
-          props.setCurrentItem(submission);
-          props.openModal(issue.guid, 'discussion');
-        },
-      ),
   }),
 )(QueueItemDetails);

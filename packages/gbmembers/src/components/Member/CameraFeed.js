@@ -1,95 +1,133 @@
 import React, { Component } from 'react';
 
 export class CameraFeed extends Component {
-  /**
-   * Processes available devices and identifies one by the label
-   * @memberof CameraFeed
-   * @instance
-   */
-  processDevices(devices) {
-    devices.forEach(device => {
-      if (device.kind === 'videoinput') this.setDevice(device);
-    });
+  state = {
+    facingMode: 'user',
+    cameraEnabled: false,
+  };
+
+  videoPlayer = null;
+  canvas = null;
+  stream = null;
+
+  componentWillUnmount() {
+    this.stopCamera();
   }
 
-  /**
-   * Sets the active device and starts playing the feed
-   * @memberof CameraFeed
-   * @instance
-   */
-  async setDevice(device) {
-    const { deviceId } = device;
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: { deviceId },
-    });
-    this.videoPlayer.srcObject = stream;
-    this.videoPlayer.play();
-  }
+  startCamera = async () => {
+    try {
+      // Must be HTTPS (except localhost)
+      if (
+        window.location.protocol !== 'https:' &&
+        window.location.hostname !== 'localhost'
+      ) {
+        alert('Camera requires HTTPS');
+        return;
+      }
 
-  /**
-   * On mount, grab the users connected devices and process them
-   * @memberof CameraFeed
-   * @instance
-   * @override
-   */
-  async componentDidMount() {
-    console.log('Before enumerateDevices navigator:' + navigator);
-    console.log(
-      'Before enumerateDevices navigator.mediaDevices:' +
-        navigator.mediaDevices,
+      if (!navigator.mediaDevices?.getUserMedia) {
+        alert('Camera not supported');
+        return;
+      }
+
+      this.stopCamera();
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: {
+          facingMode: this.state.facingMode,
+        },
+      });
+
+      this.stream = stream;
+      this.videoPlayer.srcObject = stream;
+      await this.videoPlayer.play();
+
+      this.setState({ cameraEnabled: true });
+    } catch (err) {
+      console.error('Camera error:', err.name, err.message);
+      alert('Camera permission denied. Please allow camera access.');
+    }
+  };
+
+  stopCamera = () => {
+    if (this.stream) {
+      this.stream.getTracks().forEach(track => track.stop());
+      this.stream = null;
+    }
+  };
+
+  toggleCamera = () => {
+    this.setState(
+      prev => ({
+        facingMode: prev.facingMode === 'user' ? 'environment' : 'user',
+      }),
+      () => {
+        if (this.state.cameraEnabled) {
+          this.startCamera();
+        }
+      },
     );
-    console.log(
-      'Before enumerateDevices navigator.mediaDevices.enumerateDevices:' +
-        navigator.mediaDevices.enumerateDevices,
-    );
-    const cameras = await navigator.mediaDevices.enumerateDevices();
-    console.log('cameras:' + cameras);
-    this.processDevices(cameras);
-  }
-  async componentWillUnmount() {
-    console.log('CameraFeed unload');
-  }
+  };
 
-  /**
-   * Handles taking a still image from the video feed on the camera
-   * @memberof CameraFeed
-   * @instance
-   */
   takePhoto = () => {
-    //        const { sendFile } = this.props;
+    if (!this.stream) return;
+
     const context = this.canvas.getContext('2d');
-    // Match canvas size to video’s actual size
-    var width = this.videoPlayer.videoWidth;
-    var height = this.videoPlayer.videoHeight;
+
+    let width = this.videoPlayer.videoWidth;
+    let height = this.videoPlayer.videoHeight;
 
     while (width > 200) {
-      width = width / 2;
-      height = height / 2;
+      width /= 2;
+      height /= 2;
     }
+
     this.canvas.width = width;
     this.canvas.height = height;
 
     context.drawImage(this.videoPlayer, 0, 0, width, height);
-    let data = this.canvas.toDataURL();
+
+    const data = this.canvas.toDataURL('image/png');
+
     K('field[Photo Image]').value(data);
     K('button[Submit Button]').show();
   };
 
   render() {
+    const { cameraEnabled, facingMode } = this.state;
+    const isFront = facingMode === 'user';
+
     return (
       <div className="c-camera-feed">
         <div className="c-camera-feed__viewer">
           <video
             ref={ref => (this.videoPlayer = ref)}
+            autoPlay
+            playsInline
+            muted
             width="150"
-            heigh="150"
+            height="150"
+            style={{
+              transform: isFront ? 'scaleX(-1)' : 'none',
+            }}
           />
         </div>
-        <button onClick={this.takePhoto}>Take photo!</button>
-        <div className="c-camera-feed__stage">
-          <canvas ref={ref => (this.canvas = ref)} />
+
+        <div className="c-camera-feed__controls">
+          {!cameraEnabled && (
+            <button onClick={this.startCamera}>Enable camera</button>
+          )}
+
+          {cameraEnabled && (
+            <>
+              <button onClick={this.toggleCamera}>Switch camera</button>
+              <button onClick={this.takePhoto}>Take photo</button>
+            </>
+          )}
         </div>
+
+        <canvas ref={ref => (this.canvas = ref)} style={{ display: 'none' }} />
       </div>
     );
   }

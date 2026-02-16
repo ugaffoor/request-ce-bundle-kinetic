@@ -9,7 +9,6 @@ import { CoreForm } from '@kineticdata/react';
 import { LinkContainer } from 'react-router-bootstrap';
 
 import { PageTitle, toastActions } from 'common';
-import { selectDiscussionsEnabled } from 'common/src/redux/modules/common';
 
 import {
   selectPrevAndNext,
@@ -17,7 +16,6 @@ import {
   actions,
 } from '../../../redux/modules/settingsDatastore';
 
-import { DatastoreDiscussions } from './DatastoreDiscussions';
 import ReactDOM from 'react-dom';
 import ReactQuill, { Quill } from 'react-quill';
 import ImageResize from 'quill-image-resize-module-react';
@@ -72,7 +70,6 @@ const DatastoreSubmissionComponent = ({
   submission,
   isEditing,
   formKey,
-  discussionsEnabled,
 }) => (
   <div className="page-container page-container--panels page-container--datastore">
     <PageTitle
@@ -150,13 +147,6 @@ const DatastoreSubmissionComponent = ({
         )}
       </div>
     </div>
-    {discussionsEnabled &&
-      submission &&
-      submission.form &&
-      submission.form.fields &&
-      submission.form.fields.find(f => f.name === 'Discussion Id') && (
-        <DatastoreDiscussions />
-      )}
   </div>
 );
 
@@ -279,7 +269,6 @@ export const mapStateToProps = (state, { match: { params } }) => ({
   form: selectFormBySlug(state, params.slug),
   values: valuesFromQueryParams(state.router.location.search),
   isEditing: params.mode && params.mode === 'edit' ? true : false,
-  discussionsEnabled: selectDiscussionsEnabled(state),
   snippets: state.space.spaceApp.snippets,
 });
 

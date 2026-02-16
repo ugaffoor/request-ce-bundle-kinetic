@@ -1084,10 +1084,7 @@ export const MemberEdit = ({
               <span className="line">
                 <Autocomplete
                   id="addressAutoComplete"
-                  apiKey={getAttributeValue(
-                    this.props.space,
-                    'AutoCompleteKey',
-                  )}
+                  apiKey={getAttributeValue(space, 'AutoCompleteKey')}
                   placeholder="Lookup Address"
                   style={{
                     width: '400px',

@@ -398,6 +398,18 @@ Indications in the application will identify members not compliant."
                     appSpace={this.props.appSpace}
                     profile={this.props.profile}
                   />
+                  <EditAttributeValue
+                    attributeID="adminFeeApplyToPOS"
+                    attributeName="Admin Fee Apply to POS"
+                    inputType="yesToggleValue"
+                    width="400px"
+                    labelName="Apply Admin Fee to POS"
+                    helpText="Check to allow the use of the Admin Fee to be applied for POS."
+                    updateSpaceAttribute={this.props.updateSpaceAttribute}
+                    space={this.props.space}
+                    appSpace={this.props.appSpace}
+                    profile={this.props.profile}
+                  />
                 </span>
               )}
             </span>

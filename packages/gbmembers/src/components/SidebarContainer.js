@@ -6,12 +6,11 @@ import {
   withState,
 } from 'recompose';
 import { connect } from 'react-redux';
-import { List } from 'immutable';
-import { Filter } from '../records';
-import { actions as filterMenuActions } from '../redux/modules/filterMenu';
 import { Sidebar } from './Sidebar';
 import { actions as memberActions } from '../redux/modules/members';
+import { actions as servicesActions } from '../redux/modules/services';
 import $ from 'jquery';
+import { getAttributeValue } from '../lib/react-kinops-components/src/utils';
 
 const mapStateToProps = state => ({
   documentationUrl: state.member.app.documentationUrl,
@@ -21,6 +20,9 @@ const mapStateToProps = state => ({
   memberInitialLoadComplete: state.member.members.memberInitialLoadComplete,
   membersNextPageToken: state.member.members.membersNextPageToken,
   memberLastFetchTime: state.member.members.memberLastFetchTime,
+  memberMigrations: state.member.services.memberMigrations,
+  memberMigrationsLoading: state.member.services.memberMigrationsLoading,
+  migrationsLastFetchTime: state.member.services.migrationsLastFetchTime,
   allLeads: state.member.leads.allLeads,
   currentFilter: state.member.members.currentFilter,
   membersLoading: state.member.members.membersLoading,
@@ -38,12 +40,16 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = {
   fetchMembers: memberActions.fetchMembers,
+  fetchMemberMigrations: servicesActions.fetchMemberMigrations,
   setMemberFilter: memberActions.setMemberFilter,
   getMemberFilter: memberActions.getMemberFilter,
 };
 
 export const SidebarContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(({ setMemberFilter }) => {
     return {};
   }),
@@ -132,6 +138,31 @@ export const SidebarContainer = compose(
         memberInitialLoadComplete: this.props.memberInitialLoadComplete,
         memberLastFetchTime: this.props.memberLastFetchTime,
       });
+      this.props.fetchMemberMigrations({
+        billingSystem: getAttributeValue(
+          this.props.space,
+          'Billing Company',
+        ).toLowerCase(),
+        migrationsLastFetchTime: this.props.migrationsLastFetchTime,
+      });
+    },
+    UNSAFE_componentWillReceiveProps(nextProps) {
+      if (
+        !nextProps.memberLoading &&
+        !nextProps.memberMigrationsLoading &&
+        nextProps.allMembers.length !== 0 &&
+        nextProps.memberMigrations.length !== 0
+      ) {
+        nextProps.memberMigrations.forEach(migration => {
+          var idx = nextProps.allMembers.findIndex(member => {
+            return member.id === migration.values['Member GUID'];
+          });
+          if (idx !== -1) {
+            nextProps.allMembers[idx].migrationForm = migration;
+          }
+        });
+        console.log('memberMigrations.size:' + nextProps.memberMigrations.size);
+      }
     },
   }),
 )(Sidebar);

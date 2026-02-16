@@ -24,7 +24,7 @@ export class StockReport extends Component {
         : this.props.profile.preferredLocale;
 
     this.getColumns = this.getColumns.bind(this);
-    let data = this.getData(this.props.posStock, true);
+    let data = this.getData(this.props.posStock, this.props.posProducts, true);
     var total = 0;
     this.props.posStock.forEach((stock, i) => {
       var idx = this.props.posProducts.findIndex(
@@ -61,16 +61,26 @@ export class StockReport extends Component {
 
   UNSAFE_componentWillMount() {}
 
-  getData(posStock, onlyStocked) {
+  getData(posStock, posProducts, onlyStocked) {
     if (!posStock || posStock.length <= 0) {
       return [];
     }
 
-    var data = posStock;
+    // Disregard Deleted Products
+    var data = posStock.filter(stock => {
+      const stockProductId = String(stock.values['Product ID']);
+
+      return posProducts.some(
+        prod =>
+          String(prod.id) === stockProductId &&
+          prod.values?.Status === 'Active',
+      );
+    });
+
     if (onlyStocked) {
-      data = posStock.filter(stock => stock.values['Quantity'] !== '0');
+      data = data.filter(stock => stock.values['Quantity'] !== '0');
     } else {
-      data = posStock.filter(stock => stock.values['Quantity'] === '0');
+      data = data.filter(stock => stock.values['Quantity'] === '0');
     }
 
     data = data
@@ -262,7 +272,11 @@ export class StockReport extends Component {
                 value="0"
                 onChange={e => {
                   var newMode = !this.state.stockViewMode;
-                  var data = this.getData(this.props.posStock, !newMode);
+                  var data = this.getData(
+                    this.props.posStock,
+                    this.props.posProducts,
+                    !newMode,
+                  );
                   var total = 0;
                   data.forEach((stock, i) => {
                     var idx = this.props.posProducts.findIndex(

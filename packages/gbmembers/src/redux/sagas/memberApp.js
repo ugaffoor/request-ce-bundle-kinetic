@@ -474,7 +474,18 @@ export function* updateMembersListTask(payload) {
   profileCopy = {
     profileAttributes: profile.profileAttributes,
   };
-  profileCopy.profileAttributes['Member Lists'] = memberListsArr;
+  let idx = profileCopy.profileAttributes.findIndex(
+    item => item['name'] === 'Member Lists',
+  );
+
+  if (idx !== -1) {
+    profileCopy.profileAttributes[idx]['values'] = memberListsArr;
+  } else {
+    profileCopy.profileAttributes.push({
+      name: 'Member Lists',
+      values: memberListsArr,
+    });
+  }
   const { serverError } = yield call(updateProfile, {
     profile: profileCopy,
     include: PROFILE_UPDATE_INCLUDES,
@@ -499,7 +510,19 @@ export function* updateLeadsListTask(payload) {
   profileCopy = {
     profileAttributes: profile.profileAttributes,
   };
-  profileCopy.profileAttributes['Lead Lists'] = leadListsArr;
+  let idx = profileCopy.profileAttributes.findIndex(
+    item => item['name'] === 'Lead Lists',
+  );
+
+  if (idx !== -1) {
+    profileCopy.profileAttributes[idx]['values'] = leadListsArr;
+  } else {
+    profileCopy.profileAttributes.push({
+      name: 'Lead Lists',
+      values: leadListsArr,
+    });
+  }
+
   const { serverError } = yield call(updateProfile, {
     profile: profileCopy,
     include: PROFILE_UPDATE_INCLUDES,

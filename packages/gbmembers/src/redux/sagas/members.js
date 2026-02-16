@@ -2151,53 +2151,118 @@ export function* editPaymentMethod(action) {
 export function* activateBiller(action) {
   try {
     const appSettings = yield select(getAppSettings);
-    let args = {};
-    args.customerId =
-      action.payload.memberItem.values['Billing Customer Reference'];
-    args.space = appSettings.spaceSlug;
-    args.billingService = appSettings.billingCompany;
-    args.orderNumber = action.payload.orderNumber;
-    args.payment = action.payload.payment;
-    args.schedulePeriodType = action.payload.period;
-    args.startDate = action.payload.startDate;
-    args.scheduleDate = action.payload.scheduleDate;
-    args.email = action.payload.email;
-    args.city = action.payload.city;
-    args.postcode = action.payload.postcode;
-    args.state = action.payload.state;
-    args.address = action.payload.address;
-    axios
-      .post(appSettings.kineticBillingServerUrl + activateBillerUrl, args)
-      .then(result => {
-        //console.log("fetchWebToken # result = " + util.inspect(result));
-        if (result.data.error && result.data.error > 0) {
-          console.log('activateBiller Error: ' + result.data.errorMessage);
+    if (appSettings.billingCompany === 'Bambora') {
+      let args = {};
+      args.customerId =
+        action.payload.memberItem.values['Billing Customer Reference'];
+      args.space = appSettings.spaceSlug;
+      args.billingService = appSettings.billingCompany;
+      args.orderNumber = action.payload.orderNumber;
+      args.payment = action.payload.payment;
+      args.schedulePeriodType = action.payload.period;
+      args.startDate = action.payload.startDate;
+      args.scheduleDate = action.payload.scheduleDate;
+      args.email = action.payload.email;
+      args.city = action.payload.city;
+      args.postcode = action.payload.postcode;
+      args.state = action.payload.state;
+      args.address = action.payload.address;
+      axios
+        .post(appSettings.kineticBillingServerUrl + activateBillerUrl, args)
+        .then(result => {
+          //console.log("fetchWebToken # result = " + util.inspect(result));
+          if (result.data.error && result.data.error > 0) {
+            console.log('activateBiller Error: ' + result.data.errorMessage);
+            action.payload.addNotification(
+              NOTICE_TYPES.ERROR,
+              result.data.errorMessage,
+              'Activated Biller Failed',
+            );
+          } else {
+            console.log('#### Response = ' + result.data.data);
+            action.payload.addNotification(
+              NOTICE_TYPES.SUCCESS,
+              'Activating Biller successfully',
+            );
+            action.payload.updateMember({
+              id: action.payload.memberItem['id'],
+              memberItem: action.payload.memberItem,
+              allMembers: action.payload.allMembers,
+            });
+
+            action.payload.billerActivated();
+          }
+        })
+        .catch(error => {
+          console.log(util.inspect(error));
           action.payload.addNotification(
             NOTICE_TYPES.ERROR,
-            result.data.errorMessage,
             'Activated Biller Failed',
           );
-        } else {
-          console.log('#### Response = ' + result.data.data);
-          action.payload.addNotification(
-            NOTICE_TYPES.SUCCESS,
-            'Activating Biller successfully',
-          );
-          action.payload.updateMember({
-            id: action.payload.memberItem['id'],
-            memberItem: action.payload.memberItem,
-          });
+        });
+    } else if (appSettings.billingCompany === 'Stripe') {
+      let args = {};
+      args.space = appSettings.spaceSlug;
+      args.billingService = appSettings.billingCompany;
+      args.customerId = action.payload.memberItem.values['Member ID'];
+      args.paymentMethod = 'Credit Card';
+      args.firstName = action.payload.memberItem.values['First Name'];
+      args.lastName = action.payload.memberItem.values['Last Name'];
+      args.dob = action.payload.memberItem.values['DOB'];
+      args.address = action.payload.memberItem.values['Address'];
+      args.suburb = action.payload.memberItem.values['Suburb'];
+      args.state = action.payload.memberItem.values['State'];
+      args.postCode = action.payload.memberItem.values['Postcode'];
+      args.email = action.payload.memberItem.values['Email'];
+      args.mobile = action.payload.memberItem.values['Mobile'];
+      args.billingPeriod = action.payload.period;
+      args.payment = action.payload.payment;
+      args.contractStartDate = action.payload.startDate;
+      args.cardToken = action.payload.orderNumber;
+      args.currency = action.payload.currency;
 
-          action.payload.billerActivated();
-        }
-      })
-      .catch(error => {
-        console.log(util.inspect(error));
-        action.payload.addNotification(
-          NOTICE_TYPES.ERROR,
-          'Activated Biller Failed',
-        );
-      });
+      axios
+        .post(appSettings.kineticBillingServerUrl + registerUserUrl, args)
+        .then(result => {
+          if (result.data.error && result.data.error > 0) {
+            console.log('activateBiller Error: ' + result.data.errorMessage);
+            action.payload.addNotification(
+              NOTICE_TYPES.ERROR,
+              result.data.errorMessage,
+              'Activated Biller Failed',
+            );
+          } else {
+            console.log('#### Response = ' + result.data.data);
+
+            if (result.data.data.paymentMethod === 'card') {
+              action.payload.memberItem.values['Billing Payment Type'] =
+                'Credit Card';
+            } else {
+              action.payload.memberItem.values['Billing Payment Type'] =
+                'Bank Account';
+            }
+            action.payload.memberItem.values['Billing Customer Reference'] =
+              result.data.data.customerBillingId;
+            action.payload.addNotification(
+              NOTICE_TYPES.SUCCESS,
+              'Activating Biller successfully',
+            );
+            action.payload.updateMember({
+              id: action.payload.memberItem['id'],
+              memberItem: action.payload.memberItem,
+            });
+
+            action.payload.billerActivated();
+          }
+        })
+        .catch(error => {
+          console.log(util.inspect(error));
+          action.payload.addNotification(
+            NOTICE_TYPES.ERROR,
+            'Activated Biller Failed',
+          );
+        });
+    }
   } catch (error) {
     console.log('Error in activateBiller: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));

@@ -10,18 +10,6 @@ import { ExportModal } from './ExportModal';
 import { actions } from '../../../redux/modules/settingsForms';
 import { I18n } from '@kineticdata/react';
 
-const DiscussionIcon = () => (
-  <span className="icon">
-    <span
-      className="fa fa-fw fa-comments"
-      style={{
-        color: 'rgb(9, 84, 130)',
-        fontSize: '16px',
-      }}
-    />
-  </span>
-);
-
 // Create q for search from filter object
 export const createSearchQuery = filter => {
   const q = {};
@@ -327,7 +315,7 @@ export const FormSubmissionsContainer = ({
                             onClick={e => sortTable(c)}
                           >
                             {isDiscussionIdField ? (
-                              <DiscussionIcon />
+                              <div />
                             ) : (
                               <I18n>{c.label}</I18n>
                             )}

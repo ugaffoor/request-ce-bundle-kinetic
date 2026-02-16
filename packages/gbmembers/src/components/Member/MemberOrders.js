@@ -276,6 +276,7 @@ export class MemberOrders extends Component {
                   total: order['Total'],
                   refund: order['Refund'],
                   subtotal: order['SubTotal'],
+                  adminfee: order['Admin Fee'],
                   salestax: order['Sales Tax'],
                   salestax2: order['Sales Tax 2'],
                   discount: order['Discount'],
@@ -317,6 +318,7 @@ export class MemberOrders extends Component {
                                 refund={this.state.refund}
                                 subtotal={this.state.subtotal}
                                 discount={this.state.discount}
+                                adminfee={this.state.adminfee}
                                 salestax={this.state.salestax}
                                 salestax2={this.state.salestax2}
                                 number={this.state.cardNumber}
@@ -394,6 +396,33 @@ export class MemberOrders extends Component {
                                     style: 'currency',
                                     currency: this.currency,
                                   }).format(this.state.discount)}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        {this.state.adminfee !== undefined &&
+                          this.state.adminfee > 0 && (
+                            <div className="productLine">
+                              <div className="quantity" />
+                              <div className="name">
+                                {getAttributeValue(
+                                  this.props.space,
+                                  'Admin Fee Label',
+                                ) !== undefined ? (
+                                  getAttributeValue(
+                                    this.props.space,
+                                    'Admin Fee Label',
+                                  )
+                                ) : (
+                                  <I18n>Admin Fee</I18n>
+                                )}
+                              </div>
+                              <div className="price">
+                                <span className="price">
+                                  {new Intl.NumberFormat(this.locale, {
+                                    style: 'currency',
+                                    currency: this.currency,
+                                  }).format(this.state.adminfee)}
                                 </span>
                               </div>
                             </div>

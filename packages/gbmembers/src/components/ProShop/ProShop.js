@@ -202,67 +202,9 @@ class PayNow extends Component {
 
     this.componentRef = React.createRef();
 
-    var subtotal = 0;
-    var discount = 0;
-    var total = 0;
-    var grossTotal = 0;
-
-    if (this.props.posCheckout['Checkout Items']['products'] !== undefined) {
-      this.props.posCheckout['Checkout Items']['products'].forEach(
-        (product, i) => {
-          subtotal =
-            subtotal +
-            parseFloat(product['price'], 2) * parseInt(product['quantity']);
-          total = subtotal;
-        },
-      );
-    }
-
-    if (
-      this.props.posCheckout['Checkout Items']['discountName'] !== undefined &&
-      this.props.posCheckout['Checkout Items']['voucher'] === undefined
-    ) {
-      discount = parseFloat(
-        this.props.posCheckout['Checkout Items']['discountValue'],
-      );
-      if (
-        this.props.posCheckout['Checkout Items']['discountType'] ===
-        'Percentage'
-      ) {
-        discount = subtotal * (discount / 100);
-        total = subtotal - discount;
-      } else {
-        total = subtotal - discount;
-      }
-    } else if (
-      this.props.posCheckout['Checkout Items']['discountName'] !== undefined &&
-      this.props.posCheckout['Checkout Items']['voucher'] !== undefined
-    ) {
-      discount = parseFloat(
-        this.props.posCheckout['Checkout Items']['discountValue'],
-      );
-      if (
-        this.props.posCheckout['Checkout Items']['discountType'] ===
-        'Percentage'
-      ) {
-        discount = subtotal * (discount / 100);
-        total = subtotal - discount;
-      } else {
-        total = subtotal - discount;
-      }
-    }
-    grossTotal = total;
-    if (this.props.salestax !== 0) {
-      total = total + this.props.salestax;
-    }
-    if (this.props.salestax2 !== 0) {
-      total = total + this.props.salestax2;
-    }
-
-    total = parseFloat(total.toFixed(2));
-
     this.state = {
-      total: total,
+      total: this.props.total,
+      memberItem: undefined,
       personType: 'Member',
       personID: undefined,
       pickUp: undefined,
@@ -408,6 +350,7 @@ class PayNow extends Component {
       this.state.number,
       this.props.subtotal,
       this.props.discount,
+      this.props.adminfee,
       this.props.salestax,
       this.props.salestax2,
       this.props.total,
@@ -683,59 +626,139 @@ class PayNow extends Component {
     posThis,
   ) => {
     console.log('processStripePayment');
-    // Fetch the intent client secret from the backend
-    const clientSecret = await this.fetchPaymentIntentClientSecret(
-      posServiceURL,
-      spaceSlug,
-      posSystem,
-      posThis.props.currency,
-      posThis.state.total,
-      posThis.state.email,
-    );
+    if (this.state.payment === 'creditcard') {
+      // Fetch the intent client secret from the backend
+      const clientSecret = await this.fetchPaymentIntentClientSecret(
+        posServiceURL,
+        spaceSlug,
+        posSystem,
+        posThis.props.currency,
+        posThis.state.total,
+        posThis.state.email,
+      );
 
-    if (clientSecret === 'NOT_FOUND') {
-      posThis.setState({
-        status: '10',
-        status_message: 'System Error',
-        errors: 'Client not obtained',
-        auth_code: '',
-        transaction_id: '',
-        processingComplete: true,
-        processing: false,
-        datetime: moment(),
-      });
-      return;
-    }
+      if (clientSecret === 'NOT_FOUND') {
+        posThis.setState({
+          status: '10',
+          status_message: 'System Error',
+          errors: 'Client not obtained',
+          auth_code: '',
+          transaction_id: '',
+          processingComplete: true,
+          processing: false,
+          datetime: moment(),
+        });
+        return;
+      }
 
-    const payload = await posThis.state.stripe.confirmCardPayment(
-      clientSecret,
-      {
-        payment_method: {
-          card: posThis.state.stripeElements.getElement(CardElement),
-          billing_details: {
-            name: posThis.state.firstName + ' ' + posThis.state.lastName,
+      const payload = await posThis.state.stripe.confirmCardPayment(
+        clientSecret,
+        {
+          payment_method: {
+            card: posThis.state.stripeElements.getElement(CardElement),
+            billing_details: {
+              name: posThis.state.firstName + ' ' + posThis.state.lastName,
+            },
           },
         },
-      },
-    );
-
-    if (payload.error) {
-      posThis.setState({
-        status: '10',
-        status_message: payload.error.message,
-        errors: payload.error.message,
-        auth_code: payload.error.code,
-        transaction_id: '',
-        processingComplete: true,
-        processing: false,
-        datetime: moment(),
-      });
-    } else {
-      posThis.completeStripePayment(
-        payload.paymentIntent.id,
-        posThis,
-        posThis.props.currency,
       );
+
+      if (payload.error) {
+        posThis.setState({
+          status: '10',
+          status_message: payload.error.message,
+          errors: payload.error.message,
+          auth_code: payload.error.code,
+          transaction_id: '',
+          processingComplete: true,
+          processing: false,
+          datetime: moment(),
+        });
+      } else {
+        posThis.completeStripePayment(
+          payload.paymentIntent.id,
+          posThis,
+          posThis.props.currency,
+        );
+      }
+    } else if (this.state.payment === 'currentPaymentMethod') {
+      var data = JSON.stringify({
+        space: spaceSlug,
+        billingService: posSystem,
+        customerId: this.state.memberItem.values['Billing Customer Id'],
+        payment: this.state.total,
+        orderId: this.state.memberItem.values['Member ID'],
+        firstName: this.state.firstName,
+        lastName: this.state.lastName,
+        sourceIP: this.state.publicIP,
+        address: this.state.address,
+        city: this.state.city,
+        province: this.state.province,
+        postCode: this.state.postCode,
+        currency: posThis.props.currency,
+        country: this.state.country === undefined ? 'US' : this.state.country,
+        phoneNumber: this.state.phoneNumber,
+        email: this.state.email,
+        description: schoolName + ' POS',
+      });
+
+      var config = {
+        method: 'post',
+        url: posServiceURL,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        data: data,
+      };
+      axios(config)
+        .then(function(response) {
+          var data = JSON.parse(response.data.data);
+          posThis.setState({
+            status:
+              data['status'] === 'succeeded' || data['status'] === 'processing'
+                ? '1'
+                : data['status'],
+            status_message: data['status_message'],
+            errors: data['errors'],
+            auth_code: data['auth_code'],
+            transaction_id: data['transaction_id'],
+            processingComplete: true,
+            processing: false,
+            datetime: moment(),
+          });
+
+          if (
+            data['status'] === 'succeeded' ||
+            data['status'] === 'processing'
+          ) {
+            posThis.completeCheckout();
+          } else {
+            posThis.setState({
+              processingComplete: false,
+            });
+          }
+        })
+        .catch(err => {
+          var error = 'Connection Error';
+          if (err.response) {
+            // client received an error response (5xx, 4xx)
+            error = err.response;
+          } else if (err.request) {
+            // client never received a response, or request never left
+            error = err.request;
+          }
+          posThis.setState({
+            status: '10',
+            status_message: 'System Error',
+            errors: error,
+            auth_code: '',
+            transaction_id: '',
+            processingComplete: false,
+            processing: false,
+            datetime: moment(),
+          });
+          console.log(error);
+        });
     }
   };
 
@@ -1791,6 +1814,7 @@ class PayNow extends Component {
                         }
                       }
                       this.setState({
+                        memberItem: memberItem,
                         personID: e.value,
                         firstName: firstName,
                         lastName: lastName,
@@ -1892,6 +1916,7 @@ class PayNow extends Component {
                         }
                       }
                       this.setState({
+                        memberItem: undefined,
                         personID: e.value,
                         firstName: firstName,
                         lastName: lastName,
@@ -2038,6 +2063,34 @@ class PayNow extends Component {
                 <span className="paymentType">
                   <div className="label">Payment Type</div>
                   <div className="radioGroup">
+                    {(getAttributeValue(this.props.space, 'POS System') ===
+                      'Stripe' ||
+                      getAttributeValue(this.props.space, 'POS System') ===
+                        'StripeTerminal') &&
+                      this.state.memberItem !== undefined &&
+                      this.state.memberItem.values['Billing Customer Id'] !==
+                        undefined &&
+                      this.state.memberItem.values['Billing Customer Id'] !==
+                        null &&
+                      !this.state.memberItem.values['Billing Customer Id'] !==
+                        '' && (
+                        <label htmlFor="currentPaymentMethod" className="radio">
+                          <input
+                            id="currentPaymentMethod"
+                            name="cardpayment"
+                            type="radio"
+                            disabled={this.disablePaymentType()}
+                            value="CurrentPaymentMethod"
+                            onChange={e => {
+                              this.setState({
+                                payment: 'currentPaymentMethod',
+                              });
+                            }}
+                            onClick={async e => {}}
+                          />
+                          Current Payment Method
+                        </label>
+                      )}
                     {getAttributeValue(this.props.space, 'POS System') !==
                       'Square' &&
                       getAttributeValue(this.props.space, 'POS System') !==
@@ -2443,6 +2496,7 @@ class PayNow extends Component {
                 salestax={this.props.salestax}
                 salestax2={this.props.salestax2}
                 discount={this.props.discount}
+                adminfee={this.props.adminfee}
                 number={this.state.number}
                 auth_code={this.state.auth_code}
                 transaction_id={this.state.transaction_id}
@@ -2564,6 +2618,7 @@ class PayNow extends Component {
                     if (
                       this.state.payment === 'creditcard' ||
                       this.state.payment === 'useSavedCreditCard' ||
+                      this.state.payment === 'currentPaymentMethod' ||
                       this.state.payment === 'updateCreditCard'
                     ) {
                       console.log('calling processPayment');
@@ -2632,131 +2687,110 @@ class PayNow extends Component {
 class Checkout extends Component {
   constructor(props) {
     super(props);
-    var subtotal = 0;
-    var discount = 0;
-    var salestax = 0;
-    var salestax2 = 0;
-    var salestaxTotal = 0;
-    var salestax2Total = 0;
-    var total = 0;
-    var grossTotal = 0;
     posThis = this;
 
-    salestax = parseFloat(
-      getAttributeValue(this.props.space, 'POS Sales Tax') === undefined
-        ? 0
-        : getAttributeValue(this.props.space, 'POS Sales Tax'),
-    );
-    salestax2 = parseFloat(
-      getAttributeValue(this.props.space, 'POS Sales Tax 2') === undefined
-        ? 0
-        : getAttributeValue(this.props.space, 'POS Sales Tax 2'),
-    );
+    let subtotal = 0;
+    let discount = 0;
+    let adminFeeRate = 0;
+    let adminFeeTotal = 0;
+    let salestaxRate = 0;
+    let salestax2Rate = 0;
+    let salestaxTotal = 0;
+    let salestax2Total = 0;
 
-    if (this.props.posCheckout['Checkout Items']['products'] !== undefined) {
-      this.props.posCheckout['Checkout Items']['products'].forEach(
-        (product, i) => {
-          var productCost =
-            parseFloat(product['price'], 2) * parseInt(product['quantity']);
-          subtotal = subtotal + productCost;
+    const products =
+      this.props.posCheckout?.['Checkout Items']?.['products'] || [];
 
-          if (salestax !== 0 && !product.excludeTaxes) {
-            var prodSalestax = parseFloat((productCost * salestax).toFixed(2));
-            salestaxTotal = salestaxTotal + prodSalestax;
-          }
-          if (salestax2 !== 0 && !product.excludeTaxes) {
-            var prodSalestax = parseFloat((productCost * salestax2).toFixed(2));
-            salestax2Total = salestax2Total + prodSalestax;
-          }
-          total = subtotal;
-        },
-      );
+    /* ---------------- Subtotal ---------------- */
+    products.forEach(product => {
+      subtotal += Number(product.price) * Number(product.quantity);
+    });
+
+    const originalSubtotal = subtotal;
+
+    /* ---------------- Discount ---------------- */
+    const checkout = this.props.posCheckout['Checkout Items'];
+
+    if (checkout?.discountName !== undefined) {
+      discount = Number(checkout.discountValue || 0);
+
+      if (checkout.discountType === 'Percentage') {
+        discount = originalSubtotal * (discount / 100);
+      }
+
+      discount = Math.min(discount, originalSubtotal);
+      subtotal -= discount;
     }
+
+    /* ---------------- Admin Fee ---------------- */
     if (
-      this.props.posCheckout['Checkout Items']['discountName'] !== undefined &&
-      this.props.posCheckout['Checkout Items']['voucher'] === undefined
+      getAttributeValue(this.props.space, 'Ignore Admin Fee') !== 'YES' &&
+      getAttributeValue(this.props.space, 'Admin Fee Apply to POS') === 'YES'
     ) {
-      discount = parseFloat(
-        this.props.posCheckout['Checkout Items']['discountValue'],
+      const adminFeeAttr = getAttributeValue(
+        this.props.space,
+        'Admin Fee Charge',
       );
-      if (
-        this.props.posCheckout['Checkout Items']['discountType'] ===
-        'Percentage'
-      ) {
-        discount = subtotal * (discount / 100);
-        total = subtotal - discount;
-      } else {
-        total = subtotal - discount;
-      }
-    } else if (
-      this.props.posCheckout['Checkout Items']['discountName'] !== undefined &&
-      this.props.posCheckout['Checkout Items']['voucher'] !== undefined
-    ) {
-      discount = parseFloat(
-        this.props.posCheckout['Checkout Items']['discountValue'],
-      );
-      if (
-        this.props.posCheckout['Checkout Items']['discountType'] ===
-        'Percentage'
-      ) {
-        discount = subtotal * (discount / 100);
-        total = subtotal - discount;
-      } else {
-        total = subtotal - discount;
+
+      if (adminFeeAttr) {
+        adminFeeRate = parseFloat(adminFeeAttr.replace('%', '')) / 100;
+        adminFeeTotal = +(subtotal * adminFeeRate).toFixed(2);
       }
     }
 
-    if (discount !== 0) {
-      salestaxTotal = 0;
-      salestax2Total = 0;
+    /* ---------------- Taxes ---------------- */
+    salestaxRate =
+      parseFloat(getAttributeValue(this.props.space, 'POS Sales Tax')) || 0;
 
-      this.props.posCheckout['Checkout Items']['products'].forEach(
-        (product, i) => {
-          let productCost =
-            parseFloat(product['price'], 2) * parseInt(product['quantity']);
-          let prodRatio = productCost / subtotal;
-          let prodDiscount = discount * prodRatio;
-          productCost = productCost - prodDiscount;
+    salestax2Rate =
+      parseFloat(getAttributeValue(this.props.space, 'POS Sales Tax 2')) || 0;
 
-          if (salestax !== 0 && !product.excludeTaxes) {
-            var prodSalestax = parseFloat((productCost * salestax).toFixed(2));
-            salestaxTotal = salestaxTotal + prodSalestax;
-          }
-          if (salestax2 !== 0 && !product.excludeTaxes) {
-            var prodSalestax = parseFloat((productCost * salestax2).toFixed(2));
-            salestax2Total = salestax2Total + prodSalestax;
-          }
-        },
-      );
-    }
-    grossTotal = total;
-    if (salestaxTotal !== 0) {
-      total = total + salestaxTotal;
-    }
-    if (salestax2Total !== 0) {
-      total = total + salestax2Total;
-    }
-    total = parseFloat(total.toFixed(2));
+    products.forEach(product => {
+      if (product.excludeTaxes) return;
 
-    this.setShowAddDiscountDialog = this.setShowAddDiscountDialog.bind(this);
-    this.setShowPayNow = this.setShowPayNow.bind(this);
+      let productCost = Number(product.price) * Number(product.quantity);
+
+      /* prorate discount per product */
+      if (discount > 0) {
+        const ratio = productCost / originalSubtotal;
+        productCost -= discount * ratio;
+      }
+
+      if (salestaxRate) {
+        salestaxTotal += +(productCost * salestaxRate).toFixed(2);
+      }
+
+      if (salestax2Rate) {
+        salestax2Total += +(productCost * salestax2Rate).toFixed(2);
+      }
+    });
+
+    /* ---------------- Final Total ---------------- */
+    const total = +(
+      subtotal +
+      adminFeeTotal +
+      salestaxTotal +
+      salestax2Total
+    ).toFixed(2);
 
     this.state = {
-      subtotal: subtotal,
-      discount: discount,
+      subtotal: originalSubtotal,
+      discount,
+      adminFee: adminFeeTotal,
       salestax: salestaxTotal,
       salestax2: salestax2Total,
-      total: total,
+      total,
       showAddDiscountDialog: false,
       showPayNow: false,
     };
   }
+
   setShowAddDiscountDialog(show, discountid) {
-    this.setState({
+    posThis.setState({
       showAddDiscountDialog: show,
     });
 
-    this.props.addDiscount(discountid);
+    posThis.props.addDiscount(discountid);
   }
   setShowPayNow(show) {
     this.setState({
@@ -2764,127 +2798,97 @@ class Checkout extends Component {
     });
   }
   UNSAFE_componentWillReceiveProps(nextProps) {
-    var subtotal = 0;
-    var discount = 0;
-    var salestax = 0;
-    var salestax2 = 0;
-    var salestaxTotal = 0;
-    var salestax2Total = 0;
-    var total = 0;
-    var grossTotal = 0;
+    let subtotal = 0;
+    let adminFeeRate = 0;
+    let adminFeeTotal = 0;
+    let discount = 0;
+    let salestaxTotal = 0;
+    let salestax2Total = 0;
 
-    if (this.state.salestax === 0) {
-    } else {
-      salestax = parseFloat(
-        getAttributeValue(this.props.space, 'POS Sales Tax') === undefined
-          ? 0
-          : getAttributeValue(this.props.space, 'POS Sales Tax'),
-      );
-    }
-    if (this.state.salestax2 === 0) {
-    } else {
-      salestax2 = parseFloat(
-        getAttributeValue(this.props.space, 'POS Sales Tax 2') === undefined
-          ? 0
-          : getAttributeValue(this.props.space, 'POS Sales Tax 2'),
-      );
+    const checkout = nextProps.posCheckout?.['Checkout Items'];
+    const products = checkout?.products || [];
+
+    /* ---------------- Subtotal ---------------- */
+    products.forEach(product => {
+      subtotal += Number(product.price) * Number(product.quantity);
+    });
+
+    const originalSubtotal = subtotal;
+
+    /* ---------------- Discount ---------------- */
+    if (checkout?.discountName !== undefined) {
+      discount = Number(checkout.discountValue || 0);
+
+      if (checkout.discountType === 'Percentage') {
+        discount = originalSubtotal * (discount / 100);
+      }
+
+      discount = Math.min(discount, originalSubtotal);
+      subtotal -= discount;
     }
 
-    if (nextProps.posCheckout['Checkout Items']['products'] !== undefined) {
-      nextProps.posCheckout['Checkout Items']['products'].forEach(
-        (product, i) => {
-          var productCost =
-            parseFloat(product['price'], 2) * parseInt(product['quantity']);
-          subtotal =
-            subtotal +
-            parseFloat(product['price'], 2) * parseInt(product['quantity']);
-
-          if (salestax !== 0 && !product.excludeTaxes) {
-            var prodSalestax = parseFloat((productCost * salestax).toFixed(2));
-            salestaxTotal = salestaxTotal + prodSalestax;
-          }
-          if (salestax2 !== 0 && !product.excludeTaxes) {
-            var prodSalestax = parseFloat((productCost * salestax2).toFixed(2));
-            salestax2Total = salestax2Total + prodSalestax;
-          }
-          total = subtotal;
-        },
-      );
-    }
+    /* ---------------- Admin Fee ---------------- */
     if (
-      nextProps.posCheckout['Checkout Items']['discountName'] !== undefined &&
-      nextProps.posCheckout['Checkout Items']['voucher'] === undefined
+      getAttributeValue(this.props.space, 'Ignore Admin Fee') !== 'YES' &&
+      getAttributeValue(this.props.space, 'Admin Fee Apply to POS') === 'YES' &&
+      !this.state.adminFeeRemoved
     ) {
-      discount = parseFloat(
-        nextProps.posCheckout['Checkout Items']['discountValue'],
+      const adminFeeAttr = getAttributeValue(
+        this.props.space,
+        'Admin Fee Charge',
       );
-      if (
-        nextProps.posCheckout['Checkout Items']['discountType'] === 'Percentage'
-      ) {
-        discount = subtotal * (discount / 100);
-        total = subtotal - discount;
-      } else {
-        total = subtotal - discount;
-      }
-    } else if (
-      nextProps.posCheckout['Checkout Items']['discountName'] !== undefined &&
-      nextProps.posCheckout['Checkout Items']['voucher'] !== undefined
-    ) {
-      discount = parseFloat(
-        nextProps.posCheckout['Checkout Items']['discountValue'],
-      );
-      if (
-        nextProps.posCheckout['Checkout Items']['discountType'] === 'Percentage'
-      ) {
-        discount = subtotal * (discount / 100);
-        total = subtotal - discount;
-      } else {
-        total = subtotal - discount;
+
+      if (adminFeeAttr && !this.state.adminFeeRemoved) {
+        adminFeeRate = parseFloat(adminFeeAttr.replace('%', '')) / 100;
+        adminFeeTotal = +(subtotal * adminFeeRate).toFixed(2);
       }
     }
 
-    if (discount !== 0) {
-      salestaxTotal = 0;
-      salestax2Total = 0;
+    /* ---------------- Tax Rates ---------------- */
+    const salestaxRate =
+      parseFloat(getAttributeValue(this.props.space, 'POS Sales Tax')) || 0;
 
-      this.props.posCheckout['Checkout Items']['products'].forEach(
-        (product, i) => {
-          let productCost =
-            parseFloat(product['price'], 2) * parseInt(product['quantity']);
-          let prodRatio = productCost / subtotal;
-          let prodDiscount = discount * prodRatio;
-          productCost = productCost - prodDiscount;
+    const salestax2Rate =
+      parseFloat(getAttributeValue(this.props.space, 'POS Sales Tax 2')) || 0;
 
-          if (salestax !== 0 && !product.excludeTaxes) {
-            var prodSalestax = parseFloat((productCost * salestax).toFixed(2));
-            salestaxTotal = salestaxTotal + prodSalestax;
-          }
-          if (salestax2 !== 0 && !product.excludeTaxes) {
-            var prodSalestax = parseFloat((productCost * salestax2).toFixed(2));
-            salestax2Total = salestax2Total + prodSalestax;
-          }
-        },
-      );
-    }
+    /* ---------------- Taxes (after discount) ---------------- */
+    products.forEach(product => {
+      if (product.excludeTaxes) return;
 
-    grossTotal = total;
-    if (salestaxTotal !== 0) {
-      total = total + salestaxTotal;
-    }
-    if (salestax2Total !== 0) {
-      total = total + salestax2Total;
-    }
+      let productCost = Number(product.price) * Number(product.quantity);
 
-    total = parseFloat(total.toFixed(2));
+      if (discount > 0) {
+        const ratio = productCost / originalSubtotal;
+        productCost -= discount * ratio;
+      }
+
+      if (salestaxRate && !this.state.salestaxRemoved) {
+        salestaxTotal += +(productCost * salestaxRate).toFixed(2);
+      }
+
+      if (salestax2Rate && !this.state.salestax2Removed) {
+        salestax2Total += +(productCost * salestax2Rate).toFixed(2);
+      }
+    });
+
+    /* ---------------- Final Total ---------------- */
+    const total = +(
+      subtotal +
+      adminFeeTotal +
+      salestaxTotal +
+      salestax2Total
+    ).toFixed(2);
 
     this.setState({
-      subtotal: subtotal,
-      discount: discount,
+      subtotal: originalSubtotal,
+      discount,
+      adminFee: adminFeeTotal,
       salestax: salestaxTotal,
       salestax2: salestax2Total,
-      total: total,
+      total,
     });
   }
+
   componentWillMount() {}
   render() {
     return (
@@ -2907,6 +2911,7 @@ class Checkout extends Component {
             total={this.state.total}
             subtotal={this.state.subtotal}
             discount={this.state.discount}
+            adminfee={this.state.adminFee}
             salestax={this.state.salestax}
             salestax2={this.state.salestax2}
             fetchPOSCards={this.props.fetchPOSCards}
@@ -3355,7 +3360,73 @@ class Checkout extends Component {
                 />
               </div>
             )}
-            {this.state.salestax === 0 ? (
+            {this.state.adminFee === 0 || this.state.adminFeeRemoved ? (
+              <div />
+            ) : (
+              <span className="salestax">
+                <div className="label">
+                  {getAttributeValue(this.props.space, 'Admin Fee Label') ===
+                  undefined ? (
+                    <I18n>Admin Fee</I18n>
+                  ) : (
+                    getAttributeValue(this.props.space, 'Admin Fee Label')
+                  )}
+                </div>
+                <div className="value">
+                  {new Intl.NumberFormat(this.props.locale, {
+                    style: 'currency',
+                    currency: this.props.currency,
+                  }).format(this.state.adminFee)}
+                </div>
+                <BinIcon
+                  className="icon icon-svg delete"
+                  onClick={async e => {
+                    var cancelButton = $(e.target);
+                    if (
+                      await confirm(
+                        <span>
+                          <span>
+                            Are you sure you want to REMOVE the{' '}
+                            {getAttributeValue(
+                              this.props.space,
+                              'Admin Fee Label',
+                            ) === undefined ? (
+                              <span>Admin Fee</span>
+                            ) : (
+                              getAttributeValue(
+                                this.props.space,
+                                'Admin Fee Label',
+                              )
+                            )}
+                            ?
+                          </span>
+                          <table>
+                            <tbody>
+                              <tr>
+                                <td>
+                                  {$(e.target)
+                                    .parents('.discountLine')
+                                    .children('.type')
+                                    .html()}
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </span>,
+                      )
+                    ) {
+                      var total = this.state.total - this.state.adminFee;
+                      this.setState({
+                        adminFee: 0,
+                        adminFeeRemoved: true,
+                        total: total,
+                      });
+                    }
+                  }}
+                />
+              </span>
+            )}
+            {this.state.salestax === 0 || this.state.salestaxRemoved ? (
               <div />
             ) : (
               <span className="salestax">
@@ -3415,6 +3486,7 @@ class Checkout extends Component {
                       var total = this.state.total - this.state.salestax;
                       this.setState({
                         salestax: 0,
+                        salestaxRemoved: true,
                         total: total,
                       });
                     }
@@ -3422,7 +3494,7 @@ class Checkout extends Component {
                 />
               </span>
             )}
-            {this.state.salestax2 === 0 ? (
+            {this.state.salestax2 === 0 || this.state.salestax2Removed ? (
               <div />
             ) : (
               <span className="salestax">
@@ -3482,6 +3554,7 @@ class Checkout extends Component {
                       var total = this.state.total - this.state.salestax2;
                       this.setState({
                         salestax2: 0,
+                        salestax2Removed: true,
                         total: total,
                       });
                     }
@@ -4646,6 +4719,7 @@ export const ProShopContainer = compose(
       number,
       subtotal,
       discount,
+      adminfee,
       salestax,
       salestax2,
       total,
@@ -4662,6 +4736,7 @@ export const ProShopContainer = compose(
         number: number,
         subtotal: subtotal,
         discount: discount,
+        adminfee: adminfee,
         salestax: salestax,
         salestax2: salestax2,
         total: total,

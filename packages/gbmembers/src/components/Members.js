@@ -51,14 +51,45 @@ export class Members extends React.Component {
   isOrphan(space, allMembers, member) {
     if (getAttributeValue(space, 'Billing Company') === 'No Billing')
       return false;
-    return (member.values['Billing Parent Member'] === undefined ||
-      member.values['Billing Parent Member'] === '' ||
-      member.values['Billing Parent Member'] === null) &&
+
+    let noBilling =
+      (member.values['Billing Parent Member'] === undefined ||
+        member.values['Billing Parent Member'] === '' ||
+        member.values['Billing Parent Member'] === null) &&
       member.values['Billing User'] !== 'YES' &&
       member.values['Status'] === 'Active' &&
       member.values['Non Paying'] !== 'YES'
-      ? true
-      : false;
+        ? true
+        : false;
+
+    let needActivation =
+      getAttributeValue(space, 'Billing Company') === 'Stripe' &&
+      member.values['Billing User'] === 'YES' &&
+      member.values['Non Paying'] !== 'YES' &&
+      member.values['Billing Payment Type'] !== 'Cash' &&
+      (member.values['Billing Customer Reference'] === null ||
+        member.values['Billing Customer Reference'] === undefined ||
+        member.values['Billing Customer Reference'] === '')
+        ? true
+        : false;
+
+    return noBilling || needActivation ? true : false;
+  }
+  isStartedMain(space, member) {
+    return (
+      member.values['Status'] !== 'Inactive' &&
+      (((member.values['Biller Customer Reference'] === null ||
+        member.values['Biller Customer Reference'] === undefined ||
+        member.values['Biller Customer Reference'] === '') &&
+        member.migrationForm !== undefined &&
+        member.migrationForm.coreState !== 'Submitted') ||
+        (member.migrationForm !== undefined &&
+          member.migrationForm.form.slug ===
+            getAttributeValue(space, 'Billing Company').toLowerCase() +
+              '-remote-registration' &&
+          member.migrationForm.coreState === 'Submitted' &&
+          member.values['Biller Migrated'] !== 'YES'))
+    );
   }
   getData(space, allMembers, currentFilter) {
     let members = allMembers.filter(member => {
@@ -78,6 +109,8 @@ export class Members extends React.Component {
           member.values['Status'] === 'Inactive'
         )
           match = true;
+      } else if (currentFilter === 'Pending Registrations') {
+        if (this.isStartedMain(space, member)) match = true;
       } else if (currentFilter === 'All Members') {
         match = true;
       }
