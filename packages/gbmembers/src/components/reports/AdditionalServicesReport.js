@@ -164,6 +164,28 @@ export class AdditionalServicesReport extends Component {
       this.refreshData(this.state.repFromDate, this.state.repToDate);
     }
   }
+  navigateReportPeriod(direction) {
+    const { repFromDate, repToDate, repPeriod } = this.state;
+    let amount, unit;
+    if (repPeriod === 'weekly') {
+      amount = 1;
+      unit = 'weeks';
+    } else if (repPeriod === 'fortnightly') {
+      amount = 2;
+      unit = 'weeks';
+    } else {
+      amount = 1;
+      unit = 'months';
+    }
+    const newFrom = moment(repFromDate).add(direction * amount, unit);
+    const newTo = moment(repToDate).add(direction * amount, unit);
+    this.setState({
+      repFromDate: newFrom,
+      repToDate: newTo,
+      repViewPeriod: direction < 0 ? 'last_period' : 'next_period',
+    });
+    this.refreshData(newFrom, newTo);
+  }
   setReportDates(e, repViewPeriod, repPeriod) {
     let fromDate = moment();
     let toDate = moment();
@@ -362,55 +384,48 @@ export class AdditionalServicesReport extends Component {
       <span className="additionalServicesReport">
         <div className="page-header" style={{ textAlign: 'center' }}>
           <div className="dateSettings">
-            <button
-              type="button"
-              active="false"
-              className="btn btn-primary report-btn-default"
-              onClick={e => {
-                this.setState({
-                  repViewPeriod: 'last_period',
-                });
-                this.setReportDates(e, 'last_period', this.state.repPeriod);
-              }}
-            >
-              Last{' '}
-              {this.state.repPeriod === 'weekly'
-                ? 'Week'
-                : this.state.repPeriod === 'fortnightly'
-                  ? 'Fortnights'
-                  : 'Month'}
-            </button>
-            <button
-              type="button"
-              active="true"
-              className="btn btn-primary report-btn-default"
-              onClick={e => {
-                this.setState({
-                  repViewPeriod: 'this_period',
-                });
-                this.setReportDates(e, 'this_period', this.state.repPeriod);
-              }}
-            >
-              This{' '}
-              {this.state.repPeriod === 'weekly'
-                ? 'Week'
-                : this.state.repPeriod === 'fortnightly'
-                  ? 'Fortnight'
-                  : 'Month'}
-            </button>
-            <button
-              type="button"
-              active="false"
-              className="btn btn-primary report-btn-default"
-              onClick={e => {
-                this.setState({
-                  repViewPeriod: 'custom',
-                });
-                this.setReportDates(e, 'custom', this.state.repPeriod);
-              }}
-            >
-              Custom
-            </button>
+            <div className="dateNavButtons">
+              <button
+                type="button"
+                className="btn btn-primary report-btn-default"
+                onClick={() => this.navigateReportPeriod(-1)}
+              >
+                {'< Previous '}
+                {this.state.repPeriod === 'weekly'
+                  ? 'Week'
+                  : this.state.repPeriod === 'fortnightly'
+                    ? 'Fortnight'
+                    : 'Month'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary report-btn-default"
+                onClick={() => this.navigateReportPeriod(1)}
+                disabled={this.state.repToDate.isSameOrAfter(moment(), 'day')}
+              >
+                {'Next '}
+                {this.state.repPeriod === 'weekly'
+                  ? 'Week'
+                  : this.state.repPeriod === 'fortnightly'
+                    ? 'Fortnight'
+                    : 'Month'}
+                {' >'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary report-btn-default"
+                onClick={e => {
+                  this.setState({ repViewPeriod: 'custom' });
+                  this.setReportDates(e, 'custom', this.state.repPeriod);
+                }}
+              >
+                Custom
+              </button>
+            </div>
+            <div className="dateRangeLabel">
+              {this.state.repFromDate.format('DD MMM YYYY')} –{' '}
+              {this.state.repToDate.format('DD MMM YYYY')}
+            </div>
           </div>
           {this.state.isShowCustom && (
             <div
@@ -520,39 +535,27 @@ export class AdditionalServicesReport extends Component {
               </div>
             </div>
           )}
-          <span className="label">
-            {this.state.repFromDate.format('L')} to{' '}
-            {this.state.repToDate.format('L')}
-          </span>
         </div>
-        {this.props.additionalServicesLoading ? (
-          <div className="additionalServicesReport">
-            Loading information ...
-          </div>
-        ) : (
-          <div className="additionalServicesReport">
-            <ReactToPrint
-              trigger={() => (
-                <PrinterIcon className="icon icon-svg tablePrint" />
-              )}
-              content={() => this.tableComponentRef.current}
-              onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
-            />
-            <ReactTable
-              ref={this.tableComponentRef}
-              columns={this.getColumns()}
-              groupBy="paymenttype"
-              data={this.state.data}
-              className="-striped -highlight"
-              defaultPageSize={
-                this.state.data.length > 0 ? this.state.data.length : 2
-              }
-              pageSize={this.state.data.length > 0 ? this.state.data.length : 2}
-              showPagination={false}
-            />
-            <br />
-          </div>
-        )}
+        <div className="additionalServicesReport">
+          <ReactToPrint
+            trigger={() => <PrinterIcon className="icon icon-svg tablePrint" />}
+            content={() => this.tableComponentRef.current}
+            onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
+          />
+          <ReactTable
+            ref={this.tableComponentRef}
+            columns={this.getColumns()}
+            groupBy="paymenttype"
+            data={this.state.data}
+            className="-striped -highlight"
+            defaultPageSize={
+              this.state.data.length > 0 ? this.state.data.length : 2
+            }
+            pageSize={this.state.data.length > 0 ? this.state.data.length : 2}
+            showPagination={false}
+          />
+          <br />
+        </div>
       </span>
     );
   }

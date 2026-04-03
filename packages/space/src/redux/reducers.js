@@ -11,6 +11,7 @@ import { reducer as settingsRobots } from './modules/settingsRobots';
 import { reducer as settingsUsers } from './modules/settingsUsers';
 import { reducer as settingsTranslations } from './modules/settingsTranslations';
 import { reducer as journeyTriggers } from './modules/journeyTriggers';
+import { reducer as priceIncreases } from './modules/priceIncreases';
 
 export default {
   errors,
@@ -26,4 +27,5 @@ export default {
   spaceForms,
   settingsTranslations,
   journeyTriggers,
+  priceIncreases,
 };

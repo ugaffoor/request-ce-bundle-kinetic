@@ -212,6 +212,12 @@ export class TriggerResults extends Component {
       <Loading text="Loading Results..." />
     ) : (
       <div className="triggerResults">
+        <div className="triggerResultsCount">
+          {this.props.journeyEvents.length} record{this.props.journeyEvents
+            .length !== 1
+            ? 's'
+            : ''}
+        </div>
         <table>
           <thead>
             <tr className="tableHeader">

@@ -358,6 +358,86 @@
   margin: 0.5%;
   max-width: 1153px;
   clear: left;
+  .statLinesToolbar {
+    margin-bottom: 6px;
+    .exportCsvLink {
+      display: inline-block;
+      font-size: 13px;
+      color: #1a73e8;
+      cursor: pointer;
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+  .closeMembers {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    color: #666;
+    padding: 2px 6px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 4px;
+    &:hover {
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    .icon {
+      width: 12px;
+      height: 12px;
+    }
+  }
+  .memberFilterInput {
+    margin-bottom: 6px;
+    max-width: 260px;
+    font-size: 13px;
+    padding: 3px 8px;
+    height: auto;
+  }
+  .statLines {
+    display: flex;
+    flex-direction: column;
+    max-width: 500px;
+    .statLine {
+      display: flex;
+      align-items: center;
+      padding: 5px 8px;
+      border-bottom: 1px solid #e8e8e8;
+      &:hover {
+        background-color: #f5f5f5;
+      }
+      .statLabel {
+        flex: 1;
+        color: #4d5059;
+        font-size: 14px;
+      }
+      .statCount {
+        font-size: 22px;
+        font-weight: bold;
+        color: #4d5059;
+        cursor: pointer;
+        min-width: 48px;
+        text-align: right;
+        &:hover {
+          color: #1a73e8;
+        }
+      }
+    }
+    .statChild {
+      padding-left: 24px;
+      background-color: #fafafa;
+      .statLabel {
+        color: #666;
+        font-size: 13px;
+      }
+      .statCount {
+        font-size: 18px;
+      }
+    }
+  }
   .statItems {
     display: block;
     float: left;
@@ -439,7 +519,7 @@
 .dateSettings {
   margin-left: auto;
   width: auto;
-  flex-direction: column;
+  gap: 4px;
   .btn {
     display: inline-flex;
     margin: 4px;
@@ -448,6 +528,19 @@
   h6 {
     display: inline-flex;
     margin: 0;
+  }
+  .dateNavButtons {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .dateRangeLabel {
+    font-size: 0.95em;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
   }
 }
 .grid-cell-expand {

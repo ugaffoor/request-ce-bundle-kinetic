@@ -78,9 +78,9 @@ export class Members extends React.Component {
   isStartedMain(space, member) {
     return (
       member.values['Status'] !== 'Inactive' &&
-      (((member.values['Biller Customer Reference'] === null ||
-        member.values['Biller Customer Reference'] === undefined ||
-        member.values['Biller Customer Reference'] === '') &&
+      (((member.values['Billing Customer Reference'] === null ||
+        member.values['Billing Customer Reference'] === undefined ||
+        member.values['Billing Customer Reference'] === '') &&
         member.migrationForm !== undefined &&
         member.migrationForm.coreState !== 'Submitted') ||
         (member.migrationForm !== undefined &&

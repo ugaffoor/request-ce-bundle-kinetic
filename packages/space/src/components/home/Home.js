@@ -18,7 +18,6 @@ const HomeComponent = ({
 }) => (
   <div className="page-container page-container--space-home">
     <PageTitle parts={['Home']} />
-    <CreateDiscussionModal />
     <div className="page-panel page-panel--space-home">
       <h4 className="space-home-title">
         <I18n>Welcome to GB Members for</I18n> {spaceName}

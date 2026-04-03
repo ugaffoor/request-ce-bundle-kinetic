@@ -759,11 +759,9 @@
         font-weight: bold;
         font-size: 32px;
       }
-      .posPairing {
-        .icon-svg {
-          height: 6rem !important;
-          width: 6rem !important;
-        }
+      .posPairing.icon-svg {
+        height: 6rem !important;
+        width: 6rem !important;
       }
       .posPairing.UNPAIRED.S0 path {
         fill: #c7bc3b;

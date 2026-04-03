@@ -36,6 +36,10 @@ export const handleCreated = props => (response, actions) => {
   props.setShowEmailDialog(false);
 };
 var emailEditorRef = null;
+var defaultTemplateJSON = '';
+var defaultContentWidth = '';
+const BLANK_TEMPLATE =
+  '{"counters":{"u_column":1,"u_row":1,"u_content_text":1},"body":{"rows":[{"cells":[1],"columns":[{"contents":[{"type":"text","values":{"containerPadding":"10px","_meta":{"htmlID":"u_content_text_1","htmlClassNames":"u_content_text"},"selectable":true,"draggable":true,"deletable":true,"color":"#000000","textAlign":"left","lineHeight":"140%","linkStyle":{"inherit":true,"linkColor":"#0000ee","linkHoverColor":"#0000ee","linkUnderline":true,"linkHoverUnderline":true},"text":"<p style=\\"font-size: 14px; line-height: 140%;\\"><span style=\\"font-size: 14px; line-height: 19.6px;\\">##CONTENT##</span></p>"}}],"values":{"backgroundColor":"","padding":"0px","border":{},"_meta":{"htmlID":"u_column_1","htmlClassNames":"u_column"}}}],"values":{"columns":false,"backgroundColor":"","columnsBackgroundColor":"","backgroundImage":{"url":"","fullWidth":true,"repeat":false,"center":true,"cover":false},"padding":"0px","hideDesktop":false,"hideMobile":false,"noStackMobile":false,"_meta":{"htmlID":"u_row_1","htmlClassNames":"u_row"},"selectable":true,"draggable":true,"deletable":true}}],"values":{"backgroundColor":"#e7e7e7","backgroundImage":{"url":"","fullWidth":true,"repeat":false,"center":true,"cover":false},"contentWidth":"500px","fontFamily":{"label":"Arial","value":"arial,helvetica,sans-serif"},"linkStyle":{"body":true,"linkColor":"#0000ee","linkHoverColor":"#0000ee","linkUnderline":true,"linkHoverUnderline":true},"_meta":{"htmlID":"u_body","htmlClassNames":"u_body"}}}}';
 var escapeJSON = function(str) {
   return str.replace(/(["])/g, '\\$1');
 };
@@ -44,6 +48,7 @@ function onLoadEmailTemplate() {
     emailEditorRef.editor.addEventListener('design:loaded', () => {
       emailEditorRef.editor.setBodyValues({
         backgroundColor: '#FFFFFF',
+        ...(defaultContentWidth ? { contentWidth: defaultContentWidth } : {}),
       });
     });
     emailEditorRef.addEventListener('design:updated', function(updates) {
@@ -65,6 +70,8 @@ function onLoadEmailTemplate() {
         escapeJSON($("[name='Email Content']").val()),
       );
       emailEditorRef.loadDesign(JSON.parse(template));
+    } else if (defaultTemplateJSON !== '') {
+      emailEditorRef.loadDesign(JSON.parse(defaultTemplateJSON));
     }
   }, 1000);
 }
@@ -111,6 +118,8 @@ export class EmailTemplate extends Component {
   constructor(props) {
     super(props);
     compThis = this;
+    defaultTemplateJSON = this.props.defaultTemplate || '';
+    defaultContentWidth = this.props.defaultContentWidth || '';
 
     this.handleLoaded = this.props.handleLoaded.bind(this);
     this.handleUpdated = this.props.handleUpdated.bind(this);
@@ -154,6 +163,15 @@ export class EmailTemplate extends Component {
                   onCreated={this.handleCreated}
                   error={this.handleError}
                   globals={globals}
+                  values={{
+                    'Template Name': this.props.defaultTemplateName || '',
+                    Category: this.props.defaultCategory || '',
+                  }}
+                  alterFields={
+                    this.props.defaultCategory
+                      ? { Category: { enabled: false } }
+                      : undefined
+                  }
                 />
               )}
             </Fragment>

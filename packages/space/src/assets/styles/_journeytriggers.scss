@@ -342,6 +342,12 @@ i.fa.fa-usd.overdue {
     margin-top: 2px;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
+    .triggerResultsCount {
+      padding: 6px 10px 4px;
+      font-size: 0.9em;
+      color: #555;
+      font-weight: 600;
+    }
     .eventRow.odd {
       background-color: white;
     }

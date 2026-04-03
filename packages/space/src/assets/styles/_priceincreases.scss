@@ -1,0 +1,444 @@
+.priceIncreases {
+  padding: 6px;
+
+  .buttons {
+    margin: 10px;
+    .btn {
+      padding: 4px;
+      margin: 4px;
+    }
+  }
+  .eventRow.odd {
+    background-color: white;
+  }
+  .tableHeader {
+    background-color: #dbd8d8;
+  }
+  .eventRow {
+    cursor: pointer;
+  }
+  .eventRow:hover {
+    background-color: #f3ecec !important;
+  }
+  .eventRow.selected {
+    background-color: #e8f0fb !important;
+  }
+  .loadingRow {
+    text-align: center;
+    padding: 16px 0;
+    color: #888;
+    font-size: 1.4em;
+  }
+  .deleteIconBtn {
+    background: none;
+    border: none;
+    padding: 2px 4px;
+    cursor: pointer;
+    opacity: 0.5;
+    line-height: 1;
+    &:hover {
+      opacity: 1;
+    }
+  }
+  td.personName:hover {
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .settingsHeader {
+    display: flex;
+    flex-direction: row;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-color: #c9c5c5;
+    height: 20px;
+    h6 {
+      width: 80%;
+      border: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .line {
+      margin-top: -7px;
+    }
+  }
+
+  .newIncreaseForm {
+    padding: 12px 10px;
+    background-color: #f8f5f5;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+
+    .formField {
+      margin-bottom: 14px;
+
+      label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+
+      .requiredMark {
+        color: #c0392b;
+        font-weight: bold;
+      }
+
+      .form-control {
+        max-width: 200px;
+      }
+    }
+
+    .feeCheckList {
+      display: flex;
+      flex-direction: column;
+      max-height: 260px;
+      overflow-y: auto;
+      border: 1px solid #dbd8d8;
+      border-radius: 4px;
+      background: white;
+
+      $col-check: 28px;
+      $col-name: 2fr;
+      $col-status: 80px;
+      $col-freq: 100px;
+      $col-amount: 70px;
+
+      .feeCheckHeader,
+      .feeCheckItem {
+        display: grid;
+        grid-template-columns: $col-check $col-name $col-status $col-freq $col-amount;
+        align-items: center;
+        padding: 5px 8px;
+        gap: 8px;
+      }
+
+      .feeCheckHeader {
+        background-color: #dbd8d8;
+        font-weight: 600;
+        font-size: 0.8em;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+
+        .feeColCheck {
+          display: block;
+        }
+      }
+
+      .feeCheckItem {
+        font-weight: normal;
+        cursor: pointer;
+        margin: 0;
+        border-top: 1px solid #f0eeed;
+        transition: background-color 0.12s ease;
+
+        &.feeInactive {
+          background-color: #f5f0e8;
+          color: #999;
+        }
+
+        &:hover {
+          background-color: #f3ecec;
+        }
+
+        input[type='checkbox'] {
+          margin: 0;
+          cursor: pointer;
+        }
+      }
+
+      .feeColStatus {
+        font-size: 0.85em;
+        color: #555;
+      }
+
+      .feeColFrequency {
+        font-size: 0.85em;
+        color: #555;
+      }
+
+      .feeColAmount {
+        font-size: 0.9em;
+        white-space: nowrap;
+        text-align: right;
+      }
+
+      .feeColName {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+
+        .feeProgram {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .feeInfo {
+          font-size: 0.78em;
+          color: #888;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+    }
+
+    .matchCount {
+      font-weight: normal;
+      color: #666;
+      font-size: 0.9em;
+    }
+
+    .affectedExportBtn {
+      font-weight: normal;
+      font-size: 0.85em;
+      padding: 0 4px;
+      vertical-align: baseline;
+    }
+
+    .matchingMembersList {
+      display: flex;
+      flex-direction: column;
+      max-height: 220px;
+      overflow-y: auto;
+      border: 1px solid #dbd8d8;
+      border-radius: 4px;
+      background: white;
+
+      $mem-col-exclude: 120px;
+      $mem-col-name: 2fr;
+      $mem-col-fee: 2fr;
+      $mem-col-info: 2fr;
+      $mem-col-member-type: 1fr;
+      $mem-col-cost: 80px;
+
+      .matchingMembersHeader,
+      .matchingMemberRow {
+        display: grid;
+        grid-template-columns: $mem-col-exclude $mem-col-name $mem-col-fee $mem-col-info $mem-col-member-type $mem-col-cost;
+        align-items: center;
+        padding: 5px 8px;
+        gap: 8px;
+      }
+
+      .matchingMembersHeader {
+        background-color: #dbd8d8;
+        font-weight: 600;
+        font-size: 0.8em;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+      }
+
+      .matchingMemberRow {
+        border-top: 1px solid #f0eeed;
+        transition: background-color 0.12s ease;
+
+        &:hover {
+          background-color: #f3ecec;
+        }
+
+        &.memberExcluded {
+          background-color: #f5f0e8;
+          color: #3498db;
+        }
+
+        input[type='checkbox'] {
+          margin: 0;
+          cursor: pointer;
+        }
+      }
+
+      .memColExclude {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+        font-size: 0.8em;
+      }
+
+      .memColCost {
+        text-align: right;
+      }
+
+      .memColInfo {
+        font-size: 0.85em;
+        color: #555;
+      }
+
+      .memColMemberType {
+        font-size: 0.85em;
+        color: #555;
+      }
+    }
+
+    .excludeCount {
+      font-weight: normal;
+      color: #c0392b;
+      font-size: 0.9em;
+    }
+
+    .displayValue {
+      font-size: 0.95em;
+      color: #333;
+      padding: 4px 0;
+    }
+
+    .emailTemplateField {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .emailTemplatePreview {
+      margin-top: 8px;
+      max-height: 400px;
+      overflow-y: auto;
+      border: 1px solid #dbd8d8;
+      border-radius: 4px;
+      padding: 10px;
+      background: white;
+      font-size: 0.9em;
+    }
+
+    .noTemplate {
+      color: #999;
+      font-style: italic;
+      font-size: 0.9em;
+    }
+
+    .noFees {
+      color: #999;
+      font-style: italic;
+      font-size: 0.9em;
+    }
+
+    .radioGroup {
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+
+      label {
+        font-weight: normal;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+
+        input[type='radio'] {
+          margin: 0;
+        }
+      }
+    }
+
+    .submitError {
+      color: #c0392b;
+      background-color: #fdecea;
+      border: 1px solid #f5c6cb;
+      border-radius: 4px;
+      padding: 8px 12px;
+      margin-bottom: 8px;
+      font-size: 0.9em;
+    }
+  }
+
+  .priceIncreasesTable {
+    margin-bottom: 20px;
+    background-color: #f8f5f5;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+  }
+
+  .auditFilterBar {
+    margin: 8px 0;
+    display: flex;
+    gap: 10px;
+    .form-control {
+      max-width: 220px;
+    }
+  }
+
+  .auditSummary {
+    display: flex;
+    gap: 20px;
+    margin: 6px 0 8px;
+    font-size: 0.9em;
+    color: #555;
+    strong {
+      color: #333;
+    }
+  }
+
+  .auditMembersTable {
+    margin-bottom: 10px;
+  }
+
+  .memberPriceIncreasesTable {
+    overflow-x: auto;
+    margin-top: 8px;
+    .mpiFilterBar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 8px;
+      .form-control {
+        max-width: 220px;
+      }
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85em;
+      th,
+      td {
+        padding: 6px 8px;
+        border: 1px solid #dbd8d8;
+        text-align: left;
+        vertical-align: top;
+        white-space: nowrap;
+      }
+      th {
+        background-color: #dbd8d8;
+        font-weight: 600;
+      }
+      tr:nth-child(even) td {
+        background-color: #f5f5f5;
+      }
+      tr.mpiRow {
+        cursor: pointer;
+        &:hover td {
+          background-color: #eaf3fb;
+        }
+      }
+      tr.mpiDetailRow td {
+        background-color: #fafafa;
+        white-space: normal;
+        padding: 10px 12px;
+      }
+    }
+  }
+
+  .auditGroupEven {
+    background-color: #ffffff;
+  }
+
+  .auditGroupOdd {
+    background-color: #f0f4f8;
+  }
+
+  .auditEmptyFee {
+    background-color: #fdecea !important;
+    color: #c0392b;
+  }
+}

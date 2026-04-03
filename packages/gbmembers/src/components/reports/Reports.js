@@ -16,6 +16,7 @@ import { actions as appActions } from '../../redux/modules/memberApp';
 import { actions as campaignActions } from '../../redux/modules/campaigns';
 import { MemberActivityReport } from './MemberActivity';
 import { MemberFinancialStats } from './MemberFinancialStats';
+import { MemberStatistics } from './MemberStatistics';
 import { MemberFinancialReportContainer } from './MemberFinancialReport';
 import { LeadsActivityReport } from './LeadActivity';
 import { PDDailyReport } from './PDDaily';
@@ -157,6 +158,8 @@ export const ReportsView = ({
   setShowMemberActivityReport,
   showMemberFinancialStats,
   setShowMemberFinancialStats,
+  showMemberStatistics,
+  setShowMemberStatistics,
   showMemberFinancialReport,
   setShowMemberFinancialReport,
   showBirthdaysReport,
@@ -396,11 +399,11 @@ export const ReportsView = ({
           <div />
         ) : (
           <div style={{ margin: '10px' }}>
-            <div className="row">
+            {/* <div className="row">
               <button
                 type="button"
                 className="btn btn-primary report-btn-default"
-                disabled={true}
+                disabled={!dummyFormLoaded}
                 onClick={e =>
                   setShowMemberFinancialStats(
                     showMemberFinancialStats ? false : true,
@@ -415,6 +418,52 @@ export const ReportsView = ({
             {!showMemberFinancialStats ? null : (
               <div className="row">
                 <MemberFinancialStats
+                  members={members}
+                  billingCustomersLoading={billingCustomersLoading}
+                  billingCustomers={billingCustomers}
+                  fetchBillingCustomers={fetchBillingCustomers}
+                  setBillingCustomers={setBillingCustomers}
+                  variationCustomers={variationCustomers}
+                  variationCustomersLoading={variationCustomersLoading}
+                  fetchVariationCustomers={fetchVariationCustomers}
+                  setVariationCustomers={setVariationCustomers}
+                  customerRefunds={customerRefunds}
+                  customerRefundsLoading={customerRefundsLoading}
+                  fetchCustomerRefunds={fetchCustomerRefunds}
+                  setCustomerRefunds={setCustomerRefunds}
+                  fetchPaymentHistory={fetchPaymentHistory}
+                  setPaymentHistory={setPaymentHistory}
+                  FAILEDpaymentHistory={FAILEDpaymentHistory}
+                  FAILEDpaymentHistoryLoading={FAILEDpaymentHistoryLoading}
+                  SUCCESSFULpaymentHistory={SUCCESSFULpaymentHistory}
+                  SUCCESSFULpaymentHistoryLoading={
+                    SUCCESSFULpaymentHistoryLoading
+                  }
+                  fetchServicesByDate={fetchServicesByDate}
+                  services={services}
+                  servicesLoading={servicesLoading}
+                  space={space}
+                  profile={profile}
+                />
+              </div>
+            )} */}
+            <div className="row">
+              <button
+                type="button"
+                className="btn btn-primary report-btn-default"
+                disabled={!dummyFormLoaded}
+                onClick={e =>
+                  setShowMemberStatistics(showMemberStatistics ? false : true)
+                }
+              >
+                {showMemberStatistics
+                  ? 'Hide Member Statistics'
+                  : 'Show Member Statistics'}
+              </button>
+            </div>
+            {!showMemberStatistics ? null : (
+              <div className="row">
+                <MemberStatistics
                   members={members}
                   billingCustomersLoading={billingCustomersLoading}
                   billingCustomers={billingCustomers}
@@ -1079,6 +1128,7 @@ export const ReportsContainer = compose(
   withState('showLastAttendance', 'setShowLastAttendance', false),
   withState('showMostAttendance', 'setShowMostAttendance', false),
   withState('showMemberFinancialStats', 'setShowMemberFinancialStats', false),
+  withState('showMemberStatistics', 'setShowMemberStatistics', false),
   withState('showMemberFinancialReport', 'setShowMemberFinancialReport', false),
   withState('showInactiveMembers', 'setShowInactiveMembers', false),
   withState('showLeadActivityReport', 'setShowLeadActivityReport', false),

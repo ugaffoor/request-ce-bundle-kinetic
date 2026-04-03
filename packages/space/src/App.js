@@ -16,6 +16,7 @@ import { Notifications } from './components/notifications/Notifications';
 import { ViewProfile } from './components/profile/ViewProfile';
 import { JourneyTriggers } from './components/settings/journeytriggers/JourneyTriggers';
 import { SchoolSettings } from './components/settings/schoolsettings/SchoolSettings';
+import { PriceIncrease } from './components/settings/priceincrease/PriceIncrease';
 import { TeamContainer } from './components/teams/TeamContainer';
 import { TeamsContainer } from './components/teams/TeamsContainer';
 import { IsolatedForm } from './components/shared/IsolatedForm';
@@ -69,6 +70,11 @@ export const AppComponent = props => {
               path="/settings/schoolsettings"
               exact
               component={SchoolSettings}
+            />
+            <Route
+              path="/settings/priceincrease"
+              exact
+              component={PriceIncrease}
             />
             <Route path="/settings" component={Settings} />
             <Route path="/teams" exact component={TeamsContainer} />

@@ -442,6 +442,9 @@ export function* fetchCurrentMember(action) {
         } else if (billingPeriod === 'Fortnightly') {
           period = 'days';
           periodVal = 14;
+        } else if (billingPeriod === '4 Weekly') {
+          period = 'days';
+          periodVal = 28;
         } else if (billingPeriod === 'Monthly') {
           period = 'months';
           periodVal = 1;
@@ -490,6 +493,23 @@ export function* fetchCurrentMember(action) {
           var rem = days % 14;
           if (rem !== 0) {
             days = days - rem + 14;
+          }
+          nextBillingDate = moment(
+            submission.submission.values['Billing Start Date'],
+            'YYYY-MM-DD',
+          ).add(days, 'days');
+        }
+        if (billingPeriod === '4 Weekly') {
+          var days = moment().diff(
+            moment(
+              submission.submission.values['Billing Start Date'],
+              'YYYY-MM-DD',
+            ),
+            'days',
+          );
+          var rem = days % 28;
+          if (rem !== 0) {
+            days = days - rem + 28;
           }
           nextBillingDate = moment(
             submission.submission.values['Billing Start Date'],
@@ -3052,6 +3072,32 @@ export function* syncBillingMembers(action) {
   try {
     let newMemberAdded = false;
     for (let i = 0; i < action.payload.customers.length; i++) {
+      /* 
+****      This code imports the Billing Info into the existing member records.
+      let customer = action.payload.customers[i];
+      let midx = action.payload.allMembers.findIndex(member => member.values['First Name'].toLowerCase() === customer.firstName.toLowerCase() && member.values['Last Name'].toLowerCase() === customer.lastName.toLowerCase())
+
+      if (midx!==-1){
+        var memberItem = {
+          values: {},
+        };
+        memberItem.values['Billing User'] = "YES";
+        memberItem.values['Billing Payment Type'] = customer.paymentMethod;
+        memberItem.values['Billing Payment Period'] = customer.billingPeriod;
+        memberItem.values['Membership Cost'] = customer.billingAmount;
+        memberItem.values['Billing Customer Id'] = customer.customerId;
+        memberItem.values['Billing Customer Reference'] = customer.customerId;
+
+        yield put(
+          actions.updateMember({
+            id: action.payload.allMembers[midx].id,
+            memberItem: memberItem,
+          }),
+        );
+      }
+
+      if (i===2) break;
+*/
       let customer = action.payload.customers[i];
       const MEMBER_SEARCH = new SubmissionSearch(true)
         .eq('values[Billing Customer Id]', customer.customerId)

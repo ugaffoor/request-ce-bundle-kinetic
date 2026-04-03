@@ -226,8 +226,10 @@ export class NewEmailCampaign extends Component {
   }
 
   getEmailTemplates(emailTemplates) {
+    const excludedCategories = ['Self Sign Up', 'Price Increase', 'Payments'];
     let templates = [];
     emailTemplates.forEach(template => {
+      if (excludedCategories.includes(template.values['Category'])) return;
       templates.push({
         label:
           template.values['Category'] !== undefined &&
@@ -665,6 +667,39 @@ export class NewEmailCampaign extends Component {
                       <label htmlFor="specificMembers">
                         Specific Members(Except Inactive)&nbsp;
                       </label>
+                      <div style={{ marginBottom: '4px' }}>
+                        <label
+                          style={{ fontWeight: 'normal', cursor: 'pointer' }}
+                        >
+                          <input
+                            type="checkbox"
+                            style={{ marginRight: '6px' }}
+                            onChange={e => {
+                              const allIds = editorThis.props.allMembers
+                                .filter(m => m.values['Status'] !== 'Inactive')
+                                .map(m => m.id);
+                              const val = e.target.checked ? allIds : [];
+                              const isChecked = e.target.checked;
+                              editorThis.setState(
+                                {
+                                  selectedSpecificMembers: val,
+                                  enablePreview: val.length > 0,
+                                },
+                                () => {
+                                  $('#specificMembers option').prop(
+                                    'selected',
+                                    isChecked,
+                                  );
+                                  $(editorThis.refs.specificMembersDiv)
+                                    .find('select')
+                                    .multiselect('reload');
+                                },
+                              );
+                            }}
+                          />
+                          Select All
+                        </label>
+                      </div>
                       <select
                         className="form-control"
                         multiple
@@ -753,10 +788,10 @@ export class NewEmailCampaign extends Component {
 
                     setTimeout(function() {
                       $('#specificMembers').change(function() {
-                        console.log($(this).val());
+                        const val = $(this).val() || [];
                         editorThis.setState({
-                          selectedSpecificMembers: $(this).val(),
-                          enablePreview: $(this).val().length > 0,
+                          selectedSpecificMembers: val,
+                          enablePreview: val.length > 0,
                         });
                       });
                     }, 500);

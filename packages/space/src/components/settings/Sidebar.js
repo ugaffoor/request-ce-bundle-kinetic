@@ -19,6 +19,7 @@ export const SidebarComponent = ({
   loading,
   spaceAdmin,
   profile,
+  space,
   showDatastore,
   showNotifications,
   showRobots,
@@ -73,6 +74,17 @@ export const SidebarComponent = ({
                 <span className="fa fa-fw fa-angle-right" />
               </NavLink>
             )}
+            {Utils.getAttributeValue(space, 'Allow Price Increase') === 'YES' &&
+              Utils.isMemberOf(profile, 'Role::Data Admin') && (
+                <NavLink
+                  to="/settings/priceincrease"
+                  className="nav-link"
+                  activeClassName="active"
+                >
+                  <I18n>Price Increases</I18n>
+                  <span className="fa fa-fw fa-angle-right" />
+                </NavLink>
+              )}
             {Utils.isMemberOf(profile, 'Role::Data Admin') && (
               <NavLink
                 to="/settings/schoolsettings"
@@ -179,6 +191,7 @@ export const SidebarComponent = ({
 );
 
 export const mapStateToProps = state => ({
+  space: state.app.space,
   loading: state.space.profiles.loading,
   forms: state.space.settingsDatastore.forms,
   spaceAdmin: state.app.profile.spaceAdmin,

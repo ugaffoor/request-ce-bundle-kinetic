@@ -176,21 +176,13 @@ export class TriggerDelete extends Component {
     this.state = {};
   }
   completeTriggerDelete(id) {
-    this.props.journeyTriggers;
-    let idx = this.props.journeyTriggers.findIndex(
-      trigger => trigger.id === id,
-    );
-    this.props.journeyTriggers.splice(idx, 1);
+    const newTriggerEvents = new Map();
+    this.props.triggerEvents.forEach((triggers, key) => {
+      newTriggerEvents.set(key, triggers.filter(t => t.id !== id));
+    });
 
-    let itr = this.props.triggerEvents.entries();
-    while (true) {
-      let triggers = itr.next()['value'];
-      console.log(triggers);
-      if (triggers === undefined) break;
-      let tIdx = triggers[1].findIndex(trigger => trigger.id === id);
-      if (tIdx !== -1) {
-        triggers[1].splice(tIdx, 1);
-      }
+    if (this.props.onDeleted) {
+      this.props.onDeleted(newTriggerEvents);
     }
 
     this.setState({
@@ -860,7 +852,7 @@ export class BlockTriggers extends Component {
                                     ? 'eventRow even'
                                     : 'eventRow odd'
                                 }
-                                key={tIdx}
+                                key={trigger.id}
                               >
                                 <td width="5%">
                                   {this.props.type === 'Member'
@@ -909,6 +901,11 @@ export class BlockTriggers extends Component {
                                     deleteTrigger={this.props.deleteTrigger}
                                     journeyTriggers={this.props.journeyTriggers}
                                     triggerEvents={this.state.triggerEvents}
+                                    onDeleted={newTriggerEvents =>
+                                      this.setState({
+                                        triggerEvents: newTriggerEvents,
+                                      })
+                                    }
                                   />
                                 </td>
                                 <td width="40">

@@ -13,6 +13,7 @@ import $ from 'jquery';
 import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
 import { PaymentPeriod, PaymentType } from './BillingUtils';
 import NumberFormat from 'react-number-format';
+import { searchSubmissions, SubmissionSearch } from '@kineticdata/react';
 import MomentLocaleUtils, {
   formatDate,
   parseDate,
@@ -494,10 +495,16 @@ class PayNow extends Component {
     var posServiceURL = getAttributeValue(this.props.space, 'POS Service URL');
     var schoolName = getAttributeValue(this.props.space, 'School Name');
     if (
-      billingSystem === 'Bambora' ||
       posSystem === 'Bambora' ||
-      (posSystem === 'Square' &&
-        getAttributeValue(this.props.space, 'Billing Company') === 'Bambora')
+      (posSystem === 'Stripe' &&
+        billingSystem === 'Bambora' &&
+        (this.state.payment === 'currentPaymentMethod' ||
+          this.state.payment === 'useSavedCreditCard')) ||
+      (posSystem === 'StripeTerminal' &&
+        billingSystem === 'Bambora' &&
+        (this.state.payment === 'currentPaymentMethod' ||
+          this.state.payment === 'useSavedCreditCard')) ||
+      (posSystem === 'Square' && billingSystem === 'Bambora')
     ) {
       this.processBamboraPayment(
         posServiceURL,
@@ -506,12 +513,14 @@ class PayNow extends Component {
         schoolName,
         this.props.memberItem.values['Billing Customer Id'],
       );
-    } else if (posSystem === 'Stripe') {
+    } else if (billingSystem === 'Stripe') {
       this.processStripePayment(
         posServiceURL,
         this.props.spaceSlug,
-        posSystem,
-        this.props.memberItem.values['Billing Customer Id'],
+        billingSystem,
+        this.props.memberItem.values['Billing Customer Id'].includes('cus_')
+          ? this.props.memberItem.values['Billing Customer Id']
+          : undefined,
         schoolName,
         uuid(),
         this,
@@ -681,14 +690,22 @@ class PayNow extends Component {
       };
       axios(config)
         .then(function(response) {
-          var data = JSON.parse(response.data.data);
+          var data =
+            response.data.data !== null
+              ? JSON.parse(response.data.data)
+              : response.data;
           posThis.setState({
             status:
-              data['status'] === 'succeeded' || data['status'] === 'processing'
+              data['status'] !== undefined &&
+              (data['status'] === 'succeeded' ||
+                data['status'] === 'processing')
                 ? '1'
-                : data['status'],
-            status_message: data['status_message'],
-            errors: data['errors'],
+                : 'Error',
+            status_message:
+              data['status'] !== undefined
+                ? data['status_message']
+                : data['errorMessage'],
+            errors: data['errorMessage'],
             auth_code: data['auth_code'],
             transaction_id: data['transaction_id'],
             processingComplete: true,
@@ -1324,8 +1341,8 @@ class PayNow extends Component {
       } else if (discoverResult.discoveredReaders.length === 0) {
         console.log('No available readers.');
         payNowThis.setState({
-          status: '1',
-          deviceStatus: 'CAPTURE',
+          status: '0',
+          deviceStatus: 'ERROR',
           status_message:
             'No readers have been detected. Please ensure you have a Terminal configured against your location.',
         });
@@ -2166,7 +2183,8 @@ export class FamilyFeeDetails extends Component {
       return {
         _id: details['id'],
         member: details.Name,
-        program: details.feeProgram,
+        program: details.program,
+        info: details.info,
         fee: details.fee,
         discount: details.discount,
         cost: details.cost,
@@ -3005,6 +3023,7 @@ export class BillingInfo extends Component {
       capturePayment: false,
       cashRenewal: false,
       processingRenewCash: false,
+      expandedRows: {},
     };
   }
 
@@ -4036,6 +4055,102 @@ export class BillingInfo extends Component {
               )}
             </div>
           </span>
+          {this.props.memberPriceIncreases &&
+            this.props.memberPriceIncreases.length > 0 && (
+              <span className="line">
+                {this.props.memberPriceIncreasesLoading ? (
+                  <div>Loading...</div>
+                ) : (
+                  <div className="paymentHistoryTable" style={{ width: '80%' }}>
+                    {(() => {
+                      const mpiData = (
+                        this.props.memberPriceIncreases || []
+                      ).map(s => ({
+                        id: s.id,
+                        name:
+                          s.values['Price Increase Name'] ||
+                          s.values['Price Increase ID'] ||
+                          s.id,
+                        status: s.values['Status'] || '',
+                        createdAt: s.createdAt || '',
+                        information:
+                          s.values['Status'] === 'Successful'
+                            ? s.values['Result Information']
+                            : s.values['Status'] === 'Error'
+                              ? s.values['Error Information']
+                              : '',
+                      }));
+                      const mpiColumns = [
+                        { accessor: 'name', Header: 'Price Increase' },
+                        {
+                          accessor: 'status',
+                          Header: 'Status',
+                          width: 120,
+                          Cell: row => (
+                            <span
+                              style={
+                                row.value === 'Error'
+                                  ? { fontWeight: 'bold', color: '#c0392b' }
+                                  : undefined
+                              }
+                            >
+                              {row.value}
+                            </span>
+                          ),
+                        },
+                        {
+                          accessor: 'createdAt',
+                          Header: 'Datetime',
+                          width: 160,
+                          Cell: row =>
+                            row.value
+                              ? moment(row.value).format('DD/MM/YYYY HH:mm')
+                              : '',
+                        },
+                      ];
+                      return (
+                        <ReactTable
+                          columns={mpiColumns}
+                          data={mpiData}
+                          className="-striped -highlight"
+                          defaultPageSize={
+                            mpiData.length > 0 ? mpiData.length : 2
+                          }
+                          pageSize={mpiData.length > 0 ? mpiData.length : 2}
+                          showPagination={false}
+                          expanded={this.state.expandedRows}
+                          getTrProps={(_state, rowInfo) => {
+                            if (!rowInfo) return {};
+                            return {
+                              onClick: () => {
+                                const idx = rowInfo.index;
+                                this.setState(prev => ({
+                                  expandedRows: {
+                                    ...prev.expandedRows,
+                                    [idx]: !prev.expandedRows[idx],
+                                  },
+                                }));
+                              },
+                              style: { cursor: 'pointer' },
+                            };
+                          }}
+                          SubComponent={row =>
+                            row.original.information ? (
+                              <div
+                                style={{ padding: '10px 12px' }}
+                                dangerouslySetInnerHTML={{
+                                  __html: row.original.information,
+                                }}
+                              />
+                            ) : null
+                          }
+                        />
+                      );
+                    })()}
+                  </div>
+                )}
+              </span>
+            )}
           <span className="line">
             <div style={{ marginTop: '10px' }}>
               <button
@@ -4134,6 +4249,8 @@ export const Billing = ({
   sendReceipt,
   addNotification,
   setSystemError,
+  memberPriceIncreases,
+  memberPriceIncreasesLoading,
 }) =>
   currentMemberLoading ? (
     <div />
@@ -4204,6 +4321,8 @@ export const Billing = ({
               sendReceipt={sendReceipt}
               addNotification={addNotification}
               setSystemError={setSystemError}
+              memberPriceIncreases={memberPriceIncreases}
+              memberPriceIncreasesLoading={memberPriceIncreasesLoading}
             />
           )}
           {/*(memberItem.values['Billing Customer Id'] === null ||
@@ -4293,6 +4412,16 @@ function getStartDates(nextBillingDate, billingPeriod) {
       dates.push(startDate.format('DD-MM-YYYY'));
     }
     return dates;
+  } else if (billingPeriod === '4 Weekly') {
+    while (startDate.isSameOrBefore(moment())) {
+      startDate = startDate.add(29, 'days');
+    }
+    dates.push(startDate.format('DD-MM-YYYY'));
+    while (startDate.isSameOrBefore(toDate)) {
+      startDate = startDate.add(29, 'days');
+      dates.push(startDate.format('DD-MM-YYYY'));
+    }
+    return dates;
   } else if (billingPeriod === 'Monthly') {
     while (startDate.isSameOrBefore(moment())) {
       startDate = startDate.add(1, 'months');
@@ -4317,6 +4446,8 @@ function getResumeDates(nextBillingDate, billingPeriod) {
     lastDate.add(7, 'days');
   } else if (billingPeriod === 'Fortnightly') {
     lastDate.add(15, 'days');
+  } else if (billingPeriod === '4 Weekly') {
+    lastDate.add(29, 'days');
   } else if (billingPeriod === 'Monthly') {
     lastDate.add(1, 'months');
   }
@@ -4350,7 +4481,31 @@ export const BillingContainer = compose(
   withState('errorMessage', 'setErrorMessage', ''),
   withState('doPaySmartRegistration', 'setDoPaySmartRegistration', false),
   withState('lastHistoryDate', 'setLastHistoryDate', null),
+  withState(
+    'memberPriceIncreasesLoading',
+    'setMemberPriceIncreasesLoading',
+    false,
+  ),
+  withState('memberPriceIncreases', 'setMemberPriceIncreases', []),
   withHandlers({
+    fetchMemberPriceIncreases: ({}) => (myThis, memberID) => {
+      myThis.props.setMemberPriceIncreasesLoading(true);
+      const search = new SubmissionSearch(true)
+        .index('values[Member GUID]')
+        .eq('values[Member GUID]', memberID)
+        .include('details,values')
+        .sortDirection('DESC')
+        .limit(1000)
+        .build();
+      searchSubmissions({
+        datastore: true,
+        form: 'member-price-increase',
+        search,
+      }).then(({ submissions }) => {
+        myThis.props.setMemberPriceIncreases(submissions || []);
+        myThis.props.setMemberPriceIncreasesLoading(false);
+      });
+    },
     completeMemberRegistration: ({
       memberItem,
       fetchBillingInfoAfterRegistration,
@@ -4815,6 +4970,10 @@ export const BillingContainer = compose(
           ),
           allMembers: this.props.allMembers,
         });
+        this.props.fetchMemberPriceIncreases(
+          this,
+          this.props.match.params['id'],
+        );
       }
 
       this.props.fetchFamilyMembers({

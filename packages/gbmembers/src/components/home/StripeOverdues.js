@@ -179,6 +179,9 @@ export class StripeOverdues extends Component {
         } else if (paymentPeriod === 'Fortnightly') {
           period = 'weeks';
           periodCount = 2;
+        } else if (paymentPeriod === '4 Weekly') {
+          period = 'weeks';
+          periodCount = 4;
         } else if (paymentPeriod === 'Monthly') {
           period = 'months';
         }
