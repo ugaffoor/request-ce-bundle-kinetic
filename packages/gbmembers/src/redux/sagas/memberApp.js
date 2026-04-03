@@ -261,6 +261,8 @@ export function* fetchMemberAppSettingsTask() {
         program: membershipFeesSubmissions[i].values['Program'],
         info: membershipFeesSubmissions[i].values['Info'],
         fee: membershipFeesSubmissions[i].values['Fee'],
+        status: membershipFeesSubmissions[i].values['Status'],
+        frequency: membershipFeesSubmissions[i].values['Frequency'],
       },
     );
   }

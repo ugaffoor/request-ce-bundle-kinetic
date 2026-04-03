@@ -199,6 +199,8 @@ export function* fetchEmailCampaignsByDate(action) {
           'values[Opened By Members]',
           'values[Clicked By Members]',
         ])
+        .startDate(action.payload.start.toDate())
+        .endDate(action.payload.end.toDate())
         .limit(1000)
         .pageToken(nextBeltPageTokenValue)
         .build();

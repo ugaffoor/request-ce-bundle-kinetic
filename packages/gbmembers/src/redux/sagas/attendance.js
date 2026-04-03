@@ -168,6 +168,7 @@ export function* fetchClassAttendances(action) {
         attendance.daysVal = memberItem.daysVal;
         attendance.attendancePerc = memberItem.attendancePerc;
         attendance.statusIndicator = memberItem.statusIndicator;
+        attendance.memberItem = memberItem;
       }
     });
 

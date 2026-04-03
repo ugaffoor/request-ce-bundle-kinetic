@@ -42,11 +42,11 @@ const handleAuthenticated = ({
   setAttempting,
   setAuthenticated,
 }) => () => {
-  setError('');
-  setDisplay('none');
-  setEmail('');
-  setPassword('');
-  setAttempting(false);
+  if (setError) setError('');
+  if (setDisplay) setDisplay('none');
+  if (setEmail) setEmail('');
+  if (setPassword) setPassword('');
+  if (setAttempting) setAttempting(false);
   setAuthenticated(true);
 };
 
@@ -209,6 +209,7 @@ export const Authentication = compose(
     toResetPassword,
     toSignIn,
     toCreateAccount,
+    handleAuthenticated,
   }),
   lifecycle({
     componentDidMount() {

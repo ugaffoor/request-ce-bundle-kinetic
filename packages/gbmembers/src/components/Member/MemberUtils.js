@@ -201,6 +201,7 @@ import { ReactComponent as Green_White_Belt_3_Blue_StripesIcon } from '../../ima
 import { ReactComponent as Green_White_Belt_3_Red_StripesIcon } from '../../images/Green_White_Belt_3_Red_Stripes.svg';
 import { ReactComponent as Green_White_Belt_3_White_StripesIcon } from '../../images/Green_White_Belt_3_White_Stripes.svg';
 import { ReactComponent as Green_White_Belt_4_Red_StripesIcon } from '../../images/Green_White_Belt_4_Red_Stripes.svg';
+import { ReactComponent as Green_White_Belt_4_White_StripesIcon } from '../../images/Green_White_Belt_4_White_Stripes.svg';
 
 import { ReactComponent as Green_Black_Belt_No_StripesIcon } from '../../images/Green_Black_Belt_No_Stripes.svg';
 import { ReactComponent as Green_Black_Belt_1_Black_StripeIcon } from '../../images/Green_Black_Belt_1_Black_Stripe.svg';
@@ -303,6 +304,7 @@ export function formatPhone(phone, mask) {
 }
 
 export function isBirthday(member) {
+  if (member === undefined) return false;
   if (
     member.values['DOB'] === undefined ||
     member.values['DOB'] === '' ||
@@ -433,7 +435,7 @@ export function getBeltSVG(belt) {
     case 'Grey Belt No Stripes':
       return <Grey_Belt_No_StripesIcon className="icon icon-svg" />;
     case 'Grey Belt 1 Black Stripe':
-      return <Grey_Belt_1_Yellow_StripeIcon className="icon icon-svg" />;
+      return <Grey_Belt_1_Black_StripeIcon className="icon icon-svg" />;
     case 'Grey Belt 1 Yellow Stripe':
       return <Grey_Belt_1_Yellow_StripeIcon className="icon icon-svg" />;
     case 'Grey Belt 1 Red Stripe':
@@ -1162,19 +1164,6 @@ export function memberStatusInDates(member, fromDate, toDate, returnStatus) {
       return 0;
     });
 
-    let oldestDate = moment(
-      statusHistorySorted[statusHistorySorted.length - 1].date,
-      ['dd MMM DD YYYY hh:mm:ss Z', 'YYYY-MM-DD hh:mm:ss Z'],
-    );
-    let oldestStatus =
-      statusHistorySorted[statusHistorySorted.length - 1].status;
-    if (
-      oldestDate.isSameOrAfter(fromDate, 'day') &&
-      oldestDate.isSameOrBefore(toDate, 'day')
-    ) {
-      return oldestStatus;
-    }
-
     for (var i = statusHistorySorted.length - 1; i >= 0; i--) {
       if (
         moment(statusHistorySorted[i]['date'], [
@@ -1237,7 +1226,22 @@ export function memberStatusInDates(member, fromDate, toDate, returnStatus) {
       }
     }
 
-    return returnStatus ? member['values']['Status'] : '';
+    if (returnStatus) {
+      const status = member['values']['Status'];
+      if (status === 'Inactive') {
+        const updatedAt = member['updatedAt'] || member['values']['updatedAt'];
+        if (
+          updatedAt &&
+          moment(updatedAt).isSameOrAfter(fromDate, 'day') &&
+          moment(updatedAt).isSameOrBefore(toDate, 'day')
+        ) {
+          return 'Inactive';
+        }
+        return '';
+      }
+      return status;
+    }
+    return '';
   } else {
     if (
       member['values']['Date Joined'] !== undefined &&
@@ -1256,11 +1260,23 @@ export function memberStatusInDates(member, fromDate, toDate, returnStatus) {
       ) {
         return 'Active';
       } else {
-        return returnStatus
-          ? member['values']['Status']
-          : member.values['Status'] === 'Inactive'
-            ? ''
-            : 'Active';
+        if (returnStatus) {
+          const status = member['values']['Status'];
+          if (status === 'Inactive') {
+            const updatedAt =
+              member['updatedAt'] || member['values']['updatedAt'];
+            if (
+              updatedAt &&
+              moment(updatedAt).isSameOrAfter(fromDate, 'day') &&
+              moment(updatedAt).isSameOrBefore(toDate, 'day')
+            ) {
+              return 'Inactive';
+            }
+            return '';
+          }
+          return status;
+        }
+        return member.values['Status'] === 'Inactive' ? '' : 'Active';
       }
     }
   }

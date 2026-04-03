@@ -102,7 +102,7 @@ export class LeadOrders extends Component {
       {
         accessor: '$refundPayment',
         Header: 'Refunds',
-        show: posSystem === 'Bambora' ? true : false,
+        show: posSystem === 'Bambora' || posSystem === 'Stripe' ? true : false,
         Cell: row =>
           !this.isPaymentRefunded(
             row.original,

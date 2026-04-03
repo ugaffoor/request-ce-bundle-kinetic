@@ -190,6 +190,9 @@ export class BamboraOverdues extends React.Component {
         } else if (paymentPeriod === 'Fortnightly') {
           period = 'weeks';
           periodCount = 2;
+        } else if (paymentPeriod === '4 Weekly') {
+          period = 'weeks';
+          periodCount = 4;
         } else if (paymentPeriod === 'Monthly') {
           period = 'months';
         } else if (paymentPeriod === 'Quarterly') {

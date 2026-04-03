@@ -136,6 +136,7 @@ export class MemberFinancialReport extends Component {
       repViewPeriod: 'this_period',
       showRepAccountHolders: false,
       showConcernedMembers: false,
+      showTrialBookings: false,
     };
   }
 
@@ -581,7 +582,10 @@ export class MemberFinancialReport extends Component {
     if (
       registration.values['Registration Fee'] === undefined ||
       registration.values['Registration Fee'] === '' ||
-      registration.values['Registration Fee'] === null
+      registration.values['Registration Fee'] === null ||
+      (registration.values['Waive Registration Fee'] &&
+        registration.values['Waive Registration Fee'][0] ===
+          'Waive Registration Fee')
     )
       return undefined;
     var idx = members.findIndex(
@@ -835,6 +839,7 @@ export class MemberFinancialReport extends Component {
         salesTax: { members: [], value: 0 },
         refundMembers: { members: [], value: 0 },
         refundPOS: { members: [], value: 0 },
+        trialBookings: { members: [], value: 0 },
       };
     }
     // billingAmount, repBillingPeriod
@@ -854,6 +859,8 @@ export class MemberFinancialReport extends Component {
     let refundPOSValue = 0;
     let cashPayments = [];
     let cashPaymentsValue = 0;
+    let trialBookings = [];
+    let trialBookingsValue = 0;
     let allTransactionRecords = [];
     let adminFeePerc = Number(
       getAttributeValue(this.props.space, 'Admin Fee Charge') !== undefined &&
@@ -1410,6 +1417,9 @@ export class MemberFinancialReport extends Component {
           } else if (paymentPeriod === 'Fortnightly') {
             period = 'weeks';
             periodCount = 2;
+          } else if (paymentPeriod === '4 Weekly') {
+            period = 'weeks';
+            periodCount = 4;
           } else if (paymentPeriod === 'Monthly') {
             period = 'months';
           } else if (paymentPeriod === 'Yearly') {
@@ -1527,6 +1537,9 @@ export class MemberFinancialReport extends Component {
       } else if (paymentPeriod === 'Fortnightly') {
         period = 'weeks';
         periodCount = 2;
+      } else if (paymentPeriod === '4 Weekly') {
+        period = 'weeks';
+        periodCount = 4;
       } else if (paymentPeriod === 'Monthly') {
         period = 'months';
       } else if (paymentPeriod === 'Yearly') {
@@ -1779,6 +1792,37 @@ export class MemberFinancialReport extends Component {
       );
     });
 
+    this.paymentHistory.forEach(payment => {
+      if (payment.paymentSource !== 'Trial Booking') return;
+      const guestName = payment.guestName || '';
+      const [firstName, ...rest] = guestName.split(' ');
+      const lastName = rest.join(' ');
+      const lead = (leads || []).find(
+        l =>
+          l.values['First Name'] === firstName &&
+          l.values['Last Name'] === lastName,
+      );
+      const name = lead
+        ? `${lead.values['First Name']} ${lead.values['Last Name']}`
+        : guestName;
+      const amount = Number(payment.paymentAmount);
+      trialBookings.push({
+        name,
+        leadId: lead ? lead.id : undefined,
+        paymentID: payment.paymentID,
+        date: payment.debitDate,
+        payment: amount.toFixed(2),
+      });
+      trialBookingsValue += amount;
+      allTransactionRecords.push({
+        type: 'Trial Booking',
+        date: payment.debitDate,
+        name,
+        paymentID: payment.paymentID,
+        payment: amount.toFixed(2),
+      });
+    });
+
     return {
       accountHolders: { members: accountHolders, value: accountHoldersValue },
       registrationFeeMembers: {
@@ -1802,6 +1846,7 @@ export class MemberFinancialReport extends Component {
       },
       concernedMembers: concernedMembers,
       allTransactionRecords: allTransactionRecords,
+      trialBookings: { members: trialBookings, value: trialBookingsValue },
     };
   }
 
@@ -1841,6 +1886,9 @@ export class MemberFinancialReport extends Component {
       if (repBillingPeriod === 'fortnightly') {
         fromDate.day(1);
       }
+      if (repBillingPeriod === '4weekly') {
+        fromDate.day(1);
+      }
       if (repBillingPeriod === 'monthly') {
         fromDate.date(1);
       }
@@ -1860,6 +1908,12 @@ export class MemberFinancialReport extends Component {
         toDate
           .day(1)
           .add(2, 'weeks')
+          .subtract(1, 'days');
+      }
+      if (repBillingPeriod === '4weekly') {
+        toDate
+          .day(1)
+          .add(4, 'weeks')
           .subtract(1, 'days');
       }
       if (repBillingPeriod === 'monthly') {
@@ -1888,6 +1942,9 @@ export class MemberFinancialReport extends Component {
       if (repBillingPeriod === 'fortnightly') {
         fromDate.add(2, 'weeks').day(1);
       }
+      if (repBillingPeriod === '4weekly') {
+        fromDate.add(4, 'weeks').day(1);
+      }
       if (repBillingPeriod === 'monthly') {
         fromDate.add(1, 'months').date(1);
       }
@@ -1903,6 +1960,12 @@ export class MemberFinancialReport extends Component {
           .subtract(1, 'days');
       }
       if (repBillingPeriod === 'fortnightly') {
+        toDate
+          .day(1)
+          .add(2, 'weeks')
+          .subtract(1, 'days');
+      }
+      if (repBillingPeriod === '4weekly') {
         toDate
           .day(1)
           .add(4, 'weeks')
@@ -1934,6 +1997,9 @@ export class MemberFinancialReport extends Component {
       if (repBillingPeriod === 'fortnightly') {
         fromDate.subtract(2, 'weeks').day(1);
       }
+      if (repBillingPeriod === '4weekly') {
+        fromDate.subtract(4, 'weeks').day(1);
+      }
       if (repBillingPeriod === 'monthly') {
         fromDate.subtract(1, 'months').date(1);
       }
@@ -1946,6 +2012,9 @@ export class MemberFinancialReport extends Component {
         toDate.day(1).subtract(1, 'days');
       }
       if (repBillingPeriod === 'fortnightly') {
+        toDate.day(1).subtract(1, 'days');
+      }
+      if (repBillingPeriod === '4weekly') {
         toDate.day(1).subtract(1, 'days');
       }
       if (repBillingPeriod === 'monthly') {
@@ -2117,6 +2186,24 @@ export class MemberFinancialReport extends Component {
 
     return name;
   }
+  stillFrozenBilling(member) {
+    let stillFrozen = false;
+    if (
+      member.values['Resume Date'] !== undefined &&
+      member.values['Resume Date'] !== null &&
+      member.values['Resume Date'] !== ''
+    ) {
+      if (
+        moment(member.values['Resume Date'], 'YYYY-MM-DD').isAfter(
+          moment(this.state.repFromDate.toDate()),
+        )
+      ) {
+        stillFrozen = true;
+      }
+    }
+
+    return stillFrozen;
+  }
   getMemberFee(members, member, forRegistrationFee, allTransactionRecords) {
     if (forRegistrationFee && member.registrationFeeMember) {
       return member.memberRegistrationFee;
@@ -2129,7 +2216,10 @@ export class MemberFinancialReport extends Component {
     )
       return 'Non Paying';
 
-    if (member.values['Status'] === 'Frozen') {
+    if (
+      member.values['Status'] === 'Frozen' ||
+      (member.values['Status'] === 'Active' && this.stillFrozenBilling(member))
+    ) {
       var amount = 0;
       allTransactionRecords.forEach(transaction => {
         if (
@@ -2352,7 +2442,10 @@ export class MemberFinancialReport extends Component {
       return member.memberRegistrationFee;
     }
 
-    if (member.values['Status'] === 'Frozen') {
+    if (
+      member.values['Status'] === 'Frozen' ||
+      (member.values['Status'] === 'Active' && this.stillFrozenBilling(member))
+    ) {
       var amount = 0;
       allTransactionRecords.forEach(transaction => {
         if (
@@ -2974,6 +3067,37 @@ export class MemberFinancialReport extends Component {
       },
     ];
   }
+  getTrialBookingsTableColumns() {
+    return [
+      {
+        accessor: 'name',
+        Header: 'Guest Name',
+        Cell: props =>
+          props.original.leadId ? (
+            <NavLink to={`/LeadDetail/${props.original.leadId}`}>
+              {props.value}
+            </NavLink>
+          ) : (
+            props.value
+          ),
+      },
+      {
+        accessor: 'date',
+        Header: 'Date',
+        Cell: props =>
+          props.value ? moment(props.value).format('L HH:MM A') : '',
+      },
+      {
+        accessor: 'payment',
+        Header: 'Amount',
+        Cell: props =>
+          new Intl.NumberFormat(this.locale, {
+            style: 'currency',
+            currency: this.currency,
+          }).format(props.value),
+      },
+    ];
+  }
   downLoadDataAsCsv(allTransactionRecords, forecastHolders) {
     let memberships = [];
     let memberRegistrationFees = [];
@@ -2981,6 +3105,7 @@ export class MemberFinancialReport extends Component {
     let cashPayments = [];
     let refunds = [];
     let pos = [];
+    let trialBookingRecords = [];
 
     allTransactionRecords.forEach(transaction => {
       if (transaction['type'] === 'Membership') {
@@ -2999,6 +3124,8 @@ export class MemberFinancialReport extends Component {
         refunds.push(transaction);
       } else if (transaction['type'] === 'POS') {
         pos.push(transaction);
+      } else if (transaction['type'] === 'Trial Booking') {
+        trialBookingRecords.push(transaction);
       }
     });
 
@@ -3273,6 +3400,31 @@ export class MemberFinancialReport extends Component {
         '"\n',
     );
 
+    if (trialBookingRecords.length > 0) {
+      let trialBookingsTotal = 0;
+      trialBookingRecords.forEach(transaction => {
+        trialBookingsTotal += Number(transaction.payment);
+        csvData = csvData.concat(
+          '"Trial Booking","' +
+            moment(transaction['date']).format('L HH:MM A') +
+            '","' +
+            transaction['name'] +
+            '","","' +
+            transaction['paymentID'] +
+            '","' +
+            transaction['payment'] +
+            '","' +
+            '"\n',
+        );
+      });
+      csvData = csvData.concat(
+        '"Trial Bookings Total","","","","","' +
+          trialBookingsTotal.toFixed(2) +
+          '","' +
+          '"\n',
+      );
+    }
+
     fileDownload(csvData, 'transactions.csv');
   }
   render() {
@@ -3517,6 +3669,24 @@ export class MemberFinancialReport extends Component {
               />
             </div>
           )}
+          {this.state.showTrialBookings && (
+            <div className="members">
+              <span
+                className="closeMembers"
+                onClick={() => this.setState({ showTrialBookings: false })}
+              >
+                <CrossIcon className="icon icon-svg" />
+              </span>
+              <ReactTable
+                columns={this.getTrialBookingsTableColumns()}
+                data={this.state.repMemberData.trialBookings.members}
+                defaultPageSize={
+                  this.state.repMemberData.trialBookings.members.length || 1
+                }
+                showPagination={false}
+              />
+            </div>
+          )}
           <span className="line">
             <div className="radioGroup">
               <br />
@@ -3561,6 +3731,27 @@ export class MemberFinancialReport extends Component {
                   }
                 />
                 <I18n>Fortnightly</I18n>
+              </label>
+              <label htmlFor="rep4Weekly" className="radio">
+                <input
+                  id="rep4Weekly"
+                  name="reportPeriod"
+                  type="radio"
+                  value="4 Weekly"
+                  onChange={e => {
+                    this.setState({
+                      repBillingPeriod: '4weekly',
+                      repViewPeriod: 'this_period',
+                    });
+                    this.setStatisticDates(e, 'this_period', '4weekly');
+                  }}
+                  defaultChecked={
+                    this.state.repBillingPeriod === '4weekly'
+                      ? 'defaultChecked'
+                      : ''
+                  }
+                />
+                <I18n>4 Weekly</I18n>
               </label>
               <label htmlFor="repMonthly" className="radio">
                 <input
@@ -3608,7 +3799,9 @@ export class MemberFinancialReport extends Component {
                   ? 'Week'
                   : this.state.repBillingPeriod === 'fortnightly'
                     ? 'Fortnights'
-                    : 'Month'}
+                    : this.state.repBillingPeriod === 'fortnightly'
+                      ? '4 Weekly'
+                      : 'Month'}
               </button>
               <button
                 type="button"
@@ -3630,7 +3823,9 @@ export class MemberFinancialReport extends Component {
                   ? 'Week'
                   : this.state.repBillingPeriod === 'fortnightly'
                     ? 'Fortnight'
-                    : 'Month'}
+                    : this.state.repBillingPeriod === '4weekly'
+                      ? '4 Weekly'
+                      : 'Month'}
               </button>
               <button
                 type="button"
@@ -4020,6 +4215,38 @@ export class MemberFinancialReport extends Component {
                   </div>
                 </div>
               </div>
+              {getAttributeValue(this.props.space, 'Trial Payment Amount') && (
+                <div className="row header4">
+                  <div className="column col1">Trial Bookings</div>
+                  <div className="column col2">
+                    <div
+                      className="dollarValue membersLink"
+                      onClick={() =>
+                        this.setState({
+                          showAccountHolders: false,
+                          showRegistrationFeeMembers: false,
+                          showAdditionalServices: false,
+                          showCashPayments: false,
+                          showPOSPeople: false,
+                          showRefundMembers: false,
+                          showTrialBookings: true,
+                        })
+                      }
+                    >
+                      {new Intl.NumberFormat(this.locale, {
+                        style: 'currency',
+                        currency: this.currency,
+                      }).format(
+                        this.state.repMemberData.trialBookings
+                          ? this.state.repMemberData.trialBookings.value
+                          : 0,
+                      )}
+                    </div>
+                  </div>
+                  <div className="column col3" />
+                  <div className="column col4" />
+                </div>
+              )}
               <div className="row header6">
                 <div className="column col1">Refunds</div>
                 <div className="column col2">
@@ -4057,7 +4284,10 @@ export class MemberFinancialReport extends Component {
                         this.state.repMemberData.registrationFeeMembers.value +
                         this.state.repMemberData.cashPayments.value +
                         this.state.repMemberData.additionalServices.value +
-                        this.state.repMemberData.posPayments.value -
+                        this.state.repMemberData.posPayments.value +
+                        (this.state.repMemberData.trialBookings
+                          ? this.state.repMemberData.trialBookings.value
+                          : 0) -
                         this.state.repMemberData.refundMembers.value,
                     )}
                   </div>

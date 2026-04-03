@@ -87,6 +87,7 @@ const mapDispatchToProps = {
   setSidebarDisplayType: appActions.setSidebarDisplayType,
   refundPOSTransaction: memberActions.refundPOSTransaction,
   refundPOSTransactionComplete: memberActions.refundPOSTransactionComplete,
+  refundCashTransaction: memberActions.refundCashTransaction,
   updatePOSOrder: posActions.updatePOSOrder,
   incrementPOSStock: posActions.incrementPOSStock,
   deletePOSPurchasedItem: posActions.deletePOSPurchasedItem,
@@ -1626,6 +1627,7 @@ export const LeadDetailContainer = compose(
     },
     refundPOSPayment: ({
       leadItem,
+      refundCashTransaction,
       refundPOSTransaction,
       refundPOSTransactionComplete,
       updatePOSOrder,
@@ -1657,7 +1659,11 @@ export const LeadDetailContainer = compose(
       args.deletePOSPurchasedItem = deletePOSPurchasedItem;
       args.refundPOSTransactionComplete = refundPOSTransactionComplete;
 
-      refundPOSTransaction(args);
+      if (paymentId.indexOf('cash') === 0) {
+        refundCashTransaction(args);
+      } else {
+        refundPOSTransaction(args);
+      }
     },
     saveLeadNote: ({
       profile,

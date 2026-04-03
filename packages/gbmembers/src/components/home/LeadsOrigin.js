@@ -117,7 +117,7 @@ export class LeadsOriginChart extends Component {
         let source = lead.values['Source Reference 4'];
         source =
           source === undefined || source === null || source === ''
-            ? 'Unknown'
+            ? lead.values['Source']
             : source;
         let objFound = leadsByType.get(source);
         if (objFound) {

@@ -364,16 +364,23 @@ export class OrdersReport extends Component {
           ? parseFloat(element['discount']).toFixed(2)
           : '',
       );
-      row.push(
-        element['adminfee'] !== undefined
-          ? parseFloat(element['adminfee']).toFixed(2)
-          : '',
-      );
-      row.push(
-        element['salestax'] !== undefined
-          ? parseFloat(element['salestax']).toFixed(2)
-          : '',
-      );
+      if (
+        getAttributeValue(this.props.space, 'Admin Fee Charge') !== undefined &&
+        getAttributeValue(this.props.space, 'Admin Fee Apply to POS') === 'YES'
+      ) {
+        row.push(
+          element['adminfee'] !== undefined
+            ? parseFloat(element['adminfee']).toFixed(2)
+            : '',
+        );
+      }
+      if (getAttributeValue(this.props.space, 'POS Sales Tax') !== undefined) {
+        row.push(
+          element['salestax'] !== undefined
+            ? parseFloat(element['salestax']).toFixed(2)
+            : '',
+        );
+      }
       if (
         getAttributeValue(this.props.space, 'POS Sales Tax Label 2') !==
         undefined
@@ -439,6 +446,28 @@ export class OrdersReport extends Component {
       });
       this.refreshData(this.state.repFromDate, this.state.repToDate);
     }
+  }
+  navigateReportPeriod(direction) {
+    const { repFromDate, repToDate, repPeriod } = this.state;
+    let amount, unit;
+    if (repPeriod === 'weekly') {
+      amount = 1;
+      unit = 'weeks';
+    } else if (repPeriod === 'fortnightly') {
+      amount = 2;
+      unit = 'weeks';
+    } else {
+      amount = 1;
+      unit = 'months';
+    }
+    const newFrom = moment(repFromDate).add(direction * amount, unit);
+    const newTo = moment(repToDate).add(direction * amount, unit);
+    this.setState({
+      repFromDate: newFrom,
+      repToDate: newTo,
+      repViewPeriod: direction < 0 ? 'last_period' : 'next_period',
+    });
+    this.refreshData(newFrom, newTo);
   }
   setReportDates(e, repViewPeriod, repPeriod) {
     let fromDate = moment();
@@ -813,55 +842,48 @@ export class OrdersReport extends Component {
       <span className="purchaseItemsReport">
         <div className="page-header" style={{ textAlign: 'center' }}>
           <div className="dateSettings">
-            <button
-              type="button"
-              active="false"
-              className="btn btn-primary report-btn-default"
-              onClick={e => {
-                this.setState({
-                  repViewPeriod: 'last_period',
-                });
-                this.setReportDates(e, 'last_period', this.state.repPeriod);
-              }}
-            >
-              Last{' '}
-              {this.state.repPeriod === 'weekly'
-                ? 'Week'
-                : this.state.repPeriod === 'fortnightly'
-                  ? 'Fortnights'
-                  : 'Month'}
-            </button>
-            <button
-              type="button"
-              active="true"
-              className="btn btn-primary report-btn-default"
-              onClick={e => {
-                this.setState({
-                  repViewPeriod: 'this_period',
-                });
-                this.setReportDates(e, 'this_period', this.state.repPeriod);
-              }}
-            >
-              This{' '}
-              {this.state.repPeriod === 'weekly'
-                ? 'Week'
-                : this.state.repPeriod === 'fortnightly'
-                  ? 'Fortnight'
-                  : 'Month'}
-            </button>
-            <button
-              type="button"
-              active="false"
-              className="btn btn-primary report-btn-default"
-              onClick={e => {
-                this.setState({
-                  repViewPeriod: 'custom',
-                });
-                this.setReportDates(e, 'custom', this.state.repPeriod);
-              }}
-            >
-              Custom
-            </button>
+            <div className="dateNavButtons">
+              <button
+                type="button"
+                className="btn btn-primary report-btn-default"
+                onClick={() => this.navigateReportPeriod(-1)}
+              >
+                {'< Previous '}
+                {this.state.repPeriod === 'weekly'
+                  ? 'Week'
+                  : this.state.repPeriod === 'fortnightly'
+                    ? 'Fortnight'
+                    : 'Month'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary report-btn-default"
+                onClick={() => this.navigateReportPeriod(1)}
+                disabled={this.state.repToDate.isSameOrAfter(moment(), 'day')}
+              >
+                {'Next '}
+                {this.state.repPeriod === 'weekly'
+                  ? 'Week'
+                  : this.state.repPeriod === 'fortnightly'
+                    ? 'Fortnight'
+                    : 'Month'}
+                {' >'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary report-btn-default"
+                onClick={e => {
+                  this.setState({ repViewPeriod: 'custom' });
+                  this.setReportDates(e, 'custom', this.state.repPeriod);
+                }}
+              >
+                Custom
+              </button>
+            </div>
+            <div className="dateRangeLabel">
+              {this.state.repFromDate.format('DD MMM YYYY')} –{' '}
+              {this.state.repToDate.format('DD MMM YYYY')}
+            </div>
           </div>
           {this.state.isShowCustom && (
             <div
@@ -971,74 +993,66 @@ export class OrdersReport extends Component {
               </div>
             </div>
           )}
-          <span className="label">
-            {this.state.repFromDate.format('L')} to{' '}
-            {this.state.repToDate.format('L')}
-          </span>
         </div>
-        {this.props.posPurchaseItemsLoading ? (
-          <div className="purchaseItemsReport">Loading information ...</div>
-        ) : (
-          <div className="purchaseItemsReport">
-            <div className="reportIcons">
-              <ReactToPrint
-                trigger={() => (
-                  <PrinterIcon className="icon icon-svg tablePrint" />
-                )}
-                content={() => this.tableComponentRef.current}
-                onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
-              />
-              <CSVLink
-                className="downloadbtn"
-                filename="orders.csv"
-                data={this.getDownloadData()}
-              >
-                <DownloadIcon className="icon icon-svg tableDownload" />
-              </CSVLink>
-            </div>
-            <ReactTable
-              ref={this.tableComponentRef}
-              columns={this.getColumns()}
-              groupBy="paymenttype"
-              data={this.state.data}
-              className="-striped -highlight"
-              defaultPageSize={
-                this.state.data.length > 0 ? this.state.data.length : 2
-              }
-              pageSize={this.state.data.length > 0 ? this.state.data.length : 2}
-              showPagination={false}
-              expanded={this.state.expandedRows}
-              onExpandedChange={(newExpanded, index) => {
-                this.setState(oldState => {
-                  const itemIndex = index[0];
-                  const isExpanded = oldState.expandedRows[itemIndex];
-                  const expandedList = [...this.state.expandedRows];
-                  expandedList[itemIndex] = !isExpanded;
-                  return {
-                    expandedRows: expandedList,
-                  };
-                });
-              }}
-              SubComponent={row => {
-                return (
-                  <ReactTable
-                    data={row.original.products}
-                    columns={this.productColumns}
-                    TheadComponent={() => null}
-                    defaultPageSize={
-                      row.original.products !== undefined &&
-                      row.original.products.length > 0
-                        ? row.original.products.length
-                        : 2
-                    }
-                    showPagination={false}
-                  />
-                );
-              }}
+        <div className="purchaseItemsReport">
+          <div className="reportIcons">
+            <ReactToPrint
+              trigger={() => (
+                <PrinterIcon className="icon icon-svg tablePrint" />
+              )}
+              content={() => this.tableComponentRef.current}
+              onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
             />
-            <br />
+            <CSVLink
+              className="downloadbtn"
+              filename="orders.csv"
+              data={this.getDownloadData()}
+            >
+              <DownloadIcon className="icon icon-svg tableDownload" />
+            </CSVLink>
           </div>
-        )}
+          <ReactTable
+            ref={this.tableComponentRef}
+            columns={this.getColumns()}
+            groupBy="paymenttype"
+            data={this.state.data}
+            className="-striped -highlight"
+            defaultPageSize={
+              this.state.data.length > 0 ? this.state.data.length : 2
+            }
+            pageSize={this.state.data.length > 0 ? this.state.data.length : 2}
+            showPagination={false}
+            expanded={this.state.expandedRows}
+            onExpandedChange={(newExpanded, index) => {
+              this.setState(oldState => {
+                const itemIndex = index[0];
+                const isExpanded = oldState.expandedRows[itemIndex];
+                const expandedList = [...this.state.expandedRows];
+                expandedList[itemIndex] = !isExpanded;
+                return {
+                  expandedRows: expandedList,
+                };
+              });
+            }}
+            SubComponent={row => {
+              return (
+                <ReactTable
+                  data={row.original.products}
+                  columns={this.productColumns}
+                  TheadComponent={() => null}
+                  defaultPageSize={
+                    row.original.products !== undefined &&
+                    row.original.products.length > 0
+                      ? row.original.products.length
+                      : 2
+                  }
+                  showPagination={false}
+                />
+              );
+            }}
+          />
+          <br />
+        </div>
       </span>
     );
   }

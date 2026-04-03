@@ -938,7 +938,7 @@ export class SelfCheckin extends Component {
           $('#checkinMember').focus();
         }, 500);
       }
-    } else if (!validClassessAllowed) {
+    } else if (memberItem !== undefined && !validClassessAllowed) {
       this.setState({
         invalidMemberClass: true,
       });
@@ -1050,7 +1050,7 @@ export class SelfCheckin extends Component {
                       this.selfCheckinHandleScan(e.target.value)
                     }}
                   />
-                 */}
+                */}
                 <div className="dayClasses">
                   {attendanceThis
                     .getDayClasses(
@@ -1235,7 +1235,7 @@ export class SelfCheckin extends Component {
                     )}
                   </div>
                 )}
-                {this.state.memberItem !== undefined ||
+                {/*this.state.memberItem !== undefined ||
                 this.state.memberItem === undefined ? (
                   <div />
                 ) : (
@@ -1319,16 +1319,18 @@ export class SelfCheckin extends Component {
                       </div>
                     )}
                   </div>
-                )}
+                )*/}
                 {this.state.attendanceAdded &&
-                  this.state.checkinClassMember && (
+                  this.state.checkinClassMember &&
+                  this.state.memberItem !== undefined && (
                     <Countdown
                       date={Date.now() + 1000 * 10}
                       renderer={this.renderer}
                     />
                   )}
                 {this.state.invalidMemberClass &&
-                  this.state.checkinClassMember && (
+                  this.state.checkinClassMember &&
+                  this.state.memberItem !== undefined && (
                     <h4 className="invalidClass">
                       {' '}
                       Invalid Member Program - Not valid for current class
@@ -1929,6 +1931,9 @@ export class AttendanceDetail extends Component {
         } else if (paymentPeriod === 'Fortnightly') {
           period = 'weeks';
           periodCount = 2;
+        } else if (paymentPeriod === '4 Weekly') {
+          period = 'weeks';
+          periodCount = 4;
         } else if (paymentPeriod === 'Monthly') {
           period = 'months';
         }
@@ -3151,6 +3156,7 @@ export class AttendanceDetail extends Component {
                         (checkin.values['Title'] === undefined ||
                           checkin.values['Title'] === null ||
                           checkin.values['Title'] === '' ||
+                          this.state.classTitle === undefined ||
                           checkin.values['Title'] === this.state.classTitle) &&
                         checkin.values['Class'] === this.state.className;
 
@@ -3190,6 +3196,7 @@ export class AttendanceDetail extends Component {
                             (checkin.values['Title'] === undefined ||
                               checkin.values['Title'] === null ||
                               checkin.values['Title'] === '' ||
+                              this.state.classTitle === undefined ||
                               checkin.values['Title'] ===
                                 this.state.classTitle) &&
                             checkin.values['Class'] === this.state.className
@@ -3212,6 +3219,7 @@ export class AttendanceDetail extends Component {
                             (checkin.values['Title'] === undefined ||
                               checkin.values['Title'] === null ||
                               checkin.values['Title'] === '' ||
+                              this.state.classTitle === undefined ||
                               checkin.values['Title'] ===
                                 this.state.classTitle) &&
                             checkin.values['Class'] === this.state.className
@@ -3241,6 +3249,7 @@ export class AttendanceDetail extends Component {
                               (checkin.values['Title'] === undefined ||
                                 checkin.values['Title'] === null ||
                                 checkin.values['Title'] === '' ||
+                                this.state.classTitle === undefined ||
                                 checkin.values['Title'] ===
                                   this.state.classTitle) &&
                               checkin.values['Class'] ===

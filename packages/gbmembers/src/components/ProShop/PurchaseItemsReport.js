@@ -113,7 +113,12 @@ export class PurchaseItemsReport extends Component {
       nextProps.posOrdersPI.forEach((item, i) => {
         this.posOrders[this.posOrders.length] = item;
       });
-      let data = this.getData(this.posPurchaseItems, this.props.posProducts);
+      let data = this.state.personViewMode
+        ? this.getDataByPerson(this.posPurchaseItems, this.props.posProducts)
+        : this.getData(this.posPurchaseItems, this.props.posProducts);
+      let columns = this.state.personViewMode
+        ? this.getColumnsByPerson()
+        : this.getColumns();
       let discountsTotal = this.getDiscounts(this.posOrders);
 
       var total = 0;
@@ -128,6 +133,7 @@ export class PurchaseItemsReport extends Component {
       this.setState({
         allMembers: nextProps.members,
         data,
+        columns,
         total,
         costTotal,
         profitTotal,
@@ -472,6 +478,28 @@ export class PurchaseItemsReport extends Component {
       });
       this.refreshData(this.state.repFromDate, this.state.repToDate);
     }
+  }
+  navigateReportPeriod(direction) {
+    const { repFromDate, repToDate, repPeriod } = this.state;
+    let amount, unit;
+    if (repPeriod === 'weekly') {
+      amount = 1;
+      unit = 'weeks';
+    } else if (repPeriod === 'fortnightly') {
+      amount = 2;
+      unit = 'weeks';
+    } else {
+      amount = 1;
+      unit = 'months';
+    }
+    const newFrom = moment(repFromDate).add(direction * amount, unit);
+    const newTo = moment(repToDate).add(direction * amount, unit);
+    this.setState({
+      repFromDate: newFrom,
+      repToDate: newTo,
+      repViewPeriod: direction < 0 ? 'last_period' : 'next_period',
+    });
+    this.refreshData(newFrom, newTo);
   }
   setReportDates(e, repViewPeriod, repPeriod) {
     let fromDate = moment();
@@ -866,55 +894,48 @@ export class PurchaseItemsReport extends Component {
       <span className="purchaseItemsReport">
         <div className="page-header" style={{ textAlign: 'center' }}>
           <div className="dateSettings">
-            <button
-              type="button"
-              active="false"
-              className="btn btn-primary report-btn-default"
-              onClick={e => {
-                this.setState({
-                  repViewPeriod: 'last_period',
-                });
-                this.setReportDates(e, 'last_period', this.state.repPeriod);
-              }}
-            >
-              Last{' '}
-              {this.state.repPeriod === 'weekly'
-                ? 'Week'
-                : this.state.repPeriod === 'fortnightly'
-                  ? 'Fortnights'
-                  : 'Month'}
-            </button>
-            <button
-              type="button"
-              active="true"
-              className="btn btn-primary report-btn-default"
-              onClick={e => {
-                this.setState({
-                  repViewPeriod: 'this_period',
-                });
-                this.setReportDates(e, 'this_period', this.state.repPeriod);
-              }}
-            >
-              This{' '}
-              {this.state.repPeriod === 'weekly'
-                ? 'Week'
-                : this.state.repPeriod === 'fortnightly'
-                  ? 'Fortnight'
-                  : 'Month'}
-            </button>
-            <button
-              type="button"
-              active="false"
-              className="btn btn-primary report-btn-default"
-              onClick={e => {
-                this.setState({
-                  repViewPeriod: 'custom',
-                });
-                this.setReportDates(e, 'custom', this.state.repPeriod);
-              }}
-            >
-              Custom
-            </button>
+            <div className="dateNavButtons">
+              <button
+                type="button"
+                className="btn btn-primary report-btn-default"
+                onClick={() => this.navigateReportPeriod(-1)}
+              >
+                {'< Previous '}
+                {this.state.repPeriod === 'weekly'
+                  ? 'Week'
+                  : this.state.repPeriod === 'fortnightly'
+                    ? 'Fortnight'
+                    : 'Month'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary report-btn-default"
+                onClick={() => this.navigateReportPeriod(1)}
+                disabled={this.state.repToDate.isSameOrAfter(moment(), 'day')}
+              >
+                {'Next '}
+                {this.state.repPeriod === 'weekly'
+                  ? 'Week'
+                  : this.state.repPeriod === 'fortnightly'
+                    ? 'Fortnight'
+                    : 'Month'}
+                {' >'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary report-btn-default"
+                onClick={e => {
+                  this.setState({ repViewPeriod: 'custom' });
+                  this.setReportDates(e, 'custom', this.state.repPeriod);
+                }}
+              >
+                Custom
+              </button>
+            </div>
+            <div className="dateRangeLabel">
+              {this.state.repFromDate.format('DD MMM YYYY')} –{' '}
+              {this.state.repToDate.format('DD MMM YYYY')}
+            </div>
           </div>
           {this.state.isShowCustom && (
             <div
@@ -1024,86 +1045,78 @@ export class PurchaseItemsReport extends Component {
               </div>
             </div>
           )}
-          <span className="label">
-            {this.state.repFromDate.format('L')} to{' '}
-            {this.state.repToDate.format('L')}
-          </span>
         </div>
-        {this.props.posPurchaseItemsLoading ? (
-          <div className="purchaseItemsReport">Loading information ...</div>
-        ) : (
-          <div className="purchaseItemsReport">
-            <div className="reportIcons">
-              <ReactToPrint
-                trigger={() => (
-                  <PrinterIcon className="icon icon-svg tablePrint" />
-                )}
-                content={() => this.tableComponentRef.current}
-                onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
-              />
-              <CSVLink
-                className="downloadbtn"
-                filename="purchaseItems.csv"
-                data={
-                  this.state.personViewMode
-                    ? this.getDownloadDataByPerson()
-                    : this.getDownloadData()
-                }
-              >
-                <DownloadIcon className="icon icon-svg tableDownload" />
-              </CSVLink>
-              <div className="personView">
-                <label htmlFor="personMode">Show By Person</label>
-                <div className="checkboxFilter">
-                  <input
-                    id="personViewMode"
-                    type="checkbox"
-                    value="0"
-                    onChange={e => {
-                      var newMode = !this.state.personViewMode;
+        <div className="purchaseItemsReport">
+          <div className="reportIcons">
+            <ReactToPrint
+              trigger={() => (
+                <PrinterIcon className="icon icon-svg tablePrint" />
+              )}
+              content={() => this.tableComponentRef.current}
+              onBeforePrint={() => new Promise(r => setTimeout(r, 1000))}
+            />
+            <CSVLink
+              className="downloadbtn"
+              filename="purchaseItems.csv"
+              data={
+                this.state.personViewMode
+                  ? this.getDownloadDataByPerson()
+                  : this.getDownloadData()
+              }
+            >
+              <DownloadIcon className="icon icon-svg tableDownload" />
+            </CSVLink>
+            <div className="personView">
+              <label htmlFor="personMode">Show By Person</label>
+              <div className="checkboxFilter">
+                <input
+                  id="personViewMode"
+                  type="checkbox"
+                  value="0"
+                  onChange={e => {
+                    var newMode = !this.state.personViewMode;
 
-                      var data = this.getData(
+                    var data = this.getData(
+                      this.state.posPurchaseItems,
+                      this.state.posProducts,
+                    );
+                    var columns = this.getColumns();
+                    if (newMode) {
+                      data = this.getDataByPerson(
                         this.state.posPurchaseItems,
                         this.state.posProducts,
                       );
-                      var columns = this.getColumns();
-                      if (newMode) {
-                        data = this.getDataByPerson(
-                          this.state.posPurchaseItems,
-                          this.state.posProducts,
-                        );
-                        columns = this.getColumnsByPerson();
-                      }
-                      this.setState({
-                        personViewMode: newMode,
-                        data: data,
-                        columns: columns,
-                      });
-                    }}
-                  />
-                  <label htmlFor="personViewMode" />
-                </div>
-                {}
+                      columns = this.getColumnsByPerson();
+                    }
+                    this.setState({
+                      personViewMode: newMode,
+                      data: data,
+                      columns: columns,
+                    });
+                  }}
+                />
+                <label htmlFor="personViewMode" />
               </div>
+              {}
             </div>
-            <ReactTable
-              ref={this.tableComponentRef}
-              columns={
-                this.state.personViewMode
-                  ? this.getColumnsByPerson()
-                  : this.getColumns()
-              }
-              data={this.state.data}
-              className="-striped -highlight"
-              defaultPageSize={
-                this.state.data.length > 0 ? this.state.data.length : 2
-              }
-              pageSize={this.state.data.length > 0 ? this.state.data.length : 2}
-              showPagination={false}
-            />
-            <br />
           </div>
-        )}
+          <ReactTable
+            ref={this.tableComponentRef}
+            columns={
+              this.state.personViewMode
+                ? this.getColumnsByPerson()
+                : this.getColumns()
+            }
+            data={this.state.data}
+            className="-striped -highlight"
+            defaultPageSize={
+              this.state.data.length > 0 ? this.state.data.length : 2
+            }
+            pageSize={this.state.data.length > 0 ? this.state.data.length : 2}
+            showPagination={false}
+          />
+          <br />
+        </div>
       </span>
     );
   }

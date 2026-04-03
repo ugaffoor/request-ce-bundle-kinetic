@@ -101,6 +101,8 @@ export class BamboraActivate extends Component {
         return startDate.add(7, 'days');
       case 'Fortnightly':
         return startDate.add(14, 'days');
+      case '4 Weekly':
+        return startDate.add(28, 'days');
       case 'Monthly':
         return startDate.add(1, 'months');
       case 'Quarterly':

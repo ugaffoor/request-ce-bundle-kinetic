@@ -567,18 +567,22 @@ class PayNow extends Component {
     posServiceURL,
     spaceSlug,
     posSystem,
+    customerId,
     currency,
     amount,
     email,
+    description,
   ) => {
     var clientSecret = 'NOT_FOUND';
     var data = JSON.stringify({
       space: spaceSlug,
       billingService: posSystem,
       type: 'payment',
+      customerId: customerId,
       currency: currency,
       amount: amount,
       email: email,
+      subscriptionType: description,
     });
 
     var config = {
@@ -621,6 +625,7 @@ class PayNow extends Component {
     posServiceURL,
     spaceSlug,
     posSystem,
+    customerId,
     schoolName,
     uuid,
     posThis,
@@ -632,9 +637,11 @@ class PayNow extends Component {
         posServiceURL,
         spaceSlug,
         posSystem,
+        customerId,
         posThis.props.currency,
         posThis.state.total,
         posThis.state.email,
+        schoolName + ' POS',
       );
 
       if (clientSecret === 'NOT_FOUND') {
@@ -712,14 +719,22 @@ class PayNow extends Component {
       };
       axios(config)
         .then(function(response) {
-          var data = JSON.parse(response.data.data);
+          var data =
+            response.data.data !== null
+              ? JSON.parse(response.data.data)
+              : response.data;
           posThis.setState({
             status:
-              data['status'] === 'succeeded' || data['status'] === 'processing'
+              data['status'] !== undefined &&
+              (data['status'] === 'succeeded' ||
+                data['status'] === 'processing')
                 ? '1'
-                : data['status'],
-            status_message: data['status_message'],
-            errors: data['errors'],
+                : 'Error',
+            status_message:
+              data['status'] !== undefined
+                ? data['status_message']
+                : data['errorMessage'],
+            errors: data['errorMessage'],
             auth_code: data['auth_code'],
             transaction_id: data['transaction_id'],
             processingComplete: true,
@@ -909,23 +924,37 @@ class PayNow extends Component {
   }
 
   processPayment() {
+    var billingSystem = getAttributeValue(this.props.space, 'Billing Company');
     var posSystem = getAttributeValue(this.props.space, 'POS System');
     var posServiceURL = getAttributeValue(this.props.space, 'POS Service URL');
     var schoolName = getAttributeValue(this.props.space, 'School Name');
-    if (posSystem === 'Bambora') {
+
+    if (
+      posSystem === 'Bambora' ||
+      (posSystem === 'Stripe' &&
+        billingSystem === 'Bambora' &&
+        this.state.payment === 'useSavedCreditCard') ||
+      (posSystem === 'StripeTerminal' &&
+        billingSystem === 'Bambora' &&
+        this.state.payment === 'useSavedCreditCard') ||
+      (posSystem === 'Square' && billingSystem === 'Bambora')
+    ) {
       this.processBamboraPayment(
         posServiceURL,
         this.props.spaceSlug,
-        posSystem,
+        'Bambora',
         schoolName,
         uuid(),
         this,
       );
-    } else if (posSystem === 'Stripe') {
+    } else if (billingSystem === 'Stripe') {
       this.processStripePayment(
         posServiceURL,
         this.props.spaceSlug,
-        posSystem,
+        billingSystem,
+        this.state.memberItem.values['Billing Customer Id'].includes('cus_')
+          ? this.state.memberItem.values['Billing Customer Id']
+          : undefined,
         schoolName,
         uuid(),
         this,
@@ -1675,10 +1704,11 @@ class PayNow extends Component {
       } else if (discoverResult.discoveredReaders.length === 0) {
         console.log('No available readers.');
         posThis.setState({
-          status: '1',
+          status: '0',
+          //Unus          deviceStatus: 'ERROR',
           deviceStatus: 'CAPTURE',
-          status_message:
-            'No readers have been detected. Please ensure you have a Terminal configured against your location.',
+          status_message: undefined,
+          //Unus            'No readers have been detected. Please ensure you have a Terminal configured against your location.',
         });
       } else {
         discoveredReaders = discoverResult.discoveredReaders;
@@ -1830,8 +1860,10 @@ class PayNow extends Component {
                         payment: undefined,
                       });
                       if (
-                        getAttributeValue(this.props.space, 'POS System') ===
-                        'Bambora'
+                        getAttributeValue(
+                          this.props.space,
+                          'Billing Company',
+                        ) === 'Bambora'
                       ) {
                         if (
                           posProfileID !== undefined &&
@@ -1946,12 +1978,12 @@ class PayNow extends Component {
                   </div>
                 </span>
               </span>
-              {getAttributeValue(this.props.space, 'POS System') ===
+              {getAttributeValue(this.props.space, 'Billing Company') ===
                 'Bambora' && this.props.posAutoCreateCardProcessing ? (
                 <span className="paymentType">
                   <div className="label">Auto Creating Saved Card...</div>
                 </span>
-              ) : getAttributeValue(this.props.space, 'POS System') ===
+              ) : getAttributeValue(this.props.space, 'Billing Company') ===
                 'Bambora' &&
               this.state.posProfileID !== undefined &&
               this.state.posProfileID !== null &&
@@ -2025,18 +2057,164 @@ class PayNow extends Component {
                           Update Credit Card
                         </label>
                       */}
-                      <label htmlFor="useAnotherCreditCard" className="radio">
-                        <input
-                          id="useAnotherCreditCard"
-                          name="savedcard"
-                          type="radio"
-                          onChange={e => {
-                            this.setState({ payment: 'creditcard' });
-                          }}
-                          onClick={async e => {}}
-                        />
-                        Use Another Credit Card
-                      </label>
+                      {(getAttributeValue(this.props.space, 'POS System') ===
+                        'Bambora' ||
+                        getAttributeValue(this.props.space, 'POS System') ===
+                          'Stripe') && (
+                        <label htmlFor="useAnotherCreditCard" className="radio">
+                          <input
+                            id="useAnotherCreditCard"
+                            name="savedcard"
+                            type="radio"
+                            onChange={e => {
+                              this.setState({ payment: 'creditcard' });
+                            }}
+                            onClick={async e => {}}
+                          />
+                          Use Another Credit Card
+                        </label>
+                      )}
+                      {getAttributeValue(this.props.space, 'POS System') ===
+                        'Square' && (
+                        <label htmlFor="capture" className="radio">
+                          <input
+                            id="capture"
+                            name="cardpayment"
+                            type="radio"
+                            disabled={this.disablePaymentType()}
+                            value="Capture"
+                            onChange={e => {
+                              this.setState({
+                                payment: 'capture',
+                                squareCheckoutStatus: '',
+                                processingComplete: false,
+                              });
+                            }}
+                            onClick={async e => {
+                              var url = getAttributeValue(
+                                this.props.space,
+                                'POS Service URL',
+                              );
+                              url = url.replace('processPOS', 'pairedDevice');
+                              var args = {
+                                space: this.props.space.slug,
+                                billingService: getAttributeValue(
+                                  this.props.space,
+                                  'POS System',
+                                ),
+                              };
+                              axios
+                                .post(url, args)
+                                .then(result => {
+                                  if (result.data.error === 100) {
+                                    this.createDeviceID();
+                                  } else {
+                                    var data = result.data.data;
+                                    this.setState({
+                                      squareDevice: data.id,
+                                      terminalCode: data.code,
+                                      deviceStatus: data.status,
+                                      status_message: undefined,
+                                    });
+
+                                    this.processSquareCheckout();
+                                  }
+                                })
+                                .catch(error => {
+                                  console.log(error.response);
+                                });
+                            }}
+                          />
+                          Capture
+                        </label>
+                      )}
+                      {getAttributeValue(this.props.space, 'POS System') ===
+                        'StripeTerminal' && (
+                        <Elements
+                          stripe={loadStripe(
+                            getAttributeValue(
+                              this.props.space,
+                              'POS Stripe Publishable Key',
+                            ),
+                            /*                          {
+                              stripeAccount: getAttributeValue(
+                                this.props.space,
+                                'Stripe Account ID',
+                              ),
+                            },*/
+                          )}
+                        >
+                          <label htmlFor="captureStripe" className="radio">
+                            <input
+                              id="captureStripe"
+                              name="cardpayment"
+                              type="radio"
+                              checked={
+                                this.state.payment !== undefined &&
+                                this.state.payment === 'capture'
+                              }
+                              disabled={this.disablePaymentType()}
+                              value="Capture"
+                              onChange={e => {
+                                this.setState({
+                                  payment: 'capture',
+                                  squareCheckoutStatus: '',
+                                  processingComplete: false,
+                                  paymentIntentId: undefined,
+                                });
+                              }}
+                              onClick={async e => {
+                                StripeTerminal = await loadStripeTerminal();
+                                terminal = StripeTerminal.create({
+                                  onFetchConnectionToken: async () => {
+                                    var url = getAttributeValue(
+                                      this.props.space,
+                                      'POS Service URL',
+                                    );
+                                    url = url.replace(
+                                      'processPOS',
+                                      'pairedDevice',
+                                    );
+                                    var args = {
+                                      space: this.props.space.slug,
+                                      billingService: 'Stripe',
+                                    };
+
+                                    const bodyContent = JSON.stringify(args);
+                                    return fetch(url, {
+                                      method: 'POST',
+                                      headers: {
+                                        'Content-Type': 'application/json',
+                                      },
+                                      body: bodyContent,
+                                    })
+                                      .then(function(response) {
+                                        return response.json();
+                                      })
+                                      .then(function(data) {
+                                        data = JSON.parse(data.data);
+                                        if (data.error === 100) {
+                                          this.setState({
+                                            deviceStatus: 'ERROR',
+                                            status_message:
+                                              'Unable to connect to Terminal server',
+                                          });
+                                        } else {
+                                          return data.secret;
+                                        }
+                                      });
+                                  },
+                                  onUnexpectedReaderDisconnect: this
+                                    .unexpectedDisconnect,
+                                });
+
+                                this.stripeTerminalDiscoverReaderHandler();
+                              }}
+                            />
+                            Capture
+                          </label>
+                        </Elements>
+                      )}
                       <label htmlFor="cash" className="radio">
                         <input
                           id="cash"
@@ -2063,10 +2241,8 @@ class PayNow extends Component {
                 <span className="paymentType">
                   <div className="label">Payment Type</div>
                   <div className="radioGroup">
-                    {(getAttributeValue(this.props.space, 'POS System') ===
-                      'Stripe' ||
-                      getAttributeValue(this.props.space, 'POS System') ===
-                        'StripeTerminal') &&
+                    {getAttributeValue(this.props.space, 'Billing Company') ===
+                      'Stripe' &&
                       this.state.memberItem !== undefined &&
                       this.state.memberItem.values['Billing Customer Id'] !==
                         undefined &&
@@ -2205,6 +2381,7 @@ class PayNow extends Component {
                                 squareCheckoutStatus: '',
                                 processingComplete: false,
                                 paymentIntentId: undefined,
+                                status_message: undefined,
                               });
                             }}
                             onClick={async e => {
@@ -2304,7 +2481,7 @@ class PayNow extends Component {
                 <span className="capture">
                   <PairingIcon
                     className={
-                      'posPairing icon icon-svg' +
+                      'posPairing icon icon-svg ' +
                       this.state.deviceStatus +
                       ' S' +
                       (verifyDeviceCount % 2)
@@ -2313,13 +2490,13 @@ class PayNow extends Component {
                   {this.state.squareCheckoutStatus === 'CANCELED' && (
                     <p>Transaction cancelled...</p>
                   )}
-                  {this.state.status_message !== undefined && (
+                  {!!this.state.status_message && (
                     <p>An error has ocurred: {this.state.status_message}</p>
                   )}
                   {this.state.deviceStatus === 'CAPTURE' && (
                     <div>
                       <p>
-                        Please enter you terminal pairing code then click to
+                        Please enter your terminal pairing code then click to
                         Pair
                       </p>
                       <input
@@ -2393,7 +2570,7 @@ class PayNow extends Component {
                   {this.state.squareCheckoutStatus === 'CANCELED' && (
                     <p>Customer cancelled transaction...</p>
                   )}
-                  {this.state.status_message !== undefined && (
+                  {!!this.state.status_message && (
                     <p>An error has ocurred: {this.state.status_message}</p>
                   )}
                 </span>
@@ -5055,7 +5232,7 @@ export const ProShopContainer = compose(
       });
 
       if (
-        getAttributeValue(this.props.space, 'POS System') === 'Bambora' &&
+        getAttributeValue(this.props.space, 'Billing Company') === 'Bambora' &&
         this.props.SUCCESSFULpaymentHistory.length === 0
       ) {
         this.props.fetchPaymentHistory({

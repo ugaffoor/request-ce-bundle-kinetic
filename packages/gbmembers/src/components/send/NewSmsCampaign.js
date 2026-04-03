@@ -9,6 +9,7 @@ import {
 } from 'recompose';
 import { actions } from '../../redux/modules/campaigns';
 import $ from 'jquery';
+import '../helpers/jquery.multiselect.js';
 import NumberFormat from 'react-number-format';
 import 'react-datetime/css/react-datetime.css';
 import moment from 'moment';
@@ -106,6 +107,9 @@ export class NewSmsCampaign extends Component {
       disableCreateCampaign: true,
       sendingSMSCampaign: false,
       showManageNumbersModal: false,
+      selectMember: false,
+      selectedSpecificMembers: [],
+      specificMemberPhoneNumbers: [],
     };
   }
 
@@ -153,6 +157,15 @@ export class NewSmsCampaign extends Component {
     if (this.props.submissionType === 'class') {
       this.updateCreditsRequired();
     }
+  }
+
+  componentDidUpdate() {
+    $(this.refs.specificMembersDiv)
+      .find('select')
+      .multiselect({
+        texts: { placeholder: 'Select Members' },
+        search: true,
+      });
   }
 
   getSelectOptions(memberLists, allMembers) {
@@ -220,6 +233,22 @@ export class NewSmsCampaign extends Component {
     });
 
     return options;
+  }
+
+  getPhoneNumbersForSpecificMembers(memberIds) {
+    return memberIds.reduce((acc, id) => {
+      const member = this.props.allMembers.find(m => m.id === id);
+      if (!member) return acc;
+      const numbersMap = {
+        id: member.id,
+        number: member.values['Phone Number'],
+      };
+      if (member.values['Additional Phone Number']) {
+        numbersMap.additionalNumber = member.values['Additional Phone Number'];
+      }
+      acc.push(numbersMap);
+      return acc;
+    }, []);
   }
 
   getSelectLeadOptions(leadLists, allLeads) {
@@ -388,16 +417,9 @@ export class NewSmsCampaign extends Component {
 
   updateCreditsRequired = () => {
     let phoneNumbers = [];
-    let options;
 
-    options =
-      this.props.submissionType === 'member'
-        ? this.state.selectedOption
-        : this.props.submissionType === 'lead'
-          ? this.state.selectedLeadOption
-          : this.state.selectedClassOption;
-    options.forEach(option => {
-      option.phoneNumbers.forEach(phoneNumber => {
+    if (this.state.selectedSpecificMembers.length > 0) {
+      this.state.specificMemberPhoneNumbers.forEach(phoneNumber => {
         if (!phoneNumber.primaryDeleted) {
           phoneNumbers.push(phoneNumber.number);
         }
@@ -405,7 +427,24 @@ export class NewSmsCampaign extends Component {
           phoneNumbers.push(phoneNumber.additionalNumber);
         }
       });
-    });
+    } else {
+      const options =
+        this.props.submissionType === 'member'
+          ? this.state.selectedOption
+          : this.props.submissionType === 'lead'
+            ? this.state.selectedLeadOption
+            : this.state.selectedClassOption;
+      options.forEach(option => {
+        option.phoneNumbers.forEach(phoneNumber => {
+          if (!phoneNumber.primaryDeleted) {
+            phoneNumbers.push(phoneNumber.number);
+          }
+          if (phoneNumber.additionalNumber && !phoneNumber.secondaryDeleted) {
+            phoneNumbers.push(phoneNumber.additionalNumber);
+          }
+        });
+      });
+    }
 
     let uniquePhoneNumbers = new Set(phoneNumbers);
     let creditsRequired =
@@ -477,26 +516,35 @@ export class NewSmsCampaign extends Component {
     let ids = [];
     let phoneNumbers = [];
 
-    let options =
-      this.props.submissionType === 'member'
-        ? this.state.selectedOption
-        : this.props.submissionType === 'lead'
-          ? this.state.selectedLeadOption
-          : this.state.selectedClassOption;
+    if (this.state.selectedSpecificMembers.length > 0) {
+      ids = this.state.selectedSpecificMembers;
+      phoneNumbers = this.getPhoneNumbersForSpecificMembers(ids).map(n => ({
+        id: n.id,
+        number: n.number,
+        ...(n.additionalNumber ? { additionalNumber: n.additionalNumber } : {}),
+      }));
+    } else {
+      let options =
+        this.props.submissionType === 'member'
+          ? this.state.selectedOption
+          : this.props.submissionType === 'lead'
+            ? this.state.selectedLeadOption
+            : this.state.selectedClassOption;
 
-    options.forEach(option => {
-      option.phoneNumbers.forEach(phoneNumber => {
-        let obj = { id: phoneNumber.id };
-        if (!phoneNumber.primaryDeleted) {
-          obj.number = phoneNumber.number;
-        }
-        if (phoneNumber.additionalNumber && !phoneNumber.secondaryDeleted) {
-          obj.additionalNumber = phoneNumber.additionalNumber;
-        }
-        phoneNumbers.push(obj);
+      options.forEach(option => {
+        option.phoneNumbers.forEach(phoneNumber => {
+          let obj = { id: phoneNumber.id };
+          if (!phoneNumber.primaryDeleted) {
+            obj.number = phoneNumber.number;
+          }
+          if (phoneNumber.additionalNumber && !phoneNumber.secondaryDeleted) {
+            obj.additionalNumber = phoneNumber.additionalNumber;
+          }
+          phoneNumbers.push(obj);
+        });
+        ids.push(...option.ids);
       });
-      ids.push(...option.ids);
-    });
+    }
 
     if (ids.length <= 0) {
       console.log('Selected member list contains no members');
@@ -591,7 +639,7 @@ export class NewSmsCampaign extends Component {
         <div
           className="row form-group mb-0"
           style={{
-            height: '100px',
+            height: 'auto',
             backgroundColor: '#f7f7f7',
             paddingTop: '2%',
           }}
@@ -604,7 +652,97 @@ export class NewSmsCampaign extends Component {
               : 'Leads'}
           </label>
           <div className="col-sm-5 col-form-label">
-            {this.props.submissionType === 'member' ? (
+            {this.props.submissionType === 'member' &&
+            this.state.selectMember ? (
+              <div className="row">
+                <div className="col">
+                  <fieldset
+                    className="scheduler-border"
+                    style={{ position: 'relative' }}
+                  >
+                    <legend className="scheduler-border">
+                      Specific Members
+                    </legend>
+                    <div
+                      className="form-group form-inline"
+                      ref="specificMembersDiv"
+                    >
+                      <label htmlFor="specificMembers">
+                        Specific Members (Except Inactive)&nbsp;
+                      </label>
+                      <div style={{ marginBottom: '4px', marginRight: '4px' }}>
+                        <label
+                          style={{ fontWeight: 'normal', cursor: 'pointer' }}
+                        >
+                          <input
+                            type="checkbox"
+                            style={{ marginRight: '6px' }}
+                            onChange={e => {
+                              const allIds = this.props.allMembers
+                                .filter(m => m.values['Status'] !== 'Inactive')
+                                .map(m => m.id);
+                              const val = e.target.checked ? allIds : [];
+                              const isChecked = e.target.checked;
+                              this.setState(
+                                {
+                                  selectedSpecificMembers: val,
+                                  specificMemberPhoneNumbers: this.getPhoneNumbersForSpecificMembers(
+                                    val,
+                                  ),
+                                },
+                                () => {
+                                  $('#specificMembers option').prop(
+                                    'selected',
+                                    isChecked,
+                                  );
+                                  $(this.refs.specificMembersDiv)
+                                    .find('select')
+                                    .multiselect('reload');
+                                  this.updateCreditsRequired();
+                                },
+                              );
+                            }}
+                          />
+                          Select All
+                        </label>
+                      </div>
+                      <select
+                        className="form-control"
+                        multiple
+                        id="specificMembers"
+                        style={{ height: 'auto' }}
+                        onChange={e => {
+                          const val = Array.from(e.target.selectedOptions).map(
+                            o => o.value,
+                          );
+                          this.setState({ selectedSpecificMembers: val });
+                        }}
+                      >
+                        {this.props.allMembers
+                          .filter(m => m.values['Status'] !== 'Inactive')
+                          .sort((a, b) => {
+                            const aName =
+                              (a.values['Last Name'] || '') +
+                              (a.values['First Name'] || '');
+                            const bName =
+                              (b.values['Last Name'] || '') +
+                              (b.values['First Name'] || '');
+                            return aName < bName ? -1 : aName > bName ? 1 : 0;
+                          })
+                          .map(member => (
+                            <option key={member.id} value={member.id}>
+                              {member.values['Last Name'] +
+                                ' ' +
+                                member.values['First Name']}
+                            </option>
+                          ))}
+                      </select>
+                      <div className="droparrow" />
+                    </div>
+                  </fieldset>
+                </div>
+              </div>
+            ) : this.props.submissionType === 'member' ? (
               <Select
                 value={this.state.selectedOption}
                 onChange={this.handleRecipientChange}
@@ -640,18 +778,68 @@ export class NewSmsCampaign extends Component {
               </div>
             )}
           </div>
-          {this.props.submissionType === 'member' ? (
-            <div className="col-sm-3">
+          {this.props.submissionType === 'member' && (
+            <div className="col-sm-2">
               <button
+                type="button"
+                className="btn btn-primary"
+                style={{
+                  marginTop: '14px',
+                }}
+                onClick={() => {
+                  this.setState(prev => ({
+                    selectMember: !prev.selectMember,
+                    selectedSpecificMembers: [],
+                  }));
+                  setTimeout(() => {
+                    $('#specificMembers').on('change', () => {
+                      const val = $('#specificMembers').val() || [];
+                      this.setState(
+                        {
+                          selectedSpecificMembers: val,
+                          specificMemberPhoneNumbers: this.getPhoneNumbersForSpecificMembers(
+                            val,
+                          ),
+                        },
+                        this.updateCreditsRequired,
+                      );
+                    });
+                  }, 500);
+                }}
+              >
+                {this.state.selectMember ? 'Cancel' : 'Select Members'}
+              </button>
+            </div>
+          )}
+          {this.props.submissionType === 'member' ? (
+            <div className="col-sm-2">
+              <button
+                style={{
+                  marginTop: '11px',
+                }}
                 onClick={e => this.showManageNumbersModal(true)}
-                disabled={this.state.selectedOption.length > 0 ? false : true}
+                disabled={
+                  this.state.selectedOption.length === 0 &&
+                  this.state.selectedSpecificMembers.length === 0
+                }
               >
                 Manage Numbers
               </button>
               {this.state.showManageNumbersModal && (
                 <ManageNumbersModal
                   users={this.props.allMembers}
-                  options={this.state.selectedOption}
+                  options={
+                    this.state.selectedSpecificMembers.length > 0
+                      ? [
+                          {
+                            value: '__specific_members__',
+                            label: 'Specific Members',
+                            ids: this.state.selectedSpecificMembers,
+                            phoneNumbers: this.state.specificMemberPhoneNumbers,
+                          },
+                        ]
+                      : this.state.selectedOption
+                  }
                   showManageNumbersModal={this.showManageNumbersModal}
                   updateCreditsRequired={this.updateCreditsRequired}
                   space={this.props.space}
@@ -661,6 +849,9 @@ export class NewSmsCampaign extends Component {
           ) : this.props.submissionType === 'lead' ? (
             <div className="col-sm-3">
               <button
+                style={{
+                  marginTop: '11px',
+                }}
                 onClick={e => this.showManageNumbersModal(true)}
                 disabled={
                   this.state.selectedLeadOption.length > 0 ? false : true
@@ -682,6 +873,9 @@ export class NewSmsCampaign extends Component {
             <div className="col-sm-3">
               <button
                 onClick={e => this.showManageNumbersModal(true)}
+                style={{
+                  marginTop: '11px',
+                }}
                 disabled={
                   this.state.selectedClassOption.length > 0 ? false : true
                 }

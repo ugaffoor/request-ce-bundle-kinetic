@@ -359,6 +359,24 @@ export class EditAttributeValue extends Component {
               </label>
               <input
                 type="checkbox"
+                id={this.props.attributeID + 'Attribute' + '4 Weekly'}
+                value="4 Weekly"
+                checked={
+                  this.state.value.indexOf('4 Weekly') !== -1 ? true : false
+                }
+                name={this.props.attributeID + 'Attribute' + '4 Weekly'}
+                onChange={e => {
+                  this.toggleArrayValue(this.state.value, e.target.value);
+                }}
+              />
+              <label
+                htmlFor={this.props.attributeID + 'Attribute' + '4 Weekly'}
+              >
+                <I18n>4 Weekly</I18n>
+              </label>
+
+              <input
+                type="checkbox"
                 id={this.props.attributeID + 'Attribute' + 'Monthly'}
                 value="Monthly"
                 checked={
@@ -389,8 +407,10 @@ export class EditAttributeValue extends Component {
               >
                 <I18n>Quarterly</I18n>
               </label>
-              {getAttributeValue(this.props.space, 'Billing Company') ===
-                'Bambora' && (
+              {(getAttributeValue(this.props.space, 'Billing Company') ===
+                'Bambora' ||
+                getAttributeValue(this.props.space, 'Billing Company') ===
+                  'Stripe') && (
                 <span>
                   <input
                     type="checkbox"
@@ -411,8 +431,10 @@ export class EditAttributeValue extends Component {
                   </label>
                 </span>
               )}
-              {getAttributeValue(this.props.space, 'Billing Company') ===
-                'Bambora' && (
+              {(getAttributeValue(this.props.space, 'Billing Company') ===
+                'Bambora' ||
+                getAttributeValue(this.props.space, 'Billing Company') ===
+                  'Stripe') && (
                 <span>
                   <input
                     type="checkbox"
@@ -433,8 +455,10 @@ export class EditAttributeValue extends Component {
                   </label>
                 </span>
               )}
-              {getAttributeValue(this.props.space, 'Billing Company') ===
-                'Bambora' && (
+              {(getAttributeValue(this.props.space, 'Billing Company') ===
+                'Bambora' ||
+                getAttributeValue(this.props.space, 'Billing Company') ===
+                  'Stripe') && (
                 <span>
                   <input
                     type="checkbox"
