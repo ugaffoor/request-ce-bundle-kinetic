@@ -28,7 +28,7 @@
 
 // Wrapper for React icons
 .icon-wrapper {
-  display: flex;
+  display: flex !important;
   align-items: center;
   .icon {
     display: flex;

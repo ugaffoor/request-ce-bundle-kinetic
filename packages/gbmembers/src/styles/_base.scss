@@ -1,8 +1,8 @@
 body {
-  font-family: 'AdiHaus DIN Regular';
+  font-family: 'AdiHaus DIN Regular' !important;
   background-color: #f7f7f7;
   user-select: text;
-  background: unset;
+  background: unset !important;
 }
 
 .nav-link:focus,

@@ -3,9 +3,12 @@ import 'font-awesome/css/font-awesome.css';
 import 'typeface-open-sans/index.css';
 import 'common/src/assets/styles/master.scss';
 import './assets/styles/master.scss';
-import React, { Fragment } from 'react';
+import 'space/src/assets/styles/master.scss';
+import 'gbmembers/src/styles/master.scss';
+import React, { Fragment, lazy } from 'react';
 import { connect } from 'react-redux';
 import { compose, lifecycle, withHandlers, withProps } from 'recompose';
+import { matchPath } from 'react-router';
 import Sidebar from 'react-sidebar';
 import { Utils, ToastsContainer, ModalFormContainer } from 'common';
 import { LoginModal } from './components/authentication/LoginModal';
@@ -14,13 +17,26 @@ import { actions as loadingActions } from './redux/modules/loading';
 import { actions as journeyeventsActions } from './redux/modules/journeyevents';
 import { actions as helpActions } from './redux/modules/help';
 import { actions as layoutActions } from './redux/modules/layout';
-import { App as ServicesApp } from 'services/src/App';
-import { App as RegistrationsApp } from 'registrations/src/App';
-import { App as QueueApp } from 'queue/src/App';
-import { App as SpaceApp } from 'space/src/App';
-import { AppContainer as MemberApp } from 'gbmembers/src/components/AppContainer';
 //import Favicon from "react-favicon";
 import { Helmet } from 'react-helmet';
+
+const ServicesApp = lazy(() =>
+  import('services/src/App').then(m => ({ default: m.App })),
+);
+const RegistrationsApp = lazy(() =>
+  import('registrations/src/App').then(m => ({ default: m.App })),
+);
+const QueueApp = lazy(() =>
+  import('queue/src/App').then(m => ({ default: m.App })),
+);
+const SpaceApp = lazy(() =>
+  import('space/src/App').then(m => ({ default: m.App })),
+);
+const MemberApp = lazy(() =>
+  import('gbmembers/src/components/AppContainer').then(m => ({
+    default: m.AppContainer,
+  })),
+);
 
 require('react-dom');
 /*window.React2 = require('react');
@@ -117,21 +133,39 @@ export const mapDispatchToProps = {
   setSuppressedSidebarOpen: layoutActions.setSuppressedSidebarOpen,
 };
 
+const APP_METADATA = {
+  services: {
+    shouldSuppressSidebar: (pathname, kappSlug) => {
+      if (window.matchMedia('(max-width: 767px)').matches) {
+        return matchPath(pathname, {
+          path: `/kapps/${kappSlug}`,
+          exact: false,
+        });
+      }
+      return undefined;
+    },
+  },
+  registrations: {
+    shouldSuppressSidebar: (pathname, kappSlug) =>
+      matchPath(pathname, { path: `/kapps/${kappSlug}`, exact: false }),
+  },
+};
+
 const getAppProvider = kapp => {
   const bundlePackage = kapp
     ? Utils.getAttributeValue(kapp, 'Bundle Package', kapp.slug)
-    : SpaceApp;
+    : 'space';
   switch (bundlePackage) {
     case 'services':
-      return ServicesApp;
+      return { Component: ServicesApp, meta: APP_METADATA.services };
     case 'registrations':
-      return RegistrationsApp;
+      return { Component: RegistrationsApp, meta: APP_METADATA.registrations };
     case 'queue':
-      return QueueApp;
+      return { Component: QueueApp, meta: {} };
     case 'gbmembers':
-      return MemberApp;
+      return { Component: MemberApp, meta: {} };
     default:
-      return SpaceApp;
+      return { Component: SpaceApp, meta: {} };
   }
 };
 
@@ -141,21 +175,21 @@ export const App = compose(
     mapDispatchToProps,
   ),
   withProps(props => {
-    const AppProvider = getAppProvider(
+    const { Component: AppProvider, meta } = getAppProvider(
       props.kapps.find(kapp => kapp.slug === props.kappSlug),
     );
     const shouldSuppressSidebar =
-      AppProvider.shouldSuppressSidebar &&
-      AppProvider.shouldSuppressSidebar(props.pathname, props.kappSlug);
+      meta.shouldSuppressSidebar &&
+      meta.shouldSuppressSidebar(props.pathname, props.kappSlug);
     const sidebarOpen = shouldSuppressSidebar
       ? props.suppressedSidebarOpen
       : props.sidebarOpen;
     const headerHidden =
-      AppProvider.shouldHideHeader &&
-      AppProvider.shouldHideHeader(props.pathname, props.kappSlug);
+      meta.shouldHideHeader &&
+      meta.shouldHideHeader(props.pathname, props.kappSlug);
     const sidebarHidden =
-      AppProvider.shouldHideSidebar &&
-      AppProvider.shouldHideSidebar(props.pathname, props.kappSlug);
+      meta.shouldHideSidebar &&
+      meta.shouldHideSidebar(props.pathname, props.kappSlug);
     return {
       AppProvider,
       shouldSuppressSidebar,

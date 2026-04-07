@@ -671,12 +671,18 @@
             cursor: pointer;
           }
         }
-        .sizeElement.soldout label {
-          border-color: rgba(51, 51, 51, 0.35);
-          background: url(//cdn.shopify.com/s/files/1/0035/4356/4397/t/10/assets/sold-out-line.svg?v=5995001665486659450)
-            center center no-repeat;
-          background-size: cover;
-          overflow: hidden;
+        .sizeElement.soldout {
+          label {
+            border-color: rgba(51, 51, 51, 0.35);
+            background: url(//cdn.shopify.com/s/files/1/0035/4356/4397/t/10/assets/sold-out-line.svg?v=5995001665486659450)
+              center center no-repeat;
+            background-size: cover;
+            overflow: hidden;
+          }
+
+          input:checked + label {
+            color: red;
+          }
         }
       }
     }

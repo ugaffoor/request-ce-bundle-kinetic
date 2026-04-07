@@ -70,8 +70,8 @@
   padding: 0;
   width: 22.5rem;
   a {
-    color: $blue1;
-    text-decoration: none;
+    color: $blue1 !important;
+    text-decoration: none !important;
   }
   .events-header {
     align-items: center;

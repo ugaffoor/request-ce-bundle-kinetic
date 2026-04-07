@@ -2,6 +2,30 @@
 //   Modular Scale
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+// Override Bootstrap's compiled .btn-primary active/focus states.
+// Bootstrap pre-compiles from $primary: #007bff into hardcoded values (#0069d9
+// for :active). CSS custom properties can't fix this. We use `body` prefix to
+// raise specificity above Bootstrap's own !important rule in later-injected chunks.
+:root {
+  --primary: #313e47;
+}
+body .btn-primary:not(:disabled):not(.disabled):active,
+body .btn-primary:not(:disabled):not(.disabled).active,
+body .show > .btn-primary.dropdown-toggle {
+  background-color: darken(#313e47, 10%) !important;
+  border-color: darken(#313e47, 12%) !important;
+}
+body .btn-primary:focus,
+body .btn-primary.focus {
+  background-color: darken(#313e47, 10%) !important;
+  box-shadow: 0 0 0 0.2rem rgba(#313e47, 0.5) !important;
+}
+body .btn-primary:disabled,
+body .btn-primary.disabled {
+  background-color: darken(#313e47, 10%) !important;
+  border-color: darken(#313e47, 12%) !important;
+}
+
 // Temporary stuff that the developers are unsure of where to place in the sass structure
 
 // Basehold.it
@@ -104,7 +128,7 @@ ins {
 }
 input,
 textarea {
-  font-size: initial;
+  font-size: initial !important;
   -webkit-text-fill-color: #000;
   -webkit-transform: translateZ(0px);
 }
