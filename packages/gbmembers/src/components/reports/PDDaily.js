@@ -884,6 +884,13 @@ export class PDDailyReport extends Component {
     return leadsData;
   }
 
+  navigateReportPeriod(direction) {
+    const newStart = moment(this.state.startOfWeek).add(direction, 'weeks');
+    const newEnd = moment(this.state.endOfWeek).add(direction, 'weeks');
+    const data = this.getData(this.state.leads, newStart, newEnd);
+    this.setState({ startOfWeek: newStart, endOfWeek: newEnd, data });
+  }
+
   getColumns(data) {
     const columns = [
       { accessor: 'label', Header: 'Report' },
@@ -915,54 +922,27 @@ export class PDDailyReport extends Component {
         >
           <h6>PD Daily Report</h6>
           <div className="dateSettings">
-            <button
-              type="button"
-              className="btn btn-primary report-btn-default"
-              onClick={e => {
-                let startOfWeek = this.state.startOfWeek.subtract(7, 'days');
-                let endOfWeek = this.state.endOfWeek.subtract(7, 'days');
-                let data = this.getData(
-                  this.state.leads,
-                  startOfWeek,
-                  endOfWeek,
-                );
-                this.setState({
-                  data: data,
-                  startOfWeek: startOfWeek,
-                  endOfWeek: endOfWeek,
-                });
-              }}
-            >
-              Previous Week
-            </button>
-            <h6>
-              {this.state.startOfWeek.format('L')} to{' '}
-              {this.state.endOfWeek.format('L')}
-            </h6>
-            <button
-              type="button"
-              className="btn btn-primary report-btn-default"
-              disabled={moment().isBetween(
-                this.state.startOfWeek,
-                this.state.endOfWeek,
-              )}
-              onClick={e => {
-                let startOfWeek = this.state.startOfWeek.add(7, 'days');
-                let endOfWeek = this.state.endOfWeek.add(7, 'days');
-                let data = this.getData(
-                  this.state.leads,
-                  startOfWeek,
-                  endOfWeek,
-                );
-                this.setState({
-                  data: data,
-                  startOfWeek: startOfWeek,
-                  endOfWeek: endOfWeek,
-                });
-              }}
-            >
-              Next Week
-            </button>
+            <div className="dateNavButtons">
+              <button
+                type="button"
+                className="btn btn-primary report-btn-default"
+                onClick={() => this.navigateReportPeriod(-1)}
+              >
+                {'< Previous Week'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary report-btn-default"
+                onClick={() => this.navigateReportPeriod(1)}
+                disabled={this.state.endOfWeek.isSameOrAfter(moment(), 'day')}
+              >
+                {'Next Week >'}
+              </button>
+            </div>
+            <div className="dateRangeLabel">
+              {this.state.startOfWeek.format('DD MMM YYYY')} –{' '}
+              {this.state.endOfWeek.format('DD MMM YYYY')}
+            </div>
           </div>
         </div>
         <ReactToPrint

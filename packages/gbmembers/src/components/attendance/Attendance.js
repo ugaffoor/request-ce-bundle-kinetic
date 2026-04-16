@@ -1109,6 +1109,7 @@ export class SelfCheckin extends Component {
                       <div className="manual">
                         <h5>OR SELECT MEMBER</h5>
                         <Select
+                          /*menuIsOpen={true}*/
                           closeMenuOnSelect={true}
                           options={this.getClassAllowedMembers()}
                           className="hide-columns-container"

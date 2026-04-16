@@ -1168,6 +1168,10 @@
         left: 61%;
       }
     }
+    .filterRow input.form-control {
+      width: 300px;
+      margin-bottom: 4px;
+    }
     .topRow,
     .secondRow {
       display: flex;

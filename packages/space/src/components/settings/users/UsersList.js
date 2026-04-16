@@ -149,7 +149,7 @@ const createCSV = users => {
       return acc;
     }, []),
   );
-  return encodeURI(csv);
+  return csv;
 };
 
 const handleChange = props => () => {
@@ -242,6 +242,9 @@ export const UsersList = compose(
   lifecycle({
     UNSAFE_componentWillMount() {
       this.props.fetchUsers();
+      if (this.props.users && this.props.users.length > 0) {
+        this.props.setData(createCSV(this.props.users));
+      }
     },
     UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.users !== nextProps.users) {

@@ -25,6 +25,13 @@
       min-height: 38rem;
     }
   }
+  .static-modal .modal-dialog .modal-content {
+    min-height: 0;
+  }
+}
+
+.static-modal .modal-dialog {
+  margin: 10% auto !important;
 }
 
 .modal-dialog {
@@ -40,6 +47,9 @@
       padding: 0;
       display: flex;
       flex-direction: column;
+      h4 {
+        margin-top: 0 !important;
+      }
       .modal-title {
         display: flex;
         justify-content: center;
@@ -179,10 +189,11 @@
 
     .modal-footer {
       padding: 0;
-      .btn.btn-primary {
+      .btn.btn-primary,
+      .btn.btn-secondary {
         flex: 1;
-        border-radius: 0;
-        padding: 1rem;
+        border-radius: 0.4rem !important;
+        padding: 1rem !important;
       }
     }
   }

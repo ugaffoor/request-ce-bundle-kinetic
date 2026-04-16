@@ -48,6 +48,7 @@ const mapDispatchToProps = {
   deleteJourneyEvent: dataStoreActions.deleteJourneyEvent,
   resetJourneyEvent: dataStoreActions.resetJourneyEvent,
   fetchLeads: leadsActions.fetchLeads,
+  fetchMembers: membersActions.fetchMembers,
   setJourneyEvents: eventsActions.setJourneyEvents,
   getAccountCredit: messagingActions.getAccountCredit,
   setAccountCredit: messagingActions.setAccountCredit,
@@ -312,7 +313,7 @@ export class CallEvent extends Component {
                   await confirm(
                     <span>
                       <span>
-                        Are your sure you want to DELETE this Call Event?
+                        Are you sure you want to DELETE this Call Event?
                       </span>
                       <table>
                         <tbody>
@@ -593,10 +594,18 @@ export const CallEventContainer = compose(
   lifecycle({
     UNSAFE_componentWillMount() {
       this.props.resetJourneyEvent();
-      if (this.props.allLeads.length === 0) {
-        this.props.fetchLeads();
+      const needsLeads = this.props.allLeads.length === 0;
+      const needsMembers =
+        this.props.allMembers.length === 0 && !this.props.membersLoading;
+      if (needsLeads || needsMembers) {
+        if (needsLeads) this.props.fetchLeads();
+        if (needsMembers)
+          this.props.fetchMembers({ memberInitialLoadComplete: false });
         this.props.setCurrentEventId('X');
-      } else if (!this.props.membersLoading) {
+      } else if (
+        this.props.allMembers.length > 0 ||
+        !this.props.membersLoading
+      ) {
         this.props.fetchJourneyEvent({
           id: this.props.eventId,
           leads: this.props.allLeads,
@@ -606,7 +615,10 @@ export const CallEventContainer = compose(
       }
     },
     UNSAFE_componentWillReceiveProps(nextProps) {
-      if (!nextProps.leadsLoading && !nextProps.membersLoading) {
+      if (
+        !nextProps.leadsLoading &&
+        (nextProps.allMembers.length > 0 || !nextProps.membersLoading)
+      ) {
         if (
           nextProps.currentEventId !== null &&
           nextProps.currentEventId !== nextProps.eventId

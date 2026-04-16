@@ -395,106 +395,102 @@ export const ReportsView = ({
             )}
           </div>
         )}
-        {!Utils.isMemberOf(profile, 'Billing') ? (
-          <div />
-        ) : (
-          <div style={{ margin: '10px' }}>
-            {/* <div className="row">
-              <button
-                type="button"
-                className="btn btn-primary report-btn-default"
-                disabled={!dummyFormLoaded}
-                onClick={e =>
-                  setShowMemberFinancialStats(
-                    showMemberFinancialStats ? false : true,
-                  )
-                }
-              >
-                {showMemberFinancialStats
-                  ? 'Hide Member Financial Statistics'
-                  : 'Show Member Financial Statistics'}
-              </button>
-            </div>
-            {!showMemberFinancialStats ? null : (
-              <div className="row">
-                <MemberFinancialStats
-                  members={members}
-                  billingCustomersLoading={billingCustomersLoading}
-                  billingCustomers={billingCustomers}
-                  fetchBillingCustomers={fetchBillingCustomers}
-                  setBillingCustomers={setBillingCustomers}
-                  variationCustomers={variationCustomers}
-                  variationCustomersLoading={variationCustomersLoading}
-                  fetchVariationCustomers={fetchVariationCustomers}
-                  setVariationCustomers={setVariationCustomers}
-                  customerRefunds={customerRefunds}
-                  customerRefundsLoading={customerRefundsLoading}
-                  fetchCustomerRefunds={fetchCustomerRefunds}
-                  setCustomerRefunds={setCustomerRefunds}
-                  fetchPaymentHistory={fetchPaymentHistory}
-                  setPaymentHistory={setPaymentHistory}
-                  FAILEDpaymentHistory={FAILEDpaymentHistory}
-                  FAILEDpaymentHistoryLoading={FAILEDpaymentHistoryLoading}
-                  SUCCESSFULpaymentHistory={SUCCESSFULpaymentHistory}
-                  SUCCESSFULpaymentHistoryLoading={
-                    SUCCESSFULpaymentHistoryLoading
-                  }
-                  fetchServicesByDate={fetchServicesByDate}
-                  services={services}
-                  servicesLoading={servicesLoading}
-                  space={space}
-                  profile={profile}
-                />
-              </div>
-            )} */}
-            <div className="row">
-              <button
-                type="button"
-                className="btn btn-primary report-btn-default"
-                disabled={!dummyFormLoaded}
-                onClick={e =>
-                  setShowMemberStatistics(showMemberStatistics ? false : true)
-                }
-              >
-                {showMemberStatistics
-                  ? 'Hide Member Statistics'
-                  : 'Show Member Statistics'}
-              </button>
-            </div>
-            {!showMemberStatistics ? null : (
-              <div className="row">
-                <MemberStatistics
-                  members={members}
-                  billingCustomersLoading={billingCustomersLoading}
-                  billingCustomers={billingCustomers}
-                  fetchBillingCustomers={fetchBillingCustomers}
-                  setBillingCustomers={setBillingCustomers}
-                  variationCustomers={variationCustomers}
-                  variationCustomersLoading={variationCustomersLoading}
-                  fetchVariationCustomers={fetchVariationCustomers}
-                  setVariationCustomers={setVariationCustomers}
-                  customerRefunds={customerRefunds}
-                  customerRefundsLoading={customerRefundsLoading}
-                  fetchCustomerRefunds={fetchCustomerRefunds}
-                  setCustomerRefunds={setCustomerRefunds}
-                  fetchPaymentHistory={fetchPaymentHistory}
-                  setPaymentHistory={setPaymentHistory}
-                  FAILEDpaymentHistory={FAILEDpaymentHistory}
-                  FAILEDpaymentHistoryLoading={FAILEDpaymentHistoryLoading}
-                  SUCCESSFULpaymentHistory={SUCCESSFULpaymentHistory}
-                  SUCCESSFULpaymentHistoryLoading={
-                    SUCCESSFULpaymentHistoryLoading
-                  }
-                  fetchServicesByDate={fetchServicesByDate}
-                  services={services}
-                  servicesLoading={servicesLoading}
-                  space={space}
-                  profile={profile}
-                />
-              </div>
-            )}
+        <div style={{ margin: '10px' }}>
+          {/* <div className="row">
+            <button
+              type="button"
+              className="btn btn-primary report-btn-default"
+              disabled={!dummyFormLoaded}
+              onClick={e =>
+                setShowMemberFinancialStats(
+                  showMemberFinancialStats ? false : true,
+                )
+              }
+            >
+              {showMemberFinancialStats
+                ? 'Hide Member Financial Statistics'
+                : 'Show Member Financial Statistics'}
+            </button>
           </div>
-        )}
+          {!showMemberFinancialStats ? null : (
+            <div className="row">
+              <MemberFinancialStats
+                members={members}
+                billingCustomersLoading={billingCustomersLoading}
+                billingCustomers={billingCustomers}
+                fetchBillingCustomers={fetchBillingCustomers}
+                setBillingCustomers={setBillingCustomers}
+                variationCustomers={variationCustomers}
+                variationCustomersLoading={variationCustomersLoading}
+                fetchVariationCustomers={fetchVariationCustomers}
+                setVariationCustomers={setVariationCustomers}
+                customerRefunds={customerRefunds}
+                customerRefundsLoading={customerRefundsLoading}
+                fetchCustomerRefunds={fetchCustomerRefunds}
+                setCustomerRefunds={setCustomerRefunds}
+                fetchPaymentHistory={fetchPaymentHistory}
+                setPaymentHistory={setPaymentHistory}
+                FAILEDpaymentHistory={FAILEDpaymentHistory}
+                FAILEDpaymentHistoryLoading={FAILEDpaymentHistoryLoading}
+                SUCCESSFULpaymentHistory={SUCCESSFULpaymentHistory}
+                SUCCESSFULpaymentHistoryLoading={
+                  SUCCESSFULpaymentHistoryLoading
+                }
+                fetchServicesByDate={fetchServicesByDate}
+                services={services}
+                servicesLoading={servicesLoading}
+                space={space}
+                profile={profile}
+              />
+            </div>
+          )} */}
+          <div className="row">
+            <button
+              type="button"
+              className="btn btn-primary report-btn-default"
+              disabled={!dummyFormLoaded}
+              onClick={e =>
+                setShowMemberStatistics(showMemberStatistics ? false : true)
+              }
+            >
+              {showMemberStatistics
+                ? 'Hide Member Statistics'
+                : 'Show Member Statistics'}
+            </button>
+          </div>
+          {!showMemberStatistics ? null : (
+            <div className="row">
+              <MemberStatistics
+                members={members}
+                billingCustomersLoading={billingCustomersLoading}
+                billingCustomers={billingCustomers}
+                fetchBillingCustomers={fetchBillingCustomers}
+                setBillingCustomers={setBillingCustomers}
+                variationCustomers={variationCustomers}
+                variationCustomersLoading={variationCustomersLoading}
+                fetchVariationCustomers={fetchVariationCustomers}
+                setVariationCustomers={setVariationCustomers}
+                customerRefunds={customerRefunds}
+                customerRefundsLoading={customerRefundsLoading}
+                fetchCustomerRefunds={fetchCustomerRefunds}
+                setCustomerRefunds={setCustomerRefunds}
+                fetchPaymentHistory={fetchPaymentHistory}
+                setPaymentHistory={setPaymentHistory}
+                FAILEDpaymentHistory={FAILEDpaymentHistory}
+                FAILEDpaymentHistoryLoading={FAILEDpaymentHistoryLoading}
+                SUCCESSFULpaymentHistory={SUCCESSFULpaymentHistory}
+                SUCCESSFULpaymentHistoryLoading={
+                  SUCCESSFULpaymentHistoryLoading
+                }
+                fetchServicesByDate={fetchServicesByDate}
+                services={services}
+                servicesLoading={servicesLoading}
+                space={space}
+                profile={profile}
+              />
+            </div>
+          )}
+        </div>
         {!Utils.isMemberOf(profile, 'Billing') ? (
           <div />
         ) : (

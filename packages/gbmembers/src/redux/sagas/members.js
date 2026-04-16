@@ -2361,12 +2361,9 @@ export function* refundTransaction(action) {
           });
 
           if (action.payload.billingThis) {
-            action.payload.billingThis.setState({
-              showPaymentHistory: false,
-            });
-            action.payload.billingThis.setState({
-              showPaymentHistory: true,
-            });
+            setTimeout(() => {
+              action.payload.billingThis.getPaymentHistory();
+            }, 3000);
           }
         }
       })
@@ -2499,12 +2496,9 @@ export function* refundPOSTransaction(action) {
           });
 
           if (action.payload.billingThis) {
-            action.payload.billingThis.setState({
-              showPaymentHistory: false,
-            });
-            action.payload.billingThis.setState({
-              showPaymentHistory: true,
-            });
+            setTimeout(() => {
+              action.payload.billingThis.getPaymentHistory();
+            }, 3000);
           }
         }
       })
@@ -2610,12 +2604,9 @@ export function* refundCashTransaction(action) {
     });
 
     if (action.payload.billingThis) {
-      action.payload.billingThis.setState({
-        showPaymentHistory: false,
-      });
-      action.payload.billingThis.setState({
-        showPaymentHistory: true,
-      });
+      setTimeout(() => {
+        action.payload.billingThis.getPaymentHistory();
+      }, 3000);
     }
   } catch (error) {
     console.log('Error in refundCashTransaction: ' + util.inspect(error));

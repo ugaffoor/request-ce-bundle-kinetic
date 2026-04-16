@@ -8,8 +8,8 @@
   }
   .rightButtons {
     .btn-primary:not(:disabled):not(.disabled).active {
-      background-color: $darkgray;
-      border-color: $darkgray;
+      background-color: $darkgray !important;
+      border-color: $darkgray !important;
       color: white;
     }
   }

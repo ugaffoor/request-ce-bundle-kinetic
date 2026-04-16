@@ -60,6 +60,7 @@ const mapDispatchToProps = {
   deleteJourneyEvent: dataStoreActions.deleteJourneyEvent,
   resetJourneyEvent: dataStoreActions.resetJourneyEvent,
   fetchLeads: leadsActions.fetchLeads,
+  fetchMembers: membersActions.fetchMembers,
   fetchCurrentMember: membersActions.fetchCurrentMember,
   updateMember: membersActions.updateMember,
   updateLead: leadsActions.updateLead,
@@ -605,7 +606,6 @@ export const EmailEventContainer = compose(
       updateLead,
       profile,
       journeyEvent,
-      memberItem,
       events,
     }) => (subject, recipients, body, embeddedImages, space) => {
       var campaignItem = {
@@ -634,7 +634,10 @@ export const EmailEventContainer = compose(
       });
 
       if (journeyEvent.submission.values['Record Type'] === 'Member') {
-        var notesHistory = memberItem.values['Notes History'];
+        var memberItem = journeyEvent.memberItem;
+        var notesHistory = memberItem
+          ? memberItem.values['Notes History']
+          : undefined;
         if (!notesHistory) {
           notesHistory = [];
         } else if (typeof notesHistory !== 'object') {
@@ -650,14 +653,16 @@ export const EmailEventContainer = compose(
           contactDate: moment().format(contact_date_format),
           submitter: profile.displayName,
         });
-        memberItem.values['Notes History'] = notesHistory;
-        let values = {};
-        values['Notes History'] = notesHistory;
-        updateMember({
-          id: memberItem['id'],
-          memberItem: memberItem,
-          values: values,
-        });
+        if (memberItem) {
+          memberItem.values['Notes History'] = notesHistory;
+          let values = {};
+          values['Notes History'] = notesHistory;
+          updateMember({
+            id: memberItem['id'],
+            memberItem: memberItem,
+            values: values,
+          });
+        }
       } else if (journeyEvent.submission.values['Record Type'] === 'Lead') {
         var notesHistory = journeyEvent.leadItem.values['History'];
         if (!notesHistory) {
@@ -688,10 +693,18 @@ export const EmailEventContainer = compose(
   lifecycle({
     UNSAFE_componentWillMount() {
       this.props.resetJourneyEvent();
-      if (this.props.allLeads.length === 0) {
-        this.props.fetchLeads();
+      const needsLeads = this.props.allLeads.length === 0;
+      const needsMembers =
+        this.props.allMembers.length === 0 && !this.props.membersLoading;
+      if (needsLeads || needsMembers) {
+        if (needsLeads) this.props.fetchLeads();
+        if (needsMembers)
+          this.props.fetchMembers({ memberInitialLoadComplete: false });
         this.props.setCurrentEventId('X');
-      } else if (!this.props.membersLoading) {
+      } else if (
+        this.props.allMembers.length > 0 ||
+        !this.props.membersLoading
+      ) {
         this.props.fetchJourneyEvent({
           id: this.props.eventId,
           leads: this.props.allLeads,
@@ -701,7 +714,10 @@ export const EmailEventContainer = compose(
       }
     },
     UNSAFE_componentWillReceiveProps(nextProps) {
-      if (!nextProps.leadsLoading && !nextProps.membersLoading) {
+      if (
+        !nextProps.leadsLoading &&
+        (nextProps.allMembers.length > 0 || !nextProps.membersLoading)
+      ) {
         if (nextProps.currentEventId !== nextProps.eventId) {
           this.props.setCurrentEventId(nextProps.eventId);
           this.props.fetchJourneyEvent({

@@ -215,6 +215,7 @@
 
       $mem-col-exclude: 120px;
       $mem-col-name: 2fr;
+      $mem-col-date-joined: 100px;
       $mem-col-fee: 2fr;
       $mem-col-info: 2fr;
       $mem-col-member-type: 1fr;
@@ -223,7 +224,7 @@
       .matchingMembersHeader,
       .matchingMemberRow {
         display: grid;
-        grid-template-columns: $mem-col-exclude $mem-col-name $mem-col-fee $mem-col-info $mem-col-member-type $mem-col-cost;
+        grid-template-columns: $mem-col-exclude $mem-col-name $mem-col-fee $mem-col-info $mem-col-member-type $mem-col-date-joined $mem-col-cost;
         align-items: center;
         padding: 5px 8px;
         gap: 8px;
@@ -279,6 +280,12 @@
       .memColMemberType {
         font-size: 0.85em;
         color: #555;
+      }
+
+      .memColDateJoined {
+        font-size: 0.85em;
+        color: #555;
+        white-space: nowrap;
       }
     }
 

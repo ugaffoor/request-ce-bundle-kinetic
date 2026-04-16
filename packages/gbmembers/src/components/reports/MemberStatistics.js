@@ -70,6 +70,7 @@ export class MemberStatistics extends Component {
       showActiveMembers: false,
       showActiveNonPayingMembers: false,
       showActiveCashMembers: false,
+      showActiveCasualMembers: false,
       showActiveOrphanMembers: false,
       showAccountHolders: false,
       showCancellationsMembers: false,
@@ -110,6 +111,16 @@ export class MemberStatistics extends Component {
     }
   }
 
+  hasEarlierMembers(fromDate) {
+    return this.props.members.some(member => {
+      var dateJoined = member.values['Date Joined'];
+      return (
+        dateJoined &&
+        dateJoined !== null &&
+        moment(dateJoined, 'YYYY-MM-DD').isBefore(fromDate, 'day')
+      );
+    });
+  }
   dateJoined(member, fromDate, toDate) {
     if (
       member['values']['Date Joined'] !== undefined &&
@@ -204,6 +215,7 @@ export class MemberStatistics extends Component {
     let nonpayingMembers = [];
     let orphanMembers = [];
     let activeCashMembers = [];
+    let casualMembers = [];
     let cancellations = [];
     let pendingCancellations = [];
     let pendingRegistrations = [];
@@ -256,6 +268,9 @@ export class MemberStatistics extends Component {
           }
         }
       }
+      if (memberStatus === 'Casual') {
+        casualMembers[casualMembers.length] = member;
+      }
       if (memberStatus === 'Frozen') {
         frozen[frozen.length] = member;
       }
@@ -268,7 +283,7 @@ export class MemberStatistics extends Component {
       if (memberStatus === 'Pending Cancellation') {
         pendingCancellations[pendingCancellations.length] = member;
       }
-      if (member.values['Status'] === 'Pending Registration') {
+      if (memberStatus === 'Pending Registration') {
         pendingRegistrations[pendingRegistrations.length] = member;
       }
       if (
@@ -308,6 +323,7 @@ export class MemberStatistics extends Component {
       ...nonpayingMembers,
       ...activeCashMembers,
       ...orphanMembers,
+      ...casualMembers,
       ...pendingFrozen,
       ...pendingCancellations,
       ...pendingRegistrations,
@@ -319,6 +335,7 @@ export class MemberStatistics extends Component {
       nonpayingMembers: { members: nonpayingMembers },
       orphanMembers: { members: orphanMembers },
       activeCashMembers: { members: activeCashMembers },
+      casualMembers: { members: casualMembers },
       cancellations: { members: cancellations },
       pendingCancellations: { members: pendingCancellations },
       pendingRegistrations: { members: pendingRegistrations },
@@ -584,6 +601,7 @@ export class MemberStatistics extends Component {
     if (this.state.showTotalActiveMembers) return 'Total Active';
     if (this.state.showActiveMembers) return 'Active';
     if (this.state.showActiveNonPayingMembers) return 'Active Non Paying';
+    if (this.state.showActiveCasualMembers) return 'Active Casual';
     if (this.state.showActiveOrphanMembers) return 'Active Orphan';
     if (this.state.showActiveCashMembers) return 'Active Cash';
     if (this.state.showAccountHolders) return 'Active Account Holders';
@@ -605,6 +623,7 @@ export class MemberStatistics extends Component {
     if (this.state.showActiveNonPayingMembers)
       return md.nonpayingMembers.members;
     if (this.state.showActiveCashMembers) return md.activeCashMembers.members;
+    if (this.state.showActiveCasualMembers) return md.casualMembers.members;
     if (this.state.showActiveOrphanMembers) return md.orphanMembers.members;
     if (this.state.showPendingFrozenMembers) return md.pendingFrozen.members;
     if (this.state.showPendingCancellationsMembers)
@@ -699,6 +718,9 @@ export class MemberStatistics extends Component {
       ...(allowCash
         ? [{ label: '-- Active Cash', members: md.activeCashMembers.members }]
         : []),
+      ...(md.casualMembers.members.length > 0
+        ? [{ label: '-- Active Casual', members: md.casualMembers.members }]
+        : []),
       { label: '-- Active Orphan', members: md.orphanMembers.members },
       { label: '-- Pending Freezes', members: md.pendingFrozen.members },
       {
@@ -720,6 +742,7 @@ export class MemberStatistics extends Component {
       'Group',
       'Member Name',
       'Status',
+      'Date Joined',
       'Created At',
       'Updated At',
       'Last Status Date',
@@ -741,6 +764,7 @@ export class MemberStatistics extends Component {
             `${m.values['Last Name'] || ''} ${m.values['First Name'] ||
               ''}`.trim(),
             m.values['Status'] || '',
+            m.values['Date Joined'] || '',
             m.createdAt ? moment(m.createdAt).format('YYYY-MM-DD') : '',
             m.updatedAt ? moment(m.updatedAt).format('YYYY-MM-DD') : '',
             lastStatusDate,
@@ -868,6 +892,7 @@ export class MemberStatistics extends Component {
                 type="button"
                 className="btn btn-primary report-btn-default"
                 onClick={() => this.navigatePeriod(-1)}
+                disabled={!this.hasEarlierMembers(this.state.fromDate)}
               >
                 {'< Previous '}
                 {this.state.billingPeriod === 'weekly'
@@ -1044,6 +1069,7 @@ export class MemberStatistics extends Component {
                       showTotalActiveMembers: true,
                       showActiveMembers: false,
                       showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
                       showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
                       showAccountHolders: false,
@@ -1055,7 +1081,6 @@ export class MemberStatistics extends Component {
                       showRestoredMembers: false,
                       showPendingFrozenMembers: false,
                       showNewMembers: false,
-                      memberFilter: '',
                     })
                   }
                 >
@@ -1071,6 +1096,7 @@ export class MemberStatistics extends Component {
                       showActiveMembers: true,
                       showTotalActiveMembers: false,
                       showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
                       showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
                       showAccountHolders: false,
@@ -1082,7 +1108,6 @@ export class MemberStatistics extends Component {
                       showRestoredMembers: false,
                       showPendingFrozenMembers: false,
                       showNewMembers: false,
-                      memberFilter: '',
                     })
                   }
                 >
@@ -1098,6 +1123,7 @@ export class MemberStatistics extends Component {
                       showActiveNonPayingMembers: true,
                       showActiveMembers: false,
                       showTotalActiveMembers: false,
+                      showActiveCasualMembers: false,
                       showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
                       showAccountHolders: false,
@@ -1109,7 +1135,6 @@ export class MemberStatistics extends Component {
                       showRestoredMembers: false,
                       showPendingFrozenMembers: false,
                       showNewMembers: false,
-                      memberFilter: '',
                     })
                   }
                 >
@@ -1128,6 +1153,7 @@ export class MemberStatistics extends Component {
                         showActiveMembers: false,
                         showTotalActiveMembers: false,
                         showActiveNonPayingMembers: false,
+                        showActiveCasualMembers: false,
                         showActiveOrphanMembers: false,
                         showAccountHolders: false,
                         showCancellationsMembers: false,
@@ -1138,11 +1164,39 @@ export class MemberStatistics extends Component {
                         showRestoredMembers: false,
                         showPendingFrozenMembers: false,
                         showNewMembers: false,
-                        memberFilter: '',
                       })
                     }
                   >
                     {this.state.memberData.activeCashMembers.members.length}
+                  </div>
+                </div>
+              )}
+              {this.state.memberData.casualMembers.members.length > 0 && (
+                <div className="statLine statChild">
+                  <div className="statLabel">-- Active Casual</div>
+                  <div
+                    className="statCount"
+                    onClick={e =>
+                      this.setState({
+                        showActiveCasualMembers: true,
+                        showActiveOrphanMembers: false,
+                        showActiveMembers: false,
+                        showTotalActiveMembers: false,
+                        showActiveNonPayingMembers: false,
+                        showActiveCashMembers: false,
+                        showAccountHolders: false,
+                        showCancellationsMembers: false,
+                        showPendingCancellationsMembers: false,
+                        showPendingRegistrationsMembers: false,
+                        showFrozenMembers: false,
+                        showUnFrozenMembers: false,
+                        showRestoredMembers: false,
+                        showPendingFrozenMembers: false,
+                        showNewMembers: false,
+                      })
+                    }
+                  >
+                    {this.state.memberData.casualMembers.members.length}
                   </div>
                 </div>
               )}
@@ -1153,6 +1207,7 @@ export class MemberStatistics extends Component {
                   onClick={e =>
                     this.setState({
                       showActiveOrphanMembers: true,
+                      showActiveCasualMembers: false,
                       showActiveMembers: false,
                       showTotalActiveMembers: false,
                       showActiveNonPayingMembers: false,
@@ -1166,7 +1221,6 @@ export class MemberStatistics extends Component {
                       showRestoredMembers: false,
                       showPendingFrozenMembers: false,
                       showNewMembers: false,
-                      memberFilter: '',
                     })
                   }
                 >
@@ -1183,6 +1237,7 @@ export class MemberStatistics extends Component {
                       showActiveMembers: false,
                       showTotalActiveMembers: false,
                       showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
                       showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
                       showAccountHolders: false,
@@ -1193,7 +1248,6 @@ export class MemberStatistics extends Component {
                       showUnFrozenMembers: false,
                       showRestoredMembers: false,
                       showNewMembers: false,
-                      memberFilter: '',
                     })
                   }
                 >
@@ -1210,6 +1264,7 @@ export class MemberStatistics extends Component {
                       showActiveMembers: false,
                       showTotalActiveMembers: false,
                       showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
                       showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
                       showAccountHolders: false,
@@ -1220,7 +1275,6 @@ export class MemberStatistics extends Component {
                       showPendingFrozenMembers: false,
                       showNewMembers: false,
                       showPendingRegistrationsMembers: false,
-                      memberFilter: '',
                     })
                   }
                 >
@@ -1238,6 +1292,7 @@ export class MemberStatistics extends Component {
                       showActiveMembers: false,
                       showTotalActiveMembers: false,
                       showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
                       showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
                       showAccountHolders: false,
@@ -1247,7 +1302,6 @@ export class MemberStatistics extends Component {
                       showRestoredMembers: false,
                       showPendingFrozenMembers: false,
                       showNewMembers: false,
-                      memberFilter: '',
                     })
                   }
                 >
@@ -1264,6 +1318,7 @@ export class MemberStatistics extends Component {
                       showTotalActiveMembers: false,
                       showActiveMembers: false,
                       showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
                       showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
                       showCancellationsMembers: false,
@@ -1274,7 +1329,6 @@ export class MemberStatistics extends Component {
                       showRestoredMembers: false,
                       showPendingFrozenMembers: false,
                       showNewMembers: false,
-                      memberFilter: '',
                     })
                   }
                 >
@@ -1292,6 +1346,7 @@ export class MemberStatistics extends Component {
                       showTotalActiveMembers: false,
                       showActiveMembers: false,
                       showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
                       showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
                       showCancellationsMembers: false,
@@ -1301,7 +1356,6 @@ export class MemberStatistics extends Component {
                       showUnFrozenMembers: false,
                       showRestoredMembers: false,
                       showPendingFrozenMembers: false,
-                      memberFilter: '',
                     })
                   }
                 >
@@ -1319,6 +1373,7 @@ export class MemberStatistics extends Component {
                       showTotalActiveMembers: false,
                       showActiveMembers: false,
                       showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
                       showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
                       showCancellationsMembers: false,
@@ -1328,7 +1383,6 @@ export class MemberStatistics extends Component {
                       showRestoredMembers: false,
                       showPendingFrozenMembers: false,
                       showNewMembers: false,
-                      memberFilter: '',
                     })
                   }
                 >
@@ -1346,6 +1400,7 @@ export class MemberStatistics extends Component {
                       showTotalActiveMembers: false,
                       showActiveMembers: false,
                       showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
                       showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
                       showPendingCancellationsMembers: false,
@@ -1355,7 +1410,6 @@ export class MemberStatistics extends Component {
                       showRestoredMembers: false,
                       showPendingFrozenMembers: false,
                       showNewMembers: false,
-                      memberFilter: '',
                     })
                   }
                 >
@@ -1373,6 +1427,7 @@ export class MemberStatistics extends Component {
                       showTotalActiveMembers: false,
                       showActiveMembers: false,
                       showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
                       showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
                       showCancellationsMembers: false,
@@ -1382,7 +1437,6 @@ export class MemberStatistics extends Component {
                       showRestoredMembers: false,
                       showPendingFrozenMembers: false,
                       showNewMembers: false,
-                      memberFilter: '',
                     })
                   }
                 >
@@ -1400,6 +1454,7 @@ export class MemberStatistics extends Component {
                       showTotalActiveMembers: false,
                       showActiveMembers: false,
                       showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
                       showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
                       showCancellationsMembers: false,
@@ -1409,7 +1464,6 @@ export class MemberStatistics extends Component {
                       showUnFrozenMembers: false,
                       showPendingFrozenMembers: false,
                       showNewMembers: false,
-                      memberFilter: '',
                     })
                   }
                 >

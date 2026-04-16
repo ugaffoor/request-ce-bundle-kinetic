@@ -58,12 +58,9 @@ export class Statistics extends Component {
     this.setFromDate = this.props.setFromDate;
     this.setToDate = this.props.setToDate;
 
-    let fromDate = moment().subtract(6, 'days');
-    fromDate.hour(0).minute(0);
-
-    let toDate = moment()
-      .hour(23)
-      .minute(59);
+    const savedPeriod =
+      localStorage.getItem('statisticsViewPeriod') || 'this_week';
+    const { fromDate, toDate } = this.getDateRangeForPeriod(savedPeriod);
 
     let leads = this.props.leadsByDate;
     let leadData = this.getData(
@@ -85,6 +82,7 @@ export class Statistics extends Component {
       memberData,
       fromDate,
       toDate,
+      viewPeriod: savedPeriod,
       LCTViewSwitch: false,
       showNewLeads: false,
       showScheduledLeads: false,
@@ -175,58 +173,125 @@ export class Statistics extends Component {
   }
   loadRententionRate() {
     if (twelveMonthRetentionRateData === undefined) {
-      /*      var monthlyStatisticsSorted = this.props.monthlyStatistics.sort(function(
-        stat1,
-        stat2,
-      ) {
-        try {
-          if (
-            stat1.values['Year'] + stat1.values['Month'] <
-            stat2.values['Year'] + stat2.values['Month']
-          )
-            return -1;
-          if (
-            stat1.values['Year'] + stat1.values['Month'] >
-            stat2.values['Year'] + stat2.values['Month']
-          )
-            return 1;
-        } catch (error) {
-          return 0;
-        }
-        return 0;
-      }); */
-      // Find oldest Member Month up to 12 months
-      let oldestMonth = moment();
-      this.props.allMembers.forEach(member => {
-        var createdAt = moment(member['createdAt']);
-        if (createdAt.isBefore(oldestMonth)) {
-          oldestMonth = createdAt;
-        }
-      });
+      this.setState({ retentionLoading: true });
 
-      if (moment().diff(oldestMonth, 'months') > 12) {
-        oldestMonth = moment().subtract(12, 'months');
-      }
-      retentionRateData = this.getRetentionRate(
-        this.props.allMembers,
-        oldestMonth,
-      );
-      twelveMonthRetentionRateData = this.getTwelveMonthRetentionRate(
-        this.props.allMembers,
-        oldestMonth,
-      );
-      /*      apsData = this.getAPSRate(
-        nextProps.allMembers,
-        monthlyStatisticsSorted,
-      ); */
+      setTimeout(() => {
+        // Find oldest Member Month up to 12 months
+        let oldestMonth = moment();
+        this.props.allMembers.forEach(member => {
+          var createdAt = moment(member['createdAt']);
+          if (createdAt.isBefore(oldestMonth)) {
+            oldestMonth = createdAt;
+          }
+        });
 
-      this.setState({
-        apsData: apsData,
-        retentionRate: retentionRateData,
-        twelveMonthRetentionRate: twelveMonthRetentionRateData,
-        retentionLoaded: true,
-        retentionLoading: false,
-      });
+        if (moment().diff(oldestMonth, 'months') > 12) {
+          oldestMonth = moment().subtract(12, 'months');
+        }
+
+        retentionRateData = this.getRetentionRate(
+          this.props.allMembers,
+          oldestMonth,
+        );
+
+        // Process twelve-month retention one month at a time to avoid blocking
+        const allMembers = this.props.allMembers;
+        const retentionTotalMonths =
+          moment().diff(oldestMonth, 'months') > 12
+            ? 12
+            : moment().diff(oldestMonth, 'months');
+
+        const twelveMonthRates = [];
+        let newMembersTotal = 0;
+        let retentionTotal = 0;
+        let periodStartCount = 0;
+        let periodEndCount = 0;
+        let endOfMonth = 0;
+        let monthIndex = retentionTotalMonths;
+
+        const processNextMonth = () => {
+          if (monthIndex <= 0) {
+            // All months processed — finalise
+            twelveMonthRetentionRateData = {
+              values: twelveMonthRates,
+              newMembersTotal: newMembersTotal,
+              retentionTotalMonths: retentionTotalMonths,
+              retentionTotal: (
+                retentionTotal / retentionTotalMonths
+              ).toLocaleString(undefined, {
+                style: 'percent',
+                minimumFractionDigits: 2,
+              }),
+              twelveMonthAverage: (
+                (periodEndCount - newMembersTotal) /
+                periodStartCount
+              ).toLocaleString(undefined, {
+                style: 'percent',
+                minimumFractionDigits: 2,
+              }),
+            };
+
+            this.setState({
+              apsData: apsData,
+              retentionRate: retentionRateData,
+              twelveMonthRetentionRate: twelveMonthRetentionRateData,
+              retentionLoaded: true,
+              retentionLoading: false,
+            });
+            return;
+          }
+
+          const i = monthIndex;
+          const periodMonth = moment().subtract(i, 'months');
+          const firstDayOfMonth = moment(periodMonth).startOf('month');
+          const lastDayOfMonth = moment(periodMonth).endOf('month');
+          const beginOfMonth =
+            i === 0 ? 0 : this.getActiveMembers(allMembers, firstDayOfMonth);
+          const beginOfMonthFrozen =
+            i === 0 ? 0 : this.getFrozenMembers(allMembers, firstDayOfMonth);
+          endOfMonth = this.getActiveMembers(allMembers, lastDayOfMonth);
+          const endOfMonthFrozen = this.getFrozenMembers(
+            allMembers,
+            lastDayOfMonth,
+          );
+          const newMembers = this.getNewMembers(
+            allMembers,
+            firstDayOfMonth,
+            lastDayOfMonth,
+          );
+
+          if (periodStartCount === 0) {
+            periodStartCount = i === 0 ? 0 : beginOfMonth;
+          }
+          newMembersTotal += newMembers;
+          retentionTotal += (endOfMonth - newMembers) / parseInt(beginOfMonth);
+
+          let rate = (endOfMonth - newMembers) / parseInt(beginOfMonth);
+          rate = rate > 1 ? 1 : rate;
+
+          twelveMonthRates.push({
+            month: periodMonth.format('MMMM'),
+            beginOfMonth,
+            beginOfMonthFrozen,
+            endOfMonth,
+            endOfMonthFrozen,
+            newMembers,
+            rententionRate: rate.toLocaleString(undefined, {
+              style: 'percent',
+              minimumFractionDigits: 2,
+            }),
+          });
+
+          if (monthIndex === 1) {
+            periodEndCount = endOfMonth;
+          }
+
+          monthIndex--;
+          setTimeout(processNextMonth, 0);
+        };
+
+        setTimeout(processNextMonth, 0);
+      }, 0);
     }
   }
   getAPSRate(allMembers, monthlyStatistics) {
@@ -930,6 +995,86 @@ export class Statistics extends Component {
       );
     }
   }
+  getDateRangeForPeriod(type) {
+    if (type === 'today') {
+      return {
+        fromDate: moment()
+          .hour(0)
+          .minute(0)
+          .second(0)
+          .millisecond(0),
+        toDate: moment()
+          .hour(23)
+          .minute(59)
+          .second(59)
+          .millisecond(999),
+      };
+    } else if (type === 'last_7_days') {
+      return {
+        fromDate: moment()
+          .subtract(1, 'weeks')
+          .day(1)
+          .hour(0)
+          .minute(0)
+          .second(0)
+          .millisecond(0),
+        toDate: moment()
+          .subtract(1, 'weeks')
+          .day(7)
+          .hour(23)
+          .minute(59)
+          .second(59)
+          .millisecond(999),
+      };
+    } else if (type === 'this_week') {
+      return {
+        fromDate: moment()
+          .day(1)
+          .hour(0)
+          .minute(0)
+          .second(0)
+          .millisecond(0),
+        toDate: moment()
+          .day(7)
+          .hour(23)
+          .minute(59)
+          .second(59)
+          .millisecond(999),
+      };
+    } else if (type === 'last_30_days') {
+      return {
+        fromDate: moment()
+          .date(1)
+          .hour(0)
+          .minute(0)
+          .second(0)
+          .millisecond(0),
+        toDate: moment()
+          .date(1)
+          .add(1, 'months')
+          .subtract(1, 'days')
+          .hour(23)
+          .minute(59)
+          .second(59)
+          .millisecond(999),
+      };
+    }
+    // fallback: this_week
+    return {
+      fromDate: moment()
+        .day(1)
+        .hour(0)
+        .minute(0)
+        .second(0)
+        .millisecond(0),
+      toDate: moment()
+        .day(7)
+        .hour(23)
+        .minute(59)
+        .second(59)
+        .millisecond(999),
+    };
+  }
   setStatisticDates(e, type) {
     if (type === 'today') {
       let fromDate = moment()
@@ -950,24 +1095,33 @@ export class Statistics extends Component {
         fromDate,
         toDate,
       );
+      localStorage.setItem('statisticsViewPeriod', 'today');
       this.setState({
         isShowCustom: false,
         leadData: data,
         memberData: memberData,
         fromDate: fromDate,
         toDate: toDate,
+        viewPeriod: 'today',
       });
       $('.dateSettings button[active=true]').attr('active', 'false');
       $(e.target).attr('active', 'true');
       this.datesChanged(this.setFromDate, this.setToDate, fromDate, toDate);
     } else if (type === 'last_7_days') {
       let fromDate = moment()
-        .subtract(6, 'days')
+        .subtract(1, 'weeks')
+        .day(1)
         .hour(0)
-        .minute(0);
+        .minute(0)
+        .second(0)
+        .millisecond(0);
       let toDate = moment()
+        .subtract(1, 'weeks')
+        .day(7)
         .hour(23)
-        .minute(59);
+        .minute(59)
+        .second(59)
+        .millisecond(999);
       let data = this.getData(
         this.state.leads,
         this.state.allMembers,
@@ -980,6 +1134,7 @@ export class Statistics extends Component {
         fromDate,
         toDate,
       );
+      localStorage.setItem('statisticsViewPeriod', 'last_7_days');
       $('.dateSettings button[active=true]').attr('active', 'false');
       $(e.target).attr('active', 'true');
       this.setState({
@@ -988,16 +1143,24 @@ export class Statistics extends Component {
         memberData: memberData,
         fromDate: fromDate,
         toDate: toDate,
+        viewPeriod: 'last_7_days',
       });
       this.datesChanged(this.setFromDate, this.setToDate, fromDate, toDate);
     } else if (type === 'last_30_days') {
       let fromDate = moment()
-        .subtract(29, 'days')
+        .date(1)
         .hour(0)
-        .minute(0);
+        .minute(0)
+        .second(0)
+        .millisecond(0);
       let toDate = moment()
+        .date(1)
+        .add(1, 'months')
+        .subtract(1, 'days')
         .hour(23)
-        .minute(59);
+        .minute(59)
+        .second(59)
+        .millisecond(999);
       let data = this.getData(
         this.state.leads,
         this.state.allMembers,
@@ -1010,6 +1173,7 @@ export class Statistics extends Component {
         fromDate,
         toDate,
       );
+      localStorage.setItem('statisticsViewPeriod', 'last_30_days');
       $('.dateSettings button[active=true]').attr('active', 'false');
       $(e.target).attr('active', 'true');
       this.setState({
@@ -1018,16 +1182,22 @@ export class Statistics extends Component {
         memberData: memberData,
         fromDate: fromDate,
         toDate: toDate,
+        viewPeriod: 'last_30_days',
       });
       this.datesChanged(this.setFromDate, this.setToDate, fromDate, toDate);
-    } else if (type === 'year') {
+    } else if (type === 'this_week') {
       let fromDate = moment()
-        .subtract(1, 'years')
+        .day(1)
         .hour(0)
-        .minute(0);
+        .minute(0)
+        .second(0)
+        .millisecond(0);
       let toDate = moment()
+        .day(7)
         .hour(23)
-        .minute(59);
+        .minute(59)
+        .second(59)
+        .millisecond(999);
       let data = this.getData(
         this.state.leads,
         this.state.allMembers,
@@ -1040,6 +1210,7 @@ export class Statistics extends Component {
         fromDate,
         toDate,
       );
+      localStorage.setItem('statisticsViewPeriod', 'this_week');
       $('.dateSettings button[active=true]').attr('active', 'false');
       $(e.target).attr('active', 'true');
       this.setState({
@@ -1048,6 +1219,7 @@ export class Statistics extends Component {
         memberData: memberData,
         fromDate: fromDate,
         toDate: toDate,
+        viewPeriod: 'this_week',
       });
       this.datesChanged(this.setFromDate, this.setToDate, fromDate, toDate);
     } else if (type === 'custom') {
@@ -1639,7 +1811,7 @@ export class Statistics extends Component {
           <div className="dateSettings">
             <button
               type="button"
-              active="false"
+              active={this.state.viewPeriod === 'today' ? 'true' : 'false'}
               className="btn btn-primary report-btn-default"
               onClick={e => this.setStatisticDates(e, 'today')}
             >
@@ -1647,48 +1819,36 @@ export class Statistics extends Component {
             </button>
             <button
               type="button"
-              active="true"
+              active={
+                this.state.viewPeriod === 'last_7_days' ? 'true' : 'false'
+              }
               className="btn btn-primary report-btn-default"
-              /*  disabled={moment().isBetween(
-                this.state.fromDate,
-                this.state.toDate,
-              )} */
               onClick={e => this.setStatisticDates(e, 'last_7_days')}
             >
-              Last 7 Days
+              Last Week
             </button>
             <button
               type="button"
-              active="false"
+              active={this.state.viewPeriod === 'this_week' ? 'true' : 'false'}
               className="btn btn-primary report-btn-default"
-              /*  disabled={moment().isBetween(
-                this.state.fromDate,
-                this.state.toDate,
-              )} */
+              onClick={e => this.setStatisticDates(e, 'this_week')}
+            >
+              This Week
+            </button>
+            <button
+              type="button"
+              active={
+                this.state.viewPeriod === 'last_30_days' ? 'true' : 'false'
+              }
+              className="btn btn-primary report-btn-default"
               onClick={e => this.setStatisticDates(e, 'last_30_days')}
             >
-              Last 30 Days
+              This Month
             </button>
             <button
               type="button"
-              active="false"
+              active={this.state.viewPeriod === 'custom' ? 'true' : 'false'}
               className="btn btn-primary report-btn-default"
-              /*    disabled={moment().isBetween(
-                this.state.fromDate,
-                this.state.toDate,
-              )} */
-              onClick={e => this.setStatisticDates(e, 'year')}
-            >
-              Year
-            </button>
-            <button
-              type="button"
-              active="false"
-              className="btn btn-primary report-btn-default"
-              /*  disabled={moment().isBetween(
-                this.state.fromDate,
-                this.state.toDate,
-              )} */
               onClick={e => this.setStatisticDates(e, 'custom')}
             >
               Custom

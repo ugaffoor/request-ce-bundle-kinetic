@@ -21,8 +21,8 @@ a {
   font-size: 0.75rem;
 }
 
-.fade:not(.show) {
-  opacity: unset; /* Override issue */
+.modal.fade:not(.show) {
+  opacity: unset; /* Override _transitions.scss — scoped to modal only, not backdrop */
 }
 .setChangeStatusDialog {
   top: 30% !important;

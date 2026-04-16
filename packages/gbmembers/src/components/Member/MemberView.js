@@ -307,9 +307,8 @@ export class BillingParentInfo extends Component {
           Family Member of
           <NavLink
             to={`/Member/${this.props.parentMemberId}`}
-            className={'nav-link icon-wrapper'}
+            className={'nav-link icon-wrapper familyMember'}
             activeClassName="active"
-            style={{ display: 'inline' }}
           >
             {this.parentMember.values['First Name']}{' '}
             {this.parentMember.values['Last Name']}

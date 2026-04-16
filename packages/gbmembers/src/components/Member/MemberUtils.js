@@ -1194,6 +1194,10 @@ export function memberStatusInDates(member, fromDate, toDate, returnStatus) {
         ) {
           return 'Pending Cancellation';
         } else if (
+          statusHistorySorted[i]['status'] === 'Pending Registration'
+        ) {
+          return 'Pending Registration';
+        } else if (
           statusHistorySorted[i]['status'] === 'Frozen' ||
           statusHistorySorted[i]['status'] === 'Suspended'
         ) {
@@ -1227,7 +1231,7 @@ export function memberStatusInDates(member, fromDate, toDate, returnStatus) {
     }
 
     if (returnStatus) {
-      const status = member['values']['Status'];
+      var status = member['values']['Status'];
       if (status === 'Inactive') {
         const updatedAt = member['updatedAt'] || member['values']['updatedAt'];
         if (
@@ -1239,7 +1243,15 @@ export function memberStatusInDates(member, fromDate, toDate, returnStatus) {
         }
         return '';
       }
-      return status;
+      if (
+        moment(member['values']['Date Joined'], 'YYYY-MM-DD').isSameOrBefore(
+          toDate,
+          'day',
+        )
+      ) {
+        return status;
+      }
+      return '';
     }
     return '';
   } else {
@@ -1261,7 +1273,7 @@ export function memberStatusInDates(member, fromDate, toDate, returnStatus) {
         return 'Active';
       } else {
         if (returnStatus) {
-          const status = member['values']['Status'];
+          var status = member['values']['Status'];
           if (status === 'Inactive') {
             const updatedAt =
               member['updatedAt'] || member['values']['updatedAt'];
@@ -1274,7 +1286,16 @@ export function memberStatusInDates(member, fromDate, toDate, returnStatus) {
             }
             return '';
           }
-          return status;
+          if (
+            moment(
+              member['values']['Date Joined'],
+              'YYYY-MM-DD',
+            ).isSameOrBefore(toDate, 'day')
+          ) {
+            return status;
+          }
+
+          return '';
         }
         return member.values['Status'] === 'Inactive' ? '' : 'Active';
       }

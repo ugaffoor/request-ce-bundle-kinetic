@@ -169,6 +169,7 @@ export function* fetchEmailCampaignsByDate(action) {
     let search = new SubmissionSearch()
       .includes([
         'details',
+        'values[Sent Date]',
         'values[Recipients]',
         'values[Subject]',
         'values[Opened By Members]',
@@ -194,6 +195,7 @@ export function* fetchEmailCampaignsByDate(action) {
       let search2 = new SubmissionSearch()
         .includes([
           'details',
+          'values[Sent Date]',
           'values[Recipients]',
           'values[Subject]',
           'values[Opened By Members]',

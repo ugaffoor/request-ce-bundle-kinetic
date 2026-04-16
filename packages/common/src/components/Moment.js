@@ -2,7 +2,6 @@ import { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { MOMENT_FORMATS, TIME_AGO_INTERVAL } from '../constants';
-import moment from 'moment';
 import 'moment/min/locales';
 
 const mapJavaLocalesToISO639 = locale => {

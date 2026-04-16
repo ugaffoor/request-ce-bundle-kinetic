@@ -1,3 +1,9 @@
+.billingInfo {
+  .familyMember {
+    display: inline !important;
+  }
+}
+
 .migrationSection {
   .classSection {
     .memberFilter {
@@ -1173,6 +1179,9 @@
       }
       .setupFee {
         background-color: #f8f5f5;
+      }
+      .familyMember {
+        display: inline !important;
       }
     }
     margin: 10px;

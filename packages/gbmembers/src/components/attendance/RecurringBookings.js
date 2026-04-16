@@ -174,7 +174,9 @@ export class RecurringBookings extends Component {
       this.recurringBookings = this.getGridData(
         this.rawRecurringBookings,
         this.classSchedules,
-        undefined,
+        this.state.filterMemberGUID === 'CLEAR'
+          ? undefined
+          : this.state.filterMemberGUID,
         this.props.allMembers,
       );
 
@@ -214,7 +216,9 @@ export class RecurringBookings extends Component {
       this.recurringBookings = this.getGridData(
         this.rawRecurringBookings,
         this.classSchedules,
-        undefined,
+        this.state.filterMemberGUID === 'CLEAR'
+          ? undefined
+          : this.state.filterMemberGUID,
         this.props.allMembers,
       );
     }
@@ -362,8 +366,8 @@ export class RecurringBookings extends Component {
       return a['sortVal'] > b['sortVal']
         ? 1
         : b['sortVal'] > a['sortVal']
-        ? -1
-        : 0;
+          ? -1
+          : 0;
     });
 
     return bookingsData;

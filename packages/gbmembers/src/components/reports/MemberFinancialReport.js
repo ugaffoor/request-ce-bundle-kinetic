@@ -1876,6 +1876,39 @@ export class MemberFinancialReport extends Component {
       this.refreshData(this.state.repFromDate, this.state.repToDate);
     }
   }
+  hasEarlierMembers() {
+    return this.props.members.some(member => {
+      const dateJoined = member.values['Date Joined'];
+      return (
+        dateJoined &&
+        moment(dateJoined, 'YYYY-MM-DD').isBefore(this.state.repFromDate, 'day')
+      );
+    });
+  }
+  navigatePeriod(direction) {
+    const { repFromDate, repToDate, repBillingPeriod } = this.state;
+    let amount, unit;
+    if (repBillingPeriod === 'weekly') {
+      amount = 1;
+      unit = 'weeks';
+    } else if (repBillingPeriod === 'fortnightly') {
+      amount = 2;
+      unit = 'weeks';
+    } else if (repBillingPeriod === '4weekly') {
+      amount = 4;
+      unit = 'weeks';
+    } else if (repBillingPeriod === 'quarterly') {
+      amount = 1;
+      unit = 'quarters';
+    } else {
+      amount = 1;
+      unit = 'months';
+    }
+    const newFrom = moment(repFromDate).add(direction * amount, unit);
+    const newTo = moment(repToDate).add(direction * amount, unit);
+    this.setState({ repFromDate: newFrom, repToDate: newTo });
+    this.refreshData(newFrom, newTo);
+  }
   setStatisticDates(e, repViewPeriod, repBillingPeriod) {
     let fromDate = moment();
     let toDate = moment();
@@ -1891,6 +1924,9 @@ export class MemberFinancialReport extends Component {
       }
       if (repBillingPeriod === 'monthly') {
         fromDate.date(1);
+      }
+      if (repBillingPeriod === 'quarterly') {
+        fromDate.startOf('quarter');
       }
 
       fromDate
@@ -1922,6 +1958,9 @@ export class MemberFinancialReport extends Component {
           .add(1, 'months')
           .subtract(1, 'days');
       }
+      if (repBillingPeriod === 'quarterly') {
+        toDate.endOf('quarter');
+      }
       toDate
         .hour(23)
         .minute(59)
@@ -1947,6 +1986,9 @@ export class MemberFinancialReport extends Component {
       }
       if (repBillingPeriod === 'monthly') {
         fromDate.add(1, 'months').date(1);
+      }
+      if (repBillingPeriod === 'quarterly') {
+        fromDate.add(1, 'quarters').startOf('quarter');
       }
       fromDate
         .hour(0)
@@ -1977,6 +2019,9 @@ export class MemberFinancialReport extends Component {
           .add(2, 'months')
           .subtract(1, 'days');
       }
+      if (repBillingPeriod === 'quarterly') {
+        toDate.add(1, 'quarters').endOf('quarter');
+      }
       toDate
         .hour(23)
         .minute(59)
@@ -2003,6 +2048,9 @@ export class MemberFinancialReport extends Component {
       if (repBillingPeriod === 'monthly') {
         fromDate.subtract(1, 'months').date(1);
       }
+      if (repBillingPeriod === 'quarterly') {
+        fromDate.subtract(1, 'quarters').startOf('quarter');
+      }
       fromDate
         .hour(0)
         .minute(0)
@@ -2019,6 +2067,9 @@ export class MemberFinancialReport extends Component {
       }
       if (repBillingPeriod === 'monthly') {
         toDate.date(1).subtract(1, 'days');
+      }
+      if (repBillingPeriod === 'quarterly') {
+        toDate.subtract(1, 'quarters').endOf('quarter');
       }
       toDate
         .hour(23)
@@ -3774,76 +3825,86 @@ export class MemberFinancialReport extends Component {
                 />
                 Monthly
               </label>
+              <label htmlFor="repQuarterly" className="radio">
+                <input
+                  id="repQuarterly"
+                  name="reportPeriod"
+                  type="radio"
+                  value="Quarterly"
+                  onChange={e => {
+                    this.setState({
+                      repBillingPeriod: 'quarterly',
+                      repViewPeriod: 'this_period',
+                    });
+                    this.setStatisticDates(e, 'this_period', 'quarterly');
+                  }}
+                  defaultChecked={
+                    this.state.repBillingPeriod === 'quarterly'
+                      ? 'defaultChecked'
+                      : ''
+                  }
+                />
+                Quarterly
+              </label>
             </div>
           </span>
 
           <div className="page-header" style={{ textAlign: 'center' }}>
             <div className="dateSettings">
-              <button
-                type="button"
-                active="false"
-                className="btn btn-primary report-btn-default"
-                onClick={e => {
-                  this.setState({
-                    repViewPeriod: 'last_period',
-                  });
-                  this.setStatisticDates(
-                    e,
-                    'last_period',
-                    this.state.repBillingPeriod,
-                  );
-                }}
-              >
-                Last{' '}
-                {this.state.repBillingPeriod === 'weekly'
-                  ? 'Week'
-                  : this.state.repBillingPeriod === 'fortnightly'
-                    ? 'Fortnights'
+              <div className="dateNavButtons">
+                <button
+                  type="button"
+                  className="btn btn-primary report-btn-default"
+                  onClick={() => this.navigatePeriod(-1)}
+                  disabled={!this.hasEarlierMembers()}
+                >
+                  {'< Previous '}
+                  {this.state.repBillingPeriod === 'weekly'
+                    ? 'Week'
                     : this.state.repBillingPeriod === 'fortnightly'
-                      ? '4 Weekly'
-                      : 'Month'}
-              </button>
-              <button
-                type="button"
-                active="true"
-                className="btn btn-primary report-btn-default"
-                onClick={e => {
-                  this.setState({
-                    repViewPeriod: 'this_period',
-                  });
-                  this.setStatisticDates(
-                    e,
-                    'this_period',
-                    this.state.repBillingPeriod,
-                  );
-                }}
-              >
-                This{' '}
-                {this.state.repBillingPeriod === 'weekly'
-                  ? 'Week'
-                  : this.state.repBillingPeriod === 'fortnightly'
-                    ? 'Fortnight'
-                    : this.state.repBillingPeriod === '4weekly'
-                      ? '4 Weekly'
-                      : 'Month'}
-              </button>
-              <button
-                type="button"
-                active="false"
-                className="btn btn-primary report-btn-default"
-                onClick={e => {
-                  this.setState({
-                    repViewPeriod: 'custom',
-                  });
-                  this.setStatisticDates(
-                    e,
-                    'custom',
-                    this.state.repBillingPeriod,
-                  );
-                }}
-              >
-                Custom
-              </button>
+                      ? 'Fortnight'
+                      : this.state.repBillingPeriod === '4weekly'
+                        ? '4 Weeks'
+                        : this.state.repBillingPeriod === 'quarterly'
+                          ? 'Quarter'
+                          : 'Month'}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary report-btn-default"
+                  onClick={() => this.navigatePeriod(1)}
+                  disabled={this.state.repToDate.isSameOrAfter(moment(), 'day')}
+                >
+                  {'Next '}
+                  {this.state.repBillingPeriod === 'weekly'
+                    ? 'Week'
+                    : this.state.repBillingPeriod === 'fortnightly'
+                      ? 'Fortnight'
+                      : this.state.repBillingPeriod === '4weekly'
+                        ? '4 Weeks'
+                        : this.state.repBillingPeriod === 'quarterly'
+                          ? 'Quarter'
+                          : 'Month'}
+                  {' >'}
+                </button>
+                <button
+                  type="button"
+                  active="false"
+                  className="btn btn-primary report-btn-default"
+                  onClick={e => {
+                    this.setState({
+                      repViewPeriod: 'custom',
+                    });
+                    this.setStatisticDates(
+                      e,
+                      'custom',
+                      this.state.repBillingPeriod,
+                    );
+                  }}
+                >
+                  Custom
+                </button>
+              </div>
             </div>
             {this.state.isShowCustom && (
               <div
@@ -3959,7 +4020,10 @@ export class MemberFinancialReport extends Component {
           </div>
           {this.props.billingReportCustomersLoading ||
           this.props.FINSUCCESSFULpaymentHistoryLoading ||
+          this.props.FINFAILEDpaymentHistoryLoading ||
           this.props.customerRefundsLoading ||
+          this.props.additionalServicesLoading ||
+          this.props.cashPaymentsByDateLoading ||
           this.props.servicesLoading ||
           this.props.posOrdersLoading ? (
             <div className="memberFinanceReport">Loading information ...</div>

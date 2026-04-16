@@ -37,9 +37,6 @@ import MomentLocaleUtils, {
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { I18n } from '@kineticdata/react';
 import Barcode from 'react-barcode';
-import enAU from 'moment/locale/en-au';
-import enCA from 'moment/locale/en-ca';
-import enGB from 'moment/locale/en-gb';
 import Autocomplete from 'react-google-autocomplete';
 
 const mapStateToProps = state => ({

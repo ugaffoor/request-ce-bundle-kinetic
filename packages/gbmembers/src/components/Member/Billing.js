@@ -777,6 +777,7 @@ class PayNow extends Component {
       },
       data: data,
     };
+    var billingThis = this;
     await axios(config)
       .then(function(response) {
         chargeId = response.data.data.chargeId;
@@ -788,6 +789,15 @@ class PayNow extends Component {
           processing: false,
           datetime: moment(),
         });
+        /*        if (billingThis.state.feeType === 'Membership Fee') {
+          let values = {};
+          values['Billing Start Date'] = moment().format('YYYY-MM-DD');
+          billingThis.props.updateMember({
+            id: billingThis.props.memberItem['id'],
+            memberItem: billingThis.props.memberItem,
+            values: values,
+          });
+        } */
       })
       .catch(err => {
         var error = 'Connection Error';
@@ -2560,7 +2570,8 @@ export class PaymentHistory extends Component {
               </span>
             )}
             {this.props.refundTransactionID.id !== undefined &&
-              this.props.refundTransactionID.id === row.original.paymentID && (
+              this.props.refundTransactionID.id === row.original.paymentID &&
+              row.original['refundAmount'] === undefined && (
                 <span className="refundValue">
                   {new Intl.NumberFormat(this.props.locale, {
                     style: 'currency',

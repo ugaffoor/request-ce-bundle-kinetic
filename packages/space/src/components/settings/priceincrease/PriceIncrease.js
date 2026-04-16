@@ -530,6 +530,7 @@ export class NewPriceIncrease extends Component {
                       [
                         'Last Name',
                         'First Name',
+                        'Date Joined',
                         'Program',
                         'Info',
                         'Member Type',
@@ -542,6 +543,9 @@ export class NewPriceIncrease extends Component {
                         const fm = membersById[d.id];
                         const lastName = fm ? fm.values['Last Name'] : d.id;
                         const firstName = fm ? fm.values['First Name'] : '';
+                        const dateJoined = fm
+                          ? fm.values['Date Joined'] || ''
+                          : '';
                         const memberType = fm ? fm.values['Member Type'] : '';
                         const excluded = this.state.excludedMembers.includes(
                           d.id,
@@ -551,6 +555,7 @@ export class NewPriceIncrease extends Component {
                         rows.push([
                           lastName,
                           firstName,
+                          dateJoined,
                           d.feeProgram || '',
                           d.program || '',
                           memberType,
@@ -624,6 +629,7 @@ export class NewPriceIncrease extends Component {
                   <span className="memColFee">Program</span>
                   <span className="memColInfo">Info</span>
                   <span className="memColMemberType">Member Type</span>
+                  <span className="memColDateJoined">Date Joined</span>
                   <span className="memColCost">Cost</span>
                 </div>
                 {matchingMembers
@@ -672,6 +678,14 @@ export class NewPriceIncrease extends Component {
                         <span className="memColMemberType">
                           {detailMember
                             ? detailMember.values['Member Type']
+                            : ''}
+                        </span>
+                        <span className="memColDateJoined">
+                          {detailMember
+                            ? moment(
+                                detailMember.values['Date Joined'],
+                                'YYYY-MM-DD',
+                              ).format('L') || ''
                             : ''}
                         </span>
                         <span className="memColCost">
@@ -1803,6 +1817,7 @@ export class PriceIncreaseEdit extends Component {
                       [
                         'Last Name',
                         'First Name',
+                        'Date Joined',
                         'Program',
                         'Info',
                         'Member Type',
@@ -1815,6 +1830,9 @@ export class PriceIncreaseEdit extends Component {
                         const fm = membersById[d.id];
                         const lastName = fm ? fm.values['Last Name'] : d.id;
                         const firstName = fm ? fm.values['First Name'] : '';
+                        const dateJoined = fm
+                          ? fm.values['Date Joined'] || ''
+                          : '';
                         const memberType = fm ? fm.values['Member Type'] : '';
                         const excluded = this.state.excludedMembers.includes(
                           d.id,
@@ -1824,6 +1842,7 @@ export class PriceIncreaseEdit extends Component {
                         rows.push([
                           lastName,
                           firstName,
+                          dateJoined,
                           d.feeProgram || '',
                           d.program || '',
                           memberType,
@@ -1897,6 +1916,7 @@ export class PriceIncreaseEdit extends Component {
                   <span className="memColFee">Program</span>
                   <span className="memColInfo">Info</span>
                   <span className="memColMemberType">Member Type</span>
+                  <span className="memColDateJoined">Date Joined</span>
                   <span className="memColCost">Cost</span>
                 </div>
                 {matchingMembers
@@ -1945,6 +1965,14 @@ export class PriceIncreaseEdit extends Component {
                         <span className="memColMemberType">
                           {detailMember
                             ? detailMember.values['Member Type']
+                            : ''}
+                        </span>
+                        <span className="memColDateJoined">
+                          {detailMember
+                            ? moment(
+                                detailMember.values['Date Joined'],
+                                'YYYY-MM-DD',
+                              ).format('L') || ''
                             : ''}
                         </span>
                         <span className="memColCost">

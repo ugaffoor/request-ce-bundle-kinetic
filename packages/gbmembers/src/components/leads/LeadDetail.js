@@ -58,7 +58,7 @@ import ReactTooltip from 'react-tooltip';
 const email_date_format = ['DD-MM-YYYY HH:mm', 'YYYY-MM-DDTHH:mm:ssZ'];
 
 const mapStateToProps = state => ({
-  profile: state.app.profile,
+  profile: state.member.kinops.profile,
   pathname: state.router.location.pathname,
   allLeads: state.member.leads.allLeads,
   leadItem: state.member.leads.currentLead,
@@ -839,6 +839,7 @@ export class LeadDetail extends Component {
                       setShowSetStatusModal={this.props.setShowSetStatusModal}
                       setLeadStatus={this.props.saveStatus}
                       profile={this.props.profile}
+                      space={this.props.space}
                       leadStatusValues={this.props.leadStatusValues}
                     />
                   )}
@@ -881,6 +882,7 @@ export class LeadDetail extends Component {
                       height: '45px',
                       width: '100px',
                       textAlign: 'center',
+                      lineHeight: 'unset !important',
                     }}
                     title="Set Followup date"
                   >
@@ -1420,7 +1422,7 @@ export const LeadDetailView = ({
   refundPOSTransactionInProgress,
   refundPOSTransactionID,
 }) =>
-  currentLeadLoading ? (
+  currentLeadLoading || !leadItem || !leadItem.values ? (
     <div />
   ) : (
     <LeadDetail
