@@ -20,6 +20,7 @@ import { actions as dataStoreActions } from '../../redux/modules/settingsDatasto
 import { Utils } from 'common';
 import ReactToPrint from 'react-to-print';
 import Barcode from 'react-barcode';
+import { StatisticsContainer as Statistics } from './Statistics';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -449,7 +450,6 @@ export class Settings extends Component {
           ) : (
             <div />
           )}
-
           {getAttributeValue(this.props.space, 'Franchisor') !== 'YES' &&
             Utils.isMemberOf(this.props.profile, 'Role::Program Managers') && (
               <div style={{ margin: '20px 0px 0px 10px' }} id="stock-report">
@@ -497,6 +497,27 @@ export class Settings extends Component {
             </div>
           )}
         </span>
+        <div style={{ margin: '20px 0px 0px 10px' }} id="showStatisticsButton">
+          <div className="row">
+            <button
+              type="button"
+              id="attendanceStatistics"
+              className={'btn btn-primary'}
+              onClick={() => {
+                this.props.setShowStatistics(
+                  this.props.showStatistics ? false : true,
+                );
+              }}
+            >
+              {this.props.showStatistics
+                ? 'Hide Statistics'
+                : 'Show Statistics'}
+            </button>
+          </div>
+        </div>
+        {this.props.showStatistics && (
+          <Statistics setShowStatistics={this.props.setShowStatistics} />
+        )}
       </div>
     );
   }
@@ -513,6 +534,7 @@ const enhance = compose(
       setPrintingBarcodes(true);
     },
   }),
+  withState('showStatistics', 'setShowStatistics', false),
   withState('showClassCalendar', 'setShowClassCalendar', false),
   withState('showClassBookings', 'setShowClassBookings', false),
   withState('showRecurringBookings', 'setShowRecurringBookings', false),

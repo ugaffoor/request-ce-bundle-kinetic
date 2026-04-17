@@ -1843,7 +1843,6 @@ export class AttendanceDetail extends Component {
       showAttendance: false,
     });
   }
-
   getBamboraOverdues(failedPayments, successfulPayments, allMembers) {
     failedPayments = failedPayments.filter(payment =>
       isBamboraFailedPayment(payment),

@@ -427,10 +427,10 @@ i.fa.fa-usd.overdue {
 }
 .memberChartDetails {
   background-color: white;
-  height: 370px;
   margin-left: 10px;
   margin-right: 10px;
   margin-bottom: 10px;
+  overflow-y: auto;
   .nameCol {
     background-color: white;
   }
@@ -441,8 +441,7 @@ i.fa.fa-usd.overdue {
     position: absolute;
     z-index: 100;
     margin-left: 8px;
-    margin-top: 2px;
-    cursor: pointer;
+    margin-top: -12px;
   }
   .closeMembers path {
     fill: white !important;
@@ -1430,6 +1429,21 @@ i.fa.fa-usd.overdue {
     width: 3rem;
   }
 }
+.statistics {
+  .closeMembers {
+    position: relative;
+    margin-left: 8px;
+    margin-top: 2px;
+    cursor: pointer;
+  }
+  .header {
+    text-align: center;
+    background: #4d5059;
+    color: white;
+    font-size: 10px;
+  }
+}
+.statistics .header h6,
 .bookingsContent .header h6 {
   margin-bottom: 1.5rem;
   margin-top: 1.5rem;
