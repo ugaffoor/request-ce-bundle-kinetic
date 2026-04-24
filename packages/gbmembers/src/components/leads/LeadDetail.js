@@ -16,7 +16,16 @@ import {
   contact_date_format,
   reminder_date_format,
   getTimezone,
+  getLocalePreference,
+  getReminderDate,
+  gmt_format,
 } from '../leads/LeadsUtils';
+import DayPickerInput from 'react-day-picker/DayPickerInput';
+import 'react-day-picker/lib/style.css';
+import MomentLocaleUtils, {
+  formatDate,
+  parseDate,
+} from 'react-day-picker/moment';
 import lead_dtls from '../../images/lead_details.png';
 import convert_to_member from '../../images/convert_to_member.png';
 import phone from '../../images/phone.png';
@@ -222,6 +231,12 @@ export class LeadDetail extends Component {
       data,
       columns,
       leadItem: this.props.leadItem,
+      showFollowUpModal: false,
+      followUpReminderDateString: 'Tomorrow',
+      followUpReminderDate:
+        moment()
+          .add(1, 'days')
+          .format('YYYY-MM-DDTHH:mm:ss') + 'Z',
     };
   }
 
@@ -874,8 +889,7 @@ export class LeadDetail extends Component {
                       />
                     </NavLink>
                   )}
-                  <NavLink
-                    to={`/FollowUp/${this.props.leadItem['id']}`}
+                  <button
                     className="btn btn-primary followup_button followup_image"
                     style={{
                       backgroundColor: '#4d5059',
@@ -885,18 +899,27 @@ export class LeadDetail extends Component {
                       lineHeight: 'unset !important',
                     }}
                     title="Set Followup date"
+                    onClick={() =>
+                      this.setState({
+                        showFollowUpModal: true,
+                        followUpReminderDateString: 'Tomorrow',
+                        followUpReminderDate:
+                          moment()
+                            .add(1, 'days')
+                            .format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+                      })
+                    }
                   >
                     Follow Up
                     <br />
-                    {this.props.leadItem &&
-                    this.props.leadItem.values['Reminder Date'] !== undefined &&
-                    this.props.leadItem.values['Reminder Date'] !== null
+                    {this.state.leadItem &&
+                    this.state.leadItem.values['Reminder Date']
                       ? moment(
-                          this.props.leadItem.values['Reminder Date'],
+                          this.state.leadItem.values['Reminder Date'],
                           'YYYY-MM-DDTHH:mm:ssZ',
                         ).format('L')
                       : 'None'}
-                  </NavLink>
+                  </button>
                 </span>
               </div>
             </div>
@@ -1386,6 +1409,129 @@ export class LeadDetail extends Component {
             refundPOSTransactionID={this.props.refundPOSTransactionID}
           />
         </div>
+        {this.state.showFollowUpModal && (
+          <div
+            className="modal"
+            style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}
+          >
+            <div className="modal-dialog" role="document">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">
+                    Set Follow-Up Reminder for{' '}
+                    {this.props.leadItem.values['First Name']}{' '}
+                    {this.props.leadItem.values['Last Name']}
+                  </h5>
+                  <button
+                    type="button"
+                    className="close"
+                    onClick={() => this.setState({ showFollowUpModal: false })}
+                  >
+                    <span>&times;</span>
+                  </button>
+                </div>
+                <div className="modal-body">
+                  <div className="form-group">
+                    <label>Remind me</label>
+                    <select
+                      className="form-control"
+                      value={this.state.followUpReminderDateString}
+                      onChange={e =>
+                        this.setState({
+                          followUpReminderDateString: e.target.value,
+                          followUpReminderDate:
+                            e.target.value !== 'Custom'
+                              ? getReminderDate(e.target.value)
+                              : this.state.followUpReminderDate,
+                        })
+                      }
+                    >
+                      <option value="Tomorrow">Tomorrow</option>
+                      <option value="2 days from now">2 days from now</option>
+                      <option value="Next Week">Next Week</option>
+                      <option value="Next Month">Next Month</option>
+                      <option value="Custom">Custom date</option>
+                      <option value="Never">Never</option>
+                    </select>
+                  </div>
+                  {this.state.followUpReminderDateString === 'Custom' && (
+                    <div className="form-group">
+                      <label>Date</label>
+                      <DayPickerInput
+                        placeholder={moment(new Date())
+                          .locale(
+                            getLocalePreference(
+                              this.props.space,
+                              this.props.profile,
+                            ),
+                          )
+                          .localeData()
+                          .longDateFormat('L')
+                          .toLowerCase()}
+                        formatDate={formatDate}
+                        parseDate={parseDate}
+                        onDayChange={day => {
+                          if (day) {
+                            this.setState({
+                              followUpReminderDate:
+                                moment(day)
+                                  .hour(12)
+                                  .format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+                            });
+                          }
+                        }}
+                        dayPickerProps={{
+                          locale: getLocalePreference(
+                            this.props.space,
+                            this.props.profile,
+                          ),
+                          localeUtils: MomentLocaleUtils,
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => this.setState({ showFollowUpModal: false })}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => {
+                      const reminderDate =
+                        this.state.followUpReminderDateString === 'Never'
+                          ? ''
+                          : moment(new Date(this.state.followUpReminderDate))
+                              .utc()
+                              .format(gmt_format) + 'Z';
+                      const leadItem = {
+                        ...this.props.leadItem,
+                        values: {
+                          ...this.props.leadItem.values,
+                          'Reminder Date': reminderDate,
+                        },
+                      };
+                      this.props.updateLead({
+                        id: this.props.leadItem.id,
+                        leadItem,
+                        allLeads: this.props.allLeads,
+                        showLead: true,
+                      });
+                      this.setState({ showFollowUpModal: false, leadItem });
+                    }}
+                  >
+                    Set Reminder
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -1394,6 +1540,8 @@ export class LeadDetail extends Component {
 export const LeadDetailView = ({
   profile,
   leadItem,
+  allLeads,
+  updateLead,
   saveLeadNote,
   saveRemoveLeadNote,
   saveCancelTrialNote,
@@ -1428,6 +1576,8 @@ export const LeadDetailView = ({
     <LeadDetail
       profile={profile}
       leadItem={leadItem}
+      allLeads={allLeads}
+      updateLead={updateLead}
       saveLeadNote={saveLeadNote}
       saveRemoveLeadNote={saveRemoveLeadNote}
       saveCancelTrialNote={saveCancelTrialNote}

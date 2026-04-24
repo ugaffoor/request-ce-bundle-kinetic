@@ -161,7 +161,10 @@ export class Statistics extends Component {
 
   UNSAFE_componentWillMount() {
     if (this.props.leadsByDate.length === 0) {
-      this.props.fetchLeadsByDate();
+      this.props.fetchLeadsByDate({
+        fromDate: this.state.fromDate,
+        toDate: this.state.toDate,
+      });
     }
 
     if (
@@ -987,6 +990,10 @@ export class Statistics extends Component {
           this.state.toDate,
         ),
       });
+      this.props.fetchLeadsByDate({
+        fromDate: this.state.fromDate,
+        toDate: this.state.toDate,
+      });
       this.datesChanged(
         this.setFromDate,
         this.setToDate,
@@ -1106,6 +1113,7 @@ export class Statistics extends Component {
       });
       $('.dateSettings button[active=true]').attr('active', 'false');
       $(e.target).attr('active', 'true');
+      this.props.fetchLeadsByDate({ fromDate, toDate });
       this.datesChanged(this.setFromDate, this.setToDate, fromDate, toDate);
     } else if (type === 'last_7_days') {
       let fromDate = moment()
@@ -1145,6 +1153,7 @@ export class Statistics extends Component {
         toDate: toDate,
         viewPeriod: 'last_7_days',
       });
+      this.props.fetchLeadsByDate({ fromDate, toDate });
       this.datesChanged(this.setFromDate, this.setToDate, fromDate, toDate);
     } else if (type === 'last_30_days') {
       let fromDate = moment()
@@ -1184,6 +1193,7 @@ export class Statistics extends Component {
         toDate: toDate,
         viewPeriod: 'last_30_days',
       });
+      this.props.fetchLeadsByDate({ fromDate, toDate });
       this.datesChanged(this.setFromDate, this.setToDate, fromDate, toDate);
     } else if (type === 'this_week') {
       let fromDate = moment()
@@ -1221,6 +1231,7 @@ export class Statistics extends Component {
         toDate: toDate,
         viewPeriod: 'this_week',
       });
+      this.props.fetchLeadsByDate({ fromDate, toDate });
       this.datesChanged(this.setFromDate, this.setToDate, fromDate, toDate);
     } else if (type === 'custom') {
       var lastActive = $('.dateSettings button[active=true]');
@@ -1800,7 +1811,7 @@ export class Statistics extends Component {
     ];
   }
   render() {
-    return this.props.leadsByDateLoading ? (
+    return !this.props.memberInitialLoadComplete ? (
       <div style={{ margin: '10px' }}>
         <p>Loading Statistics ...</p>
         {/*        <ReactSpinner />{' '} */}

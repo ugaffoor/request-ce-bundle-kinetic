@@ -2894,7 +2894,21 @@ export const MemberEdit = ({
                   onConfirm={e =>
                     deleteMemberCall(memberItem, deleteMember, updateLead)
                   }
-                  body="Are you sure you want to delete this member?"
+                  body={
+                    <span>
+                      <span>Are you sure you want to delete this member?</span>
+                      <br />
+                      <span>
+                        Please note that setting a Member's status directly will
+                        not affect Billing.
+                      </span>
+                      <br />
+                      <span>
+                        If you wish to adjust the Billing status or value,
+                        please submit the appropriate billing form.
+                      </span>
+                    </span>
+                  }
                   confirmText="Confirm Delete"
                   title="Deleting Member"
                 >

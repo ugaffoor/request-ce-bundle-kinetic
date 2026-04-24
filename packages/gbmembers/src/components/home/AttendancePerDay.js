@@ -139,10 +139,12 @@ export class AttendancePerDay extends Component {
     }
   }
   componentDidMount() {
-    this.props.fetchAttendancesByDate({
-      fromDate: this.state.fromDate,
-      toDate: this.state.toDate,
-    });
+    if (this.props.attendancesByDate.size === 0) {
+      this.props.fetchAttendancesByDate({
+        fromDate: this.state.fromDate,
+        toDate: this.state.toDate,
+      });
+    }
     if (this.props.classSchedules.size === 0) {
       this.props.fetchClassSchedules();
     } else {

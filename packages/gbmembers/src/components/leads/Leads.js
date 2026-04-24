@@ -1086,27 +1086,35 @@ export class TasksDetail extends Component {
             />
           </div>
         </div>
-
-        <div className="row">
-          <div className="pageHeader">
-            <h3>Member Tasks</h3>
-          </div>
-        </div>
-        <div id="memberTasksGrid" className="row" style={{ marginTop: '10px' }}>
-          <div className="col">
-            <ReactTable
-              columns={this._memberTasksColumns}
-              data={memberTasks}
-              defaultPageSize={20}
-              showPagination={memberTasks.length > 20}
-              style={{
-                /*height: '500px',*/
-                borderLeft: '0 !important',
-              }}
-              ref="memberTasksGrid"
-            />
-          </div>
-        </div>
+        {!this.props.memberNotesLoaded && <span>....Loading Member Tasks</span>}
+        {this.props.memberNotesLoaded && (
+          <span>
+            <div className="row">
+              <div className="pageHeader">
+                <h3>Member Tasks</h3>
+              </div>
+            </div>
+            <div
+              id="memberTasksGrid"
+              className="row"
+              style={{ marginTop: '10px' }}
+            >
+              <div className="col">
+                <ReactTable
+                  columns={this._memberTasksColumns}
+                  data={memberTasks}
+                  defaultPageSize={20}
+                  showPagination={memberTasks.length > 20}
+                  style={{
+                    /*height: '500px',*/
+                    borderLeft: '0 !important',
+                  }}
+                  ref="memberTasksGrid"
+                />
+              </div>
+            </div>
+          </span>
+        )}
         {/*        <div className="leadContents">
           <LeadsDetail
             allLeads={allLeads}
@@ -2397,19 +2405,17 @@ export const LeadsView = ({
     <StatusMessagesContainer />
     <div className="row">
       <div className="taskContents">
-        {!memberNotesLoaded && <span>....Loading Lead and Member Tasks</span>}
-        {memberNotesLoaded && (
-          <TasksDetail
-            allLeads={allLeads}
-            saveLead={saveLead}
-            allMembers={allMembers}
-            updateMember={updateMember}
-            leadLists={leadLists}
-            setBulkSkipIds={setBulkSkipIds}
-            profile={profile}
-            space={space}
-          />
-        )}
+        <TasksDetail
+          allLeads={allLeads}
+          saveLead={saveLead}
+          allMembers={allMembers}
+          updateMember={updateMember}
+          leadLists={leadLists}
+          setBulkSkipIds={setBulkSkipIds}
+          profile={profile}
+          space={space}
+          memberNotesLoaded={memberNotesLoaded}
+        />
       </div>
     </div>
     <div>

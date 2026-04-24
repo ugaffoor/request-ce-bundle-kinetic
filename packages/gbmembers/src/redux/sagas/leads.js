@@ -89,11 +89,16 @@ export function* fetchLeadsByDate(action) {
   try {
     let allSubmissions = [];
 
+    const fromDate =
+      action.payload && action.payload.fromDate
+        ? moment(action.payload.fromDate).subtract(30, 'days')
+        : moment().subtract(30, 'days');
+
     const search = new SubmissionSearch()
-      //.includes(['details', 'values[Lead State],values[Status],values[Status History],values[Source],values[Date],values[Date Created],values[Date Created],values[Last Name],values[Gender],values[Email],values[Additional Email],values[Phone Number],values[Additional Phone Number]'])
       .includes(['details', 'values'])
       .sortBy('updatedAt')
       .sortDirection('DESC')
+      .startDate(fromDate.toDate())
       .limit(1000)
       .build();
 
@@ -107,10 +112,10 @@ export function* fetchLeadsByDate(action) {
 
     while (nextPageToken) {
       var search2 = new SubmissionSearch()
-        //.includes(['details', 'values[Lead State],values[Status],values[Status History],values[Source],values[Date],values[Date Created],values[Date Created],values[Last Name],values[Gender],values[Email],values[Additional Email],values[Phone Number],values[Additional Phone Number]'])
         .includes(['details', 'values'])
         .sortBy('updatedAt')
         .sortDirection('DESC')
+        .startDate(fromDate.toDate())
         .pageToken(nextPageToken)
         .limit(1000)
         .build();
@@ -122,7 +127,6 @@ export function* fetchLeadsByDate(action) {
       });
       allSubmissions = allSubmissions.concat(submissions);
     }
-    //    console.log('Leads by Date# ' + submissions);
     yield put(actions.setLeadsByDate(allSubmissions));
   } catch (error) {
     console.log('Error in fetchLeadsByDate: ' + util.inspect(error));

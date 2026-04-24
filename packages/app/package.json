@@ -9,6 +9,7 @@
     "test": "craco test --env=jsdom",
     "eject": "craco eject",
     "lint": "cross-env NODE_ENV=production eslint src --ext .js",
+    "analyze": "craco build && npx webpack-bundle-analyzer packages/app/build/static/js/*.js",
     "preversion": "yarn lint"
   },
   "dependencies": {
