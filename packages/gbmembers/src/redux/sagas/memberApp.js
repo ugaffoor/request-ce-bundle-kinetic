@@ -403,7 +403,11 @@ export function* fetchMemberAppSettingsTask() {
     triggers,
     kapp,
   };
-
+  if (false) {
+    //For debugging to localhost billing
+    appSettings.kineticBillingServerUrl =
+      'http://localhost:8081/billingservice';
+  }
   yield put(actions.setAppSettings(appSettings));
 }
 

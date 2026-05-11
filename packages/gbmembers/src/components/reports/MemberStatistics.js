@@ -623,7 +623,20 @@ export class MemberStatistics extends Component {
       unit = 'months';
     }
     const newFrom = moment(fromDate).add(direction * amount, unit);
-    const newTo = moment(toDate).add(direction * amount, unit);
+    let newTo;
+    if (unit === 'months') {
+      newTo = moment(newFrom)
+        .endOf('month')
+        .hour(23)
+        .minute(59);
+    } else if (unit === 'quarters') {
+      newTo = moment(newFrom)
+        .endOf('quarter')
+        .hour(23)
+        .minute(59);
+    } else {
+      newTo = moment(toDate).add(direction * amount, unit);
+    }
     this.loadNewPeriod(newFrom, newTo);
   }
   loadNewPeriod(fromDate, toDate) {

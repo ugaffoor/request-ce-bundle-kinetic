@@ -102,7 +102,15 @@ export class Services extends Component {
       unit = 'months';
     }
     const newFrom = moment(repFromDate).add(direction * amount, unit);
-    const newTo = moment(repToDate).add(direction * amount, unit);
+    let newTo;
+    if (unit === 'months') {
+      newTo = moment(newFrom)
+        .endOf('month')
+        .hour(23)
+        .minute(59);
+    } else {
+      newTo = moment(repToDate).add(direction * amount, unit);
+    }
     this.setState({ repFromDate: newFrom, repToDate: newTo });
     this.loadNewServices(newFrom, newTo);
   }

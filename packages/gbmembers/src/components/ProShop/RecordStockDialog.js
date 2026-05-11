@@ -240,9 +240,10 @@ export class RecordStockDialog extends Component {
                       product.values['Product Type'] === 'Concession') &&
                     product.values['SKU'] !== undefined &&
                     product.values['Name'] !== undefined &&
-                    product.values['Colour'] !== undefined &&
+                    /* product.values['Colour'] !== undefined && */
                     ((this.state.productNameValue !== '' &&
                       product.values['SKU'] !== null &&
+                      product.values['SKU'] !== undefined &&
                       product.values['SKU']
                         .toLowerCase()
                         .indexOf(
@@ -256,6 +257,7 @@ export class RecordStockDialog extends Component {
                           ) !== -1) ||
                       (this.state.productNameValue !== '' &&
                         product.values['Colour'] !== null &&
+                        product.values['Colour'] !== undefined &&
                         product.values['Colour']
                           .toLowerCase()
                           .indexOf(

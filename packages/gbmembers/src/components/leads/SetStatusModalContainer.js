@@ -39,7 +39,7 @@ export class SetStatusModal extends Component {
         : this.props.profile.preferredLocale,
     );
 
-    this.statusValues = props.leadStatusValues;
+    this.statusValues = props.leadStatusValues.filter(v => v !== 'Converted');
     this.statusHistory = getJson(props.submission.values['Status History']);
     this.state = {};
   }
@@ -108,5 +108,10 @@ export class SetStatusModal extends Component {
   }
 }
 
-const enhance = compose(connect(mapStateToProps, mapDispatchToProps));
+const enhance = compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
+);
 export const SetStatusModalContainer = enhance(SetStatusModal);

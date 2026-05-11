@@ -375,6 +375,77 @@ export function* fetchSmsCampaigns(action) {
   }
 }
 
+export function* fetchSmsCampaignsByDate(action) {
+  try {
+    let smsCampaigns = [];
+    let nextBeltPageTokenValue;
+
+    let search = new SubmissionSearch()
+      .includes([
+        'details',
+        'values[Recipients]',
+        'values[Phone Numbers]',
+        'values[From Number]',
+        'values[SMS Content]',
+        'values[Sent Date]',
+        'values[Scheduled Time]',
+        'values[Cancel Campaign]',
+      ])
+      .startDate(action.payload.start.toDate())
+      .endDate(action.payload.end.toDate())
+      .limit(1000)
+      .build();
+
+    const { submissions, nextPageToken } = yield call(searchSubmissions, {
+      kapp: 'gbmembers',
+      form: 'sms-campaigns',
+      search,
+    });
+    console.log('#### fetchSmsCampaignsByDate nextPageToken:' + nextPageToken);
+    nextBeltPageTokenValue = nextPageToken;
+    smsCampaigns = smsCampaigns.concat(submissions);
+
+    while (nextBeltPageTokenValue) {
+      let search2 = new SubmissionSearch()
+        .includes([
+          'details',
+          'values[Recipients]',
+          'values[Phone Numbers]',
+          'values[From Number]',
+          'values[SMS Content]',
+          'values[Sent Date]',
+          'values[Scheduled Time]',
+          'values[Cancel Campaign]',
+        ])
+        .startDate(action.payload.start.toDate())
+        .endDate(action.payload.end.toDate())
+        .limit(1000)
+        .pageToken(nextBeltPageTokenValue)
+        .build();
+
+      var [submissions2] = yield all([
+        call(searchSubmissions, {
+          get: true,
+          kapp: 'gbmembers',
+          form: 'sms-campaigns',
+          search: search2,
+        }),
+      ]);
+      smsCampaigns = smsCampaigns.concat(submissions2.submissions);
+      nextBeltPageTokenValue = submissions2.nextPageToken;
+    }
+
+    console.log('smsCampaigns' + smsCampaigns.length);
+    yield put(
+      actions.setSmsCampaignsByDate({
+        smsCampaigns: smsCampaigns,
+      }),
+    );
+  } catch (error) {
+    console.log('Error in fetchSmsCampaignsByDate: ' + util.inspect(error));
+    yield put(errorActions.setSystemError(error));
+  }
+}
 export function* watchCampaigns() {
   yield takeEvery(types.FETCH_NEW_EMAIL_CAMPAIGN, fetchNewEmailCampaign);
   yield takeEvery(types.CREATE_EMAIL_CAMPAIGN, createEmailCampaign);
@@ -390,5 +461,6 @@ export function* watchCampaigns() {
   yield takeEvery(types.CREATE_SMS_CAMPAIGN, createSmsCampaign);
   yield takeEvery(types.FETCH_SMS_CAMPAIGN, fetchSmsCampaign);
   yield takeEvery(types.FETCH_SMS_CAMPAIGNS, fetchSmsCampaigns);
+  yield takeEvery(types.FETCH_SMS_CAMPAIGNS_BYDATE, fetchSmsCampaignsByDate);
   yield takeEvery(types.UPDATE_SMS_CAMPAIGN, updateSmsCampaign);
 }

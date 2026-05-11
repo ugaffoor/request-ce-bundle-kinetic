@@ -653,26 +653,26 @@ export function* fetchCurrentMemberAdditional(action) {
 
     let additionalServices = [];
 
-    if (action.payload.billingService === 'Bambora') {
+    if (
+      action.payload.billingService === 'Bambora' ||
+      action.payload.billingService === 'Stripe'
+    ) {
       const [memberAdditionalServices] = yield all([
         call(searchSubmissions, {
           get: true,
           form:
-            action.payload.billingService === 'Bambora'
-              ? 'bambora-member-additional-services'
-              : 'member-additional-services',
+            action.payload.billingService.toLowerCase() +
+            '-member-additional-services',
           search: MEMBER_ADDITIONAL_SERVICES,
           datastore: true,
         }),
       ]);
-      if (action.payload.billingService === 'Bambora') {
-        for (let i = 0; i < memberAdditionalServices.submissions.length; i++) {
-          var len = additionalServices.length;
-          additionalServices[len] =
-            memberAdditionalServices.submissions[i].values;
-          additionalServices[len]['id'] =
-            memberAdditionalServices.submissions[i]['id'];
-        }
+      for (let i = 0; i < memberAdditionalServices.submissions.length; i++) {
+        var len = additionalServices.length;
+        additionalServices[len] =
+          memberAdditionalServices.submissions[i].values;
+        additionalServices[len]['id'] =
+          memberAdditionalServices.submissions[i]['id'];
       }
     }
 
@@ -2722,7 +2722,8 @@ export function* fetchBillingCustomers(action) {
 
     if (
       appSettings.billingCompany === 'Bambora' ||
-      appSettings.billingCompany === 'Stripe'
+      (appSettings.billingCompany === 'Stripe' &&
+        !action.payload.fetchFromStripe)
     ) {
       let billingCustomers = [];
       action.payload.allMembers.forEach((member, i) => {

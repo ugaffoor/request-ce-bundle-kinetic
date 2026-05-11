@@ -993,6 +993,7 @@ class PayNow extends Component {
         posServiceURL,
         this.props.spaceSlug,
         billingSystem,
+        this.state.memberItem !== undefined &&
         this.state.memberItem.values['Billing Customer Id'].includes('cus_')
           ? this.state.memberItem.values['Billing Customer Id']
           : undefined,

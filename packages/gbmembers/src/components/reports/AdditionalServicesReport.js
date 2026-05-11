@@ -109,9 +109,8 @@ export class AdditionalServicesReport extends Component {
       dateFrom: this.state.repFromDate,
       dateTo: this.state.repToDate,
       additionalServiceForm:
-        getAttributeValue(this.props.space, 'Billing Company') === 'Bambora'
-          ? 'bambora-member-additional-services'
-          : '',
+        getAttributeValue(this.props.space, 'Billing Company').toLowerCase() +
+        '-member-additional-services',
     });
   }
 
@@ -120,9 +119,8 @@ export class AdditionalServicesReport extends Component {
       dateFrom: fromDate,
       dateTo: toDate,
       additionalServiceForm:
-        getAttributeValue(this.props.space, 'Billing Company') === 'Bambora'
-          ? 'bambora-member-additional-services'
-          : '',
+        getAttributeValue(this.props.space, 'Billing Company').toLowerCase() +
+        '-member-additional-services',
     });
   }
   getData(additionalServices, allMembers) {
@@ -178,7 +176,15 @@ export class AdditionalServicesReport extends Component {
       unit = 'months';
     }
     const newFrom = moment(repFromDate).add(direction * amount, unit);
-    const newTo = moment(repToDate).add(direction * amount, unit);
+    let newTo;
+    if (unit === 'months') {
+      newTo = moment(newFrom)
+        .endOf('month')
+        .hour(23)
+        .minute(59);
+    } else {
+      newTo = moment(repToDate).add(direction * amount, unit);
+    }
     this.setState({
       repFromDate: newFrom,
       repToDate: newTo,

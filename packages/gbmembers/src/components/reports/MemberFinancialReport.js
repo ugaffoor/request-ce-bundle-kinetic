@@ -194,14 +194,14 @@ export class MemberFinancialReport extends Component {
           }
         } else {
           if (
-            (moment(item.debitDate, 'YYYY-MM-DD HH:mm:ss').isBetween(
+            (moment(item.debitDate, "YYYY-MM-DD'T'HH:mm:ssZ").isBetween(
               this.state.repFromDate,
               this.state.repToDate,
             ) ||
-              moment(item.debitDate, 'YYYY-MM-DD HH:mm:ss').isSame(
+              moment(item.debitDate, "YYYY-MM-DD'T'HH:mm:ssZ").isSame(
                 this.state.repFromDate,
               ) ||
-              moment(item.debitDate, 'YYYY-MM-DD HH:mm:ss').isSame(
+              moment(item.debitDate, "YYYY-MM-DD'T'HH:mm:ssZ").isSame(
                 this.state.repToDate,
               )) &&
             !isRefunded
@@ -279,7 +279,7 @@ export class MemberFinancialReport extends Component {
           if (hIdx !== -1) {
             let debitDate = moment(
               this.paymentHistory[hIdx].debitDate,
-              'YYYY-MM-DD HH:mm:sss',
+              "YYYY-MM-DD'T'HH:mm:ssZ",
             );
             if (
               debitDate.isAfter(moment(member.contractStartDate, 'YYYY-MM-DD'))
@@ -301,7 +301,7 @@ export class MemberFinancialReport extends Component {
       );
       nextProps.customerRefunds.forEach((item, i) => {
         if (
-          moment(item.debitDate, 'YYYY-MM-DD HH:mm:ss').isBetween(
+          moment(item.debitDate, "YYYY-MM-DD'T'HH:mm:ssZ").isBetween(
             this.state.repFromDate,
             this.state.repToDate,
           )
@@ -523,7 +523,7 @@ export class MemberFinancialReport extends Component {
       if (idx !== -1) {
         member.contractStartDate = moment(
           payments[idx]['debitDate'],
-          'YYYY-MM-DD HH:mm:ss',
+          "YYYY-MM-DD'T'HH:mm:ssZ",
         ).format('YYYY-MM-DD');
       }
     });
@@ -1371,7 +1371,7 @@ export class MemberFinancialReport extends Component {
         if (idx !== -1) {
           lastPayment = moment(
             fullPaymentHistory[idx]['debitDate'],
-            'YYYY-MM-DD HH:mm:ss',
+            "YYYY-MM-DD'T'HH:mm:ssZ",
           );
           if (
             moment(member.contractStartDate, 'YYYY-MM-DD').isAfter(lastPayment)
@@ -1386,7 +1386,7 @@ export class MemberFinancialReport extends Component {
           if (getAttributeValue(this.props.space, 'POS System') === 'Bambora')
             return (
               payment.yourSystemReference === member.customerId &&
-              moment(payment.debitDate, 'YYYY-MM-DD HH:mm:sss').isAfter(
+              moment(payment.debitDate, "YYYY-MM-DD'T'HH:mm:ssZ").isAfter(
                 lastPayment,
               )
             );
@@ -1522,7 +1522,7 @@ export class MemberFinancialReport extends Component {
       if (idx !== -1) {
         lastPayment = moment(
           paymentHistory[idx]['debitDate'],
-          'YYYY-MM-DD HH:mm:ss',
+          "YYYY-MM-DD'T'HH:mm:ssZ",
         );
       } else {
         lastPayment = moment(service.values['Start Date'], 'YYYY-MM-DD');
@@ -1905,7 +1905,20 @@ export class MemberFinancialReport extends Component {
       unit = 'months';
     }
     const newFrom = moment(repFromDate).add(direction * amount, unit);
-    const newTo = moment(repToDate).add(direction * amount, unit);
+    let newTo;
+    if (unit === 'months') {
+      newTo = moment(newFrom)
+        .endOf('month')
+        .hour(23)
+        .minute(59);
+    } else if (unit === 'quarters') {
+      newTo = moment(newFrom)
+        .endOf('quarter')
+        .hour(23)
+        .minute(59);
+    } else {
+      newTo = moment(repToDate).add(direction * amount, unit);
+    }
     this.setState({ repFromDate: newFrom, repToDate: newTo });
     this.refreshData(newFrom, newTo);
   }

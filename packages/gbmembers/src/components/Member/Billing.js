@@ -3656,7 +3656,6 @@ export class BillingInfo extends Component {
                                     ? moment(
                                         this.props.setupBillingInfo
                                           .nextBillingDate,
-                                        'DD-MM-YYYY',
                                       ).format('L')
                                     : this.props.setupBillingInfo.nextBillingDate.format(
                                         'L',
@@ -3823,7 +3822,11 @@ export class BillingInfo extends Component {
                                     ? getAttributeValue(
                                         this.props.space,
                                         'Billing Company',
-                                      ) === 'Bambora'
+                                      ) === 'Bambora' ||
+                                      getAttributeValue(
+                                        this.props.space,
+                                        'Billing Company',
+                                      ) === 'Stripe'
                                       ? moment(
                                           this.props.billingInfo
                                             .nextBillingDate,

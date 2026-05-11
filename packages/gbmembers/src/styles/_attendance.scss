@@ -1,3 +1,21 @@
+.statisticsTabs {
+  gap: 4px;
+  margin-left: auto;
+  width: auto;
+  margin-bottom: 6px;
+  button.btn.btn-primary.report-btn-default {
+    background-color: #bdbdbd;
+    display: inline-block;
+    height: 40px;
+    text-transform: capitalize;
+    margin-left: 10px;
+    margin-top: 15px;
+  }
+  button[active='true'] {
+    background-color: gray !important;
+  }
+}
+
 .sidebarMain.viewingKiosk {
   top: 0 !important;
 }
