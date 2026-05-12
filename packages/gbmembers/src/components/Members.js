@@ -78,6 +78,7 @@ export class Members extends React.Component {
   isStartedMain(space, member) {
     return (
       member.values['Status'] !== 'Inactive' &&
+      member.values['Billing Payment Type'] !== 'Cash' &&
       (((member.values['Billing Customer Reference'] === null ||
         member.values['Billing Customer Reference'] === undefined ||
         member.values['Billing Customer Reference'] === '') &&

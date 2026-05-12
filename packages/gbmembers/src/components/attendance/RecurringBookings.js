@@ -174,7 +174,9 @@ export class RecurringBookings extends Component {
       this.recurringBookings = this.getGridData(
         this.rawRecurringBookings,
         this.classSchedules,
-        undefined,
+        this.state.filterMemberGUID === 'CLEAR'
+          ? undefined
+          : this.state.filterMemberGUID,
         this.props.allMembers,
       );
 
@@ -214,7 +216,9 @@ export class RecurringBookings extends Component {
       this.recurringBookings = this.getGridData(
         this.rawRecurringBookings,
         this.classSchedules,
-        undefined,
+        this.state.filterMemberGUID === 'CLEAR'
+          ? undefined
+          : this.state.filterMemberGUID,
         this.props.allMembers,
       );
     }
@@ -362,8 +366,8 @@ export class RecurringBookings extends Component {
       return a['sortVal'] > b['sortVal']
         ? 1
         : b['sortVal'] > a['sortVal']
-        ? -1
-        : 0;
+          ? -1
+          : 0;
     });
 
     return bookingsData;
@@ -559,14 +563,17 @@ export class RecurringBookings extends Component {
                           this.state.classDayInt &&
                         moment(schedule.start).format('HH:mm') ===
                           this.state.classTime &&
-                        ((schedule.allowedPrograms !== undefined &&
+                        (schedule.allowedPrograms !== undefined &&
                           schedule.allowedPrograms !== null &&
-                          schedule.allowedPrograms.includes(e.target.value)) ||
-                          schedule.program === e.target.value)
+                          schedule.allowedPrograms.includes(
+                            e.target.value.split('::')[0],
+                          )) &&
+                        schedule.program === e.target.value.split('::')[0] &&
+                        schedule.title === e.target.value.split('::')[1]
                       );
                     });
                     this.setState({
-                      program: e.target.value,
+                      program: e.target.value.split('::')[0],
                       title: schedule.size !== 0 ? schedule.get(0).title : '',
                       allowedPrograms:
                         schedule.size !== 0
@@ -591,10 +598,7 @@ export class RecurringBookings extends Component {
                       ),
                     ),
                   ].map(program => (
-                    <option
-                      key={program.split('::')[0]}
-                      value={program.split('::')[0]}
-                    >
+                    <option key={program} value={program}>
                       {program.split('::')[0] + ' - ' + program.split('::')[1]}
                     </option>
                   ))}

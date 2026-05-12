@@ -67,9 +67,17 @@ export class MemberStatistics extends Component {
       billingPeriod: 'monthly',
       viewPeriod: 'this_period',
       showTotalActiveMembers: false,
+      showMaleMembers: false,
+      showFemaleMembers: false,
+      showOtherMembers: false,
+      showKidsMembers: false,
+      showKidsMaleMembers: false,
+      showKidsFemaleMembers: false,
+      showKidsOtherMembers: false,
       showActiveMembers: false,
       showActiveNonPayingMembers: false,
       showActiveCashMembers: false,
+      showActiveCasualMembers: false,
       showActiveOrphanMembers: false,
       showAccountHolders: false,
       showCancellationsMembers: false,
@@ -110,6 +118,16 @@ export class MemberStatistics extends Component {
     }
   }
 
+  hasEarlierMembers(fromDate) {
+    return this.props.members.some(member => {
+      var dateJoined = member.values['Date Joined'];
+      return (
+        dateJoined &&
+        dateJoined !== null &&
+        moment(dateJoined, 'YYYY-MM-DD').isBefore(fromDate, 'day')
+      );
+    });
+  }
   dateJoined(member, fromDate, toDate) {
     if (
       member['values']['Date Joined'] !== undefined &&
@@ -204,6 +222,7 @@ export class MemberStatistics extends Component {
     let nonpayingMembers = [];
     let orphanMembers = [];
     let activeCashMembers = [];
+    let casualMembers = [];
     let cancellations = [];
     let pendingCancellations = [];
     let pendingRegistrations = [];
@@ -256,6 +275,9 @@ export class MemberStatistics extends Component {
           }
         }
       }
+      if (memberStatus === 'Casual') {
+        casualMembers[casualMembers.length] = member;
+      }
       if (memberStatus === 'Frozen') {
         frozen[frozen.length] = member;
       }
@@ -268,7 +290,7 @@ export class MemberStatistics extends Component {
       if (memberStatus === 'Pending Cancellation') {
         pendingCancellations[pendingCancellations.length] = member;
       }
-      if (member.values['Status'] === 'Pending Registration') {
+      if (memberStatus === 'Pending Registration') {
         pendingRegistrations[pendingRegistrations.length] = member;
       }
       if (
@@ -308,17 +330,55 @@ export class MemberStatistics extends Component {
       ...nonpayingMembers,
       ...activeCashMembers,
       ...orphanMembers,
+      ...casualMembers,
       ...pendingFrozen,
       ...pendingCancellations,
       ...pendingRegistrations,
     ];
+    const maleMembers = totalActiveMembers.filter(
+      m => m.values['Gender'] === 'Male',
+    );
+    const femaleMembers = totalActiveMembers.filter(
+      m => m.values['Gender'] === 'Female',
+    );
+    const otherMembers = totalActiveMembers.filter(
+      m =>
+        m.values['Gender'] === 'Other' ||
+        m.values['Gender'] === 'Prefer not to answer',
+    );
+    const kidsMembers = totalActiveMembers.filter(
+      m =>
+        m.values['DOB'] &&
+        moment().diff(moment(m.values['DOB'], 'YYYY-MM-DD'), 'years') <= 16,
+    );
+    const kidsMaleMembers = kidsMembers.filter(
+      m => m.values['Gender'] === 'Male',
+    );
+    const kidsFemaleMembers = kidsMembers.filter(
+      m => m.values['Gender'] === 'Female',
+    );
+    const kidsOtherMembers = kidsMembers.filter(
+      m =>
+        m.values['Gender'] === 'Other' ||
+        m.values['Gender'] === 'Prefer not to answer',
+    );
     return {
       accountHolders: { members: accountHolders },
-      totalActiveMembers: { members: totalActiveMembers },
+      totalActiveMembers: {
+        members: totalActiveMembers,
+        maleMembers,
+        femaleMembers,
+        otherMembers,
+        kidsMembers,
+        kidsMaleMembers,
+        kidsFemaleMembers,
+        kidsOtherMembers,
+      },
       activeMembers: { members: activeMembers },
       nonpayingMembers: { members: nonpayingMembers },
       orphanMembers: { members: orphanMembers },
       activeCashMembers: { members: activeCashMembers },
+      casualMembers: { members: casualMembers },
       cancellations: { members: cancellations },
       pendingCancellations: { members: pendingCancellations },
       pendingRegistrations: { members: pendingRegistrations },
@@ -563,7 +623,20 @@ export class MemberStatistics extends Component {
       unit = 'months';
     }
     const newFrom = moment(fromDate).add(direction * amount, unit);
-    const newTo = moment(toDate).add(direction * amount, unit);
+    let newTo;
+    if (unit === 'months') {
+      newTo = moment(newFrom)
+        .endOf('month')
+        .hour(23)
+        .minute(59);
+    } else if (unit === 'quarters') {
+      newTo = moment(newFrom)
+        .endOf('quarter')
+        .hour(23)
+        .minute(59);
+    } else {
+      newTo = moment(toDate).add(direction * amount, unit);
+    }
     this.loadNewPeriod(newFrom, newTo);
   }
   loadNewPeriod(fromDate, toDate) {
@@ -582,8 +655,16 @@ export class MemberStatistics extends Component {
   }
   getMemberTableHeaderName() {
     if (this.state.showTotalActiveMembers) return 'Total Active';
+    if (this.state.showMaleMembers) return 'Male';
+    if (this.state.showFemaleMembers) return 'Female';
+    if (this.state.showOtherMembers) return 'Other';
+    if (this.state.showKidsMembers) return 'Kids (≤16)';
+    if (this.state.showKidsMaleMembers) return 'Kids - Male';
+    if (this.state.showKidsFemaleMembers) return 'Kids - Female';
+    if (this.state.showKidsOtherMembers) return 'Kids - Other';
     if (this.state.showActiveMembers) return 'Active';
     if (this.state.showActiveNonPayingMembers) return 'Active Non Paying';
+    if (this.state.showActiveCasualMembers) return 'Active Casual';
     if (this.state.showActiveOrphanMembers) return 'Active Orphan';
     if (this.state.showActiveCashMembers) return 'Active Cash';
     if (this.state.showAccountHolders) return 'Active Account Holders';
@@ -601,10 +682,22 @@ export class MemberStatistics extends Component {
   getActiveMembersData() {
     const md = this.state.memberData;
     if (this.state.showTotalActiveMembers) return md.totalActiveMembers.members;
+    if (this.state.showMaleMembers) return md.totalActiveMembers.maleMembers;
+    if (this.state.showFemaleMembers)
+      return md.totalActiveMembers.femaleMembers;
+    if (this.state.showOtherMembers) return md.totalActiveMembers.otherMembers;
+    if (this.state.showKidsMembers) return md.totalActiveMembers.kidsMembers;
+    if (this.state.showKidsMaleMembers)
+      return md.totalActiveMembers.kidsMaleMembers;
+    if (this.state.showKidsFemaleMembers)
+      return md.totalActiveMembers.kidsFemaleMembers;
+    if (this.state.showKidsOtherMembers)
+      return md.totalActiveMembers.kidsOtherMembers;
     if (this.state.showActiveMembers) return md.activeMembers.members;
     if (this.state.showActiveNonPayingMembers)
       return md.nonpayingMembers.members;
     if (this.state.showActiveCashMembers) return md.activeCashMembers.members;
+    if (this.state.showActiveCasualMembers) return md.casualMembers.members;
     if (this.state.showActiveOrphanMembers) return md.orphanMembers.members;
     if (this.state.showPendingFrozenMembers) return md.pendingFrozen.members;
     if (this.state.showPendingCancellationsMembers)
@@ -622,6 +715,13 @@ export class MemberStatistics extends Component {
   closeMembers() {
     this.setState({
       showTotalActiveMembers: false,
+      showMaleMembers: false,
+      showFemaleMembers: false,
+      showOtherMembers: false,
+      showKidsMembers: false,
+      showKidsMaleMembers: false,
+      showKidsFemaleMembers: false,
+      showKidsOtherMembers: false,
       showActiveMembers: false,
       showActiveNonPayingMembers: false,
       showActiveCashMembers: false,
@@ -694,10 +794,28 @@ export class MemberStatistics extends Component {
       getAttributeValue(this.props.space, 'Allow Cash Payments') === 'true';
     const groups = [
       { label: 'Total Active', members: md.totalActiveMembers.members },
+      { label: '---- Male', members: md.totalActiveMembers.maleMembers },
+      { label: '---- Female', members: md.totalActiveMembers.femaleMembers },
+      { label: '---- Other', members: md.totalActiveMembers.otherMembers },
+      {
+        label: '------ Kids Male',
+        members: md.totalActiveMembers.kidsMaleMembers,
+      },
+      {
+        label: '------ Kids Female',
+        members: md.totalActiveMembers.kidsFemaleMembers,
+      },
+      {
+        label: '------ Kids Other',
+        members: md.totalActiveMembers.kidsOtherMembers,
+      },
       { label: '-- Active', members: md.activeMembers.members },
       { label: '-- Active Non Paying', members: md.nonpayingMembers.members },
       ...(allowCash
         ? [{ label: '-- Active Cash', members: md.activeCashMembers.members }]
+        : []),
+      ...(md.casualMembers.members.length > 0
+        ? [{ label: '-- Active Casual', members: md.casualMembers.members }]
         : []),
       { label: '-- Active Orphan', members: md.orphanMembers.members },
       { label: '-- Pending Freezes', members: md.pendingFrozen.members },
@@ -720,6 +838,7 @@ export class MemberStatistics extends Component {
       'Group',
       'Member Name',
       'Status',
+      'Date Joined',
       'Created At',
       'Updated At',
       'Last Status Date',
@@ -741,6 +860,7 @@ export class MemberStatistics extends Component {
             `${m.values['Last Name'] || ''} ${m.values['First Name'] ||
               ''}`.trim(),
             m.values['Status'] || '',
+            m.values['Date Joined'] || '',
             m.createdAt ? moment(m.createdAt).format('YYYY-MM-DD') : '',
             m.updatedAt ? moment(m.updatedAt).format('YYYY-MM-DD') : '',
             lastStatusDate,
@@ -868,6 +988,7 @@ export class MemberStatistics extends Component {
                 type="button"
                 className="btn btn-primary report-btn-default"
                 onClick={() => this.navigatePeriod(-1)}
+                disabled={!this.hasEarlierMembers(this.state.fromDate)}
               >
                 {'< Previous '}
                 {this.state.billingPeriod === 'weekly'
@@ -1042,8 +1163,16 @@ export class MemberStatistics extends Component {
                   onClick={e =>
                     this.setState({
                       showTotalActiveMembers: true,
+                      showMaleMembers: false,
+                      showFemaleMembers: false,
+                      showOtherMembers: false,
+                      showKidsMembers: false,
+                      showKidsMaleMembers: false,
+                      showKidsFemaleMembers: false,
+                      showKidsOtherMembers: false,
                       showActiveMembers: false,
                       showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
                       showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
                       showAccountHolders: false,
@@ -1055,11 +1184,260 @@ export class MemberStatistics extends Component {
                       showRestoredMembers: false,
                       showPendingFrozenMembers: false,
                       showNewMembers: false,
-                      memberFilter: '',
                     })
                   }
                 >
                   {this.state.memberData.totalActiveMembers.members.length}
+                </div>
+              </div>
+              <div className="statLine statChild">
+                <div className="statLabel">---- Male</div>
+                <div
+                  className="statCount"
+                  onClick={() =>
+                    this.setState({
+                      showMaleMembers: true,
+                      showTotalActiveMembers: false,
+                      showFemaleMembers: false,
+                      showOtherMembers: false,
+                      showKidsMembers: false,
+                      showKidsMaleMembers: false,
+                      showKidsFemaleMembers: false,
+                      showKidsOtherMembers: false,
+                      showActiveMembers: false,
+                      showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
+                      showActiveOrphanMembers: false,
+                      showActiveCashMembers: false,
+                      showAccountHolders: false,
+                      showCancellationsMembers: false,
+                      showPendingCancellationsMembers: false,
+                      showPendingRegistrationsMembers: false,
+                      showFrozenMembers: false,
+                      showUnFrozenMembers: false,
+                      showRestoredMembers: false,
+                      showPendingFrozenMembers: false,
+                      showNewMembers: false,
+                    })
+                  }
+                >
+                  {this.state.memberData.totalActiveMembers.maleMembers.length}
+                </div>
+              </div>
+              <div className="statLine statChild">
+                <div className="statLabel">---- Female</div>
+                <div
+                  className="statCount"
+                  onClick={() =>
+                    this.setState({
+                      showFemaleMembers: true,
+                      showTotalActiveMembers: false,
+                      showMaleMembers: false,
+                      showOtherMembers: false,
+                      showKidsMembers: false,
+                      showKidsMaleMembers: false,
+                      showKidsFemaleMembers: false,
+                      showKidsOtherMembers: false,
+                      showActiveMembers: false,
+                      showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
+                      showActiveOrphanMembers: false,
+                      showActiveCashMembers: false,
+                      showAccountHolders: false,
+                      showCancellationsMembers: false,
+                      showPendingCancellationsMembers: false,
+                      showPendingRegistrationsMembers: false,
+                      showFrozenMembers: false,
+                      showUnFrozenMembers: false,
+                      showRestoredMembers: false,
+                      showPendingFrozenMembers: false,
+                      showNewMembers: false,
+                    })
+                  }
+                >
+                  {
+                    this.state.memberData.totalActiveMembers.femaleMembers
+                      .length
+                  }
+                </div>
+              </div>
+              <div className="statLine statChild">
+                <div className="statLabel">---- Other</div>
+                <div
+                  className="statCount"
+                  onClick={() =>
+                    this.setState({
+                      showOtherMembers: true,
+                      showTotalActiveMembers: false,
+                      showMaleMembers: false,
+                      showFemaleMembers: false,
+                      showKidsMembers: false,
+                      showKidsMaleMembers: false,
+                      showKidsFemaleMembers: false,
+                      showKidsOtherMembers: false,
+                      showActiveMembers: false,
+                      showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
+                      showActiveOrphanMembers: false,
+                      showActiveCashMembers: false,
+                      showAccountHolders: false,
+                      showCancellationsMembers: false,
+                      showPendingCancellationsMembers: false,
+                      showPendingRegistrationsMembers: false,
+                      showFrozenMembers: false,
+                      showUnFrozenMembers: false,
+                      showRestoredMembers: false,
+                      showPendingFrozenMembers: false,
+                      showNewMembers: false,
+                    })
+                  }
+                >
+                  {this.state.memberData.totalActiveMembers.otherMembers.length}
+                </div>
+              </div>
+              <div className="statLine statChild">
+                <div className="statLabel">---- Kids (≤16)</div>
+                <div
+                  className="statCount"
+                  onClick={() =>
+                    this.setState({
+                      showKidsMembers: true,
+                      showTotalActiveMembers: false,
+                      showMaleMembers: false,
+                      showFemaleMembers: false,
+                      showOtherMembers: false,
+                      showKidsMaleMembers: false,
+                      showKidsFemaleMembers: false,
+                      showKidsOtherMembers: false,
+                      showActiveMembers: false,
+                      showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
+                      showActiveOrphanMembers: false,
+                      showActiveCashMembers: false,
+                      showAccountHolders: false,
+                      showCancellationsMembers: false,
+                      showPendingCancellationsMembers: false,
+                      showPendingRegistrationsMembers: false,
+                      showFrozenMembers: false,
+                      showUnFrozenMembers: false,
+                      showRestoredMembers: false,
+                      showPendingFrozenMembers: false,
+                      showNewMembers: false,
+                    })
+                  }
+                >
+                  {this.state.memberData.totalActiveMembers.kidsMembers.length}
+                </div>
+              </div>
+              <div className="statLine statChild">
+                <div className="statLabel">------ Male</div>
+                <div
+                  className="statCount"
+                  onClick={() =>
+                    this.setState({
+                      showKidsMaleMembers: true,
+                      showTotalActiveMembers: false,
+                      showMaleMembers: false,
+                      showFemaleMembers: false,
+                      showOtherMembers: false,
+                      showKidsMembers: false,
+                      showKidsFemaleMembers: false,
+                      showKidsOtherMembers: false,
+                      showActiveMembers: false,
+                      showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
+                      showActiveOrphanMembers: false,
+                      showActiveCashMembers: false,
+                      showAccountHolders: false,
+                      showCancellationsMembers: false,
+                      showPendingCancellationsMembers: false,
+                      showPendingRegistrationsMembers: false,
+                      showFrozenMembers: false,
+                      showUnFrozenMembers: false,
+                      showRestoredMembers: false,
+                      showPendingFrozenMembers: false,
+                      showNewMembers: false,
+                    })
+                  }
+                >
+                  {
+                    this.state.memberData.totalActiveMembers.kidsMaleMembers
+                      .length
+                  }
+                </div>
+              </div>
+              <div className="statLine statChild">
+                <div className="statLabel">------ Female</div>
+                <div
+                  className="statCount"
+                  onClick={() =>
+                    this.setState({
+                      showKidsFemaleMembers: true,
+                      showTotalActiveMembers: false,
+                      showMaleMembers: false,
+                      showFemaleMembers: false,
+                      showOtherMembers: false,
+                      showKidsMembers: false,
+                      showKidsMaleMembers: false,
+                      showKidsOtherMembers: false,
+                      showActiveMembers: false,
+                      showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
+                      showActiveOrphanMembers: false,
+                      showActiveCashMembers: false,
+                      showAccountHolders: false,
+                      showCancellationsMembers: false,
+                      showPendingCancellationsMembers: false,
+                      showPendingRegistrationsMembers: false,
+                      showFrozenMembers: false,
+                      showUnFrozenMembers: false,
+                      showRestoredMembers: false,
+                      showPendingFrozenMembers: false,
+                      showNewMembers: false,
+                    })
+                  }
+                >
+                  {
+                    this.state.memberData.totalActiveMembers.kidsFemaleMembers
+                      .length
+                  }
+                </div>
+              </div>
+              <div className="statLine statChild">
+                <div className="statLabel">------ Other</div>
+                <div
+                  className="statCount"
+                  onClick={() =>
+                    this.setState({
+                      showKidsOtherMembers: true,
+                      showTotalActiveMembers: false,
+                      showMaleMembers: false,
+                      showFemaleMembers: false,
+                      showOtherMembers: false,
+                      showKidsMembers: false,
+                      showKidsMaleMembers: false,
+                      showKidsFemaleMembers: false,
+                      showActiveMembers: false,
+                      showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
+                      showActiveOrphanMembers: false,
+                      showActiveCashMembers: false,
+                      showAccountHolders: false,
+                      showCancellationsMembers: false,
+                      showPendingCancellationsMembers: false,
+                      showPendingRegistrationsMembers: false,
+                      showFrozenMembers: false,
+                      showUnFrozenMembers: false,
+                      showRestoredMembers: false,
+                      showPendingFrozenMembers: false,
+                      showNewMembers: false,
+                    })
+                  }
+                >
+                  {
+                    this.state.memberData.totalActiveMembers.kidsOtherMembers
+                      .length
+                  }
                 </div>
               </div>
               <div className="statLine statChild">
@@ -1070,7 +1448,15 @@ export class MemberStatistics extends Component {
                     this.setState({
                       showActiveMembers: true,
                       showTotalActiveMembers: false,
+                      showMaleMembers: false,
+                      showFemaleMembers: false,
+                      showOtherMembers: false,
+                      showKidsMembers: false,
+                      showKidsMaleMembers: false,
+                      showKidsFemaleMembers: false,
+                      showKidsOtherMembers: false,
                       showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
                       showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
                       showAccountHolders: false,
@@ -1082,7 +1468,6 @@ export class MemberStatistics extends Component {
                       showRestoredMembers: false,
                       showPendingFrozenMembers: false,
                       showNewMembers: false,
-                      memberFilter: '',
                     })
                   }
                 >
@@ -1098,6 +1483,14 @@ export class MemberStatistics extends Component {
                       showActiveNonPayingMembers: true,
                       showActiveMembers: false,
                       showTotalActiveMembers: false,
+                      showMaleMembers: false,
+                      showFemaleMembers: false,
+                      showOtherMembers: false,
+                      showKidsMembers: false,
+                      showKidsMaleMembers: false,
+                      showKidsFemaleMembers: false,
+                      showKidsOtherMembers: false,
+                      showActiveCasualMembers: false,
                       showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
                       showAccountHolders: false,
@@ -1109,7 +1502,6 @@ export class MemberStatistics extends Component {
                       showRestoredMembers: false,
                       showPendingFrozenMembers: false,
                       showNewMembers: false,
-                      memberFilter: '',
                     })
                   }
                 >
@@ -1127,7 +1519,15 @@ export class MemberStatistics extends Component {
                         showActiveCashMembers: true,
                         showActiveMembers: false,
                         showTotalActiveMembers: false,
+                        showMaleMembers: false,
+                        showFemaleMembers: false,
+                        showOtherMembers: false,
+                        showKidsMembers: false,
+                        showKidsMaleMembers: false,
+                        showKidsFemaleMembers: false,
+                        showKidsOtherMembers: false,
                         showActiveNonPayingMembers: false,
+                        showActiveCasualMembers: false,
                         showActiveOrphanMembers: false,
                         showAccountHolders: false,
                         showCancellationsMembers: false,
@@ -1138,11 +1538,46 @@ export class MemberStatistics extends Component {
                         showRestoredMembers: false,
                         showPendingFrozenMembers: false,
                         showNewMembers: false,
-                        memberFilter: '',
                       })
                     }
                   >
                     {this.state.memberData.activeCashMembers.members.length}
+                  </div>
+                </div>
+              )}
+              {this.state.memberData.casualMembers.members.length > 0 && (
+                <div className="statLine statChild">
+                  <div className="statLabel">-- Active Casual</div>
+                  <div
+                    className="statCount"
+                    onClick={e =>
+                      this.setState({
+                        showActiveCasualMembers: true,
+                        showActiveOrphanMembers: false,
+                        showActiveMembers: false,
+                        showTotalActiveMembers: false,
+                        showMaleMembers: false,
+                        showFemaleMembers: false,
+                        showOtherMembers: false,
+                        showKidsMembers: false,
+                        showKidsMaleMembers: false,
+                        showKidsFemaleMembers: false,
+                        showKidsOtherMembers: false,
+                        showActiveNonPayingMembers: false,
+                        showActiveCashMembers: false,
+                        showAccountHolders: false,
+                        showCancellationsMembers: false,
+                        showPendingCancellationsMembers: false,
+                        showPendingRegistrationsMembers: false,
+                        showFrozenMembers: false,
+                        showUnFrozenMembers: false,
+                        showRestoredMembers: false,
+                        showPendingFrozenMembers: false,
+                        showNewMembers: false,
+                      })
+                    }
+                  >
+                    {this.state.memberData.casualMembers.members.length}
                   </div>
                 </div>
               )}
@@ -1153,8 +1588,16 @@ export class MemberStatistics extends Component {
                   onClick={e =>
                     this.setState({
                       showActiveOrphanMembers: true,
+                      showActiveCasualMembers: false,
                       showActiveMembers: false,
                       showTotalActiveMembers: false,
+                      showMaleMembers: false,
+                      showFemaleMembers: false,
+                      showOtherMembers: false,
+                      showKidsMembers: false,
+                      showKidsMaleMembers: false,
+                      showKidsFemaleMembers: false,
+                      showKidsOtherMembers: false,
                       showActiveNonPayingMembers: false,
                       showActiveCashMembers: false,
                       showAccountHolders: false,
@@ -1166,7 +1609,6 @@ export class MemberStatistics extends Component {
                       showRestoredMembers: false,
                       showPendingFrozenMembers: false,
                       showNewMembers: false,
-                      memberFilter: '',
                     })
                   }
                 >
@@ -1182,7 +1624,15 @@ export class MemberStatistics extends Component {
                       showPendingFrozenMembers: true,
                       showActiveMembers: false,
                       showTotalActiveMembers: false,
+                      showMaleMembers: false,
+                      showFemaleMembers: false,
+                      showOtherMembers: false,
+                      showKidsMembers: false,
+                      showKidsMaleMembers: false,
+                      showKidsFemaleMembers: false,
+                      showKidsOtherMembers: false,
                       showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
                       showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
                       showAccountHolders: false,
@@ -1193,7 +1643,6 @@ export class MemberStatistics extends Component {
                       showUnFrozenMembers: false,
                       showRestoredMembers: false,
                       showNewMembers: false,
-                      memberFilter: '',
                     })
                   }
                 >
@@ -1209,7 +1658,15 @@ export class MemberStatistics extends Component {
                       showPendingCancellationsMembers: true,
                       showActiveMembers: false,
                       showTotalActiveMembers: false,
+                      showMaleMembers: false,
+                      showFemaleMembers: false,
+                      showOtherMembers: false,
+                      showKidsMembers: false,
+                      showKidsMaleMembers: false,
+                      showKidsFemaleMembers: false,
+                      showKidsOtherMembers: false,
                       showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
                       showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
                       showAccountHolders: false,
@@ -1220,7 +1677,6 @@ export class MemberStatistics extends Component {
                       showPendingFrozenMembers: false,
                       showNewMembers: false,
                       showPendingRegistrationsMembers: false,
-                      memberFilter: '',
                     })
                   }
                 >
@@ -1237,7 +1693,15 @@ export class MemberStatistics extends Component {
                       showPendingCancellationsMembers: false,
                       showActiveMembers: false,
                       showTotalActiveMembers: false,
+                      showMaleMembers: false,
+                      showFemaleMembers: false,
+                      showOtherMembers: false,
+                      showKidsMembers: false,
+                      showKidsMaleMembers: false,
+                      showKidsFemaleMembers: false,
+                      showKidsOtherMembers: false,
                       showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
                       showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
                       showAccountHolders: false,
@@ -1247,7 +1711,6 @@ export class MemberStatistics extends Component {
                       showRestoredMembers: false,
                       showPendingFrozenMembers: false,
                       showNewMembers: false,
-                      memberFilter: '',
                     })
                   }
                 >
@@ -1262,8 +1725,16 @@ export class MemberStatistics extends Component {
                     this.setState({
                       showAccountHolders: true,
                       showTotalActiveMembers: false,
+                      showMaleMembers: false,
+                      showFemaleMembers: false,
+                      showOtherMembers: false,
+                      showKidsMembers: false,
+                      showKidsMaleMembers: false,
+                      showKidsFemaleMembers: false,
+                      showKidsOtherMembers: false,
                       showActiveMembers: false,
                       showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
                       showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
                       showCancellationsMembers: false,
@@ -1274,7 +1745,6 @@ export class MemberStatistics extends Component {
                       showRestoredMembers: false,
                       showPendingFrozenMembers: false,
                       showNewMembers: false,
-                      memberFilter: '',
                     })
                   }
                 >
@@ -1290,8 +1760,16 @@ export class MemberStatistics extends Component {
                       showNewMembers: true,
                       showAccountHolders: false,
                       showTotalActiveMembers: false,
+                      showMaleMembers: false,
+                      showFemaleMembers: false,
+                      showOtherMembers: false,
+                      showKidsMembers: false,
+                      showKidsMaleMembers: false,
+                      showKidsFemaleMembers: false,
+                      showKidsOtherMembers: false,
                       showActiveMembers: false,
                       showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
                       showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
                       showCancellationsMembers: false,
@@ -1301,7 +1779,6 @@ export class MemberStatistics extends Component {
                       showUnFrozenMembers: false,
                       showRestoredMembers: false,
                       showPendingFrozenMembers: false,
-                      memberFilter: '',
                     })
                   }
                 >
@@ -1317,8 +1794,16 @@ export class MemberStatistics extends Component {
                       showFrozenMembers: true,
                       showAccountHolders: false,
                       showTotalActiveMembers: false,
+                      showMaleMembers: false,
+                      showFemaleMembers: false,
+                      showOtherMembers: false,
+                      showKidsMembers: false,
+                      showKidsMaleMembers: false,
+                      showKidsFemaleMembers: false,
+                      showKidsOtherMembers: false,
                       showActiveMembers: false,
                       showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
                       showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
                       showCancellationsMembers: false,
@@ -1328,7 +1813,6 @@ export class MemberStatistics extends Component {
                       showRestoredMembers: false,
                       showPendingFrozenMembers: false,
                       showNewMembers: false,
-                      memberFilter: '',
                     })
                   }
                 >
@@ -1344,8 +1828,16 @@ export class MemberStatistics extends Component {
                       showCancellationsMembers: true,
                       showAccountHolders: false,
                       showTotalActiveMembers: false,
+                      showMaleMembers: false,
+                      showFemaleMembers: false,
+                      showOtherMembers: false,
+                      showKidsMembers: false,
+                      showKidsMaleMembers: false,
+                      showKidsFemaleMembers: false,
+                      showKidsOtherMembers: false,
                       showActiveMembers: false,
                       showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
                       showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
                       showPendingCancellationsMembers: false,
@@ -1355,7 +1847,6 @@ export class MemberStatistics extends Component {
                       showRestoredMembers: false,
                       showPendingFrozenMembers: false,
                       showNewMembers: false,
-                      memberFilter: '',
                     })
                   }
                 >
@@ -1371,8 +1862,16 @@ export class MemberStatistics extends Component {
                       showUnFrozenMembers: true,
                       showAccountHolders: false,
                       showTotalActiveMembers: false,
+                      showMaleMembers: false,
+                      showFemaleMembers: false,
+                      showOtherMembers: false,
+                      showKidsMembers: false,
+                      showKidsMaleMembers: false,
+                      showKidsFemaleMembers: false,
+                      showKidsOtherMembers: false,
                       showActiveMembers: false,
                       showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
                       showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
                       showCancellationsMembers: false,
@@ -1382,7 +1881,6 @@ export class MemberStatistics extends Component {
                       showRestoredMembers: false,
                       showPendingFrozenMembers: false,
                       showNewMembers: false,
-                      memberFilter: '',
                     })
                   }
                 >
@@ -1398,8 +1896,16 @@ export class MemberStatistics extends Component {
                       showRestoredMembers: true,
                       showAccountHolders: false,
                       showTotalActiveMembers: false,
+                      showMaleMembers: false,
+                      showFemaleMembers: false,
+                      showOtherMembers: false,
+                      showKidsMembers: false,
+                      showKidsMaleMembers: false,
+                      showKidsFemaleMembers: false,
+                      showKidsOtherMembers: false,
                       showActiveMembers: false,
                       showActiveNonPayingMembers: false,
+                      showActiveCasualMembers: false,
                       showActiveOrphanMembers: false,
                       showActiveCashMembers: false,
                       showCancellationsMembers: false,
@@ -1409,7 +1915,6 @@ export class MemberStatistics extends Component {
                       showUnFrozenMembers: false,
                       showPendingFrozenMembers: false,
                       showNewMembers: false,
-                      memberFilter: '',
                     })
                   }
                 >

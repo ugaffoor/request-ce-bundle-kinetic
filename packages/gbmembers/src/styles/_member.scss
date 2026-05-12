@@ -1,3 +1,9 @@
+.billingInfo {
+  .familyMember {
+    display: inline !important;
+  }
+}
+
 .migrationSection {
   .classSection {
     .memberFilter {
@@ -6,6 +12,12 @@
     }
     input {
       font-size: 18px;
+    }
+    h4 {
+      margin-top: 0.2rem !important;
+    }
+    label {
+      margin-bottom: 2px;
     }
   }
   .bar {
@@ -40,6 +52,7 @@
       .memberName {
         min-width: 400px;
         margin: 0;
+        margin-top: 6px !important;
       }
       .circle {
         display: block;
@@ -47,42 +60,52 @@
         height: 50px;
       }
       h4.label {
-        margin-top: 10px;
+        margin-top: 10px !important;
         margin-left: 20px;
-        width: 120px;
+        min-width: 150px;
       }
       .notMigrated {
         background-color: rgb(238, 92, 92);
         border-radius: 25px;
+        height: 50px;
+        width: 50px;
       }
       .migrated {
         background-color: #37729d;
         border-radius: 25px;
+        height: 50px;
+        width: 50px;
       }
       .inProgress {
         background-color: #7ff46a;
         border-radius: 25px;
+        height: 50px;
+        width: 50px;
       }
       .inProgressSubmitted {
         background-color: #7ff46a;
         border-radius: 25px;
         border-style: dashed;
         border-color: green;
+        height: 50px;
+        width: 50px;
       }
       .expired {
         background-color: #f58c0c;
         border-radius: 25px;
+        height: 50px;
+        width: 50px;
       }
       .action {
-        margin-top: 12px;
         margin-left: 40px;
+        margin-top: 6px;
       }
       .buttonInfo {
         display: flex;
         flex-direction: row;
         h5 {
-          margin-top: 0;
-          margin-bottom: 0;
+          margin-top: 5px !important;
+          margin-bottom: 5px;
           margin-left: 20px;
         }
       }
@@ -1173,6 +1196,9 @@
       }
       .setupFee {
         background-color: #f8f5f5;
+      }
+      .familyMember {
+        display: inline !important;
       }
     }
     margin: 10px;

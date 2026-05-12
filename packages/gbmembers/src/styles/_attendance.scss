@@ -1,3 +1,21 @@
+.statisticsTabs {
+  gap: 4px;
+  margin-left: auto;
+  width: auto;
+  margin-bottom: 6px;
+  button.btn.btn-primary.report-btn-default {
+    background-color: #bdbdbd;
+    display: inline-block;
+    height: 40px;
+    text-transform: capitalize;
+    margin-left: 10px;
+    margin-top: 15px;
+  }
+  button[active='true'] {
+    background-color: gray !important;
+  }
+}
+
 .sidebarMain.viewingKiosk {
   top: 0 !important;
 }
@@ -358,7 +376,7 @@ i.fa.fa-usd.overdue {
     padding: 10px;
     .memberName {
       float: left;
-      margin: 0;
+      margin: 0 !important;
     }
     .lastPromotion {
       float: left;
@@ -427,10 +445,10 @@ i.fa.fa-usd.overdue {
 }
 .memberChartDetails {
   background-color: white;
-  height: 370px;
   margin-left: 10px;
   margin-right: 10px;
   margin-bottom: 10px;
+  overflow-y: auto;
   .nameCol {
     background-color: white;
   }
@@ -440,9 +458,8 @@ i.fa.fa-usd.overdue {
   .closeMembers {
     position: absolute;
     z-index: 100;
-    margin-left: 8px;
-    margin-top: 2px;
-    cursor: pointer;
+    margin-left: 10px;
+    margin-top: -1px;
   }
   .closeMembers path {
     fill: white !important;
@@ -599,7 +616,7 @@ i.fa.fa-usd.overdue {
       .memberName {
         width: 300px;
         float: left;
-        margin-top: 4px;
+        margin-top: 4px !important;
       }
       .lastPromotion {
         float: left;
@@ -1124,7 +1141,8 @@ i.fa.fa-usd.overdue {
       }
       h4 {
         width: 90%;
-        margin-top: 6px;
+        margin-top: 0px !important;
+        font-size: 1.25rem;
         @media (min-width: 321px) {
           width: unset;
         }
@@ -1134,8 +1152,8 @@ i.fa.fa-usd.overdue {
           fill: rgba(224, 79, 79, 0.81);
         }
         svg {
-          width: 3rem;
-          height: 3rem;
+          width: 1rem;
+          height: 1rem;
         }
       }
     }
@@ -1332,7 +1350,7 @@ i.fa.fa-usd.overdue {
       }
       .iconItem.waiver.notValid {
         float: left;
-        margin-top: 15px;
+        margin-top: 15px !important;
         margin-left: 10px;
         svg {
           height: 2rem;
@@ -1349,7 +1367,7 @@ i.fa.fa-usd.overdue {
       color: red;
       clear: left;
       float: left;
-      margin-top: 0;
+      margin-top: 0 !important;
       margin-bottom: 0;
     }
     .F,
@@ -1358,7 +1376,7 @@ i.fa.fa-usd.overdue {
       font-size: 40px;
       clear: left;
       float: left;
-      margin-top: 0;
+      margin-top: 0 !important;
       margin-bottom: 0;
     }
     .S {
@@ -1366,7 +1384,7 @@ i.fa.fa-usd.overdue {
       font-size: 40px;
       clear: left;
       float: left;
-      margin-top: 0;
+      margin-top: 0 !important;
       margin-bottom: 0;
     }
     .deleteCheckin {
@@ -1410,7 +1428,7 @@ i.fa.fa-usd.overdue {
     }
     h4 {
       float: left;
-      margin-top: 4px;
+      margin-top: 4px !important;
       min-width: 160px;
     }
   }
@@ -1428,4 +1446,23 @@ i.fa.fa-usd.overdue {
     height: 3rem;
     width: 3rem;
   }
+}
+.statistics {
+  .closeMembers {
+    position: relative;
+    margin-left: 8px;
+    margin-top: 2px;
+    cursor: pointer;
+  }
+  .header {
+    text-align: center;
+    background: #4d5059;
+    color: white;
+    font-size: 10px;
+  }
+}
+.statistics .header h6,
+.bookingsContent .header h6 {
+  margin-bottom: 1.5rem;
+  margin-top: 1.5rem;
 }

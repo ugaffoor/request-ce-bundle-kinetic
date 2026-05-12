@@ -49,7 +49,11 @@ export class StockReport extends Component {
     });
     this.tableComponentRef = React.createRef();
 
-    let columns = this.getColumns(total);
+    const totalQuantity = data.reduce(
+      (sum, s) => sum + Number.parseFloat(s.quantity || 0),
+      0,
+    );
+    let columns = this.getColumns(total, totalQuantity);
     this.state = {
       data,
       columns,
@@ -162,21 +166,12 @@ export class StockReport extends Component {
   getColourLabel() {
     return K.translate('Colour');
   }
-  getColumns(total) {
+  getColumns(total, totalQuantity) {
     const columns = [
       {
         accessor: 'name',
         Header: 'Name',
         width: 300,
-        Footer: (
-          <span>
-            <strong>Total Retail: </strong>
-            {new Intl.NumberFormat(this.locale, {
-              style: 'currency',
-              currency: this.currency,
-            }).format(total)}
-          </span>
-        ),
       },
       {
         accessor: 'sku',
@@ -208,6 +203,12 @@ export class StockReport extends Component {
           }
           return 0;
         },
+        Footer: (
+          <strong>
+            Total<br />
+            {totalQuantity}
+          </strong>
+        ),
       },
       {
         accessor: 'price',
@@ -221,6 +222,17 @@ export class StockReport extends Component {
               }).format(props.original.price)
             : '';
         },
+        Footer: (
+          <strong>
+            Average<br />
+            {totalQuantity > 0
+              ? new Intl.NumberFormat(this.locale, {
+                  style: 'currency',
+                  currency: this.currency,
+                }).format(total / totalQuantity)
+              : ''}
+          </strong>
+        ),
       },
       {
         accessor: 'price',
@@ -234,6 +246,15 @@ export class StockReport extends Component {
               }).format(props.original.price * props.original.quantity)
             : '';
         },
+        Footer: (
+          <strong>
+            Total Retail<br />
+            {new Intl.NumberFormat(this.locale, {
+              style: 'currency',
+              currency: this.currency,
+            }).format(total)}
+          </strong>
+        ),
       },
     ];
     return columns;
@@ -302,7 +323,11 @@ export class StockReport extends Component {
                     }
                   });
 
-                  let columns = this.getColumns(total);
+                  const totalQuantity = data.reduce(
+                    (sum, s) => sum + Number.parseFloat(s.quantity || 0),
+                    0,
+                  );
+                  let columns = this.getColumns(total, totalQuantity);
 
                   this.setState({
                     stockViewMode: newMode,
@@ -325,6 +350,8 @@ export class StockReport extends Component {
           defaultPageSize={data.length > 0 ? data.length : 2}
           pageSize={data.length > 0 ? data.length : 2}
           showPagination={false}
+          showPageJump={false}
+          footerGroups={true}
         />
         <br />
       </span>

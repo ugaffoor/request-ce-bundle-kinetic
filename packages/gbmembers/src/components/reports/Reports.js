@@ -28,6 +28,7 @@ import { MemberBirthdays } from './MemberBirthdays';
 import { MemberLastAttendance } from './MemberLastAttendance';
 import { MemberMostAttendance } from './MemberMostAttendance';
 import { PaysmartMemberDescrepencies } from './PaysmartMemberDescrepencies';
+import { StripeMemberDescrepencies } from './StripeMemberDescrepencies';
 import { InactiveMembersNoHistory } from './InactiveMembersNoHistory';
 import { PaysmartFailedPayments } from './PaysmartFailedPayments';
 import { BamboraFailedPayments } from './BamboraFailedPayments';
@@ -395,106 +396,102 @@ export const ReportsView = ({
             )}
           </div>
         )}
-        {!Utils.isMemberOf(profile, 'Billing') ? (
-          <div />
-        ) : (
-          <div style={{ margin: '10px' }}>
-            {/* <div className="row">
-              <button
-                type="button"
-                className="btn btn-primary report-btn-default"
-                disabled={!dummyFormLoaded}
-                onClick={e =>
-                  setShowMemberFinancialStats(
-                    showMemberFinancialStats ? false : true,
-                  )
-                }
-              >
-                {showMemberFinancialStats
-                  ? 'Hide Member Financial Statistics'
-                  : 'Show Member Financial Statistics'}
-              </button>
-            </div>
-            {!showMemberFinancialStats ? null : (
-              <div className="row">
-                <MemberFinancialStats
-                  members={members}
-                  billingCustomersLoading={billingCustomersLoading}
-                  billingCustomers={billingCustomers}
-                  fetchBillingCustomers={fetchBillingCustomers}
-                  setBillingCustomers={setBillingCustomers}
-                  variationCustomers={variationCustomers}
-                  variationCustomersLoading={variationCustomersLoading}
-                  fetchVariationCustomers={fetchVariationCustomers}
-                  setVariationCustomers={setVariationCustomers}
-                  customerRefunds={customerRefunds}
-                  customerRefundsLoading={customerRefundsLoading}
-                  fetchCustomerRefunds={fetchCustomerRefunds}
-                  setCustomerRefunds={setCustomerRefunds}
-                  fetchPaymentHistory={fetchPaymentHistory}
-                  setPaymentHistory={setPaymentHistory}
-                  FAILEDpaymentHistory={FAILEDpaymentHistory}
-                  FAILEDpaymentHistoryLoading={FAILEDpaymentHistoryLoading}
-                  SUCCESSFULpaymentHistory={SUCCESSFULpaymentHistory}
-                  SUCCESSFULpaymentHistoryLoading={
-                    SUCCESSFULpaymentHistoryLoading
-                  }
-                  fetchServicesByDate={fetchServicesByDate}
-                  services={services}
-                  servicesLoading={servicesLoading}
-                  space={space}
-                  profile={profile}
-                />
-              </div>
-            )} */}
-            <div className="row">
-              <button
-                type="button"
-                className="btn btn-primary report-btn-default"
-                disabled={!dummyFormLoaded}
-                onClick={e =>
-                  setShowMemberStatistics(showMemberStatistics ? false : true)
-                }
-              >
-                {showMemberStatistics
-                  ? 'Hide Member Statistics'
-                  : 'Show Member Statistics'}
-              </button>
-            </div>
-            {!showMemberStatistics ? null : (
-              <div className="row">
-                <MemberStatistics
-                  members={members}
-                  billingCustomersLoading={billingCustomersLoading}
-                  billingCustomers={billingCustomers}
-                  fetchBillingCustomers={fetchBillingCustomers}
-                  setBillingCustomers={setBillingCustomers}
-                  variationCustomers={variationCustomers}
-                  variationCustomersLoading={variationCustomersLoading}
-                  fetchVariationCustomers={fetchVariationCustomers}
-                  setVariationCustomers={setVariationCustomers}
-                  customerRefunds={customerRefunds}
-                  customerRefundsLoading={customerRefundsLoading}
-                  fetchCustomerRefunds={fetchCustomerRefunds}
-                  setCustomerRefunds={setCustomerRefunds}
-                  fetchPaymentHistory={fetchPaymentHistory}
-                  setPaymentHistory={setPaymentHistory}
-                  FAILEDpaymentHistory={FAILEDpaymentHistory}
-                  FAILEDpaymentHistoryLoading={FAILEDpaymentHistoryLoading}
-                  SUCCESSFULpaymentHistory={SUCCESSFULpaymentHistory}
-                  SUCCESSFULpaymentHistoryLoading={
-                    SUCCESSFULpaymentHistoryLoading
-                  }
-                  fetchServicesByDate={fetchServicesByDate}
-                  services={services}
-                  servicesLoading={servicesLoading}
-                  space={space}
-                  profile={profile}
-                />
-              </div>
-            )}
+        <div style={{ margin: '10px' }}>
+          {/* <div className="row">
+            <button
+              type="button"
+              className="btn btn-primary report-btn-default"
+              disabled={!dummyFormLoaded}
+              onClick={e =>
+                setShowMemberFinancialStats(
+                  showMemberFinancialStats ? false : true,
+                )
+              }
+            >
+              {showMemberFinancialStats
+                ? 'Hide Member Financial Statistics'
+                : 'Show Member Financial Statistics'}
+            </button>
           </div>
-        )}
+          {!showMemberFinancialStats ? null : (
+            <div className="row">
+              <MemberFinancialStats
+                members={members}
+                billingCustomersLoading={billingCustomersLoading}
+                billingCustomers={billingCustomers}
+                fetchBillingCustomers={fetchBillingCustomers}
+                setBillingCustomers={setBillingCustomers}
+                variationCustomers={variationCustomers}
+                variationCustomersLoading={variationCustomersLoading}
+                fetchVariationCustomers={fetchVariationCustomers}
+                setVariationCustomers={setVariationCustomers}
+                customerRefunds={customerRefunds}
+                customerRefundsLoading={customerRefundsLoading}
+                fetchCustomerRefunds={fetchCustomerRefunds}
+                setCustomerRefunds={setCustomerRefunds}
+                fetchPaymentHistory={fetchPaymentHistory}
+                setPaymentHistory={setPaymentHistory}
+                FAILEDpaymentHistory={FAILEDpaymentHistory}
+                FAILEDpaymentHistoryLoading={FAILEDpaymentHistoryLoading}
+                SUCCESSFULpaymentHistory={SUCCESSFULpaymentHistory}
+                SUCCESSFULpaymentHistoryLoading={
+                  SUCCESSFULpaymentHistoryLoading
+                }
+                fetchServicesByDate={fetchServicesByDate}
+                services={services}
+                servicesLoading={servicesLoading}
+                space={space}
+                profile={profile}
+              />
+            </div>
+          )} */}
+          <div className="row">
+            <button
+              type="button"
+              className="btn btn-primary report-btn-default"
+              disabled={!dummyFormLoaded}
+              onClick={e =>
+                setShowMemberStatistics(showMemberStatistics ? false : true)
+              }
+            >
+              {showMemberStatistics
+                ? 'Hide Member Statistics'
+                : 'Show Member Statistics'}
+            </button>
+          </div>
+          {!showMemberStatistics ? null : (
+            <div className="row">
+              <MemberStatistics
+                members={members}
+                billingCustomersLoading={billingCustomersLoading}
+                billingCustomers={billingCustomers}
+                fetchBillingCustomers={fetchBillingCustomers}
+                setBillingCustomers={setBillingCustomers}
+                variationCustomers={variationCustomers}
+                variationCustomersLoading={variationCustomersLoading}
+                fetchVariationCustomers={fetchVariationCustomers}
+                setVariationCustomers={setVariationCustomers}
+                customerRefunds={customerRefunds}
+                customerRefundsLoading={customerRefundsLoading}
+                fetchCustomerRefunds={fetchCustomerRefunds}
+                setCustomerRefunds={setCustomerRefunds}
+                fetchPaymentHistory={fetchPaymentHistory}
+                setPaymentHistory={setPaymentHistory}
+                FAILEDpaymentHistory={FAILEDpaymentHistory}
+                FAILEDpaymentHistoryLoading={FAILEDpaymentHistoryLoading}
+                SUCCESSFULpaymentHistory={SUCCESSFULpaymentHistory}
+                SUCCESSFULpaymentHistoryLoading={
+                  SUCCESSFULpaymentHistoryLoading
+                }
+                fetchServicesByDate={fetchServicesByDate}
+                services={services}
+                servicesLoading={servicesLoading}
+                space={space}
+                profile={profile}
+              />
+            </div>
+          )}
+        </div>
         {!Utils.isMemberOf(profile, 'Billing') ? (
           <div />
         ) : (
@@ -813,6 +810,49 @@ export const ReportsView = ({
             )}
           </div>
         )}
+        {Utils.getAttributeValue(space, 'Billing Company') !== 'Stripe' ||
+        !Utils.isMemberOf(profile, 'Role::Program Managers') ? (
+          <div />
+        ) : (
+          <div
+            style={{ margin: '20px 0px 0px 10px' }}
+            id="descrepencies-report"
+          >
+            <div className="row">
+              <button
+                type="button"
+                className="btn btn-primary report-btn-default"
+                disabled={!dummyFormLoaded}
+                onClick={e => {
+                  setShowDescrepenciesReport(
+                    showDescrepenciesReport ? false : true,
+                  );
+                  document
+                    .getElementById('descrepencies-report')
+                    .scrollIntoView();
+                }}
+              >
+                {showDescrepenciesReport
+                  ? 'Hide Stripe Descrepencies Report'
+                  : 'Show Stripe Descrepencies Report'}
+              </button>
+            </div>
+            {!showDescrepenciesReport ? null : (
+              <div className="row">
+                <div>
+                  <StripeMemberDescrepencies
+                    members={members}
+                    billingCustomersLoading={billingCustomersLoading}
+                    billingCustomers={billingCustomers}
+                    fetchBillingCustomers={fetchBillingCustomers}
+                    setBillingCustomers={setBillingCustomers}
+                    space={space}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
         {Utils.getAttributeValue(space, 'Billing Company') !== 'Bambora' ||
         !Utils.isMemberOf(profile, 'Billing') ? (
           <div />
@@ -854,7 +894,8 @@ export const ReportsView = ({
             )}
           </div>
         )}
-        {Utils.getAttributeValue(space, 'Billing Company') !== 'Bambora' ||
+        {(Utils.getAttributeValue(space, 'Billing Company') !== 'Bambora' &&
+          Utils.getAttributeValue(space, 'Billing Company') !== 'Stripe') ||
         !Utils.isMemberOf(profile, 'Billing') ? (
           <div />
         ) : (

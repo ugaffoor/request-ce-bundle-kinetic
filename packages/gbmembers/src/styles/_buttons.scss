@@ -14,12 +14,20 @@
     outline: $blue3 dotted thin;
   }
 }
+.dialog {
+  .btn.btn-primary {
+    color: white;
+    background-color: $darkgray !important;
+  }
+}
 .btn.btn-primary {
   color: white;
   background-color: $darkgray;
   border: none;
   text-transform: uppercase;
   font-size: 15px;
+  line-height: 1.75em !important;
+  border-radius: 0.4rem;
   padding-top: 0px;
   padding-bottom: 0px;
   &:focus,
@@ -72,7 +80,7 @@ input[type='button'],
   @include border-radius();
   color: $white;
   cursor: pointer;
-  padding: 0rem 0.5rem;
+  padding: 0rem 0.5rem !important;
   &:hover,
   &:focus,
   &:active {
@@ -122,8 +130,8 @@ input[type='button'],
   &:hover,
   &:focus,
   &:active {
-    background-color: tint($darkgray, 10%);
-    border-color: darken($darkgray, 10%);
+    background-color: #7b7e80 !important;
+    border-color: #7b7e80 !important;
     color: $primary-complement;
   }
 }
@@ -208,8 +216,8 @@ input[type='button'],
 .btn-default {
   @extend .btn;
   background-color: $blue1;
-  color: $white;
-  background-color: $blue2;
+  color: $white !important;
+  background-color: $blue2 !important;
   border-color: $blue2;
 
   &:hover,

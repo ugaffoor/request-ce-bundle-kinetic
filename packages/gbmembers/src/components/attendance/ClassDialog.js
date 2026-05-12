@@ -42,8 +42,20 @@ export class ClassDialog extends Component {
   };
 
   applyClass = () => {
-    if (this.state.title === undefined || this.state.program === undefined) {
+    if (
+      this.state.title === undefined ||
+      this.state.title === null ||
+      this.state.program === undefined ||
+      this.state.program === null
+    ) {
       alert('Please ensure a Title and Program value is set.');
+      return;
+    }
+    if (
+      this.state.acceptTrials === 'YES' &&
+      (this.state.trialLimit === undefined || this.state.trialLimit === null)
+    ) {
+      alert('Please ensure the limit value is set.');
       return;
     }
     this.applyDates(
@@ -542,7 +554,7 @@ export class ClassDialog extends Component {
                       Child
                     </label>
                   </div>
-                  <div className="trialLimitDiv form-group">
+                  <div className="trialLimitDiv form-group required">
                     <label htmlFor="trialLimit">Limit</label>
                     <input
                       type="number"

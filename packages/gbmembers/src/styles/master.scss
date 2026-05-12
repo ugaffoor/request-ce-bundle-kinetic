@@ -1,6 +1,5 @@
 @import 'variables';
 @import 'mixins';
-@import 'base';
 @import '~modularscale-sass/stylesheets/modularscale';
 @import 'list-group';
 @import 'sidebar';
@@ -18,7 +17,6 @@
 @import 'assignments';
 @import 'forms';
 @import 'tables';
-@import 'buttons';
 @import 'alerts';
 @import 'help';
 @import 'journeyevents';
@@ -42,3 +40,5 @@
 @import 'proshop';
 // Temporary
 @import 'temp';
+@import 'base';
+@import 'buttons';

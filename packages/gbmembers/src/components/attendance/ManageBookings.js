@@ -161,6 +161,9 @@ export class ManageBookings extends Component {
         this.rawClassBookings,
         this.classSchedules,
         this.props.allMembers,
+        this.state.filterMemberGUID === 'CLEAR'
+          ? undefined
+          : this.state.filterMemberGUID,
       );
 
       var idx = this.classBookings.findIndex(element => {
@@ -200,6 +203,9 @@ export class ManageBookings extends Component {
         this.rawClassBookings,
         this.classSchedules,
         this.props.allMembers,
+        this.state.filterMemberGUID === 'CLEAR'
+          ? undefined
+          : this.state.filterMemberGUID,
       );
     }
   }

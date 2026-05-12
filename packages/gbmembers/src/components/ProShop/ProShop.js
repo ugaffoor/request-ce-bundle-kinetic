@@ -179,6 +179,8 @@ class PayNow extends Component {
     this.saveCardForLater = this.saveCardForLater.bind(this);
     this.updateProfileCard = this.updateProfileCard.bind(this);
     this.completeCheckout = this.completeCheckout.bind(this);
+    this.recoverSquareCapture = this.recoverSquareCapture.bind(this);
+    this.dismissSquareCapture = this.dismissSquareCapture.bind(this);
 
     axios
       .get('https://api.ipify.org/')
@@ -253,6 +255,40 @@ class PayNow extends Component {
     if (this.props.allLeads.length === 0) {
       this.props.fetchLeads();
     }
+  }
+  componentDidMount() {
+    const pending = localStorage.getItem('gbfms_pending_square_capture');
+    if (pending) {
+      try {
+        this.setState({ pendingSquareCapture: JSON.parse(pending) });
+      } catch (e) {
+        localStorage.removeItem('gbfms_pending_square_capture');
+      }
+    }
+  }
+  recoverSquareCapture() {
+    const capture = this.state.pendingSquareCapture;
+    if (!capture) return;
+    this.setState({
+      personType: capture.personType,
+      personID: capture.personID,
+      firstName: capture.firstName,
+      lastName: capture.lastName,
+      payment: capture.payment,
+      number: capture.number,
+      squareCheckoutId: capture.squareCheckoutId,
+      squareCheckoutStatus: '',
+      recoveringSquareCapture: true,
+    });
+    verifyDeviceCount = 0;
+    this.checkTerminalCheckout();
+  }
+  dismissSquareCapture() {
+    localStorage.removeItem('gbfms_pending_square_capture');
+    this.setState({
+      pendingSquareCapture: undefined,
+      recoveringSquareCapture: false,
+    });
   }
   getAllMembers() {
     let membersVals = [];
@@ -338,6 +374,11 @@ class PayNow extends Component {
     return disable;
   }
   completeCheckout() {
+    localStorage.removeItem('gbfms_pending_square_capture');
+    this.setState({
+      pendingSquareCapture: undefined,
+      recoveringSquareCapture: false,
+    });
     this.props.completePOSCheckout(
       this.state.personType,
       this.state.personID,
@@ -952,6 +993,7 @@ class PayNow extends Component {
         posServiceURL,
         this.props.spaceSlug,
         billingSystem,
+        this.state.memberItem !== undefined &&
         this.state.memberItem.values['Billing Customer Id'].includes('cus_')
           ? this.state.memberItem.values['Billing Customer Id']
           : undefined,
@@ -1441,7 +1483,21 @@ class PayNow extends Component {
         }
       })
       .catch(error => {
-        console.log(error.response);
+        console.log('checkTerminalCheckout error', error.response);
+        verifyDeviceCount += 1;
+        if (verifyDeviceCount < 60 && $('.paynow').length > 0) {
+          var myThis = this;
+          setTimeout(function() {
+            myThis.checkTerminalCheckout();
+          }, 2000);
+        } else {
+          this.setState({
+            deviceStatus: 'ERROR',
+            recoveringSquareCapture: false,
+            status_message:
+              'Lost connection while waiting for Square. Please check the terminal — if a payment was taken, use "Recover Payment" after reloading the page.',
+          });
+        }
       });
   }
   processSquareCheckout() {
@@ -1474,6 +1530,26 @@ class PayNow extends Component {
             deviceStatus: 'CHECKOUT',
             processingComplete: false,
           });
+          const pendingCapture = {
+            squareCheckoutId: data.id,
+            personType: this.state.personType,
+            personID: this.state.personID,
+            firstName: this.state.firstName,
+            lastName: this.state.lastName,
+            payment: this.state.payment,
+            number: this.state.number,
+            subtotal: this.props.subtotal,
+            discount: this.props.discount,
+            adminfee: this.props.adminfee,
+            salestax: this.props.salestax,
+            salestax2: this.props.salestax2,
+            total: this.state.total,
+            posCheckout: JSON.stringify(this.props.posCheckout),
+          };
+          localStorage.setItem(
+            'gbfms_pending_square_capture',
+            JSON.stringify(pendingCapture),
+          );
           verifyDeviceCount = 0;
           this.checkTerminalCheckout();
         }
@@ -1739,6 +1815,41 @@ class PayNow extends Component {
   render() {
     return (
       <div>
+        {this.state.pendingSquareCapture && (
+          <div className="alert alert-warning" style={{ margin: '8px' }}>
+            <strong>Unconfirmed Square payment.</strong> A payment of{' '}
+            {this.props.currency}
+            {this.state.pendingSquareCapture.total} for{' '}
+            {this.state.pendingSquareCapture.firstName}{' '}
+            {this.state.pendingSquareCapture.lastName} may have been taken on
+            the terminal but the order was not recorded. (Checkout ID:{' '}
+            {this.state.pendingSquareCapture.squareCheckoutId})
+            {this.state.recoveringSquareCapture ? (
+              <div className="mt-2">
+                <span
+                  className="fa fa-spinner fa-spin mr-2"
+                  aria-hidden="true"
+                />
+                Checking payment status with Square, please wait...
+              </div>
+            ) : (
+              <div className="mt-2">
+                <button
+                  className="btn btn-sm btn-success mr-2"
+                  onClick={this.recoverSquareCapture}
+                >
+                  Recover Payment
+                </button>
+                <button
+                  className="btn btn-sm btn-secondary"
+                  onClick={this.dismissSquareCapture}
+                >
+                  Dismiss (payment was not taken)
+                </button>
+              </div>
+            )}
+          </div>
+        )}
         <div className="paynow">
           <span className="topRow">
             <div className="ckeckoutIcon">
@@ -3789,7 +3900,7 @@ class Checkout extends Component {
   }
 }
 
-class ProductEditDisplay extends Component {
+class ProductEditDisplay extends React.PureComponent {
   constructor(props) {
     super(props);
     this.setShowEditProductDialog = this.setShowEditProductDialog.bind(this);
@@ -3941,7 +4052,7 @@ class ProductEditDisplay extends Component {
   }
 }
 
-class ProductDisplay extends Component {
+class ProductDisplay extends React.PureComponent {
   constructor(props) {
     super(props);
     this.setShowAddProductToCheckoutDialog = this.setShowAddProductToCheckoutDialog.bind(
@@ -3960,13 +4071,9 @@ class ProductDisplay extends Component {
     });
   }
   UNSAFE_componentWillReceiveProps(nextProps) {
-    console.log('ProductDisplay WillReceiveProps');
     if (nextProps.showScanned) {
       this.setShowAddProductToCheckoutDialog(true);
     }
-  }
-  UNSAFE_componentWillMount() {
-    console.log('ProductDisplay willMount');
   }
   render() {
     return (
@@ -4246,11 +4353,59 @@ export class ProShop extends Component {
     }
   }
   render() {
+    const productSortFn = (a, b) => {
+      if (
+        b.values['Display Order'] === undefined ||
+        a.values['Display Order'] < b.values['Display Order']
+      )
+        return -1;
+      if (
+        a.values['Display Order'] === undefined ||
+        a.values['Display Order'] > b.values['Display Order']
+      )
+        return 1;
+      return 0;
+    };
+    const editProducts = this.state.editProductsSwitch
+      ? (() => {
+          const f = (this.state.productNameFilter || '').toLowerCase();
+          return this.props.posProducts
+            .filter(
+              product =>
+                product.values['Categories'].includes(this.state.category) &&
+                (product.values['Status'] === 'Active' ||
+                  product.values['Status'] === 'Inactive') &&
+                product.values['Product Type'] === this.props.productType &&
+                (!f ||
+                  (product.values['Name'] || '').toLowerCase().includes(f)),
+            )
+            .sort(productSortFn);
+        })()
+      : null;
+    const viewProducts = !this.state.editProductsSwitch
+      ? this.props.posProducts
+          .filter(
+            product =>
+              (this.state.scanned &&
+                this.state.productCodeValue ===
+                  (product.values['SKU'] !== null
+                    ? product.values['SKU'].trim()
+                    : product.values['SKU'])) ||
+              (this.state.scanned === undefined &&
+                product.values['Categories'].includes(this.state.category) &&
+                product.values['Status'] === 'Active' &&
+                product.values['Product Type'] === this.props.productType &&
+                (product.values['Product Type'] === 'Apparel' ||
+                product.values['Product Type'] === 'Concession'
+                  ? product.stock.length > 0
+                  : true)),
+          )
+          .sort(productSortFn)
+      : null;
     return (
       <div className="proshopContainer">
         {this.props.posCategoriesLoading ||
         this.props.posProductsLoading ||
-        this.props.posBarcodesLoading ||
         this.props.posDiscountsLoading ||
         this.props.posCheckoutLoading ? (
           <div>Loading...</div>
@@ -4453,6 +4608,7 @@ export class ProShop extends Component {
                         onChange={e => {
                           this.setState({
                             editProductsSwitch: !this.state.editProductsSwitch,
+                            productNameFilter: '',
                             scanned: undefined,
                             scannedSKU: undefined,
                             productCodeValue: undefined,
@@ -4525,6 +4681,20 @@ export class ProShop extends Component {
                     />
                   </div>
                 </div>
+                {this.state.editProductsSwitch && (
+                  <div className="filterRow">
+                    <input
+                      type="text"
+                      placeholder="Filter by product name..."
+                      value={this.state.productNameFilter || ''}
+                      onChange={e =>
+                        this.setState({ productNameFilter: e.target.value })
+                      }
+                      className="form-control"
+                      style={{ marginTop: '8px' }}
+                    />
+                  </div>
+                )}
                 <div className="secondRow">
                   {this.props.posCategories
                     .filter(category => {
@@ -4634,110 +4804,35 @@ export class ProShop extends Component {
                     })}
                 </div>
                 <div className="thirdRow">
-                  {this.state.editProductsSwitch &&
-                    this.props.posProducts
-                      .filter(product => {
-                        if (
-                          product.values['Categories'].includes(
-                            this.state.category,
-                          ) &&
-                          (product.values['Status'] === 'Active' ||
-                            product.values['Status'] === 'Inactive') &&
-                          product.values['Product Type'] ===
-                            this.props.productType
-                        )
-                          return true;
-                        return false;
-                      })
-                      .sort((a, b) => {
-                        if (
-                          b.values['Display Order'] === undefined ||
-                          a.values['Display Order'] < b.values['Display Order']
-                        ) {
-                          return -1;
+                  {editProducts &&
+                    editProducts.map(product => (
+                      <ProductEditDisplay
+                        key={product.id}
+                        product={product}
+                        locale={this.locale}
+                        currency={this.currency}
+                        addProduct={this.props.addProduct}
+                        posProducts={this.props.posProducts}
+                        refreshProducts={this.refreshProducts}
+                      />
+                    ))}
+                  {viewProducts &&
+                    viewProducts.map(product => (
+                      <ProductDisplay
+                        key={product.id}
+                        product={product}
+                        locale={this.locale}
+                        currency={this.currency}
+                        addProduct={this.props.addProduct}
+                        showScanned={
+                          this.state.showRecordStockDialog
+                            ? false
+                            : this.state.scanned
                         }
-                        if (
-                          a.values['Display Order'] === undefined ||
-                          a.values['Display Order'] > b.values['Display Order']
-                        ) {
-                          return 1;
-                        }
-
-                        return 0;
-                      })
-                      .map((product, index) => {
-                        return (
-                          <ProductEditDisplay
-                            key={index}
-                            product={product}
-                            locale={this.locale}
-                            currency={this.currency}
-                            addProduct={this.props.addProduct}
-                            posProducts={this.props.posProducts}
-                            refreshProducts={this.refreshProducts}
-                          />
-                        );
-                      })}
-                  {!this.state.editProductsSwitch &&
-                    this.props.posProducts
-                      .filter(product => {
-                        if (
-                          (this.state.scanned &&
-                          this.state.productCodeValue ===
-                            (product.values['SKU'] !== null
-                              ? product.values['SKU'].trim()
-                              : product.values['SKU'])
-                            ? true
-                            : false) ||
-                          (this.state.scanned === undefined &&
-                            product.values['Categories'].includes(
-                              this.state.category,
-                            ) &&
-                            product.values['Status'] === 'Active' &&
-                            product.values['Product Type'] ===
-                              this.props.productType &&
-                            (product.values['Product Type'] === 'Apparel' ||
-                            product.values['Product Type'] === 'Concession'
-                              ? product.stock.length > 0
-                              : true))
-                        )
-                          return true;
-                        return false;
-                      })
-                      .sort((a, b) => {
-                        if (
-                          b.values['Display Order'] === undefined ||
-                          a.values['Display Order'] < b.values['Display Order']
-                        ) {
-                          return -1;
-                        }
-                        if (
-                          a.values['Display Order'] === undefined ||
-                          a.values['Display Order'] > b.values['Display Order']
-                        ) {
-                          return 1;
-                        }
-
-                        return 0;
-                      })
-                      .map((product, index) => {
-                        return (
-                          <ProductDisplay
-                            key={index}
-                            product={product}
-                            locale={this.locale}
-                            currency={this.currency}
-                            addProduct={this.props.addProduct}
-                            showScanned={
-                              this.state.showRecordStockDialog
-                                ? false
-                                : this.state.scanned
-                            }
-                            scannedSKU={this.state.scannedSKU}
-                            resetScanned={this.resetScanned}
-                          />
-                        );
-                      })}
+                        scannedSKU={this.state.scannedSKU}
+                        resetScanned={this.resetScanned}
+                      />
+                    ))}
                   {this.state.scanned &&
                     this.state.productCodeValue === '' && (
                       <div className="scannedNotFound">

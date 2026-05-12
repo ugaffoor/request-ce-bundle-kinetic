@@ -1109,6 +1109,7 @@ export class SelfCheckin extends Component {
                       <div className="manual">
                         <h5>OR SELECT MEMBER</h5>
                         <Select
+                          /*menuIsOpen={true}*/
                           closeMenuOnSelect={true}
                           options={this.getClassAllowedMembers()}
                           className="hide-columns-container"
@@ -1635,6 +1636,7 @@ export class AttendanceDetail extends Component {
     this.setShowAttendance = this.setShowAttendance.bind(this);
 
     this.getBamboraOverdues = this.getBamboraOverdues.bind(this);
+    this.getStripeOverdues = this.getStripeOverdues.bind(this);
     this.getDayClasses = this.getDayClasses.bind(this);
     this.verifyMemberMaxClassesComplete = this.verifyMemberMaxClassesComplete.bind(
       this,
@@ -1669,7 +1671,10 @@ export class AttendanceDetail extends Component {
       });
     }
     var overdueMembers = [];
-    if (getAttributeValue(this.props.space, 'Billing Company') === 'Bambora') {
+    if (
+      getAttributeValue(this.props.space, 'Billing Company') === 'Bambora' ||
+      getAttributeValue(this.props.space, 'Billing Company') === 'Stripe'
+    ) {
       if (
         this.props.FAILEDpaymentHistory.length === 0 &&
         this.props.SUCCESSFULpaymentHistory.length === 0
@@ -1727,6 +1732,14 @@ export class AttendanceDetail extends Component {
             this.props.FAILEDpaymentHistory,
             this.props.SUCCESSFULpaymentHistory,
             this.props.allMembers,
+          );
+        }
+        if (
+          getAttributeValue(this.props.space, 'Billing Company') === 'Stripe'
+        ) {
+          overdueMembers = this.getStripeOverdues(
+            this.props.FAILEDpaymentHistory,
+            this.props.SUCCESSFULpaymentHistory,
           );
         }
         overduesLoaded = true;
@@ -1819,11 +1832,23 @@ export class AttendanceDetail extends Component {
       !this.state.overduesLoaded &&
       nextProps.allMembers.length > 0
     ) {
-      var overdueMembers = this.getBamboraOverdues(
-        nextProps.FAILEDpaymentHistory,
-        nextProps.SUCCESSFULpaymentHistory,
-        nextProps.allMembers,
-      );
+      var overdueMembers = [];
+
+      if (
+        getAttributeValue(this.props.space, 'Billing Company') === 'Bambora'
+      ) {
+        overdueMembers = this.getBamboraOverdues(
+          nextProps.FAILEDpaymentHistory,
+          nextProps.SUCCESSFULpaymentHistory,
+          nextProps.allMembers,
+        );
+      }
+      if (getAttributeValue(this.props.space, 'Billing Company') === 'Stripe') {
+        overdueMembers = this.getStripeOverdues(
+          nextProps.FAILEDpaymentHistory,
+          nextProps.SUCCESSFULpaymentHistory,
+        );
+      }
       this.setState({
         overdueMembers: overdueMembers,
         overduesLoaded: true,
@@ -1842,7 +1867,151 @@ export class AttendanceDetail extends Component {
       showAttendance: false,
     });
   }
+  getStripeOverdues(failedPayments, successfulPayments) {
+    failedPayments = failedPayments.filter(
+      payment => payment.paymentStatus === 'open',
+    );
+    failedPayments = failedPayments.sort((a, b) => {
+      if (a['debitDate'] < b['debitDate']) {
+        return 1;
+      }
+      if (a['debitDate'] > b['debitDate']) {
+        return -1;
+      }
+      return 0;
+    });
+    var uniqueFailed = [];
+    failedPayments.forEach((failed, i) => {
+      var idx = uniqueFailed.findIndex(
+        unique => unique.yourSystemReference === failed.yourSystemReference,
+      );
+      if (idx === -1) {
+        uniqueFailed[uniqueFailed.length] = failed;
+      }
+    });
 
+    var uniqueHistoryAll = [];
+    uniqueFailed.forEach((failed, i) => {
+      // Remove any failed that has a successful payment
+      var idx = successfulPayments.findIndex(successful => {
+        return (
+          failed.yourSystemReference === successful.yourSystemReference &&
+          moment(successful.debitDate, 'YYYY-MM-DD').isAfter(
+            moment(failed.debitDate, 'YYYY-MM-DD'),
+          )
+        );
+      });
+
+      if (idx === -1) {
+        uniqueHistoryAll[uniqueHistoryAll.length] = failed;
+      }
+    });
+
+    var uniqueHistory = [];
+    uniqueHistoryAll.map(payment => {
+      // Keep only Recurring Billing failures
+      var idx = this.props.allMembers.findIndex(
+        member =>
+          member.values['Billing Customer Id'] ===
+            payment.yourSystemReference ||
+          member.values['Billing Setup Fee Id'] === payment.yourSystemReference,
+      );
+      if (idx !== -1) {
+        if (
+          validOverdue(this.props.allMembers[idx], successfulPayments, payment)
+        ) {
+          uniqueHistory[uniqueHistory.length] = payment;
+        }
+      }
+    });
+    const data = uniqueHistory.map(payment => {
+      var sidx = successfulPayments.findIndex(successful => {
+        return (
+          payment.yourSystemReference === successful.yourSystemReference &&
+          moment(successful.debitDate, 'YYYY-MM-DD').isBefore(
+            moment(payment.debitDate, 'YYYY-MM-DD'),
+          )
+        );
+      });
+
+      var idx = this.props.allMembers.findIndex(
+        member =>
+          member.values['Billing Customer Id'] ===
+            payment.yourSystemReference ||
+          member.values['Billing Setup Fee Id'] === payment.yourSystemReference,
+      );
+      var member = undefined;
+      if (idx !== -1) {
+        member = this.props.allMembers[idx];
+      }
+      var lastPayment;
+      /*      if (sidx !== -1) {
+        lastPayment = moment(
+          successfulPayments[sidx].debitDate,
+          'YYYY-MM-DD HH:mm:ss',
+        );
+      }
+      if (lastPayment === undefined) {
+        lastPayment = moment(member.values['Billing Start Date'], 'YYYY-MM-DD');
+      } */
+      if (idx !== -1) {
+        lastPayment = getLastBillingStartDate(member, successfulPayments);
+      }
+
+      let nowDate = moment();
+      var overdueAmount = 0;
+      if (member !== undefined) {
+        var paymentPeriod = member.values['Billing Payment Period'];
+        var period = 'months';
+        var periodCount = 1;
+        if (paymentPeriod === 'Daily') {
+          period = 'days';
+        } else if (paymentPeriod === 'Weekly') {
+          period = 'weeks';
+        } else if (paymentPeriod === 'Fortnightly') {
+          period = 'weeks';
+          periodCount = 2;
+        } else if (paymentPeriod === '4 Weekly') {
+          period = 'weeks';
+          periodCount = 4;
+        } else if (paymentPeriod === 'Monthly') {
+          period = 'months';
+        }
+        if (lastPayment.isAfter(moment())) {
+          lastPayment = lastPayment.subtract(period, periodCount);
+        }
+
+        var nextBillingDate = lastPayment.add(period, periodCount);
+        while (nextBillingDate.isBefore(nowDate)) {
+          overdueAmount = overdueAmount + payment.scheduledAmount;
+          nextBillingDate = nextBillingDate.add(period, periodCount);
+        }
+        if (overdueAmount === 0) {
+          overdueAmount = payment.scheduledAmount;
+        }
+      }
+      return {
+        _id: payment.paymentID,
+        paymentAmount: payment.scheduledAmount,
+        overdueAmount: overdueAmount,
+        successDate:
+          sidx !== -1
+            ? moment(successfulPayments[sidx].debitDate, 'YYYY-MM-DD HH:mm:ss')
+            : moment(member.values['Billing Start Date'], 'YYYY-MM-DD'),
+        debitDate: payment.debitDate,
+        nextAttemptDate:
+          payment.nextAttemptDate !== null
+            ? payment.nextAttemptDate
+            : 'No more retries',
+        attemptCount: payment.attemptCount,
+        bankReason: payment.bankFailedReason,
+        memberGUID: member !== undefined ? member.id : '',
+        name: member.values['First Name'] + ' ' + member.values['Last Name'],
+      };
+    });
+
+    return data;
+  }
   getBamboraOverdues(failedPayments, successfulPayments, allMembers) {
     failedPayments = failedPayments.filter(payment =>
       isBamboraFailedPayment(payment),

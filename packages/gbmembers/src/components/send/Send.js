@@ -20,9 +20,11 @@ import { email_received_date_format } from '../leads/LeadsUtils';
 import moment from 'moment';
 import { actions as appActions } from '../../redux/modules/memberApp';
 import { ReactComponent as CrossIcon } from '../../images/cross.svg';
+import { ReactComponent as StatsBarIcon } from '../../images/stats-bars.svg';
 import { confirm } from '../helpers/Confirmation';
 import { ReactComponent as HelpIcon } from '../../images/help.svg';
 import ReactTooltip from 'react-tooltip';
+import { StatisticsContainer } from './Statistics';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -1607,49 +1609,63 @@ export const CampaignView = ({
   individualSMSLoading,
   getIndividualSMS,
   setIndividualSMS,
+  showStatistics,
+  setShowStatistics,
 }) => (
-  <div className="container-fluid leads">
-    <StatusMessagesContainer />
-    <div className="">
-      <div className="leadContents">
-        <CreateCampaign allLeads={allLeads} leadsLoading={leadsLoading} />
+  <span>
+    {showStatistics ? (
+      <StatisticsContainer setShowStatistics={setShowStatistics} />
+    ) : (
+      <div className="container-fluid leads">
+        <StatusMessagesContainer />
+        <div className="">
+          <span placeholder="View Email Statistics" className="statistics">
+            <StatsBarIcon
+              className="icon icon-svg statsbar"
+              onClick={e => setShowStatistics(true)}
+            />
+          </span>
+          <div className="leadContents">
+            <CreateCampaign allLeads={allLeads} leadsLoading={leadsLoading} />
+          </div>
+          <div className="taskContents">
+            <EmailCampaignsList
+              emailCampaignsLoading={emailCampaignsLoading}
+              emailCampaignsLoadingTimestamp={emailCampaignsLoadingTimestamp}
+              fetchEmailCampaigns={fetchEmailCampaigns}
+              setEmailCampaigns={setEmailCampaigns}
+              emailCampaigns={emailCampaigns}
+              updateCampaign={updateCampaign}
+              allMembers={allMembers}
+              allLeads={allLeads}
+            />
+          </div>
+          <div className="taskContents">
+            <SmsCampaignsList
+              smsCampaignsLoading={smsCampaignsLoading}
+              smsCampaignsLoadingTimestamp={smsCampaignsLoadingTimestamp}
+              smsCampaigns={smsCampaigns}
+              fetchSmsCampaigns={fetchSmsCampaigns}
+              setSmsCampaigns={setSmsCampaigns}
+              updateSmsCampaign={updateSmsCampaign}
+              allMembers={allMembers}
+              allLeads={allLeads}
+            />
+          </div>
+          <div className="taskContents">
+            <IndividualSmsList
+              individualSMSLoading={individualSMSLoading}
+              individualSMS={individualSMS}
+              getIndividualSMS={getIndividualSMS}
+              setIndividualSMS={setIndividualSMS}
+              allMembers={allMembers}
+              allLeads={allLeads}
+            />
+          </div>
+        </div>
       </div>
-      <div className="taskContents">
-        <EmailCampaignsList
-          emailCampaignsLoading={emailCampaignsLoading}
-          emailCampaignsLoadingTimestamp={emailCampaignsLoadingTimestamp}
-          fetchEmailCampaigns={fetchEmailCampaigns}
-          setEmailCampaigns={setEmailCampaigns}
-          emailCampaigns={emailCampaigns}
-          updateCampaign={updateCampaign}
-          allMembers={allMembers}
-          allLeads={allLeads}
-        />
-      </div>
-      <div className="taskContents">
-        <SmsCampaignsList
-          smsCampaignsLoading={smsCampaignsLoading}
-          smsCampaignsLoadingTimestamp={smsCampaignsLoadingTimestamp}
-          smsCampaigns={smsCampaigns}
-          fetchSmsCampaigns={fetchSmsCampaigns}
-          setSmsCampaigns={setSmsCampaigns}
-          updateSmsCampaign={updateSmsCampaign}
-          allMembers={allMembers}
-          allLeads={allLeads}
-        />
-      </div>
-      <div className="taskContents">
-        <IndividualSmsList
-          individualSMSLoading={individualSMSLoading}
-          individualSMS={individualSMS}
-          getIndividualSMS={getIndividualSMS}
-          setIndividualSMS={setIndividualSMS}
-          allMembers={allMembers}
-          allLeads={allLeads}
-        />
-      </div>
-    </div>
-  </div>
+    )}
+  </span>
 );
 
 export const CampaignContainer = compose(
@@ -1660,7 +1676,7 @@ export const CampaignContainer = compose(
   withProps(({}) => {
     return {};
   }),
-  withState('isDirty', 'setIsDirty', false),
+  withState('showStatistics', 'setShowStatistics', false),
   withHandlers({}),
   lifecycle({
     UNSAFE_componentWillMount() {

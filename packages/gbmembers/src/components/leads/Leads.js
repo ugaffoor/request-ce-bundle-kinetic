@@ -24,6 +24,8 @@ import {
   reminder_date_format,
   getLocalePreference,
   formatDateValue,
+  getReminderDate,
+  gmt_format,
 } from './LeadsUtils';
 import ReactTable from 'react-table';
 import { StatusMessagesContainer } from '../StatusMessages';
@@ -71,6 +73,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = {
   fetchCurrentLead: actions.fetchCurrentLead,
   updateLead: actions.updateLead,
+  updateMember: memberActions.updateMember,
   fetchLeads: actions.fetchLeads,
   fetchMembers: memberActions.fetchMembers,
   setBulkSkipIds: actions.setBulkSkipIds,
@@ -155,6 +158,12 @@ export class TasksDetail extends Component {
       bulkSkip: false,
       selectAll: false,
       bulkSkipIds: [],
+      skipModalLead: null,
+      skipReminderDateString: 'Tomorrow',
+      skipReminderDate:
+        moment()
+          .add(1, 'days')
+          .format('YYYY-MM-DDTHH:mm:ss') + 'Z',
     };
   }
 
@@ -572,12 +581,24 @@ export class TasksDetail extends Component {
         width: 100,
         Cell: row =>
           !this.state.bulkSkip ? (
-            <NavLink
-              to={`/FollowUp/${row.original['_id']}`}
+            <button
               className="btn btn-primary"
+              onClick={() => {
+                const lead = this.props.allLeads.find(
+                  l => l.id === row.original['_id'],
+                );
+                this.setState({
+                  skipModalLead: lead,
+                  skipReminderDateString: 'Tomorrow',
+                  skipReminderDate:
+                    moment()
+                      .add(1, 'days')
+                      .format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+                });
+              }}
             >
               Skip
-            </NavLink>
+            </button>
           ) : (
             <span className="skipLead">
               <input
@@ -585,8 +606,9 @@ export class TasksDetail extends Component {
                 type="checkbox"
                 id={`${row.original['_id']}`}
                 value={row.original['_id']}
+                checked={this.state.bulkSkipIds.includes(row.original['_id'])}
                 onChange={e => {
-                  this.setBulkLeadIds();
+                  this.setBulkLeadIds(row.original['_id'], e.target.checked);
                 }}
               />
             </span>
@@ -728,7 +750,7 @@ export class TasksDetail extends Component {
     return members;
   }
 
-  getMemberTasksColumns(allMembers) {
+  getMemberTasksColumns() {
     return [
       {
         width: 30,
@@ -777,12 +799,24 @@ export class TasksDetail extends Component {
         accessor: '$skip',
         width: 100,
         Cell: row => (
-          <NavLink
-            to={`/MemberFollowUp/${row.original['_id']}`}
+          <button
             className="btn btn-primary"
+            onClick={() => {
+              const member = this.props.allMembers.find(
+                m => m.id === row.original['_id'],
+              );
+              this.setState({
+                skipModalLead: { _isMember: true, _member: member },
+                skipReminderDateString: 'Tomorrow',
+                skipReminderDate:
+                  moment()
+                    .add(1, 'days')
+                    .format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+              });
+            }}
           >
             Skip
-          </NavLink>
+          </button>
         ),
       },
     ];
@@ -820,11 +854,16 @@ export class TasksDetail extends Component {
       .format('MMM')
       .toUpperCase();
   }
-  setBulkLeadIds() {
-    let ids = [];
-
-    $('.skipLead :checked').each((idx, elem) => ids.push($(elem).prop('id')));
-    this.setState({ bulkSkipIds: ids });
+  setBulkLeadIds(id, checked) {
+    this.setState(prevState => {
+      const ids = new Set(prevState.bulkSkipIds);
+      if (checked) {
+        ids.add(id);
+      } else {
+        ids.delete(id);
+      }
+      return { bulkSkipIds: Array.from(ids) };
+    });
   }
   render() {
     let tasks = this.state.tasks;
@@ -996,30 +1035,37 @@ export class TasksDetail extends Component {
                     className="btn btn-primary"
                     onClick={e => {
                       if (!this.state.selectAll) {
-                        $('.skipLead input').prop('checked', true);
+                        this.setState({
+                          selectAll: true,
+                          bulkSkipIds: tasks.map(t => t._id),
+                        });
                       } else {
-                        $('.skipLead input').prop('checked', false);
+                        this.setState({
+                          selectAll: false,
+                          bulkSkipIds: [],
+                        });
                       }
-                      this.setState({ selectAll: !this.state.selectAll });
-                      this.setBulkLeadIds();
                     }}
                   >
                     {!this.state.selectAll ? 'Select All' : 'Unselect All'}
                   </button>
-                  <span
-                    className="selectBulkSkip"
-                    onClick={async e => {
-                      this.props.setBulkSkipIds(this.state.bulkSkipIds);
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    disabled={this.state.bulkSkipIds.length === 0}
+                    onClick={() => {
+                      this.setState({
+                        skipModalLead: { _isBulk: true },
+                        skipReminderDateString: 'Tomorrow',
+                        skipReminderDate:
+                          moment()
+                            .add(1, 'days')
+                            .format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+                      });
                     }}
                   >
-                    <NavLink
-                      to="/FollowUp/bulkSkip"
-                      state={{ leadIDs: this.state.bulkSkipIds }}
-                      className="btn btn-primary"
-                    >
-                      Skip
-                    </NavLink>
-                  </span>
+                    Skip Selected ({this.state.bulkSkipIds.length})
+                  </button>
                 </div>
               )}
             </span>
@@ -1030,9 +1076,8 @@ export class TasksDetail extends Component {
             <ReactTable
               columns={this._columns}
               data={tasks}
-              defaultPageSize={tasks.length > 0 ? tasks.length : 2}
-              pageSize={tasks.length > 0 ? tasks.length : 2}
-              showPagination={false}
+              defaultPageSize={20}
+              showPagination={tasks.length > 20}
               style={{
                 /*height: '500px',*/
                 borderLeft: '0 !important',
@@ -1041,28 +1086,35 @@ export class TasksDetail extends Component {
             />
           </div>
         </div>
-
-        <div className="row">
-          <div className="pageHeader">
-            <h3>Member Tasks</h3>
-          </div>
-        </div>
-        <div id="memberTasksGrid" className="row" style={{ marginTop: '10px' }}>
-          <div className="col">
-            <ReactTable
-              columns={this._memberTasksColumns}
-              data={memberTasks}
-              defaultPageSize={memberTasks.length > 0 ? memberTasks.length : 2}
-              pageSize={memberTasks.length > 0 ? memberTasks.length : 2}
-              showPagination={false}
-              style={{
-                /*height: '500px',*/
-                borderLeft: '0 !important',
-              }}
-              ref="memberTasksGrid"
-            />
-          </div>
-        </div>
+        {!this.props.memberNotesLoaded && <span>....Loading Member Tasks</span>}
+        {this.props.memberNotesLoaded && (
+          <span>
+            <div className="row">
+              <div className="pageHeader">
+                <h3>Member Tasks</h3>
+              </div>
+            </div>
+            <div
+              id="memberTasksGrid"
+              className="row"
+              style={{ marginTop: '10px' }}
+            >
+              <div className="col">
+                <ReactTable
+                  columns={this._memberTasksColumns}
+                  data={memberTasks}
+                  defaultPageSize={20}
+                  showPagination={memberTasks.length > 20}
+                  style={{
+                    /*height: '500px',*/
+                    borderLeft: '0 !important',
+                  }}
+                  ref="memberTasksGrid"
+                />
+              </div>
+            </div>
+          </span>
+        )}
         {/*        <div className="leadContents">
           <LeadsDetail
             allLeads={allLeads}
@@ -1070,6 +1122,179 @@ export class TasksDetail extends Component {
             leadSearchValue={this.state.leadSearchValue}
           />
         </div> */}
+
+        {this.state.skipModalLead && (
+          <div
+            className="modal"
+            style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}
+          >
+            <div className="modal-dialog" role="document">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">
+                    {this.state.skipModalLead._isBulk
+                      ? `Set Follow-Up Reminder for ${
+                          this.state.bulkSkipIds.length
+                        } lead${this.state.bulkSkipIds.length !== 1 ? 's' : ''}`
+                      : this.state.skipModalLead._isMember
+                        ? `Set Follow-Up Reminder for ${
+                            this.state.skipModalLead._member.values[
+                              'First Name'
+                            ]
+                          } ${
+                            this.state.skipModalLead._member.values['Last Name']
+                          }`
+                        : `Set Follow-Up Reminder for ${
+                            this.state.skipModalLead.values['First Name']
+                          } ${this.state.skipModalLead.values['Last Name']}`}
+                  </h5>
+                  <button
+                    type="button"
+                    className="close"
+                    onClick={() => this.setState({ skipModalLead: null })}
+                  >
+                    <span>&times;</span>
+                  </button>
+                </div>
+                <div className="modal-body">
+                  <div className="form-group">
+                    <label>Remind me</label>
+                    <select
+                      className="form-control"
+                      value={this.state.skipReminderDateString}
+                      onChange={e => {
+                        this.setState({
+                          skipReminderDateString: e.target.value,
+                          skipReminderDate:
+                            e.target.value !== 'Custom'
+                              ? getReminderDate(e.target.value)
+                              : this.state.skipReminderDate,
+                        });
+                      }}
+                    >
+                      <option value="Tomorrow">Tomorrow</option>
+                      <option value="2 days from now">2 days from now</option>
+                      <option value="Next Week">Next Week</option>
+                      <option value="Next Month">Next Month</option>
+                      <option value="Custom">Custom date</option>
+                      <option value="Never">Never</option>
+                    </select>
+                  </div>
+                  {this.state.skipReminderDateString === 'Custom' && (
+                    <div className="form-group">
+                      <label>Date</label>
+                      <DayPickerInput
+                        placeholder={moment(new Date())
+                          .locale(
+                            getLocalePreference(
+                              this.props.space,
+                              this.props.profile,
+                            ),
+                          )
+                          .localeData()
+                          .longDateFormat('L')
+                          .toLowerCase()}
+                        formatDate={formatDate}
+                        parseDate={parseDate}
+                        onDayChange={day => {
+                          if (day) {
+                            this.setState({
+                              skipReminderDate:
+                                moment(day)
+                                  .hour(12)
+                                  .format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+                            });
+                          }
+                        }}
+                        dayPickerProps={{
+                          locale: getLocalePreference(
+                            this.props.space,
+                            this.props.profile,
+                          ),
+                          localeUtils: MomentLocaleUtils,
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => this.setState({ skipModalLead: null })}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => {
+                      const reminderDate =
+                        this.state.skipReminderDateString === 'Never'
+                          ? ''
+                          : moment(new Date(this.state.skipReminderDate))
+                              .utc()
+                              .format(gmt_format) + 'Z';
+                      if (this.state.skipModalLead._isBulk) {
+                        this.state.bulkSkipIds.forEach(id => {
+                          const lead = this.props.allLeads.find(
+                            l => l.id === id,
+                          );
+                          if (lead) this.props.saveLead(lead, reminderDate);
+                        });
+                        this.setState({
+                          skipModalLead: null,
+                          bulkSkip: false,
+                          bulkSkipIds: [],
+                          selectAll: false,
+                        });
+                      } else if (this.state.skipModalLead._isMember) {
+                        const member = this.state.skipModalLead._member;
+                        const updatedMember = {
+                          ...member,
+                          values: {
+                            ...member.values,
+                            'Reminder Date': reminderDate,
+                          },
+                        };
+                        const values = { 'Reminder Date': reminderDate };
+                        this.props.updateMember({
+                          id: member.id,
+                          memberItem: updatedMember,
+                          values,
+                          allMembers: this.props.allMembers,
+                          fromTasks: true,
+                        });
+                        // Update local state immediately without waiting for Redux round-trip
+                        const updatedMemberTasksData = this.sort(
+                          this.getMemberTasksData(
+                            this.props.allMembers.map(
+                              m => (m.id === member.id ? updatedMember : m),
+                            ),
+                            this.state.showTasksSelectValue,
+                          ),
+                          'date',
+                        );
+                        this.setState({
+                          skipModalLead: null,
+                          memberTasksData: updatedMemberTasksData,
+                        });
+                      } else {
+                        this.props.saveLead(
+                          this.state.skipModalLead,
+                          reminderDate,
+                        );
+                        this.setState({ skipModalLead: null });
+                      }
+                    }}
+                  >
+                    Set Reminder
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -2168,6 +2393,7 @@ export const LeadsView = ({
   saveLead,
   fetchLeads,
   allMembers,
+  updateMember,
   profile,
   space,
   leadLists,
@@ -2179,16 +2405,17 @@ export const LeadsView = ({
     <StatusMessagesContainer />
     <div className="row">
       <div className="taskContents">
-        {!memberNotesLoaded && <span>....Loading Lead and Member Tasks</span>}
-        {memberNotesLoaded && (
-          <TasksDetail
-            allLeads={allLeads}
-            saveLead={saveLead}
-            allMembers={allMembers}
-            leadLists={leadLists}
-            setBulkSkipIds={setBulkSkipIds}
-          />
-        )}
+        <TasksDetail
+          allLeads={allLeads}
+          saveLead={saveLead}
+          allMembers={allMembers}
+          updateMember={updateMember}
+          leadLists={leadLists}
+          setBulkSkipIds={setBulkSkipIds}
+          profile={profile}
+          space={space}
+          memberNotesLoaded={memberNotesLoaded}
+        />
       </div>
     </div>
     <div>
@@ -2229,13 +2456,16 @@ export const LeadsContainer = compose(
     return {};
   }),
   withHandlers({
-    saveLead: ({ updateLead, fetchLeads }) => (leadItem, reminderDate) => {
+    saveLead: ({ updateLead, fetchLeads, allLeads }) => (
+      leadItem,
+      reminderDate,
+    ) => {
       leadItem.values['Reminder Date'] = reminderDate;
       updateLead({
         id: leadItem['id'],
         leadItem: leadItem,
-        //history: leadItem.history,
         fetchLeads: fetchLeads,
+        allLeads: allLeads,
       });
     },
   }),

@@ -26,6 +26,11 @@ export const types = {
   SET_NEW_SMS_CAMPAIGN: namespace('campaigns', 'SET_NEW_SMS_CAMPAIGN'),
   FETCH_SMS_CAMPAIGNS: namespace('campaigns', 'FETCH_SMS_CAMPAIGNS'),
   SET_SMS_CAMPAIGNS: namespace('campaigns', 'SET_SMS_CAMPAIGNS'),
+  FETCH_SMS_CAMPAIGNS_BYDATE: namespace(
+    'campaigns',
+    'FETCH_SMS_CAMPAIGNS_BYDATE',
+  ),
+  SET_SMS_CAMPAIGNS_BYDATE: namespace('campaigns', 'SET_SMS_CAMPAIGNS_BYDATE'),
   FETCH_SMS_CAMPAIGN: namespace('campaigns', 'FETCH_SMS_CAMPAIGN'),
   SET_SMS_CAMPAIGN: namespace('campaigns', 'SET_SMS_CAMPAIGN'),
   UPDATE_SMS_CAMPAIGN: namespace('campaigns', 'UPDATE_SMS_CAMPAIGN'),
@@ -48,6 +53,8 @@ export const actions = {
   setNewSmsCampaign: withPayload(types.SET_NEW_SMS_CAMPAIGN),
   fetchSmsCampaigns: withPayload(types.FETCH_SMS_CAMPAIGNS),
   setSmsCampaigns: withPayload(types.SET_SMS_CAMPAIGNS),
+  fetchSmsCampaignsByDate: withPayload(types.FETCH_SMS_CAMPAIGNS_BYDATE),
+  setSmsCampaignsByDate: withPayload(types.SET_SMS_CAMPAIGNS_BYDATE),
   fetchSmsCampaign: withPayload(types.FETCH_SMS_CAMPAIGN),
   setSmsCampaign: withPayload(types.SET_SMS_CAMPAIGN),
   updateSmsCampaign: withPayload(types.UPDATE_SMS_CAMPAIGN),
@@ -67,8 +74,10 @@ export const State = Record({
   newSmsCampaign: {},
   smsCampaignItem: {},
   allSmsCampaigns: [],
+  allSmsCampaignsByDate: [],
   newSmsCampaignLoading: true,
   smsCampaignsLoading: true,
+  smsCampaignsByDateLoading: true,
   smsCampaignsLoadingTimestamp: moment().subtract(1, 'days'),
   smsCampaignLoading: true,
 });
@@ -157,6 +166,16 @@ export const reducer = (state = State(), { type, payload }) => {
         })
         .set('smsCampaignsLoading', false)
         .set('smsCampaignsLoadingTimestamp', moment());
+    }
+    case types.FETCH_SMS_CAMPAIGNS_BYDATE: {
+      return state.set('smsCampaignsByDateLoading', true);
+    }
+    case types.SET_SMS_CAMPAIGNS_BYDATE: {
+      return state
+        .set('allSmsCampaignsByDate', {
+          submissions: payload.smsCampaigns,
+        })
+        .set('smsCampaignsByDateLoading', false);
     }
     default:
       return state;

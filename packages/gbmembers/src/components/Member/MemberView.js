@@ -307,9 +307,8 @@ export class BillingParentInfo extends Component {
           Family Member of
           <NavLink
             to={`/Member/${this.props.parentMemberId}`}
-            className={'nav-link icon-wrapper'}
+            className={'nav-link icon-wrapper familyMember'}
             activeClassName="active"
-            style={{ display: 'inline' }}
           >
             {this.parentMember.values['First Name']}{' '}
             {this.parentMember.values['Last Name']}
@@ -1808,9 +1807,7 @@ export const MemberView = ({
                     <label htmlFor="customerBillingId">Billing Id</label>
                   </div>
                 )}
-              {Utils.getAttributeValue(space, 'Billing Company') ===
-                'PaySmart' &&
-                memberItem.values['Non Paying'] !== 'YES' &&
+              {memberItem.values['Non Paying'] !== 'YES' &&
                 memberItem.values['Billing Payment Type'] !== 'Cash' && (
                   <div
                     style={{
@@ -1826,7 +1823,24 @@ export const MemberView = ({
                     <button
                       type="button"
                       className={'btn btn-primary'}
-                      onClick={e => clearBillingInfo()}
+                      onClick={async e => {
+                        if (
+                          await confirm(
+                            <span>
+                              <span>
+                                Are you sure you want to CLEAR the billing
+                                information for this member.{' '}
+                                {memberItem.values['First Name']}{' '}
+                                {memberItem.values['Last Name']}? Note, if the
+                                Billing account is still active it will continue
+                                to Charge the Member if you continue.
+                              </span>
+                            </span>,
+                          )
+                        ) {
+                          clearBillingInfo();
+                        }
+                      }}
                     >
                       CLEAR Billing Info
                     </button>
@@ -2508,8 +2522,10 @@ export const MemberViewContainer = compose(
       memberItem.values['Billing User'] = null;
       memberItem.values['Billing Payment Type'] = null;
       memberItem.values['Billing Payment Period'] = null;
+      memberItem.values['Billing Parent Member'] = null;
       memberItem.values['Payment Schedule'] = null;
       memberItem.values['Membership Cost'] = null;
+      memberItem.values['Payment'] = null;
 
       let changes = memberItem.values['Billing Changes'];
       if (!changes) {

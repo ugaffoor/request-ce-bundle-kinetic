@@ -2,31 +2,54 @@ import React, { Component } from 'react';
 import ReactTable from 'react-table';
 import ReactSpinner from 'react16-spinjs';
 import moment from 'moment';
-import { getJson } from '../Member/MemberUtils';
+import $ from 'jquery';
+import { getLocalePreference } from '../Member/MemberUtils';
 import { Utils } from 'common';
 import { ReactComponent as CrossIcon } from '../../images/cross.svg';
 import { KappNavLink as NavLink } from 'common';
 import ReactToPrint from 'react-to-print';
 import { ReactComponent as PrinterIcon } from '../../images/Print.svg';
+import DayPickerInput from 'react-day-picker/DayPickerInput';
+import 'react-day-picker/lib/style.css';
+import MomentLocaleUtils, {
+  formatDate,
+  parseDate,
+} from 'react-day-picker/moment';
+
+var compThis = undefined;
 
 export class Services extends Component {
+  handleClose = () => {
+    var lastActive = this.state.lastActive;
+    $('.dateSettings button[active=true]').attr('active', 'false');
+    $(lastActive).attr('active', 'true');
+    this.setState({
+      isShowCustom: false,
+      dateRange: this.state.lastDateRange,
+    });
+  };
   constructor(props) {
     super(props);
+    compThis = this;
     moment.locale(
       this.props.profile.preferredLocale === null
         ? this.props.space.defaultLocale
         : this.props.profile.preferredLocale,
     );
 
-    let startOfMonth = moment().startOf('month');
-    let endOfMonth = moment().endOf('month');
+    const repFromDate = moment()
+      .date(1)
+      .hour(0)
+      .minute(0);
+    const repToDate = moment()
+      .date(1)
+      .add(1, 'months')
+      .subtract(1, 'days')
+      .hour(23)
+      .minute(59);
+
     let services = this.props.services;
-    let data = this.getData(
-      services,
-      startOfMonth,
-      endOfMonth,
-      this.props.space,
-    );
+    let data = this.getData(services, repFromDate, repToDate, this.props.space);
     let columns = this.getColumns();
 
     this.tableComponentRef = React.createRef();
@@ -35,9 +58,12 @@ export class Services extends Component {
       services,
       data,
       columns,
-      startOfMonth,
-      endOfMonth,
+      repFromDate,
+      repToDate,
+      repPeriod: 'monthly',
       showServices: false,
+      isShowCustom: false,
+      servicesSlug: undefined,
     };
   }
 
@@ -45,8 +71,8 @@ export class Services extends Component {
     let services = nextProps.services;
     let data = this.getData(
       services,
-      this.state.startOfMonth,
-      this.state.endOfMonth,
+      this.state.repFromDate,
+      this.state.repToDate,
       this.props.space,
     );
     this.setState({
@@ -57,9 +83,44 @@ export class Services extends Component {
 
   UNSAFE_componentWillMount() {
     this.props.fetchServicesByDate({
-      fromDate: this.state.startOfMonth,
-      toDate: this.state.endOfMonth,
+      fromDate: this.state.repFromDate,
+      toDate: this.state.repToDate,
     });
+  }
+
+  navigateReportPeriod(direction) {
+    const { repFromDate, repToDate, repPeriod } = this.state;
+    let amount, unit;
+    if (repPeriod === 'weekly') {
+      amount = 1;
+      unit = 'weeks';
+    } else if (repPeriod === 'fortnightly') {
+      amount = 2;
+      unit = 'weeks';
+    } else {
+      amount = 1;
+      unit = 'months';
+    }
+    const newFrom = moment(repFromDate).add(direction * amount, unit);
+    let newTo;
+    if (unit === 'months') {
+      newTo = moment(newFrom)
+        .endOf('month')
+        .hour(23)
+        .minute(59);
+    } else {
+      newTo = moment(repToDate).add(direction * amount, unit);
+    }
+    this.setState({ repFromDate: newFrom, repToDate: newTo });
+    this.loadNewServices(newFrom, newTo);
+  }
+
+  handleSubmit() {
+    if (!this.state.repFromDate || !this.state.repToDate) {
+      return;
+    }
+    this.setState({ isShowCustom: false });
+    this.loadNewServices(this.state.repFromDate, this.state.repToDate);
   }
 
   getData(services, startOfMonth, endOfMonth, space) {
@@ -135,8 +196,8 @@ export class Services extends Component {
       toDate: toDate,
     });
     this.setState({
-      startOfMonth: fromDate,
-      endOfMonth: toDate,
+      repFromDate: fromDate,
+      repToDate: toDate,
     });
   }
   getServicesTableColumns() {
@@ -187,12 +248,7 @@ export class Services extends Component {
   }
   render() {
     const { data, columns } = this.state;
-    return this.props.servicesLoading ? (
-      <div style={{ margin: '10px' }}>
-        <p>Loading Services report ...</p>
-        <ReactSpinner />{' '}
-      </div>
-    ) : (
+    return (
       <span className="services">
         <hr />
         <div
@@ -229,37 +285,140 @@ export class Services extends Component {
             </div>
           )}
           <div className="dateSettings">
-            <button
-              type="button"
-              className="btn btn-primary report-btn-default"
-              onClick={e => {
-                let startOfMonth = this.state.startOfMonth.subtract(1, 'month');
-                let endOfMonth = this.state.endOfMonth.subtract(1, 'month');
-                this.loadNewServices(startOfMonth, endOfMonth);
-              }}
-            >
-              Previous Month
-            </button>
-            <h6>
-              {this.state.startOfMonth.format('L')} to{' '}
-              {this.state.endOfMonth.format('L')}
-            </h6>
-            <button
-              type="button"
-              className="btn btn-primary report-btn-default"
-              disabled={moment().isBetween(
-                this.state.startOfMonth,
-                this.state.endOfMonth,
-              )}
-              onClick={e => {
-                let startOfMonth = this.state.startOfMonth.add(1, 'month');
-                let endOfMonth = this.state.endOfMonth.add(1, 'month');
-                this.loadNewServices(startOfMonth, endOfMonth);
-              }}
-            >
-              Next Month
-            </button>
+            <div className="dateNavButtons">
+              <button
+                type="button"
+                className="btn btn-primary report-btn-default"
+                onClick={() => this.navigateReportPeriod(-1)}
+              >
+                {'< Previous '}
+                {this.state.repPeriod === 'weekly'
+                  ? 'Week'
+                  : this.state.repPeriod === 'fortnightly'
+                    ? 'Fortnight'
+                    : 'Month'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary report-btn-default"
+                onClick={() => this.navigateReportPeriod(1)}
+                disabled={this.state.repToDate.isSameOrAfter(moment(), 'day')}
+              >
+                {'Next '}
+                {this.state.repPeriod === 'weekly'
+                  ? 'Week'
+                  : this.state.repPeriod === 'fortnightly'
+                    ? 'Fortnight'
+                    : 'Month'}
+                {' >'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary report-btn-default"
+                onClick={() => this.setState({ isShowCustom: true })}
+              >
+                Custom
+              </button>
+            </div>
+            <div className="dateRangeLabel">
+              {this.state.repFromDate.format('DD MMM YYYY')} –{' '}
+              {this.state.repToDate.format('DD MMM YYYY')}
+            </div>
           </div>
+          {this.state.isShowCustom && (
+            <div className="stat_customDatesContainer">
+              <div className="purchaseItemsByDateDiv">
+                <div className="col-md-8">
+                  <div className="row">
+                    <div className="form-group col-xs-2 mr-1">
+                      <label htmlFor="fromDate" className="control-label">
+                        From Date
+                      </label>
+                      <DayPickerInput
+                        name="fromDate"
+                        id="fromDate"
+                        placeholder={moment(new Date())
+                          .locale(
+                            getLocalePreference(
+                              this.props.space,
+                              this.props.profile,
+                            ),
+                          )
+                          .localeData()
+                          .longDateFormat('L')
+                          .toLowerCase()}
+                        formatDate={formatDate}
+                        parseDate={parseDate}
+                        value={this.state.repFromDate.toDate()}
+                        onDayChange={function(selectedDay) {
+                          compThis.setState({
+                            repFromDate: moment(selectedDay),
+                          });
+                        }}
+                        dayPickerProps={{
+                          locale: getLocalePreference(
+                            this.props.space,
+                            this.props.profile,
+                          ),
+                          localeUtils: MomentLocaleUtils,
+                        }}
+                      />
+                    </div>
+                    <div className="form-group col-xs-2 mr-1">
+                      <label htmlFor="toDate" className="control-label">
+                        To Date
+                      </label>
+                      <DayPickerInput
+                        name="toDate"
+                        id="toDate"
+                        placeholder={moment(new Date())
+                          .locale(
+                            getLocalePreference(
+                              this.props.space,
+                              this.props.profile,
+                            ),
+                          )
+                          .localeData()
+                          .longDateFormat('L')
+                          .toLowerCase()}
+                        formatDate={formatDate}
+                        parseDate={parseDate}
+                        value={this.state.repToDate.toDate()}
+                        onDayChange={function(selectedDay) {
+                          compThis.setState({
+                            repToDate: moment(selectedDay),
+                          });
+                        }}
+                        dayPickerProps={{
+                          locale: getLocalePreference(
+                            this.props.space,
+                            this.props.profile,
+                          ),
+                          localeUtils: MomentLocaleUtils,
+                        }}
+                      />
+                    </div>
+                    <div className="form-group col-xs-2">
+                      <button
+                        className="btn btn-primary form-control input-sm"
+                        onClick={() => this.handleClose()}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                    <div className="form-group col-xs-2 submit">
+                      <button
+                        className="btn btn-primary form-control input-sm"
+                        onClick={() => this.handleSubmit()}
+                      >
+                        Apply
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         <ReactToPrint
           trigger={() => <PrinterIcon className="icon icon-svg tablePrint" />}

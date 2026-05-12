@@ -206,6 +206,16 @@ export function* createAttendance(action) {
   try {
     var memberItem;
     var attendanceSubmission;
+
+    // Snapshot whether this attendance record already exists locally before submission.
+    // Used below to distinguish a genuine first check-in from a deliberate double-tap.
+    const alreadyLocal = action.payload.classAttendances.some(
+      ca =>
+        ca.values['Member GUID'] === action.payload.values['Member GUID'] &&
+        ca.values['Class Date'] === action.payload.values['Class Date'] &&
+        ca.values['Class Time'] === action.payload.values['Class Time'],
+    );
+
     const { submission, error } = yield call(createSubmission, {
       datastore: true,
       formSlug: 'member-attendance',
@@ -221,7 +231,6 @@ export function* createAttendance(action) {
         break;
       }
     }
-    debugger;
     const app = yield select(getApp);
     setMemberPromotionValues(memberItem, app.belts);
 
@@ -282,8 +291,14 @@ export function* createAttendance(action) {
       attendanceSubmission.daysVal = memberItem.daysVal;
       attendanceSubmission.attendancePerc = memberItem.attendancePerc;
       attendanceSubmission.statusIndicator = memberItem.statusIndicator;
+    }
 
-      // Only Increment attendanceCount if the first classs of the day
+    // Only increment attendanceCount if this is a genuinely new check-in for this session.
+    // alreadyLocal=true means the staff deliberately tapped twice — don't double-count.
+    // alreadyLocal=false covers both clean first-time check-ins AND the network-retry
+    // scenario (server created the record, client timed out, retry gets uniqueness_violation).
+    if (!alreadyLocal) {
+      // Only increment if this is the member's first class of the day
       let checkin = action.payload.classAttendances.find(
         checkin =>
           checkin.values['Member GUID'] ===

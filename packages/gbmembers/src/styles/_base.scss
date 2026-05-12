@@ -1,8 +1,8 @@
 body {
-  font-family: 'AdiHaus DIN Regular';
+  font-family: 'AdiHaus DIN Regular' !important;
   background-color: #f7f7f7;
   user-select: text;
-  background: unset;
+  background: unset !important;
 }
 
 .nav-link:focus,
@@ -21,8 +21,8 @@ a {
   font-size: 0.75rem;
 }
 
-.fade:not(.show) {
-  opacity: unset; /* Override issue */
+.modal.fade:not(.show) {
+  opacity: unset; /* Override _transitions.scss — scoped to modal only, not backdrop */
 }
 .setChangeStatusDialog {
   top: 30% !important;

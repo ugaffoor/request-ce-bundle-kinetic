@@ -2009,6 +2009,16 @@ export const MemberEdit = ({
                     checked={
                       memberItem.values['Non Paying'] === 'YES' ? true : false
                     }
+                    disabled={
+                      memberItem.values['Billing User'] === 'YES' &&
+                      (memberItem.values['Billing Customer Reference'] !==
+                        undefined ||
+                        memberItem.values['Billing Customer Reference'] !==
+                          null ||
+                        memberItem.values['Billing Customer Reference'] !== '')
+                        ? true
+                        : false
+                    }
                     onChange={e => {
                       if (memberItem.values['Non Paying'] === 'YES') {
                         e.target.value = '';
@@ -2894,7 +2904,21 @@ export const MemberEdit = ({
                   onConfirm={e =>
                     deleteMemberCall(memberItem, deleteMember, updateLead)
                   }
-                  body="Are you sure you want to delete this member?"
+                  body={
+                    <span>
+                      <span>Are you sure you want to delete this member?</span>
+                      <br />
+                      <span>
+                        Please note that setting a Member's status directly will
+                        not affect Billing.
+                      </span>
+                      <br />
+                      <span>
+                        If you wish to adjust the Billing status or value,
+                        please submit the appropriate billing form.
+                      </span>
+                    </span>
+                  }
                   confirmText="Confirm Delete"
                   title="Deleting Member"
                 >

@@ -316,6 +316,73 @@ export const HomeView = ({
   </div>
 );
 
+function getInitialDateRange() {
+  const type = localStorage.getItem('statisticsViewPeriod') || 'this_week';
+  if (type === 'today') {
+    return {
+      fromDate: moment()
+        .hour(0)
+        .minute(0)
+        .second(0)
+        .millisecond(0),
+      toDate: moment()
+        .hour(23)
+        .minute(59)
+        .second(59)
+        .millisecond(999),
+    };
+  } else if (type === 'this_week') {
+    return {
+      fromDate: moment()
+        .day(1)
+        .hour(0)
+        .minute(0)
+        .second(0)
+        .millisecond(0),
+      toDate: moment()
+        .day(7)
+        .hour(23)
+        .minute(59)
+        .second(59)
+        .millisecond(999),
+    };
+  } else if (type === 'last_30_days') {
+    return {
+      fromDate: moment()
+        .date(1)
+        .hour(0)
+        .minute(0)
+        .second(0)
+        .millisecond(0),
+      toDate: moment()
+        .date(1)
+        .add(1, 'months')
+        .subtract(1, 'days')
+        .hour(23)
+        .minute(59)
+        .second(59)
+        .millisecond(999),
+    };
+  }
+  // last_7_days (default)
+  return {
+    fromDate: moment()
+      .subtract(1, 'weeks')
+      .day(1)
+      .hour(0)
+      .minute(0)
+      .second(0)
+      .millisecond(0),
+    toDate: moment()
+      .subtract(1, 'weeks')
+      .day(7)
+      .hour(23)
+      .minute(59)
+      .second(59)
+      .millisecond(999),
+  };
+}
+
 export const HomeContainer = compose(
   connect(
     mapStateToProps,
@@ -336,8 +403,8 @@ export const HomeContainer = compose(
     };
   }),
   withState('isAssigning', 'setIsAssigning', false),
-  withState('fromDate', 'setFromDate', moment().subtract(6, 'days')),
-  withState('toDate', 'setToDate', moment()),
+  withState('fromDate', 'setFromDate', getInitialDateRange().fromDate),
+  withState('toDate', 'setToDate', getInitialDateRange().toDate),
   withHandlers({
     getOverdues: ({
       fetchOverdues,

@@ -50,6 +50,7 @@ const mapDispatchToProps = {
   deleteJourneyEvent: dataStoreActions.deleteJourneyEvent,
   resetJourneyEvent: dataStoreActions.resetJourneyEvent,
   fetchLeads: leadsActions.fetchLeads,
+  fetchMembers: membersActions.fetchMembers,
   setJourneyEvents: eventsActions.setJourneyEvents,
   getAccountCredit: messagingActions.getAccountCredit,
   setAccountCredit: messagingActions.setAccountCredit,
@@ -88,7 +89,9 @@ class EventResult extends Component {
                 </NavLink>
               ) : (
                 <NavLink
-                  to={`/LeadDetail/${this.props.journeyEvent.values['Record ID']}`}
+                  to={`/LeadDetail/${
+                    this.props.journeyEvent.values['Record ID']
+                  }`}
                   className="nameValue"
                 >
                   {this.props.journeyEvent.values['Record Name']}
@@ -316,7 +319,9 @@ export class SMSEvent extends Component {
                 </small>
                 {this.props.journeyEvent.values['Record Type'] === 'Member' ? (
                   <NavLink
-                    to={`/Member/${this.props.journeyEvent.values['Record ID']}`}
+                    to={`/Member/${
+                      this.props.journeyEvent.values['Record ID']
+                    }`}
                     className="nameValue"
                   >
                     {this.props.journeyEvent.values['Record Name']}{' '}
@@ -324,7 +329,9 @@ export class SMSEvent extends Component {
                   </NavLink>
                 ) : (
                   <NavLink
-                    to={`/LeadDetail/${this.props.journeyEvent.values['Record ID']}`}
+                    to={`/LeadDetail/${
+                      this.props.journeyEvent.values['Record ID']
+                    }`}
                     className="nameValue"
                   >
                     {this.props.journeyEvent.values['Record Name']}{' '}
@@ -399,7 +406,7 @@ export class SMSEvent extends Component {
                             ''
                           )
                         ) : this.props.leadItem &&
-                          this.props.leadItem.values ? (
+                        this.props.leadItem.values ? (
                           <span>
                             <NumberFormat
                               value={this.props.leadItem.values['Phone Number']}
@@ -611,7 +618,10 @@ export const SMSEventView = ({
   );
 
 export const SMSEventContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(({ match }) => {
     return {
       eventId: match.params.eventId,
@@ -739,10 +749,18 @@ export const SMSEventContainer = compose(
   lifecycle({
     UNSAFE_componentWillMount() {
       this.props.resetJourneyEvent();
-      if (this.props.allLeads.length === 0) {
-        this.props.fetchLeads();
+      const needsLeads = this.props.allLeads.length === 0;
+      const needsMembers =
+        this.props.allMembers.length === 0 && !this.props.membersLoading;
+      if (needsLeads || needsMembers) {
+        if (needsLeads) this.props.fetchLeads();
+        if (needsMembers)
+          this.props.fetchMembers({ memberInitialLoadComplete: false });
         this.props.setCurrentEventId('X');
-      } else if (!this.props.membersLoading) {
+      } else if (
+        this.props.allMembers.length > 0 ||
+        !this.props.membersLoading
+      ) {
         this.props.fetchJourneyEvent({
           id: this.props.eventId,
           leads: this.props.allLeads,
@@ -755,7 +773,10 @@ export const SMSEventContainer = compose(
       });
     },
     UNSAFE_componentWillReceiveProps(nextProps) {
-      if (!nextProps.leadsLoading && !nextProps.membersLoading) {
+      if (
+        !nextProps.leadsLoading &&
+        (nextProps.allMembers.length > 0 || !nextProps.membersLoading)
+      ) {
         if (
           nextProps.currentEventId !== null &&
           nextProps.currentEventId !== nextProps.eventId

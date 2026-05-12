@@ -10,6 +10,9 @@ import { actions as layoutActions } from './redux/modules/layout';
 import { actions as configActions } from './redux/modules/config';
 import './assets/styles/master.scss';
 import './kinetic/widgets';
+import 'moment/locale/en-au';
+import 'moment/locale/en-gb';
+import 'moment/locale/en-ca';
 
 const Authentication = lazy(() =>
   import('./AuthenticatedContainer').then(m => ({ default: m.Authentication })),

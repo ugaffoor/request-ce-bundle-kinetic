@@ -17,6 +17,20 @@
     display: none;
   }
 }
+.leads {
+  .statistics {
+    float: right;
+    margin-right: 4px;
+    svg.icon.icon-svg.statsbar {
+      width: 32px;
+      height: 32px;
+      path {
+        fill: #8ec640;
+        stroke: #8ec640;
+      }
+    }
+  }
+}
 .leadContents a.btn.btn-primary {
   padding: 6px;
 }
@@ -101,6 +115,51 @@
     .checkboxFilter {
       margin-left: unset;
       margin-bottom: 4px;
+    }
+  }
+}
+
+.statistics {
+  .topRow {
+    display: flex;
+    flex-wrap: wrap;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    .ckeckoutIcon {
+      bottom: 20px;
+      margin-top: 12px;
+      path {
+        fill: #e1251b;
+      }
+      svg.SVGInline-svg {
+        width: 46px;
+        height: 46px;
+      }
+    }
+    .name {
+      text-transform: uppercase;
+      font-size: 45px;
+      font-family: 'AdiHaus DIN Medium';
+    }
+    .continueSend {
+      margin-left: auto;
+      background-color: #2ac940;
+      height: 40px;
+      border-radius: 10px;
+      color: white;
+      margin-top: 15px;
+      cursor: pointer;
+      img {
+        margin: 4px;
+        height: 32px;
+      }
+      .keepSending {
+        text-transform: uppercase;
+        font-family: 'AdiHaus DIN Medium';
+        padding-top: 5px;
+        margin-right: 4px;
+        margin-top: 12px;
+      }
     }
   }
 }

@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 const { getLoader, loaderByName } = require('@craco/craco');
 
 /**
@@ -95,6 +96,42 @@ module.exports = {
         'timers-browserify',
       );
       webpackConfig.resolve.fallback['fs'] = false;
+
+      if (webpackConfig.mode === 'production') {
+        // Strip unused moment locales (~230KB savings)
+        webpackConfig.plugins.push(
+          new webpack.IgnorePlugin({
+            resourceRegExp: /^\.\/locale$/,
+            contextRegExp: /moment$/,
+          }),
+        );
+
+        // Split heavy vendor libraries into named async chunks
+        webpackConfig.optimization = {
+          ...webpackConfig.optimization,
+          splitChunks: {
+            ...(webpackConfig.optimization.splitChunks || {}),
+            chunks: 'all',
+            maxInitialRequests: 20,
+            maxAsyncRequests: 20,
+            cacheGroups: {
+              ...((webpackConfig.optimization.splitChunks || {}).cacheGroups || {}),
+              recharts: {
+                test: /[\\/]node_modules[\\/]recharts/,
+                name: 'vendor-recharts',
+                chunks: 'all',
+                priority: 30,
+              },
+              moment: {
+                test: /[\\/]node_modules[\\/]moment/,
+                name: 'vendor-moment',
+                chunks: 'all',
+                priority: 30,
+              },
+            },
+          },
+        };
+      }
 
       return webpackConfig;
     },
