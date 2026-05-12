@@ -1038,7 +1038,7 @@ export const MemberNew = ({
                 )}
                 <span className="line">
                   <div>
-                    <label htmlFor="nopaying" style={{ minWidth: '100px' }}>
+                    <label htmlFor="nonpaying" style={{ minWidth: '100px' }}>
                       Non Paying
                     </label>
                     <input
@@ -1050,7 +1050,14 @@ export const MemberNew = ({
                       checked={
                         memberItem.values['Non Paying'] === 'YES' ? true : false
                       }
-                      onChange={e => handleChange(memberItem, 'Non Paying', e)}
+                      onChange={e => {
+                        if (memberItem.values['Non Paying'] === 'YES') {
+                          e.target.value = '';
+                        } else {
+                          e.target.value = 'YES';
+                        }
+                        handleChange(memberItem, 'Non Paying', e);
+                      }}
                     />
                   </div>
                 </span>
@@ -1075,9 +1082,16 @@ export const MemberNew = ({
                             ? true
                             : false
                         }
-                        onChange={e =>
-                          handleChange(memberItem, 'Send Payment Receipt', e)
-                        }
+                        onChange={e => {
+                          if (
+                            memberItem.values['Send Payment Receipt'] === 'YES'
+                          ) {
+                            e.target.value = '';
+                          } else {
+                            e.target.value = 'YES';
+                          }
+                          handleChange(memberItem, 'Send Payment Receipt', e);
+                        }}
                       />
                     </div>
                   </span>
@@ -1096,7 +1110,14 @@ export const MemberNew = ({
                       checked={
                         memberItem.values['Opt-Out'] === 'YES' ? true : false
                       }
-                      onChange={e => handleChange(memberItem, 'Opt-Out', e)}
+                      onChange={e => {
+                        if (memberItem.values['Opt-Out'] === 'YES') {
+                          e.target.value = '';
+                        } else {
+                          e.target.value = 'YES';
+                        }
+                        handleChange(memberItem, 'Opt-Out', e);
+                      }}
                     />
                   </div>
                 </span>

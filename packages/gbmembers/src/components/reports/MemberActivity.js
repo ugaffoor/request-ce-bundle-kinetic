@@ -43,6 +43,19 @@ const OpenMemberCellButton = ({ cell, onSelect, label }) => {
     </a>
   );
 };
+
+const BillingParentCellButton = ({ cell }) => {
+  const name = cell.getValue();
+  const rowData = cell.getData();
+  if (!name) return <span />;
+  const parentId = rowData._billingParentId;
+  if (!parentId) return <span>{name}</span>;
+  return (
+    <a href={`/#/kapps/gbmembers/Member/${parentId}`} className="">
+      {name}
+    </a>
+  );
+};
 const ExpandNotesCellButton = ({ cell, onSelect, label }) => {
   if (cell.getValue() === undefined) {
     return <span />;
@@ -172,6 +185,12 @@ export class MemberActivityReport extends Component {
       { title: 'Belt', field: 'belt' },
       { title: 'Belt Size', field: 'beltSize' },
       { title: 'Parent or Guardian', field: 'parentOrGuardian' },
+      {
+        title: 'Billing Parent',
+        field: 'billingParent',
+        formatter: reactFormatter(<BillingParentCellButton />),
+        sorter: (a, b) => (a || '').localeCompare(b || ''),
+      },
       { title: 'Emergency Contact Name', field: 'emergencyContactName' },
       { title: 'Emergency Contact Phone', field: 'emergencyContactPhone' },
       {
@@ -326,6 +345,7 @@ export class MemberActivityReport extends Component {
       { label: 'Belt', value: 'belt' },
       { label: 'Belt Size', value: 'beltSize' },
       { label: 'Parent or Guardian', value: 'parentOrGuardian' },
+      { label: 'Billing Parent', value: 'billingParent' },
       { label: 'Emergency Contact Name', value: 'emergencyContactName' },
       { label: 'Emergency Contact Phone', value: 'emergencyContactPhone' },
       {
@@ -408,6 +428,7 @@ export class MemberActivityReport extends Component {
           { label: 'Belt', value: 'belt' },
           { label: 'Belt Size', value: 'beltSize' },
           { label: 'Parent or Guardian', value: 'parentOrGuardian' },
+          { label: 'Billing Parent', value: 'billingParent' },
           { label: 'Emergency Contact Name', value: 'emergencyContactName' },
           { label: 'Emergency Contact Phone', value: 'emergencyContactPhone' },
           {
@@ -508,6 +529,7 @@ export class MemberActivityReport extends Component {
       { label: 'Belt', value: 'belt' },
       { label: 'Belt Size', value: 'beltSize' },
       { label: 'Parent or Guardian', value: 'parentOrGuardian' },
+      { label: 'Billing Parent', value: 'billingParent' },
       { label: 'Emergency Contact Name', value: 'emergencyContactName' },
       { label: 'Emergency Contact Phone', value: 'emergencyContactPhone' },
       {
@@ -1286,6 +1308,20 @@ export class MemberActivityReport extends Component {
         belt: member.values['Ranking Belt'],
         beltSize: member.values['Belt Size'],
         parentOrGuardian: member.values['Parent or Guardian'],
+        billingParent: (() => {
+          const parentId = member.values['Billing Parent Member'];
+          if (!parentId || parentId === member.id) return '';
+          const parent = members.find(m => m.id === parentId);
+          return parent
+            ? (parent.values['Last Name'] || '') +
+                ' ' +
+                (parent.values['First Name'] || '')
+            : parentId;
+        })(),
+        _billingParentId: (() => {
+          const parentId = member.values['Billing Parent Member'];
+          return parentId && parentId !== member.id ? parentId : undefined;
+        })(),
         emergencyContactName: member.values['Emergency Contact Name'],
         emergencyContactPhone: member.values['Emergency Contact Phone'],
         emergencyContactRelationship:

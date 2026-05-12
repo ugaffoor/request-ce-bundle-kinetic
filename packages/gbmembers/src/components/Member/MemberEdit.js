@@ -2009,6 +2009,16 @@ export const MemberEdit = ({
                     checked={
                       memberItem.values['Non Paying'] === 'YES' ? true : false
                     }
+                    disabled={
+                      memberItem.values['Billing User'] === 'YES' &&
+                      (memberItem.values['Billing Customer Reference'] !==
+                        undefined ||
+                        memberItem.values['Billing Customer Reference'] !==
+                          null ||
+                        memberItem.values['Billing Customer Reference'] !== '')
+                        ? true
+                        : false
+                    }
                     onChange={e => {
                       if (memberItem.values['Non Paying'] === 'YES') {
                         e.target.value = '';
