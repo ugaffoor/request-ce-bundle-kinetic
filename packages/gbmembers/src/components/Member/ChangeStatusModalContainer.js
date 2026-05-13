@@ -130,7 +130,8 @@ export class ChangeStatusModal extends Component {
                                   Switch the Billing Member to one of the
                                   dependant members.
                                 </li>
-                                {this.props.billingCompany === 'Bambora' ? (
+                                {this.props.billingCompany === 'Bambora' ||
+                                this.props.billingCompany === 'Stripe' ? (
                                   <li>
                                     Complete the {this.props.billingCompany}{' '}
                                     Submit Billing Changes form to remove
@@ -221,7 +222,8 @@ export class ChangeStatusModal extends Component {
                                   </span>
                                   <br />
                                   <ol>
-                                    {this.props.billingCompany === 'Bambora' ? (
+                                    {this.props.billingCompany === 'Bambora' ||
+                                    this.props.billingCompany === 'Stripe' ? (
                                       <li>
                                         Click{' '}
                                         <NavLink
@@ -369,7 +371,8 @@ export class ChangeStatusModal extends Component {
                                       </b>
                                       .
                                     </li>
-                                    {this.props.billingCompany === 'Bambora' ? (
+                                    {this.props.billingCompany === 'Bambora' ||
+                                    this.props.billingCompany === 'Stripe' ? (
                                       <li>
                                         Complete the {this.props.billingCompany}{' '}
                                         Submit Billing Changes form to remove
@@ -492,7 +495,8 @@ export class ChangeStatusModal extends Component {
                                   Switch the Billing Member to one of the
                                   dependant members.
                                 </li>
-                                {this.props.billingCompany === 'Bambora' ? (
+                                {this.props.billingCompany === 'Bambora' ||
+                                this.props.billingCompany === 'Stripe' ? (
                                   <li>
                                     Complete the {this.props.billingCompany}{' '}
                                     Submit Billing Changes form to remove this
@@ -572,7 +576,8 @@ export class ChangeStatusModal extends Component {
                               </span>
                               <br />
                               <ol>
-                                {this.props.billingCompany === 'Bambora' ? (
+                                {this.props.billingCompany === 'Bambora' ||
+                                this.props.billingCompany === 'Stripe' ? (
                                   <li>
                                     Click{' '}
                                     <NavLink
@@ -774,7 +779,8 @@ export class ChangeStatusModal extends Component {
                                   Switch the Billing Member to one of the
                                   dependant members.
                                 </li>
-                                {this.props.billingCompany === 'Bambora' ? (
+                                {this.props.billingCompany === 'Bambora' ||
+                                this.props.billingCompany === 'Stripe' ? (
                                   <li>
                                     Complete the {this.props.billingCompany}{' '}
                                     Submit Billing Changes form to remove this
@@ -857,7 +863,8 @@ export class ChangeStatusModal extends Component {
                               </span>
                               <br />
                               <ol>
-                                {this.props.billingCompany === 'Bambora' ? (
+                                {this.props.billingCompany === 'Bambora' ||
+                                this.props.billingCompany === 'Stripe' ? (
                                   <li>
                                     Click{' '}
                                     <NavLink

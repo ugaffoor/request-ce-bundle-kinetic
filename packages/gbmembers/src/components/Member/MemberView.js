@@ -1807,7 +1807,9 @@ export const MemberView = ({
                     <label htmlFor="customerBillingId">Billing Id</label>
                   </div>
                 )}
-              {memberItem.values['Non Paying'] !== 'YES' &&
+              {memberItem.values['Billing User'] === 'YES' &&
+                memberItem.values['Status'] !== 'Active' &&
+                memberItem.values['Non Paying'] !== 'YES' &&
                 memberItem.values['Billing Payment Type'] !== 'Cash' && (
                   <div
                     style={{
@@ -2549,6 +2551,8 @@ export const MemberViewContainer = compose(
       values['Billing Payment Period'] = null;
       values['Payment Schedule'] = null;
       values['Membership Cost'] = null;
+      values['Billing Parent Member'] = null;
+      values['Payment'] = null;
       if (memberItem.values['useSubAccount'] === 'YES') {
         values['useSubAccount'] = null;
       }
