@@ -63,6 +63,11 @@ export class MemberAdditionalServices extends Component {
       }
       if (parentMember !== undefined) {
         dependantBillerProfileID = parentMember.values['POS Profile ID'];
+        if (
+          getAttributeValue(this.props.space, 'Billing Company') === 'Stripe'
+        ) {
+          dependantBillerProfileID = parentMember.values['Billing Customer Id'];
+        }
       }
     } else {
       dependantBillerProfileID = memberItem.values['POS Profile ID'];
