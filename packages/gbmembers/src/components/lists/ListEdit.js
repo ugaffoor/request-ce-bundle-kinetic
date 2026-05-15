@@ -15,6 +15,7 @@ import MomentLocaleUtils, {
   formatDate,
   parseDate,
 } from 'react-day-picker/moment';
+import '../helpers/jquery.multiselect.css';
 import '../helpers/jquery.multiselect.js';
 import { KappNavLink as NavLink } from 'common';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
@@ -113,7 +114,7 @@ export class ListEditHome extends Component {
       this.props.memberLists.size > 0
     ) {
       listToBeUpdated = this.props.memberLists
-        .filter(list => list.name === this.props.match.params.name)
+        .filter(list => list.id === this.props.match.params.name)
         .get(0);
 
       let members = matchesMemberFilter(
@@ -143,7 +144,7 @@ export class ListEditHome extends Component {
     if (nextProps.allMembers) {
       let data = [];
       let listToBeUpdated = nextProps.memberLists
-        .filter(list => list.name === this.props.match.params.name)
+        .filter(list => list.id === this.props.match.params.name)
         .get(0);
       if (listToBeUpdated) {
         let members = matchesMemberFilter(

@@ -113,6 +113,11 @@ export const Sidebar = ({
             Migrating Members
           </NavLink>
         )}
+        {getAttributeValue(space, 'Bambora Stripe Migration') === 'YES' && (
+          <NavLink to={`/MigratingBamboraToStripe`} className="btn btn-primary">
+            Migrating To Stripe
+          </NavLink>
+        )}
         {filterType === 'filter' &&
           true && (
             <Members

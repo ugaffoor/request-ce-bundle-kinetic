@@ -44,7 +44,10 @@ export const ListView = ({
 );
 
 export const ListContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(() => {
     return {};
   }),
@@ -112,6 +115,7 @@ export class ListHome extends Component {
     let data = [];
     memberLists.forEach(list => {
       data.push({
+        id: list.id,
         name: list.name,
         members: allMembers,
         filters: list.filters,
@@ -147,7 +151,7 @@ export class ListHome extends Component {
           listMembersData: listMembersData,
           count: listMembersData.length,
           selected: rowInfo.index,
-          selectedList: rowInfo.original.name,
+          selectedList: rowInfo.original.id,
           excluded:
             rowInfo.original.excluded !== undefined
               ? rowInfo.original.excluded

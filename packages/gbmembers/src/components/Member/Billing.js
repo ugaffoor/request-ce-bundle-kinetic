@@ -2449,6 +2449,7 @@ export class PaymentHistory extends Component {
         paymentReference: payment.paymentReference,
         paymentID: payment.paymentID,
         payment: payment,
+        customerBillingId: payment.customerBillingId,
       };
     });
     return dataResult;
@@ -2478,7 +2479,9 @@ export class PaymentHistory extends Component {
           return props.value !== undefined &&
             props.value !== null &&
             props.value.trim() !== ''
-            ? props.value
+            ? props.value === 'AdditionalService'
+              ? 'AdditionalService(' + props.original.customerBillingId + ')'
+              : props.value
             : 'Membership';
         },
       });

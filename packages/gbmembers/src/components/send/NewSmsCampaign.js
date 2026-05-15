@@ -9,6 +9,7 @@ import {
 } from 'recompose';
 import { actions } from '../../redux/modules/campaigns';
 import $ from 'jquery';
+import '../helpers/jquery.multiselect.css';
 import '../helpers/jquery.multiselect.js';
 import NumberFormat from 'react-number-format';
 import 'react-datetime/css/react-datetime.css';
