@@ -559,6 +559,50 @@ export const MemberEdit = ({
                     </span>
                     <span className="line">
                       <div>
+                        <label htmlFor="billingId">Archive Billing Id</label>
+                        <input
+                          type="text"
+                          name="archiveBillingId"
+                          id="archiveBillingId"
+                          size="30"
+                          defaultValue={memberItem.values['Archive Billing Id']}
+                          onChange={e =>
+                            handleChange(
+                              memberItem,
+                              'Archive Billing Id',
+                              e,
+                              setIsDirty,
+                              memberChanges,
+                            )
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="billingRef">
+                          Archive Billing Reference
+                        </label>
+                        <input
+                          type="text"
+                          name="archiveBillingRef"
+                          id="archiveBillingRef"
+                          size="30"
+                          defaultValue={
+                            memberItem.values['Archive Billing Reference']
+                          }
+                          onChange={e =>
+                            handleChange(
+                              memberItem,
+                              'Archive Billing Reference',
+                              e,
+                              setIsDirty,
+                              memberChanges,
+                            )
+                          }
+                        />
+                      </div>
+                    </span>
+                    <span className="line">
+                      <div>
                         <label htmlFor="billingId">Billing Setup Fee Id</label>
                         <input
                           type="text"

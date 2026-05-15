@@ -41,7 +41,10 @@ export const ListView = ({
 );
 
 export const LeadListContainer = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   withProps(() => {
     return {};
   }),
@@ -49,8 +52,8 @@ export const LeadListContainer = compose(
     addNewList: ({ addLeadsList }) => newList => {
       addLeadsList({ newList });
     },
-    deleteLeadsList: ({ removeLeadsList }) => listName => {
-      removeLeadsList(listName);
+    deleteLeadsList: ({ removeLeadsList }) => listId => {
+      removeLeadsList(listId);
     },
   }),
   lifecycle({
@@ -104,6 +107,7 @@ export class ListHome extends Component {
     let data = [];
     leadLists.forEach(list => {
       data.push({
+        id: list.id,
         name: list.name,
         leads: allLeads,
         filters: list.filters,
@@ -136,7 +140,7 @@ export class ListHome extends Component {
           listLeadsData: listLeadsData,
           count: listLeadsData.length,
           selected: rowInfo.index,
-          selectedList: rowInfo.original.name,
+          selectedList: rowInfo.original.id,
           excluded:
             rowInfo.original.excluded !== undefined
               ? rowInfo.original.excluded
@@ -161,8 +165,8 @@ export class ListHome extends Component {
     };
   }
 
-  removeList(name) {
-    this.props.deleteLeadsList(name);
+  removeList(id) {
+    this.props.deleteLeadsList(id);
     this.setState({
       selected: null,
       selectedList: null,

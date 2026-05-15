@@ -15,6 +15,7 @@ import MomentLocaleUtils, {
   formatDate,
   parseDate,
 } from 'react-day-picker/moment';
+import '../helpers/jquery.multiselect.css';
 import '../helpers/jquery.multiselect.js';
 import { KappNavLink as NavLink } from 'common';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';

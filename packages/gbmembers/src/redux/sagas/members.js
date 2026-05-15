@@ -198,7 +198,7 @@ export function* fetchMembers(action) {
             ',values[Emails Sent Count],values[Max Weekly Classes],values[Reminder Date]' +
             ',values[Emails Received Count],values[Is New Reply Received],values[SMS Sent Count],values[SMS Received Count]' +
             ',values[Payment Method],values[Lead Submission ID],values[Send Payment Receipt]' +
-            ',values[Billing Period],values[Admin Fee],values[Last Payment Date]',
+            ',values[Billing Period],values[Admin Fee],values[Last Payment Date],values[Archive Billing Id],values[Archive Billing Reference]',
         ])
 
         .sortBy('updatedAt')
@@ -237,7 +237,7 @@ export function* fetchMembers(action) {
               ',values[Emails Sent Count],values[Max Weekly Classes],values[Reminder Date]' +
               ',values[Emails Received Count],values[Is New Reply Received],values[SMS Sent Count],values[SMS Received Count]' +
               ',values[Payment Method],values[Lead Submission ID],values[Send Payment Receipt]' +
-              ',values[Billing Period],values[Admin Fee],values[Last Payment Date]',
+              ',values[Billing Period],values[Admin Fee],values[Last Payment Date],values[Archive Billing Id],values[Archive Billing Reference]',
           ])
 
           .sortBy('updatedAt')
@@ -2223,7 +2223,7 @@ export function* activateBiller(action) {
     } else if (appSettings.billingCompany === 'Stripe') {
       let args = {};
       args.space = appSettings.spaceSlug;
-      args.billingService = appSettings.billingCompany;
+      args.billingService = 'Stripe';
       args.customerId = action.payload.memberItem.values['Member ID'];
       args.paymentMethod = 'Credit Card';
       args.firstName = action.payload.memberItem.values['First Name'];

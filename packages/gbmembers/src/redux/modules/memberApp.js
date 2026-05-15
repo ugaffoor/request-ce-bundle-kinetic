@@ -193,7 +193,7 @@ export const reducer = (state = State(), { type, payload }) => {
       );
     case types.REMOVE_LEADS_LIST:
       return state.update('leadLists', leadLists =>
-        leadLists.filter(list => list.name !== payload),
+        leadLists.filter(list => list.id !== payload),
       );
     case types.ADD_DDR_TEMPLATE:
       return state.update('ddrTemplates', ddrTemplates =>

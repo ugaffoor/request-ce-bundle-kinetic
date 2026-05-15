@@ -80,6 +80,11 @@ const MigratingMembersContainer = lazy(() =>
     default: m.MigratingMembersContainer,
   })),
 );
+const MigratingBamboraToStripeContainer = lazy(() =>
+  import('./Member/MigratingBamboraToStripe').then(m => ({
+    default: m.MigratingBamboraToStripeContainer,
+  })),
+);
 const CampaignContainer = lazy(() =>
   import('./send/Send').then(m => ({ default: m.CampaignContainer })),
 );
@@ -152,6 +157,10 @@ export const Content = ({ isKiosk }) => (
       <Route path="/MemberFollowUp/:id" component={MemberFollowUpContainer} />
       <Route path="/Send" component={CampaignContainer} />
       <Route path="/MigratingMembers" component={MigratingMembersContainer} />
+      <Route
+        path="/MigratingBamboraToStripe"
+        component={MigratingBamboraToStripeContainer}
+      />
       <Route
         path="/NewEmailCampaign/:submissionType?/:submissionId?/:replyType?/:campaignId?"
         component={EmailCampaignContainer}

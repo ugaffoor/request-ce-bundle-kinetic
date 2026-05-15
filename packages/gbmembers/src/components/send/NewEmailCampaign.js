@@ -37,6 +37,7 @@ import './tinymce.min.js';
 import { TinyMCEComponent, createEditorStore } from 'mb-react-tinymce';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { actions as appActions } from '../../redux/modules/memberApp';
+import '../helpers/jquery.multiselect.css';
 import '../helpers/jquery.multiselect.js';
 import {
   getAttributeValue,
