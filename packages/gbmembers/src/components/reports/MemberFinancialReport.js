@@ -537,10 +537,16 @@ export class MemberFinancialReport extends Component {
       return undefined;
     var idx = members.findIndex(
       member =>
-        member.values['Billing Customer Id'] !== undefined &&
-        member.values['Billing Customer Id'] !== null &&
-        member.values['Billing Customer Id'] !== '' &&
-        member.values['Billing Customer Id'] === payment['yourSystemReference'],
+        (member.values['Billing Customer Id'] !== undefined &&
+          member.values['Billing Customer Id'] !== null &&
+          member.values['Billing Customer Id'] !== '' &&
+          member.values['Billing Customer Id'] ===
+            payment['yourSystemReference']) ||
+        (member.values['Archive Billing Id'] !== undefined &&
+          member.values['Archive Billing Id'] !== null &&
+          member.values['Archive Billing Id'] !== '' &&
+          member.values['Archive Billing Id'] ===
+            payment['yourSystemReference']),
     );
 
     if (idx !== -1) return members[idx];

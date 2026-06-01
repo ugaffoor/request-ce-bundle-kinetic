@@ -43,7 +43,7 @@ import { StripeActivateContainer } from './StripeActivate';
 import { EmailsReceived } from './EmailsReceived';
 import { MemberEmails } from './MemberEmails';
 import { MemberSMS } from './MemberSMS';
-import { MemberViewNotes } from './MemberViewNotes';
+import { MemberViewNotesContainer as MemberViewNotes } from './MemberViewNotes';
 import { MemberAdditionalServices } from './MemberAdditionalServices';
 import { MemberFiles } from './MemberFiles';
 import { MemberOrders } from './MemberOrders';
@@ -2518,6 +2518,38 @@ export const MemberViewContainer = compose(
       allMembers,
     }) => () => {
       let customerId = memberItem.values['Billing Customer Id'];
+
+      // Build note with all billing values before clearing
+      let notesHistory = memberItem.values['Notes History'];
+      if (!notesHistory) {
+        notesHistory = [];
+      } else if (typeof notesHistory !== 'object') {
+        notesHistory = JSON.parse(notesHistory);
+      }
+      const clearedValues = [
+        'Billing Customer Id: ' +
+          (memberItem.values['Billing Customer Id'] || ''),
+        'Billing Customer Reference: ' +
+          (memberItem.values['Billing Customer Reference'] || ''),
+        'Billing User: ' + (memberItem.values['Billing User'] || ''),
+        'Billing Payment Type: ' +
+          (memberItem.values['Billing Payment Type'] || ''),
+        'Billing Payment Period: ' +
+          (memberItem.values['Billing Payment Period'] || ''),
+        'Billing Parent Member: ' +
+          (memberItem.values['Billing Parent Member'] || ''),
+        'Payment Schedule: ' + (memberItem.values['Payment Schedule'] || ''),
+        'Membership Cost: ' + (memberItem.values['Membership Cost'] || ''),
+        'Payment: ' + (memberItem.values['Payment'] || ''),
+      ].join(', ');
+      notesHistory.push({
+        note: 'Billing information cleared. ' + clearedValues,
+        contactDate: moment().format(contact_date_format),
+        contactMethod: 'ClearBilling',
+        submitter: profile.displayName,
+      });
+      memberItem.values['Notes History'] = notesHistory;
+
       // Update memberItem values from billingInfo
       memberItem.values['Billing Customer Reference'] = null;
       memberItem.values['Billing Customer Id'] = null;
@@ -2557,6 +2589,7 @@ export const MemberViewContainer = compose(
         values['useSubAccount'] = null;
       }
       values['Billing Changes'] = changes;
+      values['Notes History'] = notesHistory;
       updateMember({
         id: memberItem.id,
         memberItem,

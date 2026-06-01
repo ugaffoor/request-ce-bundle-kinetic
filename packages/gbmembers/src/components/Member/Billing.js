@@ -58,7 +58,10 @@ import ScaleLoader from 'react-spinners/ScaleLoader';
 import checkoutRightArrowIcon from '../../images/checkoutRightArrow.png?raw';
 import Helmet from 'react-helmet';
 import { getTimezone } from '../leads/LeadsUtils';
-import { isBamboraFailedPayment } from '../Member/MemberUtils';
+import {
+  isBamboraFailedPayment,
+  getUseBillingSystem,
+} from '../Member/MemberUtils';
 import mail from '../../images/mail.png';
 import { confirm } from '../helpers/Confirmation';
 import { loadStripe } from '@stripe/stripe-js';
@@ -2375,7 +2378,10 @@ export class PaymentHistory extends Component {
     payments.forEach((payment, i) => {
       if (payment.paymentStatus === 'Refund') {
         var idx = successfulPayments.findIndex(item => {
-          return item.paymentID === payment.yourSystemReference;
+          return (
+            item.paymentID === payment.yourSystemReference ||
+            item.paymentID === payment.yourGeneralReference
+          );
         });
         if (idx !== -1) {
           successfulPayments[idx].refundAmount = payment.paymentAmount;
@@ -2532,6 +2538,7 @@ export class PaymentHistory extends Component {
       accessor: '$refundPayment',
       headerClassName: 'refund',
       className: 'refund',
+      width: 170,
       Cell: row =>
         !this.isPaymentRefunded(row.original.paymentID, paymentsRefunded) &&
         (row.original.paymentStatus === 'S' ||
@@ -2660,9 +2667,10 @@ export class PaymentHistory extends Component {
   }
 
   refundPayment(paymentId, amount) {
+    const formattedAmount = parseFloat(amount).toFixed(2);
     confirmWithAmount({
       title: 'Refund transaction',
-      amount: amount,
+      amount: formattedAmount,
       placeholder:
         'Please enter a reason for this Refund. Not entering a valid reason could cause you pain later.',
     }).then(
@@ -2705,7 +2713,7 @@ export class PaymentHistory extends Component {
             showPagination={false}
           />
         </div>
-        {
+        {this.props.getPaymentHistory && (
           <a
             onClick={e => {
               console.log('Show More..');
@@ -2716,7 +2724,7 @@ export class PaymentHistory extends Component {
           >
             Show More
           </a>
-        }
+        )}
 
         <span style={{ display: 'none' }}>
           <div
@@ -4742,6 +4750,7 @@ export const BillingContainer = compose(
       setSystemError,
       lastHistoryDate,
       setLastHistoryDate,
+      getArchiveId,
     }) => () => {
       if (
         memberItem.values['Billing Customer Id'] !== null &&
@@ -4749,6 +4758,7 @@ export const BillingContainer = compose(
         memberItem.values['Billing Customer Id'] !== ''
       ) {
         fetchPaymentHistory({
+          billingService: getUseBillingSystem(space, memberItem),
           billingRef:
             memberItem.values['Billing Customer Id'] !== null &&
             memberItem.values['Billing Customer Id'] !== undefined &&
@@ -4779,6 +4789,16 @@ export const BillingContainer = compose(
               getAttributeValue(space, 'PaySmart SubAccount') === 'YES')
               ? true
               : false,
+          bamboraCutoverDate: getAttributeValue(space, 'Bambora Cutoff Date'),
+          bamboraCustomerId:
+            memberItem.values['Archive Billing Id'] !== null &&
+            memberItem.values['Archive Billing Id'] !== undefined &&
+            memberItem.values['Archive Billing Id'] !== '' &&
+            memberItem.values['Archive Billing Reference'] !== null &&
+            memberItem.values['Archive Billing Reference'] !== undefined &&
+            memberItem.values['Archive Billing Reference'] !== ''
+              ? memberItem.values['Archive Billing Id']
+              : undefined,
         });
       } else {
         setPaymentHistoryLoaded({
@@ -4947,6 +4967,7 @@ export const BillingContainer = compose(
         ) {
           this.props.fetchBillingInfo({
             billingRef: member.values['Billing Customer Reference'],
+            billingService: getUseBillingSystem(this.props.space, member),
             history: this.props.history,
             myThis: this,
             setBillingInfo: this.props.setBillingInfo,
@@ -5030,6 +5051,7 @@ export const BillingContainer = compose(
         } else {
           this.props.fetchBillingInfo({
             billingRef: member.values['Billing Customer Id'],
+            billingSystem: this.props.getUseBillingSystem(member),
             history: this.props.history,
             myThis: this,
             setBillingInfo: this.props.setBillingInfo,

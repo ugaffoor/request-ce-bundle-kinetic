@@ -254,7 +254,17 @@
     margin-bottom: 0;
   }
 }
+textarea#changeReason::placeholder {
+  color: #d1d3d1 !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #d1d3d1 !important;
+}
 
+textarea#changeReason:focus::placeholder {
+  color: #d1d3d1 !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #d1d3d1 !important;
+}
 .editPaymentType {
   top: 133px !important;
   width: 80% !important;

@@ -19,6 +19,7 @@ import { Utils } from 'common';
 import { BamboraOverdues } from './BamboraOverdues';
 import { PaysmartOverdues } from './PaysmartOverdues';
 import { StripeOverdues } from './StripeOverdues';
+import { StripeDisputes } from './StripeDisputes';
 import { ActiveOrphans } from './ActiveOrphans';
 import { DemographicChart } from './Demographic';
 import { ProgramsChart } from './Programs';
@@ -65,6 +66,7 @@ const mapStateToProps = state => ({
   overduesLoading: state.member.members.overduesLoading,
   cashPaymentsByDate: state.member.members.cashPaymentsByDate,
   cashPaymentsByDateLoading: state.member.members.cashPaymentsByDateLoading,
+  kineticBillingServerUrl: state.member.app.kineticBillingServerUrl,
 });
 
 const mapDispatchToProps = {
@@ -134,6 +136,7 @@ export const HomeView = ({
   membersNextPageToken,
   memberLastFetchTime,
   fetchMembers,
+  kineticBillingServerUrl,
 }) => (
   <div className="dashboard">
     <StatusMessagesContainer />
@@ -234,6 +237,22 @@ export const HomeView = ({
                 space={space}
                 locale={locale}
                 profile={profile}
+              />
+            </div>
+          )}
+        </div>
+      )}
+    {getAttributeValue(space, 'Billing Company') === 'Stripe' &&
+      Utils.isMemberOf(profile, 'Role::Program Managers') && (
+        <div className="homeOverdues">
+          {memberInitialLoadComplete && (
+            <div>
+              <StripeDisputes
+                allMembers={allMembers}
+                space={space}
+                locale={locale}
+                profile={profile}
+                kineticBillingServerUrl={kineticBillingServerUrl}
               />
             </div>
           )}

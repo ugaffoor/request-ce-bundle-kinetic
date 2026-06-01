@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import moment from 'moment';
 import {
   ResponsiveContainer,
   PieChart,
@@ -121,6 +122,31 @@ export class ProgramsChart extends Component {
       </text>
     );
   };
+  getAgeBreakdown(allMembers) {
+    const statuses = ['Active', 'Pending Freeze', 'Pending Cancellation'];
+    const today = moment();
+    const result = {};
+    statuses.forEach(s => {
+      result[s] = { adults: 0, kids: 0 };
+    });
+    (allMembers || []).forEach(m => {
+      const status = m.values['Status'];
+      if (!statuses.includes(status)) return;
+      const dob = moment(
+        m.values['DOB'],
+        ['YYYY-MM-DD', 'DD/MM/YYYY', 'MM/DD/YYYY'],
+        true,
+      );
+      const age = dob.isValid() ? today.diff(dob, 'years') : null;
+      if (age !== null && age <= 16) {
+        result[status].kids += 1;
+      } else {
+        result[status].adults += 1;
+      }
+    });
+    return result;
+  }
+
   membersOnClick(e) {
     console.log(e.members.length);
     this.setState({
@@ -304,8 +330,8 @@ export class ProgramsChart extends Component {
         )}
         {!this.state.showMembers && (
           <div className="programsChart">
-            <ResponsiveContainer minHeight={370}>
-              <PieChart width={300} height={370}>
+            <ResponsiveContainer minHeight={347}>
+              <PieChart width={300} height={347}>
                 <Pie
                   data={data}
                   nameKey="Program"
@@ -337,6 +363,95 @@ export class ProgramsChart extends Component {
             </ResponsiveContainer>
           </div>
         )}
+        {(() => {
+          const breakdown = this.getAgeBreakdown(this.props.allMembers);
+          const statuses = ['Active', 'Pending Freeze', 'Pending Cancellation'];
+          const adults = statuses.reduce((n, s) => n + breakdown[s].adults, 0);
+          const kids = statuses.reduce((n, s) => n + breakdown[s].kids, 0);
+          const total = adults + kids;
+          const adultPct = total > 0 ? (adults / total) * 100 : 0;
+          const kidsPct = total > 0 ? (kids / total) * 100 : 0;
+          return (
+            <div
+              style={{
+                marginTop: '-5px',
+                padding: '0 4px',
+                marginBottom: '4px',
+                paddingLeft: '14px',
+                paddingRight: '14px',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  background: '#e9ecef',
+                  borderRadius: '4px',
+                  height: '24px',
+                  overflow: 'hidden',
+                }}
+              >
+                {kids > 0 && (
+                  <div
+                    style={{
+                      flex: kids,
+                      background: '#ffc001',
+                      height: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      overflow: 'hidden',
+                      minWidth: 0,
+                    }}
+                    title={`Kids: ${kids} (${kidsPct.toFixed(1)}%)`}
+                  >
+                    <span
+                      style={{
+                        color: '#333',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        whiteSpace: 'nowrap',
+                        padding: '0 4px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      Kids (&lt;=16) {kids} ({kidsPct.toFixed(1)}%)
+                    </span>
+                  </div>
+                )}
+                {adults > 0 && (
+                  <div
+                    style={{
+                      flex: adults,
+                      background: '#4472c4',
+                      height: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      overflow: 'hidden',
+                      minWidth: 0,
+                    }}
+                    title={`Adults: ${adults} (${adultPct.toFixed(1)}%)`}
+                  >
+                    <span
+                      style={{
+                        color: '#fff',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        whiteSpace: 'nowrap',
+                        padding: '0 4px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      Adults {adults} ({adultPct.toFixed(1)}%)
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
       </span>
     );
   }

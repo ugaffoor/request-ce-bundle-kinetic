@@ -1066,7 +1066,7 @@ export function* fetchBillingInfo(action) {
       var args = {
         customerId: action.payload.billingRef,
         space: appSettings.spaceSlug,
-        billingService: appSettings.billingCompany,
+        billingService: action.payload.billingService,
         useSubAccount: action.payload.useSubAccount,
       };
       axios
@@ -1435,7 +1435,10 @@ export function* fetchPaymentHistory(action) {
     const appSettings = yield select(getAppSettings);
     var args = {
       space: appSettings.spaceSlug,
-      billingService: appSettings.billingCompany,
+      billingService:
+        action.payload.billingService !== undefined
+          ? action.payload.billingService
+          : appSettings.billingCompany,
       paymentType: action.payload.paymentType,
       paymentMethod: action.payload.paymentMethod,
       paymentSource: action.payload.paymentSource,
@@ -1446,6 +1449,8 @@ export function* fetchPaymentHistory(action) {
       internalPaymentType: action.payload.internalPaymentType,
       timezone: action.payload.timezone,
       useSubAccount: action.payload.useSubAccount,
+      bamboraCutoverDate: action.payload.bamboraCutoverDate,
+      bamboraCustomerId: action.payload.bamboraCustomerId,
     };
     console.log('action:' + action.payload);
     axios
@@ -1459,7 +1464,10 @@ export function* fetchPaymentHistory(action) {
             'Get Payment History',
           );
         } else {
-          if (appSettings.billingCompany === 'Bambora') {
+          if (
+            appSettings.billingCompany === 'Bambora' ||
+            appSettings.billingCompany === 'Stripe'
+          ) {
             let paymentsData = result.data.data;
             args = {};
             args.space = appSettings.spaceSlug;

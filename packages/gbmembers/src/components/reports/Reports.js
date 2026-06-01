@@ -41,7 +41,7 @@ import { ResumingMembers } from './ResumingMembers';
 import { actions } from '../../redux/modules/members';
 import { actions as attendanceActions } from '../../redux/modules/attendance';
 import moment from 'moment';
-import { Utils } from 'common';
+import { Utils, KappNavLink } from 'common';
 import { CoreForm } from '@kineticdata/react';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { getTimezone } from '../leads/LeadsUtils';
@@ -1147,6 +1147,24 @@ export const ReportsView = ({
                 </div>
               </div>
             )}
+          </div>
+        )}
+        {Utils.getAttributeValue(space, 'Bambora Stripe Migration') ===
+          'Migrated' && (
+          <div style={{ margin: '20px 0px 0px 10px' }}>
+            <div className="row">
+              <button
+                type="button"
+                className="btn btn-primary report-btn-default"
+                disabled={!dummyFormLoaded}
+                onClick={e => {
+                  document.location =
+                    '/#/kapps/gbmembers/MigratingBamboraToStripe?review';
+                }}
+              >
+                View Migration Details
+              </button>
+            </div>
           </div>
         )}
         <CoreForm
