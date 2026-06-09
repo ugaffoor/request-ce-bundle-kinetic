@@ -15,8 +15,8 @@ export const actions = {
 };
 
 export const selectors = {
-  authenticatedSelector: state => !state.auth.timedOut,
-  cancelledSelector: state => !state.auth.modalLogin,
+  authenticatedSelector: state => !state.member.auth.timedOut,
+  cancelledSelector: state => !state.member.auth.modalLogin,
 };
 
 export const State = Record({

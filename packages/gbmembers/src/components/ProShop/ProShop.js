@@ -5347,6 +5347,10 @@ export const ProShopContainer = compose(
             this.props.profile.timezone,
             this.props.space.defaultTimezone,
           ),
+          bamboraCutoverDate: getAttributeValue(
+            this.props.space,
+            'Bambora Cutoff Date',
+          ),
           useSubAccount:
             getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
               ? true

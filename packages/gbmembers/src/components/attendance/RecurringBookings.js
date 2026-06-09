@@ -225,7 +225,7 @@ export class RecurringBookings extends Component {
   }
   componentWillUnmount() {}
   changeStatus(event, id) {
-    console.log(('changed to ': event.target.value));
+    console.log('changed to ' + event.target.value);
   }
   getProgramMembers() {
     let membersVals = [];

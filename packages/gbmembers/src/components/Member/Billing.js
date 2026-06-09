@@ -2492,7 +2492,10 @@ export class PaymentHistory extends Component {
         },
       });
     }
-    if (getAttributeValue(this.props.space, 'Billing Company') === 'Bambora') {
+    if (
+      getAttributeValue(this.props.space, 'Billing Company') === 'Bambora' ||
+      getAttributeValue(this.props.space, 'Billing Company') === 'Stripe'
+    ) {
       columns.push({
         accessor: 'paymentID',
         Header: 'Transaction ID',
@@ -3487,12 +3490,35 @@ export class BillingInfo extends Component {
                               activeClassName="active"
                               disabled={
                                 this.props.memberItem.values['Status'] !==
-                                'Active'
+                                  'Active' ||
+                                (getAttributeValue(
+                                  this.props.space,
+                                  'Bambora Stripe Migration',
+                                ) === 'YES' &&
+                                  (
+                                    this.props.memberItem.values[
+                                      'Billing Customer Id'
+                                    ] || ''
+                                  ).startsWith('cus_'))
                               }
                               style={{
                                 display: 'inline',
                                 paddingTop: '4px',
                                 paddingBottom: '4px',
+                                pointerEvents:
+                                  this.props.memberItem.values['Status'] !==
+                                    'Active' ||
+                                  (getAttributeValue(
+                                    this.props.space,
+                                    'Bambora Stripe Migration',
+                                  ) === 'YES' &&
+                                    (
+                                      this.props.memberItem.values[
+                                        'Billing Customer Id'
+                                      ] || ''
+                                    ).startsWith('cus_'))
+                                    ? 'none'
+                                    : undefined,
                               }}
                             >
                               Update Billing Details
@@ -3543,10 +3569,33 @@ export class BillingInfo extends Component {
                                 'nav-link icon-wrapper btn btn-primary'
                               }
                               activeClassName="active"
+                              disabled={
+                                getAttributeValue(
+                                  this.props.space,
+                                  'Bambora Stripe Migration',
+                                ) === 'YES' &&
+                                (
+                                  this.props.memberItem.values[
+                                    'Billing Customer Id'
+                                  ] || ''
+                                ).startsWith('cus_')
+                              }
                               style={{
                                 display: 'inline',
                                 paddingTop: '4px',
                                 paddingBottom: '4px',
+                                pointerEvents:
+                                  getAttributeValue(
+                                    this.props.space,
+                                    'Bambora Stripe Migration',
+                                  ) === 'YES' &&
+                                  (
+                                    this.props.memberItem.values[
+                                      'Billing Customer Id'
+                                    ] || ''
+                                  ).startsWith('cus_')
+                                    ? 'none'
+                                    : undefined,
                               }}
                             >
                               Update Credit Card

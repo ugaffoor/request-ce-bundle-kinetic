@@ -220,7 +220,9 @@ export const Authentication = compose(
         this.props.loggedIn !== prevProps.loggedIn ||
         this.props.timedOut !== prevProps.timedOut
       ) {
-        this.props.setAuthenticated(this.props.loggedIn);
+        this.props.setAuthenticated(
+          this.props.loggedIn && !this.props.timedOut,
+        );
       }
     },
   }),

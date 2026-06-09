@@ -17,6 +17,7 @@ import sms from '../../images/sms.png';
 import in_person from '../../images/in_person.png';
 import { actions as servicesActions } from '../../redux/modules/services';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
+import { getTimezone } from '../leads/LeadsUtils';
 
 const mapStateToProps = state => ({
   paymentHistory: state.member.members.ALLpaymentHistory,
@@ -106,7 +107,8 @@ export class MemberViewNotes extends Component {
       internalPaymentType: 'customer',
       addNotification: addNotification,
       setSystemError: setSystemError,
-      timezone: profile.timezone || space.defaultTimezone,
+      timezone: getTimezone(profile.timezone, space.defaultTimezone),
+      bamboraCutoverDate: getAttributeValue(space, 'Bambora Cutoff Date'),
       useSubAccount: false,
     });
   }
@@ -267,6 +269,16 @@ export class MemberViewNotes extends Component {
             });
             console.log(history);
             this.props.saveRemoveMemberNote(history);
+            this.setState({
+              data: this.state.data.filter(
+                element =>
+                  !(
+                    element.contactDate === cellInfo.original.contactDate &&
+                    element.contactMethod === cellInfo.original.contactMethod &&
+                    element.note === cellInfo.original.note
+                  ),
+              ),
+            });
           }
         }}
       >

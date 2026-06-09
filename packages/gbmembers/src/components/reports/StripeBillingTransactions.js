@@ -16,6 +16,7 @@ import { getLocalePreference, getTimezoneOff } from '../Member/MemberUtils';
 import { MOMENT_FORMATS } from 'common/src/constants';
 import { getTimezone } from '../leads/LeadsUtils';
 import ReactSpinner from 'react16-spinjs';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 var compThis = undefined;
 
@@ -162,6 +163,10 @@ export class StripeBillingTransactions extends Component {
       internalPaymentType: 'pos_charges',
       addNotification: this.props.addNotification,
       setSystemError: this.props.setSystemError,
+      bamboraCutoverDate: getAttributeValue(
+        this.props.space,
+        'Bambora Cutoff Date',
+      ),
       timezone: getTimezone(
         this.props.profile.timezone,
         this.props.space.defaultTimezone,

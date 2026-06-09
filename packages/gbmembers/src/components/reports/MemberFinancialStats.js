@@ -212,6 +212,10 @@ export class MemberFinancialStats extends Component {
         internalPaymentType: 'client_successful',
         addNotification: this.props.addNotification,
         setSystemError: this.props.setSystemError,
+        bamboraCutoverDate: getAttributeValue(
+          this.props.space,
+          'Bambora Cutoff Date',
+        ),
         useSubAccount:
           getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
             ? true
@@ -230,6 +234,10 @@ export class MemberFinancialStats extends Component {
         internalPaymentType: 'client_failed',
         addNotification: this.props.addNotification,
         setSystemError: this.props.setSystemError,
+        bamboraCutoverDate: getAttributeValue(
+          this.props.space,
+          'Bambora Cutoff Date',
+        ),
         useSubAccount:
           getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
             ? true
@@ -1842,6 +1850,10 @@ export class MemberFinancialStats extends Component {
       internalPaymentType: 'client_failed',
       addNotification: this.props.addNotification,
       setSystemError: this.props.setSystemError,
+      bamboraCutoverDate: getAttributeValue(
+        this.props.space,
+        'Bambora Cutoff Date',
+      ),
       useSubAccount:
         getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
           ? true
@@ -1864,6 +1876,10 @@ export class MemberFinancialStats extends Component {
       internalPaymentType: 'client_successful',
       addNotification: this.props.addNotification,
       setSystemError: this.props.setSystemError,
+      bamboraCutoverDate: getAttributeValue(
+        this.props.space,
+        'Bambora Cutoff Date',
+      ),
       useSubAccount:
         getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
           ? true

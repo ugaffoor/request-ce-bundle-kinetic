@@ -49,8 +49,8 @@ export const App = ({ loading, isKiosk, space, profile }) => (
           sidebarContent={<SidebarContainer />}
           mainContent={<Content isKiosk={isKiosk} />}
         />
-        <LoginModal />
       </div>
     )}
+    <LoginModal />
   </div>
 );

@@ -1331,6 +1331,7 @@ export const ReportsContainer = compose(
         internalPaymentType: 'client_failed',
         addNotification: addNotification,
         setSystemError: setSystemError,
+        bamboraCutoverDate: getAttributeValue(space, 'Bambora Cutoff Date'),
         useSubAccount:
           getAttributeValue(space, 'PaySmart SubAccount') === 'YES'
             ? true
@@ -1357,6 +1358,7 @@ export const ReportsContainer = compose(
         internalPaymentType: 'client_successful',
         addNotification: addNotification,
         setSystemError: setSystemError,
+        bamboraCutoverDate: getAttributeValue(space, 'Bambora Cutoff Date'),
         useSubAccount:
           getAttributeValue(space, 'PaySmart SubAccount') === 'YES'
             ? true

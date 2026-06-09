@@ -7,6 +7,7 @@ import { compose } from 'recompose';
 import $ from 'jquery';
 import { KappNavLink as NavLink } from 'common';
 import { Utils } from 'common';
+import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 const mapStateToProps = state => ({});
 const mapDispatchToProps = {};
@@ -90,6 +91,24 @@ export class ChangeStatusModal extends Component {
     return this.props.memberItem;
   }
   render() {
+    const parentMemberId = this.props.memberItem.values[
+      'Billing Parent Member'
+    ];
+    const parentMember = parentMemberId
+      ? (this.props.allMembers || []).find(m => m.id === parentMemberId)
+      : null;
+    const bamboraMigrated =
+      this.props.billingCompany === 'Bambora' &&
+      getAttributeValue(this.props.space, 'Bambora Stripe Migration') ===
+        'YES' &&
+      ((this.props.memberItem.values['Billing Customer Id'] || '').startsWith(
+        'cus_',
+      ) ||
+        !!(
+          parentMember &&
+          (parentMember.values['Billing Customer Id'] || '').startsWith('cus_')
+        ));
+
     return (
       <div onClick={this.handleClick}>
         <ModalContainer onClose={this.handleClose}>
@@ -174,7 +193,13 @@ export class ChangeStatusModal extends Component {
                                     kappSlug={'services'}
                                     className={'nav-link icon-wrapper'}
                                     activeClassName="active"
-                                    style={{ display: 'inline' }}
+                                    disabled={bamboraMigrated}
+                                    style={{
+                                      display: 'inline',
+                                      pointerEvents: bamboraMigrated
+                                        ? 'none'
+                                        : undefined,
+                                    }}
                                   >
                                     {' '}
                                     here{' '}
@@ -241,7 +266,13 @@ export class ChangeStatusModal extends Component {
                                           kappSlug={'services'}
                                           className={'nav-link icon-wrapper'}
                                           activeClassName="active"
-                                          style={{ display: 'inline' }}
+                                          disabled={bamboraMigrated}
+                                          style={{
+                                            display: 'inline',
+                                            pointerEvents: bamboraMigrated
+                                              ? 'none'
+                                              : undefined,
+                                          }}
                                         >
                                           {' '}
                                           here{' '}
@@ -426,7 +457,13 @@ export class ChangeStatusModal extends Component {
                                     kappSlug={'services'}
                                     className={'nav-link icon-wrapper'}
                                     activeClassName="active"
-                                    style={{ display: 'inline' }}
+                                    disabled={bamboraMigrated}
+                                    style={{
+                                      display: 'inline',
+                                      pointerEvents: bamboraMigrated
+                                        ? 'none'
+                                        : undefined,
+                                    }}
                                   >
                                     {' '}
                                     here{' '}
@@ -542,7 +579,13 @@ export class ChangeStatusModal extends Component {
                                     kappSlug={'services'}
                                     className={'nav-link icon-wrapper'}
                                     activeClassName="active"
-                                    style={{ display: 'inline' }}
+                                    disabled={bamboraMigrated}
+                                    style={{
+                                      display: 'inline',
+                                      pointerEvents: bamboraMigrated
+                                        ? 'none'
+                                        : undefined,
+                                    }}
                                   >
                                     {' '}
                                     here{' '}
@@ -594,7 +637,13 @@ export class ChangeStatusModal extends Component {
                                       kappSlug={'services'}
                                       className={'nav-link icon-wrapper'}
                                       activeClassName="active"
-                                      style={{ display: 'inline' }}
+                                      disabled={bamboraMigrated}
+                                      style={{
+                                        display: 'inline',
+                                        pointerEvents: bamboraMigrated
+                                          ? 'none'
+                                          : undefined,
+                                      }}
                                     >
                                       {' '}
                                       here{' '}
@@ -737,7 +786,13 @@ export class ChangeStatusModal extends Component {
                                     kappSlug={'services'}
                                     className={'nav-link icon-wrapper'}
                                     activeClassName="active"
-                                    style={{ display: 'inline' }}
+                                    disabled={bamboraMigrated}
+                                    style={{
+                                      display: 'inline',
+                                      pointerEvents: bamboraMigrated
+                                        ? 'none'
+                                        : undefined,
+                                    }}
                                   >
                                     {' '}
                                     here{' '}
@@ -826,7 +881,13 @@ export class ChangeStatusModal extends Component {
                                     kappSlug={'services'}
                                     className={'nav-link icon-wrapper'}
                                     activeClassName="active"
-                                    style={{ display: 'inline' }}
+                                    disabled={bamboraMigrated}
+                                    style={{
+                                      display: 'inline',
+                                      pointerEvents: bamboraMigrated
+                                        ? 'none'
+                                        : undefined,
+                                    }}
                                   >
                                     {' '}
                                     here{' '}
@@ -885,7 +946,13 @@ export class ChangeStatusModal extends Component {
                                       kappSlug={'services'}
                                       className={'nav-link icon-wrapper'}
                                       activeClassName="active"
-                                      style={{ display: 'inline' }}
+                                      disabled={bamboraMigrated}
+                                      style={{
+                                        display: 'inline',
+                                        pointerEvents: bamboraMigrated
+                                          ? 'none'
+                                          : undefined,
+                                      }}
                                     >
                                       {' '}
                                       here{' '}
@@ -1071,7 +1138,13 @@ export class ChangeStatusModal extends Component {
                                     kappSlug={'services'}
                                     className={'nav-link icon-wrapper'}
                                     activeClassName="active"
-                                    style={{ display: 'inline' }}
+                                    disabled={bamboraMigrated}
+                                    style={{
+                                      display: 'inline',
+                                      pointerEvents: bamboraMigrated
+                                        ? 'none'
+                                        : undefined,
+                                    }}
                                   >
                                     {' '}
                                     here{' '}

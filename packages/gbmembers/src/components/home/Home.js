@@ -462,6 +462,7 @@ export const HomeContainer = compose(
         addNotification: addNotification,
         setSystemError: setSystemError,
         timezone: getTimezone(profile.timezone, space.defaultTimezone),
+        bamboraCutoverDate: getAttributeValue(space, 'Bambora Cutoff Date'),
         useSubAccount:
           getAttributeValue(space, 'PaySmart SubAccount') === 'YES'
             ? true
@@ -490,6 +491,7 @@ export const HomeContainer = compose(
         addNotification: addNotification,
         setSystemError: setSystemError,
         timezone: getTimezone(profile.timezone, space.defaultTimezone),
+        bamboraCutoverDate: getAttributeValue(space, 'Bambora Cutoff Date'),
         useSubAccount:
           getAttributeValue(space, 'PaySmart SubAccount') === 'YES'
             ? true

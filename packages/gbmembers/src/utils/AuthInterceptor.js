@@ -46,10 +46,17 @@ export default class AuthInterceptor {
   }
 
   handleRejected(error) {
-    if (
-      error.response.status === 401 &&
-      !error.response.config.__bypassAuthInterceptor
-    ) {
+    const response = error && error.response;
+    const status = response ? response.status : (error && error.status) || 0;
+    const config = response ? response.config : error && error.config;
+    // Only skip if this IS the login endpoint itself (wrong credentials)
+    // Do NOT skip based on __bypassAuthInterceptor — the Kinetic library sets
+    // that flag on every request when loggedIn=false, which is exactly the state
+    // that needs to trigger the login modal.
+    const isLoginEndpoint =
+      config && config.url && config.url.includes('/app/login.do');
+
+    if (status === 401 && !isLoginEndpoint) {
       if (!this.authPromise) {
         this.authPromise = this.authenticate();
         this.authPromise.finally(() => {
@@ -59,9 +66,13 @@ export default class AuthInterceptor {
       return new Promise((resolve, reject) => {
         this.authPromise
           .then(() => {
-            axios(error.response.config)
-              .then(resolve)
-              .catch(reject);
+            if (config) {
+              axios(config)
+                .then(resolve)
+                .catch(reject);
+            } else {
+              window.location.reload();
+            }
           })
           .catch(() => {
             reject(error);
