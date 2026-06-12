@@ -3477,58 +3477,75 @@ export class BillingInfo extends Component {
                         {getAttributeValue(
                           this.props.space,
                           'Billing Company',
-                        ) === 'Bambora' && (
-                          <div>
-                            <NavLink
-                              to={`/categories/bambora-billing/bambora-submit-billing-changes?id=${
-                                this.props.memberItem.id
-                              }`}
-                              kappSlug={'services'}
-                              className={
-                                'nav-link icon-wrapper btn btn-primary'
-                              }
-                              activeClassName="active"
-                              disabled={
-                                this.props.memberItem.values['Status'] !==
-                                  'Active' ||
-                                (getAttributeValue(
-                                  this.props.space,
-                                  'Bambora Stripe Migration',
-                                ) === 'YES' &&
-                                  (
-                                    this.props.memberItem.values[
-                                      'Billing Customer Id'
-                                    ] || ''
-                                  ).startsWith('cus_'))
-                              }
-                              style={{
-                                display: 'inline',
-                                paddingTop: '4px',
-                                paddingBottom: '4px',
-                                pointerEvents:
+                        ) === 'Bambora' &&
+                          (getAttributeValue(
+                            this.props.space,
+                            'Bambora Stripe Migration',
+                          ) !== 'YES' ||
+                            (getAttributeValue(
+                              this.props.space,
+                              'Bambora Stripe Migration',
+                            ) === 'YES' &&
+                              !(
+                                this.props.memberItem.values[
+                                  'Billing Customer Id'
+                                ] || ''
+                              ).startsWith('cus_'))) && (
+                            <div>
+                              <NavLink
+                                to={`/categories/bambora-billing/bambora-submit-billing-changes?id=${
+                                  this.props.memberItem.id
+                                }`}
+                                kappSlug={'services'}
+                                className={
+                                  'nav-link icon-wrapper btn btn-primary'
+                                }
+                                activeClassName="active"
+                                disabled={
                                   this.props.memberItem.values['Status'] !==
                                     'Active' ||
-                                  (getAttributeValue(
+                                  getAttributeValue(
                                     this.props.space,
                                     'Bambora Stripe Migration',
-                                  ) === 'YES' &&
-                                    (
-                                      this.props.memberItem.values[
-                                        'Billing Customer Id'
-                                      ] || ''
-                                    ).startsWith('cus_'))
-                                    ? 'none'
-                                    : undefined,
-                              }}
-                            >
-                              Update Billing Details
-                            </NavLink>
-                          </div>
-                        )}
-                        {getAttributeValue(
+                                  ) === 'YES'
+                                }
+                                style={{
+                                  display: 'inline',
+                                  paddingTop: '4px',
+                                  paddingBottom: '4px',
+                                  pointerEvents:
+                                    this.props.memberItem.values['Status'] !==
+                                      'Active' ||
+                                    (getAttributeValue(
+                                      this.props.space,
+                                      'Bambora Stripe Migration',
+                                    ) === 'YES' &&
+                                      (
+                                        this.props.memberItem.values[
+                                          'Billing Customer Id'
+                                        ] || ''
+                                      ).startsWith('cus_'))
+                                      ? 'none'
+                                      : undefined,
+                                }}
+                              >
+                                Update Billing Details
+                              </NavLink>
+                            </div>
+                          )}
+                        {(getAttributeValue(
                           this.props.space,
                           'Billing Company',
-                        ) === 'Stripe' &&
+                        ) === 'Stripe' ||
+                          (getAttributeValue(
+                            this.props.space,
+                            'Bambora Stripe Migration',
+                          ) === 'YES' &&
+                            (
+                              this.props.memberItem.values[
+                                'Billing Customer Id'
+                              ] || ''
+                            ).startsWith('cus_'))) &&
                           getAttributeValue(this.props.space, 'Franchisor') !==
                             'YES' && (
                             <div>
@@ -3558,54 +3575,71 @@ export class BillingInfo extends Component {
                         {getAttributeValue(
                           this.props.space,
                           'Billing Company',
-                        ) === 'Bambora' && (
-                          <div>
-                            <NavLink
-                              to={`/categories/bambora-billing/bambora-change-credit-card-details?id=${
-                                this.props.memberItem.id
-                              }`}
-                              kappSlug={'services'}
-                              className={
-                                'nav-link icon-wrapper btn btn-primary'
-                              }
-                              activeClassName="active"
-                              disabled={
-                                getAttributeValue(
-                                  this.props.space,
-                                  'Bambora Stripe Migration',
-                                ) === 'YES' &&
-                                (
-                                  this.props.memberItem.values[
-                                    'Billing Customer Id'
-                                  ] || ''
-                                ).startsWith('cus_')
-                              }
-                              style={{
-                                display: 'inline',
-                                paddingTop: '4px',
-                                paddingBottom: '4px',
-                                pointerEvents:
+                        ) === 'Bambora' &&
+                          (getAttributeValue(
+                            this.props.space,
+                            'Bambora Stripe Migration',
+                          ) !== 'YES' ||
+                            (getAttributeValue(
+                              this.props.space,
+                              'Bambora Stripe Migration',
+                            ) === 'YES' &&
+                              !(
+                                this.props.memberItem.values[
+                                  'Billing Customer Id'
+                                ] || ''
+                              ).startsWith('cus_'))) && (
+                            <div>
+                              <NavLink
+                                to={`/categories/bambora-billing/bambora-change-credit-card-details?id=${
+                                  this.props.memberItem.id
+                                }`}
+                                kappSlug={'services'}
+                                className={
+                                  'nav-link icon-wrapper btn btn-primary'
+                                }
+                                activeClassName="active"
+                                disabled={
                                   getAttributeValue(
                                     this.props.space,
                                     'Bambora Stripe Migration',
-                                  ) === 'YES' &&
-                                  (
-                                    this.props.memberItem.values[
-                                      'Billing Customer Id'
-                                    ] || ''
-                                  ).startsWith('cus_')
-                                    ? 'none'
-                                    : undefined,
-                              }}
-                            >
-                              Update Credit Card
-                            </NavLink>
-                          </div>
-                        )}
-                        {getAttributeValue(
+                                  ) === 'YES'
+                                }
+                                style={{
+                                  display: 'inline',
+                                  paddingTop: '4px',
+                                  paddingBottom: '4px',
+                                  pointerEvents:
+                                    getAttributeValue(
+                                      this.props.space,
+                                      'Bambora Stripe Migration',
+                                    ) === 'YES' &&
+                                    (
+                                      this.props.memberItem.values[
+                                        'Billing Customer Id'
+                                      ] || ''
+                                    ).startsWith('cus_')
+                                      ? 'none'
+                                      : undefined,
+                                }}
+                              >
+                                Update Credit Card
+                              </NavLink>
+                            </div>
+                          )}
+                        {(getAttributeValue(
                           this.props.space,
                           'Billing Company',
-                        ) === 'Stripe' && (
+                        ) === 'Stripe' ||
+                          (getAttributeValue(
+                            this.props.space,
+                            'Bambora Stripe Migration',
+                          ) === 'YES' &&
+                            (
+                              this.props.memberItem.values[
+                                'Billing Customer Id'
+                              ] || ''
+                            ).startsWith('cus_'))) && (
                           <div>
                             <NavLink
                               to={`/categories/stripe-billing/stripe-change-payment-type?id=${

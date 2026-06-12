@@ -302,6 +302,8 @@ export class MigratingBamboraToStripe extends Component {
       tax2Label,
       tax2Value,
     } = this.state;
+    const { space, profile } = this.props;
+
     localStorage.setItem(
       LS_PREFIX + 'Ignore Admin Fee',
       ignoreAdminFee ? 'YES' : 'NO',
@@ -324,6 +326,102 @@ export class MigratingBamboraToStripe extends Component {
       billingSettingsApplied: true,
       stripeSettingsConfirmed: confirmed,
     });
+
+    // Update billing/tax space attributes to Stripe migration settings
+    this.props.updateSpaceAttribute({
+      space,
+      values: {
+        Status: 'New',
+        'Attribute Name': 'Ignore Admin Fee',
+        'Original Value': getAttributeValue(space, 'Ignore Admin Fee') || '',
+        'New Value': ignoreAdminFee ? 'YES' : '',
+        'Updated By': profile.username,
+      },
+    });
+    setAttributeValue(space, 'Ignore Admin Fee', ignoreAdminFee ? 'YES' : '');
+    this.props.updateSpaceAttribute({
+      space,
+      values: {
+        Status: 'New',
+        'Attribute Name': 'Admin Fee Label',
+        'Original Value': getAttributeValue(space, 'Admin Fee Label') || '',
+        'New Value': adminFeeLabel || '',
+        'Updated By': profile.username,
+      },
+    });
+    setAttributeValue(space, 'Admin Fee Label', adminFeeLabel || '');
+    this.props.updateSpaceAttribute({
+      space,
+      values: {
+        Status: 'New',
+        'Attribute Name': 'Admin Fee Charge',
+        'Original Value': getAttributeValue(space, 'Admin Fee Charge') || '',
+        'New Value':
+          adminFeeCharge !== '' && adminFeeCharge !== null
+            ? adminFeeCharge * 100 + '%'
+            : '',
+        'Updated By': profile.username,
+      },
+    });
+    setAttributeValue(
+      space,
+      'Admin Fee Charge',
+      adminFeeCharge !== '' && adminFeeCharge !== null
+        ? adminFeeCharge * 100 + '%'
+        : '',
+    );
+    this.props.updateSpaceAttribute({
+      space,
+      values: {
+        Status: 'New',
+        'Attribute Name': 'TAX 1 Label',
+        'Original Value': getAttributeValue(space, 'TAX 1 Label') || '',
+        'New Value': tax1Label || '',
+        'Updated By': profile.username,
+      },
+    });
+    setAttributeValue(space, 'TAX 1 Label', tax1Label || '');
+    this.props.updateSpaceAttribute({
+      space,
+      values: {
+        Status: 'New',
+        'Attribute Name': 'TAX 1 Value',
+        'Original Value': getAttributeValue(space, 'TAX 1 Value') || '',
+        'New Value': tax1Value !== '' ? String(tax1Value) : '',
+        'Updated By': profile.username,
+      },
+    });
+    setAttributeValue(
+      space,
+      'TAX 1 Value',
+      tax1Value !== '' ? String(tax1Value) : '',
+    );
+    this.props.updateSpaceAttribute({
+      space,
+      values: {
+        Status: 'New',
+        'Attribute Name': 'TAX 2 Label',
+        'Original Value': getAttributeValue(space, 'TAX 2 Label') || '',
+        'New Value': tax2Label || '',
+        'Updated By': profile.username,
+      },
+    });
+    setAttributeValue(space, 'TAX 2 Label', tax2Label || '');
+    this.props.updateSpaceAttribute({
+      space,
+      values: {
+        Status: 'New',
+        'Attribute Name': 'TAX 2 Value',
+        'Original Value': getAttributeValue(space, 'TAX 2 Value') || '',
+        'New Value': tax2Value !== '' ? String(tax2Value) : '',
+        'Updated By': profile.username,
+      },
+    });
+    setAttributeValue(
+      space,
+      'TAX 2 Value',
+      tax2Value !== '' ? String(tax2Value) : '',
+    );
     setTimeout(() => this.setState({ billingSettingsApplied: false }), 3000);
   }
 
@@ -1057,6 +1155,12 @@ export class MigratingBamboraToStripe extends Component {
               <li>
                 Step 1: Configure and apply the Stripe settings that will be
                 used to create the Stripe Billing accounts.
+                <ul>
+                  These values will now be used for any new Registrations and
+                  against any changes for migrated members.<br />
+                  Members yet to be migrated will not be allow to be
+                  changed/frozen or cancelled.
+                </ul>
               </li>
 
               <li>
@@ -1525,129 +1629,6 @@ export class MigratingBamboraToStripe extends Component {
                         });
                         setAttributeValue(space, 'POS System', 'Stripe');
                       }
-
-                      // Update billing/tax space attributes to Stripe migration settings
-                      const {
-                        ignoreAdminFee,
-                        adminFeeLabel,
-                        adminFeeCharge,
-                        tax1Label,
-                        tax1Value,
-                        tax2Label,
-                        tax2Value,
-                      } = this.state;
-
-                      this.props.updateSpaceAttribute({
-                        space,
-                        values: {
-                          Status: 'New',
-                          'Attribute Name': 'Ignore Admin Fee',
-                          'Original Value':
-                            getAttributeValue(space, 'Ignore Admin Fee') || '',
-                          'New Value': ignoreAdminFee ? 'YES' : '',
-                          'Updated By': profile.username,
-                        },
-                      });
-                      setAttributeValue(
-                        space,
-                        'Ignore Admin Fee',
-                        ignoreAdminFee ? 'YES' : '',
-                      );
-                      this.props.updateSpaceAttribute({
-                        space,
-                        values: {
-                          Status: 'New',
-                          'Attribute Name': 'Admin Fee Label',
-                          'Original Value':
-                            getAttributeValue(space, 'Admin Fee Label') || '',
-                          'New Value': adminFeeLabel || '',
-                          'Updated By': profile.username,
-                        },
-                      });
-                      setAttributeValue(
-                        space,
-                        'Admin Fee Label',
-                        adminFeeLabel || '',
-                      );
-                      this.props.updateSpaceAttribute({
-                        space,
-                        values: {
-                          Status: 'New',
-                          'Attribute Name': 'Admin Fee Charge',
-                          'Original Value':
-                            getAttributeValue(space, 'Admin Fee Charge') || '',
-                          'New Value':
-                            adminFeeCharge !== '' && adminFeeCharge !== null
-                              ? adminFeeCharge * 100 + '%'
-                              : '',
-                          'Updated By': profile.username,
-                        },
-                      });
-                      setAttributeValue(
-                        space,
-                        'Admin Fee Charge',
-                        adminFeeCharge !== '' && adminFeeCharge !== null
-                          ? adminFeeCharge * 100 + '%'
-                          : '',
-                      );
-                      this.props.updateSpaceAttribute({
-                        space,
-                        values: {
-                          Status: 'New',
-                          'Attribute Name': 'TAX 1 Label',
-                          'Original Value':
-                            getAttributeValue(space, 'TAX 1 Label') || '',
-                          'New Value': tax1Label || '',
-                          'Updated By': profile.username,
-                        },
-                      });
-                      setAttributeValue(space, 'TAX 1 Label', tax1Label || '');
-                      this.props.updateSpaceAttribute({
-                        space,
-                        values: {
-                          Status: 'New',
-                          'Attribute Name': 'TAX 1 Value',
-                          'Original Value':
-                            getAttributeValue(space, 'TAX 1 Value') || '',
-                          'New Value':
-                            tax1Value !== '' ? String(tax1Value) : '',
-                          'Updated By': profile.username,
-                        },
-                      });
-                      setAttributeValue(
-                        space,
-                        'TAX 1 Value',
-                        tax1Value !== '' ? String(tax1Value) : '',
-                      );
-                      this.props.updateSpaceAttribute({
-                        space,
-                        values: {
-                          Status: 'New',
-                          'Attribute Name': 'TAX 2 Label',
-                          'Original Value':
-                            getAttributeValue(space, 'TAX 2 Label') || '',
-                          'New Value': tax2Label || '',
-                          'Updated By': profile.username,
-                        },
-                      });
-                      setAttributeValue(space, 'TAX 2 Label', tax2Label || '');
-                      this.props.updateSpaceAttribute({
-                        space,
-                        values: {
-                          Status: 'New',
-                          'Attribute Name': 'TAX 2 Value',
-                          'Original Value':
-                            getAttributeValue(space, 'TAX 2 Value') || '',
-                          'New Value':
-                            tax2Value !== '' ? String(tax2Value) : '',
-                          'Updated By': profile.username,
-                        },
-                      });
-                      setAttributeValue(
-                        space,
-                        'TAX 2 Value',
-                        tax2Value !== '' ? String(tax2Value) : '',
-                      );
 
                       // Update kapp Billing Company → Stripe
                       if (kapp) {

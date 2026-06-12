@@ -151,7 +151,11 @@ export const Header = ({
             </DropdownMenu>
           </Dropdown>
         )}
-        {!isGuest && !isKiosk && <HelpContainer />}
+        {!isGuest &&
+          !isKiosk &&
+          Utils.getAttributeValue(space, 'LiveChat License') === undefined && (
+            <HelpContainer />
+          )}
         {!isGuest && !isKiosk && <JourneyEventsContainer />}
         <ProfileContainer space={space} isKiosk={isKiosk} />
       </div>

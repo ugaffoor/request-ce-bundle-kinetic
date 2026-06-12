@@ -93,8 +93,13 @@ export class StartMemberMigration extends Component {
             form={
               Utils.getAttributeValue(
                 this.props.space,
-                'Billing Company',
-              ).toLowerCase() + '-remote-registration'
+                'Bambora Stripe Migration',
+              ) === 'YES'
+                ? 'stripe-remote-registration'
+                : Utils.getAttributeValue(
+                    this.props.space,
+                    'Billing Company',
+                  ).toLowerCase() + '-remote-registration'
             }
             kapp="services"
             values={this.state.initValues}

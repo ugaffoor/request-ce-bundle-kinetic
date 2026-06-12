@@ -14,6 +14,7 @@ import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
 import ReactTable from 'react-table';
 import 'react-table/react-table.css';
 import { Loading } from 'common';
+import { setAttributeValue } from '../../../../../gbmembers/src/lib/react-kinops-components/src/utils';
 
 class SettingsAudit extends Component {
   handleClick = () => this.setState({ isShowingModal: true });
@@ -356,6 +357,45 @@ Indications in the application will identify members not compliant."
         </span>
         <span className="detailsSection">
           <h6>Billing</h6>
+          {Utils.getAttributeValue(this.props.space, 'Billing Company') ===
+            'Bambora' &&
+            Utils.getAttributeValue(
+              this.props.space,
+              'Bambora Stripe Migration',
+            ) === 'Not Started' && (
+              <button
+                type="button"
+                className="btn btn-warning"
+                style={{ marginBottom: '10px' }}
+                onClick={async () => {
+                  if (
+                    await confirm(
+                      'Are you sure you want to start the Bambora to Stripe Migration? This will begin the migration process for all members.',
+                    )
+                  ) {
+                    this.props.updateSpaceAttribute({
+                      space: this.props.space,
+                      values: {
+                        Status: 'New',
+                        'Attribute Name': 'Bambora Stripe Migration',
+                        'Original Value': 'NO',
+                        'New Value': 'YES',
+                        'Updated By': this.props.profile.username,
+                      },
+                    });
+                    setAttributeValue(
+                      this.props.space,
+                      'Bambora Stripe Migration',
+                      'YES',
+                    );
+                    document.location =
+                      '/#/kapps/gbmembers/MigratingBamboraToStripe';
+                  }
+                }}
+              >
+                Start Bambora to Stripe Migration
+              </button>
+            )}
           {(Utils.getAttributeValue(this.props.space, 'Billing Company') ===
             'Bambora' ||
             Utils.getAttributeValue(this.props.space, 'Billing Company') ===

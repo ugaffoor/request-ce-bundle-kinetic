@@ -108,6 +108,19 @@ export class ChangeStatusModal extends Component {
           parentMember &&
           (parentMember.values['Billing Customer Id'] || '').startsWith('cus_')
         ));
+    const recordBillingCompany =
+      this.props.billingCompany === 'Bambora' &&
+      getAttributeValue(this.props.space, 'Bambora Stripe Migration') ===
+        'YES' &&
+      ((this.props.memberItem.values['Billing Customer Id'] || '').startsWith(
+        'cus_',
+      ) ||
+        !!(
+          parentMember &&
+          (parentMember.values['Billing Customer Id'] || '').startsWith('cus_')
+        ))
+        ? 'stripe'
+        : this.props.billingCompany.toLowerCase();
 
     return (
       <div onClick={this.handleClick}>
@@ -117,1067 +130,76 @@ export class ChangeStatusModal extends Component {
             onClose={this.handleClose}
           >
             <div className="statusOptions">
-              {Utils.getAttributeValue(this.props.space, 'Billing Company') ===
-                this.props.billingCompany && (
-                <form>
-                  <tbody>
-                    {(this.props.memberItem.values['Status'] === 'Frozen' ||
-                      this.props.memberItem.values['Status'] ===
-                        'Pending Freeze') &&
-                      this.isPrimaryBiller() && (
-                        <span className="cell">
-                          <tr>
-                            <td>
-                              <h2 className="resume">Resume Frozen Member</h2>
-                              <h4>Primary Family Member</h4>
-                              <span>
-                                The member selected{' '}
-                                <b>
-                                  {this.props.memberItem.values['First Name']}{' '}
-                                  {this.props.memberItem.values['Last Name']}
-                                </b>{' '}
-                                is the Primary family member.
-                              </span>
-                              <br />
-                              <span>
-                                If you only wish to Resume this member only and
-                                NOT the dependant members, please follow below.
-                              </span>
-                              <br />
-                              <ol>
-                                <li>
-                                  Switch the Billing Member to one of the
-                                  dependant members.
-                                </li>
-                                {this.props.billingCompany === 'Bambora' ||
-                                this.props.billingCompany === 'Stripe' ? (
-                                  <li>
-                                    Complete the {this.props.billingCompany}{' '}
-                                    Submit Billing Changes form to remove
-                                    dependant members from billing.
-                                  </li>
-                                ) : (
-                                  <li>
-                                    Complete the {this.props.billingCompany}{' '}
-                                    Setup Biller Details(Family) form to remove
-                                    dependant members from billing.
-                                  </li>
-                                )}
-                                <li>
-                                  Set this student's status to Frozen(Edit
-                                  member details), after completing the above
-                                  form.
-                                </li>
-                              </ol>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <span>
-                                If you wish to Resume this member and ALL
-                                dependant members, please follow below.
-                              </span>
-                              <br />
-                              <ol>
-                                <li>
-                                  Click{' '}
-                                  <NavLink
-                                    to={`/categories/${
-                                      this.props.billingCompany === 'PaySmart'
-                                        ? 'billing-registration'
-                                        : this.props.billingCompany.toLowerCase() +
-                                          '-billing'
-                                    }/${this.props.billingCompany.toLowerCase()}-resume-frozen-member?id=${
-                                      this.props.memberItem.id
-                                    }`}
-                                    kappSlug={'services'}
-                                    className={'nav-link icon-wrapper'}
-                                    activeClassName="active"
-                                    disabled={bamboraMigrated}
-                                    style={{
-                                      display: 'inline',
-                                      pointerEvents: bamboraMigrated
-                                        ? 'none'
-                                        : undefined,
-                                    }}
-                                  >
-                                    {' '}
-                                    here{' '}
-                                  </NavLink>{' '}
-                                  to complete a Resume Frozen Member form.
-                                </li>
-                              </ol>
-                            </td>
-                          </tr>
-                        </span>
-                      )}
-                    {(this.props.memberItem.values['Status'] === 'Frozen' ||
-                      this.props.memberItem.values['Status'] ===
-                        'Pending Freeze') &&
-                      this.props.memberItem.values['Non Paying'] !== 'YES' &&
-                      this.isDependantMember() && (
-                        <span className="cell">
-                          {this.parentMember.id !== this.props.memberItem.id &&
-                            this.parentMember.values['Status'] === 'Active' && (
-                              <tr>
-                                <td>
-                                  <h2 className="resume">
-                                    Resume Frozen Member
-                                  </h2>
-                                  <h4>Dependant Family Member</h4>
-                                  <span>
-                                    The member selected{' '}
-                                    <b>
-                                      {
-                                        this.props.memberItem.values[
-                                          'First Name'
-                                        ]
-                                      }{' '}
-                                      {
-                                        this.props.memberItem.values[
-                                          'Last Name'
-                                        ]
-                                      }
-                                    </b>{' '}
-                                    is a dependant family member.
-                                  </span>
-                                  <br />
-                                  <span>
-                                    To resume this member, please follow below.
-                                  </span>
-                                  <br />
-                                  <ol>
-                                    {this.props.billingCompany === 'Bambora' ||
-                                    this.props.billingCompany === 'Stripe' ? (
-                                      <li>
-                                        Click{' '}
-                                        <NavLink
-                                          to={`/categories/${
-                                            this.props.billingCompany ===
-                                            'PaySmart'
-                                              ? 'billing-registration'
-                                              : this.props.billingCompany.toLowerCase() +
-                                                '-billing'
-                                          }/${this.props.billingCompany.toLowerCase()}-submit-billing-changes?id=${
-                                            this.props.memberItem.values[
-                                              'Billing Parent Member'
-                                            ]
-                                          }`}
-                                          kappSlug={'services'}
-                                          className={'nav-link icon-wrapper'}
-                                          activeClassName="active"
-                                          disabled={bamboraMigrated}
-                                          style={{
-                                            display: 'inline',
-                                            pointerEvents: bamboraMigrated
-                                              ? 'none'
-                                              : undefined,
-                                          }}
-                                        >
-                                          {' '}
-                                          here{' '}
-                                        </NavLink>{' '}
-                                        to complete {
-                                          this.props.billingCompany
-                                        }{' '}
-                                        Submit Billing Changes form to add this
-                                        student to billing.
-                                      </li>
-                                    ) : (
-                                      <li>
-                                        Click{' '}
-                                        <NavLink
-                                          to={`/categories/${
-                                            this.props.billingCompany ===
-                                            'PaySmart'
-                                              ? 'billing-registration'
-                                              : this.props.billingCompany.toLowerCase() +
-                                                '-billing'
-                                          }/${
-                                            this.props.billingCompany ===
-                                            'PaySmart'
-                                              ? 'setup-biller-details'
-                                              : this.props.billingCompany.toLowerCase() +
-                                                '-setup-biller-details'
-                                          }?id=${
-                                            this.props.memberItem.values[
-                                              'Billing Parent Member'
-                                            ]
-                                          }`}
-                                          kappSlug={'services'}
-                                          className={'nav-link icon-wrapper'}
-                                          activeClassName="active"
-                                          style={{ display: 'inline' }}
-                                        >
-                                          {' '}
-                                          here{' '}
-                                        </NavLink>{' '}
-                                        to complete {
-                                          this.props.billingCompany
-                                        }{' '}
-                                        Setup Biller Details(Family) form to add
-                                        this student to billing.
-                                      </li>
-                                    )}
-                                    <li>
-                                      Set this student's status to Active(Edit
-                                      member details), after completing the
-                                      above form.
-                                    </li>
-                                  </ol>
-                                </td>
-                              </tr>
-                            )}
-                          {this.parentMember.id !== this.props.memberItem.id &&
-                            (this.parentMember.values['Status'] === 'Frozen' ||
-                              this.parentMember.values['Status'] ===
-                                'Pending Freeze') && (
-                              <tr>
-                                <td>
-                                  <h2 className="resume">
-                                    Resume Frozen Member
-                                  </h2>
-                                  <h4>Dependant Family Member</h4>
-                                  <span>
-                                    The member selected{' '}
-                                    <b>
-                                      {
-                                        this.props.memberItem.values[
-                                          'First Name'
-                                        ]
-                                      }{' '}
-                                      {
-                                        this.props.memberItem.values[
-                                          'Last Name'
-                                        ]
-                                      }
-                                    </b>{' '}
-                                    is a dependant family member of{' '}
-                                    <b>
-                                      {this.parentMember.values['First Name']}{' '}
-                                      {this.parentMember.values['Last Name']}
-                                    </b>
-                                    .
-                                  </span>
-                                  <br />
-                                  <span>
-                                    If you wish to only Resume this studunt
-                                    please follow below.
-                                  </span>
-                                  <br />
-                                  <ol>
-                                    <li>
-                                      Click{' '}
-                                      <NavLink
-                                        to={`/Member/${
-                                          this.props.memberItem.values[
-                                            'Billing Parent Member'
-                                          ]
-                                        }`}
-                                        kappSlug={'gbmembers'}
-                                        className={'nav-link icon-wrapper'}
-                                        activeClassName="active"
-                                        style={{ display: 'inline' }}
-                                      >
-                                        {' '}
-                                        here{' '}
-                                      </NavLink>{' '}
-                                      to Switch the Billing member{' '}
-                                      <b>
-                                        {this.parentMember.values['First Name']}{' '}
-                                        {this.parentMember.values['Last Name']}
-                                      </b>{' '}
-                                      to{' '}
-                                      <b>
-                                        {
-                                          this.props.memberItem.values[
-                                            'First Name'
-                                          ]
-                                        }{' '}
-                                        {
-                                          this.props.memberItem.values[
-                                            'Last Name'
-                                          ]
-                                        }
-                                      </b>
-                                      .
-                                    </li>
-                                    {this.props.billingCompany === 'Bambora' ||
-                                    this.props.billingCompany === 'Stripe' ? (
-                                      <li>
-                                        Complete the {this.props.billingCompany}{' '}
-                                        Submit Billing Changes form to remove
-                                        other members from billing.
-                                      </li>
-                                    ) : (
-                                      <li>
-                                        Complete the {this.props.billingCompany}{' '}
-                                        Setup Biller Details(Family) form to
-                                        remove other members from billing.
-                                      </li>
-                                    )}
-                                    <li>
-                                      Complete a Resume Membership Frozen form.
-                                    </li>
-                                  </ol>
-                                </td>
-                              </tr>
-                            )}
-                        </span>
-                      )}
-                    {(this.props.memberItem.values['Status'] === 'Frozen' ||
-                      this.props.memberItem.values['Status'] ===
-                        'Pending Freeze') &&
-                      this.props.memberItem.values['Non Paying'] !== 'YES' &&
-                      this.props.memberItem.values['Billing Payment Type'] !==
-                        'Cash' &&
-                      !this.isPrimaryBiller() &&
-                      !this.isDependantMember() &&
-                      this.isSingleBiller() && (
-                        <span className="cell">
-                          <tr>
-                            <td>
-                              <h2 className="resume">Resume Frozen Member</h2>
-                              <span>
-                                To resume this member, please follow below.
-                              </span>
-                              <br />
-                              <ol>
-                                <li>
-                                  Click{' '}
-                                  <NavLink
-                                    to={`/categories/${
-                                      this.props.billingCompany === 'PaySmart'
-                                        ? 'billing-registration'
-                                        : this.props.billingCompany.toLowerCase() +
-                                          '-billing'
-                                    }/${this.props.billingCompany.toLowerCase()}-resume-frozen-member?id=${
-                                      this.props.memberItem.id
-                                    }`}
-                                    kappSlug={'services'}
-                                    className={'nav-link icon-wrapper'}
-                                    activeClassName="active"
-                                    disabled={bamboraMigrated}
-                                    style={{
-                                      display: 'inline',
-                                      pointerEvents: bamboraMigrated
-                                        ? 'none'
-                                        : undefined,
-                                    }}
-                                  >
-                                    {' '}
-                                    here{' '}
-                                  </NavLink>{' '}
-                                  to complete a Resume Frozen Membership form.
-                                </li>
-                              </ol>
-                            </td>
-                          </tr>
-                        </span>
-                      )}
-                    {(this.props.memberItem.values['Status'] === 'Frozen' ||
-                      this.props.memberItem.values['Status'] ===
-                        'Pending Freeze') &&
-                      !this.isPrimaryBiller() &&
-                      !this.isDependantMember() &&
-                      (this.props.memberItem.values['Non Paying'] === 'YES' ||
-                        this.props.memberItem.values['Billing Payment Type'] ===
-                          'Cash' ||
-                        this.props.memberItem.values['Billing User'] ===
-                          undefined ||
-                        this.props.memberItem.values['Billing User'] === null ||
-                        this.props.memberItem.values['Billing User'] ===
-                          '') && (
-                        <span className="cell">
-                          <tr>
-                            <td>
-                              <h2 className="resume">Resume Frozen Member</h2>
-                              <span>
-                                To resume this member, please follow below.
-                              </span>
-                              <br />
-                              <ol>
-                                <li>
-                                  Set this student's status to Active(Edit
-                                  member details).
-                                </li>
-                              </ol>
-                            </td>
-                          </tr>
-                        </span>
-                      )}
-                    {this.props.memberItem.values['Status'] === 'Active' &&
-                      this.isPrimaryBiller() && (
-                        <span className="cell">
-                          <tr>
-                            <td>
-                              <h2 className="freeze">Freeze Member</h2>
-                              <h4>Primary Family Member</h4>
-                              <span>
-                                The member selected{' '}
-                                <b>
-                                  {this.props.memberItem.values['First Name']}{' '}
-                                  {this.props.memberItem.values['Last Name']}
-                                </b>{' '}
-                                is the Primary family member.
-                              </span>
-                              <br />
-                              <span>
-                                If you only wish to Freeze this member only and
-                                NOT the dependant members, please follow below.
-                              </span>
-                              <br />
-                              <ol>
-                                <li>
-                                  Switch the Billing Member to one of the
-                                  dependant members.
-                                </li>
-                                {this.props.billingCompany === 'Bambora' ||
-                                this.props.billingCompany === 'Stripe' ? (
-                                  <li>
-                                    Complete the {this.props.billingCompany}{' '}
-                                    Submit Billing Changes form to remove this
-                                    student from billing.
-                                  </li>
-                                ) : (
-                                  <li>
-                                    Complete the {this.props.billingCompany}{' '}
-                                    Setup Biller Details(Family) form to remove
-                                    this student from billing.
-                                  </li>
-                                )}
-                                <li>
-                                  Set this student's status to Frozen(Edit
-                                  member details), after completing the above
-                                  form.
-                                </li>
-                              </ol>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <span>
-                                If you wish to Freeze this member and ALL
-                                dependant members, please follow below.
-                              </span>
-                              <br />
-                              <ol>
-                                <li>
-                                  Click{' '}
-                                  <NavLink
-                                    to={`/categories/${
-                                      this.props.billingCompany === 'PaySmart'
-                                        ? 'billing-registration'
-                                        : this.props.billingCompany.toLowerCase() +
-                                          '-billing'
-                                    }/${
-                                      this.props.billingCompany === 'PaySmart'
-                                        ? 'membership-freeze'
-                                        : this.props.billingCompany.toLowerCase() +
-                                          '-membership-freeze'
-                                    }?id=${this.props.memberItem.id}`}
-                                    kappSlug={'services'}
-                                    className={'nav-link icon-wrapper'}
-                                    activeClassName="active"
-                                    disabled={bamboraMigrated}
-                                    style={{
-                                      display: 'inline',
-                                      pointerEvents: bamboraMigrated
-                                        ? 'none'
-                                        : undefined,
-                                    }}
-                                  >
-                                    {' '}
-                                    here{' '}
-                                  </NavLink>{' '}
-                                  to complete a Membership Freeze form.
-                                </li>
-                              </ol>
-                            </td>
-                          </tr>
-                        </span>
-                      )}
-                    {this.props.memberItem.values['Status'] === 'Active' &&
-                      this.props.memberItem.values['Non Paying'] !== 'YES' &&
-                      this.isDependantMember() && (
-                        <span className="cell">
-                          <tr>
-                            <td>
-                              <h2 className="freeze">Freeze Member</h2>
-                              <h4>Dependant Family Member</h4>
-                              <span>
-                                The member selected{' '}
-                                <b>
-                                  {this.props.memberItem.values['First Name']}{' '}
-                                  {this.props.memberItem.values['Last Name']}
-                                </b>{' '}
-                                is a dependant family member.
-                              </span>
-                              <br />
-                              <span>
-                                To freeze this member, please follow below.
-                              </span>
-                              <br />
-                              <ol>
-                                {this.props.billingCompany === 'Bambora' ||
-                                this.props.billingCompany === 'Stripe' ? (
-                                  <li>
-                                    Click{' '}
-                                    <NavLink
-                                      to={`/categories/${
-                                        this.props.billingCompany === 'PaySmart'
-                                          ? 'billing-registration'
-                                          : this.props.billingCompany.toLowerCase() +
-                                            '-billing'
-                                      }/${this.props.billingCompany.toLowerCase()}-submit-billing-changes?id=${
-                                        this.props.memberItem.values[
-                                          'Billing Parent Member'
-                                        ]
-                                      }`}
-                                      kappSlug={'services'}
-                                      className={'nav-link icon-wrapper'}
-                                      activeClassName="active"
-                                      disabled={bamboraMigrated}
-                                      style={{
-                                        display: 'inline',
-                                        pointerEvents: bamboraMigrated
-                                          ? 'none'
-                                          : undefined,
-                                      }}
-                                    >
-                                      {' '}
-                                      here{' '}
-                                    </NavLink>{' '}
-                                    to complete {this.props.billingCompany}{' '}
-                                    Submit Billing Changes form to remove this
-                                    student from billing.
-                                  </li>
-                                ) : (
-                                  <li>
-                                    Click{' '}
-                                    <NavLink
-                                      to={`/categories/${
-                                        this.props.billingCompany === 'PaySmart'
-                                          ? 'billing-registration'
-                                          : this.props.billingCompany.toLowerCase() +
-                                            '-billing'
-                                      }/${
-                                        this.props.billingCompany === 'PaySmart'
-                                          ? 'setup-biller-details'
-                                          : this.props.billingCompany.toLowerCase() +
-                                            '-setup-biller-details'
-                                      }?id=${
-                                        this.props.memberItem.values[
-                                          'Billing Parent Member'
-                                        ]
-                                      }`}
-                                      kappSlug={'services'}
-                                      className={'nav-link icon-wrapper'}
-                                      activeClassName="active"
-                                      style={{ display: 'inline' }}
-                                    >
-                                      {' '}
-                                      here{' '}
-                                    </NavLink>{' '}
-                                    to complete {this.props.billingCompany}{' '}
-                                    Setup Biller Details(Family) form to remove
-                                    this student from billing.
-                                  </li>
-                                )}
-                                <li>
-                                  Set this student's status to Frozen(Edit
-                                  member details), after completing the above
-                                  form.
-                                </li>
-                              </ol>
-                            </td>
-                          </tr>
-                        </span>
-                      )}
-                    {this.props.memberItem.values['Status'] === 'Active' &&
-                      this.props.memberItem.values['Non Paying'] === 'YES' && (
-                        <span className="cell">
-                          <tr>
-                            <td>
-                              <h2 className="freeze">Freeze Member</h2>
-                              <h4>Non Paying Member</h4>
-                              <span>
-                                The member selected{' '}
-                                <b>
-                                  {this.props.memberItem.values['First Name']}{' '}
-                                  {this.props.memberItem.values['Last Name']}
-                                </b>{' '}
-                                is a Non Paying member.
-                              </span>
-                              <br />
-                              <span>
-                                To freeze this member, please follow below.
-                              </span>
-                              <br />
-                              <ol>
-                                <li>
-                                  Set this student's status to Frozen(Edit
-                                  member details).
-                                </li>
-                              </ol>
-                            </td>
-                          </tr>
-                        </span>
-                      )}
-                    {this.props.memberItem.values['Status'] === 'Active' &&
-                      this.props.memberItem.values['Non Paying'] !== 'YES' &&
-                      !this.isPrimaryBiller() &&
-                      !this.isDependantMember() &&
-                      (this.props.memberItem.values['Billing Payment Type'] ===
-                        'Cash' ||
-                        this.props.memberItem.values['Billing User'] ===
-                          undefined ||
-                        this.props.memberItem.values['Billing User'] === null ||
-                        this.props.memberItem.values['Billing User'] ===
-                          '') && (
-                        <span className="cell">
-                          <tr>
-                            <td>
-                              <h2 className="freeze">Freeze Member</h2>
-                              <span>
-                                To freeze this member, please follow below.
-                              </span>
-                              <br />
-                              <ol>
-                                <li>
-                                  Set this student's status to Freeze(Edit
-                                  member details).
-                                </li>
-                              </ol>
-                            </td>
-                          </tr>
-                        </span>
-                      )}
-                    {this.props.memberItem.values['Status'] === 'Active' &&
-                      this.props.memberItem.values['Non Paying'] !== 'YES' &&
-                      this.props.memberItem.values['Billing Payment Type'] !==
-                        'Cash' &&
-                      !this.isPrimaryBiller() &&
-                      !this.isDependantMember() &&
-                      this.isSingleBiller() && (
-                        <span className="cell">
-                          <tr>
-                            <td>
-                              <h2 className="freeze">Freeze Member</h2>
-                              <span>
-                                To freeze this member, please follow below.
-                              </span>
-                              <br />
-                              <ol>
-                                <li>
-                                  Click{' '}
-                                  <NavLink
-                                    to={`/categories/${
-                                      this.props.billingCompany === 'PaySmart'
-                                        ? 'billing-registration'
-                                        : this.props.billingCompany.toLowerCase() +
-                                          '-billing'
-                                    }/${
-                                      this.props.billingCompany === 'PaySmart'
-                                        ? 'membership-freeze'
-                                        : this.props.billingCompany.toLowerCase() +
-                                          '-membership-freeze'
-                                    }?id=${this.props.memberItem.id}`}
-                                    kappSlug={'services'}
-                                    className={'nav-link icon-wrapper'}
-                                    activeClassName="active"
-                                    disabled={bamboraMigrated}
-                                    style={{
-                                      display: 'inline',
-                                      pointerEvents: bamboraMigrated
-                                        ? 'none'
-                                        : undefined,
-                                    }}
-                                  >
-                                    {' '}
-                                    here{' '}
-                                  </NavLink>{' '}
-                                  to complete a Membership Freeze form.
-                                </li>
-                              </ol>
-                            </td>
-                          </tr>
-                        </span>
-                      )}
-                    {(this.props.memberItem.values['Status'] === 'Active' ||
-                      this.props.memberItem.values['Status'] === 'Frozen' ||
-                      this.props.memberItem.values['Status'] ===
-                        'Pending Freeze') &&
-                      this.props.memberItem.values['Non Paying'] !== 'YES' &&
-                      this.isPrimaryBiller() && (
-                        <span className="cell">
-                          <tr>
-                            <td>
-                              <h2 className="cancel">Cancel Member</h2>
-                              <h4>Primary Family Member</h4>
-                              <span>
-                                The member selected{' '}
-                                <b>
-                                  {this.props.memberItem.values['First Name']}{' '}
-                                  {this.props.memberItem.values['Last Name']}
-                                </b>{' '}
-                                is the Primary family member.
-                              </span>
-                              <br />
-                              <span>
-                                If you only wish to Cancel this member only and
-                                NOT the dependant members, please follow below.
-                              </span>
-                              <br />
-                              <ol>
-                                <li>
-                                  Switch the Billing Member to one of the
-                                  dependant members.
-                                </li>
-                                {this.props.billingCompany === 'Bambora' ||
-                                this.props.billingCompany === 'Stripe' ? (
-                                  <li>
-                                    Complete the {this.props.billingCompany}{' '}
-                                    Submit Billing Changes form to remove this
-                                    student from billing.
-                                  </li>
-                                ) : (
-                                  <li>
-                                    Complete the {this.props.billingCompany}{' '}
-                                    Setup Biller Details(Family) form to remove
-                                    this student from billing.
-                                  </li>
-                                )}
-                                <li>
-                                  Set this student's status to Inactive(Edit
-                                  member details), after completing the above
-                                  form.
-                                </li>
-                              </ol>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <span>
-                                If you wish to Cancel this member and ALL
-                                dependant members, please follow below.
-                              </span>
-                              <br />
-                              <ol>
-                                <li>
-                                  Click{' '}
-                                  <NavLink
-                                    to={`/categories/${
-                                      this.props.billingCompany === 'PaySmart'
-                                        ? 'billing-registration'
-                                        : this.props.billingCompany.toLowerCase() +
-                                          '-billing'
-                                    }/${
-                                      this.props.billingCompany === 'PaySmart'
-                                        ? 'member-cancellation'
-                                        : this.props.billingCompany.toLowerCase() +
-                                          '-member-cancellation'
-                                    }?id=${this.props.memberItem.id}`}
-                                    kappSlug={'services'}
-                                    className={'nav-link icon-wrapper'}
-                                    activeClassName="active"
-                                    disabled={bamboraMigrated}
-                                    style={{
-                                      display: 'inline',
-                                      pointerEvents: bamboraMigrated
-                                        ? 'none'
-                                        : undefined,
-                                    }}
-                                  >
-                                    {' '}
-                                    here{' '}
-                                  </NavLink>{' '}
-                                  to complete a Member Cancellation form.
-                                </li>
-                              </ol>
-                            </td>
-                          </tr>
-                        </span>
-                      )}
-                    {(this.props.memberItem.values['Status'] === 'Active' ||
-                      this.props.memberItem.values['Status'] === 'Frozen' ||
-                      this.props.memberItem.values['Status'] ===
-                        'Pending Freeze') &&
-                      this.props.memberItem.values['Non Paying'] !== 'YES' &&
-                      this.isDependantMember() && (
-                        <span className="cell">
-                          <tr>
-                            <td>
-                              <h2 className="cancel">Cancel Member</h2>
-                              <h4>Dependant Family Member</h4>
-                              <span>
-                                The member selected{' '}
-                                <b>
-                                  {this.props.memberItem.values['First Name']}{' '}
-                                  {this.props.memberItem.values['Last Name']}
-                                </b>{' '}
-                                is a dependant family member.
-                              </span>
-                              <br />
-                              <span>
-                                To cancel this member, please follow below.
-                              </span>
-                              <br />
-                              <ol>
-                                {this.props.billingCompany === 'Bambora' ||
-                                this.props.billingCompany === 'Stripe' ? (
-                                  <li>
-                                    Click{' '}
-                                    <NavLink
-                                      to={`/categories/${
-                                        this.props.billingCompany === 'PaySmart'
-                                          ? 'billing-registration'
-                                          : this.props.billingCompany.toLowerCase() +
-                                            '-billing'
-                                      }/${
-                                        this.props.billingCompany === 'PaySmart'
-                                          ? 'billing-registration'
-                                          : this.props.billingCompany.toLowerCase()
-                                      }-submit-billing-changes?id=${
-                                        this.props.memberItem.values[
-                                          'Billing Parent Member'
-                                        ]
-                                      }`}
-                                      kappSlug={'services'}
-                                      className={'nav-link icon-wrapper'}
-                                      activeClassName="active"
-                                      disabled={bamboraMigrated}
-                                      style={{
-                                        display: 'inline',
-                                        pointerEvents: bamboraMigrated
-                                          ? 'none'
-                                          : undefined,
-                                      }}
-                                    >
-                                      {' '}
-                                      here{' '}
-                                    </NavLink>{' '}
-                                    to complete {this.props.billingCompany}{' '}
-                                    Submit Billing Changes form to remove this
-                                    student from billing.
-                                  </li>
-                                ) : (
-                                  <li>
-                                    Click{' '}
-                                    <NavLink
-                                      to={`/categories/${
-                                        this.props.billingCompany === 'PaySmart'
-                                          ? 'billing-registration'
-                                          : this.props.billingCompany.toLowerCase() +
-                                            '-billing'
-                                      }/${
-                                        this.props.billingCompany === 'PaySmart'
-                                          ? 'setup-biller-details'
-                                          : this.props.billingCompany.toLowerCase() +
-                                            '-setup-biller-details'
-                                      }?id=${
-                                        this.props.memberItem.values[
-                                          'Billing Parent Member'
-                                        ]
-                                      }`}
-                                      kappSlug={'services'}
-                                      className={'nav-link icon-wrapper'}
-                                      activeClassName="active"
-                                      style={{ display: 'inline' }}
-                                    >
-                                      {' '}
-                                      here{' '}
-                                    </NavLink>{' '}
-                                    to complete {this.props.billingCompany}{' '}
-                                    Setup Biller Details(Family) form to remove
-                                    this student from billing.
-                                  </li>
-                                )}
-                                <li>
-                                  Set this student's status to Inactive(Edit
-                                  member details), after completing the above
-                                  form.
-                                </li>
-                              </ol>
-                            </td>
-                          </tr>
-                        </span>
-                      )}
-                    {(this.props.memberItem.values['Status'] === 'Active' ||
-                      this.props.memberItem.values['Status'] === 'Frozen' ||
-                      this.props.memberItem.values['Status'] ===
-                        'Pending Freeze') &&
-                      this.props.memberItem.values['Non Paying'] === 'YES' && (
-                        <span className="cell">
-                          <tr>
-                            <td>
-                              <h2 className="cancel">Cancel Member</h2>
-                              <h4>Non Paying Member</h4>
-                              <span>
-                                The member selected{' '}
-                                <b>
-                                  {this.props.memberItem.values['First Name']}{' '}
-                                  {this.props.memberItem.values['Last Name']}
-                                </b>{' '}
-                                is a Non Paying member.
-                              </span>
-                              <br />
-                              <span>
-                                To cancel this member, please follow below.
-                              </span>
-                              <br />
-                              <ol>
-                                <li>
-                                  Set this student's status to Inactive(Edit
-                                  member details).
-                                </li>
-                              </ol>
-                            </td>
-                          </tr>
-                        </span>
-                      )}
-                    {(this.props.memberItem.values['Status'] === 'Active' ||
-                      this.props.memberItem.values['Status'] === 'Frozen' ||
-                      this.props.memberItem.values['Status'] ===
-                        'Pending Freeze') &&
-                      this.props.memberItem.values['Non Paying'] !== 'YES' &&
-                      !this.isPrimaryBiller() &&
-                      !this.isDependantMember() &&
-                      (this.props.memberItem.values['Billing Payment Type'] ===
-                        'Cash' ||
-                        this.props.memberItem.values['Billing User'] ===
-                          undefined ||
-                        this.props.memberItem.values['Billing User'] === null ||
-                        this.props.memberItem.values['Billing User'] ===
-                          '') && (
-                        <span className="cell">
-                          <tr>
-                            <td>
-                              <h2 className="cancel">Cancel Member</h2>
-                              <span>
-                                To cancel this member, please follow below.
-                              </span>
-                              <br />
-                              <ol>
-                                <li>
-                                  Set this student's status to Inactive(Edit
-                                  member details).
-                                </li>
-                              </ol>
-                            </td>
-                          </tr>
-                        </span>
-                      )}
-                    {this.props.memberItem.values['Status'] === 'Active' &&
-                      this.props.memberItem.values['Billing Payment Type'] ===
-                        'Cash' && (
-                        <span className="cell">
-                          <tr>
-                            <td>
-                              <h2 className="remoteRegister">
-                                <NavLink
-                                  to={`/RemoteRegistration/${
-                                    this.props.memberItem.id
-                                  }`}
-                                  className=" nav-link icon-wrapper remote"
-                                  activeClassName="active"
-                                  style={{ display: 'inline', color: 'green' }}
-                                >
-                                  Remote Register
-                                </NavLink>
-                              </h2>
-                              <span>
-                                Convert the Cash payments to a recurring billing
-                                type
-                              </span>
-                              <br />
-                              <ol>
-                                <li>
-                                  Set the program, price and start date, <br />then
-                                  send link to Member to complete the
-                                  Registration via SMS or Email
-                                </li>
-                              </ol>
-                            </td>
-                          </tr>
-                        </span>
-                      )}
-                    {(this.props.memberItem.values['Status'] === 'Active' ||
-                      this.props.memberItem.values['Status'] === 'Frozen' ||
-                      this.props.memberItem.values['Status'] ===
-                        'Pending Freeze') &&
-                      this.props.memberItem.values['Non Paying'] !== 'YES' &&
-                      this.props.memberItem.values['Billing Payment Type'] !==
-                        'Cash' &&
-                      !this.isPrimaryBiller() &&
-                      !this.isDependantMember() &&
-                      this.isSingleBiller() && (
-                        <span className="cell">
-                          <tr>
-                            <td>
-                              <h2 className="cancel">Cancel Member</h2>
-                              <span>
-                                To cancel this member, please follow below.
-                              </span>
-                              <br />
-                              <ol>
-                                <li>
-                                  Click{' '}
-                                  <NavLink
-                                    to={`/categories/${
-                                      this.props.billingCompany === 'PaySmart'
-                                        ? 'billing-registration'
-                                        : this.props.billingCompany.toLowerCase() +
-                                          '-billing'
-                                    }/${
-                                      this.props.billingCompany === 'PaySmart'
-                                        ? 'member-cancellation'
-                                        : this.props.billingCompany.toLowerCase() +
-                                          '-member-cancellation'
-                                    }?id=${this.props.memberItem.id}`}
-                                    kappSlug={'services'}
-                                    className={'nav-link icon-wrapper'}
-                                    activeClassName="active"
-                                    disabled={bamboraMigrated}
-                                    style={{
-                                      display: 'inline',
-                                      pointerEvents: bamboraMigrated
-                                        ? 'none'
-                                        : undefined,
-                                    }}
-                                  >
-                                    {' '}
-                                    here{' '}
-                                  </NavLink>{' '}
-                                  to complete a Member Cancellation form.
-                                </li>
-                              </ol>
-                            </td>
-                          </tr>
-                        </span>
-                      )}
-                    {this.props.memberItem.values['Status'] ===
-                      'Pending Cancellation' && (
+              {!bamboraMigrated &&
+                getAttributeValue(
+                  this.props.space,
+                  'Bambora Stripe Migration',
+                ) === 'YES' && (
+                  <span className="cell">
+                    <tr style={{ color: 'red', fontSize: '20px' }}>
+                      <td>
+                        While in the process of Migrating to Stripe, a Member
+                        not already migrated cannot be altered.
+                      </td>
+                    </tr>
+                  </span>
+                )}
+              <form>
+                <tbody>
+                  {(this.props.memberItem.values['Status'] === 'Frozen' ||
+                    this.props.memberItem.values['Status'] ===
+                      'Pending Freeze') &&
+                    this.isPrimaryBiller() && (
                       <span className="cell">
                         <tr>
                           <td>
-                            <h2 className="cancel">Revoke Cancellation</h2>
-                            <h4>Member</h4>
+                            <h2 className="resume">Resume Frozen Member</h2>
+                            <h4>Primary Family Member</h4>
                             <span>
                               The member selected{' '}
                               <b>
                                 {this.props.memberItem.values['First Name']}{' '}
                                 {this.props.memberItem.values['Last Name']}
                               </b>{' '}
+                              is the Primary family member.
                             </span>
+                            <br />
+                            <span>
+                              If you only wish to Resume this member only and
+                              NOT the dependant members, please follow below.
+                            </span>
+                            <br />
+                            <ol>
+                              <li>
+                                Switch the Billing Member to one of the
+                                dependant members.
+                              </li>
+                              {this.props.billingCompany === 'Bambora' ||
+                              this.props.billingCompany === 'Stripe' ? (
+                                <li>
+                                  Complete the {this.props.billingCompany}{' '}
+                                  Submit Billing Changes form to remove
+                                  dependant members from billing.
+                                </li>
+                              ) : (
+                                <li>
+                                  Complete the {this.props.billingCompany} Setup
+                                  Biller Details(Family) form to remove
+                                  dependant members from billing.
+                                </li>
+                              )}
+                              <li>
+                                Set this student's status to Frozen(Edit member
+                                details), after completing the above form.
+                              </li>
+                            </ol>
                           </td>
                         </tr>
                         <tr>
                           <td>
                             <span>
-                              If you wish to Revoke the current cancellation for
-                              this member and ALL dependant members, please
-                              follow below.
+                              If you wish to Resume this member and ALL
+                              dependant members, please follow below.
                             </span>
                             <br />
                             <ol>
@@ -1187,34 +209,324 @@ export class ChangeStatusModal extends Component {
                                   to={`/categories/${
                                     this.props.billingCompany === 'PaySmart'
                                       ? 'billing-registration'
-                                      : this.props.billingCompany.toLowerCase() +
-                                        '-billing'
-                                  }/${this.props.billingCompany.toLowerCase()}-revoke-cancellation?id=${
+                                      : recordBillingCompany + '-billing'
+                                  }/${recordBillingCompany}-resume-frozen-member?id=${
                                     this.props.memberItem.id
                                   }`}
                                   kappSlug={'services'}
                                   className={'nav-link icon-wrapper'}
                                   activeClassName="active"
-                                  style={{ display: 'inline' }}
+                                  disabled={
+                                    !bamboraMigrated &&
+                                    getAttributeValue(
+                                      this.props.space,
+                                      'Bambora Stripe Migration',
+                                    ) === 'YES'
+                                  }
+                                  style={{
+                                    display: 'inline',
+                                    pointerEvents:
+                                      !bamboraMigrated &&
+                                      getAttributeValue(
+                                        this.props.space,
+                                        'Bambora Stripe Migration',
+                                      ) === 'YES'
+                                        ? 'none'
+                                        : undefined,
+                                  }}
                                 >
                                   {' '}
                                   here{' '}
                                 </NavLink>{' '}
-                                to complete a Revoking Cancellation form.
+                                to complete a Resume Frozen Member form.
                               </li>
                             </ol>
                           </td>
                         </tr>
                       </span>
                     )}
-                    {this.props.memberItem.values['Status'] === 'Inactive' && (
+                  {(this.props.memberItem.values['Status'] === 'Frozen' ||
+                    this.props.memberItem.values['Status'] ===
+                      'Pending Freeze') &&
+                    this.props.memberItem.values['Non Paying'] !== 'YES' &&
+                    this.isDependantMember() && (
+                      <span className="cell">
+                        {this.parentMember.id !== this.props.memberItem.id &&
+                          this.parentMember.values['Status'] === 'Active' && (
+                            <tr>
+                              <td>
+                                <h2 className="resume">Resume Frozen Member</h2>
+                                <h4>Dependant Family Member</h4>
+                                <span>
+                                  The member selected{' '}
+                                  <b>
+                                    {this.props.memberItem.values['First Name']}{' '}
+                                    {this.props.memberItem.values['Last Name']}
+                                  </b>{' '}
+                                  is a dependant family member.
+                                </span>
+                                <br />
+                                <span>
+                                  To resume this member, please follow below.
+                                </span>
+                                <br />
+                                <ol>
+                                  {this.props.billingCompany === 'Bambora' ||
+                                  this.props.billingCompany === 'Stripe' ? (
+                                    <li>
+                                      Click{' '}
+                                      <NavLink
+                                        to={`/categories/${
+                                          this.props.billingCompany ===
+                                          'PaySmart'
+                                            ? 'billing-registration'
+                                            : recordBillingCompany + '-billing'
+                                        }/${recordBillingCompany}-submit-billing-changes?id=${
+                                          this.props.memberItem.values[
+                                            'Billing Parent Member'
+                                          ]
+                                        }`}
+                                        kappSlug={'services'}
+                                        className={'nav-link icon-wrapper'}
+                                        activeClassName="active"
+                                        disabled={
+                                          !bamboraMigrated &&
+                                          getAttributeValue(
+                                            this.props.space,
+                                            'Bambora Stripe Migration',
+                                          ) === 'YES'
+                                        }
+                                        style={{
+                                          display: 'inline',
+                                          pointerEvents:
+                                            !bamboraMigrated &&
+                                            getAttributeValue(
+                                              this.props.space,
+                                              'Bambora Stripe Migration',
+                                            ) === 'YES'
+                                              ? 'none'
+                                              : undefined,
+                                        }}
+                                      >
+                                        {' '}
+                                        here{' '}
+                                      </NavLink>{' '}
+                                      to complete {
+                                        this.props.billingCompany
+                                      }{' '}
+                                      Submit Billing Changes form to add this
+                                      student to billing.
+                                    </li>
+                                  ) : (
+                                    <li>
+                                      Click{' '}
+                                      <NavLink
+                                        to={`/categories/${
+                                          this.props.billingCompany ===
+                                          'PaySmart'
+                                            ? 'billing-registration'
+                                            : this.props.billingCompany.toLowerCase() +
+                                              '-billing'
+                                        }/${
+                                          this.props.billingCompany ===
+                                          'PaySmart'
+                                            ? 'setup-biller-details'
+                                            : this.props.billingCompany.toLowerCase() +
+                                              '-setup-biller-details'
+                                        }?id=${
+                                          this.props.memberItem.values[
+                                            'Billing Parent Member'
+                                          ]
+                                        }`}
+                                        kappSlug={'services'}
+                                        className={'nav-link icon-wrapper'}
+                                        activeClassName="active"
+                                        style={{ display: 'inline' }}
+                                      >
+                                        {' '}
+                                        here{' '}
+                                      </NavLink>{' '}
+                                      to complete {
+                                        this.props.billingCompany
+                                      }{' '}
+                                      Setup Biller Details(Family) form to add
+                                      this student to billing.
+                                    </li>
+                                  )}
+                                  <li>
+                                    Set this student's status to Active(Edit
+                                    member details), after completing the above
+                                    form.
+                                  </li>
+                                </ol>
+                              </td>
+                            </tr>
+                          )}
+                        {this.parentMember.id !== this.props.memberItem.id &&
+                          (this.parentMember.values['Status'] === 'Frozen' ||
+                            this.parentMember.values['Status'] ===
+                              'Pending Freeze') && (
+                            <tr>
+                              <td>
+                                <h2 className="resume">Resume Frozen Member</h2>
+                                <h4>Dependant Family Member</h4>
+                                <span>
+                                  The member selected{' '}
+                                  <b>
+                                    {this.props.memberItem.values['First Name']}{' '}
+                                    {this.props.memberItem.values['Last Name']}
+                                  </b>{' '}
+                                  is a dependant family member of{' '}
+                                  <b>
+                                    {this.parentMember.values['First Name']}{' '}
+                                    {this.parentMember.values['Last Name']}
+                                  </b>
+                                  .
+                                </span>
+                                <br />
+                                <span>
+                                  If you wish to only Resume this studunt please
+                                  follow below.
+                                </span>
+                                <br />
+                                <ol>
+                                  <li>
+                                    Click{' '}
+                                    <NavLink
+                                      to={`/Member/${
+                                        this.props.memberItem.values[
+                                          'Billing Parent Member'
+                                        ]
+                                      }`}
+                                      kappSlug={'gbmembers'}
+                                      className={'nav-link icon-wrapper'}
+                                      activeClassName="active"
+                                      style={{ display: 'inline' }}
+                                    >
+                                      {' '}
+                                      here{' '}
+                                    </NavLink>{' '}
+                                    to Switch the Billing member{' '}
+                                    <b>
+                                      {this.parentMember.values['First Name']}{' '}
+                                      {this.parentMember.values['Last Name']}
+                                    </b>{' '}
+                                    to{' '}
+                                    <b>
+                                      {
+                                        this.props.memberItem.values[
+                                          'First Name'
+                                        ]
+                                      }{' '}
+                                      {
+                                        this.props.memberItem.values[
+                                          'Last Name'
+                                        ]
+                                      }
+                                    </b>
+                                    .
+                                  </li>
+                                  {this.props.billingCompany === 'Bambora' ||
+                                  this.props.billingCompany === 'Stripe' ? (
+                                    <li>
+                                      Complete the {this.props.billingCompany}{' '}
+                                      Submit Billing Changes form to remove
+                                      other members from billing.
+                                    </li>
+                                  ) : (
+                                    <li>
+                                      Complete the {this.props.billingCompany}{' '}
+                                      Setup Biller Details(Family) form to
+                                      remove other members from billing.
+                                    </li>
+                                  )}
+                                  <li>
+                                    Complete a Resume Membership Frozen form.
+                                  </li>
+                                </ol>
+                              </td>
+                            </tr>
+                          )}
+                      </span>
+                    )}
+                  {(this.props.memberItem.values['Status'] === 'Frozen' ||
+                    this.props.memberItem.values['Status'] ===
+                      'Pending Freeze') &&
+                    this.props.memberItem.values['Non Paying'] !== 'YES' &&
+                    this.props.memberItem.values['Billing Payment Type'] !==
+                      'Cash' &&
+                    !this.isPrimaryBiller() &&
+                    !this.isDependantMember() &&
+                    this.isSingleBiller() && (
                       <span className="cell">
                         <tr>
                           <td>
-                            <h2 className="activate">Activate Member</h2>
+                            <h2 className="resume">Resume Frozen Member</h2>
                             <span>
-                              To activate a Cancelled member, you must follow
-                              below.
+                              To resume this member, please follow below.
+                            </span>
+                            <br />
+                            <ol>
+                              <li>
+                                Click{' '}
+                                <NavLink
+                                  to={`/categories/${
+                                    this.props.billingCompany === 'PaySmart'
+                                      ? 'billing-registration'
+                                      : recordBillingCompany + '-billing'
+                                  }/${recordBillingCompany}-resume-frozen-member?id=${
+                                    this.props.memberItem.id
+                                  }`}
+                                  kappSlug={'services'}
+                                  className={'nav-link icon-wrapper'}
+                                  activeClassName="active"
+                                  disabled={
+                                    !bamboraMigrated &&
+                                    getAttributeValue(
+                                      this.props.space,
+                                      'Bambora Stripe Migration',
+                                    ) === 'YES'
+                                  }
+                                  style={{
+                                    display: 'inline',
+                                    pointerEvents:
+                                      !bamboraMigrated &&
+                                      getAttributeValue(
+                                        this.props.space,
+                                        'Bambora Stripe Migration',
+                                      ) === 'YES'
+                                        ? 'none'
+                                        : undefined,
+                                  }}
+                                >
+                                  {' '}
+                                  here{' '}
+                                </NavLink>{' '}
+                                to complete a Resume Frozen Membership form.
+                              </li>
+                            </ol>
+                          </td>
+                        </tr>
+                      </span>
+                    )}
+                  {(this.props.memberItem.values['Status'] === 'Frozen' ||
+                    this.props.memberItem.values['Status'] ===
+                      'Pending Freeze') &&
+                    !this.isPrimaryBiller() &&
+                    !this.isDependantMember() &&
+                    (this.props.memberItem.values['Non Paying'] === 'YES' ||
+                      this.props.memberItem.values['Billing Payment Type'] ===
+                        'Cash' ||
+                      this.props.memberItem.values['Billing User'] ===
+                        undefined ||
+                      this.props.memberItem.values['Billing User'] === null ||
+                      this.props.memberItem.values['Billing User'] === '') && (
+                      <span className="cell">
+                        <tr>
+                          <td>
+                            <h2 className="resume">Resume Frozen Member</h2>
+                            <span>
+                              To resume this member, please follow below.
                             </span>
                             <br />
                             <ol>
@@ -1222,18 +534,794 @@ export class ChangeStatusModal extends Component {
                                 Set this student's status to Active(Edit member
                                 details).
                               </li>
+                            </ol>
+                          </td>
+                        </tr>
+                      </span>
+                    )}
+                  {this.props.memberItem.values['Status'] === 'Active' &&
+                    this.isPrimaryBiller() && (
+                      <span className="cell">
+                        <tr>
+                          <td>
+                            <h2 className="freeze">Freeze Member</h2>
+                            <h4>Primary Family Member</h4>
+                            <span>
+                              The member selected{' '}
+                              <b>
+                                {this.props.memberItem.values['First Name']}{' '}
+                                {this.props.memberItem.values['Last Name']}
+                              </b>{' '}
+                              is the Primary family member.
+                            </span>
+                            <br />
+                            <span>
+                              If you only wish to Freeze this member only and
+                              NOT the dependant members, please follow below.
+                            </span>
+                            <br />
+                            <ol>
                               <li>
-                                Complete a {this.props.billingCompany} Member
-                                Registration form.
+                                Switch the Billing Member to one of the
+                                dependant members.
+                              </li>
+                              {this.props.billingCompany === 'Bambora' ||
+                              this.props.billingCompany === 'Stripe' ? (
+                                <li>
+                                  Complete the {this.props.billingCompany}{' '}
+                                  Submit Billing Changes form to remove this
+                                  student from billing.
+                                </li>
+                              ) : (
+                                <li>
+                                  Complete the {this.props.billingCompany} Setup
+                                  Biller Details(Family) form to remove this
+                                  student from billing.
+                                </li>
+                              )}
+                              <li>
+                                Set this student's status to Frozen(Edit member
+                                details), after completing the above form.
+                              </li>
+                            </ol>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <span>
+                              If you wish to Freeze this member and ALL
+                              dependant members, please follow below.
+                            </span>
+                            <br />
+                            <ol>
+                              <li>
+                                Click{' '}
+                                <NavLink
+                                  to={`/categories/${
+                                    this.props.billingCompany === 'PaySmart'
+                                      ? 'billing-registration'
+                                      : recordBillingCompany + '-billing'
+                                  }/${
+                                    this.props.billingCompany === 'PaySmart'
+                                      ? 'membership-freeze'
+                                      : recordBillingCompany +
+                                        '-membership-freeze'
+                                  }?id=${this.props.memberItem.id}`}
+                                  kappSlug={'services'}
+                                  className={'nav-link icon-wrapper'}
+                                  activeClassName="active"
+                                  disabled={
+                                    !bamboraMigrated &&
+                                    getAttributeValue(
+                                      this.props.space,
+                                      'Bambora Stripe Migration',
+                                    ) === 'YES'
+                                  }
+                                  style={{
+                                    display: 'inline',
+                                    pointerEvents:
+                                      !bamboraMigrated &&
+                                      getAttributeValue(
+                                        this.props.space,
+                                        'Bambora Stripe Migration',
+                                      ) === 'YES'
+                                        ? 'none'
+                                        : undefined,
+                                  }}
+                                >
+                                  {' '}
+                                  here{' '}
+                                </NavLink>{' '}
+                                to complete a Membership Freeze form.
                               </li>
                             </ol>
                           </td>
                         </tr>
                       </span>
                     )}
-                  </tbody>
-                </form>
-              )}
+                  {this.props.memberItem.values['Status'] === 'Active' &&
+                    this.props.memberItem.values['Non Paying'] !== 'YES' &&
+                    this.isDependantMember() && (
+                      <span className="cell">
+                        <tr>
+                          <td>
+                            <h2 className="freeze">Freeze Member</h2>
+                            <h4>Dependant Family Member</h4>
+                            <span>
+                              The member selected{' '}
+                              <b>
+                                {this.props.memberItem.values['First Name']}{' '}
+                                {this.props.memberItem.values['Last Name']}
+                              </b>{' '}
+                              is a dependant family member.
+                            </span>
+                            <br />
+                            <span>
+                              To freeze this member, please follow below.
+                            </span>
+                            <br />
+                            <ol>
+                              {this.props.billingCompany === 'Bambora' ||
+                              this.props.billingCompany === 'Stripe' ? (
+                                <li>
+                                  Click{' '}
+                                  <NavLink
+                                    to={`/categories/${
+                                      this.props.billingCompany === 'PaySmart'
+                                        ? 'billing-registration'
+                                        : recordBillingCompany + '-billing'
+                                    }/${recordBillingCompany}-submit-billing-changes?id=${
+                                      this.props.memberItem.values[
+                                        'Billing Parent Member'
+                                      ]
+                                    }`}
+                                    kappSlug={'services'}
+                                    className={'nav-link icon-wrapper'}
+                                    activeClassName="active"
+                                    disabled={
+                                      !bamboraMigrated &&
+                                      getAttributeValue(
+                                        this.props.space,
+                                        'Bambora Stripe Migration',
+                                      ) === 'YES'
+                                    }
+                                    style={{
+                                      display: 'inline',
+                                      pointerEvents:
+                                        !bamboraMigrated &&
+                                        getAttributeValue(
+                                          this.props.space,
+                                          'Bambora Stripe Migration',
+                                        ) === 'YES'
+                                          ? 'none'
+                                          : undefined,
+                                    }}
+                                  >
+                                    {' '}
+                                    here{' '}
+                                  </NavLink>{' '}
+                                  to complete {this.props.billingCompany} Submit
+                                  Billing Changes form to remove this student
+                                  from billing.
+                                </li>
+                              ) : (
+                                <li>
+                                  Click{' '}
+                                  <NavLink
+                                    to={`/categories/${
+                                      this.props.billingCompany === 'PaySmart'
+                                        ? 'billing-registration'
+                                        : this.props.billingCompany.toLowerCase() +
+                                          '-billing'
+                                    }/${
+                                      this.props.billingCompany === 'PaySmart'
+                                        ? 'setup-biller-details'
+                                        : this.props.billingCompany.toLowerCase() +
+                                          '-setup-biller-details'
+                                    }?id=${
+                                      this.props.memberItem.values[
+                                        'Billing Parent Member'
+                                      ]
+                                    }`}
+                                    kappSlug={'services'}
+                                    className={'nav-link icon-wrapper'}
+                                    activeClassName="active"
+                                    style={{ display: 'inline' }}
+                                  >
+                                    {' '}
+                                    here{' '}
+                                  </NavLink>{' '}
+                                  to complete {this.props.billingCompany} Setup
+                                  Biller Details(Family) form to remove this
+                                  student from billing.
+                                </li>
+                              )}
+                              <li>
+                                Set this student's status to Frozen(Edit member
+                                details), after completing the above form.
+                              </li>
+                            </ol>
+                          </td>
+                        </tr>
+                      </span>
+                    )}
+                  {this.props.memberItem.values['Status'] === 'Active' &&
+                    this.props.memberItem.values['Non Paying'] === 'YES' && (
+                      <span className="cell">
+                        <tr>
+                          <td>
+                            <h2 className="freeze">Freeze Member</h2>
+                            <h4>Non Paying Member</h4>
+                            <span>
+                              The member selected{' '}
+                              <b>
+                                {this.props.memberItem.values['First Name']}{' '}
+                                {this.props.memberItem.values['Last Name']}
+                              </b>{' '}
+                              is a Non Paying member.
+                            </span>
+                            <br />
+                            <span>
+                              To freeze this member, please follow below.
+                            </span>
+                            <br />
+                            <ol>
+                              <li>
+                                Set this student's status to Frozen(Edit member
+                                details).
+                              </li>
+                            </ol>
+                          </td>
+                        </tr>
+                      </span>
+                    )}
+                  {this.props.memberItem.values['Status'] === 'Active' &&
+                    this.props.memberItem.values['Non Paying'] !== 'YES' &&
+                    !this.isPrimaryBiller() &&
+                    !this.isDependantMember() &&
+                    (this.props.memberItem.values['Billing Payment Type'] ===
+                      'Cash' ||
+                      this.props.memberItem.values['Billing User'] ===
+                        undefined ||
+                      this.props.memberItem.values['Billing User'] === null ||
+                      this.props.memberItem.values['Billing User'] === '') && (
+                      <span className="cell">
+                        <tr>
+                          <td>
+                            <h2 className="freeze">Freeze Member</h2>
+                            <span>
+                              To freeze this member, please follow below.
+                            </span>
+                            <br />
+                            <ol>
+                              <li>
+                                Set this student's status to Freeze(Edit member
+                                details).
+                              </li>
+                            </ol>
+                          </td>
+                        </tr>
+                      </span>
+                    )}
+                  {this.props.memberItem.values['Status'] === 'Active' &&
+                    this.props.memberItem.values['Non Paying'] !== 'YES' &&
+                    this.props.memberItem.values['Billing Payment Type'] !==
+                      'Cash' &&
+                    !this.isPrimaryBiller() &&
+                    !this.isDependantMember() &&
+                    this.isSingleBiller() && (
+                      <span className="cell">
+                        <tr>
+                          <td>
+                            <h2 className="freeze">Freeze Member</h2>
+                            <span>
+                              To freeze this member, please follow below.
+                            </span>
+                            <br />
+                            <ol>
+                              <li>
+                                Click{' '}
+                                <NavLink
+                                  to={`/categories/${
+                                    this.props.billingCompany === 'PaySmart'
+                                      ? 'billing-registration'
+                                      : recordBillingCompany + '-billing'
+                                  }/${
+                                    this.props.billingCompany === 'PaySmart'
+                                      ? 'membership-freeze'
+                                      : recordBillingCompany +
+                                        '-membership-freeze'
+                                  }?id=${this.props.memberItem.id}`}
+                                  kappSlug={'services'}
+                                  className={'nav-link icon-wrapper'}
+                                  activeClassName="active"
+                                  disabled={
+                                    !bamboraMigrated &&
+                                    getAttributeValue(
+                                      this.props.space,
+                                      'Bambora Stripe Migration',
+                                    ) === 'YES'
+                                  }
+                                  style={{
+                                    display: 'inline',
+                                    pointerEvents:
+                                      !bamboraMigrated &&
+                                      getAttributeValue(
+                                        this.props.space,
+                                        'Bambora Stripe Migration',
+                                      ) === 'YES'
+                                        ? 'none'
+                                        : undefined,
+                                  }}
+                                >
+                                  {' '}
+                                  here{' '}
+                                </NavLink>{' '}
+                                to complete a Membership Freeze form.
+                              </li>
+                            </ol>
+                          </td>
+                        </tr>
+                      </span>
+                    )}
+                  {(this.props.memberItem.values['Status'] === 'Active' ||
+                    this.props.memberItem.values['Status'] === 'Frozen' ||
+                    this.props.memberItem.values['Status'] ===
+                      'Pending Freeze') &&
+                    this.props.memberItem.values['Non Paying'] !== 'YES' &&
+                    this.isPrimaryBiller() && (
+                      <span className="cell">
+                        <tr>
+                          <td>
+                            <h2 className="cancel">Cancel Member</h2>
+                            <h4>Primary Family Member</h4>
+                            <span>
+                              The member selected{' '}
+                              <b>
+                                {this.props.memberItem.values['First Name']}{' '}
+                                {this.props.memberItem.values['Last Name']}
+                              </b>{' '}
+                              is the Primary family member.
+                            </span>
+                            <br />
+                            <span>
+                              If you only wish to Cancel this member only and
+                              NOT the dependant members, please follow below.
+                            </span>
+                            <br />
+                            <ol>
+                              <li>
+                                Switch the Billing Member to one of the
+                                dependant members.
+                              </li>
+                              {this.props.billingCompany === 'Bambora' ||
+                              this.props.billingCompany === 'Stripe' ? (
+                                <li>
+                                  Complete the {this.props.billingCompany}{' '}
+                                  Submit Billing Changes form to remove this
+                                  student from billing.
+                                </li>
+                              ) : (
+                                <li>
+                                  Complete the {this.props.billingCompany} Setup
+                                  Biller Details(Family) form to remove this
+                                  student from billing.
+                                </li>
+                              )}
+                              <li>
+                                Set this student's status to Inactive(Edit
+                                member details), after completing the above
+                                form.
+                              </li>
+                            </ol>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <span>
+                              If you wish to Cancel this member and ALL
+                              dependant members, please follow below.
+                            </span>
+                            <br />
+                            <ol>
+                              <li>
+                                Click{' '}
+                                <NavLink
+                                  to={`/categories/${
+                                    this.props.billingCompany === 'PaySmart'
+                                      ? 'billing-registration'
+                                      : recordBillingCompany + '-billing'
+                                  }/${
+                                    this.props.billingCompany === 'PaySmart'
+                                      ? 'member-cancellation'
+                                      : recordBillingCompany +
+                                        '-member-cancellation'
+                                  }?id=${this.props.memberItem.id}`}
+                                  kappSlug={'services'}
+                                  className={'nav-link icon-wrapper'}
+                                  activeClassName="active"
+                                  disabled={
+                                    !bamboraMigrated &&
+                                    getAttributeValue(
+                                      this.props.space,
+                                      'Bambora Stripe Migration',
+                                    ) === 'YES'
+                                  }
+                                  style={{
+                                    display: 'inline',
+                                    pointerEvents:
+                                      !bamboraMigrated &&
+                                      getAttributeValue(
+                                        this.props.space,
+                                        'Bambora Stripe Migration',
+                                      ) === 'YES'
+                                        ? 'none'
+                                        : undefined,
+                                  }}
+                                >
+                                  {' '}
+                                  here{' '}
+                                </NavLink>{' '}
+                                to complete a Member Cancellation form.
+                              </li>
+                            </ol>
+                          </td>
+                        </tr>
+                      </span>
+                    )}
+                  {(this.props.memberItem.values['Status'] === 'Active' ||
+                    this.props.memberItem.values['Status'] === 'Frozen' ||
+                    this.props.memberItem.values['Status'] ===
+                      'Pending Freeze') &&
+                    this.props.memberItem.values['Non Paying'] !== 'YES' &&
+                    this.isDependantMember() && (
+                      <span className="cell">
+                        <tr>
+                          <td>
+                            <h2 className="cancel">Cancel Member</h2>
+                            <h4>Dependant Family Member</h4>
+                            <span>
+                              The member selected{' '}
+                              <b>
+                                {this.props.memberItem.values['First Name']}{' '}
+                                {this.props.memberItem.values['Last Name']}
+                              </b>{' '}
+                              is a dependant family member.
+                            </span>
+                            <br />
+                            <span>
+                              To cancel this member, please follow below.
+                            </span>
+                            <br />
+                            <ol>
+                              {this.props.billingCompany === 'Bambora' ||
+                              this.props.billingCompany === 'Stripe' ? (
+                                <li>
+                                  Click{' '}
+                                  <NavLink
+                                    to={`/categories/${
+                                      this.props.billingCompany === 'PaySmart'
+                                        ? 'billing-registration'
+                                        : recordBillingCompany + '-billing'
+                                    }/${
+                                      this.props.billingCompany === 'PaySmart'
+                                        ? 'billing-registration'
+                                        : recordBillingCompany
+                                    }-submit-billing-changes?id=${
+                                      this.props.memberItem.values[
+                                        'Billing Parent Member'
+                                      ]
+                                    }`}
+                                    kappSlug={'services'}
+                                    className={'nav-link icon-wrapper'}
+                                    activeClassName="active"
+                                    disabled={
+                                      !bamboraMigrated &&
+                                      getAttributeValue(
+                                        this.props.space,
+                                        'Bambora Stripe Migration',
+                                      ) === 'YES'
+                                    }
+                                    style={{
+                                      display: 'inline',
+                                      pointerEvents:
+                                        !bamboraMigrated &&
+                                        getAttributeValue(
+                                          this.props.space,
+                                          'Bambora Stripe Migration',
+                                        ) === 'YES'
+                                          ? 'none'
+                                          : undefined,
+                                    }}
+                                  >
+                                    {' '}
+                                    here{' '}
+                                  </NavLink>{' '}
+                                  to complete {this.props.billingCompany} Submit
+                                  Billing Changes form to remove this student
+                                  from billing.
+                                </li>
+                              ) : (
+                                <li>
+                                  Click{' '}
+                                  <NavLink
+                                    to={`/categories/${
+                                      this.props.billingCompany === 'PaySmart'
+                                        ? 'billing-registration'
+                                        : this.props.billingCompany.toLowerCase() +
+                                          '-billing'
+                                    }/${
+                                      this.props.billingCompany === 'PaySmart'
+                                        ? 'setup-biller-details'
+                                        : this.props.billingCompany.toLowerCase() +
+                                          '-setup-biller-details'
+                                    }?id=${
+                                      this.props.memberItem.values[
+                                        'Billing Parent Member'
+                                      ]
+                                    }`}
+                                    kappSlug={'services'}
+                                    className={'nav-link icon-wrapper'}
+                                    activeClassName="active"
+                                    style={{ display: 'inline' }}
+                                  >
+                                    {' '}
+                                    here{' '}
+                                  </NavLink>{' '}
+                                  to complete {this.props.billingCompany} Setup
+                                  Biller Details(Family) form to remove this
+                                  student from billing.
+                                </li>
+                              )}
+                              <li>
+                                Set this student's status to Inactive(Edit
+                                member details), after completing the above
+                                form.
+                              </li>
+                            </ol>
+                          </td>
+                        </tr>
+                      </span>
+                    )}
+                  {(this.props.memberItem.values['Status'] === 'Active' ||
+                    this.props.memberItem.values['Status'] === 'Frozen' ||
+                    this.props.memberItem.values['Status'] ===
+                      'Pending Freeze') &&
+                    this.props.memberItem.values['Non Paying'] === 'YES' && (
+                      <span className="cell">
+                        <tr>
+                          <td>
+                            <h2 className="cancel">Cancel Member</h2>
+                            <h4>Non Paying Member</h4>
+                            <span>
+                              The member selected{' '}
+                              <b>
+                                {this.props.memberItem.values['First Name']}{' '}
+                                {this.props.memberItem.values['Last Name']}
+                              </b>{' '}
+                              is a Non Paying member.
+                            </span>
+                            <br />
+                            <span>
+                              To cancel this member, please follow below.
+                            </span>
+                            <br />
+                            <ol>
+                              <li>
+                                Set this student's status to Inactive(Edit
+                                member details).
+                              </li>
+                            </ol>
+                          </td>
+                        </tr>
+                      </span>
+                    )}
+                  {(this.props.memberItem.values['Status'] === 'Active' ||
+                    this.props.memberItem.values['Status'] === 'Frozen' ||
+                    this.props.memberItem.values['Status'] ===
+                      'Pending Freeze') &&
+                    this.props.memberItem.values['Non Paying'] !== 'YES' &&
+                    !this.isPrimaryBiller() &&
+                    !this.isDependantMember() &&
+                    (this.props.memberItem.values['Billing Payment Type'] ===
+                      'Cash' ||
+                      this.props.memberItem.values['Billing User'] ===
+                        undefined ||
+                      this.props.memberItem.values['Billing User'] === null ||
+                      this.props.memberItem.values['Billing User'] === '') && (
+                      <span className="cell">
+                        <tr>
+                          <td>
+                            <h2 className="cancel">Cancel Member</h2>
+                            <span>
+                              To cancel this member, please follow below.
+                            </span>
+                            <br />
+                            <ol>
+                              <li>
+                                Set this student's status to Inactive(Edit
+                                member details).
+                              </li>
+                            </ol>
+                          </td>
+                        </tr>
+                      </span>
+                    )}
+                  {this.props.memberItem.values['Status'] === 'Active' &&
+                    this.props.memberItem.values['Billing Payment Type'] ===
+                      'Cash' && (
+                      <span className="cell">
+                        <tr>
+                          <td>
+                            <h2 className="remoteRegister">
+                              <NavLink
+                                to={`/RemoteRegistration/${
+                                  this.props.memberItem.id
+                                }`}
+                                className=" nav-link icon-wrapper remote"
+                                activeClassName="active"
+                                style={{ display: 'inline', color: 'green' }}
+                              >
+                                Remote Register
+                              </NavLink>
+                            </h2>
+                            <span>
+                              Convert the Cash payments to a recurring billing
+                              type
+                            </span>
+                            <br />
+                            <ol>
+                              <li>
+                                Set the program, price and start date, <br />then
+                                send link to Member to complete the Registration
+                                via SMS or Email
+                              </li>
+                            </ol>
+                          </td>
+                        </tr>
+                      </span>
+                    )}
+                  {(this.props.memberItem.values['Status'] === 'Active' ||
+                    this.props.memberItem.values['Status'] === 'Frozen' ||
+                    this.props.memberItem.values['Status'] ===
+                      'Pending Freeze') &&
+                    this.props.memberItem.values['Non Paying'] !== 'YES' &&
+                    this.props.memberItem.values['Billing Payment Type'] !==
+                      'Cash' &&
+                    !this.isPrimaryBiller() &&
+                    !this.isDependantMember() &&
+                    this.isSingleBiller() && (
+                      <span className="cell">
+                        <tr>
+                          <td>
+                            <h2 className="cancel">Cancel Member</h2>
+                            <span>
+                              To cancel this member, please follow below.
+                            </span>
+                            <br />
+                            <ol>
+                              <li>
+                                Click{' '}
+                                <NavLink
+                                  to={`/categories/${
+                                    this.props.billingCompany === 'PaySmart'
+                                      ? 'billing-registration'
+                                      : recordBillingCompany + '-billing'
+                                  }/${
+                                    this.props.billingCompany === 'PaySmart'
+                                      ? 'member-cancellation'
+                                      : recordBillingCompany +
+                                        '-member-cancellation'
+                                  }?id=${this.props.memberItem.id}`}
+                                  kappSlug={'services'}
+                                  className={'nav-link icon-wrapper'}
+                                  activeClassName="active"
+                                  disabled={
+                                    !bamboraMigrated &&
+                                    getAttributeValue(
+                                      this.props.space,
+                                      'Bambora Stripe Migration',
+                                    ) === 'YES'
+                                  }
+                                  style={{
+                                    display: 'inline',
+                                    pointerEvents:
+                                      !bamboraMigrated &&
+                                      getAttributeValue(
+                                        this.props.space,
+                                        'Bambora Stripe Migration',
+                                      ) === 'YES'
+                                        ? 'none'
+                                        : undefined,
+                                  }}
+                                >
+                                  {' '}
+                                  here{' '}
+                                </NavLink>{' '}
+                                to complete a Member Cancellation form.
+                              </li>
+                            </ol>
+                          </td>
+                        </tr>
+                      </span>
+                    )}
+                  {this.props.memberItem.values['Status'] ===
+                    'Pending Cancellation' && (
+                    <span className="cell">
+                      <tr>
+                        <td>
+                          <h2 className="cancel">Revoke Cancellation</h2>
+                          <h4>Member</h4>
+                          <span>
+                            The member selected{' '}
+                            <b>
+                              {this.props.memberItem.values['First Name']}{' '}
+                              {this.props.memberItem.values['Last Name']}
+                            </b>{' '}
+                          </span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <span>
+                            If you wish to Revoke the current cancellation for
+                            this member and ALL dependant members, please follow
+                            below.
+                          </span>
+                          <br />
+                          <ol>
+                            <li>
+                              Click{' '}
+                              <NavLink
+                                to={`/categories/${
+                                  this.props.billingCompany === 'PaySmart'
+                                    ? 'billing-registration'
+                                    : this.props.billingCompany.toLowerCase() +
+                                      '-billing'
+                                }/${this.props.billingCompany.toLowerCase()}-revoke-cancellation?id=${
+                                  this.props.memberItem.id
+                                }`}
+                                kappSlug={'services'}
+                                className={'nav-link icon-wrapper'}
+                                activeClassName="active"
+                                style={{ display: 'inline' }}
+                              >
+                                {' '}
+                                here{' '}
+                              </NavLink>{' '}
+                              to complete a Revoking Cancellation form.
+                            </li>
+                          </ol>
+                        </td>
+                      </tr>
+                    </span>
+                  )}
+                  {this.props.memberItem.values['Status'] === 'Inactive' && (
+                    <span className="cell">
+                      <tr>
+                        <td>
+                          <h2 className="activate">Activate Member</h2>
+                          <span>
+                            To activate a Cancelled member, you must follow
+                            below.
+                          </span>
+                          <br />
+                          <ol>
+                            <li>
+                              Set this student's status to Active(Edit member
+                              details).
+                            </li>
+                            <li>
+                              Complete a {this.props.billingCompany} Member
+                              Registration form.
+                            </li>
+                          </ol>
+                        </td>
+                      </tr>
+                    </span>
+                  )}
+                </tbody>
+              </form>
             </div>
           </ModalDialog>
         </ModalContainer>
