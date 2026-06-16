@@ -53,6 +53,13 @@ a {
   top: 30% !important;
   left: 35% !important;
 }
+.mergeLeadsDialog {
+  top: 25% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: 60% !important;
+  min-width: 500px !important;
+}
 .statusOptions label {
   margin: 15px;
 }

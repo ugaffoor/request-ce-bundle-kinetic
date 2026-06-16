@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import ReactTable from 'react-table';
 import moment from 'moment';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
+import ReactTooltip from 'react-tooltip';
 
 const email_date_format = ['DD-MM-YYYY HH:mm', 'YYYY-MM-DDTHH:mm:ssZ'];
 
@@ -66,6 +67,34 @@ export class MemberEmails extends Component {
         style: { whiteSpace: 'unset' },
       },
       { accessor: 'Sent Date Formatted', Header: 'Sent Date' },
+      {
+        id: 'error',
+        Header: '',
+        width: 40,
+        Cell: ({ original, index }) =>
+          original['error'] && original['errorDate'] ? (
+            <span
+              data-tip={`${original['error']} — ${original['errorDate']}`}
+              data-for={`email-error-${index}`}
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                cursor: 'help',
+                color: '#c0392b',
+                fontSize: '18px',
+                lineHeight: 1,
+              }}
+            >
+              ⚠
+              <ReactTooltip
+                id={`email-error-${index}`}
+                place="left"
+                effect="solid"
+                type="error"
+              />
+            </span>
+          ) : null,
+      },
     ];
   }
 

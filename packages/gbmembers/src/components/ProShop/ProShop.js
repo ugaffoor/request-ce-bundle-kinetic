@@ -5121,6 +5121,7 @@ export const ProShopContainer = compose(
               : product.values['Price'],
           quantity: quantity,
           excludeTaxes:
+            product.values['Exclude Taxes'] !== null &&
             product.values['Exclude Taxes'] !== undefined &&
             product.values['Exclude Taxes'].length > 0 &&
             product.values['Exclude Taxes'][0] === 'Exclude Taxes'
@@ -5148,6 +5149,7 @@ export const ProShopContainer = compose(
               : product.values['Price'],
           quantity: quantity,
           excludeTaxes:
+            product.values['Exclude Taxes'] !== null &&
             product.values['Exclude Taxes'] !== undefined &&
             product.values['Exclude Taxes'].length > 0 &&
             product.values['Exclude Taxes'][0] === 'Exclude Taxes'
@@ -5167,6 +5169,7 @@ export const ProShopContainer = compose(
               : product.values['Price'],
           quantity: quantity,
           excludeTaxes:
+            product.values['Exclude Taxes'] !== null &&
             product.values['Exclude Taxes'] !== undefined &&
             product.values['Exclude Taxes'].length > 0 &&
             product.values['Exclude Taxes'][0] === 'Exclude Taxes'

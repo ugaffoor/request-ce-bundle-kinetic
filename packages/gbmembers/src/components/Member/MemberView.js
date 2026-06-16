@@ -1885,7 +1885,8 @@ export const MemberView = ({
                 (memberItem.values['Billing Customer Reference'] === null ||
                   memberItem.values['Billing Customer Reference'] ===
                     undefined ||
-                  memberItem.values['Billing Customer Reference'] === '') && (
+                  memberItem.values['Billing Customer Reference'] === '') &&
+                memberItem.values['Billing Customer Id'].startsWith('cus_') && (
                   <div>
                     <button
                       onClick={e => setShowStripeActivate(true)}

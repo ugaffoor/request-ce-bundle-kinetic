@@ -51,6 +51,7 @@ import { actions as settingsActions } from '../../redux/modules/settingsDatastor
 import { CallScriptModalContainer } from '../Member/CallScriptModalContainer';
 import { SMSModalContainer } from '../Member/SMSModalContainer';
 import { SetStatusModalContainer } from './SetStatusModalContainer';
+import { MergeLeadsModal } from './MergeLeadsModal';
 import { EmailsReceived } from '../Member/EmailsReceived';
 import { Requests } from '../Member/Requests';
 import { actions as errorActions } from '../../redux/modules/errors';
@@ -70,6 +71,7 @@ const mapStateToProps = state => ({
   profile: state.member.kinops.profile,
   pathname: state.router.location.pathname,
   allLeads: state.member.leads.allLeads,
+  leadsByDate: state.member.leads.leadsByDate,
   leadItem: state.member.leads.currentLead,
   campaignItem: state.member.campaigns.emailCampaignItem,
   campaignLoading: state.member.campaigns.emailCampaignLoading,
@@ -87,6 +89,7 @@ const mapDispatchToProps = {
   fetchLead: actions.fetchCurrentLead,
   fetchCampaign: campaignActions.fetchEmailCampaign,
   updateLead: actions.updateLead,
+  deleteLead: actions.deleteLead,
   fetchLeads: actions.fetchLeads,
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
@@ -231,6 +234,7 @@ export class LeadDetail extends Component {
       data,
       columns,
       leadItem: this.props.leadItem,
+      mergedLeadIds: [],
       showFollowUpModal: false,
       followUpReminderDateString: 'Tomorrow',
       followUpReminderDate:
@@ -710,6 +714,14 @@ export class LeadDetail extends Component {
   }
 
   render() {
+    const duplicateLeads = (this.props.allLeads || []).filter(
+      l =>
+        l.id !== this.props.leadItem.id &&
+        !this.state.mergedLeadIds.includes(l.id) &&
+        (l.values['Lead State'] || '') !== 'Converted' &&
+        l.values['First Name'] === this.props.leadItem.values['First Name'] &&
+        l.values['Last Name'] === this.props.leadItem.values['Last Name'],
+    );
     return (
       <div
         className={
@@ -728,7 +740,7 @@ export class LeadDetail extends Component {
           </div>
           <div className="card-body" style={{ padding: '20px' }}>
             <div className="row">
-              <div className="col-md-6 text-center">
+              <div className="col-md-8 text-center">
                 <span className="float-md-left">
                   <div
                     style={{
@@ -858,9 +870,37 @@ export class LeadDetail extends Component {
                       leadStatusValues={this.props.leadStatusValues}
                     />
                   )}
+                  {duplicateLeads.length > 0 && (
+                    <a
+                      onClick={() => this.props.setShowMergeLeadsModal(true)}
+                      className="btn btn-warning"
+                      style={{ marginLeft: '10px', color: 'white' }}
+                    >
+                      Merge Leads
+                    </a>
+                  )}
+                  {this.props.showMergeLeadsModal && (
+                    <MergeLeadsModal
+                      currentLead={this.props.leadItem}
+                      duplicateLeads={duplicateLeads}
+                      updateLead={this.props.updateLead}
+                      deleteLead={this.props.deleteLead}
+                      allLeads={this.props.allLeads}
+                      leadsByDate={this.props.leadsByDate}
+                      profile={this.props.profile}
+                      addNotification={this.props.addNotification}
+                      onClose={() => this.props.setShowMergeLeadsModal(false)}
+                      onMergeComplete={id => {
+                        this.setState(s => ({
+                          mergedLeadIds: [...s.mergedLeadIds, id],
+                        }));
+                        this.props.fetchLeads();
+                      }}
+                    />
+                  )}
                 </span>
               </div>
-              <div className="col-md-6 text-center followup">
+              <div className="col-md-4 text-center followup">
                 <span className="float-md-right">
                   <div
                     type="button"
@@ -1541,7 +1581,9 @@ export const LeadDetailView = ({
   profile,
   leadItem,
   allLeads,
+  leadsByDate,
   updateLead,
+  deleteLead,
   saveLeadNote,
   saveRemoveLeadNote,
   saveCancelTrialNote,
@@ -1557,6 +1599,8 @@ export const LeadDetailView = ({
   setShowSetStatusModal,
   showSMSModal,
   showSetStatusModal,
+  showMergeLeadsModal,
+  setShowMergeLeadsModal,
   isSmsEnabled,
   leadStatusValues,
   updateAttentionRequired,
@@ -1569,6 +1613,8 @@ export const LeadDetailView = ({
   refundPOSPayment,
   refundPOSTransactionInProgress,
   refundPOSTransactionID,
+  addNotification,
+  fetchLeads,
 }) =>
   currentLeadLoading || !leadItem || !leadItem.values ? (
     <div />
@@ -1577,7 +1623,10 @@ export const LeadDetailView = ({
       profile={profile}
       leadItem={leadItem}
       allLeads={allLeads}
+      leadsByDate={leadsByDate}
       updateLead={updateLead}
+      deleteLead={deleteLead}
+      fetchLeads={fetchLeads}
       saveLeadNote={saveLeadNote}
       saveRemoveLeadNote={saveRemoveLeadNote}
       saveCancelTrialNote={saveCancelTrialNote}
@@ -1592,6 +1641,8 @@ export const LeadDetailView = ({
       showSMSModal={showSMSModal}
       setShowSetStatusModal={setShowSetStatusModal}
       showSetStatusModal={showSetStatusModal}
+      showMergeLeadsModal={showMergeLeadsModal}
+      setShowMergeLeadsModal={setShowMergeLeadsModal}
       isSmsEnabled={isSmsEnabled}
       leadStatusValues={leadStatusValues}
       space={space}
@@ -1604,6 +1655,7 @@ export const LeadDetailView = ({
       refundPOSPayment={refundPOSPayment}
       refundPOSTransactionInProgress={refundPOSTransactionInProgress}
       refundPOSTransactionID={refundPOSTransactionID}
+      addNotification={addNotification}
     />
   );
 
@@ -1619,6 +1671,7 @@ export const LeadDetailContainer = compose(
   withState('showCallScriptModal', 'setShowCallScriptModal', false),
   withState('showSMSModal', 'setShowSMSModal', false),
   withState('showSetStatusModal', 'setShowSetStatusModal', false),
+  withState('showMergeLeadsModal', 'setShowMergeLeadsModal', false),
   withHandlers({
     saveCancelTrialNote: ({
       profile,
