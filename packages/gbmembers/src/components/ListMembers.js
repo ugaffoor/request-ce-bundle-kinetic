@@ -123,13 +123,15 @@ export class ListMembers extends React.Component {
         <Flag
           className={
             cellInfo.original['Is New Reply Received'] === 'true'
-              ? 'attention icon'
+              ? 'attention icon icon-svg'
               : 'attention icon hide'
           }
         />
         <NoBilling
           className={
-            cellInfo.original.orphan ? 'noBilling icon' : 'noBilling icon hide'
+            cellInfo.original.orphan
+              ? 'noBilling icon icon-svg'
+              : 'noBilling icon hide'
           }
         />
         {cellInfo.original['Last Name']}

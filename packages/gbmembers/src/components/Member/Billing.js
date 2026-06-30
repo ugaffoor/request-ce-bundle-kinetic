@@ -75,6 +75,7 @@ import {
 } from '@stripe/react-stripe-js';
 import { loadStripeTerminal } from '@stripe/terminal-js/pure';
 import uuid from 'uuid';
+import ReactTooltip from 'react-tooltip';
 
 <script src="../helpers/jquery.multiselect.js" />;
 
@@ -2385,6 +2386,7 @@ export class PaymentHistory extends Component {
         });
         if (idx !== -1) {
           successfulPayments[idx].refundAmount = payment.paymentAmount;
+          successfulPayments[idx].refundDebitDate = payment.debitDate;
         }
       }
     });
@@ -2403,6 +2405,7 @@ export class PaymentHistory extends Component {
           });
           if (idx !== -1) {
             successfulPayments[idx].refundAmount = payment.paymentAmount;
+            successfulPayments[idx].refundDebitDate = payment.debitDate;
           }
         }
       });
@@ -2449,6 +2452,7 @@ export class PaymentHistory extends Component {
         paymentMethod: payment.paymentMethod,
         paymentStatus: payment.paymentStatus,
         refundAmount: payment.refundAmount,
+        refundDebitDate: payment.refundDebitDate,
         transactionFee: payment.transactionFeeCustomer,
         debitDate: payment.debitDate,
         paymentSource: payment.paymentSource,
@@ -2571,7 +2575,15 @@ export class PaymentHistory extends Component {
           <span>
             Refunded{' '}
             {row.original['refundAmount'] !== undefined && (
-              <span className="refundValue">
+              <span
+                className="refundValue"
+                data-tip={
+                  moment(row.original['refundDebitDate']).format('L HH:MM') ||
+                  ''
+                }
+                data-for={`refund-date-${row.index}`}
+                style={{ cursor: 'help' }}
+              >
                 {new Intl.NumberFormat(this.props.locale, {
                   style: 'currency',
                   currency: this.props.currency,
@@ -2579,6 +2591,13 @@ export class PaymentHistory extends Component {
                   row.original['refundAmount'] !== undefined
                     ? row.original['refundAmount']
                     : '',
+                )}
+                {row.original['refundDebitDate'] && (
+                  <ReactTooltip
+                    id={`refund-date-${row.index}`}
+                    place="top"
+                    effect="solid"
+                  />
                 )}
               </span>
             )}
@@ -3129,7 +3148,11 @@ export class BillingInfo extends Component {
   getRenewalToDate(fromDate, memberItem) {
     var period = memberItem.values['Billing Payment Period'];
 
-    if (period === 'Fortnightly' || period === 'Weekly') {
+    if (
+      period === 'Fortnightly' ||
+      period === 'Weekly' ||
+      period === '4 Weekly'
+    ) {
       var from = moment(memberItem.values['Billing Cash Term Start Date']);
       var to = moment(memberItem.values['Billing Cash Term End Date']);
       var weeks = to.diff(from, 'weeks');
@@ -3137,12 +3160,24 @@ export class BillingInfo extends Component {
       return fromDate.add(weeks, 'weeks');
     }
 
-    if (period === 'Monthly') {
+    if (
+      period === 'Monthly' ||
+      period === 'Quarterly' ||
+      period === '4 Months' ||
+      period === '6 Months'
+    ) {
       var from = moment(memberItem.values['Billing Cash Term Start Date']);
       var to = moment(memberItem.values['Billing Cash Term End Date']);
       var months = to.diff(from, 'months');
 
       return fromDate.add(months, 'months');
+    }
+    if (period === 'Yearly') {
+      var from = moment(memberItem.values['Billing Cash Term Start Date']);
+      var to = moment(memberItem.values['Billing Cash Term End Date']);
+      var months = to.diff(from, 'years');
+
+      return fromDate.add(months, 'years');
     }
     return undefined;
   }

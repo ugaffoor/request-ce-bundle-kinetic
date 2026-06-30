@@ -248,6 +248,61 @@ export class ChangeStatusModal extends Component {
                   {(this.props.memberItem.values['Status'] === 'Frozen' ||
                     this.props.memberItem.values['Status'] ===
                       'Pending Freeze') &&
+                    this.isPrimaryBiller() &&
+                    (this.props.billingCompany === 'Bambora' ||
+                      this.props.billingCompany === 'Stripe') && (
+                      <span className="cell">
+                        <tr>
+                          <td>
+                            <h2 className="freeze">Extend Membership Freeze</h2>
+                            <span>
+                              To extend the freeze for this member and ALL
+                              dependant members, please follow below.
+                            </span>
+                            <br />
+                            <ol>
+                              <li>
+                                Click{' '}
+                                <NavLink
+                                  to={`/categories/${recordBillingCompany +
+                                    '-billing'}/${recordBillingCompany}-extend-membership-freeze?id=${
+                                    this.props.memberItem.id
+                                  }`}
+                                  kappSlug={'services'}
+                                  className={'nav-link icon-wrapper'}
+                                  activeClassName="active"
+                                  disabled={
+                                    !bamboraMigrated &&
+                                    getAttributeValue(
+                                      this.props.space,
+                                      'Bambora Stripe Migration',
+                                    ) === 'YES'
+                                  }
+                                  style={{
+                                    display: 'inline',
+                                    pointerEvents:
+                                      !bamboraMigrated &&
+                                      getAttributeValue(
+                                        this.props.space,
+                                        'Bambora Stripe Migration',
+                                      ) === 'YES'
+                                        ? 'none'
+                                        : undefined,
+                                  }}
+                                >
+                                  {' '}
+                                  here{' '}
+                                </NavLink>{' '}
+                                to complete an Extend Membership Freeze form.
+                              </li>
+                            </ol>
+                          </td>
+                        </tr>
+                      </span>
+                    )}
+                  {(this.props.memberItem.values['Status'] === 'Frozen' ||
+                    this.props.memberItem.values['Status'] ===
+                      'Pending Freeze') &&
                     this.props.memberItem.values['Non Paying'] !== 'YES' &&
                     this.isDependantMember() && (
                       <span className="cell">
@@ -453,6 +508,75 @@ export class ChangeStatusModal extends Component {
                     this.props.memberItem.values['Status'] ===
                       'Pending Freeze') &&
                     this.props.memberItem.values['Non Paying'] !== 'YES' &&
+                    this.isDependantMember() &&
+                    (this.parentMember.values['Status'] === 'Frozen' ||
+                      this.parentMember.values['Status'] ===
+                        'Pending Freeze') &&
+                    (this.props.billingCompany === 'Bambora' ||
+                      this.props.billingCompany === 'Stripe') && (
+                      <span className="cell">
+                        <tr>
+                          <td>
+                            <h2 className="freeze">Extend Membership Freeze</h2>
+                            <h4>Dependant Family Member</h4>
+                            <span>
+                              To extend the freeze for this member, please
+                              follow below. As a dependant member, the freeze
+                              extension is managed through the primary member{' '}
+                              <b>
+                                {this.parentMember.values['First Name']}{' '}
+                                {this.parentMember.values['Last Name']}
+                              </b>
+                              .
+                            </span>
+                            <br />
+                            <ol>
+                              <li>
+                                Click{' '}
+                                <NavLink
+                                  to={`/categories/${recordBillingCompany +
+                                    '-billing'}/${recordBillingCompany}-extend-membership-freeze?id=${
+                                    this.props.memberItem.values[
+                                      'Billing Parent Member'
+                                    ]
+                                  }`}
+                                  kappSlug={'services'}
+                                  className={'nav-link icon-wrapper'}
+                                  activeClassName="active"
+                                  disabled={
+                                    !bamboraMigrated &&
+                                    getAttributeValue(
+                                      this.props.space,
+                                      'Bambora Stripe Migration',
+                                    ) === 'YES'
+                                  }
+                                  style={{
+                                    display: 'inline',
+                                    pointerEvents:
+                                      !bamboraMigrated &&
+                                      getAttributeValue(
+                                        this.props.space,
+                                        'Bambora Stripe Migration',
+                                      ) === 'YES'
+                                        ? 'none'
+                                        : undefined,
+                                  }}
+                                >
+                                  {' '}
+                                  here{' '}
+                                </NavLink>{' '}
+                                to complete an Extend Membership Freeze form for
+                                the primary member.
+                              </li>
+                            </ol>
+                          </td>
+                        </tr>
+                      </span>
+                    )}
+                  {(this.props.memberItem.values['Status'] === 'Frozen' ||
+                    this.props.memberItem.values['Status'] ===
+                      'Pending Freeze') &&
+                    this.props.memberItem.values['Non Paying'] !== 'YES' &&
                     this.props.memberItem.values['Billing Payment Type'] !==
                       'Cash' &&
                     !this.isPrimaryBiller() &&
@@ -503,6 +627,66 @@ export class ChangeStatusModal extends Component {
                                   here{' '}
                                 </NavLink>{' '}
                                 to complete a Resume Frozen Membership form.
+                              </li>
+                            </ol>
+                          </td>
+                        </tr>
+                      </span>
+                    )}
+                  {(this.props.memberItem.values['Status'] === 'Frozen' ||
+                    this.props.memberItem.values['Status'] ===
+                      'Pending Freeze') &&
+                    this.props.memberItem.values['Non Paying'] !== 'YES' &&
+                    this.props.memberItem.values['Billing Payment Type'] !==
+                      'Cash' &&
+                    !this.isPrimaryBiller() &&
+                    !this.isDependantMember() &&
+                    this.isSingleBiller() &&
+                    (this.props.billingCompany === 'Bambora' ||
+                      this.props.billingCompany === 'Stripe') && (
+                      <span className="cell">
+                        <tr>
+                          <td>
+                            <h2 className="freeze">Extend Membership Freeze</h2>
+                            <span>
+                              To extend the freeze for this member, please
+                              follow below.
+                            </span>
+                            <br />
+                            <ol>
+                              <li>
+                                Click{' '}
+                                <NavLink
+                                  to={`/categories/${recordBillingCompany +
+                                    '-billing'}/${recordBillingCompany}-extend-membership-freeze?id=${
+                                    this.props.memberItem.id
+                                  }`}
+                                  kappSlug={'services'}
+                                  className={'nav-link icon-wrapper'}
+                                  activeClassName="active"
+                                  disabled={
+                                    !bamboraMigrated &&
+                                    getAttributeValue(
+                                      this.props.space,
+                                      'Bambora Stripe Migration',
+                                    ) === 'YES'
+                                  }
+                                  style={{
+                                    display: 'inline',
+                                    pointerEvents:
+                                      !bamboraMigrated &&
+                                      getAttributeValue(
+                                        this.props.space,
+                                        'Bambora Stripe Migration',
+                                      ) === 'YES'
+                                        ? 'none'
+                                        : undefined,
+                                  }}
+                                >
+                                  {' '}
+                                  here{' '}
+                                </NavLink>{' '}
+                                to complete an Extend Membership Freeze form.
                               </li>
                             </ol>
                           </td>

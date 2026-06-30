@@ -18,8 +18,11 @@ import {
   getDateValue,
   getLocalePreference,
   handleCountryChange,
+  contact_date_format,
+  getJson,
 } from './LeadsUtils';
 import { getPhoneNumberFormat } from '../Member/MemberUtils';
+import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
 import { Confirm } from 'react-confirm-bootstrap';
 import { StatusMessagesContainer } from '../StatusMessages';
 import Select from 'react-select';
@@ -55,6 +58,25 @@ const mapDispatchToProps = {
   deleteLead: actions.deleteLead,
 };
 var myThis;
+
+function shouldShowRemoveBlocked(leadItem) {
+  const history = getJson(leadItem.values['History']);
+  const smtpNotes = history
+    .filter(h => h.contactMethod === 'smtp')
+    .sort((a, b) =>
+      moment(b.contactDate, contact_date_format).diff(
+        moment(a.contactDate, contact_date_format),
+      ),
+    );
+  if (smtpNotes.length === 0) return false;
+  const mostRecent = smtpNotes[0];
+  if (
+    mostRecent.note &&
+    mostRecent.note.includes('SMTP server blocked this email')
+  )
+    return true;
+  return false;
+}
 
 export class LeadEdit extends Component {
   constructor(props) {
@@ -1182,41 +1204,88 @@ export class LeadEdit extends Component {
                 <h1>Other Information</h1>
                 <hr />
               </div>
-              <span className="line">
-                {getAttributeValue(this.props.space, 'Franchisor') !==
-                  'YES' && (
-                  <div>
-                    <label htmlFor="optout" style={{ minWidth: '100px' }}>
-                      Opt Out
-                    </label>
-                    <input
-                      type="checkbox"
-                      name="optout"
-                      id="optout"
-                      style={{ clear: 'none', margin: '4px' }}
-                      value="YES"
-                      checked={
-                        this.props.leadItem.values['Opt-Out'] === 'YES'
-                          ? true
-                          : false
+              {getAttributeValue(this.props.space, 'Franchisor') !== 'YES' && (
+                <span className="line">
+                  <label htmlFor="optout" style={{ minWidth: '100px' }}>
+                    Opt Out
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="optout"
+                    id="optout"
+                    style={{ clear: 'none', margin: '4px' }}
+                    value="YES"
+                    checked={
+                      this.props.leadItem.values['Opt-Out'] === 'YES'
+                        ? true
+                        : false
+                    }
+                    onChange={e => {
+                      if (this.props.leadItem.values['Opt-Out'] === 'YES') {
+                        e.target.value = '';
+                      } else {
+                        e.target.value = 'YES';
                       }
-                      onChange={e => {
-                        if (this.props.leadItem.values['Opt-Out'] === 'YES') {
-                          e.target.value = '';
-                        } else {
-                          e.target.value = 'YES';
+                      handleChange(
+                        this.props.leadItem,
+                        'Opt-Out',
+                        e,
+                        this.setIsDirty,
+                      );
+                    }}
+                  />
+                  {shouldShowRemoveBlocked(this.props.leadItem) && (
+                    <>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-primary"
+                        style={{ marginLeft: '8px', marginBottom: '0' }}
+                        onClick={() =>
+                          this.props.setShowRemoveBlockedConfirm(true)
                         }
-                        handleChange(
-                          this.props.leadItem,
-                          'Opt-Out',
-                          e,
-                          this.setIsDirty,
-                        );
-                      }}
-                    />
-                  </div>
-                )}
-              </span>
+                      >
+                        Remove Blocked Email
+                      </button>
+                      {this.props.showRemoveBlockedConfirm && (
+                        <ModalContainer>
+                          <ModalDialog
+                            onClose={() =>
+                              this.props.setShowRemoveBlockedConfirm(false)
+                            }
+                          >
+                            <h3>Remove Blocked Email</h3>
+                            <p>
+                              Are you sure you want to unblock{' '}
+                              <strong>
+                                {this.props.leadItem.values['Email']}
+                              </strong>{' '}
+                              on the email server?
+                            </p>
+                            <div style={{ textAlign: 'right' }}>
+                              <button
+                                type="button"
+                                className="btn btn-secondary"
+                                onClick={() =>
+                                  this.props.setShowRemoveBlockedConfirm(false)
+                                }
+                              >
+                                Cancel
+                              </button>{' '}
+                              <button
+                                type="button"
+                                className="btn btn-danger"
+                                onClick={() => this.props.removeBlockedEmail()}
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </ModalDialog>
+                        </ModalContainer>
+                      )}
+                    </>
+                  )}
+                </span>
+              )}
               <span className="line">
                 {getAttributeValue(this.props.space, 'Franchisor') !==
                   'YES' && (
@@ -2295,6 +2364,9 @@ export const LeadEditView = ({
   editAdmin,
   setEditAdmin,
   states,
+  showRemoveBlockedConfirm,
+  setShowRemoveBlockedConfirm,
+  removeBlockedEmail,
 }) =>
   currentLeadLoading ? (
     <div />
@@ -2315,6 +2387,9 @@ export const LeadEditView = ({
       editAdmin={editAdmin}
       setEditAdmin={setEditAdmin}
       states={states}
+      showRemoveBlockedConfirm={showRemoveBlockedConfirm}
+      setShowRemoveBlockedConfirm={setShowRemoveBlockedConfirm}
+      removeBlockedEmail={removeBlockedEmail}
     />
   );
 
@@ -2325,6 +2400,7 @@ export const LeadEditContainer = compose(
   ),
   withState('editAdmin', 'setEditAdmin', false),
   withState('states', 'setStates', ''),
+  withState('showRemoveBlockedConfirm', 'setShowRemoveBlockedConfirm', false),
   withProps(() => {
     return {};
   }),
@@ -2332,6 +2408,56 @@ export const LeadEditContainer = compose(
   withHandlers({
     fetchLeads: ({ fetchLeads }) => () => {
       fetchLeads({});
+    },
+    removeBlockedEmail: ({
+      leadItem,
+      leads,
+      leadLastFetchTime,
+      fetchLeads,
+      updateLead,
+      profile,
+      setShowRemoveBlockedConfirm,
+    }) => async () => {
+      setShowRemoveBlockedConfirm(false);
+      const email = leadItem.values['Email'];
+      let response;
+      try {
+        response = await fetch(
+          `https://services.gbmembers.net/mail-handler2/brevo/blocked-contacts/${encodeURIComponent(
+            email,
+          )}`,
+          { method: 'DELETE' },
+        );
+      } catch (e) {
+        alert('Error contacting email server');
+        return;
+      }
+      const history = getJson(leadItem.values['History']) || [];
+      const note = response.ok
+        ? 'Removed Blocked Email'
+        : 'Removed Blocked Email Failed';
+      if (!response.ok && response.status === 400) {
+        alert('No records to unblock on Email Server');
+      }
+      if (response.ok) {
+        leadItem.values['Opt-Out'] = '';
+      }
+      history.push({
+        submitter: profile.username,
+        note,
+        contactMethod: 'smtp',
+        contactDate: moment().format(contact_date_format),
+      });
+      leadItem.values['History'] = JSON.stringify(history);
+      updateLead({
+        id: leadItem['id'],
+        leadItem: leadItem,
+        allLeads: leads,
+        history: leadItem.history,
+        showLead: true,
+        leadLastFetchTime: leadLastFetchTime,
+        fetchLeads: fetchLeads,
+      });
     },
     saveLead: ({
       leads,

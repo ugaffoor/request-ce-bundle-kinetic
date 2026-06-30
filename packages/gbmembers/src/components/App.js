@@ -11,14 +11,10 @@ import { Content } from './Content';
 import { SidebarContainer } from './SidebarContainer';
 import { HeaderContainer } from './HeaderContainer';
 import { LoginModal } from './authentication/LoginModal';
-import { OpenWidgetWrapper } from './OpenWidgetWrapper';
 import { Loading } from 'common';
-import { getAttributeValue } from '../lib/react-kinops-components/src/utils';
 
-export const App = ({ loading, isKiosk, space }) => (
+export const App = ({ loading, isKiosk }) => (
   <div>
-    {getAttributeValue(space, 'LiveChat License') !== undefined &&
-      !isKiosk && <OpenWidgetWrapper />}
     <Helmet>
       <meta
         name="viewport"

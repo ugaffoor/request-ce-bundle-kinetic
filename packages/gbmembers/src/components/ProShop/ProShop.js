@@ -988,11 +988,11 @@ class PayNow extends Component {
         uuid(),
         this,
       );
-    } else if (billingSystem === 'Stripe') {
+    } else if (billingSystem === 'Stripe' || posSystem === 'Stripe') {
       this.processStripePayment(
         posServiceURL,
         this.props.spaceSlug,
-        billingSystem,
+        'Stripe',
         this.state.memberItem !== undefined &&
         this.state.memberItem.values['Billing Customer Id'].includes('cus_')
           ? this.state.memberItem.values['Billing Customer Id']

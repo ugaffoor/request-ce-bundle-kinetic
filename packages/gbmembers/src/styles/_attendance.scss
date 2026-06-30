@@ -1393,6 +1393,8 @@ i.fa.fa-usd.overdue {
       margin-top: 15px;
       float: left;
       margin-left: 20px;
+      position: relative;
+      z-index: 100;
       .icon-svg {
         height: 2rem;
         width: 2rem;

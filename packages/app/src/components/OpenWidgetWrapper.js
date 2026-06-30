@@ -89,7 +89,6 @@ export const isNorthAmericanUser = () => {
 
 export class OpenWidgetWrapper extends Component {
   componentDidMount() {
-    if (!isNorthAmericanUser()) return;
     window.__ow = window.__ow || {};
     window.__ow.organizationId = ORGANIZATION_ID;
     window.__ow.asyncInit = true;

@@ -35,14 +35,16 @@ export class EmailsReceived extends Component {
   getColumns() {
     return [
       { accessor: 'Subject', Header: 'Subject' },
-      { accessor: 'Received Date', Header: 'Received Date' },
+      { accessor: 'Received Formatted Date', Header: 'Received Date' },
       {
         accessor: 'replyEmail',
         Header: 'Reply',
         Cell: row => (
           <NavLink
             className="replyIcon"
-            to={`/NewEmailCampaign/${row.original['User Type']}/${row.original['User ID']}/activity/${row.original['Activity ID']}`}
+            to={`/NewEmailCampaign/${row.original['User Type']}/${
+              row.original['User ID']
+            }/activity/${row.original['Activity ID']}`}
           >
             <img src={mail} alt="Email" />
           </NavLink>
@@ -63,7 +65,9 @@ export class EmailsReceived extends Component {
     for (var i = 0; i < emails.length; i++) {
       var dt = moment(emails[i]['Received Date'], 'DD-MM-YYYY HH:mm');
       dt = dt.add(moment().utcOffset() * 60, 'seconds');
-      emails[i]['Received Date'] = dt.format(email_received_date_format);
+      emails[i]['Received Formatted Date'] = dt.format(
+        email_received_date_format,
+      );
       emails[i]['User Type'] = submission.form.slug;
       emails[i]['User ID'] = submission.id;
       emails[i]['Campaign ID'] = submission.id;
@@ -71,14 +75,20 @@ export class EmailsReceived extends Component {
 
     emails = emails.sort(function(email1, email2) {
       if (
-        moment(email1['Received Date'], email_received_date_format).isAfter(
-          moment(email2['Received Date'], email_received_date_format),
+        moment(
+          email1['Received Formatted Date'],
+          email_received_date_format,
+        ).isAfter(
+          moment(email2['Received Formatted Date'], email_received_date_format),
         )
       ) {
         return -1;
       } else if (
-        moment(email1['Received Date'], email_received_date_format).isBefore(
-          moment(email2['Received Date'], email_received_date_format),
+        moment(
+          email1['Received Formatted Date'],
+          email_received_date_format,
+        ).isBefore(
+          moment(email2['Received Formatted Date'], email_received_date_format),
         )
       ) {
         return 1;
@@ -87,8 +97,8 @@ export class EmailsReceived extends Component {
     });
 
     emails.forEach(email => {
-      email['Received Date'] = moment(
-        email['Received Date'],
+      email['Received Formatted Date'] = moment(
+        email['Received Formatted Date'],
         email_received_date_format,
       ).format('L HH:mm');
     });

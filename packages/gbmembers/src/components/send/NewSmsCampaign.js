@@ -33,6 +33,8 @@ import ReactSpinner from 'react16-spinjs';
 
 const Datetime = require('react-datetime');
 
+const STOP_SUFFIX = '\nReply STOP to unsubscribe';
+
 const mapStateToProps = state => ({
   pathname: state.router.location.pathname,
   campaignItem: state.member.campaigns.newSmsCampaign,
@@ -71,6 +73,7 @@ export class NewSmsCampaign extends Component {
     super(props);
 
     this.handleSmsTextChange = this.handleSmsTextChange.bind(this);
+    this.handleSmsKeyDown = this.handleSmsKeyDown.bind(this);
     this.handleRecipientChange = this.handleRecipientChange.bind(this);
     this.handleLeadRecipientChange = this.handleLeadRecipientChange.bind(this);
 
@@ -89,7 +92,10 @@ export class NewSmsCampaign extends Component {
       );
     }
     this.state = {
-      content: '',
+      content:
+        getAttributeValue(props.space, 'School Country Code') === 'US'
+          ? STOP_SUFFIX
+          : '',
       options:
         this.props.submissionType === 'member'
           ? this.getSelectOptions(this.props.memberLists, this.props.allMembers)
@@ -569,8 +575,49 @@ export class NewSmsCampaign extends Component {
     );
   }
 
+  handleSmsKeyDown(event) {
+    if (getAttributeValue(this.props.space, 'School Country Code') !== 'US')
+      return;
+    const { selectionStart, selectionEnd } = event.target;
+    const suffixStart = this.state.content.length - STOP_SUFFIX.length;
+    const nonNavKey = ![
+      'ArrowLeft',
+      'ArrowRight',
+      'ArrowUp',
+      'ArrowDown',
+      'Home',
+      'End',
+      'PageUp',
+      'PageDown',
+      'Tab',
+      'Shift',
+      'Control',
+      'Alt',
+      'Meta',
+      'CapsLock',
+      'Escape',
+    ].includes(event.key);
+    const touchesSuffix =
+      selectionEnd > suffixStart ||
+      (event.key === 'Delete' && selectionStart >= suffixStart) ||
+      (event.key === 'Backspace' &&
+        selectionStart === selectionEnd &&
+        selectionStart === suffixStart);
+    if (nonNavKey && touchesSuffix) {
+      event.preventDefault();
+    }
+  }
+
   handleSmsTextChange(event) {
-    this.determineCreditRequired(event.target.value);
+    let text = event.target.value;
+    if (getAttributeValue(this.props.space, 'School Country Code') === 'US') {
+      const lastIdx = text.lastIndexOf(STOP_SUFFIX);
+      text =
+        lastIdx !== -1
+          ? text.substring(0, lastIdx) + STOP_SUFFIX
+          : text + STOP_SUFFIX;
+    }
+    this.determineCreditRequired(text);
   }
 
   determineCreditRequired(text) {
@@ -625,6 +672,13 @@ export class NewSmsCampaign extends Component {
       this.props.space,
       this.props.profile,
     );
+
+    if (
+      getAttributeValue(this.props.space, 'School Country Code') === 'US' &&
+      !smsText.endsWith(STOP_SUFFIX)
+    ) {
+      smsText += STOP_SUFFIX;
+    }
 
     this.determineCreditRequired(smsText);
   }
@@ -946,6 +1000,7 @@ export class NewSmsCampaign extends Component {
                 <textarea
                   value={this.state.content}
                   onChange={this.handleSmsTextChange}
+                  onKeyDown={this.handleSmsKeyDown}
                   className="form-control custom-control"
                   rows="8"
                   maxLength="765"

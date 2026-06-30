@@ -70,7 +70,7 @@ const mapDispatchToProps = {
 var myThis;
 
 export function getJson(input) {
-  if (input === undefined || input === null) {
+  if (input === undefined || input === null || input === '') {
     return [];
   }
 
@@ -79,6 +79,26 @@ export function getJson(input) {
   } else {
     return input;
   }
+}
+
+function shouldShowRemoveBlocked(memberItem) {
+  if (memberItem.values['Opt-Out'] !== 'YES') return false;
+  const changes = getJson(memberItem.values['Member Changes']);
+  const smtpBlocks = changes
+    .filter(c => c.user === 'smtp' && c.to === 'YES')
+    .sort((a, b) =>
+      moment(b.date, contact_date_format).diff(
+        moment(a.date, contact_date_format),
+      ),
+    );
+  if (smtpBlocks.length === 0) return false;
+  const latestSmtpDate = moment(smtpBlocks[0].date, contact_date_format);
+  return !changes.some(
+    c =>
+      c.field === 'Removed Blocked Email' &&
+      c.to === 'Removed' &&
+      moment(c.date, contact_date_format).isAfter(latestSmtpDate),
+  );
 }
 
 class MemberAudit extends Component {
@@ -196,6 +216,8 @@ export const MemberEdit = ({
   setEditAdmin,
   space,
   states,
+  showRemoveBlockedConfirm,
+  setShowRemoveBlockedConfirm,
 }) =>
   currentMemberLoading ? (
     <div />
@@ -973,6 +995,26 @@ export const MemberEdit = ({
                               e,
                               setIsDirty,
                               memberChanges,
+                            )
+                          }
+                        />
+                      </div>
+                    </span>
+                    <span className="line">
+                      <div>
+                        <label htmlFor="memberChanges">Member Changes</label>
+                        <input
+                          type="text"
+                          name="memberChanges"
+                          id="memberChanges"
+                          size="50"
+                          defaultValue={memberItem.values['Member Changes']}
+                          onChange={e =>
+                            handleChange(
+                              memberItem,
+                              'Member Changes',
+                              e,
+                              setIsDirty,
                             )
                           }
                         />
@@ -2148,6 +2190,119 @@ export const MemberEdit = ({
                         );
                       }}
                     />
+                    {shouldShowRemoveBlocked(memberItem) && (
+                      <>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-primary"
+                          style={{ marginLeft: '8px' }}
+                          onClick={() => setShowRemoveBlockedConfirm(true)}
+                        >
+                          Remove Blocked Email
+                        </button>
+                        {showRemoveBlockedConfirm && (
+                          <ModalContainer
+                            onClose={() => setShowRemoveBlockedConfirm(false)}
+                          >
+                            <ModalDialog
+                              onClose={() => setShowRemoveBlockedConfirm(false)}
+                              style={{ top: '30%', left: '35%' }}
+                            >
+                              <h4>Remove Blocked Contact from Email Server</h4>
+                              <p style={{ margin: '16px 0' }}>
+                                Remove{' '}
+                                <strong>{memberItem.values['Email']}</strong>{' '}
+                                from blocked contacts?
+                              </p>
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  justifyContent: 'flex-end',
+                                  gap: '8px',
+                                }}
+                              >
+                                <button
+                                  type="button"
+                                  className="btn btn-secondary"
+                                  onClick={() =>
+                                    setShowRemoveBlockedConfirm(false)
+                                  }
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn btn-danger"
+                                  onClick={() => {
+                                    fetch(
+                                      `https://services.gbmembers.net/mail-handler2/brevo/blocked-contacts/${encodeURIComponent(
+                                        memberItem.values['Email'] || '',
+                                      )}`,
+                                      { method: 'DELETE' },
+                                    ).then(response => {
+                                      const saveChange = field => {
+                                        const newChange = {
+                                          date: moment().format(
+                                            contact_date_format,
+                                          ),
+                                          user: profile.username,
+                                          field,
+                                          from: '',
+                                          to:
+                                            field === 'Removed Blocked Email'
+                                              ? 'Removed'
+                                              : 'Failed',
+                                        };
+                                        let changes =
+                                          memberItem.values['Member Changes'];
+                                        if (!changes) {
+                                          changes = [];
+                                        } else if (
+                                          typeof changes !== 'object'
+                                        ) {
+                                          changes = JSON.parse(changes);
+                                        } else {
+                                          changes = [...changes];
+                                        }
+                                        changes.push(newChange);
+                                        memberItem.values[
+                                          'Member Changes'
+                                        ] = changes;
+
+                                        updateMember({
+                                          id: memberItem.id,
+                                          memberItem,
+                                          values: {
+                                            'Member Changes': changes,
+                                            'Opt-Out': '',
+                                          },
+                                          history: memberItem.history,
+                                          emailChanged: false,
+                                          allMembers,
+                                        });
+                                      };
+                                      if (response.ok) {
+                                        saveChange('Removed Blocked Email');
+                                      } else if (response.status === 400) {
+                                        alert(
+                                          'No records to unblock on Email Server',
+                                        );
+                                        saveChange(
+                                          'Removed Blocked Email Failed',
+                                        );
+                                      }
+                                    });
+                                    setShowRemoveBlockedConfirm(false);
+                                  }}
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            </ModalDialog>
+                          </ModalContainer>
+                        )}
+                      </>
+                    )}
                   </div>
                 </span>
                 <span className="line">
@@ -3036,6 +3191,7 @@ export const MemberEditContainer = compose(
   withState('editUserName', 'setEditUserName', false),
   withState('editAdmin', 'setEditAdmin', false),
   withState('states', 'setStates', ''),
+  withState('showRemoveBlockedConfirm', 'setShowRemoveBlockedConfirm', false),
   withHandlers({
     deleteMemberCall: ({
       memberItem,

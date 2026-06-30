@@ -13,6 +13,7 @@ import Sidebar from 'react-sidebar';
 import { Utils, ToastsContainer, ModalFormContainer } from 'common';
 import { LoginModal } from './components/authentication/LoginModal';
 import { HeaderContainer } from './components/HeaderContainer';
+import { OpenWidgetWrapper } from './components/OpenWidgetWrapper';
 import { actions as loadingActions } from './redux/modules/loading';
 import { actions as journeyeventsActions } from './redux/modules/journeyevents';
 import { actions as helpActions } from './redux/modules/help';
@@ -54,6 +55,8 @@ export const clientId =
 export const AppComponent = props =>
   !props.loading && (
     <div>
+      {Utils.getAttributeValue(props.space, 'LiveChat License') !==
+        undefined && <OpenWidgetWrapper />}
       <Helmet>
         {
           <link
@@ -198,6 +201,7 @@ export const App = compose(
       sidebarHidden,
       loading: props.loading,
       metaJSONLocation: props.metaJSONLocation,
+      space: props.space,
     };
   }),
   withHandlers({

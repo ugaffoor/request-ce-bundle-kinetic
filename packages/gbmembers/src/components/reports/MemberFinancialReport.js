@@ -541,9 +541,11 @@ export class MemberFinancialReport extends Component {
   }
   isRecurringPayment(payment, members) {
     if (
-      payment['paymentReference'] !== null &&
-      payment['paymentReference'] !== undefined &&
-      payment['paymentReference'].trim() !== ''
+      (payment['paymentReference'] !== null &&
+        payment['paymentReference'] !== undefined &&
+        payment['paymentReference'].trim() !== '') ||
+      (payment['paymentSource'] != null &&
+        payment['paymentSource'].endsWith(' POS'))
     )
       return undefined;
     var idx = members.findIndex(
@@ -1768,7 +1770,7 @@ export class MemberFinancialReport extends Component {
               ' ' +
               item.member.values['Last Name'] ===
               refund.customerName ||
-            item.values['Archive Billing Reference'] ===
+            item.member.values['Archive Billing Reference'] ===
               refund.yourSystemReference,
         );
         if (mIdx === -1) {
