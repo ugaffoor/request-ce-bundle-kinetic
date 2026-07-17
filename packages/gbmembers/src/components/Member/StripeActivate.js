@@ -11,9 +11,11 @@ import {
 } from 'recompose';
 import { actions } from '../../redux/modules/members';
 import { actions as errorActions } from '../../redux/modules/errors';
+import axios from 'axios';
 import moment from 'moment';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
 import { getLocalePreference } from './MemberUtils';
+import { contact_date_format } from '../leads/LeadsUtils';
 import MomentLocaleUtils, {
   formatDate,
   parseDate,
@@ -26,10 +28,11 @@ const mapStateToProps = state => ({
   activatingBillerCompleted: state.member.members.activatingBillerCompleted,
   space: state.member.app.space,
   profile: state.member.kinops.profile,
+  kineticBillingServerUrl: state.member.app.kineticBillingServerUrl,
+  spaceSlug: state.member.app.spaceSlug,
 });
 const mapDispatchToProps = {
   updateMember: actions.updateMember,
-  activateBiller: actions.activateBiller,
   billerActivated: actions.billerActivated,
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
@@ -364,38 +367,99 @@ const enhance = compose(
     activateBillerMember: ({
       memberItem,
       updateMember,
-      activateBiller,
       billerActivated,
       allMembers,
       addNotification,
       space,
       setSystemError,
-    }) => (getScheduledDate, startDate, period, payment) => {
+      kineticBillingServerUrl,
+      spaceSlug,
+      profile,
+    }) => (_getScheduledDate, startDate, period, payment) => {
       memberItem.values['Membership Cost'] = payment;
       memberItem.values['Payment'] = payment;
       memberItem.values['Billing Payment Period'] = period;
       memberItem.values['Billing Period'] = period;
       memberItem.values['Billing Start Date'] = startDate.format('YYYY-MM-DD');
-      activateBiller({
-        id: memberItem.id,
-        allMembers,
-        memberItem,
-        updateMember,
-        billerActivated,
-        orderNumber: memberItem.values['Billing Customer Id'],
-        startDate: startDate.format('YYYY-MM-DD'),
-        scheduleDate: getScheduledDate(startDate, period).format('YYYY-MM-DD'),
-        period,
-        payment,
-        email: memberItem.values['Email'],
-        city: memberItem.values['Suburb'],
-        postcode: memberItem.values['Postcode'],
-        state: memberItem.values['State'],
+      const args = {
+        space: spaceSlug,
+        billingService: 'Stripe',
+        customerId: memberItem.values['Member ID'],
+        paymentMethod: 'Credit Card',
+        firstName: memberItem.values['First Name'],
+        lastName: memberItem.values['Last Name'],
+        dob: memberItem.values['DOB'],
         address: memberItem.values['Address'],
+        suburb: memberItem.values['Suburb'],
+        state: memberItem.values['State'],
+        postCode: memberItem.values['Postcode'],
+        email: memberItem.values['Email'],
+        mobile: memberItem.values['Mobile'],
+        billingPeriod: period,
+        payment,
+        contractStartDate: startDate.format('YYYY-MM-DD'),
+        cardToken: memberItem.values['Billing Customer Id'],
         currency: getAttributeValue(space, 'Currency'),
-        addNotification,
-        setSystemError,
-      });
+      };
+      axios
+        .post(kineticBillingServerUrl + '/registerUser', args)
+        .then(result => {
+          if (result.data.error && result.data.error > 0) {
+            addNotification(
+              'error',
+              result.data.errorMessage,
+              'Activated Biller Failed',
+            );
+          } else {
+            memberItem.values['Billing Payment Type'] =
+              result.data.data.paymentMethod === 'card'
+                ? 'Credit Card'
+                : 'Bank Account';
+            memberItem.values['Billing Customer Reference'] =
+              result.data.data.customerBillingId;
+
+            let changes = memberItem.values['Billing Changes'];
+            if (!changes) {
+              changes = [];
+            } else if (typeof changes !== 'object') {
+              changes = JSON.parse(changes);
+            }
+            changes.push({
+              date: moment().format(contact_date_format),
+              user: profile.username,
+              action: 'Stripe Activation',
+              from: '',
+              to: result.data.data.customerBillingId,
+            });
+            memberItem.values['Billing Changes'] = changes;
+
+            addNotification('success', 'Activating Biller successfully');
+            updateMember({
+              id: memberItem.id,
+              memberItem,
+              allMembers,
+              values: {
+                'Membership Cost': payment,
+                Payment: payment,
+                'Billing Payment Period': period,
+                'Billing Period': period,
+                'Billing Start Date': startDate.format('YYYY-MM-DD'),
+                'Billing Payment Type':
+                  memberItem.values['Billing Payment Type'],
+                'Billing Customer Reference':
+                  result.data.data.customerBillingId,
+                'Billing Changes': changes,
+                'Biller Migrated': 'YES',
+              },
+            });
+            billerActivated();
+          }
+        })
+        .catch(error => {
+          console.log(error);
+          addNotification('error', 'Activated Biller Failed');
+          setSystemError(error);
+        });
       for (let i = 0; i < allMembers.length; i++) {
         if (allMembers[i].id === memberItem.id) {
           allMembers[i].values = memberItem.values;

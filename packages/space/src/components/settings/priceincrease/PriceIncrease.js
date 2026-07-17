@@ -74,6 +74,8 @@ export class NewPriceIncrease extends Component {
       emailTemplateName: '',
       emailTemplateID: undefined,
       showEmailDialog: false,
+      priceIncreaseTemplates: [],
+      selectedExistingTemplateID: '',
       submitting: false,
       submitError: null,
     };
@@ -104,6 +106,22 @@ export class NewPriceIncrease extends Component {
       return excluded.includes(memberId)
         ? { excludedMembers: excluded.filter(id => id !== memberId) }
         : { excludedMembers: [...excluded, memberId] };
+    });
+  }
+  componentDidMount() {
+    searchSubmissions({
+      datastore: true,
+      form: 'email-templates',
+      search: new SubmissionSearch()
+        .includes(['values'])
+        .limit(1000)
+        .build(),
+    }).then(({ submissions }) => {
+      this.setState({
+        priceIncreaseTemplates: (submissions || []).filter(
+          t => t.values['Category'] === 'Price Increase',
+        ),
+      });
     });
   }
   computeBillingMembers() {
@@ -721,6 +739,54 @@ export class NewPriceIncrease extends Component {
                     : 'New Email Template'}
                 </I18n>
               </Button>
+              {this.state.priceIncreaseTemplates.length > 0 && (
+                <div
+                  style={{
+                    marginTop: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  <select
+                    className="form-control"
+                    style={{ width: 'auto', display: 'inline-block' }}
+                    value={this.state.selectedExistingTemplateID}
+                    onChange={e =>
+                      this.setState({
+                        selectedExistingTemplateID: e.target.value,
+                      })
+                    }
+                  >
+                    <option value="">Select existing template...</option>
+                    {this.state.priceIncreaseTemplates.map(t => (
+                      <option key={t.id} value={t.id}>
+                        {t.values['Template Name']}
+                      </option>
+                    ))}
+                  </select>
+                  {this.state.selectedExistingTemplateID && (
+                    <Button
+                      color="link"
+                      size="sm"
+                      onClick={() => {
+                        const t = this.state.priceIncreaseTemplates.find(
+                          t => t.id === this.state.selectedExistingTemplateID,
+                        );
+                        this.setState({
+                          emailTemplateID: this.state
+                            .selectedExistingTemplateID,
+                          emailTemplateName: t ? t.values['Template Name'] : '',
+                          showEmailDialog: true,
+                          selectedExistingTemplateID: '',
+                        });
+                      }}
+                    >
+                      <I18n>Edit</I18n>
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
             {this.state.showEmailDialog && (
               <EmailTemplateContainer
@@ -844,6 +910,8 @@ export class PriceIncreaseEdit extends Component {
       emailTemplateID: priceIncrease.values['Email Template ID'] || undefined,
       showEmailDialog: false,
       emailTemplateContent: this.props.initialEmailTemplateContent || null,
+      priceIncreaseTemplates: [],
+      selectedExistingTemplateID: '',
       memberPriceIncreases: [],
       memberPriceIncreasesLoading: false,
       expandedMpiId: null,
@@ -901,6 +969,20 @@ export class PriceIncreaseEdit extends Component {
         this.fetchMemberPriceIncreases();
       }
     }
+    searchSubmissions({
+      datastore: true,
+      form: 'email-templates',
+      search: new SubmissionSearch()
+        .includes(['values'])
+        .limit(1000)
+        .build(),
+    }).then(({ submissions }) => {
+      this.setState({
+        priceIncreaseTemplates: (submissions || []).filter(
+          t => t.values['Category'] === 'Price Increase',
+        ),
+      });
+    });
   }
 
   componentDidUpdate(_prevProps, prevState) {
@@ -2008,6 +2090,54 @@ export class PriceIncreaseEdit extends Component {
                     : 'New Email Template'}
                 </I18n>
               </Button>
+              {this.state.priceIncreaseTemplates.length > 0 && (
+                <div
+                  style={{
+                    marginTop: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  <select
+                    className="form-control"
+                    style={{ width: 'auto', display: 'inline-block' }}
+                    value={this.state.selectedExistingTemplateID}
+                    onChange={e =>
+                      this.setState({
+                        selectedExistingTemplateID: e.target.value,
+                      })
+                    }
+                  >
+                    <option value="">Select existing template...</option>
+                    {this.state.priceIncreaseTemplates.map(t => (
+                      <option key={t.id} value={t.id}>
+                        {t.values['Template Name']}
+                      </option>
+                    ))}
+                  </select>
+                  {this.state.selectedExistingTemplateID && (
+                    <Button
+                      color="link"
+                      size="sm"
+                      onClick={() => {
+                        const t = this.state.priceIncreaseTemplates.find(
+                          t => t.id === this.state.selectedExistingTemplateID,
+                        );
+                        this.setState({
+                          emailTemplateID: this.state
+                            .selectedExistingTemplateID,
+                          emailTemplateName: t ? t.values['Template Name'] : '',
+                          showEmailDialog: true,
+                          selectedExistingTemplateID: '',
+                        });
+                      }}
+                    >
+                      <I18n>Edit</I18n>
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
             {this.state.showEmailDialog && (
               <EmailTemplateContainer

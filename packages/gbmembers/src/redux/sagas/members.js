@@ -2432,12 +2432,6 @@ export function* refundTransaction(action) {
             id: action.payload.transactionId,
             value: action.payload.refundAmount,
           });
-
-          if (action.payload.billingThis) {
-            setTimeout(() => {
-              action.payload.billingThis.getPaymentHistory();
-            }, 3000);
-          }
         }
       })
       .catch(error => {

@@ -112,6 +112,7 @@ const mapStateToProps = state => ({
   actionRequestsLoading: state.member.members.actionRequestsLoading,
   space: state.member.app.space,
   spaceSlug: state.member.app.spaceSlug,
+  kineticBillingServerUrl: state.member.app.kineticBillingServerUrl,
   snippets: state.member.app.snippets,
   memberCashPayments: state.member.members.memberCashPayments,
   memberCashPaymentsLoading: state.member.members.memberCashPaymentsLoading,
@@ -2279,6 +2280,7 @@ export class PaymentHistory extends Component {
     super(props);
     this.formatEmailCell = this.formatEmailCell.bind(this);
     this.refundPayment = this.refundPayment.bind(this);
+    this.fetchChargeRefunds = this.fetchChargeRefunds.bind(this);
     this.paymentHistory = this.props.paymentHistory;
     this.memberCashPayments = this.props.memberCashPayments;
     let data = this.getData(
@@ -2294,7 +2296,61 @@ export class PaymentHistory extends Component {
     this.state = {
       data,
       columns,
+      chargeRefundInfo: {},
+      refundModalPaymentID: null,
+      refundModalOriginalAmount: null,
     };
+  }
+
+  fetchChargeRefunds(paymentID, originalAmount) {
+    this.setState(prev => ({
+      chargeRefundInfo: {
+        ...prev.chargeRefundInfo,
+        [paymentID]: { loading: true },
+      },
+      refundModalPaymentID: paymentID,
+      refundModalOriginalAmount: originalAmount,
+    }));
+    axios
+      .post(this.props.kineticBillingServerUrl + '/getChargeRefunds', {
+        chargeId: paymentID,
+        space: this.props.space.slug,
+        billingService: getAttributeValue(this.props.space, 'Billing Company'),
+        timezone: getTimezone(
+          this.props.profile.timezone,
+          this.props.space.defaultTimezone,
+        ),
+      })
+      .then(result => {
+        const refunds = (result.data && result.data.data) || [];
+        const totalRefunded = refunds.reduce(
+          (sum, r) => sum + (r.paymentAmount || 0),
+          0,
+        );
+        this.setState(prev => ({
+          chargeRefundInfo: {
+            ...prev.chargeRefundInfo,
+            [paymentID]: {
+              loading: false,
+              totalRefunded,
+              refunds: refunds.map(r => ({
+                amount: r.paymentAmount,
+                status: r.paymentStatus,
+                bankFailedReason: r.bankFailedReason,
+                paymentReference: r.paymentReference,
+              })),
+            },
+          },
+        }));
+      })
+      .catch(() => {
+        this.setState(prev => ({
+          chargeRefundInfo: {
+            ...prev.chargeRefundInfo,
+            [paymentID]: { loading: false, error: 'Failed to load' },
+          },
+        }));
+      });
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
@@ -2306,15 +2362,40 @@ export class PaymentHistory extends Component {
       !nextProps.cashRegistrationsLoading
     ) {
       this.paymentHistory = nextProps.paymentHistory;
-      this.setState({
-        data: this.getData(
-          this.props.memberItem,
-          nextProps.paymentHistory,
-          nextProps.memberCashPayments,
-          nextProps.setupPaymentHistory,
-          nextProps.membershipServices,
-        ),
-      });
+      let data = this.getData(
+        this.props.memberItem,
+        nextProps.paymentHistory,
+        nextProps.memberCashPayments,
+        nextProps.setupPaymentHistory,
+        nextProps.membershipServices,
+      );
+      // If a refund just completed but paymentHistory hasn't refreshed yet,
+      // patch the row immediately so the refund is visible straight away.
+      const pendingRefund = nextProps.refundTransactionID;
+      if (pendingRefund && pendingRefund.id) {
+        data = data.map(
+          row =>
+            row.paymentID === pendingRefund.id && !row.refundAmount
+              ? {
+                  ...row,
+                  refundAmount: pendingRefund.value,
+                  refundDebitDate: moment().format('YYYY-MM-DD HH:mm:ss'),
+                }
+              : row,
+        );
+      }
+      this.setState({ data });
+    }
+  }
+  componentDidUpdate(prevProps) {
+    const prevID =
+      prevProps.refundTransactionID && prevProps.refundTransactionID.id;
+    const nextID =
+      this.props.refundTransactionID && this.props.refundTransactionID.id;
+    if (nextID && nextID !== prevID) {
+      setTimeout(() => {
+        this.props.getPaymentHistory();
+      }, 3000);
     }
   }
   formatEmailCell(cellInfo) {
@@ -2372,7 +2453,12 @@ export class PaymentHistory extends Component {
     var successfulPayments = [];
     payments.forEach((payment, i) => {
       if (payment.paymentStatus !== 'Refund') {
-        successfulPayments[successfulPayments.length] = payment;
+        successfulPayments[successfulPayments.length] = {
+          ...payment,
+          refundAmount: undefined,
+          refundDebitDate: undefined,
+          refunds: undefined,
+        };
       }
     });
 
@@ -2385,8 +2471,15 @@ export class PaymentHistory extends Component {
           );
         });
         if (idx !== -1) {
-          successfulPayments[idx].refundAmount = payment.paymentAmount;
+          successfulPayments[idx].refundAmount =
+            (successfulPayments[idx].refundAmount || 0) + payment.paymentAmount;
           successfulPayments[idx].refundDebitDate = payment.debitDate;
+          if (!successfulPayments[idx].refunds)
+            successfulPayments[idx].refunds = [];
+          successfulPayments[idx].refunds.push({
+            amount: payment.paymentAmount,
+            debitDate: payment.debitDate,
+          });
         }
       }
     });
@@ -2394,7 +2487,12 @@ export class PaymentHistory extends Component {
     if (setupfees !== undefined) {
       setupfees.forEach((payment, i) => {
         if (payment.paymentStatus !== 'Refund') {
-          successfulPayments[successfulPayments.length] = payment;
+          successfulPayments[successfulPayments.length] = {
+            ...payment,
+            refundAmount: undefined,
+            refundDebitDate: undefined,
+            refunds: undefined,
+          };
         }
       });
 
@@ -2404,8 +2502,16 @@ export class PaymentHistory extends Component {
             return item.paymentID === payment.yourSystemReference;
           });
           if (idx !== -1) {
-            successfulPayments[idx].refundAmount = payment.paymentAmount;
+            successfulPayments[idx].refundAmount =
+              (successfulPayments[idx].refundAmount || 0) +
+              payment.paymentAmount;
             successfulPayments[idx].refundDebitDate = payment.debitDate;
+            if (!successfulPayments[idx].refunds)
+              successfulPayments[idx].refunds = [];
+            successfulPayments[idx].refunds.push({
+              amount: payment.paymentAmount,
+              debitDate: payment.debitDate,
+            });
           }
         }
       });
@@ -2453,6 +2559,7 @@ export class PaymentHistory extends Component {
         paymentStatus: payment.paymentStatus,
         refundAmount: payment.refundAmount,
         refundDebitDate: payment.refundDebitDate,
+        refunds: payment.refunds || [],
         transactionFee: payment.transactionFeeCustomer,
         debitDate: payment.debitDate,
         paymentSource: payment.paymentSource,
@@ -2476,6 +2583,17 @@ export class PaymentHistory extends Component {
         : this.props.memberItem.values['Refunded Payments']
           ? JSON.parse(this.props.memberItem.values['Refunded Payments'])
           : [];
+
+    if (
+      this.props.refundTransactionID &&
+      this.props.refundTransactionID.id &&
+      !paymentsRefunded.includes(this.props.refundTransactionID.id)
+    ) {
+      paymentsRefunded = [
+        ...paymentsRefunded,
+        this.props.refundTransactionID.id,
+      ];
+    }
 
     const columns = [];
     if (
@@ -2615,6 +2733,54 @@ export class PaymentHistory extends Component {
                   )}
                 </span>
               )}
+            {getAttributeValue(this.props.space, 'Billing Company') ===
+              'Stripe' && (
+              <i
+                className="fa fa-question-circle"
+                style={{ cursor: 'pointer', color: '#888', marginLeft: '6px' }}
+                title="Check refund status"
+                onClick={e => {
+                  e.stopPropagation();
+                  this.fetchChargeRefunds(
+                    row.original.paymentID,
+                    row.original.paymentAmount,
+                  );
+                }}
+              />
+            )}
+            {getAttributeValue(this.props.space, 'Billing Company') ===
+              'Bambora' && (
+              <i
+                className="fa fa-question-circle"
+                style={{ cursor: 'pointer', color: '#888', marginLeft: '6px' }}
+                title="Check refund status"
+                onClick={e => {
+                  e.stopPropagation();
+                  const refunds = row.original.refunds || [];
+                  const totalRefunded = refunds.reduce(
+                    (sum, r) => sum + (r.amount || 0),
+                    0,
+                  );
+                  this.setState(prev => ({
+                    chargeRefundInfo: {
+                      ...prev.chargeRefundInfo,
+                      [row.original.paymentID]: {
+                        loading: false,
+                        totalRefunded,
+                        refunds: refunds.map(r => ({
+                          amount: r.amount,
+                          status: null,
+                          bankFailedReason: null,
+                          paymentReference: null,
+                        })),
+                      },
+                    },
+                    refundModalPaymentID: row.original.paymentID,
+                    refundModalOriginalAmount: row.original.paymentAmount,
+                  }));
+                }}
+              />
+            )}
           </span>
         ) : (
           ''
@@ -2646,6 +2812,7 @@ export class PaymentHistory extends Component {
                 paymentID={row.original['paymentID']}
                 paymentMethod={row.original['paymentMethod']}
                 refundValue={row.original['refundAmount']}
+                refunds={row.original.refunds || []}
                 status={
                   this.isPaymentRefunded(
                     row.original.paymentID,
@@ -2698,12 +2865,7 @@ export class PaymentHistory extends Component {
     }).then(
       ({ amount, reason }) => {
         console.log('proceed! input:' + reason);
-        this.props.refundPayment(
-          this.props.billingThis,
-          paymentId,
-          amount,
-          reason,
-        );
+        this.props.refundPayment(paymentId, amount, reason);
       },
       () => {
         console.log('cancel!');
@@ -2747,6 +2909,92 @@ export class PaymentHistory extends Component {
             Show More
           </a>
         )}
+
+        {this.state.refundModalPaymentID &&
+          (() => {
+            const info = this.state.chargeRefundInfo[
+              this.state.refundModalPaymentID
+            ] || { loading: true };
+            const closeModal = () =>
+              this.setState({
+                refundModalPaymentID: null,
+                refundModalOriginalAmount: null,
+              });
+            const formatCurrency = amount =>
+              new Intl.NumberFormat(this.props.locale, {
+                style: 'currency',
+                currency: this.props.currency,
+              }).format(amount);
+            const canRefundMore =
+              !info.loading &&
+              !info.error &&
+              this.state.refundModalOriginalAmount != null &&
+              info.totalRefunded < this.state.refundModalOriginalAmount;
+            return (
+              <ModalContainer onClose={closeModal}>
+                <ModalDialog onClose={closeModal}>
+                  <h4>Refund Details</h4>
+                  {info.loading ? (
+                    <div>Loading...</div>
+                  ) : info.error ? (
+                    <div style={{ color: '#c00' }}>{info.error}</div>
+                  ) : (
+                    <div>
+                      {(info.refunds || []).map((r, i) => (
+                        <div
+                          key={i}
+                          style={{
+                            display: 'flex',
+                            gap: '16px',
+                            alignItems: 'center',
+                            padding: '6px 0',
+                          }}
+                        >
+                          {r.amount != null && (
+                            <span>{formatCurrency(r.amount)}</span>
+                          )}
+                          <span>{r.status}</span>
+                          {(r.bankFailedReason || r.paymentReference) && (
+                            <span style={{ color: '#555' }}>
+                              {r.bankFailedReason || r.paymentReference}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div
+                    style={{ marginTop: '12px', display: 'flex', gap: '8px' }}
+                  >
+                    {canRefundMore && (
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        disabled={this.props.refundTransactionInProgress}
+                        onClick={() => {
+                          closeModal();
+                          this.refundPayment(
+                            this.state.refundModalPaymentID,
+                            this.state.refundModalOriginalAmount -
+                              info.totalRefunded,
+                          );
+                        }}
+                      >
+                        Refund Payment
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={closeModal}
+                    >
+                      Close
+                    </button>
+                  </div>
+                </ModalDialog>
+              </ModalContainer>
+            );
+          })()}
 
         <span style={{ display: 'none' }}>
           <div
@@ -2945,12 +3193,11 @@ class BillingAudit extends Component {
       {
         accessor: 'to',
         Header: 'To',
-        Cell: props =>
-          typeof props.value === 'object'
-            ? objectToString(props.value)
-            : props.value
-              ? props.value
-              : '',
+        Cell: props => {
+          return props.value.amount
+            ? (props.value.amount * 100).toFixed(2)
+            : '';
+        },
       },
       { accessor: 'reason', Header: 'Reason' },
     ];
@@ -3494,6 +3741,8 @@ export class BillingInfo extends Component {
                       null &&
                     this.props.memberItem.values['Billing Customer Id'] !==
                       '' &&
+                    this.props.memberItem.values['Billing Customer Id'] !==
+                      'Deleted' &&
                     this.props.billingInfoLoading === true) ||
                   (this.props.memberItem.values['Billing Setup Fee Id'] !==
                     undefined &&
@@ -4169,7 +4418,6 @@ export class BillingInfo extends Component {
                   setupPaymentHistoryLoading={
                     this.props.setupPaymentHistoryLoading
                   }
-                  billingThis={this}
                   refundPayment={this.props.refundPayment}
                   refundTransactionInProgress={
                     this.props.refundTransactionInProgress
@@ -4180,6 +4428,9 @@ export class BillingInfo extends Component {
                   currency={this.props.currency}
                   locale={this.props.locale}
                   space={this.props.space}
+                  spaceSlug={this.props.spaceSlug}
+                  kineticBillingServerUrl={this.props.kineticBillingServerUrl}
+                  profile={this.props.profile}
                   snippets={this.props.snippets}
                   memberCashPayments={this.props.memberCashPayments}
                   memberCashPaymentsLoading={
@@ -4376,6 +4627,7 @@ export const Billing = ({
   getActionRequests,
   profile,
   space,
+  spaceSlug,
   snippets,
   currency,
   locale,
@@ -4394,6 +4646,7 @@ export const Billing = ({
   setSystemError,
   memberPriceIncreases,
   memberPriceIncreasesLoading,
+  kineticBillingServerUrl,
 }) =>
   currentMemberLoading ? (
     <div />
@@ -4407,6 +4660,7 @@ export const Billing = ({
             memberItem.values['Billing Customer Id'] !== undefined &&
             memberItem.values['Billing Customer Id'] !== ''*/ true && (
             <BillingInfo
+              kineticBillingServerUrl={kineticBillingServerUrl}
               billingInfo={billingInfo}
               billingInfoLoading={billingInfoLoading}
               setupBillingInfo={setupBillingInfo}
@@ -4998,7 +5252,7 @@ export const BillingContainer = compose(
       addNotification,
       setSystemError,
       setIsDirty,
-    }) => (billingThis, paymentId, paymentAmount, billingChangeReason) => {
+    }) => (paymentId, paymentAmount, billingChangeReason) => {
       console.log('### paymentId = ' + paymentId);
       let args = {};
       args.transactionId = paymentId;
@@ -5006,11 +5260,9 @@ export const BillingContainer = compose(
       args.memberItem = memberItem;
       args.updateMember = updateMember;
       args.fetchCurrentMember = fetchCurrentMember;
-      args.myThis = memberItem.myThis;
       args.billingChangeReason = billingChangeReason;
       args.addNotification = addNotification;
       args.setSystemError = setSystemError;
-      args.billingThis = billingThis;
       args.refundTransactionComplete = refundTransactionComplete;
       args.useSubAccount =
         memberItem.values['useSubAccount'] === 'YES' ? true : false;
@@ -5081,7 +5333,8 @@ export const BillingContainer = compose(
         if (
           member.values['Billing Customer Reference'] !== undefined &&
           member.values['Billing Customer Reference'] !== null &&
-          member.values['Billing Customer Reference'] !== ''
+          member.values['Billing Customer Reference'] !== '' &&
+          member.values['Billing Customer Reference'] !== 'Deleted'
         ) {
           this.props.fetchBillingInfo({
             billingRef: member.values['Billing Customer Reference'],

@@ -51,6 +51,7 @@ export const handleUpdated = props => response => {
         editingTrigger: false,
         showBlock: true,
       });
+      props.fetchTemplates();
     }
   }
 };
@@ -74,6 +75,7 @@ export const handleCreated = props => (response, actions) => {
     newTrigger: false,
     showBlock: true,
   });
+  props.fetchTemplates();
 };
 export const handleNewLoaded = props => form => {
   form.getFieldByName('Embedded Dirty').value('YES');
@@ -321,6 +323,7 @@ export class TriggerForm extends Component {
     journeyTriggers,
     newTemplate,
   ) {
+    if (!templateDetails || !templateDetails.values) return;
     if (triggerType === 'emailTemplate') {
       if (newTemplate) {
         let options = K('field[Member Email]').options();
@@ -528,6 +531,7 @@ export class NewTriggerForm extends Component {
     journeyTriggers,
     newTemplate,
   ) {
+    if (!templateDetails || !templateDetails.values) return;
     if (triggerType === 'emailTemplate') {
       if (newTemplate) {
         let options = K('field[Member Email]').options();
@@ -651,6 +655,33 @@ export class NewTriggerForm extends Component {
     );
   }
 }
+function templateMissing(
+  trigger,
+  emailTemplates,
+  smsTemplates,
+  scriptTemplates,
+) {
+  if (
+    emailTemplates === null ||
+    smsTemplates === null ||
+    scriptTemplates === null
+  )
+    return false;
+  const name = trigger.values['Template Name'];
+  if (name === null || name === undefined || name === '') return true;
+  const contactType = trigger.values['Contact Type'];
+  if (contactType === 'Email') {
+    return !(emailTemplates || []).some(
+      t => t.values['Template Name'] === name,
+    );
+  } else if (contactType === 'SMS') {
+    return !(smsTemplates || []).some(t => t.values['Template Name'] === name);
+  } else if (contactType === 'Call') {
+    return !(scriptTemplates || []).some(t => t.values['Script Name'] === name);
+  }
+  return false;
+}
+
 export class BlockTriggers extends Component {
   constructor(props) {
     super(props);
@@ -822,7 +853,31 @@ export class BlockTriggers extends Component {
               {this.state.triggerTypes.map((condition, idx) => (
                 <span key={idx}>
                   <div className="triggerType">
-                    <div className="typeName">{condition}</div>
+                    <div className="typeName">
+                      {condition}
+                      {(() => {
+                        const invalidCount = (
+                          this.state.triggerEvents.get(condition) || []
+                        ).filter(t =>
+                          templateMissing(
+                            t,
+                            this.props.emailTemplates,
+                            this.props.smsTemplates,
+                            this.props.scriptTemplates,
+                          ),
+                        ).length;
+                        return invalidCount > 0 ? (
+                          <span
+                            className="badge badge-danger"
+                            style={{ marginLeft: '6px' }}
+                            title="Triggers missing a template"
+                          >
+                            {invalidCount} missing template
+                            {invalidCount > 1 ? 's' : ''}
+                          </span>
+                        ) : null;
+                      })()}
+                    </div>
                     <div
                       className="newTrigger"
                       onClick={e => {
@@ -862,7 +917,22 @@ export class BlockTriggers extends Component {
                                     : trigger.values['Lead Condition Duration']}
                                 </td>
                                 <td width="80%">
-                                  {trigger.values['Template Name']}
+                                  {templateMissing(
+                                    trigger,
+                                    this.props.emailTemplates,
+                                    this.props.smsTemplates,
+                                    this.props.scriptTemplates,
+                                  ) ? (
+                                    <span style={{ color: '#c00' }}>
+                                      <i
+                                        className="fa fa-exclamation-triangle"
+                                        style={{ marginRight: '4px' }}
+                                      />
+                                      No Template Set
+                                    </span>
+                                  ) : (
+                                    trigger.values['Template Name']
+                                  )}
                                 </td>
                                 <td width="40">
                                   <span
@@ -1083,6 +1153,9 @@ export class TriggerTypeBlocks extends Component {
             type={this.props.type}
             journeyGroups={this.props.journeyGroups}
             journeyTriggers={this.props.journeyTriggers}
+            emailTemplates={this.props.emailTemplates}
+            smsTemplates={this.props.smsTemplates}
+            scriptTemplates={this.props.scriptTemplates}
             updateJourneyTrigger={this.props.updateJourneyTrigger}
             deleteTrigger={this.props.deleteTrigger}
             closeBlockTriggers={this.closeBlockTriggers}
@@ -1103,6 +1176,9 @@ const JourneyTriggersComponent = ({
   journeyInfoLoading,
   journeyGroups,
   journeyTriggers,
+  emailTemplates,
+  smsTemplates,
+  scriptTemplates,
   allLeads,
   leadsLoading,
   membersLoading,
@@ -1157,6 +1233,9 @@ const JourneyTriggersComponent = ({
                 handleError={handleError}
                 journeyGroups={journeyGroups}
                 journeyTriggers={journeyTriggers}
+                emailTemplates={emailTemplates}
+                smsTemplates={smsTemplates}
+                scriptTemplates={scriptTemplates}
                 updateJourneyTrigger={updateJourneyTrigger}
                 deleteTrigger={deleteTrigger}
                 setHideMemberBlock={setHideMemberBlock}
@@ -1180,6 +1259,9 @@ const JourneyTriggersComponent = ({
                 handleError={handleError}
                 journeyGroups={journeyGroups}
                 journeyTriggers={journeyTriggers}
+                emailTemplates={emailTemplates}
+                smsTemplates={smsTemplates}
+                scriptTemplates={scriptTemplates}
                 updateJourneyTrigger={updateJourneyTrigger}
                 deleteTrigger={deleteTrigger}
                 setHideMemberBlock={setHideMemberBlock}
@@ -1237,6 +1319,9 @@ export const mapStateToProps = state => {
     journeyInfoLoading: state.space.journeyTriggers.journeyInfoLoading,
     journeyGroups: state.space.journeyTriggers.journeyGroups,
     journeyTriggers: state.space.journeyTriggers.journeyTriggers,
+    emailTemplates: state.space.journeyTriggers.emailTemplates,
+    smsTemplates: state.space.journeyTriggers.smsTemplates,
+    scriptTemplates: state.space.journeyTriggers.scriptTemplates,
     allLeads: state.member.leads.allLeads,
     leadsLoading: state.member.leads.leadsLoading,
     allMembers: state.member.members.allMembers,
@@ -1249,6 +1334,7 @@ export const mapStateToProps = state => {
 
 export const mapDispatchToProps = {
   fetchJourneyInfo: actions.fetchJourneyInfo,
+  fetchTemplates: actions.fetchTemplates,
   updateJourneyTrigger: actions.updateJourneyTrigger,
   deleteTrigger: actions.deleteTrigger,
   fetchMembers: memberActions.fetchMembers,

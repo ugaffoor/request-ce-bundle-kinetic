@@ -23,6 +23,11 @@ export const JOURNEY_TRIGGERS_SEARCH = new SubmissionSearch(true)
   .limit(1000)
   .build();
 
+export const TEMPLATES_SEARCH = new SubmissionSearch(true)
+  .include('details,values')
+  .limit(1000)
+  .build();
+
 export function* fetchJourneyEvents(action) {
   try {
     var search = undefined;
@@ -110,6 +115,40 @@ export function* fetchJourneyEvents(action) {
   }
 }
 
+export function* fetchTemplates() {
+  try {
+    const { emailTemplates, smsTemplates, scriptTemplates } = yield all({
+      emailTemplates: call(searchSubmissions, {
+        get: true,
+        datastore: true,
+        form: 'email-templates',
+        search: TEMPLATES_SEARCH,
+      }),
+      smsTemplates: call(searchSubmissions, {
+        get: true,
+        datastore: true,
+        form: 'sms-templates',
+        search: TEMPLATES_SEARCH,
+      }),
+      scriptTemplates: call(searchSubmissions, {
+        get: true,
+        datastore: true,
+        form: 'call-scripts',
+        search: TEMPLATES_SEARCH,
+      }),
+    });
+    yield put(
+      actions.setTemplates({
+        emailTemplates: emailTemplates.submissions || [],
+        smsTemplates: smsTemplates.submissions || [],
+        scriptTemplates: scriptTemplates.submissions || [],
+      }),
+    );
+  } catch (error) {
+    console.log('Error in fetchTemplates: ' + util.inspect(error));
+  }
+}
+
 export function* fetchJourneyInfo() {
   try {
     const { groups, triggers } = yield all({
@@ -141,6 +180,7 @@ export function* fetchJourneyInfo() {
           triggers: triggerSubmissions,
         }),
       );
+      yield call(fetchTemplates);
     }
   } catch (error) {
     console.log('Error in fetchJourneyInfo: ' + util.inspect(error));
@@ -201,6 +241,7 @@ export function* deleteTrigger(action) {
 
 export function* watchJourneyTriggers() {
   yield takeEvery(types.FETCH_JOURNEY_INFO, fetchJourneyInfo);
+  yield takeEvery(types.FETCH_TEMPLATES, fetchTemplates);
   yield takeEvery(types.UPDATE_JOURNEY_TRIGGER, updateJourneyTrigger);
   yield takeEvery(types.DELETE_TRIGGER, deleteTrigger);
   yield takeEvery(types.FETCH_JOURNEY_EVENTS, fetchJourneyEvents);

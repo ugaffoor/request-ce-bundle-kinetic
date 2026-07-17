@@ -2283,9 +2283,12 @@ export const MemberEdit = ({
                                       };
                                       if (response.ok) {
                                         saveChange('Removed Blocked Email');
-                                      } else if (response.status === 400) {
+                                      } else if (
+                                        response.status === 400 ||
+                                        response.status === 404
+                                      ) {
                                         alert(
-                                          'No records to unblock on Email Server',
+                                          'No records to unblock on Email Server.',
                                         );
                                         saveChange(
                                           'Removed Blocked Email Failed',

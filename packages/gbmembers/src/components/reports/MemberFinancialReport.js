@@ -970,8 +970,7 @@ export class MemberFinancialReport extends Component {
           date: payment.debitDate,
           name: member.values['First Name'] + ' ' + member.values['Last Name'],
           billingID:
-            payment.yourSystemReference ===
-            member.values['Billing Customer Reference']
+            payment.yourSystemReference === member.values['Billing Customer Id']
               ? member.values['Billing Customer Reference']
               : member.values['Archive Billing Reference'],
           paymentID: payment.paymentID,
@@ -1793,8 +1792,9 @@ export class MemberFinancialReport extends Component {
       } else {
         var pIdx = fullPaymentHistory.findIndex(
           payment =>
-            payment.paymentID === refund.yourSystemReference ||
-            payment.paymentID === refund.paymentID,
+            payment.paymentID ===
+            refund.yourSystemReference /*||
+            payment.paymentID === refund.paymentID,*/,
         );
         if (pIdx !== -1) {
           var mIdx = members.findIndex(

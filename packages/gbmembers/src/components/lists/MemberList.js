@@ -55,8 +55,8 @@ export const ListContainer = compose(
     addNewList: ({ addMembersList }) => newList => {
       addMembersList({ newList });
     },
-    deleteMembersList: ({ removeMembersList }) => listName => {
-      removeMembersList(listName);
+    deleteMembersList: ({ removeMembersList }) => listId => {
+      removeMembersList(listId);
     },
   }),
   lifecycle({

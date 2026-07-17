@@ -406,19 +406,34 @@ export class MembershipReceiptToPrint extends React.Component {
             }).format(this.state.total)}
           </span>
         </span>
-        {this.state.status === 'Refunded' && (
-          <span className="total refund">
-            <span className="label">
-              <I18n>Refunded</I18n>
+        {this.state.status === 'Refunded' &&
+          (this.props.refunds && this.props.refunds.length > 0 ? (
+            this.props.refunds.map((r, i) => (
+              <span key={i} className="total refund">
+                <span className="label">
+                  <I18n>Refunded</I18n>
+                </span>
+                <span className="value refund">
+                  {new Intl.NumberFormat(this.props.locale, {
+                    style: 'currency',
+                    currency: this.props.currency,
+                  }).format(r.amount)}
+                </span>
+              </span>
+            ))
+          ) : (
+            <span className="total refund">
+              <span className="label">
+                <I18n>Refunded</I18n>
+              </span>
+              <span className="value refund">
+                {new Intl.NumberFormat(this.props.locale, {
+                  style: 'currency',
+                  currency: this.props.currency,
+                }).format(this.state.refundValue)}
+              </span>
             </span>
-            <span className="value refund">
-              {new Intl.NumberFormat(this.props.locale, {
-                style: 'currency',
-                currency: this.props.currency,
-              }).format(this.state.refundValue)}
-            </span>
-          </span>
-        )}
+          ))}
         <span className="transDetails">
           <span className="transaction_id">
             <span className="label">Payment Id:</span>

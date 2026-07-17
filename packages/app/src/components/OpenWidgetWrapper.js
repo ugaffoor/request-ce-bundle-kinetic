@@ -88,7 +88,7 @@ export const isNorthAmericanUser = () => {
 };
 
 export class OpenWidgetWrapper extends Component {
-  componentDidMount() {
+  initWidget() {
     window.__ow = window.__ow || {};
     window.__ow.organizationId = ORGANIZATION_ID;
     window.__ow.asyncInit = true;
@@ -145,11 +145,15 @@ export class OpenWidgetWrapper extends Component {
     }
   }
 
-  componentWillUnmount() {
-    if (window.OpenWidget) {
-      try {
-        window.OpenWidget.call('hide');
-      } catch (e) {}
+  componentDidMount() {
+    if (this.props.isAuthorized) {
+      this.initWidget();
+    }
+  }
+
+  componentDidUpdate(prevProps) {
+    if (!prevProps.isAuthorized && this.props.isAuthorized) {
+      this.initWidget();
     }
   }
 

@@ -102,6 +102,9 @@ const getTableData = allMembers =>
     .filter(
       m =>
         m.values['Billing User'] === 'YES' &&
+        (m.values['Status'] === 'Active' ||
+          m.values['Status'] === 'Pending Freeze' ||
+          m.values['Status'] === 'Frozen') &&
         m.values['Archive Billing Id'] &&
         m.values['Archive Billing Id'] !== '' &&
         (!m.values['Archive Billing Reference'] ||
@@ -239,6 +242,7 @@ export class MigratingBamboraToStripe extends Component {
       migrationLog: '',
       pendingPaymentHistory: 0,
       showMigrationHistory: false,
+      historyNameFilter: '',
       archivingBambora: false,
       migrationComplete: false,
       migrationCompleteMessage: false,
@@ -430,6 +434,97 @@ export class MigratingBamboraToStripe extends Component {
     this.setState({ cancelling: true });
   }
 
+  migrateInactiveMembers() {
+    this._cancelled = false;
+
+    const { allMembers, updateMember, addNotification, profile } = this.props;
+
+    const inactiveMembers = allMembers.filter(
+      m =>
+        m.values['Status'] === 'Inactive' &&
+        m.values['Billing User'] === 'YES' &&
+        m.values['Billing Customer Id'] &&
+        m.values['Billing Customer Id'] !== '' &&
+        m.values['Billing Customer Id'] !== 'Deleted',
+    );
+
+    if (inactiveMembers.length === 0) {
+      return;
+    }
+
+    const ids = inactiveMembers.map(m => m.id);
+    this.setState({
+      migratingIds: ids,
+      migrationLog: 'Archiving inactive members...',
+    });
+
+    inactiveMembers.forEach(memberItem => {
+      const id = memberItem.id;
+
+      const archiveBillingId = memberItem.values['Billing Customer Id'] || '';
+      const archiveBillingReference =
+        memberItem.values['Billing Customer Reference'] || '';
+      const memberName =
+        (memberItem.values['First Name'] || '') +
+        ' ' +
+        (memberItem.values['Last Name'] || '');
+
+      this.setState({
+        migrationLog: `Archiving inactive member ${memberName}...`,
+      });
+
+      memberItem.values['Archive Billing Id'] = archiveBillingId;
+      memberItem.values['Archive Billing Reference'] = archiveBillingReference;
+      memberItem.values['Billing Customer Id'] = 'Deleted';
+      memberItem.values['Billing Customer Reference'] = 'Deleted';
+
+      let notesHistory = memberItem.values['Notes History'];
+      if (!notesHistory) {
+        notesHistory = [];
+      } else if (typeof notesHistory !== 'object') {
+        notesHistory = JSON.parse(notesHistory);
+      }
+      notesHistory.push({
+        note:
+          'Archived Bambora billing during migration. Bambora Customer Id: ' +
+          archiveBillingId +
+          ', Reference: ' +
+          archiveBillingReference,
+        contactDate: moment().format('YYYY-MM-DD HH:mm'),
+        contactMethod: 'System',
+        submitter: profile.displayName,
+      });
+      memberItem.values['Notes History'] = notesHistory;
+
+      updateMember({
+        id,
+        memberItem,
+        values: {
+          'Archive Billing Id': archiveBillingId,
+          'Archive Billing Reference': archiveBillingReference,
+          'Billing Customer Id': 'Deleted',
+          'Billing Customer Reference': 'Deleted',
+          'Notes History': notesHistory,
+        },
+        allMembers,
+        addNotification,
+      });
+
+      this.setState(prev => {
+        const newIds = prev.migratingIds.filter(mid => mid !== id);
+        return {
+          migratingIds: newIds,
+          migrationLog:
+            newIds.length === 0
+              ? `Archived ${ids.length} inactive member${
+                  ids.length !== 1 ? 's' : ''
+                }.`
+              : prev.migrationLog,
+        };
+      });
+    });
+  }
+
   setMigratedDate() {
     const {
       space,
@@ -532,539 +627,604 @@ export class MigratingBamboraToStripe extends Component {
     const migrTax2 = this.state.tax2Value || 0;
     const newMultiplier = 1 + migrAdminFee + migrTax1 + migrTax2;
 
-    selectedIds.forEach(id => {
-      if (this._cancelled) {
-        this.setState(prev => {
-          const newIds = prev.migratingIds.filter(mid => mid !== id);
-          return {
-            migratingIds: newIds,
-            cancelling: newIds.length > 0,
-          };
-        });
-        return;
-      }
-      const memberItem = allMembers.find(m => m.id === id);
-      if (!memberItem) return;
+    // Stagger requests by 40ms each (max 25/second) to stay within Stripe's rate limit
+    const RATE_LIMIT_DELAY_MS = 200;
 
-      const memberName =
-        (memberItem.values['First Name'] || '') +
-        ' ' +
-        (memberItem.values['Last Name'] || '');
-      this.setState({
-        migrationLog: `Registering ${memberName} with Stripe...`,
-      });
-
-      const nextBillingDate = getNextBillingDate(memberItem);
-      const startDate = nextBillingDate
-        ? moment(nextBillingDate, 'DD MMM YYYY').format('YYYY-MM-DD')
-        : moment().format('YYYY-MM-DD');
-
-      const grossCost =
-        Math.round(
-          (parseFloat(memberItem.values['Membership Cost']) || 0) * 100,
-        ) / 100;
-      const baseCost = Math.round((grossCost / oldMultiplier) * 100) / 100;
-      const payment = Math.round(baseCost * newMultiplier * 100) / 100;
-
-      const args = {
-        space: spaceSlug,
-        billingService: 'Stripe',
-        customerId: memberItem.values['Member ID'],
-        paymentMethod: 'Credit Card',
-        firstName: memberItem.values['First Name'],
-        lastName: memberItem.values['Last Name'],
-        dob: memberItem.values['DOB'],
-        address: memberItem.values['Address'],
-        suburb: memberItem.values['Suburb'],
-        state: memberItem.values['State'],
-        postCode: memberItem.values['Postcode'],
-        email: memberItem.values['Email'],
-        mobile: memberItem.values['Mobile'],
-        billingPeriod: memberItem.values['Billing Payment Period'],
-        payment: payment,
-        contractStartDate: startDate,
-        cardToken: memberItem.values['Archive Billing Id'],
-        currency,
-      };
-
-      axios
-        .post(kineticBillingServerUrl + REGISTER_USER_URL, args)
-        .then(result => {
-          if (result.data.error && result.data.error > 0) {
-            addNotification(
-              'error',
-              result.data.errorMessage,
-              'Migration Failed: ' +
-                memberItem.values['First Name'] +
-                ' ' +
-                memberItem.values['Last Name'],
-            );
-            this.setState(prev => {
-              const newIds = prev.migratingIds.filter(mid => mid !== id);
-              return {
-                migratingIds: newIds,
-                cancelling: newIds.length > 0 ? prev.cancelling : false,
-              };
-            });
-          } else {
-            const customerBillingId = result.data.data.customerBillingId;
-            const bamboraCustomerIdRef =
-              memberItem.values['Billing Customer Id'];
-            const bamboraRef = memberItem.values['Billing Customer Reference'];
-            const archiveBillingId = memberItem.values['Archive Billing Id'];
-            const migratedAt = moment().format('DD MMM YYYY HH:mm');
-
-            // Step 1: Add Stripe migration note only (no billing field changes yet)
-            let notesHistory = memberItem.values['Notes History'];
-            if (!notesHistory) {
-              notesHistory = [];
-            } else if (typeof notesHistory !== 'object') {
-              notesHistory = JSON.parse(notesHistory);
-            }
-            notesHistory.push({
-              note:
-                'Migrated billing from Bambora to Stripe. New Stripe Customer Reference: ' +
-                customerBillingId,
-              contactDate: moment().format('YYYY-MM-DD HH:mm'),
-              contactMethod: 'System',
-              submitter: profile.displayName,
-            });
-            memberItem.values['Notes History'] = notesHistory;
-            this.setState({
-              migrationLog: `Cancelling Bambora billing for ${memberName}...`,
-            });
-
-            // Step 2: Cancel Bambora billing
-            axios
-              .post(kineticBillingServerUrl + '/customerStatusChange', {
-                customerId: bamboraRef,
-                billingService: 'Bambora',
-                space: spaceSlug,
-                newStatus: 'Inactive',
-              })
-              .then(cancelResult => {
-                const bamboraCancelled =
-                  !cancelResult.data.error || cancelResult.data.error === 0;
-
-                // Step 3: Add cancellation note
-                notesHistory.push({
-                  note: bamboraCancelled
-                    ? 'Cancelled Bambora billing. Customer Reference: ' +
-                      bamboraRef
-                    : 'Failed to cancel Bambora billing. Customer Reference: ' +
-                      bamboraRef +
-                      '. Error: ' +
-                      (cancelResult.data.errorMessage || 'Unknown error'),
-                  contactDate: moment().format('YYYY-MM-DD HH:mm'),
-                  contactMethod: 'System',
-                  submitter: profile.displayName,
-                });
-
-                // Step 3b: Fetch Stripe payment history to migrate records
-                this.setState(prev => ({
-                  migrationLog: `Generating Bambora billing history for ${memberName}...`,
-                  pendingPaymentHistory: prev.pendingPaymentHistory + 1,
-                }));
-                this.props.fetchPaymentHistory({
-                  billingService: 'Stripe',
-                  billingRef: customerBillingId,
-                  paymentType: 'ALL',
-                  paymentMethod: 'ALL',
-                  paymentSource: 'ALL',
-                  dateField: 'PAYMENT',
-                  dateFrom: moment
-                    .utc()
-                    .subtract(2, 'years')
-                    .format('YYYY-MM-DD'),
-                  dateTo: moment
-                    .utc()
-                    .add(1, 'days')
-                    .format('YYYY-MM-DD'),
-                  internalPaymentType: 'customer',
-                  addNotification,
-                  setSystemError: this.props.setSystemError,
-                  timezone: getTimezone(
-                    profile.timezone,
-                    space.defaultTimezone,
-                  ),
-                  useSubAccount:
-                    memberItem.values['useSubAccount'] === 'YES' ||
-                    (getAttributeValue(space, 'Billing Company') ===
-                      'Bambora' &&
-                      getAttributeValue(space, 'PaySmart SubAccount') ===
-                        'YES'),
-                  bamboraCutoverDate: moment().format('YYYY-MM-DD'),
-                  bamboraCustomerId: bamboraCustomerIdRef,
-                  setPaymentHistory: ({ data }) => {
-                    this.setState(prev => {
-                      const pending = prev.pendingPaymentHistory - 1;
-                      return {
-                        pendingPaymentHistory: pending,
-                        migrationLog:
-                          pending > 0
-                            ? `Payment history loaded for ${memberName} (${
-                                (data || []).length
-                              } records)`
-                            : '',
-                      };
-                    });
-                  },
-                });
-
-                // Step 4: Update billing/archive fields
-                memberItem.values['Archive Billing Id'] =
-                  memberItem.values['Billing Customer Id'];
-                memberItem.values['Archive Billing Reference'] = bamboraRef;
-                memberItem.values['Billing Customer Id'] = archiveBillingId;
-                memberItem.values[
-                  'Billing Customer Reference'
-                ] = customerBillingId;
-                memberItem.values['Notes History'] = notesHistory;
-                updateMember({
-                  id: memberItem.id,
-                  memberItem,
-                  values: {
-                    'Archive Billing Id':
-                      memberItem.values['Archive Billing Id'],
-                    'Archive Billing Reference':
-                      memberItem.values['Archive Billing Reference'],
-                    'Billing Customer Id':
-                      memberItem.values['Billing Customer Id'],
-                    'Billing Customer Reference': customerBillingId,
-                    'Notes History': notesHistory,
-                  },
-                  allMembers,
-                });
-
-                // Step 5: Record result with cancellation status
-                this.setState(prev => ({
-                  migratedMembers: [
-                    ...prev.migratedMembers,
-                    {
-                      id: memberItem.id,
-                      name:
-                        (memberItem.values['First Name'] || '') +
-                        ' ' +
-                        (memberItem.values['Last Name'] || ''),
-                      bamboraReference: bamboraRef,
-                      stripeCustomerId: archiveBillingId,
-                      stripeReference: customerBillingId,
-                      migratedAt,
-                      bamboraCancelled: bamboraCancelled ? 'Yes' : 'No',
-                    },
-                  ],
-                  selected: { ...prev.selected, [id]: false },
-                  migratingIds: prev.migratingIds.filter(mid => mid !== id),
-                  cancelling:
-                    prev.migratingIds.filter(mid => mid !== id).length > 0
-                      ? prev.cancelling
-                      : false,
-                }));
-              })
-              .catch(cancelError => {
-                console.error(
-                  'Bambora cancellation error for member ' + id,
-                  cancelError,
-                );
-
-                // Still update billing fields even if cancellation call failed
-                notesHistory.push({
-                  note:
-                    'Failed to cancel Bambora billing (network error). Customer Reference: ' +
-                    bamboraRef,
-                  contactDate: moment().format('YYYY-MM-DD HH:mm'),
-                  contactMethod: 'System',
-                  submitter: profile.displayName,
-                });
-                memberItem.values['Archive Billing Id'] =
-                  memberItem.values['Billing Customer Id'];
-                memberItem.values['Archive Billing Reference'] = bamboraRef;
-                memberItem.values['Billing Customer Id'] = archiveBillingId;
-                memberItem.values[
-                  'Billing Customer Reference'
-                ] = customerBillingId;
-                memberItem.values['Notes History'] = notesHistory;
-                updateMember({
-                  id: memberItem.id,
-                  memberItem,
-                  values: {
-                    'Archive Billing Id':
-                      memberItem.values['Archive Billing Id'],
-                    'Archive Billing Reference':
-                      memberItem.values['Archive Billing Reference'],
-                    'Billing Customer Id':
-                      memberItem.values['Billing Customer Id'],
-                    'Billing Customer Reference': customerBillingId,
-                    'Notes History': notesHistory,
-                  },
-                  allMembers,
-                });
-
-                this.setState(prev => ({
-                  migratedMembers: [
-                    ...prev.migratedMembers,
-                    {
-                      id: memberItem.id,
-                      name:
-                        (memberItem.values['First Name'] || '') +
-                        ' ' +
-                        (memberItem.values['Last Name'] || ''),
-                      bamboraReference: bamboraRef,
-                      stripeCustomerId: archiveBillingId,
-                      stripeReference: customerBillingId,
-                      migratedAt,
-                      bamboraCancelled: 'Error',
-                    },
-                  ],
-                  selected: { ...prev.selected, [id]: false },
-                  migratingIds: prev.migratingIds.filter(mid => mid !== id),
-                  cancelling:
-                    prev.migratingIds.filter(mid => mid !== id).length > 0
-                      ? prev.cancelling
-                      : false,
-                }));
-              });
-
-            // Migrate active bambora additional services
-            searchSubmissions({
-              form: 'bambora-member-additional-services',
-              datastore: true,
-              search: new SubmissionSearch(true)
-                .includes(['details', 'values'])
-                .index('values[Member GUID]')
-                .eq('values[Member GUID]', memberItem.id)
-                .limit(1000)
-                .build(),
-            })
-              .then(({ submissions }) => {
-                const activeServices = (submissions || []).filter(
-                  s => s.values['Status'] === 'Active',
-                );
-                if (activeServices.length > 0) {
-                  this.setState({
-                    migrationLog: `Migrating ${
-                      activeServices.length
-                    } additional service${
-                      activeServices.length !== 1 ? 's' : ''
-                    } for ${memberName}...`,
-                  });
-                }
-                activeServices.forEach(service => {
-                  const serviceFee = parseFloat(service.values['Fee']);
-
-                  const serviceArgs = {
-                    space: spaceSlug,
-                    billingService: 'Stripe',
-                    customerId: service.values['Member ID'],
-                    paymentMethod: 'Credit Card',
-                    firstName: service.values['Student First Name'],
-                    lastName: service.values['Student Last Name'],
-                    dob: service.values['DOB'],
-                    address: service.values['Address'],
-                    suburb: service.values['Suburb'],
-                    state: service.values['State'],
-                    postCode: service.values['Postcode'],
-                    email: service.values['Email'],
-                    mobile: service.values['Mobile'],
-                    billingPeriod: service.values['Display Payment Frequency'],
-                    payment: serviceFee,
-                    contractStartDate: moment(
-                      getNextBillingDate({
-                        values: {
-                          'Resume Date': null,
-                          'Billing Start Date': service.values['Start Date'],
-                          Status: 'Active',
-                          'Billing Payment Period':
-                            service.values['Display Payment Frequency'],
-                        },
-                      }),
-                      'DD MMM YYYY',
-                    ).format('YYYY-MM-DD'),
-                    contractEndDate: service.values['End Date'],
-                    cardToken: archiveBillingId,
-                    ref1: 'AdditionalService',
-                    ref2: service.values['Name'],
-                    currency,
-                  };
-
-                  this.setState({
-                    migrationLog: `Registering additional service "${service
-                      .values['Name'] ||
-                      service.values[
-                        'Member ID'
-                      ]}" with Stripe for ${memberName}...`,
-                  });
-                  axios
-                    .post(
-                      kineticBillingServerUrl + REGISTER_USER_URL,
-                      serviceArgs,
-                    )
-                    .then(serviceResult => {
-                      if (
-                        serviceResult.data.error &&
-                        serviceResult.data.error > 0
-                      ) {
-                        console.error(
-                          'Additional service registerUser failed:',
-                          serviceResult.data.errorMessage,
-                        );
-                        return;
-                      }
-
-                      // Record migration in member Notes History
-                      const serviceCustomerBillingId =
-                        serviceResult.data.data &&
-                        serviceResult.data.data.customerBillingId;
-                      notesHistory.push({
-                        note:
-                          'Migrated additional service "' +
-                          (service.values['Name'] ||
-                            service.values['Member ID']) +
-                          '" from Bambora to Stripe.' +
-                          (serviceCustomerBillingId
-                            ? ' New Stripe Reference: ' +
-                              serviceCustomerBillingId
-                            : ''),
-                        contactDate: moment().format('YYYY-MM-DD HH:mm'),
-                        contactMethod: 'System',
-                        submitter: profile.displayName,
-                      });
-                      updateMember({
-                        id: memberItem.id,
-                        memberItem,
-                        values: { 'Notes History': notesHistory },
-                        allMembers,
-                      });
-
-                      // Create stripe-member-additional-services record
-                      createSubmission({
-                        datastore: true,
-                        formSlug: 'stripe-member-additional-services',
-                        values: {
-                          ...service.values,
-                          Status: 'Active',
-                          'Billing ID': serviceCustomerBillingId || '',
-                          'POS Profile ID': archiveBillingId || '',
-                        },
-                      }).catch(err =>
-                        console.error(
-                          'Failed to create stripe additional service record',
-                          err,
-                        ),
-                      );
-
-                      // Cancel Bambora service
-                      const bamboraServiceId = service.values['Billing ID'];
-                      if (bamboraServiceId) {
-                        this.setState({
-                          migrationLog: `Cancelling Bambora additional service "${service
-                            .values['Name'] ||
-                            service.values['Member ID']}" for ${memberName}...`,
-                        });
-                        axios
-                          .post(
-                            kineticBillingServerUrl + '/customerStatusChange',
-                            {
-                              customerId: bamboraServiceId,
-                              billingService: 'Bambora',
-                              space: spaceSlug,
-                              newStatus: 'Inactive',
-                            },
-                          )
-                          .then(cancelServiceResult => {
-                            const serviceCancelled =
-                              !cancelServiceResult.data.error ||
-                              cancelServiceResult.data.error === 0;
-                            notesHistory.push({
-                              note: serviceCancelled
-                                ? 'Cancelled Bambora additional service "' +
-                                  (service.values['Name'] ||
-                                    service.values['Member ID']) +
-                                  '". Billing ID: ' +
-                                  bamboraServiceId
-                                : 'Failed to cancel Bambora additional service "' +
-                                  (service.values['Name'] ||
-                                    service.values['Member ID']) +
-                                  '". Billing ID: ' +
-                                  bamboraServiceId +
-                                  '. Error: ' +
-                                  (cancelServiceResult.data.errorMessage ||
-                                    'Unknown error'),
-                              contactDate: moment().format('YYYY-MM-DD HH:mm'),
-                              contactMethod: 'System',
-                              submitter: profile.displayName,
-                            });
-                            updateMember({
-                              id: memberItem.id,
-                              memberItem,
-                              values: { 'Notes History': notesHistory },
-                              allMembers,
-                            });
-                          })
-                          .catch(err => {
-                            console.error(
-                              'Failed to cancel Bambora service',
-                              err,
-                            );
-                            notesHistory.push({
-                              note:
-                                'Failed to cancel Bambora additional service "' +
-                                (service.values['Name'] ||
-                                  service.values['Member ID']) +
-                                '" (network error). Billing ID: ' +
-                                bamboraServiceId,
-                              contactDate: moment().format('YYYY-MM-DD HH:mm'),
-                              contactMethod: 'System',
-                              submitter: profile.displayName,
-                            });
-                            updateMember({
-                              id: memberItem.id,
-                              memberItem,
-                              values: { 'Notes History': notesHistory },
-                              allMembers,
-                            });
-                          });
-                      }
-
-                      // Set status to Migrated
-                      updateSubmission({
-                        id: service.id,
-                        values: { Status: 'Migrated' },
-                        datastore: true,
-                      }).catch(err =>
-                        console.error(
-                          'Failed to update additional service status',
-                          err,
-                        ),
-                      );
-                    })
-                    .catch(err =>
-                      console.error('Additional service migration error', err),
-                    );
-                });
-              })
-              .catch(err =>
-                console.error('Failed to fetch additional services', err),
-              );
-          }
-        })
-        .catch(error => {
-          console.error('Migration error for member ' + id, error);
-          addNotification(
-            'error',
-            'Migration failed for ' +
-              memberItem.values['First Name'] +
-              ' ' +
-              memberItem.values['Last Name'],
-          );
+    selectedIds.forEach((id, index) => {
+      setTimeout(() => {
+        if (this._cancelled) {
           this.setState(prev => {
             const newIds = prev.migratingIds.filter(mid => mid !== id);
             return {
               migratingIds: newIds,
-              cancelling: newIds.length > 0 ? prev.cancelling : false,
+              cancelling: newIds.length > 0,
             };
           });
+          return;
+        }
+        const memberItem = allMembers.find(m => m.id === id);
+        if (!memberItem) return;
+
+        const memberName =
+          (memberItem.values['First Name'] || '') +
+          ' ' +
+          (memberItem.values['Last Name'] || '');
+        this.setState({
+          migrationLog: `Registering ${memberName} with Stripe...`,
         });
+
+        const nextBillingDate = getNextBillingDate(memberItem);
+        const startDate = nextBillingDate
+          ? moment(nextBillingDate, 'DD MMM YYYY').format('YYYY-MM-DD')
+          : moment().format('YYYY-MM-DD');
+
+        const grossCost =
+          Math.round(
+            (parseFloat(memberItem.values['Membership Cost']) || 0) * 100,
+          ) / 100;
+        const baseCost = Math.round((grossCost / oldMultiplier) * 100) / 100;
+        const payment = Math.round(baseCost * newMultiplier * 100) / 100;
+
+        const isFrozen =
+          memberItem.values['Status'] === 'Frozen' ||
+          memberItem.values['Status'] === 'Pending Freeze';
+
+        const resolvePayment = isFrozen
+          ? searchSubmissions({
+              get: true,
+              form: 'bambora-membership-freeze',
+              kapp: 'services',
+              search: new SubmissionSearch()
+                .eq('values[Members]', memberItem.id)
+                .include(['details', 'values'])
+                .sortDirection('DESC')
+                .limit(1)
+                .build(),
+            }).then(({ submissions }) => {
+              const freeze = submissions && submissions[0];
+              if (freeze && freeze.values['Freeze Charge']) {
+                return (
+                  parseFloat(freeze.values['Freeze Charge'].replace('$', '')) ||
+                  payment
+                );
+              }
+              return 0;
+            })
+          : Promise.resolve(payment);
+
+        resolvePayment.then(finalPayment => {
+          const args = {
+            space: spaceSlug,
+            billingService: 'Stripe',
+            customerId: memberItem.values['Member ID'],
+            paymentMethod: 'Credit Card',
+            firstName: memberItem.values['First Name'],
+            lastName: memberItem.values['Last Name'],
+            dob: memberItem.values['DOB'],
+            address: memberItem.values['Address'],
+            suburb: memberItem.values['Suburb'],
+            state: memberItem.values['State'],
+            postCode: memberItem.values['Postcode'],
+            email: memberItem.values['Email'],
+            mobile: memberItem.values['Mobile'],
+            billingPeriod: memberItem.values['Billing Payment Period'],
+            payment: finalPayment,
+            contractStartDate: startDate,
+            cardToken: memberItem.values['Archive Billing Id'],
+            currency,
+          };
+
+          axios
+            .post(kineticBillingServerUrl + REGISTER_USER_URL, args)
+            .then(result => {
+              if (result.data.error && result.data.error > 0) {
+                addNotification(
+                  'error',
+                  result.data.errorMessage,
+                  'Migration Failed: ' +
+                    memberItem.values['First Name'] +
+                    ' ' +
+                    memberItem.values['Last Name'],
+                );
+                this.setState(prev => {
+                  const newIds = prev.migratingIds.filter(mid => mid !== id);
+                  return {
+                    migratingIds: newIds,
+                    cancelling: newIds.length > 0 ? prev.cancelling : false,
+                  };
+                });
+              } else {
+                const customerBillingId = result.data.data.customerBillingId;
+                const bamboraCustomerIdRef =
+                  memberItem.values['Billing Customer Id'];
+                const bamboraRef =
+                  memberItem.values['Billing Customer Reference'];
+                const archiveBillingId =
+                  memberItem.values['Archive Billing Id'];
+                const migratedAt = moment().format('DD MMM YYYY HH:mm');
+
+                // Step 1: Add Stripe migration note only (no billing field changes yet)
+                let notesHistory = memberItem.values['Notes History'];
+                if (!notesHistory) {
+                  notesHistory = [];
+                } else if (typeof notesHistory !== 'object') {
+                  notesHistory = JSON.parse(notesHistory);
+                }
+                notesHistory.push({
+                  note:
+                    'Migrated billing from Bambora to Stripe. New Stripe Customer Reference: ' +
+                    customerBillingId,
+                  contactDate: moment().format('YYYY-MM-DD HH:mm'),
+                  contactMethod: 'System',
+                  submitter: profile.displayName,
+                });
+                memberItem.values['Notes History'] = notesHistory;
+
+                if (isFrozen) {
+                  axios
+                    .post(kineticBillingServerUrl + '/freezeSchedule', {
+                      customerId: customerBillingId,
+                      billingService: 'Stripe',
+                      space: spaceSlug,
+                      freezeCharge: finalPayment,
+                    })
+                    .catch(err => {
+                      console.error(
+                        'freezeSchedule error for member ' + id,
+                        err,
+                      );
+                    });
+                }
+
+                this.setState({
+                  migrationLog: `Cancelling Bambora billing for ${memberName}...`,
+                });
+
+                // Step 2: Cancel Bambora billing
+                axios
+                  .post(kineticBillingServerUrl + '/customerStatusChange', {
+                    customerId: bamboraRef,
+                    billingService: 'Bambora',
+                    space: spaceSlug,
+                    newStatus: 'Inactive',
+                  })
+                  .then(cancelResult => {
+                    const bamboraCancelled =
+                      !cancelResult.data.error || cancelResult.data.error === 0;
+
+                    // Step 3: Add cancellation note
+                    notesHistory.push({
+                      note: bamboraCancelled
+                        ? 'Cancelled Bambora billing. Customer Reference: ' +
+                          bamboraRef
+                        : 'Failed to cancel Bambora billing. Customer Reference: ' +
+                          bamboraRef +
+                          '. Error: ' +
+                          (cancelResult.data.errorMessage || 'Unknown error'),
+                      contactDate: moment().format('YYYY-MM-DD HH:mm'),
+                      contactMethod: 'System',
+                      submitter: profile.displayName,
+                    });
+
+                    // Step 3b: Fetch Stripe payment history to migrate records
+                    this.setState(prev => ({
+                      migrationLog: `Generating Bambora billing history for ${memberName}...`,
+                      pendingPaymentHistory: prev.pendingPaymentHistory + 1,
+                    }));
+                    this.props.fetchPaymentHistory({
+                      billingService: 'Stripe',
+                      billingRef: customerBillingId,
+                      paymentType: 'ALL',
+                      paymentMethod: 'ALL',
+                      paymentSource: 'ALL',
+                      dateField: 'PAYMENT',
+                      dateFrom: moment
+                        .utc()
+                        .subtract(2, 'years')
+                        .format('YYYY-MM-DD'),
+                      dateTo: moment
+                        .utc()
+                        .add(1, 'days')
+                        .format('YYYY-MM-DD'),
+                      internalPaymentType: 'customer',
+                      addNotification,
+                      setSystemError: this.props.setSystemError,
+                      timezone: getTimezone(
+                        profile.timezone,
+                        space.defaultTimezone,
+                      ),
+                      useSubAccount:
+                        memberItem.values['useSubAccount'] === 'YES' ||
+                        (getAttributeValue(space, 'Billing Company') ===
+                          'Bambora' &&
+                          getAttributeValue(space, 'PaySmart SubAccount') ===
+                            'YES'),
+                      bamboraCutoverDate: moment().format('YYYY-MM-DD'),
+                      bamboraCustomerId: bamboraCustomerIdRef,
+                      setPaymentHistory: ({ data }) => {
+                        this.setState(prev => {
+                          const pending = prev.pendingPaymentHistory - 1;
+                          return {
+                            pendingPaymentHistory: pending,
+                            migrationLog:
+                              pending > 0
+                                ? `Payment history loaded for ${memberName} (${
+                                    (data || []).length
+                                  } records)`
+                                : '',
+                          };
+                        });
+                      },
+                    });
+
+                    // Step 4: Update billing/archive fields
+                    memberItem.values['Archive Billing Id'] =
+                      memberItem.values['Billing Customer Id'];
+                    memberItem.values['Archive Billing Reference'] = bamboraRef;
+                    memberItem.values['Billing Customer Id'] = archiveBillingId;
+                    memberItem.values[
+                      'Billing Customer Reference'
+                    ] = customerBillingId;
+                    memberItem.values['Notes History'] = notesHistory;
+                    updateMember({
+                      id: memberItem.id,
+                      memberItem,
+                      values: {
+                        'Archive Billing Id':
+                          memberItem.values['Archive Billing Id'],
+                        'Archive Billing Reference':
+                          memberItem.values['Archive Billing Reference'],
+                        'Billing Customer Id':
+                          memberItem.values['Billing Customer Id'],
+                        'Billing Customer Reference': customerBillingId,
+                        'Notes History': notesHistory,
+                      },
+                      allMembers,
+                    });
+
+                    // Step 5: Record result with cancellation status
+                    this.setState(prev => ({
+                      migratedMembers: [
+                        ...prev.migratedMembers,
+                        {
+                          id: memberItem.id,
+                          name:
+                            (memberItem.values['First Name'] || '') +
+                            ' ' +
+                            (memberItem.values['Last Name'] || ''),
+                          bamboraReference: bamboraRef,
+                          stripeCustomerId: archiveBillingId,
+                          stripeReference: customerBillingId,
+                          migratedAt,
+                          bamboraCancelled: bamboraCancelled ? 'Yes' : 'No',
+                        },
+                      ],
+                      selected: { ...prev.selected, [id]: false },
+                      migratingIds: prev.migratingIds.filter(mid => mid !== id),
+                      cancelling:
+                        prev.migratingIds.filter(mid => mid !== id).length > 0
+                          ? prev.cancelling
+                          : false,
+                    }));
+                  })
+                  .catch(cancelError => {
+                    console.error(
+                      'Bambora cancellation error for member ' + id,
+                      cancelError,
+                    );
+
+                    // Still update billing fields even if cancellation call failed
+                    notesHistory.push({
+                      note:
+                        'Failed to cancel Bambora billing (network error). Customer Reference: ' +
+                        bamboraRef,
+                      contactDate: moment().format('YYYY-MM-DD HH:mm'),
+                      contactMethod: 'System',
+                      submitter: profile.displayName,
+                    });
+                    memberItem.values['Archive Billing Id'] =
+                      memberItem.values['Billing Customer Id'];
+                    memberItem.values['Archive Billing Reference'] = bamboraRef;
+                    memberItem.values['Billing Customer Id'] = archiveBillingId;
+                    memberItem.values[
+                      'Billing Customer Reference'
+                    ] = customerBillingId;
+                    memberItem.values['Notes History'] = notesHistory;
+                    updateMember({
+                      id: memberItem.id,
+                      memberItem,
+                      values: {
+                        'Archive Billing Id':
+                          memberItem.values['Archive Billing Id'],
+                        'Archive Billing Reference':
+                          memberItem.values['Archive Billing Reference'],
+                        'Billing Customer Id':
+                          memberItem.values['Billing Customer Id'],
+                        'Billing Customer Reference': customerBillingId,
+                        'Notes History': notesHistory,
+                      },
+                      allMembers,
+                    });
+
+                    this.setState(prev => ({
+                      migratedMembers: [
+                        ...prev.migratedMembers,
+                        {
+                          id: memberItem.id,
+                          name:
+                            (memberItem.values['First Name'] || '') +
+                            ' ' +
+                            (memberItem.values['Last Name'] || ''),
+                          bamboraReference: bamboraRef,
+                          stripeCustomerId: archiveBillingId,
+                          stripeReference: customerBillingId,
+                          migratedAt,
+                          bamboraCancelled: 'Error',
+                        },
+                      ],
+                      selected: { ...prev.selected, [id]: false },
+                      migratingIds: prev.migratingIds.filter(mid => mid !== id),
+                      cancelling:
+                        prev.migratingIds.filter(mid => mid !== id).length > 0
+                          ? prev.cancelling
+                          : false,
+                    }));
+                  });
+
+                // Migrate active bambora additional services
+                searchSubmissions({
+                  form: 'bambora-member-additional-services',
+                  datastore: true,
+                  search: new SubmissionSearch(true)
+                    .includes(['details', 'values'])
+                    .index('values[Member GUID]')
+                    .eq('values[Member GUID]', memberItem.id)
+                    .limit(1000)
+                    .build(),
+                })
+                  .then(({ submissions }) => {
+                    const activeServices = (submissions || []).filter(
+                      s => s.values['Status'] === 'Active',
+                    );
+                    if (activeServices.length > 0) {
+                      this.setState({
+                        migrationLog: `Migrating ${
+                          activeServices.length
+                        } additional service${
+                          activeServices.length !== 1 ? 's' : ''
+                        } for ${memberName}...`,
+                      });
+                    }
+                    activeServices.forEach(service => {
+                      const serviceFee = parseFloat(service.values['Fee']);
+
+                      const serviceArgs = {
+                        space: spaceSlug,
+                        billingService: 'Stripe',
+                        customerId: service.values['Member ID'],
+                        paymentMethod: 'Credit Card',
+                        firstName: service.values['Student First Name'],
+                        lastName: service.values['Student Last Name'],
+                        dob: service.values['DOB'],
+                        address: service.values['Address'],
+                        suburb: service.values['Suburb'],
+                        state: service.values['State'],
+                        postCode: service.values['Postcode'],
+                        email: service.values['Email'],
+                        mobile: service.values['Mobile'],
+                        billingPeriod:
+                          service.values['Display Payment Frequency'],
+                        payment: serviceFee,
+                        contractStartDate: moment(
+                          getNextBillingDate({
+                            values: {
+                              'Resume Date': null,
+                              'Billing Start Date':
+                                service.values['Start Date'],
+                              Status: 'Active',
+                              'Billing Payment Period':
+                                service.values['Display Payment Frequency'],
+                            },
+                          }),
+                          'DD MMM YYYY',
+                        ).format('YYYY-MM-DD'),
+                        contractEndDate: service.values['End Date'],
+                        cardToken: archiveBillingId,
+                        ref1: 'AdditionalService',
+                        ref2: service.values['Name'],
+                        currency,
+                      };
+
+                      this.setState({
+                        migrationLog: `Registering additional service "${service
+                          .values['Name'] ||
+                          service.values[
+                            'Member ID'
+                          ]}" with Stripe for ${memberName}...`,
+                      });
+                      axios
+                        .post(
+                          kineticBillingServerUrl + REGISTER_USER_URL,
+                          serviceArgs,
+                        )
+                        .then(serviceResult => {
+                          if (
+                            serviceResult.data.error &&
+                            serviceResult.data.error > 0
+                          ) {
+                            console.error(
+                              'Additional service registerUser failed:',
+                              serviceResult.data.errorMessage,
+                            );
+                            return;
+                          }
+
+                          // Record migration in member Notes History
+                          const serviceCustomerBillingId =
+                            serviceResult.data.data &&
+                            serviceResult.data.data.customerBillingId;
+                          notesHistory.push({
+                            note:
+                              'Migrated additional service "' +
+                              (service.values['Name'] ||
+                                service.values['Member ID']) +
+                              '" from Bambora to Stripe.' +
+                              (serviceCustomerBillingId
+                                ? ' New Stripe Reference: ' +
+                                  serviceCustomerBillingId
+                                : ''),
+                            contactDate: moment().format('YYYY-MM-DD HH:mm'),
+                            contactMethod: 'System',
+                            submitter: profile.displayName,
+                          });
+                          updateMember({
+                            id: memberItem.id,
+                            memberItem,
+                            values: { 'Notes History': notesHistory },
+                            allMembers,
+                          });
+
+                          // Create stripe-member-additional-services record
+                          createSubmission({
+                            datastore: true,
+                            formSlug: 'stripe-member-additional-services',
+                            values: {
+                              ...service.values,
+                              Status: 'Active',
+                              'Billing ID': serviceCustomerBillingId || '',
+                              'POS Profile ID': archiveBillingId || '',
+                            },
+                          }).catch(err =>
+                            console.error(
+                              'Failed to create stripe additional service record',
+                              err,
+                            ),
+                          );
+
+                          // Cancel Bambora service
+                          const bamboraServiceId = service.values['Billing ID'];
+                          if (bamboraServiceId) {
+                            this.setState({
+                              migrationLog: `Cancelling Bambora additional service "${service
+                                .values['Name'] ||
+                                service.values[
+                                  'Member ID'
+                                ]}" for ${memberName}...`,
+                            });
+                            axios
+                              .post(
+                                kineticBillingServerUrl +
+                                  '/customerStatusChange',
+                                {
+                                  customerId: bamboraServiceId,
+                                  billingService: 'Bambora',
+                                  space: spaceSlug,
+                                  newStatus: 'Inactive',
+                                },
+                              )
+                              .then(cancelServiceResult => {
+                                const serviceCancelled =
+                                  !cancelServiceResult.data.error ||
+                                  cancelServiceResult.data.error === 0;
+                                notesHistory.push({
+                                  note: serviceCancelled
+                                    ? 'Cancelled Bambora additional service "' +
+                                      (service.values['Name'] ||
+                                        service.values['Member ID']) +
+                                      '". Billing ID: ' +
+                                      bamboraServiceId
+                                    : 'Failed to cancel Bambora additional service "' +
+                                      (service.values['Name'] ||
+                                        service.values['Member ID']) +
+                                      '". Billing ID: ' +
+                                      bamboraServiceId +
+                                      '. Error: ' +
+                                      (cancelServiceResult.data.errorMessage ||
+                                        'Unknown error'),
+                                  contactDate: moment().format(
+                                    'YYYY-MM-DD HH:mm',
+                                  ),
+                                  contactMethod: 'System',
+                                  submitter: profile.displayName,
+                                });
+                                updateMember({
+                                  id: memberItem.id,
+                                  memberItem,
+                                  values: { 'Notes History': notesHistory },
+                                  allMembers,
+                                });
+                              })
+                              .catch(err => {
+                                console.error(
+                                  'Failed to cancel Bambora service',
+                                  err,
+                                );
+                                notesHistory.push({
+                                  note:
+                                    'Failed to cancel Bambora additional service "' +
+                                    (service.values['Name'] ||
+                                      service.values['Member ID']) +
+                                    '" (network error). Billing ID: ' +
+                                    bamboraServiceId,
+                                  contactDate: moment().format(
+                                    'YYYY-MM-DD HH:mm',
+                                  ),
+                                  contactMethod: 'System',
+                                  submitter: profile.displayName,
+                                });
+                                updateMember({
+                                  id: memberItem.id,
+                                  memberItem,
+                                  values: { 'Notes History': notesHistory },
+                                  allMembers,
+                                });
+                              });
+                          }
+
+                          // Set status to Migrated
+                          updateSubmission({
+                            id: service.id,
+                            values: { Status: 'Migrated' },
+                            datastore: true,
+                          }).catch(err =>
+                            console.error(
+                              'Failed to update additional service status',
+                              err,
+                            ),
+                          );
+                        })
+                        .catch(err =>
+                          console.error(
+                            'Additional service migration error',
+                            err,
+                          ),
+                        );
+                    });
+                  })
+                  .catch(err =>
+                    console.error('Failed to fetch additional services', err),
+                  );
+              }
+            })
+            .catch(error => {
+              console.error('Migration error for member ' + id, error);
+              addNotification(
+                'error',
+                'Migration failed for ' +
+                  memberItem.values['First Name'] +
+                  ' ' +
+                  memberItem.values['Last Name'],
+              );
+              this.setState(prev => {
+                const newIds = prev.migratingIds.filter(mid => mid !== id);
+                return {
+                  migratingIds: newIds,
+                  cancelling: newIds.length > 0 ? prev.cancelling : false,
+                };
+              });
+            });
+        }); // resolvePayment.then
+      }, index * RATE_LIMIT_DELAY_MS);
     });
   }
 
@@ -1137,6 +1297,18 @@ export class MigratingBamboraToStripe extends Component {
         this.props.location ? this.props.location.search : '',
       ).has('review');
     const allData = getTableData(allMembers);
+    const activeMigrationDone =
+      this.state.migratingIds.length === 0 &&
+      allData.filter(row => row.status === 'Active').length === 0;
+    const inactiveMigrationDone =
+      allMembers.filter(
+        m =>
+          m.values['Billing User'] === 'YES' &&
+          m.values['Status'] === 'Inactive' &&
+          m.values['Billing Customer Id'] &&
+          m.values['Billing Customer Id'] !== '' &&
+          m.values['Billing Customer Id'] !== 'Deleted',
+      ).length === 0;
     const data = nameFilter
       ? allData.filter(row =>
           row.name.toLowerCase().includes(nameFilter.toLowerCase()),
@@ -1164,29 +1336,40 @@ export class MigratingBamboraToStripe extends Component {
               </li>
 
               <li>
-                Step 2: All billing members ready to be promoted will be listed.
-                You can select all members, but it is recommended to migrate a
-                few members first to ensure everything is working as expected.
-                <br />
-                Note: If a member’s billing payment is due today, they cannot be
-                selected. You must migrate that member after the due date.
+                Step 2: All Active/Frozen billing members ready to be promoted
+                will be listed.
+                <ul>
+                  You can select all members, but it is recommended to migrate a
+                  few members first to ensure everything is working as expected.
+                  <br />
+                  Note: If a member’s billing payment is due today, they cannot
+                  be selected. You must migrate that member after the due date.
+                </ul>
               </li>
-
               <li>
-                Step 3: Once all members have been migrated, the "Set Migrated
-                Date" option will be enabled.
-                <br />
-                This should be clicked to mark the completion date, which will
-                also allow the system to store all Bambora transactions for
-                historical purposes.
+                Step 3: Once all Active/Frozen members have been migrated, you
+                now Migrate the Inactive Members.
+                <ul>
+                  This will ensure that the Billing history is still viewable
+                  after the migration.
+                </ul>
               </li>
-
               <li>
-                Step 4: Once you are satisfied with the migration, click the
+                Step 4: Once all Active/Inactive members have been migrated, the
+                "Set Migrated Date" option will be enabled.
+                <ul>
+                  This should be clicked to mark the completion date, which will
+                  also allow the system to store all Bambora transactions for
+                  historical purposes.
+                </ul>
+              </li>
+              <li>
+                Step 5: Once you are satisfied with the migration, click the
                 "Complete Migration" button.
-                <br />
-                Note: To review the migration history, a new button called "View
-                Migration Details" will appear on the Reports tab.
+                <ul>
+                  Note: To review the migration history, a new button called
+                  "View Migration Details" will appear on the Reports tab.
+                </ul>
               </li>
               <li>
                 Important, during the Migration process, no billing changes will
@@ -1413,6 +1596,14 @@ export class MigratingBamboraToStripe extends Component {
                   pageSize={data.length > 0 ? data.length : 2}
                   showPagination={false}
                   defaultSorted={[{ id: 'name', desc: false }]}
+                  getTrProps={(_state, rowInfo) => {
+                    if (rowInfo && rowInfo.original.status === 'Frozen') {
+                      return {
+                        style: { backgroundColor: '#dbeafe', color: '#1e40af' },
+                      };
+                    }
+                    return {};
+                  }}
                 />
                 <div
                   style={{
@@ -1451,7 +1642,7 @@ export class MigratingBamboraToStripe extends Component {
                         : `Migrating... (${
                             this.state.migratingIds.length
                           } remaining)`
-                      : `Migrate Members${
+                      : `Migrate Active Members${
                           selectedCount > 0 ? ` (${selectedCount})` : ''
                         }`}
                   </button>
@@ -1477,6 +1668,32 @@ export class MigratingBamboraToStripe extends Component {
                       migrations to complete.
                     </span>
                   )}
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    disabled={
+                      !activeMigrationDone ||
+                      this.state.migratingIds.length > 0 ||
+                      inactiveMigrationDone
+                    }
+                    onClick={async () => {
+                      if (
+                        await confirm(
+                          "Are you sure you want to archive all Inactive members' Bambora billing data?",
+                        )
+                      ) {
+                        this.migrateInactiveMembers();
+                      }
+                    }}
+                  >
+                    {this.state.migratingIds.length > 0 && activeMigrationDone
+                      ? `Archiving... (${
+                          this.state.migratingIds.length
+                        } remaining)`
+                      : inactiveMigrationDone
+                        ? 'Inactive Members Archived'
+                        : 'Migrate Inactive Members'}
+                  </button>
                 </div>
                 {this.state.migrationLog !== '' && (
                   <div
@@ -1517,7 +1734,11 @@ export class MigratingBamboraToStripe extends Component {
                 <button
                   type="button"
                   className="btn btn-primary"
-                  disabled={allData.length > 0 || this.state.archivingBambora}
+                  disabled={
+                    allData.length > 0 ||
+                    this.state.archivingBambora ||
+                    !inactiveMigrationDone
+                  }
                   onClick={async () => {
                     if (
                       await confirm(
@@ -1743,7 +1964,7 @@ export class MigratingBamboraToStripe extends Component {
                           'Original Value':
                             'bambora-payments-reschedule,bambora-change-payment-type,bambora-member-cancellation,bambora-member-registration,bambora-membership-freeze,bambora-resume-frozen-member,bambora-setup-biller-details,cash-member-registration,incident-report,kids-registration,mens-registration,pink-team-registration,member-self-sign-up,bambora-remote-registration,bambora-submit-billing-changes',
                           'New Value':
-                            'stripe-submit-billing-changes,stripe-member-registration,stripe-member-cancellation,stripe-change-payment-type,stripe-extend-membership-freeze,stripe-membership-freeze,stripe-payments-reschedule,stripe-resume-frozen-member,cash-member-registration,incident-report,kids-registration,mens-registration',
+                            'stripe-remote-registration,stripe-submit-billing-changes,stripe-member-registration,stripe-member-cancellation,stripe-change-payment-type,stripe-extend-membership-freeze,stripe-membership-freeze,stripe-payments-reschedule,stripe-resume-frozen-member,cash-member-registration,incident-report,kids-registration,mens-registration',
                           'Updated By': profile.username,
                         },
                       });
@@ -1786,6 +2007,21 @@ export class MigratingBamboraToStripe extends Component {
                         Migration History{' '}
                         {memberNotesLoaded ? `(${history.length})` : ''}
                       </h5>
+                      <input
+                        type="text"
+                        placeholder="Filter by name..."
+                        value={this.state.historyNameFilter}
+                        onChange={e =>
+                          this.setState({ historyNameFilter: e.target.value })
+                        }
+                        style={{
+                          padding: '4px 8px',
+                          fontSize: '13px',
+                          border: '1px solid #ccc',
+                          borderRadius: '4px',
+                          width: '200px',
+                        }}
+                      />
                       {!memberNotesLoaded && (
                         <span
                           className="text-muted"
@@ -1857,7 +2093,15 @@ export class MigratingBamboraToStripe extends Component {
                             Header: 'Stripe ID',
                           },
                         ]}
-                        data={history}
+                        data={history.filter(
+                          m =>
+                            !this.state.historyNameFilter ||
+                            m.name
+                              .toLowerCase()
+                              .includes(
+                                this.state.historyNameFilter.toLowerCase(),
+                              ),
+                        )}
                         className="-striped -highlight"
                         defaultPageSize={history.length}
                         pageSize={history.length}
@@ -1928,6 +2172,21 @@ export class MigratingBamboraToStripe extends Component {
                   <h5 style={{ margin: 0 }}>
                     Migrated Members ({this.state.migratedMembers.length})
                   </h5>
+                  <input
+                    type="text"
+                    placeholder="Filter by name..."
+                    value={this.state.nameFilter}
+                    onChange={e =>
+                      this.setState({ nameFilter: e.target.value })
+                    }
+                    style={{
+                      padding: '4px 8px',
+                      fontSize: '13px',
+                      border: '1px solid #ccc',
+                      borderRadius: '4px',
+                      width: '200px',
+                    }}
+                  />
                   <CSVLink
                     data={this.state.migratedMembers.map(m => ({
                       Name: m.name,
@@ -1991,7 +2250,13 @@ export class MigratingBamboraToStripe extends Component {
                       ),
                     },
                   ]}
-                  data={this.state.migratedMembers}
+                  data={this.state.migratedMembers.filter(
+                    m =>
+                      !this.state.nameFilter ||
+                      m.name
+                        .toLowerCase()
+                        .includes(this.state.nameFilter.toLowerCase()),
+                  )}
                   className="-striped -highlight"
                   defaultPageSize={this.state.migratedMembers.length}
                   pageSize={this.state.migratedMembers.length}

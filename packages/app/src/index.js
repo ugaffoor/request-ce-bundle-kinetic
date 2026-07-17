@@ -73,6 +73,11 @@ const Root = () => {
           name="viewport"
           content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
         />
+        <link
+          rel="icon"
+          href="https://us-gbfms-files.s3.us-east-2.amazonaws.com/favicon.ico"
+          type="image/x-icon"
+        />
       </Helmet>
 
       <Provider store={store}>
