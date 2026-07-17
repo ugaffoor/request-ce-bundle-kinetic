@@ -657,22 +657,56 @@ export function* fetchCurrentMemberAdditional(action) {
       action.payload.billingService === 'Bambora' ||
       action.payload.billingService === 'Stripe'
     ) {
-      const [memberAdditionalServices] = yield all([
-        call(searchSubmissions, {
-          get: true,
-          form:
-            action.payload.billingService.toLowerCase() +
-            '-member-additional-services',
-          search: MEMBER_ADDITIONAL_SERVICES,
-          datastore: true,
-        }),
-      ]);
-      for (let i = 0; i < memberAdditionalServices.submissions.length; i++) {
-        var len = additionalServices.length;
-        additionalServices[len] =
-          memberAdditionalServices.submissions[i].values;
-        additionalServices[len]['id'] =
-          memberAdditionalServices.submissions[i]['id'];
+      const appSettings = yield select(getAppSettings);
+      const space = appSettings.space;
+      const migrationAttr = (space.attributes || []).find(
+        a => a.name === 'Bambora Stripe Migration',
+      );
+      const migrationValue =
+        migrationAttr && migrationAttr.values && migrationAttr.values[0];
+      const fetchBoth =
+        migrationValue === 'YES' || migrationValue === 'Migrated';
+
+      if (fetchBoth) {
+        const [bamboraServices, stripeServices] = yield all([
+          call(searchSubmissions, {
+            get: true,
+            form: 'bambora-member-additional-services',
+            search: MEMBER_ADDITIONAL_SERVICES,
+            datastore: true,
+          }),
+          call(searchSubmissions, {
+            get: true,
+            form: 'stripe-member-additional-services',
+            search: MEMBER_ADDITIONAL_SERVICES,
+            datastore: true,
+          }),
+        ]);
+        [bamboraServices, stripeServices].forEach(result => {
+          for (let i = 0; i < result.submissions.length; i++) {
+            var len = additionalServices.length;
+            additionalServices[len] = result.submissions[i].values;
+            additionalServices[len]['id'] = result.submissions[i]['id'];
+          }
+        });
+      } else {
+        const [memberAdditionalServices] = yield all([
+          call(searchSubmissions, {
+            get: true,
+            form:
+              action.payload.billingService.toLowerCase() +
+              '-member-additional-services',
+            search: MEMBER_ADDITIONAL_SERVICES,
+            datastore: true,
+          }),
+        ]);
+        for (let i = 0; i < memberAdditionalServices.submissions.length; i++) {
+          var len = additionalServices.length;
+          additionalServices[len] =
+            memberAdditionalServices.submissions[i].values;
+          additionalServices[len]['id'] =
+            memberAdditionalServices.submissions[i]['id'];
+        }
       }
     }
 
@@ -1066,7 +1100,7 @@ export function* fetchBillingInfo(action) {
       var args = {
         customerId: action.payload.billingRef,
         space: appSettings.spaceSlug,
-        billingService: appSettings.billingCompany,
+        billingService: action.payload.billingService,
         useSubAccount: action.payload.useSubAccount,
       };
       axios
@@ -1435,7 +1469,10 @@ export function* fetchPaymentHistory(action) {
     const appSettings = yield select(getAppSettings);
     var args = {
       space: appSettings.spaceSlug,
-      billingService: appSettings.billingCompany,
+      billingService:
+        action.payload.billingService !== undefined
+          ? action.payload.billingService
+          : appSettings.billingCompany,
       paymentType: action.payload.paymentType,
       paymentMethod: action.payload.paymentMethod,
       paymentSource: action.payload.paymentSource,
@@ -1446,6 +1483,8 @@ export function* fetchPaymentHistory(action) {
       internalPaymentType: action.payload.internalPaymentType,
       timezone: action.payload.timezone,
       useSubAccount: action.payload.useSubAccount,
+      bamboraCutoverDate: action.payload.bamboraCutoverDate,
+      bamboraCustomerId: action.payload.bamboraCustomerId,
     };
     console.log('action:' + action.payload);
     axios
@@ -1459,7 +1498,10 @@ export function* fetchPaymentHistory(action) {
             'Get Payment History',
           );
         } else {
-          if (appSettings.billingCompany === 'Bambora') {
+          if (
+            appSettings.billingCompany === 'Bambora' ||
+            appSettings.billingCompany === 'Stripe'
+          ) {
             let paymentsData = result.data.data;
             args = {};
             args.space = appSettings.spaceSlug;
@@ -1598,12 +1640,43 @@ export function* fetchActiveAdditionalServices(action) {
         .limit(1000)
         .build();
 
-      const { submissions, serverError } = yield call(searchSubmissions, {
-        datastore: true,
-        form: action.payload.additionalServiceForm,
-        search,
-      });
-      yield put(actions.setAdditionalServices(submissions));
+      const appSettings = yield select(getAppSettings);
+      const space = appSettings.space;
+      const migrationAttr = (space.attributes || []).find(
+        a => a.name === 'Bambora Stripe Migration',
+      );
+      const migrationValue =
+        migrationAttr && migrationAttr.values && migrationAttr.values[0];
+      const fetchBoth =
+        migrationValue === 'YES' || migrationValue === 'Migrated';
+
+      if (fetchBoth) {
+        const [bamboraResult, stripeResult] = yield all([
+          call(searchSubmissions, {
+            datastore: true,
+            form: 'bambora-member-additional-services',
+            search,
+          }),
+          call(searchSubmissions, {
+            datastore: true,
+            form: 'stripe-member-additional-services',
+            search,
+          }),
+        ]);
+        yield put(
+          actions.setAdditionalServices([
+            ...(bamboraResult.submissions || []),
+            ...(stripeResult.submissions || []),
+          ]),
+        );
+      } else {
+        const { submissions } = yield call(searchSubmissions, {
+          datastore: true,
+          form: action.payload.additionalServiceForm,
+          search,
+        });
+        yield put(actions.setAdditionalServices(submissions));
+      }
     } else {
       yield put(actions.setAdditionalServices([]));
     }
@@ -2359,12 +2432,6 @@ export function* refundTransaction(action) {
             id: action.payload.transactionId,
             value: action.payload.refundAmount,
           });
-
-          if (action.payload.billingThis) {
-            setTimeout(() => {
-              action.payload.billingThis.getPaymentHistory();
-            }, 3000);
-          }
         }
       })
       .catch(error => {
@@ -2678,6 +2745,7 @@ export function* fetchCustomerRefunds(action) {
     args.dateFrom = action.payload.dateFrom;
     args.dateTo = action.payload.dateTo;
     args.timezoneOffset = action.payload.timezoneOffset;
+    args.bamboraCutoverDate = action.payload.bamboraCutoverDate;
     args.useSubAccount = action.payload.useSubAccount;
     args.timezone = action.payload.timezone;
 
@@ -2733,6 +2801,8 @@ export function* fetchBillingCustomers(action) {
             memberId: member.values['Member ID'],
             customerId: member.values['Billing Customer Id'],
             billingId: member.values['Billing Customer Reference'],
+            archiveBillingId: member.values['Archive Billing Id'],
+            archiveBillingReference: member.values['Archive Billing Reference'],
             status: member.values['Status'],
             firstName: member.values['First Name'],
             lastName: member.values['Last Name'],

@@ -104,6 +104,33 @@ export class ActiveOrphans extends React.Component {
     }
     return undefined;
   }
+  isBillingCleared(payment, members) {
+    if (
+      payment['paymentReference'] !== null &&
+      payment['paymentReference'] !== undefined &&
+      payment['paymentReference'].trim() !== ''
+    )
+      return undefined;
+    var idx = members.findIndex(member => {
+      let notes = member.values['Notes History'];
+      if (!notes) return false;
+      try {
+        if (typeof notes !== 'object') notes = JSON.parse(notes);
+      } catch (e) {
+        return false;
+      }
+      return notes.some(
+        n =>
+          n.note &&
+          n.note.includes(
+            'Billing Customer Reference: ' + payment['yourGeneralReference'],
+          ),
+      );
+    });
+
+    if (idx !== -1) return members[idx];
+    return undefined;
+  }
   getData(successfulPayments, members) {
     let orphanPayments = [];
     successfulPayments.forEach(payment => {
@@ -111,6 +138,7 @@ export class ActiveOrphans extends React.Component {
         !this.isRecurringPayment(payment, members) &&
         !this.isAdditionalServicePayment(payment, members) &&
         !this.isRegistrationFeePayment(payment, members) &&
+        !this.isBillingCleared(payment, members) &&
         payment.paymentStatus !== 'Refund' &&
         payment.paymentSource?.indexOf('POS') === -1 &&
         payment.paymentAmount !== 0

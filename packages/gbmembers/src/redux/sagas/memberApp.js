@@ -561,6 +561,10 @@ export function* updateReportPreferences(action) {
   var preference = profile.profileAttributes.find(
     item => item.name === 'Report Preferences',
   );
+  if (!preference) {
+    preference = { name: 'Report Preferences', values: [] };
+    profile.profileAttributes.push(preference);
+  }
   preference.values = reportPreferencesArr;
 
   let profileCopy = _.cloneDeep(profile);

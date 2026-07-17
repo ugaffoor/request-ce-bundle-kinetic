@@ -1,7 +1,7 @@
 body {
   font-family: 'AdiHaus DIN Regular' !important;
   background-color: #f7f7f7;
-  user-select: text;
+  user-select: text !important;
   background: unset !important;
 }
 
@@ -53,6 +53,13 @@ a {
   top: 30% !important;
   left: 35% !important;
 }
+.mergeLeadsDialog {
+  top: 25% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: 60% !important;
+  min-width: 500px !important;
+}
 .statusOptions label {
   margin: 15px;
 }
@@ -63,4 +70,8 @@ a {
     width: auto;
     float: left;
   }
+}
+.latestIncoming {
+  background-color: rgba(0, 0, 0, 0.03);
+  margin-top: 0px !important;
 }

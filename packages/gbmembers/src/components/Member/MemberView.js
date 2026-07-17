@@ -43,7 +43,7 @@ import { StripeActivateContainer } from './StripeActivate';
 import { EmailsReceived } from './EmailsReceived';
 import { MemberEmails } from './MemberEmails';
 import { MemberSMS } from './MemberSMS';
-import { MemberViewNotes } from './MemberViewNotes';
+import { MemberViewNotesContainer as MemberViewNotes } from './MemberViewNotes';
 import { MemberAdditionalServices } from './MemberAdditionalServices';
 import { MemberFiles } from './MemberFiles';
 import { MemberOrders } from './MemberOrders';
@@ -73,6 +73,7 @@ import {
   isBillingParent,
   isNewMember,
   getPhoneNumberFormat,
+  getJson,
 } from './MemberUtils';
 import css from 'css';
 import { ReactComponent as AttentionRequired } from '../../images/flag.svg';
@@ -909,6 +910,80 @@ class CoachCardToPrint extends React.Component {
   }
 }
 
+function getLatestIncomingAction(memberItem) {
+  var candidates = [];
+
+  const requestContent =
+    memberItem.leadRequestContent === undefined
+      ? memberItem.requestContent
+      : memberItem.leadRequestContent.concat(memberItem.requestContent);
+
+  getJson(requestContent).forEach(r => {
+    let dt = moment(r['Date'], 'YYYY-MM-DDTHH:mm:ssZ');
+    if (!dt.isValid()) dt = moment(r['Date'], 'YYYY-MM-DDTHH:mm:sssZ');
+    if (dt.isValid()) {
+      candidates.push({ date: dt, note: `Request submitted: ${r['Form']}` });
+    }
+  });
+
+  getJson(memberItem.emailsReceived).forEach(e => {
+    const dt = moment(e['Received Date'], 'DD-MM-YYYY HH:mm');
+    if (dt.isValid()) {
+      dt.add(moment().utcOffset() * 60, 'seconds');
+      candidates.push({ date: dt, note: `Email received: ${e['Subject']}` });
+    }
+  });
+
+  getJson(memberItem.smsContent).forEach(s => {
+    if (s.values && s.values['Direction'] === 'Inbound') {
+      const dt = moment(s['createdAt']);
+      if (dt.isValid()) {
+        let content = '';
+        try {
+          content = JSON.parse(s.values['Content'])['Content'] || '';
+        } catch (e) {}
+        candidates.push({ date: dt, note: `SMS received: ${content}` });
+      }
+    }
+  });
+
+  getJson(memberItem.emailsSent).forEach(e => {
+    if (e['error'] && e['errorDate']) {
+      const dt = moment(e['errorDate'], [
+        'DD-MM-YYYY HH:mm',
+        'YYYY-MM-DDTHH:mm:ssZ',
+        'YYYY-MM-DD HH:mm',
+      ]);
+      if (dt.isValid()) {
+        const errorDescriptions = {
+          hard_bounce:
+            "Permanent failure (invalid email, domain doesn't exist, etc.)",
+          blocked: 'Delivery blocked by recipient server or policy',
+          spam: 'Delivery blocked by recipient server or policy',
+          invalid: 'Invalid recipient email address',
+          unsubscribed: 'Recipient unsubscribed',
+          invalid_email: 'Invalid Email',
+        };
+        const errorDesc = errorDescriptions[e['error']] || e['error'];
+        candidates.push({
+          date: dt,
+          note: `Outgoing email failed: ${e['Subject']}\n${
+            e['error']
+          }: ${errorDesc}`,
+        });
+      }
+    }
+  });
+
+  if (candidates.length === 0) return undefined;
+  candidates = candidates.sort((a, b) => {
+    if (a.date.isBefore(b.date)) return 1;
+    if (a.date.isAfter(b.date)) return -1;
+    return 0;
+  });
+  return candidates[0];
+}
+
 export const MemberView = ({
   memberItem,
   allMembers,
@@ -984,10 +1059,16 @@ export const MemberView = ({
   contactDate,
   addNotification,
   setSystemError,
+  showNewReplyModal,
+  setShowNewReplyModal,
+  updateIsNewReplyReceived,
 }) => {
   const componentRef = React.createRef();
   const visitorCardComponentRef = React.createRef();
   const coachCardComponentRef = React.createRef();
+  const latestIncomingAction = currentMemberAdditionalLoading
+    ? undefined
+    : getLatestIncomingAction(memberItem);
   return initialLoad ? (
     <div className="loading">
       <ReactSpinner />
@@ -1021,6 +1102,32 @@ export const MemberView = ({
             </div>
           )}
         </div>
+        {showNewReplyModal &&
+          latestIncomingAction !== undefined && (
+            <ModalContainer onClose={() => setShowNewReplyModal(false)}>
+              <ModalDialog
+                onClose={() => setShowNewReplyModal(false)}
+                style={{ top: '30%', left: '35%' }}
+              >
+                <h4>New Reply Received</h4>
+                <p style={{ margin: '16px 0', whiteSpace: 'pre-line' }}>
+                  {latestIncomingAction.note}
+                </p>
+                <div style={{ textAlign: 'right' }}>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => {
+                      updateIsNewReplyReceived();
+                      setShowNewReplyModal(false);
+                    }}
+                  >
+                    Acknowledge
+                  </button>
+                </div>
+              </ModalDialog>
+            </ModalContainer>
+          )}
         <div className="viewContent">
           <div className="general">
             <div className="userDetails">
@@ -1885,7 +1992,12 @@ export const MemberView = ({
                 (memberItem.values['Billing Customer Reference'] === null ||
                   memberItem.values['Billing Customer Reference'] ===
                     undefined ||
-                  memberItem.values['Billing Customer Reference'] === '') && (
+                  memberItem.values['Billing Customer Reference'] === '') &&
+                (memberItem.values['Billing Customer Id'] !== undefined &&
+                  memberItem.values['Billing Customer Id'] !== null &&
+                  memberItem.values['Billing Customer Id'].startsWith(
+                    'cus_',
+                  )) && (
                   <div>
                     <button
                       onClick={e => setShowStripeActivate(true)}
@@ -2192,6 +2304,7 @@ export const MemberViewContainer = compose(
   withState('showAttendanceDialog', 'setShowAttendanceDialog', false),
   withState('showSMSModal', 'setShowSMSModal', false),
   withState('showChangeStatusModal', 'setShowChangeStatusModal', false),
+  withState('showNewReplyModal', 'setShowNewReplyModal', false),
   withState('showRegisterMemberModal', 'setShowRegisterMemberModal', false),
   withState('attendClasses', 'setAttendClasses', 0),
   withState('durationPeriod', 'setDurationPeriod', 0),
@@ -2518,6 +2631,38 @@ export const MemberViewContainer = compose(
       allMembers,
     }) => () => {
       let customerId = memberItem.values['Billing Customer Id'];
+
+      // Build note with all billing values before clearing
+      let notesHistory = memberItem.values['Notes History'];
+      if (!notesHistory) {
+        notesHistory = [];
+      } else if (typeof notesHistory !== 'object') {
+        notesHistory = JSON.parse(notesHistory);
+      }
+      const clearedValues = [
+        'Billing Customer Id: ' +
+          (memberItem.values['Billing Customer Id'] || ''),
+        'Billing Customer Reference: ' +
+          (memberItem.values['Billing Customer Reference'] || ''),
+        'Billing User: ' + (memberItem.values['Billing User'] || ''),
+        'Billing Payment Type: ' +
+          (memberItem.values['Billing Payment Type'] || ''),
+        'Billing Payment Period: ' +
+          (memberItem.values['Billing Payment Period'] || ''),
+        'Billing Parent Member: ' +
+          (memberItem.values['Billing Parent Member'] || ''),
+        'Payment Schedule: ' + (memberItem.values['Payment Schedule'] || ''),
+        'Membership Cost: ' + (memberItem.values['Membership Cost'] || ''),
+        'Payment: ' + (memberItem.values['Payment'] || ''),
+      ].join(', ');
+      notesHistory.push({
+        note: 'Billing information cleared. ' + clearedValues,
+        contactDate: moment().format(contact_date_format),
+        contactMethod: 'ClearBilling',
+        submitter: profile.displayName,
+      });
+      memberItem.values['Notes History'] = notesHistory;
+
       // Update memberItem values from billingInfo
       memberItem.values['Billing Customer Reference'] = null;
       memberItem.values['Billing Customer Id'] = null;
@@ -2557,6 +2702,7 @@ export const MemberViewContainer = compose(
         values['useSubAccount'] = null;
       }
       values['Billing Changes'] = changes;
+      values['Notes History'] = notesHistory;
       updateMember({
         id: memberItem.id,
         memberItem,
@@ -2831,9 +2977,10 @@ export const MemberViewContainer = compose(
       if (
         nextProps.memberItem.values &&
         nextProps.memberItem['id'] !== this.props.memberItem['id'] &&
-        nextProps.memberItem.values['Is New Reply Received'] === 'true'
+        nextProps.memberItem.values['Is New Reply Received'] === 'true' &&
+        !this.props.showNewReplyModal
       ) {
-        this.props.updateIsNewReplyReceived();
+        this.props.setShowNewReplyModal(true);
       }
       if (
         nextProps.memberItem.values !== undefined &&

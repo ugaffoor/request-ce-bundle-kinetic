@@ -37,14 +37,51 @@ const WallyEmptyMessage = ({ filter }) => {
   );
 };
 
+const MEMBERSHIP_OPTIONS = [
+  { label: 'Billing', teamName: 'Billing' },
+  { label: 'Data Admin', teamName: 'Role::Data Admin' },
+  { label: 'Program Manager', teamName: 'Role::Program Managers' },
+  { label: 'Coach', teamName: 'Role::Coach' },
+  { label: 'Kiosk', teamName: 'Role::Kiosk' },
+];
+
 const UsersListComponent = ({
   users,
   loading,
   match,
   handleChange,
   handleDownload,
+  nameFilter,
+  setNameFilter,
+  emailFilter,
+  setEmailFilter,
+  membershipFilters,
+  setMembershipFilters,
 }) => {
   const fileEl = React.createRef();
+
+  const toggleMembership = teamName => {
+    setMembershipFilters(
+      membershipFilters.includes(teamName)
+        ? membershipFilters.filter(t => t !== teamName)
+        : [...membershipFilters, teamName],
+    );
+  };
+
+  const filteredUsers = users.filter(user => {
+    const nameMatch =
+      !nameFilter ||
+      (user.displayName || '').toLowerCase().includes(nameFilter.toLowerCase());
+    const emailMatch =
+      !emailFilter ||
+      (user.email || '').toLowerCase().includes(emailFilter.toLowerCase());
+    const membershipMatch =
+      membershipFilters.length === 0 ||
+      membershipFilters.every(teamName =>
+        (user.memberships || []).some(m => m.team && m.team.name === teamName),
+      );
+    return nameMatch && emailMatch && membershipMatch;
+  });
 
   return (
     <div className="page-container page-container--settings-users">
@@ -91,12 +128,80 @@ const UsersListComponent = ({
           </div>
         </div>
 
+        <div
+          style={{
+            display: 'flex',
+            gap: '16px',
+            marginBottom: '16px',
+            alignItems: 'flex-start',
+            flexWrap: 'wrap',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <label style={{ marginBottom: 0, whiteSpace: 'nowrap' }}>
+              <I18n>Name</I18n>
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              value={nameFilter}
+              onChange={e => setNameFilter(e.target.value)}
+              placeholder="Filter by name"
+              style={{ width: '200px' }}
+            />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <label style={{ marginBottom: 0, whiteSpace: 'nowrap' }}>
+              <I18n>Email</I18n>
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              value={emailFilter}
+              onChange={e => setEmailFilter(e.target.value)}
+              placeholder="Filter by email"
+              style={{ width: '200px' }}
+            />
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              flexWrap: 'wrap',
+            }}
+          >
+            <label
+              style={{ marginBottom: 0, whiteSpace: 'nowrap', fontWeight: 500 }}
+            >
+              <I18n>Permissions</I18n>
+            </label>
+            <div className="btn-group" role="group">
+              {MEMBERSHIP_OPTIONS.map(({ label, teamName }) => {
+                const active = membershipFilters.includes(teamName);
+                return (
+                  <button
+                    key={teamName}
+                    type="button"
+                    className={`btn btn-sm ${
+                      active ? 'btn-primary' : 'btn-outline-secondary'
+                    }`}
+                    onClick={() => toggleMembership(teamName)}
+                  >
+                    <I18n>{label}</I18n>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
         <div>
           {loading ? (
             <h3>
               <I18n>Loading</I18n>
             </h3>
-          ) : users.length > 0 ? (
+          ) : filteredUsers.length > 0 ? (
             <div className="space-admin-wrapper">
               <table className="table table--settings table-sm">
                 <thead className="d-none d-md-table-header-group sortable">
@@ -115,7 +220,7 @@ const UsersListComponent = ({
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map(user => (
+                  {filteredUsers.map(user => (
                     <UsersListItem key={user.username} user={user} />
                   ))}
                 </tbody>
@@ -238,6 +343,9 @@ export const UsersList = compose(
     mapDispatchToProps,
   ),
   withState('data', 'setData', ''),
+  withState('nameFilter', 'setNameFilter', ''),
+  withState('emailFilter', 'setEmailFilter', ''),
+  withState('membershipFilters', 'setMembershipFilters', []),
   withHandlers({ handleChange, handleDownload }),
   lifecycle({
     UNSAFE_componentWillMount() {

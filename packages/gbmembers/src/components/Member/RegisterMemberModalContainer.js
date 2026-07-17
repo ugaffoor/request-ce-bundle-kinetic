@@ -39,26 +39,38 @@ export class RegisterMemberModal extends Component {
                 {Utils.getAttributeValue(
                   this.props.space,
                   'Billing Company',
-                ) === 'Bambora' && (
-                  <h2>
-                    <NavLink
-                      to={`/categories/bambora-billing/bambora-member-registration?id=${this.props.memberItem.id}`}
-                      kappSlug={'services'}
-                      className={'nav-link icon-wrapper device'}
-                      activeClassName="active"
-                      style={{ display: 'inline' }}
-                    >
-                      Register
-                    </NavLink>
-                  </h2>
-                )}
-                {Utils.getAttributeValue(
+                ) === 'Bambora' &&
+                  Utils.getAttributeValue(
+                    this.props.space,
+                    'Bambora Stripe Migration',
+                  ) !== 'YES' && (
+                    <h2>
+                      <NavLink
+                        to={`/categories/bambora-billing/bambora-member-registration?id=${
+                          this.props.memberItem.id
+                        }`}
+                        kappSlug={'services'}
+                        className={'nav-link icon-wrapper device'}
+                        activeClassName="active"
+                        style={{ display: 'inline' }}
+                      >
+                        Register
+                      </NavLink>
+                    </h2>
+                  )}
+                {(Utils.getAttributeValue(
                   this.props.space,
                   'Billing Company',
-                ) === 'Stripe' && (
+                ) === 'Stripe' ||
+                  Utils.getAttributeValue(
+                    this.props.space,
+                    'Bambora Stripe Migration',
+                  ) === 'YES') && (
                   <h2>
                     <NavLink
-                      to={`/categories/stripe-billing/stripe-member-registration?id=${this.props.memberItem.id}`}
+                      to={`/categories/stripe-billing/stripe-member-registration?id=${
+                        this.props.memberItem.id
+                      }`}
                       kappSlug={'services'}
                       className={'nav-link icon-wrapper device'}
                       activeClassName="active"
@@ -74,7 +86,9 @@ export class RegisterMemberModal extends Component {
                 ) === 'PaySmart' && (
                   <h2>
                     <NavLink
-                      to={`/categories/billing-registration/paysmart-member-registration?id=${this.props.memberItem.id}`}
+                      to={`/categories/billing-registration/paysmart-member-registration?id=${
+                        this.props.memberItem.id
+                      }`}
                       kappSlug={'services'}
                       className={'nav-link icon-wrapper device'}
                       activeClassName="active"
@@ -98,8 +112,8 @@ export class RegisterMemberModal extends Component {
                   </NavLink>
                 </h2>
                 <span>
-                  Set the program, price and start date, <br></br>then send link
-                  to Member to complete the Registration via SMS or Email
+                  Set the program, price and start date, <br />then send link to
+                  Member to complete the Registration via SMS or Email
                 </span>
               </span>
             </div>
@@ -110,5 +124,10 @@ export class RegisterMemberModal extends Component {
   }
 }
 
-const enhance = compose(connect(mapStateToProps, mapDispatchToProps));
+const enhance = compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
+);
 export const RegisterMemberModalContainer = enhance(RegisterMemberModal);

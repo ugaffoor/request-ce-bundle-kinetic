@@ -19,7 +19,7 @@ class InputDialogWithAmount extends Component {
     this.originalAmount = this.props.amount;
 
     this.state = {
-      changeReason: this.props.changeReason,
+      changeReason: '',
       amount: this.props.amount,
       isShowingModal: false,
       drawerWidth: '0px',
@@ -91,8 +91,14 @@ class InputDialogWithAmount extends Component {
     const { show, proceed, dismiss, cancel, message } = this.props;
     return (
       <div>
+        <style>{`
+          .changeReason textarea::placeholder { color: #aaa !important; opacity: 1 !important; }
+          .changeReason textarea::-webkit-input-placeholder { color: #aaa !important; }
+          .changeReason textarea::-moz-placeholder { color: #aaa !important; opacity: 1 !important; }
+          .changeReason textarea:-ms-input-placeholder { color: #aaa !important; }
+        `}</style>
         {
-          <ModalContainer onClose={dismiss}>
+          <ModalContainer onClose={dismiss} zIndex={2000}>
             <ModalDialog
               className="changeReason"
               style={{ left: this.state.drawerWidth }}
@@ -113,7 +119,7 @@ class InputDialogWithAmount extends Component {
                       className="form-control"
                       value={this.state.amount}
                       onChange={this.handleInputChange}
-                    ></input>
+                    />
                   </div>
                 </div>
                 <div className="form-group row">
@@ -131,7 +137,10 @@ class InputDialogWithAmount extends Component {
                       rows="5"
                       onChange={this.handleInputChange}
                       value={this.state.changeReason}
-                      placeholder="Please enter a reason for this billing change. Not entering a valid reason could cause you pain later."
+                      placeholder={
+                        this.props.placeholder ||
+                        'Please enter a reason for this billing change. Not entering a valid reason could cause you pain later.'
+                      }
                     />
                   </div>
                 </div>

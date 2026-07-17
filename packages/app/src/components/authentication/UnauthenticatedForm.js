@@ -1,10 +1,12 @@
 import React, { Fragment } from 'react';
-import { CoreForm } from '@kineticdata/react';
+import { CoreForm, bundle, I18n } from '@kineticdata/react';
 import { connect } from 'react-redux';
 import { push } from 'connected-react-router';
-import { compose, withHandlers, withState } from 'recompose';
+import { compose, lifecycle, withHandlers, withState } from 'recompose';
 import { parse } from 'query-string';
-import { I18n } from '@kineticdata/react';
+import axios from 'axios';
+import { importLocale } from 'common';
+import { actions as configActions } from '../../redux/modules/config';
 
 import { PageTitle } from 'common';
 
@@ -113,8 +115,22 @@ export const handleLoaded = props => form => {
 export const UnauthenticatedForm = compose(
   connect(
     mapStateToProps,
-    { push },
+    { push, setLocale: configActions.setLocale },
   ),
   withState('formName', 'setFormName', ''),
+  lifecycle({
+    componentDidMount() {
+      axios
+        .get(`${bundle.apiLocation()}/space?include=details`)
+        .then(({ data }) => {
+          const locale = data.space && data.space.defaultLocale;
+          if (locale) {
+            importLocale(locale);
+            this.props.setLocale(locale);
+          }
+        })
+        .catch(() => {});
+    },
+  }),
   withHandlers({ handleCreated, handleLoaded }),
 )(UnauthenticatedFormComponent);

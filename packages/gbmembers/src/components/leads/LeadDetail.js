@@ -14,7 +14,6 @@ import { KappNavLink as NavLink } from 'common';
 import $ from 'jquery';
 import {
   contact_date_format,
-  reminder_date_format,
   getTimezone,
   getLocalePreference,
   getReminderDate,
@@ -48,9 +47,11 @@ import 'react-datetime/css/react-datetime.css';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as campaignActions } from '../../redux/modules/campaigns';
 import { actions as settingsActions } from '../../redux/modules/settingsDatastore';
+import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
 import { CallScriptModalContainer } from '../Member/CallScriptModalContainer';
 import { SMSModalContainer } from '../Member/SMSModalContainer';
 import { SetStatusModalContainer } from './SetStatusModalContainer';
+import { MergeLeadsModal } from './MergeLeadsModal';
 import { EmailsReceived } from '../Member/EmailsReceived';
 import { Requests } from '../Member/Requests';
 import { actions as errorActions } from '../../redux/modules/errors';
@@ -70,6 +71,7 @@ const mapStateToProps = state => ({
   profile: state.member.kinops.profile,
   pathname: state.router.location.pathname,
   allLeads: state.member.leads.allLeads,
+  leadsByDate: state.member.leads.leadsByDate,
   leadItem: state.member.leads.currentLead,
   campaignItem: state.member.campaigns.emailCampaignItem,
   campaignLoading: state.member.campaigns.emailCampaignLoading,
@@ -87,6 +89,7 @@ const mapDispatchToProps = {
   fetchLead: actions.fetchCurrentLead,
   fetchCampaign: campaignActions.fetchEmailCampaign,
   updateLead: actions.updateLead,
+  deleteLead: actions.deleteLead,
   fetchLeads: actions.fetchLeads,
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
@@ -145,6 +148,7 @@ function convertContactType(type) {
       label = 'Class No Show';
       break;
     default:
+      return label;
   }
   return label;
 }
@@ -188,6 +192,84 @@ function getLatestHistory(history) {
 
   return sortedHistory[0];
 }
+
+function getLatestIncomingAction(leadItem) {
+  const candidates = [];
+
+  getJson(leadItem.requestContent).forEach(r => {
+    let dt = moment(r['Date'], 'YYYY-MM-DDTHH:mm:ssZ');
+    if (!dt.isValid()) dt = moment(r['Date'], 'YYYY-MM-DDTHH:mm:sssZ');
+    if (dt.isValid()) {
+      candidates.push({ date: dt, note: `Request submitted: ${r['Form']}` });
+    }
+  });
+
+  getJson(leadItem.emailsReceived).forEach(e => {
+    var dt = moment(e['Received Date'], 'DD-MM-YYYY HH:mm');
+    if (dt.isValid()) {
+      dt.add(moment().utcOffset() * 60, 'seconds');
+      candidates.push({ date: dt, note: `Email received: ${e['Subject']}` });
+    }
+  });
+
+  getJson(leadItem.smsContent).forEach(s => {
+    if (s.values && s.values['Direction'] === 'Inbound') {
+      const dt = moment(s['createdAt']);
+      if (dt.isValid()) {
+        let content = '';
+        try {
+          content = JSON.parse(s.values['Content'])['Content'] || '';
+        } catch (e) {}
+        candidates.push({ date: dt, note: `SMS received: ${content}` });
+      }
+    }
+  });
+
+  /*  getJson(leadItem.values['History'])
+    .filter(h => h['contactMethod'] === 'intro_class')
+    .forEach(h => {
+      const dt = moment(h['contactDate'], contact_date_format);
+      if (dt.isValid()) {
+        candidates.push({ date: dt, note: 'Intro Class created' });
+      }
+    }); */
+
+  getJson(leadItem.emailsSent).forEach(e => {
+    if (e['error'] && e['errorDate']) {
+      const dt = moment(e['errorDate'], [
+        'DD-MM-YYYY HH:mm',
+        'YYYY-MM-DDTHH:mm:ssZ',
+        'YYYY-MM-DD HH:mm',
+      ]);
+      if (dt.isValid()) {
+        const errorDescriptions = {
+          hard_bounce:
+            "Permanent failure (invalid email, domain doesn't exist, etc.)",
+          blocked: 'Delivery blocked by recipient server or policy',
+          spam: 'Delivery blocked by recipient server or policy',
+          invalid: 'Invalid recipient email address',
+          unsubscribed: 'Recipient unsubscribed',
+          invalid_email: 'Invalid Email',
+        };
+        const errorDesc = errorDescriptions[e['error']] || e['error'];
+        candidates.push({
+          date: dt,
+          note: `Outgoing email failed: ${e['Subject']}\n${
+            e['error']
+          }: ${errorDesc}`,
+        });
+      }
+    }
+  });
+
+  if (candidates.length === 0) return undefined;
+
+  return candidates.sort((a, b) => {
+    if (a.date.isBefore(b.date)) return 1;
+    if (a.date.isAfter(b.date)) return -1;
+    return 0;
+  })[0];
+}
 const util = require('util');
 export class LeadDetail extends Component {
   constructor(props) {
@@ -215,6 +297,7 @@ export class LeadDetail extends Component {
     let note = '';
     let contactDate = moment().format(contact_date_format);
     let latestHistory = getLatestHistory(this.props.leadItem.values['History']);
+    let latestIncomingAction = getLatestIncomingAction(this.props.leadItem);
     this.handleDateChange = this.handleDateChange.bind(this);
     this.formatDeleteCell = this.formatDeleteCell.bind(this);
 
@@ -228,9 +311,11 @@ export class LeadDetail extends Component {
       note,
       contactDate,
       latestHistory,
+      latestIncomingAction,
       data,
       columns,
       leadItem: this.props.leadItem,
+      mergedLeadIds: [],
       showFollowUpModal: false,
       followUpReminderDateString: 'Tomorrow',
       followUpReminderDate:
@@ -243,6 +328,7 @@ export class LeadDetail extends Component {
   UNSAFE_componentWillReceiveProps(nextProps) {
     this.setState({
       latestHistory: getLatestHistory(nextProps.leadItem.values['History']),
+      latestIncomingAction: getLatestIncomingAction(nextProps.leadItem),
       data: this.getData(nextProps.leadItem),
       columns: this.getColumns(),
     });
@@ -440,7 +526,7 @@ export class LeadDetail extends Component {
         </span>
       );
     } else {
-      return <span className="notesCell" />;
+      return <span className="notesCell">{row.original.contactMethod}</span>;
     }
   }
 
@@ -710,6 +796,24 @@ export class LeadDetail extends Component {
   }
 
   render() {
+    const waiverForms = [
+      'Adults Registration',
+      'Kids Registration',
+      'Mens Registration',
+      'Pink Team Registration',
+    ];
+    const waiverSubmission = getJson(this.props.leadItem.requestContent).find(
+      r => waiverForms.includes(r.Form),
+    );
+    const showWaiver = this.props.leadItem.values['Status'] !== 'Converted';
+    const duplicateLeads = (this.props.allLeads || []).filter(
+      l =>
+        l.id !== this.props.leadItem.id &&
+        !this.state.mergedLeadIds.includes(l.id) &&
+        (l.values['Lead State'] || '') !== 'Converted' &&
+        l.values['First Name'] === this.props.leadItem.values['First Name'] &&
+        l.values['Last Name'] === this.props.leadItem.values['Last Name'],
+    );
     return (
       <div
         className={
@@ -721,14 +825,37 @@ export class LeadDetail extends Component {
       >
         <StatusMessagesContainer />
         <div className="card">
-          <div className="card-header card-subtitle mb-2 text-muted">
-            {this.state.latestHistory !== undefined
-              ? this.state.latestHistory.note
-              : ''}
-          </div>
+          {this.props.showNewReplyModal &&
+            this.state.latestIncomingAction !== undefined && (
+              <ModalContainer
+                onClose={() => this.props.setShowNewReplyModal(false)}
+              >
+                <ModalDialog
+                  onClose={() => this.props.setShowNewReplyModal(false)}
+                  style={{ top: '30%', left: '35%' }}
+                >
+                  <h4>New Reply Received</h4>
+                  <p style={{ margin: '16px 0', whiteSpace: 'pre-line' }}>
+                    {this.state.latestIncomingAction.note}
+                  </p>
+                  <div style={{ textAlign: 'right' }}>
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={() => {
+                        this.props.updateIsNewReplyReceived();
+                        this.props.setShowNewReplyModal(false);
+                      }}
+                    >
+                      Acknowledge
+                    </button>
+                  </div>
+                </ModalDialog>
+              </ModalContainer>
+            )}
           <div className="card-body" style={{ padding: '20px' }}>
             <div className="row">
-              <div className="col-md-6 text-center">
+              <div className="col-md-8 text-center">
                 <span className="float-md-left">
                   <div
                     style={{
@@ -858,9 +985,37 @@ export class LeadDetail extends Component {
                       leadStatusValues={this.props.leadStatusValues}
                     />
                   )}
+                  {duplicateLeads.length > 0 && (
+                    <a
+                      onClick={() => this.props.setShowMergeLeadsModal(true)}
+                      className="btn btn-warning"
+                      style={{ marginLeft: '10px', color: 'white' }}
+                    >
+                      Merge Leads
+                    </a>
+                  )}
+                  {this.props.showMergeLeadsModal && (
+                    <MergeLeadsModal
+                      currentLead={this.props.leadItem}
+                      duplicateLeads={duplicateLeads}
+                      updateLead={this.props.updateLead}
+                      deleteLead={this.props.deleteLead}
+                      allLeads={this.props.allLeads}
+                      leadsByDate={this.props.leadsByDate}
+                      profile={this.props.profile}
+                      addNotification={this.props.addNotification}
+                      onClose={() => this.props.setShowMergeLeadsModal(false)}
+                      onMergeComplete={id => {
+                        this.setState(s => ({
+                          mergedLeadIds: [...s.mergedLeadIds, id],
+                        }));
+                        this.props.fetchLeads();
+                      }}
+                    />
+                  )}
                 </span>
               </div>
-              <div className="col-md-6 text-center followup">
+              <div className="col-md-4 text-center followup">
                 <span className="float-md-right">
                   <div
                     type="button"
@@ -1211,6 +1366,27 @@ export class LeadDetail extends Component {
                   />
                 )}
               </li>
+              {showWaiver && (
+                <li className="viewWaiver">
+                  {waiverSubmission ? (
+                    <a
+                      href={waiverSubmission.url}
+                      className="btn btn-primary"
+                      style={{ marginLeft: '10px', color: 'white' }}
+                    >
+                      View Waiver
+                    </a>
+                  ) : (
+                    <a
+                      onClick={() => this.props.setShowWaiverModal(true)}
+                      className="btn btn-primary"
+                      style={{ marginLeft: '10px', color: 'white' }}
+                    >
+                      Waiver
+                    </a>
+                  )}
+                </li>
+              )}
             </ul>
           </div>
           <div className="card-body">
@@ -1409,6 +1585,100 @@ export class LeadDetail extends Component {
             refundPOSTransactionID={this.props.refundPOSTransactionID}
           />
         </div>
+        {this.props.showWaiverModal && (
+          <div
+            className="modal"
+            style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}
+            onClick={() => this.props.setShowWaiverModal(false)}
+          >
+            <div
+              className="modal-dialog"
+              role="document"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Waiver</h5>
+                  <button
+                    type="button"
+                    className="close"
+                    onClick={() => this.props.setShowWaiverModal(false)}
+                  >
+                    <span>&times;</span>
+                  </button>
+                </div>
+                <div className="modal-body">
+                  {getAttributeValue(
+                    this.props.space,
+                    'School Country Code',
+                  ) === 'US' ||
+                  getAttributeValue(this.props.space, 'School Country Code') ===
+                    'CAD' ? (
+                    <ul>
+                      <li>
+                        <a
+                          href={`/#/kapps/services/categories/registrations/mens-registration?id=${
+                            this.props.leadItem.id
+                          }`}
+                        >
+                          Adults Waiver
+                        </a>
+                      </li>
+                      <li>
+                        <a
+                          href={`/#/kapps/services/categories/registrations/kids-registration?id=${
+                            this.props.leadItem.id
+                          }`}
+                        >
+                          Kids Waiver
+                        </a>
+                      </li>
+                    </ul>
+                  ) : (
+                    <ul>
+                      <li>
+                        <a
+                          href={`/#/kapps/services/categories/registrations/mens-registration?id=${
+                            this.props.leadItem.id
+                          }`}
+                        >
+                          Mens Waiver
+                        </a>
+                      </li>
+                      <li>
+                        <a
+                          href={`/#/kapps/services/categories/registrations/pink-team-registration?id=${
+                            this.props.leadItem.id
+                          }`}
+                        >
+                          Pink Team Waiver
+                        </a>
+                      </li>
+                      <li>
+                        <a
+                          href={`/#/kapps/services/categories/registrations/kids-registration?id=${
+                            this.props.leadItem.id
+                          }`}
+                        >
+                          Kids Waiver
+                        </a>
+                      </li>
+                    </ul>
+                  )}
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => this.props.setShowWaiverModal(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         {this.state.showFollowUpModal && (
           <div
             className="modal"
@@ -1541,7 +1811,9 @@ export const LeadDetailView = ({
   profile,
   leadItem,
   allLeads,
+  leadsByDate,
   updateLead,
+  deleteLead,
   saveLeadNote,
   saveRemoveLeadNote,
   saveCancelTrialNote,
@@ -1553,10 +1825,17 @@ export const LeadDetailView = ({
   currentLeadLoading,
   setShowCallScriptModal,
   showCallScriptModal,
+  setShowWaiverModal,
+  showWaiverModal,
   setShowSMSModal,
   setShowSetStatusModal,
   showSMSModal,
   showSetStatusModal,
+  showMergeLeadsModal,
+  setShowMergeLeadsModal,
+  showNewReplyModal,
+  setShowNewReplyModal,
+  updateIsNewReplyReceived,
   isSmsEnabled,
   leadStatusValues,
   updateAttentionRequired,
@@ -1569,6 +1848,8 @@ export const LeadDetailView = ({
   refundPOSPayment,
   refundPOSTransactionInProgress,
   refundPOSTransactionID,
+  addNotification,
+  fetchLeads,
 }) =>
   currentLeadLoading || !leadItem || !leadItem.values ? (
     <div />
@@ -1577,7 +1858,10 @@ export const LeadDetailView = ({
       profile={profile}
       leadItem={leadItem}
       allLeads={allLeads}
+      leadsByDate={leadsByDate}
       updateLead={updateLead}
+      deleteLead={deleteLead}
+      fetchLeads={fetchLeads}
       saveLeadNote={saveLeadNote}
       saveRemoveLeadNote={saveRemoveLeadNote}
       saveCancelTrialNote={saveCancelTrialNote}
@@ -1588,10 +1872,17 @@ export const LeadDetailView = ({
       campaignLoading={campaignLoading}
       setShowCallScriptModal={setShowCallScriptModal}
       showCallScriptModal={showCallScriptModal}
+      setShowWaiverModal={setShowWaiverModal}
+      showWaiverModal={showWaiverModal}
       setShowSMSModal={setShowSMSModal}
       showSMSModal={showSMSModal}
       setShowSetStatusModal={setShowSetStatusModal}
       showSetStatusModal={showSetStatusModal}
+      showMergeLeadsModal={showMergeLeadsModal}
+      setShowMergeLeadsModal={setShowMergeLeadsModal}
+      showNewReplyModal={showNewReplyModal}
+      setShowNewReplyModal={setShowNewReplyModal}
+      updateIsNewReplyReceived={updateIsNewReplyReceived}
       isSmsEnabled={isSmsEnabled}
       leadStatusValues={leadStatusValues}
       space={space}
@@ -1604,6 +1895,7 @@ export const LeadDetailView = ({
       refundPOSPayment={refundPOSPayment}
       refundPOSTransactionInProgress={refundPOSTransactionInProgress}
       refundPOSTransactionID={refundPOSTransactionID}
+      addNotification={addNotification}
     />
   );
 
@@ -1617,8 +1909,11 @@ export const LeadDetailContainer = compose(
   }),
   withState('isDirty', 'setIsDirty', false),
   withState('showCallScriptModal', 'setShowCallScriptModal', false),
+  withState('showWaiverModal', 'setShowWaiverModal', false),
   withState('showSMSModal', 'setShowSMSModal', false),
   withState('showSetStatusModal', 'setShowSetStatusModal', false),
+  withState('showMergeLeadsModal', 'setShowMergeLeadsModal', false),
+  withState('showNewReplyModal', 'setShowNewReplyModal', false),
   withHandlers({
     saveCancelTrialNote: ({
       profile,
@@ -2053,9 +2348,10 @@ export const LeadDetailContainer = compose(
       if (
         nextProps.leadItem.values &&
         nextProps.leadItem['id'] !== this.props.leadItem['id'] &&
-        nextProps.leadItem.values['Is New Reply Received'] === 'true'
+        nextProps.leadItem.values['Is New Reply Received'] === 'true' &&
+        !this.props.showNewReplyModal
       ) {
-        this.props.updateIsNewReplyReceived();
+        this.props.setShowNewReplyModal(true);
       }
     },
     componentDidMount() {
@@ -2105,6 +2401,34 @@ class LeadEmails extends Component {
         style: { whiteSpace: 'unset' },
       },
       { accessor: 'Sent Date Formatted', Header: 'Sent Date' },
+      {
+        id: 'error',
+        Header: '',
+        width: 40,
+        Cell: ({ original, index }) =>
+          original['error'] && original['errorDate'] ? (
+            <span
+              data-tip={`${original['error']} — ${original['errorDate']}`}
+              data-for={`leadEmail-error-${index}`}
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                cursor: 'help',
+                color: '#c0392b',
+                fontSize: '18px',
+                lineHeight: 1,
+              }}
+            >
+              ⚠
+              <ReactTooltip
+                id={`leadEmail-error-${index}`}
+                place="left"
+                effect="solid"
+                type="error"
+              />
+            </span>
+          ) : null,
+      },
     ];
   }
 

@@ -227,3 +227,8 @@ input.searchInput {
   top: 6px;
   z-index: 1000;
 }
+.paymentHistoryTable {
+  .refundValue {
+    text-decoration: line-through;
+  }
+}

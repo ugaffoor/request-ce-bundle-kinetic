@@ -5,5 +5,5 @@ import $ from 'jquery';
 export const confirmWithAmount = createConfirmation(
   InputDialogWithAmount,
   100,
-  $('#mainContent')[0],
+  document.body,
 );

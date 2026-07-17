@@ -6,6 +6,7 @@ import Select from 'react-select';
 import { SignatureCanvasWrapper } from '../components/SignatureCanvasWrapper';
 import { QuillEditorWrapper } from '../components/QuillEditorWrapper';
 import { DatepickerWrapper } from '../components/DatepickerWrapper';
+import { OpenWidgetWrapper } from '../components/OpenWidgetWrapper';
 
 /**
  * IMPORTANT:
@@ -110,5 +111,14 @@ bundle.config.widgets = {
       />,
       element,
     );
+  },
+  openWidget: ({ element, organizationId }) => {
+    ReactDOM.render(
+      <OpenWidgetWrapper organizationId={organizationId} />,
+      element,
+    );
+  },
+  openWidgetRemove: ({ element }) => {
+    ReactDOM.unmountComponentAtNode(element);
   },
 };

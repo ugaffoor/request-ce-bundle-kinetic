@@ -418,6 +418,10 @@ export class MemberFinancialReport extends Component {
         this.props.profile.timezone,
         this.props.space.defaultTimezone,
       ),
+      bamboraCutoverDate: getAttributeValue(
+        this.props.space,
+        'Bambora Cutoff Date',
+      ),
       useSubAccount:
         getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
           ? true
@@ -439,6 +443,10 @@ export class MemberFinancialReport extends Component {
       timezone: getTimezone(
         this.props.profile.timezone,
         this.props.space.defaultTimezone,
+      ),
+      bamboraCutoverDate: getAttributeValue(
+        this.props.space,
+        'Bambora Cutoff Date',
       ),
       useSubAccount:
         getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
@@ -462,9 +470,8 @@ export class MemberFinancialReport extends Component {
     */
     this.props.fetchActiveAdditionalServices({
       additionalServiceForm:
-        getAttributeValue(this.props.space, 'Billing Company') === 'Bambora'
-          ? 'bambora-member-additional-services'
-          : '',
+        getAttributeValue(this.props.space, 'Billing Company').toLowerCase() +
+        '-member-additional-services',
     });
 
     this.props.fetchCustomerRefunds({
@@ -480,6 +487,10 @@ export class MemberFinancialReport extends Component {
       timezone: getTimezone(
         this.props.profile.timezone,
         this.props.space.defaultTimezone,
+      ),
+      bamboraCutoverDate: getAttributeValue(
+        this.props.space,
+        'Bambora Cutoff Date',
       ),
       useSubAccount:
         getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
@@ -530,17 +541,25 @@ export class MemberFinancialReport extends Component {
   }
   isRecurringPayment(payment, members) {
     if (
-      payment['paymentReference'] !== null &&
-      payment['paymentReference'] !== undefined &&
-      payment['paymentReference'].trim() !== ''
+      (payment['paymentReference'] !== null &&
+        payment['paymentReference'] !== undefined &&
+        payment['paymentReference'].trim() !== '') ||
+      (payment['paymentSource'] != null &&
+        payment['paymentSource'].endsWith(' POS'))
     )
       return undefined;
     var idx = members.findIndex(
       member =>
-        member.values['Billing Customer Id'] !== undefined &&
-        member.values['Billing Customer Id'] !== null &&
-        member.values['Billing Customer Id'] !== '' &&
-        member.values['Billing Customer Id'] === payment['yourSystemReference'],
+        (member.values['Billing Customer Id'] !== undefined &&
+          member.values['Billing Customer Id'] !== null &&
+          member.values['Billing Customer Id'] !== '' &&
+          member.values['Billing Customer Id'] ===
+            payment['yourSystemReference']) ||
+        (member.values['Archive Billing Id'] !== undefined &&
+          member.values['Archive Billing Id'] !== null &&
+          member.values['Archive Billing Id'] !== '' &&
+          member.values['Archive Billing Id'] ===
+            payment['yourSystemReference']),
     );
 
     if (idx !== -1) return members[idx];
@@ -556,7 +575,9 @@ export class MemberFinancialReport extends Component {
     var idx = members.findIndex(
       member =>
         member.values['Member ID'] === payment['yourSystemReference'] ||
-        member.values['Billing Customer Id'] === payment['yourSystemReference'],
+        member.values['Billing Customer Id'] ===
+          payment['yourSystemReference'] ||
+        member.values['Archive Billing Id'] === payment['yourSystemReference'],
     );
 
     if (idx !== -1) return members[idx];
@@ -571,6 +592,8 @@ export class MemberFinancialReport extends Component {
         member =>
           member.values['Member ID'] === payment['yourSystemReference'] ||
           member.values['Billing Customer Id'] ===
+            payment['yourSystemReference'] ||
+          member.values['Archive Billing Id'] ===
             payment['yourSystemReference'],
       );
 
@@ -623,6 +646,10 @@ export class MemberFinancialReport extends Component {
         this.props.profile.timezone,
         this.props.space.defaultTimezone,
       ),
+      bamboraCutoverDate: getAttributeValue(
+        this.props.space,
+        'Bambora Cutoff Date',
+      ),
       useSubAccount:
         getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
           ? true
@@ -645,6 +672,10 @@ export class MemberFinancialReport extends Component {
         this.props.profile.timezone,
         this.props.space.defaultTimezone,
       ),
+      bamboraCutoverDate: getAttributeValue(
+        this.props.space,
+        'Bambora Cutoff Date',
+      ),
       useSubAccount:
         getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
           ? true
@@ -657,9 +688,8 @@ export class MemberFinancialReport extends Component {
     });
     this.props.fetchActiveAdditionalServices({
       additionalServiceForm:
-        getAttributeValue(this.props.space, 'Billing Company') === 'Bambora'
-          ? 'bambora-member-additional-services'
-          : '',
+        getAttributeValue(this.props.space, 'Billing Company').toLowerCase() +
+        '-member-additional-services',
     });
     this.props.fetchCustomerRefunds({
       dateFrom: moment(fromDate)
@@ -674,6 +704,10 @@ export class MemberFinancialReport extends Component {
       timezone: getTimezone(
         this.props.profile.timezone,
         this.props.space.defaultTimezone,
+      ),
+      bamboraCutoverDate: getAttributeValue(
+        this.props.space,
+        'Bambora Cutoff Date',
       ),
       useSubAccount:
         getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
@@ -935,7 +969,10 @@ export class MemberFinancialReport extends Component {
           type: 'Membership',
           date: payment.debitDate,
           name: member.values['First Name'] + ' ' + member.values['Last Name'],
-          billingID: member.values['Billing Customer Reference'],
+          billingID:
+            payment.yourSystemReference === member.values['Billing Customer Id']
+              ? member.values['Billing Customer Reference']
+              : member.values['Archive Billing Reference'],
           paymentID: payment.paymentID,
           payment: Number(payment.paymentAmount).toFixed(2),
           transactionFeeClient: Number(payment.transactionFeeClient).toFixed(2),
@@ -1350,6 +1387,7 @@ export class MemberFinancialReport extends Component {
         var idx = fullPaymentHistory.findIndex(item => {
           if (
             (member.customerId === item.yourSystemReference ||
+              member.archiveBillingId === item.yourSystemReference ||
               member.customerId === item.paymentID) &&
             item.paymentSource !== 'Manual Membership Payment' &&
             item.paymentSource !== 'Overdue Payment'
@@ -1515,7 +1553,7 @@ export class MemberFinancialReport extends Component {
       var idx = paymentHistory.findIndex(item => {
         return (
           service.values['Member ID'] === item.yourSystemReference ||
-          service.values['Billing Customer Id'] === item.yourSystemReference
+          service.values['Billing ID'] === item.yourSystemReference
         );
       });
       var lastPayment;
@@ -1716,7 +1754,9 @@ export class MemberFinancialReport extends Component {
           item.values['Member ID'] === refund.yourSystemReference ||
           item.values['Billing Customer Id'] === refund.yourSystemReference ||
           item.values['First Name'] + ' ' + item.values['Last Name'] ===
-            refund.customerName,
+            refund.customerName ||
+          item.values['Archive Billing Reference'] ===
+            refund.yourSystemReference,
       );
       if (idx !== -1) {
         var mIdx;
@@ -1728,7 +1768,9 @@ export class MemberFinancialReport extends Component {
             item.member.values['First Name'] +
               ' ' +
               item.member.values['Last Name'] ===
-              refund.customerName,
+              refund.customerName ||
+            item.member.values['Archive Billing Reference'] ===
+              refund.yourSystemReference,
         );
         if (mIdx === -1) {
           refundMembers[refundMembers.length] = {
@@ -1749,13 +1791,18 @@ export class MemberFinancialReport extends Component {
         });
       } else {
         var pIdx = fullPaymentHistory.findIndex(
-          payment => payment.paymentID === refund.yourSystemReference,
+          payment =>
+            payment.paymentID ===
+            refund.yourSystemReference /*||
+            payment.paymentID === refund.paymentID,*/,
         );
         if (pIdx !== -1) {
           var mIdx = members.findIndex(
             member =>
               member.values['Billing Customer Id'] ===
-              fullPaymentHistory[pIdx].yourSystemReference,
+                fullPaymentHistory[pIdx].yourSystemReference ||
+              member.values['Archive Billing Id'] ===
+                fullPaymentHistory[pIdx].paymentSource,
           );
           if (mIdx !== -1) {
             var rIdx = refundMembers.findIndex(
@@ -4202,8 +4249,10 @@ export class MemberFinancialReport extends Component {
                   <div className="column col4" />
                 </div>
               )}
-              {getAttributeValue(this.props.space, 'Billing Company') ===
-                'Bambora' && (
+              {(getAttributeValue(this.props.space, 'Billing Company') ===
+                'Bambora' ||
+                getAttributeValue(this.props.space, 'Billing Company') ===
+                  'Stripe') && (
                 <div className="row header4">
                   <div className="column col1">Additional Services</div>
                   <div className="column col2">

@@ -318,6 +318,20 @@ export function isBirthday(member) {
     ? true
     : false;
 }
+export function getUseBillingSystem(space, member) {
+  if (
+    member.values['Archive Billing Id'] !== undefined &&
+    member.values['Archive Billing Id'] !== null &&
+    member.values['Archive Billing Id'] !== '' &&
+    member.values['Archive Billing Reference'] !== undefined &&
+    member.values['Archive Billing Reference'] !== null &&
+    member.values['Archive Billing Reference'] !== ''
+  ) {
+    return 'Stripe';
+  }
+
+  return getAttributeValue(space, 'Billing Company');
+}
 
 export function isBamboraFailedPayment(payment) {
   return (

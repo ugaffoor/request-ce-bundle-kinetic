@@ -599,6 +599,9 @@ button#attentionRequiredOnly.Active {
     display: none;
   }
 }
+.setStatus {
+  display: flex;
+}
 
 span.invaliddate {
   color: red;

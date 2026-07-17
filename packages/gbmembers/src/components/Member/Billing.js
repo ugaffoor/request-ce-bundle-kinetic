@@ -58,7 +58,10 @@ import ScaleLoader from 'react-spinners/ScaleLoader';
 import checkoutRightArrowIcon from '../../images/checkoutRightArrow.png?raw';
 import Helmet from 'react-helmet';
 import { getTimezone } from '../leads/LeadsUtils';
-import { isBamboraFailedPayment } from '../Member/MemberUtils';
+import {
+  isBamboraFailedPayment,
+  getUseBillingSystem,
+} from '../Member/MemberUtils';
 import mail from '../../images/mail.png';
 import { confirm } from '../helpers/Confirmation';
 import { loadStripe } from '@stripe/stripe-js';
@@ -72,6 +75,7 @@ import {
 } from '@stripe/react-stripe-js';
 import { loadStripeTerminal } from '@stripe/terminal-js/pure';
 import uuid from 'uuid';
+import ReactTooltip from 'react-tooltip';
 
 <script src="../helpers/jquery.multiselect.js" />;
 
@@ -108,6 +112,7 @@ const mapStateToProps = state => ({
   actionRequestsLoading: state.member.members.actionRequestsLoading,
   space: state.member.app.space,
   spaceSlug: state.member.app.spaceSlug,
+  kineticBillingServerUrl: state.member.app.kineticBillingServerUrl,
   snippets: state.member.app.snippets,
   memberCashPayments: state.member.members.memberCashPayments,
   memberCashPaymentsLoading: state.member.members.memberCashPaymentsLoading,
@@ -2275,6 +2280,7 @@ export class PaymentHistory extends Component {
     super(props);
     this.formatEmailCell = this.formatEmailCell.bind(this);
     this.refundPayment = this.refundPayment.bind(this);
+    this.fetchChargeRefunds = this.fetchChargeRefunds.bind(this);
     this.paymentHistory = this.props.paymentHistory;
     this.memberCashPayments = this.props.memberCashPayments;
     let data = this.getData(
@@ -2290,7 +2296,61 @@ export class PaymentHistory extends Component {
     this.state = {
       data,
       columns,
+      chargeRefundInfo: {},
+      refundModalPaymentID: null,
+      refundModalOriginalAmount: null,
     };
+  }
+
+  fetchChargeRefunds(paymentID, originalAmount) {
+    this.setState(prev => ({
+      chargeRefundInfo: {
+        ...prev.chargeRefundInfo,
+        [paymentID]: { loading: true },
+      },
+      refundModalPaymentID: paymentID,
+      refundModalOriginalAmount: originalAmount,
+    }));
+    axios
+      .post(this.props.kineticBillingServerUrl + '/getChargeRefunds', {
+        chargeId: paymentID,
+        space: this.props.space.slug,
+        billingService: getAttributeValue(this.props.space, 'Billing Company'),
+        timezone: getTimezone(
+          this.props.profile.timezone,
+          this.props.space.defaultTimezone,
+        ),
+      })
+      .then(result => {
+        const refunds = (result.data && result.data.data) || [];
+        const totalRefunded = refunds.reduce(
+          (sum, r) => sum + (r.paymentAmount || 0),
+          0,
+        );
+        this.setState(prev => ({
+          chargeRefundInfo: {
+            ...prev.chargeRefundInfo,
+            [paymentID]: {
+              loading: false,
+              totalRefunded,
+              refunds: refunds.map(r => ({
+                amount: r.paymentAmount,
+                status: r.paymentStatus,
+                bankFailedReason: r.bankFailedReason,
+                paymentReference: r.paymentReference,
+              })),
+            },
+          },
+        }));
+      })
+      .catch(() => {
+        this.setState(prev => ({
+          chargeRefundInfo: {
+            ...prev.chargeRefundInfo,
+            [paymentID]: { loading: false, error: 'Failed to load' },
+          },
+        }));
+      });
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
@@ -2302,15 +2362,40 @@ export class PaymentHistory extends Component {
       !nextProps.cashRegistrationsLoading
     ) {
       this.paymentHistory = nextProps.paymentHistory;
-      this.setState({
-        data: this.getData(
-          this.props.memberItem,
-          nextProps.paymentHistory,
-          nextProps.memberCashPayments,
-          nextProps.setupPaymentHistory,
-          nextProps.membershipServices,
-        ),
-      });
+      let data = this.getData(
+        this.props.memberItem,
+        nextProps.paymentHistory,
+        nextProps.memberCashPayments,
+        nextProps.setupPaymentHistory,
+        nextProps.membershipServices,
+      );
+      // If a refund just completed but paymentHistory hasn't refreshed yet,
+      // patch the row immediately so the refund is visible straight away.
+      const pendingRefund = nextProps.refundTransactionID;
+      if (pendingRefund && pendingRefund.id) {
+        data = data.map(
+          row =>
+            row.paymentID === pendingRefund.id && !row.refundAmount
+              ? {
+                  ...row,
+                  refundAmount: pendingRefund.value,
+                  refundDebitDate: moment().format('YYYY-MM-DD HH:mm:ss'),
+                }
+              : row,
+        );
+      }
+      this.setState({ data });
+    }
+  }
+  componentDidUpdate(prevProps) {
+    const prevID =
+      prevProps.refundTransactionID && prevProps.refundTransactionID.id;
+    const nextID =
+      this.props.refundTransactionID && this.props.refundTransactionID.id;
+    if (nextID && nextID !== prevID) {
+      setTimeout(() => {
+        this.props.getPaymentHistory();
+      }, 3000);
     }
   }
   formatEmailCell(cellInfo) {
@@ -2368,17 +2453,33 @@ export class PaymentHistory extends Component {
     var successfulPayments = [];
     payments.forEach((payment, i) => {
       if (payment.paymentStatus !== 'Refund') {
-        successfulPayments[successfulPayments.length] = payment;
+        successfulPayments[successfulPayments.length] = {
+          ...payment,
+          refundAmount: undefined,
+          refundDebitDate: undefined,
+          refunds: undefined,
+        };
       }
     });
 
     payments.forEach((payment, i) => {
       if (payment.paymentStatus === 'Refund') {
         var idx = successfulPayments.findIndex(item => {
-          return item.paymentID === payment.yourSystemReference;
+          return (
+            item.paymentID === payment.yourSystemReference ||
+            item.paymentID === payment.yourGeneralReference
+          );
         });
         if (idx !== -1) {
-          successfulPayments[idx].refundAmount = payment.paymentAmount;
+          successfulPayments[idx].refundAmount =
+            (successfulPayments[idx].refundAmount || 0) + payment.paymentAmount;
+          successfulPayments[idx].refundDebitDate = payment.debitDate;
+          if (!successfulPayments[idx].refunds)
+            successfulPayments[idx].refunds = [];
+          successfulPayments[idx].refunds.push({
+            amount: payment.paymentAmount,
+            debitDate: payment.debitDate,
+          });
         }
       }
     });
@@ -2386,7 +2487,12 @@ export class PaymentHistory extends Component {
     if (setupfees !== undefined) {
       setupfees.forEach((payment, i) => {
         if (payment.paymentStatus !== 'Refund') {
-          successfulPayments[successfulPayments.length] = payment;
+          successfulPayments[successfulPayments.length] = {
+            ...payment,
+            refundAmount: undefined,
+            refundDebitDate: undefined,
+            refunds: undefined,
+          };
         }
       });
 
@@ -2396,7 +2502,16 @@ export class PaymentHistory extends Component {
             return item.paymentID === payment.yourSystemReference;
           });
           if (idx !== -1) {
-            successfulPayments[idx].refundAmount = payment.paymentAmount;
+            successfulPayments[idx].refundAmount =
+              (successfulPayments[idx].refundAmount || 0) +
+              payment.paymentAmount;
+            successfulPayments[idx].refundDebitDate = payment.debitDate;
+            if (!successfulPayments[idx].refunds)
+              successfulPayments[idx].refunds = [];
+            successfulPayments[idx].refunds.push({
+              amount: payment.paymentAmount,
+              debitDate: payment.debitDate,
+            });
           }
         }
       });
@@ -2443,6 +2558,8 @@ export class PaymentHistory extends Component {
         paymentMethod: payment.paymentMethod,
         paymentStatus: payment.paymentStatus,
         refundAmount: payment.refundAmount,
+        refundDebitDate: payment.refundDebitDate,
+        refunds: payment.refunds || [],
         transactionFee: payment.transactionFeeCustomer,
         debitDate: payment.debitDate,
         paymentSource: payment.paymentSource,
@@ -2467,6 +2584,17 @@ export class PaymentHistory extends Component {
           ? JSON.parse(this.props.memberItem.values['Refunded Payments'])
           : [];
 
+    if (
+      this.props.refundTransactionID &&
+      this.props.refundTransactionID.id &&
+      !paymentsRefunded.includes(this.props.refundTransactionID.id)
+    ) {
+      paymentsRefunded = [
+        ...paymentsRefunded,
+        this.props.refundTransactionID.id,
+      ];
+    }
+
     const columns = [];
     if (
       getAttributeValue(this.props.space, 'Billing Company') === 'Bambora' ||
@@ -2486,7 +2614,10 @@ export class PaymentHistory extends Component {
         },
       });
     }
-    if (getAttributeValue(this.props.space, 'Billing Company') === 'Bambora') {
+    if (
+      getAttributeValue(this.props.space, 'Billing Company') === 'Bambora' ||
+      getAttributeValue(this.props.space, 'Billing Company') === 'Stripe'
+    ) {
       columns.push({
         accessor: 'paymentID',
         Header: 'Transaction ID',
@@ -2532,6 +2663,7 @@ export class PaymentHistory extends Component {
       accessor: '$refundPayment',
       headerClassName: 'refund',
       className: 'refund',
+      width: 170,
       Cell: row =>
         !this.isPaymentRefunded(row.original.paymentID, paymentsRefunded) &&
         (row.original.paymentStatus === 'S' ||
@@ -2561,7 +2693,15 @@ export class PaymentHistory extends Component {
           <span>
             Refunded{' '}
             {row.original['refundAmount'] !== undefined && (
-              <span className="refundValue">
+              <span
+                className="refundValue"
+                data-tip={
+                  moment(row.original['refundDebitDate']).format('L HH:MM') ||
+                  ''
+                }
+                data-for={`refund-date-${row.index}`}
+                style={{ cursor: 'help' }}
+              >
                 {new Intl.NumberFormat(this.props.locale, {
                   style: 'currency',
                   currency: this.props.currency,
@@ -2569,6 +2709,13 @@ export class PaymentHistory extends Component {
                   row.original['refundAmount'] !== undefined
                     ? row.original['refundAmount']
                     : '',
+                )}
+                {row.original['refundDebitDate'] && (
+                  <ReactTooltip
+                    id={`refund-date-${row.index}`}
+                    place="top"
+                    effect="solid"
+                  />
                 )}
               </span>
             )}
@@ -2586,6 +2733,54 @@ export class PaymentHistory extends Component {
                   )}
                 </span>
               )}
+            {getAttributeValue(this.props.space, 'Billing Company') ===
+              'Stripe' && (
+              <i
+                className="fa fa-question-circle"
+                style={{ cursor: 'pointer', color: '#888', marginLeft: '6px' }}
+                title="Check refund status"
+                onClick={e => {
+                  e.stopPropagation();
+                  this.fetchChargeRefunds(
+                    row.original.paymentID,
+                    row.original.paymentAmount,
+                  );
+                }}
+              />
+            )}
+            {getAttributeValue(this.props.space, 'Billing Company') ===
+              'Bambora' && (
+              <i
+                className="fa fa-question-circle"
+                style={{ cursor: 'pointer', color: '#888', marginLeft: '6px' }}
+                title="Check refund status"
+                onClick={e => {
+                  e.stopPropagation();
+                  const refunds = row.original.refunds || [];
+                  const totalRefunded = refunds.reduce(
+                    (sum, r) => sum + (r.amount || 0),
+                    0,
+                  );
+                  this.setState(prev => ({
+                    chargeRefundInfo: {
+                      ...prev.chargeRefundInfo,
+                      [row.original.paymentID]: {
+                        loading: false,
+                        totalRefunded,
+                        refunds: refunds.map(r => ({
+                          amount: r.amount,
+                          status: null,
+                          bankFailedReason: null,
+                          paymentReference: null,
+                        })),
+                      },
+                    },
+                    refundModalPaymentID: row.original.paymentID,
+                    refundModalOriginalAmount: row.original.paymentAmount,
+                  }));
+                }}
+              />
+            )}
           </span>
         ) : (
           ''
@@ -2617,6 +2812,7 @@ export class PaymentHistory extends Component {
                 paymentID={row.original['paymentID']}
                 paymentMethod={row.original['paymentMethod']}
                 refundValue={row.original['refundAmount']}
+                refunds={row.original.refunds || []}
                 status={
                   this.isPaymentRefunded(
                     row.original.paymentID,
@@ -2660,20 +2856,16 @@ export class PaymentHistory extends Component {
   }
 
   refundPayment(paymentId, amount) {
+    const formattedAmount = parseFloat(amount).toFixed(2);
     confirmWithAmount({
       title: 'Refund transaction',
-      amount: amount,
+      amount: formattedAmount,
       placeholder:
         'Please enter a reason for this Refund. Not entering a valid reason could cause you pain later.',
     }).then(
       ({ amount, reason }) => {
         console.log('proceed! input:' + reason);
-        this.props.refundPayment(
-          this.props.billingThis,
-          paymentId,
-          amount,
-          reason,
-        );
+        this.props.refundPayment(paymentId, amount, reason);
       },
       () => {
         console.log('cancel!');
@@ -2705,7 +2897,7 @@ export class PaymentHistory extends Component {
             showPagination={false}
           />
         </div>
-        {
+        {this.props.getPaymentHistory && (
           <a
             onClick={e => {
               console.log('Show More..');
@@ -2716,7 +2908,93 @@ export class PaymentHistory extends Component {
           >
             Show More
           </a>
-        }
+        )}
+
+        {this.state.refundModalPaymentID &&
+          (() => {
+            const info = this.state.chargeRefundInfo[
+              this.state.refundModalPaymentID
+            ] || { loading: true };
+            const closeModal = () =>
+              this.setState({
+                refundModalPaymentID: null,
+                refundModalOriginalAmount: null,
+              });
+            const formatCurrency = amount =>
+              new Intl.NumberFormat(this.props.locale, {
+                style: 'currency',
+                currency: this.props.currency,
+              }).format(amount);
+            const canRefundMore =
+              !info.loading &&
+              !info.error &&
+              this.state.refundModalOriginalAmount != null &&
+              info.totalRefunded < this.state.refundModalOriginalAmount;
+            return (
+              <ModalContainer onClose={closeModal}>
+                <ModalDialog onClose={closeModal}>
+                  <h4>Refund Details</h4>
+                  {info.loading ? (
+                    <div>Loading...</div>
+                  ) : info.error ? (
+                    <div style={{ color: '#c00' }}>{info.error}</div>
+                  ) : (
+                    <div>
+                      {(info.refunds || []).map((r, i) => (
+                        <div
+                          key={i}
+                          style={{
+                            display: 'flex',
+                            gap: '16px',
+                            alignItems: 'center',
+                            padding: '6px 0',
+                          }}
+                        >
+                          {r.amount != null && (
+                            <span>{formatCurrency(r.amount)}</span>
+                          )}
+                          <span>{r.status}</span>
+                          {(r.bankFailedReason || r.paymentReference) && (
+                            <span style={{ color: '#555' }}>
+                              {r.bankFailedReason || r.paymentReference}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div
+                    style={{ marginTop: '12px', display: 'flex', gap: '8px' }}
+                  >
+                    {canRefundMore && (
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        disabled={this.props.refundTransactionInProgress}
+                        onClick={() => {
+                          closeModal();
+                          this.refundPayment(
+                            this.state.refundModalPaymentID,
+                            this.state.refundModalOriginalAmount -
+                              info.totalRefunded,
+                          );
+                        }}
+                      >
+                        Refund Payment
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={closeModal}
+                    >
+                      Close
+                    </button>
+                  </div>
+                </ModalDialog>
+              </ModalContainer>
+            );
+          })()}
 
         <span style={{ display: 'none' }}>
           <div
@@ -2915,12 +3193,11 @@ class BillingAudit extends Component {
       {
         accessor: 'to',
         Header: 'To',
-        Cell: props =>
-          typeof props.value === 'object'
-            ? objectToString(props.value)
-            : props.value
-              ? props.value
-              : '',
+        Cell: props => {
+          return props.value.amount
+            ? (props.value.amount * 100).toFixed(2)
+            : '';
+        },
       },
       { accessor: 'reason', Header: 'Reason' },
     ];
@@ -3118,7 +3395,11 @@ export class BillingInfo extends Component {
   getRenewalToDate(fromDate, memberItem) {
     var period = memberItem.values['Billing Payment Period'];
 
-    if (period === 'Fortnightly' || period === 'Weekly') {
+    if (
+      period === 'Fortnightly' ||
+      period === 'Weekly' ||
+      period === '4 Weekly'
+    ) {
       var from = moment(memberItem.values['Billing Cash Term Start Date']);
       var to = moment(memberItem.values['Billing Cash Term End Date']);
       var weeks = to.diff(from, 'weeks');
@@ -3126,12 +3407,24 @@ export class BillingInfo extends Component {
       return fromDate.add(weeks, 'weeks');
     }
 
-    if (period === 'Monthly') {
+    if (
+      period === 'Monthly' ||
+      period === 'Quarterly' ||
+      period === '4 Months' ||
+      period === '6 Months'
+    ) {
       var from = moment(memberItem.values['Billing Cash Term Start Date']);
       var to = moment(memberItem.values['Billing Cash Term End Date']);
       var months = to.diff(from, 'months');
 
       return fromDate.add(months, 'months');
+    }
+    if (period === 'Yearly') {
+      var from = moment(memberItem.values['Billing Cash Term Start Date']);
+      var to = moment(memberItem.values['Billing Cash Term End Date']);
+      var months = to.diff(from, 'years');
+
+      return fromDate.add(months, 'years');
     }
     return undefined;
   }
@@ -3448,6 +3741,8 @@ export class BillingInfo extends Component {
                       null &&
                     this.props.memberItem.values['Billing Customer Id'] !==
                       '' &&
+                    this.props.memberItem.values['Billing Customer Id'] !==
+                      'Deleted' &&
                     this.props.billingInfoLoading === true) ||
                   (this.props.memberItem.values['Billing Setup Fee Id'] !==
                     undefined &&
@@ -3466,35 +3761,75 @@ export class BillingInfo extends Component {
                         {getAttributeValue(
                           this.props.space,
                           'Billing Company',
-                        ) === 'Bambora' && (
-                          <div>
-                            <NavLink
-                              to={`/categories/bambora-billing/bambora-submit-billing-changes?id=${
-                                this.props.memberItem.id
-                              }`}
-                              kappSlug={'services'}
-                              className={
-                                'nav-link icon-wrapper btn btn-primary'
-                              }
-                              activeClassName="active"
-                              disabled={
-                                this.props.memberItem.values['Status'] !==
-                                'Active'
-                              }
-                              style={{
-                                display: 'inline',
-                                paddingTop: '4px',
-                                paddingBottom: '4px',
-                              }}
-                            >
-                              Update Billing Details
-                            </NavLink>
-                          </div>
-                        )}
-                        {getAttributeValue(
+                        ) === 'Bambora' &&
+                          (getAttributeValue(
+                            this.props.space,
+                            'Bambora Stripe Migration',
+                          ) !== 'YES' ||
+                            (getAttributeValue(
+                              this.props.space,
+                              'Bambora Stripe Migration',
+                            ) === 'YES' &&
+                              !(
+                                this.props.memberItem.values[
+                                  'Billing Customer Id'
+                                ] || ''
+                              ).startsWith('cus_'))) && (
+                            <div>
+                              <NavLink
+                                to={`/categories/bambora-billing/bambora-submit-billing-changes?id=${
+                                  this.props.memberItem.id
+                                }`}
+                                kappSlug={'services'}
+                                className={
+                                  'nav-link icon-wrapper btn btn-primary'
+                                }
+                                activeClassName="active"
+                                disabled={
+                                  this.props.memberItem.values['Status'] !==
+                                    'Active' ||
+                                  getAttributeValue(
+                                    this.props.space,
+                                    'Bambora Stripe Migration',
+                                  ) === 'YES'
+                                }
+                                style={{
+                                  display: 'inline',
+                                  paddingTop: '4px',
+                                  paddingBottom: '4px',
+                                  pointerEvents:
+                                    this.props.memberItem.values['Status'] !==
+                                      'Active' ||
+                                    (getAttributeValue(
+                                      this.props.space,
+                                      'Bambora Stripe Migration',
+                                    ) === 'YES' &&
+                                      (
+                                        this.props.memberItem.values[
+                                          'Billing Customer Id'
+                                        ] || ''
+                                      ).startsWith('cus_'))
+                                      ? 'none'
+                                      : undefined,
+                                }}
+                              >
+                                Update Billing Details
+                              </NavLink>
+                            </div>
+                          )}
+                        {(getAttributeValue(
                           this.props.space,
                           'Billing Company',
-                        ) === 'Stripe' &&
+                        ) === 'Stripe' ||
+                          (getAttributeValue(
+                            this.props.space,
+                            'Bambora Stripe Migration',
+                          ) === 'YES' &&
+                            (
+                              this.props.memberItem.values[
+                                'Billing Customer Id'
+                              ] || ''
+                            ).startsWith('cus_'))) &&
                           getAttributeValue(this.props.space, 'Franchisor') !==
                             'YES' && (
                             <div>
@@ -3524,31 +3859,71 @@ export class BillingInfo extends Component {
                         {getAttributeValue(
                           this.props.space,
                           'Billing Company',
-                        ) === 'Bambora' && (
-                          <div>
-                            <NavLink
-                              to={`/categories/bambora-billing/bambora-change-credit-card-details?id=${
-                                this.props.memberItem.id
-                              }`}
-                              kappSlug={'services'}
-                              className={
-                                'nav-link icon-wrapper btn btn-primary'
-                              }
-                              activeClassName="active"
-                              style={{
-                                display: 'inline',
-                                paddingTop: '4px',
-                                paddingBottom: '4px',
-                              }}
-                            >
-                              Update Credit Card
-                            </NavLink>
-                          </div>
-                        )}
-                        {getAttributeValue(
+                        ) === 'Bambora' &&
+                          (getAttributeValue(
+                            this.props.space,
+                            'Bambora Stripe Migration',
+                          ) !== 'YES' ||
+                            (getAttributeValue(
+                              this.props.space,
+                              'Bambora Stripe Migration',
+                            ) === 'YES' &&
+                              !(
+                                this.props.memberItem.values[
+                                  'Billing Customer Id'
+                                ] || ''
+                              ).startsWith('cus_'))) && (
+                            <div>
+                              <NavLink
+                                to={`/categories/bambora-billing/bambora-change-credit-card-details?id=${
+                                  this.props.memberItem.id
+                                }`}
+                                kappSlug={'services'}
+                                className={
+                                  'nav-link icon-wrapper btn btn-primary'
+                                }
+                                activeClassName="active"
+                                disabled={
+                                  getAttributeValue(
+                                    this.props.space,
+                                    'Bambora Stripe Migration',
+                                  ) === 'YES'
+                                }
+                                style={{
+                                  display: 'inline',
+                                  paddingTop: '4px',
+                                  paddingBottom: '4px',
+                                  pointerEvents:
+                                    getAttributeValue(
+                                      this.props.space,
+                                      'Bambora Stripe Migration',
+                                    ) === 'YES' &&
+                                    (
+                                      this.props.memberItem.values[
+                                        'Billing Customer Id'
+                                      ] || ''
+                                    ).startsWith('cus_')
+                                      ? 'none'
+                                      : undefined,
+                                }}
+                              >
+                                Update Credit Card
+                              </NavLink>
+                            </div>
+                          )}
+                        {(getAttributeValue(
                           this.props.space,
                           'Billing Company',
-                        ) === 'Stripe' && (
+                        ) === 'Stripe' ||
+                          (getAttributeValue(
+                            this.props.space,
+                            'Bambora Stripe Migration',
+                          ) === 'YES' &&
+                            (
+                              this.props.memberItem.values[
+                                'Billing Customer Id'
+                              ] || ''
+                            ).startsWith('cus_'))) && (
                           <div>
                             <NavLink
                               to={`/categories/stripe-billing/stripe-change-payment-type?id=${
@@ -4043,7 +4418,6 @@ export class BillingInfo extends Component {
                   setupPaymentHistoryLoading={
                     this.props.setupPaymentHistoryLoading
                   }
-                  billingThis={this}
                   refundPayment={this.props.refundPayment}
                   refundTransactionInProgress={
                     this.props.refundTransactionInProgress
@@ -4054,6 +4428,9 @@ export class BillingInfo extends Component {
                   currency={this.props.currency}
                   locale={this.props.locale}
                   space={this.props.space}
+                  spaceSlug={this.props.spaceSlug}
+                  kineticBillingServerUrl={this.props.kineticBillingServerUrl}
+                  profile={this.props.profile}
                   snippets={this.props.snippets}
                   memberCashPayments={this.props.memberCashPayments}
                   memberCashPaymentsLoading={
@@ -4250,6 +4627,7 @@ export const Billing = ({
   getActionRequests,
   profile,
   space,
+  spaceSlug,
   snippets,
   currency,
   locale,
@@ -4268,6 +4646,7 @@ export const Billing = ({
   setSystemError,
   memberPriceIncreases,
   memberPriceIncreasesLoading,
+  kineticBillingServerUrl,
 }) =>
   currentMemberLoading ? (
     <div />
@@ -4281,6 +4660,7 @@ export const Billing = ({
             memberItem.values['Billing Customer Id'] !== undefined &&
             memberItem.values['Billing Customer Id'] !== ''*/ true && (
             <BillingInfo
+              kineticBillingServerUrl={kineticBillingServerUrl}
               billingInfo={billingInfo}
               billingInfoLoading={billingInfoLoading}
               setupBillingInfo={setupBillingInfo}
@@ -4742,6 +5122,7 @@ export const BillingContainer = compose(
       setSystemError,
       lastHistoryDate,
       setLastHistoryDate,
+      getArchiveId,
     }) => () => {
       if (
         memberItem.values['Billing Customer Id'] !== null &&
@@ -4749,6 +5130,7 @@ export const BillingContainer = compose(
         memberItem.values['Billing Customer Id'] !== ''
       ) {
         fetchPaymentHistory({
+          billingService: getUseBillingSystem(space, memberItem),
           billingRef:
             memberItem.values['Billing Customer Id'] !== null &&
             memberItem.values['Billing Customer Id'] !== undefined &&
@@ -4779,6 +5161,16 @@ export const BillingContainer = compose(
               getAttributeValue(space, 'PaySmart SubAccount') === 'YES')
               ? true
               : false,
+          bamboraCutoverDate: getAttributeValue(space, 'Bambora Cutoff Date'),
+          bamboraCustomerId:
+            memberItem.values['Archive Billing Id'] !== null &&
+            memberItem.values['Archive Billing Id'] !== undefined &&
+            memberItem.values['Archive Billing Id'] !== '' &&
+            memberItem.values['Archive Billing Reference'] !== null &&
+            memberItem.values['Archive Billing Reference'] !== undefined &&
+            memberItem.values['Archive Billing Reference'] !== ''
+              ? memberItem.values['Archive Billing Id']
+              : undefined,
         });
       } else {
         setPaymentHistoryLoaded({
@@ -4860,7 +5252,7 @@ export const BillingContainer = compose(
       addNotification,
       setSystemError,
       setIsDirty,
-    }) => (billingThis, paymentId, paymentAmount, billingChangeReason) => {
+    }) => (paymentId, paymentAmount, billingChangeReason) => {
       console.log('### paymentId = ' + paymentId);
       let args = {};
       args.transactionId = paymentId;
@@ -4868,11 +5260,9 @@ export const BillingContainer = compose(
       args.memberItem = memberItem;
       args.updateMember = updateMember;
       args.fetchCurrentMember = fetchCurrentMember;
-      args.myThis = memberItem.myThis;
       args.billingChangeReason = billingChangeReason;
       args.addNotification = addNotification;
       args.setSystemError = setSystemError;
-      args.billingThis = billingThis;
       args.refundTransactionComplete = refundTransactionComplete;
       args.useSubAccount =
         memberItem.values['useSubAccount'] === 'YES' ? true : false;
@@ -4943,10 +5333,12 @@ export const BillingContainer = compose(
         if (
           member.values['Billing Customer Reference'] !== undefined &&
           member.values['Billing Customer Reference'] !== null &&
-          member.values['Billing Customer Reference'] !== ''
+          member.values['Billing Customer Reference'] !== '' &&
+          member.values['Billing Customer Reference'] !== 'Deleted'
         ) {
           this.props.fetchBillingInfo({
             billingRef: member.values['Billing Customer Reference'],
+            billingService: getUseBillingSystem(this.props.space, member),
             history: this.props.history,
             myThis: this,
             setBillingInfo: this.props.setBillingInfo,
@@ -5030,6 +5422,7 @@ export const BillingContainer = compose(
         } else {
           this.props.fetchBillingInfo({
             billingRef: member.values['Billing Customer Id'],
+            billingSystem: this.props.getUseBillingSystem(member),
             history: this.props.history,
             myThis: this,
             setBillingInfo: this.props.setBillingInfo,

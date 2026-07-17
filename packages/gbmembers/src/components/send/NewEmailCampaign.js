@@ -327,24 +327,38 @@ export class NewEmailCampaign extends Component {
     if (this.props.submissionId) {
       return [];
     }
-    let options = [];
-    let activeMembers = [];
-    let inactiveMembers = [];
-    let frozenMembers = [];
 
-    allMembers.forEach(member => {
-      if (
-        member.values['Status'] === 'Active' ||
-        member.values['Status'] === 'Pending Freeze' ||
-        member.values['Status'] === 'Pending Cancellation'
-      ) {
-        activeMembers.push(member['id']);
-      } else if (member.values['Status'] === 'Inactive') {
-        inactiveMembers.push(member['id']);
-      } else if (member.values['Status'] === 'Frozen') {
-        frozenMembers.push(member['id']);
-      }
-    });
+    const deduplicateByEmail = members => {
+      const seen = new Set();
+      return members.filter(member => {
+        const key =
+          (member.values['Email'] || '').toLowerCase() +
+          '|' +
+          (member.values['Additional Email'] || '').toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    };
+
+    let options = [];
+
+    const activeMembers = deduplicateByEmail(
+      allMembers.filter(
+        member =>
+          member.values['Status'] === 'Active' ||
+          member.values['Status'] === 'Pending Freeze' ||
+          member.values['Status'] === 'Pending Cancellation',
+      ),
+    ).map(member => member['id']);
+
+    const inactiveMembers = deduplicateByEmail(
+      allMembers.filter(member => member.values['Status'] === 'Inactive'),
+    ).map(member => member['id']);
+
+    const frozenMembers = deduplicateByEmail(
+      allMembers.filter(member => member.values['Status'] === 'Frozen'),
+    ).map(member => member['id']);
 
     if (activeMembers.length > 0) {
       options.push({
@@ -374,9 +388,11 @@ export class NewEmailCampaign extends Component {
       options.push({
         value: list.name,
         label: list.name,
-        members: removeExcludedMembers(
-          matchesMemberFilter(this.props.space, allMembers, list.filters),
-          list.excluded !== undefined ? list.excluded : [],
+        members: deduplicateByEmail(
+          removeExcludedMembers(
+            matchesMemberFilter(this.props.space, allMembers, list.filters),
+            list.excluded !== undefined ? list.excluded : [],
+          ),
         ).map(member => member['id']),
       });
     });
@@ -389,15 +405,31 @@ export class NewEmailCampaign extends Component {
     if (this.props.submissionId || leadLists === undefined) {
       return [];
     }
+
+    const deduplicateByEmail = leads => {
+      const seen = new Set();
+      return leads.filter(lead => {
+        const key =
+          (lead.values['Email'] || '').toLowerCase() +
+          '|' +
+          (lead.values['Additional Email'] || '').toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    };
+
     let options = [];
 
     leadLists.forEach(list => {
       options.push({
         value: list.name,
         label: list.name,
-        leads: removeExcludedLeads(
-          matchesLeadFilter(allLeads, list.filters),
-          list.excluded !== undefined ? list.excluded : [],
+        leads: deduplicateByEmail(
+          removeExcludedLeads(
+            matchesLeadFilter(allLeads, list.filters),
+            list.excluded !== undefined ? list.excluded : [],
+          ),
         ).map(lead => lead['id']),
       });
     });

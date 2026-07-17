@@ -178,7 +178,7 @@ export const reducer = (state = State(), { type, payload }) => {
       );
     case types.REMOVE_MEMBERS_LIST:
       return state.update('memberLists', memberLists =>
-        memberLists.filter(list => list.name !== payload),
+        memberLists.filter(list => list.id !== payload),
       );
     case types.ADD_LEADS_LIST:
       return state.update('leadLists', leadLists =>

@@ -988,11 +988,11 @@ class PayNow extends Component {
         uuid(),
         this,
       );
-    } else if (billingSystem === 'Stripe') {
+    } else if (billingSystem === 'Stripe' || posSystem === 'Stripe') {
       this.processStripePayment(
         posServiceURL,
         this.props.spaceSlug,
-        billingSystem,
+        'Stripe',
         this.state.memberItem !== undefined &&
         this.state.memberItem.values['Billing Customer Id'].includes('cus_')
           ? this.state.memberItem.values['Billing Customer Id']
@@ -5121,6 +5121,7 @@ export const ProShopContainer = compose(
               : product.values['Price'],
           quantity: quantity,
           excludeTaxes:
+            product.values['Exclude Taxes'] !== null &&
             product.values['Exclude Taxes'] !== undefined &&
             product.values['Exclude Taxes'].length > 0 &&
             product.values['Exclude Taxes'][0] === 'Exclude Taxes'
@@ -5148,6 +5149,7 @@ export const ProShopContainer = compose(
               : product.values['Price'],
           quantity: quantity,
           excludeTaxes:
+            product.values['Exclude Taxes'] !== null &&
             product.values['Exclude Taxes'] !== undefined &&
             product.values['Exclude Taxes'].length > 0 &&
             product.values['Exclude Taxes'][0] === 'Exclude Taxes'
@@ -5167,6 +5169,7 @@ export const ProShopContainer = compose(
               : product.values['Price'],
           quantity: quantity,
           excludeTaxes:
+            product.values['Exclude Taxes'] !== null &&
             product.values['Exclude Taxes'] !== undefined &&
             product.values['Exclude Taxes'].length > 0 &&
             product.values['Exclude Taxes'][0] === 'Exclude Taxes'
@@ -5346,6 +5349,10 @@ export const ProShopContainer = compose(
           timezone: getTimezone(
             this.props.profile.timezone,
             this.props.space.defaultTimezone,
+          ),
+          bamboraCutoverDate: getAttributeValue(
+            this.props.space,
+            'Bambora Cutoff Date',
           ),
           useSubAccount:
             getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'

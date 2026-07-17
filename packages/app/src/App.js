@@ -13,6 +13,10 @@ import Sidebar from 'react-sidebar';
 import { Utils, ToastsContainer, ModalFormContainer } from 'common';
 import { LoginModal } from './components/authentication/LoginModal';
 import { HeaderContainer } from './components/HeaderContainer';
+import {
+  OpenWidgetWrapper,
+  isNorthAmericanUser,
+} from './components/OpenWidgetWrapper';
 import { actions as loadingActions } from './redux/modules/loading';
 import { actions as journeyeventsActions } from './redux/modules/journeyevents';
 import { actions as helpActions } from './redux/modules/help';
@@ -51,67 +55,78 @@ export const clientId =
 
 //<Favicon url="https://us-gbfms-files.s3.us-east-2.amazonaws.com/favicon.ico" />
 
-export const AppComponent = props =>
-  !props.loading && (
-    <div>
-      <Helmet>
-        {
-          <link
-            rel="icon"
-            href="https://us-gbfms-files.s3.us-east-2.amazonaws.com/favicon.ico"
-            type="image/x-icon"
-          />
-        }
-      </Helmet>
-      <Fragment>
-        <ToastsContainer />
-        <LoginModal />
-        <ModalFormContainer />
-        {!props.headerHidden ? (
-          <Fragment>
-            <HeaderContainer
-              hasSidebar={!props.sidebarHidden}
-              toggleSidebarOpen={props.toggleSidebarOpen}
-            />
+export const AppComponent = props => (
+  <>
+    <Helmet>
+      <link
+        rel="icon"
+        href="https://us-gbfms-files.s3.us-east-2.amazonaws.com/favicon.ico"
+        type="image/x-icon"
+      />
+    </Helmet>
+    {!props.loading && (
+      <div>
+        <OpenWidgetWrapper
+          isAuthorized={
+            isNorthAmericanUser() ||
+            (!!props.space &&
+              (Utils.getAttributeValue(props.space, 'School Country Code') ===
+                'US' ||
+                Utils.getAttributeValue(props.space, 'School Country Code') ===
+                  'CA'))
+          }
+        />
+        <Fragment>
+          <ToastsContainer />
+          <LoginModal />
+          <ModalFormContainer />
+          {!props.headerHidden ? (
+            <Fragment>
+              <HeaderContainer
+                hasSidebar={!props.sidebarHidden}
+                toggleSidebarOpen={props.toggleSidebarOpen}
+              />
+              <props.AppProvider
+                render={({ main, sidebar, header }) =>
+                  !props.sidebarHidden && sidebar ? (
+                    <Sidebar
+                      sidebar={sidebar}
+                      shadow={false}
+                      open={props.sidebarOpen && props.layoutSize === 'small'}
+                      docked={props.sidebarOpen && props.layoutSize !== 'small'}
+                      onSetOpen={props.setSidebarOpen}
+                      rootClassName="sidebar-layout-wrapper"
+                      sidebarClassName={`sidebar-container ${
+                        true ? 'drawer' : 'overlay'
+                      }`}
+                      contentClassName={`main-container ${
+                        props.sidebarOpen ? 'open' : 'closed'
+                      }`}
+                    >
+                      {main}
+                    </Sidebar>
+                  ) : (
+                    <div className="main-container main-container--no-sidebar">
+                      {main}
+                    </div>
+                  )
+                }
+              />
+            </Fragment>
+          ) : (
             <props.AppProvider
-              render={({ main, sidebar, header }) =>
-                !props.sidebarHidden && sidebar ? (
-                  <Sidebar
-                    sidebar={sidebar}
-                    shadow={false}
-                    open={props.sidebarOpen && props.layoutSize === 'small'}
-                    docked={props.sidebarOpen && props.layoutSize !== 'small'}
-                    onSetOpen={props.setSidebarOpen}
-                    rootClassName="sidebar-layout-wrapper"
-                    sidebarClassName={`sidebar-container ${
-                      true ? 'drawer' : 'overlay'
-                    }`}
-                    contentClassName={`main-container ${
-                      props.sidebarOpen ? 'open' : 'closed'
-                    }`}
-                  >
-                    {main}
-                  </Sidebar>
-                ) : (
-                  <div className="main-container main-container--no-sidebar">
-                    {main}
-                  </div>
-                )
-              }
+              render={({ main }) => (
+                <div className="main-container main-container--no-header">
+                  {main}
+                </div>
+              )}
             />
-          </Fragment>
-        ) : (
-          <props.AppProvider
-            render={({ main }) => (
-              <div className="main-container main-container--no-header">
-                {main}
-              </div>
-            )}
-          />
-        )}
-      </Fragment>
-    </div>
-  );
+          )}
+        </Fragment>
+      </div>
+    )}
+  </>
+);
 
 export const mapStateToProps = state => ({
   loading: state.app.loading.loading,
@@ -198,6 +213,7 @@ export const App = compose(
       sidebarHidden,
       loading: props.loading,
       metaJSONLocation: props.metaJSONLocation,
+      space: props.space,
     };
   }),
   withHandlers({

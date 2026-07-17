@@ -1014,10 +1014,10 @@ export class DemographicChart extends Component {
         )}
         {!this.state.showMembers && (
           <div className="demographicsChart">
-            <ResponsiveContainer minHeight={370}>
+            <ResponsiveContainer minHeight={347}>
               <BarChart
                 width={600}
-                height={370}
+                height={347}
                 data={data}
                 margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                 isAnimationActive={false}
@@ -1071,6 +1071,108 @@ export class DemographicChart extends Component {
             </ResponsiveContainer>
           </div>
         )}
+        {(() => {
+          const {
+            malePercent,
+            femalePercent,
+            otherPercent,
+            noanswerPercent,
+          } = this.state;
+          const additionalGenders =
+            getAttributeValue(this.props.space, 'Additional Gender Options') ===
+            'YES';
+          const total =
+            malePercent +
+            femalePercent +
+            (additionalGenders ? otherPercent + noanswerPercent : 0);
+          const pct = n => (total > 0 ? (n / total) * 100 : 0);
+          const segments = [
+            {
+              label: 'Male',
+              count: malePercent,
+              color: '#4472c4',
+              textColor: '#fff',
+            },
+            {
+              label: 'Female',
+              count: femalePercent,
+              color: '#ff99cc',
+              textColor: '#333',
+            },
+            ...(additionalGenders
+              ? [
+                  {
+                    label: 'Other',
+                    count: otherPercent,
+                    color: '#a9f4a9',
+                    textColor: '#333',
+                  },
+                  {
+                    label: 'Prefer not to answer',
+                    count: noanswerPercent,
+                    color: '#ecd590',
+                    textColor: '#333',
+                  },
+                ]
+              : []),
+          ];
+          return (
+            <div
+              style={{
+                marginTop: '-5px',
+                paddingLeft: '14px',
+                paddingRight: '14px',
+                marginBottom: '4px',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  background: '#e9ecef',
+                  borderRadius: '4px',
+                  height: '24px',
+                  overflow: 'hidden',
+                }}
+              >
+                {segments.map(
+                  seg =>
+                    seg.count > 0 && (
+                      <div
+                        key={seg.label}
+                        style={{
+                          flex: seg.count,
+                          background: seg.color,
+                          height: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          overflow: 'hidden',
+                          minWidth: 0,
+                        }}
+                        title={`${seg.label}: ${seg.count} (${pct(
+                          seg.count,
+                        ).toFixed(1)}%)`}
+                      >
+                        <span
+                          style={{
+                            color: seg.textColor,
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            whiteSpace: 'nowrap',
+                            padding: '0 4px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                          }}
+                        >
+                          {seg.label} {seg.count} ({pct(seg.count).toFixed(1)}%)
+                        </span>
+                      </div>
+                    ),
+                )}
+              </div>
+            </div>
+          );
+        })()}
       </span>
     );
   }
