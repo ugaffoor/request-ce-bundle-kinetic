@@ -218,7 +218,8 @@ export const HomeView = ({
           )}
         </div>
       )}
-    {getAttributeValue(space, 'Billing Company') === 'Stripe' &&
+    {(getAttributeValue(space, 'Billing Company') === 'Stripe' ||
+      getAttributeValue(space, 'Bambora Stripe Migration') === 'YES') &&
       Utils.isMemberOf(profile, 'Role::Program Managers') && (
         <div className="homeOverdues">
           {memberInitialLoadComplete && (
@@ -242,7 +243,8 @@ export const HomeView = ({
           )}
         </div>
       )}
-    {getAttributeValue(space, 'Billing Company') === 'Stripe' &&
+    {(getAttributeValue(space, 'Billing Company') === 'Stripe' ||
+      getAttributeValue(space, 'Bambora Stripe Migration') === 'YES') &&
       Utils.isMemberOf(profile, 'Role::Program Managers') && (
         <div className="homeOverdues">
           {memberInitialLoadComplete && (

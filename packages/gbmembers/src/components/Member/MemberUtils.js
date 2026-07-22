@@ -320,12 +320,13 @@ export function isBirthday(member) {
 }
 export function getUseBillingSystem(space, member) {
   if (
-    member.values['Archive Billing Id'] !== undefined &&
-    member.values['Archive Billing Id'] !== null &&
-    member.values['Archive Billing Id'] !== '' &&
-    member.values['Archive Billing Reference'] !== undefined &&
-    member.values['Archive Billing Reference'] !== null &&
-    member.values['Archive Billing Reference'] !== ''
+    (member.values['Archive Billing Id'] !== undefined &&
+      member.values['Archive Billing Id'] !== null &&
+      member.values['Archive Billing Id'] !== '' &&
+      member.values['Archive Billing Reference'] !== undefined &&
+      member.values['Archive Billing Reference'] !== null &&
+      member.values['Archive Billing Reference'] !== '') ||
+    member.values['Billing Customer Id'].startsWith('cus_')
   ) {
     return 'Stripe';
   }
