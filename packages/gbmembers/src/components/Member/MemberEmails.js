@@ -31,7 +31,7 @@ export class MemberEmails extends Component {
     if (nextProps.memberItem) {
       let attachments = [];
 
-      if (nextProps.campaignItem.values['Attachments'] !== undefined) {
+      if (nextProps.campaignItem?.values?.['Attachments'] !== undefined) {
         JSON.parse(nextProps.campaignItem.values['Attachments']).forEach(
           attachment => {
             let name = decodeURI(

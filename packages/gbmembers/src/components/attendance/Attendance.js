@@ -2004,7 +2004,10 @@ export class AttendanceDetail extends Component {
         overdueAmount: overdueAmount,
         successDate:
           sidx !== -1
-            ? moment(successfulPayments[sidx].debitDate, 'YYYY-MM-DD HH:mm:ss')
+            ? moment(successfulPayments[sidx].debitDate, [
+                'YYYY-MM-DD HH:mm:SS',
+                'YYYY-MM-DDTHH:mm:ss',
+              ])
             : moment(member.values['Billing Start Date'], 'YYYY-MM-DD'),
         debitDate: payment.debitDate,
         nextAttemptDate:
@@ -2049,8 +2052,14 @@ export class AttendanceDetail extends Component {
       var idx = successfulPayments.findIndex(successful => {
         return (
           failed.yourSystemReference === successful.yourSystemReference &&
-          moment(successful.debitDate, 'YYYY-MM-DD HH:mm:SS').isAfter(
-            moment(failed.debitDate, 'YYYY-MM-DD HH:mm:SS'),
+          moment(successful.debitDate, [
+            'YYYY-MM-DD HH:mm:SS',
+            'YYYY-MM-DDTHH:mm:ss',
+          ]).isAfter(
+            moment(failed.debitDate, [
+              'YYYY-MM-DD HH:mm:SS',
+              'YYYY-MM-DDTHH:mm:ss',
+            ]),
           )
         );
       });

@@ -13,7 +13,7 @@ export const JOURNEY_EVENTS_SEARCH = new SubmissionSearch(true)
   .eq('values[Status]', 'New')
   .include('details,values')
   .index('values[Status]')
-  .limit(1000)
+  .limit(200)
   .build();
 
 export function* fetchJourneyEventsTask() {

@@ -10,7 +10,7 @@ import {
 import ReactToPrint from 'react-to-print';
 import ReactTable from 'react-table';
 
-const ezidebit_date_format = 'YYYY-MM-DD HH:mm:ss';
+const ezidebit_date_format = ['YYYY-MM-DD HH:mm:SS', 'YYYY-MM-DDTHH:mm:ss'];
 
 export class BamboraOverdues extends React.Component {
   constructor(props) {
@@ -145,7 +145,9 @@ export class BamboraOverdues extends React.Component {
       // Keep only Recurring Billing failures
       var idx = this.props.allMembers.findIndex(
         member =>
-          member.values['Billing Customer Id'] === payment.yourSystemReference,
+          member.values['Billing Customer Id'] ===
+            payment.yourSystemReference ||
+          member.values['Archive Billing Id'] === payment.yourSystemReference,
       );
       if (idx !== -1) {
         if (
@@ -158,7 +160,9 @@ export class BamboraOverdues extends React.Component {
     const data = uniqueHistory.map(payment => {
       var idx = this.props.allMembers.findIndex(
         member =>
-          member.values['Billing Customer Id'] === payment.yourSystemReference,
+          member.values['Billing Customer Id'] ===
+            payment.yourSystemReference ||
+          member.values['Archive Billing Id'] === payment.yourSystemReference,
       );
       var member = undefined;
       if (idx !== -1) {

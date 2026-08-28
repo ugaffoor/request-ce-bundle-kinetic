@@ -138,6 +138,7 @@ export class ListEditHome extends Component {
       data,
       count: data.length,
       listToBeUpdated,
+      filters: listToBeUpdated ? listToBeUpdated.filters : [],
       createdDateStart: undefined,
       createdDateEnd: undefined,
       excluded: [],
@@ -173,6 +174,7 @@ export class ListEditHome extends Component {
         data,
         count: data.length,
         listToBeUpdated,
+        filters: listToBeUpdated ? listToBeUpdated.filters : [],
         excluded: [],
       });
     }
@@ -330,7 +332,7 @@ export class ListEditHome extends Component {
     let filters = [];
 
     if (
-      this.state.createdDateStart !== undefined &&
+      this.state.createdDateStart !== undefined ||
       this.state.createdDateEnd !== undefined
     ) {
       filters.push({
@@ -424,8 +426,8 @@ export class ListEditHome extends Component {
       let key = Object.keys(filter)[0];
       if (key === 'createdDateFilter') {
         this.setState({
-          createdDateStart: moment(filter[key].startDate),
-          createdDateEnd: moment(filter[key].endDate),
+          createdDateStart: moment(filter[key].startDate).format('YYYY-MM-DD'),
+          createdDateEnd: moment(filter[key].endDate).format('YYYY-MM-DD'),
         });
       } else if (key === 'genderFilter') {
         $('input[name=gender][value=' + filter[key].gender + ']').attr(

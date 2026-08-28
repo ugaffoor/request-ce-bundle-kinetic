@@ -34,6 +34,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = {
   updateMember: actions.updateMember,
   billerActivated: actions.billerActivated,
+  resetBillerActivated: actions.resetBillerActivated,
   addNotification: errorActions.addNotification,
   setSystemError: errorActions.setSystemError,
 };
@@ -96,6 +97,7 @@ export class StripeActivate extends Component {
 
   UNSAFE_componentWillMount() {
     this.setState({ isShowingModal: this.props.isShowingModal });
+    this.props.resetBillerActivated();
   }
 
   handleRecipientChange = selectedOption => {

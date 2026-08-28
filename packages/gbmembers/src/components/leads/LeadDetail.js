@@ -643,6 +643,95 @@ export class LeadDetail extends Component {
               <CancelClassIcon className="icon icon-svg" />
             </span>
           )}
+        {cellInfo.original.contactMethod === 'free_class' &&
+          moment(cellInfo.original.contactDate, 'YYYY-MM-DD HH:mm').isAfter(
+            moment(),
+          ) && (
+            <span
+              className="cancelTrial"
+              onClick={async () => {
+                if (
+                  await confirm(
+                    <span>
+                      <span>
+                        Are you sure you want to CANCEL this Free Class?
+                      </span>
+                      <table>
+                        <tbody>
+                          <tr>
+                            <td>Date:</td>
+                            <td>
+                              {moment(
+                                cellInfo.original.contactDate,
+                                'YYYY-MM-DD HH:mm',
+                              ).format('lll')}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>Type:</td>
+                            <td>
+                              {convertContactType(
+                                cellInfo.original.contactMethod,
+                              )}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>Note:</td>
+                            <td>{cellInfo.original.note}</td>
+                          </tr>
+                          <tr>
+                            <td>Reason:</td>
+                            <td>
+                              <textarea id="cancelFreeClassReason"> </textarea>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </span>,
+                  )
+                ) {
+                  let history = getJson(this.state.leadItem.values['History']);
+                  let historyItem = history.filter(element => {
+                    return (
+                      element.contactDate === cellInfo.original.contactDate &&
+                      element.contactMethod ===
+                        cellInfo.original.contactMethod &&
+                      element.note === cellInfo.original.note
+                    );
+                  });
+                  historyItem[0].contactMethod = 'cancelled_class';
+                  historyItem[0].note =
+                    historyItem[0].note +
+                    '<br> Free Class:' +
+                    moment(historyItem[0].contactDate).format('L h:mm A');
+                  historyItem[0].note =
+                    historyItem[0].note +
+                    '<br> Class Cancelled:' +
+                    moment().format('lll');
+                  if (
+                    $('#cancelFreeClassReason')
+                      .val()
+                      .trim() !== ''
+                  ) {
+                    historyItem[0].note =
+                      historyItem[0].note +
+                      '<br> Reason:' +
+                      $('#cancelFreeClassReason')
+                        .val()
+                        .trim();
+                  }
+                  this.saveCancelTrialNote(
+                    history,
+                    cellInfo.original.contactMethod,
+                    cellInfo.original.contactDate,
+                    cellInfo.original.note,
+                  );
+                }
+              }}
+            >
+              <CancelClassIcon className="icon icon-svg" />
+            </span>
+          )}
         {cellInfo.original.contactMethod === 'meeting' &&
           moment(cellInfo.original.contactDate, 'YYYY-MM-DD HH:mm').isAfter(
             moment(),
@@ -811,8 +900,10 @@ export class LeadDetail extends Component {
         l.id !== this.props.leadItem.id &&
         !this.state.mergedLeadIds.includes(l.id) &&
         (l.values['Lead State'] || '') !== 'Converted' &&
-        l.values['First Name'] === this.props.leadItem.values['First Name'] &&
-        l.values['Last Name'] === this.props.leadItem.values['Last Name'],
+        (l.values['First Name'] || '').trim() ===
+          (this.props.leadItem.values['First Name'] || '').trim() &&
+        (l.values['Last Name'] || '').trim() ===
+          (this.props.leadItem.values['Last Name'] || '').trim(),
     );
     return (
       <div
@@ -2228,6 +2319,33 @@ export const LeadDetailContainer = compose(
           });
         }
       }
+      if (newHistory.contactMethod === 'attended_class') {
+        var triggers = journeyTriggers.filter(
+          trigger =>
+            trigger['values']['Record Type'] === 'Lead' &&
+            trigger['values']['Lead Condition'] === 'Intro Attended' &&
+            trigger['values']['Lead Condition Duration'] === '0',
+        );
+        triggers.forEach(trigger => {
+          console.log('Creating Journey Event');
+          var values = {};
+          values['Status'] = 'New';
+          values['Trigger ID'] = trigger['id'];
+          values['Record Type'] = trigger['values']['Record Type'];
+          values['Record ID'] = leadItem['id'];
+          values['Record Name'] =
+            leadItem['values']['First Name'] +
+            ' ' +
+            leadItem['values']['Last Name'];
+          values['Trigger Date'] = moment().format('YYYY-MM-DD');
+          values['Event Source Date'] = moment().format('YYYY-MM-DD');
+          values['Action'] = trigger['values']['Action'];
+          values['Contact Type'] = trigger['values']['Contact Type'];
+          values['Template Name'] = trigger['values']['Template Name'];
+
+          createJourneyEvent({ values });
+        });
+      }
       if (newHistory.contactMethod === 'noshow_class') {
         var triggers = journeyTriggers.filter(
           trigger =>
@@ -2351,7 +2469,11 @@ export const LeadDetailContainer = compose(
         nextProps.leadItem.values['Is New Reply Received'] === 'true' &&
         !this.props.showNewReplyModal
       ) {
-        this.props.setShowNewReplyModal(true);
+        if (getLatestIncomingAction(nextProps.leadItem) !== undefined) {
+          this.props.setShowNewReplyModal(true);
+        } else {
+          this.props.updateIsNewReplyReceived();
+        }
       }
     },
     componentDidMount() {

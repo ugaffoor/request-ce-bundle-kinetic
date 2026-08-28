@@ -1003,9 +1003,21 @@ export class NewSmsCampaign extends Component {
                   onKeyDown={this.handleSmsKeyDown}
                   className="form-control custom-control"
                   rows="8"
-                  maxLength="765"
+                  maxLength={
+                    ['USD', 'CAD'].includes(
+                      getAttributeValue(this.props.space, 'Currency'),
+                    )
+                      ? 320
+                      : 765
+                  }
                   style={{ resize: 'none' }}
-                  placeholder="Max 765 characters allowed"
+                  placeholder={`Max ${
+                    ['USD', 'CAD'].includes(
+                      getAttributeValue(this.props.space, 'Currency'),
+                    )
+                      ? 320
+                      : 765
+                  } characters allowed`}
                 />
                 {this.state.sendingSMSCampaign && <ReactSpinner />}
                 <button

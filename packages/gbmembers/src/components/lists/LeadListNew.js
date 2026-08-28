@@ -262,7 +262,7 @@ export class ListNewHome extends Component {
     let filters = [];
 
     if (
-      this.state.createdDateStart !== undefined &&
+      this.state.createdDateStart !== undefined ||
       this.state.createdDateEnd !== undefined
     ) {
       filters.push({

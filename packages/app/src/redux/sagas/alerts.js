@@ -6,7 +6,7 @@ import { actions, types } from '../modules/alerts';
 export const ALERTS_SEARCH = new SubmissionSearch()
   .eq('values[Status]', 'Active')
   .include('details,values')
-  .limit(1000)
+  .limit(100)
   .build();
 
 export function* fetchAlertsTask() {

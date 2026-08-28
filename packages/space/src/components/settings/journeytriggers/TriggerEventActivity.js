@@ -384,22 +384,22 @@ export class TriggerEventActivity extends Component {
   componentDidMount() {}
 
   customFilter(option, searchText) {
-    if (
-      (option.data.values['Member Condition'] !== undefined &&
-        option.data.values['Member Condition'] !== null &&
-        option.data.values['Member Condition']
-          .toLowerCase()
-          .includes(searchText.toLowerCase())) ||
-      (option.data.values['Lead Condition'] !== undefined &&
-        option.data.values['Lead Condition'] !== null &&
-        option.data.values['Lead Condition']
-          .toLowerCase()
-          .includes(searchText.toLowerCase()))
-    ) {
-      return true;
-    } else {
-      return false;
-    }
+    const fields = [
+      'Member Condition',
+      'Lead Condition',
+      'Lead Call Script',
+      'Lead SMS',
+      'Lead Email',
+      'Member Call Script',
+      'Member SMS',
+      'Member Email',
+      'Template Name',
+    ];
+    const lower = searchText.toLowerCase();
+    return fields.some(field => {
+      const val = option.data.values[field];
+      return val != null && val.toLowerCase().includes(lower);
+    });
   }
   getAllMembers() {
     let membersVals = [];

@@ -143,6 +143,7 @@ export const SidebarContainer = compose(
           this.props.space,
           'Billing Company',
         ).toLowerCase(),
+        migrationMode: getAttributeValue(this.props.space, 'Migration Mode'),
         migrationsLastFetchTime: this.props.migrationsLastFetchTime,
       });
     },

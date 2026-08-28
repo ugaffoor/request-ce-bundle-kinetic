@@ -33,6 +33,7 @@ import { SetStatusModalContainer } from './SetStatusModalContainer';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
 import 'react-day-picker/lib/style.css';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
+import ReactTooltip from 'react-tooltip';
 import { I18n } from '@kineticdata/react';
 import Barcode from 'react-barcode';
 import Autocomplete from 'react-google-autocomplete';
@@ -218,6 +219,8 @@ export const MemberEdit = ({
   states,
   showRemoveBlockedConfirm,
   setShowRemoveBlockedConfirm,
+  nonPayingUnlocked,
+  setNonPayingUnlocked,
 }) =>
   currentMemberLoading ? (
     <div />
@@ -2096,18 +2099,14 @@ export const MemberEdit = ({
                       memberItem.values['Non Paying'] === 'YES' ? true : false
                     }
                     disabled={
-                      memberItem.values['Billing User'] === 'YES' &&
-                      (memberItem.values['Billing Customer Reference'] !==
-                        undefined ||
-                        memberItem.values['Billing Customer Reference'] !==
-                          null ||
-                        memberItem.values['Billing Customer Reference'] !== '')
-                        ? true
-                        : false
+                      !nonPayingUnlocked &&
+                      memberItem.values['Non Paying'] !== 'YES' &&
+                      memberItem.values['Billing User'] === 'YES'
                     }
                     onChange={e => {
                       if (memberItem.values['Non Paying'] === 'YES') {
                         e.target.value = '';
+                        setNonPayingUnlocked(true);
                       } else {
                         e.target.value = 'YES';
                       }
@@ -2120,6 +2119,31 @@ export const MemberEdit = ({
                       );
                     }}
                   />
+                  {!nonPayingUnlocked &&
+                    memberItem.values['Non Paying'] !== 'YES' &&
+                    memberItem.values['Billing User'] === 'YES' && (
+                      <>
+                        <span
+                          data-tip="Non Paying is disabled while the member is a Biller. Please first Cancel the membership then clear the Billing Info to allow the Non Paying to become enabled."
+                          data-for="nonpaying-disabled-tip"
+                          style={{
+                            cursor: 'help',
+                            color: '#888',
+                            marginLeft: '6px',
+                            fontSize: '14px',
+                          }}
+                        >
+                          &#9432;
+                        </span>
+                        <ReactTooltip
+                          id="nonpaying-disabled-tip"
+                          place="right"
+                          effect="solid"
+                          multiline={true}
+                          style={{ maxWidth: '300px' }}
+                        />
+                      </>
+                    )}
                 </div>
               </span>
             )}
@@ -3195,6 +3219,7 @@ export const MemberEditContainer = compose(
   withState('editAdmin', 'setEditAdmin', false),
   withState('states', 'setStates', ''),
   withState('showRemoveBlockedConfirm', 'setShowRemoveBlockedConfirm', false),
+  withState('nonPayingUnlocked', 'setNonPayingUnlocked', false),
   withHandlers({
     deleteMemberCall: ({
       memberItem,

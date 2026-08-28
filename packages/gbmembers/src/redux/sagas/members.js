@@ -1511,6 +1511,7 @@ export function* fetchPaymentHistory(action) {
             args.customerId = action.payload.billingRef;
             args.timezoneOffset = null;
             args.timezone = action.payload.timezone;
+            args.bamboraCutoverDate = action.payload.bamboraCutoverDate;
 
             axios
               .post(appSettings.kineticBillingServerUrl + getRefundsUrl, args)
@@ -1750,9 +1751,10 @@ export function* createBillingStatistics(action) {
     var statistics = new Map();
     for (let i = 0; i < action.payload.data.length; i++) {
       let customer = action.payload.data[i];
-      let monthDate = moment(customer.debitDate, 'YYYY-MM-DD HH:mm:ss').format(
-        'YYYY-MM',
-      );
+      let monthDate = moment(customer.debitDate, [
+        'YYYY-MM-DD HH:mm:SS',
+        'YYYY-MM-DDTHH:mm:ss',
+      ]).format('YYYY-MM');
       let monthStats = statistics.get(monthDate);
       if (monthStats === undefined) {
         monthStats = {

@@ -387,21 +387,20 @@ export const matchesLeadFilter = (allLeads, filters) => {
             match = false;
           }
         } else if (keys[0] === 'createdDateFilter') {
-          startDate = moment(
-            filters[i][keys[0]].startDate,
-            'YYYY-MM-DD',
-          ).startOf('day');
-          endDate = moment(filters[i][keys[0]].endDate, 'YYYY-MM-DD').endOf(
-            'day',
-          );
-
-          if (
-            !(
-              moment(lead.createdAt).isSameOrAfter(startDate) &&
-              moment(lead.createdAt).isSameOrBefore(endDate)
-            )
-          ) {
-            match = false;
+          const startDateStr = filters[i][keys[0]].startDate;
+          const endDateStr = filters[i][keys[0]].endDate;
+          const createdAt = moment(lead.createdAt);
+          if (startDateStr) {
+            startDate = moment(startDateStr, 'YYYY-MM-DD').startOf('day');
+            if (!createdAt.isSameOrAfter(startDate)) {
+              match = false;
+            }
+          }
+          if (endDateStr) {
+            endDate = moment(endDateStr, 'YYYY-MM-DD').endOf('day');
+            if (!createdAt.isSameOrBefore(endDate)) {
+              match = false;
+            }
           }
         } else if (keys[0] === 'genderFilter') {
           if (lead.values['Gender'] !== filters[i][keys[0]].gender) {

@@ -658,11 +658,8 @@ export class MigratingBamboraToStripe extends Component {
           ? moment(nextBillingDate, 'DD MMM YYYY').format('YYYY-MM-DD')
           : moment().format('YYYY-MM-DD');
 
-        const grossCost =
-          Math.round(
-            (parseFloat(memberItem.values['Membership Cost']) || 0) * 100,
-          ) / 100;
-        const baseCost = Math.round((grossCost / oldMultiplier) * 100) / 100;
+        const grossCost = parseFloat(memberItem.values['Membership Cost']) || 0;
+        const baseCost = grossCost / oldMultiplier;
         const payment = Math.round(baseCost * newMultiplier * 100) / 100;
 
         const isFrozen =
@@ -979,7 +976,7 @@ export class MigratingBamboraToStripe extends Component {
                     .includes(['details', 'values'])
                     .index('values[Member GUID]')
                     .eq('values[Member GUID]', memberItem.id)
-                    .limit(1000)
+                    .limit(100)
                     .build(),
                 })
                   .then(({ submissions }) => {

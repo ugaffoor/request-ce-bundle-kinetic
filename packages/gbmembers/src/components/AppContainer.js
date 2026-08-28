@@ -45,6 +45,7 @@ function tick(mythis) {
       mythis.props.space,
       'Billing Company',
     ).toLowerCase(),
+    migrationMode: getAttributeValue(mythis.props.space, 'Migration Mode'),
     migrationsLastFetchTime: mythis.props.migrationsLastFetchTime,
   });
   if (

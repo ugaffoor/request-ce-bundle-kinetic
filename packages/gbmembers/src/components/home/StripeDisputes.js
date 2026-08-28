@@ -46,25 +46,27 @@ export class StripeDisputes extends Component {
       })
       .then(result => {
         const raw = result.data.data || result.data || [];
-        const disputes = (Array.isArray(raw) ? raw : []).map(d => {
-          const member = (this.props.allMembers || []).find(
-            m => m.values['Billing Customer Id'] === d.customerId,
-          );
-          return {
-            id: d.id || d.disputeId,
-            amount: d.amount,
-            currency: d.currency || this.currency,
-            reason: d.reason,
-            status: d.status,
-            created: d.created || d.createdDate,
-            dueBy: d.evidenceDueBy || d.due_by,
-            customerId: d.customerId,
-            memberGUID: member ? member.id : null,
-            name: member
-              ? member.values['First Name'] + ' ' + member.values['Last Name']
-              : d.customerId || '',
-          };
-        });
+        const disputes = (Array.isArray(raw) ? raw : [])
+          .map(d => {
+            const member = (this.props.allMembers || []).find(
+              m => m.values['Billing Customer Id'] === d.customerId,
+            );
+            return {
+              id: d.id || d.disputeId,
+              amount: d.amount,
+              currency: d.currency || this.currency,
+              reason: d.reason,
+              status: d.status,
+              created: d.created || d.createdDate,
+              dueBy: d.evidenceDueBy || d.due_by,
+              customerId: d.customerId,
+              memberGUID: member ? member.id : null,
+              name: member
+                ? member.values['First Name'] + ' ' + member.values['Last Name']
+                : d.customerId || '',
+            };
+          })
+          .filter(d => d.status !== 'lost' && d.status !== 'won');
         this.setState({ disputes, loading: false });
       })
       .catch(error => {

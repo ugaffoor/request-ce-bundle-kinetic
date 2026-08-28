@@ -11,7 +11,7 @@ import {
 } from '../Member/MemberUtils';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
-const ezidebit_date_format = 'YYYY-MM-DD HH:mm:sss';
+const ezidebit_date_format = ['YYYY-MM-DD HH:mm:sss', 'YYYY-MM-DDTHH:mm:ss'];
 
 export class StripeOverdues extends Component {
   constructor(props) {

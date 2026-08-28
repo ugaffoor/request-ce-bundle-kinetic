@@ -5,7 +5,7 @@ import { actions, types } from '../modules/help';
 // Alerts Search Query
 export const HELP_SEARCH = new SubmissionSearch(true)
   .include('details,values')
-  .limit(1000)
+  .limit(200)
   .build();
 
 export function* fetchHelp() {

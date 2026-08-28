@@ -12,7 +12,7 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
-const ezidebit_date_format = 'YYYY-MM-DD HH:mm:ss';
+const ezidebit_date_format = ['YYYY-MM-DD HH:mm:SS', 'YYYY-MM-DDTHH:mm:ss'];
 
 export class ProcessedPaymentsBillingChart extends Component {
   constructor(props) {

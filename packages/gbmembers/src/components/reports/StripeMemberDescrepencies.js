@@ -67,7 +67,19 @@ export class StripeMemberDescrepencies extends Component {
           lastPaymentDate: member.values['Last Payment Date'],
           resumeDate: member.values['Resume Date'],
         };
-      } else if (member === undefined) {
+      } else if (member === undefined && billingCustomer.status === 'Active') {
+        data[data.length] = {
+          _id: billingCustomer.customerId,
+          firstName: billingCustomer.firstName,
+          lastName: billingCustomer.lastName,
+          customerId: billingCustomer.customerId,
+          memberStatus: 'Not Found',
+          stripeStatus:
+            'Active:' +
+            (billingCustomer.billingId || billingCustomer.customerId),
+          lastPaymentDate: '',
+          resumeDate: '',
+        };
       }
     });
     members.forEach(member => {

@@ -54,6 +54,42 @@ body {
   -moz-user-select: text;
   user-select: text;
 }
+.embedded-core-form {
+  .btn-primary {
+    color: white;
+    background-color: #313e47 !important;
+    border: none;
+    text-transform: uppercase;
+    font-size: 15px;
+    line-height: 1.75em !important;
+    border-radius: 0.4rem;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    &:focus,
+    &.focus {
+      box-shadow: none;
+      outline: #495b68 dotted thin;
+    }
+  }
+
+  .btn-primary:not(:disabled):not(.disabled):active,
+  .btn-primary:not(:disabled):not(.disabled).active,
+  .show > .btn-primary.dropdown-toggle {
+    background-color: lighten(#313e47, 10%) !important;
+    border-color: lighten(#313e47, 12%) !important;
+  }
+  .btn-primary:focus,
+  .btn-primary.focus {
+    background-color: darken(#313e47, 10%) !important;
+    box-shadow: 0 0 0 0.2rem rgba(#313e47, 0.5) !important;
+  }
+  .btn-primary:disabled,
+  .btn-primary.disabled {
+    background-color: lighten(#313e47, 40%) !important;
+    border-color: lighten(#313e47, 42%) !important;
+  }
+}
+
 .page--container .page-panel .embedded-core-form,
 .login-section {
   form,

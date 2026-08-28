@@ -454,6 +454,43 @@ Indications in the application will identify members not compliant."
               )}
             </span>
           )}
+          {/*Utils.getAttributeValue(this.props.space, 'Billing Company') ===
+            'PaySmart' &&
+            Utils.getAttributeValue(
+              this.props.space,
+              'PaySmart Apply Admin Fee',
+            ) === 'YES' && (
+              <button
+                type="button"
+                className="btn btn-warning"
+                style={{ marginBottom: '10px' }}
+                onClick={async () => {
+                  if (
+                    await confirm(
+                      'Are you sure you want to switch to use All Inclusive pricing. This will remove any Admin Fee charges being applied to the member fee, and assume you have already changed your Membership Fee pricing accordingly.',
+                    )
+                  ) {
+                    this.props.updateSpaceAttribute({
+                      space: this.props.space,
+                      values: {
+                        Status: 'New',
+                        'Attribute Name': 'PaySmart Apply Admin Fee',
+                        'Original Value': 'YES',
+                        'New Value': 'NO',
+                        'Updated By': this.props.profile.username,
+                      },
+                    });
+                    setAttributeValue(
+                      this.props.space,
+                      'PaySmart Apply Admin Fee',
+                      'NO',
+                    );
+                  }
+                }}
+              >
+                Switch to All Inclusive Pricing
+              </button>
+            )*/}
           <EditAttributeValue
             attributeID="paymentFrequencies"
             attributeName="Payment Frequencies"

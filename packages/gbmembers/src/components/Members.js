@@ -14,10 +14,11 @@ export class Members extends React.Component {
   constructor(props) {
     super();
     this.actions = props.actions;
+    const savedFilter = sessionStorage.getItem('members_filterAll') || '';
     this.state = {
       data: this.getData(props.space, props.allMembers, props.currentFilter),
-      filtered: [],
-      filterAll: '',
+      filtered: savedFilter ? [{ id: 'id', value: savedFilter }] : [],
+      filterAll: savedFilter,
       attentionRequiredOnly: false,
     };
     this.toggleSidebarOpen = props.toggleSidebarOpen;
@@ -79,6 +80,9 @@ export class Members extends React.Component {
     return (
       member.values['Status'] !== 'Inactive' &&
       member.values['Billing Payment Type'] !== 'Cash' &&
+      (member.values['Billing Parent Member'] === null ||
+        member.values['Billing Parent Member'] === undefined ||
+        member.values['Billing Parent Member'] === '') &&
       (((member.values['Billing Customer Reference'] === null ||
         member.values['Billing Customer Reference'] === undefined ||
         member.values['Billing Customer Reference'] === '') &&
@@ -215,6 +219,7 @@ export class Members extends React.Component {
     const filterAll = value;
     const filtered = [{ id: 'id', value: filterAll }];
     // NOTE: this completely clears any COLUMN filters
+    sessionStorage.setItem('members_filterAll', filterAll);
     this.setState({ filterAll, filtered });
   }
   render() {

@@ -207,7 +207,7 @@
     .matchingMembersList {
       display: flex;
       flex-direction: column;
-      max-height: 220px;
+      max-height: 440px;
       overflow-y: auto;
       border: 1px solid #dbd8d8;
       border-radius: 4px;
@@ -219,12 +219,13 @@
       $mem-col-fee: 2fr;
       $mem-col-info: 2fr;
       $mem-col-member-type: 1fr;
+      $mem-col-payment-method: 1fr;
       $mem-col-cost: 80px;
 
       .matchingMembersHeader,
       .matchingMemberRow {
         display: grid;
-        grid-template-columns: $mem-col-exclude $mem-col-name $mem-col-fee $mem-col-info $mem-col-member-type $mem-col-date-joined $mem-col-cost;
+        grid-template-columns: $mem-col-exclude $mem-col-name $mem-col-fee $mem-col-info $mem-col-member-type $mem-col-payment-method $mem-col-date-joined $mem-col-cost;
         align-items: center;
         padding: 5px 8px;
         gap: 8px;
@@ -254,6 +255,18 @@
           color: #3498db;
         }
 
+        &.familyAccount:not(.memberExcluded) {
+          background-color: #eaf3fb;
+        }
+
+        &.dependent {
+          padding-left: 24px;
+        }
+
+        &.dependent:not(.memberExcluded) {
+          background-color: #fef9e7;
+        }
+
         input[type='checkbox'] {
           margin: 0;
           cursor: pointer;
@@ -278,6 +291,11 @@
       }
 
       .memColMemberType {
+        font-size: 0.85em;
+        color: #555;
+      }
+
+      .memColPaymentMethod {
         font-size: 0.85em;
         color: #555;
       }

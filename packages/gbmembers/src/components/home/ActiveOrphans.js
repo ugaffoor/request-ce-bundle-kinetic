@@ -10,7 +10,7 @@ import {
 import ReactToPrint from 'react-to-print';
 import ReactTable from 'react-table';
 
-const ezidebit_date_format = 'YYYY-MM-DD HH:mm:ss';
+const ezidebit_date_format = ['YYYY-MM-DD HH:mm:SS', 'YYYY-MM-DDTHH:mm:ss'];
 
 export class ActiveOrphans extends React.Component {
   constructor(props) {

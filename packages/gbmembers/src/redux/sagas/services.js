@@ -522,6 +522,7 @@ export function* fetchMemberMigrations(action) {
 
     /* Remote Registrations START */
     let searchBuilder = new SubmissionSearch()
+      .coreState('Draft')
       .type('Service')
       .sortBy('updatedAt')
       .sortDirection('ASC')
@@ -550,6 +551,7 @@ export function* fetchMemberMigrations(action) {
     allSubmissions = allSubmissions.concat(submissions);
     while (nextPageToken) {
       var search2 = new SubmissionSearch()
+        .coreState('Draft')
         .type('Service')
         .sortBy('updatedAt')
         .sortDirection('ASC')
@@ -573,36 +575,8 @@ export function* fetchMemberMigrations(action) {
     /* Remote Registrations END */
 
     /* Member Registrations START */
-    let searchMemberBuilder = new SubmissionSearch()
-      .coreState('Submitted')
-      .type('Service')
-      .sortBy('submittedAt')
-      .sortDirection('ASC')
-      .includes([
-        'form',
-        'details',
-        'values[Student First Name],values[Student Last Name],values[Member GUID],values[The first instalment is due on],values[I promise to pay equal FREQUENCY instalments of],values[Billing Customer Reference],values[customerBillingId],values[Form Completion Sent]',
-      ])
-      .limit(1000);
-
-    if (migrationsLastFetchTime !== undefined) {
-      searchMemberBuilder = searchMemberBuilder.sortBy('updatedAt');
-
-      searchMemberBuilder = searchMemberBuilder.startDate(
-        moment(migrationsLastFetchTime).toDate(),
-      );
-    }
-    searchMemberBuilder = searchMemberBuilder.build();
-
-    var { submissions, nextPageToken } = yield call(searchSubmissions, {
-      get: true,
-      form: action.payload.billingSystem + '-member-registration',
-      kapp: 'services',
-      search: searchMemberBuilder,
-    });
-    allSubmissions = allSubmissions.concat(submissions);
-    while (nextPageToken) {
-      var search2 = new SubmissionSearch()
+    if (action.payload.migrationMode === 'YES') {
+      let searchMemberBuilder = new SubmissionSearch()
         .coreState('Submitted')
         .type('Service')
         .sortBy('submittedAt')
@@ -612,17 +586,47 @@ export function* fetchMemberMigrations(action) {
           'details',
           'values[Student First Name],values[Student Last Name],values[Member GUID],values[The first instalment is due on],values[I promise to pay equal FREQUENCY instalments of],values[Billing Customer Reference],values[customerBillingId],values[Form Completion Sent]',
         ])
-        .pageToken(nextPageToken)
-        .limit(1000)
-        .build();
+        .limit(1000);
+
+      if (migrationsLastFetchTime !== undefined) {
+        searchMemberBuilder = searchMemberBuilder.sortBy('updatedAt');
+
+        searchMemberBuilder = searchMemberBuilder.startDate(
+          moment(migrationsLastFetchTime).toDate(),
+        );
+      }
+      searchMemberBuilder = searchMemberBuilder.build();
 
       var { submissions, nextPageToken } = yield call(searchSubmissions, {
+        get: true,
         form: action.payload.billingSystem + '-member-registration',
         kapp: 'services',
-        search: search2,
+        search: searchMemberBuilder,
       });
-
       allSubmissions = allSubmissions.concat(submissions);
+      while (nextPageToken) {
+        var search2 = new SubmissionSearch()
+          .coreState('Submitted')
+          .type('Service')
+          .sortBy('submittedAt')
+          .sortDirection('ASC')
+          .includes([
+            'form',
+            'details',
+            'values[Student First Name],values[Student Last Name],values[Member GUID],values[The first instalment is due on],values[I promise to pay equal FREQUENCY instalments of],values[Billing Customer Reference],values[customerBillingId],values[Form Completion Sent]',
+          ])
+          .pageToken(nextPageToken)
+          .limit(1000)
+          .build();
+
+        var { submissions, nextPageToken } = yield call(searchSubmissions, {
+          form: action.payload.billingSystem + '-member-registration',
+          kapp: 'services',
+          search: search2,
+        });
+
+        allSubmissions = allSubmissions.concat(submissions);
+      }
     }
     /* Remote Registrations END */
 

@@ -10,10 +10,11 @@ export class Leads extends React.Component {
   constructor(props) {
     super();
     this.actions = props.actions;
+    const savedFilter = sessionStorage.getItem('leads_filterAll') || '';
     this.state = {
       data: this.getData(props.allLeads),
-      filtered: [],
-      filterAll: '',
+      filtered: savedFilter ? [{ id: 'id', value: savedFilter }] : [],
+      filterAll: savedFilter,
       attentionRequiredOnly: false,
     };
     this.toggleSidebarOpen = props.toggleSidebarOpen;
@@ -110,6 +111,7 @@ export class Leads extends React.Component {
     const filterAll = value;
     const filtered = [{ id: 'id', value: filterAll }];
     // NOTE: this completely clears any COLUMN filters
+    sessionStorage.setItem('leads_filterAll', filterAll);
     this.setState({ filterAll, filtered });
   }
 

@@ -155,7 +155,7 @@ const mapDispatchToProps = {
   sendReceipt: servicesActions.sendReceipt,
 };
 
-const ezidebit_date_format = 'YYYY-MM-DD HH:mm:ss';
+const ezidebit_date_format = ['YYYY-MM-DD HH:mm:SS', 'YYYY-MM-DDTHH:mm:ss'];
 var compThis = undefined;
 
 function isValidFamilyMembers(familyMembers) {
@@ -2299,6 +2299,8 @@ export class PaymentHistory extends Component {
       chargeRefundInfo: {},
       refundModalPaymentID: null,
       refundModalOriginalAmount: null,
+      chargeDetailsModalPaymentID: null,
+      chargeDetailsInfo: {},
     };
   }
 
@@ -2348,6 +2350,46 @@ export class PaymentHistory extends Component {
           chargeRefundInfo: {
             ...prev.chargeRefundInfo,
             [paymentID]: { loading: false, error: 'Failed to load' },
+          },
+        }));
+      });
+  }
+
+  fetchChargeDetails(chargeId) {
+    this.setState(prev => ({
+      chargeDetailsModalPaymentID: chargeId,
+      chargeDetailsInfo: {
+        ...prev.chargeDetailsInfo,
+        [chargeId]: { loading: true },
+      },
+    }));
+    axios
+      .post(this.props.kineticBillingServerUrl + '/getChargeDetails', {
+        space: this.props.space.slug,
+        chargeId,
+        timezone: getTimezone(
+          this.props.profile.timezone,
+          this.props.space.defaultTimezone,
+        ),
+      })
+      .then(result => {
+        const raw = result.data && result.data.data;
+        const data = Array.isArray(raw) ? raw : raw ? [raw] : [];
+        this.setState(prev => ({
+          chargeDetailsInfo: {
+            ...prev.chargeDetailsInfo,
+            [chargeId]: { loading: false, data },
+          },
+        }));
+      })
+      .catch(() => {
+        this.setState(prev => ({
+          chargeDetailsInfo: {
+            ...prev.chargeDetailsInfo,
+            [chargeId]: {
+              loading: false,
+              error: 'Failed to load charge details.',
+            },
           },
         }));
       });
@@ -2622,7 +2664,32 @@ export class PaymentHistory extends Component {
         accessor: 'paymentID',
         Header: 'Transaction ID',
         Cell: props => {
-          return props.value;
+          const isStripeCharge =
+            getAttributeValue(this.props.space, 'Billing Company') ===
+              'Stripe' &&
+            props.value &&
+            (props.value.startsWith('ch_') ||
+              props.value.startsWith('py_') ||
+              props.value.startsWith('in_'));
+          return (
+            <span>
+              {isStripeCharge && (
+                <span
+                  style={{
+                    cursor: 'pointer',
+                    marginRight: '4px',
+                    color: '#2980b9',
+                    fontWeight: 'bold',
+                  }}
+                  title="View charge details"
+                  onClick={() => this.fetchChargeDetails(props.value)}
+                >
+                  ?
+                </span>
+              )}
+              {props.value}
+            </span>
+          );
         },
       });
     }
@@ -2734,20 +2801,25 @@ export class PaymentHistory extends Component {
                 </span>
               )}
             {getAttributeValue(this.props.space, 'Billing Company') ===
-              'Stripe' && (
-              <i
-                className="fa fa-question-circle"
-                style={{ cursor: 'pointer', color: '#888', marginLeft: '6px' }}
-                title="Check refund status"
-                onClick={e => {
-                  e.stopPropagation();
-                  this.fetchChargeRefunds(
-                    row.original.paymentID,
-                    row.original.paymentAmount,
-                  );
-                }}
-              />
-            )}
+              'Stripe' &&
+              row.original.paymentID.startsWith('py_') && (
+                <i
+                  className="fa fa-question-circle"
+                  style={{
+                    cursor: 'pointer',
+                    color: '#888',
+                    marginLeft: '6px',
+                  }}
+                  title="Check refund status"
+                  onClick={e => {
+                    e.stopPropagation();
+                    this.fetchChargeRefunds(
+                      row.original.paymentID,
+                      row.original.paymentAmount,
+                    );
+                  }}
+                />
+              )}
             {getAttributeValue(this.props.space, 'Billing Company') ===
               'Bambora' && (
               <i
@@ -2991,6 +3063,65 @@ export class PaymentHistory extends Component {
                       Close
                     </button>
                   </div>
+                </ModalDialog>
+              </ModalContainer>
+            );
+          })()}
+
+        {this.state.chargeDetailsModalPaymentID &&
+          (() => {
+            const chargeId = this.state.chargeDetailsModalPaymentID;
+            const info = this.state.chargeDetailsInfo[chargeId] || {
+              loading: true,
+            };
+            const closeModal = () =>
+              this.setState({ chargeDetailsModalPaymentID: null });
+            const items = info.data || [];
+            return (
+              <ModalContainer onClose={closeModal}>
+                <ModalDialog onClose={closeModal}>
+                  <h4>Charge Details</h4>
+                  <p style={{ color: '#888', fontSize: '0.9em' }}>{chargeId}</p>
+                  {info.loading ? (
+                    <div>Loading...</div>
+                  ) : info.error ? (
+                    <div className="alert alert-danger">{info.error}</div>
+                  ) : items.length === 0 ? (
+                    <div>No details found.</div>
+                  ) : (
+                    <table className="table table-sm">
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Return Code</th>
+                          <th>Reason</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {items.map((item, idx) => (
+                          <tr key={idx}>
+                            <td>
+                              {item.debitDate
+                                ? moment(item.debitDate).format('ll')
+                                : ''}
+                            </td>
+                            <td>
+                              {item.paymentStatus === 'succeeded'
+                                ? 'paid'
+                                : item.bankReturnCode}
+                            </td>
+                            <td>{item.bankFailedReason}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={closeModal}
+                  >
+                    Close
+                  </button>
                 </ModalDialog>
               </ModalContainer>
             );
@@ -3342,7 +3473,11 @@ export class BillingInfo extends Component {
     }
   }
 
-  componentDidMount() {}
+  componentDidMount() {
+    if (getAttributeValue(this.props.space, 'Billing Company') === 'PaySmart') {
+      this.getActionRequests();
+    }
+  }
 
   setShowBillingAudit(val) {
     this.setState({ showBillingAudit: val });
@@ -3859,6 +3994,61 @@ export class BillingInfo extends Component {
                         {getAttributeValue(
                           this.props.space,
                           'Billing Company',
+                        ) === 'PaySmart' &&
+                          this.props.memberItem.values[
+                            'Billing Customer Id'
+                          ] && (
+                            <div>
+                              <NavLink
+                                to={`/categories/billing-registration/setup-biller-details?id=${
+                                  this.props.memberItem.id
+                                }`}
+                                kappSlug={'services'}
+                                className={
+                                  'nav-link icon-wrapper btn btn-primary'
+                                }
+                                activeClassName="active"
+                                disabled={
+                                  this.props.memberItem.values['Status'] !==
+                                  'Active'
+                                }
+                                style={{
+                                  display: 'inline',
+                                  paddingTop: '4px',
+                                  paddingBottom: '4px',
+                                }}
+                              >
+                                Update Billing Details
+                              </NavLink>
+                            </div>
+                          )}
+                        {getAttributeValue(
+                          this.props.space,
+                          'Billing Company',
+                        ) === 'PaySmart' && (
+                          <div>
+                            <NavLink
+                              to={`/categories/billing-registration/paysmart-change-payment-type?id=${
+                                this.props.memberItem.id
+                              }`}
+                              kappSlug={'services'}
+                              className={
+                                'nav-link icon-wrapper btn btn-primary'
+                              }
+                              activeClassName="active"
+                              style={{
+                                display: 'inline',
+                                paddingTop: '4px',
+                                paddingBottom: '4px',
+                              }}
+                            >
+                              Update Payment Details
+                            </NavLink>
+                          </div>
+                        )}
+                        {getAttributeValue(
+                          this.props.space,
+                          'Billing Company',
                         ) === 'Bambora' &&
                           (getAttributeValue(
                             this.props.space,
@@ -4347,6 +4537,32 @@ export class BillingInfo extends Component {
                               </td>
                             </tr>
                           )}
+                          {this.props.actionRequests &&
+                            this.props.actionRequests.length > 0 &&
+                            this.props.actionRequests.map((req, idx) => (
+                              <tr key={idx}>
+                                <td>{req.actionRequestType}:</td>
+                                <td>
+                                  {req.amount !== undefined &&
+                                  req.amount !== null
+                                    ? '$' + req.amount
+                                    : ''}
+                                  {req.status ? ' (' + req.status + ')' : ''}
+                                  {req.startDate
+                                    ? ' Start: ' +
+                                      moment(req.startDate).format('L')
+                                    : ''}
+                                  {req.resumeDate
+                                    ? ' Resume: ' +
+                                      moment(req.resumeDate).format('L')
+                                    : ''}
+                                  {req.permanent !== undefined &&
+                                  req.permanent !== null
+                                    ? ' Permanent: ' + req.permanent
+                                    : ''}
+                                </td>
+                              </tr>
+                            ))}
                         </tbody>
                       </table>
                       {this.state.capturePayment && (
@@ -4892,7 +5108,7 @@ export const BillingContainer = compose(
         .eq('values[Member GUID]', memberID)
         .include('details,values')
         .sortDirection('DESC')
-        .limit(1000)
+        .limit(100)
         .build();
       searchSubmissions({
         datastore: true,
@@ -5360,6 +5576,7 @@ export const BillingContainer = compose(
         ) {
           this.props.fetchSetupBillingInfo({
             billingRef: member.values['Billing Setup Fee Id'],
+            billingService: getUseBillingSystem(this.props.space, member),
             history: this.props.history,
             myThis: this,
             setBillingInfo: this.props.setSetupBillingInfo,
@@ -5436,6 +5653,7 @@ export const BillingContainer = compose(
           ) {
             this.props.fetchSetupBillingInfo({
               billingRef: member.values['Billing Setup Fee Id'],
+              billingSystem: this.props.getUseBillingSystem(member),
               history: this.props.history,
               myThis: this,
               setBillingInfo: this.props.setSetupBillingInfo,

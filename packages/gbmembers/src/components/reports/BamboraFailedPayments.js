@@ -85,7 +85,9 @@ export class BamboraFailedPayments extends Component {
     uniqueHistoryAll.map(payment => {
       var idx = this.props.allMembers.findIndex(
         member =>
-          member.values['Billing Customer Id'] === payment.yourSystemReference,
+          member.values['Billing Customer Id'] ===
+            payment.yourSystemReference ||
+          member.values['Archive Billing Id'] === payment.yourSystemReference,
       );
       if (idx !== -1) {
         if (
@@ -104,7 +106,9 @@ export class BamboraFailedPayments extends Component {
     const data = uniqueHistory.map(payment => {
       var idx = this.props.allMembers.findIndex(
         member =>
-          member.values['Billing Customer Id'] === payment.yourSystemReference,
+          member.values['Billing Customer Id'] ===
+            payment.yourSystemReference ||
+          member.values['Archive Billing Id'] === payment.yourSystemReference,
       );
       var member = undefined;
       if (idx !== -1) {
@@ -150,7 +154,11 @@ export class BamboraFailedPayments extends Component {
       {
         accessor: 'debitDate',
         Header: 'Debit Date',
-        Cell: props => moment(props.value, ezidebit_date_format).format('L'),
+        Cell: props =>
+          moment(props.value, [
+            ezidebit_date_format,
+            'YYYY-MM-DDTHH:mm:ss',
+          ]).format('L'),
       },
     ];
     return columns;

@@ -19,6 +19,7 @@ import { PopConfirm } from '../../shared/PopConfirm';
 import { Button } from 'reactstrap';
 import { actions as memberActions } from 'gbmembers/src/redux/modules/members';
 import { getAttributeValue } from 'gbmembers/src/lib/react-kinops-components/src/utils';
+import ReactTooltip from 'react-tooltip';
 import {
   getJson,
   getCurrency,
@@ -29,7 +30,7 @@ const PRICE_INCREASE_EMAIL_TEMPLATE =
 
 export const mapStateToProps = state => {
   return {
-    space: state.member.app.space,
+    space: state.app.space,
     priceIncreases: state.space.priceIncreases.priceIncreases,
     priceIncreasesLoading: state.space.priceIncreases.priceIncreasesLoading,
     membershipFees: state.space.priceIncreases.membershipFees,
@@ -71,9 +72,15 @@ export class NewPriceIncrease extends Component {
       scheduledDateTime: '',
       excludedMembers: [],
       affectedMemberFilter: '',
+      doNotSendEmail: false,
       emailTemplateName: '',
       emailTemplateID: undefined,
       showEmailDialog: false,
+      excludeFamilyAccounts: false,
+      excludeIncreasesFrom: '',
+      excludedFromIncreaseMembers: [],
+      excludeNewMembersFrom: '',
+      excludedNewMembers: [],
       priceIncreaseTemplates: [],
       selectedExistingTemplateID: '',
       submitting: false,
@@ -81,7 +88,103 @@ export class NewPriceIncrease extends Component {
     };
     this.toggleFee = this.toggleFee.bind(this);
     this.toggleExcludeMember = this.toggleExcludeMember.bind(this);
+    this.fetchExcludedFromIncreases = this.fetchExcludedFromIncreases.bind(
+      this,
+    );
+    this.applyNewMemberExclusion = this.applyNewMemberExclusion.bind(this);
     this.createNewPriceIncrease = this.createNewPriceIncrease.bind(this);
+  }
+  fetchExcludedFromIncreases(dateStr) {
+    if (!dateStr) {
+      this.setState(prev => ({
+        excludedMembers: prev.excludedMembers.filter(
+          id => !prev.excludedFromIncreaseMembers.includes(id),
+        ),
+        excludedFromIncreaseMembers: [],
+      }));
+      return;
+    }
+    const fromDate = moment(dateStr, 'YYYY-MM-DD').startOf('day');
+    const completedIncreases = (this.props.priceIncreases || []).filter(
+      pi =>
+        pi.values['Status'] === 'Completed' &&
+        moment(pi.updatedAt).isSameOrAfter(fromDate),
+    );
+    if (completedIncreases.length === 0) {
+      this.setState(prev => ({
+        excludedMembers: prev.excludedMembers.filter(
+          id => !prev.excludedFromIncreaseMembers.includes(id),
+        ),
+        excludedFromIncreaseMembers: [],
+      }));
+      return;
+    }
+    Promise.all(
+      completedIncreases.map(pi =>
+        searchSubmissions({
+          datastore: true,
+          form: 'member-price-increase',
+          search: new SubmissionSearch(true)
+            .index('values[Price Increase ID]')
+            .eq('values[Price Increase ID]', pi.id)
+            .include('values')
+            .limit(1000)
+            .build(),
+        }).then(({ submissions }) => submissions || []),
+      ),
+    ).then(results => {
+      const memberIds = [
+        ...new Set(
+          results
+            .flat()
+            .map(s => s.values['Member GUID'])
+            .filter(Boolean),
+        ),
+      ];
+      this.setState(prev => ({
+        excludedFromIncreaseMembers: memberIds,
+        excludedMembers: [
+          ...new Set([
+            ...prev.excludedMembers.filter(
+              id => !prev.excludedFromIncreaseMembers.includes(id),
+            ),
+            ...memberIds,
+          ]),
+        ],
+      }));
+    });
+  }
+  applyNewMemberExclusion(dateStr) {
+    if (!dateStr) {
+      this.setState(prev => ({
+        excludedMembers: prev.excludedMembers.filter(
+          id => !prev.excludedNewMembers.includes(id),
+        ),
+        excludedNewMembers: [],
+        excludeNewMembersFrom: '',
+      }));
+      return;
+    }
+    const fromDate = moment(dateStr, 'YYYY-MM-DD').startOf('day');
+    const newMemberIds = (this.props.allMembers || [])
+      .filter(m => {
+        if (m.values['Billing User'] !== 'YES') return false;
+        const dj = m.values['Date Joined'];
+        return dj && moment(dj, 'YYYY-MM-DD').isSameOrAfter(fromDate, 'day');
+      })
+      .map(m => m.id);
+    this.setState(prev => ({
+      excludeNewMembersFrom: dateStr,
+      excludedNewMembers: newMemberIds,
+      excludedMembers: [
+        ...new Set([
+          ...prev.excludedMembers.filter(
+            id => !prev.excludedNewMembers.includes(id),
+          ),
+          ...newMemberIds,
+        ]),
+      ],
+    }));
   }
   toggleFee(program, info) {
     const infoKey = info || '';
@@ -108,6 +211,30 @@ export class NewPriceIncrease extends Component {
         : { excludedMembers: [...excluded, memberId] };
     });
   }
+  computeFamilyIds() {
+    const allMembers = this.props.allMembers || [];
+    const { selectedFees } = this.state;
+    if (selectedFees.length === 0) return [];
+    return allMembers.reduce((acc, member) => {
+      if (member.values['Status'] !== 'Active') return acc;
+      if (
+        member.values['Non Paying'] === 'YES' ||
+        member.values['Billing Payment Type'] === 'Cash'
+      )
+        return acc;
+      const feeDetails = getJson(member.values['Family Fee Details']);
+      if (feeDetails.length <= 1) return acc;
+      const matched = feeDetails.filter(d =>
+        selectedFees.some(
+          s =>
+            d.program === s.program + ' - ' + s.info ||
+            d.program === s.program + '-' + s.info,
+        ),
+      );
+      matched.forEach(d => acc.push(d.id));
+      return acc;
+    }, []);
+  }
   componentDidMount() {
     searchSubmissions({
       datastore: true,
@@ -123,6 +250,17 @@ export class NewPriceIncrease extends Component {
         ),
       });
     });
+  }
+  componentDidUpdate(_prevProps, prevState) {
+    if (
+      this.state.excludeFamilyAccounts &&
+      prevState.selectedFees !== this.state.selectedFees
+    ) {
+      const familyIds = this.computeFamilyIds();
+      this.setState(prev => ({
+        excludedMembers: [...new Set([...prev.excludedMembers, ...familyIds])],
+      }));
+    }
   }
   computeBillingMembers() {
     const allMembers = this.props.allMembers || [];
@@ -178,8 +316,13 @@ export class NewPriceIncrease extends Component {
       : '';
     values['Excluded Members'] = this.state.excludedMembers;
     values['Billing Members'] = this.computeBillingMembers();
-    values['Email Template Name'] = this.state.emailTemplateName;
-    values['Email Template ID'] = this.state.emailTemplateID;
+    values['Do Not Send Email'] = this.state.doNotSendEmail ? 'YES' : '';
+    values['Email Template Name'] = this.state.doNotSendEmail
+      ? ''
+      : this.state.emailTemplateName;
+    values['Email Template ID'] = this.state.doNotSendEmail
+      ? ''
+      : this.state.emailTemplateID;
 
     this.setState({ submitting: true, submitError: null });
     this.props.createPriceIncrease({
@@ -242,6 +385,7 @@ export class NewPriceIncrease extends Component {
       selectedFees.length > 0
         ? (allMembers || []).reduce((acc, member) => {
             if (member.values['Status'] !== 'Active') return acc;
+            if (member.values['Billing User'] !== 'YES') return acc;
             if (
               member.values['Non Paying'] === 'YES' ||
               member.values['Billing Payment Type'] === 'Cash'
@@ -281,7 +425,9 @@ export class NewPriceIncrease extends Component {
       scheduledDateTime !== '' && moment(scheduledDateTime).isAfter(moment());
     const isValid =
       isValidBase &&
-      (!showSchedule || (isScheduleValid && !!this.state.emailTemplateID));
+      (!showSchedule ||
+        (isScheduleValid &&
+          (!!this.state.emailTemplateID || this.state.doNotSendEmail)));
 
     return (
       <div className="newPriceIncrease">
@@ -354,6 +500,7 @@ export class NewPriceIncrease extends Component {
               </label>
             </div>
           </div>
+
           {this.state.increaseType === 'fixedAmount' && (
             <div className="formField">
               <label>
@@ -394,6 +541,115 @@ export class NewPriceIncrease extends Component {
               />
             </div>
           )}
+          {getAttributeValue(this.props.space, 'Billing Company') ===
+            'PaySmart' && (
+            <div className="formField">
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontWeight: 'normal',
+                  cursor: 'pointer',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={this.state.excludeFamilyAccounts}
+                  onChange={e => {
+                    const checked = e.target.checked;
+                    const familyIds = this.computeFamilyIds();
+                    this.setState(prev => ({
+                      excludeFamilyAccounts: checked,
+                      excludedMembers: checked
+                        ? [...new Set([...prev.excludedMembers, ...familyIds])]
+                        : prev.excludedMembers.filter(
+                            id => !familyIds.includes(id),
+                          ),
+                    }));
+                  }}
+                />
+                <I18n>Exclude Family Accounts</I18n>
+                <span
+                  data-tip="This checkbox will detect and exclude all members that are part of a Family Billing"
+                  data-for="exclude-family-tip"
+                  style={{
+                    cursor: 'help',
+                    color: '#888',
+                    marginLeft: '4px',
+                    fontSize: '14px',
+                  }}
+                >
+                  &#9432;
+                </span>
+                <ReactTooltip
+                  id="exclude-family-tip"
+                  place="right"
+                  effect="solid"
+                  multiline={true}
+                  style={{ maxWidth: '300px' }}
+                />
+              </label>
+            </div>
+          )}
+          <div className="formField">
+            <label
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <I18n>Exclude Increases From</I18n>
+              <span
+                data-tip="Any members that have had an increase applied since this date, will be checked as exclude in the Affected Members table, and will display an orange arrow."
+                data-for="exclude-from-tip"
+                style={{ cursor: 'help', color: '#888', fontSize: '14px' }}
+              >
+                &#9432;
+              </span>
+              <ReactTooltip
+                id="exclude-from-tip"
+                place="right"
+                effect="solid"
+                multiline={true}
+                style={{ maxWidth: '300px' }}
+              />
+            </label>
+            <input
+              type="date"
+              className="form-control"
+              value={this.state.excludeIncreasesFrom}
+              onChange={e => {
+                const val = e.target.value;
+                this.setState({ excludeIncreasesFrom: val });
+                this.fetchExcludedFromIncreases(val);
+              }}
+            />
+          </div>
+          <div className="formField">
+            <label
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <I18n>Exclude New Members</I18n>
+              <span
+                data-tip="Any members signed up from this date will be excluded from the Affected Members table an have a green NEW in the row."
+                data-for="exclude-new-members-tip"
+                style={{ cursor: 'help', color: '#888', fontSize: '14px' }}
+              >
+                &#9432;
+              </span>
+              <ReactTooltip
+                id="exclude-new-members-tip"
+                place="right"
+                effect="solid"
+                multiline={true}
+                style={{ maxWidth: '300px' }}
+              />
+            </label>
+            <input
+              type="date"
+              className="form-control"
+              value={this.state.excludeNewMembersFrom}
+              onChange={e => this.applyNewMemberExclusion(e.target.value)}
+            />
+          </div>
           <div className="formField">
             <label>
               <I18n>Membership Fees</I18n>{' '}
@@ -532,12 +788,18 @@ export class NewPriceIncrease extends Component {
                     ).size
                   })
                 </span>
-                {this.state.excludedMembers.length > 0 && (
-                  <span className="excludeCount">
-                    {' '}
-                    — {this.state.excludedMembers.length} excluded
-                  </span>
-                )}
+                {(() => {
+                  const visibleExcluded = matchingMembers
+                    .flatMap(({ matched }) => matched.map(d => d.id))
+                    .filter(id => this.state.excludedMembers.includes(id))
+                    .length;
+                  return visibleExcluded > 0 ? (
+                    <span className="excludeCount">
+                      {' '}
+                      — {visibleExcluded} excluded
+                    </span>
+                  ) : null;
+                })()}
                 <button
                   type="button"
                   className="btn btn-link btn-sm affectedExportBtn"
@@ -556,9 +818,41 @@ export class NewPriceIncrease extends Component {
                         'Excluded',
                       ],
                     ];
-                    matchingMembers.forEach(({ matched }) => {
-                      matched.forEach(d => {
-                        const fm = membersById[d.id];
+                    matchingMembers
+                      .flatMap(({ matched }) =>
+                        matched.map(d => {
+                          const fm = membersById[d.id];
+                          const memberName = fm
+                            ? `${fm.values['Last Name']} ${
+                                fm.values['First Name']
+                              }`
+                            : d.id;
+                          const isDependent = !!(
+                            fm &&
+                            fm.values['Billing Parent Member'] &&
+                            fm.values['Billing Parent Member'] !== fm.id
+                          );
+                          const parentMember = isDependent
+                            ? membersById[fm.values['Billing Parent Member']]
+                            : fm;
+                          const parentName = parentMember
+                            ? `${parentMember.values['Last Name']} ${
+                                parentMember.values['First Name']
+                              }`
+                            : memberName;
+                          return { d, fm, memberName, parentName, isDependent };
+                        }),
+                      )
+                      .sort((a, b) => {
+                        const keyA = `${a.parentName}|${
+                          a.isDependent ? '1' : '0'
+                        }|${a.memberName}`;
+                        const keyB = `${b.parentName}|${
+                          b.isDependent ? '1' : '0'
+                        }|${b.memberName}`;
+                        return keyA.localeCompare(keyB);
+                      })
+                      .forEach(({ d, fm }) => {
                         const lastName = fm ? fm.values['Last Name'] : d.id;
                         const firstName = fm ? fm.values['First Name'] : '';
                         const dateJoined = fm
@@ -581,7 +875,6 @@ export class NewPriceIncrease extends Component {
                           excluded,
                         ]);
                       });
-                    });
                     const csv = rows
                       .map(r => r.map(escape).join(','))
                       .join('\r\n');
@@ -647,11 +940,12 @@ export class NewPriceIncrease extends Component {
                   <span className="memColFee">Program</span>
                   <span className="memColInfo">Info</span>
                   <span className="memColMemberType">Member Type</span>
+                  <span className="memColPaymentMethod">Payment Method</span>
                   <span className="memColDateJoined">Date Joined</span>
                   <span className="memColCost">Cost</span>
                 </div>
                 {matchingMembers
-                  .flatMap(({ matched }) =>
+                  .flatMap(({ member, matched }) =>
                     matched.map(d => {
                       const detailMember = membersById[d.id];
                       const memberName = detailMember
@@ -659,7 +953,32 @@ export class NewPriceIncrease extends Component {
                             detailMember.values['First Name']
                           }`
                         : d.id;
-                      return { d, detailMember, memberName };
+                      const isFamilyAccount =
+                        getJson(member.values['Family Fee Details']).length > 1;
+                      const isDependent = !!(
+                        detailMember &&
+                        detailMember.values['Billing Parent Member'] &&
+                        detailMember.values['Billing Parent Member'] !==
+                          detailMember.id
+                      );
+                      const parentMember = isDependent
+                        ? membersById[
+                            detailMember.values['Billing Parent Member']
+                          ]
+                        : detailMember;
+                      const parentName = parentMember
+                        ? `${parentMember.values['Last Name']} ${
+                            parentMember.values['First Name']
+                          }`
+                        : memberName;
+                      return {
+                        d,
+                        detailMember,
+                        memberName,
+                        parentName,
+                        isFamilyAccount,
+                        isDependent,
+                      };
                     }),
                   )
                   .filter(
@@ -671,151 +990,243 @@ export class NewPriceIncrease extends Component {
                           this.state.affectedMemberFilter.toLowerCase(),
                         ),
                   )
-                  .sort((a, b) => a.memberName.localeCompare(b.memberName))
-                  .map(({ d, detailMember, memberName }) => {
-                    const isExcluded = this.state.excludedMembers.includes(
-                      d.id,
-                    );
-                    return (
-                      <div
-                        key={`${d.id}-${d.feeProgram}`}
-                        className={`matchingMemberRow${
-                          isExcluded ? ' memberExcluded' : ''
-                        }`}
-                      >
-                        <span className="memColExclude">
-                          <input
-                            type="checkbox"
-                            checked={isExcluded}
-                            onChange={() => this.toggleExcludeMember(d.id)}
-                          />
-                        </span>
-                        <span className="memColName">{memberName}</span>
-                        <span className="memColFee">{d.feeProgram}</span>
-                        <span className="memColInfo">{d.program}</span>
-                        <span className="memColMemberType">
-                          {detailMember
-                            ? detailMember.values['Member Type']
-                            : ''}
-                        </span>
-                        <span className="memColDateJoined">
-                          {detailMember
-                            ? moment(
-                                detailMember.values['Date Joined'],
-                                'YYYY-MM-DD',
-                              ).format('L') || ''
-                            : ''}
-                        </span>
-                        <span className="memColCost">
-                          {this.currencySymbol}
-                          {d.cost || d.fee}
-                        </span>
-                      </div>
-                    );
-                  })}
+                  .sort((a, b) => {
+                    const keyA = `${a.parentName}|${
+                      a.isDependent ? '1' : '0'
+                    }|${a.memberName}`;
+                    const keyB = `${b.parentName}|${
+                      b.isDependent ? '1' : '0'
+                    }|${b.memberName}`;
+                    return keyA.localeCompare(keyB);
+                  })
+                  .map(
+                    ({
+                      d,
+                      detailMember,
+                      memberName,
+                      isFamilyAccount,
+                      isDependent,
+                    }) => {
+                      const isExcluded = this.state.excludedMembers.includes(
+                        d.id,
+                      );
+                      const hasRecentIncrease = this.state.excludedFromIncreaseMembers.includes(
+                        d.id,
+                      );
+                      const isNewMember = this.state.excludedNewMembers.includes(
+                        d.id,
+                      );
+                      return (
+                        <div
+                          key={`${d.id}-${d.feeProgram}`}
+                          className={`matchingMemberRow${
+                            isExcluded ? ' memberExcluded' : ''
+                          }${isFamilyAccount ? ' familyAccount' : ''}${
+                            isDependent ? ' dependent' : ''
+                          }`}
+                        >
+                          <span className="memColExclude">
+                            <input
+                              type="checkbox"
+                              checked={isExcluded}
+                              onChange={() => this.toggleExcludeMember(d.id)}
+                            />
+                          </span>
+                          <span className="memColName">
+                            {memberName}
+                            {hasRecentIncrease && (
+                              <span
+                                title="Already had a price increase applied"
+                                style={{
+                                  marginLeft: '5px',
+                                  color: '#e67e22',
+                                  fontSize: '13px',
+                                  cursor: 'default',
+                                }}
+                              >
+                                ↑
+                              </span>
+                            )}
+                            {isNewMember && (
+                              <span
+                                title="New member — signed up after the excluded date"
+                                style={{
+                                  marginLeft: '5px',
+                                  color: '#27ae60',
+                                  fontSize: '11px',
+                                  fontWeight: 'bold',
+                                  cursor: 'default',
+                                }}
+                              >
+                                NEW
+                              </span>
+                            )}
+                          </span>
+                          <span className="memColFee">{d.feeProgram}</span>
+                          <span className="memColInfo">{d.program}</span>
+                          <span className="memColMemberType">
+                            {detailMember
+                              ? detailMember.values['Member Type']
+                              : ''}
+                          </span>
+                          <span className="memColPaymentMethod">
+                            {detailMember
+                              ? detailMember.values['Billing Payment Type']
+                              : ''}
+                          </span>
+                          <span className="memColDateJoined">
+                            {detailMember
+                              ? moment(
+                                  detailMember.values['Date Joined'],
+                                  'YYYY-MM-DD',
+                                ).format('L') || ''
+                              : ''}
+                          </span>
+                          <span className="memColCost">
+                            {this.currencySymbol}
+                            {d.cost || d.fee}
+                          </span>
+                        </div>
+                      );
+                    },
+                  )}
               </div>
             </div>
           )}
           <div className="formField">
-            <label>
-              <I18n>Email Template</I18n>
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontWeight: 'normal',
+                cursor: 'pointer',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={this.state.doNotSendEmail}
+                onChange={e =>
+                  this.setState({ doNotSendEmail: e.target.checked })
+                }
+              />
+              <I18n>Do not send Email</I18n>
             </label>
-            <div className="emailTemplateField">
-              {this.state.emailTemplateName ? (
-                <span className="displayValue">
-                  {this.state.emailTemplateName}
-                </span>
-              ) : (
-                <span className="noTemplate">No template selected</span>
-              )}
-              <Button
-                color="link"
-                size="sm"
-                onClick={() => this.setState({ showEmailDialog: true })}
-              >
-                <I18n>
-                  {this.state.emailTemplateName
-                    ? 'Edit Email Template'
-                    : 'New Email Template'}
-                </I18n>
-              </Button>
-              {this.state.priceIncreaseTemplates.length > 0 && (
-                <div
-                  style={{
-                    marginTop: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                  }}
+          </div>
+          {!this.state.doNotSendEmail && (
+            <div className="formField">
+              <label>
+                <I18n>Email Template</I18n>
+              </label>
+              <div className="emailTemplateField">
+                {this.state.emailTemplateName ? (
+                  <span className="displayValue">
+                    {this.state.emailTemplateName}
+                  </span>
+                ) : (
+                  <span className="noTemplate">No template selected</span>
+                )}
+                <Button
+                  color="link"
+                  size="sm"
+                  onClick={() => this.setState({ showEmailDialog: true })}
                 >
-                  <select
-                    className="form-control"
-                    style={{ width: 'auto', display: 'inline-block' }}
-                    value={this.state.selectedExistingTemplateID}
-                    onChange={e =>
-                      this.setState({
-                        selectedExistingTemplateID: e.target.value,
-                      })
-                    }
+                  <I18n>
+                    {this.state.emailTemplateName
+                      ? 'Edit Email Template'
+                      : 'New Email Template'}
+                  </I18n>
+                </Button>
+                {this.state.priceIncreaseTemplates.length > 0 && (
+                  <div
+                    style={{
+                      marginTop: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}
                   >
-                    <option value="">Select existing template...</option>
-                    {this.state.priceIncreaseTemplates.map(t => (
-                      <option key={t.id} value={t.id}>
-                        {t.values['Template Name']}
-                      </option>
-                    ))}
-                  </select>
-                  {this.state.selectedExistingTemplateID && (
-                    <Button
-                      color="link"
-                      size="sm"
-                      onClick={() => {
+                    <select
+                      className="form-control"
+                      style={{ width: 'auto', display: 'inline-block' }}
+                      value={this.state.selectedExistingTemplateID}
+                      onChange={e => {
+                        const id = e.target.value;
                         const t = this.state.priceIncreaseTemplates.find(
-                          t => t.id === this.state.selectedExistingTemplateID,
+                          t => t.id === id,
                         );
                         this.setState({
-                          emailTemplateID: this.state
-                            .selectedExistingTemplateID,
-                          emailTemplateName: t ? t.values['Template Name'] : '',
-                          showEmailDialog: true,
-                          selectedExistingTemplateID: '',
+                          selectedExistingTemplateID: id,
+                          ...(id && {
+                            emailTemplateID: id,
+                            emailTemplateName: t
+                              ? t.values['Template Name']
+                              : '',
+                          }),
                         });
                       }}
                     >
-                      <I18n>Edit</I18n>
-                    </Button>
-                  )}
-                </div>
+                      <option value="">Select existing template...</option>
+                      {this.state.priceIncreaseTemplates.map(t => (
+                        <option key={t.id} value={t.id}>
+                          {t.values['Template Name']}
+                        </option>
+                      ))}
+                    </select>
+                    {this.state.selectedExistingTemplateID && (
+                      <Button
+                        color="link"
+                        size="sm"
+                        onClick={() => {
+                          const t = this.state.priceIncreaseTemplates.find(
+                            t => t.id === this.state.selectedExistingTemplateID,
+                          );
+                          this.setState({
+                            emailTemplateID: this.state
+                              .selectedExistingTemplateID,
+                            emailTemplateName: t
+                              ? t.values['Template Name']
+                              : '',
+                            showEmailDialog: true,
+                            selectedExistingTemplateID: '',
+                          });
+                        }}
+                      >
+                        <I18n>Edit</I18n>
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+              {this.state.showEmailDialog && (
+                <EmailTemplateContainer
+                  defaultTemplate={
+                    !this.state.emailTemplateID
+                      ? PRICE_INCREASE_EMAIL_TEMPLATE
+                      : undefined
+                  }
+                  defaultTemplateName={
+                    !this.state.emailTemplateID ? this.state.name : undefined
+                  }
+                  defaultCategory={
+                    !this.state.emailTemplateID ? 'Price Increase' : undefined
+                  }
+                  defaultContentWidth="80%"
+                  setShowEmailDialog={show =>
+                    this.setState({ showEmailDialog: show })
+                  }
+                  emailTemplateID={this.state.emailTemplateID}
+                  updateTriggerDetails={(_type, details) => {
+                    this.setState({
+                      emailTemplateName: details.values['Template Name'],
+                      emailTemplateID: details.id,
+                    });
+                  }}
+                  journeyTriggers={[]}
+                />
               )}
             </div>
-            {this.state.showEmailDialog && (
-              <EmailTemplateContainer
-                defaultTemplate={
-                  !this.state.emailTemplateID
-                    ? PRICE_INCREASE_EMAIL_TEMPLATE
-                    : undefined
-                }
-                defaultTemplateName={
-                  !this.state.emailTemplateID ? this.state.name : undefined
-                }
-                defaultCategory={
-                  !this.state.emailTemplateID ? 'Price Increase' : undefined
-                }
-                defaultContentWidth="80%"
-                setShowEmailDialog={show =>
-                  this.setState({ showEmailDialog: show })
-                }
-                emailTemplateID={this.state.emailTemplateID}
-                updateTriggerDetails={(_type, details) => {
-                  this.setState({
-                    emailTemplateName: details.values['Template Name'],
-                    emailTemplateID: details.id,
-                  });
-                }}
-                journeyTriggers={[]}
-              />
-            )}
-          </div>
+          )}
           {this.state.showSchedule && (
             <div className="formField">
               <label>
@@ -906,9 +1317,15 @@ export class PriceIncreaseEdit extends Component {
         : '',
       excludedMembers: getJson(priceIncrease.values['Excluded Members']) || [],
       affectedMemberFilter: '',
+      doNotSendEmail: priceIncrease.values['Do Not Send Email'] === 'YES',
       emailTemplateName: priceIncrease.values['Email Template Name'] || '',
       emailTemplateID: priceIncrease.values['Email Template ID'] || undefined,
       showEmailDialog: false,
+      excludeFamilyAccounts: false,
+      excludeIncreasesFrom: '',
+      excludedFromIncreaseMembers: [],
+      excludeNewMembersFrom: '',
+      excludedNewMembers: [],
       emailTemplateContent: this.props.initialEmailTemplateContent || null,
       priceIncreaseTemplates: [],
       selectedExistingTemplateID: '',
@@ -920,7 +1337,105 @@ export class PriceIncreaseEdit extends Component {
     };
     this.toggleFee = this.toggleFee.bind(this);
     this.toggleExcludeMember = this.toggleExcludeMember.bind(this);
+    this.fetchExcludedFromIncreases = this.fetchExcludedFromIncreases.bind(
+      this,
+    );
+    this.applyNewMemberExclusion = this.applyNewMemberExclusion.bind(this);
     this.saveChanges = this.saveChanges.bind(this);
+  }
+
+  fetchExcludedFromIncreases(dateStr) {
+    if (!dateStr) {
+      this.setState(prev => ({
+        excludedMembers: prev.excludedMembers.filter(
+          id => !prev.excludedFromIncreaseMembers.includes(id),
+        ),
+        excludedFromIncreaseMembers: [],
+      }));
+      return;
+    }
+    const fromDate = moment(dateStr, 'YYYY-MM-DD').startOf('day');
+    const completedIncreases = (this.props.priceIncreases || []).filter(
+      pi =>
+        pi.values['Status'] === 'Completed' &&
+        moment(pi.updatedAt).isSameOrAfter(fromDate),
+    );
+    if (completedIncreases.length === 0) {
+      this.setState(prev => ({
+        excludedMembers: prev.excludedMembers.filter(
+          id => !prev.excludedFromIncreaseMembers.includes(id),
+        ),
+        excludedFromIncreaseMembers: [],
+      }));
+      return;
+    }
+    Promise.all(
+      completedIncreases.map(pi =>
+        searchSubmissions({
+          datastore: true,
+          form: 'member-price-increase',
+          search: new SubmissionSearch(true)
+            .index('values[Price Increase ID]')
+            .eq('values[Price Increase ID]', pi.id)
+            .include('values')
+            .limit(1000)
+            .build(),
+        }).then(({ submissions }) => submissions || []),
+      ),
+    ).then(results => {
+      const memberIds = [
+        ...new Set(
+          results
+            .flat()
+            .map(s => s.values['Member GUID'])
+            .filter(Boolean),
+        ),
+      ];
+      this.setState(prev => ({
+        excludedFromIncreaseMembers: memberIds,
+        excludedMembers: [
+          ...new Set([
+            ...prev.excludedMembers.filter(
+              id => !prev.excludedFromIncreaseMembers.includes(id),
+            ),
+            ...memberIds,
+          ]),
+        ],
+      }));
+    });
+  }
+
+  applyNewMemberExclusion(dateStr) {
+    if (!dateStr) {
+      this.setState(prev => ({
+        excludedMembers: prev.excludedMembers.filter(
+          id => !prev.excludedNewMembers.includes(id),
+        ),
+        excludedNewMembers: [],
+        excludeNewMembersFrom: '',
+      }));
+      return;
+    }
+    const fromDate = moment(dateStr, 'YYYY-MM-DD').startOf('day');
+    const newMemberIds = (this.props.allMembers || [])
+      .filter(m => {
+        if (m.values['Billing User'] !== 'YES') return false;
+        const dj = m.values['Date Joined'];
+        return dj && moment(dj, 'YYYY-MM-DD').isSameOrAfter(fromDate, 'day');
+      })
+      .map(m => m.id);
+    this.setState(prev => ({
+      excludeNewMembersFrom: dateStr,
+      excludedNewMembers: newMemberIds,
+      excludedMembers: [
+        ...new Set([
+          ...prev.excludedMembers.filter(
+            id => !prev.excludedNewMembers.includes(id),
+          ),
+          ...newMemberIds,
+        ]),
+      ],
+    }));
   }
 
   fetchEmailTemplateContent(id) {
@@ -992,6 +1507,15 @@ export class PriceIncreaseEdit extends Component {
     ) {
       this.fetchEmailTemplateContent(this.state.emailTemplateID);
     }
+    if (
+      this.state.excludeFamilyAccounts &&
+      prevState.selectedFees !== this.state.selectedFees
+    ) {
+      const familyIds = this.computeFamilyIds();
+      this.setState(prev => ({
+        excludedMembers: [...new Set([...prev.excludedMembers, ...familyIds])],
+      }));
+    }
   }
 
   toggleFee(program, info) {
@@ -1018,6 +1542,31 @@ export class PriceIncreaseEdit extends Component {
         ? { excludedMembers: excluded.filter(id => id !== memberId) }
         : { excludedMembers: [...excluded, memberId] };
     });
+  }
+
+  computeFamilyIds() {
+    const allMembers = this.props.allMembers || [];
+    const { selectedFees } = this.state;
+    if (selectedFees.length === 0) return [];
+    return allMembers.reduce((acc, member) => {
+      if (member.values['Status'] !== 'Active') return acc;
+      if (
+        member.values['Non Paying'] === 'YES' ||
+        member.values['Billing Payment Type'] === 'Cash'
+      )
+        return acc;
+      const feeDetails = getJson(member.values['Family Fee Details']);
+      if (feeDetails.length <= 1) return acc;
+      const matched = feeDetails.filter(d =>
+        selectedFees.some(
+          s =>
+            d.program === s.program + ' - ' + s.info ||
+            d.program === s.program + '-' + s.info,
+        ),
+      );
+      matched.forEach(d => acc.push(d.id));
+      return acc;
+    }, []);
   }
 
   computeBillingMembers() {
@@ -1074,15 +1623,22 @@ export class PriceIncreaseEdit extends Component {
       : '';
     values['Excluded Members'] = this.state.excludedMembers;
     values['Billing Members'] = this.computeBillingMembers();
-    values['Email Template Name'] = this.state.emailTemplateName;
-    values['Email Template ID'] = this.state.emailTemplateID;
+    values['Do Not Send Email'] = this.state.doNotSendEmail ? 'YES' : '';
+    values['Email Template Name'] = this.state.doNotSendEmail
+      ? ''
+      : this.state.emailTemplateName;
+    values['Email Template ID'] = this.state.doNotSendEmail
+      ? ''
+      : this.state.emailTemplateID;
     this.props.updatePriceIncrease({ id: this.props.priceIncrease.id, values });
     this.props.cancelEdit();
   }
 
   render() {
     const { priceIncrease, membershipFees, allMembers } = this.props;
-    const isEditable = priceIncrease.values['Status'] === 'New';
+    const isEditable =
+      priceIncrease.values['Status'] === 'New' ||
+      priceIncrease.values['Status'] === 'Scheduled';
     const toCamelCase = str =>
       str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '-';
 
@@ -1257,22 +1813,33 @@ export class PriceIncreaseEdit extends Component {
                 </div>
               </div>
             )}
-            <div className="formField">
-              <label>
-                <I18n>Email Template</I18n>
-              </label>
-              <div className="displayValue">
-                {priceIncrease.values['Email Template Name'] || '—'}
-              </div>
-              {this.state.emailTemplateContent && (
+            {priceIncrease.values['Do Not Send Email'] === 'YES' ? (
+              <div className="formField">
                 <div
-                  className="emailTemplatePreview"
-                  dangerouslySetInnerHTML={{
-                    __html: this.state.emailTemplateContent,
-                  }}
-                />
-              )}
-            </div>
+                  className="displayValue"
+                  style={{ color: '#c0392b', fontStyle: 'italic' }}
+                >
+                  <I18n>Do Not Send Email</I18n>
+                </div>
+              </div>
+            ) : (
+              <div className="formField">
+                <label>
+                  <I18n>Email Template</I18n>
+                </label>
+                <div className="displayValue">
+                  {priceIncrease.values['Email Template Name'] || '—'}
+                </div>
+                {this.state.emailTemplateContent && (
+                  <div
+                    className="emailTemplatePreview"
+                    dangerouslySetInnerHTML={{
+                      __html: this.state.emailTemplateContent,
+                    }}
+                  />
+                )}
+              </div>
+            )}
           </div>
           {priceIncrease.values['Status'] === 'Completed' && (
             <div className="formField">
@@ -1599,6 +2166,7 @@ export class PriceIncreaseEdit extends Component {
       selectedFees.length > 0
         ? (allMembers || []).reduce((acc, member) => {
             if (member.values['Status'] !== 'Active') return acc;
+            if (member.values['Billing User'] !== 'YES') return acc;
             if (
               member.values['Non Paying'] === 'YES' ||
               member.values['Billing Payment Type'] === 'Cash'
@@ -1627,7 +2195,9 @@ export class PriceIncreaseEdit extends Component {
       scheduledDateTime !== '' && moment(scheduledDateTime).isAfter(moment());
     const isValid =
       isValidBase &&
-      (!showSchedule || (isScheduleValid && !!this.state.emailTemplateID));
+      (!showSchedule ||
+        (isScheduleValid &&
+          (!!this.state.emailTemplateID || this.state.doNotSendEmail)));
 
     return (
       <div className="newPriceIncrease">
@@ -1698,6 +2268,115 @@ export class PriceIncreaseEdit extends Component {
                 <I18n>Percentage</I18n>
               </label>
             </div>
+          </div>
+          {getAttributeValue(this.props.space, 'Billing Company') ===
+            'PaySmart' && (
+            <div className="formField">
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontWeight: 'normal',
+                  cursor: 'pointer',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={this.state.excludeFamilyAccounts}
+                  onChange={e => {
+                    const checked = e.target.checked;
+                    const familyIds = this.computeFamilyIds();
+                    this.setState(prev => ({
+                      excludeFamilyAccounts: checked,
+                      excludedMembers: checked
+                        ? [...new Set([...prev.excludedMembers, ...familyIds])]
+                        : prev.excludedMembers.filter(
+                            id => !familyIds.includes(id),
+                          ),
+                    }));
+                  }}
+                />
+                <I18n>Exclude Family Accounts</I18n>
+                <span
+                  data-tip="This checkbox will detect and exclude all members that are part of a Family Billing"
+                  data-for="exclude-family-tip"
+                  style={{
+                    cursor: 'help',
+                    color: '#888',
+                    marginLeft: '4px',
+                    fontSize: '14px',
+                  }}
+                >
+                  &#9432;
+                </span>
+                <ReactTooltip
+                  id="exclude-family-tip"
+                  place="right"
+                  effect="solid"
+                  multiline={true}
+                  style={{ maxWidth: '300px' }}
+                />
+              </label>
+            </div>
+          )}
+          <div className="formField">
+            <label
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <I18n>Exclude Increases From</I18n>
+              <span
+                data-tip="Any members that have had an increase applied since this date, will not be shown in the Affected Members table"
+                data-for="exclude-from-tip"
+                style={{ cursor: 'help', color: '#888', fontSize: '14px' }}
+              >
+                &#9432;
+              </span>
+              <ReactTooltip
+                id="exclude-from-tip"
+                place="right"
+                effect="solid"
+                multiline={true}
+                style={{ maxWidth: '300px' }}
+              />
+            </label>
+            <input
+              type="date"
+              className="form-control"
+              value={this.state.excludeIncreasesFrom}
+              onChange={e => {
+                const val = e.target.value;
+                this.setState({ excludeIncreasesFrom: val });
+                this.fetchExcludedFromIncreases(val);
+              }}
+            />
+          </div>
+          <div className="formField">
+            <label
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <I18n>Exclude New Members</I18n>
+              <span
+                data-tip="Any members signed up from this date will be excluded"
+                data-for="exclude-new-members-tip"
+                style={{ cursor: 'help', color: '#888', fontSize: '14px' }}
+              >
+                &#9432;
+              </span>
+              <ReactTooltip
+                id="exclude-new-members-tip"
+                place="right"
+                effect="solid"
+                multiline={true}
+                style={{ maxWidth: '300px' }}
+              />
+            </label>
+            <input
+              type="date"
+              className="form-control"
+              value={this.state.excludeNewMembersFrom}
+              onChange={e => this.applyNewMemberExclusion(e.target.value)}
+            />
           </div>
           {this.state.increaseType === 'fixedAmount' && (
             <div className="formField">
@@ -1883,12 +2562,18 @@ export class PriceIncreaseEdit extends Component {
                     ).size
                   })
                 </span>
-                {this.state.excludedMembers.length > 0 && (
-                  <span className="excludeCount">
-                    {' '}
-                    — {this.state.excludedMembers.length} excluded
-                  </span>
-                )}
+                {(() => {
+                  const visibleExcluded = matchingMembers
+                    .flatMap(({ matched }) => matched.map(d => d.id))
+                    .filter(id => this.state.excludedMembers.includes(id))
+                    .length;
+                  return visibleExcluded > 0 ? (
+                    <span className="excludeCount">
+                      {' '}
+                      — {visibleExcluded} excluded
+                    </span>
+                  ) : null;
+                })()}
                 <button
                   type="button"
                   className="btn btn-link btn-sm affectedExportBtn"
@@ -1907,9 +2592,41 @@ export class PriceIncreaseEdit extends Component {
                         'Excluded',
                       ],
                     ];
-                    matchingMembers.forEach(({ matched }) => {
-                      matched.forEach(d => {
-                        const fm = membersById[d.id];
+                    matchingMembers
+                      .flatMap(({ matched }) =>
+                        matched.map(d => {
+                          const fm = membersById[d.id];
+                          const memberName = fm
+                            ? `${fm.values['Last Name']} ${
+                                fm.values['First Name']
+                              }`
+                            : d.id;
+                          const isDependent = !!(
+                            fm &&
+                            fm.values['Billing Parent Member'] &&
+                            fm.values['Billing Parent Member'] !== fm.id
+                          );
+                          const parentMember = isDependent
+                            ? membersById[fm.values['Billing Parent Member']]
+                            : fm;
+                          const parentName = parentMember
+                            ? `${parentMember.values['Last Name']} ${
+                                parentMember.values['First Name']
+                              }`
+                            : memberName;
+                          return { d, fm, memberName, parentName, isDependent };
+                        }),
+                      )
+                      .sort((a, b) => {
+                        const keyA = `${a.parentName}|${
+                          a.isDependent ? '1' : '0'
+                        }|${a.memberName}`;
+                        const keyB = `${b.parentName}|${
+                          b.isDependent ? '1' : '0'
+                        }|${b.memberName}`;
+                        return keyA.localeCompare(keyB);
+                      })
+                      .forEach(({ d, fm }) => {
                         const lastName = fm ? fm.values['Last Name'] : d.id;
                         const firstName = fm ? fm.values['First Name'] : '';
                         const dateJoined = fm
@@ -1932,7 +2649,6 @@ export class PriceIncreaseEdit extends Component {
                           excluded,
                         ]);
                       });
-                    });
                     const csv = rows
                       .map(r => r.map(escape).join(','))
                       .join('\r\n');
@@ -1998,11 +2714,12 @@ export class PriceIncreaseEdit extends Component {
                   <span className="memColFee">Program</span>
                   <span className="memColInfo">Info</span>
                   <span className="memColMemberType">Member Type</span>
+                  <span className="memColPaymentMethod">Payment Method</span>
                   <span className="memColDateJoined">Date Joined</span>
                   <span className="memColCost">Cost</span>
                 </div>
                 {matchingMembers
-                  .flatMap(({ matched }) =>
+                  .flatMap(({ member, matched }) =>
                     matched.map(d => {
                       const detailMember = membersById[d.id];
                       const memberName = detailMember
@@ -2010,7 +2727,32 @@ export class PriceIncreaseEdit extends Component {
                             detailMember.values['First Name']
                           }`
                         : d.id;
-                      return { d, detailMember, memberName };
+                      const isFamilyAccount =
+                        getJson(member.values['Family Fee Details']).length > 1;
+                      const isDependent = !!(
+                        detailMember &&
+                        detailMember.values['Billing Parent Member'] &&
+                        detailMember.values['Billing Parent Member'] !==
+                          detailMember.id
+                      );
+                      const parentMember = isDependent
+                        ? membersById[
+                            detailMember.values['Billing Parent Member']
+                          ]
+                        : detailMember;
+                      const parentName = parentMember
+                        ? `${parentMember.values['Last Name']} ${
+                            parentMember.values['First Name']
+                          }`
+                        : memberName;
+                      return {
+                        d,
+                        detailMember,
+                        memberName,
+                        parentName,
+                        isFamilyAccount,
+                        isDependent,
+                      };
                     }),
                   )
                   .filter(
@@ -2022,160 +2764,252 @@ export class PriceIncreaseEdit extends Component {
                           this.state.affectedMemberFilter.toLowerCase(),
                         ),
                   )
-                  .sort((a, b) => a.memberName.localeCompare(b.memberName))
-                  .map(({ d, detailMember, memberName }) => {
-                    const isExcluded = this.state.excludedMembers.includes(
-                      d.id,
-                    );
-                    return (
-                      <div
-                        key={`${d.id}-${d.feeProgram}`}
-                        className={`matchingMemberRow${
-                          isExcluded ? ' memberExcluded' : ''
-                        }`}
-                      >
-                        <span className="memColExclude">
-                          <input
-                            type="checkbox"
-                            checked={isExcluded}
-                            onChange={() => this.toggleExcludeMember(d.id)}
-                          />
-                        </span>
-                        <span className="memColName">{memberName}</span>
-                        <span className="memColFee">{d.feeProgram}</span>
-                        <span className="memColInfo">{d.program}</span>
-                        <span className="memColMemberType">
-                          {detailMember
-                            ? detailMember.values['Member Type']
-                            : ''}
-                        </span>
-                        <span className="memColDateJoined">
-                          {detailMember
-                            ? moment(
-                                detailMember.values['Date Joined'],
-                                'YYYY-MM-DD',
-                              ).format('L') || ''
-                            : ''}
-                        </span>
-                        <span className="memColCost">
-                          {this.currencySymbol}
-                          {d.cost || d.fee}
-                        </span>
-                      </div>
-                    );
-                  })}
+                  .sort((a, b) => {
+                    const keyA = `${a.parentName}|${
+                      a.isDependent ? '1' : '0'
+                    }|${a.memberName}`;
+                    const keyB = `${b.parentName}|${
+                      b.isDependent ? '1' : '0'
+                    }|${b.memberName}`;
+                    return keyA.localeCompare(keyB);
+                  })
+                  .map(
+                    ({
+                      d,
+                      detailMember,
+                      memberName,
+                      isFamilyAccount,
+                      isDependent,
+                    }) => {
+                      const isExcluded = this.state.excludedMembers.includes(
+                        d.id,
+                      );
+                      const hasRecentIncrease = this.state.excludedFromIncreaseMembers.includes(
+                        d.id,
+                      );
+                      const isNewMember = this.state.excludedNewMembers.includes(
+                        d.id,
+                      );
+                      return (
+                        <div
+                          key={`${d.id}-${d.feeProgram}`}
+                          className={`matchingMemberRow${
+                            isExcluded ? ' memberExcluded' : ''
+                          }${isFamilyAccount ? ' familyAccount' : ''}${
+                            isDependent ? ' dependent' : ''
+                          }`}
+                        >
+                          <span className="memColExclude">
+                            <input
+                              type="checkbox"
+                              checked={isExcluded}
+                              onChange={() => this.toggleExcludeMember(d.id)}
+                            />
+                          </span>
+                          <span className="memColName">
+                            {memberName}
+                            {hasRecentIncrease && (
+                              <span
+                                title="Already had a price increase applied"
+                                style={{
+                                  marginLeft: '5px',
+                                  color: '#e67e22',
+                                  fontSize: '13px',
+                                  cursor: 'default',
+                                }}
+                              >
+                                ↑
+                              </span>
+                            )}
+                            {isNewMember && (
+                              <span
+                                title="New member — signed up after the excluded date"
+                                style={{
+                                  marginLeft: '5px',
+                                  color: '#27ae60',
+                                  fontSize: '11px',
+                                  fontWeight: 'bold',
+                                  cursor: 'default',
+                                }}
+                              >
+                                NEW
+                              </span>
+                            )}
+                          </span>
+                          <span className="memColFee">{d.feeProgram}</span>
+                          <span className="memColInfo">{d.program}</span>
+                          <span className="memColMemberType">
+                            {detailMember
+                              ? detailMember.values['Member Type']
+                              : ''}
+                          </span>
+                          <span className="memColPaymentMethod">
+                            {detailMember
+                              ? detailMember.values['Billing Payment Type']
+                              : ''}
+                          </span>
+                          <span className="memColDateJoined">
+                            {detailMember
+                              ? moment(
+                                  detailMember.values['Date Joined'],
+                                  'YYYY-MM-DD',
+                                ).format('L') || ''
+                              : ''}
+                          </span>
+                          <span className="memColCost">
+                            {this.currencySymbol}
+                            {d.cost || d.fee}
+                          </span>
+                        </div>
+                      );
+                    },
+                  )}
               </div>
             </div>
           )}
           <div className="formField">
-            <label>
-              <I18n>Email Template</I18n>
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontWeight: 'normal',
+                cursor: 'pointer',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={this.state.doNotSendEmail}
+                onChange={e =>
+                  this.setState({ doNotSendEmail: e.target.checked })
+                }
+              />
+              <I18n>Do not send Email</I18n>
             </label>
-            <div className="emailTemplateField">
-              {this.state.emailTemplateName ? (
-                <span className="displayValue">
-                  {this.state.emailTemplateName}
-                </span>
-              ) : (
-                <span className="noTemplate">No template selected</span>
-              )}
-              <Button
-                color="link"
-                size="sm"
-                onClick={() => this.setState({ showEmailDialog: true })}
-              >
-                <I18n>
-                  {this.state.emailTemplateName
-                    ? 'Edit Email Template'
-                    : 'New Email Template'}
-                </I18n>
-              </Button>
-              {this.state.priceIncreaseTemplates.length > 0 && (
-                <div
-                  style={{
-                    marginTop: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                  }}
+          </div>
+          {!this.state.doNotSendEmail && (
+            <div className="formField">
+              <label>
+                <I18n>Email Template</I18n>
+              </label>
+              <div className="emailTemplateField">
+                {this.state.emailTemplateName ? (
+                  <span className="displayValue">
+                    {this.state.emailTemplateName}
+                  </span>
+                ) : (
+                  <span className="noTemplate">No template selected</span>
+                )}
+                <Button
+                  color="link"
+                  size="sm"
+                  onClick={() => this.setState({ showEmailDialog: true })}
                 >
-                  <select
-                    className="form-control"
-                    style={{ width: 'auto', display: 'inline-block' }}
-                    value={this.state.selectedExistingTemplateID}
-                    onChange={e =>
-                      this.setState({
-                        selectedExistingTemplateID: e.target.value,
-                      })
-                    }
+                  <I18n>
+                    {this.state.emailTemplateName
+                      ? 'Edit Email Template'
+                      : 'New Email Template'}
+                  </I18n>
+                </Button>
+                {this.state.priceIncreaseTemplates.length > 0 && (
+                  <div
+                    style={{
+                      marginTop: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}
                   >
-                    <option value="">Select existing template...</option>
-                    {this.state.priceIncreaseTemplates.map(t => (
-                      <option key={t.id} value={t.id}>
-                        {t.values['Template Name']}
-                      </option>
-                    ))}
-                  </select>
-                  {this.state.selectedExistingTemplateID && (
-                    <Button
-                      color="link"
-                      size="sm"
-                      onClick={() => {
+                    <select
+                      className="form-control"
+                      style={{ width: 'auto', display: 'inline-block' }}
+                      value={this.state.selectedExistingTemplateID}
+                      onChange={e => {
+                        const id = e.target.value;
                         const t = this.state.priceIncreaseTemplates.find(
-                          t => t.id === this.state.selectedExistingTemplateID,
+                          t => t.id === id,
                         );
                         this.setState({
-                          emailTemplateID: this.state
-                            .selectedExistingTemplateID,
-                          emailTemplateName: t ? t.values['Template Name'] : '',
-                          showEmailDialog: true,
-                          selectedExistingTemplateID: '',
+                          selectedExistingTemplateID: id,
+                          ...(id && {
+                            emailTemplateID: id,
+                            emailTemplateName: t
+                              ? t.values['Template Name']
+                              : '',
+                          }),
                         });
                       }}
                     >
-                      <I18n>Edit</I18n>
-                    </Button>
-                  )}
-                </div>
-              )}
-            </div>
-            {this.state.showEmailDialog && (
-              <EmailTemplateContainer
-                defaultTemplate={
-                  !this.state.emailTemplateID
-                    ? PRICE_INCREASE_EMAIL_TEMPLATE
-                    : undefined
-                }
-                defaultTemplateName={
-                  !this.state.emailTemplateID ? this.state.name : undefined
-                }
-                defaultCategory={
-                  !this.state.emailTemplateID ? 'Price Increase' : undefined
-                }
-                defaultContentWidth="80%"
-                setShowEmailDialog={show =>
-                  this.setState({ showEmailDialog: show })
-                }
-                emailTemplateID={this.state.emailTemplateID}
-                updateTriggerDetails={(_type, details) => {
-                  this.setState({
-                    emailTemplateName: details.values['Template Name'],
-                    emailTemplateID: details.id,
-                  });
-                }}
-                journeyTriggers={[]}
-              />
-            )}
-            {!this.state.showEmailDialog &&
-              this.state.emailTemplateContent && (
-                <div
-                  className="emailTemplatePreview"
-                  dangerouslySetInnerHTML={{
-                    __html: this.state.emailTemplateContent,
+                      <option value="">Select existing template...</option>
+                      {this.state.priceIncreaseTemplates.map(t => (
+                        <option key={t.id} value={t.id}>
+                          {t.values['Template Name']}
+                        </option>
+                      ))}
+                    </select>
+                    {this.state.selectedExistingTemplateID && (
+                      <Button
+                        color="link"
+                        size="sm"
+                        onClick={() => {
+                          const t = this.state.priceIncreaseTemplates.find(
+                            t => t.id === this.state.selectedExistingTemplateID,
+                          );
+                          this.setState({
+                            emailTemplateID: this.state
+                              .selectedExistingTemplateID,
+                            emailTemplateName: t
+                              ? t.values['Template Name']
+                              : '',
+                            showEmailDialog: true,
+                            selectedExistingTemplateID: '',
+                          });
+                        }}
+                      >
+                        <I18n>Edit</I18n>
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+              {this.state.showEmailDialog && (
+                <EmailTemplateContainer
+                  defaultTemplate={
+                    !this.state.emailTemplateID
+                      ? PRICE_INCREASE_EMAIL_TEMPLATE
+                      : undefined
+                  }
+                  defaultTemplateName={
+                    !this.state.emailTemplateID ? this.state.name : undefined
+                  }
+                  defaultCategory={
+                    !this.state.emailTemplateID ? 'Price Increase' : undefined
+                  }
+                  defaultContentWidth="80%"
+                  setShowEmailDialog={show =>
+                    this.setState({ showEmailDialog: show })
+                  }
+                  emailTemplateID={this.state.emailTemplateID}
+                  updateTriggerDetails={(_type, details) => {
+                    this.setState({
+                      emailTemplateName: details.values['Template Name'],
+                      emailTemplateID: details.id,
+                    });
                   }}
+                  journeyTriggers={[]}
                 />
               )}
-          </div>
+              {!this.state.showEmailDialog &&
+                this.state.emailTemplateContent && (
+                  <div
+                    className="emailTemplatePreview"
+                    dangerouslySetInnerHTML={{
+                      __html: this.state.emailTemplateContent,
+                    }}
+                  />
+                )}
+            </div>
+          )}
           {this.state.showSchedule && (
             <div className="formField">
               <label>
@@ -2246,19 +3080,57 @@ export class AuditMembersView extends Component {
   }
   exportCSV(auditMembers, membersById, programFilterLower) {
     const escape = v => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`;
-    const rows = [['Last Name', 'First Name', 'Program', 'Cost', 'Discount']];
+    const adminFeeStr =
+      getAttributeValue(this.props.space, 'Admin Fee Charge') || '';
+    const csvAdminFeeRate = adminFeeStr
+      ? parseFloat(adminFeeStr.replace('%', '')) / 100
+      : 0;
+    const showAdminFee = csvAdminFeeRate > 0 && !isNaN(csvAdminFeeRate);
+    const csvAdminFeeLabel =
+      getAttributeValue(this.props.space, 'Admin Fee Label') || 'Admin Fee';
+    const csvTax1Rate = parseFloat(
+      getAttributeValue(this.props.space, 'TAX 1 Value') || 0,
+    );
+    const csvTax1Label =
+      getAttributeValue(this.props.space, 'TAX 1 Label') || 'TAX 1';
+    const showTax1 = csvTax1Rate > 0 && !isNaN(csvTax1Rate);
+    const csvTax2Rate = parseFloat(
+      getAttributeValue(this.props.space, 'TAX 2 Value') || 0,
+    );
+    const csvTax2Label =
+      getAttributeValue(this.props.space, 'TAX 2 Label') || 'TAX 2';
+    const showTax2 = csvTax2Rate > 0 && !isNaN(csvTax2Rate);
+    const header = [
+      'Last Name',
+      'First Name',
+      'Program',
+      'Cost',
+      'Discount',
+      'Fee',
+    ];
+    if (showAdminFee) header.push(csvAdminFeeLabel);
+    if (showTax1) header.push(csvTax1Label);
+    if (showTax2) header.push(csvTax2Label);
+    header.push('Billing Cost');
+    const rows = [header];
     auditMembers.forEach(m => {
       const fees = getJson(m.values['Family Fee Details']);
       const isEmpty = !fees || fees.length === 0;
       if (isEmpty) {
         if (!programFilterLower) {
-          rows.push([
+          const emptyRow = [
             m.values['Last Name'],
             m.values['First Name'],
             '',
             '',
             '',
-          ]);
+            '',
+          ];
+          if (showAdminFee) emptyRow.push('');
+          if (showTax1) emptyRow.push('');
+          if (showTax2) emptyRow.push('');
+          emptyRow.push('');
+          rows.push(emptyRow);
         }
         return;
       }
@@ -2267,17 +3139,38 @@ export class AuditMembersView extends Component {
             (d.program || '').toLowerCase().includes(programFilterLower),
           )
         : fees;
-      filteredFees.forEach(d => {
+      const sortedFees = [...filteredFees].sort((a, b) => {
+        if (a.id === m.id) return -1;
+        if (b.id === m.id) return 1;
+        return 0;
+      });
+      sortedFees.forEach(d => {
         const fm = membersById[d.id];
         const lastName = fm ? fm.values['Last Name'] : m.values['Last Name'];
         const firstName = fm ? fm.values['First Name'] : m.values['First Name'];
-        rows.push([
+        const billingCost = fm ? fm.values['Membership Cost'] || '' : '';
+        const dataRow = [
           lastName,
           firstName,
           d.program || '',
           d.cost || '',
           d.discount || '',
-        ]);
+          d.fee || '',
+        ];
+        if (showAdminFee)
+          dataRow.push(
+            d.fee ? (parseFloat(d.fee) * csvAdminFeeRate).toFixed(2) : '',
+          );
+        if (showTax1)
+          dataRow.push(
+            d.fee ? (parseFloat(d.fee) * csvTax1Rate).toFixed(2) : '',
+          );
+        if (showTax2)
+          dataRow.push(
+            d.fee ? (parseFloat(d.fee) * csvTax2Rate).toFixed(2) : '',
+          );
+        dataRow.push(billingCost);
+        rows.push(dataRow);
       });
     });
     const csv = rows.map(r => r.map(escape).join(',')).join('\r\n');
@@ -2291,37 +3184,69 @@ export class AuditMembersView extends Component {
   }
 
   render() {
-    const { allMembers, onClose } = this.props;
+    const { allMembers, onClose, space } = this.props;
     const { filterName, filterProgram } = this.state;
+    const adminFeeStr = getAttributeValue(space, 'Admin Fee Charge') || '';
+    const adminFeeRate = adminFeeStr
+      ? parseFloat(adminFeeStr.replace('%', '')) / 100
+      : 0;
+    const adminFeeLabel =
+      getAttributeValue(space, 'Admin Fee Label') || 'Admin Fee';
+    const tax1Rate = parseFloat(getAttributeValue(space, 'TAX 1 Value') || 0);
+    const tax1Label = getAttributeValue(space, 'TAX 1 Label') || 'TAX 1';
+    const tax2Rate = parseFloat(getAttributeValue(space, 'TAX 2 Value') || 0);
+    const tax2Label = getAttributeValue(space, 'TAX 2 Label') || 'TAX 2';
+    const calcExpected = baseFee =>
+      Math.round(
+        baseFee *
+          (1 +
+            (isNaN(adminFeeRate) ? 0 : adminFeeRate) +
+            (isNaN(tax1Rate) ? 0 : tax1Rate) +
+            (isNaN(tax2Rate) ? 0 : tax2Rate)) *
+          100,
+      ) / 100;
     const membersById = (allMembers || []).reduce((map, m) => {
       map[m.id] = m;
       return map;
     }, {});
     const filterLower = filterName.trim().toLowerCase();
     const programFilterLower = filterProgram.trim().toLowerCase();
-    const auditMembers = (allMembers || []).filter(m => {
-      if (m.values['Status'] !== 'Active' || m.values['Billing User'] !== 'YES')
-        return false;
-      if (
-        m.values['Non Paying'] === 'YES' ||
-        m.values['Billing Payment Type'] === 'Cash'
-      )
-        return false;
-      if (!filterLower) return true;
-      const fullName = `${m.values['First Name']} ${
-        m.values['Last Name']
-      }`.toLowerCase();
-      if (fullName.includes(filterLower)) return true;
-      const fees = getJson(m.values['Family Fee Details']);
-      return (fees || []).some(d => {
-        const fm = membersById[d.id];
-        if (!fm) return false;
-        const fmName = `${fm.values['First Name']} ${
-          fm.values['Last Name']
+    const auditMembers = (allMembers || [])
+      .filter(m => {
+        if (
+          m.values['Status'] !== 'Active' ||
+          m.values['Billing User'] !== 'YES'
+        )
+          return false;
+        if (
+          m.values['Non Paying'] === 'YES' ||
+          m.values['Billing Payment Type'] === 'Cash'
+        )
+          return false;
+        if (!filterLower) return true;
+        const fullName = `${m.values['First Name']} ${
+          m.values['Last Name']
         }`.toLowerCase();
-        return fmName.includes(filterLower);
+        if (fullName.includes(filterLower)) return true;
+        const fees = getJson(m.values['Family Fee Details']);
+        return (fees || []).some(d => {
+          const fm = membersById[d.id];
+          if (!fm) return false;
+          const fmName = `${fm.values['First Name']} ${
+            fm.values['Last Name']
+          }`.toLowerCase();
+          return fmName.includes(filterLower);
+        });
+      })
+      .sort((a, b) => {
+        const nameA = `${a.values['Last Name']} ${
+          a.values['First Name']
+        }`.toLowerCase();
+        const nameB = `${b.values['Last Name']} ${
+          b.values['First Name']
+        }`.toLowerCase();
+        return nameA.localeCompare(nameB);
       });
-    });
     return (
       <div className="newPriceIncrease">
         <div className="settingsHeader">
@@ -2362,6 +3287,36 @@ export class AuditMembersView extends Component {
             onChange={e => this.setState({ filterProgram: e.target.value })}
           />
         </div>
+        <div
+          style={{
+            background: '#eaf3fb',
+            border: '1px solid #aed6f1',
+            borderRadius: '4px',
+            padding: '10px 14px',
+            marginBottom: '10px',
+            fontSize: '0.88em',
+            color: '#2c3e50',
+          }}
+        >
+          <ol style={{ margin: 0, paddingLeft: '18px' }}>
+            <li>
+              If <strong style={{ color: '#c0392b' }}>Billing Cost</strong> is
+              red, this means the Associated Membership/Program Fee does not
+              match the actual charged Membership Cost.
+            </li>
+            <li>
+              If a <strong style={{ color: '#c0392b' }}>member row</strong> is
+              red, then the member does not have a Membership/Program Fee row
+              added to their account.
+            </li>
+          </ol>
+          <p style={{ margin: '6px 0 0' }}>
+            To avoid errors with the price increase, these members need to be
+            fixed. Update the member via the{' '}
+            <strong>Update Billing Details</strong> on the member's billing
+            view.
+          </p>
+        </div>
         <div className="auditSummary">
           <span>
             Total Billing Members: <strong>{auditMembers.length}</strong>
@@ -2384,7 +3339,17 @@ export class AuditMembersView extends Component {
           </span>
           <span>
             Missing fee details:{' '}
-            <strong>
+            <strong
+              style={{
+                color:
+                  auditMembers.filter(m => {
+                    const f = getJson(m.values['Family Fee Details']);
+                    return !f || f.length === 0;
+                  }).length > 0
+                    ? '#c0392b'
+                    : undefined,
+              }}
+            >
               {
                 auditMembers.filter(m => {
                   const f = getJson(m.values['Family Fee Details']);
@@ -2412,6 +3377,57 @@ export class AuditMembersView extends Component {
               }
             </strong>
           </span>
+          <span>
+            Total mis-matched billing cost:{' '}
+            <strong
+              style={{
+                color:
+                  auditMembers.filter(m => {
+                    const fees = getJson(m.values['Family Fee Details']);
+                    if (!fees || fees.length === 0) return false;
+                    const baseFee = fees.reduce(
+                      (sum, f) => sum + parseFloat(f.fee || 0),
+                      0,
+                    );
+                    const totalExpected = calcExpected(baseFee);
+                    const baseBillingCost = m.values['Membership Cost'];
+                    return (
+                      baseBillingCost != null &&
+                      baseBillingCost !== '' &&
+                      totalExpected > 0 &&
+                      Math.round(
+                        Math.abs(parseFloat(baseBillingCost) - totalExpected) *
+                          100,
+                      ) > 1
+                    );
+                  }).length > 0
+                    ? '#c0392b'
+                    : undefined,
+              }}
+            >
+              {
+                auditMembers.filter(m => {
+                  const fees = getJson(m.values['Family Fee Details']);
+                  if (!fees || fees.length === 0) return false;
+                  const baseFee = fees.reduce(
+                    (sum, f) => sum + parseFloat(f.fee || 0),
+                    0,
+                  );
+                  const totalExpected = calcExpected(baseFee);
+                  const baseBillingCost = m.values['Membership Cost'];
+                  return (
+                    baseBillingCost != null &&
+                    baseBillingCost !== '' &&
+                    totalExpected > 0 &&
+                    Math.round(
+                      Math.abs(parseFloat(baseBillingCost) - totalExpected) *
+                        100,
+                    ) > 1
+                  );
+                }).length
+              }
+            </strong>
+          </span>
         </div>
         <div className="auditMembersTable">
           <table>
@@ -2421,6 +3437,13 @@ export class AuditMembersView extends Component {
                 <th>Program</th>
                 <th width="100">Cost</th>
                 <th width="100">Discount</th>
+                <th width="100">Fee</th>
+                {adminFeeRate > 0 && <th width="100">{adminFeeLabel}</th>}
+                {tax1Rate > 0 &&
+                  !isNaN(tax1Rate) && <th width="100">{tax1Label}</th>}
+                {tax2Rate > 0 &&
+                  !isNaN(tax2Rate) && <th width="100">{tax2Label}</th>}
+                <th width="100">Billing Cost</th>
               </tr>
             </thead>
             <tbody>
@@ -2444,6 +3467,11 @@ export class AuditMembersView extends Component {
                       <td>—</td>
                       <td />
                       <td />
+                      <td />
+                      {adminFeeRate > 0 && <td />}
+                      {tax1Rate > 0 && !isNaN(tax1Rate) && <td />}
+                      {tax2Rate > 0 && !isNaN(tax2Rate) && <td />}
+                      <td />
                     </tr>
                   );
                 }
@@ -2455,19 +3483,40 @@ export class AuditMembersView extends Component {
                     )
                   : fees;
                 if (filteredFees.length === 0) return [];
-                return filteredFees.map((d, i) => {
+                const baseFee = fees.reduce(
+                  (sum, f) => sum + parseFloat(f.fee || 0),
+                  0,
+                );
+                const totalExpected = calcExpected(baseFee);
+                const baseBillingCost = m.values['Membership Cost'];
+                const sortedFees = [...filteredFees].sort((a, b) => {
+                  if (a.id === m.id) return -1;
+                  if (b.id === m.id) return 1;
+                  return 0;
+                });
+                return sortedFees.map((d, i) => {
                   const fm = membersById[d.id];
                   const feeMemberName = fm
                     ? `${fm.values['Last Name']} ${fm.values['First Name']}`
                     : memberName;
                   const isBaseMember = d.id === m.id;
+                  const billingCost = fm ? fm.values['Membership Cost'] : '';
+                  const costMismatch =
+                    isBaseMember &&
+                    baseBillingCost != null &&
+                    baseBillingCost !== '' &&
+                    totalExpected > 0 &&
+                    Math.round(
+                      Math.abs(parseFloat(baseBillingCost) - totalExpected) *
+                        100,
+                    ) > 1;
                   return (
                     <tr key={`${m.id}-${i}`} className={groupClass}>
                       <td
                         style={
                           isBaseMember
-                            ? { fontWeight: 'bold', fontStyle: 'italic' }
-                            : undefined
+                            ? { fontWeight: 'bold' }
+                            : { fontStyle: 'italic', paddingLeft: '20px' }
                         }
                       >
                         {isBaseMember ? (
@@ -2481,6 +3530,47 @@ export class AuditMembersView extends Component {
                       <td>{d.program}</td>
                       <td>{d.cost ? `${this.currencySymbol}${d.cost}` : ''}</td>
                       <td>{d.discount ? `${d.discount}` : ''}</td>
+                      <td>{d.fee ? `${this.currencySymbol}${d.fee}` : ''}</td>
+                      {adminFeeRate > 0 && (
+                        <td>
+                          {d.fee
+                            ? `${this.currencySymbol}${(
+                                parseFloat(d.fee) * adminFeeRate
+                              ).toFixed(2)}`
+                            : ''}
+                        </td>
+                      )}
+                      {tax1Rate > 0 &&
+                        !isNaN(tax1Rate) && (
+                          <td>
+                            {d.fee
+                              ? `${this.currencySymbol}${(
+                                  parseFloat(d.fee) * tax1Rate
+                                ).toFixed(2)}`
+                              : ''}
+                          </td>
+                        )}
+                      {tax2Rate > 0 &&
+                        !isNaN(tax2Rate) && (
+                          <td>
+                            {d.fee
+                              ? `${this.currencySymbol}${(
+                                  parseFloat(d.fee) * tax2Rate
+                                ).toFixed(2)}`
+                              : ''}
+                          </td>
+                        )}
+                      <td
+                        style={
+                          costMismatch
+                            ? { color: '#c0392b', fontWeight: 'bold' }
+                            : undefined
+                        }
+                      >
+                        {billingCost
+                          ? `${this.currencySymbol}${billingCost}`
+                          : ''}
+                      </td>
                     </tr>
                   );
                 });
@@ -2753,9 +3843,11 @@ export class PriceIncreaseTable extends Component {
         {selectedIncrease &&
           showTable && (
             <PriceIncreaseEdit
+              key={selectedIncrease.id}
               readOnly={true}
               space={this.props.space}
               priceIncrease={selectedIncrease}
+              priceIncreases={this.props.priceIncreases}
               membershipFees={this.props.membershipFees}
               allMembers={this.props.allMembers}
               cancelEdit={this.closeView}
@@ -2770,9 +3862,11 @@ export class PriceIncreaseTable extends Component {
         {editingIncrease &&
           selectedIncrease && (
             <PriceIncreaseEdit
+              key={`edit-${selectedIncrease.id}`}
               readOnly={false}
               space={this.props.space}
               priceIncrease={selectedIncrease}
+              priceIncreases={this.props.priceIncreases}
               membershipFees={this.props.membershipFees}
               allMembers={this.props.allMembers}
               cancelEdit={this.cancelEdit}

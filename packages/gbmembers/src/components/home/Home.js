@@ -191,7 +191,12 @@ export const HomeView = ({
         </div>
       )}
     {getAttributeValue(space, 'Franchisor') !== 'YES' &&
-      getAttributeValue(space, 'Billing Company') === 'Bambora' &&
+      (getAttributeValue(space, 'Billing Company') === 'Bambora' ||
+        (getAttributeValue(space, 'Billing Company') === 'Stripe' &&
+          getAttributeValue(
+            space,
+            'Bambora Stripe Migration Show Bambora Overdues',
+          ) === 'YES')) &&
       Utils.isMemberOf(profile, 'Role::Program Managers') && (
         <div className="homeOverdues">
           {memberInitialLoadComplete && (

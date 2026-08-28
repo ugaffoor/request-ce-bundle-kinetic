@@ -143,12 +143,12 @@ export class MergeLeadsModal extends Component {
                     />
                   </td>
                   <td>
-                    {(lead.values['First Name'] || '') +
+                    {(lead.values['First Name'].trim() || '') +
                       ' ' +
-                      (lead.values['Last Name'] || '')}
+                      (lead.values['Last Name'].trim() || '')}
                   </td>
                   <td>{lead.values['Status'] || ''}</td>
-                  <td>{lead.values['Email'] || ''}</td>
+                  <td>{lead.values['Email'].trim() || ''}</td>
                   <td>{lead.values['Phone Number'] || ''}</td>
                   <td>
                     {lead.createdAt ? moment(lead.createdAt).format('L') : ''}

@@ -418,12 +418,24 @@ export class SMSModal extends Component {
                     <textarea
                       className="form-control custom-control"
                       rows="3"
-                      maxLength="765"
+                      maxLength={
+                        ['USD', 'CAD'].includes(
+                          getAttributeValue(this.props.space, 'Currency'),
+                        )
+                          ? 320
+                          : 765
+                      }
                       style={{ resize: 'none' }}
                       id="sms_text"
                       value={this.state.smsText}
                       onChange={this.handleChange}
-                      placeholder="Max 765 characters allowed"
+                      placeholder={`Max ${
+                        ['USD', 'CAD'].includes(
+                          getAttributeValue(this.props.space, 'Currency'),
+                        )
+                          ? 320
+                          : 765
+                      } characters allowed`}
                     />
                     <button
                       className="input-group-addon btn btn-primary"

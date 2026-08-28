@@ -4,7 +4,7 @@ import moment from 'moment';
 import ReactToPrint from 'react-to-print';
 import { ReactComponent as PrinterIcon } from '../../images/Print.svg';
 
-const ezidebit_date_format = 'YYYY-MM-DD HH:mm:ss';
+const ezidebit_date_format = ['YYYY-MM-DD HH:mm:SS', 'YYYY-MM-DDTHH:mm:ss'];
 
 export class PaysmartFailedPayments extends Component {
   constructor(props) {

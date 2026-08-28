@@ -272,10 +272,10 @@ export class MemberFinancialStats extends Component {
         return member.customerId === item.yourSystemReference;
       });
       if (idx !== -1) {
-        member.contractStartDate = moment(
-          payments[idx]['debitDate'],
-          'YYYY-MM-DD HH:mm:ss',
-        ).format('YYYY-MM-DD');
+        member.contractStartDate = moment(payments[idx]['debitDate'], [
+          'YYYY-MM-DD HH:mm:SS',
+          'YYYY-MM-DDTHH:mm:ss',
+        ]).format('YYYY-MM-DD');
 
         /*        if (
           moment(member.contractStartDate, 'YYYY-MM-DD').isBefore(

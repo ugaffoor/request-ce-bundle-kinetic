@@ -333,7 +333,7 @@ export class ListEditHome extends Component {
       endDate = null;
 
     if (
-      this.state.joiningDateStart !== undefined &&
+      this.state.joiningDateStart !== undefined ||
       this.state.joiningDateEnd !== undefined
     ) {
       filters.push({

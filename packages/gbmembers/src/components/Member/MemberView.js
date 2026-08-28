@@ -1811,7 +1811,6 @@ export const MemberView = ({
               <div
                 className={
                   memberItem.values['Billing Payment Type'] !== 'Cash' &&
-                  memberItem.values['Non Paying'] !== 'YES' &&
                   ((memberItem.values['Billing Customer Reference'] !==
                     undefined &&
                     memberItem.values['Billing Customer Reference'] !== '' &&
@@ -1823,16 +1822,18 @@ export const MemberView = ({
                     : 'hide'
                 }
               >
-                <p>
-                  Recurring{' '}
-                  <PaymentPeriod
-                    period={memberItem.values['Billing Payment Period']}
-                  />
-                  &nbsp; plan with{' '}
-                  <PaymentType
-                    type={memberItem.values['Billing Payment Type']}
-                  />
-                </p>
+                {memberItem.values['Non Paying'] !== 'YES' && (
+                  <p>
+                    Recurring{' '}
+                    <PaymentPeriod
+                      period={memberItem.values['Billing Payment Period']}
+                    />
+                    &nbsp; plan with{' '}
+                    <PaymentType
+                      type={memberItem.values['Billing Payment Type']}
+                    />
+                  </p>
+                )}
                 {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
                   <div />
                 ) : (
@@ -2980,7 +2981,11 @@ export const MemberViewContainer = compose(
         nextProps.memberItem.values['Is New Reply Received'] === 'true' &&
         !this.props.showNewReplyModal
       ) {
-        this.props.setShowNewReplyModal(true);
+        if (getLatestIncomingAction(nextProps.memberItem) !== undefined) {
+          this.props.setShowNewReplyModal(true);
+        } else {
+          this.props.updateIsNewReplyReceived();
+        }
       }
       if (
         nextProps.memberItem.values !== undefined &&

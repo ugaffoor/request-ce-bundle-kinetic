@@ -24,6 +24,7 @@ export const types = {
   ),
   ACTIVATE_BILLER: namespace('members', 'ACTIVATE_BILLER'),
   BILLER_ACTIVATED: namespace('members', 'BILLER_ACTIVATED'),
+  RESET_BILLER_ACTIVATED: namespace('members', 'RESET_BILLER_ACTIVATED'),
   UPDATE_MEMBER: namespace('members', 'UPDATE_MEMBER'),
   MEMBER_SAVED: namespace('members', 'MEMBER_SAVED'),
   MEMBER_DELETED: namespace('members', 'MEMBER_DELETED'),
@@ -143,6 +144,7 @@ export const actions = {
   memberSaved: withPayload(types.MEMBER_SAVED),
   memberDeleted: withPayload(types.MEMBER_DELETED),
   billerActivated: withPayload(types.BILLER_ACTIVATED),
+  resetBillerActivated: () => ({ type: types.RESET_BILLER_ACTIVATED }),
   createMember: withPayload(types.CREATE_MEMBER),
   deleteMember: withPayload(types.DELETE_MEMBER),
   deleteMemberFile: withPayload(types.DELETE_MEMBER_FILE),
@@ -712,6 +714,11 @@ export const reducer = (state = State(), { type, payload }) => {
       return state
         .set('activatingBiller', false)
         .set('activatingBillerCompleted', true);
+    }
+    case types.RESET_BILLER_ACTIVATED: {
+      return state
+        .set('activatingBiller', false)
+        .set('activatingBillerCompleted', false);
     }
     case types.FETCH_MEMBER_CASH_PAYMENTS: {
       return state.set('memberCashPaymentsLoading', true);

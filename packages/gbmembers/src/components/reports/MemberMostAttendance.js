@@ -76,15 +76,19 @@ export class MemberMostAttendance extends Component {
     let attendanceMap = new Map();
     attendances.forEach(attendance => {
       let member = attendanceMap.get(
-        attendance.values['Member GUID'] +
+        attendance.values[
+          'Member GUID'
+        ] /* +
           '###' +
-          attendance.values['Ranking Program'],
+          attendance.values['Ranking Program'],*/,
       );
       if (member === undefined) {
         attendanceMap.set(
-          attendance.values['Member GUID'] +
+          attendance.values[
+            'Member GUID'
+          ] /* +
             '###' +
-            attendance.values['Ranking Program'],
+            attendance.values['Ranking Program']*/,
           { count: 1 },
         );
       } else {

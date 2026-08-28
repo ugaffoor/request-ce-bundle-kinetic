@@ -217,6 +217,8 @@ export const ReportsView = ({
   CHARGESpaymentHistoryLoading,
   overdues,
   overduesLoading,
+  showFailedBamboraPaymentsReport,
+  setShowFailedBamboraPaymentsReport,
   showFailedPaymentsReport,
   setShowFailedPaymentsReport,
   getFailedPayments,
@@ -701,7 +703,7 @@ export const ReportsView = ({
           </div>
         )}
         {Utils.getAttributeValue(space, 'Billing Company') !== 'PaySmart' ||
-        !Utils.isMemberOf(profile, 'Billing') ? (
+        !Utils.isMemberOf(profile, 'Role::Program Managers') ? (
           <div />
         ) : (
           <div style={{ margin: '20px 0px 0px 10px' }} id="inactive-report">
@@ -734,7 +736,7 @@ export const ReportsView = ({
           </div>
         )}
         {Utils.getAttributeValue(space, 'Billing Company') !== 'PaySmart' ||
-        !Utils.isMemberOf(profile, 'Billing') ? (
+        !Utils.isMemberOf(profile, 'Role::Program Managers') ? (
           <div />
         ) : (
           <div style={{ margin: '20px 0px 0px 10px' }} id="variations-report">
@@ -768,7 +770,7 @@ export const ReportsView = ({
           </div>
         )}
         {Utils.getAttributeValue(space, 'Billing Company') !== 'PaySmart' ||
-        !Utils.isMemberOf(profile, 'Billing') ? (
+        !Utils.isMemberOf(profile, 'Role::Program Managers') ? (
           <div />
         ) : (
           <div
@@ -853,8 +855,10 @@ export const ReportsView = ({
             )}
           </div>
         )}
-        {Utils.getAttributeValue(space, 'Billing Company') !== 'Bambora' ||
-        !Utils.isMemberOf(profile, 'Billing') ? (
+        {(Utils.getAttributeValue(space, 'Billing Company') !== 'Bambora' &&
+          Utils.getAttributeValue(space, 'Bambora Stripe Migration') !==
+            'Migrated') ||
+        !Utils.isMemberOf(profile, 'Role::Program Managers') ? (
           <div />
         ) : (
           <div style={{ margin: '20px 0px 0px 10px' }} id="failed-report">
@@ -864,18 +868,24 @@ export const ReportsView = ({
                 className="btn btn-primary report-btn-default"
                 disabled={!dummyFormLoaded}
                 onClick={e => {
-                  setShowFailedPaymentsReport(
-                    showFailedPaymentsReport ? false : true,
+                  setShowFailedBamboraPaymentsReport(
+                    showFailedBamboraPaymentsReport ? false : true,
                   );
                   document.getElementById('failed-report').scrollIntoView();
                 }}
               >
-                {showFailedPaymentsReport
-                  ? 'Hide Failed Payments Report'
-                  : 'Show Failed Payments Report'}
+                {showFailedBamboraPaymentsReport
+                  ? getAttributeValue(space, 'Bambora Stripe Migration') ===
+                    'Migrated'
+                    ? 'Hide Failed Bambora Payments Report'
+                    : 'Hide Failed Payments Report'
+                  : getAttributeValue(space, 'Bambora Stripe Migration') ===
+                    'Migrated'
+                    ? 'Show Failed Bambora Payments Report'
+                    : 'Show Failed Payments Report'}
               </button>
             </div>
-            {!showFailedPaymentsReport ? null : (
+            {!showFailedBamboraPaymentsReport ? null : (
               <div className="row">
                 <div>
                   <BamboraFailedPayments
@@ -896,7 +906,7 @@ export const ReportsView = ({
         )}
         {(Utils.getAttributeValue(space, 'Billing Company') !== 'Bambora' &&
           Utils.getAttributeValue(space, 'Billing Company') !== 'Stripe') ||
-        !Utils.isMemberOf(profile, 'Billing') ? (
+        !Utils.isMemberOf(profile, 'Role::Program Managers') ? (
           <div />
         ) : (
           <div
@@ -934,7 +944,7 @@ export const ReportsView = ({
           </div>
         )}
         {Utils.getAttributeValue(space, 'Billing Company') !== 'Stripe' ||
-        !Utils.isMemberOf(profile, 'Billing') ? (
+        !Utils.isMemberOf(profile, 'Role::Program Managers') ? (
           <div />
         ) : (
           <div style={{ margin: '20px 0px 0px 10px' }} id="failed-report">
@@ -975,7 +985,7 @@ export const ReportsView = ({
           </div>
         )}
         {Utils.getAttributeValue(space, 'Billing Company') !== 'PaySmart' ||
-        !Utils.isMemberOf(profile, 'Billing') ? (
+        !Utils.isMemberOf(profile, 'Role::Program Managers') ? (
           <div />
         ) : (
           <div style={{ margin: '20px 0px 0px 10px' }} id="failed-report">
@@ -1016,7 +1026,7 @@ export const ReportsView = ({
           </div>
         )}
         {Utils.getAttributeValue(space, 'Billing Company') !== 'PaySmart' ||
-        !Utils.isMemberOf(profile, 'Billing') ? (
+        !Utils.isMemberOf(profile, 'Role::Program Managers') ? (
           <div />
         ) : (
           <div style={{ margin: '20px 0px 0px 10px' }} id="failed-report">
@@ -1198,6 +1208,11 @@ export const ReportsContainer = compose(
   withState('showInactiveChart', 'setShowInactiveChart', false),
   withState('showVariationsReport', 'setShowVariationsReport', false),
   withState('showDescrepenciesReport', 'setShowDescrepenciesReport', false),
+  withState(
+    'showFailedBamboraPaymentsReport',
+    'setShowFailedBamboraPaymentsReport',
+    false,
+  ),
   withState('showFailedPaymentsReport', 'setShowFailedPaymentsReport', false),
   withState('showOverduesReport', 'setShowOverduesReport', false),
   withState(

@@ -326,7 +326,9 @@ export function getUseBillingSystem(space, member) {
       member.values['Archive Billing Reference'] !== undefined &&
       member.values['Archive Billing Reference'] !== null &&
       member.values['Archive Billing Reference'] !== '') ||
-    member.values['Billing Customer Id'].startsWith('cus_')
+    (member.values['Billing Customer Id'] !== undefined &&
+      member.values['Billing Customer Id'] !== null &&
+      member.values['Billing Customer Id'].startsWith('cus_'))
   ) {
     return 'Stripe';
   }
@@ -1479,13 +1481,16 @@ export function validOverdue(member, successfulPayments, payment) {
       member.values['Status'] === 'Pending Cancellation') &&
     payment.debitDate !== null &&
     member.values['Non Paying'] !== 'YES' &&
-    member.values['Billing Payment Type'] === 'Credit Card'
+    (member.values['Billing Payment Type'] === 'Credit Card' ||
+      member.values['Billing Payment Type'].startsWith('Bank Account'))
   ) {
     valid = true;
   }
   var billingStartDate = getLastBillingStartDate(member, successfulPayments);
   if (
-    billingStartDate.isAfter(moment(payment.debitDate, 'YYYY-MM-DD HH:mm:SS'))
+    billingStartDate.isAfter(
+      moment(payment.debitDate, ['YYYY-MM-DD HH:mm:SS', 'YYYY-MM-DDTHH:mm:ss']),
+    )
   ) {
     valid = false;
   }
@@ -1509,20 +1514,24 @@ export function getLastBillingStartDate(member, successfulPayments) {
         member.values['Billing Customer Reference'] === successful.paymentID ||
         member.values['Billing Customer Reference'] ===
           successful.yourSystemReference ||
+        member.values['Archive Billing Reference'] === successful.paymentID ||
+        member.values['Archive Billing Reference'] ===
+          successful.yourSystemReference ||
         (member.values['Billing Setup Fee Id'] !== null &&
           member.values['Billing Setup Fee Id'] ===
             successful.yourSystemReference)) &&
-      moment(successful.debitDate, 'YYYY-MM-DD HH:mm:SS').isAfter(
-        billingStartDate,
-      )
+      moment(successful.debitDate, [
+        'YYYY-MM-DD HH:mm:SS',
+        'YYYY-MM-DDTHH:mm:ss',
+      ]).isAfter(billingStartDate)
     );
   });
 
   if (idx !== -1) {
-    billingStartDate = moment(
-      successfulPayments[idx].debitDate,
+    billingStartDate = moment(successfulPayments[idx].debitDate, [
       'YYYY-MM-DD HH:mm:SS',
-    );
+      'YYYY-MM-DDTHH:mm:ss',
+    ]);
   }
   return billingStartDate;
 }

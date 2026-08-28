@@ -19,6 +19,7 @@ import {
 import moment from 'moment';
 
 import { getAttributeValue } from '../../utils';
+import { setAttributeValue } from '../../lib/react-kinops-components/src/utils';
 
 import { actions, types } from '../modules/memberApp';
 import { actions as errorActions, NOTICE_TYPES } from '../modules/errors';
@@ -407,6 +408,12 @@ export function* fetchMemberAppSettingsTask() {
     //For debugging to localhost billing
     appSettings.kineticBillingServerUrl =
       'http://localhost:8081/billingservice';
+
+    setAttributeValue(
+      { attributes: space.attributes },
+      'POS Service URL',
+      'http://localhost:8081/billingservice/processPOS',
+    );
   }
   yield put(actions.setAppSettings(appSettings));
 }
