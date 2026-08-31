@@ -98,6 +98,11 @@ const SmsCampaignContainer = lazy(() =>
     default: m.SmsCampaignContainer,
   })),
 );
+const NewConversationContainer = lazy(() =>
+  import('./send/NewConversation').then(m => ({
+    default: m.NewConversationContainer,
+  })),
+);
 const DDRTemplatesContainer = lazy(() =>
   import('./DDRTemplates').then(m => ({ default: m.DDRTemplatesContainer })),
 );
@@ -169,6 +174,7 @@ export const Content = ({ isKiosk }) => (
         path="/NewSmsCampaign/:submissionType?/:submissionId?/:replyType?/:campaignId?"
         component={SmsCampaignContainer}
       />
+      <Route path="/NewConversation" component={NewConversationContainer} />
       <Route path="/ddrTemplates" component={DDRTemplatesContainer} />
       <Route exact path="/forms/:formSlug" component={FormContainer} />
       <Route

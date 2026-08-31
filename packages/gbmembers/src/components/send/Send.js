@@ -1554,6 +1554,12 @@ export class CreateCampaign extends Component {
                 SMS Send
               </NavLink>
             </div>
+            <div className="col-md-1">OR</div>
+            <div className="col-md-2">
+              <NavLink to={`/NewConversation`} className="btn btn-primary">
+                Conversation Send
+              </NavLink>
+            </div>
           </div>
         </div>
         <div className="leadOptions">

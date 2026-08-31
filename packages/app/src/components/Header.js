@@ -13,6 +13,7 @@ import { Link } from 'react-router-dom';
 import { KappLink, Utils } from 'common';
 import { HelpContainer } from './HelpContainer';
 import { JourneyEventsContainer } from './JourneyEventsContainer';
+import { InboxContainer } from './InboxContainer';
 import { ProfileContainer } from './ProfileContainer';
 import { I18n } from '@kineticdata/react';
 import { ReactComponent as GBMEMBERS } from '../assets/images/GBMEMBERS.svg?raw';
@@ -157,6 +158,7 @@ export const Header = ({
             <HelpContainer />
           )}
         {!isGuest && !isKiosk && <JourneyEventsContainer />}
+        {!isGuest && !isKiosk && <InboxContainer />}
         <ProfileContainer space={space} isKiosk={isKiosk} />
       </div>
     </Nav>

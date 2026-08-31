@@ -9,6 +9,7 @@
     "chance": "^1.0.13",
     "classnames": "^2.2.5",
     "collections": "^5.1.2",
+    "firebase": "^12.18.0",
     "font-awesome-svg-png": "^1.2.2",
     "history": "^4.7.2",
     "immutability-helper": "^2.6.6",
