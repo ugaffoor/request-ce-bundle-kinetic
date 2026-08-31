@@ -16,6 +16,7 @@ import { watchClasses } from './sagas/classes';
 import { watchReports } from './sagas/reporting';
 import { watchPOS } from './sagas/pos';
 import { watchServices } from './sagas/services';
+import { watchConversations } from './sagas/conversations';
 
 export default function* sagas() {
   yield all([
@@ -36,5 +37,6 @@ export default function* sagas() {
     watchReports(),
     watchPOS(),
     watchServices(),
+    watchConversations(),
   ]);
 }

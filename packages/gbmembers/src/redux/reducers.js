@@ -5,6 +5,7 @@ import { reducer as members } from './modules/members';
 import { reducer as alerts } from './modules/alerts';
 import { reducer as modalForm } from './modules/modalForm';
 import { reducer as discussions } from './modules/discussions';
+import { reducer as conversations } from './modules/conversations';
 import { reducer as kinops } from '../lib/react-kinops-components';
 import { reducer as leads } from './modules/leads';
 import { reducer as campaigns } from './modules/campaigns';
@@ -28,6 +29,7 @@ export default {
   alerts,
   modalForm,
   discussions,
+  conversations,
   kinops,
   leads,
   campaigns,
