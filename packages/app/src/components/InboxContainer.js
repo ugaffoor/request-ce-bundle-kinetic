@@ -2,6 +2,10 @@ import { connect } from 'react-redux';
 import { compose, withHandlers, withState } from 'recompose';
 import { List } from 'immutable';
 import { Inbox } from './Inbox';
+import {
+  indexMembersById,
+  participantName,
+} from 'gbmembers/src/lib/conversationSchema';
 
 /**
  * Reads the live conversation list the gbmembers conversations saga keeps up
@@ -13,6 +17,13 @@ export const mapStateToProps = state => {
     state.member && state.member.conversations
       ? state.member.conversations.data
       : List();
+
+  // Conversations carry participant ids, not names. Resolve them against the
+  // member roster the app has already loaded, so the inbox reads as people
+  // rather than GUIDs. Falls back to the id when a member isn't loaded yet.
+  const membersById = indexMembersById(
+    state.member && state.member.members ? state.member.members.allMembers : [],
+  );
 
   return {
     messages: List(
@@ -26,7 +37,7 @@ export const mapStateToProps = state => {
         )
         .map(conversation => ({
           id: conversation.id,
-          from: conversation.otherParticipantId,
+          from: participantName(conversation.otherParticipantId, membersById),
           subject: conversation.lastMessage
             ? conversation.lastMessage.text
             : '',

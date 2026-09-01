@@ -25,6 +25,7 @@ import { confirm } from '../helpers/Confirmation';
 import { ReactComponent as HelpIcon } from '../../images/help.svg';
 import ReactTooltip from 'react-tooltip';
 import { StatisticsContainer } from './Statistics';
+import { ConversationsListContainer } from './ConversationsList';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -1633,6 +1634,9 @@ export const CampaignView = ({
           </span>
           <div className="leadContents">
             <CreateCampaign allLeads={allLeads} leadsLoading={leadsLoading} />
+          </div>
+          <div className="taskContents">
+            <ConversationsListContainer />
           </div>
           <div className="taskContents">
             <EmailCampaignsList

@@ -10,8 +10,8 @@ import { initialiseFirebase } from '../../lib/firebase';
 import { ensureFirebaseSignIn } from '../../lib/firebaseAuth';
 import {
   staffParticipantId,
-  isStaffParticipant,
-  STAFF_ID_PREFIX,
+  indexMembersById,
+  participantName,
 } from '../../lib/conversationSchema';
 
 const mapStateToProps = state => ({
@@ -35,39 +35,6 @@ const mapDispatchToProps = {
   fetchMembers: memberActions.fetchMembers,
 };
 
-/**
- * Participant ids are either a raw Kinetic member id or a staff composite.
- * Resolve both to something a human recognises, falling back to the raw id
- * so an unresolvable participant is still visible rather than blank.
- */
-const participantName = (participantId, membersById) => {
-  if (!participantId) {
-    return 'Unknown';
-  }
-
-  if (isStaffParticipant(participantId)) {
-    const username = participantId
-      .slice(STAFF_ID_PREFIX.length)
-      .split('_')
-      .slice(1)
-      .join('_');
-    return username || participantId;
-  }
-
-  const member = membersById[participantId];
-  if (!member) {
-    return participantId;
-  }
-
-  return (
-    (
-      (member.values['Last Name'] || '') +
-      ' ' +
-      (member.values['First Name'] || '')
-    ).trim() || participantId
-  );
-};
-
 const when = date => (date ? moment(date).format('D MMM YYYY, h:mm a') : '');
 
 export class Conversations extends Component {
@@ -77,10 +44,7 @@ export class Conversations extends Component {
   }
 
   getMembersById() {
-    return this.props.allMembers.reduce((map, member) => {
-      map[member.id] = member;
-      return map;
-    }, {});
+    return indexMembersById(this.props.allMembers);
   }
 
   selectConversation = conversation => {

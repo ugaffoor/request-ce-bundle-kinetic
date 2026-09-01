@@ -21,6 +21,7 @@ const mapStateToProps = state => ({
   memberLists: state.member.app.memberLists,
   space: state.member.app.space,
   spaceSlug: state.member.app.spaceSlug,
+  kappSlug: state.app.config.kappSlug,
   profile: state.member.app.profile,
   sending: state.member.conversations.sending,
   sendError: state.member.conversations.sendError,
@@ -205,13 +206,20 @@ export class NewConversation extends Component {
   };
 
   componentDidUpdate(prevProps) {
-    // Clear the composer only once a send has actually landed, so the text
-    // survives a failure and can be retried rather than being lost.
+    // Only once a send has actually landed -- the text survives a failure so
+    // it can be retried rather than being lost.
     if (
       this.props.lastSentAt &&
       this.props.lastSentAt !== prevProps.lastSentAt
     ) {
       this.setState({ message: '' });
+
+      // Hand the user to the thread list, where the conversation they just
+      // started appears alongside the existing ones, rather than leaving
+      // them looking at an empty composer with no sign anything happened.
+      if (this.props.history && this.props.kappSlug) {
+        this.props.history.push(`/kapps/${this.props.kappSlug}/Conversations`);
+      }
     }
   }
 
