@@ -148,6 +148,18 @@ export const SidebarContainer = compose(
       });
     },
     UNSAFE_componentWillReceiveProps(nextProps) {
+      // This scans every member for every migration. The sidebar element is
+      // rebuilt on each App render (components/App.js), so props arrive here
+      // constantly -- including on every keystroke elsewhere in the app --
+      // even when neither list has changed. Redo the match only when one of
+      // them actually does, otherwise the scan makes typing stutter.
+      if (
+        nextProps.memberMigrations === this.props.memberMigrations &&
+        nextProps.allMembers === this.props.allMembers
+      ) {
+        return;
+      }
+
       if (
         !nextProps.memberLoading &&
         !nextProps.memberMigrationsLoading &&
@@ -162,7 +174,6 @@ export const SidebarContainer = compose(
             nextProps.allMembers[idx].migrationForm = migration;
           }
         });
-        console.log('memberMigrations.size:' + nextProps.memberMigrations.size);
       }
     },
   }),

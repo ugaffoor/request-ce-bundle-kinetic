@@ -1,15 +1,21 @@
 import { eventChannel } from 'redux-saga';
 import { call, cancelled, put, take, takeEvery } from 'redux-saga/effects';
 import {
+  addDoc,
   collection,
+  doc,
   onSnapshot,
   orderBy,
   query,
+  serverTimestamp,
+  setDoc,
   where,
 } from 'firebase/firestore';
 import { types, actions } from '../modules/conversations';
 import { getConversationStore } from '../../lib/firebase';
+import { getSignedInUid } from '../../lib/firebaseAuth';
 import {
+  conversationId,
   CONVERSATIONS_COLLECTION,
   CONVERSATION_FIELDS,
   MESSAGES_SUBCOLLECTION,
@@ -141,7 +147,80 @@ export function* watchMessageSnapshots({ payload } = {}) {
   }
 }
 
+/**
+ * Sends one message from a staff member to a student.
+ *
+ * The conversation document is written first, because firestore.rules decides
+ * whether a message may be created by reading that document's participantIds
+ * -- writing a message into a conversation that does not exist yet is
+ * rejected. Merging rather than overwriting means a second message lands in
+ * the same thread, and deriving the id from the pair (conversationId) means
+ * the thread is the same one the mobile app uses.
+ *
+ * staffChat marks the thread as opened by staff, which waives the friends-only
+ * rule so the student can reply without first being a friend. Only staff may
+ * set it, which is exactly who sends from this portal.
+ *
+ * lastMessage, unreadCount, monitorable and hasJunior are deliberately NOT
+ * written here: onChatMessageCreated owns them through the Admin SDK, and the
+ * rules explicitly forbid a client asserting monitorable.
+ */
+export function* sendMessage({ payload } = {}) {
+  const store = getConversationStore();
+  const { memberId, staffId, spaceSlug, text } = payload || {};
+
+  if (!store || !memberId || !staffId || !text) {
+    yield put(
+      actions.setSendError('Cannot send: the conversation is not ready.'),
+    );
+    return;
+  }
+
+  yield put(actions.setSending(true));
+
+  try {
+    const id = conversationId(memberId, staffId);
+
+    // Firestore rejects undefined field values, so only send what we have.
+    const conversation = {
+      [CONVERSATION_FIELDS.participantIds]: [memberId, staffId],
+      staffChat: true,
+    };
+    if (spaceSlug) {
+      conversation.spaceSlug = spaceSlug;
+    }
+
+    yield call(setDoc, doc(store, CONVERSATIONS_COLLECTION, id), conversation, {
+      merge: true,
+    });
+
+    yield call(
+      addDoc,
+      collection(store, CONVERSATIONS_COLLECTION, id, MESSAGES_SUBCOLLECTION),
+      {
+        [MESSAGE_FIELDS.body]: text,
+        [MESSAGE_FIELDS.senderId]: staffId,
+        // Server time, so ordering does not depend on the sender's clock.
+        [MESSAGE_FIELDS.createdAt]: serverTimestamp(),
+      },
+    );
+
+    yield put(actions.messageSent(Date.now()));
+  } catch (e) {
+    // permission-denied is returned both when the rules refuse the write and
+    // when there is no Firebase session at all. Say which, so this points at
+    // the actual problem instead of sending everyone to the rules.
+    const uid = getSignedInUid();
+    const detail = uid
+      ? `signed in to Firebase as ${uid}`
+      : 'not signed in to Firebase - sign out of GB Members and sign in ' +
+        'again to reconnect';
+    yield put(actions.setSendError(`${e.message || String(e)} (${detail})`));
+  }
+}
+
 export function* watchConversations() {
   yield takeEvery(types.SUBSCRIBE_CONVERSATIONS, watchConversationSnapshots);
   yield takeEvery(types.SUBSCRIBE_MESSAGES, watchMessageSnapshots);
+  yield takeEvery(types.SEND_MESSAGE, sendMessage);
 }

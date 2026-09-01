@@ -20,6 +20,11 @@ export const types = {
   SUBSCRIBE_MESSAGES: namespace('conversations', 'SUBSCRIBE_MESSAGES'),
   SET_MESSAGES: namespace('conversations', 'SET_MESSAGES'),
   SET_MESSAGES_ERROR: namespace('conversations', 'SET_MESSAGES_ERROR'),
+  // Sending one message from the portal.
+  SEND_MESSAGE: namespace('conversations', 'SEND_MESSAGE'),
+  SET_SENDING: namespace('conversations', 'SET_SENDING'),
+  SET_SEND_ERROR: namespace('conversations', 'SET_SEND_ERROR'),
+  MESSAGE_SENT: namespace('conversations', 'MESSAGE_SENT'),
 };
 
 export const actions = {
@@ -32,6 +37,11 @@ export const actions = {
   subscribeMessages: withPayload(types.SUBSCRIBE_MESSAGES),
   setMessages: withPayload(types.SET_MESSAGES),
   setMessagesError: withPayload(types.SET_MESSAGES_ERROR),
+  // Pass { memberId, staffId, spaceSlug, text }.
+  sendMessage: withPayload(types.SEND_MESSAGE),
+  setSending: withPayload(types.SET_SENDING),
+  setSendError: withPayload(types.SET_SEND_ERROR),
+  messageSent: withPayload(types.MESSAGE_SENT),
 };
 
 export const State = Record({
@@ -41,6 +51,10 @@ export const State = Record({
   messagesLoading: true,
   messagesError: null,
   messages: List(),
+  sending: false,
+  sendError: null,
+  // Bumped on each successful send so the composer knows to clear itself.
+  lastSentAt: null,
 });
 
 export const reducer = (state = State(), { type, payload }) => {
@@ -65,6 +79,15 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('messages', List(payload));
     case types.SET_MESSAGES_ERROR:
       return state.set('messagesLoading', false).set('messagesError', payload);
+    case types.SET_SENDING:
+      return state.set('sending', payload).set('sendError', null);
+    case types.SET_SEND_ERROR:
+      return state.set('sending', false).set('sendError', payload);
+    case types.MESSAGE_SENT:
+      return state
+        .set('sending', false)
+        .set('sendError', null)
+        .set('lastSentAt', payload);
     default:
       return state;
   }

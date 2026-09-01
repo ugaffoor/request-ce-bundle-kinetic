@@ -7,6 +7,7 @@ import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as conversationActions } from '../../redux/modules/conversations';
 import { actions as memberActions } from '../../redux/modules/members';
 import { initialiseFirebase } from '../../lib/firebase';
+import { ensureFirebaseSignIn } from '../../lib/firebaseAuth';
 import {
   staffParticipantId,
   isStaffParticipant,
@@ -30,6 +31,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = {
   subscribeConversations: conversationActions.subscribeConversations,
   subscribeMessages: conversationActions.subscribeMessages,
+  setConversationsError: conversationActions.setConversationsError,
   fetchMembers: memberActions.fetchMembers,
 };
 
@@ -215,18 +217,47 @@ export const ConversationsContainer = compose(
         this.props.fetchMembers({ memberInitialLoadComplete: false });
       }
 
-      // The listener can only attach once the Firebase app exists.
+      // Every path out of here has to settle `loading`, which starts true:
+      // returning quietly leaves the list spinning forever with nothing on
+      // screen to say why.
       const app = initialiseFirebase(this.props.space);
       if (!app) {
+        this.props.setConversationsError(
+          'Firebase is not configured for this space.',
+        );
         return;
       }
 
       const username = this.props.profile && this.props.profile.username;
-      if (username && this.props.spaceSlug) {
-        this.props.subscribeConversations({
-          participantId: staffParticipantId(this.props.spaceSlug, username),
-        });
+      if (!username || !this.props.spaceSlug) {
+        this.props.setConversationsError(
+          'Could not determine the signed-in user or space.',
+        );
+        return;
       }
+
+      // Firestore gates every read on request.auth, so the listener can only
+      // attach once the Firebase sign-in started at login has completed.
+      // Subscribing before that just earns a permission-denied, which reads
+      // as an empty inbox rather than as the auth problem it is.
+      ensureFirebaseSignIn(app)
+        .then(uid => {
+          if (!uid) {
+            this.props.setConversationsError(
+              'Not signed in to Firebase — sign out and sign in again to load conversations.',
+            );
+            return;
+          }
+
+          this.props.subscribeConversations({
+            participantId: staffParticipantId(this.props.spaceSlug, username),
+          });
+        })
+        .catch(e => {
+          this.props.setConversationsError(
+            `Firebase sign-in failed: ${e && e.message ? e.message : e}`,
+          );
+        });
     },
   }),
 )(Conversations);

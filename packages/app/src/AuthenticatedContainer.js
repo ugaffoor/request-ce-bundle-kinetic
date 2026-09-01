@@ -4,6 +4,10 @@ import { compose, withState, withHandlers, lifecycle } from 'recompose';
 import { Route, Switch } from 'react-router-dom';
 import { push } from 'connected-react-router';
 import { bundle } from '@kineticdata/react';
+import {
+  exchangeStashedCredentials,
+  stashCredentials,
+} from 'gbmembers/src/lib/firebaseAuth';
 
 import logoImage from './assets/images/gb-logo.jpg';
 
@@ -224,9 +228,32 @@ export const Authentication = compose(
           this.props.loggedIn && !this.props.timedOut,
         );
       }
+
+      // Kinetic has just accepted the sign-in, so trade the credentials it
+      // accepted for a Firebase custom token. Deliberately not awaited: chat
+      // is secondary to being logged into GB Members, and every failure path
+      // in the bridge resolves to "chat isn't available this session".
+      if (this.props.loggedIn && !prevProps.loggedIn) {
+        exchangeStashedCredentials();
+      }
     },
   }),
 )(({ loginProps, timedOut, authenticated, children, isPublic, ...props }) => {
+  // Capture the credentials as the sign-in is submitted -- the one moment the
+  // password exists in the browser. The exchange itself waits for Kinetic to
+  // confirm the login (componentDidUpdate above), so a failed sign-in never
+  // reaches the Cloud Function.
+  const bridgedLoginProps = loginProps && {
+    ...loginProps,
+    onLogin: event => {
+      stashCredentials({
+        userName: loginProps.username,
+        password: loginProps.password,
+      });
+      return loginProps.onLogin(event);
+    },
+  };
+
   return (
     <>
       {authenticated && !isPublic ? (
@@ -240,7 +267,12 @@ export const Authentication = compose(
                 exact
                 render={route => (
                   <LoginScreen>
-                    <LoginForm {...props} {...loginProps} {...route} routed />
+                    <LoginForm
+                      {...props}
+                      {...bridgedLoginProps}
+                      {...route}
+                      routed
+                    />
                   </LoginScreen>
                 )}
               />
@@ -303,7 +335,7 @@ export const Authentication = compose(
                     ) : props.display === 'create-account' ? (
                       <CreateAccountForm {...props} />
                     ) : (
-                      <LoginForm {...props} {...loginProps} />
+                      <LoginForm {...props} {...bridgedLoginProps} />
                     )}
                   </LoginScreen>
                 )}
@@ -321,7 +353,7 @@ export const Authentication = compose(
                   ) : props.display === 'create-account' ? (
                     <CreateAccountForm {...props} />
                   ) : (
-                    <LoginForm {...props} {...loginProps} />
+                    <LoginForm {...props} {...bridgedLoginProps} />
                   )}
                 </LoginScreen>
               )}

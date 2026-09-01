@@ -6,6 +6,9 @@ import Select from 'react-select';
 import ReactSpinner from 'react16-spinjs';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as memberActions } from '../../redux/modules/members';
+import { actions as conversationActions } from '../../redux/modules/conversations';
+import { staffParticipantId } from '../../lib/conversationSchema';
+import { ensureFirebaseSignIn } from '../../lib/firebaseAuth';
 import { removeExcludedMembers, matchesMemberFilter } from '../../utils/utils';
 import { initialiseFirebase, getFirebaseConfig } from '../../lib/firebase';
 
@@ -17,10 +20,16 @@ const mapStateToProps = state => ({
   membersLoading: state.member.members.membersLoading,
   memberLists: state.member.app.memberLists,
   space: state.member.app.space,
+  spaceSlug: state.member.app.spaceSlug,
+  profile: state.member.app.profile,
+  sending: state.member.conversations.sending,
+  sendError: state.member.conversations.sendError,
+  lastSentAt: state.member.conversations.lastSentAt,
 });
 
 const mapDispatchToProps = {
   fetchMembers: memberActions.fetchMembers,
+  sendMessage: conversationActions.sendMessage,
 };
 
 const memberName = member => {
@@ -69,6 +78,20 @@ export class NewConversation extends Component {
   getListOptions() {
     const { allMembers, memberLists, space } = this.props;
 
+    // Rebuilt only when its inputs actually change. This runs a filter pass
+    // per saved list over every member, and render() is re-entered on each
+    // keystroke in the message box and both pickers -- recomputing it there
+    // stalls typing on a large roster.
+    const cached = this.listOptionsCache;
+    if (
+      cached &&
+      cached.allMembers === allMembers &&
+      cached.memberLists === memberLists &&
+      cached.space === space
+    ) {
+      return cached.value;
+    }
+
     const options = [
       {
         value: ACTIVE_MEMBERS,
@@ -100,7 +123,9 @@ export class NewConversation extends Component {
       });
     }
 
-    return options.filter(option => option.ids.length > 0);
+    const value = options.filter(option => option.ids.length > 0);
+    this.listOptionsCache = { allMembers, memberLists, space, value };
+    return value;
   }
 
   /**
@@ -112,17 +137,31 @@ export class NewConversation extends Component {
     const { allMembers } = this.props;
     const { listOption } = this.state;
 
+    // Same reasoning as getListOptions: this sorts the whole roster, and a
+    // fresh array identity here also makes react-select rebuild its menu on
+    // every keystroke.
+    const cached = this.studentOptionsCache;
+    if (
+      cached &&
+      cached.allMembers === allMembers &&
+      cached.listOption === listOption
+    ) {
+      return cached.value;
+    }
+
     const pool = listOption
       ? allMembers.filter(member => listOption.ids.includes(member.id))
       : allMembers;
 
-    return pool
+    const value = pool
       .slice()
       .sort(byName)
       .map(member => ({
         value: member.id,
         label: memberLabel(member),
       }));
+    this.studentOptionsCache = { allMembers, listOption, value };
+    return value;
   }
 
   handleListChange = listOption => {
@@ -137,6 +176,44 @@ export class NewConversation extends Component {
       };
     });
   };
+
+  /**
+   * This portal's own participant id, matching what the mobile app expects
+   * for staff. Null until the member app has loaded the profile and space,
+   * which is why Send stays disabled until then.
+   */
+  senderId() {
+    const { spaceSlug, profile } = this.props;
+    const username = profile && profile.username;
+    return spaceSlug && username
+      ? staffParticipantId(spaceSlug, username)
+      : null;
+  }
+
+  handleSend = () => {
+    const senderId = this.senderId();
+    if (!senderId || !this.state.memberOption) {
+      return;
+    }
+
+    this.props.sendMessage({
+      memberId: this.state.memberOption.value,
+      staffId: senderId,
+      spaceSlug: this.props.spaceSlug,
+      text: this.state.message.trim(),
+    });
+  };
+
+  componentDidUpdate(prevProps) {
+    // Clear the composer only once a send has actually landed, so the text
+    // survives a failure and can be retried rather than being lost.
+    if (
+      this.props.lastSentAt &&
+      this.props.lastSentAt !== prevProps.lastSentAt
+    ) {
+      this.setState({ message: '' });
+    }
+  }
 
   renderConnectionStatus() {
     const config = getFirebaseConfig(this.props.space);
@@ -164,7 +241,10 @@ export class NewConversation extends Component {
   render() {
     const studentOptions = this.getStudentOptions();
     const canSend =
-      this.state.memberOption !== null && this.state.message.trim() !== '';
+      this.state.memberOption !== null &&
+      this.state.message.trim() !== '' &&
+      !this.props.sending &&
+      !!this.senderId();
 
     return (
       <div className="container-fluid leads">
@@ -173,7 +253,13 @@ export class NewConversation extends Component {
           <div className="options">
             <h4 className="title">New Conversation</h4>
             {this.renderConnectionStatus()}
-            {this.props.membersLoading ? (
+            {/*
+              Only blank the form on the first load. AppContainer refetches
+              members every 30 seconds, and keying this on membersLoading
+              alone tore the composer down mid-refresh -- losing focus, the
+              picker selection and the caret while someone was typing.
+            */}
+            {this.props.membersLoading && this.props.allMembers.length === 0 ? (
               <ReactSpinner />
             ) : (
               <div>
@@ -215,17 +301,19 @@ export class NewConversation extends Component {
                   />
                 </div>
                 <div className="form-group">
-                  {/*
-                    There is no conversations back end yet, so nothing is
-                    dispatched here. Wire this up to the conversations action
-                    once the Firestore schema is known.
-                  */}
+                  {this.props.sendError && (
+                    <div className="alert alert-danger">
+                      <strong>Message not sent.</strong>
+                      <div>{this.props.sendError}</div>
+                    </div>
+                  )}
                   <button
                     type="button"
                     className="btn btn-primary"
+                    onClick={this.handleSend}
                     disabled={!canSend}
                   >
-                    Send
+                    {this.props.sending ? 'Sending...' : 'Send'}
                   </button>
                   <NavLink to="/Send" className="btn btn-link">
                     Cancel
@@ -249,6 +337,14 @@ export const NewConversationContainer = compose(
     componentDidMount() {
       if (this.props.allMembers.length === 0 && !this.props.membersLoading) {
         this.props.fetchMembers({ memberInitialLoadComplete: false });
+      }
+
+      // Firestore rules reject an unauthenticated write, so get the Firebase
+      // sign-in out of the way while the composer is being filled in rather
+      // than discovering it is missing on the first Send.
+      const app = initialiseFirebase(this.props.space);
+      if (app) {
+        ensureFirebaseSignIn(app);
       }
     },
   }),
