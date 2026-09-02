@@ -12,6 +12,9 @@ import {
   staffParticipantId,
   indexMembersById,
   participantName,
+  matchesConversationKind,
+  CONVERSATION_KINDS,
+  CONVERSATION_KIND_LABELS,
 } from '../../lib/conversationSchema';
 
 const mapStateToProps = state => ({
@@ -53,6 +56,7 @@ export class Conversations extends Component {
     this.state = {
       selectedId: routeConversationId(props),
       reply: '',
+      kind: CONVERSATION_KINDS.ALL,
       // Sends the server rejected. Kept locally because a failed write never
       // reaches Firestore, so the snapshot listener will never return it --
       // without this the message would just vanish on failure.
@@ -119,7 +123,16 @@ export class Conversations extends Component {
     const username = this.props.profile && this.props.profile.username;
     const text = this.state.reply.trim();
 
-    if (!conversation || !username || !this.props.spaceSlug || !text) {
+    // isBroadcast is also checked in renderComposer, which is what actually
+    // hides the box. Repeated here so the send path is safe on its own
+    // rather than relying on the UI never offering it.
+    if (
+      !conversation ||
+      conversation.isBroadcast ||
+      !username ||
+      !this.props.spaceSlug ||
+      !text
+    ) {
       return;
     }
 
@@ -127,6 +140,10 @@ export class Conversations extends Component {
     this.pendingText = text;
 
     this.props.sendMessage({
+      // Send into the thread that is actually open. Without this the saga
+      // derives an id from the pair, which for a member who has been
+      // broadcast to resolves to their broadcast thread instead.
+      conversationId: conversation.id,
       // The student side of this thread -- normaliseConversation resolved it
       // by excluding the signed-in staff member.
       memberId: conversation.otherParticipantId,
@@ -140,6 +157,25 @@ export class Conversations extends Component {
     const conversation = this.getSelectedConversation();
     if (!conversation) {
       return null;
+    }
+
+    // A broadcast is one-way by design: the same message sent to several
+    // members in separate threads, which the recipient sees in Notifications
+    // rather than as a chat. firestore.rules enforces it -- broadcastWritable()
+    // rejects a write from anyone but the original sender.
+    //
+    // Announcements are the other feature and are NOT restricted here: a
+    // student can reply to one and staff can answer back.
+    if (conversation.isBroadcast) {
+      return (
+        <p className="text-muted mt-3">
+          <small>
+            This is a broadcast &mdash; a one-way message, so it cannot be
+            replied to. Start a new conversation to message this person
+            directly.
+          </small>
+        </p>
+      );
     }
 
     const canSend = !this.props.sending && this.state.reply.trim() !== '';
@@ -203,14 +239,28 @@ export class Conversations extends Component {
 
     const sorted = conversations
       .toArray()
+      .filter(conversation =>
+        matchesConversationKind(conversation, this.state.kind),
+      )
       .sort(
         (a, b) =>
           (b.updatedAt ? b.updatedAt.getTime() : 0) -
           (a.updatedAt ? a.updatedAt.getTime() : 0),
       );
 
+    if (sorted.length < 1) {
+      return (
+        <React.Fragment>
+          {this.renderKindFilter()}
+          <p>Nothing matches this filter.</p>
+        </React.Fragment>
+      );
+    }
+
     return (
-      <ul className="list-group">
+      <React.Fragment>
+        {this.renderKindFilter()}
+        <ul className="list-group">
         {sorted.map(conversation => (
           <li
             key={conversation.id}
@@ -227,6 +277,9 @@ export class Conversations extends Component {
               <strong>
                 {participantName(conversation.otherParticipantId, membersById)}
               </strong>
+              {conversation.isBroadcast && (
+                <span className="badge badge-warning ml-2">Broadcast</span>
+              )}
               {conversation.isAnnouncement && (
                 <span className="badge badge-info ml-2">Announcement</span>
               )}
@@ -239,7 +292,28 @@ export class Conversations extends Component {
             <small>{when(conversation.updatedAt)}</small>
           </li>
         ))}
-      </ul>
+        </ul>
+      </React.Fragment>
+    );
+  }
+
+  renderKindFilter() {
+    return (
+      <div className="form-group">
+        <label htmlFor="conversation-kind">Show</label>
+        <select
+          id="conversation-kind"
+          className="form-control"
+          value={this.state.kind}
+          onChange={e => this.setState({ kind: e.target.value })}
+        >
+          {Object.keys(CONVERSATION_KIND_LABELS).map(kind => (
+            <option key={kind} value={kind}>
+              {CONVERSATION_KIND_LABELS[kind]}
+            </option>
+          ))}
+        </select>
+      </div>
     );
   }
 

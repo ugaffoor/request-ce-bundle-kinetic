@@ -11,6 +11,9 @@ import {
   staffParticipantId,
   indexMembersById,
   groupConversationsByParticipant,
+  matchesConversationKind,
+  CONVERSATION_KINDS,
+  CONVERSATION_KIND_LABELS,
 } from '../../lib/conversationSchema';
 
 /**
@@ -44,7 +47,7 @@ export class ConversationsList extends Component {
     super(props);
     // Which grouped rows are open, keyed by participant id. Collapsed by
     // default so the list stays one line per person.
-    this.state = { expanded: {} };
+    this.state = { expanded: {}, kind: CONVERSATION_KINDS.ALL };
   }
 
   toggle = participantId => {
@@ -68,6 +71,9 @@ export class ConversationsList extends Component {
             <NavLink to={`/Conversations/${group.latest.id}`}>
               {group.name}
             </NavLink>
+            {group.isBroadcast && (
+              <span className="badge badge-warning ml-2">Broadcast</span>
+            )}
             {group.isAnnouncement && (
               <span className="badge badge-info ml-2">Announcement</span>
             )}
@@ -97,6 +103,9 @@ export class ConversationsList extends Component {
               />
               {group.name}{' '}
               <span className="badge badge-secondary">{threadCount}</span>
+              {group.isBroadcast && (
+                <span className="badge badge-warning ml-2">Broadcast</span>
+              )}
               {group.isAnnouncement && (
                 <span className="badge badge-info ml-2">Announcement</span>
               )}
@@ -114,9 +123,11 @@ export class ConversationsList extends Component {
               <td style={{ paddingLeft: '2.5rem' }}>
                 <NavLink to={`/Conversations/${conversation.id}`}>
                   <small>
-                    {conversation.isAnnouncement
-                      ? 'Open announcement thread'
-                      : 'Open thread'}
+                    {conversation.isBroadcast
+                      ? 'Open broadcast'
+                      : conversation.isAnnouncement
+                        ? 'Open announcement thread'
+                        : 'Open thread'}
                   </small>
                 </NavLink>
               </td>
@@ -143,7 +154,11 @@ export class ConversationsList extends Component {
     // Several threads with the same person collapse into one row, so the list
     // reads as one line per person rather than implying repeated contact.
     const groups = groupConversationsByParticipant(
-      conversations.toArray(),
+      conversations
+        .toArray()
+        .filter(conversation =>
+          matchesConversationKind(conversation, this.state.kind),
+        ),
       membersById,
     );
 
@@ -156,6 +171,22 @@ export class ConversationsList extends Component {
           </NavLink>
         </h4>
 
+        <div className="form-group">
+          <label htmlFor="conversations-list-kind">Show</label>
+          <select
+            id="conversations-list-kind"
+            className="form-control"
+            value={this.state.kind}
+            onChange={e => this.setState({ kind: e.target.value })}
+          >
+            {Object.keys(CONVERSATION_KIND_LABELS).map(kind => (
+              <option key={kind} value={kind}>
+                {CONVERSATION_KIND_LABELS[kind]}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {loading ? (
           <ReactSpinner />
         ) : error ? (
@@ -164,7 +195,11 @@ export class ConversationsList extends Component {
             <div>{error}</div>
           </div>
         ) : groups.length < 1 ? (
-          <p>No conversations yet.</p>
+          <p>
+            {this.state.kind === CONVERSATION_KINDS.ALL
+              ? 'No conversations yet.'
+              : 'Nothing matches this filter.'}
+          </p>
         ) : (
           <table className="table table-sm">
             <thead>

@@ -47,7 +47,12 @@ export const isStaffParticipant = participantId =>
  * a student always lands on the same document, so replies append to the
  * existing thread instead of forking a second one.
  */
-export const conversationId = (memberId, staffId) => `${memberId}_${staffId}`;
+export const conversationId = (memberId, staffId) =>
+  // Must match conversationIdFor() in the app: [a, b].sort().join('_').
+  // Sorting matters -- deriving the id a different way would create a second
+  // document for the same pair, and the two sides would stop seeing each
+  // other's messages with no error to show for it.
+  [memberId, staffId].sort().join('_');
 
 /**
  * Announcement threads. When a student replies to a broadcast announcement
@@ -66,9 +71,86 @@ export const isAnnouncementParticipant = participantId =>
   typeof participantId === 'string' &&
   participantId.startsWith(ANNOUNCEMENT_ID_PREFIX);
 
-export const isAnnouncementConversation = (id, participantIds) =>
+/**
+ * An ANNOUNCEMENT is addressed to a whole school. The app keeps one thread
+ * per school at a deterministic id built by announcementThreadId():
+ *
+ *   announcements_{domain}_{spaceSlug}    e.g. announcements_gbmembers.net_usbeta
+ *
+ * That thread deliberately carries NO participantIds -- firestore.rules
+ * decides who may read it from spaceSlug instead, so a gym of any size does
+ * not need an array of every member. Per-member deliveries are separate
+ * documents flagged `announcementCopy`.
+ *
+ * Unlike a broadcast, an announcement CAN be replied to.
+ */
+export const isAnnouncementConversation = (id, participantIds, data) =>
   (typeof id === 'string' && id.startsWith(ANNOUNCEMENT_ID_PREFIX)) ||
-  (participantIds || []).some(isAnnouncementParticipant);
+  (participantIds || []).some(isAnnouncementParticipant) ||
+  !!(data && (data.announcement || data.announcementCopy));
+
+/**
+ * Broadcast vs announcement, per the BJJ Members app (src/firebase/chat.ts).
+ * They are separate features and behave differently, so they are detected
+ * separately here.
+ *
+ * A BROADCAST is a one-way 1:1 thread created by sendBroadcast(): the same
+ * text sent to several members, each in their own conversation, so no
+ * recipient learns who else received it. The conversation carries
+ * `staffBroadcast: true` and `broadcastSender`.
+ *
+ * CAREFUL: the app also has a `broadcast` field on MESSAGE documents, which
+ * means something else entirely -- "a fanned-out announcement delivery". The
+ * app names the conversation flag `staffBroadcast` precisely to avoid that
+ * collision, and their comment calls the overlap a trap. Do not key on
+ * `broadcast` here.
+ */
+export const isBroadcastConversation = data => !!(data && data.staffBroadcast);
+
+/**
+ * Only the sender may write into a broadcast thread -- firestore.rules
+ * enforces it via broadcastWritable(), which permits a write when
+ * `broadcastSender == request.auth.uid` and rejects everyone else.
+ */
+export const broadcastSenderOf = data =>
+  (data && data.broadcastSender) || null;
+
+/**
+ * The three kinds of thread the portal can show. Broadcast is tested first
+ * because it is the one with restricted behaviour -- if a thread were ever
+ * flagged as both, treating it as a broadcast is the safer reading.
+ */
+export const CONVERSATION_KINDS = {
+  ALL: 'all',
+  CONVERSATION: 'conversation',
+  ANNOUNCEMENT: 'announcement',
+  BROADCAST: 'broadcast',
+};
+
+export const CONVERSATION_KIND_LABELS = {
+  [CONVERSATION_KINDS.ALL]: 'All',
+  [CONVERSATION_KINDS.CONVERSATION]: 'Conversations',
+  [CONVERSATION_KINDS.ANNOUNCEMENT]: 'Announcements',
+  [CONVERSATION_KINDS.BROADCAST]: 'Broadcasts',
+};
+
+export const conversationKind = conversation => {
+  if (!conversation) {
+    return CONVERSATION_KINDS.CONVERSATION;
+  }
+  if (conversation.isBroadcast) {
+    return CONVERSATION_KINDS.BROADCAST;
+  }
+  if (conversation.isAnnouncement) {
+    return CONVERSATION_KINDS.ANNOUNCEMENT;
+  }
+  return CONVERSATION_KINDS.CONVERSATION;
+};
+
+export const matchesConversationKind = (conversation, kind) =>
+  !kind ||
+  kind === CONVERSATION_KINDS.ALL ||
+  conversationKind(conversation) === kind;
 
 // -- participant names --------------------------------------------------
 
@@ -171,6 +253,7 @@ export const groupConversationsByParticipant = (conversations, membersById) => {
         conversations: ordered,
         latest: ordered[0],
         isAnnouncement: ordered.some(c => c.isAnnouncement),
+        isBroadcast: ordered.some(c => c.isBroadcast),
       };
     })
     .sort((a, b) => time(b.latest) - time(a.latest));
@@ -227,7 +310,9 @@ export const normaliseConversation = (id, data, viewerId) => {
     participantIds,
     otherParticipantId: participantIds.find(pid => pid !== viewerId),
     isGroup: !!data[CONVERSATION_FIELDS.isGroup],
-    isAnnouncement: isAnnouncementConversation(id, participantIds),
+    isAnnouncement: isAnnouncementConversation(id, participantIds, data),
+    isBroadcast: isBroadcastConversation(data),
+    broadcastSender: broadcastSenderOf(data),
     hasJunior: !!data[CONVERSATION_FIELDS.hasJunior],
     monitorable: !!data[CONVERSATION_FIELDS.monitorable],
     lastMessage: lastMessage

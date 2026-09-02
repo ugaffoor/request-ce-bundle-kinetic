@@ -5,6 +5,7 @@ import { Inbox } from './Inbox';
 import {
   indexMembersById,
   participantName,
+  staffParticipantId,
 } from 'gbmembers/src/lib/conversationSchema';
 import {
   loadReadMarkers,
@@ -32,9 +33,31 @@ export const mapStateToProps = state => {
     state.member && state.member.members ? state.member.members.allMembers : [],
   );
 
+  // Who the signed-in staff member is in Firestore terms, so their own
+  // messages can be told apart from a student's.
+  const app = state.member ? state.member.app : null;
+  const username = app && app.profile ? app.profile.username : null;
+  const viewerId =
+    username && app && app.spaceSlug
+      ? staffParticipantId(app.spaceSlug, username)
+      : null;
+
   return {
     allMessages: conversations
       .toArray()
+      // The inbox is for messages needing a response. A thread whose latest
+      // message you sent is waiting on them, not on you -- without this,
+      // every reply you send reappears here as unread, because the read
+      // marker is tied to the newest message and you just changed it.
+      //
+      // If the viewer cannot be identified, nothing is filtered: showing an
+      // extra thread beats silently hiding a student's message.
+      .filter(
+        conversation =>
+          !viewerId ||
+          !conversation.lastMessage ||
+          conversation.lastMessage.senderId !== viewerId,
+      )
       .slice()
       .sort(
         (a, b) =>

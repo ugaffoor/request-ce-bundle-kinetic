@@ -167,9 +167,19 @@ export function* watchMessageSnapshots({ payload } = {}) {
  */
 export function* sendMessage({ payload } = {}) {
   const store = getConversationStore();
-  const { memberId, staffId, spaceSlug, text } = payload || {};
+  const {
+    memberId,
+    staffId,
+    spaceSlug,
+    text,
+    // Set when replying into a thread that is already open. Deriving an id
+    // instead would be wrong: a member who has been broadcast to shares the
+    // same deterministic 1:1 id, so a derived write can land in a broadcast
+    // thread rather than the conversation on screen.
+    conversationId: existingConversationId,
+  } = payload || {};
 
-  if (!store || !memberId || !staffId || !text) {
+  if (!store || !text || (!existingConversationId && (!memberId || !staffId))) {
     yield put(
       actions.setSendError('Cannot send: the conversation is not ready.'),
     );
@@ -179,20 +189,29 @@ export function* sendMessage({ payload } = {}) {
   yield put(actions.setSending(true));
 
   try {
-    const id = conversationId(memberId, staffId);
+    const id = existingConversationId || conversationId(memberId, staffId);
 
-    // Firestore rejects undefined field values, so only send what we have.
-    const conversation = {
-      [CONVERSATION_FIELDS.participantIds]: [memberId, staffId],
-      staffChat: true,
-    };
-    if (spaceSlug) {
-      conversation.spaceSlug = spaceSlug;
+    // Only when starting a thread. Replying into an existing one must not
+    // touch the conversation document: merging staffChat/participantIds onto
+    // a thread the app created (a broadcast, say) would quietly rewrite what
+    // that thread is.
+    if (!existingConversationId) {
+      // Firestore rejects undefined field values, so only send what we have.
+      const conversation = {
+        [CONVERSATION_FIELDS.participantIds]: [memberId, staffId],
+        staffChat: true,
+      };
+      if (spaceSlug) {
+        conversation.spaceSlug = spaceSlug;
+      }
+
+      yield call(
+        setDoc,
+        doc(store, CONVERSATIONS_COLLECTION, id),
+        conversation,
+        { merge: true },
+      );
     }
-
-    yield call(setDoc, doc(store, CONVERSATIONS_COLLECTION, id), conversation, {
-      merge: true,
-    });
 
     yield call(
       addDoc,
