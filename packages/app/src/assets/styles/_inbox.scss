@@ -11,14 +11,44 @@
     text-decoration: none;
   }
   .messages-header {
-    align-items: center;
+    align-items: baseline;
     background-color: $white;
     border-bottom: 1px solid $gray3;
     display: flex;
     justify-content: space-between;
+    /* The title and the actions have to share a narrow dropdown. Wrapping
+       lets the actions drop to their own line rather than colliding with
+       the title, and the gap keeps them apart when they do fit. */
+    flex-wrap: wrap;
+    gap: 0.25rem 0.75rem;
     padding: 0.5rem 1.5rem;
     .title {
       @include ms-respond(font-size, 0);
+      /* Allowed to shrink so it never pushes the actions out of the menu. */
+      min-width: 0;
+      flex: 0 1 auto;
+    }
+    .actions {
+      align-items: baseline;
+      display: flex;
+      gap: 0.4rem;
+      /* Kept whole: these are short labels, and breaking them mid-phrase
+         reads worse than wrapping the block. */
+      flex: 0 0 auto;
+      a,
+      .link-action {
+        @include ms-respond(font-size, -1);
+        padding: 0;
+        line-height: 1.2;
+        white-space: nowrap;
+        background: none;
+        border: none;
+        color: $blue-lake;
+        cursor: pointer;
+      }
+      .divider {
+        color: $gray3;
+      }
     }
   }
   .messages-list {
@@ -35,6 +65,28 @@
       padding: 0.5rem 1.5rem;
       &:hover {
         background-color: lighten($gray4, 5%);
+      }
+      /* Anything still in the inbox is unread: tint it and mark the edge so
+         it reads as needing attention at a glance. */
+      &.unread {
+        background-color: rgba($blue-lake, 0.07);
+        border-left: 3px solid $blue-lake;
+        padding-left: calc(1.5rem - 3px);
+      }
+      .message-footer {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.5rem;
+        .mark-read {
+          @include ms-respond(font-size, -2);
+          padding: 0;
+          background: none;
+          border: none;
+          color: $blue-lake;
+          cursor: pointer;
+          white-space: nowrap;
+        }
       }
       h1 {
         @include ms-respond(font-size, -1);

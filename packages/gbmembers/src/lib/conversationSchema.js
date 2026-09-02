@@ -49,6 +49,27 @@ export const isStaffParticipant = participantId =>
  */
 export const conversationId = (memberId, staffId) => `${memberId}_${staffId}`;
 
+/**
+ * Announcement threads. When a student replies to a broadcast announcement
+ * the reply lands in a conversation whose id and participant carry an
+ * `announcements_` prefix, e.g.
+ *
+ *   announcements_gbmembers.net
+ *
+ * Those threads are worth marking in the UI: they are a reply to something
+ * sent to everyone, not a message someone chose to start with this member of
+ * staff, so they read differently.
+ */
+export const ANNOUNCEMENT_ID_PREFIX = 'announcements_';
+
+export const isAnnouncementParticipant = participantId =>
+  typeof participantId === 'string' &&
+  participantId.startsWith(ANNOUNCEMENT_ID_PREFIX);
+
+export const isAnnouncementConversation = (id, participantIds) =>
+  (typeof id === 'string' && id.startsWith(ANNOUNCEMENT_ID_PREFIX)) ||
+  (participantIds || []).some(isAnnouncementParticipant);
+
 // -- participant names --------------------------------------------------
 
 /**
@@ -84,6 +105,10 @@ export const indexMembersById = allMembers => {
 export const participantName = (participantId, membersById) => {
   if (!participantId) {
     return 'Unknown';
+  }
+
+  if (isAnnouncementParticipant(participantId)) {
+    return 'Announcements';
   }
 
   if (isStaffParticipant(participantId)) {
@@ -145,6 +170,7 @@ export const groupConversationsByParticipant = (conversations, membersById) => {
         name: participantName(participantId || null, membersById),
         conversations: ordered,
         latest: ordered[0],
+        isAnnouncement: ordered.some(c => c.isAnnouncement),
       };
     })
     .sort((a, b) => time(b.latest) - time(a.latest));
@@ -201,6 +227,7 @@ export const normaliseConversation = (id, data, viewerId) => {
     participantIds,
     otherParticipantId: participantIds.find(pid => pid !== viewerId),
     isGroup: !!data[CONVERSATION_FIELDS.isGroup],
+    isAnnouncement: isAnnouncementConversation(id, participantIds),
     hasJunior: !!data[CONVERSATION_FIELDS.hasJunior],
     monitorable: !!data[CONVERSATION_FIELDS.monitorable],
     lastMessage: lastMessage

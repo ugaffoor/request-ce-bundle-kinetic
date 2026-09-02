@@ -180,7 +180,10 @@ export const Content = ({ isKiosk }) => (
         component={SmsCampaignContainer}
       />
       <Route path="/NewConversation" component={NewConversationContainer} />
-      <Route path="/Conversations" component={ConversationsContainer} />
+      <Route
+        path="/Conversations/:conversationId?"
+        component={ConversationsContainer}
+      />
       <Route path="/ddrTemplates" component={DDRTemplatesContainer} />
       <Route exact path="/forms/:formSlug" component={FormContainer} />
       <Route

@@ -65,7 +65,12 @@ export class ConversationsList extends Component {
       return (
         <tr key={group.participantId}>
           <td>
-            <NavLink to="/Conversations">{group.name}</NavLink>
+            <NavLink to={`/Conversations/${group.latest.id}`}>
+              {group.name}
+            </NavLink>
+            {group.isAnnouncement && (
+              <span className="badge badge-info ml-2">Announcement</span>
+            )}
           </td>
           <td>
             {group.latest.lastMessage ? group.latest.lastMessage.text : ''}
@@ -92,6 +97,9 @@ export class ConversationsList extends Component {
               />
               {group.name}{' '}
               <span className="badge badge-secondary">{threadCount}</span>
+              {group.isAnnouncement && (
+                <span className="badge badge-info ml-2">Announcement</span>
+              )}
             </button>
           </td>
           <td>
@@ -104,8 +112,12 @@ export class ConversationsList extends Component {
           group.conversations.map(conversation => (
             <tr key={conversation.id} className="conversation-thread">
               <td style={{ paddingLeft: '2.5rem' }}>
-                <NavLink to="/Conversations">
-                  <small>Open thread</small>
+                <NavLink to={`/Conversations/${conversation.id}`}>
+                  <small>
+                    {conversation.isAnnouncement
+                      ? 'Open announcement thread'
+                      : 'Open thread'}
+                  </small>
                 </NavLink>
               </td>
               <td>
