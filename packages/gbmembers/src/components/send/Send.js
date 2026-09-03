@@ -26,6 +26,7 @@ import { ReactComponent as HelpIcon } from '../../images/help.svg';
 import ReactTooltip from 'react-tooltip';
 import { StatisticsContainer } from './Statistics';
 import { ConversationsListContainer } from './ConversationsList';
+import { canUseConversations } from '../../lib/conversationAccess';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -1555,12 +1556,16 @@ export class CreateCampaign extends Component {
                 SMS Send
               </NavLink>
             </div>
-            <div className="col-md-1">OR</div>
-            <div className="col-md-2">
-              <NavLink to={`/NewConversation`} className="btn btn-primary">
-                Conversation Send
-              </NavLink>
-            </div>
+            {canUseConversations(this.props.profile) && (
+              <React.Fragment>
+                <div className="col-md-1">OR</div>
+                <div className="col-md-2">
+                  <NavLink to={`/NewConversation`} className="btn btn-primary">
+                    Conversation Send
+                  </NavLink>
+                </div>
+              </React.Fragment>
+            )}
           </div>
         </div>
         <div className="leadOptions">
@@ -1597,6 +1602,7 @@ export class CreateCampaign extends Component {
 }
 
 export const CampaignView = ({
+  profile,
   emailCampaigns,
   emailCampaignsLoading,
   emailCampaignsLoadingTimestamp,
@@ -1633,11 +1639,17 @@ export const CampaignView = ({
             />
           </span>
           <div className="leadContents">
-            <CreateCampaign allLeads={allLeads} leadsLoading={leadsLoading} />
+            <CreateCampaign
+              allLeads={allLeads}
+              leadsLoading={leadsLoading}
+              profile={profile}
+            />
           </div>
-          <div className="taskContents">
-            <ConversationsListContainer />
-          </div>
+          {canUseConversations(profile) && (
+            <div className="taskContents">
+              <ConversationsListContainer />
+            </div>
+          )}
           <div className="taskContents">
             <EmailCampaignsList
               emailCampaignsLoading={emailCampaignsLoading}

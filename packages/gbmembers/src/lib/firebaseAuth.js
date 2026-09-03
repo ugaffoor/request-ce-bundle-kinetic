@@ -3,7 +3,8 @@ import {
   onAuthStateChanged,
   signInWithCustomToken,
 } from 'firebase/auth';
-import { getFirebaseApp } from './firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { getFirebaseApp, getConversationStore } from './firebase';
 
 /**
  * Bridges a GB Members (Kinetic) login into Firebase.
@@ -139,6 +140,98 @@ export const getSignedInUid = () => {
   } catch (e) {
     return null;
   }
+};
+
+/**
+ * The custom claims on the current ID token, or null when signed out.
+ *
+ * Worth inspecting directly because claims from createCustomToken() live only
+ * in the token they were minted into -- they are NOT stored on the user
+ * record unless setCustomUserClaims() is also called. Firebase re-mints the
+ * ID token roughly hourly from the user record, so a `staff` claim granted
+ * only at sign-in silently disappears on the first refresh, and every rule
+ * that tests request.auth.token.staff starts failing.
+ */
+export const getIdTokenClaims = async () => {
+  const app = getFirebaseApp();
+  if (!app) {
+    return null;
+  }
+  try {
+    const user = getAuth(app).currentUser;
+    if (!user) {
+      return null;
+    }
+    const result = await user.getIdTokenResult();
+    return result.claims || {};
+  } catch (e) {
+    console.warn('[firebase] could not read ID token claims', e);
+    return null;
+  }
+};
+
+/**
+ * Whether this uid has a members/{uid} document. Firestore rules call me()
+ * constantly; without that document every rule that touches it errors out,
+ * and Firestore reports the error as permission-denied.
+ *
+ * members is readable by any signed-in user (allow read: if request.auth !=
+ * null), so this probe needs no special privileges.
+ */
+export const describeMemberProfile = async uid => {
+  const store = getConversationStore();
+  if (!store || !uid) {
+    return 'could not check for a members profile';
+  }
+  try {
+    const snap = await getDoc(doc(store, 'members', uid));
+    if (!snap.exists()) {
+      return (
+        `NO members/${uid} document exists -- rules call me() on it, and a ` +
+        `missing document denies every read. mintFirebaseToken writes this ` +
+        `via writeStaffProfile(), which swallows its own failures`
+      );
+    }
+    const data = snap.data() || {};
+    return (
+      `members/${uid} exists ` +
+      `(spaceSlug=${data.spaceSlug}, domain=${data.domain}, ` +
+      `isStaff=${data.isStaff})`
+    );
+  } catch (e) {
+    return `reading members/${uid} failed: ${e.message || String(e)}`;
+  }
+};
+
+/**
+ * A short description of why Firestore may be refusing, for error messages.
+ * Distinguishes "no session", "session without the staff claim" and "staff
+ * claim present" -- all three surface identically as permission-denied.
+ */
+export const describeAuthState = async () => {
+  const uid = getSignedInUid();
+  if (!uid) {
+    return 'not signed in to Firebase - sign out of GB Members and sign in again';
+  }
+  const claims = await getIdTokenClaims();
+  if (!claims) {
+    return `signed in as ${uid}, but the ID token could not be read`;
+  }
+  if (claims.staff === true) {
+    // The claim alone is not enough. Nearly every rule reaches me() --
+    // get(/members/$(uid)) -- and .data on a missing document raises an
+    // error, which denies the whole rule before any OR'd branch is tried.
+    // A missing members doc therefore looks exactly like a rules rejection.
+    const profile = await describeMemberProfile(uid);
+    return `signed in as ${uid} with the staff claim present; ${profile}`;
+  }
+  return (
+    `signed in as ${uid} but WITHOUT the staff claim ` +
+    `(claims: ${JSON.stringify(claims)}) - the token has been refreshed ` +
+    `since login and mintFirebaseToken does not persist claims via ` +
+    `setCustomUserClaims, so signing out and in again will restore it ` +
+    `temporarily`
+  );
 };
 
 /**

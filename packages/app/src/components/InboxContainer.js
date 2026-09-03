@@ -7,6 +7,7 @@ import {
   participantName,
   staffParticipantId,
 } from 'gbmembers/src/lib/conversationSchema';
+import { canUseConversations } from 'gbmembers/src/lib/conversationAccess';
 import {
   loadReadMarkers,
   saveReadMarkers,
@@ -43,6 +44,9 @@ export const mapStateToProps = state => {
       : null;
 
   return {
+    // The whole inbox is hidden from anyone without conversations access,
+    // rather than showing an empty dropdown they can never fill.
+    permitted: canUseConversations(app ? app.profile : null),
     allMessages: conversations
       .toArray()
       // The inbox is for messages needing a response. A thread whose latest

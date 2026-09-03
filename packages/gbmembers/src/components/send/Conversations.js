@@ -6,8 +6,10 @@ import ReactSpinner from 'react16-spinjs';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as conversationActions } from '../../redux/modules/conversations';
 import { actions as memberActions } from '../../redux/modules/members';
+import { canUseConversations } from '../../lib/conversationAccess';
 import { initialiseFirebase } from '../../lib/firebase';
 import { ensureFirebaseSignIn } from '../../lib/firebaseAuth';
+import { runConversationDiagnostics } from '../../lib/firestoreDiagnostics';
 import {
   staffParticipantId,
   indexMembersById,
@@ -57,6 +59,8 @@ export class Conversations extends Component {
       selectedId: routeConversationId(props),
       reply: '',
       kind: CONVERSATION_KINDS.ALL,
+      diagnostics: null,
+      diagnosing: false,
       // Sends the server rejected. Kept locally because a failed write never
       // reaches Firestore, so the snapshot listener will never return it --
       // without this the message would just vanish on failure.
@@ -217,6 +221,52 @@ export class Conversations extends Component {
     this.openConversation(conversation.id);
   };
 
+  runDiagnostics = () => {
+    this.setState({ diagnosing: true });
+    runConversationDiagnostics({ spaceSlug: this.props.spaceSlug })
+      .then(diagnostics => this.setState({ diagnostics, diagnosing: false }))
+      .catch(e =>
+        this.setState({
+          diagnostics: [
+            { name: 'diagnostics', ok: false, detail: e.message || String(e) },
+          ],
+          diagnosing: false,
+        }),
+      );
+  };
+
+  renderDiagnostics() {
+    return (
+      <div className="mt-2">
+        <button
+          type="button"
+          className="btn btn-secondary btn-sm"
+          onClick={this.runDiagnostics}
+          disabled={this.state.diagnosing}
+        >
+          {this.state.diagnosing ? 'Checking...' : 'Diagnose permissions'}
+        </button>
+        {this.state.diagnostics && (
+          <ul className="list-unstyled mt-2">
+            {this.state.diagnostics.map((result, i) => (
+              <li key={i}>
+                <strong>{result.ok ? 'PASS' : 'FAIL'}</strong> {result.name}
+                <div>
+                  <small>{result.detail}</small>
+                </div>
+                {result.expectation && (
+                  <div>
+                    <small className="text-muted">{result.expectation}</small>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    );
+  }
+
   renderList(membersById) {
     const { conversations, loading, error } = this.props;
 
@@ -229,6 +279,7 @@ export class Conversations extends Component {
         <div className="alert alert-danger">
           <strong>Could not load conversations.</strong>
           <div>{error}</div>
+          {this.renderDiagnostics()}
         </div>
       );
     }
@@ -261,37 +312,40 @@ export class Conversations extends Component {
       <React.Fragment>
         {this.renderKindFilter()}
         <ul className="list-group">
-        {sorted.map(conversation => (
-          <li
-            key={conversation.id}
-            className={
-              'list-group-item' +
-              (conversation.id === this.state.selectedId ? ' active' : '')
-            }
-            role="button"
-            tabIndex="0"
-            onClick={() => this.selectConversation(conversation)}
-            onKeyPress={() => this.selectConversation(conversation)}
-          >
-            <div>
-              <strong>
-                {participantName(conversation.otherParticipantId, membersById)}
-              </strong>
-              {conversation.isBroadcast && (
-                <span className="badge badge-warning ml-2">Broadcast</span>
-              )}
-              {conversation.isAnnouncement && (
-                <span className="badge badge-info ml-2">Announcement</span>
-              )}
-            </div>
-            {conversation.lastMessage && (
+          {sorted.map(conversation => (
+            <li
+              key={conversation.id}
+              className={
+                'list-group-item' +
+                (conversation.id === this.state.selectedId ? ' active' : '')
+              }
+              role="button"
+              tabIndex="0"
+              onClick={() => this.selectConversation(conversation)}
+              onKeyPress={() => this.selectConversation(conversation)}
+            >
               <div>
-                <small>{conversation.lastMessage.text}</small>
+                <strong>
+                  {participantName(
+                    conversation.otherParticipantId,
+                    membersById,
+                  )}
+                </strong>
+                {conversation.isBroadcast && (
+                  <span className="badge badge-warning ml-2">Broadcast</span>
+                )}
+                {conversation.isAnnouncement && (
+                  <span className="badge badge-info ml-2">Announcement</span>
+                )}
               </div>
-            )}
-            <small>{when(conversation.updatedAt)}</small>
-          </li>
-        ))}
+              {conversation.lastMessage && (
+                <div>
+                  <small>{conversation.lastMessage.text}</small>
+                </div>
+              )}
+              <small>{when(conversation.updatedAt)}</small>
+            </li>
+          ))}
         </ul>
       </React.Fragment>
     );
@@ -380,7 +434,30 @@ export class Conversations extends Component {
     );
   }
 
+  renderNoAccess() {
+    return (
+      <div className="container-fluid leads">
+        <div className="leadContents">
+          <div className="options">
+            <h4 className="title">Conversations</h4>
+            <p>
+              You do not have access to conversations. Ask a space admin to add
+              you to one of the Data Admin, Program Managers, Coach or Kiosk
+              roles.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   render() {
+    // Routes are reachable by URL, so the page guards itself rather than
+    // relying on the Send tab having hidden the link.
+    if (!canUseConversations(this.props.profile)) {
+      return this.renderNoAccess();
+    }
+
     const membersById = this.getMembersById();
 
     return (

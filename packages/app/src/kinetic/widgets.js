@@ -14,7 +14,27 @@ import { OpenWidgetWrapper } from '../components/OpenWidgetWrapper';
  * DO NOT lazy-load this file
  */
 
-bundle.config.widgets = {
+/**
+ * bundle.config only exists once the Kinetic server has served an
+ * authenticated bundle. When the session has expired the server returns an
+ * anonymous bundle with no config, and assigning into it throws here -- at
+ * module scope, before anything renders, so the app dies with a stack trace
+ * instead of showing the login page the user actually needs.
+ *
+ * Registering widgets is pointless for an anonymous visitor anyway: they get
+ * a login screen, and after signing in the page reloads with a real bundle
+ * and this runs properly.
+ */
+if (!bundle.config) {
+  console.warn(
+    '[widgets] No bundle.config -- not signed in to Kinetic, so form widgets ' +
+      'were not registered. They register on the next load after signing in.',
+  );
+}
+
+const widgetConfig = bundle.config || {};
+
+widgetConfig.widgets = {
   xdsoftDatepickerRemove: ({ element }) => {
     ReactDOM.unmountComponentAtNode(element);
   },

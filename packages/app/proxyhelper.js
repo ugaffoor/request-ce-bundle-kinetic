@@ -71,6 +71,17 @@ const setupProxy = ({
     secure: false,
     pathRewrite,
     changeOrigin: true,
+    // Kinetic serves core.combined.js as a single ~435KB file, and the
+    // default proxy timeouts are short enough to abort it on a slow link.
+    // When that happens the browser never gets KD.Bundle, so /app/bundle.js
+    // throws, window.bundle is never created, and the app dies at startup
+    // with "Cannot read properties of null (reading 'location')" -- because
+    // @kineticdata/react only builds its history when window.bundle exists.
+    //
+    // `timeout` is how long to wait on the incoming socket, `proxyTimeout`
+    // how long to wait on the upstream response.
+    timeout: 120000,
+    proxyTimeout: 120000,
     onProxyReq: (proxyRequest, originalRequest) => {
       // Browsers may send Origin headers even with same-origin
       // requests. To prevent CORS issues, we have to change

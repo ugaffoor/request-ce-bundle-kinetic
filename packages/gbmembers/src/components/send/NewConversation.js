@@ -10,6 +10,7 @@ import { actions as conversationActions } from '../../redux/modules/conversation
 import { staffParticipantId } from '../../lib/conversationSchema';
 import { ensureFirebaseSignIn } from '../../lib/firebaseAuth';
 import { removeExcludedMembers, matchesMemberFilter } from '../../utils/utils';
+import { canUseConversations } from '../../lib/conversationAccess';
 import { initialiseFirebase, getFirebaseConfig } from '../../lib/firebase';
 
 const ACTIVE_MEMBERS = '__active_members__';
@@ -247,6 +248,25 @@ export class NewConversation extends Component {
   }
 
   render() {
+    // Routes are reachable by URL, so the page guards itself rather than
+    // relying on the Send tab having hidden the button.
+    if (!canUseConversations(this.props.profile)) {
+      return (
+        <div className="container-fluid leads">
+          <div className="leadContents">
+            <div className="options">
+              <h4 className="title">New Conversation</h4>
+              <p>
+                You do not have access to conversations. Ask a space admin to
+                add you to one of the Data Admin, Program Managers, Coach or
+                Kiosk roles.
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     const studentOptions = this.getStudentOptions();
     const canSend =
       this.state.memberOption !== null &&

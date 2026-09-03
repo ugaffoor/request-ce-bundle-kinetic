@@ -13,7 +13,7 @@ import {
 } from 'firebase/firestore';
 import { types, actions } from '../modules/conversations';
 import { getConversationStore } from '../../lib/firebase';
-import { getSignedInUid } from '../../lib/firebaseAuth';
+import { describeAuthState } from '../../lib/firebaseAuth';
 import {
   conversationId,
   CONVERSATIONS_COLLECTION,
@@ -33,6 +33,10 @@ import {
 export const conversationsQuery = (store, participantId) => {
   const conversations = collection(store, CONVERSATIONS_COLLECTION);
 
+  // Matches useConversations() in the mobile app exactly, including the
+  // orderBy: that is the shape firestore.indexes.json declares an index for
+  // (participantIds CONTAINS + updatedAt DESC), and the shape these rules
+  // were written against.
   return participantId
     ? query(
         conversations,
@@ -41,6 +45,7 @@ export const conversationsQuery = (store, participantId) => {
           'array-contains',
           participantId,
         ),
+        orderBy(CONVERSATION_FIELDS.updatedAt, 'desc'),
       )
     : query(conversations);
 };
@@ -105,11 +110,14 @@ export function* watchConversationSnapshots({ payload } = {}) {
   try {
     while (true) {
       const event = yield take(channel);
-      yield put(
-        event.error
-          ? actions.setConversationsError(event.error.message)
-          : actions.setConversations(event.data),
-      );
+      if (event.error) {
+        const detail = yield call(describeAuthState);
+        yield put(
+          actions.setConversationsError(`${event.error.message} (${detail})`),
+        );
+      } else {
+        yield put(actions.setConversations(event.data));
+      }
     }
   } finally {
     if (yield cancelled()) {
@@ -177,7 +185,8 @@ export function* sendMessage({ payload } = {}) {
     // same deterministic 1:1 id, so a derived write can land in a broadcast
     // thread rather than the conversation on screen.
     conversationId: existingConversationId,
-  } = payload || {};
+  } =
+    payload || {};
 
   if (!store || !text || (!existingConversationId && (!memberId || !staffId))) {
     yield put(
@@ -226,14 +235,11 @@ export function* sendMessage({ payload } = {}) {
 
     yield put(actions.messageSent(Date.now()));
   } catch (e) {
-    // permission-denied is returned both when the rules refuse the write and
-    // when there is no Firebase session at all. Say which, so this points at
-    // the actual problem instead of sending everyone to the rules.
-    const uid = getSignedInUid();
-    const detail = uid
-      ? `signed in to Firebase as ${uid}`
-      : 'not signed in to Firebase - sign out of GB Members and sign in ' +
-        'again to reconnect';
+    // permission-denied covers three different situations that look
+    // identical: no session, a session whose token has lost the staff claim,
+    // and a genuine rules rejection. Name which one, or this points everyone
+    // at the rules regardless of cause.
+    const detail = yield call(describeAuthState);
     yield put(actions.setSendError(`${e.message || String(e)} (${detail})`));
   }
 }

@@ -265,6 +265,7 @@ export const CONVERSATION_FIELDS = {
   participantIds: 'participantIds',
   participantsMeta: 'participantsMeta',
   lastMessage: 'lastMessage',
+  updatedAt: 'updatedAt',
   isGroup: 'isGroup',
   hasJunior: 'hasJunior',
   monitorable: 'monitorable',
@@ -322,9 +323,11 @@ export const normaliseConversation = (id, data, viewerId) => {
           createdAt: toDate(lastMessage[MESSAGE_FIELDS.createdAt]),
         }
       : null,
-    updatedAt: lastMessage
-      ? toDate(lastMessage[MESSAGE_FIELDS.createdAt])
-      : null,
+    // The document carries its own updatedAt (what the app orders by);
+    // fall back to the last message time for threads written before it.
+    updatedAt:
+      toDate(data[CONVERSATION_FIELDS.updatedAt]) ||
+      (lastMessage ? toDate(lastMessage[MESSAGE_FIELDS.createdAt]) : null),
   };
 };
 
