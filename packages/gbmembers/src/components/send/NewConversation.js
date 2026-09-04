@@ -7,8 +7,11 @@ import ReactSpinner from 'react16-spinjs';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as memberActions } from '../../redux/modules/members';
 import { actions as conversationActions } from '../../redux/modules/conversations';
-import { staffParticipantId } from '../../lib/conversationSchema';
-import { ensureFirebaseSignIn } from '../../lib/firebaseAuth';
+import {
+  ensureFirebaseSignIn,
+  getSignedInUid,
+  identityKey,
+} from '../../lib/firebaseAuth';
 import { removeExcludedMembers, matchesMemberFilter } from '../../utils/utils';
 import { canUseConversations } from '../../lib/conversationAccess';
 import { initialiseFirebase, getFirebaseConfig } from '../../lib/firebase';
@@ -185,11 +188,11 @@ export class NewConversation extends Component {
    * which is why Send stays disabled until then.
    */
   senderId() {
-    const { spaceSlug, profile } = this.props;
-    const username = profile && profile.username;
-    return spaceSlug && username
-      ? staffParticipantId(spaceSlug, username)
-      : null;
+    // The uid Firebase signed us in as. NOT derived from space + username:
+    // mintFirebaseToken keys staff WITH a member record to their member GUID
+    // and only staff without one to staff_{space}_{user}, and the rules
+    // require senderId == request.auth.uid either way.
+    return getSignedInUid();
   }
 
   handleSend = () => {
@@ -258,8 +261,7 @@ export class NewConversation extends Component {
               <h4 className="title">New Conversation</h4>
               <p>
                 You do not have access to conversations. Ask a space admin to
-                add you to one of the Data Admin, Program Managers, Coach or
-                Kiosk roles.
+                add you to the Program Managers or Kiosk role.
               </p>
             </div>
           </div>
@@ -371,8 +373,9 @@ export const NewConversationContainer = compose(
       // sign-in out of the way while the composer is being filled in rather
       // than discovering it is missing on the first Send.
       const app = initialiseFirebase(this.props.space);
+      const username = this.props.profile && this.props.profile.username;
       if (app) {
-        ensureFirebaseSignIn(app);
+        ensureFirebaseSignIn(app, identityKey(this.props.spaceSlug, username));
       }
     },
   }),

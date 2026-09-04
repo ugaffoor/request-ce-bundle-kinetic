@@ -2,8 +2,8 @@
  * Who may use the conversations feature in GB Members.
  *
  * Team names are the ones this codebase already uses elsewhere -- note
- * `Role::Program Managers` is plural and `Role::Coach` is singular, matching
- * the Kinetic teams rather than how they are said out loud.
+ * `Role::Program Managers` is plural, matching the Kinetic team rather than
+ * how it is said out loud.
  *
  * This gates the PORTAL UI only. Firestore decides separately what a person
  * may actually read or write: the mobile app's mintToken function computes
@@ -12,25 +12,18 @@
  * should stay a subset of what counts as staff there -- widening it here
  * would show the feature to someone whose every query is then refused.
  */
-export const CONVERSATION_ROLES = [
-  'Role::Data Admin',
-  'Role::Program Managers',
-  'Role::Coach',
-  'Role::Kiosk',
-];
+export const CONVERSATION_ROLES = ['Role::Program Managers', 'Role::Kiosk'];
 
 /**
- * Space admins are included regardless of team membership, matching
- * computeIsStaff() in the app, which short-circuits on spaceAdmin before
- * looking at memberships at all.
+ * Team membership only. Being a space admin does NOT grant access on its own
+ * -- an admin who needs conversations has to be in one of the teams above,
+ * same as anyone else. That is deliberately stricter than computeIsStaff() in
+ * the mobile app, which short-circuits on spaceAdmin: Firestore will still
+ * treat an admin as staff, this list just decides who is shown the feature.
  */
 export const canUseConversations = profile => {
   if (!profile) {
     return false;
-  }
-
-  if (profile.spaceAdmin === true) {
-    return true;
   }
 
   const memberships = profile.memberships || [];

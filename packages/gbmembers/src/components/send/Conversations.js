@@ -8,7 +8,11 @@ import { actions as conversationActions } from '../../redux/modules/conversation
 import { actions as memberActions } from '../../redux/modules/members';
 import { canUseConversations } from '../../lib/conversationAccess';
 import { initialiseFirebase } from '../../lib/firebase';
-import { ensureFirebaseSignIn } from '../../lib/firebaseAuth';
+import {
+  ensureFirebaseSignIn,
+  getSignedInUid,
+  identityKey,
+} from '../../lib/firebaseAuth';
 import { runConversationDiagnostics } from '../../lib/firestoreDiagnostics';
 import {
   staffParticipantId,
@@ -151,7 +155,9 @@ export class Conversations extends Component {
       // The student side of this thread -- normaliseConversation resolved it
       // by excluding the signed-in staff member.
       memberId: conversation.otherParticipantId,
-      staffId: staffParticipantId(this.props.spaceSlug, username),
+      // firestore.rules requires senderId == request.auth.uid, so this must
+      // be the signed-in uid rather than a derived staff id.
+      staffId: getSignedInUid(),
       spaceSlug: this.props.spaceSlug,
       text,
     });
@@ -442,8 +448,7 @@ export class Conversations extends Component {
             <h4 className="title">Conversations</h4>
             <p>
               You do not have access to conversations. Ask a space admin to add
-              you to one of the Data Admin, Program Managers, Coach or Kiosk
-              roles.
+              you to the Program Managers or Kiosk role.
             </p>
           </div>
         </div>
@@ -514,7 +519,7 @@ export const ConversationsContainer = compose(
       // attach once the Firebase sign-in started at login has completed.
       // Subscribing before that just earns a permission-denied, which reads
       // as an empty inbox rather than as the auth problem it is.
-      ensureFirebaseSignIn(app)
+      ensureFirebaseSignIn(app, identityKey(this.props.spaceSlug, username))
         .then(uid => {
           if (!uid) {
             this.props.setConversationsError(
@@ -523,9 +528,14 @@ export const ConversationsContainer = compose(
             return;
           }
 
-          this.props.subscribeConversations({
-            participantId: staffParticipantId(this.props.spaceSlug, username),
-          });
+          // Query on the uid Firebase actually signed us in as, NOT a
+          // derived staff_{space}_{user} string. mintFirebaseToken keys staff
+          // WITH a member record to their member GUID, and only staff without
+          // one to the staff_ composite -- so deriving it is wrong for anyone
+          // who has a member record. The rules compare against
+          // request.auth.uid, so filtering on anything else returns documents
+          // the rule then refuses, surfacing as permission-denied.
+          this.props.subscribeConversations({ participantId: uid });
         })
         .catch(e => {
           this.props.setConversationsError(

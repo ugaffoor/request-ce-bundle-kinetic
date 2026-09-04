@@ -2,6 +2,7 @@ import {
   getAuth,
   onAuthStateChanged,
   signInWithCustomToken,
+  signOut,
 } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { getFirebaseApp, getConversationStore } from './firebase';
@@ -45,6 +46,32 @@ let stashedCredentials = null;
 // in with. The app can't be built any earlier: its config lives on the space,
 // which only loads after authentication.
 let pendingToken = null;
+
+// Which Kinetic login the current Firebase session belongs to. Persisted
+// because the Firebase session itself is persisted: without this, a session
+// minted for one user is silently reused by the next person to sign into the
+// portal on this browser, and they would read that person's conversations.
+const MINTED_FOR_KEY = 'gbmembers.firebase.mintedFor';
+
+const rememberMintedFor = identity => {
+  try {
+    window.localStorage.setItem(MINTED_FOR_KEY, identity);
+  } catch (e) {
+    // Storage unavailable: the session is then treated as unattributable
+    // below, which errs towards signing out rather than sharing a session.
+  }
+};
+
+const recallMintedFor = () => {
+  try {
+    return window.localStorage.getItem(MINTED_FOR_KEY);
+  } catch (e) {
+    return null;
+  }
+};
+
+export const identityKey = (spaceSlug, userName) =>
+  `${spaceSlug || ''}:${userName || ''}`;
 
 const slugFromHost = host => {
   const [first] = String(host || '').split('.');
@@ -114,6 +141,7 @@ export const requestFirebaseToken = async ({ userName, password }) => {
     }
 
     pendingToken = token;
+    rememberMintedFor(identityKey(spaceSlug, userName));
     return memberGuid || null;
   } catch (e) {
     // Also the path taken when the browser blocks the request at the CORS
@@ -262,28 +290,60 @@ const waitForInitialAuth = auth =>
  * null when chat isn't available this session). Safe to call repeatedly: an
  * existing session is reused, and the pending token is spent at most once.
  */
-export const ensureFirebaseSignIn = async app => {
+export const ensureFirebaseSignIn = async (app, expectedIdentity) => {
   if (!app) {
     return null;
   }
 
   const auth = getAuth(app);
   const existing = await waitForInitialAuth(auth);
+  const token = pendingToken;
+  pendingToken = null;
+
+  // A freshly minted token always wins over a persisted session. Firebase
+  // sessions outlive the Kinetic one, so signing into the portal as a
+  // different person would otherwise keep the PREVIOUS user's Firebase
+  // identity -- and every query would then filter on one uid while
+  // request.auth.uid was another, which the rules reject as
+  // permission-denied with no hint that the identities disagree.
+  if (token) {
+    if (existing) {
+      try {
+        await signOut(auth);
+      } catch (e) {
+        console.warn('[firebase] could not clear the previous session', e);
+      }
+    }
+    try {
+      const credential = await signInWithCustomToken(auth, token);
+      return credential.user.uid;
+    } catch (e) {
+      console.warn('[firebase] custom token sign-in failed', e);
+      return null;
+    }
+  }
+
   if (existing) {
+    // A persisted session must belong to the person currently signed into the
+    // portal. Firebase sessions outlive Kinetic ones, so on a shared browser
+    // the previous user's session is still sitting here -- and because every
+    // query keys off request.auth.uid, reusing it would show this user the
+    // PREVIOUS user's conversations. Refuse it rather than risk that.
+    const mintedFor = recallMintedFor();
+    if (expectedIdentity && mintedFor !== expectedIdentity) {
+      console.warn(
+        `[firebase] session belongs to "${mintedFor}" but the portal is ` +
+          `signed in as "${expectedIdentity}" - signing out`,
+      );
+      try {
+        await signOut(auth);
+      } catch (e) {
+        console.warn('[firebase] could not clear the mismatched session', e);
+      }
+      return null;
+    }
     return existing.uid;
   }
 
-  const token = pendingToken;
-  pendingToken = null;
-  if (!token) {
-    return null;
-  }
-
-  try {
-    const credential = await signInWithCustomToken(auth, token);
-    return credential.user.uid;
-  } catch (e) {
-    console.warn('[firebase] custom token sign-in failed', e);
-    return null;
-  }
+  return null;
 };

@@ -6,9 +6,11 @@ import ReactSpinner from 'react16-spinjs';
 import { KappNavLink as NavLink } from 'common';
 import { actions as conversationActions } from '../../redux/modules/conversations';
 import { initialiseFirebase } from '../../lib/firebase';
-import { ensureFirebaseSignIn } from '../../lib/firebaseAuth';
 import {
-  staffParticipantId,
+  ensureFirebaseSignIn,
+  identityKey,
+} from '../../lib/firebaseAuth';
+import {
   indexMembersById,
   groupConversationsByParticipant,
   matchesConversationKind,
@@ -245,7 +247,7 @@ export const ConversationsListContainer = compose(
 
       // Firestore gates every read on request.auth, so the listener can only
       // attach once the Firebase sign-in started at login has completed.
-      ensureFirebaseSignIn(app)
+      ensureFirebaseSignIn(app, identityKey(this.props.spaceSlug, username))
         .then(uid => {
           if (!uid) {
             this.props.setConversationsError(
@@ -254,9 +256,14 @@ export const ConversationsListContainer = compose(
             return;
           }
 
-          this.props.subscribeConversations({
-            participantId: staffParticipantId(this.props.spaceSlug, username),
-          });
+          // Query on the uid Firebase actually signed us in as, NOT a
+          // derived staff_{space}_{user} string. mintFirebaseToken keys staff
+          // WITH a member record to their member GUID, and only staff without
+          // one to the staff_ composite -- so deriving it is wrong for anyone
+          // who has a member record. The rules compare against
+          // request.auth.uid, so filtering on anything else returns documents
+          // the rule then refuses, surfacing as permission-denied.
+          this.props.subscribeConversations({ participantId: uid });
         })
         .catch(e => {
           this.props.setConversationsError(
