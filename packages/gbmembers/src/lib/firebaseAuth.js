@@ -35,7 +35,7 @@ export const FUNCTIONS_BASE_URL = `https://${FUNCTIONS_REGION}-${FIREBASE_PROJEC
 
 // The only host mintFirebaseToken will verify credentials against (its own
 // ALLOWED_DOMAINS allowlist); sending anything else earns a 400.
-const FRANCHISE_DOMAIN = 'gbmembers.net';
+export const FRANCHISE_DOMAIN = 'gbmembers.net';
 
 // The credentials of a login in progress. Read exactly once, by
 // exchangeStashedCredentials, and cleared on read -- the password never

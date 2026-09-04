@@ -11,7 +11,9 @@ import {
   ensureFirebaseSignIn,
   getSignedInUid,
   identityKey,
+  FRANCHISE_DOMAIN,
 } from '../../lib/firebaseAuth';
+import { SEND_KINDS } from '../../lib/conversationSchema';
 import { removeExcludedMembers, matchesMemberFilter } from '../../utils/utils';
 import { canUseConversations } from '../../lib/conversationAccess';
 import { initialiseFirebase, getFirebaseConfig } from '../../lib/firebase';
@@ -70,7 +72,9 @@ export class NewConversation extends Component {
     super(props);
     this.state = {
       listOption: null,
-      memberOption: null,
+      memberOptions: [],
+      kind: SEND_KINDS.CONVERSATION,
+      groupName: '',
       message: '',
     };
   }
@@ -170,16 +174,16 @@ export class NewConversation extends Component {
   }
 
   handleListChange = listOption => {
-    // Clear the selected student if they fall outside the new list.
-    this.setState(state => {
-      const stillValid =
-        state.memberOption &&
-        (!listOption || listOption.ids.includes(state.memberOption.value));
-      return {
-        listOption,
-        memberOption: stillValid ? state.memberOption : null,
-      };
-    });
+    // Drop any selected student who falls outside the new list, rather than
+    // leaving a selection on screen that contradicts the filter.
+    this.setState(state => ({
+      listOption,
+      memberOptions: listOption
+        ? state.memberOptions.filter(option =>
+            listOption.ids.includes(option.value),
+          )
+        : state.memberOptions,
+    }));
   };
 
   /**
@@ -195,14 +199,43 @@ export class NewConversation extends Component {
     return getSignedInUid();
   }
 
+  isAnnouncement() {
+    return this.state.kind === SEND_KINDS.ANNOUNCEMENT;
+  }
+
+  isGroup() {
+    return this.state.kind === SEND_KINDS.GROUP;
+  }
+
   handleSend = () => {
     const senderId = this.senderId();
-    if (!senderId || !this.state.memberOption) {
+    if (!senderId) {
+      return;
+    }
+
+    // An announcement goes to the school's own thread, so it takes no
+    // recipients at all -- picking students for one would be misleading.
+    if (this.isAnnouncement()) {
+      this.props.sendMessage({
+        kind: SEND_KINDS.ANNOUNCEMENT,
+        staffId: senderId,
+        spaceSlug: this.props.spaceSlug,
+        domain: FRANCHISE_DOMAIN,
+        text: this.state.message.trim(),
+      });
+      return;
+    }
+
+    if (this.state.memberOptions.length < 1) {
       return;
     }
 
     this.props.sendMessage({
-      memberId: this.state.memberOption.value,
+      // Each recipient gets their own 1:1 thread, so no one sees who else
+      // was messaged. A broadcast additionally marks each thread one-way.
+      kind: this.state.kind,
+      groupName: this.state.groupName,
+      memberIds: this.state.memberOptions.map(option => option.value),
       staffId: senderId,
       spaceSlug: this.props.spaceSlug,
       text: this.state.message.trim(),
@@ -271,7 +304,9 @@ export class NewConversation extends Component {
 
     const studentOptions = this.getStudentOptions();
     const canSend =
-      this.state.memberOption !== null &&
+      (this.isAnnouncement() || this.state.memberOptions.length > 0) &&
+      // A group without a name shows as a blank row in everyone's list.
+      (!this.isGroup() || this.state.groupName.trim() !== '') &&
       this.state.message.trim() !== '' &&
       !this.props.sending &&
       !!this.senderId();
@@ -294,32 +329,87 @@ export class NewConversation extends Component {
             ) : (
               <div>
                 <div className="form-group">
-                  <label htmlFor="conversation-list">
-                    Filter by list <small>(optional)</small>
-                  </label>
-                  <Select
-                    inputId="conversation-list"
-                    value={this.state.listOption}
-                    onChange={this.handleListChange}
-                    options={this.getListOptions()}
-                    placeholder="All members"
-                    isClearable={true}
-                  />
+                  <label htmlFor="conversation-kind">Send as</label>
+                  <select
+                    id="conversation-kind"
+                    className="form-control"
+                    value={this.state.kind}
+                    onChange={e => this.setState({ kind: e.target.value })}
+                  >
+                    <option value={SEND_KINDS.CONVERSATION}>
+                      Conversation &mdash; each student can reply
+                    </option>
+                    <option value={SEND_KINDS.GROUP}>
+                      Group &mdash; one shared thread, everyone sees everyone
+                    </option>
+                    <option value={SEND_KINDS.BROADCAST}>
+                      Broadcast &mdash; one-way, students cannot reply
+                    </option>
+                    <option value={SEND_KINDS.ANNOUNCEMENT}>
+                      Announcement &mdash; posted to the whole school
+                    </option>
+                  </select>
+                  {this.isAnnouncement() && (
+                    <small className="text-muted">
+                      Goes to every member of {this.props.spaceSlug}, so there
+                      is no one to pick.
+                    </small>
+                  )}
                 </div>
-                <div className="form-group">
-                  <label htmlFor="conversation-student">
-                    Student <small>({studentOptions.length} available)</small>
-                  </label>
-                  <Select
-                    inputId="conversation-student"
-                    value={this.state.memberOption}
-                    onChange={memberOption => this.setState({ memberOption })}
-                    options={studentOptions}
-                    placeholder="Search for a student by name"
-                    isClearable={true}
-                    noOptionsMessage={() => 'No matching students'}
-                  />
-                </div>
+                {!this.isAnnouncement() && (
+                  <React.Fragment>
+                    <div className="form-group">
+                      <label htmlFor="conversation-list">
+                        Filter by list <small>(optional)</small>
+                      </label>
+                      <Select
+                        inputId="conversation-list"
+                        value={this.state.listOption}
+                        onChange={this.handleListChange}
+                        options={this.getListOptions()}
+                        placeholder="All members"
+                        isClearable={true}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="conversation-student">
+                        Students{' '}
+                        <small>
+                          ({this.state.memberOptions.length} selected of{' '}
+                          {studentOptions.length} available)
+                        </small>
+                      </label>
+                      <Select
+                        inputId="conversation-student"
+                        value={this.state.memberOptions}
+                        onChange={memberOptions =>
+                          this.setState({ memberOptions: memberOptions || [] })
+                        }
+                        options={studentOptions}
+                        placeholder="Search for students by name"
+                        isMulti={true}
+                        isClearable={true}
+                        closeMenuOnSelect={false}
+                        noOptionsMessage={() => 'No matching students'}
+                      />
+                    </div>
+                  </React.Fragment>
+                )}
+                {this.isGroup() && (
+                  <div className="form-group">
+                    <label htmlFor="conversation-group-name">Group name</label>
+                    <input
+                      id="conversation-group-name"
+                      type="text"
+                      className="form-control"
+                      value={this.state.groupName}
+                      onChange={e =>
+                        this.setState({ groupName: e.target.value })
+                      }
+                      placeholder="e.g. Monday Advanced"
+                    />
+                  </div>
+                )}
                 <div className="form-group">
                   <label htmlFor="conversation-message">Message</label>
                   <textarea

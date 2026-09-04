@@ -67,6 +67,34 @@ export const conversationId = (memberId, staffId) =>
  */
 export const ANNOUNCEMENT_ID_PREFIX = 'announcements_';
 
+/**
+ * The school's single announcement thread. Must match announcementThreadId()
+ * in the app and announcementIdFor() in firestore.rules, which builds it as
+ * 'announcements_' + domain.lower() + '_' + slug.lower() -- the rules pin the
+ * document id to exactly this, so a mismatch is rejected outright.
+ */
+export const announcementThreadId = (spaceSlug, domain) =>
+  ANNOUNCEMENT_ID_PREFIX +
+  String(domain || '')
+    .trim()
+    .toLowerCase() +
+  '_' +
+  String(spaceSlug || '')
+    .trim()
+    .toLowerCase();
+
+/** What the thread is called, e.g. "usbeta Announcements". */
+export const announcementThreadName = spaceSlug =>
+  `${String(spaceSlug || '').trim()} Announcements`;
+
+/** The three things this page can send. */
+export const SEND_KINDS = {
+  CONVERSATION: 'conversation',
+  GROUP: 'group',
+  BROADCAST: 'broadcast',
+  ANNOUNCEMENT: 'announcement',
+};
+
 export const isAnnouncementParticipant = participantId =>
   typeof participantId === 'string' &&
   participantId.startsWith(ANNOUNCEMENT_ID_PREFIX);

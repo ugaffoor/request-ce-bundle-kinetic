@@ -15,7 +15,10 @@ import { types, actions } from '../modules/conversations';
 import { getConversationStore } from '../../lib/firebase';
 import { describeAuthState } from '../../lib/firebaseAuth';
 import {
+  announcementThreadId,
+  announcementThreadName,
   conversationId,
+  SEND_KINDS,
   CONVERSATIONS_COLLECTION,
   CONVERSATION_FIELDS,
   MESSAGES_SUBCOLLECTION,
@@ -173,13 +176,155 @@ export function* watchMessageSnapshots({ payload } = {}) {
  * written here: onChatMessageCreated owns them through the Admin SDK, and the
  * rules explicitly forbid a client asserting monitorable.
  */
+/**
+ * Writes one message into one conversation. Shared by the single and
+ * multi-recipient paths.
+ */
+function* deliverTo({
+  store,
+  memberId,
+  staffId,
+  spaceSlug,
+  text,
+  existingConversationId,
+  broadcast,
+}) {
+  const id = existingConversationId || conversationId(memberId, staffId);
+
+  // Only when starting a thread. Replying into an existing one must not
+  // touch the conversation document: merging staffChat/participantIds onto
+  // a thread the app created (a broadcast, say) would quietly rewrite what
+  // that thread is.
+  if (!existingConversationId) {
+    // Firestore rejects undefined field values, so only send what we have.
+    const conversation = {
+      [CONVERSATION_FIELDS.participantIds]: [memberId, staffId],
+      staffChat: true,
+    };
+    if (spaceSlug) {
+      conversation.spaceSlug = spaceSlug;
+    }
+    if (broadcast) {
+      // One-way: the recipient sees it in Notifications, not Messages, and
+      // broadcastWritable() in firestore.rules stops them replying. Named
+      // staffBroadcast because `broadcast` on a MESSAGE means something else
+      // entirely -- a fanned-out announcement delivery.
+      conversation.staffBroadcast = true;
+      conversation.broadcastSender = staffId;
+    }
+
+    yield call(setDoc, doc(store, CONVERSATIONS_COLLECTION, id), conversation, {
+      merge: true,
+    });
+  }
+
+  yield call(
+    addDoc,
+    collection(store, CONVERSATIONS_COLLECTION, id, MESSAGES_SUBCOLLECTION),
+    {
+      [MESSAGE_FIELDS.body]: text,
+      [MESSAGE_FIELDS.senderId]: staffId,
+      // Server time, so ordering does not depend on the sender's clock.
+      [MESSAGE_FIELDS.createdAt]: serverTimestamp(),
+    },
+  );
+}
+
+/**
+ * Posts to the school's single announcement thread.
+ *
+ * Unlike a chat this has NO participantIds -- firestore.rules decides who may
+ * read it from spaceSlug instead, which is what lets one thread serve a gym of
+ * any size. The rules pin the document id, require announcement: true, and
+ * reject the write outright if participantIds is present, so all three have to
+ * be exactly right.
+ */
+function* deliverAnnouncement({ store, staffId, spaceSlug, domain, text }) {
+  const id = announcementThreadId(spaceSlug, domain);
+
+  yield call(
+    setDoc,
+    doc(store, CONVERSATIONS_COLLECTION, id),
+    {
+      announcement: true,
+      spaceSlug,
+      domain,
+      name: announcementThreadName(spaceSlug),
+      monitorable: false,
+    },
+    { merge: true },
+  );
+
+  yield call(
+    addDoc,
+    collection(store, CONVERSATIONS_COLLECTION, id, MESSAGES_SUBCOLLECTION),
+    {
+      [MESSAGE_FIELDS.body]: text,
+      [MESSAGE_FIELDS.senderId]: staffId,
+      [MESSAGE_FIELDS.createdAt]: serverTimestamp(),
+    },
+  );
+}
+
+/**
+ * Creates a group chat and posts the first message into it.
+ *
+ * The id is auto-generated rather than derived: the sorted-pair scheme only
+ * makes sense for a fixed two, and two groups can legitimately have the same
+ * members. The creator must be among participantIds -- firestore.rules
+ * requires it, and mayMessageIn() then passes on isGroup rather than needing
+ * the friends-only waiver.
+ */
+function* deliverGroup({ store, staffId, memberIds, spaceSlug, name, text }) {
+  const participantIds = [staffId].concat(
+    memberIds.filter(id => id !== staffId),
+  );
+
+  const conversation = {
+    [CONVERSATION_FIELDS.participantIds]: participantIds,
+    name: (name || '').trim(),
+    isGroup: true,
+    createdBy: staffId,
+    [CONVERSATION_FIELDS.updatedAt]: serverTimestamp(),
+  };
+  if (spaceSlug) {
+    conversation.spaceSlug = spaceSlug;
+  }
+
+  const created = yield call(
+    addDoc,
+    collection(store, CONVERSATIONS_COLLECTION),
+    conversation,
+  );
+
+  yield call(
+    addDoc,
+    collection(
+      store,
+      CONVERSATIONS_COLLECTION,
+      created.id,
+      MESSAGES_SUBCOLLECTION,
+    ),
+    {
+      [MESSAGE_FIELDS.body]: text,
+      [MESSAGE_FIELDS.senderId]: staffId,
+      [MESSAGE_FIELDS.createdAt]: serverTimestamp(),
+    },
+  );
+}
+
 export function* sendMessage({ payload } = {}) {
   const store = getConversationStore();
   const {
     memberId,
+    memberIds,
     staffId,
     spaceSlug,
     text,
+    // 'conversation' (default), 'broadcast', or 'announcement'.
+    kind,
+    domain,
+    groupName,
     // Set when replying into a thread that is already open. Deriving an id
     // instead would be wrong: a member who has been broadcast to shares the
     // same deterministic 1:1 id, so a derived write can land in a broadcast
@@ -188,7 +333,23 @@ export function* sendMessage({ payload } = {}) {
   } =
     payload || {};
 
-  if (!store || !text || (!existingConversationId && (!memberId || !staffId))) {
+  // One recipient, several, or a reply into an open thread.
+  const recipients = (memberIds && memberIds.length
+    ? memberIds
+    : [memberId]
+  ).filter(Boolean);
+
+  const isAnnouncement = kind === SEND_KINDS.ANNOUNCEMENT;
+
+  if (
+    !store ||
+    !text ||
+    !staffId ||
+    // An announcement is addressed to the whole school, so it needs no
+    // recipients -- but it does need to know which school.
+    (isAnnouncement && (!spaceSlug || !domain)) ||
+    (!isAnnouncement && !existingConversationId && recipients.length < 1)
+  ) {
     yield put(
       actions.setSendError('Cannot send: the conversation is not ready.'),
     );
@@ -198,40 +359,72 @@ export function* sendMessage({ payload } = {}) {
   yield put(actions.setSending(true));
 
   try {
-    const id = existingConversationId || conversationId(memberId, staffId);
-
-    // Only when starting a thread. Replying into an existing one must not
-    // touch the conversation document: merging staffChat/participantIds onto
-    // a thread the app created (a broadcast, say) would quietly rewrite what
-    // that thread is.
-    if (!existingConversationId) {
-      // Firestore rejects undefined field values, so only send what we have.
-      const conversation = {
-        [CONVERSATION_FIELDS.participantIds]: [memberId, staffId],
-        staffChat: true,
-      };
-      if (spaceSlug) {
-        conversation.spaceSlug = spaceSlug;
-      }
-
-      yield call(
-        setDoc,
-        doc(store, CONVERSATIONS_COLLECTION, id),
-        conversation,
-        { merge: true },
-      );
+    if (kind === SEND_KINDS.ANNOUNCEMENT) {
+      yield call(deliverAnnouncement, {
+        store,
+        staffId,
+        spaceSlug,
+        domain,
+        text,
+      });
+      yield put(actions.messageSent(Date.now()));
+      return;
     }
 
-    yield call(
-      addDoc,
-      collection(store, CONVERSATIONS_COLLECTION, id, MESSAGES_SUBCOLLECTION),
-      {
-        [MESSAGE_FIELDS.body]: text,
-        [MESSAGE_FIELDS.senderId]: staffId,
-        // Server time, so ordering does not depend on the sender's clock.
-        [MESSAGE_FIELDS.createdAt]: serverTimestamp(),
-      },
-    );
+    if (kind === SEND_KINDS.GROUP) {
+      yield call(deliverGroup, {
+        store,
+        staffId,
+        memberIds: recipients,
+        spaceSlug,
+        name: groupName,
+        text,
+      });
+      yield put(actions.messageSent(Date.now()));
+      return;
+    }
+
+    if (existingConversationId) {
+      yield call(deliverTo, {
+        store,
+        staffId,
+        spaceSlug,
+        text,
+        existingConversationId,
+      });
+    } else {
+      // Each recipient gets their own 1:1 thread -- nobody learns who else
+      // received it. Failures are collected rather than abandoning the rest,
+      // so one bad recipient does not silently cancel everyone after them.
+      const failures = [];
+      for (let i = 0; i < recipients.length; i++) {
+        try {
+          yield call(deliverTo, {
+            store,
+            memberId: recipients[i],
+            staffId,
+            spaceSlug,
+            text,
+            broadcast: kind === SEND_KINDS.BROADCAST,
+          });
+        } catch (e) {
+          failures.push(`${recipients[i]}: ${e.message || String(e)}`);
+        }
+      }
+
+      if (failures.length) {
+        const detail = yield call(describeAuthState);
+        yield put(
+          actions.setSendError(
+            `Sent to ${recipients.length - failures.length} of ` +
+              `${recipients.length}. Failed: ${failures.join(
+                '; ',
+              )} (${detail})`,
+          ),
+        );
+        return;
+      }
+    }
 
     yield put(actions.messageSent(Date.now()));
   } catch (e) {
