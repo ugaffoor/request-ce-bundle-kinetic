@@ -55,6 +55,26 @@ export const conversationId = (memberId, staffId) =>
   [memberId, staffId].sort().join('_');
 
 /**
+ * Broadcast threads get their own id namespace, deliberately separate from
+ * the 1:1 pair id above.
+ *
+ * They used to share it, which was a data-corrupting bug: broadcasting to
+ * someone you already had a conversation with resolved to the SAME document,
+ * and merging staffBroadcast onto it rewrote that existing chat into a
+ * broadcast -- retitling their history and hiding the reply box.
+ *
+ * Still derived from the pair rather than auto-generated, so broadcasting to
+ * the same member twice appends to one broadcast thread instead of leaving a
+ * new document behind every time. The member id is sorted with the staff id
+ * for the same reason conversationId() sorts: one pair, one id, whichever way
+ * round the caller passes them.
+ */
+export const BROADCAST_ID_PREFIX = 'broadcast_';
+
+export const broadcastConversationId = (memberId, staffId) =>
+  BROADCAST_ID_PREFIX + [memberId, staffId].sort().join('_');
+
+/**
  * Announcement threads. When a student replies to a broadcast announcement
  * the reply lands in a conversation whose id and participant carry an
  * `announcements_` prefix, e.g.
@@ -122,10 +142,14 @@ export const isAnnouncementConversation = (id, participantIds, data) =>
  * They are separate features and behave differently, so they are detected
  * separately here.
  *
- * A BROADCAST is a one-way 1:1 thread created by sendBroadcast(): the same
- * text sent to several members, each in their own conversation, so no
- * recipient learns who else received it. The conversation carries
- * `staffBroadcast: true` and `broadcastSender`.
+ * A BROADCAST is the same text sent to several members, each in their own
+ * conversation, so no recipient learns who else received it. The conversation
+ * carries `staffBroadcast: true` and `broadcastSender`, and lives under the
+ * broadcast_ id prefix.
+ *
+ * NOTE: this is a PORTAL-ONLY feature. The BJJ Members app has no broadcast
+ * concept -- nothing in it reads or writes staffBroadcast -- so to a member on
+ * a phone a broadcast is simply an ordinary conversation from a staff member.
  *
  * CAREFUL: the app also has a `broadcast` field on MESSAGE documents, which
  * means something else entirely -- "a fanned-out announcement delivery". The
@@ -136,9 +160,13 @@ export const isAnnouncementConversation = (id, participantIds, data) =>
 export const isBroadcastConversation = data => !!(data && data.staffBroadcast);
 
 /**
- * Only the sender may write into a broadcast thread -- firestore.rules
- * enforces it via broadcastWritable(), which permits a write when
- * `broadcastSender == request.auth.uid` and rejects everyone else.
+ * Who sent a broadcast, so the portal can hide its own reply box on a thread
+ * it treats as one-way.
+ *
+ * CAREFUL: nothing enforces that one-wayness. firestore.rules contains no
+ * broadcast handling at all, so a recipient CAN reply and their reply will be
+ * accepted -- the portal simply does not offer them the box. Treat "one-way"
+ * as a UI convention, not a guarantee, until a rule backs it.
  */
 export const broadcastSenderOf = data => (data && data.broadcastSender) || null;
 

@@ -18,6 +18,7 @@ import {
   announcementThreadId,
   announcementThreadName,
   conversationId,
+  broadcastConversationId,
   SEND_KINDS,
   CONVERSATIONS_COLLECTION,
   CONVERSATION_FIELDS,
@@ -189,7 +190,14 @@ function* deliverTo({
   existingConversationId,
   broadcast,
 }) {
-  const id = existingConversationId || conversationId(memberId, staffId);
+  // A broadcast MUST NOT resolve to the 1:1 pair id: that is the same
+  // document as the member's ordinary conversation, and the merge below would
+  // rewrite their existing chat into a broadcast.
+  const id =
+    existingConversationId ||
+    (broadcast
+      ? broadcastConversationId(memberId, staffId)
+      : conversationId(memberId, staffId));
 
   // Only when starting a thread. Replying into an existing one must not
   // touch the conversation document: merging staffChat/participantIds onto
