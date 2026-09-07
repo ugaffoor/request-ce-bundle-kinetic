@@ -18,6 +18,7 @@ import {
   staffParticipantId,
   indexMembersById,
   participantName,
+  conversationTitle,
   matchesConversationKind,
   CONVERSATION_KINDS,
   CONVERSATION_KIND_LABELS,
@@ -331,12 +332,12 @@ export class Conversations extends Component {
               onKeyPress={() => this.selectConversation(conversation)}
             >
               <div>
-                <strong>
-                  {participantName(
-                    conversation.otherParticipantId,
-                    membersById,
-                  )}
-                </strong>
+                <strong>{conversationTitle(conversation, membersById)}</strong>
+                {conversation.isGroup && (
+                  <span className="badge badge-secondary ml-2">
+                    Group · {(conversation.participantIds || []).length}
+                  </span>
+                )}
                 {conversation.isBroadcast && (
                   <span className="badge badge-warning ml-2">Broadcast</span>
                 )}
@@ -359,20 +360,59 @@ export class Conversations extends Component {
 
   renderKindFilter() {
     return (
-      <div className="form-group">
-        <label htmlFor="conversation-kind">Show</label>
-        <select
-          id="conversation-kind"
-          className="form-control"
-          value={this.state.kind}
-          onChange={e => this.setState({ kind: e.target.value })}
-        >
-          {Object.keys(CONVERSATION_KIND_LABELS).map(kind => (
-            <option key={kind} value={kind}>
+      <ul className="nav nav-tabs mb-2" role="tablist">
+        {Object.keys(CONVERSATION_KIND_LABELS).map(kind => (
+          <li className="nav-item" key={kind}>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={this.state.kind === kind}
+              className={
+                'nav-link btn btn-link' +
+                (this.state.kind === kind ? ' active' : '')
+              }
+              onClick={() => this.setState({ kind })}
+            >
               {CONVERSATION_KIND_LABELS[kind]}
-            </option>
+            </button>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  /**
+   * A group's name and its participants, above the messages, so it is clear
+   * who can see the thread. Nothing for a 1:1 -- the list already names the
+   * one other person.
+   */
+  renderGroupHeader(membersById) {
+    const conversation = this.getSelectedConversation();
+    if (!conversation || !conversation.isGroup) {
+      return null;
+    }
+
+    const participantIds = conversation.participantIds || [];
+
+    return (
+      <div className="mb-3">
+        <h5 className="mb-1">{conversationTitle(conversation, membersById)}</h5>
+        <div className="mb-1">
+          <small className="text-muted">
+            {participantIds.length}{' '}
+            {participantIds.length === 1 ? 'participant' : 'participants'}
+          </small>
+        </div>
+        <ul className="list-inline mb-0">
+          {participantIds.map(participantId => (
+            <li key={participantId} className="list-inline-item">
+              <span className="badge badge-light">
+                {participantName(participantId, membersById)}
+              </span>
+            </li>
           ))}
-        </select>
+        </ul>
+        <hr />
       </div>
     );
   }
@@ -398,7 +438,12 @@ export class Conversations extends Component {
     }
 
     if (messages.size < 1 && this.state.failed.length < 1) {
-      return <p>No messages in this conversation.</p>;
+      return (
+        <React.Fragment>
+          {this.renderGroupHeader(membersById)}
+          <p>No messages in this conversation.</p>
+        </React.Fragment>
+      );
     }
 
     const username = this.props.profile && this.props.profile.username;
@@ -411,32 +456,37 @@ export class Conversations extends Component {
         : 'You';
 
     return (
-      <ul className="list-unstyled">
-        {messages.toArray().map(message => (
-          <li key={message.id} className="mb-3">
-            <div>
-              <strong>{participantName(message.senderId, membersById)}</strong>{' '}
-              <small>{when(message.createdAt)}</small>
-            </div>
-            <div>{message.text}</div>
-          </li>
-        ))}
+      <React.Fragment>
+        {this.renderGroupHeader(membersById)}
+        <ul className="list-unstyled">
+          {messages.toArray().map(message => (
+            <li key={message.id} className="mb-3">
+              <div>
+                <strong>
+                  {participantName(message.senderId, membersById)}
+                </strong>{' '}
+                <small>{when(message.createdAt)}</small>
+              </div>
+              <div>{message.text}</div>
+            </li>
+          ))}
 
-        {/*
-          Sends the server rejected, shown after the delivered messages so the
-          attempt is visible rather than silently lost.
-        */}
-        {this.state.failed.map(failure => (
-          <li key={failure.id} className="mb-3">
-            <div>
-              <strong>{senderName}</strong>{' '}
-              <small>{when(failure.createdAt)}</small>
-            </div>
-            <div className="text-muted">{failure.text}</div>
-            <small className="text-danger">Message failed to send</small>
-          </li>
-        ))}
-      </ul>
+          {/*
+            Sends the server rejected, shown after the delivered messages so
+            the attempt is visible rather than silently lost.
+          */}
+          {this.state.failed.map(failure => (
+            <li key={failure.id} className="mb-3">
+              <div>
+                <strong>{senderName}</strong>{' '}
+                <small>{when(failure.createdAt)}</small>
+              </div>
+              <div className="text-muted">{failure.text}</div>
+              <small className="text-danger">Message failed to send</small>
+            </li>
+          ))}
+        </ul>
+      </React.Fragment>
     );
   }
 

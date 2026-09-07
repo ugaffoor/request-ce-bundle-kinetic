@@ -140,8 +140,7 @@ export const isBroadcastConversation = data => !!(data && data.staffBroadcast);
  * enforces it via broadcastWritable(), which permits a write when
  * `broadcastSender == request.auth.uid` and rejects everyone else.
  */
-export const broadcastSenderOf = data =>
-  (data && data.broadcastSender) || null;
+export const broadcastSenderOf = data => (data && data.broadcastSender) || null;
 
 /**
  * The three kinds of thread the portal can show. Broadcast is tested first
@@ -151,6 +150,7 @@ export const broadcastSenderOf = data =>
 export const CONVERSATION_KINDS = {
   ALL: 'all',
   CONVERSATION: 'conversation',
+  GROUP: 'group',
   ANNOUNCEMENT: 'announcement',
   BROADCAST: 'broadcast',
 };
@@ -158,6 +158,7 @@ export const CONVERSATION_KINDS = {
 export const CONVERSATION_KIND_LABELS = {
   [CONVERSATION_KINDS.ALL]: 'All',
   [CONVERSATION_KINDS.CONVERSATION]: 'Conversations',
+  [CONVERSATION_KINDS.GROUP]: 'Groups',
   [CONVERSATION_KINDS.ANNOUNCEMENT]: 'Announcements',
   [CONVERSATION_KINDS.BROADCAST]: 'Broadcasts',
 };
@@ -171,6 +172,11 @@ export const conversationKind = conversation => {
   }
   if (conversation.isAnnouncement) {
     return CONVERSATION_KINDS.ANNOUNCEMENT;
+  }
+  // Checked after the two above: a broadcast or announcement carrying
+  // isGroup is still better read as what restricts its behaviour.
+  if (conversation.isGroup) {
+    return CONVERSATION_KINDS.GROUP;
   }
   return CONVERSATION_KINDS.CONVERSATION;
 };
@@ -245,6 +251,32 @@ export const participantName = (participantId, membersById) => {
 };
 
 /**
+ * What to call a thread in a list.
+ *
+ * A group carries its own name -- createGroupConversation() in the app writes
+ * `name` -- while a 1:1 is named after the other participant. Naming a group
+ * after `otherParticipantId` would pick an arbitrary member out of the group,
+ * which is why groups need their own case.
+ *
+ * The `Group (N)` fallback matches MessagesScreen in the app, so an unnamed
+ * group reads identically in the portal and on a phone.
+ */
+export const conversationTitle = (conversation, membersById) => {
+  if (!conversation) {
+    return 'Unknown';
+  }
+
+  if (conversation.isGroup) {
+    return (
+      conversation.name ||
+      `Group (${(conversation.participantIds || []).length})`
+    );
+  }
+
+  return participantName(conversation.otherParticipantId, membersById);
+};
+
+/**
  * Collapses a conversation list into one entry per person.
  *
  * A single member normally has one thread per staff member, since the id is
@@ -295,6 +327,8 @@ export const CONVERSATION_FIELDS = {
   lastMessage: 'lastMessage',
   updatedAt: 'updatedAt',
   isGroup: 'isGroup',
+  // Groups only -- written by createGroupConversation() in the app.
+  name: 'name',
   hasJunior: 'hasJunior',
   monitorable: 'monitorable',
 };
@@ -339,6 +373,7 @@ export const normaliseConversation = (id, data, viewerId) => {
     participantIds,
     otherParticipantId: participantIds.find(pid => pid !== viewerId),
     isGroup: !!data[CONVERSATION_FIELDS.isGroup],
+    name: data[CONVERSATION_FIELDS.name] || null,
     isAnnouncement: isAnnouncementConversation(id, participantIds, data),
     isBroadcast: isBroadcastConversation(data),
     broadcastSender: broadcastSenderOf(data),
